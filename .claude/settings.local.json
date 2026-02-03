@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun update:*)",
+      "Bash(bun run typecheck:*)",
+      "Bash(bun run:*)",
+      "Bash(find:*)",
+      "Bash(bun audit:*)",
+      "Bash(bun pm:*)",
+      "Bash(git -C /Users/samuelloranger/Sites/projets_perso/hously log --oneline -20)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(docker compose:*)",
+      "Bash(uv run alembic upgrade:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

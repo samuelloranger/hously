@@ -1,0 +1,49 @@
+# Build and Serve stage (using Bun)
+FROM oven/bun:1
+
+WORKDIR /app
+
+# Copy lockfile from root (if available, for consistent installs)
+COPY bun.lock ./
+
+# Copy package.json for the web application
+COPY apps/web/package.json ./apps/web/
+
+# Install dependencies
+# We run install inside the apps/web directory.
+# Note: If this fails due to missing lockfile in context, we might need to remove --frozen-lockfile, 
+# but we are copying bun.lock above so it should be fine if workspace is set up correctly.
+# If apps/web is isolated, we might need to check if it has its own lockfile.
+# Given previous Dockerfile didn't copy root lockfile, it's possible apps/web/bun.lock exists?
+# Let's assume root lockfile is the one to use as per standard monorepo.
+RUN cd apps/web && bun install
+
+# Copy parent tsconfig.json (required by apps/web/tsconfig.json)
+COPY tsconfig.json ./
+
+# Copy web app config files
+COPY apps/web/tsconfig.json ./apps/web/
+COPY apps/web/tsconfig.node.json ./apps/web/
+COPY apps/web/tsconfig.build.json ./apps/web/
+COPY apps/web/vite.config.ts ./apps/web/
+COPY apps/web/vite-plugin-service-worker.ts ./apps/web/
+COPY apps/web/tailwind.config.js ./apps/web/
+COPY apps/web/postcss.config.js ./apps/web/
+
+# Copy web app source files
+COPY apps/web/src ./apps/web/src
+COPY apps/web/public ./apps/web/public
+COPY apps/web/index.html ./apps/web/
+
+# Build React app
+RUN cd apps/web && bun run build
+
+# Set working directory to the web application
+WORKDIR /app/apps/web
+
+# Expose port 5173 (standard Vite port, or we can use 3000/8080)
+EXPOSE 5173
+
+# Serve the built application using a static file server
+# We use 'serve' package which is robust for SPA
+CMD ["bunx", "serve", "dist", "-p", "5173", "--single"]

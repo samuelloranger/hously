@@ -1,0 +1,28 @@
+# Cursor Settings for Hously Project
+
+## Frontend Package Manager
+- Always use **Bun** for frontend operations (apps/web directory)
+- Use `bun install`, `bun run build`, `bun run dev`, `bun run test`, etc.
+- Never use npm, yarn, or pnpm for frontend dependencies
+
+## Build Commands
+- Always use Makefile commands for building:
+  - `make build` - Build frontend for production
+  - Never run build commands directly (e.g., don't run `bun run build` directly, use `make build`)
+
+## Database Migrations
+- Always use Makefile commands for database migrations:
+  - `make migrate-new MESSAGE="description"` - Create a new migration
+  - `make migrate-up` - Apply all pending migrations
+  - `make migrate-down` - Rollback one migration
+  - `make migrate-status` - Show migration status
+  - `make migrate-history` - Show migration history
+  - `make migrate-current` - Show current migration version
+  - `make migrate-stamp REVISION="revision_id"` - Stamp database to a specific revision
+- Never run alembic commands directly
+
+## General Guidelines
+- When suggesting commands or operations, prioritize Makefile targets when available
+- Frontend development should always reference Bun as the package manager
+- When creating scripts or documentation, use Makefile commands instead of direct tool invocations
+

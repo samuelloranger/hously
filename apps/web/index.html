@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Hously - Your family's utility app for managing shopping lists and chores"
+    />
+
+    <!-- Security Headers - CSP should be configured via HTTP headers on the backend -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+    <!-- Apple iOS/MacOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Hously" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#4F46E5" />
+    <meta name="msapplication-navbutton-color" content="#4F46E5" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <!-- Apple Touch Icons for iOS and macOS -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme Script - Must run before any content renders -->
+    <script>
+      (function () {
+        const theme = localStorage.getItem("theme");
+        if (
+          theme === "dark" ||
+          (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+          document.documentElement.classList.add("dark");
+          document.documentElement.style.colorScheme = "dark";
+        } else {
+          document.documentElement.style.colorScheme = "light";
+        }
+      })();
+    </script>
+
+    <!-- Prevent flash of unstyled content -->
+    <style>
+      html {
+        background-color: #f9fafb;
+      }
+      html.dark {
+        /* background-color: #111827; */
+        background-color: oklch(0.205 0 0);
+      }
+    </style>
+
+    <title>Hously</title>
+  </head>
+  <body
+    class="h-full bg-neutral-50 dark:bg-neutral-900 transition-colors duration-300"
+  >
+    <div id="root" class="h-full"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

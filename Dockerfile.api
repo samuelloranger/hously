@@ -1,0 +1,26 @@
+# Build stage (using Bun)
+FROM oven/bun:1
+
+WORKDIR /app
+
+# Copy lockfile from root
+COPY bun.lock ./
+
+# Copy package.json for the api application
+COPY apps/api/package.json ./apps/api/
+
+# Install dependencies
+# We run install inside the apps/api directory.
+RUN cd apps/api && bun install
+
+# Copy application source code
+COPY apps/api ./apps/api
+
+# Set working directory to the api application
+WORKDIR /app/apps/api
+
+# Expose the application port
+EXPOSE 3000
+
+# Start the application
+CMD ["bun", "src/index.ts"]

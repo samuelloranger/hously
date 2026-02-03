@@ -1,0 +1,122 @@
+import { sw } from "./sw";
+import type { NotificationData } from "./types";
+
+// Handle notification click events - navigate to URL or handle actions
+export function handleNotificationClick(event: NotificationEvent): void {
+  event.notification.close();
+
+  const action = event.action;
+  const notificationData = (event.notification.data || {}) as NotificationData;
+
+  // Handle "reload" action for update notifications
+  if (action === "reload" || notificationData.action === "reload") {
+    event.waitUntil(
+      sw.clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then((clients) => {
+          // Reload all open windows
+          clients.forEach((client) => {
+            if (client.url && "navigate" in client) {
+              client.navigate(client.url);
+            }
+          });
+          // Also reload the service worker
+          return sw.registration.update().then(() => {
+            // Force reload after a short delay
+            return new Promise<void>((resolve) => {
+              setTimeout(() => {
+                clients.forEach((client) => {
+                  if (client.url && "navigate" in client) {
+                    client.navigate(client.url);
+                  }
+                });
+                resolve();
+              }, 100);
+            });
+          });
+        }),
+    );
+    return;
+  }
+
+  // Handle "dismiss" action for update notifications
+  if (action === "dismiss" && notificationData.action === "reload") {
+    return; // Just close the notification
+  }
+
+  // Handle "close" action
+  if (action === "close") {
+    return;
+  }
+
+  // Handle "mark-done" action for chore reminders
+  if (action === "mark-done" && notificationData.chore_id) {
+    event.waitUntil(
+      // First, get CSRF token
+      fetch(`/api/chores/toggle/${notificationData.chore_id}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            // Show a confirmation notification
+            return sw.registration.showNotification("Hously", {
+              body: "Tâche marquée comme faite !",
+              icon: "/icon-192.png",
+              badge: "/icon-32.png",
+              tag: "chore-marked-done",
+              requireInteraction: true,
+            });
+          } else {
+            // Show error notification
+            return sw.registration.showNotification("Hously", {
+              body: "Erreur lors de la mise à jour de la tâche",
+              icon: "/icon-192.png",
+              badge: "/icon-32.png",
+              tag: "chore-error",
+              requireInteraction: true,
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Error marking chore as done:", error);
+          // Show error notification
+          return sw.registration.showNotification("Hously", {
+            body: "Erreur de connexion",
+            icon: "/icon-192.png",
+            badge: "/icon-32.png",
+            tag: "chore-error",
+            requireInteraction: true,
+          });
+        }),
+    );
+    return;
+  }
+
+  // Default: navigate to URL (for "open" action or notification click)
+  const url = notificationData.url || "/";
+
+  event.waitUntil(
+    sw.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clients) => {
+        // Check if there's already a window/tab open with the target URL
+        for (let i = 0; i < clients.length; i++) {
+          const client = clients[i];
+          if (client.url === url && "focus" in client) {
+            return client.focus();
+          }
+        }
+        // If not, open a new window/tab
+        clients.forEach((client) => {
+          if (client.url && "navigate" in client) {
+            client.navigate(client.url);
+          }
+        });
+        return;
+      }),
+  );
+}
