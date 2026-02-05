@@ -21,12 +21,20 @@ const mapUser = (user: typeof users.$inferSelect) => ({
   last_activity: user.lastActivity,
 });
 
+const getJwtSecret = (): string => {
+  const secret = process.env.SECRET_KEY;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("SECRET_KEY environment variable is required in production");
+  }
+  return secret || "dev-key-change-in-production";
+};
+
 export const auth = (app: Elysia) =>
   app
     .use(
       jwt({
         name: "jwt",
-        secret: process.env.SECRET_KEY || "dev-key-change-in-production",
+        secret: getJwtSecret(),
       }),
     )
     .use(cookie())

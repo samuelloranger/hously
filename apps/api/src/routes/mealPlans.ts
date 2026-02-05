@@ -25,7 +25,33 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
         const startDateStr = query.start_date;
         const endDateStr = query.end_date;
 
-        let mealPlansList = await db
+        // Validate date formats upfront
+        if (startDateStr) {
+          const startDate = parseDate(startDateStr);
+          if (!startDate) {
+            set.status = 400;
+            return { error: "Invalid start_date format" };
+          }
+        }
+
+        if (endDateStr) {
+          const endDate = parseDate(endDateStr);
+          if (!endDate) {
+            set.status = 400;
+            return { error: "Invalid end_date format" };
+          }
+        }
+
+        // Build where conditions for SQL filtering
+        const conditions = [];
+        if (startDateStr) {
+          conditions.push(gte(mealPlans.plannedDate, startDateStr));
+        }
+        if (endDateStr) {
+          conditions.push(lte(mealPlans.plannedDate, endDateStr));
+        }
+
+        const mealPlansList = await db
           .select({
             id: mealPlans.id,
             recipeId: mealPlans.recipeId,
@@ -39,32 +65,8 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
           })
           .from(mealPlans)
           .leftJoin(recipes, eq(mealPlans.recipeId, recipes.id))
+          .where(conditions.length > 0 ? and(...conditions) : undefined)
           .orderBy(asc(mealPlans.plannedDate));
-
-        // Apply date filters if provided
-        if (startDateStr) {
-          const startDate = parseDate(startDateStr);
-          if (!startDate) {
-            set.status = 400;
-            return { error: "Invalid start_date format" };
-          }
-          mealPlansList = mealPlansList.filter((mp) => {
-            if (!mp.plannedDate) return false;
-            return mp.plannedDate >= startDateStr;
-          });
-        }
-
-        if (endDateStr) {
-          const endDate = parseDate(endDateStr);
-          if (!endDate) {
-            set.status = 400;
-            return { error: "Invalid end_date format" };
-          }
-          mealPlansList = mealPlansList.filter((mp) => {
-            if (!mp.plannedDate) return false;
-            return mp.plannedDate <= endDateStr;
-          });
-        }
 
         // Get all users for username lookups
         const allUsers = await db

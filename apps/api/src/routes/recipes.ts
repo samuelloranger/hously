@@ -3,7 +3,7 @@ import { db } from "../db";
 import { recipes, recipeIngredients, users } from "../db/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import { auth } from "../auth";
-import { saveImageAndCreateThumbnail, deleteImageFiles, getImage } from "../services/imageService";
+import { saveImageAndCreateThumbnail, deleteImageFiles, getImage, getContentType } from "../services/imageService";
 import { formatIso, nowUtc, sanitizeInput, sanitizeRichText } from "../utils";
 
 export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
@@ -588,16 +588,8 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
           return { error: "No image file provided" };
         }
 
-        // Convert File to Buffer
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-
         // Save image and create thumbnail
-        const imagePath = await saveImageAndCreateThumbnail(
-          buffer,
-          file.name,
-          file.type
-        );
+        const imagePath = await saveImageAndCreateThumbnail(file);
 
         console.log(`Recipe image upload successful - image_path: ${imagePath}`);
 
@@ -627,7 +619,12 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
   // GET /api/recipes/image/:filename - Serve recipe image
   .get(
     "/image/*",
-    async ({ params, set }) => {
+    async ({ user, params, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
       try {
         const filename = params["*"];
 
@@ -637,17 +634,21 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
           return { error: "Invalid filename" };
         }
 
-        const result = await getImage(filename);
+        const imageBuffer = await getImage(filename);
 
-        if (!result) {
+        if (!imageBuffer) {
           set.status = 404;
           return { error: "Image not found" };
         }
 
-        set.headers["Content-Type"] = result.contentType;
-        set.headers["Cache-Control"] = "public, max-age=31536000";
+        const contentType = getContentType(filename);
 
-        return new Response(result.buffer);
+        return new Response(imageBuffer, {
+          headers: {
+            "Content-Type": contentType,
+            "Cache-Control": "public, max-age=31536000",
+          },
+        });
       } catch (error) {
         console.error("Error serving recipe image:", error);
         set.status = 500;

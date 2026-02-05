@@ -293,9 +293,12 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
       }
 
       try {
-        // Get item
+        // Get item (not already soft-deleted)
         const item = await db.query.shoppingItems.findFirst({
-          where: eq(shoppingItems.id, itemId),
+          where: and(
+            eq(shoppingItems.id, itemId),
+            isNull(shoppingItems.deletedAt)
+          ),
         });
 
         if (!item) {
@@ -482,25 +485,31 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
       }
 
       try {
-        // Update positions based on the order in the array
+        // Validate and normalize all IDs upfront
+        const normalizedIds: number[] = [];
         for (let i = 0; i < item_ids.length; i++) {
-          const itemId = typeof item_ids[i] === "string" ? parseInt(item_ids[i], 10) : item_ids[i];
+          const itemId = typeof item_ids[i] === "string" ? parseInt(item_ids[i] as string, 10) : item_ids[i] as number;
           if (isNaN(itemId)) {
             set.status = 400;
             return { error: `Invalid item_id: ${item_ids[i]}` };
           }
-
-          // Update position for non-deleted items
-          await db
-            .update(shoppingItems)
-            .set({ position: i })
-            .where(
-              and(
-                eq(shoppingItems.id, itemId),
-                isNull(shoppingItems.deletedAt)
-              )
-            );
+          normalizedIds.push(itemId);
         }
+
+        // Update positions atomically in a transaction
+        await db.transaction(async (tx) => {
+          for (let i = 0; i < normalizedIds.length; i++) {
+            await tx
+              .update(shoppingItems)
+              .set({ position: i })
+              .where(
+                and(
+                  eq(shoppingItems.id, normalizedIds[i]),
+                  isNull(shoppingItems.deletedAt)
+                )
+              );
+          }
+        });
 
         console.log(`User ${user.id} reordered shopping items`);
         return { success: true, message: "Shopping items reordered successfully" };

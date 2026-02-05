@@ -1,6 +1,12 @@
 import { Elysia, t } from "elysia";
 import { db } from "../db";
-import { chores, reminders, users, taskCompletions, notifications } from "../db/schema";
+import {
+  chores,
+  reminders,
+  users,
+  taskCompletions,
+  notifications,
+} from "../db/schema";
 import { eq, and, asc, desc, isNull, or, sql } from "drizzle-orm";
 import { auth } from "../auth";
 import {
@@ -18,7 +24,7 @@ const mapChore = (
   activeReminder?: typeof reminders.$inferSelect | null,
   addedByUser?: { firstName: string | null; email: string } | null,
   assignedToUser?: { firstName: string | null; email: string } | null,
-  completedByUser?: { firstName: string | null; email: string } | null
+  completedByUser?: { firstName: string | null; email: string } | null,
 ) => ({
   id: chore.id,
   position: chore.position,
@@ -33,9 +39,13 @@ const mapChore = (
   created_at: formatIso(chore.createdAt),
   completed_at: formatIso(chore.completedAt),
   added_by_username: addedByUser?.firstName || addedByUser?.email || null,
-  assigned_to_username: assignedToUser?.firstName || assignedToUser?.email || null,
-  completed_by_username: completedByUser?.firstName || completedByUser?.email || null,
-  reminder_datetime: activeReminder ? formatIso(activeReminder.reminderDatetime) : null,
+  assigned_to_username:
+    assignedToUser?.firstName || assignedToUser?.email || null,
+  completed_by_username:
+    completedByUser?.firstName || completedByUser?.email || null,
+  reminder_datetime: activeReminder
+    ? formatIso(activeReminder.reminderDatetime)
+    : null,
   reminder_active: activeReminder?.active || false,
   recurrence_type: chore.recurrenceType,
   recurrence_interval_days: chore.recurrenceIntervalDays,
@@ -55,16 +65,22 @@ const deactivateRemindersForChore = async (choreId: number) => {
 // Helper to create next chore occurrence for recurring chores
 const createNextChoreOccurrence = async (
   chore: typeof chores.$inferSelect,
-  completedAt: Date
+  completedAt: Date,
 ) => {
   if (!chore.recurrenceType) return null;
 
   let nextDate: Date;
 
-  if (chore.recurrenceType === "daily_interval" && chore.recurrenceIntervalDays) {
+  if (
+    chore.recurrenceType === "daily_interval" &&
+    chore.recurrenceIntervalDays
+  ) {
     nextDate = new Date(completedAt);
     nextDate.setDate(nextDate.getDate() + chore.recurrenceIntervalDays);
-  } else if (chore.recurrenceType === "weekly" && chore.recurrenceWeekday !== null) {
+  } else if (
+    chore.recurrenceType === "weekly" &&
+    chore.recurrenceWeekday !== null
+  ) {
     nextDate = new Date(completedAt);
     const currentDay = nextDate.getDay();
     // Convert from Sunday=0 to Monday=0 format
@@ -134,7 +150,11 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       const allChores = await db
         .select()
         .from(chores)
-        .orderBy(asc(chores.completed), asc(chores.position), desc(chores.createdAt));
+        .orderBy(
+          asc(chores.completed),
+          asc(chores.position),
+          desc(chores.createdAt),
+        );
 
       // Get all users
       const allUsers = await db
@@ -155,14 +175,20 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         .orderBy(asc(reminders.choreId), asc(reminders.reminderDatetime));
 
       // Create lookup maps
-      const remindersByChoreId = new Map<number, typeof reminders.$inferSelect>();
+      const remindersByChoreId = new Map<
+        number,
+        typeof reminders.$inferSelect
+      >();
       for (const reminder of activeReminders) {
         if (!remindersByChoreId.has(reminder.choreId)) {
           remindersByChoreId.set(reminder.choreId, reminder);
         }
       }
 
-      const usersById = new Map<number, { firstName: string | null; email: string }>();
+      const usersById = new Map<
+        number,
+        { firstName: string | null; email: string }
+      >();
       for (const u of allUsers) {
         usersById.set(u.id, { firstName: u.firstName, email: u.email });
       }
@@ -171,10 +197,20 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       const choresList = allChores.map((chore) => {
         const activeReminder = remindersByChoreId.get(chore.id);
         const addedByUser = chore.addedBy ? usersById.get(chore.addedBy) : null;
-        const assignedToUser = chore.assignedTo ? usersById.get(chore.assignedTo) : null;
-        const completedByUser = chore.completedBy ? usersById.get(chore.completedBy) : null;
+        const assignedToUser = chore.assignedTo
+          ? usersById.get(chore.assignedTo)
+          : null;
+        const completedByUser = chore.completedBy
+          ? usersById.get(chore.completedBy)
+          : null;
 
-        return mapChore(chore, activeReminder, addedByUser, assignedToUser, completedByUser);
+        return mapChore(
+          chore,
+          activeReminder,
+          addedByUser,
+          assignedToUser,
+          completedByUser,
+        );
       });
 
       const usersList = allUsers.map((u) => ({
@@ -222,8 +258,15 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
       // Handle assigned_to
       let assignedTo: number | null = null;
-      if (assigned_to !== undefined && assigned_to !== null && assigned_to !== "") {
-        const parsedAssignedTo = typeof assigned_to === "string" ? parseInt(assigned_to, 10) : assigned_to;
+      if (
+        assigned_to !== undefined &&
+        assigned_to !== null &&
+        assigned_to !== ""
+      ) {
+        const parsedAssignedTo =
+          typeof assigned_to === "string"
+            ? parseInt(assigned_to, 10)
+            : assigned_to;
         if (isNaN(parsedAssignedTo)) {
           set.status = 400;
           return { error: "Invalid assigned user" };
@@ -247,7 +290,10 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       if (recurrence_type) {
         if (!["daily_interval", "weekly"].includes(recurrence_type)) {
           set.status = 400;
-          return { error: 'Invalid recurrence_type. Must be "daily_interval" or "weekly"' };
+          return {
+            error:
+              'Invalid recurrence_type. Must be "daily_interval" or "weekly"',
+          };
         }
 
         validatedRecurrenceType = recurrence_type;
@@ -255,13 +301,24 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         if (recurrence_type === "daily_interval") {
           if (!recurrence_interval_days || recurrence_interval_days <= 0) {
             set.status = 400;
-            return { error: "recurrence_interval_days must be positive for daily_interval type" };
+            return {
+              error:
+                "recurrence_interval_days must be positive for daily_interval type",
+            };
           }
           validatedRecurrenceIntervalDays = recurrence_interval_days;
         } else if (recurrence_type === "weekly") {
-          if (recurrence_weekday === null || recurrence_weekday === undefined || recurrence_weekday < 0 || recurrence_weekday > 6) {
+          if (
+            recurrence_weekday === null ||
+            recurrence_weekday === undefined ||
+            recurrence_weekday < 0 ||
+            recurrence_weekday > 6
+          ) {
             set.status = 400;
-            return { error: "recurrence_weekday must be between 0 (Monday) and 6 (Sunday)" };
+            return {
+              error:
+                "recurrence_weekday must be between 0 (Monday) and 6 (Sunday)",
+            };
           }
           validatedRecurrenceWeekday = recurrence_weekday;
         }
@@ -290,7 +347,9 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
             recurrenceType: validatedRecurrenceType,
             recurrenceIntervalDays: validatedRecurrenceIntervalDays,
             recurrenceWeekday: validatedRecurrenceWeekday,
-            recurrenceOriginalCreatedAt: validatedRecurrenceType ? nowUtc() : null,
+            recurrenceOriginalCreatedAt: validatedRecurrenceType
+              ? nowUtc()
+              : null,
             completed: false,
             createdAt: nowUtc(),
           })
@@ -308,11 +367,15 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         }
 
         console.log(`User ${user.id} created chore ${newChore.id}`);
-        return { success: true, id: newChore.id, message: "Chore created successfully" };
+        return {
+          success: true,
+          id: newChore.id,
+          message: "Chore created successfully",
+        };
       } catch (error) {
         console.error("Error creating chore:", error);
         set.status = 500;
-        return { error: `Failed to add chore: ${error}` };
+        return { error: "Failed to add chore" };
       }
     },
     {
@@ -327,7 +390,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         recurrence_interval_days: t.Optional(t.Union([t.Number(), t.Null()])),
         recurrence_weekday: t.Optional(t.Union([t.Number(), t.Null()])),
       }),
-    }
+    },
   )
 
   // POST /api/chores/:id/toggle - Toggle completion status
@@ -393,8 +456,8 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
               and(
                 eq(notifications.userId, user.id),
                 eq(notifications.read, false),
-                sql`${notifications.notificationMetadata}->>'chore_id' = ${String(choreId)}`
-              )
+                sql`${notifications.notificationMetadata}->>'chore_id' = ${String(choreId)}`,
+              ),
             );
 
           // Create next occurrence if recurring
@@ -402,13 +465,18 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
             try {
               await createNextChoreOccurrence(chore, completedAt!);
             } catch (error) {
-              console.error(`Error creating next occurrence for recurring chore ${choreId}:`, error);
+              console.error(
+                `Error creating next occurrence for recurring chore ${choreId}:`,
+                error,
+              );
               // Don't fail the toggle if recurrence creation fails
             }
           }
         }
 
-        console.log(`User ${user.id} toggled chore ${choreId} to ${newStatus ? "completed" : "pending"}`);
+        console.log(
+          `User ${user.id} toggled chore ${choreId} to ${newStatus ? "completed" : "pending"}`,
+        );
         return { success: true, completed: newStatus };
       } catch (error) {
         console.error("Error toggling chore:", error);
@@ -423,9 +491,9 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       body: t.Optional(
         t.Object({
           emotion: t.Optional(t.Union([t.String(), t.Null()])),
-        })
+        }),
       ),
-    }
+    },
   )
 
   // PUT /api/chores/:id - Update a chore
@@ -480,7 +548,9 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
         // Update description if provided
         if (body.description !== undefined) {
-          updateData.description = body.description ? sanitizeInput(body.description.trim()) : null;
+          updateData.description = body.description
+            ? sanitizeInput(body.description.trim())
+            : null;
         }
 
         // Update assigned_to if provided
@@ -488,7 +558,10 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           if (body.assigned_to === null || body.assigned_to === "") {
             updateData.assignedTo = null;
           } else {
-            const parsedAssignedTo = typeof body.assigned_to === "string" ? parseInt(body.assigned_to, 10) : body.assigned_to;
+            const parsedAssignedTo =
+              typeof body.assigned_to === "string"
+                ? parseInt(body.assigned_to, 10)
+                : body.assigned_to;
             if (isNaN(parsedAssignedTo)) {
               set.status = 400;
               return { error: "Invalid assigned user" };
@@ -515,9 +588,19 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
             // Delete existing reminders and create new one
             await deactivateRemindersForChore(choreId);
 
-            const reminderUserId = body.assigned_to !== undefined
-              ? (body.assigned_to === null || body.assigned_to === "" ? user.id : (typeof body.assigned_to === "string" ? parseInt(body.assigned_to, 10) : body.assigned_to))
-              : (chore.assignedTo || user.id);
+            let reminderUserId: number;
+            if (body.assigned_to !== undefined) {
+              if (body.assigned_to === null || body.assigned_to === "") {
+                reminderUserId = user.id;
+              } else {
+                const parsed = typeof body.assigned_to === "string"
+                  ? parseInt(body.assigned_to, 10)
+                  : body.assigned_to;
+                reminderUserId = isNaN(parsed as number) ? user.id : parsed as number;
+              }
+            } else {
+              reminderUserId = chore.assignedTo || user.id;
+            }
 
             await db.insert(reminders).values({
               choreId: chore.id,
@@ -554,22 +637,39 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           } else if (body.recurrence_type) {
             if (!["daily_interval", "weekly"].includes(body.recurrence_type)) {
               set.status = 400;
-              return { error: 'Invalid recurrence_type. Must be "daily_interval" or "weekly"' };
+              return {
+                error:
+                  'Invalid recurrence_type. Must be "daily_interval" or "weekly"',
+              };
             }
 
             updateData.recurrenceType = body.recurrence_type;
 
             if (body.recurrence_type === "daily_interval") {
-              if (!body.recurrence_interval_days || body.recurrence_interval_days <= 0) {
+              if (
+                !body.recurrence_interval_days ||
+                body.recurrence_interval_days <= 0
+              ) {
                 set.status = 400;
-                return { error: "recurrence_interval_days must be positive for daily_interval type" };
+                return {
+                  error:
+                    "recurrence_interval_days must be positive for daily_interval type",
+                };
               }
               updateData.recurrenceIntervalDays = body.recurrence_interval_days;
               updateData.recurrenceWeekday = null;
             } else if (body.recurrence_type === "weekly") {
-              if (body.recurrence_weekday === null || body.recurrence_weekday === undefined || body.recurrence_weekday < 0 || body.recurrence_weekday > 6) {
+              if (
+                body.recurrence_weekday === null ||
+                body.recurrence_weekday === undefined ||
+                body.recurrence_weekday < 0 ||
+                body.recurrence_weekday > 6
+              ) {
                 set.status = 400;
-                return { error: "recurrence_weekday must be between 0 (Monday) and 6 (Sunday)" };
+                return {
+                  error:
+                    "recurrence_weekday must be between 0 (Monday) and 6 (Sunday)",
+                };
               }
               updateData.recurrenceWeekday = body.recurrence_weekday;
               updateData.recurrenceIntervalDays = null;
@@ -592,7 +692,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       } catch (error) {
         console.error(`Error updating chore ${choreId}:`, error);
         set.status = 500;
-        return { error: `Failed to update chore: ${error}` };
+        return { error: "Failed to update chore" };
       }
     },
     {
@@ -611,7 +711,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         recurrence_interval_days: t.Optional(t.Union([t.Number(), t.Null()])),
         recurrence_weekday: t.Optional(t.Union([t.Number(), t.Null()])),
       }),
-    }
+    },
   )
 
   // PUT /api/chores/:id/remove-recurrence - Remove recurrence from a chore
@@ -651,16 +751,19 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         console.log(`User ${user.id} removed recurrence from chore ${choreId}`);
         return { success: true, message: "Recurrence removed successfully" };
       } catch (error) {
-        console.error(`Error removing recurrence from chore ${choreId}:`, error);
+        console.error(
+          `Error removing recurrence from chore ${choreId}:`,
+          error,
+        );
         set.status = 500;
-        return { error: `Failed to remove recurrence: ${error}` };
+        return { error: "Failed to remove recurrence" };
       }
     },
     {
       params: t.Object({
         id: t.String(),
       }),
-    }
+    },
   )
 
   // POST /api/chores/clear-completed - Delete all completed chores
@@ -747,7 +850,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       params: t.Object({
         id: t.String(),
       }),
-    }
+    },
   )
 
   // POST /api/chores/upload-image - Upload an image for a chore
@@ -772,7 +875,12 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       }
 
       // Validate file type
-      const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ];
       if (!allowedTypes.includes(image.type)) {
         set.status = 400;
         return { error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP" };
@@ -799,14 +907,14 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       } catch (error) {
         console.error("Error uploading image:", error);
         set.status = 500;
-        return { error: `Failed to upload image: ${error}` };
+        return { error: "Failed to upload image" };
       }
     },
     {
       body: t.Object({
         image: t.File(),
       }),
-    }
+    },
   )
 
   // GET /api/chores/image/:filename - Serve chore image from S3
@@ -859,7 +967,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       params: t.Object({
         filename: t.String(),
       }),
-    }
+    },
   )
 
   // GET /api/chores/thumbnail/:filename - Serve chore thumbnail from S3
@@ -904,7 +1012,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       params: t.Object({
         filename: t.String(),
       }),
-    }
+    },
   )
 
   // POST /api/chores/reorder - Reorder chores
@@ -924,16 +1032,23 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       }
 
       try {
-        // Update positions based on the order in the array
+        // Validate all IDs upfront
         for (let i = 0; i < chore_ids.length; i++) {
-          const choreId = typeof chore_ids[i] === "string" ? parseInt(chore_ids[i], 10) : chore_ids[i];
-          if (isNaN(choreId)) {
+          if (isNaN(chore_ids[i])) {
             set.status = 400;
             return { error: `Invalid chore_id: ${chore_ids[i]}` };
           }
-
-          await db.update(chores).set({ position: i }).where(eq(chores.id, choreId));
         }
+
+        // Update positions atomically in a transaction
+        await db.transaction(async (tx) => {
+          for (let i = 0; i < chore_ids.length; i++) {
+            await tx
+              .update(chores)
+              .set({ position: i })
+              .where(eq(chores.id, chore_ids[i]));
+          }
+        });
 
         console.log(`User ${user.id} reordered chores`);
         return { success: true, message: "Chores reordered successfully" };
@@ -945,7 +1060,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
     },
     {
       body: t.Object({
-        chore_ids: t.Array(t.Union([t.String(), t.Number()])),
+        chore_ids: t.Array(t.Number()),
       }),
-    }
+    },
   );

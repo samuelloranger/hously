@@ -113,6 +113,10 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     }
 
     const notificationId = parseInt(params.id, 10);
+    if (isNaN(notificationId)) {
+      set.status = 400;
+      return { error: "Invalid notification ID" };
+    }
 
     try {
       // Check if notification exists and belongs to user
@@ -184,6 +188,10 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     }
 
     const notificationId = parseInt(params.id, 10);
+    if (isNaN(notificationId)) {
+      set.status = 400;
+      return { error: "Invalid notification ID" };
+    }
 
     try {
       // Check if notification exists and belongs to user

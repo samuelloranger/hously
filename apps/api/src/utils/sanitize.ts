@@ -17,15 +17,47 @@ export const sanitizeInput = (input: string): string => {
 };
 
 /**
- * Sanitize rich text - removes dangerous tags/attributes but allows some HTML
- * Use for user inputs that may contain formatted content (descriptions, instructions)
- * Note: For production, consider using a library like DOMPurify
+ * Sanitize rich text using an allowlist approach.
+ * Only permits safe tags and strips everything else via HTML entity escaping.
+ * Allowed tags: b, i, u, strong, em, p, br, ul, ol, li, h1-h6, a (href only)
  */
+const ALLOWED_TAGS = new Set([
+  "b", "i", "u", "strong", "em", "p", "br", "ul", "ol", "li",
+  "h1", "h2", "h3", "h4", "h5", "h6", "a",
+]);
+
 export const sanitizeRichText = (input: string): string => {
-  return input
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, "")
-    .replace(/javascript:/gi, "");
+  // Replace all HTML tags: keep only allowed tags with safe attributes
+  return input.replace(/<\/?([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/gi, (match, tag, attrs) => {
+    const tagLower = tag.toLowerCase();
+    const isClosing = match.startsWith("</");
+
+    if (!ALLOWED_TAGS.has(tagLower)) {
+      // Escape the entire tag
+      return match.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    if (isClosing) {
+      return `</${tagLower}>`;
+    }
+
+    // For allowed tags, only keep href on <a> tags
+    let safeAttrs = "";
+    if (tagLower === "a") {
+      const hrefMatch = attrs.match(/href\s*=\s*"([^"]*?)"/i)
+        || attrs.match(/href\s*=\s*'([^']*?)'/i);
+      if (hrefMatch) {
+        const href = hrefMatch[1];
+        // Block javascript: and data: URIs
+        if (!/^\s*(javascript|data|vbscript):/i.test(href)) {
+          safeAttrs = ` href="${href.replace(/"/g, "&quot;")}"`;
+        }
+      }
+    }
+
+    const selfClosing = tagLower === "br" ? " /" : "";
+    return `<${tagLower}${safeAttrs}${selfClosing}>`;
+  });
 };
 
 /**

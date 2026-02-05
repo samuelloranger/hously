@@ -13,65 +13,74 @@ export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
       return { error: "Unauthorized" };
     }
 
-    // Get today's range
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    try {
+      // Get today's range
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // 1. Events today
-    const eventsToday = await db
-      .select({ count: count() })
-      .from(customEvents)
-      .where(
-        between(
-          customEvents.startDatetime,
-          today.toISOString().split("T")[0],
-          tomorrow.toISOString().split("T")[0]
-        )
-      );
+      // 1. Events today (for current user only)
+      const eventsToday = await db
+        .select({ count: count() })
+        .from(customEvents)
+        .where(
+          and(
+            eq(customEvents.userId, user.id),
+            between(
+              customEvents.startDatetime,
+              today.toISOString().split("T")[0],
+              tomorrow.toISOString().split("T")[0]
+            )
+          )
+        );
 
-    // 2. Shopping Items (incomplete, not deleted)
-    const shoppingCount = await db
-      .select({ count: count() })
-      .from(shoppingItems)
-      .where(
-        and(
+      // 2. Shopping Items (incomplete, not deleted)
+      const shoppingCount = await db
+        .select({ count: count() })
+        .from(shoppingItems)
+        .where(
+          and(
+            or(
+              eq(shoppingItems.completed, false),
+              isNull(shoppingItems.completed)
+            ),
+            isNull(shoppingItems.deletedAt)
+          )
+        );
+
+      // 3. Chores (incomplete)
+      const choresCount = await db
+        .select({ count: count() })
+        .from(chores)
+        .where(
           or(
-            eq(shoppingItems.completed, false),
-            isNull(shoppingItems.completed)
-          ),
-          isNull(shoppingItems.deletedAt)
-        )
-      );
+            eq(chores.completed, false),
+            isNull(chores.completed)
+          )
+        );
 
-    // 3. Chores (incomplete)
-    const choresCount = await db
-      .select({ count: count() })
-      .from(chores)
-      .where(
-        or(
-          eq(chores.completed, false),
-          isNull(chores.completed)
-        )
-      );
+      // 4. Monthly total (tasks completed this month)
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const monthlyTotalResult = await db
+        .select({ count: count() })
+        .from(taskCompletions)
+        .where(gte(taskCompletions.completedAt, startOfMonth.toISOString()));
 
-    // 4. Monthly total (tasks completed this month)
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const monthlyTotalResult = await db
-      .select({ count: count() })
-      .from(taskCompletions)
-      .where(gte(taskCompletions.completedAt, startOfMonth.toISOString()));
-
-    return {
-      stats: {
-        events_today: eventsToday[0].count,
-        shopping_count: shoppingCount[0].count,
-        chores_count: choresCount[0].count,
-        monthly_total: monthlyTotalResult[0].count,
-      },
-      activities: [],
-    };
+      return {
+        stats: {
+          events_today: eventsToday[0].count,
+          shopping_count: shoppingCount[0].count,
+          chores_count: choresCount[0].count,
+          monthly_total: monthlyTotalResult[0].count,
+        },
+        activities: [],
+      };
+    } catch (error) {
+      console.error("Error getting dashboard stats:", error);
+      set.status = 500;
+      return { error: "Failed to get dashboard stats" };
+    }
   })
   .get(
     "/activities",
