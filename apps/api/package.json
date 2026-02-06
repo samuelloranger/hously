@@ -1,6 +1,7 @@
 {
   "name": "@hously/server",
   "version": "1.0.0",
+  "packageManager": "bun@1.3.3",
   "module": "src/index.ts",
   "type": "module",
   "scripts": {

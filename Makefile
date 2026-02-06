@@ -7,6 +7,8 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 install: ## Install all dependencies (Bun)
+	@echo "Installing mobile dependencies..."
+	cd apps/app && bun install
 	@echo "Installing web dependencies..."
 	cd apps/web && bun install
 	@echo "Installing API dependencies..."
