@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { jwt } from "@elysiajs/jwt";
 import { cookie } from "@elysiajs/cookie";
 import { db } from "./db";
-import { users, passwordResetTokens } from "./db/schema";
+import { users, passwordResetTokens, refreshTokens } from "./db/schema";
 import { eq, and, gt } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "./utils/password";
 import { authRateLimit } from "./middleware/rateLimit";
@@ -19,6 +19,7 @@ const mapUser = (user: typeof users.$inferSelect) => ({
   last_login: user.lastLogin,
   created_at: user.createdAt || new Date().toISOString(),
   last_activity: user.lastActivity,
+  avatar_url: user.avatarUrl || null,
 });
 
 const getJwtSecret = (): string => {
@@ -27,6 +28,31 @@ const getJwtSecret = (): string => {
     throw new Error("SECRET_KEY environment variable is required in production");
   }
   return secret || "dev-key-change-in-production";
+};
+
+// Generate a cryptographically secure refresh token
+const generateRefreshToken = (): string => {
+  const tokenBytes = new Uint8Array(32);
+  crypto.getRandomValues(tokenBytes);
+  return btoa(String.fromCharCode(...tokenBytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+};
+
+// Create and store a refresh token for a user, returns the raw token string
+const createRefreshToken = async (userId: number): Promise<string> => {
+  const token = generateRefreshToken();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days
+
+  await db.insert(refreshTokens).values({
+    userId,
+    token,
+    expiresAt,
+    revoked: false,
+  });
+
+  return token;
 };
 
 export const auth = (app: Elysia) =>
@@ -38,7 +64,25 @@ export const auth = (app: Elysia) =>
       }),
     )
     .use(cookie())
-    .derive(async ({ jwt, cookie: { auth }, set }) => {
+    .derive(async ({ jwt, cookie: { auth }, set, request }) => {
+      // 1. Check Authorization: Bearer <token> header (mobile clients)
+      const authHeader = request.headers.get("authorization");
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.slice(7);
+        const profile = await jwt.verify(token);
+        if (profile && profile.id) {
+          const user = await db.query.users.findFirst({
+            where: eq(users.id, Number(profile.id)),
+          });
+          if (user) {
+            return { user: mapUser(user) };
+          }
+        }
+        // Invalid Bearer token — don't fall through to cookie, return null
+        return { user: null };
+      }
+
+      // 2. Check auth cookie (web clients)
       if (!auth.value) {
         return { user: null };
       }
@@ -85,12 +129,15 @@ export const auth = (app: Elysia) =>
               return { success: false, error: "Internal server error" };
             }
 
-            // Generate JWT with secure cookie settings
+            // Generate JWT access token
+            const accessToken = await jwt.sign({ id: user.id });
+
+            // Set secure cookie for web clients
             // - httpOnly: Prevents XSS attacks from stealing the token
             // - sameSite: 'lax' provides CSRF protection (cookies not sent on cross-site POST)
             // - secure: HTTPS only in production
             auth.set({
-              value: await jwt.sign({ id: user.id }),
+              value: accessToken,
               httpOnly: true,
               maxAge: 7 * 86400, // 7 days
               path: "/",
@@ -104,8 +151,13 @@ export const auth = (app: Elysia) =>
               .set({ lastLogin: new Date().toISOString() })
               .where(eq(users.id, user.id));
 
+            // Generate refresh token for mobile clients
+            const refreshToken = await createRefreshToken(user.id);
+
             return {
               user: mapUser(user),
+              token: accessToken,
+              refreshToken,
             };
           },
           {
@@ -163,12 +215,12 @@ export const auth = (app: Elysia) =>
               })
               .returning();
 
-            // Generate JWT with secure cookie settings
-            // - httpOnly: Prevents XSS attacks from stealing the token
-            // - sameSite: 'lax' provides CSRF protection (cookies not sent on cross-site POST)
-            // - secure: HTTPS only in production
+            // Generate JWT access token
+            const accessToken = await jwt.sign({ id: newUser.id });
+
+            // Set secure cookie for web clients
             auth.set({
-              value: await jwt.sign({ id: newUser.id }),
+              value: accessToken,
               httpOnly: true,
               maxAge: 7 * 86400, // 7 days
               path: "/",
@@ -176,11 +228,16 @@ export const auth = (app: Elysia) =>
               secure: process.env.NODE_ENV === "production",
             });
 
+            // Generate refresh token for mobile clients
+            const refreshToken = await createRefreshToken(newUser.id);
+
             console.log(`New user registered: ${email}`);
 
             set.status = 201;
             return {
               user: mapUser(newUser),
+              token: accessToken,
+              refreshToken,
             };
           },
           {
@@ -190,6 +247,69 @@ export const auth = (app: Elysia) =>
               first_name: t.Optional(t.String()),
               last_name: t.Optional(t.String()),
               locale: t.Optional(t.String()),
+            }),
+          },
+        )
+        .post(
+          "/refresh",
+          async ({ body, jwt, set }) => {
+            const { refreshToken: tokenValue } = body;
+
+            if (!tokenValue) {
+              set.status = 400;
+              return { error: "Refresh token is required" };
+            }
+
+            try {
+              // Find valid refresh token
+              const storedToken = await db.query.refreshTokens.findFirst({
+                where: and(
+                  eq(refreshTokens.token, tokenValue),
+                  eq(refreshTokens.revoked, false),
+                  gt(refreshTokens.expiresAt, new Date().toISOString()),
+                ),
+              });
+
+              if (!storedToken) {
+                set.status = 401;
+                return { error: "Invalid or expired refresh token" };
+              }
+
+              // Fetch user
+              const user = await db.query.users.findFirst({
+                where: eq(users.id, storedToken.userId),
+              });
+
+              if (!user) {
+                set.status = 401;
+                return { error: "User not found" };
+              }
+
+              // Revoke old refresh token (rotation)
+              await db
+                .update(refreshTokens)
+                .set({ revoked: true })
+                .where(eq(refreshTokens.id, storedToken.id));
+
+              // Generate new access token
+              const accessToken = await jwt.sign({ id: user.id });
+
+              // Generate new refresh token
+              const newRefreshToken = await createRefreshToken(user.id);
+
+              return {
+                accessToken,
+                refreshToken: newRefreshToken,
+              };
+            } catch (error) {
+              console.error("Error refreshing token:", error);
+              set.status = 500;
+              return { error: "Token refresh failed" };
+            }
+          },
+          {
+            body: t.Object({
+              refreshToken: t.String(),
             }),
           },
         )
@@ -338,14 +458,219 @@ export const auth = (app: Elysia) =>
             }),
           },
         )
-        .get("/me", ({ user, set }) => {
+        .get("/me", async ({ user, set }) => {
           if (!user) {
             set.status = 401;
             return { user: null };
           }
-          return { user };
+
+          // Fetch fresh user data (including avatar_url)
+          const dbUser = await db.query.users.findFirst({
+            where: eq(users.id, user.id),
+          });
+
+          if (!dbUser) {
+            set.status = 401;
+            return { user: null };
+          }
+
+          return { user: mapUser(dbUser) };
         })
-        .post("/logout", ({ cookie: { auth } }) => {
+        .put(
+          "/me",
+          async ({ user, body, set }) => {
+            if (!user) {
+              set.status = 401;
+              return { error: "Unauthorized" };
+            }
+
+            const { first_name, last_name, locale } = body;
+
+            if (
+              first_name === undefined &&
+              last_name === undefined &&
+              locale === undefined
+            ) {
+              set.status = 400;
+              return { error: "At least one field must be provided" };
+            }
+
+            if (locale && locale.length > 10) {
+              set.status = 400;
+              return { error: "Locale must be 10 characters or less" };
+            }
+
+            try {
+              const updateData: Partial<{
+                firstName: string | null;
+                lastName: string | null;
+                locale: string | null;
+              }> = {};
+
+              if (first_name !== undefined) {
+                updateData.firstName = first_name;
+              }
+              if (last_name !== undefined) {
+                updateData.lastName = last_name;
+              }
+              if (locale !== undefined) {
+                updateData.locale = locale;
+              }
+
+              const [updatedUser] = await db
+                .update(users)
+                .set(updateData)
+                .where(eq(users.id, user.id))
+                .returning();
+
+              return { user: mapUser(updatedUser) };
+            } catch (error) {
+              console.error("Error updating user profile:", error);
+              set.status = 500;
+              return { error: "Failed to update profile" };
+            }
+          },
+          {
+            body: t.Object({
+              first_name: t.Optional(t.Union([t.String(), t.Null()])),
+              last_name: t.Optional(t.Union([t.String(), t.Null()])),
+              locale: t.Optional(t.Union([t.String(), t.Null()])),
+            }),
+          },
+        )
+        .post(
+          "/change-password",
+          async ({ user, body, set }) => {
+            if (!user) {
+              set.status = 401;
+              return { error: "Unauthorized" };
+            }
+
+            const { current_password, new_password } = body;
+
+            const [isValid, passwordError] = validatePassword(new_password);
+            if (!isValid) {
+              set.status = 400;
+              return { error: passwordError };
+            }
+
+            try {
+              const dbUser = await db.query.users.findFirst({
+                where: eq(users.id, user.id),
+              });
+
+              if (!dbUser) {
+                set.status = 401;
+                return { error: "User not found" };
+              }
+
+              const isCurrentValid = await verifyPassword(
+                current_password,
+                dbUser.passwordHash,
+              );
+              if (!isCurrentValid) {
+                set.status = 400;
+                return { error: "Current password is incorrect" };
+              }
+
+              const passwordHash = await hashPassword(new_password);
+              await db
+                .update(users)
+                .set({ passwordHash })
+                .where(eq(users.id, user.id));
+
+              return { message: "Password updated successfully" };
+            } catch (error) {
+              console.error("Error changing password:", error);
+              set.status = 500;
+              return { error: "Failed to change password" };
+            }
+          },
+          {
+            body: t.Object({
+              current_password: t.String(),
+              new_password: t.String(),
+            }),
+          },
+        )
+        .post(
+          "/avatar",
+          async ({ user, body, set }) => {
+            if (!user) {
+              set.status = 401;
+              return { error: "Unauthorized" };
+            }
+
+            const { avatar } = body;
+
+            if (!avatar || !(avatar instanceof File)) {
+              set.status = 400;
+              return { error: "Avatar file is required" };
+            }
+
+            // Validate file type
+            const allowedTypes = [
+              "image/jpeg",
+              "image/png",
+              "image/gif",
+              "image/webp",
+            ];
+            if (!allowedTypes.includes(avatar.type)) {
+              set.status = 400;
+              return { error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP" };
+            }
+
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (avatar.size > maxSize) {
+              set.status = 400;
+              return { error: "File too large. Maximum size is 5MB" };
+            }
+
+            try {
+              const ext = avatar.name.split(".").pop() || "jpg";
+              const filename = `avatar_${user.id}_${Date.now()}.${ext}`;
+
+              const uploadsDir = `${process.cwd()}/uploads/avatars`;
+              await Bun.write(`${uploadsDir}/${filename}`, avatar);
+
+              const avatarUrl = `/uploads/avatars/${filename}`;
+
+              // Persist avatar URL in user record
+              await db
+                .update(users)
+                .set({ avatarUrl })
+                .where(eq(users.id, user.id));
+
+              return {
+                message: "Avatar uploaded successfully",
+                avatar_url: avatarUrl,
+                url: avatarUrl,
+              };
+            } catch (error) {
+              console.error("Error uploading avatar:", error);
+              set.status = 500;
+              return { error: "Failed to upload avatar" };
+            }
+          },
+          {
+            body: t.Object({
+              avatar: t.File(),
+            }),
+          },
+        )
+        .post("/logout", async ({ user, cookie: { auth } }) => {
+          // Revoke all refresh tokens for user on logout
+          if (user) {
+            try {
+              await db
+                .update(refreshTokens)
+                .set({ revoked: true })
+                .where(eq(refreshTokens.userId, user.id));
+            } catch (error) {
+              console.error("Error revoking refresh tokens:", error);
+            }
+          }
           auth.remove();
           return { message: "Logged out" };
         }),

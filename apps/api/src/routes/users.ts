@@ -17,6 +17,7 @@ const mapUser = (user: typeof users.$inferSelect) => ({
   last_login: user.lastLogin,
   created_at: user.createdAt || new Date().toISOString(),
   last_activity: user.lastActivity,
+  avatar_url: user.avatarUrl || null,
 });
 
 export const usersRoutes = new Elysia({ prefix: "/api/users" })
@@ -211,9 +212,13 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         const uploadsDir = `${process.cwd()}/uploads/avatars`;
         await Bun.write(`${uploadsDir}/${filename}`, avatar);
 
-        // TODO: Update user record with avatar URL once avatar field is added to schema
-        // For now, just return the path
         const avatarUrl = `/uploads/avatars/${filename}`;
+
+        // Persist avatar URL in user record
+        await db
+          .update(users)
+          .set({ avatarUrl })
+          .where(eq(users.id, user.id));
 
         return {
           message: "Avatar uploaded successfully",

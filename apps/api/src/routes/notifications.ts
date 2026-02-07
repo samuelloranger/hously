@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { auth } from "../auth";
 import { db } from "../db";
-import { notifications, userSubscriptions } from "../db/schema";
+import { notifications, userSubscriptions, pushTokens } from "../db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import {
   getVapidPublicKey,
@@ -524,6 +524,69 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
             auth: t.String(),
           }),
         }),
+      }),
+    }
+  )
+  // POST /api/notifications/register-device - Register mobile push token (Expo/APNs/FCM)
+  .post(
+    "/register-device",
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+
+      const { token, platform } = body;
+
+      if (!token || !platform) {
+        set.status = 400;
+        return { error: "Token and platform are required" };
+      }
+
+      try {
+        const now = new Date().toISOString();
+
+        // Check if this token is already registered
+        const existing = await db.query.pushTokens.findFirst({
+          where: eq(pushTokens.token, token),
+        });
+
+        if (existing) {
+          // Update: reassign to current user if needed, refresh timestamp
+          await db
+            .update(pushTokens)
+            .set({
+              userId: user.id,
+              platform,
+              updatedAt: now,
+            })
+            .where(eq(pushTokens.id, existing.id));
+
+          console.log(`Push token updated for user ${user.id} (${platform})`);
+        } else {
+          // Insert new push token
+          await db.insert(pushTokens).values({
+            userId: user.id,
+            token,
+            platform,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          console.log(`Push token registered for user ${user.id} (${platform})`);
+        }
+
+        return { success: true, message: "Device registered successfully" };
+      } catch (error) {
+        console.error("Error registering push token:", error);
+        set.status = 500;
+        return { error: "Failed to register device" };
+      }
+    },
+    {
+      body: t.Object({
+        token: t.String(),
+        platform: t.String(),
       }),
     }
   );

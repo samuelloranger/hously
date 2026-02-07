@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { users, notifications, externalNotificationServices, notificationTemplates, externalNotificationServiceLogs, customEvents, recipes, chores, reminders, shoppingItems, userSubscriptions, taskCompletions, recipeIngredients, mealPlans, passwordResetTokens } from "./schema";
+import { users, notifications, externalNotificationServices, notificationTemplates, externalNotificationServiceLogs, customEvents, recipes, chores, reminders, shoppingItems, userSubscriptions, taskCompletions, recipeIngredients, mealPlans, passwordResetTokens, refreshTokens, pushTokens } from "./schema";
 
 export const notificationsRelations = relations(notifications, ({one}) => ({
 	user: one(users, {
@@ -32,6 +32,8 @@ export const usersRelations = relations(users, ({many}) => ({
 	}),
 	mealPlans: many(mealPlans),
 	passwordResetTokens: many(passwordResetTokens),
+	refreshTokens: many(refreshTokens),
+	pushTokens: many(pushTokens),
 }));
 
 export const notificationTemplatesRelations = relations(notificationTemplates, ({one}) => ({
@@ -155,6 +157,20 @@ export const mealPlansRelations = relations(mealPlans, ({one}) => ({
 export const passwordResetTokensRelations = relations(passwordResetTokens, ({one}) => ({
 	user: one(users, {
 		fields: [passwordResetTokens.userId],
+		references: [users.id]
+	}),
+}));
+
+export const refreshTokensRelations = relations(refreshTokens, ({one}) => ({
+	user: one(users, {
+		fields: [refreshTokens.userId],
+		references: [users.id]
+	}),
+}));
+
+export const pushTokensRelations = relations(pushTokens, ({one}) => ({
+	user: one(users, {
+		fields: [pushTokens.userId],
 		references: [users.id]
 	}),
 }));
