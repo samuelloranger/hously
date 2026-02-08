@@ -6,6 +6,7 @@ import { hashPassword, verifyPassword } from "./utils/password";
 import { authRateLimit } from "./middleware/rateLimit";
 import { validateEmail, validatePassword } from "./utils/validation";
 import { loadAccessControl, getBaseUrl } from "./utils/config";
+import { saveImageAndCreateThumbnail, deleteImageFiles } from "./services/imageService";
 
 // Map database user (camelCase) to frontend user (snake_case)
 const mapUser = (user: {
@@ -14,9 +15,9 @@ const mapUser = (user: {
   firstName: string | null;
   lastName: string | null;
   isAdmin: boolean | null;
-  lastLogin: string | null;
-  createdAt: string | null;
-  lastActivity: string | null;
+  lastLogin: Date | null;
+  createdAt: Date | null;
+  lastActivity: Date | null;
   avatarUrl: string | null;
 }) => ({
   id: user.id,
@@ -24,9 +25,9 @@ const mapUser = (user: {
   first_name: user.firstName,
   last_name: user.lastName,
   is_admin: user.isAdmin || false,
-  last_login: user.lastLogin,
-  created_at: user.createdAt || new Date().toISOString(),
-  last_activity: user.lastActivity,
+  last_login: user.lastLogin?.toISOString() ?? null,
+  created_at: user.createdAt?.toISOString() ?? new Date().toISOString(),
+  last_activity: user.lastActivity?.toISOString() ?? null,
   avatar_url: user.avatarUrl || null,
 });
 
@@ -636,12 +637,21 @@ export const auth = (app: Elysia) =>
             }
 
             try {
-              const ext = avatar.name.split(".").pop() || "jpg";
-              const filename = `avatar_${user.id}_${Date.now()}.${ext}`;
+              // Delete old avatar if exists
+              const dbUser = await prisma.user.findFirst({
+                where: { id: user.id },
+              });
+              if (dbUser?.avatarUrl) {
+                const oldFilename = dbUser.avatarUrl.split("/").pop();
+                if (oldFilename) {
+                  await deleteImageFiles(oldFilename);
+                }
+              }
 
-              const uploadsDir = `${process.cwd()}/uploads/avatars`;
-              await Bun.write(`${uploadsDir}/${filename}`, avatar);
+              // Save to S3 and create thumbnail
+              const filename = await saveImageAndCreateThumbnail(avatar);
 
+              // Build avatar URL (S3 URL will be handled by frontend)
               const avatarUrl = `/uploads/avatars/${filename}`;
 
               // Persist avatar URL in user record

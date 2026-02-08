@@ -3,6 +3,7 @@ import { auth } from "../auth";
 import { prisma } from "../db";
 import { hashPassword, verifyPassword } from "../utils/password";
 import { validatePassword } from "../utils/validation";
+import { saveImageAndCreateThumbnail, deleteImageFiles } from "../services/imageService";
 
 // Map database user to frontend user (snake_case)
 const mapUser = (user: any) => ({
@@ -201,14 +202,22 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
       }
 
       try {
-        // Generate unique filename
-        const ext = avatar.name.split(".").pop() || "jpg";
-        const filename = `avatar_${user.id}_${Date.now()}.${ext}`;
+        // Delete old avatar if exists
+        const dbUser = await prisma.user.findFirst({
+          where: { id: user.id },
+        });
+        if (dbUser?.avatarUrl) {
+          // Extract filename from URL (assuming S3 format)
+          const oldFilename = dbUser.avatarUrl.split("/").pop();
+          if (oldFilename) {
+            await deleteImageFiles(oldFilename);
+          }
+        }
 
-        // Save to uploads directory
-        const uploadsDir = `${process.cwd()}/uploads/avatars`;
-        await Bun.write(`${uploadsDir}/${filename}`, avatar);
+        // Save to S3 and create thumbnail
+        const filename = await saveImageAndCreateThumbnail(avatar);
 
+        // Build avatar URL (S3 URL will be handled by frontend)
         const avatarUrl = `/uploads/avatars/${filename}`;
 
         // Persist avatar URL in user record
@@ -220,6 +229,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         return {
           message: "Avatar uploaded successfully",
           avatar_url: avatarUrl,
+          url: avatarUrl,
         };
       } catch (error) {
         console.error("Error uploading avatar:", error);
