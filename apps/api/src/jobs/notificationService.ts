@@ -2,9 +2,7 @@
  * Notification service for creating and sending push notifications
  */
 
-import { db } from "../db";
-import { notifications, userSubscriptions, users } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { prisma } from "../db";
 import { sendWebPushNotification, type PushSubscription } from "../utils/webpush";
 import { nowUtc, getTimezone } from "../utils";
 
@@ -50,9 +48,8 @@ export async function createAndQueueNotification(
 ): Promise<boolean> {
   try {
     // Create notification record
-    const [notification] = await db
-      .insert(notifications)
-      .values({
+    const notification = await prisma.notification.create({
+      data: {
         userId,
         title,
         body,
@@ -61,16 +58,15 @@ export async function createAndQueueNotification(
         notificationMetadata: metadata || null,
         read: false,
         createdAt: nowUtc(),
-      })
-      .returning();
+      },
+    });
 
     console.log(`Created notification ${notification.id} for user ${userId}: ${title}`);
 
     // Get all subscriptions for this user
-    const subscriptions = await db
-      .select()
-      .from(userSubscriptions)
-      .where(eq(userSubscriptions.userId, userId));
+    const subscriptions = await prisma.userSubscription.findMany({
+      where: { userId },
+    });
 
     if (subscriptions.length === 0) {
       console.log(`No push subscriptions found for user ${userId}`);
@@ -80,7 +76,13 @@ export async function createAndQueueNotification(
     // Send push notification to all user devices
     for (const sub of subscriptions) {
       try {
-        const subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
+        let subscriptionInfo: PushSubscription;
+        try {
+          subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
+        } catch (parseError) {
+          console.error(`Invalid subscription JSON for subscription ${sub.id}, skipping`);
+          continue;
+        }
 
         const result = await sendWebPushNotification(subscriptionInfo, {
           title,
@@ -96,9 +98,9 @@ export async function createAndQueueNotification(
 
         if (result.expired) {
           // Delete expired subscription
-          await db
-            .delete(userSubscriptions)
-            .where(eq(userSubscriptions.id, sub.id));
+          await prisma.userSubscription.delete({
+            where: { id: sub.id },
+          });
           console.log(`Deleted expired subscription ${sub.id} for user ${userId}`);
         }
       } catch (error) {
@@ -117,5 +119,7 @@ export async function createAndQueueNotification(
  * Get all users (for sending notifications to all household members)
  */
 export async function getAllUsers(): Promise<Array<{ id: number; locale: string | null }>> {
-  return db.select({ id: users.id, locale: users.locale }).from(users);
+  return prisma.user.findMany({
+    select: { id: true, locale: true },
+  });
 }

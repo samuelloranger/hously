@@ -1,8 +1,6 @@
 import { Elysia, t } from "elysia";
 import { auth } from "../auth";
-import { db } from "../db";
-import { notifications, userSubscriptions, pushTokens } from "../db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { prisma } from "../db";
 import {
   getVapidPublicKey,
   sendWebPushNotification,
@@ -26,29 +24,24 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
       try {
         // Build where conditions
-        const conditions = [eq(notifications.userId, user.id)];
+        const where: any = { userId: user.id };
 
         if (readFilter === "true") {
-          conditions.push(eq(notifications.read, true));
+          where.read = true;
         } else if (readFilter === "false") {
-          conditions.push(eq(notifications.read, false));
+          where.read = false;
         }
 
         // Get total count
-        const countResult = await db
-          .select({ count: sql<number>`count(*)` })
-          .from(notifications)
-          .where(and(...conditions));
-        const total = Number(countResult[0]?.count ?? 0);
+        const total = await prisma.notification.count({ where });
 
         // Get paginated notifications
-        const notificationsList = await db
-          .select()
-          .from(notifications)
-          .where(and(...conditions))
-          .orderBy(desc(notifications.createdAt))
-          .limit(limit)
-          .offset((page - 1) * limit);
+        const notificationsList = await prisma.notification.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip: (page - 1) * limit,
+        });
 
         return {
           notifications: notificationsList.map((n) => ({
@@ -91,14 +84,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     }
 
     try {
-      const result = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(notifications)
-        .where(
-          and(eq(notifications.userId, user.id), eq(notifications.read, false))
-        );
+      const count = await prisma.notification.count({
+        where: { userId: user.id, read: false },
+      });
 
-      return { unread_count: Number(result[0]?.count ?? 0) };
+      return { unread_count: count };
     } catch (error) {
       console.error("Error getting unread count:", error);
       set.status = 500;
@@ -120,11 +110,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
     try {
       // Check if notification exists and belongs to user
-      const notification = await db.query.notifications.findFirst({
-        where: and(
-          eq(notifications.id, notificationId),
-          eq(notifications.userId, user.id)
-        ),
+      const notification = await prisma.notification.findFirst({
+        where: {
+          id: notificationId,
+          userId: user.id,
+        },
       });
 
       if (!notification) {
@@ -133,13 +123,13 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
       }
 
       if (!notification.read) {
-        await db
-          .update(notifications)
-          .set({
+        await prisma.notification.update({
+          where: { id: notificationId },
+          data: {
             read: true,
             readAt: new Date().toISOString(),
-          })
-          .where(eq(notifications.id, notificationId));
+          },
+        });
       }
 
       return { success: true, message: "Notification marked as read" };
@@ -157,17 +147,15 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     }
 
     try {
-      const result = await db
-        .update(notifications)
-        .set({
+      const result = await prisma.notification.updateMany({
+        where: { userId: user.id, read: false },
+        data: {
           read: true,
           readAt: new Date().toISOString(),
-        })
-        .where(
-          and(eq(notifications.userId, user.id), eq(notifications.read, false))
-        );
+        },
+      });
 
-      const count = result.rowCount ?? 0;
+      const count = result.count;
 
       return {
         success: true,
@@ -195,11 +183,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
     try {
       // Check if notification exists and belongs to user
-      const notification = await db.query.notifications.findFirst({
-        where: and(
-          eq(notifications.id, notificationId),
-          eq(notifications.userId, user.id)
-        ),
+      const notification = await prisma.notification.findFirst({
+        where: {
+          id: notificationId,
+          userId: user.id,
+        },
       });
 
       if (!notification) {
@@ -207,9 +195,9 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         return { error: "Notification not found" };
       }
 
-      await db
-        .delete(notifications)
-        .where(eq(notifications.id, notificationId));
+      await prisma.notification.delete({
+        where: { id: notificationId },
+      });
 
       return { success: true, message: "Notification deleted" };
     } catch (error) {
@@ -226,11 +214,10 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     }
 
     try {
-      const devices = await db
-        .select()
-        .from(userSubscriptions)
-        .where(eq(userSubscriptions.userId, user.id))
-        .orderBy(desc(userSubscriptions.createdAt));
+      const devices = await prisma.userSubscription.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+      });
 
       return {
         devices: devices.map((d) => ({
@@ -263,11 +250,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
     try {
       // Check if device exists and belongs to user
-      const device = await db.query.userSubscriptions.findFirst({
-        where: and(
-          eq(userSubscriptions.id, deviceId),
-          eq(userSubscriptions.userId, user.id)
-        ),
+      const device = await prisma.userSubscription.findFirst({
+        where: {
+          id: deviceId,
+          userId: user.id,
+        },
       });
 
       if (!device) {
@@ -275,7 +262,9 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         return { error: "Device not found" };
       }
 
-      await db.delete(userSubscriptions).where(eq(userSubscriptions.id, deviceId));
+      await prisma.userSubscription.delete({
+        where: { id: deviceId },
+      });
 
       return { success: true, message: "Device deleted successfully" };
     } catch (error) {
@@ -324,23 +313,21 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         const platform = device_info?.platform || null;
 
         // Check if subscription already exists for this user
-        const existingSubscription = await db.query.userSubscriptions.findFirst(
-          {
-            where: and(
-              eq(userSubscriptions.userId, user.id),
-              eq(userSubscriptions.endpoint, endpoint)
-            ),
-          }
-        );
+        const existingSubscription = await prisma.userSubscription.findFirst({
+          where: {
+            userId: user.id,
+            endpoint,
+          },
+        });
 
         const now = new Date().toISOString();
         let isNewSubscription = false;
 
         if (existingSubscription) {
           // Update existing subscription
-          await db
-            .update(userSubscriptions)
-            .set({
+          await prisma.userSubscription.update({
+            where: { id: existingSubscription.id },
+            data: {
               subscriptionInfo: JSON.stringify(subscription),
               updatedAt: now,
               deviceName,
@@ -349,24 +336,26 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
               browserName,
               browserVersion,
               platform,
-            })
-            .where(eq(userSubscriptions.id, existingSubscription.id));
+            },
+          });
 
           console.log(`User ${user.id} updated existing subscription`);
         } else {
           // Create new subscription
-          await db.insert(userSubscriptions).values({
-            userId: user.id,
-            subscriptionInfo: JSON.stringify(subscription),
-            endpoint,
-            deviceName,
-            osName,
-            osVersion,
-            browserName,
-            browserVersion,
-            platform,
-            createdAt: now,
-            updatedAt: now,
+          await prisma.userSubscription.create({
+            data: {
+              userId: user.id,
+              subscriptionInfo: JSON.stringify(subscription),
+              endpoint,
+              deviceName,
+              osName,
+              osVersion,
+              browserName,
+              browserVersion,
+              platform,
+              createdAt: now,
+              updatedAt: now,
+            },
           });
 
           isNewSubscription = true;
@@ -434,22 +423,20 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
         if (subscription && subscription.endpoint) {
           // Unsubscribe specific device by endpoint
-          await db
-            .delete(userSubscriptions)
-            .where(
-              and(
-                eq(userSubscriptions.userId, user.id),
-                eq(userSubscriptions.endpoint, subscription.endpoint)
-              )
-            );
+          await prisma.userSubscription.deleteMany({
+            where: {
+              userId: user.id,
+              endpoint: subscription.endpoint,
+            },
+          });
           console.log(
             `User ${user.id} unsubscribed device: ${subscription.endpoint.slice(0, 50)}...`
           );
         } else {
           // Unsubscribe all devices for this user
-          await db
-            .delete(userSubscriptions)
-            .where(eq(userSubscriptions.userId, user.id));
+          await prisma.userSubscription.deleteMany({
+            where: { userId: user.id },
+          });
           console.log(`User ${user.id} unsubscribed all devices`);
         }
 
@@ -547,30 +534,32 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         const now = new Date().toISOString();
 
         // Check if this token is already registered
-        const existing = await db.query.pushTokens.findFirst({
-          where: eq(pushTokens.token, token),
+        const existing = await prisma.pushToken.findFirst({
+          where: { token },
         });
 
         if (existing) {
           // Update: reassign to current user if needed, refresh timestamp
-          await db
-            .update(pushTokens)
-            .set({
+          await prisma.pushToken.update({
+            where: { id: existing.id },
+            data: {
               userId: user.id,
               platform,
               updatedAt: now,
-            })
-            .where(eq(pushTokens.id, existing.id));
+            },
+          });
 
           console.log(`Push token updated for user ${user.id} (${platform})`);
         } else {
           // Insert new push token
-          await db.insert(pushTokens).values({
-            userId: user.id,
-            token,
-            platform,
-            createdAt: now,
-            updatedAt: now,
+          await prisma.pushToken.create({
+            data: {
+              userId: user.id,
+              token,
+              platform,
+              createdAt: now,
+              updatedAt: now,
+            },
           });
 
           console.log(`Push token registered for user ${user.id} (${platform})`);

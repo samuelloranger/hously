@@ -1,7 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
-import { chores, reminders, customEvents, users } from "../db/schema";
-import { eq, and, isNotNull, lte, gte } from "drizzle-orm";
+import { prisma } from "../db";
 import { auth } from "../auth";
 import { formatIso, todayLocal, toLocalDate, getDaysInMonth } from "../utils";
 
@@ -482,85 +480,109 @@ export const calendarRoutes = new Elysia({ prefix: "/api/calendar" })
         }> = [];
 
         // Get chores with active reminders
-        const choresWithReminders = await db
-          .select({
-            id: chores.id,
-            choreName: chores.choreName,
-            description: chores.description,
-            recurrenceType: chores.recurrenceType,
-            recurrenceIntervalDays: chores.recurrenceIntervalDays,
-            recurrenceWeekday: chores.recurrenceWeekday,
-            assignedTo: chores.assignedTo,
-            reminderId: reminders.id,
-            reminderDatetime: reminders.reminderDatetime,
-          })
-          .from(chores)
-          .innerJoin(
-            reminders,
-            and(eq(reminders.choreId, chores.id), eq(reminders.active, true))
-          )
-          .where(eq(chores.completed, false));
+        // Replacing inner join with separate queries
+        const incompleteChores = await prisma.chore.findMany({
+          where: { completed: false },
+          select: {
+            id: true,
+            choreName: true,
+            description: true,
+            recurrenceType: true,
+            recurrenceIntervalDays: true,
+            recurrenceWeekday: true,
+            assignedTo: true,
+          },
+        });
 
-        for (const chore of choresWithReminders) {
-          if (chore.reminderDatetime) {
-            const reminderDateLocal = toLocalDate(chore.reminderDatetime);
+        const incompleteChoreIds = incompleteChores.map(c => c.id);
 
-            if (
-              reminderDateLocal &&
-              reminderDateLocal >= startDate &&
-              reminderDateLocal <= endDate
-            ) {
-              events.push({
-                id: `chore-${chore.id}-reminder`,
-                type: "chore",
-                date: reminderDateLocal.toISOString().split("T")[0],
-                title: chore.choreName,
-                description: chore.description,
-                metadata: {
-                  chore_id: chore.id,
-                  reminder_datetime: formatIso(chore.reminderDatetime),
-                  recurrence_type: chore.recurrenceType,
-                  recurrence_interval_days: chore.recurrenceIntervalDays,
-                  recurrence_weekday: chore.recurrenceWeekday,
-                  assigned_to: chore.assignedTo,
-                },
-              });
+        const activeRemindersForChores = incompleteChoreIds.length > 0
+          ? await prisma.reminder.findMany({
+              where: {
+                choreId: { in: incompleteChoreIds },
+                active: true,
+              },
+            })
+          : [];
+
+        // Build choresWithReminders by joining in JS
+        const remindersByChoreIdForJoin = new Map<number, any[]>();
+        for (const r of activeRemindersForChores) {
+          if (!remindersByChoreIdForJoin.has(r.choreId)) {
+            remindersByChoreIdForJoin.set(r.choreId, []);
+          }
+          remindersByChoreIdForJoin.get(r.choreId)!.push(r);
+        }
+
+        for (const chore of incompleteChores) {
+          const remindersForChore = remindersByChoreIdForJoin.get(chore.id) || [];
+          for (const reminder of remindersForChore) {
+            if (reminder.reminderDatetime) {
+              const reminderDateLocal = toLocalDate(reminder.reminderDatetime);
+
+              if (
+                reminderDateLocal &&
+                reminderDateLocal >= startDate &&
+                reminderDateLocal <= endDate
+              ) {
+                events.push({
+                  id: `chore-${chore.id}-reminder`,
+                  type: "chore",
+                  date: reminderDateLocal.toISOString().split("T")[0],
+                  title: chore.choreName,
+                  description: chore.description,
+                  metadata: {
+                    chore_id: chore.id,
+                    reminder_datetime: formatIso(reminder.reminderDatetime),
+                    recurrence_type: chore.recurrenceType,
+                    recurrence_interval_days: chore.recurrenceIntervalDays,
+                    recurrence_weekday: chore.recurrenceWeekday,
+                    assigned_to: chore.assignedTo,
+                  },
+                });
+              }
             }
           }
         }
 
         // Get recurring chores (not completed) and calculate future dates
-        const recurringChores = await db
-          .select({
-            id: chores.id,
-            choreName: chores.choreName,
-            description: chores.description,
-            recurrenceType: chores.recurrenceType,
-            recurrenceIntervalDays: chores.recurrenceIntervalDays,
-            recurrenceWeekday: chores.recurrenceWeekday,
-            recurrenceOriginalCreatedAt: chores.recurrenceOriginalCreatedAt,
-            completed: chores.completed,
-            completedAt: chores.completedAt,
-            createdAt: chores.createdAt,
-            assignedTo: chores.assignedTo,
-          })
-          .from(chores)
-          .where(and(isNotNull(chores.recurrenceType), eq(chores.completed, false)));
+        const recurringChores = await prisma.chore.findMany({
+          where: {
+            recurrenceType: { not: null },
+            completed: false,
+          },
+          select: {
+            id: true,
+            choreName: true,
+            description: true,
+            recurrenceType: true,
+            recurrenceIntervalDays: true,
+            recurrenceWeekday: true,
+            recurrenceOriginalCreatedAt: true,
+            completed: true,
+            completedAt: true,
+            createdAt: true,
+            assignedTo: true,
+          },
+        });
 
         for (const chore of recurringChores) {
           // Get the active reminder if it exists
-          const activeReminder = await db
-            .select({
-              id: reminders.id,
-              reminderDatetime: reminders.reminderDatetime,
-            })
-            .from(reminders)
-            .where(and(eq(reminders.choreId, chore.id), eq(reminders.active, true)))
-            .orderBy(reminders.reminderDatetime)
-            .limit(1);
+          const activeReminder = await prisma.reminder.findMany({
+            where: {
+              choreId: chore.id,
+              active: true,
+            },
+            orderBy: { reminderDatetime: 'asc' },
+            take: 1,
+            select: {
+              id: true,
+              reminderDatetime: true,
+            },
+          });
 
           const recurringDates = calculateRecurringChoreDates(
-            chore,
+            chore as any,
             startDate,
             endDate
           );
@@ -592,16 +614,15 @@ export const calendarRoutes = new Elysia({ prefix: "/api/calendar" })
         }
 
         // Get custom events for this user
-        const userCustomEvents = await db
-          .select()
-          .from(customEvents)
-          .where(eq(customEvents.userId, user.id));
+        const userCustomEvents = await prisma.customEvent.findMany({
+          where: { userId: user.id },
+        });
 
         for (const event of userCustomEvents) {
           if (event.recurrenceType) {
             // Handle recurring events
             const recurringOccurrences = calculateRecurringCustomEventDates(
-              event,
+              event as any,
               startDate,
               endDate
             );

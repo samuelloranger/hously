@@ -1,12 +1,4 @@
-import { db } from "../db";
-import {
-  externalNotificationServices,
-  notificationTemplates,
-  notifications,
-  userSubscriptions,
-  users,
-} from "../db/schema";
-import { eq, and } from "drizzle-orm";
+import { prisma } from "../db";
 import { sendWebPushNotification } from "../utils/webpush";
 
 /**
@@ -50,8 +42,8 @@ export async function getTemplateForEvent(
   language: string = "en"
 ) {
   // First get the service
-  const service = await db.query.externalNotificationServices.findFirst({
-    where: eq(externalNotificationServices.serviceName, serviceName),
+  const service = await prisma.externalNotificationService.findFirst({
+    where: { serviceName },
   });
 
   if (!service) {
@@ -60,22 +52,22 @@ export async function getTemplateForEvent(
   }
 
   // Try to find template with exact language
-  let template = await db.query.notificationTemplates.findFirst({
-    where: and(
-      eq(notificationTemplates.serviceId, service.id),
-      eq(notificationTemplates.eventType, eventType),
-      eq(notificationTemplates.language, language)
-    ),
+  let template = await prisma.notificationTemplate.findFirst({
+    where: {
+      serviceId: service.id,
+      eventType,
+      language,
+    },
   });
 
   // Fallback to English if not found
   if (!template && language !== "en") {
-    template = await db.query.notificationTemplates.findFirst({
-      where: and(
-        eq(notificationTemplates.serviceId, service.id),
-        eq(notificationTemplates.eventType, eventType),
-        eq(notificationTemplates.language, "en")
-      ),
+    template = await prisma.notificationTemplate.findFirst({
+      where: {
+        serviceId: service.id,
+        eventType,
+        language: "en",
+      },
     });
   }
 
@@ -123,8 +115,8 @@ export async function sendExternalNotification(
     }
 
     // Get the service to check notify_admins_only setting
-    const service = await db.query.externalNotificationServices.findFirst({
-      where: eq(externalNotificationServices.serviceName, serviceName),
+    const service = await prisma.externalNotificationService.findFirst({
+      where: { serviceName },
     });
 
     if (!service) {
@@ -137,10 +129,10 @@ export async function sendExternalNotification(
 
     if (service.notifyAdminsOnly) {
       // Get only admin users
-      const adminUsers = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.isAdmin, true));
+      const adminUsers = await prisma.user.findMany({
+        where: { isAdmin: true },
+        select: { id: true },
+      });
       targetUserIds = adminUsers.map((u) => u.id);
 
       if (targetUserIds.length === 0) {
@@ -151,9 +143,9 @@ export async function sendExternalNotification(
       }
     } else {
       // Get all users with subscriptions
-      const allSubscriptions = await db
-        .select({ userId: userSubscriptions.userId })
-        .from(userSubscriptions);
+      const allSubscriptions = await prisma.userSubscription.findMany({
+        select: { userId: true },
+      });
       targetUserIds = [...new Set(allSubscriptions.map((s) => s.userId))];
     }
 
@@ -170,9 +162,8 @@ export async function sendExternalNotification(
     for (const userId of targetUserIds) {
       try {
         // Create notification record
-        const [notification] = await db
-          .insert(notifications)
-          .values({
+        const notification = await prisma.notification.create({
+          data: {
             userId,
             title,
             body,
@@ -185,18 +176,23 @@ export async function sendExternalNotification(
             },
             read: false,
             createdAt: new Date().toISOString(),
-          })
-          .returning();
+          },
+        });
 
         // Get user's subscriptions and send push notifications
-        const userSubs = await db
-          .select()
-          .from(userSubscriptions)
-          .where(eq(userSubscriptions.userId, userId));
+        const userSubs = await prisma.userSubscription.findMany({
+          where: { userId },
+        });
 
         for (const sub of userSubs) {
           try {
-            const subscriptionInfo = JSON.parse(sub.subscriptionInfo);
+            let subscriptionInfo;
+            try {
+              subscriptionInfo = JSON.parse(sub.subscriptionInfo);
+            } catch (parseError) {
+              console.error(`Invalid subscription JSON for subscription ${sub.id}, skipping`);
+              continue;
+            }
             await sendWebPushNotification(subscriptionInfo, {
               title,
               body,

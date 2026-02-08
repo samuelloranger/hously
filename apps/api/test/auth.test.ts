@@ -1,9 +1,7 @@
 import { describe, expect, it, beforeAll } from 'bun:test'
 import { app } from '../src/index'
-import { db } from '../src/db'
-import { users } from '../src/db/schema'
+import { prisma } from '../src/db'
 import { hashPassword } from '../src/utils/password'
-import { eq } from 'drizzle-orm'
 
 describe('Authentication', () => {
     const testEmail = 'test@example.com'
@@ -12,19 +10,21 @@ describe('Authentication', () => {
 
     beforeAll(async () => {
         // Setup test user
-        const existing = await db.query.users.findFirst({
-            where: eq(users.email, testEmail)
+        const existing = await prisma.user.findFirst({
+            where: { email: testEmail }
         })
 
         if (!existing) {
             const pwdHash = await hashPassword(testPassword)
-            await db.insert(users).values({
-                email: testEmail,
-                passwordHash: pwdHash,
-                firstName: 'Test',
-                lastName: 'User',
-                isAdmin: false,
-                createdAt: new Date().toISOString()
+            await prisma.user.create({
+                data: {
+                    email: testEmail,
+                    passwordHash: pwdHash,
+                    firstName: 'Test',
+                    lastName: 'User',
+                    isAdmin: false,
+                    createdAt: new Date(),
+                }
             })
         }
     })
@@ -40,7 +40,7 @@ describe('Authentication', () => {
         const json = await response.json() as any
         expect(json.user).toBeDefined()
         expect(json.user.email).toBe(testEmail)
-        
+
         // Save cookie for next test
         cookies = response.headers.get('set-cookie') || ''
         expect(cookies).toContain('auth=')

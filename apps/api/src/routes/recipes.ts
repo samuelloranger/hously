@@ -1,7 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
-import { recipes, recipeIngredients, users } from "../db/schema";
-import { eq, desc, asc } from "drizzle-orm";
+import { prisma } from "../db";
 import { auth } from "../auth";
 import { saveImageAndCreateThumbnail, deleteImageFiles, getImage, getContentType } from "../services/imageService";
 import { formatIso, nowUtc, sanitizeInput, sanitizeRichText } from "../utils";
@@ -17,57 +15,52 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
 
     try {
       // Get all recipes with user info
-      const allRecipes = await db
-        .select({
-          id: recipes.id,
-          name: recipes.name,
-          description: recipes.description,
-          instructions: recipes.instructions,
-          category: recipes.category,
-          servings: recipes.servings,
-          prepTimeMinutes: recipes.prepTimeMinutes,
-          cookTimeMinutes: recipes.cookTimeMinutes,
-          imagePath: recipes.imagePath,
-          isFavorite: recipes.isFavorite,
-          addedBy: recipes.addedBy,
-          createdAt: recipes.createdAt,
-          updatedAt: recipes.updatedAt,
-          userFirstName: users.firstName,
-          userEmail: users.email,
-        })
-        .from(recipes)
-        .leftJoin(users, eq(recipes.addedBy, users.id))
-        .orderBy(desc(recipes.isFavorite), desc(recipes.createdAt));
+      const allRecipes = await prisma.recipe.findMany({
+        include: {
+          _count: {
+            select: { recipeIngredients: true },
+          },
+        },
+        orderBy: [
+          { isFavorite: 'desc' },
+          { createdAt: 'desc' },
+        ],
+      });
 
-      // Get ingredient counts for each recipe
-      const ingredientCounts = await db
-        .select({
-          recipeId: recipeIngredients.recipeId,
-        })
-        .from(recipeIngredients);
+      // Get all users for username lookup
+      const allUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          firstName: true,
+          email: true,
+        },
+      });
 
-      const countMap = new Map<number, number>();
-      for (const ing of ingredientCounts) {
-        countMap.set(ing.recipeId, (countMap.get(ing.recipeId) || 0) + 1);
+      const usersById = new Map<number, { firstName: string | null; email: string }>();
+      for (const u of allUsers) {
+        usersById.set(u.id, { firstName: u.firstName, email: u.email });
       }
 
-      const recipesList = allRecipes.map((recipe) => ({
-        id: recipe.id,
-        name: recipe.name,
-        description: recipe.description,
-        instructions: recipe.instructions,
-        category: recipe.category,
-        servings: recipe.servings,
-        prep_time_minutes: recipe.prepTimeMinutes,
-        cook_time_minutes: recipe.cookTimeMinutes,
-        image_path: recipe.imagePath,
-        is_favorite: recipe.isFavorite,
-        added_by: recipe.addedBy,
-        created_at: formatIso(recipe.createdAt),
-        updated_at: formatIso(recipe.updatedAt),
-        added_by_username: recipe.userFirstName || recipe.userEmail || null,
-        ingredient_count: countMap.get(recipe.id) || 0,
-      }));
+      const recipesList = allRecipes.map((recipe) => {
+        const addedByUser = recipe.addedBy ? usersById.get(recipe.addedBy) : null;
+        return {
+          id: recipe.id,
+          name: recipe.name,
+          description: recipe.description,
+          instructions: recipe.instructions,
+          category: recipe.category,
+          servings: recipe.servings,
+          prep_time_minutes: recipe.prepTimeMinutes,
+          cook_time_minutes: recipe.cookTimeMinutes,
+          image_path: recipe.imagePath,
+          is_favorite: recipe.isFavorite,
+          added_by: recipe.addedBy,
+          created_at: formatIso(recipe.createdAt),
+          updated_at: formatIso(recipe.updatedAt),
+          added_by_username: addedByUser?.firstName || addedByUser?.email || null,
+          ingredient_count: recipe._count.recipeIngredients,
+        };
+      });
 
       return { recipes: recipesList };
     } catch (error) {
@@ -93,43 +86,33 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
       }
 
       try {
-        // Get recipe with user info
-        const recipeResult = await db
-          .select({
-            id: recipes.id,
-            name: recipes.name,
-            description: recipes.description,
-            instructions: recipes.instructions,
-            category: recipes.category,
-            servings: recipes.servings,
-            prepTimeMinutes: recipes.prepTimeMinutes,
-            cookTimeMinutes: recipes.cookTimeMinutes,
-            imagePath: recipes.imagePath,
-            isFavorite: recipes.isFavorite,
-            addedBy: recipes.addedBy,
-            createdAt: recipes.createdAt,
-            updatedAt: recipes.updatedAt,
-            userFirstName: users.firstName,
-            userEmail: users.email,
-          })
-          .from(recipes)
-          .leftJoin(users, eq(recipes.addedBy, users.id))
-          .where(eq(recipes.id, recipeId))
-          .limit(1);
+        // Get recipe
+        const recipe = await prisma.recipe.findFirst({
+          where: { id: recipeId },
+        });
 
-        if (recipeResult.length === 0) {
+        if (!recipe) {
           set.status = 404;
           return { error: "Recipe not found" };
         }
 
-        const recipe = recipeResult[0];
+        // Get user info for addedBy
+        let addedByUsername: string | null = null;
+        if (recipe.addedBy) {
+          const addedByUser = await prisma.user.findFirst({
+            where: { id: recipe.addedBy },
+            select: { firstName: true, email: true },
+          });
+          if (addedByUser) {
+            addedByUsername = addedByUser.firstName || addedByUser.email || null;
+          }
+        }
 
         // Get ingredients
-        const ingredients = await db
-          .select()
-          .from(recipeIngredients)
-          .where(eq(recipeIngredients.recipeId, recipeId))
-          .orderBy(asc(recipeIngredients.position));
+        const ingredients = await prisma.recipeIngredient.findMany({
+          where: { recipeId },
+          orderBy: { position: 'asc' },
+        });
 
         const ingredientsList = ingredients.map((ing) => ({
           id: ing.id,
@@ -154,7 +137,7 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
             added_by: recipe.addedBy,
             created_at: formatIso(recipe.createdAt),
             updated_at: formatIso(recipe.updatedAt),
-            added_by_username: recipe.userFirstName || recipe.userEmail || null,
+            added_by_username: addedByUsername,
             ingredients: ingredientsList,
           },
         };
@@ -221,9 +204,8 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
         const sanitizedInstructions = sanitizeRichText(instructionsTrimmed);
 
         // Create recipe
-        const [newRecipe] = await db
-          .insert(recipes)
-          .values({
+        const newRecipe = await prisma.recipe.create({
+          data: {
             name: sanitizedName,
             description: sanitizedDescription,
             instructions: sanitizedInstructions,
@@ -235,8 +217,8 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
             isFavorite: 0,
             addedBy: user.id,
             createdAt: nowUtc(),
-          })
-          .returning();
+          },
+        });
 
         // Add ingredients
         if (ingredients && ingredients.length > 0) {
@@ -245,12 +227,14 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
             const ingName = (ingData.name || "").trim();
             if (!ingName) continue;
 
-            await db.insert(recipeIngredients).values({
-              recipeId: newRecipe.id,
-              name: sanitizeInput(ingName),
-              quantity: ingData.quantity?.toString() || null,
-              unit: ingData.unit?.trim() || null,
-              position: idx,
+            await prisma.recipeIngredient.create({
+              data: {
+                recipeId: newRecipe.id,
+                name: sanitizeInput(ingName),
+                quantity: ingData.quantity?.toString() || null,
+                unit: ingData.unit?.trim() || null,
+                position: idx,
+              },
             });
           }
         }
@@ -309,8 +293,8 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
 
       try {
         // Get recipe
-        const recipe = await db.query.recipes.findFirst({
-          where: eq(recipes.id, recipeId),
+        const recipe = await prisma.recipe.findFirst({
+          where: { id: recipeId },
         });
 
         if (!recipe) {
@@ -324,7 +308,7 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
           return { error: "Unauthorized" };
         }
 
-        const updateData: Partial<typeof recipes.$inferInsert> = {};
+        const updateData: Record<string, any> = {};
 
         // Update name if provided
         if (body.name !== undefined) {
@@ -394,9 +378,9 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
         // Handle ingredients update
         if (body.ingredients !== undefined) {
           // Delete existing ingredients
-          await db
-            .delete(recipeIngredients)
-            .where(eq(recipeIngredients.recipeId, recipeId));
+          await prisma.recipeIngredient.deleteMany({
+            where: { recipeId },
+          });
 
           // Add new ingredients
           for (let idx = 0; idx < body.ingredients.length; idx++) {
@@ -404,12 +388,14 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
             const ingName = (ingData.name || "").trim();
             if (!ingName) continue;
 
-            await db.insert(recipeIngredients).values({
-              recipeId,
-              name: sanitizeInput(ingName),
-              quantity: ingData.quantity?.toString() || null,
-              unit: ingData.unit?.trim() || null,
-              position: idx,
+            await prisma.recipeIngredient.create({
+              data: {
+                recipeId,
+                name: sanitizeInput(ingName),
+                quantity: ingData.quantity?.toString() || null,
+                unit: ingData.unit?.trim() || null,
+                position: idx,
+              },
             });
           }
         }
@@ -419,7 +405,10 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
 
         // Apply updates
         if (Object.keys(updateData).length > 0) {
-          await db.update(recipes).set(updateData).where(eq(recipes.id, recipeId));
+          await prisma.recipe.update({
+            where: { id: recipeId },
+            data: updateData,
+          });
         }
 
         console.log(`User ${user.id} updated recipe ${recipeId}`);
@@ -475,8 +464,8 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
 
       try {
         // Get recipe
-        const recipe = await db.query.recipes.findFirst({
-          where: eq(recipes.id, recipeId),
+        const recipe = await prisma.recipe.findFirst({
+          where: { id: recipeId },
         });
 
         if (!recipe) {
@@ -496,12 +485,14 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
         }
 
         // Delete ingredients first (no cascade)
-        await db
-          .delete(recipeIngredients)
-          .where(eq(recipeIngredients.recipeId, recipeId));
+        await prisma.recipeIngredient.deleteMany({
+          where: { recipeId },
+        });
 
         // Delete recipe
-        await db.delete(recipes).where(eq(recipes.id, recipeId));
+        await prisma.recipe.delete({
+          where: { id: recipeId },
+        });
 
         console.log(`User ${user.id} deleted recipe ${recipeId}`);
 
@@ -536,8 +527,8 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
 
       try {
         // Get recipe
-        const recipe = await db.query.recipes.findFirst({
-          where: eq(recipes.id, recipeId),
+        const recipe = await prisma.recipe.findFirst({
+          where: { id: recipeId },
         });
 
         if (!recipe) {
@@ -548,13 +539,13 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
         // Toggle favorite
         const newFavorite = recipe.isFavorite === 0 ? 1 : 0;
 
-        await db
-          .update(recipes)
-          .set({
+        await prisma.recipe.update({
+          where: { id: recipeId },
+          data: {
             isFavorite: newFavorite,
             updatedAt: nowUtc(),
-          })
-          .where(eq(recipes.id, recipeId));
+          },
+        });
 
         console.log(`User ${user.id} toggled recipe ${recipeId} favorite to ${newFavorite}`);
 

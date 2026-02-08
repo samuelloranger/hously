@@ -3,9 +3,7 @@
  * Runs daily at midnight
  */
 
-import { db } from "../db";
-import { notifications } from "../db/schema";
-import { lt } from "drizzle-orm";
+import { prisma } from "../db";
 
 /**
  * Clean up notifications older than 30 days
@@ -18,12 +16,13 @@ export async function cleanupOldNotifications(): Promise<number> {
     const cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     // Delete notifications older than 30 days
-    const result = await db
-      .delete(notifications)
-      .where(lt(notifications.createdAt, cutoffDate.toISOString()))
-      .returning({ id: notifications.id });
+    const result = await prisma.notification.deleteMany({
+      where: {
+        createdAt: { lt: cutoffDate.toISOString() },
+      },
+    });
 
-    const deletedCount = result.length;
+    const deletedCount = result.count;
 
     console.log(`[CRON] Cleaned up ${deletedCount} notifications older than 30 days`);
     return deletedCount;

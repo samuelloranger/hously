@@ -1,13 +1,11 @@
 import { Elysia, t } from "elysia";
 import { auth } from "../auth";
-import { db } from "../db";
-import { users } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { prisma } from "../db";
 import { hashPassword, verifyPassword } from "../utils/password";
 import { validatePassword } from "../utils/validation";
 
-// Map database user (camelCase) to frontend user (snake_case)
-const mapUser = (user: typeof users.$inferSelect) => ({
+// Map database user to frontend user (snake_case)
+const mapUser = (user: any) => ({
   id: user.id,
   email: user.email,
   first_name: user.firstName,
@@ -30,8 +28,8 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
     }
 
     // Fetch fresh user data from database (including locale)
-    const dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
+    const dbUser = await prisma.user.findFirst({
+      where: { id: user.id },
     });
 
     if (!dbUser) {
@@ -87,11 +85,10 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         }
 
         // Update user
-        const [updatedUser] = await db
-          .update(users)
-          .set(updateData)
-          .where(eq(users.id, user.id))
-          .returning();
+        const updatedUser = await prisma.user.update({
+          where: { id: user.id },
+          data: updateData,
+        });
 
         return { user: mapUser(updatedUser) };
       } catch (error) {
@@ -128,8 +125,8 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
 
       try {
         // Fetch user with password hash
-        const dbUser = await db.query.users.findFirst({
-          where: eq(users.id, user.id),
+        const dbUser = await prisma.user.findFirst({
+          where: { id: user.id },
         });
 
         if (!dbUser) {
@@ -149,10 +146,10 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
 
         // Hash new password and update
         const passwordHash = await hashPassword(new_password);
-        await db
-          .update(users)
-          .set({ passwordHash })
-          .where(eq(users.id, user.id));
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { passwordHash },
+        });
 
         return { message: "Password updated successfully" };
       } catch (error) {
@@ -215,10 +212,10 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         const avatarUrl = `/uploads/avatars/${filename}`;
 
         // Persist avatar URL in user record
-        await db
-          .update(users)
-          .set({ avatarUrl })
-          .where(eq(users.id, user.id));
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { avatarUrl },
+        });
 
         return {
           message: "Avatar uploaded successfully",

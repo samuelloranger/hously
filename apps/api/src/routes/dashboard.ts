@@ -1,7 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
-import { customEvents, shoppingItems, chores, taskCompletions, users } from "../db/schema";
-import { between, count, eq, isNull, or, desc, gte, and } from "drizzle-orm";
+import { prisma } from "../db";
 import { auth } from "../auth";
 import { formatIso } from "../utils";
 
@@ -21,58 +19,51 @@ export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
       tomorrow.setDate(tomorrow.getDate() + 1);
 
       // 1. Events today (for current user only)
-      const eventsToday = await db
-        .select({ count: count() })
-        .from(customEvents)
-        .where(
-          and(
-            eq(customEvents.userId, user.id),
-            between(
-              customEvents.startDatetime,
-              today.toISOString().split("T")[0],
-              tomorrow.toISOString().split("T")[0]
-            )
-          )
-        );
+      const eventsTodayCount = await prisma.customEvent.count({
+        where: {
+          userId: user.id,
+          startDatetime: {
+            gte: today,
+            lt: tomorrow,
+          },
+        },
+      });
 
       // 2. Shopping Items (incomplete, not deleted)
-      const shoppingCount = await db
-        .select({ count: count() })
-        .from(shoppingItems)
-        .where(
-          and(
-            or(
-              eq(shoppingItems.completed, false),
-              isNull(shoppingItems.completed)
-            ),
-            isNull(shoppingItems.deletedAt)
-          )
-        );
+      const shoppingCount = await prisma.shoppingItem.count({
+        where: {
+          OR: [
+            { completed: false },
+            { completed: null },
+          ],
+          deletedAt: null,
+        },
+      });
 
       // 3. Chores (incomplete)
-      const choresCount = await db
-        .select({ count: count() })
-        .from(chores)
-        .where(
-          or(
-            eq(chores.completed, false),
-            isNull(chores.completed)
-          )
-        );
+      const choresCount = await prisma.chore.count({
+        where: {
+          OR: [
+            { completed: false },
+            { completed: null },
+          ],
+        },
+      });
 
       // 4. Monthly total (tasks completed this month)
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const monthlyTotalResult = await db
-        .select({ count: count() })
-        .from(taskCompletions)
-        .where(gte(taskCompletions.completedAt, startOfMonth.toISOString()));
+      const monthlyTotal = await prisma.taskCompletion.count({
+        where: {
+          completedAt: { gte: startOfMonth },
+        },
+      });
 
       return {
         stats: {
-          events_today: eventsToday[0].count,
-          shopping_count: shoppingCount[0].count,
-          chores_count: choresCount[0].count,
-          monthly_total: monthlyTotalResult[0].count,
+          events_today: eventsTodayCount,
+          shopping_count: shoppingCount,
+          chores_count: choresCount,
+          monthly_total: monthlyTotal,
         },
         activities: [],
       };
@@ -94,22 +85,18 @@ export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
         const limit = query.limit ? parseInt(query.limit, 10) : 5;
 
         // Get recent task completions with user info
-        const recentCompletions = await db
-          .select({
-            id: taskCompletions.id,
-            userId: taskCompletions.userId,
-            taskType: taskCompletions.taskType,
-            taskId: taskCompletions.taskId,
-            completedAt: taskCompletions.completedAt,
-            taskName: taskCompletions.taskName,
-            emotion: taskCompletions.emotion,
-            userFirstName: users.firstName,
-            userEmail: users.email,
-          })
-          .from(taskCompletions)
-          .leftJoin(users, eq(taskCompletions.userId, users.id))
-          .orderBy(desc(taskCompletions.completedAt))
-          .limit(limit);
+        const recentCompletions = await prisma.taskCompletion.findMany({
+          orderBy: { completedAt: 'desc' },
+          take: limit,
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                email: true,
+              },
+            },
+          },
+        });
 
         const activities = recentCompletions.map((completion) => ({
           id: completion.id,
@@ -119,7 +106,7 @@ export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
           completed_at: formatIso(completion.completedAt),
           task_name: completion.taskName,
           emotion: completion.emotion,
-          username: completion.userFirstName || completion.userEmail || "Unknown",
+          username: completion.user?.firstName || completion.user?.email || "Unknown",
         }));
 
         return { activities };
