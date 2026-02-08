@@ -81,7 +81,8 @@ export const app = new Elysia()
   .use(adminRoutes)
   .use(analyticsRoutes)
   .get("/", () => "Hello Elysia")
-  .get("/health", () => ({ status: "ok" }));
+  .get("/health", () => ({ status: "ok" }))
+  .get("/api/health", () => ({ status: "ok" }));
 
 if (import.meta.main) {
   app.listen(3000);
