@@ -1,12 +1,6 @@
 import { Elysia, t } from "elysia";
 import { auth } from "../auth";
-import { db } from "../db";
-import {
-  externalNotificationServices,
-  externalNotificationServiceLogs,
-  notificationTemplates,
-} from "../db/schema";
-import { eq, desc } from "drizzle-orm";
+import { prisma } from "../db";
 import { generateServiceToken } from "../services/externalNotificationService";
 
 // Helper to get base URL
@@ -31,10 +25,9 @@ export const externalNotificationsRoutes = new Elysia({
     }
 
     try {
-      const services = await db
-        .select()
-        .from(externalNotificationServices)
-        .orderBy(externalNotificationServices.serviceName);
+      const services = await prisma.externalNotificationService.findMany({
+        orderBy: { serviceName: "asc" },
+      });
 
       const baseUrl = getBaseUrl();
       const servicesList = [];
@@ -46,14 +39,10 @@ export const externalNotificationsRoutes = new Elysia({
             : null;
 
         // Get templates for this service
-        const templates = await db
-          .select()
-          .from(notificationTemplates)
-          .where(eq(notificationTemplates.serviceId, service.id))
-          .orderBy(
-            notificationTemplates.eventType,
-            notificationTemplates.language
-          );
+        const templates = await prisma.notificationTemplate.findMany({
+          where: { serviceId: service.id },
+          orderBy: [{ eventType: "asc" }, { language: "asc" }],
+        });
 
         servicesList.push({
           id: service.id,
@@ -99,8 +88,8 @@ export const externalNotificationsRoutes = new Elysia({
     const serviceId = parseInt(params.id, 10);
 
     try {
-      const service = await db.query.externalNotificationServices.findFirst({
-        where: eq(externalNotificationServices.id, serviceId),
+      const service = await prisma.externalNotificationService.findFirst({
+        where: { id: serviceId },
       });
 
       if (!service) {
@@ -111,14 +100,14 @@ export const externalNotificationsRoutes = new Elysia({
       const newToken = generateServiceToken();
       const now = new Date().toISOString();
 
-      await db
-        .update(externalNotificationServices)
-        .set({
+      await prisma.externalNotificationService.update({
+        where: { id: serviceId },
+        data: {
           enabled: true,
           token: newToken,
           updatedAt: now,
-        })
-        .where(eq(externalNotificationServices.id, serviceId));
+        },
+      });
 
       const baseUrl = getBaseUrl();
       const webhookUrl = `${baseUrl}/api/webhooks/${service.serviceName}?token=${newToken}`;
@@ -156,8 +145,8 @@ export const externalNotificationsRoutes = new Elysia({
     const serviceId = parseInt(params.id, 10);
 
     try {
-      const service = await db.query.externalNotificationServices.findFirst({
-        where: eq(externalNotificationServices.id, serviceId),
+      const service = await prisma.externalNotificationService.findFirst({
+        where: { id: serviceId },
       });
 
       if (!service) {
@@ -165,14 +154,14 @@ export const externalNotificationsRoutes = new Elysia({
         return { error: "Service not found" };
       }
 
-      await db
-        .update(externalNotificationServices)
-        .set({
+      await prisma.externalNotificationService.update({
+        where: { id: serviceId },
+        data: {
           enabled: false,
           token: null,
           updatedAt: new Date().toISOString(),
-        })
-        .where(eq(externalNotificationServices.id, serviceId));
+        },
+      });
 
       console.log(`Service ${service.serviceName} disabled and token deleted`);
 
@@ -206,8 +195,8 @@ export const externalNotificationsRoutes = new Elysia({
     const serviceId = parseInt(params.id, 10);
 
     try {
-      const service = await db.query.externalNotificationServices.findFirst({
-        where: eq(externalNotificationServices.id, serviceId),
+      const service = await prisma.externalNotificationService.findFirst({
+        where: { id: serviceId },
       });
 
       if (!service) {
@@ -217,13 +206,13 @@ export const externalNotificationsRoutes = new Elysia({
 
       const newToken = generateServiceToken();
 
-      await db
-        .update(externalNotificationServices)
-        .set({
+      await prisma.externalNotificationService.update({
+        where: { id: serviceId },
+        data: {
           token: newToken,
           updatedAt: new Date().toISOString(),
-        })
-        .where(eq(externalNotificationServices.id, serviceId));
+        },
+      });
 
       const baseUrl = getBaseUrl();
       const webhookUrl = `${baseUrl}/api/webhooks/${service.serviceName}?token=${newToken}`;
@@ -268,8 +257,8 @@ export const externalNotificationsRoutes = new Elysia({
       }
 
       try {
-        const service = await db.query.externalNotificationServices.findFirst({
-          where: eq(externalNotificationServices.id, serviceId),
+        const service = await prisma.externalNotificationService.findFirst({
+          where: { id: serviceId },
         });
 
         if (!service) {
@@ -277,13 +266,13 @@ export const externalNotificationsRoutes = new Elysia({
           return { error: "Service not found" };
         }
 
-        await db
-          .update(externalNotificationServices)
-          .set({
+        await prisma.externalNotificationService.update({
+          where: { id: serviceId },
+          data: {
             notifyAdminsOnly: notify_admins_only,
             updatedAt: new Date().toISOString(),
-          })
-          .where(eq(externalNotificationServices.id, serviceId));
+          },
+        });
 
         console.log(
           `Updated notify_admins_only=${notify_admins_only} for service ${service.serviceName}`
@@ -322,32 +311,23 @@ export const externalNotificationsRoutes = new Elysia({
     }
 
     try {
-      const logs = await db
-        .select({
-          id: externalNotificationServiceLogs.id,
-          serviceId: externalNotificationServiceLogs.serviceId,
-          eventType: externalNotificationServiceLogs.eventType,
-          status: externalNotificationServiceLogs.status,
-          payload: externalNotificationServiceLogs.payload,
-          createdAt: externalNotificationServiceLogs.createdAt,
-          serviceName: externalNotificationServices.serviceName,
-        })
-        .from(externalNotificationServiceLogs)
-        .leftJoin(
-          externalNotificationServices,
-          eq(
-            externalNotificationServiceLogs.serviceId,
-            externalNotificationServices.id
-          )
-        )
-        .orderBy(desc(externalNotificationServiceLogs.createdAt))
-        .limit(100);
+      const logs = await prisma.externalNotificationServiceLog.findMany({
+        include: {
+          ExternalNotificationService: {
+            select: {
+              serviceName: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+      });
 
       return {
         logs: logs.map((log) => ({
           id: log.id,
           service_id: log.serviceId,
-          service_name: log.serviceName,
+          service_name: log.ExternalNotificationService?.serviceName || null,
           event_type: log.eventType,
           status: log.status,
           payload: log.payload,
@@ -373,34 +353,26 @@ export const externalNotificationsRoutes = new Elysia({
     }
 
     try {
-      const templates = await db
-        .select({
-          id: notificationTemplates.id,
-          serviceId: notificationTemplates.serviceId,
-          eventType: notificationTemplates.eventType,
-          language: notificationTemplates.language,
-          titleTemplate: notificationTemplates.titleTemplate,
-          bodyTemplate: notificationTemplates.bodyTemplate,
-          createdAt: notificationTemplates.createdAt,
-          updatedAt: notificationTemplates.updatedAt,
-          serviceName: externalNotificationServices.serviceName,
-        })
-        .from(notificationTemplates)
-        .leftJoin(
-          externalNotificationServices,
-          eq(notificationTemplates.serviceId, externalNotificationServices.id)
-        )
-        .orderBy(
-          notificationTemplates.serviceId,
-          notificationTemplates.eventType,
-          notificationTemplates.language
-        );
+      const templates = await prisma.notificationTemplate.findMany({
+        include: {
+          ExternalNotificationService: {
+            select: {
+              serviceName: true,
+            },
+          },
+        },
+        orderBy: [
+          { serviceId: "asc" },
+          { eventType: "asc" },
+          { language: "asc" },
+        ],
+      });
 
       return {
         templates: templates.map((t) => ({
           id: t.id,
           service_id: t.serviceId,
-          service_name: t.serviceName,
+          service_name: t.ExternalNotificationService?.serviceName || null,
           event_type: t.eventType,
           language: t.language,
           title_template: t.titleTemplate,
@@ -439,8 +411,8 @@ export const externalNotificationsRoutes = new Elysia({
       }
 
       try {
-        const template = await db.query.notificationTemplates.findFirst({
-          where: eq(notificationTemplates.id, templateId),
+        const template = await prisma.notificationTemplate.findFirst({
+          where: { id: templateId },
         });
 
         if (!template) {
@@ -464,15 +436,14 @@ export const externalNotificationsRoutes = new Elysia({
           updateData.bodyTemplate = body_template;
         }
 
-        const [updatedTemplate] = await db
-          .update(notificationTemplates)
-          .set(updateData)
-          .where(eq(notificationTemplates.id, templateId))
-          .returning();
+        const updatedTemplate = await prisma.notificationTemplate.update({
+          where: { id: templateId },
+          data: updateData,
+        });
 
         // Get service name for response
-        const service = await db.query.externalNotificationServices.findFirst({
-          where: eq(externalNotificationServices.id, updatedTemplate.serviceId),
+        const service = await prisma.externalNotificationService.findFirst({
+          where: { id: updatedTemplate.serviceId },
         });
 
         console.log(`Updated template ${templateId}`);

@@ -1,13 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
-import {
-  chores,
-  reminders,
-  users,
-  taskCompletions,
-  notifications,
-} from "../db/schema";
-import { eq, and, asc, desc, isNull, or, sql } from "drizzle-orm";
+import { prisma } from "../db";
 import { auth } from "../auth";
 import {
   saveImageAndCreateThumbnail,
@@ -20,8 +12,8 @@ import { formatIso, nowUtc, sanitizeInput } from "../utils";
 
 // Map database chore to frontend format (snake_case)
 const mapChore = (
-  chore: typeof chores.$inferSelect,
-  activeReminder?: typeof reminders.$inferSelect | null,
+  chore: any,
+  activeReminder?: any | null,
   addedByUser?: { firstName: string | null; email: string } | null,
   assignedToUser?: { firstName: string | null; email: string } | null,
   completedByUser?: { firstName: string | null; email: string } | null,
@@ -56,15 +48,15 @@ const mapChore = (
 
 // Helper to deactivate reminders for a chore
 const deactivateRemindersForChore = async (choreId: number) => {
-  await db
-    .update(reminders)
-    .set({ active: false })
-    .where(eq(reminders.choreId, choreId));
+  await prisma.reminder.updateMany({
+    where: { choreId },
+    data: { active: false },
+  });
 };
 
 // Helper to create next chore occurrence for recurring chores
 const createNextChoreOccurrence = async (
-  chore: typeof chores.$inferSelect,
+  chore: any,
   completedAt: Date,
 ) => {
   if (!chore.recurrenceType) return null;
@@ -93,17 +85,16 @@ const createNextChoreOccurrence = async (
   }
 
   // Get max position for new chore
-  const maxPositionResult = await db
-    .select({ maxPos: sql<number>`MAX(${chores.position})` })
-    .from(chores)
-    .where(or(eq(chores.completed, false), isNull(chores.completed)));
+  const maxPositionResult = await prisma.chore.aggregate({
+    _max: { position: true },
+    where: { OR: [{ completed: false }, { completed: null }] },
+  });
 
-  const newPosition = (maxPositionResult[0]?.maxPos ?? -1) + 1;
+  const newPosition = (maxPositionResult._max.position ?? -1) + 1;
 
   // Create new chore
-  const [newChore] = await db
-    .insert(chores)
-    .values({
+  const newChore = await prisma.chore.create({
+    data: {
       choreName: chore.choreName,
       description: chore.description,
       assignedTo: chore.assignedTo,
@@ -118,22 +109,22 @@ const createNextChoreOccurrence = async (
       recurrenceParentId: chore.id,
       completed: false,
       createdAt: nowUtc(),
-    })
-    .returning();
+    },
+  });
 
   return newChore;
 };
 
 // Helper to remove recurrence from a chore
 const removeRecurrence = async (choreId: number) => {
-  await db
-    .update(chores)
-    .set({
+  await prisma.chore.update({
+    where: { id: choreId },
+    data: {
       recurrenceType: null,
       recurrenceIntervalDays: null,
       recurrenceWeekday: null,
-    })
-    .where(eq(chores.id, choreId));
+    },
+  });
 };
 
 export const choresRoutes = new Elysia({ prefix: "/api/chores" })
@@ -147,38 +138,36 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
     try {
       // Get all chores ordered by completed, position, created_at
-      const allChores = await db
-        .select()
-        .from(chores)
-        .orderBy(
-          asc(chores.completed),
-          asc(chores.position),
-          desc(chores.createdAt),
-        );
+      const allChores = await prisma.chore.findMany({
+        orderBy: [
+          { completed: 'asc' },
+          { position: 'asc' },
+          { createdAt: 'desc' },
+        ],
+      });
 
       // Get all users
-      const allUsers = await db
-        .select({
-          id: users.id,
-          email: users.email,
-          firstName: users.firstName,
-          lastName: users.lastName,
-        })
-        .from(users)
-        .orderBy(asc(users.email));
+      const allUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+        orderBy: { email: 'asc' },
+      });
 
       // Get all active reminders
-      const activeReminders = await db
-        .select()
-        .from(reminders)
-        .where(eq(reminders.active, true))
-        .orderBy(asc(reminders.choreId), asc(reminders.reminderDatetime));
+      const activeReminders = await prisma.reminder.findMany({
+        where: { active: true },
+        orderBy: [
+          { choreId: 'asc' },
+          { reminderDatetime: 'asc' },
+        ],
+      });
 
       // Create lookup maps
-      const remindersByChoreId = new Map<
-        number,
-        typeof reminders.$inferSelect
-      >();
+      const remindersByChoreId = new Map<number, any>();
       for (const reminder of activeReminders) {
         if (!remindersByChoreId.has(reminder.choreId)) {
           remindersByChoreId.set(reminder.choreId, reminder);
@@ -272,8 +261,8 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           return { error: "Invalid assigned user" };
         }
         // Validate user exists
-        const assignedUser = await db.query.users.findFirst({
-          where: eq(users.id, parsedAssignedTo),
+        const assignedUser = await prisma.user.findFirst({
+          where: { id: parsedAssignedTo },
         });
         if (!assignedUser) {
           set.status = 400;
@@ -326,17 +315,16 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
       try {
         // Get max position for incomplete chores
-        const maxPositionResult = await db
-          .select({ maxPos: sql<number>`MAX(${chores.position})` })
-          .from(chores)
-          .where(or(eq(chores.completed, false), isNull(chores.completed)));
+        const maxPositionResult = await prisma.chore.aggregate({
+          _max: { position: true },
+          where: { OR: [{ completed: false }, { completed: null }] },
+        });
 
-        const newPosition = (maxPositionResult[0]?.maxPos ?? -1) + 1;
+        const newPosition = (maxPositionResult._max.position ?? -1) + 1;
 
         // Create chore
-        const [newChore] = await db
-          .insert(chores)
-          .values({
+        const newChore = await prisma.chore.create({
+          data: {
             choreName,
             assignedTo,
             description: description ? sanitizeInput(description.trim()) : null,
@@ -352,17 +340,19 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
               : null,
             completed: false,
             createdAt: nowUtc(),
-          })
-          .returning();
+          },
+        });
 
         // Create reminder if enabled
         if (reminder_enabled && reminder_datetime) {
-          await db.insert(reminders).values({
-            choreId: newChore.id,
-            reminderDatetime: reminder_datetime,
-            userId: assignedTo || user.id,
-            active: true,
-            createdAt: nowUtc(),
+          await prisma.reminder.create({
+            data: {
+              choreId: newChore.id,
+              reminderDatetime: reminder_datetime,
+              userId: assignedTo || user.id,
+              active: true,
+              createdAt: nowUtc(),
+            },
           });
         }
 
@@ -412,8 +402,8 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
       try {
         // Get chore
-        const chore = await db.query.chores.findFirst({
-          where: eq(chores.id, choreId),
+        const chore = await prisma.chore.findFirst({
+          where: { id: choreId },
         });
 
         if (!chore) {
@@ -425,40 +415,33 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         const completedAt = newStatus ? new Date() : null;
 
         // Update chore
-        await db
-          .update(chores)
-          .set({
+        await prisma.chore.update({
+          where: { id: choreId },
+          data: {
             completed: newStatus,
             completedBy: newStatus ? user.id : null,
             completedAt: newStatus ? nowUtc() : null,
-          })
-          .where(eq(chores.id, choreId));
+          },
+        });
 
         if (newStatus) {
           // Record task completion with emotion
-          await db.insert(taskCompletions).values({
-            userId: user.id,
-            taskType: "chore",
-            taskId: chore.id,
-            taskName: chore.choreName,
-            emotion: emotion || null,
-            completedAt: nowUtc(),
+          await prisma.taskCompletion.create({
+            data: {
+              userId: user.id,
+              taskType: "chore",
+              taskId: chore.id,
+              taskName: chore.choreName,
+              emotion: emotion || null,
+              completedAt: nowUtc(),
+            },
           });
 
           // Deactivate reminders
           await deactivateRemindersForChore(choreId);
 
           // Mark related notifications as read
-          await db
-            .update(notifications)
-            .set({ read: true, readAt: nowUtc() })
-            .where(
-              and(
-                eq(notifications.userId, user.id),
-                eq(notifications.read, false),
-                sql`${notifications.notificationMetadata}->>'chore_id' = ${String(choreId)}`,
-              ),
-            );
+          await prisma.$executeRaw`UPDATE "notifications" SET "read" = true, "read_at" = ${nowUtc()} WHERE "user_id" = ${user.id} AND "read" = false AND "notification_metadata"->>'chore_id' = ${String(choreId)}`;
 
           // Create next occurrence if recurring
           if (chore.recurrenceType) {
@@ -513,8 +496,8 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
       try {
         // Get chore
-        const chore = await db.query.chores.findFirst({
-          where: eq(chores.id, choreId),
+        const chore = await prisma.chore.findFirst({
+          where: { id: choreId },
         });
 
         if (!chore) {
@@ -534,7 +517,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           return { error: "Cannot update completed chore" };
         }
 
-        const updateData: Partial<typeof chores.$inferInsert> = {};
+        const updateData: Record<string, any> = {};
 
         // Update chore name if provided
         if (body.chore_name !== undefined) {
@@ -566,8 +549,8 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
               set.status = 400;
               return { error: "Invalid assigned user" };
             }
-            const assignedUser = await db.query.users.findFirst({
-              where: eq(users.id, parsedAssignedTo),
+            const assignedUser = await prisma.user.findFirst({
+              where: { id: parsedAssignedTo },
             });
             if (!assignedUser) {
               set.status = 400;
@@ -602,12 +585,14 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
               reminderUserId = chore.assignedTo || user.id;
             }
 
-            await db.insert(reminders).values({
-              choreId: chore.id,
-              reminderDatetime: body.reminder_datetime,
-              userId: reminderUserId,
-              active: true,
-              createdAt: nowUtc(),
+            await prisma.reminder.create({
+              data: {
+                choreId: chore.id,
+                reminderDatetime: body.reminder_datetime,
+                userId: reminderUserId,
+                active: true,
+                createdAt: nowUtc(),
+              },
             });
           }
         }
@@ -684,7 +669,10 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
         // Apply updates
         if (Object.keys(updateData).length > 0) {
-          await db.update(chores).set(updateData).where(eq(chores.id, choreId));
+          await prisma.chore.update({
+            where: { id: choreId },
+            data: updateData,
+          });
         }
 
         console.log(`User ${user.id} updated chore ${choreId}`);
@@ -731,8 +719,8 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
       try {
         // Get chore
-        const chore = await db.query.chores.findFirst({
-          where: eq(chores.id, choreId),
+        const chore = await prisma.chore.findFirst({
+          where: { id: choreId },
         });
 
         if (!chore) {
@@ -775,15 +763,14 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
     try {
       // Get count of completed chores
-      const completedChores = await db
-        .select({ id: chores.id })
-        .from(chores)
-        .where(eq(chores.completed, true));
-
-      const count = completedChores.length;
+      const count = await prisma.chore.count({
+        where: { completed: true },
+      });
 
       // Delete all completed chores (reminders cascade delete)
-      await db.delete(chores).where(eq(chores.completed, true));
+      await prisma.chore.deleteMany({
+        where: { completed: true },
+      });
 
       console.log(`User ${user.id} deleted ${count} completed chores`);
       return {
@@ -815,8 +802,8 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
       try {
         // Get chore
-        const chore = await db.query.chores.findFirst({
-          where: eq(chores.id, choreId),
+        const chore = await prisma.chore.findFirst({
+          where: { id: choreId },
         });
 
         if (!chore) {
@@ -836,7 +823,9 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         }
 
         // Delete chore (reminders cascade delete)
-        await db.delete(chores).where(eq(chores.id, choreId));
+        await prisma.chore.delete({
+          where: { id: choreId },
+        });
 
         console.log(`User ${user.id} deleted chore ${choreId}`);
         return { success: true, message: "Chore deleted successfully" };
@@ -1041,12 +1030,12 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         }
 
         // Update positions atomically in a transaction
-        await db.transaction(async (tx) => {
+        await prisma.$transaction(async (tx) => {
           for (let i = 0; i < chore_ids.length; i++) {
-            await tx
-              .update(chores)
-              .set({ position: i })
-              .where(eq(chores.id, chore_ids[i]));
+            await tx.chore.update({
+              where: { id: chore_ids[i] },
+              data: { position: i },
+            });
           }
         });
 

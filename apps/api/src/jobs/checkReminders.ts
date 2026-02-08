@@ -3,9 +3,7 @@
  * Runs every 15 minutes
  */
 
-import { db } from "../db";
-import { reminders, chores, customEvents, users } from "../db/schema";
-import { eq, and, or, lte, gte, isNull } from "drizzle-orm";
+import { prisma } from "../db";
 import { nowUtc, getTimezone } from "../utils";
 import { isNightTime, createAndQueueNotification, getAllUsers } from "./notificationService";
 
@@ -36,28 +34,27 @@ export async function checkAndSendReminders(): Promise<void> {
     // 2. chore is not completed
     // 3. Either never sent OR last sent more than 5 minutes ago
     // 4. reminder is active
-    const dueReminders = await db
-      .select({
-        reminder: reminders,
-        chore: chores,
-      })
-      .from(reminders)
-      .innerJoin(chores, eq(reminders.choreId, chores.id))
-      .where(
-        and(
-          eq(reminders.active, true),
-          eq(chores.completed, false),
-          lte(reminders.reminderDatetime, nowUtcDt.toISOString()),
-          or(
-            isNull(reminders.lastNotificationSent),
-            lte(reminders.lastNotificationSent, repeatIntervalAgo.toISOString())
-          )
-        )
-      );
+    const dueReminders = await prisma.reminder.findMany({
+      where: {
+        active: true,
+        reminderDatetime: { lte: nowUtcDt.toISOString() },
+        chore: {
+          completed: false,
+        },
+        OR: [
+          { lastNotificationSent: null },
+          { lastNotificationSent: { lte: repeatIntervalAgo.toISOString() } },
+        ],
+      },
+      include: {
+        chore: true,
+      },
+    });
 
     let sentCount = 0;
 
-    for (const { reminder, chore } of dueReminders) {
+    for (const reminder of dueReminders) {
+      const chore = reminder.chore;
       const choreName = chore.choreName;
       const assignedTo = chore.assignedTo;
 
@@ -104,10 +101,10 @@ export async function checkAndSendReminders(): Promise<void> {
 
       // Update last_notification_sent for the reminder
       if (notificationSent) {
-        await db
-          .update(reminders)
-          .set({ lastNotificationSent: nowUtc() })
-          .where(eq(reminders.id, reminder.id));
+        await prisma.reminder.update({
+          where: { id: reminder.id },
+          data: { lastNotificationSent: nowUtc() },
+        });
       }
     }
 
@@ -134,24 +131,23 @@ async function checkAndSendCustomEventNotifications(): Promise<void> {
 
   try {
     // Get custom events that start within the next 15 minutes and are not all_day
-    const events = await db
-      .select({
-        event: customEvents,
-        user: users,
-      })
-      .from(customEvents)
-      .innerJoin(users, eq(customEvents.userId, users.id))
-      .where(
-        and(
-          eq(customEvents.allDay, false),
-          gte(customEvents.startDatetime, nowUtcDt.toISOString()),
-          lte(customEvents.startDatetime, windowEnd.toISOString())
-        )
-      );
+    const events = await prisma.customEvent.findMany({
+      where: {
+        allDay: false,
+        startDatetime: {
+          gte: nowUtcDt.toISOString(),
+          lte: windowEnd.toISOString(),
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
 
     let sentCount = 0;
 
-    for (const { event, user } of events) {
+    for (const event of events) {
+      const user = event.user;
       const locale = user.locale || "en";
 
       // Format time for notification

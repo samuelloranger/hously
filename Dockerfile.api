@@ -19,6 +19,9 @@ COPY apps/api ./apps/api
 # Set working directory to the api application
 WORKDIR /app/apps/api
 
+# Generate Prisma client at build time
+RUN bunx prisma generate
+
 # Expose the application port
 EXPOSE 3000
 

@@ -1,8 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
-import { taskCompletions, shoppingItems } from "../db/schema";
-import { eq, gte, lte, and, count, isNotNull } from "drizzle-orm";
-import { sql } from "drizzle-orm";
+import { prisma } from "../db";
 import { auth } from "../auth";
 import {
   todayLocal,
@@ -56,15 +53,12 @@ export const analyticsRoutes = new Elysia({ prefix: "/api/analytics" })
         startOfWeekTz.setHours(0, 0, 0, 0);
 
         // Get weekly completions
-        const weeklyCompletions = await db
-          .select()
-          .from(taskCompletions)
-          .where(
-            and(
-              eq(taskCompletions.userId, user.id),
-              gte(taskCompletions.completedAt, startOfWeekTz.toISOString())
-            )
-          );
+        const weeklyCompletions = await prisma.taskCompletion.findMany({
+          where: {
+            userId: user.id,
+            completedAt: { gte: startOfWeekTz.toISOString() },
+          },
+        });
 
         // Group by day and emotion
         const dailyStats: Record<string, number> = {};
@@ -168,19 +162,15 @@ export const analyticsRoutes = new Elysia({ prefix: "/api/analytics" })
         startOfPreviousWeekTz.setDate(startOfPreviousWeekTz.getDate() - 6);
         startOfPreviousWeekTz.setHours(0, 0, 0, 0);
 
-        const previousWeekCompletions = await db
-          .select()
-          .from(taskCompletions)
-          .where(
-            and(
-              eq(taskCompletions.userId, user.id),
-              gte(
-                taskCompletions.completedAt,
-                startOfPreviousWeekTz.toISOString()
-              ),
-              lte(taskCompletions.completedAt, endOfPreviousWeekTz.toISOString())
-            )
-          );
+        const previousWeekCompletions = await prisma.taskCompletion.findMany({
+          where: {
+            userId: user.id,
+            completedAt: {
+              gte: startOfPreviousWeekTz.toISOString(),
+              lte: endOfPreviousWeekTz.toISOString(),
+            },
+          },
+        });
 
         const previousWeekTotal = previousWeekCompletions.length;
         const previousAvgPerDay =
@@ -256,16 +246,15 @@ export const analyticsRoutes = new Elysia({ prefix: "/api/analytics" })
         );
 
         // Get completions for the period
-        const completions = await db
-          .select()
-          .from(taskCompletions)
-          .where(
-            and(
-              eq(taskCompletions.userId, user.id),
-              gte(taskCompletions.completedAt, startOfPeriod.toISOString()),
-              lte(taskCompletions.completedAt, endOfPeriod.toISOString())
-            )
-          );
+        const completions = await prisma.taskCompletion.findMany({
+          where: {
+            userId: user.id,
+            completedAt: {
+              gte: startOfPeriod.toISOString(),
+              lte: endOfPeriod.toISOString(),
+            },
+          },
+        });
 
         // Group by day and emotion
         const dailyStats: Record<string, number> = {};
@@ -406,10 +395,9 @@ export const analyticsRoutes = new Elysia({ prefix: "/api/analytics" })
       ];
 
       // Get all completions for this user
-      const allCompletions = await db
-        .select()
-        .from(taskCompletions)
-        .where(eq(taskCompletions.userId, user.id));
+      const allCompletions = await prisma.taskCompletion.findMany({
+        where: { userId: user.id },
+      });
 
       // Group by day of week
       const dayStats: Record<number, number> = {};
@@ -472,10 +460,9 @@ export const analyticsRoutes = new Elysia({ prefix: "/api/analytics" })
 
     try {
       // Get all shopping items for the user
-      const allItems = await db
-        .select()
-        .from(shoppingItems)
-        .where(eq(shoppingItems.addedBy, user.id));
+      const allItems = await prisma.shoppingItem.findMany({
+        where: { addedBy: user.id },
+      });
 
       const totalItems = allItems.length;
 
@@ -548,10 +535,9 @@ export const analyticsRoutes = new Elysia({ prefix: "/api/analytics" })
 
     try {
       // Get all completions for this user
-      const allCompletions = await db
-        .select()
-        .from(taskCompletions)
-        .where(eq(taskCompletions.userId, user.id));
+      const allCompletions = await prisma.taskCompletion.findMany({
+        where: { userId: user.id },
+      });
 
       if (allCompletions.length === 0) {
         return {

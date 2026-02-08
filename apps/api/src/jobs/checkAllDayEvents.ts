@@ -3,9 +3,7 @@
  * Runs daily at 8:00 PM
  */
 
-import { db } from "../db";
-import { customEvents, users } from "../db/schema";
-import { eq, and, gte, lte } from "drizzle-orm";
+import { prisma } from "../db";
 import { todayLocal } from "../utils";
 import { isNightTime, createAndQueueNotification } from "./notificationService";
 
@@ -40,24 +38,23 @@ export async function checkAndSendAllDayEventNotifications(): Promise<void> {
 
   try {
     // Get all-day custom events that start tomorrow
-    const events = await db
-      .select({
-        event: customEvents,
-        user: users,
-      })
-      .from(customEvents)
-      .innerJoin(users, eq(customEvents.userId, users.id))
-      .where(
-        and(
-          eq(customEvents.allDay, true),
-          gte(customEvents.startDatetime, tomorrowStart.toISOString()),
-          lte(customEvents.startDatetime, tomorrowEnd.toISOString())
-        )
-      );
+    const events = await prisma.customEvent.findMany({
+      where: {
+        allDay: true,
+        startDatetime: {
+          gte: tomorrowStart.toISOString(),
+          lte: tomorrowEnd.toISOString(),
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
 
     let sentCount = 0;
 
-    for (const { event, user } of events) {
+    for (const event of events) {
+      const user = event.user;
       const locale = user.locale || "en";
 
       const title = locale === "fr"

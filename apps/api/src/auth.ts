@@ -1,16 +1,24 @@
 import { Elysia, t } from "elysia";
 import { jwt } from "@elysiajs/jwt";
 import { cookie } from "@elysiajs/cookie";
-import { db } from "./db";
-import { users, passwordResetTokens, refreshTokens } from "./db/schema";
-import { eq, and, gt } from "drizzle-orm";
+import { prisma } from "./db";
 import { hashPassword, verifyPassword } from "./utils/password";
 import { authRateLimit } from "./middleware/rateLimit";
 import { validateEmail, validatePassword } from "./utils/validation";
 import { loadAccessControl, getBaseUrl } from "./utils/config";
 
 // Map database user (camelCase) to frontend user (snake_case)
-const mapUser = (user: typeof users.$inferSelect) => ({
+const mapUser = (user: {
+  id: number;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  isAdmin: boolean | null;
+  lastLogin: string | null;
+  createdAt: string | null;
+  lastActivity: string | null;
+  avatarUrl: string | null;
+}) => ({
   id: user.id,
   email: user.email,
   first_name: user.firstName,
@@ -45,11 +53,13 @@ const createRefreshToken = async (userId: number): Promise<string> => {
   const token = generateRefreshToken();
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days
 
-  await db.insert(refreshTokens).values({
-    userId,
-    token,
-    expiresAt,
-    revoked: false,
+  await prisma.refreshToken.create({
+    data: {
+      userId,
+      token,
+      expiresAt,
+      revoked: false,
+    },
   });
 
   return token;
@@ -71,8 +81,8 @@ export const auth = (app: Elysia) =>
         const token = authHeader.slice(7);
         const profile = await jwt.verify(token);
         if (profile && profile.id) {
-          const user = await db.query.users.findFirst({
-            where: eq(users.id, Number(profile.id)),
+          const user = await prisma.user.findFirst({
+            where: { id: Number(profile.id) },
           });
           if (user) {
             return { user: mapUser(user) };
@@ -91,8 +101,8 @@ export const auth = (app: Elysia) =>
         return { user: null };
       }
 
-      const user = await db.query.users.findFirst({
-        where: eq(users.id, Number(profile.id)),
+      const user = await prisma.user.findFirst({
+        where: { id: Number(profile.id) },
       });
 
       if (!user) {
@@ -108,8 +118,8 @@ export const auth = (app: Elysia) =>
           "/login",
           async ({ body, jwt, set, cookie: { auth } }) => {
             const { email, password } = body;
-            const user = await db.query.users.findFirst({
-              where: eq(users.email, email),
+            const user = await prisma.user.findFirst({
+              where: { email },
             });
 
             if (!user) {
@@ -146,10 +156,10 @@ export const auth = (app: Elysia) =>
             });
 
             // Update last login
-            await db
-              .update(users)
-              .set({ lastLogin: new Date().toISOString() })
-              .where(eq(users.id, user.id));
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { lastLogin: new Date().toISOString() },
+            });
 
             // Generate refresh token for mobile clients
             const refreshToken = await createRefreshToken(user.id);
@@ -187,8 +197,8 @@ export const auth = (app: Elysia) =>
             }
 
             // Check if user already exists
-            const existingUser = await db.query.users.findFirst({
-              where: eq(users.email, email),
+            const existingUser = await prisma.user.findFirst({
+              where: { email },
             });
 
             if (existingUser) {
@@ -202,9 +212,8 @@ export const auth = (app: Elysia) =>
 
             // Hash password and create user
             const passwordHash = await hashPassword(password);
-            const [newUser] = await db
-              .insert(users)
-              .values({
+            const newUser = await prisma.user.create({
+              data: {
                 email,
                 passwordHash,
                 firstName: first_name || null,
@@ -212,8 +221,8 @@ export const auth = (app: Elysia) =>
                 isAdmin,
                 locale: locale || "en",
                 createdAt: new Date().toISOString(),
-              })
-              .returning();
+              },
+            });
 
             // Generate JWT access token
             const accessToken = await jwt.sign({ id: newUser.id });
@@ -262,12 +271,12 @@ export const auth = (app: Elysia) =>
 
             try {
               // Find valid refresh token
-              const storedToken = await db.query.refreshTokens.findFirst({
-                where: and(
-                  eq(refreshTokens.token, tokenValue),
-                  eq(refreshTokens.revoked, false),
-                  gt(refreshTokens.expiresAt, new Date().toISOString()),
-                ),
+              const storedToken = await prisma.refreshToken.findFirst({
+                where: {
+                  token: tokenValue,
+                  revoked: false,
+                  expiresAt: { gt: new Date().toISOString() },
+                },
               });
 
               if (!storedToken) {
@@ -276,8 +285,8 @@ export const auth = (app: Elysia) =>
               }
 
               // Fetch user
-              const user = await db.query.users.findFirst({
-                where: eq(users.id, storedToken.userId),
+              const user = await prisma.user.findFirst({
+                where: { id: storedToken.userId },
               });
 
               if (!user) {
@@ -286,10 +295,10 @@ export const auth = (app: Elysia) =>
               }
 
               // Revoke old refresh token (rotation)
-              await db
-                .update(refreshTokens)
-                .set({ revoked: true })
-                .where(eq(refreshTokens.id, storedToken.id));
+              await prisma.refreshToken.update({
+                where: { id: storedToken.id },
+                data: { revoked: true },
+              });
 
               // Generate new access token
               const accessToken = await jwt.sign({ id: user.id });
@@ -327,8 +336,8 @@ export const auth = (app: Elysia) =>
             // Always return success to prevent email enumeration
             // But only create token if user exists
             try {
-              const user = await db.query.users.findFirst({
-                where: eq(users.email, email),
+              const user = await prisma.user.findFirst({
+                where: { email },
               });
 
               if (user) {
@@ -346,21 +355,21 @@ export const auth = (app: Elysia) =>
                 ).toISOString();
 
                 // Delete any existing unused tokens for this user
-                await db
-                  .delete(passwordResetTokens)
-                  .where(
-                    and(
-                      eq(passwordResetTokens.userId, user.id),
-                      eq(passwordResetTokens.used, false),
-                    ),
-                  );
+                await prisma.passwordResetToken.deleteMany({
+                  where: {
+                    userId: user.id,
+                    used: false,
+                  },
+                });
 
                 // Create new token
-                await db.insert(passwordResetTokens).values({
-                  userId: user.id,
-                  token,
-                  expiresAt,
-                  used: false,
+                await prisma.passwordResetToken.create({
+                  data: {
+                    userId: user.id,
+                    token,
+                    expiresAt,
+                    used: false,
+                  },
                 });
 
                 // Build reset URL
@@ -409,12 +418,12 @@ export const auth = (app: Elysia) =>
 
             try {
               // Get and validate token
-              const resetToken = await db.query.passwordResetTokens.findFirst({
-                where: and(
-                  eq(passwordResetTokens.token, token),
-                  eq(passwordResetTokens.used, false),
-                  gt(passwordResetTokens.expiresAt, new Date().toISOString()),
-                ),
+              const resetToken = await prisma.passwordResetToken.findFirst({
+                where: {
+                  token,
+                  used: false,
+                  expiresAt: { gt: new Date().toISOString() },
+                },
               });
 
               if (!resetToken) {
@@ -426,16 +435,16 @@ export const auth = (app: Elysia) =>
 
               // Update password
               const passwordHash = await hashPassword(password);
-              await db
-                .update(users)
-                .set({ passwordHash })
-                .where(eq(users.id, resetToken.userId));
+              await prisma.user.update({
+                where: { id: resetToken.userId },
+                data: { passwordHash },
+              });
 
               // Mark token as used
-              await db
-                .update(passwordResetTokens)
-                .set({ used: true })
-                .where(eq(passwordResetTokens.id, resetToken.id));
+              await prisma.passwordResetToken.update({
+                where: { id: resetToken.id },
+                data: { used: true },
+              });
 
               console.log(
                 `Password reset successful for user_id: ${resetToken.userId}`,
@@ -465,8 +474,8 @@ export const auth = (app: Elysia) =>
           }
 
           // Fetch fresh user data (including avatar_url)
-          const dbUser = await db.query.users.findFirst({
-            where: eq(users.id, user.id),
+          const dbUser = await prisma.user.findFirst({
+            where: { id: user.id },
           });
 
           if (!dbUser) {
@@ -517,11 +526,10 @@ export const auth = (app: Elysia) =>
                 updateData.locale = locale;
               }
 
-              const [updatedUser] = await db
-                .update(users)
-                .set(updateData)
-                .where(eq(users.id, user.id))
-                .returning();
+              const updatedUser = await prisma.user.update({
+                where: { id: user.id },
+                data: updateData,
+              });
 
               return { user: mapUser(updatedUser) };
             } catch (error) {
@@ -555,8 +563,8 @@ export const auth = (app: Elysia) =>
             }
 
             try {
-              const dbUser = await db.query.users.findFirst({
-                where: eq(users.id, user.id),
+              const dbUser = await prisma.user.findFirst({
+                where: { id: user.id },
               });
 
               if (!dbUser) {
@@ -574,10 +582,10 @@ export const auth = (app: Elysia) =>
               }
 
               const passwordHash = await hashPassword(new_password);
-              await db
-                .update(users)
-                .set({ passwordHash })
-                .where(eq(users.id, user.id));
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { passwordHash },
+              });
 
               return { message: "Password updated successfully" };
             } catch (error) {
@@ -637,10 +645,10 @@ export const auth = (app: Elysia) =>
               const avatarUrl = `/uploads/avatars/${filename}`;
 
               // Persist avatar URL in user record
-              await db
-                .update(users)
-                .set({ avatarUrl })
-                .where(eq(users.id, user.id));
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { avatarUrl },
+              });
 
               return {
                 message: "Avatar uploaded successfully",
@@ -663,10 +671,10 @@ export const auth = (app: Elysia) =>
           // Revoke all refresh tokens for user on logout
           if (user) {
             try {
-              await db
-                .update(refreshTokens)
-                .set({ revoked: true })
-                .where(eq(refreshTokens.userId, user.id));
+              await prisma.refreshToken.updateMany({
+                where: { userId: user.id },
+                data: { revoked: true },
+              });
             } catch (error) {
               console.error("Error revoking refresh tokens:", error);
             }

@@ -1,8 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
-import { shoppingItems, users } from "../db/schema";
-import { eq, and, asc, desc, isNull, inArray } from "drizzle-orm";
-import { sql } from "drizzle-orm";
+import { prisma } from "../db";
 import { auth } from "../auth";
 import { formatIso, nowUtc, sanitizeInput } from "../utils";
 
@@ -17,34 +14,34 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
 
     try {
       // Get all non-deleted shopping items ordered by completed, position, created_at
-      const items = await db
-        .select({
-          id: shoppingItems.id,
-          position: shoppingItems.position,
-          itemName: shoppingItems.itemName,
-          notes: shoppingItems.notes,
-          completed: shoppingItems.completed,
-          addedBy: shoppingItems.addedBy,
-          completedBy: shoppingItems.completedBy,
-          createdAt: shoppingItems.createdAt,
-          completedAt: shoppingItems.completedAt,
-        })
-        .from(shoppingItems)
-        .where(isNull(shoppingItems.deletedAt))
-        .orderBy(
-          asc(shoppingItems.completed),
-          asc(shoppingItems.position),
-          desc(shoppingItems.createdAt)
-        );
+      const items = await prisma.shoppingItem.findMany({
+        where: { deletedAt: null },
+        select: {
+          id: true,
+          position: true,
+          itemName: true,
+          notes: true,
+          completed: true,
+          addedBy: true,
+          completedBy: true,
+          createdAt: true,
+          completedAt: true,
+        },
+        orderBy: [
+          { completed: 'asc' },
+          { position: 'asc' },
+          { createdAt: 'desc' },
+        ],
+      });
 
       // Get all users for username lookups
-      const allUsers = await db
-        .select({
-          id: users.id,
-          email: users.email,
-          firstName: users.firstName,
-        })
-        .from(users);
+      const allUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+        },
+      });
 
       const usersById = new Map<number, { firstName: string | null; email: string }>();
       for (const u of allUsers) {
@@ -102,30 +99,27 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
 
       try {
         // Get max position for incomplete items
-        const maxPositionResult = await db
-          .select({ maxPos: sql<number>`MAX(${shoppingItems.position})` })
-          .from(shoppingItems)
-          .where(
-            and(
-              eq(shoppingItems.completed, false),
-              isNull(shoppingItems.deletedAt)
-            )
-          );
+        const maxPositionResult = await prisma.shoppingItem.aggregate({
+          _max: { position: true },
+          where: {
+            completed: false,
+            deletedAt: null,
+          },
+        });
 
-        const newPosition = (maxPositionResult[0]?.maxPos ?? -1) + 1;
+        const newPosition = (maxPositionResult._max.position ?? -1) + 1;
 
         // Create item
-        const [newItem] = await db
-          .insert(shoppingItems)
-          .values({
+        const newItem = await prisma.shoppingItem.create({
+          data: {
             itemName,
             notes: sanitizedNotes,
             addedBy: user.id,
             position: newPosition,
             completed: false,
             createdAt: nowUtc(),
-          })
-          .returning();
+          },
+        });
 
         console.log(`User ${user.id} added shopping item: ${itemName}`);
         return { success: true, id: newItem.id, message: "Item added successfully" };
@@ -160,11 +154,11 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
 
       try {
         // Get item (not soft-deleted)
-        const item = await db.query.shoppingItems.findFirst({
-          where: and(
-            eq(shoppingItems.id, itemId),
-            isNull(shoppingItems.deletedAt)
-          ),
+        const item = await prisma.shoppingItem.findFirst({
+          where: {
+            id: itemId,
+            deletedAt: null,
+          },
         });
 
         if (!item) {
@@ -175,14 +169,14 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
         const newStatus = !item.completed;
 
         // Update item
-        await db
-          .update(shoppingItems)
-          .set({
+        await prisma.shoppingItem.update({
+          where: { id: itemId },
+          data: {
             completed: newStatus,
             completedBy: newStatus ? user.id : null,
             completedAt: newStatus ? nowUtc() : null,
-          })
-          .where(eq(shoppingItems.id, itemId));
+          },
+        });
 
         const action = newStatus ? "completed" : "uncompleted";
         console.log(`User ${user.id} ${action} shopping item ${itemId}`);
@@ -218,11 +212,11 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
 
       try {
         // Get item (not soft-deleted)
-        const item = await db.query.shoppingItems.findFirst({
-          where: and(
-            eq(shoppingItems.id, itemId),
-            isNull(shoppingItems.deletedAt)
-          ),
+        const item = await prisma.shoppingItem.findFirst({
+          where: {
+            id: itemId,
+            deletedAt: null,
+          },
         });
 
         if (!item) {
@@ -236,7 +230,7 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
           return { error: "Unauthorized" };
         }
 
-        const updateData: Partial<typeof shoppingItems.$inferInsert> = {};
+        const updateData: Record<string, any> = {};
 
         // Update item_name if provided
         if (body.item_name !== undefined) {
@@ -255,7 +249,10 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
 
         // Apply updates
         if (Object.keys(updateData).length > 0) {
-          await db.update(shoppingItems).set(updateData).where(eq(shoppingItems.id, itemId));
+          await prisma.shoppingItem.update({
+            where: { id: itemId },
+            data: updateData,
+          });
         }
 
         console.log(`User ${user.id} updated shopping item ${itemId}`);
@@ -294,11 +291,11 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
 
       try {
         // Get item (not already soft-deleted)
-        const item = await db.query.shoppingItems.findFirst({
-          where: and(
-            eq(shoppingItems.id, itemId),
-            isNull(shoppingItems.deletedAt)
-          ),
+        const item = await prisma.shoppingItem.findFirst({
+          where: {
+            id: itemId,
+            deletedAt: null,
+          },
         });
 
         if (!item) {
@@ -313,10 +310,10 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
         }
 
         // Soft delete by setting deleted_at timestamp
-        await db
-          .update(shoppingItems)
-          .set({ deletedAt: nowUtc() })
-          .where(eq(shoppingItems.id, itemId));
+        await prisma.shoppingItem.update({
+          where: { id: itemId },
+          data: { deletedAt: nowUtc() },
+        });
 
         console.log(`User ${user.id} deleted shopping item ${itemId}`);
         return { success: true, message: "Item deleted successfully" };
@@ -342,29 +339,22 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
 
     try {
       // Get count of completed items (not soft-deleted)
-      const completedItems = await db
-        .select({ id: shoppingItems.id })
-        .from(shoppingItems)
-        .where(
-          and(
-            eq(shoppingItems.completed, true),
-            isNull(shoppingItems.deletedAt)
-          )
-        );
-
-      const count = completedItems.length;
+      const count = await prisma.shoppingItem.count({
+        where: {
+          completed: true,
+          deletedAt: null,
+        },
+      });
 
       if (count > 0) {
         // Soft delete all completed items
-        await db
-          .update(shoppingItems)
-          .set({ deletedAt: nowUtc() })
-          .where(
-            and(
-              eq(shoppingItems.completed, true),
-              isNull(shoppingItems.deletedAt)
-            )
-          );
+        await prisma.shoppingItem.updateMany({
+          where: {
+            completed: true,
+            deletedAt: null,
+          },
+          data: { deletedAt: nowUtc() },
+        });
       }
 
       console.log(`User ${user.id} deleted ${count} completed shopping items`);
@@ -413,8 +403,8 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
       try {
         // Validate ownership for all items
         for (const itemId of uniqueIds) {
-          const item = await db.query.shoppingItems.findFirst({
-            where: eq(shoppingItems.id, itemId),
+          const item = await prisma.shoppingItem.findFirst({
+            where: { id: itemId },
           });
 
           if (item && item.addedBy !== user.id && !user.is_admin) {
@@ -423,30 +413,23 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
           }
         }
 
-        // Get items to delete (not already soft-deleted)
-        const itemsToDelete = await db
-          .select({ id: shoppingItems.id })
-          .from(shoppingItems)
-          .where(
-            and(
-              inArray(shoppingItems.id, uniqueIds),
-              isNull(shoppingItems.deletedAt)
-            )
-          );
-
-        const count = itemsToDelete.length;
+        // Get count of items to delete (not already soft-deleted)
+        const count = await prisma.shoppingItem.count({
+          where: {
+            id: { in: uniqueIds },
+            deletedAt: null,
+          },
+        });
 
         if (count > 0) {
           // Soft delete all matching items
-          await db
-            .update(shoppingItems)
-            .set({ deletedAt: nowUtc() })
-            .where(
-              and(
-                inArray(shoppingItems.id, uniqueIds),
-                isNull(shoppingItems.deletedAt)
-              )
-            );
+          await prisma.shoppingItem.updateMany({
+            where: {
+              id: { in: uniqueIds },
+              deletedAt: null,
+            },
+            data: { deletedAt: nowUtc() },
+          });
         }
 
         console.log(`User ${user.id} deleted ${count} shopping items (bulk)`);
@@ -497,17 +480,15 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
         }
 
         // Update positions atomically in a transaction
-        await db.transaction(async (tx) => {
+        await prisma.$transaction(async (tx) => {
           for (let i = 0; i < normalizedIds.length; i++) {
-            await tx
-              .update(shoppingItems)
-              .set({ position: i })
-              .where(
-                and(
-                  eq(shoppingItems.id, normalizedIds[i]),
-                  isNull(shoppingItems.deletedAt)
-                )
-              );
+            await tx.shoppingItem.updateMany({
+              where: {
+                id: normalizedIds[i],
+                deletedAt: null,
+              },
+              data: { position: i },
+            });
           }
         });
 

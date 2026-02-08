@@ -1,8 +1,11 @@
 #!/bin/sh
 set -e
 
+echo "Generating Prisma client..."
+bunx prisma generate
+
 echo "Running database migrations..."
-bun src/migrate.ts
+bunx prisma migrate deploy
 echo "Migrations complete."
 
 echo "Starting API server..."

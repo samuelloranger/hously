@@ -1,13 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
-import {
-  users,
-  chores,
-  reminders,
-  shoppingItems,
-  taskCompletions,
-} from "../db/schema";
-import { eq, desc } from "drizzle-orm";
+import { prisma } from "../db";
 import { auth } from "../auth";
 import { formatIso, nowUtc, sanitizeInput } from "../utils";
 
@@ -60,10 +52,9 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
     }
 
     try {
-      const allUsers = await db
-        .select()
-        .from(users)
-        .orderBy(desc(users.createdAt));
+      const allUsers = await prisma.user.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
 
       const usersData = allUsers.map((u) => ({
         id: u.id,
@@ -122,8 +113,8 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         const userLocale = (locale || "en").trim().slice(0, 10);
 
         // Check if user already exists
-        const existing = await db.query.users.findFirst({
-          where: eq(users.email, sanitizedEmail),
+        const existing = await prisma.user.findFirst({
+          where: { email: sanitizedEmail },
         });
 
         if (existing) {
@@ -139,9 +130,8 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         const passwordHash = await hashPassword(password);
 
         // Create user
-        const [newUser] = await db
-          .insert(users)
-          .values({
+        const newUser = await prisma.user.create({
+          data: {
             email: sanitizedEmail,
             passwordHash,
             firstName: sanitizedFirstName,
@@ -149,8 +139,8 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
             isAdmin: is_admin || false,
             locale: userLocale,
             createdAt: nowUtc(),
-          })
-          .returning();
+          },
+        });
 
         console.log(`Admin created new user: ${sanitizedEmail}`);
 
@@ -206,8 +196,8 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         }
 
         // Find user to delete
-        const userToDelete = await db.query.users.findFirst({
-          where: eq(users.id, userId),
+        const userToDelete = await prisma.user.findFirst({
+          where: { id: userId },
         });
 
         if (!userToDelete) {
@@ -218,7 +208,9 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         const userEmail = userToDelete.email;
 
         // Delete user (cascade will handle related records)
-        await db.delete(users).where(eq(users.id, userId));
+        await prisma.user.delete({
+          where: { id: userId },
+        });
 
         console.log(`Admin deleted user: ${userEmail} (ID: ${userId})`);
 
@@ -247,17 +239,17 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
     try {
       // Build user ID to email mapping
-      const allUsers = await db.select().from(users);
+      const allUsers = await prisma.user.findMany();
       const idToEmail = new Map<number, string>();
       for (const u of allUsers) {
         idToEmail.set(u.id, u.email);
       }
 
       // Get all data
-      const allChores = await db.select().from(chores);
-      const allReminders = await db.select().from(reminders);
-      const allShoppingItems = await db.select().from(shoppingItems);
-      const allTaskCompletions = await db.select().from(taskCompletions);
+      const allChores = await prisma.chore.findMany();
+      const allReminders = await prisma.reminder.findMany();
+      const allShoppingItems = await prisma.shoppingItem.findMany();
+      const allTaskCompletions = await prisma.taskCompletion.findMany();
 
       // Export chores with user emails
       const choresData = allChores.map((chore) => ({
@@ -345,7 +337,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
       try {
         // Build email to user ID mapping
-        const allUsers = await db.select().from(users);
+        const allUsers = await prisma.user.findMany();
         const emailToId = new Map<string, number>();
         for (const u of allUsers) {
           emailToId.set(u.email, u.id);
@@ -386,9 +378,8 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                 continue;
               }
 
-              const [newChore] = await db
-                .insert(chores)
-                .values({
+              const newChore = await prisma.chore.create({
+                data: {
                   choreName: choreData.chore_name,
                   description: choreData.description,
                   assignedTo: assignedToId,
@@ -404,8 +395,8 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                     choreData.recurrence_original_created_at,
                   recurrenceParentId: null,
                   position: 0,
-                })
-                .returning();
+                },
+              });
 
               if (oldId !== undefined) {
                 choreIdMapping.set(oldId, newChore.id);
@@ -425,10 +416,10 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
               const newId = choreIdMapping.get(oldId);
               const newParentId = choreIdMapping.get(oldParentId);
               if (newId && newParentId) {
-                await db
-                  .update(chores)
-                  .set({ recurrenceParentId: newParentId })
-                  .where(eq(chores.id, newId));
+                await prisma.chore.update({
+                  where: { id: newId },
+                  data: { recurrenceParentId: newParentId },
+                });
               }
             }
           }
@@ -457,12 +448,14 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                 continue;
               }
 
-              await db.insert(reminders).values({
-                choreId: newChoreId,
-                reminderDatetime: reminderData.reminder_datetime,
-                userId,
-                active: reminderData.active !== false,
-                lastNotificationSent: reminderData.last_notification_sent,
+              await prisma.reminder.create({
+                data: {
+                  choreId: newChoreId,
+                  reminderDatetime: reminderData.reminder_datetime,
+                  userId,
+                  active: reminderData.active !== false,
+                  lastNotificationSent: reminderData.last_notification_sent,
+                },
               });
 
               importedCounts.reminders++;
@@ -492,14 +485,16 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                 continue;
               }
 
-              await db.insert(shoppingItems).values({
-                itemName: itemData.item_name,
-                notes: itemData.notes,
-                completed: itemData.completed || false,
-                addedBy: addedById,
-                completedBy: completedById,
-                completedAt: itemData.completed_at,
-                position: 0,
+              await prisma.shoppingItem.create({
+                data: {
+                  itemName: itemData.item_name,
+                  notes: itemData.notes,
+                  completed: itemData.completed || false,
+                  addedBy: addedById,
+                  completedBy: completedById,
+                  completedAt: itemData.completed_at,
+                  position: 0,
+                },
               });
 
               importedCounts.shopping_items++;
@@ -524,13 +519,15 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                 continue;
               }
 
-              await db.insert(taskCompletions).values({
-                userId,
-                taskType: completionData.task_type,
-                taskId: completionData.task_id,
-                completedAt: completionData.completed_at || nowUtc(),
-                taskName: completionData.task_name,
-                emotion: completionData.emotion,
+              await prisma.taskCompletion.create({
+                data: {
+                  userId,
+                  taskType: completionData.task_type,
+                  taskId: completionData.task_id,
+                  completedAt: completionData.completed_at || nowUtc(),
+                  taskName: completionData.task_name,
+                  emotion: completionData.emotion,
+                },
               });
 
               importedCounts.task_completions++;

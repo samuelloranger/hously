@@ -1,7 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
-import { customEvents } from "../db/schema";
-import { eq, and, lte, gte } from "drizzle-orm";
+import { prisma } from "../db";
 import { auth } from "../auth";
 import {
   formatIso,
@@ -49,23 +47,19 @@ export const customEventsRoutes = new Elysia({ prefix: "/api/custom-events" })
           const endDateVal = new Date(year, month - 1, daysInMonth, 23, 59, 59, 999);
 
           // Get events that overlap with the month
-          events = await db
-            .select()
-            .from(customEvents)
-            .where(
-              and(
-                eq(customEvents.userId, user.id),
-                lte(customEvents.startDatetime, endDateVal.toISOString()),
-                gte(customEvents.endDatetime, startDate.toISOString())
-              )
-            )
-            .orderBy(customEvents.startDatetime);
+          events = await prisma.customEvent.findMany({
+            where: {
+              userId: user.id,
+              startDatetime: { lte: endDateVal.toISOString() },
+              endDatetime: { gte: startDate.toISOString() },
+            },
+            orderBy: { startDatetime: 'asc' },
+          });
         } else {
-          events = await db
-            .select()
-            .from(customEvents)
-            .where(eq(customEvents.userId, user.id))
-            .orderBy(customEvents.startDatetime);
+          events = await prisma.customEvent.findMany({
+            where: { userId: user.id },
+            orderBy: { startDatetime: 'asc' },
+          });
         }
 
         const eventsList = events.map((event) => ({
@@ -193,9 +187,8 @@ export const customEventsRoutes = new Elysia({ prefix: "/api/custom-events" })
         }
 
         // Create event
-        const [newEvent] = await db
-          .insert(customEvents)
-          .values({
+        const newEvent = await prisma.customEvent.create({
+          data: {
             title: sanitizedTitle,
             description: sanitizedDescription,
             startDatetime: startDt.toISOString(),
@@ -207,8 +200,8 @@ export const customEventsRoutes = new Elysia({ prefix: "/api/custom-events" })
             recurrenceIntervalDays: recurrence_interval_days || null,
             recurrenceOriginalCreatedAt: recurrence_type ? nowUtc() : null,
             createdAt: nowUtc(),
-          })
-          .returning();
+          },
+        });
 
         console.log(`User ${user.id} created custom event ${newEvent.id}`);
 
@@ -265,11 +258,11 @@ export const customEventsRoutes = new Elysia({ prefix: "/api/custom-events" })
 
       try {
         // Get event (only if owned by user)
-        const event = await db.query.customEvents.findFirst({
-          where: and(
-            eq(customEvents.id, eventId),
-            eq(customEvents.userId, user.id)
-          ),
+        const event = await prisma.customEvent.findFirst({
+          where: {
+            id: eventId,
+            userId: user.id,
+          },
         });
 
         if (!event) {
@@ -277,7 +270,7 @@ export const customEventsRoutes = new Elysia({ prefix: "/api/custom-events" })
           return { error: "Event not found" };
         }
 
-        const updateData: Partial<typeof customEvents.$inferInsert> = {};
+        const updateData: Record<string, any> = {};
 
         // Update title if provided
         if (body.title !== undefined) {
@@ -375,15 +368,15 @@ export const customEventsRoutes = new Elysia({ prefix: "/api/custom-events" })
 
         // Apply updates
         if (Object.keys(updateData).length > 0) {
-          await db
-            .update(customEvents)
-            .set(updateData)
-            .where(eq(customEvents.id, eventId));
+          await prisma.customEvent.update({
+            where: { id: eventId },
+            data: updateData,
+          });
         }
 
         // Get updated event
-        const updatedEvent = await db.query.customEvents.findFirst({
-          where: eq(customEvents.id, eventId),
+        const updatedEvent = await prisma.customEvent.findFirst({
+          where: { id: eventId },
         });
 
         if (!updatedEvent) {
@@ -448,11 +441,11 @@ export const customEventsRoutes = new Elysia({ prefix: "/api/custom-events" })
 
       try {
         // Get event (only if owned by user)
-        const event = await db.query.customEvents.findFirst({
-          where: and(
-            eq(customEvents.id, eventId),
-            eq(customEvents.userId, user.id)
-          ),
+        const event = await prisma.customEvent.findFirst({
+          where: {
+            id: eventId,
+            userId: user.id,
+          },
         });
 
         if (!event) {
@@ -461,7 +454,9 @@ export const customEventsRoutes = new Elysia({ prefix: "/api/custom-events" })
         }
 
         // Delete event
-        await db.delete(customEvents).where(eq(customEvents.id, eventId));
+        await prisma.customEvent.delete({
+          where: { id: eventId },
+        });
 
         console.log(`User ${user.id} deleted custom event ${eventId}`);
 

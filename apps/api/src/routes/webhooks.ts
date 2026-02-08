@@ -1,10 +1,5 @@
 import { Elysia } from "elysia";
-import { db } from "../db";
-import {
-  externalNotificationServices,
-  externalNotificationServiceLogs,
-} from "../db/schema";
-import { eq, and } from "drizzle-orm";
+import { prisma } from "../db";
 import { webhookHandlers } from "../services/webhookHandlers";
 import { sendExternalNotification } from "../services/externalNotificationService";
 
@@ -31,12 +26,12 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
 
     try {
       // Validate token against database
-      const service = await db.query.externalNotificationServices.findFirst({
-        where: and(
-          eq(externalNotificationServices.serviceName, serviceName.toLowerCase()),
-          eq(externalNotificationServices.token, token),
-          eq(externalNotificationServices.enabled, true)
-        ),
+      const service = await prisma.externalNotificationService.findFirst({
+        where: {
+          serviceName: serviceName.toLowerCase(),
+          token: token,
+          enabled: true,
+        },
       });
 
       if (!service) {
@@ -63,16 +58,15 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
         "unknown";
 
       // Create log entry
-      const [logEntry] = await db
-        .insert(externalNotificationServiceLogs)
-        .values({
+      const logEntry = await prisma.externalNotificationServiceLog.create({
+        data: {
           serviceId: service.id,
           eventType: rawEventType,
           status: "pending",
           payload: JSON.stringify(payload),
           createdAt: new Date().toISOString(),
-        })
-        .returning();
+        },
+      });
 
       console.log(
         `Created log entry for ${serviceName} webhook: ${logEntry.id}`
@@ -102,10 +96,10 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
           );
 
           if (success) {
-            await db
-              .update(externalNotificationServiceLogs)
-              .set({ status: "success" })
-              .where(eq(externalNotificationServiceLogs.id, logEntry.id));
+            await prisma.externalNotificationServiceLog.update({
+              where: { id: logEntry.id },
+              data: { status: "success" },
+            });
 
             console.log(
               `Successfully processed ${serviceName} webhook: ${eventType}`
@@ -118,10 +112,10 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
             console.warn(
               `Webhook processed but notifications failed for ${serviceName}: ${eventType}`
             );
-            await db
-              .update(externalNotificationServiceLogs)
-              .set({ status: "failure" })
-              .where(eq(externalNotificationServiceLogs.id, logEntry.id));
+            await prisma.externalNotificationServiceLog.update({
+              where: { id: logEntry.id },
+              data: { status: "failure" },
+            });
 
             return {
               success: true,
@@ -133,10 +127,10 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
             `Error sending notifications for ${serviceName} webhook:`,
             notificationError
           );
-          await db
-            .update(externalNotificationServiceLogs)
-            .set({ status: "failure" })
-            .where(eq(externalNotificationServiceLogs.id, logEntry.id));
+          await prisma.externalNotificationServiceLog.update({
+            where: { id: logEntry.id },
+            data: { status: "failure" },
+          });
 
           return {
             success: true,
@@ -145,10 +139,10 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
         }
       } catch (handlerError) {
         console.error(`Error processing ${serviceName} webhook:`, handlerError);
-        await db
-          .update(externalNotificationServiceLogs)
-          .set({ status: "failure" })
-          .where(eq(externalNotificationServiceLogs.id, logEntry.id));
+        await prisma.externalNotificationServiceLog.update({
+          where: { id: logEntry.id },
+          data: { status: "failure" },
+        });
 
         set.status = 500;
         return { error: "Error processing webhook" };

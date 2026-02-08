@@ -1,7 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
-import { reminders, chores } from "../db/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { prisma } from "../db";
 import { auth } from "../auth";
 import { formatIso, nowUtc, parseDateTime } from "../utils";
 
@@ -25,8 +23,8 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
         }
 
         // Verify chore exists
-        const chore = await db.query.chores.findFirst({
-          where: eq(chores.id, chore_id),
+        const chore = await prisma.chore.findFirst({
+          where: { id: chore_id },
         });
 
         if (!chore) {
@@ -44,16 +42,15 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
         }
 
         // Create reminder
-        const [newReminder] = await db
-          .insert(reminders)
-          .values({
+        const newReminder = await prisma.reminder.create({
+          data: {
             choreId: chore_id,
             reminderDatetime: reminderDt.toISOString(),
             userId: user.id,
             active: true,
             createdAt: nowUtc(),
-          })
-          .returning();
+          },
+        });
 
         console.log(
           `User ${user.id} created reminder ${newReminder.id} for chore ${chore_id}`
@@ -94,11 +91,10 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
       }
 
       try {
-        const choreReminders = await db
-          .select()
-          .from(reminders)
-          .where(eq(reminders.choreId, choreId))
-          .orderBy(asc(reminders.reminderDatetime));
+        const choreReminders = await prisma.reminder.findMany({
+          where: { choreId },
+          orderBy: { reminderDatetime: 'asc' },
+        });
 
         const remindersList = choreReminders.map((reminder) => ({
           id: reminder.id,
@@ -141,11 +137,11 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
 
       try {
         // Verify reminder exists and belongs to user
-        const reminder = await db.query.reminders.findFirst({
-          where: and(
-            eq(reminders.id, reminderId),
-            eq(reminders.userId, user.id)
-          ),
+        const reminder = await prisma.reminder.findFirst({
+          where: {
+            id: reminderId,
+            userId: user.id,
+          },
         });
 
         if (!reminder) {
@@ -154,7 +150,9 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
         }
 
         // Delete reminder
-        await db.delete(reminders).where(eq(reminders.id, reminderId));
+        await prisma.reminder.delete({
+          where: { id: reminderId },
+        });
 
         console.log(`User ${user.id} deleted reminder ${reminderId}`);
 
