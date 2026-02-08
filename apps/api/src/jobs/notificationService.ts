@@ -76,7 +76,13 @@ export async function createAndQueueNotification(
     // Send push notification to all user devices
     for (const sub of subscriptions) {
       try {
-        const subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
+        let subscriptionInfo: PushSubscription;
+        try {
+          subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
+        } catch (parseError) {
+          console.error(`Invalid subscription JSON for subscription ${sub.id}, skipping`);
+          continue;
+        }
 
         const result = await sendWebPushNotification(subscriptionInfo, {
           title,

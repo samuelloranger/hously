@@ -186,7 +186,13 @@ export async function sendExternalNotification(
 
         for (const sub of userSubs) {
           try {
-            const subscriptionInfo = JSON.parse(sub.subscriptionInfo);
+            let subscriptionInfo;
+            try {
+              subscriptionInfo = JSON.parse(sub.subscriptionInfo);
+            } catch (parseError) {
+              console.error(`Invalid subscription JSON for subscription ${sub.id}, skipping`);
+              continue;
+            }
             await sendWebPushNotification(subscriptionInfo, {
               title,
               body,

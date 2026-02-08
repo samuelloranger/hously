@@ -20,7 +20,7 @@
     "@elysiajs/cron": "^1.4.1",
     "@elysiajs/jwt": "^1.4.0",
     "@elysiajs/swagger": "latest",
-    "@prisma/client": "^6.4.1",
+    "@prisma/client": "6.19.0",
     "elysia": "latest",
     "elysia-rate-limit": "^4.4.2",
     "sharp": "^0.33.5",
@@ -31,7 +31,7 @@
     "@types/uuid": "^10.0.0",
     "@types/web-push": "^3.6.4",
     "bun-types": "latest",
-    "prisma": "^6.4.1"
+    "prisma": "6.19.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

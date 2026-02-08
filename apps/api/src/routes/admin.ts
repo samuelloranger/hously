@@ -354,10 +354,11 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         // Mapping of old chore IDs to new IDs
         const choreIdMapping = new Map<number, number>();
 
-        // Import chores
-        if (body.chores && Array.isArray(body.chores)) {
-          for (const choreData of body.chores) {
-            try {
+        // Run all imports inside a transaction for atomicity
+        await prisma.$transaction(async (tx) => {
+          // Import chores
+          if (body.chores && Array.isArray(body.chores)) {
+            for (const choreData of body.chores) {
               const oldId = choreData.id;
               const addedByEmail = choreData.added_by_email;
               const assignedToEmail = choreData.assigned_to_email;
@@ -378,7 +379,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                 continue;
               }
 
-              const newChore = await prisma.chore.create({
+              const newChore = await tx.chore.create({
                 data: {
                   choreName: choreData.chore_name,
                   description: choreData.description,
@@ -402,33 +403,28 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                 choreIdMapping.set(oldId, newChore.id);
               }
               importedCounts.chores++;
-            } catch (e) {
-              console.warn(`Failed to import chore: ${e}`);
-              warnings.push(`Failed to import chore: ${e}`);
             }
-          }
 
-          // Update recurrence_parent_id
-          for (const choreData of body.chores) {
-            const oldId = choreData.id;
-            const oldParentId = choreData.recurrence_parent_id;
-            if (oldParentId && choreIdMapping.has(oldId)) {
-              const newId = choreIdMapping.get(oldId);
-              const newParentId = choreIdMapping.get(oldParentId);
-              if (newId && newParentId) {
-                await prisma.chore.update({
-                  where: { id: newId },
-                  data: { recurrenceParentId: newParentId },
-                });
+            // Update recurrence_parent_id
+            for (const choreData of body.chores) {
+              const oldId = choreData.id;
+              const oldParentId = choreData.recurrence_parent_id;
+              if (oldParentId && choreIdMapping.has(oldId)) {
+                const newId = choreIdMapping.get(oldId);
+                const newParentId = choreIdMapping.get(oldParentId);
+                if (newId && newParentId) {
+                  await tx.chore.update({
+                    where: { id: newId },
+                    data: { recurrenceParentId: newParentId },
+                  });
+                }
               }
             }
           }
-        }
 
-        // Import reminders
-        if (body.reminders && Array.isArray(body.reminders)) {
-          for (const reminderData of body.reminders) {
-            try {
+          // Import reminders
+          if (body.reminders && Array.isArray(body.reminders)) {
+            for (const reminderData of body.reminders) {
               const oldChoreId = reminderData.chore_id;
               const newChoreId = choreIdMapping.get(oldChoreId);
               const userEmail = reminderData.user_email;
@@ -448,7 +444,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                 continue;
               }
 
-              await prisma.reminder.create({
+              await tx.reminder.create({
                 data: {
                   choreId: newChoreId,
                   reminderDatetime: reminderData.reminder_datetime,
@@ -459,17 +455,12 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
               });
 
               importedCounts.reminders++;
-            } catch (e) {
-              console.warn(`Failed to import reminder: ${e}`);
-              warnings.push(`Failed to import reminder: ${e}`);
             }
           }
-        }
 
-        // Import shopping items
-        if (body.shopping_items && Array.isArray(body.shopping_items)) {
-          for (const itemData of body.shopping_items) {
-            try {
+          // Import shopping items
+          if (body.shopping_items && Array.isArray(body.shopping_items)) {
+            for (const itemData of body.shopping_items) {
               const addedByEmail = itemData.added_by_email;
               const completedByEmail = itemData.completed_by_email;
 
@@ -485,7 +476,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                 continue;
               }
 
-              await prisma.shoppingItem.create({
+              await tx.shoppingItem.create({
                 data: {
                   itemName: itemData.item_name,
                   notes: itemData.notes,
@@ -498,17 +489,12 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
               });
 
               importedCounts.shopping_items++;
-            } catch (e) {
-              console.warn(`Failed to import shopping item: ${e}`);
-              warnings.push(`Failed to import shopping item: ${e}`);
             }
           }
-        }
 
-        // Import task completions
-        if (body.task_completions && Array.isArray(body.task_completions)) {
-          for (const completionData of body.task_completions) {
-            try {
+          // Import task completions
+          if (body.task_completions && Array.isArray(body.task_completions)) {
+            for (const completionData of body.task_completions) {
               const userEmail = completionData.user_email;
               const userId = userEmail ? emailToId.get(userEmail) : null;
 
@@ -519,7 +505,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                 continue;
               }
 
-              await prisma.taskCompletion.create({
+              await tx.taskCompletion.create({
                 data: {
                   userId,
                   taskType: completionData.task_type,
@@ -531,12 +517,9 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
               });
 
               importedCounts.task_completions++;
-            } catch (e) {
-              console.warn(`Failed to import task_completion: ${e}`);
-              warnings.push(`Failed to import task_completion: ${e}`);
             }
           }
-        }
+        });
 
         return {
           success: true,

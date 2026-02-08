@@ -146,12 +146,6 @@ model Recipe {
   @@map("recipes")
 }
 
-model AlembicVersion {
-  versionNum String @id @db.VarChar(32) @map("version_num")
-
-  @@map("alembic_version")
-}
-
 model Reminder {
   id                   Int       @id @default(autoincrement())
   choreId              Int       @map("chore_id")

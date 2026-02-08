@@ -1,4 +1,4 @@
-.PHONY: help install build typecheck dev dev-api dev-services dev-web down rebuild test lint clean migrate-generate migrate-push migrate-up migrate-studio db-refresh-collation
+.PHONY: help install build typecheck dev dev-api dev-services dev-web down rebuild test lint clean migrate-dev migrate-deploy migrate-push migrate-studio db-refresh-collation
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -67,29 +67,27 @@ lint: ## Lint all code
 
 clean: ## Clean all build artifacts and caches
 	@echo "Cleaning build artifacts..."
-	find . -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true
-	find . -name '*.pyc' -delete 2>/dev/null || true
 	rm -rf apps/web/dist
 	rm -rf node_modules apps/*/node_modules packages/*/node_modules
 	docker compose down -v
 
-# ===== Database Migrations (Drizzle) =====
+# ===== Database Migrations (Prisma) =====
 
-migrate-generate: ## Generate a new migration based on schema changes
-	@echo "Generating migration..."
-	cd apps/api && bun run drizzle-kit generate
+migrate-dev: ## Create a new migration during development
+	@echo "Creating migration..."
+	cd apps/api && bunx prisma migrate dev
+
+migrate-deploy: ## Apply pending migrations (production)
+	@echo "Applying migrations..."
+	cd apps/api && bunx prisma migrate deploy
 
 migrate-push: ## Push schema changes to database (development only, bypasses migrations)
 	@echo "Pushing schema changes..."
-	cd apps/api && bun run drizzle-kit push
+	cd apps/api && bunx prisma db push
 
-migrate-up: ## Apply all pending migrations
-	@echo "Applying migrations..."
-	cd apps/api && bun run drizzle-kit migrate
-
-migrate-studio: ## Open Drizzle Studio for database exploration
-	@echo "Opening Drizzle Studio..."
-	cd apps/api && bun run drizzle-kit studio
+migrate-studio: ## Open Prisma Studio for database exploration
+	@echo "Opening Prisma Studio..."
+	cd apps/api && bunx prisma studio
 
 db-refresh-collation: ## Refresh PostgreSQL collation version to fix version mismatch warnings (use DB_NAME="name" to override default "hously")
 	@DB_NAME=$${DB_NAME:-hously}; \

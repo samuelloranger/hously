@@ -23,8 +23,8 @@ export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
         where: {
           userId: user.id,
           startDatetime: {
-            gte: today.toISOString().split("T")[0],
-            lt: tomorrow.toISOString().split("T")[0],
+            gte: today,
+            lt: tomorrow,
           },
         },
       });
@@ -54,7 +54,7 @@ export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const monthlyTotal = await prisma.taskCompletion.count({
         where: {
-          completedAt: { gte: startOfMonth.toISOString() },
+          completedAt: { gte: startOfMonth },
         },
       });
 

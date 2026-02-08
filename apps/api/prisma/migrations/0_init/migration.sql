@@ -108,13 +108,6 @@ CREATE TABLE IF NOT EXISTS "recipes" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "alembic_version" (
-    "version_num" VARCHAR(32) NOT NULL,
-
-    CONSTRAINT "alembic_version_pkey" PRIMARY KEY ("version_num")
-);
-
--- CreateTable
 CREATE TABLE IF NOT EXISTS "reminders" (
     "id" SERIAL NOT NULL,
     "chore_id" INTEGER NOT NULL,
