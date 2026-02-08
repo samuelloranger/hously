@@ -1,9 +1,9 @@
 #!/bin/sh
 set -e
 
-echo "Running database migrations..."
-bun run db:migrate
-echo "Migrations applied successfully."
+echo "Applying database schema changes..."
+bun run db:push
+echo "Database schema up to date."
 
 echo "Starting API server..."
 exec bun src/index.ts
