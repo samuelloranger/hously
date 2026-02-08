@@ -22,5 +22,8 @@ WORKDIR /app/apps/api
 # Expose the application port
 EXPOSE 3000
 
-# Start the application
-CMD ["bun", "src/index.ts"]
+# Make entrypoint executable
+RUN chmod +x entrypoint.sh
+
+# Run migrations then start the application
+CMD ["./entrypoint.sh"]

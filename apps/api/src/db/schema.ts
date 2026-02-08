@@ -200,8 +200,43 @@ export const users = pgTable("users", {
 	firstName: varchar("first_name"),
 	lastName: varchar("last_name"),
 	locale: varchar("locale"),
+	avatarUrl: varchar("avatar_url"),
 }, (table) => [
 	uniqueIndex("ix_users_email").using("btree", table.email.asc().nullsLast().op("text_ops")),
+]);
+
+export const refreshTokens = pgTable("refresh_tokens", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id").notNull(),
+	token: varchar().notNull(),
+	expiresAt: timestamp("expires_at", { mode: 'string' }).notNull(),
+	revoked: boolean().default(false).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	uniqueIndex("ix_refresh_tokens_token").using("btree", table.token.asc().nullsLast().op("text_ops")),
+	index("ix_refresh_tokens_user_id").using("btree", table.userId.asc().nullsLast().op("int4_ops")),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "refresh_tokens_user_id_fkey"
+		}).onDelete("cascade"),
+]);
+
+export const pushTokens = pgTable("push_tokens", {
+	id: serial().primaryKey().notNull(),
+	userId: integer("user_id").notNull(),
+	token: varchar().notNull(),
+	platform: varchar().notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }),
+}, (table) => [
+	uniqueIndex("ix_push_tokens_token").using("btree", table.token.asc().nullsLast().op("text_ops")),
+	index("ix_push_tokens_user_id").using("btree", table.userId.asc().nullsLast().op("int4_ops")),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "push_tokens_user_id_fkey"
+		}).onDelete("cascade"),
 ]);
 
 export const taskCompletions = pgTable("task_completions", {
