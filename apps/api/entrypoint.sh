@@ -2,16 +2,38 @@
 set -eu
 
 echo "Waiting for database to be ready..."
-MAX_RETRIES=30
+
+# Check if DATABASE_URL is set
+if [ -z "$DATABASE_URL" ]; then
+  echo "ERROR: DATABASE_URL environment variable is not set"
+  exit 1
+fi
+
+echo "Using DATABASE_URL: ${DATABASE_URL%@*}***"  # Mask password for security
+
+MAX_RETRIES=60
 RETRY_COUNT=0
 
-until echo "SELECT 1;" | bunx prisma db execute --stdin >/dev/null 2>&1; do
+check_db() {
+  OUTPUT=$(bunx prisma db execute --stdin --skip-generate 2>&1 <<EOF
+SELECT 1;
+EOF
+)
+  return $?
+}
+
+until check_db; do
   RETRY_COUNT=$((RETRY_COUNT + 1))
   if [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; then
-    echo "ERROR: Database not ready after ${MAX_RETRIES} attempts. Exiting."
+    echo "ERROR: Database not ready after ${MAX_RETRIES} attempts. Last error:"
+    echo "$OUTPUT"
     exit 1
   fi
-  echo "Database not ready, retrying in 2s... (attempt ${RETRY_COUNT}/${MAX_RETRIES})"
+  if [ "$RETRY_COUNT" -le 3 ]; then
+    echo "Database not ready (attempt ${RETRY_COUNT}/${MAX_RETRIES}). Error: $OUTPUT"
+  else
+    echo "Database not ready, retrying in 2s... (attempt ${RETRY_COUNT}/${MAX_RETRIES})"
+  fi
   sleep 2
 done
 echo "Database is ready."
