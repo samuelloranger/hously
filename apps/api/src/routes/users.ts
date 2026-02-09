@@ -211,16 +211,20 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
       console.log(`${logPrefix} authenticated user id=${user.id}`);
       console.log(`${logPrefix} body keys=${Object.keys(body || {}).join(",") || "none"}`);
 
-      if (!avatar || !(avatar instanceof File)) {
+      // Support both Web File (instanceof File) and React Native file objects ({uri, name, type})
+      const isWebFile = avatar instanceof File;
+      const isReactNativeFile = avatar && typeof avatar === 'object' && 'uri' in avatar && 'name' in avatar && 'type' in avatar;
+
+      if (!avatar || (!isWebFile && !isReactNativeFile)) {
         console.warn(
-          `${logPrefix} invalid payload: avatar missing or not File (type=${typeof avatar})`,
+          `${logPrefix} invalid payload: avatar missing or not File (type=${typeof avatar}, isWebFile=${isWebFile}, isReactNativeFile=${isReactNativeFile})`,
         );
         set.status = 400;
         return { error: "Avatar file is required" };
       }
 
       console.log(
-        `${logPrefix} avatar file received name="${avatar.name}" type="${avatar.type}" size=${avatar.size}`,
+        `${logPrefix} avatar file received name="${avatar.name}" type="${avatar.type}" size=${avatar.size || 'unknown'} isWebFile=${isWebFile} isReactNativeFile=${isReactNativeFile}`,
       );
 
       // Validate file type
@@ -238,9 +242,9 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         return { error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP" };
       }
 
-      // Validate file size (max 5MB)
+      // Validate file size (max 5MB) - only for Web File objects that have size property
       const maxSize = 5 * 1024 * 1024;
-      if (avatar.size > maxSize) {
+      if (avatar.size && avatar.size > maxSize) {
         console.warn(
           `${logPrefix} avatar too large size=${avatar.size} max=${maxSize} bytes`,
         );
@@ -302,7 +306,8 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
     },
     {
       body: t.Object({
-        avatar: t.File(),
+        avatar: t.Any(), // Accept any type for React Native compatibility
       }),
+      type: 'multipart/form-data',
     },
   );

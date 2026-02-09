@@ -642,17 +642,34 @@ export const auth = (app: Elysia) =>
         .post(
           "/avatar",
           async ({ user, body, set }) => {
+            const logPrefix = `[avatar-upload][auth][${new Date().toISOString()}]`;
+            console.log(`${logPrefix} request received`);
+
             if (!user) {
+              console.warn(`${logPrefix} unauthorized request (no user in auth context)`);
               set.status = 401;
               return { error: "Unauthorized" };
             }
 
             const { avatar } = body;
+            console.log(`${logPrefix} authenticated user id=${user.id}`);
+            console.log(`${logPrefix} body keys=${Object.keys(body || {}).join(",") || "none"}`);
 
-            if (!avatar || !(avatar instanceof File)) {
+            // Support both Web File (instanceof File) and React Native file objects ({uri, name, type})
+            const isWebFile = avatar instanceof File;
+            const isReactNativeFile = avatar && typeof avatar === 'object' && 'uri' in avatar && 'name' in avatar && 'type' in avatar;
+
+            if (!avatar || (!isWebFile && !isReactNativeFile)) {
+              console.warn(
+                `${logPrefix} invalid payload: avatar missing or not File (type=${typeof avatar}, isWebFile=${isWebFile}, isReactNativeFile=${isReactNativeFile})`,
+              );
               set.status = 400;
               return { error: "Avatar file is required" };
             }
+
+            console.log(
+              `${logPrefix} avatar file received name="${avatar.name}" type="${avatar.type}" size=${avatar.size || 'unknown'} isWebFile=${isWebFile} isReactNativeFile=${isReactNativeFile}`,
+            );
 
             // Validate file type
             const allowedTypes = [
@@ -662,42 +679,64 @@ export const auth = (app: Elysia) =>
               "image/webp",
             ];
             if (!allowedTypes.includes(avatar.type)) {
+              console.warn(
+                `${logPrefix} invalid avatar mime type="${avatar.type}" allowed=${allowedTypes.join(",")}`,
+              );
               set.status = 400;
               return {
                 error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP",
               };
             }
 
-            // Validate file size (max 5MB)
+            // Validate file size (max 5MB) - only for Web File objects that have size property
             const maxSize = 5 * 1024 * 1024;
-            if (avatar.size > maxSize) {
+            if (avatar.size && avatar.size > maxSize) {
+              console.warn(
+                `${logPrefix} avatar too large size=${avatar.size} max=${maxSize} bytes`,
+              );
               set.status = 400;
               return { error: "File too large. Maximum size is 5MB" };
             }
 
             try {
+              console.log(`${logPrefix} fetching current user record before upload`);
               // Delete old avatar if exists
               const dbUser = await prisma.user.findFirst({
                 where: { id: user.id },
               });
+              console.log(
+                `${logPrefix} current db avatarUrl="${dbUser?.avatarUrl || "none"}"`,
+              );
+
               if (dbUser?.avatarUrl) {
                 const oldFilename = dbUser.avatarUrl.split("/").pop();
+                console.log(
+                  `${logPrefix} parsed old filename="${oldFilename || "none"}" from avatarUrl`,
+                );
                 if (oldFilename) {
+                  console.log(`${logPrefix} deleting old avatar assets for key="${oldFilename}"`);
                   await deleteImageFiles(oldFilename);
+                  console.log(`${logPrefix} old avatar assets deleted`);
                 }
               }
 
               // Save to S3 and create thumbnail
+              console.log(`${logPrefix} uploading new avatar to image service`);
               const filename = await saveImageAndCreateThumbnail(avatar);
+              console.log(`${logPrefix} image service completed filename="${filename}"`);
 
               // Build avatar URL using S3 direct URL
               const avatarUrl = getAvatarUrl(filename);
+              console.log(`${logPrefix} generated avatar URL="${avatarUrl}"`);
 
               // Persist avatar URL in user record
+              console.log(`${logPrefix} updating user.avatarUrl in database`);
               await prisma.user.update({
                 where: { id: user.id },
                 data: { avatarUrl },
               });
+              console.log(`${logPrefix} database update success for user id=${user.id}`);
+              console.log(`${logPrefix} request complete`);
 
               return {
                 message: "Avatar uploaded successfully",
@@ -705,15 +744,16 @@ export const auth = (app: Elysia) =>
                 url: avatarUrl,
               };
             } catch (error) {
-              console.error("Error uploading avatar:", error);
+              console.error(`${logPrefix} failed with error:`, error);
               set.status = 500;
               return { error: "Failed to upload avatar" };
             }
           },
           {
             body: t.Object({
-              avatar: t.File(),
+              avatar: t.Any(), // Accept any type for React Native compatibility
             }),
+            type: 'multipart/form-data',
           },
         )
         .post("/logout", async ({ user, cookie: { auth } }) => {
