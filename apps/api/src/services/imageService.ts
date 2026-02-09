@@ -5,6 +5,7 @@
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
 import { uploadToS3, deleteFromS3, getFileFromS3, isS3Configured, getS3DirectUrl } from "./s3Service";
+import { getBaseUrl } from "../utils/config";
 
 // Allowed image extensions
 const ALLOWED_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp"]);
@@ -132,8 +133,9 @@ export async function getThumbnail(filename: string): Promise<Buffer | null> {
 }
 
 /**
- * Get the API URL for an avatar image (served through API, not direct S3)
+ * Get the full URL for an avatar image (served through API, not direct S3)
  */
 export function getAvatarUrl(filename: string): string {
-  return `/api/users/avatar/${filename}`;
+  const baseUrl = getBaseUrl();
+  return `${baseUrl}/api/users/avatar/${filename}`;
 }
