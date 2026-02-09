@@ -441,7 +441,20 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           await deactivateRemindersForChore(choreId);
 
           // Mark related notifications as read
-          await prisma.$executeRaw`UPDATE "notifications" SET "read" = true, "read_at" = ${nowUtc()} WHERE "user_id" = ${user.id} AND "read" = false AND "notification_metadata"->>'chore_id' = ${String(choreId)}`;
+          await prisma.notification.updateMany({
+            where: {
+              userId: user.id,
+              read: false,
+              notificationMetadata: {
+                path: ["chore_id"],
+                equals: String(choreId),
+              },
+            },
+            data: {
+              read: true,
+              readAt: nowUtc(),
+            },
+          });
 
           // Create next occurrence if recurring
           if (chore.recurrenceType) {

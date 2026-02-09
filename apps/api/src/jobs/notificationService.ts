@@ -4,6 +4,7 @@
 
 import { prisma } from "../db";
 import { sendWebPushNotification, type PushSubscription } from "../utils/webpush";
+import { sendExpoPushNotifications } from "../utils/expoPush";
 import { nowUtc, getTimezone } from "../utils";
 
 /**
@@ -55,7 +56,7 @@ export async function createAndQueueNotification(
         body,
         type: notificationType,
         url: url || null,
-        notificationMetadata: metadata || null,
+        notificationMetadata: metadata ? JSON.parse(JSON.stringify(metadata)) : undefined,
         read: false,
         createdAt: nowUtc(),
       },
@@ -63,17 +64,8 @@ export async function createAndQueueNotification(
 
     console.log(`Created notification ${notification.id} for user ${userId}: ${title}`);
 
-    // Get all subscriptions for this user
-    const subscriptions = await prisma.userSubscription.findMany({
-      where: { userId },
-    });
-
-    if (subscriptions.length === 0) {
-      console.log(`No push subscriptions found for user ${userId}`);
-      return true; // Notification created, just no push delivery
-    }
-
-    // Send push notification to all user devices
+    // Send Web Push notifications (browser subscriptions)
+    const subscriptions = await prisma.userSubscription.findMany({ where: { userId } });
     for (const sub of subscriptions) {
       try {
         let subscriptionInfo: PushSubscription;
@@ -106,6 +98,47 @@ export async function createAndQueueNotification(
       } catch (error) {
         console.error(`Error sending push to subscription ${sub.id}:`, error);
       }
+    }
+
+    // Send Expo/EAS notifications (mobile push tokens)
+    const pushTokens = await prisma.pushToken.findMany({
+      where: { userId },
+      select: { id: true, token: true },
+    });
+
+    if (pushTokens.length > 0) {
+      const { successCount, invalidTokens } = await sendExpoPushNotifications(
+        pushTokens.map((t) => t.token),
+        {
+          title,
+          body,
+          data: {
+            url,
+            notification_type: notificationType,
+            notification_id: notification.id,
+            ...metadata,
+          },
+          channelId:
+            notificationType === "reminder"
+              ? "chore-reminders"
+              : notificationType === "custom_event"
+                ? "calendar-events"
+                : "default",
+        }
+      );
+
+      if (successCount > 0) {
+        console.log(`Sent ${successCount} Expo push notifications for user ${userId}`);
+      }
+
+      if (invalidTokens.length > 0) {
+        await prisma.pushToken.deleteMany({
+          where: { token: { in: invalidTokens } },
+        });
+        console.log(`Deleted ${invalidTokens.length} invalid Expo push tokens for user ${userId}`);
+      }
+    } else if (subscriptions.length === 0) {
+      console.log(`No web subscriptions or mobile push tokens found for user ${userId}`);
     }
 
     return true;

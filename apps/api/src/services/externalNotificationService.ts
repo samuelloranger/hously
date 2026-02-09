@@ -1,5 +1,6 @@
 import { prisma } from "../db";
 import { sendWebPushNotification } from "../utils/webpush";
+import { sendExpoPushNotifications } from "../utils/expoPush";
 
 /**
  * Generate a secure random token for webhook authentication
@@ -142,17 +143,23 @@ export async function sendExternalNotification(
         return false;
       }
     } else {
-      // Get all users with subscriptions
+      // Get all users with at least one push delivery channel
       const allSubscriptions = await prisma.userSubscription.findMany({
         select: { userId: true },
       });
-      targetUserIds = [...new Set(allSubscriptions.map((s) => s.userId))];
+      const allPushTokens = await prisma.pushToken.findMany({
+        select: { userId: true },
+      });
+      targetUserIds = [
+        ...new Set([
+          ...allSubscriptions.map((s) => s.userId),
+          ...allPushTokens.map((t) => t.userId),
+        ]),
+      ];
     }
 
     if (targetUserIds.length === 0) {
-      console.warn(
-        "No user subscriptions found. Cannot send external notifications."
-      );
+      console.warn("No user push channels found. Cannot send external notifications.");
       return false;
     }
 
@@ -172,14 +179,14 @@ export async function sendExternalNotification(
             notificationMetadata: {
               service_name: serviceName,
               event_type: eventType,
-              payload: payload.original_payload,
+              payload: payload.original_payload as Record<string, string | number | boolean | null>,
             },
             read: false,
             createdAt: new Date().toISOString(),
           },
         });
 
-        // Get user's subscriptions and send push notifications
+        // Web Push: browser subscriptions
         const userSubs = await prisma.userSubscription.findMany({
           where: { userId },
         });
@@ -208,6 +215,40 @@ export async function sendExternalNotification(
               `Error sending push notification to user ${userId}:`,
               pushError
             );
+          }
+        }
+
+        // Expo Push: mobile tokens
+        const pushTokens = await prisma.pushToken.findMany({
+          where: { userId },
+          select: { token: true },
+        });
+
+        if (pushTokens.length > 0) {
+          const { successCount, invalidTokens } = await sendExpoPushNotifications(
+            pushTokens.map((t) => t.token),
+            {
+              title,
+              body,
+              data: {
+                url: "/",
+                notification_type: "external",
+                notification_id: notification.id,
+              },
+              channelId: "default",
+            }
+          );
+
+          if (successCount > 0) {
+            console.log(
+              `Sent ${successCount} Expo external notifications to user ${userId}`
+            );
+          }
+
+          if (invalidTokens.length > 0) {
+            await prisma.pushToken.deleteMany({
+              where: { token: { in: invalidTokens } },
+            });
           }
         }
 
