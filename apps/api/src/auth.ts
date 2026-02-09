@@ -6,7 +6,10 @@ import { hashPassword, verifyPassword } from "./utils/password";
 import { authRateLimit } from "./middleware/rateLimit";
 import { validateEmail, validatePassword } from "./utils/validation";
 import { loadAccessControl, getBaseUrl } from "./utils/config";
-import { saveImageAndCreateThumbnail, deleteImageFiles } from "./services/imageService";
+import {
+  saveImageAndCreateThumbnail,
+  deleteImageFiles,
+} from "./services/imageService";
 
 // Map database user (camelCase) to frontend user (snake_case)
 const mapUser = (user: {
@@ -34,7 +37,9 @@ const mapUser = (user: {
 const getJwtSecret = (): string => {
   const secret = process.env.SECRET_KEY;
   if (!secret && process.env.NODE_ENV === "production") {
-    throw new Error("SECRET_KEY environment variable is required in production");
+    throw new Error(
+      "SECRET_KEY environment variable is required in production",
+    );
   }
   return secret || "dev-key-change-in-production";
 };
@@ -52,7 +57,9 @@ const generateRefreshToken = (): string => {
 // Create and store a refresh token for a user, returns the raw token string
 const createRefreshToken = async (userId: number): Promise<string> => {
   const token = generateRefreshToken();
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days
+  const expiresAt = new Date(
+    Date.now() + 30 * 24 * 60 * 60 * 1000,
+  ).toISOString(); // 30 days
 
   await prisma.refreshToken.create({
     data: {
@@ -184,9 +191,11 @@ export const auth = (app: Elysia) =>
           async ({ body, jwt, set, cookie: { auth } }) => {
             const { email, password, first_name, last_name, locale } = body;
 
+            console.log("Signup attempt:", { email, first_name, last_name });
             // Validate email
             if (!validateEmail(email)) {
               set.status = 400;
+              console.log("Signup validation failed for email:", email);
               return { error: "Invalid email format" };
             }
 
@@ -194,17 +203,37 @@ export const auth = (app: Elysia) =>
             const [isValid, passwordError] = validatePassword(password);
             if (!isValid) {
               set.status = 400;
+              console.log(
+                "Signup validation failed for email:",
+                email,
+                "Error:",
+                passwordError,
+              );
               return { error: passwordError };
             }
 
+            console.log("Signup validation passed for email:", email);
             // Check if user already exists
-            const existingUser = await prisma.user.findFirst({
-              where: { email },
-            });
+            try {
+              const existingUser = await prisma.user.findFirst({
+                where: { email },
+              });
+              console.log(
+                "Existing user check for email:",
+                email,
+                "Found:",
+                !!existingUser,
+              );
 
-            if (existingUser) {
-              set.status = 400;
-              return { error: "User with this email already exists" };
+              if (existingUser) {
+                set.status = 400;
+                console.log("Signup attempt with existing email:", email);
+                return { error: "User with this email already exists" };
+              }
+            } catch (error) {
+              console.error("Error checking existing user:", error);
+              set.status = 500;
+              return { error: "Internal server error" };
             }
 
             // Load access control and check if user should be admin
@@ -213,6 +242,12 @@ export const auth = (app: Elysia) =>
 
             // Hash password and create user
             const passwordHash = await hashPassword(password);
+            console.log(
+              "Creating user with email:",
+              email,
+              "isAdmin:",
+              isAdmin,
+            );
             const newUser = await prisma.user.create({
               data: {
                 email,
@@ -224,6 +259,7 @@ export const auth = (app: Elysia) =>
                 createdAt: new Date().toISOString(),
               },
             });
+            console.log("New user created with ID:", newUser.id);
 
             // Generate JWT access token
             const accessToken = await jwt.sign({ id: newUser.id });
@@ -626,7 +662,9 @@ export const auth = (app: Elysia) =>
             ];
             if (!allowedTypes.includes(avatar.type)) {
               set.status = 400;
-              return { error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP" };
+              return {
+                error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP",
+              };
             }
 
             // Validate file size (max 5MB)

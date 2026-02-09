@@ -28,7 +28,7 @@ dev-services: ## Start only database and MinIO services
 	docker compose up db minio minio-init -d
 
 dev-api: ## Start TypeScript/Bun API locally with hot reload
-	cd apps/api && bun run --watch src/index.ts
+	cd apps/api && bun run dev
 
 dev-web: ## Start React frontend with live reload
 	cd apps/web && bun run dev
@@ -75,23 +75,25 @@ clean: ## Clean all build artifacts and caches
 
 migrate-dev: ## Create a new migration during development
 	@echo "Creating migration..."
-	cd apps/api && bunx prisma migrate dev
+	cd apps/api && bun run db:migrate:dev
 
 migrate-deploy: ## Apply pending migrations (production)
 	@echo "Applying migrations..."
-	cd apps/api && bunx prisma migrate deploy
+	cd apps/api && bun run db:migrate
 
 migrate-push: ## Push schema changes to database (development only, bypasses migrations)
 	@echo "Pushing schema changes..."
-	cd apps/api && bunx prisma db push
+	cd apps/api && bun run db:push
 
 migrate-studio: ## Open Prisma Studio for database exploration
 	@echo "Opening Prisma Studio..."
-	cd apps/api && bunx prisma studio
+	cd apps/api && bun run db:studio
 
-db-refresh-collation: ## Refresh PostgreSQL collation version to fix version mismatch warnings (use DB_NAME="name" to override default "hously")
+db-refresh-collation: ## Refresh PostgreSQL collation version for template1 and app DB (use DB_NAME/DB_USER overrides)
 	@DB_NAME=$${DB_NAME:-hously}; \
 	DB_USER=$${DB_USER:-hously}; \
+	echo "Refreshing template1 collation version..."; \
+	docker compose exec -T db psql -U $$DB_USER -d postgres -c "ALTER DATABASE template1 REFRESH COLLATION VERSION;"; \
 	echo "Refreshing database collation version for database: $$DB_NAME..."; \
-	docker compose exec -T db psql -U $$DB_USER -d $$DB_NAME -c "ALTER DATABASE $$DB_NAME REFRESH COLLATION VERSION;"
-	@echo "✓ Collation version refreshed successfully"
+	docker compose exec -T db psql -U $$DB_USER -d postgres -c "ALTER DATABASE $$DB_NAME REFRESH COLLATION VERSION;"
+	@echo "✓ Collation versions refreshed successfully"

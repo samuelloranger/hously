@@ -24,13 +24,13 @@ model User {
   customEvents           CustomEvent[]
   recipes                Recipe[]
   reminders              Reminder[]
-  shoppingItemsAdded     ShoppingItem[]    @relation("ShoppingItemAddedBy")
-  shoppingItemsCompleted ShoppingItem[]    @relation("ShoppingItemCompletedBy")
+  shoppingItemsAdded     ShoppingItem[]       @relation("ShoppingItemAddedBy")
+  shoppingItemsCompleted ShoppingItem[]       @relation("ShoppingItemCompletedBy")
   userSubscriptions      UserSubscription[]
   taskCompletions        TaskCompletion[]
-  choresAdded            Chore[]           @relation("ChoreAddedBy")
-  choresAssigned         Chore[]           @relation("ChoreAssignedTo")
-  choresCompleted        Chore[]           @relation("ChoreCompletedBy")
+  choresAdded            Chore[]              @relation("ChoreAddedBy")
+  choresAssigned         Chore[]              @relation("ChoreAssignedTo")
+  choresCompleted        Chore[]              @relation("ChoreCompletedBy")
   mealPlans              MealPlan[]
   passwordResetTokens    PasswordResetToken[]
   refreshTokens          RefreshToken[]
@@ -40,15 +40,15 @@ model User {
 }
 
 model Notification {
-  id                   Int      @id @default(autoincrement())
-  userId               Int      @map("user_id")
+  id                   Int       @id @default(autoincrement())
+  userId               Int       @map("user_id")
   title                String
   body                 String
   type                 String
-  read                 Boolean  @default(false)
+  read                 Boolean   @default(false)
   readAt               DateTime? @map("read_at")
   url                  String?
-  notificationMetadata Json?    @map("notification_metadata")
+  notificationMetadata Json?     @map("notification_metadata")
   createdAt            DateTime  @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -59,12 +59,12 @@ model Notification {
 }
 
 model NotificationTemplate {
-  id            Int      @id @default(autoincrement())
-  serviceId     Int      @map("service_id")
-  eventType     String   @map("event_type")
-  language      String   @default("en")
-  titleTemplate String   @map("title_template")
-  bodyTemplate  String   @map("body_template")
+  id            Int       @id @default(autoincrement())
+  serviceId     Int       @map("service_id")
+  eventType     String    @map("event_type")
+  language      String    @default("en")
+  titleTemplate String    @map("title_template")
+  bodyTemplate  String    @map("body_template")
   createdAt     DateTime? @map("created_at")
   updatedAt     DateTime? @map("updated_at")
 
@@ -77,13 +77,13 @@ model NotificationTemplate {
 }
 
 model ExternalNotificationService {
-  id               Int      @id @default(autoincrement())
-  serviceName      String   @unique(map: "ix_external_notification_services_service_name") @map("service_name")
-  enabled          Boolean  @default(false)
-  token            String?  @unique(map: "ix_external_notification_services_token")
+  id               Int       @id @default(autoincrement())
+  serviceName      String    @unique(map: "ix_external_notification_services_service_name") @map("service_name")
+  enabled          Boolean   @default(false)
+  token            String?   @unique(map: "ix_external_notification_services_token")
   createdAt        DateTime? @map("created_at")
   updatedAt        DateTime? @map("updated_at")
-  notifyAdminsOnly Boolean  @default(true) @map("notify_admins_only")
+  notifyAdminsOnly Boolean   @default(true) @map("notify_admins_only")
 
   templates NotificationTemplate[]
   logs      ExternalNotificationServiceLog[]
@@ -92,12 +92,12 @@ model ExternalNotificationService {
 }
 
 model ExternalNotificationServiceLog {
-  id        Int      @id @default(autoincrement())
-  serviceId Int      @map("service_id")
-  eventType String   @map("event_type")
+  id        Int       @id @default(autoincrement())
+  serviceId Int       @map("service_id")
+  eventType String    @map("event_type")
   payload   String
   createdAt DateTime? @map("created_at")
-  status    String   @db.VarChar(20)
+  status    String    @db.VarChar(20)
 
   service ExternalNotificationService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
@@ -106,16 +106,16 @@ model ExternalNotificationServiceLog {
 }
 
 model CustomEvent {
-  id                          Int      @id @default(autoincrement())
+  id                          Int       @id @default(autoincrement())
   title                       String
   description                 String?
-  startDatetime               DateTime @map("start_datetime")
-  endDatetime                 DateTime @map("end_datetime")
-  allDay                      Boolean? @map("all_day")
+  startDatetime               DateTime  @map("start_datetime")
+  endDatetime                 DateTime  @map("end_datetime")
+  allDay                      Boolean?  @map("all_day")
   color                       String
-  userId                      Int      @map("user_id")
-  recurrenceType              String?  @map("recurrence_type")
-  recurrenceIntervalDays      Int?     @map("recurrence_interval_days")
+  userId                      Int       @map("user_id")
+  recurrenceType              String?   @map("recurrence_type")
+  recurrenceIntervalDays      Int?      @map("recurrence_interval_days")
   recurrenceOriginalCreatedAt DateTime? @map("recurrence_original_created_at")
   createdAt                   DateTime? @map("created_at")
 
@@ -125,21 +125,21 @@ model CustomEvent {
 }
 
 model Recipe {
-  id              Int      @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   name            String
   description     String?
   instructions    String
   category        String?
   servings        Int
-  prepTimeMinutes Int?     @map("prep_time_minutes")
-  cookTimeMinutes Int?     @map("cook_time_minutes")
-  imagePath       String?  @map("image_path")
-  isFavorite      Int      @map("is_favorite")
-  addedBy         Int      @map("added_by")
+  prepTimeMinutes Int?      @map("prep_time_minutes")
+  cookTimeMinutes Int?      @map("cook_time_minutes")
+  imagePath       String?   @map("image_path")
+  isFavorite      Int       @map("is_favorite")
+  addedBy         Int       @map("added_by")
   createdAt       DateTime? @map("created_at")
   updatedAt       DateTime? @map("updated_at")
 
-  user        User              @relation(fields: [addedBy], references: [id])
+  user        User               @relation(fields: [addedBy], references: [id])
   ingredients RecipeIngredient[]
   mealPlans   MealPlan[]
 
@@ -246,11 +246,11 @@ model Chore {
   recurrenceParentId          Int?      @map("recurrence_parent_id")
   position                    Int
 
-  addedByUser     User      @relation("ChoreAddedBy", fields: [addedBy], references: [id])
-  assignedToUser  User?     @relation("ChoreAssignedTo", fields: [assignedTo], references: [id])
-  completedByUser User?     @relation("ChoreCompletedBy", fields: [completedBy], references: [id])
-  recurrenceParent Chore?   @relation("ChoreRecurrence", fields: [recurrenceParentId], references: [id], onDelete: SetNull)
-  childChores      Chore[]  @relation("ChoreRecurrence")
+  addedByUser      User       @relation("ChoreAddedBy", fields: [addedBy], references: [id])
+  assignedToUser   User?      @relation("ChoreAssignedTo", fields: [assignedTo], references: [id])
+  completedByUser  User?      @relation("ChoreCompletedBy", fields: [completedBy], references: [id])
+  recurrenceParent Chore?     @relation("ChoreRecurrence", fields: [recurrenceParentId], references: [id], onDelete: SetNull)
+  childChores      Chore[]    @relation("ChoreRecurrence")
   reminders        Reminder[]
 
   @@map("chores")
