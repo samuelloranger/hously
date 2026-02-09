@@ -132,8 +132,8 @@ export async function getThumbnail(filename: string): Promise<Buffer | null> {
 }
 
 /**
- * Get the S3 URL for an avatar image
+ * Get the API URL for an avatar image (served through API, not direct S3)
  */
 export function getAvatarUrl(filename: string): string {
-  return getS3DirectUrl(filename);
+  return `/api/users/avatar/${filename}`;
 }

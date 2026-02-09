@@ -3,7 +3,7 @@ import { auth } from "../auth";
 import { prisma } from "../db";
 import { hashPassword, verifyPassword } from "../utils/password";
 import { validatePassword } from "../utils/validation";
-import { saveImageAndCreateThumbnail, deleteImageFiles, getAvatarUrl } from "../services/imageService";
+import { saveImageAndCreateThumbnail, deleteImageFiles, getAvatarUrl, isAllowedFile, getImage, getContentType } from "../services/imageService";
 
 // Map database user to frontend user (snake_case)
 const mapUser = (user: any) => ({
@@ -166,21 +166,62 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
       }),
     },
   )
+  // GET /api/users/avatar/:filename - Serve avatar image
+  .get("/avatar/:filename", async ({ params, set }) => {
+    const { filename } = params;
+
+    if (!filename || !isAllowedFile(filename)) {
+      set.status = 400;
+      return { error: "Invalid filename" };
+    }
+
+    try {
+      const imageBuffer = await getImage(filename);
+
+      if (!imageBuffer) {
+        set.status = 404;
+        return { error: "Image not found" };
+      }
+
+      // Set content type based on filename extension
+      set.headers["Content-Type"] = getContentType(filename);
+      set.headers["Cache-Control"] = "public, max-age=31536000"; // Cache for 1 year
+
+      return imageBuffer;
+    } catch (error) {
+      console.error("Error serving avatar:", error);
+      set.status = 500;
+      return { error: "Failed to serve avatar" };
+    }
+  })
   // POST /api/users/me/avatar - Upload avatar
   .post(
     "/me/avatar",
     async ({ user, body, set }) => {
+      const logPrefix = `[avatar-upload][users][${new Date().toISOString()}]`;
+      console.log(`${logPrefix} request received`);
+
       if (!user) {
+        console.warn(`${logPrefix} unauthorized request (no user in auth context)`);
         set.status = 401;
         return { error: "Unauthorized" };
       }
 
       const { avatar } = body;
+      console.log(`${logPrefix} authenticated user id=${user.id}`);
+      console.log(`${logPrefix} body keys=${Object.keys(body || {}).join(",") || "none"}`);
 
       if (!avatar || !(avatar instanceof File)) {
+        console.warn(
+          `${logPrefix} invalid payload: avatar missing or not File (type=${typeof avatar})`,
+        );
         set.status = 400;
         return { error: "Avatar file is required" };
       }
+
+      console.log(
+        `${logPrefix} avatar file received name="${avatar.name}" type="${avatar.type}" size=${avatar.size}`,
+      );
 
       // Validate file type
       const allowedTypes = [
@@ -190,6 +231,9 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         "image/webp",
       ];
       if (!allowedTypes.includes(avatar.type)) {
+        console.warn(
+          `${logPrefix} invalid avatar mime type="${avatar.type}" allowed=${allowedTypes.join(",")}`,
+        );
         set.status = 400;
         return { error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP" };
       }
@@ -197,34 +241,53 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
       // Validate file size (max 5MB)
       const maxSize = 5 * 1024 * 1024;
       if (avatar.size > maxSize) {
+        console.warn(
+          `${logPrefix} avatar too large size=${avatar.size} max=${maxSize} bytes`,
+        );
         set.status = 400;
         return { error: "File too large. Maximum size is 5MB" };
       }
 
       try {
+        console.log(`${logPrefix} fetching current user record before upload`);
         // Delete old avatar if exists
         const dbUser = await prisma.user.findFirst({
           where: { id: user.id },
         });
+        console.log(
+          `${logPrefix} current db avatarUrl="${dbUser?.avatarUrl || "none"}"`,
+        );
+
         if (dbUser?.avatarUrl) {
           // Extract filename from URL (assuming S3 format)
           const oldFilename = dbUser.avatarUrl.split("/").pop();
+          console.log(
+            `${logPrefix} parsed old filename="${oldFilename || "none"}" from avatarUrl`,
+          );
           if (oldFilename) {
+            console.log(`${logPrefix} deleting old avatar assets for key="${oldFilename}"`);
             await deleteImageFiles(oldFilename);
+            console.log(`${logPrefix} old avatar assets deleted`);
           }
         }
 
         // Save to S3 and create thumbnail
+        console.log(`${logPrefix} uploading new avatar to image service`);
         const filename = await saveImageAndCreateThumbnail(avatar);
+        console.log(`${logPrefix} image service completed filename="${filename}"`);
 
         // Build avatar URL using S3 direct URL
         const avatarUrl = getAvatarUrl(filename);
+        console.log(`${logPrefix} generated avatar URL="${avatarUrl}"`);
 
         // Persist avatar URL in user record
+        console.log(`${logPrefix} updating user.avatarUrl in database`);
         await prisma.user.update({
           where: { id: user.id },
           data: { avatarUrl },
         });
+        console.log(`${logPrefix} database update success for user id=${user.id}`);
+        console.log(`${logPrefix} request complete`);
 
         return {
           message: "Avatar uploaded successfully",
@@ -232,7 +295,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
           url: avatarUrl,
         };
       } catch (error) {
-        console.error("Error uploading avatar:", error);
+        console.error(`${logPrefix} failed with error:`, error);
         set.status = 500;
         return { error: "Failed to upload avatar" };
       }
