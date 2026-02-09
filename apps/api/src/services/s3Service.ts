@@ -3,7 +3,7 @@
  */
 
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadBucketCommand, CreateBucketCommand } from "@aws-sdk/client-s3";
-import { getS3Config, type S3Config } from "../utils/config";
+import { getS3Config, getBaseUrl, type S3Config } from "../utils/config";
 
 let s3Client: S3Client | null = null;
 let s3Config: S3Config | null = null;
@@ -60,7 +60,7 @@ export async function ensureBucketExists(bucketName?: string): Promise<boolean> 
         await client.send(new CreateBucketCommand({
           Bucket: bucket,
           CreateBucketConfiguration: {
-            LocationConstraint: config.region,
+            LocationConstraint: config.region as any,
           },
         }));
         console.log(`Successfully created bucket '${bucket}'`);
@@ -201,4 +201,18 @@ export function getS3FileUrl(key: string): string {
  */
 export function getS3ThumbnailUrl(key: string): string {
   return `/api/chores/thumbnail/${key}`;
+}
+
+/**
+ * Get the direct S3 URL for a file (for avatars and other direct access)
+ */
+export function getS3DirectUrl(key: string): string {
+  const config = getS3Config();
+  if (!config) {
+    return "";
+  }
+  
+  const protocol = config.useSsl ? "https" : "http";
+  const endpoint = config.endpointUrl.replace("http://", "").replace("https://", "");
+  return `${protocol}://${endpoint}/${config.bucketName}/${key}`;
 }

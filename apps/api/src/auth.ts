@@ -9,6 +9,7 @@ import { loadAccessControl, getBaseUrl } from "./utils/config";
 import {
   saveImageAndCreateThumbnail,
   deleteImageFiles,
+  getAvatarUrl,
 } from "./services/imageService";
 
 // Map database user (camelCase) to frontend user (snake_case)
@@ -689,8 +690,8 @@ export const auth = (app: Elysia) =>
               // Save to S3 and create thumbnail
               const filename = await saveImageAndCreateThumbnail(avatar);
 
-              // Build avatar URL (S3 URL will be handled by frontend)
-              const avatarUrl = `/uploads/avatars/${filename}`;
+              // Build avatar URL using S3 direct URL
+              const avatarUrl = getAvatarUrl(filename);
 
               // Persist avatar URL in user record
               await prisma.user.update({

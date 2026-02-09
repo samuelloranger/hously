@@ -4,7 +4,7 @@
 
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
-import { uploadToS3, deleteFromS3, getFileFromS3, isS3Configured } from "./s3Service";
+import { uploadToS3, deleteFromS3, getFileFromS3, isS3Configured, getS3DirectUrl } from "./s3Service";
 
 // Allowed image extensions
 const ALLOWED_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp"]);
@@ -129,4 +129,11 @@ export async function getImage(filename: string): Promise<Buffer | null> {
  */
 export async function getThumbnail(filename: string): Promise<Buffer | null> {
   return getFileFromS3(`thumbnail-${filename}`);
+}
+
+/**
+ * Get the S3 URL for an avatar image
+ */
+export function getAvatarUrl(filename: string): string {
+  return getS3DirectUrl(filename);
 }

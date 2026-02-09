@@ -3,7 +3,7 @@ import { auth } from "../auth";
 import { prisma } from "../db";
 import { hashPassword, verifyPassword } from "../utils/password";
 import { validatePassword } from "../utils/validation";
-import { saveImageAndCreateThumbnail, deleteImageFiles } from "../services/imageService";
+import { saveImageAndCreateThumbnail, deleteImageFiles, getAvatarUrl } from "../services/imageService";
 
 // Map database user to frontend user (snake_case)
 const mapUser = (user: any) => ({
@@ -217,8 +217,8 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         // Save to S3 and create thumbnail
         const filename = await saveImageAndCreateThumbnail(avatar);
 
-        // Build avatar URL (S3 URL will be handled by frontend)
-        const avatarUrl = `/uploads/avatars/${filename}`;
+        // Build avatar URL using S3 direct URL
+        const avatarUrl = getAvatarUrl(filename);
 
         // Persist avatar URL in user record
         await prisma.user.update({
