@@ -71,6 +71,12 @@ const KitchenPage = cachedLazy("kitchen", () =>
 const RecipeDetail = cachedLazy("recipeDetail", () =>
   import("./features/recipes").then((m) => ({ default: m.RecipeDetail }))
 );
+const Privacy = cachedLazy("privacy", () =>
+  import("./routes/privacy").then((m) => ({ default: m.Privacy }))
+);
+const Terms = cachedLazy("terms", () =>
+  import("./routes/terms").then((m) => ({ default: m.Terms }))
+);
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -245,6 +251,18 @@ const recipeDetailRoute = createRoute({
   },
 });
 
+const privacyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/privacy",
+  component: Privacy,
+});
+
+const termsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/terms",
+  component: Terms,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
@@ -257,6 +275,8 @@ const routeTree = rootRoute.addChildren([
   notificationsRoute,
   kitchenRoute,
   recipeDetailRoute,
+  privacyRoute,
+  termsRoute,
 ]);
 
 export const router = createRouter({ routeTree });
