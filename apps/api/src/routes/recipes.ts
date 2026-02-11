@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { prisma } from "../db";
 import { auth } from "../auth";
 import { saveImageAndCreateThumbnail, deleteImageFiles, getImage, getContentType } from "../services/imageService";
-import { formatIso, nowUtc, sanitizeInput, sanitizeRichText } from "../utils";
+import { formatIso, nowUtc, sanitizeInput } from "../utils";
 
 export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
   .use(auth)
@@ -18,7 +18,7 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
       const allRecipes = await prisma.recipe.findMany({
         include: {
           _count: {
-            select: { recipeIngredients: true },
+            select: { ingredients: true },
           },
         },
         orderBy: [
@@ -58,7 +58,7 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
           created_at: formatIso(recipe.createdAt),
           updated_at: formatIso(recipe.updatedAt),
           added_by_username: addedByUser?.firstName || addedByUser?.email || null,
-          ingredient_count: recipe._count.recipeIngredients,
+          ingredient_count: recipe._count.ingredients,
         };
       });
 
@@ -117,7 +117,7 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
         const ingredientsList = ingredients.map((ing) => ({
           id: ing.id,
           name: ing.name,
-          quantity: ing.quantity ? parseFloat(ing.quantity) : null,
+          quantity: ing.quantity ? parseFloat(ing.quantity.toString()) : null,
           unit: ing.unit,
           position: ing.position,
         }));
@@ -196,12 +196,13 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
           return { error: "Servings must be positive" };
         }
 
-        // Sanitize inputs
+        // Sanitize inputs (Markdown is stored as plain text, no HTML escaping needed)
         const sanitizedName = sanitizeInput(nameTrimmed);
         const sanitizedDescription = description
           ? sanitizeInput(description.trim())
           : null;
-        const sanitizedInstructions = sanitizeRichText(instructionsTrimmed);
+        // Instructions are Markdown - store as-is without HTML sanitization
+        const sanitizedInstructions = instructionsTrimmed;
 
         // Create recipe
         const newRecipe = await prisma.recipe.create({
@@ -334,7 +335,8 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
             set.status = 400;
             return { error: "Instructions cannot be empty" };
           }
-          updateData.instructions = sanitizeRichText(instructions);
+          // Instructions are Markdown - store as-is without HTML sanitization
+          updateData.instructions = instructions;
         }
 
         // Update category if provided

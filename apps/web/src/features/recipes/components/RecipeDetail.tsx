@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Clock, Users, Edit, Trash2, Star } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
 import { PageLayout } from "../../../components/PageLayout";
 import { LoadingState } from "../../../components/LoadingState";
 import { useRecipe } from "../hooks/useRecipe";
@@ -204,10 +206,11 @@ export function RecipeDetail() {
         <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
           {t("recipes.instructions", "Instructions")}
         </h2>
-        <div
-          className="prose dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: recipe.instructions }}
-        />
+        <div className="prose dark:prose-invert max-w-none">
+          <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+            {recipe.instructions}
+          </ReactMarkdown>
+        </div>
       </div>
 
       <EditRecipeModal

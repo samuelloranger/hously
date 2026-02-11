@@ -1,7 +1,6 @@
 import { useState, FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, X, Upload, Loader2 } from "lucide-react";
-import { MinimalTiptap } from "../../../components/ui/minimal-tiptap";
 import { useCreateRecipe } from "../hooks/useCreateRecipe";
 import { useUpdateRecipe } from "../hooks/useUpdateRecipe";
 import { RecipeIngredient } from "../../../types";
@@ -342,14 +341,18 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
           {t("recipes.instructions", "Instructions")} *
+          <span className="text-xs text-neutral-500 ml-2">(Markdown supported)</span>
         </label>
-        <MinimalTiptap
-          content={instructions}
-          onChange={setInstructions}
+        <textarea
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
           placeholder={t(
             "recipes.instructionsPlaceholder",
-            "Enter cooking instructions..."
+            "Enter cooking instructions... (Markdown supported: **bold**, *italic*, - lists, etc.)"
           )}
+          required
+          rows={12}
+          className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-orange-500 font-mono text-sm resize-vertical"
         />
       </div>
 
