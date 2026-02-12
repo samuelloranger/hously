@@ -1,19 +1,14 @@
-import {
-  getPendingMutations,
-  removeMutation,
-  markMutationProcessing,
-  markMutationFailed,
-} from "./mutationQueue";
-import { getNetworkStatus } from "./networkStatus";
+import { getPendingMutations, removeMutation, markMutationProcessing, markMutationFailed } from './mutationQueue';
+import { getNetworkStatus } from './networkStatus';
 
-const API_BASE = import.meta.env.PROD ? "" : "";
+const API_BASE = import.meta.env.PROD ? '' : '';
 
 /**
  * Process queued mutations when back online
  */
 export async function syncQueuedMutations(): Promise<void> {
   if (!getNetworkStatus()) {
-    console.log("Still offline, skipping sync");
+    console.log('Still offline, skipping sync');
     return;
   }
 
@@ -30,14 +25,14 @@ export async function syncQueuedMutations(): Promise<void> {
       await markMutationProcessing(mutation.id);
 
       // Get CSRF token if needed
-      let headers = { ...mutation.headers };
+      const headers = { ...mutation.headers };
 
       // Execute the mutation
       const response = await fetch(`${API_BASE}${mutation.endpoint}`, {
         method: mutation.method,
         headers,
         body: mutation.body,
-        credentials: "include",
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -64,8 +59,8 @@ export async function syncQueuedMutations(): Promise<void> {
  * Register background sync with service worker
  */
 export async function registerBackgroundSync(): Promise<void> {
-  if (!("serviceWorker" in navigator)) {
-    console.warn("Service Worker not supported");
+  if (!('serviceWorker' in navigator)) {
+    console.warn('Service Worker not supported');
     return;
   }
 
@@ -73,15 +68,15 @@ export async function registerBackgroundSync(): Promise<void> {
     const registration = await navigator.serviceWorker.ready;
 
     // Check if Background Sync API is available
-    if (!("sync" in registration)) {
-      console.warn("Background Sync API not supported");
+    if (!('sync' in registration)) {
+      console.warn('Background Sync API not supported');
       return;
     }
 
-    await (registration as any).sync.register("sync-mutations");
-    console.log("Background sync registered");
+    await (registration as any).sync.register('sync-mutations');
+    console.log('Background sync registered');
   } catch (error) {
-    console.error("Failed to register background sync:", error);
+    console.error('Failed to register background sync:', error);
   }
 }
 

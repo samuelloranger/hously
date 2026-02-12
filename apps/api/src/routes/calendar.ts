@@ -1,7 +1,7 @@
-import { Elysia, t } from "elysia";
-import { prisma } from "../db";
-import { auth } from "../auth";
-import { formatIso, todayLocal, toLocalDate, getDaysInMonth } from "../utils";
+import { Elysia, t } from 'elysia';
+import { prisma } from '../db';
+import { auth } from '../auth';
+import { formatIso, todayLocal, toLocalDate, getDaysInMonth } from '../utils';
 
 // Calculate recurring chore dates within a date range
 interface ChoreData {
@@ -18,11 +18,7 @@ interface ChoreData {
   assignedTo: number | null;
 }
 
-const calculateRecurringChoreDates = (
-  chore: ChoreData,
-  startDate: Date,
-  endDate: Date
-): Date[] => {
+const calculateRecurringChoreDates = (chore: ChoreData, startDate: Date, endDate: Date): Date[] => {
   const dates: Date[] = [];
 
   if (!chore.recurrenceType) {
@@ -32,12 +28,11 @@ const calculateRecurringChoreDates = (
   const today = todayLocal();
 
   // Get the original creation date
-  const originalDateStr =
-    chore.recurrenceOriginalCreatedAt || chore.createdAt;
+  const originalDateStr = chore.recurrenceOriginalCreatedAt || chore.createdAt;
   const originalDate = toLocalDate(originalDateStr);
   if (!originalDate) return dates;
 
-  if (chore.recurrenceType === "daily_interval") {
+  if (chore.recurrenceType === 'daily_interval') {
     if (!chore.recurrenceIntervalDays || chore.recurrenceIntervalDays <= 0) {
       return dates;
     }
@@ -51,31 +46,21 @@ const calculateRecurringChoreDates = (
         const daysSinceOriginal = Math.floor(
           (completedAtLocal.getTime() - originalDate.getTime()) / (1000 * 60 * 60 * 24)
         );
-        const intervalsPassed = Math.floor(
-          daysSinceOriginal / chore.recurrenceIntervalDays
-        );
+        const intervalsPassed = Math.floor(daysSinceOriginal / chore.recurrenceIntervalDays);
         const nextInterval = intervalsPassed + 1;
 
         currentDate = new Date(originalDate);
-        currentDate.setDate(
-          currentDate.getDate() + nextInterval * chore.recurrenceIntervalDays
-        );
+        currentDate.setDate(currentDate.getDate() + nextInterval * chore.recurrenceIntervalDays);
       }
     } else {
       // For incomplete chores, start from today if original date is in the past
       if (currentDate < today) {
-        const daysSinceOriginal = Math.floor(
-          (today.getTime() - originalDate.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        const intervalsPassed = Math.floor(
-          daysSinceOriginal / chore.recurrenceIntervalDays
-        );
+        const daysSinceOriginal = Math.floor((today.getTime() - originalDate.getTime()) / (1000 * 60 * 60 * 24));
+        const intervalsPassed = Math.floor(daysSinceOriginal / chore.recurrenceIntervalDays);
         const nextInterval = intervalsPassed + 1;
 
         currentDate = new Date(originalDate);
-        currentDate.setDate(
-          currentDate.getDate() + nextInterval * chore.recurrenceIntervalDays
-        );
+        currentDate.setDate(currentDate.getDate() + nextInterval * chore.recurrenceIntervalDays);
       }
     }
 
@@ -86,7 +71,7 @@ const calculateRecurringChoreDates = (
       }
       currentDate.setDate(currentDate.getDate() + chore.recurrenceIntervalDays);
     }
-  } else if (chore.recurrenceType === "weekly") {
+  } else if (chore.recurrenceType === 'weekly') {
     if (
       chore.recurrenceWeekday === null ||
       chore.recurrenceWeekday === undefined ||
@@ -97,7 +82,7 @@ const calculateRecurringChoreDates = (
     }
 
     // Start from the original date or today, whichever is later
-    let currentDate = new Date(Math.max(originalDate.getTime(), today.getTime()));
+    const currentDate = new Date(Math.max(originalDate.getTime(), today.getTime()));
 
     // Find the next occurrence of the target weekday
     const currentWeekday = currentDate.getDay();
@@ -169,32 +154,22 @@ const calculateRecurringCustomEventDates = (
   const originalStartDate = new Date(event.startDatetime);
   const originalEndDate = new Date(event.endDatetime);
 
-  if (event.recurrenceType === "daily_interval") {
+  if (event.recurrenceType === 'daily_interval') {
     if (!event.recurrenceIntervalDays || event.recurrenceIntervalDays <= 0) {
       return dates;
     }
 
-    let currentDate = new Date(originalStartLocal);
+    const currentDate = new Date(originalStartLocal);
 
     // Generate dates until endDate
     while (currentDate <= endDate) {
       if (currentDate >= startDate) {
         const occurrenceStart = new Date(currentDate);
-        occurrenceStart.setHours(
-          originalStartDate.getUTCHours(),
-          originalStartDate.getUTCMinutes(),
-          0,
-          0
-        );
+        occurrenceStart.setHours(originalStartDate.getUTCHours(), originalStartDate.getUTCMinutes(), 0, 0);
 
         const occurrenceEnd = new Date(currentDate);
         occurrenceEnd.setDate(occurrenceEnd.getDate() + durationDays);
-        occurrenceEnd.setHours(
-          originalEndDate.getUTCHours(),
-          originalEndDate.getUTCMinutes(),
-          0,
-          0
-        );
+        occurrenceEnd.setHours(originalEndDate.getUTCHours(), originalEndDate.getUTCMinutes(), 0, 0);
 
         dates.push({
           date: new Date(currentDate),
@@ -205,7 +180,7 @@ const calculateRecurringCustomEventDates = (
 
       currentDate.setDate(currentDate.getDate() + event.recurrenceIntervalDays);
     }
-  } else if (event.recurrenceType === "weekly") {
+  } else if (event.recurrenceType === 'weekly') {
     // Include the original date if it's within range
     if (originalStartLocal >= startDate && originalStartLocal <= endDate) {
       dates.push({
@@ -215,9 +190,7 @@ const calculateRecurringCustomEventDates = (
       });
     }
 
-    let currentDate = new Date(
-      Math.max(originalStartLocal.getTime(), startDate.getTime())
-    );
+    const currentDate = new Date(Math.max(originalStartLocal.getTime(), startDate.getTime()));
 
     // Find the next occurrence of the same weekday
     const targetWeekday = originalStartLocal.getDay();
@@ -235,21 +208,11 @@ const calculateRecurringCustomEventDates = (
     while (currentDate <= endDate) {
       if (currentDate >= startDate) {
         const occurrenceStart = new Date(currentDate);
-        occurrenceStart.setHours(
-          originalStartDate.getUTCHours(),
-          originalStartDate.getUTCMinutes(),
-          0,
-          0
-        );
+        occurrenceStart.setHours(originalStartDate.getUTCHours(), originalStartDate.getUTCMinutes(), 0, 0);
 
         const occurrenceEnd = new Date(currentDate);
         occurrenceEnd.setDate(occurrenceEnd.getDate() + durationDays);
-        occurrenceEnd.setHours(
-          originalEndDate.getUTCHours(),
-          originalEndDate.getUTCMinutes(),
-          0,
-          0
-        );
+        occurrenceEnd.setHours(originalEndDate.getUTCHours(), originalEndDate.getUTCMinutes(), 0, 0);
 
         dates.push({
           date: new Date(currentDate),
@@ -260,7 +223,7 @@ const calculateRecurringCustomEventDates = (
 
       currentDate.setDate(currentDate.getDate() + 7);
     }
-  } else if (event.recurrenceType === "biweekly") {
+  } else if (event.recurrenceType === 'biweekly') {
     if (originalStartLocal >= startDate && originalStartLocal <= endDate) {
       dates.push({
         date: new Date(originalStartLocal),
@@ -269,9 +232,7 @@ const calculateRecurringCustomEventDates = (
       });
     }
 
-    let currentDate = new Date(
-      Math.max(originalStartLocal.getTime(), startDate.getTime())
-    );
+    const currentDate = new Date(Math.max(originalStartLocal.getTime(), startDate.getTime()));
 
     const targetWeekday = originalStartLocal.getDay();
     const currentWeekday = currentDate.getDay();
@@ -282,8 +243,7 @@ const calculateRecurringCustomEventDates = (
         daysUntilTarget = 14;
       } else {
         const weeksSinceOriginal = Math.floor(
-          (currentDate.getTime() - originalStartLocal.getTime()) /
-            (7 * 24 * 60 * 60 * 1000)
+          (currentDate.getTime() - originalStartLocal.getTime()) / (7 * 24 * 60 * 60 * 1000)
         );
         if (weeksSinceOriginal % 2 !== 0) {
           daysUntilTarget = 7;
@@ -293,8 +253,7 @@ const calculateRecurringCustomEventDates = (
       const nextWeekdayDate = new Date(currentDate);
       nextWeekdayDate.setDate(nextWeekdayDate.getDate() + daysUntilTarget);
       const weeksSinceOriginal = Math.floor(
-        (nextWeekdayDate.getTime() - originalStartLocal.getTime()) /
-          (7 * 24 * 60 * 60 * 1000)
+        (nextWeekdayDate.getTime() - originalStartLocal.getTime()) / (7 * 24 * 60 * 60 * 1000)
       );
       if (weeksSinceOriginal % 2 !== 0) {
         daysUntilTarget += 7;
@@ -306,21 +265,11 @@ const calculateRecurringCustomEventDates = (
     while (currentDate <= endDate) {
       if (currentDate >= startDate) {
         const occurrenceStart = new Date(currentDate);
-        occurrenceStart.setHours(
-          originalStartDate.getUTCHours(),
-          originalStartDate.getUTCMinutes(),
-          0,
-          0
-        );
+        occurrenceStart.setHours(originalStartDate.getUTCHours(), originalStartDate.getUTCMinutes(), 0, 0);
 
         const occurrenceEnd = new Date(currentDate);
         occurrenceEnd.setDate(occurrenceEnd.getDate() + durationDays);
-        occurrenceEnd.setHours(
-          originalEndDate.getUTCHours(),
-          originalEndDate.getUTCMinutes(),
-          0,
-          0
-        );
+        occurrenceEnd.setHours(originalEndDate.getUTCHours(), originalEndDate.getUTCMinutes(), 0, 0);
 
         dates.push({
           date: new Date(currentDate),
@@ -331,11 +280,12 @@ const calculateRecurringCustomEventDates = (
 
       currentDate.setDate(currentDate.getDate() + 14);
     }
-  } else if (event.recurrenceType === "monthly") {
+  } else if (event.recurrenceType === 'monthly') {
     const dayOfMonth = originalStartLocal.getDate();
     let currentYear = startDate.getFullYear();
     let currentMonth = startDate.getMonth();
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       try {
         const occurrenceDate = new Date(currentYear, currentMonth, dayOfMonth);
@@ -354,21 +304,11 @@ const calculateRecurringCustomEventDates = (
         }
 
         const occurrenceStart = new Date(occurrenceDate);
-        occurrenceStart.setHours(
-          originalStartDate.getUTCHours(),
-          originalStartDate.getUTCMinutes(),
-          0,
-          0
-        );
+        occurrenceStart.setHours(originalStartDate.getUTCHours(), originalStartDate.getUTCMinutes(), 0, 0);
 
         const occurrenceEnd = new Date(occurrenceDate);
         occurrenceEnd.setDate(occurrenceEnd.getDate() + durationDays);
-        occurrenceEnd.setHours(
-          originalEndDate.getUTCHours(),
-          originalEndDate.getUTCMinutes(),
-          0,
-          0
-        );
+        occurrenceEnd.setHours(originalEndDate.getUTCHours(), originalEndDate.getUTCMinutes(), 0, 0);
 
         dates.push({
           date: occurrenceDate,
@@ -390,11 +330,12 @@ const calculateRecurringCustomEventDates = (
         }
       }
     }
-  } else if (event.recurrenceType === "yearly") {
+  } else if (event.recurrenceType === 'yearly') {
     const originalMonth = originalStartLocal.getMonth();
     const originalDay = originalStartLocal.getDate();
     let currentYear = startDate.getFullYear();
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       try {
         const occurrenceDate = new Date(currentYear, originalMonth, originalDay);
@@ -409,21 +350,11 @@ const calculateRecurringCustomEventDates = (
         }
 
         const occurrenceStart = new Date(occurrenceDate);
-        occurrenceStart.setHours(
-          originalStartDate.getUTCHours(),
-          originalStartDate.getUTCMinutes(),
-          0,
-          0
-        );
+        occurrenceStart.setHours(originalStartDate.getUTCHours(), originalStartDate.getUTCMinutes(), 0, 0);
 
         const occurrenceEnd = new Date(occurrenceDate);
         occurrenceEnd.setDate(occurrenceEnd.getDate() + durationDays);
-        occurrenceEnd.setHours(
-          originalEndDate.getUTCHours(),
-          originalEndDate.getUTCMinutes(),
-          0,
-          0
-        );
+        occurrenceEnd.setHours(originalEndDate.getUTCHours(), originalEndDate.getUTCMinutes(), 0, 0);
 
         dates.push({
           date: occurrenceDate,
@@ -442,27 +373,27 @@ const calculateRecurringCustomEventDates = (
   return dates;
 };
 
-export const calendarRoutes = new Elysia({ prefix: "/api/calendar" })
+export const calendarRoutes = new Elysia({ prefix: '/api/calendar' })
   .use(auth)
   // GET /api/calendar - Get all calendar events for a specific month
   .get(
-    "/",
+    '/',
     async ({ user, query, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       try {
         // Get year and month from query parameters, default to current month
         const today = todayLocal();
-        let year = query.year ? parseInt(query.year) : today.getFullYear();
-        let month = query.month ? parseInt(query.month) : today.getMonth() + 1;
+        const year = query.year ? parseInt(query.year) : today.getFullYear();
+        const month = query.month ? parseInt(query.month) : today.getMonth() + 1;
 
         // Validate month
         if (month < 1 || month > 12) {
           set.status = 400;
-          return { error: "Invalid month" };
+          return { error: 'Invalid month' };
         }
 
         // Calculate date range: start of month to end of month
@@ -496,14 +427,15 @@ export const calendarRoutes = new Elysia({ prefix: "/api/calendar" })
 
         const incompleteChoreIds = incompleteChores.map(c => c.id);
 
-        const activeRemindersForChores = incompleteChoreIds.length > 0
-          ? await prisma.reminder.findMany({
-              where: {
-                choreId: { in: incompleteChoreIds },
-                active: true,
-              },
-            })
-          : [];
+        const activeRemindersForChores =
+          incompleteChoreIds.length > 0
+            ? await prisma.reminder.findMany({
+                where: {
+                  choreId: { in: incompleteChoreIds },
+                  active: true,
+                },
+              })
+            : [];
 
         // Build choresWithReminders by joining in JS
         const remindersByChoreIdForJoin = new Map<number, any[]>();
@@ -520,15 +452,11 @@ export const calendarRoutes = new Elysia({ prefix: "/api/calendar" })
             if (reminder.reminderDatetime) {
               const reminderDateLocal = toLocalDate(reminder.reminderDatetime);
 
-              if (
-                reminderDateLocal &&
-                reminderDateLocal >= startDate &&
-                reminderDateLocal <= endDate
-              ) {
+              if (reminderDateLocal && reminderDateLocal >= startDate && reminderDateLocal <= endDate) {
                 events.push({
                   id: `chore-${chore.id}-reminder`,
-                  type: "chore",
-                  date: reminderDateLocal.toISOString().split("T")[0],
+                  type: 'chore',
+                  date: reminderDateLocal.toISOString().split('T')[0],
                   title: chore.choreName,
                   description: chore.description,
                   metadata: {
@@ -581,11 +509,7 @@ export const calendarRoutes = new Elysia({ prefix: "/api/calendar" })
             },
           });
 
-          const recurringDates = calculateRecurringChoreDates(
-            chore as any,
-            startDate,
-            endDate
-          );
+          const recurringDates = calculateRecurringChoreDates(chore as any, startDate, endDate);
 
           for (const recurringDate of recurringDates) {
             const metadata: Record<string, unknown> = {
@@ -597,15 +521,13 @@ export const calendarRoutes = new Elysia({ prefix: "/api/calendar" })
             };
 
             if (activeReminder.length > 0) {
-              metadata.reminder_datetime = formatIso(
-                activeReminder[0].reminderDatetime
-              );
+              metadata.reminder_datetime = formatIso(activeReminder[0].reminderDatetime);
             }
 
             events.push({
-              id: `chore-${chore.id}-recurring-${recurringDate.toISOString().split("T")[0]}`,
-              type: "chore",
-              date: recurringDate.toISOString().split("T")[0],
+              id: `chore-${chore.id}-recurring-${recurringDate.toISOString().split('T')[0]}`,
+              type: 'chore',
+              date: recurringDate.toISOString().split('T')[0],
               title: chore.choreName,
               description: chore.description,
               metadata,
@@ -621,27 +543,17 @@ export const calendarRoutes = new Elysia({ prefix: "/api/calendar" })
         for (const event of userCustomEvents) {
           if (event.recurrenceType) {
             // Handle recurring events
-            const recurringOccurrences = calculateRecurringCustomEventDates(
-              event as any,
-              startDate,
-              endDate
-            );
+            const recurringOccurrences = calculateRecurringCustomEventDates(event as any, startDate, endDate);
 
             for (const occurrence of recurringOccurrences) {
-              const occurrenceEndDate = toLocalDate(
-                occurrence.endDatetime.toISOString()
-              );
+              const occurrenceEndDate = toLocalDate(occurrence.endDatetime.toISOString());
 
               // Include event if it overlaps with the month
-              if (
-                occurrenceEndDate &&
-                occurrence.date <= endDate &&
-                occurrenceEndDate >= startDate
-              ) {
+              if (occurrenceEndDate && occurrence.date <= endDate && occurrenceEndDate >= startDate) {
                 events.push({
-                  id: `custom-event-${event.id}-recurring-${occurrence.date.toISOString().split("T")[0]}`,
-                  type: "custom_event",
-                  date: occurrence.date.toISOString().split("T")[0],
+                  id: `custom-event-${event.id}-recurring-${occurrence.date.toISOString().split('T')[0]}`,
+                  type: 'custom_event',
+                  date: occurrence.date.toISOString().split('T')[0],
                   title: event.title,
                   description: event.description,
                   metadata: {
@@ -658,25 +570,20 @@ export const calendarRoutes = new Elysia({ prefix: "/api/calendar" })
             }
           } else {
             // Handle non-recurring events
-            const eventStartDate = toLocalDate(event.startDatetime);
-            const eventEndDate = toLocalDate(event.endDatetime);
+            const eventStartDate = toLocalDate(event.startDatetime.toISOString());
+            const eventEndDate = toLocalDate(event.endDatetime.toISOString());
 
             // Include event if it overlaps with the month
-            if (
-              eventStartDate &&
-              eventEndDate &&
-              eventStartDate <= endDate &&
-              eventEndDate >= startDate
-            ) {
+            if (eventStartDate && eventEndDate && eventStartDate <= endDate && eventEndDate >= startDate) {
               events.push({
                 id: `custom-event-${event.id}`,
-                type: "custom_event",
-                date: eventStartDate.toISOString().split("T")[0],
+                type: 'custom_event',
+                date: eventStartDate.toISOString().split('T')[0],
                 title: event.title,
                 description: event.description,
                 metadata: {
                   custom_event_id: event.id,
-                  type: "custom_event",
+                  type: 'custom_event',
                   start_datetime: formatIso(event.startDatetime),
                   end_datetime: formatIso(event.endDatetime),
                   all_day: event.allDay,
@@ -694,9 +601,9 @@ export const calendarRoutes = new Elysia({ prefix: "/api/calendar" })
 
         return { events };
       } catch (error) {
-        console.error("Error getting calendar events:", error);
+        console.error('Error getting calendar events:', error);
         set.status = 500;
-        return { error: "Failed to get calendar events" };
+        return { error: 'Failed to get calendar events' };
       }
     },
     {

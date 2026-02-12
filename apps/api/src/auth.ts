@@ -1,16 +1,12 @@
-import { Elysia, t } from "elysia";
-import { jwt } from "@elysiajs/jwt";
-import { cookie } from "@elysiajs/cookie";
-import { prisma } from "./db";
-import { hashPassword, verifyPassword } from "./utils/password";
-import { authRateLimit } from "./middleware/rateLimit";
-import { validateEmail, validatePassword } from "./utils/validation";
-import { loadAccessControl, getBaseUrl } from "./utils/config";
-import {
-  saveImageAndCreateThumbnail,
-  deleteImageFiles,
-  getAvatarUrl,
-} from "./services/imageService";
+import { Elysia, t } from 'elysia';
+import { jwt } from '@elysiajs/jwt';
+import { cookie } from '@elysiajs/cookie';
+import { prisma } from './db';
+import { hashPassword, verifyPassword } from './utils/password';
+import { authRateLimit } from './middleware/rateLimit';
+import { validateEmail, validatePassword } from './utils/validation';
+import { loadAccessControl, getBaseUrl } from './utils/config';
+import { saveImageAndCreateThumbnail, deleteImageFiles, getAvatarUrl } from './services/imageService';
 
 // Map database user (camelCase) to frontend user (snake_case)
 const mapUser = (user: {
@@ -37,12 +33,10 @@ const mapUser = (user: {
 
 const getJwtSecret = (): string => {
   const secret = process.env.SECRET_KEY;
-  if (!secret && process.env.NODE_ENV === "production") {
-    throw new Error(
-      "SECRET_KEY environment variable is required in production",
-    );
+  if (!secret && process.env.NODE_ENV === 'production') {
+    throw new Error('SECRET_KEY environment variable is required in production');
   }
-  return secret || "dev-key-change-in-production";
+  return secret || 'dev-key-change-in-production';
 };
 
 // Generate a cryptographically secure refresh token
@@ -50,17 +44,15 @@ const generateRefreshToken = (): string => {
   const tokenBytes = new Uint8Array(32);
   crypto.getRandomValues(tokenBytes);
   return btoa(String.fromCharCode(...tokenBytes))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
 };
 
 // Create and store a refresh token for a user, returns the raw token string
 const createRefreshToken = async (userId: number): Promise<string> => {
   const token = generateRefreshToken();
-  const expiresAt = new Date(
-    Date.now() + 30 * 24 * 60 * 60 * 1000,
-  ).toISOString(); // 30 days
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days
 
   await prisma.refreshToken.create({
     data: {
@@ -78,15 +70,15 @@ export const auth = (app: Elysia) =>
   app
     .use(
       jwt({
-        name: "jwt",
+        name: 'jwt',
         secret: getJwtSecret(),
-      }),
+      })
     )
     .use(cookie())
-    .derive(async ({ jwt, cookie: { auth }, set, request }) => {
+    .derive(async ({ jwt, cookie: { auth }, request }) => {
       // 1. Check Authorization: Bearer <token> header (mobile clients)
-      const authHeader = request.headers.get("authorization");
-      if (authHeader && authHeader.startsWith("Bearer ")) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.slice(7);
         const profile = await jwt.verify(token);
         if (profile && profile.id) {
@@ -120,11 +112,11 @@ export const auth = (app: Elysia) =>
 
       return { user: mapUser(user) };
     })
-    .group("/api/auth", (app) =>
+    .group('/api/auth', app =>
       app
         .use(authRateLimit)
         .post(
-          "/login",
+          '/login',
           async ({ body, jwt, set, cookie: { auth } }) => {
             const { email, password } = body;
             const user = await prisma.user.findFirst({
@@ -133,19 +125,19 @@ export const auth = (app: Elysia) =>
 
             if (!user) {
               set.status = 401;
-              return { success: false, error: "Invalid credentials" };
+              return { success: false, error: 'Invalid credentials' };
             }
 
             try {
               const isValid = await verifyPassword(password, user.passwordHash);
               if (!isValid) {
                 set.status = 401;
-                return { success: false, error: "Invalid credentials" };
+                return { success: false, error: 'Invalid credentials' };
               }
             } catch (e) {
-              console.error("Password verification error:", e);
+              console.error('Password verification error:', e);
               set.status = 500;
-              return { success: false, error: "Internal server error" };
+              return { success: false, error: 'Internal server error' };
             }
 
             // Generate JWT access token
@@ -159,9 +151,9 @@ export const auth = (app: Elysia) =>
               value: accessToken,
               httpOnly: true,
               maxAge: 7 * 86400, // 7 days
-              path: "/",
-              sameSite: "lax",
-              secure: process.env.NODE_ENV === "production",
+              path: '/',
+              sameSite: 'lax',
+              secure: process.env.NODE_ENV === 'production',
             });
 
             // Update last login
@@ -185,56 +177,46 @@ export const auth = (app: Elysia) =>
               password: t.String(),
               locale: t.Optional(t.String()),
             }),
-          },
+          }
         )
         .post(
-          "/signup",
+          '/signup',
           async ({ body, jwt, set, cookie: { auth } }) => {
             const { email, password, first_name, last_name, locale } = body;
 
-            console.log("Signup attempt:", { email, first_name, last_name });
+            console.log('Signup attempt:', { email, first_name, last_name });
             // Validate email
             if (!validateEmail(email)) {
               set.status = 400;
-              console.log("Signup validation failed for email:", email);
-              return { error: "Invalid email format" };
+              console.log('Signup validation failed for email:', email);
+              return { error: 'Invalid email format' };
             }
 
             // Validate password
             const [isValid, passwordError] = validatePassword(password);
             if (!isValid) {
               set.status = 400;
-              console.log(
-                "Signup validation failed for email:",
-                email,
-                "Error:",
-                passwordError,
-              );
+              console.log('Signup validation failed for email:', email, 'Error:', passwordError);
               return { error: passwordError };
             }
 
-            console.log("Signup validation passed for email:", email);
+            console.log('Signup validation passed for email:', email);
             // Check if user already exists
             try {
               const existingUser = await prisma.user.findFirst({
                 where: { email },
               });
-              console.log(
-                "Existing user check for email:",
-                email,
-                "Found:",
-                !!existingUser,
-              );
+              console.log('Existing user check for email:', email, 'Found:', !!existingUser);
 
               if (existingUser) {
                 set.status = 400;
-                console.log("Signup attempt with existing email:", email);
-                return { error: "User with this email already exists" };
+                console.log('Signup attempt with existing email:', email);
+                return { error: 'User with this email already exists' };
               }
             } catch (error) {
-              console.error("Error checking existing user:", error);
+              console.error('Error checking existing user:', error);
               set.status = 500;
-              return { error: "Internal server error" };
+              return { error: 'Internal server error' };
             }
 
             // Load access control and check if user should be admin
@@ -243,12 +225,7 @@ export const auth = (app: Elysia) =>
 
             // Hash password and create user
             const passwordHash = await hashPassword(password);
-            console.log(
-              "Creating user with email:",
-              email,
-              "isAdmin:",
-              isAdmin,
-            );
+            console.log('Creating user with email:', email, 'isAdmin:', isAdmin);
             const newUser = await prisma.user.create({
               data: {
                 email,
@@ -256,11 +233,11 @@ export const auth = (app: Elysia) =>
                 firstName: first_name || null,
                 lastName: last_name || null,
                 isAdmin,
-                locale: locale || "en",
+                locale: locale || 'en',
                 createdAt: new Date().toISOString(),
               },
             });
-            console.log("New user created with ID:", newUser.id);
+            console.log('New user created with ID:', newUser.id);
 
             // Generate JWT access token
             const accessToken = await jwt.sign({ id: newUser.id });
@@ -270,9 +247,9 @@ export const auth = (app: Elysia) =>
               value: accessToken,
               httpOnly: true,
               maxAge: 7 * 86400, // 7 days
-              path: "/",
-              sameSite: "lax",
-              secure: process.env.NODE_ENV === "production",
+              path: '/',
+              sameSite: 'lax',
+              secure: process.env.NODE_ENV === 'production',
             });
 
             // Generate refresh token for mobile clients
@@ -295,16 +272,16 @@ export const auth = (app: Elysia) =>
               last_name: t.Optional(t.String()),
               locale: t.Optional(t.String()),
             }),
-          },
+          }
         )
         .post(
-          "/refresh",
+          '/refresh',
           async ({ body, jwt, set }) => {
             const { refreshToken: tokenValue } = body;
 
             if (!tokenValue) {
               set.status = 400;
-              return { error: "Refresh token is required" };
+              return { error: 'Refresh token is required' };
             }
 
             try {
@@ -319,7 +296,7 @@ export const auth = (app: Elysia) =>
 
               if (!storedToken) {
                 set.status = 401;
-                return { error: "Invalid or expired refresh token" };
+                return { error: 'Invalid or expired refresh token' };
               }
 
               // Fetch user
@@ -329,7 +306,7 @@ export const auth = (app: Elysia) =>
 
               if (!user) {
                 set.status = 401;
-                return { error: "User not found" };
+                return { error: 'User not found' };
               }
 
               // Revoke old refresh token (rotation)
@@ -349,26 +326,26 @@ export const auth = (app: Elysia) =>
                 refreshToken: newRefreshToken,
               };
             } catch (error) {
-              console.error("Error refreshing token:", error);
+              console.error('Error refreshing token:', error);
               set.status = 500;
-              return { error: "Token refresh failed" };
+              return { error: 'Token refresh failed' };
             }
           },
           {
             body: t.Object({
               refreshToken: t.String(),
             }),
-          },
+          }
         )
         .post(
-          "/forgot-password",
+          '/forgot-password',
           async ({ body, set }) => {
             const { email } = body;
 
             // Validate email
             if (!validateEmail(email)) {
               set.status = 400;
-              return { error: "Invalid email format" };
+              return { error: 'Invalid email format' };
             }
 
             // Always return success to prevent email enumeration
@@ -383,14 +360,12 @@ export const auth = (app: Elysia) =>
                 const tokenBytes = new Uint8Array(32);
                 crypto.getRandomValues(tokenBytes);
                 const token = btoa(String.fromCharCode(...tokenBytes))
-                  .replace(/\+/g, "-")
-                  .replace(/\//g, "_")
-                  .replace(/=/g, "");
+                  .replace(/\+/g, '-')
+                  .replace(/\//g, '_')
+                  .replace(/=/g, '');
 
                 // Token expires in 1 hour
-                const expiresAt = new Date(
-                  Date.now() + 60 * 60 * 1000,
-                ).toISOString();
+                const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
                 // Delete any existing unused tokens for this user
                 await prisma.passwordResetToken.deleteMany({
@@ -414,20 +389,17 @@ export const auth = (app: Elysia) =>
                 const baseUrl = getBaseUrl();
                 const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
-                console.log(
-                  `Password reset requested for: ${email}. Reset URL: ${resetUrl}`,
-                );
+                console.log(`Password reset requested for: ${email}. Reset URL: ${resetUrl}`);
                 // TODO: Send email with reset URL when email service is implemented
               }
             } catch (error) {
-              console.error("Error processing forgot password request:", error);
+              console.error('Error processing forgot password request:', error);
               // Don't reveal errors to prevent enumeration
             }
 
             // Always return success message
             return {
-              message:
-                "If an account exists with this email, you will receive a reset link.",
+              message: 'If an account exists with this email, you will receive a reset link.',
             };
           },
           {
@@ -435,16 +407,16 @@ export const auth = (app: Elysia) =>
               email: t.String(),
               locale: t.Optional(t.String()),
             }),
-          },
+          }
         )
         .post(
-          "/reset-password",
+          '/reset-password',
           async ({ body, set }) => {
             const { token, password } = body;
 
             if (!token) {
               set.status = 400;
-              return { error: "Invalid reset link" };
+              return { error: 'Invalid reset link' };
             }
 
             // Validate password
@@ -467,7 +439,7 @@ export const auth = (app: Elysia) =>
               if (!resetToken) {
                 set.status = 400;
                 return {
-                  error: "This reset link is invalid or has expired.",
+                  error: 'This reset link is invalid or has expired.',
                 };
               }
 
@@ -484,17 +456,15 @@ export const auth = (app: Elysia) =>
                 data: { used: true },
               });
 
-              console.log(
-                `Password reset successful for user_id: ${resetToken.userId}`,
-              );
+              console.log(`Password reset successful for user_id: ${resetToken.userId}`);
 
               return {
-                message: "Your password has been reset successfully.",
+                message: 'Your password has been reset successfully.',
               };
             } catch (error) {
-              console.error("Error resetting password:", error);
+              console.error('Error resetting password:', error);
               set.status = 500;
-              return { error: "Password reset failed" };
+              return { error: 'Password reset failed' };
             }
           },
           {
@@ -503,9 +473,9 @@ export const auth = (app: Elysia) =>
               password: t.String(),
               locale: t.Optional(t.String()),
             }),
-          },
+          }
         )
-        .get("/me", async ({ user, set }) => {
+        .get('/me', async ({ user, set }) => {
           if (!user) {
             set.status = 401;
             return { user: null };
@@ -524,27 +494,23 @@ export const auth = (app: Elysia) =>
           return { user: mapUser(dbUser) };
         })
         .put(
-          "/me",
+          '/me',
           async ({ user, body, set }) => {
             if (!user) {
               set.status = 401;
-              return { error: "Unauthorized" };
+              return { error: 'Unauthorized' };
             }
 
             const { first_name, last_name, locale } = body;
 
-            if (
-              first_name === undefined &&
-              last_name === undefined &&
-              locale === undefined
-            ) {
+            if (first_name === undefined && last_name === undefined && locale === undefined) {
               set.status = 400;
-              return { error: "At least one field must be provided" };
+              return { error: 'At least one field must be provided' };
             }
 
             if (locale && locale.length > 10) {
               set.status = 400;
-              return { error: "Locale must be 10 characters or less" };
+              return { error: 'Locale must be 10 characters or less' };
             }
 
             try {
@@ -571,9 +537,9 @@ export const auth = (app: Elysia) =>
 
               return { user: mapUser(updatedUser) };
             } catch (error) {
-              console.error("Error updating user profile:", error);
+              console.error('Error updating user profile:', error);
               set.status = 500;
-              return { error: "Failed to update profile" };
+              return { error: 'Failed to update profile' };
             }
           },
           {
@@ -582,14 +548,14 @@ export const auth = (app: Elysia) =>
               last_name: t.Optional(t.Union([t.String(), t.Null()])),
               locale: t.Optional(t.Union([t.String(), t.Null()])),
             }),
-          },
+          }
         )
         .post(
-          "/change-password",
+          '/change-password',
           async ({ user, body, set }) => {
             if (!user) {
               set.status = 401;
-              return { error: "Unauthorized" };
+              return { error: 'Unauthorized' };
             }
 
             const { current_password, new_password } = body;
@@ -607,16 +573,13 @@ export const auth = (app: Elysia) =>
 
               if (!dbUser) {
                 set.status = 401;
-                return { error: "User not found" };
+                return { error: 'User not found' };
               }
 
-              const isCurrentValid = await verifyPassword(
-                current_password,
-                dbUser.passwordHash,
-              );
+              const isCurrentValid = await verifyPassword(current_password, dbUser.passwordHash);
               if (!isCurrentValid) {
                 set.status = 400;
-                return { error: "Current password is incorrect" };
+                return { error: 'Current password is incorrect' };
               }
 
               const passwordHash = await hashPassword(new_password);
@@ -625,11 +588,11 @@ export const auth = (app: Elysia) =>
                 data: { passwordHash },
               });
 
-              return { message: "Password updated successfully" };
+              return { message: 'Password updated successfully' };
             } catch (error) {
-              console.error("Error changing password:", error);
+              console.error('Error changing password:', error);
               set.status = 500;
-              return { error: "Failed to change password" };
+              return { error: 'Failed to change password' };
             }
           },
           {
@@ -637,10 +600,10 @@ export const auth = (app: Elysia) =>
               current_password: t.String(),
               new_password: t.String(),
             }),
-          },
+          }
         )
         .post(
-          "/avatar",
+          '/avatar',
           async ({ user, body, set }) => {
             const logPrefix = `[avatar-upload][auth][${new Date().toISOString()}]`;
             console.log(`${logPrefix} request received`);
@@ -648,54 +611,46 @@ export const auth = (app: Elysia) =>
             if (!user) {
               console.warn(`${logPrefix} unauthorized request (no user in auth context)`);
               set.status = 401;
-              return { error: "Unauthorized" };
+              return { error: 'Unauthorized' };
             }
 
             const { avatar } = body;
             console.log(`${logPrefix} authenticated user id=${user.id}`);
-            console.log(`${logPrefix} body keys=${Object.keys(body || {}).join(",") || "none"}`);
+            console.log(`${logPrefix} body keys=${Object.keys(body || {}).join(',') || 'none'}`);
 
             // Support both Web File (instanceof File) and React Native file objects ({uri, name, type})
             const isWebFile = avatar instanceof File;
-            const isReactNativeFile = avatar && typeof avatar === 'object' && 'uri' in avatar && 'name' in avatar && 'type' in avatar;
+            const isReactNativeFile =
+              avatar && typeof avatar === 'object' && 'uri' in avatar && 'name' in avatar && 'type' in avatar;
 
             if (!avatar || (!isWebFile && !isReactNativeFile)) {
               console.warn(
-                `${logPrefix} invalid payload: avatar missing or not File (type=${typeof avatar}, isWebFile=${isWebFile}, isReactNativeFile=${isReactNativeFile})`,
+                `${logPrefix} invalid payload: avatar missing or not File (type=${typeof avatar}, isWebFile=${isWebFile}, isReactNativeFile=${isReactNativeFile})`
               );
               set.status = 400;
-              return { error: "Avatar file is required" };
+              return { error: 'Avatar file is required' };
             }
 
             console.log(
-              `${logPrefix} avatar file received name="${avatar.name}" type="${avatar.type}" size=${avatar.size || 'unknown'} isWebFile=${isWebFile} isReactNativeFile=${isReactNativeFile}`,
+              `${logPrefix} avatar file received name="${avatar.name}" type="${avatar.type}" size=${avatar.size || 'unknown'} isWebFile=${isWebFile} isReactNativeFile=${isReactNativeFile}`
             );
 
             // Validate file type
-            const allowedTypes = [
-              "image/jpeg",
-              "image/png",
-              "image/gif",
-              "image/webp",
-            ];
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             if (!allowedTypes.includes(avatar.type)) {
-              console.warn(
-                `${logPrefix} invalid avatar mime type="${avatar.type}" allowed=${allowedTypes.join(",")}`,
-              );
+              console.warn(`${logPrefix} invalid avatar mime type="${avatar.type}" allowed=${allowedTypes.join(',')}`);
               set.status = 400;
               return {
-                error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP",
+                error: 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP',
               };
             }
 
             // Validate file size (max 5MB) - only for Web File objects that have size property
             const maxSize = 5 * 1024 * 1024;
             if (avatar.size && avatar.size > maxSize) {
-              console.warn(
-                `${logPrefix} avatar too large size=${avatar.size} max=${maxSize} bytes`,
-              );
+              console.warn(`${logPrefix} avatar too large size=${avatar.size} max=${maxSize} bytes`);
               set.status = 400;
-              return { error: "File too large. Maximum size is 5MB" };
+              return { error: 'File too large. Maximum size is 5MB' };
             }
 
             try {
@@ -704,15 +659,11 @@ export const auth = (app: Elysia) =>
               const dbUser = await prisma.user.findFirst({
                 where: { id: user.id },
               });
-              console.log(
-                `${logPrefix} current db avatarUrl="${dbUser?.avatarUrl || "none"}"`,
-              );
+              console.log(`${logPrefix} current db avatarUrl="${dbUser?.avatarUrl || 'none'}"`);
 
               if (dbUser?.avatarUrl) {
-                const oldFilename = dbUser.avatarUrl.split("/").pop();
-                console.log(
-                  `${logPrefix} parsed old filename="${oldFilename || "none"}" from avatarUrl`,
-                );
+                const oldFilename = dbUser.avatarUrl.split('/').pop();
+                console.log(`${logPrefix} parsed old filename="${oldFilename || 'none'}" from avatarUrl`);
                 if (oldFilename) {
                   console.log(`${logPrefix} deleting old avatar assets for key="${oldFilename}"`);
                   await deleteImageFiles(oldFilename);
@@ -739,14 +690,14 @@ export const auth = (app: Elysia) =>
               console.log(`${logPrefix} request complete`);
 
               return {
-                message: "Avatar uploaded successfully",
+                message: 'Avatar uploaded successfully',
                 avatar_url: avatarUrl,
                 url: avatarUrl,
               };
             } catch (error) {
               console.error(`${logPrefix} failed with error:`, error);
               set.status = 500;
-              return { error: "Failed to upload avatar" };
+              return { error: 'Failed to upload avatar' };
             }
           },
           {
@@ -754,9 +705,9 @@ export const auth = (app: Elysia) =>
               avatar: t.Any(), // Accept any type for React Native compatibility
             }),
             type: 'multipart/form-data',
-          },
+          }
         )
-        .post("/logout", async ({ user, cookie: { auth } }) => {
+        .post('/logout', async ({ user, cookie: { auth } }) => {
           // Revoke all refresh tokens for user on logout
           if (user) {
             try {
@@ -765,10 +716,10 @@ export const auth = (app: Elysia) =>
                 data: { revoked: true },
               });
             } catch (error) {
-              console.error("Error revoking refresh tokens:", error);
+              console.error('Error revoking refresh tokens:', error);
             }
           }
           auth.remove();
-          return { message: "Logged out" };
-        }),
+          return { message: 'Logged out' };
+        })
     );

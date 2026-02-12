@@ -9,13 +9,6 @@ apps/web/dist/
 packages/*/dist/
 .turbo/
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-
 # Database
 *.db
 data/
@@ -23,8 +16,6 @@ data/
 # Environment
 .env
 .env.local
-.venv/
-venv/
 
 # IDE
 .vscode/

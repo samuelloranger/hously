@@ -1,20 +1,20 @@
-import { Elysia, t } from "elysia";
-import { prisma } from "../db";
-import { auth } from "../auth";
-import { formatIso, nowUtc, parseDate, sanitizeInput } from "../utils";
+import { Elysia, t } from 'elysia';
+import { prisma } from '../db';
+import { auth } from '../auth';
+import { formatIso, nowUtc, parseDate, sanitizeInput } from '../utils';
 
 // Valid meal types
-const VALID_MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack"];
+const VALID_MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'];
 
-export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
+export const mealPlansRoutes = new Elysia({ prefix: '/api/meal-plans' })
   .use(auth)
   // GET /api/meal-plans - Get all meal plans
   .get(
-    "/",
+    '/',
     async ({ user, query, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       try {
@@ -27,7 +27,7 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
           const startDate = parseDate(startDateStr);
           if (!startDate) {
             set.status = 400;
-            return { error: "Invalid start_date format" };
+            return { error: 'Invalid start_date format' };
           }
         }
 
@@ -35,7 +35,7 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
           const endDate = parseDate(endDateStr);
           if (!endDate) {
             set.status = 400;
-            return { error: "Invalid end_date format" };
+            return { error: 'Invalid end_date format' };
           }
         }
 
@@ -60,14 +60,14 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
         const mealPlansList = await prisma.mealPlan.findMany({
           where: Object.keys(whereConditions).length > 0 ? whereConditions : undefined,
           include: {
-            Recipe: {
+            recipe: {
               select: {
                 name: true,
                 imagePath: true,
               },
             },
           },
-          orderBy: { plannedDate: "asc" },
+          orderBy: { plannedDate: 'asc' },
         });
 
         // Get all users for username lookups
@@ -85,7 +85,7 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
         }
 
         // Build response
-        const response = mealPlansList.map((mp) => {
+        const response = mealPlansList.map(mp => {
           const addedByUser = mp.addedBy ? usersById.get(mp.addedBy) : null;
 
           return {
@@ -96,18 +96,17 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
             notes: mp.notes,
             added_by: mp.addedBy,
             created_at: formatIso(mp.createdAt),
-            recipe_name: mp.Recipe?.name || null,
-            recipe_image_path: mp.Recipe?.imagePath || null,
-            added_by_username:
-              addedByUser?.firstName || addedByUser?.email || null,
+            recipe_name: mp.recipe?.name || null,
+            recipe_image_path: mp.recipe?.imagePath || null,
+            added_by_username: addedByUser?.firstName || addedByUser?.email || null,
           };
         });
 
         return { meal_plans: response };
       } catch (error) {
-        console.error("Error getting meal plans:", error);
+        console.error('Error getting meal plans:', error);
         set.status = 500;
-        return { error: "Failed to get meal plans" };
+        return { error: 'Failed to get meal plans' };
       }
     },
     {
@@ -120,11 +119,11 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
   // POST /api/meal-plans - Add a new meal plan
   .post(
-    "/",
+    '/',
     async ({ user, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       try {
@@ -133,25 +132,25 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
         // Validate required fields
         if (!recipe_id) {
           set.status = 400;
-          return { error: "recipe_id is required" };
+          return { error: 'recipe_id is required' };
         }
 
         if (!planned_date) {
           set.status = 400;
-          return { error: "planned_date is required" };
+          return { error: 'planned_date is required' };
         }
 
-        const mealTypeTrimmed = (meal_type || "").trim();
+        const mealTypeTrimmed = (meal_type || '').trim();
         if (!mealTypeTrimmed) {
           set.status = 400;
-          return { error: "meal_type is required" };
+          return { error: 'meal_type is required' };
         }
 
         // Validate meal_type
         if (!VALID_MEAL_TYPES.includes(mealTypeTrimmed)) {
           set.status = 400;
           return {
-            error: `meal_type must be one of: ${VALID_MEAL_TYPES.join(", ")}`,
+            error: `meal_type must be one of: ${VALID_MEAL_TYPES.join(', ')}`,
           };
         }
 
@@ -159,7 +158,7 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
         const parsedDate = parseDate(planned_date);
         if (!parsedDate) {
           set.status = 400;
-          return { error: "Invalid planned_date format. Use YYYY-MM-DD" };
+          return { error: 'Invalid planned_date format. Use YYYY-MM-DD' };
         }
 
         // Verify recipe exists
@@ -169,7 +168,7 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
         if (!recipe) {
           set.status = 404;
-          return { error: "Recipe not found" };
+          return { error: 'Recipe not found' };
         }
 
         // Sanitize notes
@@ -192,12 +191,12 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
         return {
           success: true,
           id: newMealPlan.id,
-          message: "Meal plan created successfully",
+          message: 'Meal plan created successfully',
         };
       } catch (error) {
-        console.error("Error creating meal plan:", error);
+        console.error('Error creating meal plan:', error);
         set.status = 500;
-        return { error: "Failed to add meal plan" };
+        return { error: 'Failed to add meal plan' };
       }
     },
     {
@@ -212,17 +211,17 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
   // PUT /api/meal-plans/:id - Update a meal plan
   .put(
-    "/:id",
+    '/:id',
     async ({ user, params, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const mealPlanId = parseInt(params.id, 10);
       if (isNaN(mealPlanId)) {
         set.status = 400;
-        return { error: "Invalid meal plan ID" };
+        return { error: 'Invalid meal plan ID' };
       }
 
       try {
@@ -233,13 +232,13 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
         if (!mealPlan) {
           set.status = 404;
-          return { error: "Meal plan not found" };
+          return { error: 'Meal plan not found' };
         }
 
         // Check ownership or admin
         if (mealPlan.addedBy !== user.id && !user.is_admin) {
           set.status = 403;
-          return { error: "Unauthorized" };
+          return { error: 'Unauthorized' };
         }
 
         const updateData: {
@@ -253,7 +252,7 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
         if (body.recipe_id !== undefined) {
           if (!body.recipe_id) {
             set.status = 400;
-            return { error: "recipe_id cannot be empty" };
+            return { error: 'recipe_id cannot be empty' };
           }
 
           // Verify recipe exists
@@ -263,7 +262,7 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
           if (!recipe) {
             set.status = 404;
-            return { error: "Recipe not found" };
+            return { error: 'Recipe not found' };
           }
 
           updateData.recipeId = body.recipe_id;
@@ -273,13 +272,13 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
         if (body.planned_date !== undefined) {
           if (!body.planned_date) {
             set.status = 400;
-            return { error: "planned_date cannot be empty" };
+            return { error: 'planned_date cannot be empty' };
           }
 
           const parsedDate = parseDate(body.planned_date);
           if (!parsedDate) {
             set.status = 400;
-            return { error: "Invalid planned_date format. Use YYYY-MM-DD" };
+            return { error: 'Invalid planned_date format. Use YYYY-MM-DD' };
           }
 
           updateData.plannedDate = body.planned_date;
@@ -287,16 +286,16 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
         // Update meal_type if provided
         if (body.meal_type !== undefined) {
-          const mealTypeTrimmed = (body.meal_type || "").trim();
+          const mealTypeTrimmed = (body.meal_type || '').trim();
           if (!mealTypeTrimmed) {
             set.status = 400;
-            return { error: "meal_type cannot be empty" };
+            return { error: 'meal_type cannot be empty' };
           }
 
           if (!VALID_MEAL_TYPES.includes(mealTypeTrimmed)) {
             set.status = 400;
             return {
-              error: `meal_type must be one of: ${VALID_MEAL_TYPES.join(", ")}`,
+              error: `meal_type must be one of: ${VALID_MEAL_TYPES.join(', ')}`,
             };
           }
 
@@ -318,11 +317,11 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
         console.log(`User ${user.id} updated meal plan ${mealPlanId}`);
 
-        return { success: true, message: "Meal plan updated successfully" };
+        return { success: true, message: 'Meal plan updated successfully' };
       } catch (error) {
         console.error(`Error updating meal plan ${mealPlanId}:`, error);
         set.status = 500;
-        return { error: "Failed to update meal plan" };
+        return { error: 'Failed to update meal plan' };
       }
     },
     {
@@ -340,17 +339,17 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
   // DELETE /api/meal-plans/:id - Delete a meal plan
   .delete(
-    "/:id",
+    '/:id',
     async ({ user, params, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const mealPlanId = parseInt(params.id, 10);
       if (isNaN(mealPlanId)) {
         set.status = 400;
-        return { error: "Invalid meal plan ID" };
+        return { error: 'Invalid meal plan ID' };
       }
 
       try {
@@ -361,13 +360,13 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
         if (!mealPlan) {
           set.status = 404;
-          return { error: "Meal plan not found" };
+          return { error: 'Meal plan not found' };
         }
 
         // Check ownership or admin
         if (mealPlan.addedBy !== user.id && !user.is_admin) {
           set.status = 403;
-          return { error: "Unauthorized" };
+          return { error: 'Unauthorized' };
         }
 
         // Delete meal plan
@@ -377,11 +376,11 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
         console.log(`User ${user.id} deleted meal plan ${mealPlanId}`);
 
-        return { success: true, message: "Meal plan deleted successfully" };
+        return { success: true, message: 'Meal plan deleted successfully' };
       } catch (error) {
         console.error(`Error deleting meal plan ${mealPlanId}:`, error);
         set.status = 500;
-        return { error: "Failed to delete meal plan" };
+        return { error: 'Failed to delete meal plan' };
       }
     },
     {
@@ -393,17 +392,17 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
   // POST /api/meal-plans/:id/add-to-shopping - Add ingredients to shopping list
   .post(
-    "/:id/add-to-shopping",
+    '/:id/add-to-shopping',
     async ({ user, params, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const mealPlanId = parseInt(params.id, 10);
       if (isNaN(mealPlanId)) {
         set.status = 400;
-        return { error: "Invalid meal plan ID" };
+        return { error: 'Invalid meal plan ID' };
       }
 
       try {
@@ -414,7 +413,7 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
         if (!mealPlan) {
           set.status = 404;
-          return { error: "Meal plan not found" };
+          return { error: 'Meal plan not found' };
         }
 
         // Get recipe and its ingredients
@@ -424,17 +423,17 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
 
         if (!recipe) {
           set.status = 400;
-          return { error: "Recipe not found" };
+          return { error: 'Recipe not found' };
         }
 
         const ingredients = await prisma.recipeIngredient.findMany({
           where: { recipeId: recipe.id },
-          orderBy: { position: "asc" },
+          orderBy: { position: 'asc' },
         });
 
         if (ingredients.length === 0) {
           set.status = 400;
-          return { error: "Recipe has no ingredients" };
+          return { error: 'Recipe has no ingredients' };
         }
 
         // Get max position for shopping items
@@ -448,16 +447,14 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
           },
         });
 
-        let newPosition = (maxPositionResult._max.position ?? -1) + 1;
+        const newPosition = (maxPositionResult._max.position ?? -1) + 1;
 
         // Add each ingredient to shopping list
         let addedCount = 0;
         for (const ingredient of ingredients) {
           // Format ingredient name with quantity and unit
-          const quantityStr = ingredient.quantity
-            ? `${parseFloat(ingredient.quantity)} `
-            : "";
-          const unitStr = ingredient.unit ? `${ingredient.unit} ` : "";
+          const quantityStr = ingredient.quantity ? `${parseFloat(ingredient.quantity.toString())} ` : '';
+          const unitStr = ingredient.unit ? `${ingredient.unit} ` : '';
           const itemName = `${quantityStr}${unitStr}${ingredient.name}`;
 
           await prisma.shoppingItem.create({
@@ -473,9 +470,7 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
           addedCount++;
         }
 
-        console.log(
-          `User ${user.id} added ${addedCount} ingredients from meal plan ${mealPlanId} to shopping list`
-        );
+        console.log(`User ${user.id} added ${addedCount} ingredients from meal plan ${mealPlanId} to shopping list`);
 
         return {
           success: true,
@@ -483,12 +478,9 @@ export const mealPlansRoutes = new Elysia({ prefix: "/api/meal-plans" })
           count: addedCount,
         };
       } catch (error) {
-        console.error(
-          `Error adding meal plan ingredients to shopping:`,
-          error
-        );
+        console.error(`Error adding meal plan ingredients to shopping:`, error);
         set.status = 500;
-        return { error: "Failed to add ingredients to shopping list" };
+        return { error: 'Failed to add ingredients to shopping list' };
       }
     },
     {

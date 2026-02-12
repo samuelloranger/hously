@@ -2,10 +2,10 @@
  * Notification service for creating and sending push notifications
  */
 
-import { prisma } from "../db";
-import { sendWebPushNotification, type PushSubscription } from "../utils/webpush";
-import { sendExpoPushNotifications } from "../utils/expoPush";
-import { nowUtc, getTimezone } from "../utils";
+import { prisma } from '../db';
+import { sendWebPushNotification, type PushSubscription } from '../utils/webpush';
+import { sendExpoPushNotifications } from '../utils/expoPush';
+import { nowUtc, getTimezone } from '../utils';
 
 /**
  * Check if current time is in night period (23h-6h) when notifications should not be sent
@@ -13,9 +13,9 @@ import { nowUtc, getTimezone } from "../utils";
 export function isNightTime(): boolean {
   const tz = getTimezone();
   const now = new Date();
-  const formatter = new Intl.DateTimeFormat("en-US", {
+  const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: tz,
-    hour: "numeric",
+    hour: 'numeric',
     hour12: false,
   });
   const currentHour = parseInt(formatter.format(now));
@@ -71,7 +71,7 @@ export async function createAndQueueNotification(
         let subscriptionInfo: PushSubscription;
         try {
           subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
-        } catch (parseError) {
+        } catch {
           console.error(`Invalid subscription JSON for subscription ${sub.id}, skipping`);
           continue;
         }
@@ -108,7 +108,7 @@ export async function createAndQueueNotification(
 
     if (pushTokens.length > 0) {
       const { successCount, invalidTokens } = await sendExpoPushNotifications(
-        pushTokens.map((t) => t.token),
+        pushTokens.map(t => t.token),
         {
           title,
           body,
@@ -119,11 +119,11 @@ export async function createAndQueueNotification(
             ...metadata,
           },
           channelId:
-            notificationType === "reminder"
-              ? "chore-reminders"
-              : notificationType === "custom_event"
-                ? "calendar-events"
-                : "default",
+            notificationType === 'reminder'
+              ? 'chore-reminders'
+              : notificationType === 'custom_event'
+                ? 'calendar-events'
+                : 'default',
         }
       );
 
