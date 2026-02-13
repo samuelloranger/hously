@@ -3,17 +3,16 @@ FROM oven/bun:1.3.3
 
 WORKDIR /app
 
-# Copy lockfile from root
+# Copy workspace manifests first for better cache use.
 COPY bun.lock ./
-
-# Copy package.json and prisma schema for the api application
-# (prisma schema is needed for the postinstall prisma generate hook)
+COPY package.json ./
 COPY apps/api/package.json ./apps/api/
-COPY apps/api/prisma ./apps/api/prisma
+COPY apps/app/package.json ./apps/app/
+COPY apps/web/package.json ./apps/web/
 
-# Install dependencies
-# We run install inside the apps/api directory.
-RUN cd apps/api && bun install
+# Install workspace dependencies from repo root.
+# Ignore lifecycle scripts; entrypoint handles prisma generate/migrations at runtime.
+RUN bun install --frozen-lockfile --ignore-scripts
 
 # Copy application source code
 COPY apps/api ./apps/api
