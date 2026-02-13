@@ -1,34 +1,35 @@
-import { useTranslation } from "react-i18next";
-import { PageLayout } from "../../components/PageLayout";
-import { StatCard } from "./components/StatCard";
-import { SmartGreeting } from "./components/SmartGreeting";
-import { EmptyState } from "../../components/EmptyState";
-import { getUserFirstName } from "../../lib/utils";
-import { useCurrentUser } from "../auth/hooks";
-import { useDashboardStats, useDashboardActivities } from "./hooks";
-import { useChores } from "../chores/hooks";
-import { ChoreRow } from "../chores/components/ChoreRow";
-import { StatCardSkeleton, ListItemSkeleton } from "../../components/Skeleton";
+import { useTranslation } from 'react-i18next';
+import { PageLayout } from '../../components/PageLayout';
+import { StatCard } from './components/StatCard';
+import { SmartGreeting } from './components/SmartGreeting';
+import { JellyfinLatestShelf } from './components/JellyfinLatestShelf';
+import { EmptyState } from '../../components/EmptyState';
+import { getUserFirstName } from '../../lib/utils';
+import { useCurrentUser } from '../auth/hooks';
+import { useDashboardStats, useDashboardActivities, useDashboardJellyfinLatest } from './hooks';
+import { useChores } from '../chores/hooks';
+import { ChoreRow } from '../chores/components/ChoreRow';
+import { StatCardSkeleton, ListItemSkeleton } from '../../components/Skeleton';
 
 export function Dashboard() {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation('common');
   const { data: user } = useCurrentUser();
 
   const { data: statsData, isLoading: statsLoading } = useDashboardStats();
-  const { data: activitiesData, isLoading: activitiesLoading } =
-    useDashboardActivities();
+  const { data: activitiesData, isLoading: activitiesLoading } = useDashboardActivities();
+  const { data: jellyfinData, isLoading: jellyfinLoading } = useDashboardJellyfinLatest(10);
   const { data: choresData, isLoading: choresLoading } = useChores();
 
   const stats = statsData?.stats;
   const activities = activitiesData?.activities || [];
   const chores = choresData?.chores || [];
   const users = choresData?.users || [];
-  const pendingChores = chores.filter((chore) => !chore.completed);
+  const pendingChores = chores.filter(chore => !chore.completed);
 
   return (
     <PageLayout>
       <SmartGreeting
-        userName={getUserFirstName(user, t("dashboard.user"))}
+        userName={getUserFirstName(user, t('dashboard.user'))}
         pendingChores={stats?.chores_count || 0}
         shoppingItems={stats?.shopping_count || 0}
         eventsToday={stats?.events_today || 0}
@@ -45,7 +46,7 @@ export function Dashboard() {
           <>
             <StatCard
               icon="📆"
-              title={t("dashboard.eventsToday")}
+              title={t('dashboard.eventsToday')}
               value={stats?.events_today || 0}
               color="text-black dark:text-white"
               link="/calendar"
@@ -54,7 +55,7 @@ export function Dashboard() {
             />
             <StatCard
               icon="🛒"
-              title={t("dashboard.shoppingItems")}
+              title={t('dashboard.shoppingItems')}
               value={stats?.shopping_count || 0}
               color="text-blue-600"
               link="/shopping"
@@ -63,7 +64,7 @@ export function Dashboard() {
             />
             <StatCard
               icon="✅"
-              title={t("dashboard.pendingChores")}
+              title={t('dashboard.pendingChores')}
               value={stats?.chores_count || 0}
               color="text-green-600"
               link="/chores"
@@ -76,12 +77,16 @@ export function Dashboard() {
 
       {/** <Analytics /> */}
 
+      <JellyfinLatestShelf
+        enabled={jellyfinData?.enabled ?? false}
+        items={jellyfinData?.items || []}
+        isLoading={jellyfinLoading}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white dark:bg-neutral-800 shadow rounded-lg">
           <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
-            <h3 className="text-lg font-medium text-neutral-900 dark:text-white">
-              {t("dashboard.pendingChores")}
-            </h3>
+            <h3 className="text-lg font-medium text-neutral-900 dark:text-white">{t('dashboard.pendingChores')}</h3>
           </div>
           <div className="divide-y divide-neutral-200 dark:divide-neutral-700">
             {choresLoading ? (
@@ -91,28 +96,17 @@ export function Dashboard() {
                 <ListItemSkeleton />
               </div>
             ) : pendingChores.length > 0 ? (
-              pendingChores
-                .slice(0, 5)
-                .map((chore) => (
-                  <ChoreRow key={chore.id} chore={chore} users={users} />
-                ))
+              pendingChores.slice(0, 5).map(chore => <ChoreRow key={chore.id} chore={chore} users={users} />)
             ) : (
               <div className="p-6">
-                <EmptyState
-                  icon="✅"
-                  title={t("chores.noChores")}
-                  description={t("chores.addFirstChore")}
-                />
+                <EmptyState icon="✅" title={t('chores.noChores')} description={t('chores.addFirstChore')} />
               </div>
             )}
           </div>
           {pendingChores.length > 5 && (
             <div className="px-6 py-4 border-t border-neutral-200 dark:border-neutral-700">
-              <a
-                href="/chores"
-                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                {t("dashboard.view")} ({pendingChores.length})
+              <a href="/chores" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                {t('dashboard.view')} ({pendingChores.length})
               </a>
             </div>
           )}
@@ -120,9 +114,7 @@ export function Dashboard() {
 
         <div className="bg-white dark:bg-neutral-800 shadow rounded-lg">
           <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
-            <h3 className="text-lg font-medium text-neutral-900 dark:text-white">
-              {t("dashboard.recentActivity")}
-            </h3>
+            <h3 className="text-lg font-medium text-neutral-900 dark:text-white">{t('dashboard.recentActivity')}</h3>
           </div>
           <div className="p-6">
             <div className="space-y-4">
@@ -139,26 +131,16 @@ export function Dashboard() {
                       <span className="text-neutral-400">{activity.icon}</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm text-neutral-900 dark:text-white">
-                        {activity.description}
-                      </p>
-                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {activity.time}
-                      </p>
+                      <p className="text-sm text-neutral-900 dark:text-white">{activity.description}</p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">{activity.time}</p>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="text-center py-8">
-                  <span className="text-4xl text-neutral-300 dark:text-neutral-600 mb-4 block">
-                    ⏰
-                  </span>
-                  <p className="text-neutral-500 dark:text-neutral-400">
-                    {t("dashboard.noRecentActivity")}
-                  </p>
-                  <p className="text-sm text-neutral-400 dark:text-neutral-500">
-                    {t("dashboard.startUsing")}
-                  </p>
+                  <span className="text-4xl text-neutral-300 dark:text-neutral-600 mb-4 block">⏰</span>
+                  <p className="text-neutral-500 dark:text-neutral-400">{t('dashboard.noRecentActivity')}</p>
+                  <p className="text-sm text-neutral-400 dark:text-neutral-500">{t('dashboard.startUsing')}</p>
                 </div>
               )}
             </div>

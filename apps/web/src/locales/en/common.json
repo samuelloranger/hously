@@ -82,6 +82,15 @@
     "recentActivity": "Recent Activity",
     "noRecentActivity": "No recent activity",
     "startUsing": "Start using the app to see updates here",
+    "jellyfin": {
+      "kicker": "From your media server",
+      "title": "Fresh from Jellyfin",
+      "subtitle": "New arrivals in your library, fetched live from Jellyfin.",
+      "notConnectedTitle": "Jellyfin feed is not connected yet",
+      "notConnectedDescription": "Open Settings > Plugins and connect Jellyfin to show recent additions here.",
+      "emptyTitle": "No recent additions yet",
+      "emptyDescription": "New movies, shows, or music will appear here once they are added in Jellyfin."
+    },
     "loading": "Loading dashboard...",
     "user": "User",
     "subtexts": {
@@ -590,6 +599,20 @@
         "hidePayload": "Hide Payload",
         "noLogs": "No logs available",
         "refetch": "Refresh"
+      }
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Connect third-party plugins used by the dashboard.",
+      "enabled": "Enabled",
+      "save": "Save Plugin",
+      "saveSuccess": "Plugin saved successfully",
+      "saveError": "Failed to save plugin settings",
+      "jellyfin": {
+        "help": "Connect Jellyfin to fetch the latest items added to your media server.",
+        "websiteUrl": "Jellyfin Website URL",
+        "apiKey": "Jellyfin API Key",
+        "apiKeyPlaceholder": "Paste your Jellyfin API key"
       }
     },
     "dataExport": {

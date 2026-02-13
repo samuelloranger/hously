@@ -4,11 +4,12 @@ import type {
   Chore,
   DashboardStats,
   Activity,
+  JellyfinLatestItem,
   CustomEvent,
   Recipe,
   RecipeIngredient,
   MealPlan,
-} from "./entities";
+} from './entities';
 
 export interface ApiResponse<T> {
   success: true;
@@ -34,6 +35,11 @@ export interface ChoresResponse {
 export interface DashboardStatsResponse {
   stats: DashboardStats;
   activities: Activity[];
+}
+
+export interface DashboardJellyfinLatestResponse {
+  enabled: boolean;
+  items: JellyfinLatestItem[];
 }
 
 export interface UserResponse {
@@ -63,7 +69,7 @@ export interface CreateChoreRequest {
       auth: string;
     };
   };
-  recurrence_type?: "daily_interval" | "weekly" | null;
+  recurrence_type?: 'daily_interval' | 'weekly' | null;
   recurrence_interval_days?: number | null;
   recurrence_weekday?: number | null;
 }
@@ -83,7 +89,7 @@ export interface UpdateChoreRequest {
       auth: string;
     };
   };
-  recurrence_type?: "daily_interval" | "weekly" | null;
+  recurrence_type?: 'daily_interval' | 'weekly' | null;
   recurrence_interval_days?: number | null;
   recurrence_weekday?: number | null;
 }
@@ -108,11 +114,11 @@ export interface CalendarEventBase {
 }
 
 export interface CalendarEventChoreMetadata {
-  type: "chore";
+  type: 'chore';
   metadata: {
     chore_id?: number;
     reminder_datetime?: string;
-    recurrence_type?: "daily_interval" | "weekly" | null;
+    recurrence_type?: 'daily_interval' | 'weekly' | null;
     recurrence_interval_days?: number | null;
     recurrence_weekday?: number | null;
     assigned_to?: number | null;
@@ -120,27 +126,20 @@ export interface CalendarEventChoreMetadata {
 }
 
 export interface CalendarEventCustomEventMetadata {
-  type: "custom_event";
+  type: 'custom_event';
   metadata: {
     custom_event_id?: number;
-    type?: "custom_event";
+    type?: 'custom_event';
     start_datetime?: string;
     end_datetime?: string;
     all_day?: boolean;
     color?: string;
-    recurrence_type?:
-      | "yearly"
-      | "monthly"
-      | "weekly"
-      | "biweekly"
-      | "daily_interval"
-      | null;
+    recurrence_type?: 'yearly' | 'monthly' | 'weekly' | 'biweekly' | 'daily_interval' | null;
     recurrence_interval_days?: number | null;
   };
 }
 
-export type CalendarEvent = CalendarEventBase &
-  (CalendarEventChoreMetadata | CalendarEventCustomEventMetadata);
+export type CalendarEvent = CalendarEventBase & (CalendarEventChoreMetadata | CalendarEventCustomEventMetadata);
 
 export interface CalendarEventsResponse {
   events: CalendarEvent[];
@@ -157,13 +156,7 @@ export interface CreateCustomEventRequest {
   end_datetime: string;
   all_day?: boolean;
   color?: string;
-  recurrence_type?:
-    | "yearly"
-    | "monthly"
-    | "weekly"
-    | "biweekly"
-    | "daily_interval"
-    | null;
+  recurrence_type?: 'yearly' | 'monthly' | 'weekly' | 'biweekly' | 'daily_interval' | null;
   recurrence_interval_days?: number | null;
 }
 
@@ -174,13 +167,7 @@ export interface UpdateCustomEventRequest {
   end_datetime?: string;
   all_day?: boolean;
   color?: string;
-  recurrence_type?:
-    | "yearly"
-    | "monthly"
-    | "weekly"
-    | "biweekly"
-    | "daily_interval"
-    | null;
+  recurrence_type?: 'yearly' | 'monthly' | 'weekly' | 'biweekly' | 'daily_interval' | null;
   recurrence_interval_days?: number | null;
 }
 
@@ -202,7 +189,7 @@ export interface CreateRecipeRequest {
   prep_time_minutes?: number | null;
   cook_time_minutes?: number | null;
   image_path?: string | null;
-  ingredients: Omit<RecipeIngredient, "id">[];
+  ingredients: Omit<RecipeIngredient, 'id'>[];
 }
 
 export interface UpdateRecipeRequest {
@@ -215,7 +202,7 @@ export interface UpdateRecipeRequest {
   cook_time_minutes?: number | null;
   image_path?: string | null;
   remove_image?: boolean;
-  ingredients?: Omit<RecipeIngredient, "id">[];
+  ingredients?: Omit<RecipeIngredient, 'id'>[];
 }
 
 // Meal Plans
@@ -226,13 +213,13 @@ export interface MealPlansResponse {
 export interface CreateMealPlanRequest {
   recipe_id: number;
   planned_date: string;
-  meal_type: "breakfast" | "lunch" | "dinner" | "snack";
+  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   notes?: string | null;
 }
 
 export interface UpdateMealPlanRequest {
   recipe_id?: number;
   planned_date?: string;
-  meal_type?: "breakfast" | "lunch" | "dinner" | "snack";
+  meal_type?: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   notes?: string | null;
 }

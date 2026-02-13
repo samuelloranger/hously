@@ -105,6 +105,17 @@ model ExternalNotificationServiceLog {
   @@map("external_notification_service_logs")
 }
 
+model Plugin {
+  id        Int       @id @default(autoincrement())
+  type      String    @unique(map: "ix_plugins_type")
+  enabled   Boolean   @default(false)
+  config    Json?
+  createdAt DateTime? @map("created_at")
+  updatedAt DateTime? @map("updated_at")
+
+  @@map("plugins")
+}
+
 model CustomEvent {
   id                          Int       @id @default(autoincrement())
   title                       String

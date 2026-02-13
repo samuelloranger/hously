@@ -1,18 +1,20 @@
-import { fetchApi } from "../../lib/api";
-import type { DashboardStatsResponse } from "../../types";
+import { fetchApi } from '../../lib/api';
+import type { DashboardJellyfinLatestResponse, DashboardStatsResponse } from '../../types';
 
 export const dashboardApi = {
   // Elysia endpoint
   async getDashboardStats(): Promise<DashboardStatsResponse> {
-    return fetchApi<DashboardStatsResponse>("/api/dashboard/stats");
+    return fetchApi<DashboardStatsResponse>('/api/dashboard/stats');
   },
 
   // Legacy Python API
   async getDashboardActivities(): Promise<{
-    activities: DashboardStatsResponse["activities"];
+    activities: DashboardStatsResponse['activities'];
   }> {
-    return fetchApi<{ activities: DashboardStatsResponse["activities"] }>(
-      `/api/dashboard/activities`,
-    );
+    return fetchApi<{ activities: DashboardStatsResponse['activities'] }>(`/api/dashboard/activities`);
+  },
+
+  async getDashboardJellyfinLatest(limit: number = 10): Promise<DashboardJellyfinLatestResponse> {
+    return fetchApi<DashboardJellyfinLatestResponse>(`/api/dashboard/jellyfin/latest?limit=${limit}`);
   },
 };

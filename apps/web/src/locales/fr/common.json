@@ -81,6 +81,15 @@
     "recentActivity": "Activité récente",
     "noRecentActivity": "Aucune activité récente",
     "startUsing": "Commencez à utiliser l'application pour voir les mises à jour ici",
+    "jellyfin": {
+      "kicker": "Depuis votre serveur média",
+      "title": "Fraîchement ajouté sur Jellyfin",
+      "subtitle": "Les nouvelles arrivées de votre bibliothèque, récupérées en direct depuis Jellyfin.",
+      "notConnectedTitle": "Le flux Jellyfin n'est pas encore connecté",
+      "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez Jellyfin pour afficher les ajouts récents ici.",
+      "emptyTitle": "Aucun ajout récent",
+      "emptyDescription": "Les nouveaux films, séries ou albums apparaîtront ici après leur ajout dans Jellyfin."
+    },
     "loading": "Chargement de l'accueil...",
     "user": "Utilisateur",
     "subtexts": {
@@ -589,6 +598,20 @@
         "hidePayload": "Masquer le payload",
         "noLogs": "Aucun journal disponible",
         "refetch": "Actualiser"
+      }
+    },
+    "plugins": {
+      "title": "Plugins",
+      "description": "Connectez des plugins tiers utilisés par le tableau de bord.",
+      "enabled": "Activé",
+      "save": "Enregistrer le plugin",
+      "saveSuccess": "Plugin enregistré avec succès",
+      "saveError": "Échec de l'enregistrement du plugin",
+      "jellyfin": {
+        "help": "Connectez Jellyfin pour récupérer les derniers éléments ajoutés sur votre serveur média.",
+        "websiteUrl": "URL du site Jellyfin",
+        "apiKey": "Clé API Jellyfin",
+        "apiKeyPlaceholder": "Collez votre clé API Jellyfin"
       }
     },
     "dataExport": {

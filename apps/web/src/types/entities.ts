@@ -41,7 +41,7 @@ export interface Chore {
   added_by_username?: string;
   assigned_to_username?: string;
   completed_by_username?: string;
-  recurrence_type?: "daily_interval" | "weekly" | null;
+  recurrence_type?: 'daily_interval' | 'weekly' | null;
   recurrence_interval_days?: number | null;
   recurrence_weekday?: number | null;
   recurrence_original_created_at?: string | null;
@@ -64,7 +64,7 @@ export interface Notification {
   user_id: number;
   title: string;
   body: string;
-  type: "reminder" | "external" | "app-update" | "service_monitor";
+  type: 'reminder' | 'external' | 'app-update' | 'service_monitor';
   read: boolean;
   read_at: string | null;
   url: string | null;
@@ -79,15 +79,19 @@ export interface DashboardStats {
   monthly_total: number;
 }
 
+export interface JellyfinLatestItem {
+  id: string;
+  title: string;
+  item_type: string | null;
+  year: number | null;
+  added_at: string | null;
+}
+
 export interface Activity {
   description: string;
   time: string;
   icon: string;
-  type:
-    | "shopping_added"
-    | "shopping_completed"
-    | "chore_added"
-    | "chore_completed";
+  type: 'shopping_added' | 'shopping_completed' | 'chore_added' | 'chore_completed';
 }
 
 export interface CustomEvent {
@@ -98,13 +102,7 @@ export interface CustomEvent {
   end_datetime: string;
   all_day: boolean;
   color: string;
-  recurrence_type?:
-    | "yearly"
-    | "monthly"
-    | "weekly"
-    | "biweekly"
-    | "daily_interval"
-    | null;
+  recurrence_type?: 'yearly' | 'monthly' | 'weekly' | 'biweekly' | 'daily_interval' | null;
   recurrence_interval_days?: number | null;
   recurrence_original_created_at?: string | null;
   created_at: string;
@@ -141,7 +139,7 @@ export interface MealPlan {
   id: number;
   recipe_id: number;
   planned_date: string;
-  meal_type: "breakfast" | "lunch" | "dinner" | "snack";
+  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   notes: string | null;
   added_by: number;
   created_at: string;

@@ -55,4 +55,20 @@ describe('Dashboard API', () => {
         const response = await app.handle(new Request('http://localhost/api/dashboard/stats'))
         expect(response.status).toBe(401)
     })
+
+    it('should return jellyfin latest items shape when authenticated', async () => {
+        const response = await app.handle(new Request('http://localhost/api/dashboard/jellyfin/latest', {
+            headers: { 'Cookie': cookies }
+        }))
+
+        expect(response.status).toBe(200)
+        const json = await response.json() as any
+        expect(typeof json.enabled).toBe('boolean')
+        expect(Array.isArray(json.items)).toBe(true)
+    })
+
+    it('should return 401 for jellyfin latest when unauthenticated', async () => {
+        const response = await app.handle(new Request('http://localhost/api/dashboard/jellyfin/latest'))
+        expect(response.status).toBe(401)
+    })
 })
