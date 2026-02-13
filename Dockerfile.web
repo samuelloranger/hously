@@ -9,6 +9,7 @@ WORKDIR /app
 COPY bun.lock ./
 COPY package.json ./
 COPY apps/api/package.json ./apps/api/
+COPY apps/app/package.json ./apps/app/
 COPY apps/web/package.json ./apps/web/
 
 # Install workspace dependencies from repo root
