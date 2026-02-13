@@ -12,8 +12,10 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/app/package.json ./apps/app/
 COPY apps/web/package.json ./apps/web/
 
-# Install workspace dependencies from repo root
-RUN bun install --frozen-lockfile
+# Install workspace dependencies from repo root.
+# Ignore lifecycle scripts to avoid running server postinstall (Prisma generate)
+# in this web-only image build stage.
+RUN bun install --frozen-lockfile --ignore-scripts
 
 # Copy parent tsconfig.json (required by apps/web/tsconfig.json)
 COPY tsconfig.json ./
