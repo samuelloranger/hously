@@ -19,6 +19,7 @@ import { getNetworkStatus } from './offline/networkStatus';
 import { queueMutation } from './offline/mutationQueue';
 
 export const API_BASE = import.meta.env.PROD ? '' : '';
+const NON_QUEUEABLE_MUTATION_PREFIXES = ['/api/plugins'];
 class ApiError extends Error {
   constructor(
     message: string,
@@ -64,9 +65,14 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
   // Check if we're offline and this is a mutation (POST/PUT/DELETE/PATCH)
   const isMutation = method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
   const isOffline = !getNetworkStatus();
+  const isNonQueueableMutation =
+    Boolean(isMutation) && NON_QUEUEABLE_MUTATION_PREFIXES.some(prefix => endpoint.startsWith(prefix));
 
   // If offline and it's a mutation, queue it instead of making the request
   if (isOffline && isMutation) {
+    if (isNonQueueableMutation) {
+      throw new ApiError('This setting requires a live server connection. Please reconnect and try again.', 0, undefined);
+    }
     try {
       const mutationId = await queueMutation(endpoint, method || 'POST', options?.body?.toString() || null, headersObj);
 
@@ -128,6 +134,13 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     if (error instanceof TypeError && error.message.includes('fetch')) {
       // If it's a mutation and we're offline, try to queue it
       if (isMutation && isOffline) {
+        if (isNonQueueableMutation) {
+          throw new ApiError(
+            'This setting requires a live server connection. Please reconnect and try again.',
+            0,
+            undefined
+          );
+        }
         try {
           const mutationId = await queueMutation(
             endpoint,

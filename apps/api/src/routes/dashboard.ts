@@ -6,6 +6,8 @@ import { formatIso } from '../utils';
 interface JellyfinLatestItem {
   id: string;
   title: string;
+  subtitle: string | null;
+  item_url: string | null;
   item_type: string | null;
   year: number | null;
   added_at: string | null;
@@ -51,19 +53,30 @@ const normalizeJellyfinConfig = (config: unknown): JellyfinPluginConfig | null =
   };
 };
 
-const mapJellyfinApiItem = (rawItem: unknown): JellyfinLatestItem | null => {
+const mapJellyfinApiItem = (rawItem: unknown, jellyfinWebsiteUrl: string): JellyfinLatestItem | null => {
   const item = toRecord(rawItem);
   if (!item) return null;
 
-  const title = toStringOrNull(item.Name) || toStringOrNull(item.SeriesName) || toStringOrNull(item.Album);
+  const itemType = toStringOrNull(item.Type);
+  const itemName = toStringOrNull(item.Name);
+  const seriesName = toStringOrNull(item.SeriesName);
+  const albumName = toStringOrNull(item.Album);
+
+  // For TV episodes, prioritize series name as main title and episode name as subtitle.
+  const isEpisode = itemType?.toLowerCase() === 'episode';
+  const title = isEpisode ? seriesName || itemName || albumName : itemName || seriesName || albumName;
+  const subtitle = isEpisode ? itemName || null : null;
   if (!title) return null;
 
-  const id = toStringOrNull(item.Id) || `${title}-${toStringOrNull(item.Type) || 'item'}`;
-  const itemType = toStringOrNull(item.Type);
+  const sourceItemId = toStringOrNull(item.Id);
+  const id = sourceItemId || `${title}-${itemType || 'item'}`;
   const year = toYearOrNull(item.ProductionYear) || toYearOrNull(item.Year) || null;
   const addedAt = toStringOrNull(item.DateCreated);
+  const itemUrl = sourceItemId
+    ? `${jellyfinWebsiteUrl}/web/index.html#!/details?id=${encodeURIComponent(sourceItemId)}`
+    : null;
 
-  return { id, title, item_type: itemType, year, added_at: addedAt };
+  return { id, title, subtitle, item_url: itemUrl, item_type: itemType, year, added_at: addedAt };
 };
 
 export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
@@ -227,7 +240,9 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
 
         const data = (await response.json()) as Record<string, unknown>;
         const rawItems = Array.isArray(data.Items) ? data.Items : [];
-        const items = rawItems.map(mapJellyfinApiItem).filter((item): item is JellyfinLatestItem => !!item);
+        const items = rawItems
+          .map(item => mapJellyfinApiItem(item, config.website_url))
+          .filter((item): item is JellyfinLatestItem => !!item);
 
         return { enabled: true, items };
       } catch (error) {

@@ -73,27 +73,44 @@ export function JellyfinLatestShelf({ enabled, isLoading, items }: JellyfinLates
           {items.map((item, index) => {
             const typeConfig = getTypeConfig(item.item_type);
             const relativeTime = formatRelativeTime(item.added_at);
+            const cardContent = (
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 text-2xl">{typeConfig.emoji}</div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-white truncate">{item.title}</p>
+                  {item.subtitle ? <p className="mt-1 text-sm text-blue-100/85 truncate">{item.subtitle}</p> : null}
+                  <div className="mt-2 flex items-center gap-2 flex-wrap">
+                    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${typeConfig.badgeClass}`}>
+                      {formatItemType(item.item_type)}
+                    </span>
+                    {item.year ? <span className="text-xs text-blue-100/80">{item.year}</span> : null}
+                  </div>
+                  {relativeTime ? <p className="mt-2 text-xs text-blue-100/75">{relativeTime}</p> : null}
+                </div>
+              </div>
+            );
 
             return (
-              <article
-                key={`${item.id}-${index}`}
-                className="group rounded-2xl border border-white/15 bg-black/25 p-4 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-black/35"
-                style={{ animationDelay: `${index * 60}ms` }}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 text-2xl">{typeConfig.emoji}</div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-white truncate">{item.title}</p>
-                    <div className="mt-2 flex items-center gap-2 flex-wrap">
-                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${typeConfig.badgeClass}`}>
-                        {formatItemType(item.item_type)}
-                      </span>
-                      {item.year ? <span className="text-xs text-blue-100/80">{item.year}</span> : null}
-                    </div>
-                    {relativeTime ? <p className="mt-2 text-xs text-blue-100/75">{relativeTime}</p> : null}
-                  </div>
-                </div>
-              </article>
+              item.item_url ? (
+                <a
+                  key={`${item.id}-${index}`}
+                  href={item.item_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group rounded-2xl border border-white/15 bg-black/25 p-4 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-black/35 focus:outline-none focus:ring-2 focus:ring-cyan-300/70 block"
+                  style={{ animationDelay: `${index * 60}ms` }}
+                >
+                  {cardContent}
+                </a>
+              ) : (
+                <article
+                  key={`${item.id}-${index}`}
+                  className="group rounded-2xl border border-white/15 bg-black/25 p-4 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-black/35"
+                  style={{ animationDelay: `${index * 60}ms` }}
+                >
+                  {cardContent}
+                </article>
+              )
             );
           })}
         </div>

@@ -4,9 +4,7 @@ import type { QueryClient } from '@tanstack/react-query';
 /**
  * Persist TanStack Query cache to IndexedDB
  */
-export async function persistQueryCache(
-  queryClient: QueryClient
-): Promise<void> {
+export async function persistQueryCache(queryClient: QueryClient): Promise<void> {
   const db = await getDB();
   if (!db) {
     console.warn('Cannot persist query cache - IndexedDB unavailable');
@@ -21,15 +19,19 @@ export async function persistQueryCache(
   // Store each query in IndexedDB (except notifications which use infinite queries)
   const tx = db.transaction('queries', 'readwrite');
   const promises = queries
-    .filter((query) => {
+    .filter(query => {
       // Skip notifications queries - they use infinite queries which don't
       // persist/restore well
       if (Array.isArray(query.queryKey) && query.queryKey[0] === 'notifications') {
         return false;
       }
+      // Skip plugin config queries - settings must always reflect server state.
+      if (Array.isArray(query.queryKey) && query.queryKey[0] === 'plugins') {
+        return false;
+      }
       return true;
     })
-    .map((query) => {
+    .map(query => {
       const queryKey = JSON.stringify(query.queryKey);
       return tx.store.put({
         queryKey,
@@ -47,9 +49,7 @@ export async function persistQueryCache(
  * Restore TanStack Query cache from IndexedDB
  * Excludes auth queries which should always be refetched from the server
  */
-export async function restoreQueryCache(
-  queryClient: QueryClient
-): Promise<void> {
+export async function restoreQueryCache(queryClient: QueryClient): Promise<void> {
   const db = await getDB();
   if (!db) {
     console.warn('Cannot restore query cache - IndexedDB unavailable');
@@ -75,6 +75,11 @@ export async function restoreQueryCache(
         continue;
       }
 
+      // Skip plugin config queries - settings must always reflect server state.
+      if (Array.isArray(queryKey) && queryKey[0] === 'plugins') {
+        continue;
+      }
+
       queryClient.setQueryData(queryKey, storedQuery.data);
     } catch (error) {
       console.error('Failed to restore query:', storedQuery.queryKey, error);
@@ -93,4 +98,3 @@ export async function clearQueryCache(): Promise<void> {
   }
   await db.clear('queries');
 }
-

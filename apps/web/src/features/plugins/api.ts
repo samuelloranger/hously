@@ -7,6 +7,13 @@ export interface JellyfinPlugin {
   api_key: string;
 }
 
+export interface JellyfinPluginUpdateResponse {
+  success: boolean;
+  plugin: JellyfinPlugin;
+  queued?: boolean;
+  message?: string;
+}
+
 export const pluginsApi = {
   async getJellyfinPlugin(): Promise<{ plugin: JellyfinPlugin }> {
     return fetchApi<{ plugin: JellyfinPlugin }>('/api/plugins/jellyfin');
@@ -16,8 +23,8 @@ export const pluginsApi = {
     website_url: string;
     api_key: string;
     enabled: boolean;
-  }): Promise<{ success: boolean; plugin: JellyfinPlugin }> {
-    return fetchApi<{ success: boolean; plugin: JellyfinPlugin }>('/api/plugins/jellyfin', {
+  }): Promise<JellyfinPluginUpdateResponse> {
+    return fetchApi<JellyfinPluginUpdateResponse>('/api/plugins/jellyfin', {
       method: 'PUT',
       body: JSON.stringify(data),
     });

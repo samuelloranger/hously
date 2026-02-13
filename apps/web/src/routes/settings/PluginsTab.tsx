@@ -12,6 +12,8 @@ export function PluginsTab() {
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.plugins.jellyfin(),
     queryFn: pluginsApi.getJellyfinPlugin,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   const [websiteUrl, setWebsiteUrl] = useState('');
@@ -27,7 +29,13 @@ export function PluginsTab() {
 
   const saveMutation = useMutation({
     mutationFn: pluginsApi.updateJellyfinPlugin,
-    onSuccess: async () => {
+    onSuccess: async result => {
+      if (result.queued) {
+        toast.error(t('settings.plugins.saveError'));
+        return;
+      }
+
+      queryClient.setQueryData(queryKeys.plugins.jellyfin(), { plugin: result.plugin });
       toast.success(t('settings.plugins.saveSuccess'));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.plugins.jellyfin() }),

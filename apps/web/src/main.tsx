@@ -1,19 +1,19 @@
-import { StrictMode, useEffect } from "react";
-import ReactDOM from "react-dom/client";
-import { RouterProvider } from "@tanstack/react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { router } from "./router";
-import { checkVersionAndReload } from "./lib/version";
-import { registerServiceWorker } from "./lib/serviceWorker";
-import { useAutoInvalidateNotifications } from "./hooks/useAutoInvalidateNotifications";
-import { useIOSImprovements } from "./hooks/useIOSImprovements";
-import { initDB } from "./lib/offline/db";
-import { initNetworkStatus } from "./lib/offline/networkStatus";
-import { restoreQueryCache } from "./lib/offline/queryPersistence";
-import { triggerSync } from "./lib/offline/backgroundSync";
-import { setQueryClient } from "./lib/queryClient";
-import "./lib/i18n";
-import "./index.css";
+import { StrictMode, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';
+import { RouterProvider } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { router } from './router';
+import { checkVersionAndReload } from './lib/version';
+import { registerServiceWorker } from './lib/serviceWorker';
+import { useAutoInvalidateNotifications } from './hooks/useAutoInvalidateNotifications';
+import { useIOSImprovements } from './hooks/useIOSImprovements';
+import { initDB } from './lib/offline/db';
+import { initNetworkStatus } from './lib/offline/networkStatus';
+import { restoreQueryCache } from './lib/offline/queryPersistence';
+import { triggerSync } from './lib/offline/backgroundSync';
+import { setQueryClient } from './lib/queryClient';
+import './lib/i18n';
+import './index.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,9 +45,9 @@ async function initOfflineFeatures() {
 
     // Set up periodic query persistence (save cache every 30 seconds)
     setInterval(() => {
-      import("./lib/offline/queryPersistence").then(({ persistQueryCache }) => {
-        persistQueryCache(queryClient).catch((error) => {
-          console.error("Failed to persist query cache:", error);
+      import('./lib/offline/queryPersistence').then(({ persistQueryCache }) => {
+        persistQueryCache(queryClient).catch(error => {
+          console.error('Failed to persist query cache:', error);
         });
       });
     }, 30000);
@@ -55,9 +55,9 @@ async function initOfflineFeatures() {
     // Try to sync any pending mutations
     await triggerSync();
 
-    console.log("Offline features initialized");
+    console.log('Offline features initialized');
   } catch (error) {
-    console.error("Failed to initialize offline features:", error);
+    console.error('Failed to initialize offline features:', error);
   }
 }
 
@@ -68,12 +68,12 @@ function AppWithServiceWorkerIntegration() {
 
   // Listen for sync messages from service worker
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.addEventListener("message", (event) => {
-        if (event.data && event.data.type === "sync-mutations") {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data && event.data.type === 'sync-mutations') {
           // Trigger sync when service worker requests it
-          triggerSync().catch((error) => {
-            console.error("Failed to sync mutations:", error);
+          triggerSync().catch(error => {
+            console.error('Failed to sync mutations:', error);
           });
         }
       });
@@ -83,13 +83,13 @@ function AppWithServiceWorkerIntegration() {
   // Listen for online events to trigger sync
   useEffect(() => {
     const handleOnline = () => {
-      triggerSync().catch((error) => {
-        console.error("Failed to sync on reconnect:", error);
+      triggerSync().catch(error => {
+        console.error('Failed to sync on reconnect:', error);
       });
     };
 
-    window.addEventListener("online", handleOnline);
-    return () => window.removeEventListener("online", handleOnline);
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
   }, []);
 
   return <RouterProvider router={router} />;
@@ -98,18 +98,15 @@ function AppWithServiceWorkerIntegration() {
 // Register service worker for push notifications
 registerServiceWorker();
 
-// Initialize offline features and then render the app
-Promise.all([initOfflineFeatures(), checkVersionAndReload()]).then(
-  ([_, reloadTriggered]) => {
-    // Only render if version check didn't trigger a reload
-    if (!reloadTriggered) {
-      ReactDOM.createRoot(document.getElementById("root")!).render(
-        <StrictMode>
-          <QueryClientProvider client={queryClient}>
-            <AppWithServiceWorkerIntegration />
-          </QueryClientProvider>
-        </StrictMode>
-      );
-    }
-  }
+// Render immediately to avoid blank screens if optional bootstrapping hangs.
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <AppWithServiceWorkerIntegration />
+    </QueryClientProvider>
+  </StrictMode>
 );
+
+// Run bootstrapping tasks in the background.
+void initOfflineFeatures();
+void checkVersionAndReload();
