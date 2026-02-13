@@ -22,6 +22,10 @@ const routeQueryDefinitions = {
       queryKey: queryKeys.dashboard.jellyfinLatest(),
       queryFn: () => dashboardApi.getDashboardJellyfinLatest(10),
     },
+    {
+      queryKey: queryKeys.dashboard.upcoming(),
+      queryFn: () => dashboardApi.getDashboardUpcoming(8),
+    },
     { queryKey: queryKeys.chores.list(), queryFn: choresApi.getChores },
   ],
 

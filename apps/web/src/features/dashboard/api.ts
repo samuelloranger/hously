@@ -1,5 +1,5 @@
 import { fetchApi } from '../../lib/api';
-import type { DashboardJellyfinLatestResponse, DashboardStatsResponse } from '../../types';
+import type { DashboardJellyfinLatestResponse, DashboardStatsResponse, DashboardUpcomingResponse } from '../../types';
 
 export const dashboardApi = {
   // Elysia endpoint
@@ -16,5 +16,9 @@ export const dashboardApi = {
 
   async getDashboardJellyfinLatest(limit: number = 10): Promise<DashboardJellyfinLatestResponse> {
     return fetchApi<DashboardJellyfinLatestResponse>(`/api/dashboard/jellyfin/latest?limit=${limit}`);
+  },
+
+  async getDashboardUpcoming(limit: number = 8): Promise<DashboardUpcomingResponse> {
+    return fetchApi<DashboardUpcomingResponse>(`/api/dashboard/upcoming?limit=${limit}`);
   },
 };

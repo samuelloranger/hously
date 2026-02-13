@@ -3,10 +3,11 @@ import { PageLayout } from '../../components/PageLayout';
 import { StatCard } from './components/StatCard';
 import { SmartGreeting } from './components/SmartGreeting';
 import { JellyfinLatestShelf } from './components/JellyfinLatestShelf';
+import { UpcomingShelf } from './components/UpcomingShelf';
 import { EmptyState } from '../../components/EmptyState';
 import { getUserFirstName } from '../../lib/utils';
 import { useCurrentUser } from '../auth/hooks';
-import { useDashboardStats, useDashboardActivities, useDashboardJellyfinLatest } from './hooks';
+import { useDashboardStats, useDashboardActivities, useDashboardJellyfinLatest, useDashboardUpcoming } from './hooks';
 import { useChores } from '../chores/hooks';
 import { ChoreRow } from '../chores/components/ChoreRow';
 import { StatCardSkeleton, ListItemSkeleton } from '../../components/Skeleton';
@@ -18,6 +19,12 @@ export function Dashboard() {
   const { data: statsData, isLoading: statsLoading } = useDashboardStats();
   const { data: activitiesData, isLoading: activitiesLoading } = useDashboardActivities();
   const { data: jellyfinData, isLoading: jellyfinLoading } = useDashboardJellyfinLatest(10);
+  const {
+    data: upcomingData,
+    isLoading: upcomingLoading,
+    isFetching: upcomingFetching,
+    refetch: refetchUpcoming,
+  } = useDashboardUpcoming(8);
   const { data: choresData, isLoading: choresLoading } = useChores();
 
   const stats = statsData?.stats;
@@ -81,6 +88,16 @@ export function Dashboard() {
         enabled={jellyfinData?.enabled ?? false}
         items={jellyfinData?.items || []}
         isLoading={jellyfinLoading}
+      />
+
+      <UpcomingShelf
+        enabled={upcomingData?.enabled ?? false}
+        items={upcomingData?.items || []}
+        isLoading={upcomingLoading}
+        isRefreshing={upcomingFetching && !upcomingLoading}
+        onRefresh={() => {
+          void refetchUpcoming();
+        }}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

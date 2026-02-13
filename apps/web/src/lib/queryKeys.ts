@@ -27,6 +27,7 @@ export const queryKeys = {
     stats: () => [...queryKeys.dashboard.all, 'stats'] as const,
     activities: () => [...queryKeys.dashboard.all, 'activities'] as const,
     jellyfinLatest: () => [...queryKeys.dashboard.all, 'jellyfin-latest'] as const,
+    upcoming: () => [...queryKeys.dashboard.all, 'upcoming'] as const,
   },
 
   // Users

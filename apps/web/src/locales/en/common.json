@@ -91,6 +91,19 @@
       "emptyTitle": "No recent additions yet",
       "emptyDescription": "New movies, shows, or music will appear here once they are added in Jellyfin."
     },
+    "upcoming": {
+      "kicker": "From TMDB",
+      "title": "Upcoming Watchlist Radar",
+      "subtitle": "Fresh upcoming movies and TV to plan your next watch night.",
+      "refresh": "Refresh upcoming releases",
+      "movie": "Movie",
+      "tv": "TV",
+      "unknownDate": "TBA",
+      "notConfiguredTitle": "TMDB feed is not configured",
+      "notConfiguredDescription": "Set TMDB_API_KEY in your API environment to enable upcoming releases.",
+      "emptyTitle": "No upcoming releases found",
+      "emptyDescription": "Try again later for the newest release calendar."
+    },
     "loading": "Loading dashboard...",
     "user": "User",
     "subtexts": {

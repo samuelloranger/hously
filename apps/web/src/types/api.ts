@@ -5,6 +5,7 @@ import type {
   DashboardStats,
   Activity,
   JellyfinLatestItem,
+  DashboardUpcomingItem,
   CustomEvent,
   Recipe,
   RecipeIngredient,
@@ -40,6 +41,11 @@ export interface DashboardStatsResponse {
 export interface DashboardJellyfinLatestResponse {
   enabled: boolean;
   items: JellyfinLatestItem[];
+}
+
+export interface DashboardUpcomingResponse {
+  enabled: boolean;
+  items: DashboardUpcomingItem[];
 }
 
 export interface UserResponse {
