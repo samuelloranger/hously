@@ -84,6 +84,8 @@ export interface JellyfinLatestItem {
   title: string;
   subtitle: string | null;
   item_url: string | null;
+  banner_url: string | null;
+  poster_url: string | null;
   item_type: string | null;
   year: number | null;
   added_at: string | null;
@@ -103,6 +105,32 @@ export interface DashboardUpcomingProvider {
   id: number;
   name: string;
   logo_url: string;
+}
+
+export interface QbittorrentDashboardSummary {
+  downloading_count: number;
+  stalled_count: number;
+  seeding_count: number;
+  paused_count: number;
+  completed_count: number;
+  total_count: number;
+  download_speed: number;
+  upload_speed: number;
+  downloaded_bytes: number;
+  uploaded_bytes: number;
+}
+
+export interface QbittorrentDashboardTorrent {
+  id: string;
+  name: string;
+  progress: number;
+  download_speed: number;
+  upload_speed: number;
+  eta_seconds: number | null;
+  size_bytes: number;
+  state: string;
+  seeds: number;
+  peers: number;
 }
 
 export interface Activity {

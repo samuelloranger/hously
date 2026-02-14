@@ -26,6 +26,10 @@ const routeQueryDefinitions = {
       queryKey: queryKeys.dashboard.upcoming(),
       queryFn: () => dashboardApi.getDashboardUpcoming(8),
     },
+    {
+      queryKey: queryKeys.dashboard.qbittorrentStatus(),
+      queryFn: dashboardApi.getDashboardQbittorrentStatus,
+    },
     { queryKey: queryKeys.chores.list(), queryFn: choresApi.getChores },
   ],
 

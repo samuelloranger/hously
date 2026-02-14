@@ -28,6 +28,7 @@ export const queryKeys = {
     activities: () => [...queryKeys.dashboard.all, 'activities'] as const,
     jellyfinLatest: () => [...queryKeys.dashboard.all, 'jellyfin-latest'] as const,
     upcoming: () => [...queryKeys.dashboard.all, 'upcoming'] as const,
+    qbittorrentStatus: () => [...queryKeys.dashboard.all, 'qbittorrent-status'] as const,
   },
 
   // Users
@@ -63,6 +64,9 @@ export const queryKeys = {
   plugins: {
     all: ['plugins'] as const,
     jellyfin: () => [...queryKeys.plugins.all, 'jellyfin'] as const,
+    radarr: () => [...queryKeys.plugins.all, 'radarr'] as const,
+    sonarr: () => [...queryKeys.plugins.all, 'sonarr'] as const,
+    qbittorrent: () => [...queryKeys.plugins.all, 'qbittorrent'] as const,
   },
 
   // Admin

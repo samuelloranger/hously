@@ -4,6 +4,7 @@ import { StatCard } from './components/StatCard';
 import { SmartGreeting } from './components/SmartGreeting';
 import { JellyfinLatestShelf } from './components/JellyfinLatestShelf';
 import { UpcomingShelf } from './components/UpcomingShelf';
+import { QbittorrentLiveCard } from './components/QbittorrentLiveCard';
 import { EmptyState } from '../../components/EmptyState';
 import { getUserFirstName } from '../../lib/utils';
 import { useCurrentUser } from '../auth/hooks';
@@ -18,13 +19,18 @@ export function Dashboard() {
 
   const { data: statsData, isLoading: statsLoading } = useDashboardStats();
   const { data: activitiesData, isLoading: activitiesLoading } = useDashboardActivities();
-  const { data: jellyfinData, isLoading: jellyfinLoading } = useDashboardJellyfinLatest(10);
+  const {
+    data: jellyfinData,
+    isLoading: jellyfinLoading,
+    isFetching: jellyfinFetching,
+    refetch: refetchJellyfin,
+  } = useDashboardJellyfinLatest(10);
   const {
     data: upcomingData,
     isLoading: upcomingLoading,
     isFetching: upcomingFetching,
     refetch: refetchUpcoming,
-  } = useDashboardUpcoming(8);
+  } = useDashboardUpcoming(24);
   const { data: choresData, isLoading: choresLoading } = useChores();
 
   const stats = statsData?.stats;
@@ -84,21 +90,33 @@ export function Dashboard() {
 
       {/** <Analytics /> */}
 
-      <JellyfinLatestShelf
-        enabled={jellyfinData?.enabled ?? false}
-        items={jellyfinData?.items || []}
-        isLoading={jellyfinLoading}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <JellyfinLatestShelf
+          enabled={jellyfinData?.enabled ?? false}
+          items={jellyfinData?.items || []}
+          isLoading={jellyfinLoading}
+          isRefreshing={jellyfinFetching && !jellyfinLoading}
+          onRefresh={() => {
+            void refetchJellyfin();
+          }}
+        />
 
-      <UpcomingShelf
-        enabled={upcomingData?.enabled ?? false}
-        items={upcomingData?.items || []}
-        isLoading={upcomingLoading}
-        isRefreshing={upcomingFetching && !upcomingLoading}
-        onRefresh={() => {
-          void refetchUpcoming();
-        }}
-      />
+        <UpcomingShelf
+          enabled={upcomingData?.enabled ?? false}
+          radarrEnabled={upcomingData?.radarr_enabled ?? false}
+          sonarrEnabled={upcomingData?.sonarr_enabled ?? false}
+          items={upcomingData?.items || []}
+          isLoading={upcomingLoading}
+          isRefreshing={upcomingFetching && !upcomingLoading}
+          onRefresh={() => {
+            void refetchUpcoming();
+          }}
+        />
+      </div>
+
+      <div className="mt-4 mb-8">
+        <QbittorrentLiveCard />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white dark:bg-neutral-800 shadow rounded-lg">

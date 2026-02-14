@@ -3,12 +3,20 @@ import { prisma } from '../db';
 import { auth } from '../auth';
 import { formatIso } from '../utils';
 import { getJsonCache, setJsonCache } from '../services/cache';
+import {
+  buildQbittorrentDisabledSnapshot,
+  fetchQbittorrentSnapshot,
+  normalizeQbittorrentConfig,
+  type QbittorrentDashboardSnapshot,
+} from '../services/qbittorrentService';
 
 export interface JellyfinLatestItem {
   id: string;
   title: string;
   subtitle: string | null;
   item_url: string | null;
+  banner_url: string | null;
+  poster_url: string | null;
   item_type: string | null;
   year: number | null;
   added_at: string | null;
@@ -30,9 +38,29 @@ export interface DashboardUpcomingProvider {
   logo_url: string;
 }
 
+interface ArrPluginStatus {
+  radarr_enabled: boolean;
+  sonarr_enabled: boolean;
+}
+
 interface JellyfinPluginConfig {
   api_key: string;
   website_url: string;
+}
+
+interface RadarrPluginConfig {
+  api_key: string;
+  website_url: string;
+  root_folder_path: string;
+  quality_profile_id: number;
+}
+
+interface SonarrPluginConfig {
+  api_key: string;
+  website_url: string;
+  root_folder_path: string;
+  quality_profile_id: number;
+  language_profile_id: number;
 }
 
 const toRecord = (value: unknown): Record<string, unknown> | null =>
@@ -56,6 +84,11 @@ const toYearOrNull = (value: unknown): number | null => {
   return null;
 };
 
+const toStringArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value.map(entry => toStringOrNull(entry)).filter((entry): entry is string => Boolean(entry));
+};
+
 const normalizeJellyfinConfig = (config: unknown): JellyfinPluginConfig | null => {
   const cfg = toRecord(config);
   if (!cfg) return null;
@@ -70,10 +103,75 @@ const normalizeJellyfinConfig = (config: unknown): JellyfinPluginConfig | null =
   };
 };
 
+const toPositiveIntOrNull = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) return Math.trunc(value);
+  if (typeof value === 'string') {
+    const parsed = parseInt(value, 10);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return null;
+};
+
+const normalizeRadarrConfig = (config: unknown): RadarrPluginConfig | null => {
+  const cfg = toRecord(config);
+  if (!cfg) return null;
+
+  const apiKey = toStringOrNull(cfg.api_key);
+  const websiteUrl = toStringOrNull(cfg.website_url);
+  const rootFolderPath = toStringOrNull(cfg.root_folder_path);
+  const qualityProfileId = toPositiveIntOrNull(cfg.quality_profile_id);
+  if (!apiKey || !websiteUrl || !rootFolderPath || !qualityProfileId) return null;
+
+  return {
+    api_key: apiKey,
+    website_url: websiteUrl.replace(/\/+$/, ''),
+    root_folder_path: rootFolderPath,
+    quality_profile_id: qualityProfileId,
+  };
+};
+
+const normalizeSonarrConfig = (config: unknown): SonarrPluginConfig | null => {
+  const cfg = toRecord(config);
+  if (!cfg) return null;
+
+  const apiKey = toStringOrNull(cfg.api_key);
+  const websiteUrl = toStringOrNull(cfg.website_url);
+  const rootFolderPath = toStringOrNull(cfg.root_folder_path);
+  const qualityProfileId = toPositiveIntOrNull(cfg.quality_profile_id);
+  const languageProfileId = toPositiveIntOrNull(cfg.language_profile_id);
+  if (!apiKey || !websiteUrl || !rootFolderPath || !qualityProfileId || !languageProfileId) return null;
+
+  return {
+    api_key: apiKey,
+    website_url: websiteUrl.replace(/\/+$/, ''),
+    root_folder_path: rootFolderPath,
+    quality_profile_id: qualityProfileId,
+    language_profile_id: languageProfileId,
+  };
+};
+
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w342';
 const TMDB_PROVIDER_LOGO_BASE_URL = 'https://image.tmdb.org/t/p/w92';
 const TMDB_WEB_BASE_URL = 'https://www.themoviedb.org';
 const TMDB_UPCOMING_CACHE_TTL_SECONDS = 24 * 60 * 60;
+
+const getArrPluginStatus = async (): Promise<ArrPluginStatus> => {
+  const [radarrPlugin, sonarrPlugin] = await Promise.all([
+    prisma.plugin.findFirst({
+      where: { type: 'radarr' },
+      select: { enabled: true },
+    }),
+    prisma.plugin.findFirst({
+      where: { type: 'sonarr' },
+      select: { enabled: true },
+    }),
+  ]);
+
+  return {
+    radarr_enabled: Boolean(radarrPlugin?.enabled),
+    sonarr_enabled: Boolean(sonarrPlugin?.enabled),
+  };
+};
 
 const toIsoDate = (date: Date): string => {
   const year = date.getUTCFullYear();
@@ -111,6 +209,25 @@ const parseTmdbNumericId = (itemId: string): number | null => {
   const [, numericPart] = itemId.split('-', 2);
   const numericId = numericPart ? parseInt(numericPart, 10) : Number.NaN;
   return Number.isFinite(numericId) ? numericId : null;
+};
+
+const getQbittorrentSnapshot = async (): Promise<QbittorrentDashboardSnapshot> => {
+  const plugin = await prisma.plugin.findFirst({
+    where: { type: 'qbittorrent' },
+    select: { enabled: true, config: true },
+  });
+
+  if (!plugin?.enabled) {
+    return buildQbittorrentDisabledSnapshot();
+  }
+
+  const config = normalizeQbittorrentConfig(plugin.config);
+  if (!config) {
+    const disabled = buildQbittorrentDisabledSnapshot('qBittorrent plugin is enabled but not configured');
+    return { ...disabled, enabled: true };
+  }
+
+  return fetchQbittorrentSnapshot(config, true);
 };
 
 const fetchTmdbProviders = async (
@@ -180,11 +297,43 @@ const mapJellyfinApiItem = (rawItem: unknown, jellyfinWebsiteUrl: string): Jelly
   const id = sourceItemId || `${title}-${itemType || 'item'}`;
   const year = toYearOrNull(item.ProductionYear) || toYearOrNull(item.Year) || null;
   const addedAt = toStringOrNull(item.DateCreated);
+  const parentBackdropItemId = toStringOrNull(item.ParentBackdropItemId);
+  const backdropTag = toStringArray(item.BackdropImageTags)[0] || null;
+  const parentBackdropTag = toStringArray(item.ParentBackdropImageTags)[0] || null;
+  const imageTags = toRecord(item.ImageTags);
+  const primaryTag = toStringOrNull(imageTags?.Primary);
   const itemUrl = sourceItemId
     ? `${jellyfinWebsiteUrl}/web/index.html#!/details?id=${encodeURIComponent(sourceItemId)}`
     : null;
+  const bannerUrl = sourceItemId
+    ? (() => {
+        const params = new URLSearchParams({ itemId: sourceItemId, preferred: 'backdrop' });
+        if (parentBackdropItemId) params.set('parentBackdropItemId', parentBackdropItemId);
+        if (backdropTag) params.set('backdropTag', backdropTag);
+        if (parentBackdropTag) params.set('parentBackdropTag', parentBackdropTag);
+        if (primaryTag) params.set('primaryTag', primaryTag);
+        return `/api/dashboard/jellyfin/image?${params.toString()}`;
+      })()
+    : null;
+  const posterUrl = sourceItemId
+    ? (() => {
+        const params = new URLSearchParams({ itemId: sourceItemId, preferred: 'primary' });
+        if (primaryTag) params.set('primaryTag', primaryTag);
+        return `/api/dashboard/jellyfin/image?${params.toString()}`;
+      })()
+    : null;
 
-  return { id, title, subtitle, item_url: itemUrl, item_type: itemType, year, added_at: addedAt };
+  return {
+    id,
+    title,
+    subtitle,
+    item_url: itemUrl,
+    banner_url: bannerUrl,
+    poster_url: posterUrl,
+    item_type: itemType,
+    year,
+    added_at: addedAt,
+  };
 };
 
 export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
@@ -309,9 +458,10 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
       }
 
       try {
+        const arrPluginStatus = await getArrPluginStatus();
         const tmdbApiKey = process.env.TMDB_API_KEY?.trim();
         if (!tmdbApiKey) {
-          return { enabled: false, items: [] };
+          return { enabled: false, items: [], ...arrPluginStatus };
         }
 
         const requestedLimit = query.limit ? parseInt(query.limit, 10) : 8;
@@ -322,9 +472,11 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         const oneYearOutIso = toIsoDate(oneYearOut);
         const cacheKey = `dashboard:tmdb:upcoming:v2:limit:${limit}:from:${todayIso}`;
 
-        const cached = await getJsonCache<{ enabled: boolean; items: DashboardUpcomingItem[] }>(cacheKey);
-        if (cached) {
-          return cached;
+        if (process.env.NODE_ENV === 'production') {
+          const cached = await getJsonCache<{ enabled: boolean; items: DashboardUpcomingItem[] }>(cacheKey);
+          if (cached) {
+            return { ...cached, ...arrPluginStatus };
+          }
         }
 
         // Use discover/movie with explicit date bounds to keep only near-future releases.
@@ -363,10 +515,10 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
           return { error: 'TMDB request failed' };
         }
 
-        const [moviesData, tvData] = (await Promise.all([
-          moviesResponse.json(),
-          tvResponse.json(),
-        ])) as [Record<string, unknown>, Record<string, unknown>];
+        const [moviesData, tvData] = (await Promise.all([moviesResponse.json(), tvResponse.json()])) as [
+          Record<string, unknown>,
+          Record<string, unknown>,
+        ];
 
         const movieItems = (Array.isArray(moviesData.results) ? moviesData.results : [])
           .map(item => mapTmdbItem(item, 'movie'))
@@ -405,8 +557,10 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         );
 
         const responsePayload = { enabled: true, items: itemsWithProviders };
-        await setJsonCache(cacheKey, responsePayload, TMDB_UPCOMING_CACHE_TTL_SECONDS);
-        return responsePayload;
+        if (process.env.NODE_ENV === 'production') {
+          await setJsonCache(cacheKey, responsePayload, TMDB_UPCOMING_CACHE_TTL_SECONDS);
+        }
+        return { ...responsePayload, ...arrPluginStatus };
       } catch (error) {
         console.error('Error getting TMDB upcoming items:', error);
         set.status = 500;
@@ -416,6 +570,471 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
     {
       query: t.Object({
         limit: t.Optional(t.String()),
+      }),
+    }
+  )
+  .post(
+    '/upcoming/add',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const { media_type: mediaType, tmdb_id: tmdbId } = body;
+      const searchOnAdd = body.search_on_add ?? true;
+
+      try {
+        if (mediaType === 'movie') {
+          const radarrPlugin = await prisma.plugin.findFirst({
+            where: { type: 'radarr' },
+            select: { enabled: true, config: true },
+          });
+
+          if (!radarrPlugin?.enabled) {
+            set.status = 400;
+            return { error: 'Radarr plugin is not enabled' };
+          }
+
+          const config = normalizeRadarrConfig(radarrPlugin.config);
+          if (!config) {
+            set.status = 400;
+            return { error: 'Radarr plugin is not configured' };
+          }
+
+          const lookupUrl = new URL('/api/v3/movie/lookup/tmdb', config.website_url);
+          lookupUrl.searchParams.set('tmdbId', String(tmdbId));
+          const lookupResponse = await fetch(lookupUrl.toString(), {
+            headers: { 'X-Api-Key': config.api_key, Accept: 'application/json' },
+          });
+
+          if (!lookupResponse.ok) {
+            set.status = 502;
+            return { error: 'Radarr lookup failed' };
+          }
+
+          const lookupData = (await lookupResponse.json()) as Record<string, unknown> | Record<string, unknown>[];
+          const movieRecord = Array.isArray(lookupData) ? lookupData[0] : lookupData;
+          const movie = toRecord(movieRecord);
+          if (!movie) {
+            set.status = 404;
+            return { error: 'Movie not found in Radarr lookup' };
+          }
+
+          const payload = {
+            ...movie,
+            qualityProfileId: config.quality_profile_id,
+            rootFolderPath: config.root_folder_path,
+            monitored: true,
+            addOptions: {
+              searchForMovie: searchOnAdd,
+            },
+          };
+
+          const addUrl = new URL('/api/v3/movie', config.website_url);
+          const addResponse = await fetch(addUrl.toString(), {
+            method: 'POST',
+            headers: {
+              'X-Api-Key': config.api_key,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (addResponse.status === 409) {
+            return {
+              success: true,
+              service: 'radarr',
+              added: false,
+              already_exists: true,
+            };
+          }
+
+          if (!addResponse.ok) {
+            const debugText = await addResponse.text().catch(() => null);
+            console.error('Failed to add movie to Radarr', {
+              status: addResponse.status,
+              tmdbId,
+              payload: (payload as any).title || (payload as any).tmdbId || payload,
+              body: debugText,
+            });
+            set.status = 502;
+            return { error: 'Failed to add movie to Radarr' };
+          }
+
+          return {
+            success: true,
+            service: 'radarr',
+            added: true,
+            already_exists: false,
+          };
+        }
+
+        const sonarrPlugin = await prisma.plugin.findFirst({
+          where: { type: 'sonarr' },
+          select: { enabled: true, config: true },
+        });
+
+        if (!sonarrPlugin?.enabled) {
+          set.status = 400;
+          return { error: 'Sonarr plugin is not enabled' };
+        }
+
+        const config = normalizeSonarrConfig(sonarrPlugin.config);
+        if (!config) {
+          set.status = 400;
+          return { error: 'Sonarr plugin is not configured' };
+        }
+
+        const lookupUrl = new URL('/api/v3/series/lookup', config.website_url);
+        lookupUrl.searchParams.set('term', `tmdb:${tmdbId}`);
+        const lookupResponse = await fetch(lookupUrl.toString(), {
+          headers: { 'X-Api-Key': config.api_key, Accept: 'application/json' },
+        });
+
+        if (!lookupResponse.ok) {
+          set.status = 502;
+          return { error: 'Sonarr lookup failed' };
+        }
+
+        const lookupData = (await lookupResponse.json()) as unknown[];
+        const firstMatch = Array.isArray(lookupData) ? toRecord(lookupData[0]) : null;
+        if (!firstMatch) {
+          set.status = 404;
+          return { error: 'Series not found in Sonarr lookup' };
+        }
+
+        const payload = {
+          ...firstMatch,
+          qualityProfileId: config.quality_profile_id,
+          languageProfileId: config.language_profile_id,
+          rootFolderPath: config.root_folder_path,
+          monitored: true,
+          addOptions: {
+            searchForMissingEpisodes: searchOnAdd,
+          },
+        };
+
+        const addUrl = new URL('/api/v3/series', config.website_url);
+        const addResponse = await fetch(addUrl.toString(), {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': config.api_key,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (addResponse.status === 409) {
+          return {
+            success: true,
+            service: 'sonarr',
+            added: false,
+            already_exists: true,
+          };
+        }
+
+        if (!addResponse.ok) {
+          set.status = 502;
+          return { error: 'Failed to add series to Sonarr' };
+        }
+
+        return {
+          success: true,
+          service: 'sonarr',
+          added: true,
+          already_exists: false,
+        };
+      } catch (error) {
+        console.error('Error adding upcoming item to *arr:', error);
+        set.status = 500;
+        return { error: 'Failed to add upcoming item' };
+      }
+    },
+    {
+      body: t.Object({
+        media_type: t.Union([t.Literal('movie'), t.Literal('tv')]),
+        tmdb_id: t.Numeric(),
+        search_on_add: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  .post(
+    '/upcoming/status',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const { media_type: mediaType, tmdb_id: tmdbId } = body;
+
+      try {
+        if (mediaType === 'movie') {
+          const radarrPlugin = await prisma.plugin.findFirst({
+            where: { type: 'radarr' },
+            select: { enabled: true, config: true },
+          });
+
+          if (!radarrPlugin?.enabled) {
+            return { exists: false, service: 'radarr' };
+          }
+
+          const config = normalizeRadarrConfig(radarrPlugin.config);
+          if (!config) {
+            return { exists: false, service: 'radarr' };
+          }
+
+          const movieUrl = new URL('/api/v3/movie', config.website_url);
+          movieUrl.searchParams.set('tmdbId', String(tmdbId));
+          const movieResponse = await fetch(movieUrl.toString(), {
+            headers: { 'X-Api-Key': config.api_key, Accept: 'application/json' },
+          });
+
+          if (!movieResponse.ok) {
+            set.status = 502;
+            return { error: 'Radarr movie lookup failed' };
+          }
+
+          const movieData = (await movieResponse.json()) as unknown[];
+          return { exists: Array.isArray(movieData) && movieData.length > 0, service: 'radarr' };
+        }
+
+        const sonarrPlugin = await prisma.plugin.findFirst({
+          where: { type: 'sonarr' },
+          select: { enabled: true, config: true },
+        });
+
+        if (!sonarrPlugin?.enabled) {
+          return { exists: false, service: 'sonarr' };
+        }
+
+        const config = normalizeSonarrConfig(sonarrPlugin.config);
+        if (!config) {
+          return { exists: false, service: 'sonarr' };
+        }
+
+        const seriesUrl = new URL('/api/v3/series', config.website_url);
+        seriesUrl.searchParams.set('tmdbId', String(tmdbId));
+        const seriesResponse = await fetch(seriesUrl.toString(), {
+          headers: { 'X-Api-Key': config.api_key, Accept: 'application/json' },
+        });
+
+        if (!seriesResponse.ok) {
+          set.status = 502;
+          return { error: 'Sonarr series lookup failed' };
+        }
+
+        const seriesData = (await seriesResponse.json()) as unknown[];
+        return { exists: Array.isArray(seriesData) && seriesData.length > 0, service: 'sonarr' };
+      } catch (error) {
+        console.error('Error checking upcoming item status', error);
+        set.status = 500;
+        return { error: 'Failed to check upcoming item status' };
+      }
+    },
+    {
+      body: t.Object({
+        media_type: t.Union([t.Literal('movie'), t.Literal('tv')]),
+        tmdb_id: t.Numeric(),
+      }),
+    }
+  )
+  .get('/qbittorrent/status', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      return await getQbittorrentSnapshot();
+    } catch (error) {
+      console.error('Error fetching qBittorrent status:', error);
+      set.status = 500;
+      return { error: 'Failed to get qBittorrent status' };
+    }
+  })
+  .get('/qbittorrent/stream', async ({ user, set, request }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const encoder = new TextEncoder();
+    const signal = request.signal;
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        let closed = false;
+        let pollTimeout: ReturnType<typeof setTimeout> | null = null;
+        let heartbeatTimeout: ReturnType<typeof setTimeout> | null = null;
+        let previousPayload = '';
+
+        const closeStream = () => {
+          if (closed) return;
+          closed = true;
+          if (pollTimeout) clearTimeout(pollTimeout);
+          if (heartbeatTimeout) clearTimeout(heartbeatTimeout);
+          try {
+            controller.close();
+          } catch {
+            // Stream may already be closed by the runtime.
+          }
+        };
+
+        const writeChunk = (chunk: string) => {
+          if (closed) return;
+          try {
+            controller.enqueue(encoder.encode(chunk));
+          } catch {
+            closeStream();
+          }
+        };
+
+        const scheduleHeartbeat = () => {
+          if (closed) return;
+          heartbeatTimeout = setTimeout(() => {
+            writeChunk(': ping\n\n');
+            scheduleHeartbeat();
+          }, 15000);
+        };
+
+        const poll = async () => {
+          if (closed) return;
+
+          try {
+            const snapshot = await getQbittorrentSnapshot();
+            const payload = JSON.stringify(snapshot);
+            if (payload !== previousPayload) {
+              previousPayload = payload;
+              writeChunk(`data: ${payload}\n\n`);
+            }
+
+            const nextMs = Math.max(2000, snapshot.poll_interval_seconds * 1000);
+            pollTimeout = setTimeout(() => {
+              void poll();
+            }, nextMs);
+          } catch (error) {
+            const fallbackPayload = JSON.stringify({
+              ...buildQbittorrentDisabledSnapshot('Failed to refresh qBittorrent status'),
+              enabled: true,
+              connected: false,
+            });
+            writeChunk(`data: ${fallbackPayload}\n\n`);
+            pollTimeout = setTimeout(() => {
+              void poll();
+            }, 5000);
+            console.error('qBittorrent stream poll error:', error);
+          }
+        };
+
+        signal.addEventListener('abort', closeStream);
+
+        writeChunk('retry: 3000\n\n');
+        scheduleHeartbeat();
+        void poll();
+      },
+      cancel() {
+        // No-op: timers are tied to request abort and internal stream closure.
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+      },
+    });
+  })
+  .get(
+    '/jellyfin/image',
+    async ({ user, query, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      try {
+        const jellyfinPlugin = await prisma.plugin.findFirst({
+          where: { type: 'jellyfin' },
+          select: { enabled: true, config: true },
+        });
+
+        if (!jellyfinPlugin?.enabled) {
+          set.status = 404;
+          return { error: 'Jellyfin plugin not enabled' };
+        }
+
+        const config = normalizeJellyfinConfig(jellyfinPlugin.config);
+        if (!config) {
+          set.status = 404;
+          return { error: 'Jellyfin plugin not configured' };
+        }
+
+        const candidates =
+          query.preferred === 'primary'
+            ? ([
+                { itemId: query.itemId, imageType: 'Primary', tag: query.primaryTag },
+                { itemId: query.itemId, imageType: 'Backdrop', tag: query.backdropTag },
+                { itemId: query.parentBackdropItemId, imageType: 'Backdrop', tag: query.parentBackdropTag },
+              ] as const)
+            : ([
+                { itemId: query.itemId, imageType: 'Backdrop', tag: query.backdropTag },
+                { itemId: query.parentBackdropItemId, imageType: 'Backdrop', tag: query.parentBackdropTag },
+                { itemId: query.itemId, imageType: 'Primary', tag: query.primaryTag },
+              ] as const);
+
+        for (const candidate of candidates) {
+          if (!candidate.itemId) continue;
+
+          const imageUrl = new URL(
+            `/Items/${encodeURIComponent(candidate.itemId)}/Images/${candidate.imageType}`,
+            config.website_url
+          );
+          if (candidate.tag) {
+            imageUrl.searchParams.set('tag', candidate.tag);
+          }
+
+          const response = await fetch(imageUrl.toString(), {
+            headers: {
+              'X-Emby-Token': config.api_key,
+              Accept: 'image/*',
+            },
+          });
+
+          const contentType = response.headers.get('content-type');
+          if (!response.ok || !contentType || !contentType.startsWith('image/')) {
+            continue;
+          }
+
+          const imageBuffer = await response.arrayBuffer();
+          return new Response(imageBuffer, {
+            headers: {
+              'Content-Type': contentType,
+              'Cache-Control': 'private, max-age=21600',
+            },
+          });
+        }
+
+        set.status = 404;
+        return { error: 'Image not found' };
+      } catch (error) {
+        console.error('Error proxying Jellyfin image:', error);
+        set.status = 500;
+        return { error: 'Failed to proxy Jellyfin image' };
+      }
+    },
+    {
+      query: t.Object({
+        itemId: t.String(),
+        preferred: t.Optional(t.String()),
+        parentBackdropItemId: t.Optional(t.String()),
+        backdropTag: t.Optional(t.String()),
+        parentBackdropTag: t.Optional(t.String()),
+        primaryTag: t.Optional(t.String()),
       }),
     }
   )
@@ -450,7 +1069,10 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         jellyfinUrl.searchParams.set('SortBy', 'DateCreated');
         jellyfinUrl.searchParams.set('SortOrder', 'Descending');
         jellyfinUrl.searchParams.set('IncludeItemTypes', 'Movie,Series,Episode,MusicAlbum,Audio,Video');
-        jellyfinUrl.searchParams.set('Fields', 'DateCreated,Overview,ProductionYear');
+        jellyfinUrl.searchParams.set(
+          'Fields',
+          'DateCreated,Overview,ProductionYear,BackdropImageTags,ParentBackdropImageTags,ParentBackdropItemId,ImageTags'
+        );
         jellyfinUrl.searchParams.set('Limit', String(limit));
 
         const response = await fetch(jellyfinUrl.toString(), {

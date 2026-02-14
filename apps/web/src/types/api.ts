@@ -6,6 +6,8 @@ import type {
   Activity,
   JellyfinLatestItem,
   DashboardUpcomingItem,
+  QbittorrentDashboardSummary,
+  QbittorrentDashboardTorrent,
   CustomEvent,
   Recipe,
   RecipeIngredient,
@@ -45,7 +47,24 @@ export interface DashboardJellyfinLatestResponse {
 
 export interface DashboardUpcomingResponse {
   enabled: boolean;
+  radarr_enabled: boolean;
+  sonarr_enabled: boolean;
   items: DashboardUpcomingItem[];
+}
+
+export interface DashboardUpcomingStatusResponse {
+  exists: boolean;
+  service: 'radarr' | 'sonarr';
+}
+
+export interface DashboardQbittorrentStatusResponse {
+  enabled: boolean;
+  connected: boolean;
+  updated_at: string;
+  poll_interval_seconds: number;
+  summary: QbittorrentDashboardSummary;
+  torrents: QbittorrentDashboardTorrent[];
+  error?: string;
 }
 
 export interface UserResponse {
