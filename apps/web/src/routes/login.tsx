@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { LoginForm } from "../features/auth/components/LoginForm";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { LoginForm } from '../features/auth/components/LoginForm';
 
 export function Login() {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation('common');
   const [isSignup, setIsSignup] = useState(false);
 
   return (
@@ -11,21 +11,16 @@ export function Login() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto h-12 w-12 flex items-center justify-center">
-            <span className="text-4xl text-primary-600 dark:text-primary-400">
-              🏠
-            </span>
+            <img src="/icon-192.png" alt="Hously" className="h-12 w-12" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
-            {t("login.welcome")}
+            {t('login.welcome')}
           </h2>
           <p className="mt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
-            {isSignup ? t("login.createAccount") : t("login.signIn")}
+            {isSignup ? t('login.createAccount') : t('login.signIn')}
           </p>
         </div>
-        <LoginForm
-          isSignup={isSignup}
-          onToggleMode={() => setIsSignup(!isSignup)}
-        />
+        <LoginForm isSignup={isSignup} onToggleMode={() => setIsSignup(!isSignup)} />
       </div>
     </div>
   );
