@@ -141,11 +141,7 @@ const toProfiles = (value: unknown): ArrProfile[] => {
 
 const clampInteger = (value: unknown, min: number, max: number, fallback: number): number => {
   const parsed =
-    typeof value === 'number'
-      ? Math.trunc(value)
-      : typeof value === 'string'
-        ? parseInt(value, 10)
-        : Number.NaN;
+    typeof value === 'number' ? Math.trunc(value) : typeof value === 'string' ? parseInt(value, 10) : Number.NaN;
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(max, Math.max(min, parsed));
 };
@@ -666,7 +662,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           website_url: config?.website_url || '',
           username: config?.username || '',
           password_set: Boolean(config?.password),
-          poll_interval_seconds: config?.poll_interval_seconds || 2,
+          poll_interval_seconds: config?.poll_interval_seconds || 1,
           max_items: config?.max_items || 8,
         },
       };
@@ -691,7 +687,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
 
       const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
       const username = body.username.trim();
-      const pollIntervalSeconds = clampInteger(body.poll_interval_seconds, 2, 30, 2);
+      const pollIntervalSeconds = clampInteger(body.poll_interval_seconds, 1, 30, 1);
       const maxItems = clampInteger(body.max_items, 3, 30, 8);
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {

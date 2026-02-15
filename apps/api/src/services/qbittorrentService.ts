@@ -65,7 +65,7 @@ interface SessionState {
   sidCookie: string | null;
 }
 
-const DEFAULT_POLL_INTERVAL_SECONDS = 2;
+const DEFAULT_POLL_INTERVAL_SECONDS = 1;
 const DEFAULT_MAX_ITEMS = 8;
 const DOWNLOAD_STATES = new Set(['downloading', 'forcedDL', 'metaDL', 'queuedDL', 'checkingDL']);
 const STALLED_STATES = new Set(['stalledDL', 'stalledUP']);
@@ -238,7 +238,7 @@ export const normalizeQbittorrentConfig = (config: unknown): QbittorrentPluginCo
     website_url: websiteUrl.replace(/\/+$/, ''),
     username,
     password,
-    poll_interval_seconds: clampInt(cfg.poll_interval_seconds, 2, 30, DEFAULT_POLL_INTERVAL_SECONDS),
+    poll_interval_seconds: clampInt(cfg.poll_interval_seconds, 1, 30, DEFAULT_POLL_INTERVAL_SECONDS),
     max_items: clampInt(cfg.max_items, 3, 30, DEFAULT_MAX_ITEMS),
   };
 };
@@ -277,7 +277,9 @@ export const fetchQbittorrentSnapshot = async (
     ]);
 
     const transferInfo = toRecord(transferInfoRaw) as QbittorrentTransferInfo | null;
-    const torrents = Array.isArray(torrentsRaw) ? torrentsRaw.map(toTorrent).filter((row): row is QbittorrentDashboardTorrent => !!row) : [];
+    const torrents = Array.isArray(torrentsRaw)
+      ? torrentsRaw.map(toTorrent).filter((row): row is QbittorrentDashboardTorrent => !!row)
+      : [];
     const summaryCounts = computeSummary(torrents);
     const prioritizedTorrents = [...torrents]
       .sort((a, b) => {

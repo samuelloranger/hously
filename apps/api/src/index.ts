@@ -4,6 +4,7 @@ import { cron } from '@elysiajs/cron';
 
 import { cors } from '@elysiajs/cors';
 import { checkAndSendReminders, checkAndSendAllDayEventNotifications, cleanupOldNotifications } from './jobs';
+import { checkAndNotifyVersionChange } from './services/versionService';
 import { auth } from './auth';
 import { dashboardRoutes } from './routes/dashboard';
 import { usersRoutes } from './routes/users';
@@ -81,6 +82,7 @@ export const app = new Elysia()
   .get('/api/health', () => ({ status: 'ok' }));
 
 if (import.meta.main) {
+  checkAndNotifyVersionChange();
   app.listen(3000);
   console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
 }
