@@ -180,6 +180,13 @@ const toIsoDate = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+const toPositiveInt = (value: string | undefined, fallback: number): number => {
+  if (!value) return fallback;
+  const parsed = parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return parsed;
+};
+
 const mapTmdbItem = (rawItem: unknown, mediaType: 'movie' | 'tv'): DashboardUpcomingItem | null => {
   const item = toRecord(rawItem);
   if (!item) return null;
@@ -209,6 +216,74 @@ const parseTmdbNumericId = (itemId: string): number | null => {
   const [, numericPart] = itemId.split('-', 2);
   const numericId = numericPart ? parseInt(numericPart, 10) : Number.NaN;
   return Number.isFinite(numericId) ? numericId : null;
+};
+
+const fetchTmdbDiscoverPage = async (
+  mediaType: 'movie' | 'tv',
+  page: number,
+  tmdbApiKey: string,
+  todayIso: string,
+  oneYearOutIso: string
+): Promise<{ items: DashboardUpcomingItem[]; totalPages: number } | null> => {
+  const endpoint = mediaType === 'movie' ? 'discover/movie' : 'discover/tv';
+  const url = new URL(`https://api.themoviedb.org/3/${endpoint}`);
+  url.searchParams.set('api_key', tmdbApiKey);
+  url.searchParams.set('language', 'en-US');
+  url.searchParams.set('page', String(page));
+
+  if (mediaType === 'movie') {
+    url.searchParams.set('sort_by', 'primary_release_date.asc');
+    url.searchParams.set('region', 'US');
+    url.searchParams.set('release_date.gte', todayIso);
+    url.searchParams.set('release_date.lte', oneYearOutIso);
+    url.searchParams.set('with_release_type', '4');
+    url.searchParams.set('with_original_language', 'en');
+    url.searchParams.set('include_adult', 'false');
+    url.searchParams.set('include_video', 'false');
+  } else {
+    url.searchParams.set('sort_by', 'first_air_date.asc');
+    url.searchParams.set('first_air_date.gte', todayIso);
+    url.searchParams.set('first_air_date.lte', oneYearOutIso);
+    url.searchParams.set('include_null_first_air_dates', 'false');
+    url.searchParams.set('with_origin_country', 'US');
+    url.searchParams.set('with_original_language', 'en');
+  }
+
+  const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+  if (!response.ok) return null;
+
+  const data = (await response.json()) as Record<string, unknown>;
+  const results = Array.isArray(data.results) ? data.results : [];
+  const totalPagesRaw = typeof data.total_pages === 'number' ? Math.trunc(data.total_pages) : 1;
+  const totalPages = Math.max(1, Number.isFinite(totalPagesRaw) ? totalPagesRaw : 1);
+
+  const items = results
+    .map(item => mapTmdbItem(item, mediaType))
+    .filter((item): item is DashboardUpcomingItem => !!item);
+
+  return { items, totalPages };
+};
+
+const collectTmdbUpcoming = async (
+  mediaType: 'movie' | 'tv',
+  requiredCount: number,
+  tmdbApiKey: string,
+  todayIso: string,
+  oneYearOutIso: string
+): Promise<{ items: DashboardUpcomingItem[]; hasMore: boolean } | null> => {
+  const items: DashboardUpcomingItem[] = [];
+  let page = 1;
+  let totalPages = 1;
+
+  while (items.length < requiredCount && page <= totalPages) {
+    const response = await fetchTmdbDiscoverPage(mediaType, page, tmdbApiKey, todayIso, oneYearOutIso);
+    if (!response) return null;
+    items.push(...response.items);
+    totalPages = response.totalPages;
+    page += 1;
+  }
+
+  return { items, hasMore: page <= totalPages };
 };
 
 const getQbittorrentSnapshot = async (): Promise<QbittorrentDashboardSnapshot> => {
@@ -460,75 +535,46 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
       try {
         const arrPluginStatus = await getArrPluginStatus();
         const tmdbApiKey = process.env.TMDB_API_KEY?.trim();
+        const requestedPage = toPositiveInt(query.page, 1);
+        const page = Math.max(1, Math.min(100, requestedPage));
+        const requestedLimit = toPositiveInt(query.limit, 8);
+        const limit = Math.max(1, Math.min(24, requestedLimit));
+
         if (!tmdbApiKey) {
-          return { enabled: false, items: [], ...arrPluginStatus };
+          return { enabled: false, items: [], page, limit, has_more: false, ...arrPluginStatus };
         }
 
-        const requestedLimit = query.limit ? parseInt(query.limit, 10) : 8;
-        const limit = Math.max(1, Math.min(24, Number.isFinite(requestedLimit) ? requestedLimit : 8));
         const today = new Date();
         const todayIso = toIsoDate(today);
         const oneYearOut = new Date(Date.UTC(today.getUTCFullYear() + 1, today.getUTCMonth(), today.getUTCDate()));
         const oneYearOutIso = toIsoDate(oneYearOut);
-        const cacheKey = `dashboard:tmdb:upcoming:v2:limit:${limit}:from:${todayIso}`;
+        const cacheKey = `dashboard:tmdb:upcoming:v3:page:${page}:limit:${limit}:from:${todayIso}`;
 
         if (process.env.NODE_ENV === 'production') {
-          const cached = await getJsonCache<{ enabled: boolean; items: DashboardUpcomingItem[] }>(cacheKey);
+          const cached = await getJsonCache<{
+            enabled: boolean;
+            items: DashboardUpcomingItem[];
+            page: number;
+            limit: number;
+            has_more: boolean;
+          }>(cacheKey);
           if (cached) {
             return { ...cached, ...arrPluginStatus };
           }
         }
 
-        // Use discover/movie with explicit date bounds to keep only near-future releases.
-        const movieUrl = new URL('https://api.themoviedb.org/3/discover/movie');
-        movieUrl.searchParams.set('api_key', tmdbApiKey);
-        movieUrl.searchParams.set('language', 'en-US');
-        movieUrl.searchParams.set('page', '1');
-        movieUrl.searchParams.set('sort_by', 'primary_release_date.asc');
-        movieUrl.searchParams.set('region', 'US');
-        movieUrl.searchParams.set('release_date.gte', todayIso);
-        movieUrl.searchParams.set('release_date.lte', oneYearOutIso);
-        movieUrl.searchParams.set('with_release_type', '4');
-        movieUrl.searchParams.set('with_original_language', 'en');
-        movieUrl.searchParams.set('include_adult', 'false');
-        movieUrl.searchParams.set('include_video', 'false');
-
-        // Use discover for TV so we can constrain to upcoming/near-future first air dates.
-        const tvUrl = new URL('https://api.themoviedb.org/3/discover/tv');
-        tvUrl.searchParams.set('api_key', tmdbApiKey);
-        tvUrl.searchParams.set('language', 'en-US');
-        tvUrl.searchParams.set('page', '1');
-        tvUrl.searchParams.set('sort_by', 'first_air_date.asc');
-        tvUrl.searchParams.set('first_air_date.gte', todayIso);
-        tvUrl.searchParams.set('first_air_date.lte', oneYearOutIso);
-        tvUrl.searchParams.set('include_null_first_air_dates', 'false');
-        tvUrl.searchParams.set('with_origin_country', 'US');
-        tvUrl.searchParams.set('with_original_language', 'en');
-
-        const [moviesResponse, tvResponse] = await Promise.all([
-          fetch(movieUrl.toString(), { headers: { Accept: 'application/json' } }),
-          fetch(tvUrl.toString(), { headers: { Accept: 'application/json' } }),
+        const requiredCount = page * limit;
+        const [moviesResult, tvResult] = await Promise.all([
+          collectTmdbUpcoming('movie', requiredCount, tmdbApiKey, todayIso, oneYearOutIso),
+          collectTmdbUpcoming('tv', requiredCount, tmdbApiKey, todayIso, oneYearOutIso),
         ]);
 
-        if (!moviesResponse.ok || !tvResponse.ok) {
+        if (!moviesResult || !tvResult) {
           set.status = 502;
           return { error: 'TMDB request failed' };
         }
 
-        const [moviesData, tvData] = (await Promise.all([moviesResponse.json(), tvResponse.json()])) as [
-          Record<string, unknown>,
-          Record<string, unknown>,
-        ];
-
-        const movieItems = (Array.isArray(moviesData.results) ? moviesData.results : [])
-          .map(item => mapTmdbItem(item, 'movie'))
-          .filter((item): item is DashboardUpcomingItem => !!item);
-
-        const tvItems = (Array.isArray(tvData.results) ? tvData.results : [])
-          .map(item => mapTmdbItem(item, 'tv'))
-          .filter((item): item is DashboardUpcomingItem => !!item);
-
-        const merged = [...movieItems, ...tvItems]
+        const merged = [...moviesResult.items.slice(0, requiredCount), ...tvResult.items.slice(0, requiredCount)]
           .filter(item => {
             if (!item.release_date) return false;
             const releaseTime = Date.parse(item.release_date);
@@ -540,11 +586,14 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
             const aTime = a.release_date ? Date.parse(a.release_date) : Number.POSITIVE_INFINITY;
             const bTime = b.release_date ? Date.parse(b.release_date) : Number.POSITIVE_INFINITY;
             return aTime - bTime;
-          })
-          .slice(0, limit);
+          });
+
+        const offset = (page - 1) * limit;
+        const pageSlice = merged.slice(offset, offset + limit);
+        const hasMore = merged.length > offset + limit || moviesResult.hasMore || tvResult.hasMore;
 
         const itemsWithProviders = await Promise.all(
-          merged.map(async item => {
+          pageSlice.map(async item => {
             const tmdbId = parseTmdbNumericId(item.id);
             if (!tmdbId) return item;
 
@@ -556,7 +605,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
           })
         );
 
-        const responsePayload = { enabled: true, items: itemsWithProviders };
+        const responsePayload = { enabled: true, items: itemsWithProviders, page, limit, has_more: hasMore };
         if (process.env.NODE_ENV === 'production') {
           await setJsonCache(cacheKey, responsePayload, TMDB_UPCOMING_CACHE_TTL_SECONDS);
         }
@@ -570,6 +619,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
     {
       query: t.Object({
         limit: t.Optional(t.String()),
+        page: t.Optional(t.String()),
       }),
     }
   )
@@ -1047,8 +1097,11 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
       }
 
       try {
-        const requestedLimit = query.limit ? parseInt(query.limit, 10) : 12;
-        const limit = Math.max(1, Math.min(30, Number.isFinite(requestedLimit) ? requestedLimit : 12));
+        const requestedPage = toPositiveInt(query.page, 1);
+        const page = Math.max(1, Math.min(100, requestedPage));
+        const requestedLimit = toPositiveInt(query.limit, 12);
+        const limit = Math.max(1, Math.min(30, requestedLimit));
+        const startIndex = (page - 1) * limit;
 
         const jellyfinPlugin = await prisma.plugin.findFirst({
           where: { type: 'jellyfin' },
@@ -1056,12 +1109,12 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         });
 
         if (!jellyfinPlugin?.enabled) {
-          return { enabled: false, items: [] };
+          return { enabled: false, items: [], page, limit, has_more: false };
         }
 
         const config = normalizeJellyfinConfig(jellyfinPlugin.config);
         if (!config) {
-          return { enabled: false, items: [] };
+          return { enabled: false, items: [], page, limit, has_more: false };
         }
 
         const jellyfinUrl = new URL('/Items', config.website_url);
@@ -1074,6 +1127,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
           'DateCreated,Overview,ProductionYear,BackdropImageTags,ParentBackdropImageTags,ParentBackdropItemId,ImageTags'
         );
         jellyfinUrl.searchParams.set('Limit', String(limit));
+        jellyfinUrl.searchParams.set('StartIndex', String(startIndex));
 
         const response = await fetch(jellyfinUrl.toString(), {
           headers: {
@@ -1089,11 +1143,15 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
 
         const data = (await response.json()) as Record<string, unknown>;
         const rawItems = Array.isArray(data.Items) ? data.Items : [];
+        const totalRecordCountRaw =
+          typeof data.TotalRecordCount === 'number' ? Math.trunc(data.TotalRecordCount) : Number.NaN;
+        const totalRecordCount = Number.isFinite(totalRecordCountRaw) ? totalRecordCountRaw : null;
         const items = rawItems
           .map(item => mapJellyfinApiItem(item, config.website_url))
           .filter((item): item is JellyfinLatestItem => !!item);
+        const hasMore = totalRecordCount !== null ? startIndex + rawItems.length < totalRecordCount : rawItems.length === limit;
 
-        return { enabled: true, items };
+        return { enabled: true, items, page, limit, has_more: hasMore };
       } catch (error) {
         console.error('Error getting latest Jellyfin items:', error);
         set.status = 500;
@@ -1103,6 +1161,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
     {
       query: t.Object({
         limit: t.Optional(t.String()),
+        page: t.Optional(t.String()),
       }),
     }
   );

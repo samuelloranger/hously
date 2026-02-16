@@ -47,6 +47,9 @@ export interface JellyfinLatestItem {
 export interface DashboardJellyfinLatestResponse {
   enabled: boolean;
   items: JellyfinLatestItem[];
+  page: number;
+  limit: number;
+  has_more: boolean;
 }
 
 export interface DashboardUpcomingItem {
@@ -70,6 +73,9 @@ export interface DashboardUpcomingResponse {
   radarr_enabled: boolean;
   sonarr_enabled: boolean;
   items: DashboardUpcomingItem[];
+  page: number;
+  limit: number;
+  has_more: boolean;
 }
 
 export interface DashboardUpcomingStatusResponse {

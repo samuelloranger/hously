@@ -9,6 +9,9 @@ interface JellyfinLatestShelfProps {
   enabled: boolean;
   isLoading: boolean;
   isRefreshing?: boolean;
+  isLoadingMore?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
   onRefresh?: () => void;
   items: JellyfinLatestItem[];
 }
@@ -43,6 +46,9 @@ export function JellyfinLatestShelf({
   enabled,
   isLoading,
   isRefreshing = false,
+  isLoadingMore = false,
+  hasMore = false,
+  onLoadMore,
   onRefresh,
   items,
 }: JellyfinLatestShelfProps) {
@@ -62,10 +68,15 @@ export function JellyfinLatestShelf({
       event.preventDefault();
       const current = emblaApi.scrollSnapList();
       if (current.length === 0) return;
-      if (delta > 0) emblaApi.scrollNext();
+      if (delta > 0) {
+        if (!emblaApi.canScrollNext() && hasMore && onLoadMore && !isLoadingMore) {
+          onLoadMore();
+        }
+        emblaApi.scrollNext();
+      }
       else emblaApi.scrollPrev();
     },
-    [emblaApi],
+    [emblaApi, hasMore, isLoadingMore, onLoadMore],
   );
 
   useEffect(() => {
@@ -74,6 +85,19 @@ export function JellyfinLatestShelf({
     node.addEventListener('wheel', onWheel, { passive: false });
     return () => node.removeEventListener('wheel', onWheel);
   }, [emblaApi, onWheel]);
+
+  useEffect(() => {
+    if (!emblaApi || !hasMore || !onLoadMore || isLoadingMore) return;
+    const onSelect = () => {
+      if (!emblaApi.canScrollNext()) onLoadMore();
+    };
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
+    };
+  }, [emblaApi, hasMore, isLoadingMore, onLoadMore]);
 
   return (
     <section className="relative mb-8 overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-700/80 bg-gradient-to-br from-[#0f172a] via-[#112240] to-[#1f2937] shadow-xl pb-6">
@@ -178,6 +202,13 @@ export function JellyfinLatestShelf({
                 </article>
               );
             })}
+            {isLoadingMore ? (
+              <div className="w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-white/15 bg-black/25 p-2.5 backdrop-blur-sm">
+                <div className="aspect-[2/3] rounded-xl bg-neutral-900/60 flex items-center justify-center text-blue-100/85 text-xs">
+                  {t('common.loading')}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       )}

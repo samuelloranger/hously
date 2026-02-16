@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import { useFetcher } from './context';
 import { queryKeys, DASHBOARD_ENDPOINTS } from '../index';
 import type {
@@ -29,21 +29,50 @@ export function useDashboardActivities(limit?: number) {
   });
 }
 
-export function useDashboardJellyfinLatest(limit: number = 10) {
+export function useDashboardJellyfinLatest(limit: number = 10, page: number = 1) {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: queryKeys.dashboard.jellyfinLatest(limit),
-    queryFn: () => fetcher<DashboardJellyfinLatestResponse>(`${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}`),
+    queryKey: queryKeys.dashboard.jellyfinLatest(limit, page),
+    queryFn: () =>
+      fetcher<DashboardJellyfinLatestResponse>(`${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`),
   });
 }
 
-export function useDashboardUpcoming(limit: number = 8) {
+export function useDashboardUpcoming(limit: number = 8, page: number = 1) {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: queryKeys.dashboard.upcoming(limit),
-    queryFn: () => fetcher<DashboardUpcomingResponse>(`${DASHBOARD_ENDPOINTS.UPCOMING.LIST}?limit=${limit}`),
+    queryKey: queryKeys.dashboard.upcoming(limit, page),
+    queryFn: () => fetcher<DashboardUpcomingResponse>(`${DASHBOARD_ENDPOINTS.UPCOMING.LIST}?limit=${limit}&page=${page}`),
+  });
+}
+
+export function useDashboardJellyfinLatestInfinite(limit: number = 10) {
+  const fetcher = useFetcher();
+
+  return useInfiniteQuery({
+    queryKey: queryKeys.dashboard.jellyfinLatestInfinite(limit),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => {
+      const page = typeof pageParam === 'number' && Number.isFinite(pageParam) ? pageParam : 1;
+      return fetcher<DashboardJellyfinLatestResponse>(`${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`);
+    },
+    getNextPageParam: lastPage => (lastPage.has_more ? lastPage.page + 1 : undefined),
+  });
+}
+
+export function useDashboardUpcomingInfinite(limit: number = 8) {
+  const fetcher = useFetcher();
+
+  return useInfiniteQuery({
+    queryKey: queryKeys.dashboard.upcomingInfinite(limit),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => {
+      const page = typeof pageParam === 'number' && Number.isFinite(pageParam) ? pageParam : 1;
+      return fetcher<DashboardUpcomingResponse>(`${DASHBOARD_ENDPOINTS.UPCOMING.LIST}?limit=${limit}&page=${page}`);
+    },
+    getNextPageParam: lastPage => (lastPage.has_more ? lastPage.page + 1 : undefined),
   });
 }
 

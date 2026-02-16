@@ -11,10 +11,11 @@ import {
   useCurrentUser,
   useDashboardStats,
   useDashboardActivities,
-  useDashboardJellyfinLatest,
-  useDashboardUpcoming,
+  useDashboardJellyfinLatestInfinite,
+  useDashboardUpcomingInfinite,
   useChores,
 } from '@hously/shared';
+import { useMemo } from 'react';
 import { ChoreRow } from '../chores/components/ChoreRow';
 import { StatCardSkeleton, ListItemSkeleton } from '../../components/Skeleton';
 
@@ -28,14 +29,20 @@ export function Dashboard() {
     data: jellyfinData,
     isLoading: jellyfinLoading,
     isFetching: jellyfinFetching,
+    isFetchingNextPage: jellyfinLoadingMore,
+    hasNextPage: jellyfinHasMore,
+    fetchNextPage: fetchNextJellyfin,
     refetch: refetchJellyfin,
-  } = useDashboardJellyfinLatest(10);
+  } = useDashboardJellyfinLatestInfinite(10);
   const {
     data: upcomingData,
     isLoading: upcomingLoading,
     isFetching: upcomingFetching,
+    isFetchingNextPage: upcomingLoadingMore,
+    hasNextPage: upcomingHasMore,
+    fetchNextPage: fetchNextUpcoming,
     refetch: refetchUpcoming,
-  } = useDashboardUpcoming(24);
+  } = useDashboardUpcomingInfinite(24);
   const { data: choresData, isLoading: choresLoading } = useChores();
 
   const stats = statsData?.stats;
@@ -43,6 +50,12 @@ export function Dashboard() {
   const chores = choresData?.chores || [];
   const users = choresData?.users || [];
   const pendingChores = chores.filter(chore => !chore.completed);
+  const jellyfinItems = useMemo(() => jellyfinData?.pages.flatMap(page => page.items) ?? [], [jellyfinData?.pages]);
+  const upcomingItems = useMemo(() => upcomingData?.pages.flatMap(page => page.items) ?? [], [upcomingData?.pages]);
+  const jellyfinEnabled = jellyfinData?.pages[0]?.enabled ?? false;
+  const upcomingEnabled = upcomingData?.pages[0]?.enabled ?? false;
+  const radarrEnabled = upcomingData?.pages[0]?.radarr_enabled ?? false;
+  const sonarrEnabled = upcomingData?.pages[0]?.sonarr_enabled ?? false;
 
   return (
     <PageLayout>
@@ -97,22 +110,36 @@ export function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <JellyfinLatestShelf
-          enabled={jellyfinData?.enabled ?? false}
-          items={jellyfinData?.items || []}
+          enabled={jellyfinEnabled}
+          items={jellyfinItems}
           isLoading={jellyfinLoading}
           isRefreshing={jellyfinFetching && !jellyfinLoading}
+          isLoadingMore={jellyfinLoadingMore}
+          hasMore={Boolean(jellyfinHasMore)}
+          onLoadMore={() => {
+            if (jellyfinHasMore && !jellyfinLoadingMore) {
+              void fetchNextJellyfin();
+            }
+          }}
           onRefresh={() => {
             void refetchJellyfin();
           }}
         />
 
         <UpcomingShelf
-          enabled={upcomingData?.enabled ?? false}
-          radarrEnabled={upcomingData?.radarr_enabled ?? false}
-          sonarrEnabled={upcomingData?.sonarr_enabled ?? false}
-          items={upcomingData?.items || []}
+          enabled={upcomingEnabled}
+          radarrEnabled={radarrEnabled}
+          sonarrEnabled={sonarrEnabled}
+          items={upcomingItems}
           isLoading={upcomingLoading}
           isRefreshing={upcomingFetching && !upcomingLoading}
+          isLoadingMore={upcomingLoadingMore}
+          hasMore={Boolean(upcomingHasMore)}
+          onLoadMore={() => {
+            if (upcomingHasMore && !upcomingLoadingMore) {
+              void fetchNextUpcoming();
+            }
+          }}
           onRefresh={() => {
             void refetchUpcoming();
           }}

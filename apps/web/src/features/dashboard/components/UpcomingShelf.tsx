@@ -17,6 +17,9 @@ interface UpcomingShelfProps {
   sonarrEnabled: boolean;
   isLoading: boolean;
   isRefreshing?: boolean;
+  isLoadingMore?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
   onRefresh?: () => void;
   items: DashboardUpcomingItem[];
 }
@@ -37,6 +40,9 @@ export function UpcomingShelf({
   sonarrEnabled,
   isLoading,
   isRefreshing = false,
+  isLoadingMore = false,
+  hasMore = false,
+  onLoadMore,
   onRefresh,
   items,
 }: UpcomingShelfProps) {
@@ -57,10 +63,15 @@ export function UpcomingShelf({
       const delta = isHorizontal ? event.deltaX : event.deltaY;
       if (delta === 0) return;
       event.preventDefault();
-      if (delta > 0) emblaApi.scrollNext();
+      if (delta > 0) {
+        if (!emblaApi.canScrollNext() && hasMore && onLoadMore && !isLoadingMore) {
+          onLoadMore();
+        }
+        emblaApi.scrollNext();
+      }
       else emblaApi.scrollPrev();
     },
-    [emblaApi],
+    [emblaApi, hasMore, isLoadingMore, onLoadMore],
   );
 
   useEffect(() => {
@@ -69,6 +80,19 @@ export function UpcomingShelf({
     node.addEventListener('wheel', onWheel, { passive: false });
     return () => node.removeEventListener('wheel', onWheel);
   }, [emblaApi, onWheel]);
+
+  useEffect(() => {
+    if (!emblaApi || !hasMore || !onLoadMore || isLoadingMore) return;
+    const onSelect = () => {
+      if (!emblaApi.canScrollNext()) onLoadMore();
+    };
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
+    };
+  }, [emblaApi, hasMore, isLoadingMore, onLoadMore]);
 
   const addMutation = useAddUpcomingToArr();
   const upcomingStatusMutation = useUpcomingStatus();
@@ -252,6 +276,13 @@ export function UpcomingShelf({
                   </div>
                 </button>
               ))}
+              {isLoadingMore ? (
+                <div className="w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-white/15 bg-black/25 p-2.5 backdrop-blur-sm">
+                  <div className="aspect-[2/3] rounded-xl bg-neutral-900/60 flex items-center justify-center text-amber-100/85 text-xs">
+                    {t('common.loading')}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         )}
