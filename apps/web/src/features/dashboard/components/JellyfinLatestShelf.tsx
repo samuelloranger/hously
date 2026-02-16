@@ -1,6 +1,5 @@
 import { formatDistanceToNow } from 'date-fns';
-import useEmblaCarousel from 'embla-carousel-react';
-import { useCallback, useEffect } from 'react';
+import type { UIEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { JellyfinLatestItem } from '@hously/shared';
 import { ListItemSkeleton } from '../../../components/Skeleton';
@@ -53,51 +52,14 @@ export function JellyfinLatestShelf({
   items,
 }: JellyfinLatestShelfProps) {
   const { t } = useTranslation('common');
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: 'start',
-    containScroll: 'trimSnaps',
-    dragFree: true,
-  });
 
-  const onWheel = useCallback(
-    (event: globalThis.WheelEvent) => {
-      if (!emblaApi) return;
-      const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
-      const delta = isHorizontal ? event.deltaX : event.deltaY;
-      if (delta === 0) return;
-      event.preventDefault();
-      const current = emblaApi.scrollSnapList();
-      if (current.length === 0) return;
-      if (delta > 0) {
-        if (!emblaApi.canScrollNext() && hasMore && onLoadMore && !isLoadingMore) {
-          onLoadMore();
-        }
-        emblaApi.scrollNext();
-      }
-      else emblaApi.scrollPrev();
-    },
-    [emblaApi, hasMore, isLoadingMore, onLoadMore],
-  );
-
-  useEffect(() => {
-    const node = emblaApi?.rootNode();
-    if (!node) return;
-    node.addEventListener('wheel', onWheel, { passive: false });
-    return () => node.removeEventListener('wheel', onWheel);
-  }, [emblaApi, onWheel]);
-
-  useEffect(() => {
-    if (!emblaApi || !hasMore || !onLoadMore || isLoadingMore) return;
-    const onSelect = () => {
-      if (!emblaApi.canScrollNext()) onLoadMore();
-    };
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onSelect);
-    return () => {
-      emblaApi.off('select', onSelect);
-      emblaApi.off('reInit', onSelect);
-    };
-  }, [emblaApi, hasMore, isLoadingMore, onLoadMore]);
+  const handleShelfScroll = (event: UIEvent<HTMLDivElement>) => {
+    if (!hasMore || !onLoadMore || isLoadingMore) return;
+    const { scrollLeft, scrollWidth, clientWidth } = event.currentTarget;
+    if (scrollWidth - scrollLeft - clientWidth < 240) {
+      onLoadMore();
+    }
+  };
 
   return (
     <section className="relative mb-8 overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-700/80 bg-gradient-to-br from-[#0f172a] via-[#112240] to-[#1f2937] shadow-xl pb-6">
@@ -144,7 +106,7 @@ export function JellyfinLatestShelf({
           <p className="text-sm text-blue-100/80 mt-1">{t('dashboard.jellyfin.emptyDescription')}</p>
         </div>
       ) : (
-        <div className="overflow-hidden px-6" ref={emblaRef}>
+        <div className="overflow-x-auto overflow-y-visible px-6 pb-2" onScroll={handleShelfScroll}>
           <div className="flex gap-3">
             {items.map((item, index) => {
               const typeConfig = getTypeConfig(item.item_type);

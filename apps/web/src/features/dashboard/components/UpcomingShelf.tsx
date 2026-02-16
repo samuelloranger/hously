@@ -1,6 +1,5 @@
 import { format } from 'date-fns';
-import useEmblaCarousel from 'embla-carousel-react';
-import { useCallback, useEffect, useState } from 'react';
+import { type UIEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
@@ -50,49 +49,14 @@ export function UpcomingShelf({
   const [searchOnAdd, setSearchOnAdd] = useState(true);
   const [selectedItem, setSelectedItem] = useState<DashboardUpcomingItem | null>(null);
   const [upcomingStatus, setUpcomingStatus] = useState<{ exists: boolean; service: 'radarr' | 'sonarr' } | null>(null);
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: 'start',
-    containScroll: 'trimSnaps',
-    dragFree: true,
-  });
 
-  const onWheel = useCallback(
-    (event: globalThis.WheelEvent) => {
-      if (!emblaApi) return;
-      const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
-      const delta = isHorizontal ? event.deltaX : event.deltaY;
-      if (delta === 0) return;
-      event.preventDefault();
-      if (delta > 0) {
-        if (!emblaApi.canScrollNext() && hasMore && onLoadMore && !isLoadingMore) {
-          onLoadMore();
-        }
-        emblaApi.scrollNext();
-      }
-      else emblaApi.scrollPrev();
-    },
-    [emblaApi, hasMore, isLoadingMore, onLoadMore],
-  );
-
-  useEffect(() => {
-    const node = emblaApi?.rootNode();
-    if (!node) return;
-    node.addEventListener('wheel', onWheel, { passive: false });
-    return () => node.removeEventListener('wheel', onWheel);
-  }, [emblaApi, onWheel]);
-
-  useEffect(() => {
-    if (!emblaApi || !hasMore || !onLoadMore || isLoadingMore) return;
-    const onSelect = () => {
-      if (!emblaApi.canScrollNext()) onLoadMore();
-    };
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onSelect);
-    return () => {
-      emblaApi.off('select', onSelect);
-      emblaApi.off('reInit', onSelect);
-    };
-  }, [emblaApi, hasMore, isLoadingMore, onLoadMore]);
+  const handleShelfScroll = (event: UIEvent<HTMLDivElement>) => {
+    if (!hasMore || !onLoadMore || isLoadingMore) return;
+    const { scrollLeft, scrollWidth, clientWidth } = event.currentTarget;
+    if (scrollWidth - scrollLeft - clientWidth < 240) {
+      onLoadMore();
+    }
+  };
 
   const addMutation = useAddUpcomingToArr();
   const upcomingStatusMutation = useUpcomingStatus();
@@ -213,7 +177,7 @@ export function UpcomingShelf({
             <p className="text-sm text-amber-100/80 mt-1">{t('dashboard.upcoming.emptyDescription')}</p>
           </div>
         ) : (
-          <div className="overflow-hidden px-6 pb-6" ref={emblaRef}>
+          <div className="overflow-x-auto overflow-y-visible px-6 pb-6" onScroll={handleShelfScroll}>
             <div className="flex gap-3">
               {items.map(item => (
                 <button
