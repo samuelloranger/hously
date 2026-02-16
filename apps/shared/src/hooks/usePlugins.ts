@@ -1,0 +1,164 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useFetcher } from './context';
+import { queryKeys, PLUGIN_ENDPOINTS } from '../index';
+import type {
+  ArrProfile,
+  JellyfinPlugin,
+  JellyfinPluginUpdateResponse,
+  QbittorrentPlugin,
+  QbittorrentPluginUpdateResponse,
+  RadarrPlugin,
+  RadarrPluginUpdateResponse,
+  SonarrPlugin,
+  SonarrPluginUpdateResponse,
+} from '../types';
+
+export function useJellyfinPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.jellyfin(),
+    queryFn: () => fetcher<{ plugin: JellyfinPlugin }>(PLUGIN_ENDPOINTS.JELLYFIN),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useRadarrPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.radarr(),
+    queryFn: () => fetcher<{ plugin: RadarrPlugin }>(PLUGIN_ENDPOINTS.RADARR),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useSonarrPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.sonarr(),
+    queryFn: () => fetcher<{ plugin: SonarrPlugin }>(PLUGIN_ENDPOINTS.SONARR),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useQbittorrentPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.qbittorrent(),
+    queryFn: () => fetcher<{ plugin: QbittorrentPlugin }>(PLUGIN_ENDPOINTS.QBITTORRENT),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useUpdateJellyfinPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { website_url: string; api_key: string; enabled: boolean }) =>
+      fetcher<JellyfinPluginUpdateResponse>(PLUGIN_ENDPOINTS.JELLYFIN, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: result => {
+      queryClient.setQueryData(queryKeys.plugins.jellyfin(), { plugin: result.plugin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.jellyfin() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.jellyfinLatest() });
+    },
+  });
+}
+
+export function useUpdateRadarrPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      website_url: string;
+      api_key: string;
+      root_folder_path: string;
+      quality_profile_id: number;
+      enabled: boolean;
+    }) =>
+      fetcher<RadarrPluginUpdateResponse>(PLUGIN_ENDPOINTS.RADARR, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: result => {
+      queryClient.setQueryData(queryKeys.plugins.radarr(), { plugin: result.plugin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.radarr() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() });
+    },
+  });
+}
+
+export function useUpdateSonarrPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      website_url: string;
+      api_key: string;
+      root_folder_path: string;
+      quality_profile_id: number;
+      language_profile_id: number;
+      enabled: boolean;
+    }) =>
+      fetcher<SonarrPluginUpdateResponse>(PLUGIN_ENDPOINTS.SONARR, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: result => {
+      queryClient.setQueryData(queryKeys.plugins.sonarr(), { plugin: result.plugin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.sonarr() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() });
+    },
+  });
+}
+
+export function useUpdateQbittorrentPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      website_url: string;
+      username: string;
+      password?: string;
+      poll_interval_seconds?: number;
+      max_items?: number;
+      enabled: boolean;
+    }) =>
+      fetcher<QbittorrentPluginUpdateResponse>(PLUGIN_ENDPOINTS.QBITTORRENT, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: result => {
+      queryClient.setQueryData(queryKeys.plugins.qbittorrent(), { plugin: result.plugin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.qbittorrent() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.qbittorrentStatus() });
+    },
+  });
+}
+
+export function useRadarrProfiles() {
+  const fetcher = useFetcher();
+  return useMutation({
+    mutationFn: (data: { website_url: string; api_key: string }) =>
+      fetcher<{ quality_profiles: ArrProfile[] }>(PLUGIN_ENDPOINTS.RADARR_PROFILES, {
+        method: 'POST',
+        body: data,
+      }),
+  });
+}
+
+export function useSonarrProfiles() {
+  const fetcher = useFetcher();
+  return useMutation({
+    mutationFn: (data: { website_url: string; api_key: string }) =>
+      fetcher<{ quality_profiles: ArrProfile[]; language_profiles: ArrProfile[] }>(PLUGIN_ENDPOINTS.SONARR_PROFILES, {
+        method: 'POST',
+        body: data,
+      }),
+  });
+}

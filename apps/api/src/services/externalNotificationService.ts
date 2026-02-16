@@ -17,7 +17,7 @@ export function generateServiceToken(): string {
 /**
  * Render a template string by replacing {{variable_name}} with actual values
  */
-export function renderTemplate(template: string, variables: Record<string, string>): string {
+function renderTemplate(template: string, variables: Record<string, string>): string {
   if (!template) return '';
 
   return template.replace(/\{\{(\w+)\}\}/gi, (match, varName) => {
@@ -34,7 +34,7 @@ export function renderTemplate(template: string, variables: Record<string, strin
 /**
  * Get notification template for a specific service, event type, and language
  */
-export async function getTemplateForEvent(serviceName: string, eventType: string, language: string = 'en') {
+async function getTemplateForEvent(serviceName: string, eventType: string, language: string = 'en') {
   // First get the service
   const service = await prisma.externalNotificationService.findFirst({
     where: { serviceName },

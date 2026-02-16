@@ -32,7 +32,7 @@ export interface DashboardUpcomingItem {
   providers: DashboardUpcomingProvider[];
 }
 
-export interface DashboardUpcomingProvider {
+interface DashboardUpcomingProvider {
   id: number;
   name: string;
   logo_url: string;
@@ -912,7 +912,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
               writeChunk(`data: ${payload}\n\n`);
             }
 
-            const nextMs = Math.max(2000, snapshot.poll_interval_seconds * 1000);
+            const nextMs = Math.max(1000, snapshot.poll_interval_seconds * 1000);
             pollTimeout = setTimeout(() => {
               void poll();
             }, nextMs);
@@ -1068,7 +1068,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         jellyfinUrl.searchParams.set('Recursive', 'true');
         jellyfinUrl.searchParams.set('SortBy', 'DateCreated');
         jellyfinUrl.searchParams.set('SortOrder', 'Descending');
-        jellyfinUrl.searchParams.set('IncludeItemTypes', 'Movie,Series,Episode,MusicAlbum,Audio,Video');
+        jellyfinUrl.searchParams.set('IncludeItemTypes', 'Movie,Series,MusicAlbum,Audio,Video');
         jellyfinUrl.searchParams.set(
           'Fields',
           'DateCreated,Overview,ProductionYear,BackdropImageTags,ParentBackdropImageTags,ParentBackdropItemId,ImageTags'

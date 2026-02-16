@@ -1,7 +1,7 @@
-import { authApi } from "../features/auth/api";
-import type { User } from "../types";
-import { getQueryClient, invalidateAuthCache } from "./queryClient";
-import { queryKeys } from "./queryKeys";
+import { AUTH_ENDPOINTS, type User } from '@hously/shared';
+import { getQueryClient, invalidateAuthCache } from './queryClient';
+import { queryKeys } from '@hously/shared';
+import { webFetcher } from './fetcher';
 
 let currentUser: User | null = null;
 let userPromise: Promise<User | null> | null = null;
@@ -17,7 +17,7 @@ export async function getCurrentUser(): Promise<User | null> {
 
   userPromise = (async () => {
     try {
-      const response = await authApi.getCurrentUser();
+      const response = await webFetcher<{ user: User | null }>(AUTH_ENDPOINTS.ME);
       currentUser = response.user;
       return currentUser;
     } catch (error: any) {
@@ -53,5 +53,5 @@ export function setUser(user: User | null): void {
 
 export function logout(): void {
   clearUser();
-  window.location.href = "/logout";
+  window.location.href = '/logout';
 }

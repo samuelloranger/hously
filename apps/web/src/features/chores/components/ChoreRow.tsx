@@ -1,22 +1,33 @@
-import { useState, type CSSProperties } from "react";
-import { useTranslation } from "react-i18next";
-import { CompleteCheckbox } from "../../../components/CompleteCheckbox";
-import { ActionMenu } from "../../../components/ActionMenu";
-import { ImageModal } from "../../../components/ImageModal";
-import { EmotionModal } from "../../../components/EmotionModal";
-import { DragHandle } from "../../../components/SortableList";
-import { SafeHtml } from "../../../components/SafeHtml";
-import { formatUsername, isChoreOverdue } from "../../../lib/utils";
-import { formatDate, formatDateTime } from "../../../lib/date-utils";
-import { useToggleChore, useDeleteChore, useRemoveRecurrence } from "../hooks";
-import { EditChoreModal } from "./EditChoreModal";
-import { choresApi } from "../api";
-import type { Chore, User } from "../../../types";
-import { RecurrenceBadge } from "./RecurrenceBadge";
+import { useState, type CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
+import { CompleteCheckbox } from '../../../components/CompleteCheckbox';
+import { ActionMenu } from '../../../components/ActionMenu';
+import { ImageModal } from '../../../components/ImageModal';
+import { EmotionModal } from '../../../components/EmotionModal';
+import { DragHandle } from '../../../components/SortableList';
+import { SafeHtml } from '../../../components/SafeHtml';
+import {
+  formatUsername,
+  getChoreImageUrl,
+  getChoreThumbnailUrl,
+  isChoreOverdue,
+  formatDate,
+  formatDateTime,
+  queryKeys,
+  useDeleteChore,
+  useRemoveRecurrence,
+  useToggleChore,
+  type Chore,
+  type ChoreUser,
+} from '@hously/shared';
+import { EditChoreModal } from './EditChoreModal';
+import { RecurrenceBadge } from './RecurrenceBadge';
+import { syncBadge } from '../../../lib/serviceWorker';
 
 interface ChoreRowProps {
   chore: Chore;
-  users: User[];
+  users: ChoreUser[];
   dragHandleProps?: {
     setNodeRef: (node: HTMLElement | null) => void;
     attributes: any;
@@ -27,11 +38,12 @@ interface ChoreRowProps {
 }
 
 export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
-  const { t, i18n } = useTranslation("common");
+  const { t, i18n } = useTranslation('common');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isEmotionModalOpen, setIsEmotionModalOpen] = useState(false);
   const [pendingToggle, setPendingToggle] = useState(false);
+  const queryClient = useQueryClient();
 
   const toggleMutation = useToggleChore();
   const deleteMutation = useDeleteChore();
@@ -40,21 +52,19 @@ export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
   const isOverdue = isChoreOverdue(chore.reminder_datetime, chore.completed);
   const hasReminder = !!chore.reminder_datetime && !!chore.reminder_active;
 
-  const handleToggle = () => {
+  const handleToggle = async () => {
     if (!chore.completed) {
       setPendingToggle(true);
       setIsEmotionModalOpen(true);
     } else {
-      toggleMutation.mutate({ id: chore.id });
+      await toggleMutation.mutateAsync({ choreId: chore.id });
+      await handleToggleSuccess();
     }
   };
 
-  const handleEmotionSelect = (emotion: string) => {
-    if (pendingToggle) {
-      toggleMutation.mutate({ id: chore.id, emotion });
-      setPendingToggle(false);
-    }
-    setIsEmotionModalOpen(false);
+  const handleToggleSuccess = async () => {
+    await queryClient.refetchQueries({ queryKey: queryKeys.analytics.all });
+    syncBadge();
   };
 
   const handleEmotionModalClose = () => {
@@ -64,39 +74,38 @@ export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
 
   const actionMenuItems = [
     {
-      label: chore.completed ? t("chores.undo") : t("chores.markDone"),
-      icon: "✓",
-      onClick: handleToggle,
-      variant: "success" as const,
+      label: chore.completed ? t('chores.undo') : t('chores.markDone'),
+      icon: '✓',
+      onClick: () => {
+        void handleToggle();
+      },
+      variant: 'success' as const,
     },
     ...(chore.recurrence_type && !chore.completed
       ? [
           {
-            label: t("chores.removeRecurrence") || "Retirer la récurrence",
-            icon: "🔁",
+            label: t('chores.removeRecurrence') || 'Retirer la récurrence',
+            icon: '🔁',
             onClick: () => {
               if (
-                confirm(
-                  t("chores.removeRecurrenceConfirm") ||
-                    "Voulez-vous retirer la récurrence de cette tâche ?"
-                )
+                confirm(t('chores.removeRecurrenceConfirm') || 'Voulez-vous retirer la récurrence de cette tâche ?')
               ) {
                 removeRecurrenceMutation.mutate(chore.id);
               }
             },
-            variant: "default" as const,
+            variant: 'default' as const,
           },
         ]
       : []),
     {
-      label: t("chores.delete"),
-      icon: "🗑️",
+      label: t('chores.delete'),
+      icon: '🗑️',
       onClick: () => {
-        if (confirm(t("chores.deleteConfirm"))) {
+        if (confirm(t('chores.deleteConfirm'))) {
           deleteMutation.mutate(chore.id);
         }
       },
-      variant: "danger" as const,
+      variant: 'danger' as const,
     },
   ];
 
@@ -109,15 +118,21 @@ export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-2 min-w-0 flex-1">
           {dragHandleProps && !chore.completed && (
-            <DragHandle
-              listeners={dragHandleProps.listeners}
-              attributes={dragHandleProps.attributes}
-            />
+            <DragHandle listeners={dragHandleProps.listeners} attributes={dragHandleProps.attributes} />
           )}
           <div className="flex items-start space-x-4">
             <CompleteCheckbox
               completed={!!chore.completed}
-              onToggle={handleToggle}
+              onToggle={async () => {
+                if (!chore.completed) {
+                  setPendingToggle(true);
+                  setIsEmotionModalOpen(true);
+                  return;
+                }
+
+                await toggleMutation.mutateAsync({ choreId: chore.id });
+                await handleToggleSuccess();
+              }}
               disabled={toggleMutation.isPending}
               className="mt-1"
             />
@@ -127,7 +142,7 @@ export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
               {chore.image_path && (
                 <img
                   key={`thumbnail-${chore.id}-${chore.image_path}`}
-                  src={choresApi.getThumbnailUrl(chore.image_path) || ""}
+                  src={getChoreThumbnailUrl(chore.image_path) || ''}
                   alt={chore.chore_name}
                   onClick={() => setIsImageModalOpen(true)}
                   className="w-8 h-8 object-cover rounded cursor-pointer hover:opacity-80 transition-all duration-300 border border-neutral-300 dark:border-neutral-600 flex-shrink-0"
@@ -137,8 +152,8 @@ export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
                 onClick={() => !chore.completed && setIsEditModalOpen(true)}
                 className={`mb-1 text-sm font-medium ${
                   chore.completed
-                    ? "line-through text-neutral-500 dark:text-neutral-400"
-                    : "text-neutral-900 dark:text-white cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    ? 'line-through text-neutral-500 dark:text-neutral-400'
+                    : 'text-neutral-900 dark:text-white cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors'
                 }`}
               >
                 {chore.chore_name}
@@ -146,7 +161,7 @@ export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
             </div>
             {isOverdue && (
               <span className="px-2 py-1 mr-2 text-xs font-semibold rounded bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                {t("chores.overdue")}
+                {t('chores.overdue')}
               </span>
             )}
             <RecurrenceBadge
@@ -163,46 +178,34 @@ export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
             )}
             <div className="flex flex-col items-start space-y-2 mt-2">
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                {t("chores.addedBy")}{" "}
-                {formatUsername(chore.added_by_username, t("chores.unknown"))}{" "}
-                {t("chores.on")} {formatDate(chore.created_at, i18n.language)}
+                {t('chores.addedBy')} {formatUsername(chore.added_by_username, t('chores.unknown'))} {t('chores.on')}{' '}
+                {formatDate(chore.created_at, i18n.language)}
               </p>
               {chore.assigned_to_username ? (
                 <p className="text-sm text-blue-600 dark:text-blue-400">
                   <span className="mr-1">👤</span>
-                  {t("chores.assignedTo")}{" "}
-                  {formatUsername(
-                    chore.assigned_to_username,
-                    t("chores.unknown")
-                  )}
+                  {t('chores.assignedTo')} {formatUsername(chore.assigned_to_username, t('chores.unknown'))}
                 </p>
               ) : (
                 <p className="text-sm text-neutral-500 dark:text-neutral-400">
                   <span className="mr-1">👥</span>
-                  {t("chores.anyoneCanDoIt")}
+                  {t('chores.anyoneCanDoIt')}
                 </p>
               )}
               {!!chore.completed && !!chore.completed_by_username && (
                 <p className="text-sm text-green-600 dark:text-green-400">
                   <span className="mr-1">✅</span>
-                  {t("chores.completedBy")}{" "}
-                  {formatUsername(
-                    chore.completed_by_username,
-                    t("chores.unknown")
-                  )}
+                  {t('chores.completedBy')} {formatUsername(chore.completed_by_username, t('chores.unknown'))}
                 </p>
               )}
               {hasReminder && (
                 <p
                   className={`text-sm ${
-                    isOverdue
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-neutral-500 dark:text-neutral-400"
+                    isOverdue ? 'text-red-600 dark:text-red-400' : 'text-neutral-500 dark:text-neutral-400'
                   }`}
                 >
                   <span className="mr-1">⏰</span>
-                  {t("chores.reminder")}{" "}
-                  {formatDateTime(chore.reminder_datetime, i18n.language)}
+                  {t('chores.reminder')} {formatDateTime(chore.reminder_datetime, i18n.language)}
                 </p>
               )}
             </div>
@@ -212,24 +215,29 @@ export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
           <ActionMenu items={actionMenuItems} />
         </div>
       </div>
-      <EditChoreModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        chore={chore}
-        users={users}
-      />
+      <EditChoreModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} chore={chore} users={users} />
       {chore.image_path && (
         <ImageModal
           isOpen={isImageModalOpen}
           onClose={() => setIsImageModalOpen(false)}
-          imageUrl={choresApi.getImageUrl(chore.image_path) || ""}
+          imageUrl={getChoreImageUrl(chore.image_path) || ''}
           alt={chore.chore_name}
         />
       )}
       <EmotionModal
         isOpen={isEmotionModalOpen}
         onClose={handleEmotionModalClose}
-        onSelectEmotion={handleEmotionSelect}
+        onSelectEmotion={async emotion => {
+          if (!pendingToggle) {
+            setIsEmotionModalOpen(false);
+            return;
+          }
+
+          await toggleMutation.mutateAsync({ choreId: chore.id, emotion });
+          setPendingToggle(false);
+          setIsEmotionModalOpen(false);
+          await handleToggleSuccess();
+        }}
         taskName={chore.chore_name}
       />
     </div>

@@ -1,0 +1,114 @@
+export interface DashboardStats {
+  events_today: number;
+  shopping_count: number;
+  chores_count: number;
+  monthly_total: number;
+}
+
+export interface Activity {
+  id?: number;
+  user_id?: number;
+  task_type?: 'chore' | 'shopping' | 'recipe';
+  task_id?: number;
+  completed_at?: string;
+  task_name?: string;
+  emotion?: string | null;
+  username?: string;
+  description?: string;
+  time?: string;
+  icon?: string;
+  type?: 'shopping_added' | 'shopping_completed' | 'chore_added' | 'chore_completed';
+}
+
+export interface ActivityDisplay {
+  description: string;
+  time: string;
+  icon: string;
+  type: 'shopping_added' | 'shopping_completed' | 'chore_added' | 'chore_completed';
+}
+
+export interface DashboardStatsResponse {
+  stats: DashboardStats;
+  activities: Activity[];
+}
+
+export interface JellyfinLatestItem {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  item_url: string | null;
+  banner_url: string | null;
+  poster_url: string | null;
+  item_type: string | null;
+  year: number | null;
+  added_at: string | null;
+}
+
+export interface DashboardJellyfinLatestResponse {
+  enabled: boolean;
+  items: JellyfinLatestItem[];
+}
+
+export interface DashboardUpcomingItem {
+  id: string;
+  title: string;
+  media_type: 'movie' | 'tv';
+  release_date: string | null;
+  poster_url: string | null;
+  tmdb_url: string;
+  providers: DashboardUpcomingProvider[];
+}
+
+export interface DashboardUpcomingProvider {
+  id: number;
+  name: string;
+  logo_url: string;
+}
+
+export interface DashboardUpcomingResponse {
+  enabled: boolean;
+  radarr_enabled: boolean;
+  sonarr_enabled: boolean;
+  items: DashboardUpcomingItem[];
+}
+
+export interface DashboardUpcomingStatusResponse {
+  exists: boolean;
+  service: 'radarr' | 'sonarr';
+}
+
+export interface QbittorrentDashboardSummary {
+  downloading_count: number;
+  stalled_count: number;
+  seeding_count: number;
+  paused_count: number;
+  completed_count: number;
+  total_count: number;
+  download_speed: number;
+  upload_speed: number;
+  downloaded_bytes: number;
+  uploaded_bytes: number;
+}
+
+export interface QbittorrentDashboardTorrent {
+  id: string;
+  name: string;
+  progress: number;
+  download_speed: number;
+  upload_speed: number;
+  eta_seconds: number | null;
+  size_bytes: number;
+  state: string;
+  seeds: number;
+  peers: number;
+}
+
+export interface DashboardQbittorrentStatusResponse {
+  enabled: boolean;
+  connected: boolean;
+  updated_at: string;
+  poll_interval_seconds: number;
+  summary: QbittorrentDashboardSummary;
+  torrents: QbittorrentDashboardTorrent[];
+  error?: string;
+}

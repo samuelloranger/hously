@@ -1,21 +1,30 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { mockDashboardStats, mockActivity } from "../../test-utils/mocks";
-import * as apiModule from "../../lib/api";
-import { Dashboard } from "@/features/dashboard";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { mockDashboardStats, mockActivity } from '../../test-utils/mocks';
+import { Dashboard } from '@/features/dashboard';
 
-vi.mock("../../lib/api");
-vi.mock("../../hooks/useAuth", () => ({
+const mockGetDashboardStats = vi.fn();
+const mockGetDashboardActivities = vi.fn();
+
+vi.mock('../../lib/api', () => ({
+  api: {
+    getDashboardStats: () => mockGetDashboardStats(),
+    getDashboardActivities: (limit?: number) => mockGetDashboardActivities(limit),
+    getDashboardJellyfinLatest: vi.fn(),
+  },
+}));
+
+vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({
     user: {
       id: 1,
-      email: "test@test.com",
+      email: 'test@test.com',
       first_name: null,
       last_name: null,
       is_admin: false,
       last_login: null,
-      created_at: "2024-01-01",
+      created_at: '2024-01-01',
       last_activity: null,
     },
     isLoading: false,
@@ -23,7 +32,7 @@ vi.mock("../../hooks/useAuth", () => ({
   }),
 }));
 
-describe("Dashboard", () => {
+describe('Dashboard', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -35,12 +44,12 @@ describe("Dashboard", () => {
     vi.clearAllMocks();
   });
 
-  it("renders dashboard stats", async () => {
-    vi.mocked(apiModule.api.getDashboardStats).mockResolvedValue({
+  it('renders dashboard stats', async () => {
+    mockGetDashboardStats.mockResolvedValue({
       stats: mockDashboardStats,
       activities: [mockActivity],
     });
-    vi.mocked(apiModule.api.getDashboardActivities).mockResolvedValue({
+    mockGetDashboardActivities.mockResolvedValue({
       activities: [mockActivity],
     });
 
@@ -52,19 +61,13 @@ describe("Dashboard", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/shopping items/i)).toBeInTheDocument();
-      expect(
-        screen.getByText(String(mockDashboardStats.shopping_count))
-      ).toBeInTheDocument();
+      expect(screen.getByText(String(mockDashboardStats.shopping_count))).toBeInTheDocument();
     });
   });
 
-  it("shows loading state initially", () => {
-    vi.mocked(apiModule.api.getDashboardStats).mockImplementation(
-      () => new Promise(() => {}) // Never resolves
-    );
-    vi.mocked(apiModule.api.getDashboardActivities).mockImplementation(
-      () => new Promise(() => {}) // Never resolves
-    );
+  it('shows loading state initially', () => {
+    mockGetDashboardStats.mockImplementation(() => new Promise(() => {}));
+    mockGetDashboardActivities.mockImplementation(() => new Promise(() => {}));
 
     render(
       <QueryClientProvider client={queryClient}>
@@ -75,12 +78,12 @@ describe("Dashboard", () => {
     expect(screen.getByText(/loading dashboard/i)).toBeInTheDocument();
   });
 
-  it("displays activities when available", async () => {
-    vi.mocked(apiModule.api.getDashboardStats).mockResolvedValue({
+  it('displays activities when available', async () => {
+    mockGetDashboardStats.mockResolvedValue({
       stats: mockDashboardStats,
       activities: [mockActivity],
     });
-    vi.mocked(apiModule.api.getDashboardActivities).mockResolvedValue({
+    mockGetDashboardActivities.mockResolvedValue({
       activities: [mockActivity],
     });
 
@@ -91,7 +94,7 @@ describe("Dashboard", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(mockActivity.description)).toBeInTheDocument();
+      expect(screen.getByText(mockActivity.description!)).toBeInTheDocument();
     });
   });
 });

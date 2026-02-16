@@ -1,5 +1,5 @@
-export interface RecurrenceData {
-  recurrence_type?: "daily_interval" | "weekly" | null;
+interface RecurrenceData {
+  recurrence_type?: 'daily_interval' | 'weekly' | null;
   recurrence_interval_days?: number | null;
   recurrence_weekday?: number | null;
 }
@@ -15,31 +15,30 @@ export function formatRecurrenceText(
   t: (key: string, options?: { count?: number; weekday?: string }) => string
 ): string {
   if (!recurrence.recurrence_type) {
-    return "";
+    return '';
   }
 
-  if (recurrence.recurrence_type === "daily_interval") {
+  if (recurrence.recurrence_type === 'daily_interval') {
     if (recurrence.recurrence_interval_days === 1) {
-      return t("chores.everyDay");
+      return t('chores.everyDay');
     }
-    return t("chores.everyXDays", {
+    return t('chores.everyXDays', {
       count: recurrence.recurrence_interval_days as number,
     });
   }
 
   // Weekly recurrence
   const weekdayNames = [
-    t("chores.monday"),
-    t("chores.tuesday"),
-    t("chores.wednesday"),
-    t("chores.thursday"),
-    t("chores.friday"),
-    t("chores.saturday"),
-    t("chores.sunday"),
+    t('chores.monday'),
+    t('chores.tuesday'),
+    t('chores.wednesday'),
+    t('chores.thursday'),
+    t('chores.friday'),
+    t('chores.saturday'),
+    t('chores.sunday'),
   ];
   const weekdayName = weekdayNames[recurrence.recurrence_weekday || 0];
-  return t("chores.everyWeekday", {
+  return t('chores.everyWeekday', {
     weekday: weekdayName,
   });
 }
-

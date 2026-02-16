@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { clearUser } from '../lib/auth';
-import { useLogout } from '../features/auth/hooks';
+import { useLogout } from '@hously/shared';
 import { NotificationsMenu } from './NotificationsBell';
 import { UserMenu } from './UserMenu';
 import { CalendarIcon, Loader } from 'lucide-react';

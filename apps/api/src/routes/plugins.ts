@@ -4,6 +4,7 @@ import { auth } from '../auth';
 import { prisma } from '../db';
 import { nowUtc } from '../utils';
 import { normalizeQbittorrentConfig } from '../services/qbittorrentService';
+import type { ArrProfile } from '@hously/shared';
 
 interface JellyfinPluginConfig {
   api_key: string;
@@ -23,11 +24,6 @@ interface SonarrPluginConfig {
   root_folder_path: string;
   quality_profile_id: number;
   language_profile_id: number;
-}
-
-export interface ArrProfile {
-  id: number;
-  name: string;
 }
 
 const isValidHttpUrl = (value: string): boolean => {

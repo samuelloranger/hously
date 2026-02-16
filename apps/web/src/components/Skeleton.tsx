@@ -1,4 +1,4 @@
-import { cn } from "../lib/utils";
+import { cn } from '../lib/utils';
 
 interface SkeletonProps {
   className?: string;
@@ -9,30 +9,7 @@ interface SkeletonProps {
  * Shows an animated shimmer effect
  */
 export function Skeleton({ className }: SkeletonProps) {
-  return (
-    <div
-      className={cn(
-        "animate-pulse rounded-md bg-neutral-200 dark:bg-neutral-700",
-        className
-      )}
-    />
-  );
-}
-
-/**
- * Skeleton for card-like components
- */
-export function CardSkeleton() {
-  return (
-    <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 space-y-3">
-      <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-4 w-1/2" />
-      <div className="flex gap-2 mt-4">
-        <Skeleton className="h-8 w-16" />
-        <Skeleton className="h-8 w-16" />
-      </div>
-    </div>
-  );
+  return <div className={cn('animate-pulse rounded-md bg-neutral-200 dark:bg-neutral-700', className)} />;
 }
 
 /**
@@ -52,21 +29,6 @@ export function ListItemSkeleton() {
 }
 
 /**
- * Skeleton for table rows
- */
-export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
-  return (
-    <tr>
-      {Array.from({ length: columns }).map((_, i) => (
-        <td key={i} className="p-3">
-          <Skeleton className="h-4 w-full" />
-        </td>
-      ))}
-    </tr>
-  );
-}
-
-/**
  * Skeleton for stat cards (used in dashboard)
  */
 export function StatCardSkeleton() {
@@ -79,30 +41,3 @@ export function StatCardSkeleton() {
   );
 }
 
-/**
- * Dashboard skeleton with stat cards and list
- */
-export function DashboardSkeleton() {
-  return (
-    <div className="space-y-6">
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-      </div>
-
-      {/* Recent activities */}
-      <div className="space-y-3">
-        <Skeleton className="h-6 w-40" />
-        <div className="space-y-2">
-          <ListItemSkeleton />
-          <ListItemSkeleton />
-          <ListItemSkeleton />
-          <ListItemSkeleton />
-        </div>
-      </div>
-    </div>
-  );
-}

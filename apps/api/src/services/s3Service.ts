@@ -2,8 +2,15 @@
  * S3 service for handling file storage via S3-compatible storage (Minio, AWS S3, etc.)
  */
 
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadBucketCommand, CreateBucketCommand } from "@aws-sdk/client-s3";
-import { getS3Config, getBaseUrl, type S3Config } from "../utils/config";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+  HeadBucketCommand,
+  CreateBucketCommand,
+} from '@aws-sdk/client-s3';
+import { getS3Config, getBaseUrl, type S3Config } from '../utils/config';
 
 let s3Client: S3Client | null = null;
 let s3Config: S3Config | null = null;
@@ -37,7 +44,7 @@ function getS3Client(): S3Client | null {
 /**
  * Ensure S3 bucket exists, create it if it doesn't
  */
-export async function ensureBucketExists(bucketName?: string): Promise<boolean> {
+async function ensureBucketExists(bucketName?: string): Promise<boolean> {
   const client = getS3Client();
   const config = getS3Config();
 
@@ -53,16 +60,18 @@ export async function ensureBucketExists(bucketName?: string): Promise<boolean> 
     console.log(`Bucket '${bucket}' already exists`);
     return true;
   } catch (error: any) {
-    if (error.name === "NotFound" || error.$metadata?.httpStatusCode === 404) {
+    if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
       // Bucket doesn't exist, create it
       console.log(`Creating bucket '${bucket}'`);
       try {
-        await client.send(new CreateBucketCommand({
-          Bucket: bucket,
-          CreateBucketConfiguration: {
-            LocationConstraint: config.region as any,
-          },
-        }));
+        await client.send(
+          new CreateBucketCommand({
+            Bucket: bucket,
+            CreateBucketConfiguration: {
+              LocationConstraint: config.region as any,
+            },
+          })
+        );
         console.log(`Successfully created bucket '${bucket}'`);
         return true;
       } catch (createError) {
@@ -89,7 +98,7 @@ export async function uploadToS3(
   const config = getS3Config();
 
   if (!client || !config) {
-    console.error("S3 not configured");
+    console.error('S3 not configured');
     return false;
   }
 
@@ -102,12 +111,14 @@ export async function uploadToS3(
     }
 
     // Upload file
-    await client.send(new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: fileContent,
-      ContentType: contentType || "application/octet-stream",
-    }));
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: fileContent,
+        ContentType: contentType || 'application/octet-stream',
+      })
+    );
 
     console.log(`Successfully uploaded file to S3: ${key}`);
     return true;
@@ -131,10 +142,12 @@ export async function deleteFromS3(key: string, bucketName?: string): Promise<bo
   const bucket = bucketName || config.bucketName;
 
   try {
-    await client.send(new DeleteObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    }));
+    await client.send(
+      new DeleteObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      })
+    );
     console.log(`Successfully deleted file from S3: ${key}`);
     return true;
   } catch (error) {
@@ -157,10 +170,12 @@ export async function getFileFromS3(key: string, bucketName?: string): Promise<B
   const bucket = bucketName || config.bucketName;
 
   try {
-    const response = await client.send(new GetObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    }));
+    const response = await client.send(
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      })
+    );
 
     if (!response.Body) {
       return null;
@@ -173,7 +188,7 @@ export async function getFileFromS3(key: string, bucketName?: string): Promise<B
     }
     return Buffer.concat(chunks);
   } catch (error: any) {
-    if (error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
+    if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
       console.warn(`File not found in S3: ${key}`);
     } else {
       console.error(`Failed to get file from S3:`, error);
@@ -209,10 +224,10 @@ export function getS3ThumbnailUrl(key: string): string {
 export function getS3DirectUrl(key: string): string {
   const config = getS3Config();
   if (!config) {
-    return "";
+    return '';
   }
-  
-  const protocol = config.useSsl ? "https" : "http";
-  const endpoint = config.endpointUrl.replace("http://", "").replace("https://", "");
+
+  const protocol = config.useSsl ? 'https' : 'http';
+  const endpoint = config.endpointUrl.replace('http://', '').replace('https://', '');
   return `${protocol}://${endpoint}/${config.bucketName}/${key}`;
 }

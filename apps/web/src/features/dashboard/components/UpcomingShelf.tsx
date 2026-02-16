@@ -1,13 +1,15 @@
 import { format } from 'date-fns';
-import { useMutation } from '@tanstack/react-query';
-import type { WheelEvent } from 'react';
-import { useEffect, useState } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import type { DashboardUpcomingItem } from '../../../types';
+import {
+  type DashboardUpcomingItem,
+  useAddUpcomingToArr,
+  useUpcomingStatus,
+} from '@hously/shared';
 import { Dialog } from '../../../components/dialog';
 import { ListItemSkeleton } from '../../../components/Skeleton';
-import { dashboardApi } from '../api';
 
 interface UpcomingShelfProps {
   enabled: boolean;
@@ -42,26 +44,34 @@ export function UpcomingShelf({
   const [searchOnAdd, setSearchOnAdd] = useState(true);
   const [selectedItem, setSelectedItem] = useState<DashboardUpcomingItem | null>(null);
   const [upcomingStatus, setUpcomingStatus] = useState<{ exists: boolean; service: 'radarr' | 'sonarr' } | null>(null);
-  const handleHorizontalWheel = (event: WheelEvent<HTMLDivElement>) => {
-    const container = event.currentTarget;
-    const maxScrollLeft = container.scrollWidth - container.clientWidth;
-    if (maxScrollLeft <= 0) return;
-
-    const dominantDelta =
-      Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
-    if (dominantDelta === 0) return;
-
-    const previousLeft = container.scrollLeft;
-    const nextLeft = Math.max(0, Math.min(maxScrollLeft, previousLeft + dominantDelta));
-    if (nextLeft === previousLeft) return;
-
-    container.scrollLeft = nextLeft;
-    event.preventDefault();
-  };
-
-  const addMutation = useMutation({
-    mutationFn: dashboardApi.addUpcomingToArr,
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: 'start',
+    containScroll: 'trimSnaps',
+    dragFree: true,
   });
+
+  const onWheel = useCallback(
+    (event: globalThis.WheelEvent) => {
+      if (!emblaApi) return;
+      const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+      const delta = isHorizontal ? event.deltaX : event.deltaY;
+      if (delta === 0) return;
+      event.preventDefault();
+      if (delta > 0) emblaApi.scrollNext();
+      else emblaApi.scrollPrev();
+    },
+    [emblaApi],
+  );
+
+  useEffect(() => {
+    const node = emblaApi?.rootNode();
+    if (!node) return;
+    node.addEventListener('wheel', onWheel, { passive: false });
+    return () => node.removeEventListener('wheel', onWheel);
+  }, [emblaApi, onWheel]);
+
+  const addMutation = useAddUpcomingToArr();
+  const upcomingStatusMutation = useUpcomingStatus();
 
   useEffect(() => {
     if (!selectedItem) {
@@ -70,8 +80,8 @@ export function UpcomingShelf({
     }
 
     let canceled = false;
-    dashboardApi
-      .getUpcomingStatus({
+    upcomingStatusMutation
+      .mutateAsync({
         media_type: selectedItem.media_type,
         tmdb_id: parseInt(selectedItem.id.split('-')[1] || '', 10),
       })
@@ -86,7 +96,7 @@ export function UpcomingShelf({
     return () => {
       canceled = true;
     };
-  }, [selectedItem]);
+  }, [selectedItem, upcomingStatusMutation]);
 
   const handleAdd = async (item: DashboardUpcomingItem) => {
     const tmdbId = parseInt(item.id.split('-')[1] || '', 10);
@@ -179,11 +189,8 @@ export function UpcomingShelf({
             <p className="text-sm text-amber-100/80 mt-1">{t('dashboard.upcoming.emptyDescription')}</p>
           </div>
         ) : (
-          <div
-            className="overflow-x-auto pb-3 px-6 -mb-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-            onWheel={handleHorizontalWheel}
-          >
-            <div className="flex gap-3 snap-x snap-mandatory min-w-max pr-2">
+          <div className="overflow-hidden px-6 pb-6" ref={emblaRef}>
+            <div className="flex gap-3">
               {items.map(item => (
                 <button
                   key={item.id}
@@ -197,7 +204,7 @@ export function UpcomingShelf({
                     setSelectedItem(item);
                   }}
                   disabled={addMutation.isPending}
-                  className="group w-[170px] md:w-[190px] text-left shrink-0 snap-start rounded-2xl border border-white/15 bg-black/25 p-3 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-black/35 focus:outline-none focus:ring-2 focus:ring-amber-200/70 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="group w-[130px] md:w-[150px] text-left shrink-0 rounded-2xl border border-white/15 bg-black/25 p-2.5 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-black/35 focus:outline-none focus:ring-2 focus:ring-amber-200/70 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <div className="aspect-[2/3] overflow-hidden rounded-xl bg-neutral-900/60">
                     {item.poster_url ? (
@@ -213,18 +220,18 @@ export function UpcomingShelf({
                       </div>
                     )}
                   </div>
-                  <div className="mt-3 min-w-0">
-                    <p className="text-white font-semibold truncate">{item.title}</p>
-                    <div className="mt-1 flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center rounded-full border border-amber-200/30 bg-amber-200/15 px-2 py-0.5 text-[11px] uppercase tracking-wide text-amber-100">
+                  <div className="mt-2 min-w-0">
+                    <p className="text-xs text-white font-semibold truncate">{item.title}</p>
+                    <div className="mt-0.5 flex items-center justify-between gap-1.5">
+                      <span className="inline-flex items-center rounded-full border border-amber-200/30 bg-amber-200/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-amber-100">
                         {mediaTypeLabel(item.media_type, t)}
                       </span>
-                      <span className="text-xs text-amber-100/85">
+                      <span className="text-[10px] text-amber-100/85">
                         {formatReleaseDate(item.release_date) || t('dashboard.upcoming.unknownDate')}
                       </span>
                     </div>
                     {item.providers.length > 0 ? (
-                      <div className="mt-2 flex items-center gap-1.5">
+                      <div className="mt-1.5 flex items-center gap-1">
                         {item.providers.slice(0, 4).map(provider => (
                           <img
                             key={provider.id}
@@ -232,12 +239,12 @@ export function UpcomingShelf({
                             alt={provider.name}
                             title={provider.name}
                             loading="lazy"
-                            className="h-5 w-5 rounded-sm border border-white/30 bg-white/10 object-contain p-[1px]"
+                            className="h-4 w-4 rounded-sm border border-white/30 bg-white/10 object-contain p-[1px]"
                           />
                         ))}
                       </div>
                     ) : null}
-                    <p className="mt-2 text-xs text-amber-100/80">
+                    <p className="mt-1.5 text-[10px] text-amber-100/80">
                       {item.media_type === 'movie'
                         ? t('dashboard.upcoming.tapToAddMovie')
                         : t('dashboard.upcoming.tapToAddTv')}

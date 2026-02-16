@@ -1,15 +1,8 @@
-import { useState } from "react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "../../../components/ui/collapsible";
-import type {
-  ExternalNotificationService,
-  NotificationTemplate,
-} from "../../../features/external-notifications/api";
-import { ServiceHeader } from "./ServiceHeader";
-import { ServiceDrawer } from "./ServiceDrawer";
+import { useState } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../components/ui/collapsible';
+import type { ExternalNotificationService, NotificationTemplate } from '@hously/shared';
+import { ServiceHeader } from './ServiceHeader';
+import { ServiceDrawer } from './ServiceDrawer';
 
 interface ServiceCardProps {
   service: ExternalNotificationService;
@@ -40,11 +33,7 @@ export function ServiceCard({
     >
       <CollapsibleTrigger asChild>
         <button className="w-full text-left">
-          <ServiceHeader
-            service={service}
-            isOpen={isOpen}
-            onToggle={() => setIsOpen(!isOpen)}
-          />
+          <ServiceHeader service={service} isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)} />
         </button>
       </CollapsibleTrigger>
       <CollapsibleContent>

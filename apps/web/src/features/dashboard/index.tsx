@@ -6,10 +6,15 @@ import { JellyfinLatestShelf } from './components/JellyfinLatestShelf';
 import { UpcomingShelf } from './components/UpcomingShelf';
 import { QbittorrentLiveCard } from './components/QbittorrentLiveCard';
 import { EmptyState } from '../../components/EmptyState';
-import { getUserFirstName } from '../../lib/utils';
-import { useCurrentUser } from '../auth/hooks';
-import { useDashboardStats, useDashboardActivities, useDashboardJellyfinLatest, useDashboardUpcoming } from './hooks';
-import { useChores } from '../chores/hooks';
+import {
+  getUserFirstName,
+  useCurrentUser,
+  useDashboardStats,
+  useDashboardActivities,
+  useDashboardJellyfinLatest,
+  useDashboardUpcoming,
+  useChores,
+} from '@hously/shared';
 import { ChoreRow } from '../chores/components/ChoreRow';
 import { StatCardSkeleton, ListItemSkeleton } from '../../components/Skeleton';
 

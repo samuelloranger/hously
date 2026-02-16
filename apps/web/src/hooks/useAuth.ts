@@ -1,4 +1,4 @@
-import { useCurrentUser } from '../features/auth/hooks';
+import { useCurrentUser } from '@hously/shared';
 
 export function useAuth() {
   const { data: user, isLoading, error, refetch } = useCurrentUser();
@@ -14,4 +14,3 @@ export function useAuth() {
     },
   };
 }
-

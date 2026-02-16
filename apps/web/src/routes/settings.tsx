@@ -8,7 +8,7 @@ import { PluginsTab } from './settings/PluginsTab';
 import { DataExportTab } from './settings/DataExportTab';
 import { DevelopmentTab } from './settings/DevelopmentTab';
 import { UsersTab } from './settings/UsersTab';
-import { useCurrentUser } from '../features/auth/hooks';
+import { useCurrentUser } from '@hously/shared';
 import { cn } from '../lib/utils';
 
 export type Tab =

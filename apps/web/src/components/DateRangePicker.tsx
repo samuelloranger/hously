@@ -1,12 +1,12 @@
-import { format, startOfDay, isSameDay, isAfter } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "../lib/utils";
-import { Button } from "./ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Calendar, type CalendarRange } from "./ui/calendar";
-import { TimePicker } from "./ui/time-picker";
-import { toDateTimeLocal, parseDate } from "../lib/date-utils";
-import { useEffect, useState } from "react";
+import { format, startOfDay, isSameDay, isAfter } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { Button } from './ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar, type CalendarRange } from './ui/calendar';
+import { TimePicker } from './ui/time-picker';
+import { toDateTimeLocal, parseDate } from '@hously/shared';
+import { useEffect, useState } from 'react';
 
 interface DateRangePickerProps {
   startValue?: string; // ISO datetime string
@@ -25,7 +25,7 @@ export function DateRangePicker({
   allDay = false,
   minDate,
   placeholder,
-  className = "",
+  className = '',
 }: DateRangePickerProps) {
   const [dateRange, setDateRange] = useState<CalendarRange>(() => {
     const start = startValue ? parseDate(startValue) : undefined;
@@ -55,7 +55,7 @@ export function DateRangePicker({
     if (startValue) {
       const start = parseDate(startValue);
       if (start) {
-        setDateRange((prev) => ({ ...prev, from: start }));
+        setDateRange(prev => ({ ...prev, from: start }));
         setStartTime({
           hours: start.getHours(),
           minutes: start.getMinutes(),
@@ -68,7 +68,7 @@ export function DateRangePicker({
     if (endValue) {
       const end = parseDate(endValue);
       if (end) {
-        setDateRange((prev) => ({ ...prev, to: end }));
+        setDateRange(prev => ({ ...prev, to: end }));
         setEndTime({
           hours: end.getHours(),
           minutes: end.getMinutes(),
@@ -188,14 +188,14 @@ export function DateRangePicker({
 
   const displayValue = () => {
     if (!dateRange.from) {
-      return placeholder || "Select date range";
+      return placeholder || 'Select date range';
     }
 
     const startDate = dateRange.from;
     const endDate = dateRange.to || dateRange.from;
 
-    const startStr = format(startDate, "dd/MM/yyyy");
-    const endStr = format(endDate, "dd/MM/yyyy");
+    const startStr = format(startDate, 'dd/MM/yyyy');
+    const endStr = format(endDate, 'dd/MM/yyyy');
 
     if (allDay) {
       if (isSameDay(startDate, endDate)) {
@@ -204,12 +204,8 @@ export function DateRangePicker({
       return `${startStr} - ${endStr}`;
     }
 
-    const startTimeStr = `${String(startTime.hours).padStart(2, "0")}:${String(
-      startTime.minutes
-    ).padStart(2, "0")}`;
-    const endTimeStr = `${String(endTime.hours).padStart(2, "0")}:${String(
-      endTime.minutes
-    ).padStart(2, "0")}`;
+    const startTimeStr = `${String(startTime.hours).padStart(2, '0')}:${String(startTime.minutes).padStart(2, '0')}`;
+    const endTimeStr = `${String(endTime.hours).padStart(2, '0')}:${String(endTime.minutes).padStart(2, '0')}`;
 
     if (isSameDay(startDate, endDate)) {
       return `${startStr} ${startTimeStr} - ${endTimeStr}`;
@@ -223,8 +219,8 @@ export function DateRangePicker({
         <Button
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-normal",
-            !dateRange.from && "text-neutral-500 dark:text-neutral-400",
+            'w-full justify-start text-left font-normal',
+            !dateRange.from && 'text-neutral-500 dark:text-neutral-400',
             className
           )}
         >
@@ -232,17 +228,13 @@ export function DateRangePicker({
           {displayValue()}
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="bg-white dark:bg-neutral-700 w-auto p-0"
-        align="start"
-        side="top"
-      >
+      <PopoverContent className="bg-white dark:bg-neutral-700 w-auto p-0" align="start" side="top">
         <div className="p-3">
           <Calendar
             range={dateRange}
             onRangeSelect={handleRangeSelect}
             mode="range"
-            disabled={(date) => {
+            disabled={date => {
               if (!minDateTime) return false;
               return startOfDay(date) < startOfDay(minDateTime);
             }}
@@ -279,11 +271,7 @@ export function DateRangePicker({
               </div>
             </div>
           )}
-          <Button
-            variant="outline"
-            className="w-full mt-4"
-            onClick={() => setIsOpen(false)}
-          >
+          <Button variant="outline" className="w-full mt-4" onClick={() => setIsOpen(false)}>
             Ok
           </Button>
         </div>

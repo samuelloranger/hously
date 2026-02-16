@@ -1,5 +1,5 @@
-import type { QueryClient } from "@tanstack/react-query";
-import { queryKeys } from "./queryKeys";
+import type { QueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@hously/shared';
 
 let queryClientInstance: QueryClient | null = null;
 

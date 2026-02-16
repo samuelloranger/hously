@@ -1,22 +1,22 @@
-import { useTranslation } from "react-i18next";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { PageLayout } from "../../components/PageLayout";
-import { PageHeader } from "../../components/PageHeader";
-import { ShoppingItemRow } from "./components/ShoppingItemRow";
-import { CreateShoppingItemForm } from "./components/CreateShoppingItemForm";
-import { EmptyState } from "../../components/EmptyState";
-import { Button } from "../../components/ui/button";
-import { SortableList } from "../../components/SortableList";
+import { useTranslation } from 'react-i18next';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { PageLayout } from '../../components/PageLayout';
+import { PageHeader } from '../../components/PageHeader';
+import { ShoppingItemRow } from './components/ShoppingItemRow';
+import { CreateShoppingItemForm } from './components/CreateShoppingItemForm';
+import { EmptyState } from '../../components/EmptyState';
+import { Button } from '../../components/ui/button';
+import { SortableList } from '../../components/SortableList';
 import {
   useShoppingItems,
   useClearAllCompletedShoppingItems,
   useReorderShoppingItems,
   useDeleteShoppingItems,
-} from "./hooks";
-import { useMemo, useState, useEffect } from "react";
+} from '@hously/shared';
+import { useMemo, useState, useEffect } from 'react';
 
 export function ShoppingList() {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation('common');
   const [completedItemsRef] = useAutoAnimate();
 
   const { data, refetch, isFetching } = useShoppingItems();
@@ -29,23 +29,20 @@ export function ShoppingList() {
 
   const items = data?.items || [];
   const activeItems = useMemo(
-    () =>
-      items
-        .filter((item) => !item.completed)
-        .sort((a, b) => a.position - b.position),
+    () => items.filter(item => !item.completed).sort((a, b) => a.position - b.position),
     [items]
   );
-  const completedItems = items.filter((item) => item.completed);
+  const completedItems = items.filter(item => item.completed);
   const selectedCount = selectedIds.size;
 
   useEffect(() => {
     if (!isSelectionMode) {
       return;
     }
-    setSelectedIds((prev) => {
-      const validIds = new Set(items.map((item) => item.id));
+    setSelectedIds(prev => {
+      const validIds = new Set(items.map(item => item.id));
       const next = new Set<number>();
-      prev.forEach((id) => {
+      prev.forEach(id => {
         if (validIds.has(id)) {
           next.add(id);
         }
@@ -55,12 +52,12 @@ export function ShoppingList() {
   }, [items, isSelectionMode]);
 
   const handleToggleSelectionMode = () => {
-    setIsSelectionMode((prev) => !prev);
+    setIsSelectionMode(prev => !prev);
     setSelectedIds(new Set());
   };
 
   const handleSelectToggle = (itemId: number) => {
-    setSelectedIds((prev) => {
+    setSelectedIds(prev => {
       const next = new Set(prev);
       if (next.has(itemId)) {
         next.delete(itemId);
@@ -75,7 +72,7 @@ export function ShoppingList() {
     if (selectedCount === 0) {
       return;
     }
-    if (!confirm(t("shopping.deleteSelectedConfirm", { count: selectedCount }))) {
+    if (!confirm(t('shopping.deleteSelectedConfirm', { count: selectedCount }))) {
       return;
     }
     deleteItemsMutation.mutate(Array.from(selectedIds), {
@@ -90,8 +87,8 @@ export function ShoppingList() {
       <PageHeader
         icon="🛒"
         iconColor="text-blue-600"
-        title={t("shopping.title")}
-        subtitle={t("shopping.subtitle")}
+        title={t('shopping.title')}
+        subtitle={t('shopping.subtitle')}
         onRefresh={refetch}
         isRefreshing={isFetching}
       />
@@ -101,15 +98,10 @@ export function ShoppingList() {
       <div className="bg-white dark:bg-neutral-800 shadow rounded-lg">
         <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
           <div className="flex flex-wrap justify-between items-center gap-3">
-            <h3 className="text-lg font-medium text-neutral-900 dark:text-white">
-              {t("shopping.currentList")}
-            </h3>
+            <h3 className="text-lg font-medium text-neutral-900 dark:text-white">{t('shopping.currentList')}</h3>
             <div className="flex flex-wrap items-center gap-2">
               <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                {activeItems.length}{" "}
-                {activeItems.length !== 1
-                  ? t("shopping.itemsPlural")
-                  : t("shopping.items")}
+                {activeItems.length} {activeItems.length !== 1 ? t('shopping.itemsPlural') : t('shopping.items')}
               </div>
               {isSelectionMode && selectedCount > 0 && (
                 <Button
@@ -118,17 +110,11 @@ export function ShoppingList() {
                   variant="destructive"
                   size="sm"
                 >
-                  {t("shopping.deleteSelected", { count: selectedCount })}
+                  {t('shopping.deleteSelected', { count: selectedCount })}
                 </Button>
               )}
-              <Button
-                onClick={handleToggleSelectionMode}
-                variant="secondary"
-                size="sm"
-              >
-                {isSelectionMode
-                  ? t("shopping.cancelSelection")
-                  : t("shopping.selectItems")}
+              <Button onClick={handleToggleSelectionMode} variant="secondary" size="sm">
+                {isSelectionMode ? t('shopping.cancelSelection') : t('shopping.selectItems')}
               </Button>
             </div>
           </div>
@@ -136,8 +122,8 @@ export function ShoppingList() {
         {activeItems.length > 0 ? (
           <SortableList
             items={activeItems}
-            onReorder={(newOrder) => {
-              const itemIds = newOrder.map((item) => item.id);
+            onReorder={newOrder => {
+              const itemIds = newOrder.map(item => item.id);
               reorderMutation.mutate(itemIds);
             }}
             className="divide-y divide-neutral-200 dark:divide-neutral-700"
@@ -155,11 +141,7 @@ export function ShoppingList() {
             )}
           </SortableList>
         ) : (
-          <EmptyState
-            icon="🛒"
-            title={t("shopping.noItems")}
-            description={t("shopping.addFirstItem")}
-          />
+          <EmptyState icon="🛒" title={t('shopping.noItems')} description={t('shopping.addFirstItem')} />
         )}
       </div>
 
@@ -168,7 +150,7 @@ export function ShoppingList() {
           <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-neutral-900 dark:text-white">
-                {t("shopping.recentlyCompleted")} ({completedItems.length})
+                {t('shopping.recentlyCompleted')} ({completedItems.length})
               </h3>
               <Button
                 onClick={() => clearCompletedMutation.mutate()}
@@ -176,15 +158,12 @@ export function ShoppingList() {
                 variant="secondary"
                 size="sm"
               >
-                {t("shopping.clearAll")}
+                {t('shopping.clearAll')}
               </Button>
             </div>
           </div>
-          <div
-            className="divide-y divide-neutral-200 dark:divide-neutral-700"
-            ref={completedItemsRef}
-          >
-            {completedItems.map((item) => (
+          <div className="divide-y divide-neutral-200 dark:divide-neutral-700" ref={completedItemsRef}>
+            {completedItems.map(item => (
               <ShoppingItemRow
                 key={item.id}
                 item={item}

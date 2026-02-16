@@ -1,14 +1,10 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
-import {
-  externalNotificationsApi,
-  type NotificationTemplate,
-} from "../../features/external-notifications/api";
-import { ServiceList } from "./components/ServiceList";
-import { ServicesLogsList } from "./components/ServicesLogsList";
-import { TemplateEditorModal } from "./components/TemplateEditorModal";
-import { queryKeys } from "../../lib/queryKeys";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { type NotificationTemplate } from '@hously/shared';
+import { ServiceList } from './components/ServiceList';
+import { ServicesLogsList } from './components/ServicesLogsList';
+import { TemplateEditorModal } from './components/TemplateEditorModal';
+import { useExternalNotificationServices } from '@hously/shared';
 
 interface EditingTemplateData {
   templates: NotificationTemplate[];
@@ -16,49 +12,43 @@ interface EditingTemplateData {
 }
 
 export function ExternalNotificationsTab() {
-  const { t } = useTranslation("common");
-  const [editingTemplateData, setEditingTemplateData] =
-    useState<EditingTemplateData | null>(null);
+  const { t } = useTranslation('common');
+  const [editingTemplateData, setEditingTemplateData] = useState<EditingTemplateData | null>(null);
 
-  const { data: servicesData, isLoading: servicesLoading } = useQuery({
-    queryKey: queryKeys.externalNotifications.services(),
-    queryFn: () => externalNotificationsApi.getServices(),
-  });
+  const { data: servicesData, isLoading: servicesLoading } = useExternalNotificationServices();
 
   const services = servicesData?.services || [];
 
   // Group templates by service_id (templates are now included in services)
-  const templatesByService = services.reduce((acc, service) => {
-    acc[service.id] = service.templates || [];
-    return acc;
-  }, {} as Record<number, NotificationTemplate[]>);
+  const templatesByService = services.reduce(
+    (acc, service) => {
+      acc[service.id] = service.templates || [];
+      return acc;
+    },
+    {} as Record<number, NotificationTemplate[]>
+  );
 
   return (
-    <div
-      className="animate-in fade-in slide-in-from-right-4 duration-300"
-      key="external-notifications-tab"
-    >
+    <div className="animate-in fade-in slide-in-from-right-4 duration-300" key="external-notifications-tab">
       <div className="space-y-6">
         {/* Services Section */}
         <div className="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">
-            {t("settings.externalNotifications.services")}
+            {t('settings.externalNotifications.services')}
           </h2>
           <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-            {t("settings.externalNotifications.servicesDescription")}
+            {t('settings.externalNotifications.servicesDescription')}
           </p>
           <ServiceList
             services={services}
             templatesByService={templatesByService}
             isLoading={servicesLoading}
-            onEditTemplate={(template) => {
+            onEditTemplate={template => {
               // Find all templates for this event type and service
               const serviceId = template.service_id;
               const eventType = template.event_type;
-              const service = services.find((s) => s.id === serviceId);
-              const allTemplatesForEvent =
-                service?.templates.filter((t) => t.event_type === eventType) ||
-                [];
+              const service = services.find(s => s.id === serviceId);
+              const allTemplatesForEvent = service?.templates.filter(t => t.event_type === eventType) || [];
               if (allTemplatesForEvent.length > 0) {
                 setEditingTemplateData({
                   templates: allTemplatesForEvent,
@@ -72,10 +62,10 @@ export function ExternalNotificationsTab() {
         {/* Logs Section */}
         <div className="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">
-            {t("settings.externalNotifications.logs.title")}
+            {t('settings.externalNotifications.logs.title')}
           </h2>
           <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-            {t("settings.externalNotifications.logs.description")}
+            {t('settings.externalNotifications.logs.description')}
           </p>
           <ServicesLogsList />
         </div>

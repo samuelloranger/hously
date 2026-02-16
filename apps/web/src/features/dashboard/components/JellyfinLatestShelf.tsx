@@ -1,7 +1,8 @@
 import { formatDistanceToNow } from 'date-fns';
-import type { WheelEvent } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
+import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { JellyfinLatestItem } from '../../../types';
+import type { JellyfinLatestItem } from '@hously/shared';
 import { ListItemSkeleton } from '../../../components/Skeleton';
 
 interface JellyfinLatestShelfProps {
@@ -46,22 +47,33 @@ export function JellyfinLatestShelf({
   items,
 }: JellyfinLatestShelfProps) {
   const { t } = useTranslation('common');
-  const handleHorizontalWheel = (event: WheelEvent<HTMLDivElement>) => {
-    const container = event.currentTarget;
-    const maxScrollLeft = container.scrollWidth - container.clientWidth;
-    if (maxScrollLeft <= 0) return;
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: 'start',
+    containScroll: 'trimSnaps',
+    dragFree: true,
+  });
 
-    const dominantDelta =
-      Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
-    if (dominantDelta === 0) return;
+  const onWheel = useCallback(
+    (event: globalThis.WheelEvent) => {
+      if (!emblaApi) return;
+      const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+      const delta = isHorizontal ? event.deltaX : event.deltaY;
+      if (delta === 0) return;
+      event.preventDefault();
+      const current = emblaApi.scrollSnapList();
+      if (current.length === 0) return;
+      if (delta > 0) emblaApi.scrollNext();
+      else emblaApi.scrollPrev();
+    },
+    [emblaApi],
+  );
 
-    const previousLeft = container.scrollLeft;
-    const nextLeft = Math.max(0, Math.min(maxScrollLeft, previousLeft + dominantDelta));
-    if (nextLeft === previousLeft) return;
-
-    container.scrollLeft = nextLeft;
-    event.preventDefault();
-  };
+  useEffect(() => {
+    const node = emblaApi?.rootNode();
+    if (!node) return;
+    node.addEventListener('wheel', onWheel, { passive: false });
+    return () => node.removeEventListener('wheel', onWheel);
+  }, [emblaApi, onWheel]);
 
   return (
     <section className="relative mb-8 overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-700/80 bg-gradient-to-br from-[#0f172a] via-[#112240] to-[#1f2937] shadow-xl pb-6">
@@ -108,11 +120,8 @@ export function JellyfinLatestShelf({
           <p className="text-sm text-blue-100/80 mt-1">{t('dashboard.jellyfin.emptyDescription')}</p>
         </div>
       ) : (
-        <div
-          className="overflow-x-auto pb-3 px-6 -mb-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-          onWheel={handleHorizontalWheel}
-        >
-          <div className="flex gap-3 snap-x snap-mandatory min-w-max pr-2">
+        <div className="overflow-hidden px-6" ref={emblaRef}>
+          <div className="flex gap-3">
             {items.map((item, index) => {
               const typeConfig = getTypeConfig(item.item_type);
               const relativeTime = formatRelativeTime(item.added_at);
@@ -132,18 +141,18 @@ export function JellyfinLatestShelf({
                       </div>
                     )}
                   </div>
-                  <div className="mt-3 min-w-0">
-                    <p className="font-semibold text-white truncate">{item.title}</p>
-                    {item.subtitle ? <p className="mt-1 text-sm text-blue-100/85 truncate">{item.subtitle}</p> : null}
-                    <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  <div className="mt-2 min-w-0">
+                    <p className="text-xs font-semibold text-white truncate">{item.title}</p>
+                    {item.subtitle ? <p className="mt-0.5 text-[11px] text-blue-100/85 truncate">{item.subtitle}</p> : null}
+                    <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                       <span
-                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs ${typeConfig.badgeClass}`}
+                        className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] ${typeConfig.badgeClass}`}
                       >
                         {formatItemType(item.item_type)}
                       </span>
-                      {item.year ? <span className="text-xs text-blue-100/80">{item.year}</span> : null}
+                      {item.year ? <span className="text-[10px] text-blue-100/80">{item.year}</span> : null}
                     </div>
-                    {relativeTime ? <p className="mt-2 text-xs text-blue-100/75">{relativeTime}</p> : null}
+                    {relativeTime ? <p className="mt-1.5 text-[10px] text-blue-100/75">{relativeTime}</p> : null}
                   </div>
                 </>
               );
@@ -154,7 +163,7 @@ export function JellyfinLatestShelf({
                   href={item.item_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="group w-[170px] md:w-[190px] shrink-0 snap-start rounded-2xl border border-white/15 bg-black/25 p-3 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-black/35 focus:outline-none focus:ring-2 focus:ring-cyan-300/70"
+                  className="group w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-white/15 bg-black/25 p-2.5 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-black/35 focus:outline-none focus:ring-2 focus:ring-cyan-300/70"
                   style={{ animationDelay: `${index * 60}ms` }}
                 >
                   {cardContent}
@@ -162,7 +171,7 @@ export function JellyfinLatestShelf({
               ) : (
                 <article
                   key={`${item.id}-${index}`}
-                  className="group w-[170px] md:w-[190px] shrink-0 snap-start rounded-2xl border border-white/15 bg-black/25 p-3 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-black/35"
+                  className="group w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-white/15 bg-black/25 p-2.5 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-black/35"
                   style={{ animationDelay: `${index * 60}ms` }}
                 >
                   {cardContent}

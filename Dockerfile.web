@@ -10,6 +10,7 @@ COPY bun.lock ./
 COPY package.json ./
 COPY apps/api/package.json ./apps/api/
 COPY apps/app/package.json ./apps/app/
+COPY apps/shared/package.json ./apps/shared/
 COPY apps/web/package.json ./apps/web/
 
 # Install workspace dependencies from repo root.
@@ -33,6 +34,8 @@ COPY apps/web/postcss.config.js ./apps/web/
 COPY apps/web/src ./apps/web/src
 COPY apps/web/public ./apps/web/public
 COPY apps/web/index.html ./apps/web/
+COPY apps/shared/src ./apps/shared/src
+COPY apps/shared/tsconfig.json ./apps/shared/
 
 # Build React app
 RUN cd apps/web && bun run build

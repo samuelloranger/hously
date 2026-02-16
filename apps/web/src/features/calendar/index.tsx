@@ -1,71 +1,43 @@
-import { useState, useMemo } from "react";
-import { useTranslation } from "react-i18next";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { PageLayout } from "../../components/PageLayout";
-import { PageHeader } from "../../components/PageHeader";
-import { Button } from "../../components/ui/button";
-import { api } from "../../lib/api";
-import { queryKeys } from "../../lib/queryKeys";
-import type {
-  CalendarEvent,
-  CalendarEventCustomEventMetadata,
-} from "../../types/api";
-import { CreateCustomEventForm } from "./components/CreateCustomEventForm";
-import { sortBy } from "lodash-es";
-import { formatDate, parseDate, sameDay, sameMonth } from "@/lib/date-utils";
-import { getDayName, getMonthName, splitMultiDayEvent } from "./utils";
-import { EventCard } from "./components/EventCard";
-import { cn } from "@/lib/utils";
-import { startOfDay } from "date-fns";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { PlusIcon } from "lucide-react";
-import { HouseLoader } from "@/components/HouseLoader";
+import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { PageLayout } from '../../components/PageLayout';
+import { PageHeader } from '../../components/PageHeader';
+import { Button } from '../../components/ui/button';
+import {
+  formatDate,
+  parseDate,
+  sameDay,
+  sameMonth,
+  useCalendarEvents,
+  useDeleteCustomEvent,
+  type CalendarEvent,
+  type CalendarEventCustomEventMetadata,
+} from '@hously/shared';
+import { CreateCustomEventForm } from './components/CreateCustomEventForm';
+import { sortBy } from 'lodash-es';
+import { getDayName, getMonthName, splitMultiDayEvent } from './utils';
+import { EventCard } from './components/EventCard';
+import { cn } from '@/lib/utils';
+import { startOfDay } from 'date-fns';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { PlusIcon } from 'lucide-react';
+import { HouseLoader } from '@/components/HouseLoader';
 
 export function Calendar() {
-  const { t, i18n } = useTranslation("common");
-  const queryClient = useQueryClient();
+  const { t, i18n } = useTranslation('common');
   const today = startOfDay(new Date());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState<Date | null>(today);
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
-  const [eventToEdit, setEventToEdit] = useState<CalendarEvent | undefined>(
-    undefined,
-  );
+  const [eventToEdit, setEventToEdit] = useState<CalendarEvent | undefined>(undefined);
   const [isEditEventOpen, setIsEditEventOpen] = useState(false);
   const [calendarGridRef] = useAutoAnimate();
   const [selectedDayEventsContainerRef] = useAutoAnimate();
 
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: queryKeys.calendar.events(currentYear, currentMonth),
-    queryFn: () => api.getCalendarEvents(currentYear, currentMonth),
-    gcTime: 0,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (eventId: number) => api.deleteCustomEvent(eventId),
-    onSuccess: () => {
-      toast.success(t("calendar.customEventDeleted"));
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.calendar.events(currentYear, currentMonth),
-      });
-      // Clear selected date if the deleted event was selected
-      setSelectedDate(null);
-    },
-    onError: (error: any) => {
-      toast.error(
-        error?.message ||
-          t("calendar.customEventDeleteError") ||
-          t("common.error"),
-      );
-    },
-  });
-
-  const events = data?.events || [];
+  const { data: events = [], isLoading, refetch } = useCalendarEvents(currentYear, currentMonth);
+  const deleteMutation = useDeleteCustomEvent();
 
   // Split multi-day events and group by date
   const eventsByDate = useMemo(() => {
@@ -73,13 +45,13 @@ export function Calendar() {
 
     // Split multi-day events first
     const splitEvents: CalendarEvent[] = [];
-    events.forEach((event) => {
+    events.forEach(event => {
       const split = splitMultiDayEvent(event);
       splitEvents.push(...split);
     });
 
     // Group by date
-    splitEvents.forEach((event) => {
+    splitEvents.forEach(event => {
       if (!grouped[event.date]) {
         grouped[event.date] = [];
       }
@@ -104,11 +76,7 @@ export function Calendar() {
       const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
       const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
       const daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate();
-      const date = new Date(
-        prevYear,
-        prevMonth - 1,
-        daysInPrevMonth - startingDayOfWeek + i + 1,
-      );
+      const date = new Date(prevYear, prevMonth - 1, daysInPrevMonth - startingDayOfWeek + i + 1);
       currentWeek.push(date);
     }
 
@@ -170,7 +138,7 @@ export function Calendar() {
   };
 
   const getDayEvents = (date: Date): CalendarEvent[] => {
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = date.toISOString().split('T')[0];
     return eventsByDate[dateStr] || [];
   };
 
@@ -178,15 +146,15 @@ export function Calendar() {
     return sameMonth(date, new Date(currentYear, currentMonth - 1, 1));
   };
 
-  const getEventTypeColor = (type: CalendarEvent["type"], metadata?: any) => {
-    if (type === "custom_event" && metadata?.color) {
+  const getEventTypeColor = (type: CalendarEvent['type'], metadata?: any) => {
+    if (type === 'custom_event' && metadata?.color) {
       return metadata.color;
     }
     switch (type) {
-      case "chore":
-        return "bg-blue-500";
+      case 'chore':
+        return 'bg-blue-500';
       default:
-        return "bg-neutral-500";
+        return 'bg-neutral-500';
     }
   };
 
@@ -198,17 +166,12 @@ export function Calendar() {
   return (
     <PageLayout>
       <div className="mb-8 flex flex-col md:flex-row items-between md:items-center justify-between">
-        <PageHeader
-          icon="📅"
-          iconColor="text-blue-600"
-          title={t("calendar.title")}
-          subtitle={t("calendar.subtitle")}
-        />
+        <PageHeader icon="📅" iconColor="text-blue-600" title={t('calendar.title')} subtitle={t('calendar.subtitle')} />
         <Button onClick={() => setIsCreateEventOpen(true)}>
           <span className="mr-2">
             <PlusIcon />
           </span>
-          {t("calendar.addEvent")}
+          {t('calendar.addEvent')}
         </Button>
       </div>
 
@@ -226,12 +189,7 @@ export function Calendar() {
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
@@ -250,12 +208,7 @@ export function Calendar() {
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
@@ -266,10 +219,7 @@ export function Calendar() {
             <thead>
               <tr>
                 {new Array(7).fill(0).map((_, day) => (
-                  <th
-                    key={day}
-                    className="p-2 text-center text-sm font-medium text-neutral-700 dark:text-neutral-300"
-                  >
+                  <th key={day} className="p-2 text-center text-sm font-medium text-neutral-700 dark:text-neutral-300">
                     {getDayName(t, day)}
                   </th>
                 ))}
@@ -279,19 +229,14 @@ export function Calendar() {
               {calendarGrid.map((week, weekIndex) => (
                 <tr key={weekIndex}>
                   {week.map((date, dayIndex) => {
-                    const sortedDayEvents = sortBy(
-                      getDayEvents(date),
-                      (event) => {
-                        if (event.type === "custom_event") {
-                          const start = parseDate(
-                            event.metadata.start_datetime,
-                          );
-                          if (!start) return 24;
-                          return start.getHours();
-                        }
-                        return 24;
-                      },
-                    );
+                    const sortedDayEvents = sortBy(getDayEvents(date), event => {
+                      if (event.type === 'custom_event') {
+                        const start = parseDate(event.metadata.start_datetime);
+                        if (!start) return 24;
+                        return start.getHours();
+                      }
+                      return 24;
+                    });
                     const isCurrentMonthDay = isCurrentMonth(date);
                     const isTodayDay = sameDay(date, today);
                     const isSelectedDate = sameDay(date, selectedDate);
@@ -301,45 +246,42 @@ export function Calendar() {
                         key={dayIndex}
                         className={`w-[calc(100%/7)] aspect-square p-1 border border-neutral-200 dark:border-neutral-700 ${
                           !isCurrentMonthDay
-                            ? "bg-neutral-50 dark:bg-neutral-900 opacity-50"
-                            : "bg-white dark:bg-neutral-800"
-                        }${isTodayDay ? "bg-blue-50 dark:bg-neutral-900" : ""}`}
+                            ? 'bg-neutral-50 dark:bg-neutral-900 opacity-50'
+                            : 'bg-white dark:bg-neutral-800'
+                        }${isTodayDay ? 'bg-blue-50 dark:bg-neutral-900' : ''}`}
                       >
                         <div className="w-full aspect-square flex">
                           <button
                             onClick={() => handleDayClick(date)}
                             className={cn(
-                              "w-full h-full min-w-[auto] min-h-[auto] flex flex-col items-start p-1 md:p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700",
+                              'w-full h-full min-w-[auto] min-h-[auto] flex flex-col items-start p-1 md:p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700',
                               {
-                                "ring-2 ring-blue-500 dark:ring-blue-50 dark:bg-neutral-600":
-                                  isSelectedDate,
-                              },
+                                'ring-2 ring-blue-500 dark:ring-blue-50 dark:bg-neutral-600': isSelectedDate,
+                              }
                             )}
                             disabled={!date}
                           >
                             <span
                               className={`text-xs md:text-xs lg:text-sm font-medium mb-1 ${
                                 isCurrentMonthDay
-                                  ? "text-neutral-900 dark:text-white"
-                                  : "text-neutral-400 dark:text-neutral-500"
+                                  ? 'text-neutral-900 dark:text-white'
+                                  : 'text-neutral-400 dark:text-neutral-500'
                               }`}
                             >
                               {date?.getDate()}
                             </span>
                             <div className="flex items-start flex-wrap gap-1 w-full">
-                              {sortedDayEvents.slice(0, 3).map((event) => {
+                              {sortedDayEvents.slice(0, 3).map(event => {
                                 return (
                                   <div
                                     key={event.id}
                                     className={
-                                      event.type === "custom_event"
+                                      event.type === 'custom_event'
                                         ? `flex items-center justify-center w-1 min-w-1 rounded-full h-1`
-                                        : `w-1 h-1 rounded-full ${getEventTypeColor(
-                                            event.type,
-                                          )}`
+                                        : `w-1 h-1 rounded-full ${getEventTypeColor(event.type)}`
                                     }
                                     style={{
-                                      ...(event.type === "custom_event" && {
+                                      ...(event.type === 'custom_event' && {
                                         backgroundColor: event.metadata?.color,
                                       }),
                                     }}
@@ -363,16 +305,11 @@ export function Calendar() {
             ) : (
               selectedDate && (
                 <>
-                  <div className="flex justify-end mb-4">
-                    {formatDate(selectedDate, i18n.language)}
-                  </div>
+                  <div className="flex justify-end mb-4">{formatDate(selectedDate, i18n.language)}</div>
 
-                  <div
-                    className="flex flex-col gap-2"
-                    ref={selectedDayEventsContainerRef}
-                  >
+                  <div className="flex flex-col gap-2" ref={selectedDayEventsContainerRef}>
                     {selectedDayEvents.length > 0 ? (
-                      selectedDayEvents.map((event) => (
+                      selectedDayEvents.map(event => (
                         <EventCard
                           key={event.id}
                           event={event}
@@ -380,22 +317,23 @@ export function Calendar() {
                             setEventToEdit(event);
                             setIsEditEventOpen(true);
                           }}
-                          onDeleteEvent={(eventToDelete) => {
-                            if (
-                              eventToDelete.type === "custom_event" &&
-                              eventToDelete.metadata?.custom_event_id
-                            ) {
-                              deleteMutation.mutate(
-                                eventToDelete.metadata.custom_event_id,
-                              );
+                          onDeleteEvent={eventToDelete => {
+                            if (eventToDelete.type === 'custom_event' && eventToDelete.metadata?.custom_event_id) {
+                              deleteMutation.mutate(eventToDelete.metadata.custom_event_id, {
+                                onSuccess: () => {
+                                  toast.success(t('calendar.customEventDeleted'));
+                                  setSelectedDate(null);
+                                },
+                                onError: (error: any) => {
+                                  toast.error(error?.message || t('calendar.customEventDeleteError') || t('common.error'));
+                                },
+                              });
                             }
                           }}
                         />
                       ))
                     ) : (
-                      <div className="text-neutral-500 dark:text-neutral-400">
-                        No events for this day
-                      </div>
+                      <div className="text-neutral-500 dark:text-neutral-400">No events for this day</div>
                     )}
                   </div>
                 </>
@@ -408,9 +346,7 @@ export function Calendar() {
         <div className="mt-6 flex flex-wrap gap-4 justify-center text-sm">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className="text-neutral-700 dark:text-neutral-300">
-              {t("calendar.chores")}
-            </span>
+            <span className="text-neutral-700 dark:text-neutral-300">{t('calendar.chores')}</span>
           </div>
         </div>
       </div>
@@ -433,9 +369,7 @@ export function Calendar() {
             setEventToEdit(undefined);
             refetch();
           }}
-          eventToEdit={
-            eventToEdit as CalendarEvent & CalendarEventCustomEventMetadata
-          }
+          eventToEdit={eventToEdit as CalendarEvent & CalendarEventCustomEventMetadata}
         />
       )}
     </PageLayout>

@@ -1,8 +1,6 @@
-import { Star, Clock, Users } from "lucide-react";
-import { Recipe } from "../../../types";
-import { recipesApi } from "../api";
-import { useNavigate } from "@tanstack/react-router";
-import { useToggleFavorite } from "../hooks/useToggleFavorite";
+import { Star, Clock, Users } from 'lucide-react';
+import { getRecipeImageUrl, type Recipe, useToggleFavorite } from '@hously/shared';
+import { useNavigate } from '@tanstack/react-router';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -12,15 +10,14 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
   const navigate = useNavigate();
   const toggleFavorite = useToggleFavorite();
 
-  const imageUrl = recipesApi.getImageUrl(recipe.image_path);
+  const imageUrl = getRecipeImageUrl(recipe.image_path);
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleFavorite.mutate(recipe.id);
   };
 
-  const totalTime =
-    (recipe.prep_time_minutes || 0) + (recipe.cook_time_minutes || 0);
+  const totalTime = (recipe.prep_time_minutes || 0) + (recipe.cook_time_minutes || 0);
 
   return (
     <div
@@ -28,11 +25,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
       className="bg-white dark:bg-neutral-800 rounded-xl shadow-md overflow-hidden border border-neutral-200 dark:border-neutral-700 hover:shadow-lg transition-shadow cursor-pointer"
     >
       {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={recipe.name}
-          className="w-full h-48 object-cover"
-        />
+        <img src={imageUrl} alt={recipe.name} className="w-full h-48 object-cover" />
       ) : (
         <div className="w-full h-48 bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
           <span className="text-6xl">🍽️</span>
@@ -41,15 +34,11 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
 
       <div className="p-4">
         <div className="flex items-start justify-between mb-2">
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white line-clamp-1">
-            {recipe.name}
-          </h3>
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white line-clamp-1">{recipe.name}</h3>
           <button onClick={handleToggleFavorite} className="ml-2 flex-shrink-0">
             <Star
               className={`w-5 h-5 ${
-                recipe.is_favorite
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "text-neutral-400 hover:text-yellow-400"
+                recipe.is_favorite ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-400 hover:text-yellow-400'
               } transition-colors`}
             />
           </button>

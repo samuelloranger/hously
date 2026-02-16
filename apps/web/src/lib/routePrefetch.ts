@@ -1,8 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { queryKeys } from './queryKeys';
-import { dashboardApi } from '../features/dashboard/api';
-import { shoppingApi } from '../features/shopping/api';
-import { choresApi } from '../features/chores/api';
+import { CHORES_ENDPOINTS, DASHBOARD_ENDPOINTS, queryKeys, SHOPPING_ENDPOINTS } from '@hously/shared';
+import { webFetcher } from './fetcher';
 
 /**
  * Query definitions for each route
@@ -12,35 +10,35 @@ const routeQueryDefinitions = {
   '/': () => [
     {
       queryKey: queryKeys.dashboard.stats(),
-      queryFn: dashboardApi.getDashboardStats,
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.STATS),
     },
     {
       queryKey: queryKeys.dashboard.activities(),
-      queryFn: dashboardApi.getDashboardActivities,
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.ACTIVITIES),
     },
     {
       queryKey: queryKeys.dashboard.jellyfinLatest(),
-      queryFn: () => dashboardApi.getDashboardJellyfinLatest(10),
+      queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=10`),
     },
     {
       queryKey: queryKeys.dashboard.upcoming(),
-      queryFn: () => dashboardApi.getDashboardUpcoming(8),
+      queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.UPCOMING.LIST}?limit=8`),
     },
     {
       queryKey: queryKeys.dashboard.qbittorrentStatus(),
-      queryFn: dashboardApi.getDashboardQbittorrentStatus,
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.STATUS),
     },
-    { queryKey: queryKeys.chores.list(), queryFn: choresApi.getChores },
+    { queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) },
   ],
 
   '/shopping': () => [
     {
       queryKey: queryKeys.shopping.items(),
-      queryFn: shoppingApi.getShoppingItems,
+      queryFn: () => webFetcher(SHOPPING_ENDPOINTS.LIST),
     },
   ],
 
-  '/chores': () => [{ queryKey: queryKeys.chores.list(), queryFn: choresApi.getChores }],
+  '/chores': () => [{ queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) }],
 
   // Note: /notifications is intentionally not prefetched because it uses
   // useInfiniteQuery which has a different data structure (pages array).

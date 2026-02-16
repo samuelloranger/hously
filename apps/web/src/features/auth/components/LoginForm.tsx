@@ -1,9 +1,9 @@
-import { useForm } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { useNavigate, Link } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { setUser } from "../../../lib/auth";
-import { useLogin, useSignup } from "../hooks";
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, Link } from '@tanstack/react-router';
+import { toast } from 'sonner';
+import { setUser } from '../../../lib/auth';
+import { useLogin, useSignup } from '@hously/shared';
 
 interface FormData {
   email: string;
@@ -28,22 +28,22 @@ function validatePasswordComplexity(value: string, t: (key: string) => string): 
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
 
   if (!hasUpperCase) {
-    return t("login.passwordNeedsUppercase") || "Password must contain at least one uppercase letter";
+    return t('login.passwordNeedsUppercase') || 'Password must contain at least one uppercase letter';
   }
   if (!hasLowerCase) {
-    return t("login.passwordNeedsLowercase") || "Password must contain at least one lowercase letter";
+    return t('login.passwordNeedsLowercase') || 'Password must contain at least one lowercase letter';
   }
   if (!hasNumber) {
-    return t("login.passwordNeedsNumber") || "Password must contain at least one number";
+    return t('login.passwordNeedsNumber') || 'Password must contain at least one number';
   }
   if (!hasSpecialChar) {
-    return t("login.passwordNeedsSpecialChar") || "Password must contain at least one special character";
+    return t('login.passwordNeedsSpecialChar') || 'Password must contain at least one special character';
   }
   return true;
 }
 
 export function LoginForm({ isSignup, onToggleMode }: LoginFormProps) {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const loginMutation = useLogin();
   const signupMutation = useSignup();
@@ -55,10 +55,10 @@ export function LoginForm({ isSignup, onToggleMode }: LoginFormProps) {
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      email: "",
-      password: "",
-      firstName: "",
-      lastName: "",
+      email: '',
+      password: '',
+      firstName: '',
+      lastName: '',
     },
   });
 
@@ -87,14 +87,11 @@ export function LoginForm({ isSignup, onToggleMode }: LoginFormProps) {
       }
 
       // Navigate to dashboard
-      navigate({ to: "/" });
+      navigate({ to: '/' });
     } catch (err: any) {
-      console.error("Auth error:", err);
+      console.error('Auth error:', err);
       toast.error(
-        err?.message ||
-          loginMutation.error?.message ||
-          signupMutation.error?.message ||
-          t("login.authFailed")
+        err?.message || loginMutation.error?.message || signupMutation.error?.message || t('login.authFailed')
       );
     }
   };
@@ -109,25 +106,25 @@ export function LoginForm({ isSignup, onToggleMode }: LoginFormProps) {
       <div className="rounded-md shadow-sm -space-y-px">
         <div>
           <label htmlFor="email" className="sr-only">
-            {t("login.emailAddress")}
+            {t('login.emailAddress')}
           </label>
           <input
             id="email"
             type="email"
             autoComplete="email"
-            {...register("email", {
+            {...register('email', {
               required: true,
               pattern: {
                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: t("login.invalidEmail") || "Invalid email address",
+                message: t('login.invalidEmail') || 'Invalid email address',
               },
             })}
             className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-            placeholder={t("login.emailAddress")}
+            placeholder={t('login.emailAddress')}
           />
           {errors.email && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-              {errors.email.message || t("login.emailRequired")}
+              {errors.email.message || t('login.emailRequired')}
             </p>
           )}
         </div>
@@ -136,28 +133,28 @@ export function LoginForm({ isSignup, onToggleMode }: LoginFormProps) {
           <>
             <div>
               <label htmlFor="firstName" className="sr-only">
-                {t("login.firstName")}
+                {t('login.firstName')}
               </label>
               <input
                 id="firstName"
                 type="text"
                 autoComplete="given-name"
-                {...register("firstName")}
+                {...register('firstName')}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder={t("login.firstName")}
+                placeholder={t('login.firstName')}
               />
             </div>
             <div>
               <label htmlFor="lastName" className="sr-only">
-                {t("login.lastName")}
+                {t('login.lastName')}
               </label>
               <input
                 id="lastName"
                 type="text"
                 autoComplete="family-name"
-                {...register("lastName")}
+                {...register('lastName')}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder={t("login.lastName")}
+                placeholder={t('login.lastName')}
               />
             </div>
           </>
@@ -165,30 +162,28 @@ export function LoginForm({ isSignup, onToggleMode }: LoginFormProps) {
 
         <div>
           <label htmlFor="password" className="sr-only">
-            {t("login.password")}
+            {t('login.password')}
           </label>
           <input
             id="password"
             type="password"
-            autoComplete={isSignup ? "new-password" : "current-password"}
-            {...register("password", {
+            autoComplete={isSignup ? 'new-password' : 'current-password'}
+            {...register('password', {
               required: true,
               minLength: isSignup
                 ? {
                     value: 8,
-                    message:
-                      t("login.passwordMinLength") ||
-                      "Password must be at least 12 characters",
+                    message: t('login.passwordMinLength') || 'Password must be at least 12 characters',
                   }
                 : undefined,
-              validate: isSignup ? (value) => validatePasswordComplexity(value, t) : undefined,
+              validate: isSignup ? value => validatePasswordComplexity(value, t) : undefined,
             })}
             className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-            placeholder={t("login.password")}
+            placeholder={t('login.password')}
           />
           {errors.password && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-              {errors.password.message || t("login.passwordRequired")}
+              {errors.password.message || t('login.passwordRequired')}
             </p>
           )}
         </div>
@@ -200,7 +195,7 @@ export function LoginForm({ isSignup, onToggleMode }: LoginFormProps) {
             to="/forgot-password"
             className="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
           >
-            {t("login.forgotPassword")}
+            {t('login.forgotPassword')}
           </Link>
         </div>
       )}
@@ -212,15 +207,13 @@ export function LoginForm({ isSignup, onToggleMode }: LoginFormProps) {
           className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
-            <span>{t("login.loading")}</span>
+            <span>{t('login.loading')}</span>
           ) : (
             <>
               <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                <span className="text-primary-500 group-hover:text-primary-400">
-                  🚪
-                </span>
+                <span className="text-primary-500 group-hover:text-primary-400">🚪</span>
               </span>
-              {isSignup ? t("login.signUpButton") : t("login.signInButton")}
+              {isSignup ? t('login.signUpButton') : t('login.signInButton')}
             </>
           )}
         </button>
@@ -232,9 +225,7 @@ export function LoginForm({ isSignup, onToggleMode }: LoginFormProps) {
           onClick={handleToggle}
           className="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
         >
-          {isSignup
-            ? t("login.alreadyHaveAccount")
-            : t("login.dontHaveAccount")}
+          {isSignup ? t('login.alreadyHaveAccount') : t('login.dontHaveAccount')}
         </button>
       </div>
     </form>

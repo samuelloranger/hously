@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
-import { useLocation } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "../lib/queryKeys";
+import { useEffect, useRef } from 'react';
+import { useLocation } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@hously/shared';
 
 /**
  * Component that refetches data when navigating between pages
@@ -29,25 +29,25 @@ export function RouteDataRefetcher() {
     // Refetch data based on the current route
     const refetchRouteData = async () => {
       switch (currentPath) {
-        case "/":
+        case '/':
           // Dashboard - refetch stats and activities
           await queryClient.refetchQueries({
             queryKey: queryKeys.dashboard.all,
           });
           break;
-        case "/shopping":
+        case '/shopping':
           // Shopping list
           await queryClient.refetchQueries({
             queryKey: queryKeys.shopping.all,
           });
           break;
-        case "/chores":
+        case '/chores':
           // Chores list
           await queryClient.refetchQueries({
             queryKey: queryKeys.chores.all,
           });
           break;
-        case "/notifications":
+        case '/notifications':
           // Notifications
           await queryClient.refetchQueries({
             queryKey: queryKeys.notifications.all,

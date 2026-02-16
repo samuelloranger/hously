@@ -1,5 +1,5 @@
-import { CalendarEvent } from "@/types";
-import { TFunction } from "i18next";
+import type { CalendarEvent } from '@hously/shared';
+import { TFunction } from 'i18next';
 
 /**
  * Split a multi-day event into separate events for each day.
@@ -9,11 +9,7 @@ import { TFunction } from "i18next";
  * - Last day: from 00:00:00 to end time
  */
 export function splitMultiDayEvent(event: CalendarEvent): CalendarEvent[] {
-  if (
-    event.type !== "custom_event" ||
-    !event.metadata?.start_datetime ||
-    !event.metadata?.end_datetime
-  ) {
+  if (event.type !== 'custom_event' || !event.metadata?.start_datetime || !event.metadata?.end_datetime) {
     return [event];
   }
 
@@ -21,16 +17,8 @@ export function splitMultiDayEvent(event: CalendarEvent): CalendarEvent[] {
   const endDate = new Date(event.metadata.end_datetime);
 
   // Check if it's a multi-day event
-  const startDay = new Date(
-    startDate.getFullYear(),
-    startDate.getMonth(),
-    startDate.getDate()
-  );
-  const endDay = new Date(
-    endDate.getFullYear(),
-    endDate.getMonth(),
-    endDate.getDate()
-  );
+  const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
 
   if (startDay.getTime() === endDay.getTime()) {
     // Single day event, return as is
@@ -70,7 +58,7 @@ export function splitMultiDayEvent(event: CalendarEvent): CalendarEvent[] {
       dayEnd.setHours(23, 59, 59, 999);
     }
 
-    const dateStr = currentDate.toISOString().split("T")[0];
+    const dateStr = currentDate.toISOString().split('T')[0];
 
     splitEvents.push({
       ...event,
@@ -89,29 +77,29 @@ export function splitMultiDayEvent(event: CalendarEvent): CalendarEvent[] {
 
 export const getMonthName = (t: TFunction, month: number) => {
   return [
-    t("calendar.january"),
-    t("calendar.february"),
-    t("calendar.march"),
-    t("calendar.april"),
-    t("calendar.may"),
-    t("calendar.june"),
-    t("calendar.july"),
-    t("calendar.august"),
-    t("calendar.september"),
-    t("calendar.october"),
-    t("calendar.november"),
-    t("calendar.december"),
+    t('calendar.january'),
+    t('calendar.february'),
+    t('calendar.march'),
+    t('calendar.april'),
+    t('calendar.may'),
+    t('calendar.june'),
+    t('calendar.july'),
+    t('calendar.august'),
+    t('calendar.september'),
+    t('calendar.october'),
+    t('calendar.november'),
+    t('calendar.december'),
   ][month];
 };
 
 export const getDayName = (t: TFunction, day: number) => {
   return [
-    t("calendar.sunday"),
-    t("calendar.monday"),
-    t("calendar.tuesday"),
-    t("calendar.wednesday"),
-    t("calendar.thursday"),
-    t("calendar.friday"),
-    t("calendar.saturday"),
+    t('calendar.sunday'),
+    t('calendar.monday'),
+    t('calendar.tuesday'),
+    t('calendar.wednesday'),
+    t('calendar.thursday'),
+    t('calendar.friday'),
+    t('calendar.saturday'),
   ][day];
 };

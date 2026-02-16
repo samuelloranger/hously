@@ -1,41 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useJellyfinPlugin,
+  useRadarrPlugin,
+  useSonarrPlugin,
+  useQbittorrentPlugin,
+  useUpdateJellyfinPlugin,
+  useUpdateRadarrPlugin,
+  useUpdateSonarrPlugin,
+  useUpdateQbittorrentPlugin,
+  useRadarrProfiles,
+  useSonarrProfiles,
+} from '@hously/shared';
 import { toast } from 'sonner';
-import { pluginsApi } from '../../features/plugins/api';
-import { queryKeys } from '../../lib/queryKeys';
 
 export function PluginsTab() {
   const { t } = useTranslation('common');
-  const queryClient = useQueryClient();
-
-  const { data: jellyfinData, isLoading: jellyfinLoading } = useQuery({
-    queryKey: queryKeys.plugins.jellyfin(),
-    queryFn: pluginsApi.getJellyfinPlugin,
-    refetchOnMount: 'always',
-    staleTime: 0,
-  });
-
-  const { data: radarrData, isLoading: radarrLoading } = useQuery({
-    queryKey: queryKeys.plugins.radarr(),
-    queryFn: pluginsApi.getRadarrPlugin,
-    refetchOnMount: 'always',
-    staleTime: 0,
-  });
-
-  const { data: sonarrData, isLoading: sonarrLoading } = useQuery({
-    queryKey: queryKeys.plugins.sonarr(),
-    queryFn: pluginsApi.getSonarrPlugin,
-    refetchOnMount: 'always',
-    staleTime: 0,
-  });
-
-  const { data: qbittorrentData, isLoading: qbittorrentLoading } = useQuery({
-    queryKey: queryKeys.plugins.qbittorrent(),
-    queryFn: pluginsApi.getQbittorrentPlugin,
-    refetchOnMount: 'always',
-    staleTime: 0,
-  });
+  const { data: jellyfinData, isLoading: jellyfinLoading } = useJellyfinPlugin();
+  const { data: radarrData, isLoading: radarrLoading } = useRadarrPlugin();
+  const { data: sonarrData, isLoading: sonarrLoading } = useSonarrPlugin();
+  const { data: qbittorrentData, isLoading: qbittorrentLoading } = useQbittorrentPlugin();
 
   const [jellyfinWebsiteUrl, setJellyfinWebsiteUrl] = useState('');
   const [jellyfinApiKey, setJellyfinApiKey] = useState('');
@@ -60,7 +44,7 @@ export function PluginsTab() {
   const [qbittorrentWebsiteUrl, setQbittorrentWebsiteUrl] = useState('');
   const [qbittorrentUsername, setQbittorrentUsername] = useState('');
   const [qbittorrentPassword, setQbittorrentPassword] = useState('');
-  const [qbittorrentPollInterval, setQbittorrentPollInterval] = useState('2');
+  const [qbittorrentPollInterval, setQbittorrentPollInterval] = useState('1');
   const [qbittorrentMaxItems, setQbittorrentMaxItems] = useState('8');
   const [qbittorrentEnabled, setQbittorrentEnabled] = useState(false);
 
@@ -98,113 +82,17 @@ export function PluginsTab() {
     setQbittorrentWebsiteUrl(qbittorrentData.plugin.website_url || '');
     setQbittorrentUsername(qbittorrentData.plugin.username || '');
     setQbittorrentPassword('');
-    setQbittorrentPollInterval(String(qbittorrentData.plugin.poll_interval_seconds || 2));
+    setQbittorrentPollInterval(String(qbittorrentData.plugin.poll_interval_seconds || 1));
     setQbittorrentMaxItems(String(qbittorrentData.plugin.max_items || 8));
     setQbittorrentEnabled(Boolean(qbittorrentData.plugin.enabled));
   }, [qbittorrentData]);
 
-  const jellyfinSaveMutation = useMutation({
-    mutationFn: pluginsApi.updateJellyfinPlugin,
-    onSuccess: async result => {
-      queryClient.setQueryData(queryKeys.plugins.jellyfin(), { plugin: result.plugin });
-      toast.success(t('settings.plugins.saveSuccess'));
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.plugins.jellyfin() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.jellyfinLatest() }),
-      ]);
-    },
-    onError: () => {
-      toast.error(t('settings.plugins.saveError'));
-    },
-  });
-
-  const radarrSaveMutation = useMutation({
-    mutationFn: pluginsApi.updateRadarrPlugin,
-    onSuccess: async result => {
-      queryClient.setQueryData(queryKeys.plugins.radarr(), { plugin: result.plugin });
-      toast.success(t('settings.plugins.saveSuccess'));
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.plugins.radarr() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() }),
-      ]);
-    },
-    onError: () => {
-      toast.error(t('settings.plugins.saveError'));
-    },
-  });
-
-  const sonarrSaveMutation = useMutation({
-    mutationFn: pluginsApi.updateSonarrPlugin,
-    onSuccess: async result => {
-      queryClient.setQueryData(queryKeys.plugins.sonarr(), { plugin: result.plugin });
-      toast.success(t('settings.plugins.saveSuccess'));
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.plugins.sonarr() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() }),
-      ]);
-    },
-    onError: () => {
-      toast.error(t('settings.plugins.saveError'));
-    },
-  });
-
-  const qbittorrentSaveMutation = useMutation({
-    mutationFn: pluginsApi.updateQbittorrentPlugin,
-    onSuccess: async result => {
-      queryClient.setQueryData(queryKeys.plugins.qbittorrent(), { plugin: result.plugin });
-      setQbittorrentPassword('');
-      toast.success(t('settings.plugins.saveSuccess'));
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.plugins.qbittorrent() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.qbittorrentStatus() }),
-      ]);
-    },
-    onError: () => {
-      toast.error(t('settings.plugins.saveError'));
-    },
-  });
-
-  const fetchRadarrProfilesMutation = useMutation({
-    mutationFn: pluginsApi.getRadarrProfiles,
-    onSuccess: result => {
-      setRadarrQualityProfiles(result.quality_profiles || []);
-      if (result.quality_profiles.length > 0) {
-        const hasCurrent = result.quality_profiles.some(profile => String(profile.id) === radarrQualityProfileId);
-        if (!hasCurrent) {
-          setRadarrQualityProfileId(String(result.quality_profiles[0].id));
-        }
-      }
-    },
-    onError: () => {
-      toast.error(t('settings.plugins.profileFetchError'));
-    },
-  });
-
-  const fetchSonarrProfilesMutation = useMutation({
-    mutationFn: pluginsApi.getSonarrProfiles,
-    onSuccess: result => {
-      const filteredLanguageProfiles = filterDeprecatedProfiles(result.language_profiles || []);
-      setSonarrQualityProfiles(result.quality_profiles || []);
-      setSonarrLanguageProfiles(filteredLanguageProfiles);
-
-      if (result.quality_profiles.length > 0) {
-        const hasCurrentQuality = result.quality_profiles.some(profile => String(profile.id) === sonarrQualityProfileId);
-        if (!hasCurrentQuality) {
-          setSonarrQualityProfileId(String(result.quality_profiles[0].id));
-        }
-      }
-
-      if (filteredLanguageProfiles.length > 0) {
-        const hasCurrentLanguage = filteredLanguageProfiles.some(profile => String(profile.id) === sonarrLanguageProfileId);
-        if (!hasCurrentLanguage) {
-          setSonarrLanguageProfileId(String(filteredLanguageProfiles[0].id));
-        }
-      }
-    },
-    onError: () => {
-      toast.error(t('settings.plugins.profileFetchError'));
-    },
-  });
+  const jellyfinSaveMutation = useUpdateJellyfinPlugin();
+  const radarrSaveMutation = useUpdateRadarrPlugin();
+  const sonarrSaveMutation = useUpdateSonarrPlugin();
+  const qbittorrentSaveMutation = useUpdateQbittorrentPlugin();
+  const fetchRadarrProfilesMutation = useRadarrProfiles();
+  const fetchSonarrProfilesMutation = useSonarrProfiles();
 
   const isAnyLoading = jellyfinLoading || radarrLoading || sonarrLoading || qbittorrentLoading;
   const isAnySaving =
@@ -216,14 +104,18 @@ export function PluginsTab() {
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300" key="plugins-tab">
       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">{t('settings.plugins.title')}</h2>
+        <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">
+          {t('settings.plugins.title')}
+        </h2>
         <p className="text-neutral-600 dark:text-neutral-400 mb-6">{t('settings.plugins.description')}</p>
 
         <div className="rounded-2xl p-5 mb-8 border border-neutral-200 dark:border-neutral-700 bg-gradient-to-br from-neutral-50 to-cyan-50 dark:from-neutral-800 dark:to-cyan-950/20">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Jellyfin</h3>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">{t('settings.plugins.jellyfin.help')}</p>
+              <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+                {t('settings.plugins.jellyfin.help')}
+              </p>
             </div>
             <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
               <input
@@ -280,11 +172,14 @@ export function PluginsTab() {
             <button
               type="button"
               onClick={() =>
-                jellyfinSaveMutation.mutate({
-                  website_url: jellyfinWebsiteUrl,
-                  api_key: jellyfinApiKey,
-                  enabled: jellyfinEnabled,
-                })
+                jellyfinSaveMutation
+                  .mutateAsync({
+                    website_url: jellyfinWebsiteUrl,
+                    api_key: jellyfinApiKey,
+                    enabled: jellyfinEnabled,
+                  })
+                  .then(() => toast.success(t('settings.plugins.saveSuccess')))
+                  .catch(() => toast.error(t('settings.plugins.saveError')))
               }
               disabled={isAnyLoading || isAnySaving}
               className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -337,7 +232,20 @@ export function PluginsTab() {
                   const websiteUrl = radarrWebsiteUrl.trim();
                   const apiKey = radarrApiKey.trim();
                   if (!websiteUrl || !apiKey) return;
-                  fetchRadarrProfilesMutation.mutate({ website_url: websiteUrl, api_key: apiKey });
+                  fetchRadarrProfilesMutation
+                    .mutateAsync({ website_url: websiteUrl, api_key: apiKey })
+                    .then(result => {
+                      setRadarrQualityProfiles(result.quality_profiles || []);
+                      if (result.quality_profiles.length > 0) {
+                        const hasCurrent = result.quality_profiles.some(
+                          profile => String(profile.id) === radarrQualityProfileId
+                        );
+                        if (!hasCurrent) {
+                          setRadarrQualityProfileId(String(result.quality_profiles[0].id));
+                        }
+                      }
+                    })
+                    .catch(() => toast.error(t('settings.plugins.profileFetchError')));
                 }}
                 placeholder={t('settings.plugins.radarr.apiKeyPlaceholder')}
                 className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
@@ -409,13 +317,16 @@ export function PluginsTab() {
             <button
               type="button"
               onClick={() =>
-                radarrSaveMutation.mutate({
-                  website_url: radarrWebsiteUrl,
-                  api_key: radarrApiKey,
-                  root_folder_path: radarrRootFolderPath,
-                  quality_profile_id: Number(radarrQualityProfileId || 0),
-                  enabled: radarrEnabled,
-                })
+                radarrSaveMutation
+                  .mutateAsync({
+                    website_url: radarrWebsiteUrl,
+                    api_key: radarrApiKey,
+                    root_folder_path: radarrRootFolderPath,
+                    quality_profile_id: Number(radarrQualityProfileId || 0),
+                    enabled: radarrEnabled,
+                  })
+                  .then(() => toast.success(t('settings.plugins.saveSuccess')))
+                  .catch(() => toast.error(t('settings.plugins.saveError')))
               }
               disabled={isAnyLoading || isAnySaving}
               className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -468,7 +379,32 @@ export function PluginsTab() {
                   const websiteUrl = sonarrWebsiteUrl.trim();
                   const apiKey = sonarrApiKey.trim();
                   if (!websiteUrl || !apiKey) return;
-                  fetchSonarrProfilesMutation.mutate({ website_url: websiteUrl, api_key: apiKey });
+                  fetchSonarrProfilesMutation
+                    .mutateAsync({ website_url: websiteUrl, api_key: apiKey })
+                    .then(result => {
+                      const filteredLanguageProfiles = filterDeprecatedProfiles(result.language_profiles || []);
+                      setSonarrQualityProfiles(result.quality_profiles || []);
+                      setSonarrLanguageProfiles(filteredLanguageProfiles);
+
+                      if (result.quality_profiles.length > 0) {
+                        const hasCurrentQuality = result.quality_profiles.some(
+                          profile => String(profile.id) === sonarrQualityProfileId
+                        );
+                        if (!hasCurrentQuality) {
+                          setSonarrQualityProfileId(String(result.quality_profiles[0].id));
+                        }
+                      }
+
+                      if (filteredLanguageProfiles.length > 0) {
+                        const hasCurrentLanguage = filteredLanguageProfiles.some(
+                          profile => String(profile.id) === sonarrLanguageProfileId
+                        );
+                        if (!hasCurrentLanguage) {
+                          setSonarrLanguageProfileId(String(filteredLanguageProfiles[0].id));
+                        }
+                      }
+                    })
+                    .catch(() => toast.error(t('settings.plugins.profileFetchError')));
                 }}
                 placeholder={t('settings.plugins.sonarr.apiKeyPlaceholder')}
                 className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
@@ -569,14 +505,17 @@ export function PluginsTab() {
             <button
               type="button"
               onClick={() =>
-                sonarrSaveMutation.mutate({
-                  website_url: sonarrWebsiteUrl,
-                  api_key: sonarrApiKey,
-                  root_folder_path: sonarrRootFolderPath,
-                  quality_profile_id: Number(sonarrQualityProfileId || 0),
-                  language_profile_id: Number(sonarrLanguageProfileId || 0),
-                  enabled: sonarrEnabled,
-                })
+                sonarrSaveMutation
+                  .mutateAsync({
+                    website_url: sonarrWebsiteUrl,
+                    api_key: sonarrApiKey,
+                    root_folder_path: sonarrRootFolderPath,
+                    quality_profile_id: Number(sonarrQualityProfileId || 0),
+                    language_profile_id: Number(sonarrLanguageProfileId || 0),
+                    enabled: sonarrEnabled,
+                  })
+                  .then(() => toast.success(t('settings.plugins.saveSuccess')))
+                  .catch(() => toast.error(t('settings.plugins.saveError')))
               }
               disabled={isAnyLoading || isAnySaving}
               className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -652,7 +591,7 @@ export function PluginsTab() {
                 </label>
                 <input
                   type="number"
-                  min={2}
+                  min={1}
                   max={30}
                   step={1}
                   value={qbittorrentPollInterval}
@@ -685,7 +624,7 @@ export function PluginsTab() {
                 setQbittorrentWebsiteUrl(qbittorrentData?.plugin.website_url || '');
                 setQbittorrentUsername(qbittorrentData?.plugin.username || '');
                 setQbittorrentPassword('');
-                setQbittorrentPollInterval(String(qbittorrentData?.plugin.poll_interval_seconds || 2));
+                setQbittorrentPollInterval(String(qbittorrentData?.plugin.poll_interval_seconds || 1));
                 setQbittorrentMaxItems(String(qbittorrentData?.plugin.max_items || 8));
                 setQbittorrentEnabled(Boolean(qbittorrentData?.plugin.enabled));
               }}
@@ -697,14 +636,20 @@ export function PluginsTab() {
             <button
               type="button"
               onClick={() =>
-                qbittorrentSaveMutation.mutate({
-                  website_url: qbittorrentWebsiteUrl,
-                  username: qbittorrentUsername,
-                  password: qbittorrentPassword.trim() ? qbittorrentPassword : undefined,
-                  poll_interval_seconds: Number(qbittorrentPollInterval || 2),
-                  max_items: Number(qbittorrentMaxItems || 8),
-                  enabled: qbittorrentEnabled,
-                })
+                qbittorrentSaveMutation
+                  .mutateAsync({
+                    website_url: qbittorrentWebsiteUrl,
+                    username: qbittorrentUsername,
+                    password: qbittorrentPassword.trim() ? qbittorrentPassword : undefined,
+                    poll_interval_seconds: Number(qbittorrentPollInterval || 1),
+                    max_items: Number(qbittorrentMaxItems || 8),
+                    enabled: qbittorrentEnabled,
+                  })
+                  .then(() => {
+                    setQbittorrentPassword('');
+                    toast.success(t('settings.plugins.saveSuccess'));
+                  })
+                  .catch(() => toast.error(t('settings.plugins.saveError')))
               }
               disabled={isAnyLoading || isAnySaving}
               className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"

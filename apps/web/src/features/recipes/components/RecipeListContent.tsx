@@ -1,24 +1,23 @@
-import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { Plus, Search, Star } from "lucide-react";
-import { LoadingState } from "../../../components/LoadingState";
-import { RecipeCard } from "./RecipeCard";
-import { useRecipes } from "../hooks/useRecipes";
-import { CreateRecipeModal } from "./CreateRecipeModal";
-import { EditRecipeModal } from "./EditRecipeModal";
-import type { Recipe } from "@/types";
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Plus, Search, Star } from 'lucide-react';
+import { LoadingState } from '../../../components/LoadingState';
+import { RecipeCard } from './RecipeCard';
+import { useRecipes, type Recipe } from '@hously/shared';
+import { CreateRecipeModal } from './CreateRecipeModal';
+import { EditRecipeModal } from './EditRecipeModal';
 
-const CATEGORIES = ["breakfast", "lunch", "dinner", "dessert", "snack"];
+const CATEGORIES = ['breakfast', 'lunch', 'dinner', 'dessert', 'snack'];
 
 interface RecipeListContentProps {
   refreshKey?: number;
 }
 
 export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation('common');
   const { data, isLoading, refetch } = useRecipes();
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [editRecipe, setEditRecipe] = useState<Recipe | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -38,12 +37,9 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
   const recipes = data?.recipes || [];
 
   // Filter recipes
-  const filteredRecipes = recipes.filter((recipe) => {
-    const matchesSearch = recipe.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      !selectedCategory || recipe.category === selectedCategory;
+  const filteredRecipes = recipes.filter(recipe => {
+    const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !selectedCategory || recipe.category === selectedCategory;
     const matchesFavorites = !showFavoritesOnly || recipe.is_favorite === 1;
 
     return matchesSearch && matchesCategory && matchesFavorites;
@@ -61,9 +57,9 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
           <input
             type="text"
-            placeholder={t("recipes.searchPlaceholder", "Search recipes...")}
+            placeholder={t('recipes.searchPlaceholder', 'Search recipes...')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           />
         </div>
@@ -72,14 +68,12 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
           onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
           className={`px-4 py-2 rounded-lg border flex items-center gap-2 transition-colors ${
             showFavoritesOnly
-              ? "bg-yellow-100 dark:bg-yellow-900 border-yellow-400 text-yellow-700 dark:text-yellow-300"
-              : "border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700"
+              ? 'bg-yellow-100 dark:bg-yellow-900 border-yellow-400 text-yellow-700 dark:text-yellow-300'
+              : 'border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700'
           }`}
         >
-          <Star
-            className={`w-4 h-4 ${showFavoritesOnly ? "fill-current" : ""}`}
-          />
-          <span>{t("recipes.favorites", "Favorites")}</span>
+          <Star className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+          <span>{t('recipes.favorites', 'Favorites')}</span>
         </button>
 
         <button
@@ -87,7 +81,7 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
           className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg flex items-center gap-2 transition-colors"
         >
           <Plus className="w-5 h-5" />
-          <span>{t("recipes.addRecipe", "Add Recipe")}</span>
+          <span>{t('recipes.addRecipe', 'Add Recipe')}</span>
         </button>
       </div>
 
@@ -97,20 +91,20 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
           onClick={() => setSelectedCategory(null)}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             selectedCategory === null
-              ? "bg-orange-600 text-white"
-              : "bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+              ? 'bg-orange-600 text-white'
+              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
           }`}
         >
-          {t("recipes.all", "All")}
+          {t('recipes.all', 'All')}
         </button>
-        {CATEGORIES.map((category) => (
+        {CATEGORIES.map(category => (
           <button
             key={category}
             onClick={() => setSelectedCategory(category)}
             className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
               selectedCategory === category
-                ? "bg-orange-600 text-white"
-                : "bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                ? 'bg-orange-600 text-white'
+                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
             }`}
           >
             {t(`recipes.category.${category}`, category)}
@@ -121,7 +115,7 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
       {/* Recipe Grid */}
       {filteredRecipes.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredRecipes.map((recipe) => (
+          {filteredRecipes.map(recipe => (
             <RecipeCard key={recipe.id} recipe={recipe} />
           ))}
         </div>
@@ -132,34 +126,19 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
           </div>
           <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
             {searchQuery || selectedCategory || showFavoritesOnly
-              ? t("recipes.noRecipesFiltered", "No recipes found")
-              : t("recipes.noRecipes", "No recipes yet")}
+              ? t('recipes.noRecipesFiltered', 'No recipes found')
+              : t('recipes.noRecipes', 'No recipes yet')}
           </h3>
           <p className="text-neutral-600 dark:text-neutral-400 mb-6 max-w-md mx-auto">
             {searchQuery || selectedCategory || showFavoritesOnly
-              ? t(
-                  "recipes.tryDifferentFilter",
-                  "Try adjusting your filters or search"
-                )
-              : t(
-                  "recipes.startAdding",
-                  "Start adding your favorite family recipes"
-                )}
+              ? t('recipes.tryDifferentFilter', 'Try adjusting your filters or search')
+              : t('recipes.startAdding', 'Start adding your favorite family recipes')}
           </p>
         </div>
       )}
 
-      <CreateRecipeModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
-      {editRecipe && (
-        <EditRecipeModal
-          recipe={editRecipe}
-          isOpen={true}
-          onClose={closeEditModal}
-        />
-      )}
+      <CreateRecipeModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+      {editRecipe && <EditRecipeModal recipe={editRecipe} isOpen={true} onClose={closeEditModal} />}
     </>
   );
 }

@@ -13,9 +13,18 @@
       "Bash(docker compose:*)",
       "Bash(uv run alembic upgrade:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(npx tsc:*)",
+      "Bash(bun install:*)",
+      "Bash(make typecheck:*)",
+      "Bash(make lint:*)",
+      "Bash(bunx knip:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "chrome-devtools"
+  ]
 }

@@ -1,198 +1,65 @@
-import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
-import { Bell } from "lucide-react";
-import * as Popover from "@radix-ui/react-popover";
-import { notificationsApi } from "../features/notifications/api";
-import { queryKeys } from "../lib/queryKeys";
-import { cn } from "../lib/utils";
-import { formatDate, formatTime } from "../lib/date-utils";
-import { syncBadge } from "../lib/serviceWorker";
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from '@tanstack/react-router';
+import { Bell } from 'lucide-react';
+import * as Popover from '@radix-ui/react-popover';
+import {
+  queryKeys,
+  formatDate,
+  formatTime,
+  useMarkAllAsReadOptimistic,
+  useMarkAsReadOptimistic,
+  useNotifications,
+  useUnreadCount,
+} from '@hously/shared';
+import { cn } from '../lib/utils';
+import { syncBadge } from '../lib/serviceWorker';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function NotificationsMenu() {
-  const { t, i18n } = useTranslation("common");
+  const { t, i18n } = useTranslation('common');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
 
   // Fetch unread count
-  const { data: unreadData } = useQuery({
-    queryKey: queryKeys.notifications.unreadCount(),
-    queryFn: () => notificationsApi.getUnreadCount(),
-    refetchInterval: 30000, // Poll every 30 seconds
-  });
+  const { data: unreadData } = useUnreadCount();
 
   // Fetch recent notifications
-  const { data: notificationsData } = useQuery({
-    queryKey: queryKeys.notifications.list(1, 10),
-    queryFn: () => notificationsApi.getNotifications(1, 10),
-    enabled: isOpen,
-  });
+  const { data: notificationsData } = useNotifications(1, 10);
 
-  const markAsReadMutation = useMutation({
-    mutationFn: notificationsApi.markAsRead,
-    onMutate: async (notificationId) => {
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.notifications.all,
-      });
+  const markAsReadMutation = useMarkAsReadOptimistic();
 
-      const previousNotifications = queryClient.getQueriesData({
-        queryKey: queryKeys.notifications.all,
-      });
+  const markAllAsReadMutation = useMarkAllAsReadOptimistic();
 
-      // Optimistically update notifications
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.notifications.all },
-        (old: any) => {
-          if (!old) return old;
-
-          if (old.pages) {
-            return {
-              ...old,
-              pages: old.pages.map((page: any) => ({
-                ...page,
-                notifications: (page.notifications || []).map((n: any) =>
-                  n.id === notificationId
-                    ? { ...n, read: true, read_at: new Date().toISOString() }
-                    : n
-                ),
-              })),
-            };
-          }
-
-          if (Array.isArray(old.notifications)) {
-            return {
-              ...old,
-              notifications: old.notifications.map((n: any) =>
-                n.id === notificationId
-                  ? { ...n, read: true, read_at: new Date().toISOString() }
-                  : n
-              ),
-            };
-          }
-
-          return old;
-        }
-      );
-
-      // Optimistically update unread count
-      queryClient.setQueryData(
-        queryKeys.notifications.unreadCount(),
-        (old: { unread_count: number } | undefined) => {
-          if (!old) return { unread_count: 0 };
-          return { unread_count: Math.max(0, old.unread_count - 1) };
-        }
-      );
-
-      return { previousNotifications };
-    },
-    onError: (_err, _notificationId, context) => {
-      if (context?.previousNotifications) {
-        context.previousNotifications.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
-    },
-  });
-
-  const markAllAsReadMutation = useMutation({
-    mutationFn: notificationsApi.markAllAsRead,
-    onMutate: async () => {
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.notifications.all,
-      });
-
-      const previousNotifications = queryClient.getQueriesData({
-        queryKey: queryKeys.notifications.all,
-      });
-
-      // Optimistically mark all notifications as read
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.notifications.all },
-        (old: any) => {
-          if (!old) return old;
-
-          if (old.pages) {
-            return {
-              ...old,
-              pages: old.pages.map((page: any) => ({
-                ...page,
-                notifications: (page.notifications || []).map((n: any) => ({
-                  ...n,
-                  read: true,
-                  read_at: n.read_at || new Date().toISOString(),
-                })),
-              })),
-            };
-          }
-
-          if (Array.isArray(old.notifications)) {
-            return {
-              ...old,
-              notifications: old.notifications.map((n: any) => ({
-                ...n,
-                read: true,
-                read_at: n.read_at || new Date().toISOString(),
-              })),
-            };
-          }
-
-          return old;
-        }
-      );
-
-      // Optimistically set unread count to 0
-      queryClient.setQueryData(queryKeys.notifications.unreadCount(), {
-        unread_count: 0,
-      });
-
-      return { previousNotifications };
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previousNotifications) {
-        context.previousNotifications.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
-      }
-    },
-    onSettled: () => {
-      syncBadge();
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
-    },
-  });
+  useEffect(() => {
+    if (!isOpen) return;
+    queryClient.invalidateQueries({ queryKey: queryKeys.notifications.list(1, 10) });
+  }, [isOpen, queryClient]);
 
   const unreadCount = unreadData?.unread_count || 0;
   const recentNotifications = notificationsData?.notifications || [];
 
   // Listen for service worker messages to update unread count
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
+    if ('serviceWorker' in navigator) {
       const handleMessage = (event: MessageEvent) => {
-        if (event.data && event.data.type === "NOTIFICATION_COUNT_UPDATE") {
+        if (event.data && event.data.type === 'NOTIFICATION_COUNT_UPDATE') {
           queryClient.invalidateQueries({
             queryKey: queryKeys.notifications.unreadCount(),
           });
         }
       };
 
-      navigator.serviceWorker.addEventListener("message", handleMessage);
+      navigator.serviceWorker.addEventListener('message', handleMessage);
       return () => {
-        navigator.serviceWorker.removeEventListener("message", handleMessage);
+        navigator.serviceWorker.removeEventListener('message', handleMessage);
       };
     }
     return undefined;
   }, [queryClient]);
 
-  const handleNotificationClick = async (notification: {
-    id: number;
-    read: boolean;
-    url: string | null;
-  }) => {
+  const handleNotificationClick = async (notification: { id: number; read: boolean; url: string | null }) => {
     if (!notification.read) {
       await markAsReadMutation.mutateAsync(notification.id);
     }
@@ -200,12 +67,13 @@ export function NotificationsMenu() {
     if (notification.url) {
       navigate({ to: notification.url });
     } else {
-      navigate({ to: "/notifications" });
+      navigate({ to: '/notifications' });
     }
   };
 
   const handleMarkAllAsRead = async () => {
     await markAllAsReadMutation.mutateAsync();
+    syncBadge();
   };
 
   return (
@@ -213,12 +81,12 @@ export function NotificationsMenu() {
       <Popover.Trigger asChild>
         <button
           className="flex justify-center items-center relative p-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg transition-colors"
-          aria-label={t("notifications.bell")}
+          aria-label={t('notifications.bell')}
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-              {unreadCount > 9 ? "9+" : unreadCount}
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
@@ -234,7 +102,7 @@ export function NotificationsMenu() {
           <div className="p-4 border-b border-neutral-200 dark:border-neutral-700">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-                {t("notifications.title")}
+                {t('notifications.title')}
               </h3>
               {unreadCount > 0 && (
                 <button
@@ -242,7 +110,7 @@ export function NotificationsMenu() {
                   className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
                   disabled={markAllAsReadMutation.isPending}
                 >
-                  {t("notifications.markAllAsRead")}
+                  {t('notifications.markAllAsRead')}
                 </button>
               )}
             </div>
@@ -251,26 +119,26 @@ export function NotificationsMenu() {
           <div className="divide-y divide-neutral-200 dark:divide-neutral-700 max-h-80 overflow-y-auto">
             {recentNotifications.length === 0 ? (
               <div className="p-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                {t("notifications.noNotifications")}
+                {t('notifications.noNotifications')}
               </div>
             ) : (
-              recentNotifications.map((notification) => (
+              recentNotifications.map(notification => (
                 <button
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
                   className={cn(
-                    "relative w-full text-left p-4 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors",
-                    !notification.read && "bg-blue-50 dark:bg-blue-900/20"
+                    'relative w-full text-left p-4 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors',
+                    !notification.read && 'bg-blue-50 dark:bg-blue-900/20'
                   )}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <p
                         className={cn(
-                          "text-sm font-medium",
+                          'text-sm font-medium',
                           notification.read
-                            ? "text-neutral-900 dark:text-neutral-100"
-                            : "text-neutral-900 dark:text-neutral-100 font-semibold"
+                            ? 'text-neutral-900 dark:text-neutral-100'
+                            : 'text-neutral-900 dark:text-neutral-100 font-semibold'
                         )}
                       >
                         {notification.title}
@@ -279,14 +147,8 @@ export function NotificationsMenu() {
                         {notification.body}
                       </p>
                       <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
-                        {formatDate(
-                          notification.created_at,
-                          i18n.language || "en"
-                        )}{" "}
-                        {formatTime(
-                          notification.created_at,
-                          i18n.language || "en"
-                        )}
+                        {formatDate(notification.created_at, i18n.language || 'en')}{' '}
+                        {formatTime(notification.created_at, i18n.language || 'en')}
                       </p>
                     </div>
                   </div>
@@ -305,11 +167,11 @@ export function NotificationsMenu() {
             <button
               onClick={() => {
                 setIsOpen(false);
-                navigate({ to: "/notifications" });
+                navigate({ to: '/notifications' });
               }}
               className="w-full text-center text-sm text-primary-600 dark:text-primary-400 hover:underline py-2"
             >
-              {t("notifications.viewAll")}
+              {t('notifications.viewAll')}
             </button>
           </div>
           {/* )} */}

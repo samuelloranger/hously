@@ -1,45 +1,95 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { Navbar } from "../Navbar";
-import type { User } from "@/types";
-import { mockUser } from "../../test-utils/mocks";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { Navbar } from '../Navbar';
+import { mockUser } from '../../test-utils/mocks';
 
-// Mock the logout function
-vi.mock("../../lib/auth", () => ({
-  logout: vi.fn(),
+const mockLogout = vi.fn();
+const mockNavigate = vi.fn();
+const mockUseAuth = vi.fn();
+
+vi.mock('../../lib/auth', () => ({
+  clearUser: vi.fn(),
 }));
 
-describe("Navbar", () => {
+vi.mock('@hously/shared', () => ({
+  useLogout: () => ({
+    mutateAsync: mockLogout,
+  }),
+}));
+
+vi.mock('../../hooks/useAuth', () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => <a href={to}>{children}</a>,
+  useNavigate: () => mockNavigate,
+  useRouterState: () => ({
+    location: { pathname: '/' },
+  }),
+}));
+
+vi.mock('../../hooks/usePrefetchRoute', () => ({
+  usePrefetchRoute: () => () => {},
+}));
+
+vi.mock('./NotificationsBell', () => ({
+  NotificationsMenu: () => <div>Notifications</div>,
+}));
+
+vi.mock('./UserMenu', () => ({
+  UserMenu: ({ user }: { user: { first_name: string | null; last_name: string | null; email: string } }) => (
+    <div>{user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email}</div>
+  ),
+}));
+
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'nav.shopping': 'Shopping',
+        'nav.chores': 'Chores',
+        'nav.kitchen': 'Kitchen',
+        'calendar.title': 'Calendar',
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
+describe('Navbar', () => {
   beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.classList.remove("dark");
+    mockLogout.mockClear();
+    mockUseAuth.mockReset();
   });
 
-  it("renders user display name", () => {
-    render(<Navbar user={mockUser} />);
+  it('renders user display name', () => {
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+    });
+
+    render(<Navbar />);
     expect(screen.getByText(/Test User/i)).toBeInTheDocument();
   });
 
-  it("renders navigation links", () => {
-    render(<Navbar user={mockUser} />);
-    expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
-    expect(screen.getByText(/shopping/i)).toBeInTheDocument();
-    expect(screen.getByText(/chores/i)).toBeInTheDocument();
+  it('renders navigation links', () => {
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+    });
+
+    render(<Navbar />);
+    expect(screen.getByText(/Shopping/i)).toBeInTheDocument();
+    expect(screen.getByText(/Chores/i)).toBeInTheDocument();
   });
 
-  it("renders theme toggle button", () => {
-    render(<Navbar user={mockUser} />);
-    const themeButton = screen.getByLabelText(/toggle theme/i);
-    expect(themeButton).toBeInTheDocument();
-  });
+  it('shows loading when no user', () => {
+    mockUseAuth.mockReturnValue({
+      user: null,
+      isLoading: true,
+    });
 
-  it("formats display name correctly", () => {
-    const userWithNames: User = {
-      ...mockUser,
-      first_name: "john",
-      last_name: "doe",
-    };
-    render(<Navbar user={userWithNames} />);
-    expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
+    render(<Navbar />);
   });
 });

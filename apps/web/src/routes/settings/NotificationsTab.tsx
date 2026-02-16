@@ -3,9 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useNotifications } from '../../hooks/useNotifications';
-import { fetchApi } from '../../lib/api';
-import { useNotificationDevices, useDeleteNotificationDevice } from '../../features/notifications/hooks';
-import { queryKeys } from '../../lib/queryKeys';
+import {
+  queryKeys,
+  useDeleteNotificationDevice,
+  useNotificationDevices,
+  useSubscribeToPushNotifications,
+  useTestPushNotification,
+} from '@hously/shared';
 import { getDeviceInfo } from '../../lib/deviceInfo';
 
 export function NotificationsTab() {
@@ -17,6 +21,8 @@ export function NotificationsTab() {
   const { data: devicesData, isLoading: devicesLoading } = useNotificationDevices();
   const devices = devicesData?.devices || [];
   const deleteDeviceMutation = useDeleteNotificationDevice();
+  const subscribeMutation = useSubscribeToPushNotifications();
+  const testNotificationMutation = useTestPushNotification();
 
   const handleRequestPermission = async () => {
     setLoading(true);
@@ -46,12 +52,9 @@ export function NotificationsTab() {
         const deviceInfo = getDeviceInfo();
 
         // Send subscription to backend with device info
-        await fetchApi('/api/notifications/subscribe', {
-          method: 'POST',
-          body: JSON.stringify({
-            subscription: sub,
-            device_info: deviceInfo,
-          }),
+        await subscribeMutation.mutateAsync({
+          subscription: sub as unknown as Record<string, unknown>,
+          deviceInfo: deviceInfo as unknown as Record<string, unknown>,
         });
         toast.success(t('settings.notifications.subscribeSuccess'));
         // Invalidate devices query to refetch
@@ -169,10 +172,7 @@ export function NotificationsTab() {
 
     setLoading(true);
     try {
-      await fetchApi('/api/notifications/test', {
-        method: 'POST',
-        body: JSON.stringify({ subscription }),
-      });
+      await testNotificationMutation.mutateAsync(subscription as unknown as Record<string, unknown>);
       toast.success('Test notification sent! Check your notifications.');
     } catch (error) {
       console.error('Error sending test notification:', error);

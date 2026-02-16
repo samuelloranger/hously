@@ -3,6 +3,7 @@
  */
 
 import { fetchApi } from './api';
+import { SYSTEM_ENDPOINTS } from '@hously/shared';
 
 const VERSION_STORAGE_KEY = 'hously_app_version';
 
@@ -26,10 +27,10 @@ async function clearAllCaches(): Promise<void> {
       } catch (error) {
         console.warn('Could not send clearCache message to service worker:', error);
       }
-      
+
       // Also clear caches directly (in case service worker is not active)
       const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map((name) => caches.delete(name)));
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
     }
 
     // Clear localStorage (except version which we'll set next)
@@ -51,8 +52,8 @@ async function clearAllCaches(): Promise<void> {
  */
 async function getServerVersion(): Promise<string | null> {
   try {
-    const data = await fetchApi<{ version: string }>('/api/version');
-      return data.version;
+    const data = await fetchApi<{ version: string }>(SYSTEM_ENDPOINTS.VERSION);
+    return data.version;
   } catch (error) {
     console.error('Failed to get server version:', error);
     return null;
@@ -93,4 +94,3 @@ export async function checkVersionAndReload(): Promise<boolean> {
     return false;
   }
 }
-

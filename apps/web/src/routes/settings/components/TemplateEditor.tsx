@@ -2,9 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import type { NotificationTemplate } from '../../../features/external-notifications/api';
-import { externalNotificationsApi } from '../../../features/external-notifications/api';
-import { queryKeys } from '../../../lib/queryKeys';
+import { queryKeys, type NotificationTemplate, useUpdateExternalNotificationTemplate } from '@hously/shared';
 
 interface TemplateEditorProps {
   templates: NotificationTemplate[];
@@ -15,6 +13,7 @@ interface TemplateEditorProps {
 export function TemplateEditor({ templates, eventType, onCancel }: TemplateEditorProps) {
   const { t, i18n } = useTranslation('common');
   const queryClient = useQueryClient();
+  const updateTemplate = useUpdateExternalNotificationTemplate();
   const currentLanguage = i18n.language.split('-')[0] || 'en';
 
   // Find template for current language or fallback to first available
@@ -58,9 +57,12 @@ export function TemplateEditor({ templates, eventType, onCancel }: TemplateEdito
 
     setIsSaving(true);
     try {
-      await externalNotificationsApi.updateTemplate(currentTemplate.id, {
-        title_template: titleTemplate,
-        body_template: bodyTemplate,
+      await updateTemplate.mutateAsync({
+        templateId: currentTemplate.id,
+        data: {
+          title_template: titleTemplate,
+          body_template: bodyTemplate,
+        },
       });
       toast.success(t('settings.externalNotifications.templateSaved'));
       queryClient.invalidateQueries({
