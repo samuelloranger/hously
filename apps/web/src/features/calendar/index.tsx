@@ -21,7 +21,7 @@ import { EventCard } from './components/EventCard';
 import { cn } from '@/lib/utils';
 import { startOfDay } from 'date-fns';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, ChevronLeft, ChevronRight, CalendarDays, X } from 'lucide-react';
 import { HouseLoader } from '@/components/HouseLoader';
 
 export function Calendar() {
@@ -33,7 +33,6 @@ export function Calendar() {
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<CalendarEvent | undefined>(undefined);
   const [isEditEventOpen, setIsEditEventOpen] = useState(false);
-  const [calendarGridRef] = useAutoAnimate();
   const [selectedDayEventsContainerRef] = useAutoAnimate();
 
   const { data: events = [], isLoading, refetch } = useCalendarEvents(currentYear, currentMonth);
@@ -66,12 +65,11 @@ export function Calendar() {
     const firstDay = new Date(currentYear, currentMonth - 1, 1);
     const lastDay = new Date(currentYear, currentMonth, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const startingDayOfWeek = firstDay.getDay();
 
     const grid: Date[][] = [];
     let currentWeek: Date[] = [];
 
-    // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
       const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
@@ -80,7 +78,6 @@ export function Calendar() {
       currentWeek.push(date);
     }
 
-    // Add days of the current month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentYear, currentMonth - 1, day);
       currentWeek.push(date);
@@ -91,7 +88,6 @@ export function Calendar() {
       }
     }
 
-    // Add empty cells for days after the last day of the month
     const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
     const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
     let nextMonthDay = 1;
@@ -129,6 +125,12 @@ export function Calendar() {
     }
   };
 
+  const handleGoToToday = () => {
+    setCurrentMonth(today.getMonth() + 1);
+    setCurrentYear(today.getFullYear());
+    setSelectedDate(today);
+  };
+
   const handleDayClick = (date: Date) => {
     if (sameDay(date, selectedDate)) {
       setSelectedDate(null);
@@ -146,208 +148,237 @@ export function Calendar() {
     return sameMonth(date, new Date(currentYear, currentMonth - 1, 1));
   };
 
-  const getEventTypeColor = (type: CalendarEvent['type'], metadata?: any) => {
-    if (type === 'custom_event' && metadata?.color) {
-      return metadata.color;
+  const getEventDotColor = (event: CalendarEvent) => {
+    if (event.type === 'custom_event' && event.metadata?.color) {
+      return event.metadata.color;
     }
-    switch (type) {
-      case 'chore':
-        return 'bg-blue-500';
-      default:
-        return 'bg-neutral-500';
-    }
+    if (event.type === 'chore') return '#3b82f6';
+    if (event.type === 'meal_plan') return '#f59e0b';
+    return '#6b7280';
   };
 
   const selectedDayEvents = useMemo(() => {
     if (!selectedDate) return [];
-    return getDayEvents(selectedDate);
+    const dayEvents = getDayEvents(selectedDate);
+    return sortBy(dayEvents, event => {
+      if (event.type === 'custom_event') {
+        const start = parseDate(event.metadata.start_datetime);
+        if (!start) return 24;
+        return start.getHours();
+      }
+      return 24;
+    });
   }, [getDayEvents, selectedDate]);
+
+  // Check if viewing the current month
+  const isViewingCurrentMonth = currentMonth === today.getMonth() + 1 && currentYear === today.getFullYear();
 
   return (
     <PageLayout>
-      <div className="mb-8 flex flex-col md:flex-row items-between md:items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <PageHeader icon="📅" iconColor="text-blue-600" title={t('calendar.title')} subtitle={t('calendar.subtitle')} />
-        <Button onClick={() => setIsCreateEventOpen(true)}>
-          <span className="mr-2">
-            <PlusIcon />
-          </span>
+        <Button onClick={() => setIsCreateEventOpen(true)} className="rounded-xl">
+          <PlusIcon className="w-4 h-4 mr-2" />
           {t('calendar.addEvent')}
         </Button>
       </div>
 
-      <div className="bg-white dark:bg-neutral-800 shadow rounded-lg p-4 md:p-6">
-        {/* Month Navigation */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={handlePreviousMonth}
-            className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
-            aria-label="Previous month"
-          >
-            <svg
-              className="w-5 h-5 text-neutral-600 dark:text-neutral-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+      <div className="flex flex-col lg:flex-row gap-5">
+        {/* Calendar Grid Card */}
+        <div className="flex-1 min-w-0">
+          <div className="bg-white dark:bg-neutral-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-neutral-200/60 dark:border-neutral-700/50 overflow-hidden">
+            {/* Month Navigation */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 dark:border-neutral-700/50">
+              <button
+                onClick={handlePreviousMonth}
+                className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
+                aria-label="Previous month"
+              >
+                <ChevronLeft className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
+              </button>
 
-          <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
-            {getMonthName(t, currentMonth - 1)} {currentYear}
-          </h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white tracking-tight">
+                  {getMonthName(t, currentMonth - 1)} {currentYear}
+                </h2>
+                {!isViewingCurrentMonth && (
+                  <button
+                    onClick={handleGoToToday}
+                    className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 px-2.5 py-1 rounded-lg bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+                  >
+                    {t('calendar.today') || 'Today'}
+                  </button>
+                )}
+              </div>
 
-          <button
-            onClick={handleNextMonth}
-            className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
-            aria-label="Next month"
-          >
-            <svg
-              className="w-5 h-5 text-neutral-600 dark:text-neutral-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+              <button
+                onClick={handleNextMonth}
+                className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
+                aria-label="Next month"
+              >
+                <ChevronRight className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
+              </button>
+            </div>
 
-        {/* Calendar Grid */}
-        <div className="flex flex-col md:flex-row gap-6 overflow-x-auto overflow-y-hidden space-y-4">
-          <table className="w-full md:w-[65%]" ref={calendarGridRef}>
-            <thead>
-              <tr>
-                {new Array(7).fill(0).map((_, day) => (
-                  <th key={day} className="p-2 text-center text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    {getDayName(t, day)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {calendarGrid.map((week, weekIndex) => (
-                <tr key={weekIndex}>
-                  {week.map((date, dayIndex) => {
-                    const sortedDayEvents = sortBy(getDayEvents(date), event => {
-                      if (event.type === 'custom_event') {
-                        const start = parseDate(event.metadata.start_datetime);
-                        if (!start) return 24;
-                        return start.getHours();
-                      }
-                      return 24;
-                    });
-                    const isCurrentMonthDay = isCurrentMonth(date);
-                    const isTodayDay = sameDay(date, today);
-                    const isSelectedDate = sameDay(date, selectedDate);
-
-                    return (
-                      <td
-                        key={dayIndex}
-                        className={`w-[calc(100%/7)] aspect-square p-1 border border-neutral-200 dark:border-neutral-700 ${
-                          !isCurrentMonthDay
-                            ? 'bg-neutral-50 dark:bg-neutral-900 opacity-50'
-                            : 'bg-white dark:bg-neutral-800'
-                        }${isTodayDay ? 'bg-blue-50 dark:bg-neutral-900' : ''}`}
-                      >
-                        <div className="w-full aspect-square flex">
-                          <button
-                            onClick={() => handleDayClick(date)}
-                            className={cn(
-                              'w-full h-full min-w-[auto] min-h-[auto] flex flex-col items-start p-1 md:p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700',
-                              {
-                                'ring-2 ring-blue-500 dark:ring-blue-50 dark:bg-neutral-600': isSelectedDate,
-                              }
-                            )}
-                            disabled={!date}
-                          >
-                            <span
-                              className={`text-xs md:text-xs lg:text-sm font-medium mb-1 ${
-                                isCurrentMonthDay
-                                  ? 'text-neutral-900 dark:text-white'
-                                  : 'text-neutral-400 dark:text-neutral-500'
-                              }`}
-                            >
-                              {date?.getDate()}
-                            </span>
-                            <div className="flex items-start flex-wrap gap-1 w-full">
-                              {sortedDayEvents.slice(0, 3).map(event => {
-                                return (
-                                  <div
-                                    key={event.id}
-                                    className={
-                                      event.type === 'custom_event'
-                                        ? `flex items-center justify-center w-1 min-w-1 rounded-full h-1`
-                                        : `w-1 h-1 rounded-full ${getEventTypeColor(event.type)}`
-                                    }
-                                    style={{
-                                      ...(event.type === 'custom_event' && {
-                                        backgroundColor: event.metadata?.color,
-                                      }),
-                                    }}
-                                    title={event.title}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </button>
-                        </div>
-                      </td>
-                    );
-                  })}
-                </tr>
+            {/* Day headers */}
+            <div className="grid grid-cols-7 border-b border-neutral-100 dark:border-neutral-700/50">
+              {new Array(7).fill(0).map((_, day) => (
+                <div
+                  key={day}
+                  className="py-2.5 text-center text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500"
+                >
+                  {getDayName(t, day)}
+                </div>
               ))}
-            </tbody>
-          </table>
-          <div className="w-full md:w-[45%]">
-            {isLoading ? (
-              <HouseLoader />
-            ) : (
-              selectedDate && (
-                <>
-                  <div className="flex justify-end mb-4">{formatDate(selectedDate, i18n.language)}</div>
+            </div>
 
-                  <div className="flex flex-col gap-2" ref={selectedDayEventsContainerRef}>
-                    {selectedDayEvents.length > 0 ? (
-                      selectedDayEvents.map(event => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          onEditEvent={() => {
-                            setEventToEdit(event);
-                            setIsEditEventOpen(true);
-                          }}
-                          onDeleteEvent={eventToDelete => {
-                            if (eventToDelete.type === 'custom_event' && eventToDelete.metadata?.custom_event_id) {
-                              deleteMutation.mutate(eventToDelete.metadata.custom_event_id, {
-                                onSuccess: () => {
-                                  toast.success(t('calendar.customEventDeleted'));
-                                  setSelectedDate(null);
-                                },
-                                onError: (error: any) => {
-                                  toast.error(error?.message || t('calendar.customEventDeleteError') || t('common.error'));
-                                },
-                              });
-                            }
-                          }}
-                        />
-                      ))
-                    ) : (
-                      <div className="text-neutral-500 dark:text-neutral-400">No events for this day</div>
+            {/* Calendar Days */}
+            <div className="grid grid-cols-7">
+              {calendarGrid.flat().map((date, index) => {
+                const dayEvents = getDayEvents(date);
+                const isCurrentMonthDay = isCurrentMonth(date);
+                const isTodayDay = sameDay(date, today);
+                const isSelectedDate = sameDay(date, selectedDate);
+                const hasEvents = dayEvents.length > 0;
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleDayClick(date)}
+                    className={cn(
+                      'relative aspect-square p-1 sm:p-2 flex flex-col items-center transition-all duration-150 border-b border-r border-neutral-50 dark:border-neutral-800/80',
+                      !isCurrentMonthDay && 'opacity-30',
+                      isCurrentMonthDay && 'hover:bg-primary-50/50 dark:hover:bg-primary-900/10',
+                      isSelectedDate && 'bg-primary-50 dark:bg-primary-900/20',
                     )}
-                  </div>
-                </>
-              )
-            )}
+                  >
+                    {/* Day number */}
+                    <span
+                      className={cn(
+                        'relative z-10 text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full transition-all duration-200',
+                        isTodayDay && 'bg-primary-600 text-white font-semibold shadow-sm shadow-primary-600/30',
+                        isSelectedDate && !isTodayDay && 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold',
+                        !isTodayDay && !isSelectedDate && isCurrentMonthDay && 'text-neutral-700 dark:text-neutral-300',
+                        !isCurrentMonthDay && 'text-neutral-400 dark:text-neutral-600',
+                      )}
+                    >
+                      {date?.getDate()}
+                    </span>
+
+                    {/* Event indicators */}
+                    {hasEvents && (
+                      <div className="flex items-center gap-0.5 mt-auto pb-0.5">
+                        {dayEvents.slice(0, 4).map(event => (
+                          <div
+                            key={event.id}
+                            className="w-1.5 h-1.5 rounded-full transition-transform duration-200"
+                            style={{ backgroundColor: getEventDotColor(event) }}
+                          />
+                        ))}
+                        {dayEvents.length > 4 && (
+                          <span className="text-[9px] font-medium text-neutral-400 ml-0.5">
+                            +{dayEvents.length - 4}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="px-5 py-3 border-t border-neutral-100 dark:border-neutral-700/50 flex flex-wrap gap-4 text-xs text-neutral-500 dark:text-neutral-400">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                <span>{t('calendar.chores')}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-amber-500" />
+                <span>{t('calendar.mealPlans') || 'Meal Plans'}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="mt-6 flex flex-wrap gap-4 justify-center text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className="text-neutral-700 dark:text-neutral-300">{t('calendar.chores')}</span>
-          </div>
+        {/* Selected Day Events Panel */}
+        <div className="w-full lg:w-[380px] shrink-0">
+          {isLoading ? (
+            <div className="bg-white dark:bg-neutral-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-neutral-200/60 dark:border-neutral-700/50 p-8 flex items-center justify-center">
+              <HouseLoader />
+            </div>
+          ) : selectedDate ? (
+            <div className="bg-white dark:bg-neutral-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-neutral-200/60 dark:border-neutral-700/50 overflow-hidden sticky top-6">
+              {/* Panel Header */}
+              <div className="px-5 py-4 border-b border-neutral-100 dark:border-neutral-700/50 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                    {formatDate(selectedDate, i18n.language)}
+                  </p>
+                  <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">
+                    {selectedDayEvents.length} {selectedDayEvents.length === 1 ? (t('calendar.event') || 'event') : (t('calendar.events') || 'events')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedDate(null)}
+                  className="p-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors"
+                >
+                  <X className="w-4 h-4 text-neutral-400" />
+                </button>
+              </div>
+
+              {/* Events List */}
+              <div className="p-3 max-h-[calc(100vh-280px)] overflow-y-auto no-scrollbar" ref={selectedDayEventsContainerRef}>
+                {selectedDayEvents.length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    {selectedDayEvents.map(event => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        onEditEvent={() => {
+                          setEventToEdit(event);
+                          setIsEditEventOpen(true);
+                        }}
+                        onDeleteEvent={eventToDelete => {
+                          if (eventToDelete.type === 'custom_event' && eventToDelete.metadata?.custom_event_id) {
+                            deleteMutation.mutate(eventToDelete.metadata.custom_event_id, {
+                              onSuccess: () => {
+                                toast.success(t('calendar.customEventDeleted'));
+                                setSelectedDate(null);
+                              },
+                              onError: (error: any) => {
+                                toast.error(error?.message || t('calendar.customEventDeleteError') || t('common.error'));
+                              },
+                            });
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-10 flex flex-col items-center text-center">
+                    <CalendarDays className="w-10 h-10 text-neutral-200 dark:text-neutral-700 mb-3" />
+                    <p className="text-sm text-neutral-400 dark:text-neutral-500">
+                      {t('calendar.noEvents') || 'No events for this day'}
+                    </p>
+                    <button
+                      onClick={() => setIsCreateEventOpen(true)}
+                      className="mt-3 text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+                    >
+                      + {t('calendar.addEvent')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-neutral-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-neutral-200/60 dark:border-neutral-700/50 p-8 flex flex-col items-center text-center">
+              <CalendarDays className="w-12 h-12 text-neutral-200 dark:text-neutral-700 mb-3" />
+              <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                {t('calendar.selectDay') || 'Select a day to view events'}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

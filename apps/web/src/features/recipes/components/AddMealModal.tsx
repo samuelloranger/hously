@@ -4,6 +4,7 @@ import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@
 import { X, Search, Clock, Users, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { getRecipeImageUrl, useCreateMealPlan, type Recipe } from '@hously/shared';
+import { cn } from '@/lib/utils';
 
 interface AddMealModalProps {
   isOpen: boolean;
@@ -21,14 +22,12 @@ export function AddMealModal({ isOpen, onClose, date, mealType, recipes }: AddMe
 
   const categories = ['breakfast', 'lunch', 'dinner', 'dessert', 'snack'];
 
-  // Filter recipes based on search and category
   const filteredRecipes = recipes.filter(recipe => {
     const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || recipe.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  // Sort by favorites first
   const sortedRecipes = [...filteredRecipes].sort((a, b) => b.is_favorite - a.is_favorite);
 
   const handleSelectRecipe = async (recipe: Recipe) => {
@@ -77,7 +76,7 @@ export function AddMealModal({ isOpen, onClose, date, mealType, recipes }: AddMe
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/50" />
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
         </TransitionChild>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -91,46 +90,55 @@ export function AddMealModal({ isOpen, onClose, date, mealType, recipes }: AddMe
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 shadow-xl transition-all">
+              <DialogPanel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-neutral-800 shadow-2xl border border-neutral-200/60 dark:border-neutral-700/50 transition-all">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 dark:border-neutral-700/50">
                   <div>
-                    <DialogTitle className="text-lg font-semibold text-neutral-900 dark:text-white">
+                    <DialogTitle className="text-base font-semibold text-neutral-900 dark:text-white">
                       {t('kitchen.mealPlan.selectRecipe', 'Select a Recipe')}
                     </DialogTitle>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                      {formatDate(date)} - {t(`kitchen.mealPlan.mealTypes.${mealType}`, mealType)}
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                      {formatDate(date)} &middot; {t(`kitchen.mealPlan.mealTypes.${mealType}`, mealType)}
                     </p>
                   </div>
                   <button
                     onClick={handleClose}
-                    className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                    className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors"
                   >
-                    <X className="w-5 h-5 text-neutral-500" />
+                    <X className="w-4 h-4 text-neutral-400" />
                   </button>
                 </div>
 
                 {/* Search and Filters */}
-                <div className="p-4 border-b border-neutral-200 dark:border-neutral-700">
+                <div className="px-5 py-3 border-b border-neutral-100 dark:border-neutral-700/50">
                   <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
                       type="text"
                       placeholder={t('recipes.searchPlaceholder', 'Search recipes...')}
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full pl-9 pr-4 py-2.5 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 text-neutral-900 dark:text-white text-sm placeholder:text-neutral-400 focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 dark:focus:border-orange-500 transition-all outline-none"
                     />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5 text-neutral-400" />
+                      </button>
+                    )}
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     <button
                       onClick={() => setSelectedCategory(null)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      className={cn(
+                        'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200',
                         selectedCategory === null
-                          ? 'bg-orange-600 text-white'
-                          : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                      }`}
+                          ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/20'
+                          : 'bg-neutral-100 dark:bg-neutral-700/60 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                      )}
                     >
                       {t('recipes.all', 'All')}
                     </button>
@@ -138,11 +146,12 @@ export function AddMealModal({ isOpen, onClose, date, mealType, recipes }: AddMe
                       <button
                         key={category}
                         onClick={() => setSelectedCategory(category)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${
+                        className={cn(
+                          'px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all duration-200',
                           selectedCategory === category
-                            ? 'bg-orange-600 text-white'
-                            : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                        }`}
+                            ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/20'
+                            : 'bg-neutral-100 dark:bg-neutral-700/60 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                        )}
                       >
                         {t(`recipes.category.${category}`, category)}
                       </button>
@@ -151,9 +160,9 @@ export function AddMealModal({ isOpen, onClose, date, mealType, recipes }: AddMe
                 </div>
 
                 {/* Recipe List */}
-                <div className="max-h-[400px] overflow-y-auto p-4">
+                <div className="max-h-[400px] overflow-y-auto p-3 no-scrollbar">
                   {sortedRecipes.length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {sortedRecipes.map(recipe => (
                         <RecipeOption
                           key={recipe.id}
@@ -164,14 +173,12 @@ export function AddMealModal({ isOpen, onClose, date, mealType, recipes }: AddMe
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <div className="bg-neutral-100 dark:bg-neutral-700 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <span className="text-2xl">🍽️</span>
-                      </div>
-                      <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
+                    <div className="text-center py-10">
+                      <span className="text-3xl block mb-3">🍽️</span>
+                      <h3 className="text-sm font-semibold text-neutral-900 dark:text-white mb-1">
                         {t('recipes.noRecipesFiltered', 'No recipes found')}
                       </h3>
-                      <p className="text-neutral-600 dark:text-neutral-400">
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
                         {t('recipes.tryDifferentFilter', 'Try adjusting your filters or search')}
                       </p>
                     </div>
@@ -201,36 +208,40 @@ function RecipeOption({ recipe, onSelect, isLoading }: RecipeOptionProps) {
     <button
       onClick={onSelect}
       disabled={isLoading}
-      className="w-full flex items-center gap-4 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:border-orange-500 dark:hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full flex items-center gap-3 p-2.5 rounded-xl border border-transparent hover:border-orange-300 dark:hover:border-orange-700 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all duration-200 text-left disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {/* Image */}
-      <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-700">
+      <div className="w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-700">
         {imageUrl ? (
           <img src={imageUrl} alt={recipe.name} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-2xl">🍽️</div>
+          <div className="w-full h-full flex items-center justify-center text-xl bg-gradient-to-br from-orange-400/20 to-red-500/20">
+            🍽️
+          </div>
         )}
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h4 className="font-medium text-neutral-900 dark:text-white truncate">{recipe.name}</h4>
-          {recipe.is_favorite === 1 && <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />}
+          <h4 className="text-sm font-medium text-neutral-900 dark:text-white truncate">{recipe.name}</h4>
+          {recipe.is_favorite === 1 && (
+            <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+          )}
         </div>
 
-        <div className="flex items-center gap-4 mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+        <div className="flex items-center gap-3 mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
           {recipe.category && (
             <span className="capitalize">{t(`recipes.category.${recipe.category}`, recipe.category)}</span>
           )}
           {totalTime > 0 && (
             <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
+              <Clock className="w-3 h-3" />
               {totalTime} min
             </span>
           )}
           <span className="flex items-center gap-1">
-            <Users className="w-3.5 h-3.5" />
+            <Users className="w-3 h-3" />
             {recipe.servings}
           </span>
         </div>

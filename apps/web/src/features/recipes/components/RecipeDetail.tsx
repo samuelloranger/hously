@@ -1,13 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeft, Clock, Users, Edit, Trash2, Star } from 'lucide-react';
+import { ArrowLeft, Clock, Users, Pencil, Trash2, Star, ChefHat, ListChecks } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { PageLayout } from '../../../components/PageLayout';
 import { LoadingState } from '../../../components/LoadingState';
+import { Button } from '@/components/ui/button';
 import { getRecipeImageUrl, useDeleteRecipe, useRecipe, useToggleFavorite } from '@hously/shared';
 import { useState } from 'react';
 import { EditRecipeModal } from './EditRecipeModal';
+import { cn } from '@/lib/utils';
 
 export function RecipeDetail() {
   const { t } = useTranslation('common');
@@ -30,11 +32,17 @@ export function RecipeDetail() {
   if (!data?.recipe) {
     return (
       <PageLayout>
-        <div className="text-center py-16">
-          <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+        <div className="text-center py-20">
+          <div className="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+            <ChefHat className="w-7 h-7 text-neutral-300 dark:text-neutral-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
             {t('recipes.notFound', 'Recipe not found')}
           </h3>
-          <button onClick={() => navigate({ to: '/kitchen' })} className="text-orange-600 hover:text-orange-700">
+          <button
+            onClick={() => navigate({ to: '/kitchen' })}
+            className="text-sm font-medium text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 transition-colors"
+          >
             {t('recipes.backToList', 'Back to recipes')}
           </button>
         </div>
@@ -61,127 +69,162 @@ export function RecipeDetail() {
 
   return (
     <PageLayout>
-      {/* Header */}
+      {/* Header Navigation */}
       <div className="mb-6 flex items-center justify-between">
         <button
           onClick={() => navigate({ to: '/kitchen' })}
-          className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+          className="flex items-center gap-2 text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-4 h-4" />
           <span>{t('recipes.backToList', 'Back to recipes')}</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={handleToggleFavorite}
-            className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            className="p-2.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
           >
             <Star
-              className={`w-6 h-6 ${recipe.is_favorite ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-400'}`}
+              className={cn(
+                'w-5 h-5 transition-colors',
+                recipe.is_favorite ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-400 hover:text-yellow-400'
+              )}
             />
           </button>
-
           <button
             onClick={() => setShowEditModal(true)}
-            className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            className="p-2.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
           >
-            <Edit className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
+            <Pencil className="w-4.5 h-4.5 text-neutral-500 dark:text-neutral-400" />
           </button>
-
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            className="p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 active:scale-95"
           >
-            <Trash2 className="w-5 h-5 text-red-600" />
+            <Trash2 className="w-4.5 h-4.5 text-red-500 dark:text-red-400" />
           </button>
         </div>
       </div>
 
       {/* Hero Image */}
-      {imageUrl ? (
-        <img src={imageUrl} alt={recipe.name} className="w-full h-64 md:h-96 object-cover rounded-xl mb-6" />
-      ) : (
-        <div className="w-full h-64 md:h-96 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center mb-6">
-          <span className="text-9xl">🍽️</span>
-        </div>
-      )}
+      <div className="rounded-2xl overflow-hidden mb-6">
+        {imageUrl ? (
+          <img src={imageUrl} alt={recipe.name} className="w-full h-64 md:h-96 object-cover" />
+        ) : (
+          <div className="w-full h-64 md:h-96 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 flex items-center justify-center">
+            <span className="text-9xl drop-shadow-sm">🍽️</span>
+          </div>
+        )}
+      </div>
 
-      {/* Recipe Info */}
-      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-md border border-neutral-200 dark:border-neutral-700 p-6 mb-6">
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4">{recipe.name}</h1>
+      {/* Recipe Info Card */}
+      <div className="bg-white dark:bg-neutral-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-neutral-200/60 dark:border-neutral-700/50 p-6 mb-5">
+        <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 dark:text-white mb-3 tracking-tight">
+          {recipe.name}
+        </h1>
 
-        {recipe.description && <p className="text-neutral-600 dark:text-neutral-400 mb-4">{recipe.description}</p>}
+        {recipe.description && (
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed mb-4">{recipe.description}</p>
+        )}
 
-        <div className="flex flex-wrap items-center gap-4 mb-4">
+        {/* Meta row */}
+        <div className="flex flex-wrap items-center gap-3">
           {recipe.category && (
-            <span className="bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-3 py-1 rounded-lg text-sm font-medium">
+            <span className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
               {t(`recipes.category.${recipe.category}`, recipe.category)}
             </span>
           )}
 
           {totalTime > 0 && (
-            <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
-              <Clock className="w-5 h-5" />
+            <div className="flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400">
+              <Clock className="w-4 h-4" />
               <span>{totalTime} min</span>
             </div>
           )}
 
-          <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
-            <Users className="w-5 h-5" />
-            <span>{recipe.servings} servings</span>
+          <div className="flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400">
+            <Users className="w-4 h-4" />
+            <span>
+              {recipe.servings} {t('recipes.servings', 'servings')}
+            </span>
           </div>
         </div>
 
+        {/* Time breakdown */}
         {(recipe.prep_time_minutes || recipe.cook_time_minutes) && (
-          <div className="flex gap-6 text-sm text-neutral-600 dark:text-neutral-400">
+          <div className="flex gap-4 mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-700/50 text-sm text-neutral-500 dark:text-neutral-400">
             {recipe.prep_time_minutes && (
               <div>
-                <span className="font-medium">Prep:</span> {recipe.prep_time_minutes} min
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                  {t('recipes.prepTime', 'Prep')}:
+                </span>{' '}
+                {recipe.prep_time_minutes} min
               </div>
             )}
             {recipe.cook_time_minutes && (
               <div>
-                <span className="font-medium">Cook:</span> {recipe.cook_time_minutes} min
+                <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                  {t('recipes.cookTime', 'Cook')}:
+                </span>{' '}
+                {recipe.cook_time_minutes} min
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Ingredients */}
-      {recipe.ingredients && recipe.ingredients.length > 0 && (
-        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-md border border-neutral-200 dark:border-neutral-700 p-6 mb-6">
-          <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
-            {t('recipes.ingredients', 'Ingredients')}
-          </h2>
-          <ul className="space-y-2">
-            {recipe.ingredients.map(ingredient => (
-              <li key={ingredient.id} className="flex items-start gap-2 text-neutral-700 dark:text-neutral-300">
-                <span className="text-orange-600 mt-1">•</span>
-                <span>
-                  {ingredient.quantity && ingredient.unit && (
-                    <span className="font-medium">
-                      {ingredient.quantity} {ingredient.unit}{' '}
+      {/* Two-column layout for ingredients + instructions on desktop */}
+      <div className="flex flex-col lg:flex-row gap-5">
+        {/* Ingredients */}
+        {recipe.ingredients && recipe.ingredients.length > 0 && (
+          <div className="lg:w-[340px] shrink-0">
+            <div className="bg-white dark:bg-neutral-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-neutral-200/60 dark:border-neutral-700/50 p-6 lg:sticky lg:top-6">
+              <div className="flex items-center gap-2 mb-4">
+                <ListChecks className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
+                  {t('recipes.ingredients', 'Ingredients')}
+                </h2>
+              </div>
+              <ul className="space-y-2.5">
+                {recipe.ingredients.map(ingredient => (
+                  <li
+                    key={ingredient.id}
+                    className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-1.5 shrink-0" />
+                    <span>
+                      {ingredient.quantity && ingredient.unit && (
+                        <span className="font-semibold text-neutral-900 dark:text-white">
+                          {ingredient.quantity} {ingredient.unit}{' '}
+                        </span>
+                      )}
+                      {ingredient.quantity && !ingredient.unit && (
+                        <span className="font-semibold text-neutral-900 dark:text-white">
+                          {ingredient.quantity}{' '}
+                        </span>
+                      )}
+                      {ingredient.name}
                     </span>
-                  )}
-                  {ingredient.quantity && !ingredient.unit && (
-                    <span className="font-medium">{ingredient.quantity} </span>
-                  )}
-                  {ingredient.name}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
 
-      {/* Instructions */}
-      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-md border border-neutral-200 dark:border-neutral-700 p-6 mb-6">
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
-          {t('recipes.instructions', 'Instructions')}
-        </h2>
-        <div className="prose dark:prose-invert max-w-none">
-          <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{recipe.instructions}</ReactMarkdown>
+        {/* Instructions */}
+        <div className="flex-1 min-w-0">
+          <div className="bg-white dark:bg-neutral-800/80 backdrop-blur-sm rounded-2xl shadow-sm border border-neutral-200/60 dark:border-neutral-700/50 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <ChefHat className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
+                {t('recipes.instructions', 'Instructions')}
+              </h2>
+            </div>
+            <div className="prose dark:prose-invert prose-sm max-w-none prose-headings:font-semibold prose-a:text-orange-600 dark:prose-a:text-orange-400">
+              <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{recipe.instructions}</ReactMarkdown>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -189,31 +232,29 @@ export function RecipeDetail() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[var(--z-modal)] p-4">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 max-w-md w-full shadow-2xl border border-neutral-200/60 dark:border-neutral-700/50">
+            <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">
               {t('recipes.confirmDelete', 'Delete Recipe?')}
             </h3>
-            <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6">
               {t(
                 'recipes.confirmDeleteMessage',
                 'Are you sure you want to delete this recipe? This action cannot be undone.'
               )}
             </p>
             <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700"
-              >
+              <Button variant="outline" onClick={() => setShowDeleteConfirm(false)} className="rounded-xl">
                 {t('common.cancel', 'Cancel')}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="destructive"
                 onClick={handleDelete}
                 disabled={deleteRecipe.isPending}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:opacity-50"
+                className="rounded-xl"
               >
                 {deleteRecipe.isPending ? t('common.deleting', 'Deleting...') : t('common.delete', 'Delete')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -7,6 +7,8 @@ import { SafeHtml } from '@/components/SafeHtml';
 import { ConditionalWrapper } from '@/components/ConditionalWrapper';
 import { RecurrenceBadge } from '@/features/chores/components/RecurrenceBadge';
 import { Link } from '@tanstack/react-router';
+import { Clock, Pencil, Trash2, User } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type Props = {
   event: CalendarEvent;
@@ -17,15 +19,29 @@ type Props = {
 export const EventCard = ({ event, onEditEvent, onDeleteEvent }: Props) => {
   const { t, i18n } = useTranslation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const getEventTypeColor = (type: CalendarEvent['type'], metadata?: any) => {
+
+  const getEventAccentColor = (type: CalendarEvent['type'], metadata?: any) => {
     if (type === 'custom_event' && metadata?.color) {
-      return `bg-[${metadata.color}] text-white`;
+      return metadata.color;
     }
     switch (type) {
       case 'chore':
-        return 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200';
+        return '#3b82f6';
+      case 'meal_plan':
+        return '#f59e0b';
       default:
-        return 'bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200';
+        return '#6b7280';
+    }
+  };
+
+  const getEventBgClass = (type: CalendarEvent['type']) => {
+    switch (type) {
+      case 'chore':
+        return 'bg-blue-50/60 dark:bg-blue-950/20';
+      case 'meal_plan':
+        return 'bg-amber-50/60 dark:bg-amber-950/20';
+      default:
+        return 'bg-neutral-50/60 dark:bg-neutral-800/40';
     }
   };
 
@@ -57,65 +73,91 @@ export const EventCard = ({ event, onEditEvent, onDeleteEvent }: Props) => {
     return '';
   };
 
+  const accentColor = getEventAccentColor(event.type, event.metadata);
+  const timeText = getEventText(event);
+
   return (
     <div
-      key={event.id}
-      className={`block p-4 rounded-lg border-2 border-transparent hover:border-neutral-300 dark:hover:border-neutral-600 transition-colors ${
-        event.type === 'custom_event' ? '' : getEventTypeColor(event.type)
-      }`}
-      style={
-        event.type === 'custom_event' && event.metadata?.color
-          ? {
-              borderColor: event.metadata.color,
-            }
-          : undefined
-      }
+      className={cn(
+        'group relative rounded-xl overflow-hidden transition-all duration-200',
+        'hover:shadow-sm',
+        event.type === 'custom_event' ? 'bg-neutral-50/60 dark:bg-neutral-800/40' : getEventBgClass(event.type),
+      )}
     >
-      <div className="flex items-start justify-between">
-        <ConditionalWrapper
-          condition={event.type === 'custom_event'}
-          wrapper={children => <div className="flex-1 text-left">{children}</div>}
-          elseWrapper={children => (
-            <Link to={getEventLink(event)} className="flex-1">
-              {children}
-            </Link>
-          )}
-        >
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap mb-1">
-              <h4 className="font-semibold text-sm">{event.title}</h4>
-              {event.type === 'chore' && (
-                <RecurrenceBadge
-                  recurrence_type={event.metadata?.recurrence_type}
-                  recurrence_interval_days={event.metadata?.recurrence_interval_days}
-                  recurrence_weekday={event.metadata?.recurrence_weekday}
+      {/* Accent bar */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
+        style={{ backgroundColor: accentColor }}
+      />
+
+      <div className="pl-4 pr-3 py-3">
+        <div className="flex items-start justify-between gap-2">
+          <ConditionalWrapper
+            condition={event.type === 'custom_event'}
+            wrapper={children => <div className="flex-1 min-w-0">{children}</div>}
+            elseWrapper={children => (
+              <Link to={getEventLink(event)} className="flex-1 min-w-0">
+                {children}
+              </Link>
+            )}
+          >
+            <div className="flex-1 min-w-0">
+              {/* Title row */}
+              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                <h4 className="font-semibold text-sm text-neutral-900 dark:text-white truncate">
+                  {event.title}
+                </h4>
+                {event.type === 'chore' && (
+                  <RecurrenceBadge
+                    recurrence_type={event.metadata?.recurrence_type}
+                    recurrence_interval_days={event.metadata?.recurrence_interval_days}
+                    recurrence_weekday={event.metadata?.recurrence_weekday}
+                  />
+                )}
+                {event.type === 'chore' && event.metadata?.assigned_to && (
+                  <span className="flex items-center gap-0.5 text-[10px] text-neutral-400 dark:text-neutral-500">
+                    <User className="w-3 h-3" />
+                  </span>
+                )}
+              </div>
+
+              {/* Time */}
+              {timeText && (
+                <div className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+                  <Clock className="w-3 h-3 shrink-0" />
+                  <span>{timeText}</span>
+                </div>
+              )}
+
+              {/* Description */}
+              {event.description && (
+                <SafeHtml
+                  html={event.description}
+                  className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 line-clamp-2 [&_p]:m-0"
                 />
               )}
-              {event.type === 'chore' && event.metadata?.assigned_to && <span className="text-xs opacity-75">👤</span>}
             </div>
-            {getEventText(event) && <div className="text-xs opacity-75 mb-1">⏰ {getEventText(event)}</div>}
-            {event.description && <SafeHtml html={event.description} className="text-xs opacity-90 mt-1" />}
-          </div>
-        </ConditionalWrapper>
-        {event.type === 'custom_event' ? (
-          <div className="flex flex-col items-center gap-2 ml-2">
-            <>
-              <span
-                className="capitalize text-xs font-medium opacity-75 cursor-pointer hover:opacity-100"
-                onClick={() => {
-                  onEditEvent(event);
-                }}
+          </ConditionalWrapper>
+
+          {/* Actions */}
+          {event.type === 'custom_event' ? (
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
+              <button
+                onClick={() => onEditEvent(event)}
+                className="p-1.5 rounded-lg hover:bg-neutral-200/60 dark:hover:bg-neutral-600/40 transition-colors"
+                title={t('calendar.customEventEdit')}
               >
-                {t('calendar.customEventEdit')}
-              </span>
+                <Pencil className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+              </button>
               {onDeleteEvent && (
                 <>
-                  <span
-                    className="text-xs font-medium opacity-75 cursor-pointer hover:opacity-100 text-red-600 dark:text-red-400"
+                  <button
                     onClick={() => setShowDeleteConfirm(true)}
+                    className="p-1.5 rounded-lg hover:bg-red-100/60 dark:hover:bg-red-900/30 transition-colors"
+                    title={t('calendar.customEventDelete')}
                   >
-                    {t('calendar.customEventDelete')}
-                  </span>
+                    <Trash2 className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
+                  </button>
                   <Dialog
                     isOpen={showDeleteConfirm}
                     onClose={() => setShowDeleteConfirm(false)}
@@ -141,11 +183,13 @@ export const EventCard = ({ event, onEditEvent, onDeleteEvent }: Props) => {
                   </Dialog>
                 </>
               )}
-            </>
-          </div>
-        ) : (
-          <span className="capitalize text-xs font-medium opacity-75 ml-2">{event.type}</span>
-        )}
+            </div>
+          ) : (
+            <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500 shrink-0 mt-0.5">
+              {event.type === 'chore' ? t('calendar.chores') : event.type}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

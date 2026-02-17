@@ -1,15 +1,17 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { PageLayout } from "../../../components/PageLayout";
-import { PageHeader } from "../../../components/PageHeader";
-import { RecipeListContent } from "./RecipeListContent";
-import { MealPlanView } from "./MealPlanView";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { PageLayout } from '../../../components/PageLayout';
+import { PageHeader } from '../../../components/PageHeader';
+import { RecipeListContent } from './RecipeListContent';
+import { MealPlanView } from './MealPlanView';
+import { UtensilsCrossed, CalendarRange } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-type TabType = "recipes" | "mealPlan";
+type TabType = 'recipes' | 'mealPlan';
 
 export function KitchenPage() {
-  const { t } = useTranslation("common");
-  const [activeTab, setActiveTab] = useState<TabType>("recipes");
+  const { t } = useTranslation('common');
+  const [activeTab, setActiveTab] = useState<TabType>('recipes');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleTabChange = (tab: TabType) => {
@@ -18,48 +20,46 @@ export function KitchenPage() {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    // The child components will handle their own refresh logic
-    // We just trigger a re-render by toggling this state
     setTimeout(() => setIsRefreshing(false), 100);
   };
+
+  const tabs = [
+    { key: 'recipes' as TabType, label: t('kitchen.tabs.recipes', 'Recipes'), icon: UtensilsCrossed },
+    { key: 'mealPlan' as TabType, label: t('kitchen.tabs.mealPlan', 'Meal Plan'), icon: CalendarRange },
+  ];
 
   return (
     <PageLayout>
       <PageHeader
         icon="🍳"
         iconColor="text-orange-600"
-        title={t("kitchen.title", "Kitchen")}
-        subtitle={t("kitchen.subtitle", "Manage recipes and plan your meals")}
+        title={t('kitchen.title', 'Kitchen')}
+        subtitle={t('kitchen.subtitle', 'Manage recipes and plan your meals')}
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
       />
 
       {/* Tab Navigation */}
-      <div className="flex gap-1 mb-6 bg-neutral-100 dark:bg-neutral-800 p-1 rounded-lg w-fit">
-        <button
-          onClick={() => handleTabChange("recipes")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-            activeTab === "recipes"
-              ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm"
-              : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-          }`}
-        >
-          {t("kitchen.tabs.recipes", "Recipes")}
-        </button>
-        <button
-          onClick={() => handleTabChange("mealPlan")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-            activeTab === "mealPlan"
-              ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm"
-              : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-          }`}
-        >
-          {t("kitchen.tabs.mealPlan", "Meal Plan")}
-        </button>
+      <div className="flex gap-1 mb-6 bg-neutral-100 dark:bg-neutral-800/60 p-1 rounded-xl w-fit border border-neutral-200/50 dark:border-neutral-700/40">
+        {tabs.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => handleTabChange(tab.key)}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+              activeTab === tab.key
+                ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm'
+                : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
+            )}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Tab Content */}
-      {activeTab === "recipes" ? (
+      {activeTab === 'recipes' ? (
         <RecipeListContent refreshKey={isRefreshing ? Date.now() : 0} />
       ) : (
         <MealPlanView refreshKey={isRefreshing ? Date.now() : 0} />
