@@ -5,6 +5,7 @@
     "chores": "Tâches",
     "recipes": "Recettes",
     "kitchen": "Cuisine",
+    "torrents": "Torrents",
     "tracker": "Péremption",
     "calendar": "Calendrier",
     "gifts": "Cadeaux",
@@ -1032,7 +1033,16 @@
     "title": "Torrents",
     "subtitle": "Gérez vos téléchargements qBittorrent",
     "disconnectedDescription": "qBittorrent est injoignable.",
-    "selectTorrent": "Sélectionnez un torrent pour voir les trackers."
+    "selectTorrent": "Sélectionnez un torrent pour voir les trackers.",
+    "actions": "Actions",
+    "start": "Démarrer",
+    "pause": "Pause",
+    "delete": "Supprimer",
+    "deleteWithFiles": "Supprimer + fichiers",
+    "deleteConfirm": "Supprimer ce torrent ? Cette action ne peut pas être annulée.",
+    "deleteWithFilesConfirm": "Supprimer ce torrent et ses fichiers ? Cette action ne peut pas être annulée.",
+    "filesTitle": "Fichiers",
+    "rename": "Renommer"
   },
   "recipes": {
     "title": "Recettes",

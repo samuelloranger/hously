@@ -13,6 +13,9 @@ import type {
   DashboardQbittorrentTorrentPropertiesResponse,
   DashboardQbittorrentTorrentTrackersResponse,
   DashboardQbittorrentAddTorrentResponse,
+  DashboardQbittorrentTorrentFilesResponse,
+  DashboardQbittorrentTorrentPeersResponse,
+  DashboardQbittorrentMutationResponse,
 } from '../types';
 
 export function useDashboardStats() {
@@ -182,6 +185,31 @@ export function useQbittorrentTorrentTrackers(hash: string | null) {
   });
 }
 
+export function useQbittorrentTorrentFiles(hash: string | null) {
+  const fetcher = useFetcher();
+  const safeHash = hash?.trim() ?? '';
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.qbittorrentTorrentFiles(safeHash),
+    queryFn: () => fetcher<DashboardQbittorrentTorrentFilesResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.FILES(safeHash)),
+    enabled: Boolean(safeHash),
+  });
+}
+
+export function useQbittorrentTorrentPeers(hash: string | null, rid?: number) {
+  const fetcher = useFetcher();
+  const safeHash = hash?.trim() ?? '';
+
+  const suffix = typeof rid === 'number' && Number.isFinite(rid) ? `?rid=${Math.max(0, Math.trunc(rid))}` : '';
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.qbittorrentTorrentPeers(safeHash),
+    queryFn: () =>
+      fetcher<DashboardQbittorrentTorrentPeersResponse>(`${DASHBOARD_ENDPOINTS.QBITTORRENT.PEERS(safeHash)}${suffix}`),
+    enabled: Boolean(safeHash),
+  });
+}
+
 export function useAddQbittorrentMagnet() {
   const fetcher = useFetcher();
 
@@ -206,6 +234,97 @@ export function useAddQbittorrentTorrentFile() {
         body: formData,
       });
     },
+  });
+}
+
+export function useRenameQbittorrentTorrent(hash: string) {
+  const fetcher = useFetcher();
+  const safeHash = hash.trim();
+
+  return useMutation({
+    mutationFn: (data: { name: string }) =>
+      fetcher<DashboardQbittorrentMutationResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.RENAME(safeHash), {
+        method: 'POST',
+        body: data,
+      }),
+  });
+}
+
+export function useRenameQbittorrentTorrentFile(hash: string) {
+  const fetcher = useFetcher();
+  const safeHash = hash.trim();
+
+  return useMutation({
+    mutationFn: (data: { old_path: string; new_path: string }) =>
+      fetcher<DashboardQbittorrentMutationResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.RENAME_FILE(safeHash), {
+        method: 'POST',
+        body: data,
+      }),
+  });
+}
+
+export function useSetQbittorrentTorrentCategory(hash: string) {
+  const fetcher = useFetcher();
+  const safeHash = hash.trim();
+
+  return useMutation({
+    mutationFn: (data: { category?: string }) =>
+      fetcher<DashboardQbittorrentMutationResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.SET_CATEGORY(safeHash), {
+        method: 'POST',
+        body: data,
+      }),
+  });
+}
+
+export function useSetQbittorrentTorrentTags(hash: string) {
+  const fetcher = useFetcher();
+  const safeHash = hash.trim();
+
+  return useMutation({
+    mutationFn: (data: { tags: string[]; previous_tags?: string[] }) =>
+      fetcher<DashboardQbittorrentMutationResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.SET_TAGS(safeHash), {
+        method: 'POST',
+        body: data,
+      }),
+  });
+}
+
+export function usePauseQbittorrentTorrent(hash: string) {
+  const fetcher = useFetcher();
+  const safeHash = hash.trim();
+
+  return useMutation({
+    mutationFn: () =>
+      fetcher<DashboardQbittorrentMutationResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.PAUSE(safeHash), {
+        method: 'POST',
+        body: {},
+      }),
+  });
+}
+
+export function useResumeQbittorrentTorrent(hash: string) {
+  const fetcher = useFetcher();
+  const safeHash = hash.trim();
+
+  return useMutation({
+    mutationFn: () =>
+      fetcher<DashboardQbittorrentMutationResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.RESUME(safeHash), {
+        method: 'POST',
+        body: {},
+      }),
+  });
+}
+
+export function useDeleteQbittorrentTorrent(hash: string) {
+  const fetcher = useFetcher();
+  const safeHash = hash.trim();
+
+  return useMutation({
+    mutationFn: (data: { delete_files?: boolean }) =>
+      fetcher<DashboardQbittorrentMutationResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.DELETE(safeHash), {
+        method: 'POST',
+        body: data,
+      }),
   });
 }
 

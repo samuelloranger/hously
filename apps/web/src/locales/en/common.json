@@ -5,6 +5,7 @@
     "chores": "Chores",
     "recipes": "Recipes",
     "kitchen": "Kitchen",
+    "torrents": "Torrents",
     "tracker": "Tracker",
     "calendar": "Calendar",
     "services": "Services",
@@ -988,7 +989,16 @@
     "title": "Torrents",
     "subtitle": "Manage qBittorrent downloads",
     "disconnectedDescription": "qBittorrent is unreachable.",
-    "selectTorrent": "Select a torrent to view trackers."
+    "selectTorrent": "Select a torrent to view trackers.",
+    "actions": "Actions",
+    "start": "Start",
+    "pause": "Pause",
+    "delete": "Delete",
+    "deleteWithFiles": "Delete + files",
+    "deleteConfirm": "Delete this torrent? This cannot be undone.",
+    "deleteWithFilesConfirm": "Delete this torrent and its files? This cannot be undone.",
+    "filesTitle": "Files",
+    "rename": "Rename"
   },
   "recipes": {
     "title": "Recipes",
