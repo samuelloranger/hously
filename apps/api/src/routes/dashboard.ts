@@ -67,6 +67,10 @@ interface ScrutinyPluginConfig {
   website_url: string;
 }
 
+interface NetdataPluginConfig {
+  website_url: string;
+}
+
 interface DashboardScrutinyDrive {
   id: string;
   model_name: string | null;
@@ -94,6 +98,35 @@ interface DashboardScrutinySummaryResponse {
   updated_at: string;
   summary: DashboardScrutinySummary;
   drives: DashboardScrutinyDrive[];
+  error?: string;
+}
+
+interface DashboardNetdataDiskUsage {
+  mount_point: string;
+  used_gib: number;
+  avail_gib: number;
+  reserved_gib: number;
+  used_percent: number;
+}
+
+interface DashboardNetdataSummary {
+  cpu_percent: number | null;
+  ram_used_mib: number | null;
+  ram_total_mib: number | null;
+  ram_used_percent: number | null;
+  load_1: number | null;
+  load_5: number | null;
+  load_15: number | null;
+  network_in_kbps: number | null;
+  network_out_kbps: number | null;
+}
+
+interface DashboardNetdataSummaryResponse {
+  enabled: boolean;
+  connected: boolean;
+  updated_at: string;
+  summary: DashboardNetdataSummary;
+  disks: DashboardNetdataDiskUsage[];
   error?: string;
 }
 
@@ -194,6 +227,18 @@ const normalizeSonarrConfig = (config: unknown): SonarrPluginConfig | null => {
 };
 
 const normalizeScrutinyConfig = (config: unknown): ScrutinyPluginConfig | null => {
+  const cfg = toRecord(config);
+  if (!cfg) return null;
+
+  const websiteUrl = toStringOrNull(cfg.website_url);
+  if (!websiteUrl) return null;
+
+  return {
+    website_url: websiteUrl.replace(/\/+$/, ''),
+  };
+};
+
+const normalizeNetdataConfig = (config: unknown): NetdataPluginConfig | null => {
   const cfg = toRecord(config);
   if (!cfg) return null;
 
@@ -484,6 +529,160 @@ const fetchScrutinySummary = async (): Promise<DashboardScrutinySummaryResponse>
     console.error('Error fetching Scrutiny summary:', error);
     return {
       ...buildScrutinyDisabledSummary('Failed to fetch Scrutiny summary'),
+      enabled: true,
+    };
+  }
+};
+
+const buildNetdataDisabledSummary = (error?: string): DashboardNetdataSummaryResponse => ({
+  enabled: false,
+  connected: false,
+  updated_at: new Date().toISOString(),
+  summary: {
+    cpu_percent: null,
+    ram_used_mib: null,
+    ram_total_mib: null,
+    ram_used_percent: null,
+    load_1: null,
+    load_5: null,
+    load_15: null,
+    network_in_kbps: null,
+    network_out_kbps: null,
+  },
+  disks: [],
+  ...(error ? { error } : {}),
+});
+
+const valueByLabels = (labels: string[], row: unknown[]): Record<string, number> => {
+  const result: Record<string, number> = {};
+  for (let i = 1; i < labels.length; i += 1) {
+    const label = labels[i];
+    const value = toNumberOrNull(row[i]);
+    if (!label || value == null) continue;
+    result[label] = value;
+  }
+  return result;
+};
+
+const fetchNetdataChartLatest = async (
+  netdataBaseUrl: string,
+  chart: string
+): Promise<Record<string, number> | null> => {
+  const dataUrl = new URL('/api/v1/data', netdataBaseUrl);
+  dataUrl.searchParams.set('chart', chart);
+  dataUrl.searchParams.set('after', '-60');
+  dataUrl.searchParams.set('points', '1');
+  dataUrl.searchParams.set('format', 'json');
+
+  const response = await fetch(dataUrl.toString(), {
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) return null;
+
+  const payload = (await response.json()) as Record<string, unknown>;
+  const labels = Array.isArray(payload.labels)
+    ? payload.labels.map(label => (typeof label === 'string' ? label : ''))
+    : [];
+  const rows = Array.isArray(payload.data) ? payload.data : [];
+  const row = rows[rows.length - 1];
+
+  if (!Array.isArray(row) || labels.length < 2) return null;
+  return valueByLabels(labels, row);
+};
+
+const fetchNetdataSummary = async (): Promise<DashboardNetdataSummaryResponse> => {
+  const plugin = await prisma.plugin.findFirst({
+    where: { type: 'netdata' },
+    select: { enabled: true, config: true },
+  });
+
+  if (!plugin?.enabled) {
+    return buildNetdataDisabledSummary();
+  }
+
+  const config = normalizeNetdataConfig(plugin.config);
+  if (!config) {
+    return {
+      ...buildNetdataDisabledSummary('Netdata plugin is enabled but not configured'),
+      enabled: true,
+    };
+  }
+
+  try {
+    const chartsUrl = new URL('/api/v1/charts', config.website_url);
+    const chartsResponse = await fetch(chartsUrl.toString(), {
+      headers: { Accept: 'application/json' },
+    });
+    if (!chartsResponse.ok) {
+      return {
+        ...buildNetdataDisabledSummary(`Netdata charts request failed with status ${chartsResponse.status}`),
+        enabled: true,
+      };
+    }
+
+    const chartsPayload = (await chartsResponse.json()) as Record<string, unknown>;
+    const charts = toRecord(chartsPayload.charts) ?? {};
+    const diskCharts = Object.keys(charts)
+      .filter(key => key.startsWith('disk_space.'))
+      .sort((a, b) => a.localeCompare(b));
+
+    const [cpu, ram, load, net, ...diskRows] = await Promise.all([
+      fetchNetdataChartLatest(config.website_url, 'system.cpu'),
+      fetchNetdataChartLatest(config.website_url, 'system.ram'),
+      fetchNetdataChartLatest(config.website_url, 'system.load'),
+      fetchNetdataChartLatest(config.website_url, 'system.net'),
+      ...diskCharts.map(chartId => fetchNetdataChartLatest(config.website_url, chartId)),
+    ]);
+
+    const ramUsed = ram?.used ?? null;
+    const ramFree = ram?.free ?? null;
+    const ramTotal = ramUsed != null && ramFree != null ? ramUsed + ramFree : null;
+    const ramUsedPercent =
+      ramUsed != null && ramTotal != null && ramTotal > 0 ? Math.round((ramUsed / ramTotal) * 1000) / 10 : null;
+
+    const disks: DashboardNetdataDiskUsage[] = diskRows
+      .map((values, index) => {
+        if (!values) return null;
+        const used = values.used ?? 0;
+        const avail = values.avail ?? 0;
+        const reserved = values['reserved for root'] ?? values.reserved_for_root ?? 0;
+        const total = used + avail + reserved;
+        const chartName = diskCharts[index] ?? 'disk_space.unknown';
+        const mountPointRaw = chartName.slice('disk_space.'.length);
+        const mountPoint = decodeURIComponent(mountPointRaw);
+        const usedPercent = total > 0 ? Math.round((used / total) * 1000) / 10 : 0;
+
+        return {
+          mount_point: mountPoint || '/',
+          used_gib: Math.round(used * 10) / 10,
+          avail_gib: Math.round(avail * 10) / 10,
+          reserved_gib: Math.round(reserved * 10) / 10,
+          used_percent: usedPercent,
+        };
+      })
+      .filter((entry): entry is DashboardNetdataDiskUsage => Boolean(entry));
+
+    return {
+      enabled: true,
+      connected: true,
+      updated_at: new Date().toISOString(),
+      summary: {
+        cpu_percent: cpu?.user != null && cpu?.system != null ? Math.round((cpu.user + cpu.system) * 10) / 10 : null,
+        ram_used_mib: ramUsed != null ? Math.round(ramUsed * 10) / 10 : null,
+        ram_total_mib: ramTotal != null ? Math.round(ramTotal * 10) / 10 : null,
+        ram_used_percent: ramUsedPercent,
+        load_1: load?.load1 != null ? Math.round(load.load1 * 100) / 100 : null,
+        load_5: load?.load5 != null ? Math.round(load.load5 * 100) / 100 : null,
+        load_15: load?.load15 != null ? Math.round(load.load15 * 100) / 100 : null,
+        network_in_kbps: net?.InOctets != null ? Math.round(net.InOctets * 10) / 10 : null,
+        network_out_kbps: net?.OutOctets != null ? Math.round(net.OutOctets * 10) / 10 : null,
+      },
+      disks,
+    };
+  } catch (error) {
+    console.error('Error fetching Netdata summary:', error);
+    return {
+      ...buildNetdataDisabledSummary('Failed to fetch Netdata summary'),
       enabled: true,
     };
   }
@@ -1102,6 +1301,20 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
       console.error('Error fetching Scrutiny summary:', error);
       set.status = 500;
       return { error: 'Failed to get Scrutiny summary' };
+    }
+  })
+  .get('/netdata/summary', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      return await fetchNetdataSummary();
+    } catch (error) {
+      console.error('Error fetching Netdata summary:', error);
+      set.status = 500;
+      return { error: 'Failed to get Netdata summary' };
     }
   })
   .get('/qbittorrent/stream', async ({ user, set, request }) => {

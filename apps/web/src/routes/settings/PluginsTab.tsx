@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import {
   JellyfinPluginSection,
+  NetdataPluginSection,
   QbittorrentPluginSection,
   RadarrPluginSection,
   ScrutinyPluginSection,
@@ -22,6 +23,7 @@ export function PluginsTab() {
         <SonarrPluginSection />
         <QbittorrentPluginSection />
         <ScrutinyPluginSection />
+        <NetdataPluginSection />
       </div>
     </div>
   );

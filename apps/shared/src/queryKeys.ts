@@ -28,6 +28,7 @@ export const queryKeys = {
     upcomingInfinite: (limit?: number) => [...queryKeys.dashboard.all, 'upcoming-infinite', limit] as const,
     qbittorrentStatus: () => [...queryKeys.dashboard.all, 'qbittorrent-status'] as const,
     scrutinySummary: () => [...queryKeys.dashboard.all, 'scrutiny-summary'] as const,
+    netdataSummary: () => [...queryKeys.dashboard.all, 'netdata-summary'] as const,
   },
 
   users: {
@@ -62,6 +63,7 @@ export const queryKeys = {
     sonarr: () => [...queryKeys.plugins.all, 'sonarr'] as const,
     qbittorrent: () => [...queryKeys.plugins.all, 'qbittorrent'] as const,
     scrutiny: () => [...queryKeys.plugins.all, 'scrutiny'] as const,
+    netdata: () => [...queryKeys.plugins.all, 'netdata'] as const,
   },
 
   admin: {

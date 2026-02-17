@@ -45,6 +45,12 @@ export interface ScrutinyPlugin {
   website_url: string;
 }
 
+export interface NetdataPlugin {
+  type: 'netdata';
+  enabled: boolean;
+  website_url: string;
+}
+
 export interface JellyfinPluginUpdateResponse {
   success: boolean;
   plugin: JellyfinPlugin;
@@ -70,4 +76,9 @@ export interface QbittorrentPluginUpdateResponse {
 export interface ScrutinyPluginUpdateResponse {
   success: boolean;
   plugin: ScrutinyPlugin;
+}
+
+export interface NetdataPluginUpdateResponse {
+  success: boolean;
+  plugin: NetdataPlugin;
 }

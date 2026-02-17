@@ -7,4 +7,5 @@ export const PLUGIN_ENDPOINTS = {
   SONARR_PROFILES: '/api/plugins/sonarr/profiles',
   QBITTORRENT: '/api/plugins/qbittorrent',
   SCRUTINY: '/api/plugins/scrutiny',
+  NETDATA: '/api/plugins/netdata',
 } as const;

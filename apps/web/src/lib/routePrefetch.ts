@@ -32,6 +32,10 @@ const routeQueryDefinitions = {
       queryKey: queryKeys.dashboard.scrutinySummary(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
     },
+    {
+      queryKey: queryKeys.dashboard.netdataSummary(),
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
+    },
     { queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) },
   ],
 

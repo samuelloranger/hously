@@ -6,6 +6,8 @@ import type {
   ArrProfile,
   JellyfinPlugin,
   JellyfinPluginUpdateResponse,
+  NetdataPlugin,
+  NetdataPluginUpdateResponse,
   QbittorrentPlugin,
   QbittorrentPluginUpdateResponse,
   RadarrPlugin,
@@ -61,6 +63,16 @@ export function useScrutinyPlugin() {
   return useQuery({
     queryKey: queryKeys.plugins.scrutiny(),
     queryFn: () => fetcher<{ plugin: ScrutinyPlugin }>(PLUGIN_ENDPOINTS.SCRUTINY),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useNetdataPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.netdata(),
+    queryFn: () => fetcher<{ plugin: NetdataPlugin }>(PLUGIN_ENDPOINTS.NETDATA),
     refetchOnMount: 'always',
     staleTime: 0,
   });
@@ -167,6 +179,23 @@ export function useUpdateScrutinyPlugin() {
       queryClient.setQueryData(queryKeys.plugins.scrutiny(), { plugin: result.plugin });
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.scrutiny() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.scrutinySummary() });
+    },
+  });
+}
+
+export function useUpdateNetdataPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { website_url: string; enabled: boolean }) =>
+      fetcher<NetdataPluginUpdateResponse>(PLUGIN_ENDPOINTS.NETDATA, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: result => {
+      queryClient.setQueryData(queryKeys.plugins.netdata(), { plugin: result.plugin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.netdata() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.netdataSummary() });
     },
   });
 }

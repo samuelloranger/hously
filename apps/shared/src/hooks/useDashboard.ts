@@ -5,6 +5,7 @@ import { DASHBOARD_ENDPOINTS } from '../endpoints';
 import type {
   DashboardStatsResponse,
   DashboardJellyfinLatestResponse,
+  DashboardNetdataSummaryResponse,
   DashboardScrutinySummaryResponse,
   DashboardUpcomingResponse,
   DashboardQbittorrentStatusResponse,
@@ -125,5 +126,14 @@ export function useDashboardScrutinySummary() {
   return useQuery({
     queryKey: queryKeys.dashboard.scrutinySummary(),
     queryFn: () => fetcher<DashboardScrutinySummaryResponse>(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
+  });
+}
+
+export function useDashboardNetdataSummary() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.netdataSummary(),
+    queryFn: () => fetcher<DashboardNetdataSummaryResponse>(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
   });
 }

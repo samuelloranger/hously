@@ -174,6 +174,21 @@
       "unknownDrive": "Unknown drive",
       "emptyTitle": "No drive data available yet."
     },
+    "netdata": {
+      "kicker": "From your infrastructure monitor",
+      "title": "System Overview",
+      "subtitle": "Live CPU, RAM, network, and disk usage from Netdata.",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "notConnectedTitle": "Netdata is not connected yet",
+      "notConnectedDescription": "Open Settings > Plugins and connect Netdata to display system telemetry here.",
+      "cpu": "CPU",
+      "ram": "RAM",
+      "load": "Load (1/5/15)",
+      "network": "Network",
+      "diskUsedLabel": "Used {{used}} / {{total}} GiB",
+      "emptyTitle": "No disk usage data available yet."
+    },
     "loading": "Loading dashboard...",
     "user": "User",
     "subtexts": {
@@ -753,6 +768,10 @@
       "scrutiny": {
         "help": "Connect Scrutiny to show disk health and SMART temperatures on the dashboard.",
         "websiteUrl": "Scrutiny URL"
+      },
+      "netdata": {
+        "help": "Connect Netdata to show live system metrics and per-disk usage on the dashboard.",
+        "websiteUrl": "Netdata URL"
       }
     },
     "dataExport": {

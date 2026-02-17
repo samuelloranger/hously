@@ -17,4 +17,7 @@ export const DASHBOARD_ENDPOINTS = {
   SCRUTINY: {
     SUMMARY: '/api/dashboard/scrutiny/summary',
   },
+  NETDATA: {
+    SUMMARY: '/api/dashboard/netdata/summary',
+  },
 } as const;

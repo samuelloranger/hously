@@ -1,4 +1,5 @@
 export { JellyfinPluginSection } from './JellyfinPluginSection';
+export { NetdataPluginSection } from './NetdataPluginSection';
 export { PluginSectionCard } from './PluginSectionCard';
 export { QbittorrentPluginSection } from './QbittorrentPluginSection';
 export { RadarrPluginSection } from './RadarrPluginSection';

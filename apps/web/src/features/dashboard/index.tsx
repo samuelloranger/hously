@@ -6,6 +6,7 @@ import { JellyfinLatestShelf } from './components/JellyfinLatestShelf';
 import { UpcomingShelf } from './components/UpcomingShelf';
 import { QbittorrentLiveCard } from './components/QbittorrentLiveCard';
 import { ScrutinyHealthCard } from './components/ScrutinyHealthCard';
+import { NetdataOverviewCard } from './components/NetdataOverviewCard';
 import { EmptyState } from '../../components/EmptyState';
 import {
   getUserFirstName,
@@ -147,9 +148,10 @@ export function Dashboard() {
         />
       </div>
 
-      <div className="mt-4 mb-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
+      <div className="mt-4 mb-8 grid grid-cols-1 xl:grid-cols-3 gap-8">
         <QbittorrentLiveCard />
         <ScrutinyHealthCard />
+        <NetdataOverviewCard />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

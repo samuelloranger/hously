@@ -26,6 +26,7 @@ import type {
   CreateUserRequest,
   CreateUserResponse,
   DashboardJellyfinLatestResponse,
+  DashboardNetdataSummaryResponse,
   DashboardScrutinySummaryResponse,
   DashboardQbittorrentStatusResponse,
   DashboardStatsResponse,
@@ -38,6 +39,8 @@ import type {
   JellyfinPluginUpdateResponse,
   ListUsersResponse,
   LogsResponse,
+  NetdataPlugin,
+  NetdataPluginUpdateResponse,
   Notification,
   NotificationDevice,
   NotificationDevicesResponse,
@@ -381,6 +384,7 @@ export function createDashboardApi(fetcher: ApiFetcher) {
     getDashboardQbittorrentStatus: () =>
       fetcher<DashboardQbittorrentStatusResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.STATUS),
     getDashboardScrutinySummary: () => fetcher<DashboardScrutinySummaryResponse>(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
+    getDashboardNetdataSummary: () => fetcher<DashboardNetdataSummaryResponse>(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
   };
 }
 
@@ -582,6 +586,12 @@ export function createPluginsApi(fetcher: ApiFetcher) {
     getScrutinyPlugin: () => fetcher<{ plugin: ScrutinyPlugin }>(PLUGIN_ENDPOINTS.SCRUTINY),
     updateScrutinyPlugin: (data: { website_url: string; enabled: boolean }) =>
       fetcher<ScrutinyPluginUpdateResponse>(PLUGIN_ENDPOINTS.SCRUTINY, {
+        method: 'PUT',
+        body: data,
+      }),
+    getNetdataPlugin: () => fetcher<{ plugin: NetdataPlugin }>(PLUGIN_ENDPOINTS.NETDATA),
+    updateNetdataPlugin: (data: { website_url: string; enabled: boolean }) =>
+      fetcher<NetdataPluginUpdateResponse>(PLUGIN_ENDPOINTS.NETDATA, {
         method: 'PUT',
         body: data,
       }),

@@ -173,6 +173,21 @@
       "unknownDrive": "Disque inconnu",
       "emptyTitle": "Aucune donnée disque disponible pour le moment."
     },
+    "netdata": {
+      "kicker": "Depuis votre monitoring système",
+      "title": "Vue système",
+      "subtitle": "CPU, RAM, réseau et usage disque en direct depuis Netdata.",
+      "connected": "Connecté",
+      "disconnected": "Déconnecté",
+      "notConnectedTitle": "Netdata n'est pas encore connecté",
+      "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez Netdata pour afficher la télémétrie système ici.",
+      "cpu": "CPU",
+      "ram": "RAM",
+      "load": "Charge (1/5/15)",
+      "network": "Réseau",
+      "diskUsedLabel": "Utilisé {{used}} / {{total}} Gio",
+      "emptyTitle": "Aucune donnée d'utilisation disque disponible pour le moment."
+    },
     "loading": "Chargement de l'accueil...",
     "user": "Utilisateur",
     "subtexts": {
@@ -752,6 +767,10 @@
       "scrutiny": {
         "help": "Connectez Scrutiny pour afficher la santé des disques et les températures SMART sur l'accueil.",
         "websiteUrl": "URL Scrutiny"
+      },
+      "netdata": {
+        "help": "Connectez Netdata pour afficher les métriques système en direct et l'usage par disque sur l'accueil.",
+        "websiteUrl": "URL Netdata"
       }
     },
     "dataExport": {
