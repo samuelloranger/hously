@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDashboardNetdataSummary } from '@hously/shared';
+import { DASHBOARD_ENDPOINTS, type DashboardNetdataSummaryResponse, useDashboardNetdataSummary } from '@hously/shared';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../components/ui/collapsible';
 
 const formatPercent = (value: number | null): string => {
   if (value == null || Number.isNaN(value)) return '--';
@@ -28,7 +29,39 @@ const formatNetwork = (valueKbps: number | null): string => {
 
 export function NetdataOverviewCard() {
   const { t } = useTranslation('common');
-  const { data, isLoading } = useDashboardNetdataSummary();
+  const { data: fallbackData, isLoading } = useDashboardNetdataSummary();
+  const [liveData, setLiveData] = useState<DashboardNetdataSummaryResponse | null>(null);
+  const [streamConnected, setStreamConnected] = useState(false);
+  const [showDisks, setShowDisks] = useState(false);
+
+  useEffect(() => {
+    setLiveData(fallbackData ?? null);
+  }, [fallbackData]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
+
+    const source = new EventSource(DASHBOARD_ENDPOINTS.NETDATA.STREAM, { withCredentials: true });
+    source.onopen = () => setStreamConnected(true);
+    source.onmessage = event => {
+      try {
+        const parsed = JSON.parse(event.data) as DashboardNetdataSummaryResponse;
+        setLiveData(parsed);
+      } catch (error) {
+        console.error('Failed to parse Netdata stream payload', error);
+      }
+    };
+    source.onerror = () => {
+      setStreamConnected(false);
+    };
+
+    return () => {
+      source.close();
+      setStreamConnected(false);
+    };
+  }, []);
+
+  const data = liveData;
 
   const showNotConnected = !isLoading && (!data || !data.enabled || !data.connected);
   const disks = useMemo(
@@ -49,7 +82,11 @@ export function NetdataOverviewCard() {
           <p className="text-sm text-emerald-900/70 dark:text-emerald-100/90 mt-1">{t('dashboard.netdata.subtitle')}</p>
         </div>
         <span className="rounded-full bg-black/15 dark:bg-black/25 px-3 py-1 text-xs font-medium text-emerald-950 dark:text-emerald-100">
-          {showNotConnected ? t('dashboard.netdata.disconnected') : t('dashboard.netdata.connected')}
+          {showNotConnected
+            ? t('dashboard.netdata.disconnected')
+            : streamConnected
+              ? t('dashboard.netdata.live')
+              : t('dashboard.netdata.polling')}
         </span>
       </div>
 
@@ -96,34 +133,44 @@ export function NetdataOverviewCard() {
           </div>
 
           {disks.length > 0 ? (
-            <div className="mt-5 space-y-2">
-              {disks.map(disk => {
-                const total = disk.used_gib + disk.avail_gib + disk.reserved_gib;
-                const safePercent = Math.max(0, Math.min(100, disk.used_percent));
-                return (
-                  <div key={disk.mount_point} className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="truncate text-sm font-medium text-emerald-950 dark:text-white">
-                        {disk.mount_point}
+            <Collapsible open={showDisks} onOpenChange={setShowDisks} className="mt-5">
+              <CollapsibleTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center rounded-full border border-emerald-950/20 dark:border-emerald-200/40 bg-black/10 dark:bg-black/20 px-3 py-1.5 text-xs font-medium text-emerald-950 dark:text-emerald-100 hover:bg-black/20 dark:hover:bg-black/30"
+                >
+                  {showDisks ? t('dashboard.netdata.hideDisks') : t('dashboard.netdata.showDisks')}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-2">
+                {disks.map(disk => {
+                  const total = disk.used_gib + disk.avail_gib + disk.reserved_gib;
+                  const safePercent = Math.max(0, Math.min(100, disk.used_percent));
+                  return (
+                    <div key={disk.mount_point} className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="truncate text-sm font-medium text-emerald-950 dark:text-white">
+                          {disk.mount_point}
+                        </p>
+                        <p className="text-xs text-emerald-900 dark:text-emerald-100">{formatPercent(safePercent)}</p>
+                      </div>
+                      <div className="mt-2 h-1.5 rounded-full bg-emerald-950/20 dark:bg-emerald-100/30">
+                        <div
+                          className="h-full rounded-full bg-emerald-900 dark:bg-emerald-200"
+                          style={{ width: `${safePercent}%` }}
+                        />
+                      </div>
+                      <p className="mt-2 text-xs text-emerald-950/85 dark:text-emerald-100/90">
+                        {t('dashboard.netdata.diskUsedLabel', {
+                          used: disk.used_gib.toFixed(1),
+                          total: total.toFixed(1),
+                        })}
                       </p>
-                      <p className="text-xs text-emerald-900 dark:text-emerald-100">{formatPercent(safePercent)}</p>
                     </div>
-                    <div className="mt-2 h-1.5 rounded-full bg-emerald-950/20 dark:bg-emerald-100/30">
-                      <div
-                        className="h-full rounded-full bg-emerald-900 dark:bg-emerald-200"
-                        style={{ width: `${safePercent}%` }}
-                      />
-                    </div>
-                    <p className="mt-2 text-xs text-emerald-950/85 dark:text-emerald-100/90">
-                      {t('dashboard.netdata.diskUsedLabel', {
-                        used: disk.used_gib.toFixed(1),
-                        total: total.toFixed(1),
-                      })}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </CollapsibleContent>
+            </Collapsible>
           ) : (
             <div className="mt-5 rounded-2xl border border-emerald-500/40 dark:border-emerald-300/40 bg-emerald-100/55 dark:bg-emerald-100/15 p-4 text-sm text-emerald-950 dark:text-emerald-100">
               {t('dashboard.netdata.emptyTitle')}

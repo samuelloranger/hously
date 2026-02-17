@@ -82,6 +82,31 @@
     "recentActivity": "Recent Activity",
     "noRecentActivity": "No recent activity",
     "startUsing": "Start using the app to see updates here",
+    "layout": {
+      "edit": "Edit",
+      "done": "Done",
+      "reset": "Reset",
+      "hint": "Drag cards to reorder. Drag ↔ to resize."
+    },
+    "weather": {
+      "kicker": "Weather",
+      "updating": "Updating...",
+      "temperature": "{{temp}}°{{unit}}",
+      "feelsLikeLine": "{{condition}} - Feels like {{feelsLike}}°{{unit}}",
+      "conditions": {
+        "clearSky": "Clear sky",
+        "partlyCloudy": "Partly cloudy",
+        "overcast": "Overcast",
+        "foggy": "Foggy",
+        "drizzle": "Drizzle",
+        "freezingDrizzle": "Freezing drizzle",
+        "rain": "Rain",
+        "freezingRain": "Freezing rain",
+        "snow": "Snow",
+        "thunderstorm": "Thunderstorm",
+        "currentConditions": "Current conditions"
+      }
+    },
     "jellyfin": {
       "kicker": "From your media server",
       "title": "Fresh from Jellyfin",
@@ -172,6 +197,8 @@
       "hoursLabel": "POH: {{value}}",
       "capacityLabel": "Cap: {{value}}",
       "unknownDrive": "Unknown drive",
+      "showDrives": "Show drives",
+      "hideDrives": "Hide drives",
       "emptyTitle": "No drive data available yet."
     },
     "netdata": {
@@ -180,6 +207,8 @@
       "subtitle": "Live CPU, RAM, network, and disk usage from Netdata.",
       "connected": "Connected",
       "disconnected": "Disconnected",
+      "live": "Live",
+      "polling": "Polling",
       "notConnectedTitle": "Netdata is not connected yet",
       "notConnectedDescription": "Open Settings > Plugins and connect Netdata to display system telemetry here.",
       "cpu": "CPU",
@@ -187,6 +216,8 @@
       "load": "Load (1/5/15)",
       "network": "Network",
       "diskUsedLabel": "Used {{used}} / {{total}} GiB",
+      "showDisks": "Show disks",
+      "hideDisks": "Hide disks",
       "emptyTitle": "No disk usage data available yet."
     },
     "loading": "Loading dashboard...",

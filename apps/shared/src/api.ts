@@ -189,6 +189,7 @@ export function createAuthApi(fetcher: ApiFetcher, options: AuthApiOptions = {})
       first_name: 'first_name' in data ? data.first_name : camel.firstName,
       last_name: 'last_name' in data ? data.last_name : camel.lastName,
       locale: data.locale ?? null,
+      dashboard_config: 'dashboard_config' in data ? data.dashboard_config : undefined,
     };
 
     return fetcher<AuthenticatedUserResponse>(USERS_ENDPOINTS.ME, {

@@ -81,6 +81,31 @@
     "recentActivity": "Activité récente",
     "noRecentActivity": "Aucune activité récente",
     "startUsing": "Commencez à utiliser l'application pour voir les mises à jour ici",
+    "layout": {
+      "edit": "Modifier",
+      "done": "Terminer",
+      "reset": "Réinitialiser",
+      "hint": "Glissez-déposez les cartes pour réordonner. Faites glisser ↔ pour redimensionner."
+    },
+    "weather": {
+      "kicker": "Météo",
+      "updating": "Mise à jour...",
+      "temperature": "{{temp}}°{{unit}}",
+      "feelsLikeLine": "{{condition}} - Ressenti {{feelsLike}}°{{unit}}",
+      "conditions": {
+        "clearSky": "Ciel dégagé",
+        "partlyCloudy": "Partiellement nuageux",
+        "overcast": "Couvert",
+        "foggy": "Brouillard",
+        "drizzle": "Bruine",
+        "freezingDrizzle": "Bruine verglaçante",
+        "rain": "Pluie",
+        "freezingRain": "Pluie verglaçante",
+        "snow": "Neige",
+        "thunderstorm": "Orage",
+        "currentConditions": "Conditions actuelles"
+      }
+    },
     "jellyfin": {
       "kicker": "Librairie Médias",
       "title": "Derniers ajouts",
@@ -171,6 +196,8 @@
       "hoursLabel": "Heures: {{value}}",
       "capacityLabel": "Cap: {{value}}",
       "unknownDrive": "Disque inconnu",
+      "showDrives": "Afficher les disques",
+      "hideDrives": "Masquer les disques",
       "emptyTitle": "Aucune donnée disque disponible pour le moment."
     },
     "netdata": {
@@ -179,6 +206,8 @@
       "subtitle": "CPU, RAM, réseau et usage disque en direct depuis Netdata.",
       "connected": "Connecté",
       "disconnected": "Déconnecté",
+      "live": "En direct",
+      "polling": "Actualisation",
       "notConnectedTitle": "Netdata n'est pas encore connecté",
       "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez Netdata pour afficher la télémétrie système ici.",
       "cpu": "CPU",
@@ -186,6 +215,8 @@
       "load": "Charge (1/5/15)",
       "network": "Réseau",
       "diskUsedLabel": "Utilisé {{used}} / {{total}} Gio",
+      "showDisks": "Afficher les disques",
+      "hideDisks": "Masquer les disques",
       "emptyTitle": "Aucune donnée d'utilisation disque disponible pour le moment."
     },
     "loading": "Chargement de l'accueil...",
