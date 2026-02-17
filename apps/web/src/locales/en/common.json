@@ -145,6 +145,7 @@
       "kicker": "From your downloader",
       "title": "qBittorrent Live",
       "subtitle": "Real-time transfer stats and active torrent queue.",
+      "openTorrents": "Open Torrents",
       "notConnectedTitle": "qBittorrent is not connected yet",
       "notConnectedDescription": "Open Settings > Plugins and connect qBittorrent to see live activity here.",
       "emptyTitle": "No active torrent activity right now",
@@ -982,6 +983,12 @@
         "snack": "Snack"
       }
     }
+  },
+  "torrents": {
+    "title": "Torrents",
+    "subtitle": "Manage qBittorrent downloads",
+    "disconnectedDescription": "qBittorrent is unreachable.",
+    "selectTorrent": "Select a torrent to view trackers."
   },
   "recipes": {
     "title": "Recipes",

@@ -1,21 +1,13 @@
-import {
-  createRouter,
-  createRootRoute,
-  createRoute,
-  redirect,
-} from "@tanstack/react-router";
-import { lazy, type ComponentType, type LazyExoticComponent } from "react";
-import { RootLayout } from "./components/Layout";
-import { getCurrentUser, clearUser } from "./lib/auth";
-import type { Tab } from "./routes/settings";
-import { getQueryClient } from "./lib/queryClient";
-import { prefetchRouteData } from "./lib/routePrefetch";
+import { createRouter, createRootRoute, createRoute, redirect } from '@tanstack/react-router';
+import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
+import { RootLayout } from './components/Layout';
+import { getCurrentUser, clearUser } from './lib/auth';
+import type { Tab } from './routes/settings';
+import { getQueryClient } from './lib/queryClient';
+import { prefetchRouteData } from './lib/routePrefetch';
 
 // Cache for lazy components to prevent recreating them
-const lazyComponentCache = new Map<
-  string,
-  LazyExoticComponent<ComponentType<any>>
->();
+const lazyComponentCache = new Map<string, LazyExoticComponent<ComponentType<any>>>();
 
 /**
  * Creates a cached lazy component that only imports once
@@ -38,45 +30,30 @@ function cachedLazy<T extends ComponentType<any>>(
 }
 
 // Lazy load route components for code splitting with caching
-const Dashboard = cachedLazy("dashboard", () =>
-  import("./features/dashboard").then((m) => ({ default: m.Dashboard }))
+const Dashboard = cachedLazy('dashboard', () => import('./features/dashboard').then(m => ({ default: m.Dashboard })));
+const Login = cachedLazy('login', () => import('./routes/login').then(m => ({ default: m.Login })));
+const ForgotPassword = cachedLazy('forgot-password', () =>
+  import('./routes/forgot-password').then(m => ({ default: m.ForgotPassword }))
 );
-const Login = cachedLazy("login", () =>
-  import("./routes/login").then((m) => ({ default: m.Login }))
+const ResetPassword = cachedLazy('reset-password', () =>
+  import('./routes/reset-password').then(m => ({ default: m.ResetPassword }))
 );
-const ForgotPassword = cachedLazy("forgot-password", () =>
-  import("./routes/forgot-password").then((m) => ({ default: m.ForgotPassword }))
+const ShoppingList = cachedLazy('shopping', () =>
+  import('./features/shopping').then(m => ({ default: m.ShoppingList }))
 );
-const ResetPassword = cachedLazy("reset-password", () =>
-  import("./routes/reset-password").then((m) => ({ default: m.ResetPassword }))
+const ChoresList = cachedLazy('chores', () => import('./features/chores').then(m => ({ default: m.ChoresList })));
+const Calendar = cachedLazy('calendar', () => import('./features/calendar').then(m => ({ default: m.Calendar })));
+const Settings = cachedLazy('settings', () => import('./routes/settings').then(m => ({ default: m.Settings })));
+const Notifications = cachedLazy('notifications', () =>
+  import('./routes/notifications').then(m => ({ default: m.Notifications }))
 );
-const ShoppingList = cachedLazy("shopping", () =>
-  import("./features/shopping").then((m) => ({ default: m.ShoppingList }))
+const KitchenPage = cachedLazy('kitchen', () => import('./features/recipes').then(m => ({ default: m.KitchenPage })));
+const RecipeDetail = cachedLazy('recipeDetail', () =>
+  import('./features/recipes').then(m => ({ default: m.RecipeDetail }))
 );
-const ChoresList = cachedLazy("chores", () =>
-  import("./features/chores").then((m) => ({ default: m.ChoresList }))
-);
-const Calendar = cachedLazy("calendar", () =>
-  import("./features/calendar").then((m) => ({ default: m.Calendar }))
-);
-const Settings = cachedLazy("settings", () =>
-  import("./routes/settings").then((m) => ({ default: m.Settings }))
-);
-const Notifications = cachedLazy("notifications", () =>
-  import("./routes/notifications").then((m) => ({ default: m.Notifications }))
-);
-const KitchenPage = cachedLazy("kitchen", () =>
-  import("./features/recipes").then((m) => ({ default: m.KitchenPage }))
-);
-const RecipeDetail = cachedLazy("recipeDetail", () =>
-  import("./features/recipes").then((m) => ({ default: m.RecipeDetail }))
-);
-const Privacy = cachedLazy("privacy", () =>
-  import("./routes/privacy").then((m) => ({ default: m.Privacy }))
-);
-const Terms = cachedLazy("terms", () =>
-  import("./routes/terms").then((m) => ({ default: m.Terms }))
-);
+const Privacy = cachedLazy('privacy', () => import('./routes/privacy').then(m => ({ default: m.Privacy })));
+const Terms = cachedLazy('terms', () => import('./routes/terms').then(m => ({ default: m.Terms })));
+const TorrentsPage = cachedLazy('torrents', () => import('./features/torrents').then(m => ({ default: m.TorrentsPage })));
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -84,183 +61,200 @@ const rootRoute = createRootRoute({
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/",
+  path: '/',
   component: Dashboard,
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (!user) {
-      throw redirect({ to: "/login" });
+      throw redirect({ to: '/login' });
     }
   },
   loader: async () => {
     const queryClient = getQueryClient();
     if (!queryClient) return;
-    await prefetchRouteData(queryClient, "/");
+    await prefetchRouteData(queryClient, '/');
   },
 });
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/login",
+  path: '/login',
   component: Login,
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (user) {
-      throw redirect({ to: "/" });
+      throw redirect({ to: '/' });
     }
   },
 });
 
 const forgotPasswordRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/forgot-password",
+  path: '/forgot-password',
   component: ForgotPassword,
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (user) {
-      throw redirect({ to: "/" });
+      throw redirect({ to: '/' });
     }
   },
 });
 
 const resetPasswordRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/reset-password",
+  path: '/reset-password',
   component: ResetPassword,
   validateSearch: (search: Record<string, unknown>) => {
     return {
-      token: (search.token as string) || "",
+      token: (search.token as string) || '',
     };
   },
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (user) {
-      throw redirect({ to: "/" });
+      throw redirect({ to: '/' });
     }
   },
 });
 
 const shoppingRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/shopping",
+  path: '/shopping',
   component: ShoppingList,
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (!user) {
-      throw redirect({ to: "/login" });
+      throw redirect({ to: '/login' });
     }
   },
   loader: async () => {
     const queryClient = getQueryClient();
     if (!queryClient) return;
-    await prefetchRouteData(queryClient, "/shopping");
+    await prefetchRouteData(queryClient, '/shopping');
   },
 });
 
 const choresRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/chores",
+  path: '/chores',
   component: ChoresList,
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (!user) {
-      throw redirect({ to: "/login" });
+      throw redirect({ to: '/login' });
     }
   },
   loader: async () => {
     const queryClient = getQueryClient();
     if (!queryClient) return;
-    await prefetchRouteData(queryClient, "/chores");
+    await prefetchRouteData(queryClient, '/chores');
   },
 });
 
 const calendarRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/calendar",
+  path: '/calendar',
   component: Calendar,
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (!user) {
-      throw redirect({ to: "/login" });
+      throw redirect({ to: '/login' });
     }
   },
 });
 
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/settings",
+  path: '/settings',
   component: Settings,
   validateSearch: (search: Record<string, unknown>) => {
     return {
-      tab: (search.tab as Tab) || "profile",
+      tab: (search.tab as Tab) || 'profile',
     };
   },
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (!user) {
       clearUser();
-      throw redirect({ to: "/login" });
+      throw redirect({ to: '/login' });
     }
   },
 });
 
 const notificationsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/notifications",
+  path: '/notifications',
   component: Notifications,
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (!user) {
       clearUser();
-      throw redirect({ to: "/login" });
+      throw redirect({ to: '/login' });
     }
   },
   loader: async () => {
     const queryClient = getQueryClient();
     if (!queryClient) return;
-    await prefetchRouteData(queryClient, "/notifications");
+    await prefetchRouteData(queryClient, '/notifications');
   },
 });
 
 const kitchenRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/kitchen",
+  path: '/kitchen',
   component: KitchenPage,
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (!user) {
-      throw redirect({ to: "/login" });
+      throw redirect({ to: '/login' });
     }
   },
   loader: async () => {
     const queryClient = getQueryClient();
     if (!queryClient) return;
-    await prefetchRouteData(queryClient, "/kitchen");
+    await prefetchRouteData(queryClient, '/kitchen');
   },
 });
 
 const recipeDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/kitchen/$recipeId",
+  path: '/kitchen/$recipeId',
   component: RecipeDetail,
   beforeLoad: async () => {
     const user = await getCurrentUser();
     if (!user) {
-      throw redirect({ to: "/login" });
+      throw redirect({ to: '/login' });
     }
   },
 });
 
 const privacyRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/privacy",
+  path: '/privacy',
   component: Privacy,
 });
 
 const termsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/terms",
+  path: '/terms',
   component: Terms,
+});
+
+const torrentsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/torrents',
+  component: TorrentsPage,
+  beforeLoad: async () => {
+    const user = await getCurrentUser();
+    if (!user) {
+      throw redirect({ to: '/login' });
+    }
+  },
+  loader: async () => {
+    const queryClient = getQueryClient();
+    if (!queryClient) return;
+    await prefetchRouteData(queryClient, '/torrents');
+  },
 });
 
 const routeTree = rootRoute.addChildren([
@@ -277,11 +271,12 @@ const routeTree = rootRoute.addChildren([
   recipeDetailRoute,
   privacyRoute,
   termsRoute,
+  torrentsRoute,
 ]);
 
 export const router = createRouter({ routeTree });
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;
   }

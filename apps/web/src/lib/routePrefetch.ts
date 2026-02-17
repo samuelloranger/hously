@@ -48,6 +48,13 @@ const routeQueryDefinitions = {
 
   '/chores': () => [{ queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) }],
 
+  '/torrents': () => [
+    {
+      queryKey: queryKeys.dashboard.qbittorrentTorrents({ sort: 'added_on', reverse: true, limit: 250 }),
+      queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?sort=added_on&reverse=true&limit=250`),
+    },
+  ],
+
   // Note: /notifications is intentionally not prefetched because it uses
   // useInfiniteQuery which has a different data structure (pages array).
   // Prefetching with a regular query would cause cache structure mismatches.

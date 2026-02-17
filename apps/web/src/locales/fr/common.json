@@ -144,6 +144,7 @@
       "kicker": "Depuis votre téléchargeur",
       "title": "qBittorrent en direct",
       "subtitle": "Statistiques de transfert en temps réel et file active des torrents.",
+      "openTorrents": "Ouvrir les torrents",
       "notConnectedTitle": "qBittorrent n'est pas encore connecté",
       "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez qBittorrent pour voir l'activité en direct ici.",
       "emptyTitle": "Aucune activité torrent en cours",
@@ -1026,6 +1027,12 @@
     "exportSuccess": "Liste de cadeaux copiée dans le presse-papiers",
     "exportError": "Échec de la copie dans le presse-papiers",
     "exportUnauthorized": "Vous ne pouvez exporter que votre propre liste de cadeaux"
+  },
+  "torrents": {
+    "title": "Torrents",
+    "subtitle": "Gérez vos téléchargements qBittorrent",
+    "disconnectedDescription": "qBittorrent est injoignable.",
+    "selectTorrent": "Sélectionnez un torrent pour voir les trackers."
   },
   "recipes": {
     "title": "Recettes",
