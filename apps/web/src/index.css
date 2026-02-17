@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Source paths for Tailwind to scan */
 @source "../index.html";
@@ -26,7 +26,8 @@
 @variant dark (&:where(.dark, .dark *));
 
 /* Prevent double-tap zoom on iOS PWA */
-html, body {
+html,
+body {
   touch-action: manipulation;
 }
 
@@ -190,6 +191,17 @@ html, body {
   animation: collapsible-up 0.2s ease-in;
 }
 
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* iOS Safari specific styles */
 @supports (-webkit-touch-callout: none) {
   body {
@@ -205,14 +217,14 @@ html, body {
     -webkit-user-select: auto;
     user-select: auto;
   }
-  
+
   button {
     cursor: pointer;
   }
 
   button:not(.checkbox),
   .btn,
-  a[role="button"] {
+  a[role='button'] {
     min-height: 44px;
     min-width: 44px;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
@@ -237,7 +249,7 @@ html, body {
     display: none;
   }
 
- .heading-safe-area {
+  .heading-safe-area {
     padding-top: env(safe-area-inset-top);
   }
 
@@ -263,10 +275,6 @@ html, body {
   }
 }
 
-.stat-card-animate {
-  animation: cardSlideIn 0.4s ease-out both;
-}
-
 /* Smart greeting animations */
 @keyframes greetingFadeSlideIn {
   from {
@@ -284,7 +292,8 @@ html, body {
 }
 
 @keyframes iconBounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {

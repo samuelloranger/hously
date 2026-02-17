@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from 'react';
+import { Link } from '@tanstack/react-router';
 
 interface StatCardProps {
   icon: string;
@@ -10,6 +10,36 @@ interface StatCardProps {
   t: (key: string) => string;
   index?: number;
 }
+
+const cardThemes = [
+  // Events — warm amber/peach
+  {
+    card: 'from-[#fff7ed] via-[#fff3e6] to-[#ffecd2] dark:from-amber-950/50 dark:via-orange-950/35 dark:to-amber-900/25 border-amber-200/80 dark:border-amber-700/40',
+    value: 'text-amber-900 dark:text-amber-100',
+    label: 'text-amber-800/70 dark:text-amber-300/70',
+    icon: 'bg-amber-200/60 dark:bg-amber-800/40',
+    arrow: 'text-amber-500/60 dark:text-amber-400/50',
+    glow: 'group-hover:shadow-amber-200/40 dark:group-hover:shadow-amber-800/20',
+  },
+  // Shopping — cool blue/sky
+  {
+    card: 'from-[#eff6ff] via-[#e8f1ff] to-[#dbeafe] dark:from-blue-950/50 dark:via-sky-950/35 dark:to-blue-900/25 border-blue-200/80 dark:border-blue-700/40',
+    value: 'text-blue-900 dark:text-blue-100',
+    label: 'text-blue-800/70 dark:text-blue-300/70',
+    icon: 'bg-blue-200/60 dark:bg-blue-800/40',
+    arrow: 'text-blue-500/60 dark:text-blue-400/50',
+    glow: 'group-hover:shadow-blue-200/40 dark:group-hover:shadow-blue-800/20',
+  },
+  // Chores — fresh green/emerald
+  {
+    card: 'from-[#ecfdf5] via-[#e6faf0] to-[#d1fae5] dark:from-emerald-950/50 dark:via-green-950/35 dark:to-emerald-900/25 border-emerald-200/80 dark:border-emerald-700/40',
+    value: 'text-emerald-900 dark:text-emerald-100',
+    label: 'text-emerald-800/70 dark:text-emerald-300/70',
+    icon: 'bg-emerald-200/60 dark:bg-emerald-800/40',
+    arrow: 'text-emerald-500/60 dark:text-emerald-400/50',
+    glow: 'group-hover:shadow-emerald-200/40 dark:group-hover:shadow-emerald-800/20',
+  },
+];
 
 function AnimatedNumber({ value }: { value: number }) {
   const [displayValue, setDisplayValue] = useState(0);
@@ -49,79 +79,43 @@ function AnimatedNumber({ value }: { value: number }) {
   return <span>{displayValue}</span>;
 }
 
-export function StatCard({
-  icon,
-  title,
-  value,
-  color,
-  link,
-  t,
-  index = 0,
-}: StatCardProps) {
-  const isNumeric = typeof value === "number";
-  const isCurrency = typeof value === "string" && value.startsWith("$");
-  const numericValue = isCurrency
-    ? parseFloat(value.replace("$", ""))
-    : isNumeric
-      ? value
-      : null;
+export function StatCard({ icon, title, value, color: _color, link, t, index = 0 }: StatCardProps) {
+  const isNumeric = typeof value === 'number';
+  const isCurrency = typeof value === 'string' && value.startsWith('$');
+  const numericValue = isCurrency ? parseFloat(value.replace('$', '')) : isNumeric ? value : null;
+  const theme = cardThemes[index] || cardThemes[0];
 
   return (
     <Link to={link} className="group block">
       <div
-        className="stat-card-animate bg-white dark:bg-neutral-800 overflow-hidden shadow rounded-lg transition-all duration-300 ease-out group-hover:shadow-lg group-hover:scale-[1.02] group-hover:-translate-y-1"
-        style={{ animationDelay: `${index * 0.1}s` }}
+        className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${theme.card} ${theme.glow} p-5 transition-all duration-300 ease-out group-hover:shadow-lg group-hover:scale-[1.02] group-hover:-translate-y-0.5`}
       >
-        <div className="p-5">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <span
-                className={`text-2xl ${color} inline-block`}
-              >
-                {icon}
-              </span>
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-neutral-500 dark:text-neutral-400 truncate">
-                  {title}
-                </dt>
-                <dd className="text-lg font-medium text-neutral-900 dark:text-white tabular-nums">
-                  {numericValue !== null ? (
-                    <>
-                      {isCurrency && "$"}
-                      <AnimatedNumber value={numericValue} />
-                    </>
-                  ) : (
-                    value
-                  )}
-                </dd>
-              </dl>
-            </div>
-            <div className="opacity-0 -translate-x-2 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:translate-x-0">
-              <svg
-                className="w-5 h-5 text-neutral-400 dark:text-neutral-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${theme.icon} text-xl`}>{icon}</div>
+            <div>
+              <p className={`text-xs font-medium uppercase tracking-wide ${theme.label}`}>{title}</p>
+              <p className={`text-2xl font-bold tabular-nums ${theme.value}`}>
+                {numericValue !== null ? (
+                  <>
+                    {isCurrency && '$'}
+                    <AnimatedNumber value={numericValue} />
+                  </>
+                ) : (
+                  value
+                )}
+              </p>
             </div>
           </div>
-        </div>
-        <div className="bg-neutral-50 dark:bg-neutral-700 px-5 py-3 transition-colors duration-300 group-hover:bg-neutral-100 dark:group-hover:bg-neutral-600">
-          <div className="text-sm">
-            <span className={`font-medium ${color}`}>
-              {t("dashboard.view")} {title.toLowerCase()}
-            </span>
+          <div
+            className={`transition-all duration-300 ease-out opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 ${theme.arrow}`}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </div>
         </div>
+        <p className={`mt-2 text-xs font-medium ${theme.label}`}>{t('dashboard.view')} →</p>
       </div>
     </Link>
   );

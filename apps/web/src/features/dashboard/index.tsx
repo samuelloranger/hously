@@ -22,10 +22,13 @@ import {
   useChores,
   useUpdateProfile,
 } from '@hously/shared';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { ChoreRow } from '../chores/components/ChoreRow';
 import { StatCardSkeleton, ListItemSkeleton } from '../../components/Skeleton';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 type DashboardCardId = 'jellyfin' | 'upcoming' | 'qbittorrent' | 'scrutiny' | 'netdata' | 'chores' | 'activity';
 
@@ -62,11 +65,10 @@ function mergeDashboardCards(profile: DashboardConfigV1 | null | undefined): Das
   return result;
 }
 
-function moveCard(cards: DashboardCardConfig[], activeId: string, overId: string): DashboardCardConfig[] {
-  if (activeId === overId) return cards;
-  const fromIndex = cards.findIndex(card => card.id === activeId);
-  const toIndex = cards.findIndex(card => card.id === overId);
-  if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return cards;
+function moveCardByIndex(cards: DashboardCardConfig[], fromIndex: number, toIndex: number): DashboardCardConfig[] {
+  if (fromIndex === toIndex) return cards;
+  if (fromIndex < 0 || toIndex < 0) return cards;
+  if (fromIndex >= cards.length || toIndex >= cards.length) return cards;
   const next = [...cards];
   const [moved] = next.splice(fromIndex, 1);
   next.splice(toIndex, 0, moved);
@@ -82,28 +84,67 @@ function buildDashboardConfig(cards: DashboardCardConfig[]): DashboardConfigV1 {
   return { version: 1, cards: cards.map(card => ({ id: card.id, size: card.size })) };
 }
 
+const DND_CARD_TYPE = 'dashboard-card';
+
+type DragItem = {
+  id: string;
+  index: number;
+};
+
 function DashboardCardFrame({
   card,
+  index,
   isEditing,
-  draggingId,
-  onDragStart,
-  onDragEnd,
-  onDragOverCard,
   onToggleSize,
   onResizeSize,
+  onMove,
   children,
 }: {
   card: DashboardCardConfig;
+  index: number;
   isEditing: boolean;
-  draggingId: string | null;
-  onDragStart: (id: string) => (event: React.DragEvent) => void;
-  onDragEnd: () => void;
-  onDragOverCard: (id: string) => (event: React.DragEvent) => void;
   onToggleSize: (id: string) => void;
   onResizeSize: (id: string, size: DashboardCardSize) => void;
+  onMove: (fromIndex: number, toIndex: number) => void;
   children: React.ReactNode;
 }) {
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const dragHandleRef = useRef<HTMLButtonElement | null>(null);
   const resizeStartRef = useRef<{ x: number; size: DashboardCardSize } | null>(null);
+
+  const [{ isDragging }, drag, preview] = useDrag(
+    () => ({
+      type: DND_CARD_TYPE,
+      item: { id: card.id, index } satisfies DragItem,
+      canDrag: isEditing,
+      collect: monitor => ({
+        isDragging: monitor.isDragging(),
+      }),
+    }),
+    [card.id, index, isEditing]
+  );
+
+  useEffect(() => {
+    if (!isEditing) return;
+    if (dragHandleRef.current) drag(dragHandleRef.current);
+    if (cardRef.current) preview(cardRef.current);
+  }, [drag, preview, isEditing]);
+
+  useDrop(
+    () => ({
+      accept: DND_CARD_TYPE,
+      canDrop: () => isEditing,
+      hover: (item: DragItem) => {
+        if (!isEditing) return;
+        if (!item?.id) return;
+        if (item.id === card.id) return;
+        if (item.index === index) return;
+        onMove(item.index, index);
+        item.index = index;
+      },
+    }),
+    [card.id, index, isEditing, onMove]
+  )[1](cardRef);
 
   const beginResize = (event: React.PointerEvent) => {
     if (!isEditing) return;
@@ -127,25 +168,21 @@ function DashboardCardFrame({
     resizeStartRef.current = null;
   };
 
-  const isDragging = draggingId === card.id;
   const spanClass = card.size === 'full' ? 'lg:col-span-2' : 'lg:col-span-1';
 
   return (
     <div
+      ref={cardRef}
       className={`relative ${spanClass} ${isEditing ? 'ring-1 ring-neutral-900/10 dark:ring-white/10 rounded-3xl' : ''} ${
         isDragging ? 'opacity-60' : ''
       }`}
-      onDragOver={onDragOverCard(card.id)}
-      onDrop={onDragEnd}
     >
       {isEditing ? (
         <>
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
             <button
               type="button"
-              draggable
-              onDragStart={onDragStart(card.id)}
-              onDragEnd={onDragEnd}
+              ref={dragHandleRef}
               className="inline-flex items-center justify-center rounded-full border border-neutral-900/10 dark:border-white/10 bg-white/60 dark:bg-black/30 px-2 py-1 text-xs text-neutral-700 dark:text-neutral-200 cursor-grab active:cursor-grabbing"
               aria-label="Drag to reorder"
               title="Drag to reorder"
@@ -225,8 +262,8 @@ export function Dashboard() {
   const sonarrEnabled = upcomingData?.pages[0]?.sonarr_enabled ?? false;
 
   const [isEditingLayout, setIsEditingLayout] = useState(false);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dashboardCards, setDashboardCards] = useState<DashboardCardConfig[]>(DEFAULT_DASHBOARD_CARDS);
+  const [gridRef] = useAutoAnimate<HTMLDivElement>({ duration: 180, easing: 'ease-in-out' });
 
   const baselineConfigRef = useRef<string>(JSON.stringify(buildDashboardConfig(DEFAULT_DASHBOARD_CARDS)));
   const hasHydratedLayoutRef = useRef(false);
@@ -294,25 +331,6 @@ export function Dashboard() {
     );
   };
 
-  const onDragStart = (id: string) => (event: React.DragEvent) => {
-    if (!isEditingLayout) return;
-    setDraggingId(id);
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', id);
-  };
-
-  const onDragEnd = () => {
-    setDraggingId(null);
-  };
-
-  const onDragOverCard = (overId: string) => (event: React.DragEvent) => {
-    if (!isEditingLayout) return;
-    event.preventDefault();
-    const activeId = draggingId || event.dataTransfer.getData('text/plain');
-    if (!activeId) return;
-    setDashboardCards(prev => moveCard(prev, activeId, overId));
-  };
-
   const toggleCardSize = (id: string) => {
     setDashboardCards(prev => {
       const current = prev.find(card => card.id === id)?.size ?? 'half';
@@ -323,6 +341,11 @@ export function Dashboard() {
 
   const resizeCard = (id: string, size: DashboardCardSize) => {
     setDashboardCards(prev => setCardSize(prev, id, size));
+  };
+
+  const moveCardAtIndex = (fromIndex: number, toIndex: number) => {
+    if (!isEditingLayout) return;
+    setDashboardCards(prev => moveCardByIndex(prev, fromIndex, toIndex));
   };
 
   const resetLayout = () => {
@@ -471,17 +494,16 @@ export function Dashboard() {
     <PageLayout>
       <div className="space-y-6">
         {/* Header: Greeting + Weather */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <SmartGreeting
-              userName={getUserFirstName(user, t('dashboard.user'))}
-              pendingChores={stats?.chores_count || 0}
-              shoppingItems={stats?.shopping_count || 0}
-              eventsToday={stats?.events_today || 0}
-            />
-            <WeatherWidget />
-          </div>
-          <div className="shrink-0 pt-2">
+        <div className="relative">
+          <SmartGreeting
+            userName={getUserFirstName(user, t('dashboard.user'))}
+            pendingChores={stats?.chores_count || 0}
+            shoppingItems={stats?.shopping_count || 0}
+            eventsToday={stats?.events_today || 0}
+          />
+          <WeatherWidget />
+
+          <div className="absolute right-0 top-2">
             <div className="flex items-center gap-2">
               {isEditingLayout ? (
                 <button
@@ -504,12 +526,12 @@ export function Dashboard() {
               </button>
             </div>
             {isEditingLayout ? (
-              <p className="mt-2 hidden sm:block text-[11px] text-neutral-500 dark:text-neutral-400 max-w-[18rem]">
+              <p className="mt-2 hidden sm:block text-[11px] text-neutral-500 dark:text-neutral-400 max-w-[18rem] text-right">
                 {t('dashboard.layout.hint', 'Drag cards to reorder. Drag ↔ to resize.')}
               </p>
             ) : null}
             {updateProfileMutation.isPending ? (
-              <p className="mt-2 hidden sm:block text-[11px] text-neutral-500 dark:text-neutral-400">Saving…</p>
+              <p className="mt-2 hidden sm:block text-[11px] text-neutral-500 dark:text-neutral-400 text-right">Saving…</p>
             ) : null}
           </div>
         </div>
@@ -555,23 +577,23 @@ export function Dashboard() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {dashboardCards.map(card => (
-            <DashboardCardFrame
-              key={card.id}
-              card={card}
-              isEditing={isEditingLayout}
-              draggingId={draggingId}
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
-              onDragOverCard={onDragOverCard}
-              onToggleSize={toggleCardSize}
-              onResizeSize={resizeCard}
-            >
-              {renderCard(card.id as DashboardCardId)}
-            </DashboardCardFrame>
-          ))}
-        </div>
+        <DndProvider backend={HTML5Backend}>
+          <div ref={gridRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {dashboardCards.map((card, index) => (
+              <DashboardCardFrame
+                key={card.id}
+                card={card}
+                index={index}
+                isEditing={isEditingLayout}
+                onMove={moveCardAtIndex}
+                onToggleSize={toggleCardSize}
+                onResizeSize={resizeCard}
+              >
+                {renderCard(card.id as DashboardCardId)}
+              </DashboardCardFrame>
+            ))}
+          </div>
+        </DndProvider>
       </div>
     </PageLayout>
   );
