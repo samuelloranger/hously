@@ -118,3 +118,33 @@ export interface DashboardQbittorrentStatusResponse {
   torrents: QbittorrentDashboardTorrent[];
   error?: string;
 }
+
+export interface ScrutinyDashboardDrive {
+  id: string;
+  model_name: string | null;
+  serial_number: string | null;
+  capacity_bytes: number | null;
+  device_status: number | null;
+  temperature_c: number | null;
+  power_on_hours: number | null;
+  firmware: string | null;
+  form_factor: string | null;
+  updated_at: string | null;
+}
+
+export interface ScrutinyDashboardSummary {
+  total_drives: number;
+  healthy_drives: number;
+  warning_drives: number;
+  avg_temp_c: number | null;
+  hottest_temp_c: number | null;
+}
+
+export interface DashboardScrutinySummaryResponse {
+  enabled: boolean;
+  connected: boolean;
+  updated_at: string;
+  summary: ScrutinyDashboardSummary;
+  drives: ScrutinyDashboardDrive[];
+  error?: string;
+}

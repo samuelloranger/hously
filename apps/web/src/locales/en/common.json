@@ -105,8 +105,8 @@
       "emptyTitle": "No upcoming releases found",
       "emptyDescription": "Try again later for the newest release calendar.",
       "searchOnAdd": "Search on add",
-      "tapToAddMovie": "Click to add to Radarr",
-      "tapToAddTv": "Click to add to Sonarr",
+      "tapToAddMovie": "Add to Radarr",
+      "tapToAddTv": "Add to Sonarr",
       "addedDescription": "Sent to {{service}}.",
       "alreadyAddedDescription": "Already exists in {{service}}.",
       "addFailed": "Failed to add this title.",
@@ -152,6 +152,27 @@
         "moving": "Moving",
         "unknown": "Unknown"
       }
+    },
+    "scrutiny": {
+      "kicker": "From your disk monitor",
+      "title": "Drive Health",
+      "subtitle": "SMART health snapshot from Scrutiny.",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "notConnectedTitle": "Scrutiny is not connected yet",
+      "notConnectedDescription": "Open Settings > Plugins and connect Scrutiny to show drive health here.",
+      "totalDrives": "Total drives",
+      "healthyDrives": "Healthy",
+      "warningDrives": "Warnings",
+      "hottestTemp": "Hottest",
+      "statusHealthy": "Healthy",
+      "statusWarning": "Warning",
+      "statusUnknown": "Unknown",
+      "tempLabel": "Temp: {{value}}",
+      "hoursLabel": "POH: {{value}}",
+      "capacityLabel": "Cap: {{value}}",
+      "unknownDrive": "Unknown drive",
+      "emptyTitle": "No drive data available yet."
     },
     "loading": "Loading dashboard...",
     "user": "User",
@@ -728,6 +749,10 @@
         "passwordPlaceholder": "Leave empty to keep existing password",
         "pollInterval": "Poll Interval (seconds)",
         "maxItems": "Max Active Torrents"
+      },
+      "scrutiny": {
+        "help": "Connect Scrutiny to show disk health and SMART temperatures on the dashboard.",
+        "websiteUrl": "Scrutiny URL"
       }
     },
     "dataExport": {

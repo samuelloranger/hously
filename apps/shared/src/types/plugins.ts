@@ -39,6 +39,12 @@ export interface QbittorrentPlugin {
   max_items: number;
 }
 
+export interface ScrutinyPlugin {
+  type: 'scrutiny';
+  enabled: boolean;
+  website_url: string;
+}
+
 export interface JellyfinPluginUpdateResponse {
   success: boolean;
   plugin: JellyfinPlugin;
@@ -59,4 +65,9 @@ export interface SonarrPluginUpdateResponse {
 export interface QbittorrentPluginUpdateResponse {
   success: boolean;
   plugin: QbittorrentPlugin;
+}
+
+export interface ScrutinyPluginUpdateResponse {
+  success: boolean;
+  plugin: ScrutinyPlugin;
 }

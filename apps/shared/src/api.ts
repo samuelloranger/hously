@@ -26,6 +26,7 @@ import type {
   CreateUserRequest,
   CreateUserResponse,
   DashboardJellyfinLatestResponse,
+  DashboardScrutinySummaryResponse,
   DashboardQbittorrentStatusResponse,
   DashboardStatsResponse,
   DashboardUpcomingResponse,
@@ -54,6 +55,8 @@ import type {
   ServicesResponse,
   ShoppingItemResponse,
   ShoppingItemsResponse,
+  ScrutinyPlugin,
+  ScrutinyPluginUpdateResponse,
   SonarrPlugin,
   SonarrPluginUpdateResponse,
   TemplateResponse,
@@ -104,7 +107,11 @@ export function createAuthApi(fetcher: ApiFetcher, options: AuthApiOptions = {})
 
   const getCurrentUser = () => fetcher<AuthenticatedUserResponse>(AUTH_ENDPOINTS.ME);
 
-  const login = async (credentials: { email: string; password: string; locale?: string }): Promise<AuthenticatedUserResponse> => {
+  const login = async (credentials: {
+    email: string;
+    password: string;
+    locale?: string;
+  }): Promise<AuthenticatedUserResponse> => {
     return fetcher<AuthenticatedUserResponse>(AUTH_ENDPOINTS.LOGIN, {
       method: 'POST',
       body: {
@@ -156,7 +163,11 @@ export function createAuthApi(fetcher: ApiFetcher, options: AuthApiOptions = {})
     });
   };
 
-  const resetPassword = (payload: { token: string; password: string; locale?: string }): Promise<{ message: string }> => {
+  const resetPassword = (payload: {
+    token: string;
+    password: string;
+    locale?: string;
+  }): Promise<{ message: string }> => {
     return fetcher<{ message: string }>(AUTH_ENDPOINTS.RESET_PASSWORD, {
       method: 'POST',
       body: {
@@ -197,7 +208,9 @@ export function createAuthApi(fetcher: ApiFetcher, options: AuthApiOptions = {})
     });
   };
 
-  const uploadAvatar = (fileOrFormData: File | FormData): Promise<{ message: string; avatar_url: string; url?: string }> => {
+  const uploadAvatar = (
+    fileOrFormData: File | FormData
+  ): Promise<{ message: string; avatar_url: string; url?: string }> => {
     return fetcher<{ message: string; avatar_url: string; url?: string }>(USERS_ENDPOINTS.AVATAR, {
       method: 'POST',
       body: toFormData('avatar', fileOrFormData),
@@ -367,6 +380,7 @@ export function createDashboardApi(fetcher: ApiFetcher) {
       }),
     getDashboardQbittorrentStatus: () =>
       fetcher<DashboardQbittorrentStatusResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.STATUS),
+    getDashboardScrutinySummary: () => fetcher<DashboardScrutinySummaryResponse>(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
   };
 }
 
@@ -562,6 +576,12 @@ export function createPluginsApi(fetcher: ApiFetcher) {
       enabled: boolean;
     }) =>
       fetcher<QbittorrentPluginUpdateResponse>(PLUGIN_ENDPOINTS.QBITTORRENT, {
+        method: 'PUT',
+        body: data,
+      }),
+    getScrutinyPlugin: () => fetcher<{ plugin: ScrutinyPlugin }>(PLUGIN_ENDPOINTS.SCRUTINY),
+    updateScrutinyPlugin: (data: { website_url: string; enabled: boolean }) =>
+      fetcher<ScrutinyPluginUpdateResponse>(PLUGIN_ENDPOINTS.SCRUTINY, {
         method: 'PUT',
         body: data,
       }),

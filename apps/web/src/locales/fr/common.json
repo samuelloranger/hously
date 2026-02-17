@@ -104,8 +104,8 @@
       "emptyTitle": "Aucune sortie à venir trouvée",
       "emptyDescription": "Réessayez plus tard pour voir les nouvelles sorties.",
       "searchOnAdd": "Rechercher à l'ajout",
-      "tapToAddMovie": "Cliquez pour ajouter à Radarr",
-      "tapToAddTv": "Cliquez pour ajouter à Sonarr",
+      "tapToAddMovie": "Ajouter à Radarr",
+      "tapToAddTv": "Ajouter à Sonarr",
       "addedDescription": "Envoyé vers {{service}}.",
       "alreadyAddedDescription": "Déjà présent dans {{service}}.",
       "addFailed": "Échec de l'ajout de ce titre.",
@@ -151,6 +151,27 @@
         "moving": "Déplacement",
         "unknown": "Inconnu"
       }
+    },
+    "scrutiny": {
+      "kicker": "Depuis la surveillance disque",
+      "title": "Santé des disques",
+      "subtitle": "Aperçu SMART en direct depuis Scrutiny.",
+      "connected": "Connecté",
+      "disconnected": "Déconnecté",
+      "notConnectedTitle": "Scrutiny n'est pas encore connecté",
+      "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez Scrutiny pour afficher la santé des disques ici.",
+      "totalDrives": "Disques totaux",
+      "healthyDrives": "Sains",
+      "warningDrives": "Alertes",
+      "hottestTemp": "Temp max",
+      "statusHealthy": "Sain",
+      "statusWarning": "Alerte",
+      "statusUnknown": "Inconnu",
+      "tempLabel": "Temp: {{value}}",
+      "hoursLabel": "Heures: {{value}}",
+      "capacityLabel": "Cap: {{value}}",
+      "unknownDrive": "Disque inconnu",
+      "emptyTitle": "Aucune donnée disque disponible pour le moment."
     },
     "loading": "Chargement de l'accueil...",
     "user": "Utilisateur",
@@ -727,6 +748,10 @@
         "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel",
         "pollInterval": "Intervalle de rafraîchissement (secondes)",
         "maxItems": "Nombre max de torrents actifs"
+      },
+      "scrutiny": {
+        "help": "Connectez Scrutiny pour afficher la santé des disques et les températures SMART sur l'accueil.",
+        "websiteUrl": "URL Scrutiny"
       }
     },
     "dataExport": {

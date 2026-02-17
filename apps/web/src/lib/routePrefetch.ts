@@ -28,6 +28,10 @@ const routeQueryDefinitions = {
       queryKey: queryKeys.dashboard.qbittorrentStatus(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.STATUS),
     },
+    {
+      queryKey: queryKeys.dashboard.scrutinySummary(),
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
+    },
     { queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) },
   ],
 

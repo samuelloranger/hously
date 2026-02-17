@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFetcher } from './context';
-import { queryKeys, PLUGIN_ENDPOINTS } from '../index';
+import { queryKeys } from '../queryKeys';
+import { PLUGIN_ENDPOINTS } from '../endpoints';
 import type {
   ArrProfile,
   JellyfinPlugin,
@@ -9,6 +10,8 @@ import type {
   QbittorrentPluginUpdateResponse,
   RadarrPlugin,
   RadarrPluginUpdateResponse,
+  ScrutinyPlugin,
+  ScrutinyPluginUpdateResponse,
   SonarrPlugin,
   SonarrPluginUpdateResponse,
 } from '../types';
@@ -48,6 +51,16 @@ export function useQbittorrentPlugin() {
   return useQuery({
     queryKey: queryKeys.plugins.qbittorrent(),
     queryFn: () => fetcher<{ plugin: QbittorrentPlugin }>(PLUGIN_ENDPOINTS.QBITTORRENT),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useScrutinyPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.scrutiny(),
+    queryFn: () => fetcher<{ plugin: ScrutinyPlugin }>(PLUGIN_ENDPOINTS.SCRUTINY),
     refetchOnMount: 'always',
     staleTime: 0,
   });
@@ -137,6 +150,23 @@ export function useUpdateQbittorrentPlugin() {
       queryClient.setQueryData(queryKeys.plugins.qbittorrent(), { plugin: result.plugin });
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.qbittorrent() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.qbittorrentStatus() });
+    },
+  });
+}
+
+export function useUpdateScrutinyPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { website_url: string; enabled: boolean }) =>
+      fetcher<ScrutinyPluginUpdateResponse>(PLUGIN_ENDPOINTS.SCRUTINY, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: result => {
+      queryClient.setQueryData(queryKeys.plugins.scrutiny(), { plugin: result.plugin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.scrutiny() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.scrutinySummary() });
     },
   });
 }

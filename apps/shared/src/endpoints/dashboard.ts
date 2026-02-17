@@ -14,4 +14,7 @@ export const DASHBOARD_ENDPOINTS = {
     STATUS: '/api/dashboard/qbittorrent/status',
     STREAM: '/api/dashboard/qbittorrent/stream',
   },
+  SCRUTINY: {
+    SUMMARY: '/api/dashboard/scrutiny/summary',
+  },
 } as const;

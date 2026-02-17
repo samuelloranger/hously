@@ -26,6 +26,10 @@ interface SonarrPluginConfig {
   language_profile_id: number;
 }
 
+interface ScrutinyPluginConfig {
+  website_url: string;
+}
+
 const isValidHttpUrl = (value: string): boolean => {
   try {
     const parsed = new URL(value);
@@ -113,6 +117,16 @@ const normalizeSonarrConfig = (config: unknown): SonarrPluginConfig | null => {
     root_folder_path: rootFolderPath,
     quality_profile_id: qualityProfileId,
     language_profile_id: languageProfileId,
+  };
+};
+
+const normalizeScrutinyConfig = (config: unknown): ScrutinyPluginConfig | null => {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+  const cfg = config as Record<string, unknown>;
+  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
+  if (!websiteUrl) return null;
+  return {
+    website_url: websiteUrl.replace(/\/+$/, ''),
   };
 };
 
@@ -631,6 +645,100 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       body: t.Object({
         website_url: t.String(),
         api_key: t.String(),
+      }),
+    }
+  )
+  .get('/scrutiny', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    if (!user.is_admin) {
+      set.status = 403;
+      return { error: 'Admin privileges required' };
+    }
+
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'scrutiny' },
+      });
+
+      const config = normalizeScrutinyConfig(plugin?.config);
+      return {
+        plugin: {
+          type: 'scrutiny',
+          enabled: plugin?.enabled || false,
+          website_url: config?.website_url || '',
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching Scrutiny plugin config:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch Scrutiny plugin config' };
+    }
+  })
+  .put(
+    '/scrutiny',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: 'Admin privileges required' };
+      }
+
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const enabled = body.enabled ?? true;
+
+      if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
+        set.status = 400;
+        return { error: 'Invalid website_url. Must be a valid http(s) URL.' };
+      }
+
+      try {
+        const now = nowUtc();
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'scrutiny' },
+          update: {
+            enabled,
+            config: {
+              website_url: websiteUrl,
+            },
+            updatedAt: now,
+          },
+          create: {
+            type: 'scrutiny',
+            enabled,
+            config: {
+              website_url: websiteUrl,
+            },
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            website_url: websiteUrl,
+          },
+        };
+      } catch (error) {
+        console.error('Error saving Scrutiny plugin config:', error);
+        set.status = 500;
+        return { error: 'Failed to save Scrutiny plugin config' };
+      }
+    },
+    {
+      body: t.Object({
+        website_url: t.String(),
+        enabled: t.Optional(t.Boolean()),
       }),
     }
   )

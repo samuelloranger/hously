@@ -20,11 +20,14 @@ export const queryKeys = {
     all: ['dashboard'] as const,
     stats: () => [...queryKeys.dashboard.all, 'stats'] as const,
     activities: (limit?: number) => [...queryKeys.dashboard.all, 'activities', limit] as const,
-    jellyfinLatest: (limit?: number, page?: number) => [...queryKeys.dashboard.all, 'jellyfin-latest', limit, page] as const,
-    jellyfinLatestInfinite: (limit?: number) => [...queryKeys.dashboard.all, 'jellyfin-latest-infinite', limit] as const,
+    jellyfinLatest: (limit?: number, page?: number) =>
+      [...queryKeys.dashboard.all, 'jellyfin-latest', limit, page] as const,
+    jellyfinLatestInfinite: (limit?: number) =>
+      [...queryKeys.dashboard.all, 'jellyfin-latest-infinite', limit] as const,
     upcoming: (limit?: number, page?: number) => [...queryKeys.dashboard.all, 'upcoming', limit, page] as const,
     upcomingInfinite: (limit?: number) => [...queryKeys.dashboard.all, 'upcoming-infinite', limit] as const,
     qbittorrentStatus: () => [...queryKeys.dashboard.all, 'qbittorrent-status'] as const,
+    scrutinySummary: () => [...queryKeys.dashboard.all, 'scrutiny-summary'] as const,
   },
 
   users: {
@@ -58,6 +61,7 @@ export const queryKeys = {
     radarr: () => [...queryKeys.plugins.all, 'radarr'] as const,
     sonarr: () => [...queryKeys.plugins.all, 'sonarr'] as const,
     qbittorrent: () => [...queryKeys.plugins.all, 'qbittorrent'] as const,
+    scrutiny: () => [...queryKeys.plugins.all, 'scrutiny'] as const,
   },
 
   admin: {

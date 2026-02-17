@@ -1,9 +1,11 @@
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import { useFetcher } from './context';
-import { queryKeys, DASHBOARD_ENDPOINTS } from '../index';
+import { queryKeys } from '../queryKeys';
+import { DASHBOARD_ENDPOINTS } from '../endpoints';
 import type {
   DashboardStatsResponse,
   DashboardJellyfinLatestResponse,
+  DashboardScrutinySummaryResponse,
   DashboardUpcomingResponse,
   DashboardQbittorrentStatusResponse,
 } from '../types';
@@ -44,7 +46,8 @@ export function useDashboardUpcoming(limit: number = 8, page: number = 1) {
 
   return useQuery({
     queryKey: queryKeys.dashboard.upcoming(limit, page),
-    queryFn: () => fetcher<DashboardUpcomingResponse>(`${DASHBOARD_ENDPOINTS.UPCOMING.LIST}?limit=${limit}&page=${page}`),
+    queryFn: () =>
+      fetcher<DashboardUpcomingResponse>(`${DASHBOARD_ENDPOINTS.UPCOMING.LIST}?limit=${limit}&page=${page}`),
   });
 }
 
@@ -56,7 +59,9 @@ export function useDashboardJellyfinLatestInfinite(limit: number = 10) {
     initialPageParam: 1,
     queryFn: ({ pageParam }) => {
       const page = typeof pageParam === 'number' && Number.isFinite(pageParam) ? pageParam : 1;
-      return fetcher<DashboardJellyfinLatestResponse>(`${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`);
+      return fetcher<DashboardJellyfinLatestResponse>(
+        `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`
+      );
     },
     getNextPageParam: lastPage => (lastPage.has_more ? lastPage.page + 1 : undefined),
   });
@@ -111,5 +116,14 @@ export function useDashboardQbittorrentStatus() {
   return useQuery({
     queryKey: queryKeys.dashboard.qbittorrentStatus(),
     queryFn: () => fetcher<DashboardQbittorrentStatusResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.STATUS),
+  });
+}
+
+export function useDashboardScrutinySummary() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.scrutinySummary(),
+    queryFn: () => fetcher<DashboardScrutinySummaryResponse>(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
   });
 }

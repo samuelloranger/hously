@@ -2,11 +2,8 @@ import { format } from 'date-fns';
 import { type UIEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import {
-  type DashboardUpcomingItem,
-  useAddUpcomingToArr,
-  useUpcomingStatus,
-} from '@hously/shared';
+import { type DashboardUpcomingItem, useAddUpcomingToArr, useUpcomingStatus } from '@hously/shared';
+import { MovieCard } from './MovieCard';
 import { Dialog } from '../../../components/dialog';
 import { ListItemSkeleton } from '../../../components/Skeleton';
 
@@ -23,11 +20,20 @@ interface UpcomingShelfProps {
   items: DashboardUpcomingItem[];
 }
 
-const formatReleaseDate = (value: string | null) => {
+import { enUS, fr } from 'date-fns/locale';
+const localeMap = { en: enUS, fr } as const;
+
+const formatReleaseDate = (value: string | null, locale: string) => {
   if (!value) return null;
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return null;
-  return format(parsed, 'MMM d, yyyy');
+  const isSameYear = parsed.getFullYear() === new Date().getFullYear();
+
+  const lang = (locale.split('-')[0] || 'en') as keyof typeof localeMap;
+  if (isSameYear) {
+    return format(parsed, locale.includes('en') ? 'MMM d yyyy' : 'd MMM yyyy', { locale: localeMap[lang] ?? enUS });
+  }
+  return format(parsed, locale.includes('en') ? 'MMM d, yyyy' : 'd MMM, yyyy', { locale: localeMap[lang] ?? enUS });
 };
 
 const mediaTypeLabel = (mediaType: 'movie' | 'tv', t: (key: string) => string) =>
@@ -45,7 +51,7 @@ export function UpcomingShelf({
   onRefresh,
   items,
 }: UpcomingShelfProps) {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
   const [searchOnAdd, setSearchOnAdd] = useState(true);
   const [selectedItem, setSelectedItem] = useState<DashboardUpcomingItem | null>(null);
   const [upcomingStatus, setUpcomingStatus] = useState<{ exists: boolean; service: 'radarr' | 'sonarr' } | null>(null);
@@ -53,7 +59,7 @@ export function UpcomingShelf({
   const handleShelfScroll = (event: UIEvent<HTMLDivElement>) => {
     if (!hasMore || !onLoadMore || isLoadingMore) return;
     const { scrollLeft, scrollWidth, clientWidth } = event.currentTarget;
-    if (scrollWidth - scrollLeft - clientWidth < 240) {
+    if (scrollWidth - scrollLeft - clientWidth < 480) {
       onLoadMore();
     }
   };
@@ -133,56 +139,71 @@ export function UpcomingShelf({
 
   return (
     <>
-      <section className="relative mb-8 overflow-hidden rounded-3xl border border-orange-200/70 dark:border-orange-500/30 bg-gradient-to-br from-[#2a1c10] via-[#533516] to-[#8b4b1b] shadow-xl">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-300/20 blur-3xl" />
-        <div className="pointer-events-none absolute -left-14 -bottom-16 h-64 w-64 rounded-full bg-orange-500/25 blur-3xl" />
+      <section className="relative mb-8 overflow-hidden rounded-3xl border border-amber-300/70 dark:border-orange-500/30 bg-gradient-to-br from-[#fad0ab] via-[#ffbf7e] to-[#ffe7d1] dark:from-[#2a1c10] dark:via-[#533516] dark:to-[#8b4b1b] shadow-xl">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-200/45 dark:bg-amber-300/20 blur-3xl" />
+        <div className="pointer-events-none absolute -left-14 -bottom-16 h-64 w-64 rounded-full bg-orange-300/40 dark:bg-orange-500/25 blur-3xl" />
 
         <div className="relative flex items-center justify-between gap-4 mb-6 px-6 md:px-8 pt-6 md:pt-8">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-amber-200/80">{t('dashboard.upcoming.kicker')}</p>
-            <h3 className="text-2xl md:text-3xl font-bold text-amber-50">{t('dashboard.upcoming.title')}</h3>
-            <p className="text-sm text-amber-100/80 mt-1">{t('dashboard.upcoming.subtitle')}</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-amber-950/70 dark:text-amber-200/80">
+              {t('dashboard.upcoming.kicker')}
+            </p>
+            <h3 className="text-2xl md:text-3xl font-bold text-amber-950 dark:text-amber-50">{t('dashboard.upcoming.title')}</h3>
+            <p className="text-sm text-amber-900/70 dark:text-amber-100/80 mt-1">{t('dashboard.upcoming.subtitle')}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onRefresh}
               disabled={!onRefresh || isRefreshing}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-white/10 text-amber-50 hover:bg-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-amber-950/20 dark:border-white/25 bg-black/10 dark:bg-white/10 text-amber-950 dark:text-amber-50 hover:bg-black/20 dark:hover:bg-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
               title={t('dashboard.upcoming.refresh')}
               aria-label={t('dashboard.upcoming.refresh')}
             >
               <span className={isRefreshing ? 'animate-spin' : ''}>↻</span>
             </button>
-            <div className="hidden md:flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-2xl">
+            <div className="hidden md:flex h-12 w-12 items-center justify-center rounded-full border border-amber-950/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-2xl">
               🍿
             </div>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="mx-6 md:mx-8 rounded-2xl border border-white/15 bg-black/20 p-4 space-y-3">
+          <div className="mx-6 md:mx-8 rounded-2xl border border-amber-950/15 dark:border-white/15 bg-white/35 dark:bg-black/20 p-4 space-y-3">
             <ListItemSkeleton />
             <ListItemSkeleton />
             <ListItemSkeleton />
           </div>
         ) : !enabled ? (
-          <div className="mx-6 md:mx-8 rounded-2xl border border-amber-300/30 bg-black/20 p-4 text-amber-50">
+          <div className="mx-6 md:mx-8 rounded-2xl border border-amber-500/40 dark:border-amber-300/30 bg-amber-100/60 dark:bg-black/20 p-4 text-amber-950 dark:text-amber-50">
             <p className="font-medium">{t('dashboard.upcoming.notConfiguredTitle')}</p>
-            <p className="text-sm text-amber-100/90 mt-1">{t('dashboard.upcoming.notConfiguredDescription')}</p>
+            <p className="text-sm text-amber-950/80 dark:text-amber-100/90 mt-1">{t('dashboard.upcoming.notConfiguredDescription')}</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="mx-6 md:mx-8 rounded-2xl border border-white/20 bg-black/20 p-6 text-center">
-            <p className="text-white font-medium">{t('dashboard.upcoming.emptyTitle')}</p>
-            <p className="text-sm text-amber-100/80 mt-1">{t('dashboard.upcoming.emptyDescription')}</p>
+          <div className="mx-6 md:mx-8 rounded-2xl border border-amber-950/20 dark:border-white/20 bg-white/35 dark:bg-black/20 p-6 text-center">
+            <p className="text-amber-950 dark:text-white font-medium">{t('dashboard.upcoming.emptyTitle')}</p>
+            <p className="text-sm text-amber-900/70 dark:text-amber-100/80 mt-1">{t('dashboard.upcoming.emptyDescription')}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto overflow-y-visible px-6 pb-6" onScroll={handleShelfScroll}>
+          <div className="no-scrollbar overflow-x-auto overflow-y-visible px-6 pt-2 pb-6" onScroll={handleShelfScroll}>
             <div className="flex gap-3">
               {items.map(item => (
-                <button
+                <MovieCard
                   key={item.id}
-                  type="button"
+                  title={item.title}
+                  subtitle={
+                    item.media_type === 'movie'
+                      ? t('dashboard.upcoming.tapToAddMovie')
+                      : t('dashboard.upcoming.tapToAddTv')
+                  }
+                  type={mediaTypeLabel(item.media_type, t)}
+                  releaseDate={
+                    formatReleaseDate(item.release_date, i18n.language) || t('dashboard.upcoming.unknownDate')
+                  }
+                  posterUrl={item.poster_url}
+                  fallbackEmoji={item.media_type === 'movie' ? '🎬' : '📺'}
+                  accentRingClassName="focus:ring-amber-200/70"
+                  disabled={addMutation.isPending}
                   onClick={() => {
                     const targetPluginEnabled = item.media_type === 'movie' ? radarrEnabled : sonarrEnabled;
                     if (!targetPluginEnabled) {
@@ -191,58 +212,11 @@ export function UpcomingShelf({
                     }
                     setSelectedItem(item);
                   }}
-                  disabled={addMutation.isPending}
-                  className="group w-[130px] md:w-[150px] text-left shrink-0 rounded-2xl border border-white/15 bg-black/25 p-2.5 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-black/35 focus:outline-none focus:ring-2 focus:ring-amber-200/70 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  <div className="aspect-[2/3] overflow-hidden rounded-xl bg-neutral-900/60">
-                    {item.poster_url ? (
-                      <img
-                        src={item.poster_url}
-                        alt={item.title}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                      />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center text-3xl text-amber-200/80">
-                        {item.media_type === 'movie' ? '🎬' : '📺'}
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-2 min-w-0">
-                    <p className="text-xs text-white font-semibold truncate">{item.title}</p>
-                    <div className="mt-0.5 flex items-center justify-between gap-1.5">
-                      <span className="inline-flex items-center rounded-full border border-amber-200/30 bg-amber-200/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-amber-100">
-                        {mediaTypeLabel(item.media_type, t)}
-                      </span>
-                      <span className="text-[10px] text-amber-100/85">
-                        {formatReleaseDate(item.release_date) || t('dashboard.upcoming.unknownDate')}
-                      </span>
-                    </div>
-                    {item.providers.length > 0 ? (
-                      <div className="mt-1.5 flex items-center gap-1">
-                        {item.providers.slice(0, 4).map(provider => (
-                          <img
-                            key={provider.id}
-                            src={provider.logo_url}
-                            alt={provider.name}
-                            title={provider.name}
-                            loading="lazy"
-                            className="h-4 w-4 rounded-sm border border-white/30 bg-white/10 object-contain p-[1px]"
-                          />
-                        ))}
-                      </div>
-                    ) : null}
-                    <p className="mt-1.5 text-[10px] text-amber-100/80">
-                      {item.media_type === 'movie'
-                        ? t('dashboard.upcoming.tapToAddMovie')
-                        : t('dashboard.upcoming.tapToAddTv')}
-                    </p>
-                  </div>
-                </button>
+                />
               ))}
               {isLoadingMore ? (
-                <div className="w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-white/15 bg-black/25 p-2.5 backdrop-blur-sm">
-                  <div className="aspect-[2/3] rounded-xl bg-neutral-900/60 flex items-center justify-center text-amber-100/85 text-xs">
+                <div className="w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-amber-950/15 dark:border-white/15 bg-white/30 dark:bg-black/25 p-2.5 backdrop-blur-sm">
+                  <div className="aspect-[2/3] rounded-xl bg-amber-950/15 dark:bg-neutral-900/60 flex items-center justify-center text-amber-950/80 dark:text-amber-100/85 text-xs">
                     {t('common.loading')}
                   </div>
                 </div>
