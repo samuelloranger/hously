@@ -16,6 +16,11 @@ interface QbittorrentTorrentRaw {
   state?: string;
   num_seeds?: number;
   num_leechs?: number;
+  category?: string;
+  tags?: string;
+  ratio?: number;
+  added_on?: number;
+  completed_on?: number;
 }
 
 export interface QbittorrentPluginConfig {
@@ -37,6 +42,62 @@ export interface QbittorrentDashboardTorrent {
   state: string;
   seeds: number;
   peers: number;
+}
+
+export interface QbittorrentTorrentListItem extends QbittorrentDashboardTorrent {
+  category: string | null;
+  tags: string[];
+  ratio: number | null;
+  added_on: string | null;
+  completed_on: string | null;
+}
+
+interface QbittorrentTorrentPropertiesRaw {
+  save_path?: string;
+  total_size?: number;
+  piece_size?: number;
+  comment?: string;
+  creation_date?: number;
+  addition_date?: number;
+  completion_date?: number;
+  total_downloaded?: number;
+  total_uploaded?: number;
+  share_ratio?: number;
+}
+
+export interface QbittorrentTorrentProperties {
+  save_path: string | null;
+  total_size_bytes: number | null;
+  piece_size_bytes: number | null;
+  comment: string | null;
+  creation_date: string | null;
+  addition_date: string | null;
+  completion_date: string | null;
+  total_downloaded_bytes: number | null;
+  total_uploaded_bytes: number | null;
+  share_ratio: number | null;
+}
+
+interface QbittorrentTorrentTrackerRaw {
+  url?: string;
+  status?: number;
+  msg?: string;
+  tier?: number;
+  num_peers?: number;
+  num_seeds?: number;
+  num_leeches?: number;
+  num_downloaded?: number;
+}
+
+export interface QbittorrentTorrentTracker {
+  url: string;
+  status: number | null;
+  message: string | null;
+  tier: number | null;
+  peers: number | null;
+  seeds: number | null;
+  leeches: number | null;
+  downloaded: number | null;
 }
 
 export interface QbittorrentDashboardSnapshot {
@@ -172,6 +233,39 @@ const qbFetchJson = async <T>(config: QbittorrentPluginConfig, path: string): Pr
   return (await response.json()) as T;
 };
 
+const qbFetchText = async (config: QbittorrentPluginConfig, path: string, init?: RequestInit): Promise<string> => {
+  resetSessionIfConfigChanged(config);
+
+  const request = async (): Promise<Response> => {
+    const url = new URL(path, config.website_url);
+    const baseHeaders: Record<string, string> = {
+      Accept: 'text/plain, */*',
+      Referer: config.website_url,
+    };
+    if (qbSession.sidCookie) baseHeaders.Cookie = qbSession.sidCookie;
+
+    const mergedHeaders = new Headers(init?.headers ?? {});
+    for (const [key, value] of Object.entries(baseHeaders)) {
+      if (!mergedHeaders.has(key)) mergedHeaders.set(key, value);
+    }
+
+    return fetch(url.toString(), { ...init, headers: mergedHeaders });
+  };
+
+  let response = await request();
+  if (response.status === 403 || response.status === 401) {
+    const loggedIn = await login(config);
+    if (!loggedIn) throw new Error('qBittorrent authentication failed');
+    response = await request();
+  }
+
+  if (!response.ok) {
+    throw new Error(`qBittorrent request failed with status ${response.status}`);
+  }
+
+  return await response.text();
+};
+
 const toTorrent = (value: unknown): QbittorrentDashboardTorrent | null => {
   const row = toRecord(value) as QbittorrentTorrentRaw | null;
   if (!row) return null;
@@ -197,6 +291,104 @@ const toTorrent = (value: unknown): QbittorrentDashboardTorrent | null => {
     state,
     seeds: Math.max(0, Math.trunc(toNumberOr(row.num_seeds, 0))),
     peers: Math.max(0, Math.trunc(toNumberOr(row.num_leechs, 0))),
+  };
+};
+
+const toIsoDateOrNull = (value: unknown): string | null => {
+  const seconds = typeof value === 'number' && Number.isFinite(value) ? Math.trunc(value) : null;
+  if (!seconds || seconds <= 0) return null;
+  try {
+    return new Date(seconds * 1000).toISOString();
+  } catch {
+    return null;
+  }
+};
+
+const toTags = (value: unknown): string[] => {
+  if (typeof value !== 'string') return [];
+  return value
+    .split(',')
+    .map(tag => tag.trim())
+    .filter(Boolean)
+    .slice(0, 20);
+};
+
+const toTorrentListItem = (value: unknown): QbittorrentTorrentListItem | null => {
+  const base = toTorrent(value);
+  if (!base) return null;
+  const row = toRecord(value) as QbittorrentTorrentRaw | null;
+  if (!row) return null;
+
+  return {
+    ...base,
+    category: toStringOrNull(row.category),
+    tags: toTags(row.tags),
+    ratio: typeof row.ratio === 'number' && Number.isFinite(row.ratio) ? row.ratio : null,
+    added_on: toIsoDateOrNull(row.added_on),
+    completed_on: toIsoDateOrNull(row.completed_on),
+  };
+};
+
+const toTorrentProperties = (value: unknown): QbittorrentTorrentProperties | null => {
+  const row = toRecord(value) as QbittorrentTorrentPropertiesRaw | null;
+  if (!row) return null;
+
+  const toIntOrNull = (v: unknown): number | null => {
+    if (typeof v === 'number' && Number.isFinite(v)) return Math.trunc(v);
+    if (typeof v === 'string') {
+      const parsed = Number(v);
+      return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
+    }
+    return null;
+  };
+
+  const toFloatOrNull = (v: unknown): number | null => {
+    if (typeof v === 'number' && Number.isFinite(v)) return v;
+    if (typeof v === 'string') {
+      const parsed = Number(v);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  };
+
+  return {
+    save_path: toStringOrNull(row.save_path),
+    total_size_bytes: toIntOrNull(row.total_size),
+    piece_size_bytes: toIntOrNull(row.piece_size),
+    comment: toStringOrNull(row.comment),
+    creation_date: toIsoDateOrNull(row.creation_date),
+    addition_date: toIsoDateOrNull(row.addition_date),
+    completion_date: toIsoDateOrNull(row.completion_date),
+    total_downloaded_bytes: toIntOrNull(row.total_downloaded),
+    total_uploaded_bytes: toIntOrNull(row.total_uploaded),
+    share_ratio: toFloatOrNull(row.share_ratio),
+  };
+};
+
+const toTorrentTracker = (value: unknown): QbittorrentTorrentTracker | null => {
+  const row = toRecord(value) as QbittorrentTorrentTrackerRaw | null;
+  if (!row) return null;
+  const url = toStringOrNull(row.url);
+  if (!url) return null;
+
+  const toIntOrNull = (v: unknown): number | null => {
+    if (typeof v === 'number' && Number.isFinite(v)) return Math.trunc(v);
+    if (typeof v === 'string') {
+      const parsed = Number(v);
+      return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
+    }
+    return null;
+  };
+
+  return {
+    url,
+    status: toIntOrNull(row.status),
+    message: toStringOrNull(row.msg),
+    tier: toIntOrNull(row.tier),
+    peers: toIntOrNull(row.num_peers),
+    seeds: toIntOrNull(row.num_seeds),
+    leeches: toIntOrNull(row.num_leeches),
+    downloaded: toIntOrNull(row.num_downloaded),
   };
 };
 
@@ -324,6 +516,170 @@ export const fetchQbittorrentSnapshot = async (
       },
       torrents: [],
       error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+    };
+  }
+};
+
+export interface QbittorrentListTorrentsParams {
+  filter?: string;
+  category?: string;
+  tag?: string;
+  sort?: string;
+  reverse?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export const fetchQbittorrentTorrents = async (
+  config: QbittorrentPluginConfig,
+  enabled: boolean,
+  params: QbittorrentListTorrentsParams = {}
+): Promise<{ enabled: boolean; connected: boolean; torrents: QbittorrentTorrentListItem[]; error?: string }> => {
+  if (!enabled) return { enabled: false, connected: false, torrents: [] };
+
+  const url = new URL('/api/v2/torrents/info', config.website_url);
+  if (params.filter) url.searchParams.set('filter', params.filter);
+  if (params.category) url.searchParams.set('category', params.category);
+  if (params.tag) url.searchParams.set('tag', params.tag);
+  if (params.sort) url.searchParams.set('sort', params.sort);
+  if (typeof params.reverse === 'boolean') url.searchParams.set('reverse', params.reverse ? 'true' : 'false');
+  if (typeof params.limit === 'number' && Number.isFinite(params.limit)) {
+    url.searchParams.set('limit', String(Math.max(1, Math.min(200, Math.trunc(params.limit)))));
+  }
+  if (typeof params.offset === 'number' && Number.isFinite(params.offset)) {
+    url.searchParams.set('offset', String(Math.max(0, Math.trunc(params.offset))));
+  }
+
+  try {
+    const torrentsRaw = await qbFetchJson<QbittorrentTorrentRaw[]>(config, `${url.pathname}${url.search}`);
+    const torrents = Array.isArray(torrentsRaw)
+      ? torrentsRaw.map(toTorrentListItem).filter((row): row is QbittorrentTorrentListItem => Boolean(row))
+      : [];
+
+    return { enabled: true, connected: true, torrents };
+  } catch (error) {
+    return {
+      enabled: true,
+      connected: false,
+      torrents: [],
+      error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+    };
+  }
+};
+
+export const fetchQbittorrentTorrentProperties = async (
+  config: QbittorrentPluginConfig,
+  enabled: boolean,
+  hash: string
+): Promise<{ enabled: boolean; connected: boolean; properties: QbittorrentTorrentProperties | null; error?: string }> => {
+  if (!enabled) return { enabled: false, connected: false, properties: null };
+  const safeHash = hash.trim();
+  if (!safeHash) return { enabled: true, connected: false, properties: null, error: 'Missing torrent hash' };
+
+  try {
+    const path = `/api/v2/torrents/properties?hash=${encodeURIComponent(safeHash)}`;
+    const raw = await qbFetchJson<unknown>(config, path);
+    const properties = toTorrentProperties(raw);
+    if (!properties) {
+      return { enabled: true, connected: false, properties: null, error: 'Invalid properties payload' };
+    }
+    return { enabled: true, connected: true, properties };
+  } catch (error) {
+    return {
+      enabled: true,
+      connected: false,
+      properties: null,
+      error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+    };
+  }
+};
+
+export const fetchQbittorrentTorrentTrackers = async (
+  config: QbittorrentPluginConfig,
+  enabled: boolean,
+  hash: string
+): Promise<{ enabled: boolean; connected: boolean; trackers: QbittorrentTorrentTracker[]; error?: string }> => {
+  if (!enabled) return { enabled: false, connected: false, trackers: [] };
+  const safeHash = hash.trim();
+  if (!safeHash) return { enabled: true, connected: false, trackers: [], error: 'Missing torrent hash' };
+
+  try {
+    const path = `/api/v2/torrents/trackers?hash=${encodeURIComponent(safeHash)}`;
+    const raw = await qbFetchJson<unknown>(config, path);
+    const trackers = Array.isArray(raw)
+      ? raw.map(toTorrentTracker).filter((row): row is QbittorrentTorrentTracker => Boolean(row))
+      : [];
+    return { enabled: true, connected: true, trackers };
+  } catch (error) {
+    return {
+      enabled: true,
+      connected: false,
+      trackers: [],
+      error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+    };
+  }
+};
+
+export const addQbittorrentMagnet = async (
+  config: QbittorrentPluginConfig,
+  enabled: boolean,
+  payload: { magnet: string; save_path?: string | null; category?: string | null; tags?: string[] | null }
+): Promise<{ enabled: boolean; connected: boolean; success: boolean; error?: string }> => {
+  if (!enabled) return { enabled: false, connected: false, success: false };
+  const magnet = payload.magnet.trim();
+  if (!magnet.startsWith('magnet:')) {
+    return { enabled: true, connected: false, success: false, error: 'Invalid magnet URL' };
+  }
+
+  const body = new URLSearchParams();
+  body.set('urls', magnet);
+  if (payload.save_path) body.set('savepath', payload.save_path);
+  if (payload.category) body.set('category', payload.category);
+  if (payload.tags && payload.tags.length > 0) body.set('tags', payload.tags.map(tag => tag.trim()).filter(Boolean).join(','));
+
+  try {
+    await qbFetchText(config, '/api/v2/torrents/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+    return { enabled: true, connected: true, success: true };
+  } catch (error) {
+    return {
+      enabled: true,
+      connected: false,
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to add torrent',
+    };
+  }
+};
+
+export const addQbittorrentTorrentFile = async (
+  config: QbittorrentPluginConfig,
+  enabled: boolean,
+  payload: { torrent: File; save_path?: string | null; category?: string | null; tags?: string[] | null }
+): Promise<{ enabled: boolean; connected: boolean; success: boolean; error?: string }> => {
+  if (!enabled) return { enabled: false, connected: false, success: false };
+  if (!payload.torrent) return { enabled: true, connected: false, success: false, error: 'Missing torrent file' };
+
+  const formData = new FormData();
+  formData.set('torrents', payload.torrent);
+  if (payload.save_path) formData.set('savepath', payload.save_path);
+  if (payload.category) formData.set('category', payload.category);
+  if (payload.tags && payload.tags.length > 0) formData.set('tags', payload.tags.map(tag => tag.trim()).filter(Boolean).join(','));
+
+  try {
+    await qbFetchText(config, '/api/v2/torrents/add', {
+      method: 'POST',
+      body: formData,
+    });
+    return { enabled: true, connected: true, success: true };
+  } catch (error) {
+    return {
+      enabled: true,
+      connected: false,
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to add torrent',
     };
   }
 };

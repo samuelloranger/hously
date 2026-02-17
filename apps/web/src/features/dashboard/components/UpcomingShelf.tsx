@@ -139,7 +139,7 @@ export function UpcomingShelf({
 
   return (
     <>
-      <section className="relative mb-8 overflow-hidden rounded-3xl border border-amber-300/70 dark:border-orange-500/30 bg-gradient-to-br from-[#fad0ab] via-[#ffbf7e] to-[#ffe7d1] dark:from-[#2a1c10] dark:via-[#533516] dark:to-[#8b4b1b] shadow-xl">
+      <section className="h-full relative overflow-hidden rounded-3xl border border-amber-300/70 dark:border-orange-500/30 bg-gradient-to-br from-[#fad0ab] via-[#ffbf7e] to-[#ffe7d1] dark:from-[#2a1c10] dark:via-[#533516] dark:to-[#8b4b1b] shadow-xl">
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-200/45 dark:bg-amber-300/20 blur-3xl" />
         <div className="pointer-events-none absolute -left-14 -bottom-16 h-64 w-64 rounded-full bg-orange-300/40 dark:bg-orange-500/25 blur-3xl" />
 
@@ -148,7 +148,9 @@ export function UpcomingShelf({
             <p className="text-xs uppercase tracking-[0.22em] text-amber-950/70 dark:text-amber-200/80">
               {t('dashboard.upcoming.kicker')}
             </p>
-            <h3 className="text-2xl md:text-3xl font-bold text-amber-950 dark:text-amber-50">{t('dashboard.upcoming.title')}</h3>
+            <h3 className="text-2xl md:text-3xl font-bold text-amber-950 dark:text-amber-50">
+              {t('dashboard.upcoming.title')}
+            </h3>
             <p className="text-sm text-amber-900/70 dark:text-amber-100/80 mt-1">{t('dashboard.upcoming.subtitle')}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -177,12 +179,16 @@ export function UpcomingShelf({
         ) : !enabled ? (
           <div className="mx-6 md:mx-8 rounded-2xl border border-amber-500/40 dark:border-amber-300/30 bg-amber-100/60 dark:bg-black/20 p-4 text-amber-950 dark:text-amber-50">
             <p className="font-medium">{t('dashboard.upcoming.notConfiguredTitle')}</p>
-            <p className="text-sm text-amber-950/80 dark:text-amber-100/90 mt-1">{t('dashboard.upcoming.notConfiguredDescription')}</p>
+            <p className="text-sm text-amber-950/80 dark:text-amber-100/90 mt-1">
+              {t('dashboard.upcoming.notConfiguredDescription')}
+            </p>
           </div>
         ) : items.length === 0 ? (
           <div className="mx-6 md:mx-8 rounded-2xl border border-amber-950/20 dark:border-white/20 bg-white/35 dark:bg-black/20 p-6 text-center">
             <p className="text-amber-950 dark:text-white font-medium">{t('dashboard.upcoming.emptyTitle')}</p>
-            <p className="text-sm text-amber-900/70 dark:text-amber-100/80 mt-1">{t('dashboard.upcoming.emptyDescription')}</p>
+            <p className="text-sm text-amber-900/70 dark:text-amber-100/80 mt-1">
+              {t('dashboard.upcoming.emptyDescription')}
+            </p>
           </div>
         ) : (
           <div className="no-scrollbar overflow-x-auto overflow-y-visible px-6 pt-2 pb-6" onScroll={handleShelfScroll}>

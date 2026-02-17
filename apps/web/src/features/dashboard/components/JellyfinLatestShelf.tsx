@@ -63,7 +63,7 @@ export function JellyfinLatestShelf({
   };
 
   return (
-    <section className="relative mb-8 overflow-hidden rounded-3xl border border-blue-300/60 dark:border-neutral-700/80 bg-gradient-to-br from-[#b1cefe] via-[#618ad1] to-[#adc9f1] dark:from-[#0f172a] dark:via-[#112240] dark:to-[#1f2937] shadow-xl pb-6">
+    <section className="h-full relative overflow-hidden rounded-3xl border border-blue-300/60 dark:border-neutral-700/80 bg-gradient-to-br from-[#b1cefe] via-[#618ad1] to-[#adc9f1] dark:from-[#0f172a] dark:via-[#112240] dark:to-[#1f2937] shadow-xl pb-6">
       <div className="pointer-events-none absolute -right-20 -top-16 h-64 w-64 rounded-full bg-blue-200/45 dark:bg-cyan-400/20 blur-3xl" />
       <div className="pointer-events-none absolute -left-24 -bottom-20 h-72 w-72 rounded-full bg-indigo-300/35 dark:bg-rose-500/15 blur-3xl" />
 
@@ -72,7 +72,9 @@ export function JellyfinLatestShelf({
           <p className="text-xs uppercase tracking-[0.22em] text-blue-900/75 dark:text-cyan-200/80">
             {t('dashboard.jellyfin.kicker')}
           </p>
-          <h3 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{t('dashboard.jellyfin.title')}</h3>
+          <h3 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
+            {t('dashboard.jellyfin.title')}
+          </h3>
           <p className="text-sm text-blue-900/70 dark:text-blue-100/80 mt-1">{t('dashboard.jellyfin.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -101,12 +103,16 @@ export function JellyfinLatestShelf({
       ) : !enabled ? (
         <div className="mx-6 md:mx-8 rounded-2xl border border-amber-500/40 dark:border-amber-300/30 bg-amber-100/60 dark:bg-amber-300/10 p-4 text-amber-900 dark:text-amber-100">
           <p className="font-medium">{t('dashboard.jellyfin.notConnectedTitle')}</p>
-          <p className="text-sm text-amber-900/80 dark:text-amber-100/90 mt-1">{t('dashboard.jellyfin.notConnectedDescription')}</p>
+          <p className="text-sm text-amber-900/80 dark:text-amber-100/90 mt-1">
+            {t('dashboard.jellyfin.notConnectedDescription')}
+          </p>
         </div>
       ) : items.length === 0 ? (
         <div className="mx-6 md:mx-8 rounded-2xl border border-slate-900/20 dark:border-white/20 bg-white/35 dark:bg-black/20 p-6 text-center">
           <p className="text-slate-900 dark:text-white font-medium">{t('dashboard.jellyfin.emptyTitle')}</p>
-          <p className="text-sm text-blue-900/70 dark:text-blue-100/80 mt-1">{t('dashboard.jellyfin.emptyDescription')}</p>
+          <p className="text-sm text-blue-900/70 dark:text-blue-100/80 mt-1">
+            {t('dashboard.jellyfin.emptyDescription')}
+          </p>
         </div>
       ) : (
         <div className="no-scrollbar overflow-x-auto overflow-y-visible px-6 pt-2 pb-2" onScroll={handleShelfScroll}>
@@ -133,11 +139,11 @@ export function JellyfinLatestShelf({
               );
             })}
             {isLoadingMore ? (
-                <div className="w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-slate-900/15 dark:border-white/15 bg-white/30 dark:bg-black/25 p-2.5 backdrop-blur-sm">
-                  <div className="aspect-[2/3] rounded-xl bg-slate-900/15 dark:bg-neutral-900/60 flex items-center justify-center text-blue-900/80 dark:text-blue-100/85 text-xs">
-                    {t('common.loading')}
-                  </div>
+              <div className="w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-slate-900/15 dark:border-white/15 bg-white/30 dark:bg-black/25 p-2.5 backdrop-blur-sm">
+                <div className="aspect-[2/3] rounded-xl bg-slate-900/15 dark:bg-neutral-900/60 flex items-center justify-center text-blue-900/80 dark:text-blue-100/85 text-xs">
+                  {t('common.loading')}
                 </div>
+              </div>
             ) : null}
           </div>
         </div>

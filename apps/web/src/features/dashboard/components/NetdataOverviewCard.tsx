@@ -70,7 +70,7 @@ export function NetdataOverviewCard() {
   );
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-emerald-300/60 dark:border-emerald-200/40 bg-gradient-to-br from-[#caefd8] via-[#9ddce9] to-[#9dcaf5] dark:from-emerald-700 dark:via-cyan-700 dark:to-blue-700 p-6 shadow-xl">
+    <section className="h-full relative overflow-hidden rounded-3xl border border-emerald-300/60 dark:border-emerald-200/40 bg-gradient-to-br from-[#caefd8] via-[#9ddce9] to-[#9dcaf5] dark:from-emerald-700 dark:via-cyan-700 dark:to-blue-700 p-6 shadow-xl">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-emerald-950/70 dark:text-emerald-200/90">

@@ -119,6 +119,66 @@ export interface DashboardQbittorrentStatusResponse {
   error?: string;
 }
 
+export interface QbittorrentTorrentListItem extends QbittorrentDashboardTorrent {
+  category: string | null;
+  tags: string[];
+  ratio: number | null;
+  added_on: string | null;
+  completed_on: string | null;
+}
+
+export interface DashboardQbittorrentTorrentsResponse {
+  enabled: boolean;
+  connected: boolean;
+  torrents: QbittorrentTorrentListItem[];
+  error?: string;
+}
+
+export interface QbittorrentTorrentProperties {
+  save_path: string | null;
+  total_size_bytes: number | null;
+  piece_size_bytes: number | null;
+  comment: string | null;
+  creation_date: string | null;
+  addition_date: string | null;
+  completion_date: string | null;
+  total_downloaded_bytes: number | null;
+  total_uploaded_bytes: number | null;
+  share_ratio: number | null;
+}
+
+export interface DashboardQbittorrentTorrentPropertiesResponse {
+  enabled: boolean;
+  connected: boolean;
+  properties: QbittorrentTorrentProperties | null;
+  error?: string;
+}
+
+export interface QbittorrentTorrentTracker {
+  url: string;
+  status: number | null;
+  message: string | null;
+  tier: number | null;
+  peers: number | null;
+  seeds: number | null;
+  leeches: number | null;
+  downloaded: number | null;
+}
+
+export interface DashboardQbittorrentTorrentTrackersResponse {
+  enabled: boolean;
+  connected: boolean;
+  trackers: QbittorrentTorrentTracker[];
+  error?: string;
+}
+
+export interface DashboardQbittorrentAddTorrentResponse {
+  enabled: boolean;
+  connected: boolean;
+  success: boolean;
+  error?: string;
+}
+
 export interface ScrutinyDashboardDrive {
   id: string;
   model_name: string | null;

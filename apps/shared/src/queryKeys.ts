@@ -27,13 +27,18 @@ export const queryKeys = {
     upcoming: (limit?: number, page?: number) => [...queryKeys.dashboard.all, 'upcoming', limit, page] as const,
     upcomingInfinite: (limit?: number) => [...queryKeys.dashboard.all, 'upcoming-infinite', limit] as const,
     qbittorrentStatus: () => [...queryKeys.dashboard.all, 'qbittorrent-status'] as const,
+    qbittorrentTorrents: (params: Record<string, unknown>) => [...queryKeys.dashboard.all, 'qbittorrent-torrents', params] as const,
+    qbittorrentTorrentProperties: (hash: string) =>
+      [...queryKeys.dashboard.all, 'qbittorrent-torrent-properties', hash] as const,
+    qbittorrentTorrentTrackers: (hash: string) =>
+      [...queryKeys.dashboard.all, 'qbittorrent-torrent-trackers', hash] as const,
     scrutinySummary: () => [...queryKeys.dashboard.all, 'scrutiny-summary'] as const,
     netdataSummary: () => [...queryKeys.dashboard.all, 'netdata-summary'] as const,
   },
 
   weather: {
     all: ['weather'] as const,
-    byAddress: (address: string) => [...queryKeys.weather.all, 'address', address.trim().toLowerCase()] as const,
+    current: () => [...queryKeys.weather.all, 'current'] as const,
   },
 
   users: {
@@ -69,6 +74,7 @@ export const queryKeys = {
     qbittorrent: () => [...queryKeys.plugins.all, 'qbittorrent'] as const,
     scrutiny: () => [...queryKeys.plugins.all, 'scrutiny'] as const,
     netdata: () => [...queryKeys.plugins.all, 'netdata'] as const,
+    weather: () => [...queryKeys.plugins.all, 'weather'] as const,
   },
 
   admin: {

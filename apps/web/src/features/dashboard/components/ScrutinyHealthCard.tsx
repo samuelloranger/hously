@@ -30,7 +30,7 @@ export function ScrutinyHealthCard() {
   const showNotConnected = !isLoading && (!data || !data.enabled || !data.connected);
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-rose-300/60 dark:border-rose-200/40 bg-gradient-to-br from-[#f9d2dd] via-[#f6b6c8] to-[#ffe0cd] dark:from-rose-700 dark:via-rose-700 dark:to-orange-700 p-6 shadow-xl">
+    <section className="h-full relative overflow-hidden rounded-3xl border border-rose-300/60 dark:border-rose-200/40 bg-gradient-to-br from-[#f9d2dd] via-[#f6b6c8] to-[#ffe0cd] dark:from-rose-700 dark:via-rose-700 dark:to-orange-700 p-6 shadow-xl">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-rose-950/70 dark:text-rose-200/90">

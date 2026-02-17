@@ -13,6 +13,11 @@ export const DASHBOARD_ENDPOINTS = {
   QBITTORRENT: {
     STATUS: '/api/dashboard/qbittorrent/status',
     STREAM: '/api/dashboard/qbittorrent/stream',
+    TORRENTS: '/api/dashboard/qbittorrent/torrents',
+    ADD_MAGNET: '/api/dashboard/qbittorrent/torrents/add-magnet',
+    ADD_FILE: '/api/dashboard/qbittorrent/torrents/add-file',
+    PROPERTIES: (hash: string) => `/api/dashboard/qbittorrent/torrents/${encodeURIComponent(hash)}/properties`,
+    TRACKERS: (hash: string) => `/api/dashboard/qbittorrent/torrents/${encodeURIComponent(hash)}/trackers`,
   },
   SCRUTINY: {
     SUMMARY: '/api/dashboard/scrutiny/summary',

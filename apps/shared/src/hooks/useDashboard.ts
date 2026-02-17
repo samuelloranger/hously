@@ -9,6 +9,10 @@ import type {
   DashboardScrutinySummaryResponse,
   DashboardUpcomingResponse,
   DashboardQbittorrentStatusResponse,
+  DashboardQbittorrentTorrentsResponse,
+  DashboardQbittorrentTorrentPropertiesResponse,
+  DashboardQbittorrentTorrentTrackersResponse,
+  DashboardQbittorrentAddTorrentResponse,
 } from '../types';
 
 export function useDashboardStats() {
@@ -117,6 +121,91 @@ export function useDashboardQbittorrentStatus() {
   return useQuery({
     queryKey: queryKeys.dashboard.qbittorrentStatus(),
     queryFn: () => fetcher<DashboardQbittorrentStatusResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.STATUS),
+  });
+}
+
+export function useDashboardQbittorrentTorrents(
+  params?: {
+  filter?: string;
+  category?: string;
+  tag?: string;
+  sort?: string;
+  reverse?: boolean;
+  limit?: number;
+  offset?: number;
+  },
+  options?: { enabled?: boolean }
+) {
+  const fetcher = useFetcher();
+
+  const search = new URLSearchParams();
+  if (params?.filter) search.set('filter', params.filter);
+  if (params?.category) search.set('category', params.category);
+  if (params?.tag) search.set('tag', params.tag);
+  if (params?.sort) search.set('sort', params.sort);
+  if (typeof params?.reverse === 'boolean') search.set('reverse', params.reverse ? 'true' : 'false');
+  if (typeof params?.limit === 'number') search.set('limit', String(params.limit));
+  if (typeof params?.offset === 'number') search.set('offset', String(params.offset));
+  const suffix = search.toString();
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.qbittorrentTorrents(params ?? {}),
+    queryFn: () =>
+      fetcher<DashboardQbittorrentTorrentsResponse>(
+        suffix ? `${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?${suffix}` : DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS
+      ),
+    enabled: options?.enabled ?? true,
+  });
+}
+
+export function useQbittorrentTorrentProperties(hash: string | null) {
+  const fetcher = useFetcher();
+  const safeHash = hash?.trim() ?? '';
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.qbittorrentTorrentProperties(safeHash),
+    queryFn: () =>
+      fetcher<DashboardQbittorrentTorrentPropertiesResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.PROPERTIES(safeHash)),
+    enabled: Boolean(safeHash),
+  });
+}
+
+export function useQbittorrentTorrentTrackers(hash: string | null) {
+  const fetcher = useFetcher();
+  const safeHash = hash?.trim() ?? '';
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.qbittorrentTorrentTrackers(safeHash),
+    queryFn: () =>
+      fetcher<DashboardQbittorrentTorrentTrackersResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.TRACKERS(safeHash)),
+    enabled: Boolean(safeHash),
+  });
+}
+
+export function useAddQbittorrentMagnet() {
+  const fetcher = useFetcher();
+
+  return useMutation({
+    mutationFn: (data: { magnet: string }) =>
+      fetcher<DashboardQbittorrentAddTorrentResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.ADD_MAGNET, {
+        method: 'POST',
+        body: data,
+      }),
+  });
+}
+
+export function useAddQbittorrentTorrentFile() {
+  const fetcher = useFetcher();
+
+  return useMutation({
+    mutationFn: (torrent: File) => {
+      const formData = new FormData();
+      formData.set('torrent', torrent);
+      return fetcher<DashboardQbittorrentAddTorrentResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.ADD_FILE, {
+        method: 'POST',
+        body: formData,
+      });
+    },
   });
 }
 
