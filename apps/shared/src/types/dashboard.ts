@@ -134,6 +134,32 @@ export interface DashboardQbittorrentTorrentsResponse {
   error?: string;
 }
 
+export interface DashboardQbittorrentTorrentStreamResponse {
+  enabled: boolean;
+  connected: boolean;
+  torrent: QbittorrentTorrentListItem | null;
+  error?: string;
+}
+
+export interface QbittorrentCategory {
+  name: string;
+  save_path: string | null;
+}
+
+export interface DashboardQbittorrentCategoriesResponse {
+  enabled: boolean;
+  connected: boolean;
+  categories: QbittorrentCategory[];
+  error?: string;
+}
+
+export interface DashboardQbittorrentTagsResponse {
+  enabled: boolean;
+  connected: boolean;
+  tags: string[];
+  error?: string;
+}
+
 export interface QbittorrentTorrentProperties {
   save_path: string | null;
   total_size_bytes: number | null;
@@ -172,7 +198,56 @@ export interface DashboardQbittorrentTorrentTrackersResponse {
   error?: string;
 }
 
+export interface QbittorrentTorrentFile {
+  index: number;
+  name: string;
+  size_bytes: number;
+  progress: number;
+  priority: number | null;
+}
+
+export interface DashboardQbittorrentTorrentFilesResponse {
+  enabled: boolean;
+  connected: boolean;
+  files: QbittorrentTorrentFile[];
+  error?: string;
+}
+
+export interface QbittorrentTorrentPeer {
+  id: string;
+  ip: string | null;
+  port: number | null;
+  client: string | null;
+  connection: string | null;
+  country_code: string | null;
+  progress: number | null;
+  relevance: number | null;
+  downloaded_bytes: number | null;
+  uploaded_bytes: number | null;
+  download_speed: number | null;
+  upload_speed: number | null;
+  flags: string | null;
+  flags_description: string | null;
+  files: string | null;
+}
+
+export interface DashboardQbittorrentTorrentPeersResponse {
+  enabled: boolean;
+  connected: boolean;
+  rid: number;
+  full_update: boolean;
+  peers: QbittorrentTorrentPeer[];
+  error?: string;
+}
+
 export interface DashboardQbittorrentAddTorrentResponse {
+  enabled: boolean;
+  connected: boolean;
+  success: boolean;
+  error?: string;
+}
+
+export interface DashboardQbittorrentMutationResponse {
   enabled: boolean;
   connected: boolean;
   success: boolean;

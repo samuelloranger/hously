@@ -1,14 +1,18 @@
 import { Elysia, t } from 'elysia';
 import { buildQbittorrentDisabledSnapshot, getQbittorrentSnapshot, prisma } from './shared';
+import { createJsonSseResponse } from './shared/sse';
 import {
   addQbittorrentMagnet,
   addQbittorrentTorrentFile,
   deleteQbittorrentTorrent,
+  fetchQbittorrentCategories,
+  fetchQbittorrentTorrent,
   fetchQbittorrentTorrentFiles,
   fetchQbittorrentTorrentPeers,
   fetchQbittorrentTorrentProperties,
   fetchQbittorrentTorrentTrackers,
   fetchQbittorrentTorrents,
+  fetchQbittorrentTags,
   normalizeQbittorrentConfig,
   pauseQbittorrentTorrent,
   renameQbittorrentTorrent,
@@ -144,6 +148,64 @@ export const dashboardQbittorrentRoutes = new Elysia()
     }
     return result;
   })
+  .get('/qbittorrent/categories', async (ctx: any) => {
+    const { user, set } = ctx;
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const plugin = await prisma.plugin.findFirst({
+      where: { type: 'qbittorrent' },
+      select: { enabled: true, config: true },
+    });
+
+    if (!plugin?.enabled) {
+      set.status = 400;
+      return { error: 'qBittorrent plugin is disabled' };
+    }
+
+    const config = normalizeQbittorrentConfig(plugin.config);
+    if (!config) {
+      set.status = 400;
+      return { error: 'qBittorrent plugin is enabled but not configured' };
+    }
+
+    const result = await fetchQbittorrentCategories(config, true);
+    if (!result.connected) {
+      set.status = 502;
+    }
+    return result;
+  })
+  .get('/qbittorrent/tags', async (ctx: any) => {
+    const { user, set } = ctx;
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const plugin = await prisma.plugin.findFirst({
+      where: { type: 'qbittorrent' },
+      select: { enabled: true, config: true },
+    });
+
+    if (!plugin?.enabled) {
+      set.status = 400;
+      return { error: 'qBittorrent plugin is disabled' };
+    }
+
+    const config = normalizeQbittorrentConfig(plugin.config);
+    if (!config) {
+      set.status = 400;
+      return { error: 'qBittorrent plugin is enabled but not configured' };
+    }
+
+    const result = await fetchQbittorrentTags(config, true);
+    if (!result.connected) {
+      set.status = 502;
+    }
+    return result;
+  })
   .get('/qbittorrent/torrents/:hash/files', async (ctx: any) => {
     const { user, set, params } = ctx;
     if (!user) {
@@ -234,98 +296,64 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'qBittorrent plugin is enabled but not configured' };
     }
 
-    const encoder = new TextEncoder();
-    const signal = request.signal;
-
-    const stream = new ReadableStream<Uint8Array>({
-      start(controller) {
-        let closed = false;
-        let pollTimeout: ReturnType<typeof setTimeout> | null = null;
-        let heartbeatTimeout: ReturnType<typeof setTimeout> | null = null;
-        let previousPayload = '';
-        let rid = 0;
-
-        const closeStream = () => {
-          if (closed) return;
-          closed = true;
-          if (pollTimeout) clearTimeout(pollTimeout);
-          if (heartbeatTimeout) clearTimeout(heartbeatTimeout);
-          try {
-            controller.close();
-          } catch {
-            // Stream may already be closed by the runtime.
-          }
-        };
-
-        const writeChunk = (chunk: string) => {
-          if (closed) return;
-          try {
-            controller.enqueue(encoder.encode(chunk));
-          } catch {
-            closeStream();
-          }
-        };
-
-        const scheduleHeartbeat = () => {
-          if (closed) return;
-          heartbeatTimeout = setTimeout(() => {
-            writeChunk(': ping\n\n');
-            scheduleHeartbeat();
-          }, 15000);
-        };
-
-        const poll = async () => {
-          if (closed) return;
-
-          try {
-            const snapshot = await fetchQbittorrentTorrentPeers(config, true, params.hash, rid);
-            if (snapshot.connected) {
-              rid = snapshot.rid;
-            }
-
-            const payload = JSON.stringify(snapshot);
-            if (payload !== previousPayload) {
-              previousPayload = payload;
-              writeChunk(`data: ${payload}\n\n`);
-            }
-
-            pollTimeout = setTimeout(() => {
-              void poll();
-            }, 1000);
-          } catch (error) {
-            const fallbackPayload = JSON.stringify({
-              enabled: true,
-              connected: false,
-              rid,
-              full_update: true,
-              peers: [],
-              error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
-            });
-            writeChunk(`data: ${fallbackPayload}\n\n`);
-            pollTimeout = setTimeout(() => {
-              void poll();
-            }, 3000);
-            console.error('qBittorrent peers stream poll error:', error);
-          }
-        };
-
-        signal.addEventListener('abort', closeStream);
-
-        writeChunk('retry: 3000\n\n');
-        scheduleHeartbeat();
-        void poll();
+    let rid = 0;
+    return createJsonSseResponse({
+      request,
+      poll: async () => {
+        const snapshot = await fetchQbittorrentTorrentPeers(config, true, params.hash, rid);
+        if (snapshot.connected) {
+          rid = snapshot.rid;
+        }
+        return snapshot;
       },
-      cancel() {
-        // No-op: timers are tied to request abort and internal stream closure.
-      },
+      intervalMs: 1000,
+      retryMs: 3000,
+      onError: error => ({
+        enabled: true,
+        connected: false,
+        rid,
+        full_update: true,
+        peers: [],
+        error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+      }),
+      logLabel: 'qBittorrent peers stream',
+    });
+  })
+  .get('/qbittorrent/torrents/:hash/stream', async (ctx: any) => {
+    const { user, set, params, request } = ctx;
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const plugin = await prisma.plugin.findFirst({
+      where: { type: 'qbittorrent' },
+      select: { enabled: true, config: true },
     });
 
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-transform',
-        Connection: 'keep-alive',
-      },
+    if (!plugin?.enabled) {
+      set.status = 400;
+      return { error: 'qBittorrent plugin is disabled' };
+    }
+
+    const config = normalizeQbittorrentConfig(plugin.config);
+    if (!config) {
+      set.status = 400;
+      return { error: 'qBittorrent plugin is enabled but not configured' };
+    }
+
+    return createJsonSseResponse({
+      request,
+      poll: () => fetchQbittorrentTorrent(config, true, params.hash),
+      intervalMs: () => Math.max(1000, config.poll_interval_seconds * 1000),
+      retryMs: 3000,
+      onError: error => ({
+        enabled: true,
+        connected: false,
+        torrent: null,
+        error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+      }),
+      logLabel: 'qBittorrent torrent stream',
     });
   })
   .post(
@@ -472,7 +500,11 @@ export const dashboardQbittorrentRoutes = new Elysia()
 
       const tags = Array.isArray(body.tags) ? body.tags : [];
       const previousTags = Array.isArray(body.previous_tags) ? body.previous_tags : null;
-      const result = await setQbittorrentTorrentTags(config, true, { hash: params.hash, tags, previous_tags: previousTags });
+      const result = await setQbittorrentTorrentTags(config, true, {
+        hash: params.hash,
+        tags,
+        previous_tags: previousTags,
+      });
       if (!result.connected || !result.success) {
         set.status = 502;
       }
@@ -673,90 +705,16 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const encoder = new TextEncoder();
-    const signal = request.signal;
-
-    const stream = new ReadableStream<Uint8Array>({
-      start(controller) {
-        let closed = false;
-        let pollTimeout: ReturnType<typeof setTimeout> | null = null;
-        let heartbeatTimeout: ReturnType<typeof setTimeout> | null = null;
-        let previousPayload = '';
-
-        const closeStream = () => {
-          if (closed) return;
-          closed = true;
-          if (pollTimeout) clearTimeout(pollTimeout);
-          if (heartbeatTimeout) clearTimeout(heartbeatTimeout);
-          try {
-            controller.close();
-          } catch {
-            // Stream may already be closed by the runtime.
-          }
-        };
-
-        const writeChunk = (chunk: string) => {
-          if (closed) return;
-          try {
-            controller.enqueue(encoder.encode(chunk));
-          } catch {
-            closeStream();
-          }
-        };
-
-        const scheduleHeartbeat = () => {
-          if (closed) return;
-          heartbeatTimeout = setTimeout(() => {
-            writeChunk(': ping\n\n');
-            scheduleHeartbeat();
-          }, 15000);
-        };
-
-        const poll = async () => {
-          if (closed) return;
-
-          try {
-            const snapshot = await getQbittorrentSnapshot();
-            const payload = JSON.stringify(snapshot);
-            if (payload !== previousPayload) {
-              previousPayload = payload;
-              writeChunk(`data: ${payload}\n\n`);
-            }
-
-            const nextMs = Math.max(1000, snapshot.poll_interval_seconds * 1000);
-            pollTimeout = setTimeout(() => {
-              void poll();
-            }, nextMs);
-          } catch (error) {
-            const fallbackPayload = JSON.stringify({
-              ...buildQbittorrentDisabledSnapshot('Failed to refresh qBittorrent status'),
-              enabled: true,
-              connected: false,
-            });
-            writeChunk(`data: ${fallbackPayload}\n\n`);
-            pollTimeout = setTimeout(() => {
-              void poll();
-            }, 5000);
-            console.error('qBittorrent stream poll error:', error);
-          }
-        };
-
-        signal.addEventListener('abort', closeStream);
-
-        writeChunk('retry: 3000\n\n');
-        scheduleHeartbeat();
-        void poll();
-      },
-      cancel() {
-        // No-op: timers are tied to request abort and internal stream closure.
-      },
-    });
-
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-transform',
-        Connection: 'keep-alive',
-      },
+    return createJsonSseResponse({
+      request,
+      poll: getQbittorrentSnapshot,
+      intervalMs: snapshot => Math.max(1000, snapshot.poll_interval_seconds * 1000),
+      retryMs: 5000,
+      onError: () => ({
+        ...buildQbittorrentDisabledSnapshot('Failed to refresh qBittorrent status'),
+        enabled: true,
+        connected: false,
+      }),
+      logLabel: 'qBittorrent stream',
     });
   });

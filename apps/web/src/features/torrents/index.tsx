@@ -4,6 +4,8 @@ import {
   DASHBOARD_ENDPOINTS,
   useAddQbittorrentMagnet,
   useAddQbittorrentTorrentFile,
+  useDashboardQbittorrentCategories,
+  useDashboardQbittorrentTags,
   useDashboardQbittorrentTorrents,
   useQbittorrentTorrentFiles,
   useQbittorrentTorrentProperties,
@@ -21,6 +23,7 @@ import { PageLayout } from '../../components/PageLayout';
 import { PageHeader } from '../../components/PageHeader';
 import { Button } from '../../components/ui/button';
 import { EmptyState } from '../../components/EmptyState';
+import { Select } from '../../components/ui/select';
 
 function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
@@ -38,6 +41,8 @@ export function TorrentsPage() {
   const { t } = useTranslation('common');
 
   const torrentsQuery = useDashboardQbittorrentTorrents({ sort: 'added_on', reverse: true, limit: 250 });
+  const categoriesQuery = useDashboardQbittorrentCategories();
+  const tagsQuery = useDashboardQbittorrentTags();
   const addMagnetMutation = useAddQbittorrentMagnet();
   const addFileMutation = useAddQbittorrentTorrentFile();
 
@@ -82,6 +87,9 @@ export function TorrentsPage() {
   const canInteract = !addMagnetMutation.isPending && !addFileMutation.isPending;
   const isDisabled = torrentsQuery.data?.enabled === false;
   const isDisconnected = torrentsQuery.data?.connected === false;
+
+  const categories = categoriesQuery.data?.categories ?? [];
+  const availableTags = tagsQuery.data?.tags ?? [];
 
   useEffect(() => {
     if (!selectedTorrent) {
@@ -186,6 +194,19 @@ export function TorrentsPage() {
       .slice(0, 50);
     setTagsMutation.mutate(
       { tags: nextTags, previous_tags: selectedTorrent.tags ?? [] },
+      {
+        onSuccess: () => {
+          void torrentsQuery.refetch();
+        },
+      }
+    );
+  };
+
+  const handleSaveTagsFromSelect = (selected: string[]) => {
+    if (!selectedTorrent) return;
+    setDraftTags(selected.join(', '));
+    setTagsMutation.mutate(
+      { tags: selected, previous_tags: selectedTorrent.tags ?? [] },
       {
         onSuccess: () => {
           void torrentsQuery.refetch();
@@ -531,12 +552,14 @@ export function TorrentsPage() {
                   <div>
                     <p className="text-xs font-medium text-neutral-700 dark:text-neutral-200">{t('torrents.category', 'Category')}</p>
                     <div className="mt-2 flex items-center gap-2">
-                      <input
-                        value={draftCategory}
-                        onChange={e => setDraftCategory(e.target.value)}
-                        placeholder={t('torrents.categoryPlaceholder', 'e.g. movies')}
-                        className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
-                      />
+                      <Select value={draftCategory} onChange={e => setDraftCategory(e.target.value)} className="w-full">
+                        <option value="">{t('torrents.noCategory', 'No category')}</option>
+                        {categories.map(category => (
+                          <option key={category.name} value={category.name}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </Select>
                       <Button onClick={handleSaveCategory} disabled={setCategoryMutation.isPending} size="sm">
                         {t('common.save', 'Save')}
                       </Button>
@@ -545,16 +568,39 @@ export function TorrentsPage() {
 
                   <div>
                     <p className="text-xs font-medium text-neutral-700 dark:text-neutral-200">{t('torrents.tags', 'Tags')}</p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <input
-                        value={draftTags}
-                        onChange={e => setDraftTags(e.target.value)}
-                        placeholder={t('torrents.tagsPlaceholder', 'tag1, tag2')}
-                        className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
-                      />
-                      <Button onClick={handleSaveTags} disabled={setTagsMutation.isPending} size="sm">
-                        {t('common.save', 'Save')}
-                      </Button>
+                    <div className="mt-2 space-y-2">
+                      <Select
+                        multiple
+                        value={draftTags
+                          .split(',')
+                          .map(tag => tag.trim())
+                          .filter(Boolean)}
+                        onChange={e => {
+                          const selected = Array.from(e.currentTarget.selectedOptions).map(option => option.value);
+                          handleSaveTagsFromSelect(selected);
+                        }}
+                        className="w-full h-32"
+                      >
+                        {availableTags.map(tag => (
+                          <option key={tag} value={tag}>
+                            {tag}
+                          </option>
+                        ))}
+                      </Select>
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={draftTags}
+                          onChange={e => setDraftTags(e.target.value)}
+                          placeholder={t('torrents.tagsPlaceholder', 'tag1, tag2')}
+                          className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+                        />
+                        <Button onClick={handleSaveTags} disabled={setTagsMutation.isPending} size="sm">
+                          {t('common.save', 'Save')}
+                        </Button>
+                      </div>
+                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                        {t('torrents.tagsHint', 'Tip: hold Ctrl/Cmd to select multiple tags.')}
+                      </p>
                     </div>
                   </div>
 

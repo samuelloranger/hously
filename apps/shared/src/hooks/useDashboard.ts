@@ -10,6 +10,8 @@ import type {
   DashboardUpcomingResponse,
   DashboardQbittorrentStatusResponse,
   DashboardQbittorrentTorrentsResponse,
+  DashboardQbittorrentCategoriesResponse,
+  DashboardQbittorrentTagsResponse,
   DashboardQbittorrentTorrentPropertiesResponse,
   DashboardQbittorrentTorrentTrackersResponse,
   DashboardQbittorrentAddTorrentResponse,
@@ -158,6 +160,24 @@ export function useDashboardQbittorrentTorrents(
         suffix ? `${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?${suffix}` : DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS
       ),
     enabled: options?.enabled ?? true,
+  });
+}
+
+export function useDashboardQbittorrentCategories() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.qbittorrentCategories(),
+    queryFn: () => fetcher<DashboardQbittorrentCategoriesResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.CATEGORIES),
+  });
+}
+
+export function useDashboardQbittorrentTags() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.qbittorrentTags(),
+    queryFn: () => fetcher<DashboardQbittorrentTagsResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.TAGS),
   });
 }
 

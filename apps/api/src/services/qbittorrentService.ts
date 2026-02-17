@@ -157,6 +157,16 @@ export interface QbittorrentTorrentPeer {
   files: string | null;
 }
 
+interface QbittorrentCategoryRaw {
+  name?: string;
+  savePath?: string;
+}
+
+export interface QbittorrentCategory {
+  name: string;
+  save_path: string | null;
+}
+
 export interface QbittorrentDashboardSnapshot {
   enabled: boolean;
   connected: boolean;
@@ -695,6 +705,39 @@ export const fetchQbittorrentTorrents = async (
   }
 };
 
+export const fetchQbittorrentTorrent = async (
+  config: QbittorrentPluginConfig,
+  enabled: boolean,
+  hash: string
+): Promise<{ enabled: boolean; connected: boolean; torrent: QbittorrentTorrentListItem | null; error?: string }> => {
+  if (!enabled) return { enabled: false, connected: false, torrent: null };
+  const safeHash = hash.trim();
+  if (!safeHash) return { enabled: true, connected: false, torrent: null, error: 'Missing torrent hash' };
+
+  const url = new URL('/api/v2/torrents/info', config.website_url);
+  url.searchParams.set('hashes', safeHash);
+
+  try {
+    const torrentsRaw = await qbFetchJson<QbittorrentTorrentRaw[]>(config, `${url.pathname}${url.search}`);
+    const torrents = Array.isArray(torrentsRaw)
+      ? torrentsRaw.map(toTorrentListItem).filter((row): row is QbittorrentTorrentListItem => Boolean(row))
+      : [];
+
+    if (!torrents.length) {
+      return { enabled: true, connected: true, torrent: null, error: 'Torrent not found' };
+    }
+
+    return { enabled: true, connected: true, torrent: torrents[0] ?? null };
+  } catch (error) {
+    return {
+      enabled: true,
+      connected: false,
+      torrent: null,
+      error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+    };
+  }
+};
+
 export const fetchQbittorrentTorrentProperties = async (
   config: QbittorrentPluginConfig,
   enabled: boolean,
@@ -798,6 +841,63 @@ export const fetchQbittorrentTorrentPeers = async (
       rid: 0,
       full_update: true,
       peers: [],
+      error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+    };
+  }
+};
+
+export const fetchQbittorrentCategories = async (
+  config: QbittorrentPluginConfig,
+  enabled: boolean
+): Promise<{ enabled: boolean; connected: boolean; categories: QbittorrentCategory[]; error?: string }> => {
+  if (!enabled) return { enabled: false, connected: false, categories: [] };
+
+  try {
+    const raw = await qbFetchJson<unknown>(config, '/api/v2/torrents/categories');
+    const record = toRecord(raw) ?? {};
+    const categories: QbittorrentCategory[] = [];
+    for (const [key, value] of Object.entries(record)) {
+      const name = toStringOrNull(key);
+      if (!name) continue;
+      const category = toRecord(value) as QbittorrentCategoryRaw | null;
+      categories.push({
+        name,
+        save_path: toStringOrNull(category?.savePath),
+      });
+    }
+    categories.sort((a, b) => a.name.localeCompare(b.name));
+    return { enabled: true, connected: true, categories };
+  } catch (error) {
+    return {
+      enabled: true,
+      connected: false,
+      categories: [],
+      error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+    };
+  }
+};
+
+export const fetchQbittorrentTags = async (
+  config: QbittorrentPluginConfig,
+  enabled: boolean
+): Promise<{ enabled: boolean; connected: boolean; tags: string[]; error?: string }> => {
+  if (!enabled) return { enabled: false, connected: false, tags: [] };
+
+  try {
+    const raw = await qbFetchJson<unknown>(config, '/api/v2/torrents/tags');
+    const tags = Array.isArray(raw)
+      ? raw
+          .map(value => (typeof value === 'string' ? value.trim() : ''))
+          .filter(Boolean)
+          .slice(0, 500)
+          .sort((a, b) => a.localeCompare(b))
+      : [];
+    return { enabled: true, connected: true, tags };
+  } catch (error) {
+    return {
+      enabled: true,
+      connected: false,
+      tags: [],
       error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
     };
   }

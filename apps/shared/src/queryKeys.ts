@@ -28,10 +28,14 @@ export const queryKeys = {
     upcomingInfinite: (limit?: number) => [...queryKeys.dashboard.all, 'upcoming-infinite', limit] as const,
     qbittorrentStatus: () => [...queryKeys.dashboard.all, 'qbittorrent-status'] as const,
     qbittorrentTorrents: (params: Record<string, unknown>) => [...queryKeys.dashboard.all, 'qbittorrent-torrents', params] as const,
+    qbittorrentCategories: () => [...queryKeys.dashboard.all, 'qbittorrent-categories'] as const,
+    qbittorrentTags: () => [...queryKeys.dashboard.all, 'qbittorrent-tags'] as const,
     qbittorrentTorrentProperties: (hash: string) =>
       [...queryKeys.dashboard.all, 'qbittorrent-torrent-properties', hash] as const,
     qbittorrentTorrentTrackers: (hash: string) =>
       [...queryKeys.dashboard.all, 'qbittorrent-torrent-trackers', hash] as const,
+    qbittorrentTorrentFiles: (hash: string) => [...queryKeys.dashboard.all, 'qbittorrent-torrent-files', hash] as const,
+    qbittorrentTorrentPeers: (hash: string) => [...queryKeys.dashboard.all, 'qbittorrent-torrent-peers', hash] as const,
     scrutinySummary: () => [...queryKeys.dashboard.all, 'scrutiny-summary'] as const,
     netdataSummary: () => [...queryKeys.dashboard.all, 'netdata-summary'] as const,
   },
