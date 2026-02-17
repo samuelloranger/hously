@@ -254,6 +254,109 @@ const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w342';
 const TMDB_PROVIDER_LOGO_BASE_URL = 'https://image.tmdb.org/t/p/w92';
 const TMDB_WEB_BASE_URL = 'https://www.themoviedb.org';
 const TMDB_UPCOMING_CACHE_TTL_SECONDS = 24 * 60 * 60;
+const WEATHER_CACHE_TTL_SECONDS = 30 * 60;
+const OPEN_METEO_GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
+const OPEN_METEO_FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
+
+interface OpenMeteoGeocodeResult {
+  name: string;
+  admin1?: string;
+  country?: string;
+  latitude: number;
+  longitude: number;
+}
+
+interface OpenMeteoGeocodeResponse {
+  results?: OpenMeteoGeocodeResult[];
+}
+
+interface OpenMeteoForecastResponse {
+  current?: {
+    temperature_2m: number;
+    apparent_temperature: number;
+    weather_code: number;
+    is_day: number;
+  };
+}
+
+interface DashboardWeatherResponse {
+  address: string;
+  locationName: string;
+  latitude: number;
+  longitude: number;
+  temperatureF: number;
+  feelsLikeF: number;
+  weatherCode: number;
+  isDay: boolean;
+  conditionLabel: string;
+}
+
+const normalizeWeatherAddress = (address: string): string => address.trim().replace(/\s+/g, ' ').toLowerCase();
+
+const getWeatherLabel = (weatherCode: number): string => {
+  if (weatherCode === 0) return 'Clear sky';
+  if (weatherCode === 1) return 'Mostly clear';
+  if (weatherCode === 2) return 'Partly cloudy';
+  if (weatherCode === 3) return 'Overcast';
+  if (weatherCode === 45 || weatherCode === 48) return 'Foggy';
+  if ([51, 53, 55, 56, 57].includes(weatherCode)) return 'Drizzle';
+  if ([61, 63, 65, 66, 67].includes(weatherCode)) return 'Rain';
+  if ([71, 73, 75, 77].includes(weatherCode)) return 'Snow';
+  if ([80, 81, 82].includes(weatherCode)) return 'Rain showers';
+  if ([85, 86].includes(weatherCode)) return 'Snow showers';
+  if (weatherCode === 95) return 'Thunderstorm';
+  if ([96, 99].includes(weatherCode)) return 'Thunderstorm with hail';
+  return 'Current conditions';
+};
+
+const formatWeatherLocationName = (result: OpenMeteoGeocodeResult): string =>
+  [result.name, result.admin1, result.country].filter(Boolean).join(', ');
+
+const fetchAddressWeather = async (address: string): Promise<DashboardWeatherResponse> => {
+  const geocodeUrl = new URL(OPEN_METEO_GEOCODING_URL);
+  geocodeUrl.searchParams.set('name', address);
+  geocodeUrl.searchParams.set('count', '1');
+  geocodeUrl.searchParams.set('language', 'en');
+  geocodeUrl.searchParams.set('format', 'json');
+
+  const geocodeRes = await fetch(geocodeUrl.toString());
+  if (!geocodeRes.ok) {
+    throw new Error('Unable to search for this address right now.');
+  }
+  const geocodeData = (await geocodeRes.json()) as OpenMeteoGeocodeResponse;
+  const location = geocodeData.results?.[0];
+  if (!location) {
+    throw new Error('No weather location found for that address.');
+  }
+
+  const forecastUrl = new URL(OPEN_METEO_FORECAST_URL);
+  forecastUrl.searchParams.set('latitude', String(location.latitude));
+  forecastUrl.searchParams.set('longitude', String(location.longitude));
+  forecastUrl.searchParams.set('current', 'temperature_2m,apparent_temperature,weather_code,is_day');
+  forecastUrl.searchParams.set('temperature_unit', 'fahrenheit');
+  forecastUrl.searchParams.set('timezone', 'auto');
+
+  const forecastRes = await fetch(forecastUrl.toString());
+  if (!forecastRes.ok) {
+    throw new Error('Unable to load weather for this address right now.');
+  }
+  const forecastData = (await forecastRes.json()) as OpenMeteoForecastResponse;
+  if (!forecastData.current) {
+    throw new Error('Weather data is currently unavailable for this address.');
+  }
+
+  return {
+    address,
+    locationName: formatWeatherLocationName(location),
+    latitude: location.latitude,
+    longitude: location.longitude,
+    temperatureF: forecastData.current.temperature_2m,
+    feelsLikeF: forecastData.current.apparent_temperature,
+    weatherCode: forecastData.current.weather_code,
+    isDay: forecastData.current.is_day === 1,
+    conditionLabel: getWeatherLabel(forecastData.current.weather_code),
+  };
+};
 
 const getArrPluginStatus = async (): Promise<ArrPluginStatus> => {
   const [radarrPlugin, sonarrPlugin] = await Promise.all([
@@ -564,6 +667,38 @@ const valueByLabels = (labels: string[], row: unknown[]): Record<string, number>
   return result;
 };
 
+const normalizeMetricKey = (value: string): string => value.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const findMetricValue = (values: Record<string, number>, aliases: string[]): number | null => {
+  const aliasSet = new Set(aliases.map(normalizeMetricKey));
+  for (const [key, value] of Object.entries(values)) {
+    if (aliasSet.has(normalizeMetricKey(key))) return value;
+  }
+  return null;
+};
+
+const resolveNetworkRates = (
+  values: Record<string, number> | null
+): { inKbps: number | null; outKbps: number | null } => {
+  if (!values) return { inKbps: null, outKbps: null };
+
+  const inbound = findMetricValue(values, ['InOctets', 'received', 'in', 'rx', 'download', 'ingress']);
+  const outbound = findMetricValue(values, ['OutOctets', 'sent', 'out', 'tx', 'upload', 'egress']);
+
+  return {
+    inKbps: inbound != null ? Math.round(Math.abs(inbound) * 10) / 10 : null,
+    outKbps: outbound != null ? Math.round(Math.abs(outbound) * 10) / 10 : null,
+  };
+};
+
+const isPreferredNetInterfaceChart = (chartId: string): boolean => {
+  if (!chartId.startsWith('net.')) return false;
+  const iface = chartId.slice(4).toLowerCase();
+  if (!iface) return false;
+
+  return !/^(lo|docker\d*|br-|veth|virbr|vnet|ifb|tun|tap|cni|flannel|kube|dummy)/.test(iface);
+};
+
 const fetchNetdataChartLatest = async (
   netdataBaseUrl: string,
   chart: string
@@ -625,18 +760,50 @@ const fetchNetdataSummary = async (): Promise<DashboardNetdataSummaryResponse> =
     const diskCharts = Object.keys(charts)
       .filter(key => key.startsWith('disk_space.'))
       .sort((a, b) => a.localeCompare(b));
+    const netInterfaceCharts = Object.keys(charts)
+      .filter(key => key.startsWith('net.'))
+      .sort((a, b) => a.localeCompare(b));
+    const preferredNetCharts = netInterfaceCharts.filter(isPreferredNetInterfaceChart);
+    const selectedNetCharts = (
+      preferredNetCharts.length > 0
+        ? preferredNetCharts
+        : netInterfaceCharts.filter(chartId => !chartId.toLowerCase().startsWith('net.lo'))
+    ).slice(0, 12);
 
-    const [cpu, ram, load, net, ...diskRows] = await Promise.all([
+    const [cpu, ram, load, systemNet, ...restRows] = await Promise.all([
       fetchNetdataChartLatest(config.website_url, 'system.cpu'),
       fetchNetdataChartLatest(config.website_url, 'system.ram'),
       fetchNetdataChartLatest(config.website_url, 'system.load'),
       fetchNetdataChartLatest(config.website_url, 'system.net'),
+      ...selectedNetCharts.map(chartId => fetchNetdataChartLatest(config.website_url, chartId)),
       ...diskCharts.map(chartId => fetchNetdataChartLatest(config.website_url, chartId)),
     ]);
+    const netRows = restRows.slice(0, selectedNetCharts.length);
+    const diskRows = restRows.slice(selectedNetCharts.length);
+
+    const systemNetRates = resolveNetworkRates(systemNet);
+    const interfaceNetTotals = netRows.reduce(
+      (acc, values) => {
+        const rates = resolveNetworkRates(values);
+        return {
+          inKbps: acc.inKbps + (rates.inKbps ?? 0),
+          outKbps: acc.outKbps + (rates.outKbps ?? 0),
+        };
+      },
+      { inKbps: 0, outKbps: 0 }
+    );
+    const hasInterfaceNetData = netRows.some(values => {
+      const rates = resolveNetworkRates(values);
+      return rates.inKbps != null || rates.outKbps != null;
+    });
 
     const ramUsed = ram?.used ?? null;
     const ramFree = ram?.free ?? null;
-    const ramTotal = ramUsed != null && ramFree != null ? ramUsed + ramFree : null;
+    const ramCached = ram?.cached ?? null;
+    const ramBuffers = ram?.buffers ?? null;
+    const ramTotal =
+      ram?.total ??
+      (ramUsed != null && ramFree != null ? ramUsed + ramFree + (ramCached ?? 0) + (ramBuffers ?? 0) : null);
     const ramUsedPercent =
       ramUsed != null && ramTotal != null && ramTotal > 0 ? Math.round((ramUsed / ramTotal) * 1000) / 10 : null;
 
@@ -674,8 +841,8 @@ const fetchNetdataSummary = async (): Promise<DashboardNetdataSummaryResponse> =
         load_1: load?.load1 != null ? Math.round(load.load1 * 100) / 100 : null,
         load_5: load?.load5 != null ? Math.round(load.load5 * 100) / 100 : null,
         load_15: load?.load15 != null ? Math.round(load.load15 * 100) / 100 : null,
-        network_in_kbps: net?.InOctets != null ? Math.round(net.InOctets * 10) / 10 : null,
-        network_out_kbps: net?.OutOctets != null ? Math.round(net.OutOctets * 10) / 10 : null,
+        network_in_kbps: systemNetRates.inKbps ?? (hasInterfaceNetData ? interfaceNetTotals.inKbps : null),
+        network_out_kbps: systemNetRates.outKbps ?? (hasInterfaceNetData ? interfaceNetTotals.outKbps : null),
       },
       disks,
     };
@@ -904,6 +1071,43 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
     {
       query: t.Object({
         limit: t.Optional(t.String()),
+      }),
+    }
+  )
+  .get(
+    '/weather',
+    async ({ user, query, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const address = query.address?.trim();
+      if (!address) {
+        set.status = 400;
+        return { error: 'Address is required' };
+      }
+
+      try {
+        const normalizedAddress = normalizeWeatherAddress(address);
+        const cacheKey = `dashboard:weather:v1:${normalizedAddress}`;
+        const cached = await getJsonCache<DashboardWeatherResponse>(cacheKey);
+        if (cached) {
+          return cached;
+        }
+
+        const weather = await fetchAddressWeather(address);
+        await setJsonCache(cacheKey, weather, WEATHER_CACHE_TTL_SECONDS);
+        return weather;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to get weather';
+        set.status = 502;
+        return { error: message };
+      }
+    },
+    {
+      query: t.Object({
+        address: t.String(),
       }),
     }
   )
@@ -1316,6 +1520,98 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
       set.status = 500;
       return { error: 'Failed to get Netdata summary' };
     }
+  })
+  .get('/netdata/stream', async ({ user, set, request }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const encoder = new TextEncoder();
+    const signal = request.signal;
+
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        let closed = false;
+        let pollTimeout: ReturnType<typeof setTimeout> | null = null;
+        let heartbeatTimeout: ReturnType<typeof setTimeout> | null = null;
+        let previousPayload = '';
+
+        const closeStream = () => {
+          if (closed) return;
+          closed = true;
+          if (pollTimeout) clearTimeout(pollTimeout);
+          if (heartbeatTimeout) clearTimeout(heartbeatTimeout);
+          try {
+            controller.close();
+          } catch {
+            // Stream may already be closed by the runtime.
+          }
+        };
+
+        const writeChunk = (chunk: string) => {
+          if (closed) return;
+          try {
+            controller.enqueue(encoder.encode(chunk));
+          } catch {
+            closeStream();
+          }
+        };
+
+        const scheduleHeartbeat = () => {
+          if (closed) return;
+          heartbeatTimeout = setTimeout(() => {
+            writeChunk(': ping\n\n');
+            scheduleHeartbeat();
+          }, 15000);
+        };
+
+        const poll = async () => {
+          if (closed) return;
+
+          try {
+            const snapshot = await fetchNetdataSummary();
+            const payload = JSON.stringify(snapshot);
+            if (payload !== previousPayload) {
+              previousPayload = payload;
+              writeChunk(`data: ${payload}\n\n`);
+            }
+
+            pollTimeout = setTimeout(() => {
+              void poll();
+            }, 2000);
+          } catch (error) {
+            const fallbackPayload = JSON.stringify({
+              ...buildNetdataDisabledSummary('Failed to refresh Netdata summary'),
+              enabled: true,
+              connected: false,
+            });
+            writeChunk(`data: ${fallbackPayload}\n\n`);
+            pollTimeout = setTimeout(() => {
+              void poll();
+            }, 5000);
+            console.error('Netdata stream poll error:', error);
+          }
+        };
+
+        signal.addEventListener('abort', closeStream);
+
+        writeChunk('retry: 3000\n\n');
+        scheduleHeartbeat();
+        void poll();
+      },
+      cancel() {
+        // No-op: timers are tied to request abort and internal stream closure.
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+      },
+    });
   })
   .get('/qbittorrent/stream', async ({ user, set, request }) => {
     if (!user) {

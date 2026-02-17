@@ -31,6 +31,11 @@ export const queryKeys = {
     netdataSummary: () => [...queryKeys.dashboard.all, 'netdata-summary'] as const,
   },
 
+  weather: {
+    all: ['weather'] as const,
+    byAddress: (address: string) => [...queryKeys.weather.all, 'address', address.trim().toLowerCase()] as const,
+  },
+
   users: {
     all: ['users'] as const,
     list: () => [...queryKeys.users.all, 'list'] as const,

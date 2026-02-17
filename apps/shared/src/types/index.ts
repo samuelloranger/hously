@@ -9,3 +9,4 @@ export * from './notification';
 export * from './admin';
 export * from './plugins';
 export * from './externalNotifications';
+export * from './weather';
