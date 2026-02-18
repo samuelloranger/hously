@@ -1,5 +1,4 @@
-import { rateLimit } from "elysia-rate-limit";
-import { Elysia } from "elysia";
+import { rateLimit } from 'elysia-rate-limit';
 
 /**
  * Global rate limiting configuration
@@ -8,15 +7,17 @@ import { Elysia } from "elysia";
 export const globalRateLimit = rateLimit({
   duration: 60 * 60 * 1000, // 1 hour in milliseconds
   max: 1000,
-  generator: (req) => {
-    // Use IP address as the key (similar to Flask's get_remote_address)
-    return (
-      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-      req.headers.get("x-real-ip") ||
-      "unknown"
-    );
+  generator: (req, _server, derived: { user?: { id: number } | null }) => {
+    // Authenticated users are keyed by user ID and skipped by `skip`.
+    if (derived?.user?.id) {
+      return `user:${derived.user.id}`;
+    }
+
+    // Unauthenticated traffic is limited by IP (similar to Flask's get_remote_address)
+    return req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown';
   },
-  errorResponse: "Too many requests. Please try again later.",
+  skip: (_req, key) => typeof key === 'string' && key.startsWith('user:'),
+  errorResponse: 'Too many requests. Please try again later.',
 });
 
 /**
@@ -26,10 +27,7 @@ export const globalRateLimit = rateLimit({
 export const authRateLimit = rateLimit({
   duration: 60 * 1000, // 1 minute
   max: 20, // 20 requests per minute across all auth endpoints
-  generator: (req) =>
-    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    req.headers.get("x-real-ip") ||
-    "unknown",
-  errorResponse:
-    "Too many authentication requests. Please wait a minute before trying again.",
+  generator: req =>
+    req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown',
+  errorResponse: 'Too many authentication requests. Please wait a minute before trying again.',
 });
