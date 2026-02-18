@@ -1,3 +1,5 @@
+import type { TrackerType } from './types';
+
 export const queryKeys = {
   auth: {
     all: ['auth'] as const,
@@ -24,7 +26,8 @@ export const queryKeys = {
       [...queryKeys.dashboard.all, 'jellyfin-latest', limit, page] as const,
     jellyfinLatestInfinite: (limit?: number) =>
       [...queryKeys.dashboard.all, 'jellyfin-latest-infinite', limit] as const,
-    yggStats: () => [...queryKeys.dashboard.all, 'ygg-stats'] as const,
+    trackerStats: (type: TrackerType) => [...queryKeys.dashboard.all, 'tracker-stats', type] as const,
+    yggStats: () => queryKeys.dashboard.trackerStats('ygg'),
     upcoming: () => [...queryKeys.dashboard.all, 'upcoming'] as const,
     qbittorrentStatus: () => [...queryKeys.dashboard.all, 'qbittorrent-status'] as const,
     qbittorrentTorrents: (params: Record<string, unknown>) => [...queryKeys.dashboard.all, 'qbittorrent-torrents', params] as const,
@@ -72,6 +75,7 @@ export const queryKeys = {
 
   plugins: {
     all: ['plugins'] as const,
+    tracker: (type: TrackerType) => [...queryKeys.plugins.all, type] as const,
     jellyfin: () => [...queryKeys.plugins.all, 'jellyfin'] as const,
     radarr: () => [...queryKeys.plugins.all, 'radarr'] as const,
     sonarr: () => [...queryKeys.plugins.all, 'sonarr'] as const,
@@ -79,7 +83,7 @@ export const queryKeys = {
     scrutiny: () => [...queryKeys.plugins.all, 'scrutiny'] as const,
     netdata: () => [...queryKeys.plugins.all, 'netdata'] as const,
     weather: () => [...queryKeys.plugins.all, 'weather'] as const,
-    ygg: () => [...queryKeys.plugins.all, 'ygg'] as const,
+    ygg: () => queryKeys.plugins.tracker('ygg'),
   },
 
   admin: {

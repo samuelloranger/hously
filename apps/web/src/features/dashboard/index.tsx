@@ -9,6 +9,7 @@ import { ScrutinyHealthCard } from './components/ScrutinyHealthCard';
 import { NetdataOverviewCard } from './components/NetdataOverviewCard';
 import { WeatherWidget } from './components/WeatherWidget';
 import { YggStatsCard } from './components/YggStatsCard';
+import { RecentActivityCard } from './components/RecentActivityCard';
 import { EmptyState } from '../../components/EmptyState';
 import {
   type DashboardCardConfig,
@@ -17,9 +18,8 @@ import {
   getUserFirstName,
   useCurrentUser,
   useDashboardStats,
-  useDashboardActivities,
   useDashboardJellyfinLatestInfinite,
-  useDashboardUpcomingInfinite,
+  useDashboardUpcoming,
   useChores,
   useUpdateProfile,
 } from '@hously/shared';
@@ -206,7 +206,6 @@ export function Dashboard() {
   const updateProfileMutation = useUpdateProfile();
 
   const { data: statsData, isLoading: statsLoading } = useDashboardStats();
-  const { data: activitiesData, isLoading: activitiesLoading } = useDashboardActivities();
   const {
     data: jellyfinData,
     isLoading: jellyfinLoading,
@@ -220,24 +219,31 @@ export function Dashboard() {
     data: upcomingData,
     isLoading: upcomingLoading,
     isFetching: upcomingFetching,
-    isFetchingNextPage: upcomingLoadingMore,
-    hasNextPage: upcomingHasMore,
-    fetchNextPage: fetchNextUpcoming,
     refetch: refetchUpcoming,
-  } = useDashboardUpcomingInfinite(24);
+  } = useDashboardUpcoming();
   const { data: choresData, isLoading: choresLoading } = useChores();
 
   const stats = statsData?.stats;
-  const activities = activitiesData?.activities || [];
   const chores = choresData?.chores || [];
   const users = choresData?.users || [];
   const pendingChores = chores.filter(chore => !chore.completed);
-  const jellyfinItems = useMemo(() => jellyfinData?.pages.flatMap(page => page.items) ?? [], [jellyfinData?.pages]);
-  const upcomingItems = useMemo(() => upcomingData?.pages.flatMap(page => page.items) ?? [], [upcomingData?.pages]);
+  const jellyfinItems = useMemo(() => {
+    const seen = new Set<string>();
+    return (
+      jellyfinData?.pages
+        .flatMap(p => p.items)
+        .filter(item => {
+          if (seen.has(item.id)) return false;
+          seen.add(item.id);
+          return true;
+        }) ?? []
+    );
+  }, [jellyfinData?.pages]);
+  const upcomingItems = upcomingData?.items ?? [];
   const jellyfinEnabled = jellyfinData?.pages[0]?.enabled ?? false;
-  const upcomingEnabled = upcomingData?.pages[0]?.enabled ?? false;
-  const radarrEnabled = upcomingData?.pages[0]?.radarr_enabled ?? false;
-  const sonarrEnabled = upcomingData?.pages[0]?.sonarr_enabled ?? false;
+  const upcomingEnabled = upcomingData?.enabled ?? false;
+  const radarrEnabled = upcomingData?.radarr_enabled ?? false;
+  const sonarrEnabled = upcomingData?.sonarr_enabled ?? false;
 
   const [isEditingLayout, setIsEditingLayout] = useState(false);
   const [dashboardCards, setDashboardCards] = useState<DashboardCardConfig[]>(DEFAULT_DASHBOARD_CARDS);
@@ -395,13 +401,6 @@ export function Dashboard() {
             items={upcomingItems}
             isLoading={upcomingLoading}
             isRefreshing={upcomingFetching && !upcomingLoading}
-            isLoadingMore={upcomingLoadingMore}
-            hasMore={Boolean(upcomingHasMore)}
-            onLoadMore={() => {
-              if (upcomingHasMore && !upcomingLoadingMore) {
-                void fetchNextUpcoming();
-              }
-            }}
             onRefresh={() => {
               void refetchUpcoming();
             }}
@@ -454,50 +453,7 @@ export function Dashboard() {
           </section>
         );
       case 'activity':
-        return (
-          <section className="relative overflow-hidden rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-gradient-to-br from-white via-neutral-50/50 to-neutral-100/30 dark:from-neutral-800 dark:via-neutral-800/80 dark:to-neutral-900/60 shadow-sm">
-            <div className="px-6 py-4 flex items-center gap-3 border-b border-neutral-200/60 dark:border-neutral-700/50">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100/80 dark:bg-blue-900/30 text-sm">
-                ⏰
-              </div>
-              <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
-                {t('dashboard.recentActivity')}
-              </h3>
-            </div>
-            <div className="p-5">
-              <div className="space-y-3">
-                {activitiesLoading ? (
-                  <>
-                    <ListItemSkeleton />
-                    <ListItemSkeleton />
-                    <ListItemSkeleton />
-                  </>
-                ) : activities.length > 0 ? (
-                  activities.map((activity, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-neutral-100/60 dark:hover:bg-neutral-700/40"
-                    >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-700/60 text-sm">
-                        {activity.icon}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm text-neutral-800 dark:text-neutral-200">{activity.description}</p>
-                        <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">{activity.time}</p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <span className="text-3xl text-neutral-300 dark:text-neutral-600 mb-3 block">⏰</span>
-                    <p className="text-neutral-500 dark:text-neutral-400 text-sm">{t('dashboard.noRecentActivity')}</p>
-                    <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">{t('dashboard.startUsing')}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-        );
+        return <RecentActivityCard />;
       default:
         return null;
     }

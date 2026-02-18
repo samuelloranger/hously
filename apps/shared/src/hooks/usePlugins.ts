@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFetcher } from './context';
 import { queryKeys } from '../queryKeys';
-import { PLUGIN_ENDPOINTS } from '../endpoints';
+import { DASHBOARD_ENDPOINTS, PLUGIN_ENDPOINTS } from '../endpoints';
 import type {
   ArrProfile,
+  DashboardTrackerStatsResponse,
   JellyfinPlugin,
   JellyfinPluginUpdateResponse,
   NetdataPlugin,
@@ -16,11 +17,70 @@ import type {
   ScrutinyPluginUpdateResponse,
   SonarrPlugin,
   SonarrPluginUpdateResponse,
+  TrackerPlugin,
+  TrackerPluginUpdateResponse,
+  TrackerType,
   WeatherPlugin,
   WeatherPluginUpdateResponse,
   YggPlugin,
   YggPluginUpdateResponse,
 } from '../types';
+
+const TRACKER_PLUGIN_ENDPOINTS: Record<TrackerType, string> = {
+  ygg: PLUGIN_ENDPOINTS.YGG,
+  c411: PLUGIN_ENDPOINTS.C411,
+  torr9: PLUGIN_ENDPOINTS.TORR9,
+  g3mini: PLUGIN_ENDPOINTS.G3MINI,
+};
+
+const TRACKER_DASHBOARD_ENDPOINTS: Record<TrackerType, string> = {
+  ygg: DASHBOARD_ENDPOINTS.YGG.STATS,
+  c411: DASHBOARD_ENDPOINTS.C411.STATS,
+  torr9: DASHBOARD_ENDPOINTS.TORR9.STATS,
+  g3mini: DASHBOARD_ENDPOINTS.G3MINI.STATS,
+};
+
+export function useTrackerPlugin<T extends TrackerType>(type: T) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.tracker(type),
+    queryFn: () => fetcher<{ plugin: TrackerPlugin & { type: T } }>(TRACKER_PLUGIN_ENDPOINTS[type]),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useUpdateTrackerPlugin(type: TrackerType) {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      flaresolverr_url: string;
+      tracker_url: string;
+      username: string;
+      password?: string;
+      enabled: boolean;
+    }) =>
+      fetcher<TrackerPluginUpdateResponse>(TRACKER_PLUGIN_ENDPOINTS[type], {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: result => {
+      queryClient.setQueryData(queryKeys.plugins.tracker(type), { plugin: result.plugin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.tracker(type) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.trackerStats(type) });
+    },
+  });
+}
+
+export function useDashboardTrackerStats(type: TrackerType, options?: { enabled?: boolean }) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.dashboard.trackerStats(type),
+    queryFn: () => fetcher<DashboardTrackerStatsResponse>(TRACKER_DASHBOARD_ENDPOINTS[type]),
+    enabled: options?.enabled ?? true,
+  });
+}
 
 export function useJellyfinPlugin() {
   const fetcher = useFetcher();
@@ -93,14 +153,28 @@ export function useWeatherPlugin() {
 }
 
 export function useYggPlugin() {
-  const fetcher = useFetcher();
-  return useQuery({
-    queryKey: queryKeys.plugins.ygg(),
-    queryFn: () => fetcher<{ plugin: YggPlugin }>(PLUGIN_ENDPOINTS.YGG),
-    refetchOnMount: 'always',
-    staleTime: 0,
-  });
+  const query = useTrackerPlugin('ygg');
+
+  if (!query.data) return query as typeof query & { data: undefined };
+
+  return {
+    ...query,
+    data: {
+      plugin: {
+        type: 'ygg' as const,
+        enabled: query.data.plugin.enabled,
+        flaresolverr_url: query.data.plugin.flaresolverr_url,
+        ygg_url: query.data.plugin.tracker_url,
+        username: query.data.plugin.username,
+        password_set: query.data.plugin.password_set,
+      } satisfies YggPlugin,
+    },
+  };
 }
+
+export const useC411Plugin = () => useTrackerPlugin('c411');
+export const useTorr9Plugin = () => useTrackerPlugin('torr9');
+export const useG3miniPlugin = () => useTrackerPlugin('g3mini');
 
 export function useUpdateJellyfinPlugin() {
   const fetcher = useFetcher();
@@ -243,26 +317,38 @@ export function useUpdateWeatherPlugin() {
 }
 
 export function useUpdateYggPlugin() {
-  const fetcher = useFetcher();
   const queryClient = useQueryClient();
+  const fetcher = useFetcher();
   return useMutation({
-    mutationFn: (data: {
-      flaresolverr_url: string;
-      ygg_url: string;
-      username: string;
-      password?: string;
-      enabled: boolean;
-    }) =>
+    mutationFn: (data: { flaresolverr_url: string; ygg_url: string; username: string; password?: string; enabled: boolean }) =>
       fetcher<YggPluginUpdateResponse>(PLUGIN_ENDPOINTS.YGG, {
         method: 'PUT',
         body: data,
       }),
     onSuccess: result => {
-      queryClient.setQueryData(queryKeys.plugins.ygg(), { plugin: result.plugin });
-      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.ygg() });
+      queryClient.setQueryData(queryKeys.plugins.tracker('ygg'), {
+        plugin: {
+          type: 'ygg',
+          enabled: result.plugin.enabled,
+          tracker_url: result.plugin.ygg_url,
+          flaresolverr_url: result.plugin.flaresolverr_url,
+          username: result.plugin.username,
+          password_set: result.plugin.password_set,
+        },
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.tracker('ygg') });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.trackerStats('ygg') });
     },
   });
 }
+
+export const useUpdateC411Plugin = () => useUpdateTrackerPlugin('c411');
+export const useUpdateTorr9Plugin = () => useUpdateTrackerPlugin('torr9');
+export const useUpdateG3miniPlugin = () => useUpdateTrackerPlugin('g3mini');
+
+export const useDashboardC411Stats = (options?: { enabled?: boolean }) => useDashboardTrackerStats('c411', options);
+export const useDashboardTorr9Stats = (options?: { enabled?: boolean }) => useDashboardTrackerStats('torr9', options);
+export const useDashboardG3miniStats = (options?: { enabled?: boolean }) => useDashboardTrackerStats('g3mini', options);
 
 export function useRadarrProfiles() {
   const fetcher = useFetcher();

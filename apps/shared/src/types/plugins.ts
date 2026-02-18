@@ -3,6 +3,8 @@ export interface ArrProfile {
   name: string;
 }
 
+export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'g3mini';
+
 export interface JellyfinPlugin {
   type: 'jellyfin';
   enabled: boolean;
@@ -67,6 +69,19 @@ export interface YggPlugin {
   password_set: boolean;
 }
 
+export interface TrackerPlugin {
+  type: TrackerType;
+  enabled: boolean;
+  tracker_url: string;
+  flaresolverr_url: string;
+  username: string;
+  password_set: boolean;
+}
+
+export type C411Plugin = TrackerPlugin & { type: 'c411' };
+export type Torr9Plugin = TrackerPlugin & { type: 'torr9' };
+export type G3miniPlugin = TrackerPlugin & { type: 'g3mini' };
+
 export interface JellyfinPluginUpdateResponse {
   success: boolean;
   plugin: JellyfinPlugin;
@@ -107,4 +122,9 @@ export interface WeatherPluginUpdateResponse {
 export interface YggPluginUpdateResponse {
   success: boolean;
   plugin: YggPlugin;
+}
+
+export interface TrackerPluginUpdateResponse {
+  success: boolean;
+  plugin: TrackerPlugin;
 }

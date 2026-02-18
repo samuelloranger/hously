@@ -11,148 +11,238 @@ import {
   normalizeRadarrConfig,
   normalizeScrutinyConfig,
   normalizeSonarrConfig,
+  normalizeTrackerConfig,
   normalizeWeatherConfig,
-  normalizeYggConfig,
 } from '../utils/plugins/normalizers';
-import { fetchYggTopPanelStats } from '../jobs';
+import { fetchTrackerStats } from '../jobs';
 import { enqueueTask } from '../services/backgroundQueue';
+import { logActivity } from '../utils/activityLogs';
+import type { TrackerType } from '../utils/plugins/types';
 
-export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
-  .use(auth)
-  .get('/ygg', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
+type AdminUser = { id: number; is_admin: boolean };
 
-    if (!user.is_admin) {
-      set.status = 403;
-      return { error: 'Admin privileges required' };
-    }
+const trackerLabel = (type: TrackerType): string => type.toUpperCase();
 
-    try {
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: 'ygg' },
-      });
+async function getTrackerPluginHandler(
+  type: TrackerType,
+  user: AdminUser | null,
+  set: { status?: number | string }
+): Promise<{ plugin?: Record<string, unknown>; error?: string }> {
+  if (!user) {
+    set.status = 401;
+    return { error: 'Unauthorized' };
+  }
 
-      const config = normalizeYggConfig(plugin?.config);
+  if (!user.is_admin) {
+    set.status = 403;
+    return { error: 'Admin privileges required' };
+  }
+
+  try {
+    const plugin = await prisma.plugin.findFirst({ where: { type } });
+    const config = normalizeTrackerConfig(type, plugin?.config);
+
+    if (type === 'ygg') {
       return {
         plugin: {
           type: 'ygg',
           enabled: plugin?.enabled || false,
           flaresolverr_url: config?.flaresolverr_url || '',
-          ygg_url: config?.ygg_url || '',
+          ygg_url: config?.tracker_url || '',
           username: config?.username || '',
           password_set: Boolean(config?.password),
         },
       };
-    } catch (error) {
-      console.error('Error fetching YGG plugin config:', error);
-      set.status = 500;
-      return { error: 'Failed to fetch YGG plugin config' };
     }
-  })
-  .put(
-    '/ygg',
-    async ({ user, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
 
-      if (!user.is_admin) {
-        set.status = 403;
-        return { error: 'Admin privileges required' };
-      }
+    return {
+      plugin: {
+        type,
+        enabled: plugin?.enabled || false,
+        flaresolverr_url: config?.flaresolverr_url || '',
+        tracker_url: config?.tracker_url || '',
+        username: config?.username || '',
+        password_set: Boolean(config?.password),
+      },
+    };
+  } catch (error) {
+    console.error(`Error fetching ${trackerLabel(type)} plugin config:`, error);
+    set.status = 500;
+    return { error: `Failed to fetch ${trackerLabel(type)} plugin config` };
+  }
+}
 
-      const flaresolverrUrl = body.flaresolverr_url.trim().replace(/\/+$/, '');
-      const yggUrl = body.ygg_url.trim().replace(/\/+$/, '');
-      const username = body.username.trim();
+async function updateTrackerPluginHandler(
+  type: TrackerType,
+  user: AdminUser | null,
+  body: {
+    flaresolverr_url: string;
+    tracker_url?: string;
+    ygg_url?: string;
+    username: string;
+    password?: string;
+    enabled?: boolean;
+  },
+  set: { status?: number | string }
+): Promise<{ success?: boolean; plugin?: Record<string, unknown>; error?: string }> {
+  if (!user) {
+    set.status = 401;
+    return { error: 'Unauthorized' };
+  }
 
-      if (flaresolverrUrl && !isValidHttpUrl(flaresolverrUrl)) {
-        set.status = 400;
-        return { error: 'Invalid flaresolverr_url. Must be a valid http(s) URL.' };
-      }
+  if (!user.is_admin) {
+    set.status = 403;
+    return { error: 'Admin privileges required' };
+  }
 
-      if (!yggUrl || !isValidHttpUrl(yggUrl)) {
-        set.status = 400;
-        return { error: 'Invalid ygg_url. Must be a valid http(s) URL.' };
-      }
+  const flaresolverrUrl = body.flaresolverr_url.trim().replace(/\/+$/, '');
+  const trackerUrlRaw = type === 'ygg' ? (body.ygg_url ?? body.tracker_url) : body.tracker_url;
+  const trackerUrl = trackerUrlRaw?.trim().replace(/\/+$/, '') || '';
+  const username = body.username.trim();
 
-      if (!username) {
-        set.status = 400;
-        return { error: 'username is required' };
-      }
+  if (flaresolverrUrl && !isValidHttpUrl(flaresolverrUrl)) {
+    set.status = 400;
+    return { error: 'Invalid flaresolverr_url. Must be a valid http(s) URL.' };
+  }
 
-      try {
-        const existingPlugin = await prisma.plugin.findFirst({
-          where: { type: 'ygg' },
-        });
-        const existingConfig = normalizeYggConfig(existingPlugin?.config);
-        const providedPassword = body.password?.trim() || '';
-        const password = providedPassword || existingConfig?.password || '';
+  if (!trackerUrl || !isValidHttpUrl(trackerUrl)) {
+    set.status = 400;
+    return {
+      error: `Invalid ${type === 'ygg' ? 'ygg_url' : 'tracker_url'}. Must be a valid http(s) URL.`,
+    };
+  }
 
-        if (!password) {
-          set.status = 400;
-          return { error: 'password is required' };
-        }
+  if (!username) {
+    set.status = 400;
+    return { error: 'username is required' };
+  }
 
-        const now = nowUtc();
-        const enabled = body.enabled ?? existingPlugin?.enabled ?? true;
-        const config: Prisma.InputJsonValue = {
-          flaresolverr_url: flaresolverrUrl || undefined,
-          ygg_url: yggUrl,
+  try {
+    const existingPlugin = await prisma.plugin.findFirst({
+      where: { type },
+    });
+    const existingConfig = normalizeTrackerConfig(type, existingPlugin?.config);
+    const providedPassword = body.password?.trim() || '';
+    const password = providedPassword || existingConfig?.password || '';
+
+    if (!password) {
+      set.status = 400;
+      return { error: 'password is required' };
+    }
+
+    const now = nowUtc();
+    const enabled = body.enabled ?? existingPlugin?.enabled ?? true;
+    const config: Prisma.InputJsonValue = {
+      flaresolverr_url: flaresolverrUrl || undefined,
+      tracker_url: trackerUrl,
+      ...(type === 'ygg' ? { ygg_url: trackerUrl } : {}),
+      username,
+      password,
+    };
+
+    const plugin = await prisma.plugin.upsert({
+      where: { type },
+      update: {
+        enabled,
+        config,
+        updatedAt: now,
+      },
+      create: {
+        type,
+        enabled,
+        config,
+        createdAt: now,
+        updatedAt: now,
+      },
+    });
+
+    enqueueTask(`${type}:fetchTopPanelStats`, async () => {
+      await fetchTrackerStats(type, { trigger: 'plugin' });
+    });
+
+    enqueueTask(`activity:plugin_updated:${type}`, async () => {
+      await logActivity({
+        type: 'plugin_updated',
+        userId: user.id,
+        payload: { plugin_type: type },
+      });
+    });
+
+    if (type === 'ygg') {
+      return {
+        success: true,
+        plugin: {
+          type: plugin.type,
+          enabled: plugin.enabled,
+          flaresolverr_url: flaresolverrUrl,
+          ygg_url: trackerUrl,
           username,
-          password,
-        };
-
-        const plugin = await prisma.plugin.upsert({
-          where: { type: 'ygg' },
-          update: {
-            enabled,
-            config,
-            updatedAt: now,
-          },
-          create: {
-            type: 'ygg',
-            enabled,
-            config,
-            createdAt: now,
-            updatedAt: now,
-          },
-        });
-
-        enqueueTask('ygg:fetchTopPanelStats', async () => {
-          await fetchYggTopPanelStats();
-        });
-
-        return {
-          success: true,
-          plugin: {
-            type: plugin.type,
-            enabled: plugin.enabled,
-            flaresolverr_url: flaresolverrUrl,
-            ygg_url: yggUrl,
-            username,
-            password_set: true,
-          },
-        };
-      } catch (error) {
-        console.error('Error saving YGG plugin config:', error);
-        set.status = 500;
-        return { error: 'Failed to save YGG plugin config' };
-      }
-    },
-    {
-      body: t.Object({
-        flaresolverr_url: t.String(),
-        ygg_url: t.String(),
-        username: t.String(),
-        password: t.Optional(t.String()),
-        enabled: t.Optional(t.Boolean()),
-      }),
+          password_set: true,
+        },
+      };
     }
-  )
+
+    return {
+      success: true,
+      plugin: {
+        type: plugin.type,
+        enabled: plugin.enabled,
+        flaresolverr_url: flaresolverrUrl,
+        tracker_url: trackerUrl,
+        username,
+        password_set: true,
+      },
+    };
+  } catch (error) {
+    console.error(`Error saving ${trackerLabel(type)} plugin config:`, error);
+    set.status = 500;
+    return { error: `Failed to save ${trackerLabel(type)} plugin config` };
+  }
+}
+
+export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
+  .use(auth)
+  .get('/ygg', ({ user, set }) => getTrackerPluginHandler('ygg', user, set))
+  .put('/ygg', ({ user, body, set }) => updateTrackerPluginHandler('ygg', user, body, set), {
+    body: t.Object({
+      flaresolverr_url: t.String(),
+      ygg_url: t.Optional(t.String()),
+      tracker_url: t.Optional(t.String()),
+      username: t.String(),
+      password: t.Optional(t.String()),
+      enabled: t.Optional(t.Boolean()),
+    }),
+  })
+  .get('/c411', ({ user, set }) => getTrackerPluginHandler('c411', user, set))
+  .put('/c411', ({ user, body, set }) => updateTrackerPluginHandler('c411', user, body, set), {
+    body: t.Object({
+      flaresolverr_url: t.String(),
+      tracker_url: t.String(),
+      username: t.String(),
+      password: t.Optional(t.String()),
+      enabled: t.Optional(t.Boolean()),
+    }),
+  })
+  .get('/torr9', ({ user, set }) => getTrackerPluginHandler('torr9', user, set))
+  .put('/torr9', ({ user, body, set }) => updateTrackerPluginHandler('torr9', user, body, set), {
+    body: t.Object({
+      flaresolverr_url: t.String(),
+      tracker_url: t.String(),
+      username: t.String(),
+      password: t.Optional(t.String()),
+      enabled: t.Optional(t.Boolean()),
+    }),
+  })
+  .get('/g3mini', ({ user, set }) => getTrackerPluginHandler('g3mini', user, set))
+  .put('/g3mini', ({ user, body, set }) => updateTrackerPluginHandler('g3mini', user, body, set), {
+    body: t.Object({
+      flaresolverr_url: t.String(),
+      tracker_url: t.String(),
+      username: t.String(),
+      password: t.Optional(t.String()),
+      enabled: t.Optional(t.Boolean()),
+    }),
+  })
   .get('/jellyfin', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
@@ -233,6 +323,14 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             createdAt: now,
             updatedAt: now,
           },
+        });
+
+        enqueueTask('activity:plugin_updated:jellyfin', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'jellyfin' },
+          });
         });
 
         return {
@@ -356,6 +454,14 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             createdAt: now,
             updatedAt: now,
           },
+        });
+
+        enqueueTask('activity:plugin_updated:radarr', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'radarr' },
+          });
         });
 
         return {
@@ -548,6 +654,14 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
+        enqueueTask('activity:plugin_updated:sonarr', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'sonarr' },
+          });
+        });
+
         return {
           success: true,
           plugin: {
@@ -716,6 +830,14 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
+        enqueueTask('activity:plugin_updated:scrutiny', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'scrutiny' },
+          });
+        });
+
         return {
           success: true,
           plugin: {
@@ -810,6 +932,14 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
+        enqueueTask('activity:plugin_updated:netdata', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'netdata' },
+          });
+        });
+
         return {
           success: true,
           plugin: {
@@ -896,6 +1026,14 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             createdAt: now,
             updatedAt: now,
           },
+        });
+
+        enqueueTask('activity:plugin_updated:weather', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'weather' },
+          });
         });
 
         return {
@@ -1020,6 +1158,14 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             createdAt: now,
             updatedAt: now,
           },
+        });
+
+        enqueueTask('activity:plugin_updated:qbittorrent', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'qbittorrent' },
+          });
         });
 
         return {

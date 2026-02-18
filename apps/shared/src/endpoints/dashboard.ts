@@ -8,6 +8,15 @@ export const DASHBOARD_ENDPOINTS = {
   YGG: {
     STATS: '/api/dashboard/ygg/stats',
   },
+  C411: {
+    STATS: '/api/dashboard/c411/stats',
+  },
+  TORR9: {
+    STATS: '/api/dashboard/torr9/stats',
+  },
+  G3MINI: {
+    STATS: '/api/dashboard/g3mini/stats',
+  },
   UPCOMING: {
     LIST: '/api/dashboard/upcoming',
     ADD: '/api/dashboard/upcoming/add',

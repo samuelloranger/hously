@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useJellyfinPlugin, useUpdateJellyfinPlugin } from '@hously/shared';
 import { toast } from 'sonner';
 import { PluginSectionCard } from './PluginSectionCard';
+import { PluginUrlInput } from './PluginUrlInput';
 
 export function JellyfinPluginSection() {
   const { t } = useTranslation('common');
@@ -19,6 +20,15 @@ export function JellyfinPluginSection() {
     setApiKey(data.plugin.api_key || '');
     setEnabled(Boolean(data.plugin.enabled));
   }, [data]);
+
+  const isDirty = useMemo(() => {
+    if (!data?.plugin) return false;
+    return (
+      websiteUrl !== (data.plugin.website_url || '') ||
+      apiKey !== (data.plugin.api_key || '') ||
+      enabled !== Boolean(data.plugin.enabled)
+    );
+  }, [data, websiteUrl, apiKey, enabled]);
 
   const handleCancel = () => {
     setWebsiteUrl(data?.plugin.website_url || '');
@@ -47,20 +57,15 @@ export function JellyfinPluginSection() {
       onSave={handleSave}
       loading={isLoading}
       saving={saveMutation.isPending}
-      className="bg-gradient-to-br from-neutral-50 to-cyan-50 dark:from-neutral-800 dark:to-cyan-950/20"
+      isDirty={isDirty}
+      logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/jellyfin.png"
     >
-      <div>
-        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-          {t('settings.plugins.jellyfin.websiteUrl')}
-        </label>
-        <input
-          type="url"
-          value={websiteUrl}
-          onChange={event => setWebsiteUrl(event.target.value)}
-          placeholder="https://jellyfin.example.com"
-          className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
-        />
-      </div>
+      <PluginUrlInput
+        label={t('settings.plugins.jellyfin.websiteUrl')}
+        value={websiteUrl}
+        onChange={setWebsiteUrl}
+        placeholder="https://jellyfin.example.com"
+      />
 
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">

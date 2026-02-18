@@ -184,8 +184,8 @@ export function NotificationsTab() {
 
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300" key="notifications-tab">
-      <div className="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+        <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
           {t('settings.notifications.title')}
         </h2>
         <p className="text-neutral-600 dark:text-neutral-400 mb-6">{t('settings.notifications.description')}</p>
@@ -295,8 +295,16 @@ export function NotificationsTab() {
                           className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg"
                         >
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                              {getDeviceDisplayName(device)}
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                                {getDeviceDisplayName(device)}
+                              </span>
+                              {subscription &&
+                                (subscription as unknown as { endpoint: string }).endpoint === device.endpoint && (
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400 uppercase tracking-wide flex-shrink-0">
+                                    {t('settings.notifications.thisDevice')}
+                                  </span>
+                                )}
                             </div>
                             <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                               {t('settings.notifications.addedOn')} {formatDate(device.created_at)}

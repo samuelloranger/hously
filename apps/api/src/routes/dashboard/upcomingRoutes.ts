@@ -16,80 +16,77 @@ import type { DashboardUpcomingItem } from '../../types/dashboardUpcoming';
 
 export const dashboardUpcomingRoutes = new Elysia()
   .use(auth)
-  .get(
-    '/upcoming',
-    async ({ user, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
-      try {
-        const arrPluginStatus = await getArrPluginStatus();
-        const tmdbApiKey = process.env.TMDB_API_KEY?.trim();
-
-        if (!tmdbApiKey) {
-          return { enabled: false, items: [], ...arrPluginStatus };
-        }
-
-        const today = new Date();
-        const todayIso = toIsoDate(today);
-        const oneYearOut = new Date(Date.UTC(today.getUTCFullYear() + 1, today.getUTCMonth(), today.getUTCDate()));
-        const oneYearOutIso = toIsoDate(oneYearOut);
-        const cacheKey = `dashboard:tmdb:upcoming:v5:from:${todayIso}`;
-
-        const cached = await getJsonCache<{
-          enabled: boolean;
-          items: DashboardUpcomingItem[];
-        }>(cacheKey);
-        if (cached) {
-          return { ...cached, ...arrPluginStatus };
-        }
-
-        const POOL_SIZE_PER_TYPE = 60; // ~3 TMDB pages per media type → ~120 items total
-        const [moviesResult, tvResult] = await Promise.all([
-          collectTmdbUpcoming('movie', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
-          collectTmdbUpcoming('tv', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
-        ]);
-
-        if (!moviesResult || !tvResult) {
-          set.status = 502;
-          return { error: 'TMDB request failed' };
-        }
-
-        const sortedItems = [...moviesResult.items, ...tvResult.items]
-          .filter(item => {
-            if (!item.release_date) return false;
-            const releaseTime = Date.parse(item.release_date);
-            const todayTime = Date.parse(todayIso);
-            const oneYearOutTime = Date.parse(oneYearOutIso);
-            return Number.isFinite(releaseTime) && releaseTime >= todayTime && releaseTime <= oneYearOutTime;
-          })
-          .sort((a, b) => {
-            const aTime = a.release_date ? Date.parse(a.release_date) : Number.POSITIVE_INFINITY;
-            const bTime = b.release_date ? Date.parse(b.release_date) : Number.POSITIVE_INFINITY;
-            return aTime - bTime;
-          });
-
-        const itemsWithProviders = await Promise.all(
-          sortedItems.map(async item => {
-            const tmdbId = parseTmdbNumericId(item.id);
-            if (!tmdbId) return item;
-            const providers = await fetchTmdbProviders(item.media_type, tmdbId, tmdbApiKey);
-            return { ...item, providers };
-          })
-        );
-
-        const responsePayload = { enabled: true, items: itemsWithProviders };
-        await setJsonCache(cacheKey, responsePayload, TMDB_UPCOMING_CACHE_TTL_SECONDS);
-        return { ...responsePayload, ...arrPluginStatus };
-      } catch (error) {
-        console.error('Error getting TMDB upcoming items:', error);
-        set.status = 500;
-        return { error: 'Failed to get TMDB upcoming items' };
-      }
+  .get('/upcoming', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
     }
-  )
+
+    try {
+      const arrPluginStatus = await getArrPluginStatus();
+      const tmdbApiKey = process.env.TMDB_API_KEY?.trim();
+
+      if (!tmdbApiKey) {
+        return { enabled: false, items: [], ...arrPluginStatus };
+      }
+
+      const today = new Date();
+      const todayIso = toIsoDate(today);
+      const oneYearOut = new Date(Date.UTC(today.getUTCFullYear() + 1, today.getUTCMonth(), today.getUTCDate()));
+      const oneYearOutIso = toIsoDate(oneYearOut);
+      const cacheKey = `dashboard:tmdb:upcoming:v5:from:${todayIso}`;
+
+      const cached = await getJsonCache<{
+        enabled: boolean;
+        items: DashboardUpcomingItem[];
+      }>(cacheKey);
+      if (cached) {
+        return { ...cached, ...arrPluginStatus };
+      }
+
+      const POOL_SIZE_PER_TYPE = 60; // ~3 TMDB pages per media type → ~120 items total
+      const [moviesResult, tvResult] = await Promise.all([
+        collectTmdbUpcoming('movie', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
+        collectTmdbUpcoming('tv', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
+      ]);
+
+      if (!moviesResult || !tvResult) {
+        set.status = 502;
+        return { error: 'TMDB request failed' };
+      }
+
+      const sortedItems = [...moviesResult.items, ...tvResult.items]
+        .filter(item => {
+          if (!item.release_date) return false;
+          const releaseTime = Date.parse(item.release_date);
+          const todayTime = Date.parse(todayIso);
+          const oneYearOutTime = Date.parse(oneYearOutIso);
+          return Number.isFinite(releaseTime) && releaseTime >= todayTime && releaseTime <= oneYearOutTime;
+        })
+        .sort((a, b) => {
+          const aTime = a.release_date ? Date.parse(a.release_date) : Number.POSITIVE_INFINITY;
+          const bTime = b.release_date ? Date.parse(b.release_date) : Number.POSITIVE_INFINITY;
+          return aTime - bTime;
+        });
+
+      const itemsWithProviders = await Promise.all(
+        sortedItems.map(async item => {
+          const tmdbId = parseTmdbNumericId(item.id);
+          if (!tmdbId) return item;
+          const providers = await fetchTmdbProviders(item.media_type, tmdbId, tmdbApiKey);
+          return { ...item, providers };
+        })
+      );
+
+      const responsePayload = { enabled: true, items: itemsWithProviders };
+      await setJsonCache(cacheKey, responsePayload, TMDB_UPCOMING_CACHE_TTL_SECONDS);
+      return { ...responsePayload, ...arrPluginStatus };
+    } catch (error) {
+      console.error('Error getting TMDB upcoming items:', error);
+      set.status = 500;
+      return { error: 'Failed to get TMDB upcoming items' };
+    }
+  })
   .post(
     '/upcoming/add',
     async ({ user, body, set }) => {

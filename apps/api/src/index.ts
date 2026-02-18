@@ -7,7 +7,7 @@ import {
   checkAndSendReminders,
   checkAndSendAllDayEventNotifications,
   cleanupOldNotifications,
-  fetchYggTopPanelStats,
+  fetchTrackerStats,
 } from './jobs';
 import { checkAndNotifyVersionChange } from './services/versionService';
 import { auth } from './auth';
@@ -29,10 +29,7 @@ import { pluginsRoutes } from './routes/plugins';
 import { globalRateLimit } from './middleware/rateLimit';
 import { logActivity } from './utils/activityLogs';
 
-const runCronJobWithActivity = async (
-  job: { id: string; name: string },
-  fn: () => Promise<unknown>
-): Promise<void> => {
+const runCronJobWithActivity = async (job: { id: string; name: string }, fn: () => Promise<unknown>): Promise<void> => {
   const startedAt = Date.now();
   try {
     await fn();
@@ -46,7 +43,14 @@ const runCronJobWithActivity = async (
     const message = error instanceof Error ? error.message : 'Unknown error';
     await logActivity({
       type: 'cron_job_ended',
-      payload: { job_id: job.id, job_name: job.name, success: false, duration_ms: durationMs, trigger: 'cron', message },
+      payload: {
+        job_id: job.id,
+        job_name: job.name,
+        success: false,
+        duration_ms: durationMs,
+        trigger: 'cron',
+        message,
+      },
     });
   }
 };
@@ -83,18 +87,30 @@ export const app = new Elysia()
       name: 'cleanupNotifications',
       pattern: '0 0 * * *', // Daily at midnight
       run: () =>
-        runCronJobWithActivity({ id: 'cleanupNotifications', name: 'Cleanup old notifications' }, cleanupOldNotifications),
+        runCronJobWithActivity(
+          { id: 'cleanupNotifications', name: 'Cleanup old notifications' },
+          cleanupOldNotifications
+        ),
     })
   )
   .use(
     cron({
       name: 'fetchYggTopPanelStats',
       pattern: '0 * * * *', // Hourly
-      run: () =>
-        runCronJobWithActivity(
-          { id: 'fetchYggTopPanelStats', name: 'Fetch YGG top panel stats' },
-          () => fetchYggTopPanelStats({ trigger: 'cron' })
-        ),
+      run: () => {
+        runCronJobWithActivity({ id: 'fetchYggTopPanelStats', name: 'Fetch YGG top panel stats' }, () =>
+          fetchTrackerStats('ygg', { trigger: 'cron' })
+        );
+        runCronJobWithActivity({ id: 'fetchTorr9TopPanelStats', name: 'Fetch Torr9 top panel stats' }, () =>
+          fetchTrackerStats('torr9', { trigger: 'cron' })
+        );
+        runCronJobWithActivity({ id: 'fetchG3miniTopPanelStats', name: 'Fetch G3mini top panel stats' }, () =>
+          fetchTrackerStats('g3mini', { trigger: 'cron' })
+        );
+        runCronJobWithActivity({ id: 'fetchC411TopPanelStats', name: 'Fetch C411 top panel stats' }, () =>
+          fetchTrackerStats('c411', { trigger: 'cron' })
+        );
+      },
     })
   )
   .use(app => {

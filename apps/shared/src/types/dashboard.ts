@@ -373,3 +373,5 @@ export interface DashboardYggStatsResponse {
   ratio: number | null;
   error?: string;
 }
+
+export type DashboardTrackerStatsResponse = DashboardYggStatsResponse;

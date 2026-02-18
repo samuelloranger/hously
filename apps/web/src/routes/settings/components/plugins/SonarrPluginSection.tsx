@@ -1,22 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRadarrPlugin, useRadarrProfiles, useUpdateRadarrPlugin } from '@hously/shared';
+import { useSonarrPlugin, useSonarrProfiles, useUpdateSonarrPlugin } from '@hously/shared';
 import { toast } from 'sonner';
 import { PluginSectionCard } from './PluginSectionCard';
 import { PluginUrlInput } from './PluginUrlInput';
 
-export function RadarrPluginSection() {
+const filterDeprecatedProfiles = (profiles: Array<{ id: number; name: string }>) =>
+  profiles.filter(profile => !/\bdeprecated\b/i.test(profile.name));
+
+export function SonarrPluginSection() {
   const { t } = useTranslation('common');
-  const { data, isLoading } = useRadarrPlugin();
-  const saveMutation = useUpdateRadarrPlugin();
-  const fetchProfilesMutation = useRadarrProfiles();
+  const { data, isLoading } = useSonarrPlugin();
+  const saveMutation = useUpdateSonarrPlugin();
+  const fetchProfilesMutation = useSonarrProfiles();
 
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [rootFolderPath, setRootFolderPath] = useState('');
   const [qualityProfileId, setQualityProfileId] = useState('1');
+  const [languageProfileId, setLanguageProfileId] = useState('1');
   const [enabled, setEnabled] = useState(false);
   const [qualityProfiles, setQualityProfiles] = useState<Array<{ id: number; name: string }>>([]);
+  const [languageProfiles, setLanguageProfiles] = useState<Array<{ id: number; name: string }>>([]);
 
   useEffect(() => {
     if (!data?.plugin) return;
@@ -24,6 +29,7 @@ export function RadarrPluginSection() {
     setApiKey(data.plugin.api_key || '');
     setRootFolderPath(data.plugin.root_folder_path || '');
     setQualityProfileId(String(data.plugin.quality_profile_id || 1));
+    setLanguageProfileId(String(data.plugin.language_profile_id || 1));
     setEnabled(Boolean(data.plugin.enabled));
   }, [data]);
 
@@ -34,15 +40,17 @@ export function RadarrPluginSection() {
       apiKey !== (data.plugin.api_key || '') ||
       rootFolderPath !== (data.plugin.root_folder_path || '') ||
       qualityProfileId !== String(data.plugin.quality_profile_id || 1) ||
+      languageProfileId !== String(data.plugin.language_profile_id || 1) ||
       enabled !== Boolean(data.plugin.enabled)
     );
-  }, [data, websiteUrl, apiKey, rootFolderPath, qualityProfileId, enabled]);
+  }, [data, websiteUrl, apiKey, rootFolderPath, qualityProfileId, languageProfileId, enabled]);
 
   const handleCancel = () => {
     setWebsiteUrl(data?.plugin.website_url || '');
     setApiKey(data?.plugin.api_key || '');
     setRootFolderPath(data?.plugin.root_folder_path || '');
     setQualityProfileId(String(data?.plugin.quality_profile_id || 1));
+    setLanguageProfileId(String(data?.plugin.language_profile_id || 1));
     setEnabled(Boolean(data?.plugin.enabled));
   };
 
@@ -53,6 +61,7 @@ export function RadarrPluginSection() {
         api_key: apiKey,
         root_folder_path: rootFolderPath,
         quality_profile_id: Number(qualityProfileId || 0),
+        language_profile_id: Number(languageProfileId || 0),
         enabled,
       })
       .then(() => toast.success(t('settings.plugins.saveSuccess')))
@@ -67,12 +76,17 @@ export function RadarrPluginSection() {
     fetchProfilesMutation
       .mutateAsync({ website_url: trimmedUrl, api_key: trimmedApiKey })
       .then(result => {
+        const filteredLanguageProfiles = filterDeprecatedProfiles(result.language_profiles || []);
         setQualityProfiles(result.quality_profiles || []);
+        setLanguageProfiles(filteredLanguageProfiles);
+
         if (result.quality_profiles.length > 0) {
-          const hasCurrent = result.quality_profiles.some(profile => String(profile.id) === qualityProfileId);
-          if (!hasCurrent) {
-            setQualityProfileId(String(result.quality_profiles[0].id));
-          }
+          const hasCurrentQuality = result.quality_profiles.some(profile => String(profile.id) === qualityProfileId);
+          if (!hasCurrentQuality) setQualityProfileId(String(result.quality_profiles[0].id));
+        }
+        if (filteredLanguageProfiles.length > 0) {
+          const hasCurrentLanguage = filteredLanguageProfiles.some(profile => String(profile.id) === languageProfileId);
+          if (!hasCurrentLanguage) setLanguageProfileId(String(filteredLanguageProfiles[0].id));
         }
       })
       .catch(() => toast.error(t('settings.plugins.profileFetchError')));
@@ -80,8 +94,8 @@ export function RadarrPluginSection() {
 
   return (
     <PluginSectionCard
-      title="Radarr"
-      description={t('settings.plugins.radarr.help')}
+      title="Sonarr"
+      description={t('settings.plugins.sonarr.help')}
       enabled={enabled}
       onEnabledChange={setEnabled}
       onCancel={handleCancel}
@@ -89,45 +103,45 @@ export function RadarrPluginSection() {
       loading={isLoading}
       saving={saveMutation.isPending}
       isDirty={isDirty}
-      logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/radarr.png"
+      logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/sonarr.png"
     >
       <PluginUrlInput
-        label={t('settings.plugins.radarr.websiteUrl')}
+        label={t('settings.plugins.sonarr.websiteUrl')}
         value={websiteUrl}
         onChange={setWebsiteUrl}
-        placeholder="https://radarr.example.com"
+        placeholder="https://sonarr.example.com"
       />
 
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-          {t('settings.plugins.radarr.apiKey')}
+          {t('settings.plugins.sonarr.apiKey')}
         </label>
         <input
           type="password"
           value={apiKey}
           onChange={event => setApiKey(event.target.value)}
           onBlur={handleApiKeyBlur}
-          placeholder={t('settings.plugins.radarr.apiKeyPlaceholder')}
+          placeholder={t('settings.plugins.sonarr.apiKeyPlaceholder')}
           className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-          {t('settings.plugins.radarr.rootFolderPath')}
+          {t('settings.plugins.sonarr.rootFolderPath')}
         </label>
         <input
           type="text"
           value={rootFolderPath}
           onChange={event => setRootFolderPath(event.target.value)}
-          placeholder="/movies"
+          placeholder="/tv"
           className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-          {t('settings.plugins.radarr.qualityProfileId')}
+          {t('settings.plugins.sonarr.qualityProfileId')}
         </label>
         {qualityProfiles.length > 0 ? (
           <select
@@ -148,6 +162,34 @@ export function RadarrPluginSection() {
             step={1}
             value={qualityProfileId}
             onChange={event => setQualityProfileId(event.target.value)}
+            className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+          />
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          {t('settings.plugins.sonarr.languageProfileId')}
+        </label>
+        {languageProfiles.length > 0 ? (
+          <select
+            value={languageProfileId}
+            onChange={event => setLanguageProfileId(event.target.value)}
+            className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+          >
+            {languageProfiles.map(profile => (
+              <option key={profile.id} value={String(profile.id)}>
+                {profile.name} (#{profile.id})
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={languageProfileId}
+            onChange={event => setLanguageProfileId(event.target.value)}
             className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
           />
         )}

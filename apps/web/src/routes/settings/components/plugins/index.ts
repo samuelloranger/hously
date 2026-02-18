@@ -1,9 +1,11 @@
 export { JellyfinPluginSection } from './JellyfinPluginSection';
+export { PluginUrlInput } from './PluginUrlInput';
 export { NetdataPluginSection } from './NetdataPluginSection';
 export { PluginSectionCard } from './PluginSectionCard';
 export { QbittorrentPluginSection } from './QbittorrentPluginSection';
 export { RadarrPluginSection } from './RadarrPluginSection';
 export { ScrutinyPluginSection } from './ScrutinyPluginSection';
 export { SonarrPluginSection } from './SonarrPluginSection';
+export { TrackersPluginSection } from './TrackersPluginSection';
 export { WeatherPluginSection } from './WeatherPluginSection';
 export { YggPluginSection } from './YggPluginSection';
