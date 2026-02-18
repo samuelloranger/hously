@@ -17,14 +17,68 @@ export interface Activity {
   description?: string;
   time?: string;
   icon?: string;
-  type?: 'shopping_added' | 'shopping_completed' | 'chore_added' | 'chore_completed';
+  type?:
+    | 'shopping_added'
+    | 'shopping_completed'
+    | 'chore_added'
+    | 'chore_completed'
+    | 'plugin_updated'
+    | 'cron_job_ended'
+    | 'cron_job_skipped'
+    | 'app_updated'
+    | 'recipe_added'
+    | 'recipe_updated'
+    | 'recipe_deleted'
+    | 'admin_triggered_job'
+    | 'event_created'
+    | 'event_updated'
+    | 'event_deleted'
+    | 'shopping_item_added'
+    | 'shopping_item_completed'
+    | 'shopping_list_cleared';
+  plugin_type?: string;
+  job_id?: string;
+  job_name?: string;
+  action?: string;
+  success?: boolean;
+  duration_ms?: number;
+  message?: string;
+  trigger?: string;
+  reason?: string;
+  from_version?: string;
+  to_version?: string;
+  recipe_id?: number;
+  recipe_name?: string;
+  event_id?: number;
+  event_title?: string;
+  shopping_item_id?: number;
+  item_name?: string;
+  count?: number;
 }
 
 export interface ActivityDisplay {
   description: string;
   time: string;
   icon: string;
-  type: 'shopping_added' | 'shopping_completed' | 'chore_added' | 'chore_completed';
+  type:
+    | 'shopping_added'
+    | 'shopping_completed'
+    | 'chore_added'
+    | 'chore_completed'
+    | 'plugin_updated'
+    | 'cron_job_ended'
+    | 'cron_job_skipped'
+    | 'app_updated'
+    | 'recipe_added'
+    | 'recipe_updated'
+    | 'recipe_deleted'
+    | 'admin_triggered_job'
+    | 'event_created'
+    | 'event_updated'
+    | 'event_deleted'
+    | 'shopping_item_added'
+    | 'shopping_item_completed'
+    | 'shopping_list_cleared';
 }
 
 export interface DashboardStatsResponse {
@@ -73,9 +127,6 @@ export interface DashboardUpcomingResponse {
   radarr_enabled: boolean;
   sonarr_enabled: boolean;
   items: DashboardUpcomingItem[];
-  page: number;
-  limit: number;
-  has_more: boolean;
 }
 
 export interface DashboardUpcomingStatusResponse {

@@ -62,13 +62,12 @@ export function useDashboardYggStats(options?: { enabled?: boolean }) {
   });
 }
 
-export function useDashboardUpcoming(limit: number = 8, page: number = 1) {
+export function useDashboardUpcoming() {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: queryKeys.dashboard.upcoming(limit, page),
-    queryFn: () =>
-      fetcher<DashboardUpcomingResponse>(`${DASHBOARD_ENDPOINTS.UPCOMING.LIST}?limit=${limit}&page=${page}`),
+    queryKey: queryKeys.dashboard.upcoming(),
+    queryFn: () => fetcher<DashboardUpcomingResponse>(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
   });
 }
 
@@ -83,20 +82,6 @@ export function useDashboardJellyfinLatestInfinite(limit: number = 10) {
       return fetcher<DashboardJellyfinLatestResponse>(
         `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`
       );
-    },
-    getNextPageParam: lastPage => (lastPage.has_more ? lastPage.page + 1 : undefined),
-  });
-}
-
-export function useDashboardUpcomingInfinite(limit: number = 8) {
-  const fetcher = useFetcher();
-
-  return useInfiniteQuery({
-    queryKey: queryKeys.dashboard.upcomingInfinite(limit),
-    initialPageParam: 1,
-    queryFn: ({ pageParam }) => {
-      const page = typeof pageParam === 'number' && Number.isFinite(pageParam) ? pageParam : 1;
-      return fetcher<DashboardUpcomingResponse>(`${DASHBOARD_ENDPOINTS.UPCOMING.LIST}?limit=${limit}&page=${page}`);
     },
     getNextPageParam: lastPage => (lastPage.has_more ? lastPage.page + 1 : undefined),
   });

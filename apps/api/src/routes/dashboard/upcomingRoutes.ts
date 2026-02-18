@@ -11,14 +11,14 @@ import {
 import { prisma } from '../../db';
 import { getJsonCache, setJsonCache } from '../../services/cache';
 import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
-import { toPositiveInt, toRecord } from '../../utils/coerce';
+import { toRecord } from '../../utils/coerce';
 import type { DashboardUpcomingItem } from '../../types/dashboardUpcoming';
 
 export const dashboardUpcomingRoutes = new Elysia()
   .use(auth)
   .get(
     '/upcoming',
-    async ({ user, query, set }) => {
+    async ({ user, set }) => {
       if (!user) {
         set.status = 401;
         return { error: 'Unauthorized' };
@@ -27,38 +27,29 @@ export const dashboardUpcomingRoutes = new Elysia()
       try {
         const arrPluginStatus = await getArrPluginStatus();
         const tmdbApiKey = process.env.TMDB_API_KEY?.trim();
-        const requestedPage = toPositiveInt(query.page, 1);
-        const page = Math.max(1, Math.min(100, requestedPage));
-        const requestedLimit = toPositiveInt(query.limit, 8);
-        const limit = Math.max(1, Math.min(24, requestedLimit));
 
         if (!tmdbApiKey) {
-          return { enabled: false, items: [], page, limit, has_more: false, ...arrPluginStatus };
+          return { enabled: false, items: [], ...arrPluginStatus };
         }
 
         const today = new Date();
         const todayIso = toIsoDate(today);
         const oneYearOut = new Date(Date.UTC(today.getUTCFullYear() + 1, today.getUTCMonth(), today.getUTCDate()));
         const oneYearOutIso = toIsoDate(oneYearOut);
-        const cacheKey = `dashboard:tmdb:upcoming:v3:page:${page}:limit:${limit}:from:${todayIso}`;
+        const cacheKey = `dashboard:tmdb:upcoming:v5:from:${todayIso}`;
 
-        if (process.env.NODE_ENV === 'production') {
-          const cached = await getJsonCache<{
-            enabled: boolean;
-            items: DashboardUpcomingItem[];
-            page: number;
-            limit: number;
-            has_more: boolean;
-          }>(cacheKey);
-          if (cached) {
-            return { ...cached, ...arrPluginStatus };
-          }
+        const cached = await getJsonCache<{
+          enabled: boolean;
+          items: DashboardUpcomingItem[];
+        }>(cacheKey);
+        if (cached) {
+          return { ...cached, ...arrPluginStatus };
         }
 
-        const requiredCount = page * limit;
+        const POOL_SIZE_PER_TYPE = 60; // ~3 TMDB pages per media type → ~120 items total
         const [moviesResult, tvResult] = await Promise.all([
-          collectTmdbUpcoming('movie', requiredCount, tmdbApiKey, todayIso, oneYearOutIso),
-          collectTmdbUpcoming('tv', requiredCount, tmdbApiKey, todayIso, oneYearOutIso),
+          collectTmdbUpcoming('movie', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
+          collectTmdbUpcoming('tv', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
         ]);
 
         if (!moviesResult || !tvResult) {
@@ -66,7 +57,7 @@ export const dashboardUpcomingRoutes = new Elysia()
           return { error: 'TMDB request failed' };
         }
 
-        const merged = [...moviesResult.items.slice(0, requiredCount), ...tvResult.items.slice(0, requiredCount)]
+        const sortedItems = [...moviesResult.items, ...tvResult.items]
           .filter(item => {
             if (!item.release_date) return false;
             const releaseTime = Date.parse(item.release_date);
@@ -80,39 +71,23 @@ export const dashboardUpcomingRoutes = new Elysia()
             return aTime - bTime;
           });
 
-        const offset = (page - 1) * limit;
-        const pageSlice = merged.slice(offset, offset + limit);
-        const hasMore = merged.length > offset + limit || moviesResult.hasMore || tvResult.hasMore;
-
         const itemsWithProviders = await Promise.all(
-          pageSlice.map(async item => {
+          sortedItems.map(async item => {
             const tmdbId = parseTmdbNumericId(item.id);
             if (!tmdbId) return item;
-
             const providers = await fetchTmdbProviders(item.media_type, tmdbId, tmdbApiKey);
-            return {
-              ...item,
-              providers,
-            };
+            return { ...item, providers };
           })
         );
 
-        const responsePayload = { enabled: true, items: itemsWithProviders, page, limit, has_more: hasMore };
-        if (process.env.NODE_ENV === 'production') {
-          await setJsonCache(cacheKey, responsePayload, TMDB_UPCOMING_CACHE_TTL_SECONDS);
-        }
+        const responsePayload = { enabled: true, items: itemsWithProviders };
+        await setJsonCache(cacheKey, responsePayload, TMDB_UPCOMING_CACHE_TTL_SECONDS);
         return { ...responsePayload, ...arrPluginStatus };
       } catch (error) {
         console.error('Error getting TMDB upcoming items:', error);
         set.status = 500;
         return { error: 'Failed to get TMDB upcoming items' };
       }
-    },
-    {
-      query: t.Object({
-        limit: t.Optional(t.String()),
-        page: t.Optional(t.String()),
-      }),
     }
   )
   .post(

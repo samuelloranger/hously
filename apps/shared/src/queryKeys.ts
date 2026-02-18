@@ -25,8 +25,7 @@ export const queryKeys = {
     jellyfinLatestInfinite: (limit?: number) =>
       [...queryKeys.dashboard.all, 'jellyfin-latest-infinite', limit] as const,
     yggStats: () => [...queryKeys.dashboard.all, 'ygg-stats'] as const,
-    upcoming: (limit?: number, page?: number) => [...queryKeys.dashboard.all, 'upcoming', limit, page] as const,
-    upcomingInfinite: (limit?: number) => [...queryKeys.dashboard.all, 'upcoming-infinite', limit] as const,
+    upcoming: () => [...queryKeys.dashboard.all, 'upcoming'] as const,
     qbittorrentStatus: () => [...queryKeys.dashboard.all, 'qbittorrent-status'] as const,
     qbittorrentTorrents: (params: Record<string, unknown>) => [...queryKeys.dashboard.all, 'qbittorrent-torrents', params] as const,
     qbittorrentCategories: () => [...queryKeys.dashboard.all, 'qbittorrent-categories'] as const,
