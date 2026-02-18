@@ -51,6 +51,22 @@ export interface NetdataPlugin {
   website_url: string;
 }
 
+export interface WeatherPlugin {
+  type: 'weather';
+  enabled: boolean;
+  address: string;
+  temperature_unit: 'fahrenheit' | 'celsius';
+}
+
+export interface YggPlugin {
+  type: 'ygg';
+  enabled: boolean;
+  flaresolverr_url: string;
+  ygg_url: string;
+  username: string;
+  password_set: boolean;
+}
+
 export interface JellyfinPluginUpdateResponse {
   success: boolean;
   plugin: JellyfinPlugin;
@@ -81,4 +97,14 @@ export interface ScrutinyPluginUpdateResponse {
 export interface NetdataPluginUpdateResponse {
   success: boolean;
   plugin: NetdataPlugin;
+}
+
+export interface WeatherPluginUpdateResponse {
+  success: boolean;
+  plugin: WeatherPlugin;
+}
+
+export interface YggPluginUpdateResponse {
+  success: boolean;
+  plugin: YggPlugin;
 }

@@ -166,6 +166,8 @@
       "addTorrentFile": "Add .torrent",
       "add": "Add",
       "torrents": "Torrents",
+      "seeds": "Seeds",
+      "addTorrent": "Add torrent",
       "searchPlaceholder": "Search torrents...",
       "trackers": "Trackers",
       "backToList": "Back",
@@ -188,8 +190,23 @@
         "checkingDl": "Checking download",
         "checkingResumeData": "Checking resume data",
         "moving": "Moving",
+        "completed": "Complete",
+        "stopped": "Stopped",
         "unknown": "Unknown"
       }
+    },
+    "ygg": {
+      "kicker": "From your tracker",
+      "title": "YGG Stats",
+      "subtitle": "Uploaded, downloaded, and ratio from your account.",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "notConnectedTitle": "YGG stats are not available yet",
+      "notConnectedDescription": "Open Settings > Plugins and connect YGG to show your stats here.",
+      "uploaded": "Uploaded",
+      "downloaded": "Downloaded",
+      "ratio": "Ratio",
+      "updated": "Updated {{value}}"
     },
     "scrutiny": {
       "kicker": "From your disk monitor",
@@ -816,6 +833,14 @@
       "netdata": {
         "help": "Connect Netdata to show live system metrics and per-disk usage on the dashboard.",
         "websiteUrl": "Netdata URL"
+      },
+      "ygg": {
+        "help": "Configure YGG credentials for server-side jobs.",
+        "flaresolverrUrl": "FlareSolverr URL",
+        "yggUrl": "YGG URL",
+        "username": "YGG Username",
+        "password": "YGG Password",
+        "passwordPlaceholder": "Leave empty to keep existing password"
       }
     },
     "dataExport": {
@@ -876,6 +901,34 @@
         "sending": "Sending...",
         "success": "Test email has been queued and will be sent shortly.",
         "error": "Failed to send test email. Please check your email configuration."
+      }
+    },
+    "jobs": {
+      "title": "Jobs",
+      "description": "Manually trigger scheduled server jobs.",
+      "run": "Run",
+      "running": "Running...",
+      "success": "Job executed successfully!",
+      "error": "Failed to execute job. Please try again.",
+      "loadError": "Failed to load scheduled jobs",
+      "noJobs": "No scheduled jobs found",
+      "actions": {
+        "checkReminders": {
+          "label": "Check Reminders",
+          "description": "Check for reminders that need to be sent and send notifications."
+        },
+        "checkAllDayEvents": {
+          "label": "Check All-Day Events",
+          "description": "Check for all-day custom events and send notifications."
+        },
+        "cleanupNotifications": {
+          "label": "Cleanup Old Notifications",
+          "description": "Remove old notifications from the database."
+        },
+        "fetchYggTopPanelStats": {
+          "label": "Fetch YGG Stats",
+          "description": "Log into YGG and fetch uploaded/downloaded/ratio from the top panel."
+        }
       }
     },
     "users": {
@@ -1003,7 +1056,7 @@
     "trackerStatusUnknown": "Unknown",
     "submitTorrentFile": "Submit",
     "actions": "Actions",
-    "start": "Start",
+    "start": "Resume",
     "pause": "Pause",
     "delete": "Delete",
     "deleteTitle": "Delete torrent",
@@ -1015,7 +1068,33 @@
     "noCategory": "No category",
     "tagsHint": "Tip: hold Ctrl/Cmd to select multiple tags.",
     "backToList": "Back to torrents",
-    "submitTorrentFile": "Submit"
+    "progress": "Progress",
+    "size": "Size",
+    "download": "Download",
+    "upload": "Upload",
+    "peers": "Peers",
+    "noPeers": "No peers",
+    "noFiles": "No files",
+    "noProperties": "No properties",
+    "peerProgress": "Progress",
+    "relevance": "Relevance",
+    "properties": "Properties",
+    "savePath": "Save path",
+    "totalDownloaded": "Downloaded",
+    "totalUploaded": "Uploaded",
+    "shareRatio": "Ratio",
+    "renameTorrent": "Name",
+    "category": "Category",
+    "tags": "Tags",
+    "tagsPlaceholder": "tag1, tag2",
+    "filterAll": "All",
+    "filterDownloading": "Downloading",
+    "filterSeeding": "Seeding",
+    "filterPaused": "Paused",
+    "filterComplete": "Complete",
+    "filterStalled": "Stalled",
+    "filterError": "Error",
+    "noResults": "No torrents match your filters."
   },
   "recipes": {
     "title": "Recipes",

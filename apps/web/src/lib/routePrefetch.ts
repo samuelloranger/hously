@@ -50,7 +50,7 @@ const routeQueryDefinitions = {
 
   '/torrents': () => [
     {
-      queryKey: queryKeys.dashboard.qbittorrentTorrents({ sort: 'added_on', reverse: true, limit: 250 }),
+      queryKey: queryKeys.dashboard.qbittorrentTorrents({}),
       queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?sort=added_on&reverse=true&limit=250`),
     },
   ],

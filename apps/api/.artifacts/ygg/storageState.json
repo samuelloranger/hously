@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "cf_clearance",
+      "value": "8hpxCyVvmDkXOKL2tiOFHbpNjUQf9RpINrKZLS2NKGQ-1771426809-1.2.1.1-pDc7GDoBGYTaU3YPwmofbI.YRKBFASWXVxZO7Z7yPty00J.R5Pb6wI7vebg.cLqqcfWA0Uf_rRkO9tMEjwTaIjywys7ILEWt4htR1dgo8aqF0F3sl3z1IphuFD9waUyrm3FNysU4YcRxxOflNcxhVRQ_bMQ_irQ.YGxHyIO.fW1Nb50ILJrT0_uUyGyXvk4gb2Ub5xTo_4m_POxChF3pmJJU6Wem361VJ_1Xvm1k9mPQ22iP6rxDKGj0citqq0de",
+      "domain": ".yggtorrent.org",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ygg_",
+      "value": "jahkbwPdCZMQigSZzXwKpV3m3mISTHFBAnRdigz6yLAxaw76",
+      "domain": ".yggtorrent.org",
+      "path": "/",
+      "expires": 1771434013.472248,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    }
+  ],
+  "origins": []
+}

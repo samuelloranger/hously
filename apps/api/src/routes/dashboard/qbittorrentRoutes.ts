@@ -1,9 +1,11 @@
 import { Elysia, t } from 'elysia';
-import { buildQbittorrentDisabledSnapshot, getQbittorrentSnapshot, prisma } from './shared';
-import { createJsonSseResponse } from './shared/sse';
+import { prisma } from '../../db';
+import { createJsonSseResponse } from '../../utils/sse';
+import { getQbittorrentSnapshot } from '../../utils/dashboard/qbittorrent';
 import {
   addQbittorrentMagnet,
   addQbittorrentTorrentFile,
+  buildQbittorrentDisabledSnapshot,
   deleteQbittorrentTorrent,
   fetchQbittorrentCategories,
   fetchQbittorrentTorrent,
@@ -53,14 +55,20 @@ export const dashboardQbittorrentRoutes = new Elysia()
       });
 
       if (!plugin?.enabled) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is disabled' };
+        return {
+          enabled: false,
+          connected: false,
+          torrents: [],
+        };
       }
 
       const config = normalizeQbittorrentConfig(plugin.config);
       if (!config) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is enabled but not configured' };
+        return {
+          enabled: false,
+          connected: false,
+          torrents: [],
+        };
       }
 
       const result = await fetchQbittorrentTorrents(config, true, {
@@ -90,6 +98,43 @@ export const dashboardQbittorrentRoutes = new Elysia()
       }),
     }
   )
+  .get('/qbittorrent/torrents/stream', async (ctx: any) => {
+    const { user, set, request } = ctx;
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const plugin = await prisma.plugin.findFirst({
+      where: { type: 'qbittorrent' },
+      select: { enabled: true, config: true },
+    });
+
+    if (!plugin?.enabled) {
+      set.status = 400;
+      return { error: 'qBittorrent plugin is disabled' };
+    }
+
+    const config = normalizeQbittorrentConfig(plugin.config);
+    if (!config) {
+      set.status = 400;
+      return { error: 'qBittorrent plugin is enabled but not configured' };
+    }
+
+    return createJsonSseResponse({
+      request,
+      poll: () => fetchQbittorrentTorrents(config, true, { sort: 'added_on', reverse: true, limit: 250 }),
+      intervalMs: () => Math.max(1000, config.poll_interval_seconds * 1000),
+      retryMs: 3000,
+      onError: error => ({
+        enabled: true,
+        connected: false,
+        torrents: [],
+        error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+      }),
+      logLabel: 'qBittorrent torrents list stream',
+    });
+  })
   .get('/qbittorrent/torrents/:hash/properties', async (ctx: any) => {
     const { user, set, params } = ctx;
     if (!user) {

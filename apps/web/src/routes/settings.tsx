@@ -8,6 +8,7 @@ import { PluginsTab } from './settings/PluginsTab';
 import { DataExportTab } from './settings/DataExportTab';
 import { DevelopmentTab } from './settings/DevelopmentTab';
 import { UsersTab } from './settings/UsersTab';
+import { JobsTab } from './settings/JobsTab';
 import { useCurrentUser } from '@hously/shared';
 import { cn } from '../lib/utils';
 
@@ -19,6 +20,7 @@ export type Tab =
   | 'plugins'
   | 'data-export'
   | 'development'
+  | 'jobs'
   | 'users';
 
 export function Settings() {
@@ -51,6 +53,11 @@ export function Settings() {
       label: t('settings.calendar.title'),
       icon: '📅',
     },
+    {
+      id: 'plugins',
+      label: t('settings.plugins.title'),
+      icon: '🧩',
+    },
     // Only show admin tabs to admins
     ...(currentUser?.is_admin
       ? [
@@ -64,21 +71,21 @@ export function Settings() {
             label: t('settings.users.title'),
             icon: '👥',
           },
-          {
-            id: 'plugins' as Tab,
-            label: t('settings.plugins.title'),
-            icon: '🧩',
-          },
-          {
-            id: 'development' as Tab,
-            label: t('settings.development.title'),
-            icon: '🔧',
-          },
-          {
-            id: 'data-export' as Tab,
-            label: t('settings.dataExport.title'),
-            icon: '💾',
-          },
+	          {
+	            id: 'development' as Tab,
+	            label: t('settings.development.title'),
+	            icon: '🔧',
+	          },
+	          {
+	            id: 'jobs' as Tab,
+	            label: t('settings.jobs.title'),
+	            icon: '🗓️',
+	          },
+	          {
+	            id: 'data-export' as Tab,
+	            label: t('settings.dataExport.title'),
+	            icon: '💾',
+	          },
         ]
       : []),
   ];
@@ -118,12 +125,13 @@ export function Settings() {
           {activeTab === 'notifications' && <NotificationsTab />}
           {activeTab === 'calendar' && <CalendarTab />}
           {activeTab === 'external-notifications' && currentUser?.is_admin && <ExternalNotificationsTab />}
-          {activeTab === 'plugins' && currentUser?.is_admin && <PluginsTab />}
-          {activeTab === 'data-export' && currentUser?.is_admin && <DataExportTab />}
-          {activeTab === 'users' && currentUser?.is_admin && <UsersTab />}
-          {activeTab === 'development' && currentUser?.is_admin && <DevelopmentTab />}
-        </div>
-      </div>
-    </div>
-  );
-}
+	          {activeTab === 'plugins' && <PluginsTab />}
+	          {activeTab === 'data-export' && currentUser?.is_admin && <DataExportTab />}
+	          {activeTab === 'users' && currentUser?.is_admin && <UsersTab />}
+	          {activeTab === 'development' && currentUser?.is_admin && <DevelopmentTab />}
+	          {activeTab === 'jobs' && currentUser?.is_admin && <JobsTab />}
+	        </div>
+	      </div>
+	    </div>
+	  );
+	}

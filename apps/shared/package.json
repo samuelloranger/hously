@@ -12,6 +12,7 @@
     "./constants": "./src/constants/index.ts",
     "./utils": "./src/utils/index.ts",
     "./utils/media": "./src/utils/media.ts",
+    "./utils/relativeTime": "./src/utils/relativeTime.ts",
     "./queryKeys": "./src/queryKeys.ts",
     "./api": "./src/api.ts"
   },

@@ -165,6 +165,8 @@
       "addTorrentFile": "Ajouter un .torrent",
       "add": "Ajouter",
       "torrents": "Torrents",
+      "seeds": "Sources",
+      "addTorrent": "Ajouter un torrent",
       "searchPlaceholder": "Rechercher des torrents...",
       "trackers": "Trackers",
       "backToList": "Retour",
@@ -187,8 +189,23 @@
         "checkingDl": "Vérification téléchargement",
         "checkingResumeData": "Vérification des données de reprise",
         "moving": "Déplacement",
+        "completed": "Terminé",
+        "stopped": "Arrêté",
         "unknown": "Inconnu"
       }
+    },
+    "ygg": {
+      "kicker": "Depuis votre tracker",
+      "title": "Stats YGG",
+      "subtitle": "Upload, download et ratio de votre compte.",
+      "connected": "Connecté",
+      "disconnected": "Déconnecté",
+      "notConnectedTitle": "Les stats YGG ne sont pas encore disponibles",
+      "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez YGG pour afficher vos stats ici.",
+      "uploaded": "Upload",
+      "downloaded": "Download",
+      "ratio": "Ratio",
+      "updated": "Mis à jour {{value}}"
     },
     "scrutiny": {
       "kicker": "Depuis la surveillance disque",
@@ -815,6 +832,14 @@
       "netdata": {
         "help": "Connectez Netdata pour afficher les métriques système en direct et l'usage par disque sur l'accueil.",
         "websiteUrl": "URL Netdata"
+      },
+      "ygg": {
+        "help": "Configurer les identifiants YGG pour les tâches côté serveur.",
+        "flaresolverrUrl": "URL FlareSolverr",
+        "yggUrl": "URL YGG",
+        "username": "Nom d'utilisateur YGG",
+        "password": "Mot de passe YGG",
+        "passwordPlaceholder": "Laisser vide pour conserver le mot de passe existant"
       }
     },
     "dataExport": {
@@ -875,6 +900,34 @@
         "sending": "Envoi en cours...",
         "success": "L'email de test a été mis en file d'attente et sera envoyé sous peu.",
         "error": "Échec de l'envoi de l'email de test. Veuillez vérifier votre configuration email."
+      }
+    },
+    "jobs": {
+      "title": "Tâches",
+      "description": "Déclencher manuellement les tâches planifiées du serveur.",
+      "run": "Lancer",
+      "running": "Exécution...",
+      "success": "Tâche exécutée avec succès",
+      "error": "Échec de l'exécution de la tâche. Veuillez réessayer.",
+      "loadError": "Échec du chargement des tâches planifiées",
+      "noJobs": "Aucune tâche planifiée trouvée",
+      "actions": {
+        "checkReminders": {
+          "label": "Vérifier les rappels",
+          "description": "Vérifier les rappels à envoyer et envoyer les notifications."
+        },
+        "checkAllDayEvents": {
+          "label": "Vérifier les événements toute la journée",
+          "description": "Vérifier les événements personnalisés toute la journée et envoyer les notifications."
+        },
+        "cleanupNotifications": {
+          "label": "Nettoyer les anciennes notifications",
+          "description": "Supprimer les anciennes notifications de la base de données."
+        },
+        "fetchYggTopPanelStats": {
+          "label": "Récupérer les stats YGG",
+          "description": "Se connecter à YGG et récupérer upload/download/ratio depuis le panneau du haut."
+        }
       }
     },
     "users": {
@@ -1036,7 +1089,7 @@
     "selectTorrent": "Sélectionnez un torrent pour voir les trackers.",
     "trackerStatus": "Statut",
     "trackerSeeds": "Seeds",
-    "trackerPeers": "Peers",
+    "trackerPeers": "Pairs",
     "trackerLeeches": "Leeches",
     "trackerDownloaded": "Téléchargés",
     "trackerStatusDisabled": "Désactivé",
@@ -1047,7 +1100,7 @@
     "trackerStatusUnknown": "Inconnu",
     "submitTorrentFile": "Envoyer",
     "actions": "Actions",
-    "start": "Démarrer",
+    "start": "Reprendre",
     "pause": "Pause",
     "delete": "Supprimer",
     "deleteTitle": "Supprimer le torrent",
@@ -1059,7 +1112,33 @@
     "noCategory": "Aucune catégorie",
     "tagsHint": "Astuce : maintenez Ctrl/Cmd pour sélectionner plusieurs tags.",
     "backToList": "Retour aux torrents",
-    "submitTorrentFile": "Envoyer"
+    "progress": "Progression",
+    "size": "Taille",
+    "download": "Téléchargement",
+    "upload": "Envoi",
+    "peers": "Pairs",
+    "noPeers": "Aucun pair",
+    "noFiles": "Aucun fichier",
+    "noProperties": "Aucune propriété",
+    "peerProgress": "Progression",
+    "relevance": "Pertinence",
+    "properties": "Propriétés",
+    "savePath": "Chemin de sauvegarde",
+    "totalDownloaded": "Téléchargé",
+    "totalUploaded": "Envoyé",
+    "shareRatio": "Ratio",
+    "renameTorrent": "Nom",
+    "category": "Catégorie",
+    "tags": "Tags",
+    "tagsPlaceholder": "tag1, tag2",
+    "filterAll": "Tout",
+    "filterDownloading": "Téléchargement",
+    "filterSeeding": "Partage",
+    "filterPaused": "En pause",
+    "filterComplete": "Terminé",
+    "filterStalled": "Bloqué",
+    "filterError": "Erreur",
+    "noResults": "Aucun torrent ne correspond à vos filtres."
   },
   "recipes": {
     "title": "Recettes",

@@ -1,7 +1,7 @@
-import { formatDistanceToNow } from 'date-fns';
 import type { UIEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { JellyfinLatestItem } from '@hously/shared';
+import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
 import { ListItemSkeleton } from '../../../components/Skeleton';
 import { MovieCard } from './MovieCard';
 
@@ -35,13 +35,6 @@ const formatItemType = (itemType: string | null) => {
   return itemType.replace(/([a-z])([A-Z])/g, '$1 $2');
 };
 
-const formatRelativeTime = (addedAt: string | null) => {
-  if (!addedAt) return null;
-  const parsed = new Date(addedAt);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return formatDistanceToNow(parsed, { addSuffix: true });
-};
-
 export function JellyfinLatestShelf({
   enabled,
   isLoading,
@@ -52,7 +45,8 @@ export function JellyfinLatestShelf({
   onRefresh,
   items,
 }: JellyfinLatestShelfProps) {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
+  const locale = resolveDateFnsLocale(i18n.language);
 
   const handleShelfScroll = (event: UIEvent<HTMLDivElement>) => {
     if (!hasMore || !onLoadMore || isLoadingMore) return;
@@ -119,7 +113,7 @@ export function JellyfinLatestShelf({
           <div className="flex gap-3">
             {items.map((item, index) => {
               const typeConfig = getTypeConfig(item.item_type);
-              const relativeTime = formatRelativeTime(item.added_at);
+              const relativeTime = formatRelativeTime(item.added_at, { locale });
               const typeLabel = formatItemType(item.item_type);
               const releaseDateLabel = item.year ? String(item.year) : '';
 

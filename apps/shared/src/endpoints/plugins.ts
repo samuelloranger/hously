@@ -8,4 +8,6 @@ export const PLUGIN_ENDPOINTS = {
   QBITTORRENT: '/api/plugins/qbittorrent',
   SCRUTINY: '/api/plugins/scrutiny',
   NETDATA: '/api/plugins/netdata',
+  WEATHER: '/api/plugins/weather',
+  YGG: '/api/plugins/ygg',
 } as const;

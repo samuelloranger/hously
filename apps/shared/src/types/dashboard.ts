@@ -312,3 +312,13 @@ export interface DashboardNetdataSummaryResponse {
   disks: NetdataDashboardDiskUsage[];
   error?: string;
 }
+
+export interface DashboardYggStatsResponse {
+  enabled: boolean;
+  connected: boolean;
+  updated_at: string | null;
+  uploaded_go: number | null;
+  downloaded_go: number | null;
+  ratio: number | null;
+  error?: string;
+}

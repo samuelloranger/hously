@@ -8,6 +8,7 @@ import { QbittorrentLiveCard } from './components/QbittorrentLiveCard';
 import { ScrutinyHealthCard } from './components/ScrutinyHealthCard';
 import { NetdataOverviewCard } from './components/NetdataOverviewCard';
 import { WeatherWidget } from './components/WeatherWidget';
+import { YggStatsCard } from './components/YggStatsCard';
 import { EmptyState } from '../../components/EmptyState';
 import {
   type DashboardCardConfig,
@@ -22,20 +23,37 @@ import {
   useChores,
   useUpdateProfile,
 } from '@hously/shared';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { ChoreRow } from '../chores/components/ChoreRow';
 import { StatCardSkeleton, ListItemSkeleton } from '../../components/Skeleton';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
-type DashboardCardId = 'jellyfin' | 'upcoming' | 'qbittorrent' | 'scrutiny' | 'netdata' | 'chores' | 'activity';
+type DashboardCardId = 'jellyfin' | 'upcoming' | 'qbittorrent' | 'ygg' | 'scrutiny' | 'netdata' | 'chores' | 'activity';
 
 const DEFAULT_DASHBOARD_CARDS: DashboardCardConfig[] = [
   { id: 'jellyfin', size: 'half' },
   { id: 'upcoming', size: 'half' },
   { id: 'qbittorrent', size: 'half' },
+  { id: 'ygg', size: 'half' },
   { id: 'scrutiny', size: 'half' },
   { id: 'netdata', size: 'full' },
   { id: 'chores', size: 'half' },
@@ -65,16 +83,6 @@ function mergeDashboardCards(profile: DashboardConfigV1 | null | undefined): Das
   return result;
 }
 
-function moveCardByIndex(cards: DashboardCardConfig[], fromIndex: number, toIndex: number): DashboardCardConfig[] {
-  if (fromIndex === toIndex) return cards;
-  if (fromIndex < 0 || toIndex < 0) return cards;
-  if (fromIndex >= cards.length || toIndex >= cards.length) return cards;
-  const next = [...cards];
-  const [moved] = next.splice(fromIndex, 1);
-  next.splice(toIndex, 0, moved);
-  return next;
-}
-
 function setCardSize(cards: DashboardCardConfig[], id: string, size: DashboardCardSize): DashboardCardConfig[] {
   const next = cards.map(card => (card.id === id ? { ...card, size } : card));
   return next;
@@ -84,67 +92,34 @@ function buildDashboardConfig(cards: DashboardCardConfig[]): DashboardConfigV1 {
   return { version: 1, cards: cards.map(card => ({ id: card.id, size: card.size })) };
 }
 
-const DND_CARD_TYPE = 'dashboard-card';
-
-type DragItem = {
-  id: string;
-  index: number;
-};
-
 function DashboardCardFrame({
   card,
-  index,
   isEditing,
   onToggleSize,
   onResizeSize,
-  onMove,
+  isDragOverlay,
   children,
 }: {
   card: DashboardCardConfig;
-  index: number;
   isEditing: boolean;
   onToggleSize: (id: string) => void;
   onResizeSize: (id: string, size: DashboardCardSize) => void;
-  onMove: (fromIndex: number, toIndex: number) => void;
+  isDragOverlay?: boolean;
   children: React.ReactNode;
 }) {
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const dragHandleRef = useRef<HTMLButtonElement | null>(null);
   const resizeStartRef = useRef<{ x: number; size: DashboardCardSize } | null>(null);
 
-  const [{ isDragging }, drag, preview] = useDrag(
-    () => ({
-      type: DND_CARD_TYPE,
-      item: { id: card.id, index } satisfies DragItem,
-      canDrag: isEditing,
-      collect: monitor => ({
-        isDragging: monitor.isDragging(),
-      }),
-    }),
-    [card.id, index, isEditing]
-  );
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
+    id: card.id,
+    disabled: !isEditing,
+  });
 
-  useEffect(() => {
-    if (!isEditing) return;
-    if (dragHandleRef.current) drag(dragHandleRef.current);
-    if (cardRef.current) preview(cardRef.current);
-  }, [drag, preview, isEditing]);
-
-  useDrop(
-    () => ({
-      accept: DND_CARD_TYPE,
-      canDrop: () => isEditing,
-      hover: (item: DragItem) => {
-        if (!isEditing) return;
-        if (!item?.id) return;
-        if (item.id === card.id) return;
-        if (item.index === index) return;
-        onMove(item.index, index);
-        item.index = index;
-      },
-    }),
-    [card.id, index, isEditing, onMove]
-  )[1](cardRef);
+  const style: React.CSSProperties = isDragOverlay
+    ? {}
+    : {
+        transform: CSS.Transform.toString(transform),
+        transition: transition ?? 'grid-column 300ms ease',
+      };
 
   const beginResize = (event: React.PointerEvent) => {
     if (!isEditing) return;
@@ -172,17 +147,20 @@ function DashboardCardFrame({
 
   return (
     <div
-      ref={cardRef}
-      className={`relative ${spanClass} ${isEditing ? 'ring-1 ring-neutral-900/10 dark:ring-white/10 rounded-3xl' : ''} ${
-        isDragging ? 'opacity-60' : ''
-      }`}
+      ref={setNodeRef}
+      style={style}
+      className={`relative ${spanClass} transition-[grid-column] duration-300 ease-in-out ${
+        isEditing ? 'ring-1 ring-neutral-900/10 dark:ring-white/10 rounded-3xl' : ''
+      } ${isDragging && !isDragOverlay ? 'opacity-30' : ''} ${isDragOverlay ? 'shadow-2xl ring-2 ring-primary-500/30 rounded-3xl scale-[1.02]' : ''}`}
     >
       {isEditing ? (
         <>
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
             <button
               type="button"
-              ref={dragHandleRef}
+              ref={setActivatorNodeRef}
+              {...attributes}
+              {...listeners}
               className="inline-flex items-center justify-center rounded-full border border-neutral-900/10 dark:border-white/10 bg-white/60 dark:bg-black/30 px-2 py-1 text-xs text-neutral-700 dark:text-neutral-200 cursor-grab active:cursor-grabbing"
               aria-label="Drag to reorder"
               title="Drag to reorder"
@@ -263,15 +241,12 @@ export function Dashboard() {
 
   const [isEditingLayout, setIsEditingLayout] = useState(false);
   const [dashboardCards, setDashboardCards] = useState<DashboardCardConfig[]>(DEFAULT_DASHBOARD_CARDS);
-  const [gridRef] = useAutoAnimate<HTMLDivElement>({ duration: 180, easing: 'ease-in-out' });
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
   const baselineConfigRef = useRef<string>(JSON.stringify(buildDashboardConfig(DEFAULT_DASHBOARD_CARDS)));
   const hasHydratedLayoutRef = useRef(false);
 
-  const currentConfigString = useMemo(
-    () => JSON.stringify(buildDashboardConfig(dashboardCards)),
-    [dashboardCards]
-  );
+  const currentConfigString = useMemo(() => JSON.stringify(buildDashboardConfig(dashboardCards)), [dashboardCards]);
   const isDirty = currentConfigString !== baselineConfigRef.current;
 
   useEffect(() => {
@@ -308,7 +283,9 @@ export function Dashboard() {
         { dashboard_config: buildDashboardConfig(dashboardCards) },
         {
           onSuccess: response => {
-            baselineConfigRef.current = JSON.stringify(buildDashboardConfig(mergeDashboardCards(response.user?.dashboard_config ?? null)));
+            baselineConfigRef.current = JSON.stringify(
+              buildDashboardConfig(mergeDashboardCards(response.user?.dashboard_config ?? null))
+            );
           },
         }
       );
@@ -325,7 +302,9 @@ export function Dashboard() {
       { dashboard_config: buildDashboardConfig(dashboardCards) },
       {
         onSuccess: response => {
-          baselineConfigRef.current = JSON.stringify(buildDashboardConfig(mergeDashboardCards(response.user?.dashboard_config ?? null)));
+          baselineConfigRef.current = JSON.stringify(
+            buildDashboardConfig(mergeDashboardCards(response.user?.dashboard_config ?? null))
+          );
         },
       }
     );
@@ -343,10 +322,33 @@ export function Dashboard() {
     setDashboardCards(prev => setCardSize(prev, id, size));
   };
 
-  const moveCardAtIndex = (fromIndex: number, toIndex: number) => {
-    if (!isEditingLayout) return;
-    setDashboardCards(prev => moveCardByIndex(prev, fromIndex, toIndex));
-  };
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveDragId(String(event.active.id));
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveDragId(null);
+    if (!over || active.id === over.id) return;
+    setDashboardCards(prev => {
+      const oldIndex = prev.findIndex(c => c.id === active.id);
+      const newIndex = prev.findIndex(c => c.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  }, []);
+
+  const handleDragCancel = useCallback(() => {
+    setActiveDragId(null);
+  }, []);
+
+  const activeCard = activeDragId ? dashboardCards.find(c => c.id === activeDragId) : null;
+  const cardIds = useMemo(() => dashboardCards.map(c => c.id), [dashboardCards]);
 
   const resetLayout = () => {
     setDashboardCards(DEFAULT_DASHBOARD_CARDS);
@@ -355,7 +357,9 @@ export function Dashboard() {
       { dashboard_config: buildDashboardConfig(DEFAULT_DASHBOARD_CARDS) },
       {
         onSuccess: response => {
-          baselineConfigRef.current = JSON.stringify(buildDashboardConfig(mergeDashboardCards(response.user?.dashboard_config ?? null)));
+          baselineConfigRef.current = JSON.stringify(
+            buildDashboardConfig(mergeDashboardCards(response.user?.dashboard_config ?? null))
+          );
         },
       }
     );
@@ -405,6 +409,8 @@ export function Dashboard() {
         );
       case 'qbittorrent':
         return <QbittorrentLiveCard />;
+      case 'ygg':
+        return <YggStatsCard />;
       case 'scrutiny':
         return <ScrutinyHealthCard />;
       case 'netdata':
@@ -417,10 +423,15 @@ export function Dashboard() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100/80 dark:bg-emerald-900/30 text-sm">
                   ✅
                 </div>
-                <h3 className="text-base font-semibold text-neutral-900 dark:text-white">{t('dashboard.pendingChores')}</h3>
+                <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
+                  {t('dashboard.pendingChores')}
+                </h3>
               </div>
               {pendingChores.length > 5 && (
-                <a href="/chores" className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline">
+                <a
+                  href="/chores"
+                  className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"
+                >
                   {t('dashboard.view')} ({pendingChores.length})
                 </a>
               )}
@@ -449,7 +460,9 @@ export function Dashboard() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100/80 dark:bg-blue-900/30 text-sm">
                 ⏰
               </div>
-              <h3 className="text-base font-semibold text-neutral-900 dark:text-white">{t('dashboard.recentActivity')}</h3>
+              <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
+                {t('dashboard.recentActivity')}
+              </h3>
             </div>
             <div className="p-5">
               <div className="space-y-3">
@@ -525,13 +538,10 @@ export function Dashboard() {
                 {isEditingLayout ? t('dashboard.layout.done', 'Done') : t('dashboard.layout.edit', 'Edit')}
               </button>
             </div>
-            {isEditingLayout ? (
-              <p className="mt-2 hidden sm:block text-[11px] text-neutral-500 dark:text-neutral-400 max-w-[18rem] text-right">
-                {t('dashboard.layout.hint', 'Drag cards to reorder. Drag ↔ to resize.')}
-              </p>
-            ) : null}
             {updateProfileMutation.isPending ? (
-              <p className="mt-2 hidden sm:block text-[11px] text-neutral-500 dark:text-neutral-400 text-right">Saving…</p>
+              <p className="mt-2 hidden sm:block text-[11px] text-neutral-500 dark:text-neutral-400 text-right">
+                Saving…
+              </p>
             ) : null}
           </div>
         </div>
@@ -577,23 +587,42 @@ export function Dashboard() {
           )}
         </div>
 
-        <DndProvider backend={HTML5Backend}>
-          <div ref={gridRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {dashboardCards.map((card, index) => (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
+          <SortableContext items={cardIds} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {dashboardCards.map(card => (
+                <DashboardCardFrame
+                  key={card.id}
+                  card={card}
+                  isEditing={isEditingLayout}
+                  onToggleSize={toggleCardSize}
+                  onResizeSize={resizeCard}
+                >
+                  {renderCard(card.id as DashboardCardId)}
+                </DashboardCardFrame>
+              ))}
+            </div>
+          </SortableContext>
+          <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+            {activeCard ? (
               <DashboardCardFrame
-                key={card.id}
-                card={card}
-                index={index}
+                card={activeCard}
                 isEditing={isEditingLayout}
-                onMove={moveCardAtIndex}
                 onToggleSize={toggleCardSize}
                 onResizeSize={resizeCard}
+                isDragOverlay
               >
-                {renderCard(card.id as DashboardCardId)}
+                {renderCard(activeCard.id as DashboardCardId)}
               </DashboardCardFrame>
-            ))}
-          </div>
-        </DndProvider>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
     </PageLayout>
   );

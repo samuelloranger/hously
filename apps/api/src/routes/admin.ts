@@ -1,13 +1,18 @@
-import { Elysia, t } from "elysia";
-import { prisma } from "../db";
-import { auth } from "../auth";
-import { formatIso, nowUtc, sanitizeInput } from "../utils";
+import { Elysia, t } from 'elysia';
+import { prisma } from '../db';
+import { auth } from '../auth';
+import { formatIso, nowUtc, sanitizeInput } from '../utils';
+import {
+  checkAndSendAllDayEventNotifications,
+  checkAndSendReminders,
+  cleanupOldNotifications,
+  fetchYggTopPanelStats,
+} from '../jobs';
 
 // Generate a secure random password
 const generateSecurePassword = (length: number = 16): string => {
-  const alphabet =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-  let password = "";
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+  let password = '';
   const randomValues = new Uint32Array(length);
   crypto.getRandomValues(randomValues);
   for (let i = 0; i < length; i++) {
@@ -30,7 +35,7 @@ const validateEmail = (email: string): boolean => {
 // Admin-only middleware
 const adminOnly = (
   user: { id: number; email: string; is_admin: boolean } | null,
-  set: { status: number }
+  set: { status?: number | string }
 ): boolean => {
   if (!user) {
     set.status = 401;
@@ -43,12 +48,95 @@ const adminOnly = (
   return true;
 };
 
-export const adminRoutes = new Elysia({ prefix: "/api/admin" })
+export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .use(auth)
-  // GET /api/admin/users - List all users
-  .get("/users", async ({ user, set }) => {
+  // GET /api/admin/scheduled-jobs - List scheduled cron jobs (admin only)
+  .get('/scheduled-jobs', async ({ user, set }) => {
     if (!adminOnly(user, set)) {
-      return { error: user ? "Forbidden" : "Unauthorized" };
+      return { error: user ? 'Forbidden' : 'Unauthorized' };
+    }
+
+    return {
+      scheduler_running: true,
+      jobs: [
+        {
+          id: 'checkReminders',
+          name: 'Check reminders',
+          next_run_time: null,
+          trigger: '*/15 * * * *',
+          func: 'check_and_send_reminders',
+        },
+        {
+          id: 'checkAllDayEvents',
+          name: 'Check all-day events',
+          next_run_time: null,
+          trigger: '0 20 * * *',
+          func: 'check_and_send_all_day_custom_event_notifications',
+        },
+        {
+          id: 'cleanupNotifications',
+          name: 'Cleanup old notifications',
+          next_run_time: null,
+          trigger: '0 0 * * *',
+          func: 'cleanup_old_notifications',
+        },
+        {
+          id: 'fetchYggTopPanelStats',
+          name: 'Fetch YGG top panel stats',
+          next_run_time: null,
+          trigger: '0 * * * *',
+          func: 'fetch_ygg_top_panel_stats',
+        },
+      ],
+    };
+  })
+  // POST /api/admin/trigger-action - Trigger a cron job manually (admin only)
+  .post(
+    '/trigger-action',
+    async ({ user, body, set }) => {
+      if (!adminOnly(user, set)) {
+        return { error: user ? 'Forbidden' : 'Unauthorized' };
+      }
+
+      try {
+        switch (body.action) {
+          case 'check_reminders': {
+            await checkAndSendReminders();
+            return { success: true, message: 'Reminders check executed' };
+          }
+          case 'check_all_day_events': {
+            await checkAndSendAllDayEventNotifications();
+            return { success: true, message: 'All-day events check executed' };
+          }
+          case 'cleanup_notifications': {
+            const deleted = await cleanupOldNotifications();
+            return { success: true, message: `Cleanup executed (${deleted} deleted)` };
+          }
+          case 'fetch_ygg_top_panel_stats': {
+            await fetchYggTopPanelStats();
+            return { success: true, message: 'YGG top panel stats fetched' };
+          }
+          default: {
+            set.status = 400;
+            return { success: false, message: 'Unknown action' };
+          }
+        }
+      } catch (error) {
+        console.error('Error triggering action:', error);
+        set.status = 500;
+        return { success: false, message: 'Failed to execute action' };
+      }
+    },
+    {
+      body: t.Object({
+        action: t.String(),
+      }),
+    }
+  )
+  // GET /api/admin/users - List all users
+  .get('/users', async ({ user, set }) => {
+    if (!adminOnly(user, set)) {
+      return { error: user ? 'Forbidden' : 'Unauthorized' };
     }
 
     try {
@@ -56,13 +144,13 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         orderBy: { createdAt: 'desc' },
       });
 
-      const usersData = allUsers.map((u) => ({
+      const usersData = allUsers.map(u => ({
         id: u.id,
         email: u.email,
         first_name: u.firstName,
         last_name: u.lastName,
         is_admin: u.isAdmin,
-        locale: u.locale || "en",
+        locale: u.locale || 'en',
         created_at: formatIso(u.createdAt),
         last_login: formatIso(u.lastLogin),
       }));
@@ -72,45 +160,41 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         users: usersData,
       };
     } catch (error) {
-      console.error("Error listing users:", error);
+      console.error('Error listing users:', error);
       set.status = 500;
-      return { error: "Failed to list users" };
+      return { error: 'Failed to list users' };
     }
   })
 
   // POST /api/admin/users - Create a new user
   .post(
-    "/users",
+    '/users',
     async ({ user, body, set }) => {
       if (!adminOnly(user, set)) {
-        return { error: user ? "Forbidden" : "Unauthorized" };
+        return { error: user ? 'Forbidden' : 'Unauthorized' };
       }
 
       try {
         const { email, first_name, last_name, is_admin, locale } = body;
 
-        const emailTrimmed = (email || "").trim().toLowerCase();
+        const emailTrimmed = (email || '').trim().toLowerCase();
 
         // Validate email
         if (!emailTrimmed) {
           set.status = 400;
-          return { error: "Email is required" };
+          return { error: 'Email is required' };
         }
 
         if (!validateEmail(emailTrimmed)) {
           set.status = 400;
-          return { error: "Invalid email format" };
+          return { error: 'Invalid email format' };
         }
 
         // Sanitize inputs
         const sanitizedEmail = sanitizeInput(emailTrimmed);
-        const sanitizedFirstName = first_name
-          ? sanitizeInput(first_name.trim())
-          : null;
-        const sanitizedLastName = last_name
-          ? sanitizeInput(last_name.trim())
-          : null;
-        const userLocale = (locale || "en").trim().slice(0, 10);
+        const sanitizedFirstName = first_name ? sanitizeInput(first_name.trim()) : null;
+        const sanitizedLastName = last_name ? sanitizeInput(last_name.trim()) : null;
+        const userLocale = (locale || 'en').trim().slice(0, 10);
 
         // Check if user already exists
         const existing = await prisma.user.findFirst({
@@ -118,11 +202,9 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         });
 
         if (existing) {
-          console.warn(
-            `Attempted to create user with existing email: ${sanitizedEmail}`
-          );
+          console.warn(`Attempted to create user with existing email: ${sanitizedEmail}`);
           set.status = 400;
-          return { error: "User with this email already exists" };
+          return { error: 'User with this email already exists' };
         }
 
         // Generate secure password
@@ -158,9 +240,9 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           password, // Return plain password for display (only shown once)
         };
       } catch (error) {
-        console.error("Error creating user:", error);
+        console.error('Error creating user:', error);
         set.status = 500;
-        return { error: "Failed to create user" };
+        return { error: 'Failed to create user' };
       }
     },
     {
@@ -176,23 +258,23 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
   // DELETE /api/admin/users/:id - Delete a user
   .delete(
-    "/users/:id",
+    '/users/:id',
     async ({ user, params, set }) => {
       if (!adminOnly(user, set)) {
-        return { error: user ? "Forbidden" : "Unauthorized" };
+        return { error: user ? 'Forbidden' : 'Unauthorized' };
       }
 
       const userId = parseInt(params.id, 10);
       if (isNaN(userId)) {
         set.status = 400;
-        return { error: "Invalid user ID" };
+        return { error: 'Invalid user ID' };
       }
 
       try {
         // Prevent self-deletion
         if (userId === user!.id) {
           set.status = 400;
-          return { error: "Cannot delete your own account" };
+          return { error: 'Cannot delete your own account' };
         }
 
         // Find user to delete
@@ -202,7 +284,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
         if (!userToDelete) {
           set.status = 404;
-          return { error: "User not found" };
+          return { error: 'User not found' };
         }
 
         const userEmail = userToDelete.email;
@@ -219,9 +301,9 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           message: `User ${userEmail} deleted successfully`,
         };
       } catch (error) {
-        console.error("Error deleting user:", error);
+        console.error('Error deleting user:', error);
         set.status = 500;
-        return { error: "Failed to delete user" };
+        return { error: 'Failed to delete user' };
       }
     },
     {
@@ -232,9 +314,9 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   )
 
   // GET /api/admin/export - Export all data
-  .get("/export", async ({ user, set }) => {
+  .get('/export', async ({ user, set }) => {
     if (!adminOnly(user, set)) {
-      return { error: user ? "Forbidden" : "Unauthorized" };
+      return { error: user ? 'Forbidden' : 'Unauthorized' };
     }
 
     try {
@@ -252,18 +334,14 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       const allTaskCompletions = await prisma.taskCompletion.findMany();
 
       // Export chores with user emails
-      const choresData = allChores.map((chore) => ({
+      const choresData = allChores.map(chore => ({
         id: chore.id,
         chore_name: chore.choreName,
         description: chore.description,
-        assigned_to_email: chore.assignedTo
-          ? idToEmail.get(chore.assignedTo)
-          : null,
+        assigned_to_email: chore.assignedTo ? idToEmail.get(chore.assignedTo) : null,
         completed: chore.completed,
         added_by_email: chore.addedBy ? idToEmail.get(chore.addedBy) : null,
-        completed_by_email: chore.completedBy
-          ? idToEmail.get(chore.completedBy)
-          : null,
+        completed_by_email: chore.completedBy ? idToEmail.get(chore.completedBy) : null,
         reminder_enabled: chore.reminderEnabled,
         image_path: chore.imagePath,
         created_at: formatIso(chore.createdAt),
@@ -271,14 +349,12 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         recurrence_type: chore.recurrenceType,
         recurrence_interval_days: chore.recurrenceIntervalDays,
         recurrence_weekday: chore.recurrenceWeekday,
-        recurrence_original_created_at: formatIso(
-          chore.recurrenceOriginalCreatedAt
-        ),
+        recurrence_original_created_at: formatIso(chore.recurrenceOriginalCreatedAt),
         recurrence_parent_id: chore.recurrenceParentId,
       }));
 
       // Export reminders with user emails
-      const remindersData = allReminders.map((reminder) => ({
+      const remindersData = allReminders.map(reminder => ({
         id: reminder.id,
         chore_id: reminder.choreId,
         reminder_datetime: formatIso(reminder.reminderDatetime),
@@ -289,21 +365,19 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       }));
 
       // Export shopping items with user emails
-      const shoppingItemsData = allShoppingItems.map((item) => ({
+      const shoppingItemsData = allShoppingItems.map(item => ({
         id: item.id,
         item_name: item.itemName,
         notes: item.notes,
         completed: item.completed,
         added_by_email: item.addedBy ? idToEmail.get(item.addedBy) : null,
-        completed_by_email: item.completedBy
-          ? idToEmail.get(item.completedBy)
-          : null,
+        completed_by_email: item.completedBy ? idToEmail.get(item.completedBy) : null,
         created_at: formatIso(item.createdAt),
         completed_at: formatIso(item.completedAt),
       }));
 
       // Export task completions with user emails
-      const taskCompletionsData = allTaskCompletions.map((completion) => ({
+      const taskCompletionsData = allTaskCompletions.map(completion => ({
         id: completion.id,
         user_email: completion.userId ? idToEmail.get(completion.userId) : null,
         task_type: completion.taskType,
@@ -321,18 +395,18 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         task_completions: taskCompletionsData,
       };
     } catch (error) {
-      console.error("Error exporting data:", error);
+      console.error('Error exporting data:', error);
       set.status = 500;
-      return { error: "Failed to export data" };
+      return { error: 'Failed to export data' };
     }
   })
 
   // POST /api/admin/import - Import data
   .post(
-    "/import",
+    '/import',
     async ({ user, body, set }) => {
       if (!adminOnly(user, set)) {
-        return { error: user ? "Forbidden" : "Unauthorized" };
+        return { error: user ? 'Forbidden' : 'Unauthorized' };
       }
 
       try {
@@ -355,7 +429,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         const choreIdMapping = new Map<number, number>();
 
         // Run all imports inside a transaction for atomicity
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async tx => {
           // Import chores
           if (body.chores && Array.isArray(body.chores)) {
             for (const choreData of body.chores) {
@@ -365,17 +439,11 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
               const completedByEmail = choreData.completed_by_email;
 
               const addedById = addedByEmail ? emailToId.get(addedByEmail) : null;
-              const assignedToId = assignedToEmail
-                ? emailToId.get(assignedToEmail)
-                : null;
-              const completedById = completedByEmail
-                ? emailToId.get(completedByEmail)
-                : null;
+              const assignedToId = assignedToEmail ? emailToId.get(assignedToEmail) : null;
+              const completedById = completedByEmail ? emailToId.get(completedByEmail) : null;
 
               if (!addedById) {
-                warnings.push(
-                  `Skipping chore '${choreData.chore_name}': user email '${addedByEmail}' not found`
-                );
+                warnings.push(`Skipping chore '${choreData.chore_name}': user email '${addedByEmail}' not found`);
                 continue;
               }
 
@@ -392,8 +460,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
                   recurrenceType: choreData.recurrence_type,
                   recurrenceIntervalDays: choreData.recurrence_interval_days,
                   recurrenceWeekday: choreData.recurrence_weekday,
-                  recurrenceOriginalCreatedAt:
-                    choreData.recurrence_original_created_at,
+                  recurrenceOriginalCreatedAt: choreData.recurrence_original_created_at,
                   recurrenceParentId: null,
                   position: 0,
                 },
@@ -431,16 +498,12 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
               const userId = userEmail ? emailToId.get(userEmail) : null;
 
               if (!newChoreId) {
-                warnings.push(
-                  `Skipping reminder: chore ID ${oldChoreId} not found in imported data`
-                );
+                warnings.push(`Skipping reminder: chore ID ${oldChoreId} not found in imported data`);
                 continue;
               }
 
               if (!userId) {
-                warnings.push(
-                  `Skipping reminder for chore ${oldChoreId}: user email '${userEmail}' not found`
-                );
+                warnings.push(`Skipping reminder for chore ${oldChoreId}: user email '${userEmail}' not found`);
                 continue;
               }
 
@@ -465,14 +528,10 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
               const completedByEmail = itemData.completed_by_email;
 
               const addedById = addedByEmail ? emailToId.get(addedByEmail) : null;
-              const completedById = completedByEmail
-                ? emailToId.get(completedByEmail)
-                : null;
+              const completedById = completedByEmail ? emailToId.get(completedByEmail) : null;
 
               if (!addedById) {
-                warnings.push(
-                  `Skipping shopping item '${itemData.item_name}': user email '${addedByEmail}' not found`
-                );
+                warnings.push(`Skipping shopping item '${itemData.item_name}': user email '${addedByEmail}' not found`);
                 continue;
               }
 
@@ -499,9 +558,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
               const userId = userEmail ? emailToId.get(userEmail) : null;
 
               if (!userId) {
-                warnings.push(
-                  `Skipping task_completion: user email '${userEmail}' not found`
-                );
+                warnings.push(`Skipping task_completion: user email '${userEmail}' not found`);
                 continue;
               }
 
@@ -527,9 +584,9 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           warnings: warnings.length > 0 ? warnings : undefined,
         };
       } catch (error) {
-        console.error("Error importing data:", error);
+        console.error('Error importing data:', error);
         set.status = 500;
-        return { error: "Failed to import data" };
+        return { error: 'Failed to import data' };
       }
     },
     {

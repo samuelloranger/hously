@@ -5,6 +5,9 @@ export const DASHBOARD_ENDPOINTS = {
     LATEST: '/api/dashboard/jellyfin/latest',
     IMAGE: '/api/dashboard/jellyfin/image',
   },
+  YGG: {
+    STATS: '/api/dashboard/ygg/stats',
+  },
   UPCOMING: {
     LIST: '/api/dashboard/upcoming',
     ADD: '/api/dashboard/upcoming/add',
@@ -14,6 +17,7 @@ export const DASHBOARD_ENDPOINTS = {
     STATUS: '/api/dashboard/qbittorrent/status',
     STREAM: '/api/dashboard/qbittorrent/stream',
     TORRENTS: '/api/dashboard/qbittorrent/torrents',
+    TORRENTS_STREAM: '/api/dashboard/qbittorrent/torrents/stream',
     CATEGORIES: '/api/dashboard/qbittorrent/categories',
     TAGS: '/api/dashboard/qbittorrent/tags',
     ADD_MAGNET: '/api/dashboard/qbittorrent/torrents/add-magnet',

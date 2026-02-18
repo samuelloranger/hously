@@ -24,6 +24,7 @@ export const queryKeys = {
       [...queryKeys.dashboard.all, 'jellyfin-latest', limit, page] as const,
     jellyfinLatestInfinite: (limit?: number) =>
       [...queryKeys.dashboard.all, 'jellyfin-latest-infinite', limit] as const,
+    yggStats: () => [...queryKeys.dashboard.all, 'ygg-stats'] as const,
     upcoming: (limit?: number, page?: number) => [...queryKeys.dashboard.all, 'upcoming', limit, page] as const,
     upcomingInfinite: (limit?: number) => [...queryKeys.dashboard.all, 'upcoming-infinite', limit] as const,
     qbittorrentStatus: () => [...queryKeys.dashboard.all, 'qbittorrent-status'] as const,
@@ -79,6 +80,7 @@ export const queryKeys = {
     scrutiny: () => [...queryKeys.plugins.all, 'scrutiny'] as const,
     netdata: () => [...queryKeys.plugins.all, 'netdata'] as const,
     weather: () => [...queryKeys.plugins.all, 'weather'] as const,
+    ygg: () => [...queryKeys.plugins.all, 'ygg'] as const,
   },
 
   admin: {

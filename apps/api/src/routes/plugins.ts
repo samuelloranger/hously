@@ -4,174 +4,155 @@ import { auth } from '../auth';
 import { prisma } from '../db';
 import { nowUtc } from '../utils';
 import { normalizeQbittorrentConfig } from '../services/qbittorrentService';
-import type { ArrProfile } from '@hously/shared';
-
-interface JellyfinPluginConfig {
-  api_key: string;
-  website_url: string;
-}
-
-interface RadarrPluginConfig {
-  api_key: string;
-  website_url: string;
-  root_folder_path: string;
-  quality_profile_id: number;
-}
-
-interface SonarrPluginConfig {
-  api_key: string;
-  website_url: string;
-  root_folder_path: string;
-  quality_profile_id: number;
-  language_profile_id: number;
-}
-
-interface ScrutinyPluginConfig {
-  website_url: string;
-}
-
-interface NetdataPluginConfig {
-  website_url: string;
-}
-
-const isValidHttpUrl = (value: string): boolean => {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
-};
-
-const normalizeJellyfinConfig = (config: unknown): JellyfinPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
-  const cfg = config as Record<string, unknown>;
-
-  const apiKey = typeof cfg.api_key === 'string' ? cfg.api_key.trim() : '';
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-
-  if (!apiKey || !websiteUrl) return null;
-  return {
-    api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ''),
-  };
-};
-
-const normalizeRadarrConfig = (config: unknown): RadarrPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
-  const cfg = config as Record<string, unknown>;
-
-  const apiKey = typeof cfg.api_key === 'string' ? cfg.api_key.trim() : '';
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-  const rootFolderPath = typeof cfg.root_folder_path === 'string' ? cfg.root_folder_path.trim() : '';
-  const qualityProfileId =
-    typeof cfg.quality_profile_id === 'number'
-      ? Math.trunc(cfg.quality_profile_id)
-      : typeof cfg.quality_profile_id === 'string'
-        ? parseInt(cfg.quality_profile_id, 10)
-        : Number.NaN;
-
-  if (!apiKey || !websiteUrl || !rootFolderPath || !Number.isFinite(qualityProfileId) || qualityProfileId <= 0) {
-    return null;
-  }
-
-  return {
-    api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ''),
-    root_folder_path: rootFolderPath,
-    quality_profile_id: qualityProfileId,
-  };
-};
-
-const normalizeSonarrConfig = (config: unknown): SonarrPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
-  const cfg = config as Record<string, unknown>;
-
-  const apiKey = typeof cfg.api_key === 'string' ? cfg.api_key.trim() : '';
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-  const rootFolderPath = typeof cfg.root_folder_path === 'string' ? cfg.root_folder_path.trim() : '';
-  const qualityProfileId =
-    typeof cfg.quality_profile_id === 'number'
-      ? Math.trunc(cfg.quality_profile_id)
-      : typeof cfg.quality_profile_id === 'string'
-        ? parseInt(cfg.quality_profile_id, 10)
-        : Number.NaN;
-  const languageProfileId =
-    typeof cfg.language_profile_id === 'number'
-      ? Math.trunc(cfg.language_profile_id)
-      : typeof cfg.language_profile_id === 'string'
-        ? parseInt(cfg.language_profile_id, 10)
-        : Number.NaN;
-
-  if (
-    !apiKey ||
-    !websiteUrl ||
-    !rootFolderPath ||
-    !Number.isFinite(qualityProfileId) ||
-    qualityProfileId <= 0 ||
-    !Number.isFinite(languageProfileId) ||
-    languageProfileId <= 0
-  ) {
-    return null;
-  }
-
-  return {
-    api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ''),
-    root_folder_path: rootFolderPath,
-    quality_profile_id: qualityProfileId,
-    language_profile_id: languageProfileId,
-  };
-};
-
-const normalizeScrutinyConfig = (config: unknown): ScrutinyPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
-  const cfg = config as Record<string, unknown>;
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-  if (!websiteUrl) return null;
-  return {
-    website_url: websiteUrl.replace(/\/+$/, ''),
-  };
-};
-
-const normalizeNetdataConfig = (config: unknown): NetdataPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
-  const cfg = config as Record<string, unknown>;
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-  if (!websiteUrl) return null;
-  return {
-    website_url: websiteUrl.replace(/\/+$/, ''),
-  };
-};
-
-const toProfiles = (value: unknown): ArrProfile[] => {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map(entry => {
-      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
-      const raw = entry as Record<string, unknown>;
-      const id =
-        typeof raw.id === 'number'
-          ? Math.trunc(raw.id)
-          : typeof raw.id === 'string'
-            ? parseInt(raw.id, 10)
-            : Number.NaN;
-      const name = typeof raw.name === 'string' ? raw.name.trim() : '';
-      if (!Number.isFinite(id) || id <= 0 || !name) return null;
-      return { id, name };
-    })
-    .filter((entry): entry is ArrProfile => Boolean(entry));
-};
-
-const clampInteger = (value: unknown, min: number, max: number, fallback: number): number => {
-  const parsed =
-    typeof value === 'number' ? Math.trunc(value) : typeof value === 'string' ? parseInt(value, 10) : Number.NaN;
-  if (!Number.isFinite(parsed)) return fallback;
-  return Math.min(max, Math.max(min, parsed));
-};
+import { clampInteger, isValidHttpUrl, toProfiles } from '../utils/plugins/utils';
+import {
+  normalizeJellyfinConfig,
+  normalizeNetdataConfig,
+  normalizeRadarrConfig,
+  normalizeScrutinyConfig,
+  normalizeSonarrConfig,
+  normalizeWeatherConfig,
+  normalizeYggConfig,
+} from '../utils/plugins/normalizers';
+import { fetchYggTopPanelStats } from '../jobs';
+import { enqueueTask } from '../services/backgroundQueue';
 
 export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
   .use(auth)
+  .get('/ygg', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    if (!user.is_admin) {
+      set.status = 403;
+      return { error: 'Admin privileges required' };
+    }
+
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'ygg' },
+      });
+
+      const config = normalizeYggConfig(plugin?.config);
+      return {
+        plugin: {
+          type: 'ygg',
+          enabled: plugin?.enabled || false,
+          flaresolverr_url: config?.flaresolverr_url || '',
+          ygg_url: config?.ygg_url || '',
+          username: config?.username || '',
+          password_set: Boolean(config?.password),
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching YGG plugin config:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch YGG plugin config' };
+    }
+  })
+  .put(
+    '/ygg',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: 'Admin privileges required' };
+      }
+
+      const flaresolverrUrl = body.flaresolverr_url.trim().replace(/\/+$/, '');
+      const yggUrl = body.ygg_url.trim().replace(/\/+$/, '');
+      const username = body.username.trim();
+
+      if (flaresolverrUrl && !isValidHttpUrl(flaresolverrUrl)) {
+        set.status = 400;
+        return { error: 'Invalid flaresolverr_url. Must be a valid http(s) URL.' };
+      }
+
+      if (!yggUrl || !isValidHttpUrl(yggUrl)) {
+        set.status = 400;
+        return { error: 'Invalid ygg_url. Must be a valid http(s) URL.' };
+      }
+
+      if (!username) {
+        set.status = 400;
+        return { error: 'username is required' };
+      }
+
+      try {
+        const existingPlugin = await prisma.plugin.findFirst({
+          where: { type: 'ygg' },
+        });
+        const existingConfig = normalizeYggConfig(existingPlugin?.config);
+        const providedPassword = body.password?.trim() || '';
+        const password = providedPassword || existingConfig?.password || '';
+
+        if (!password) {
+          set.status = 400;
+          return { error: 'password is required' };
+        }
+
+        const now = nowUtc();
+        const enabled = body.enabled ?? existingPlugin?.enabled ?? true;
+        const config: Prisma.InputJsonValue = {
+          flaresolverr_url: flaresolverrUrl || undefined,
+          ygg_url: yggUrl,
+          username,
+          password,
+        };
+
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'ygg' },
+          update: {
+            enabled,
+            config,
+            updatedAt: now,
+          },
+          create: {
+            type: 'ygg',
+            enabled,
+            config,
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        enqueueTask('ygg:fetchTopPanelStats', async () => {
+          await fetchYggTopPanelStats();
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            flaresolverr_url: flaresolverrUrl,
+            ygg_url: yggUrl,
+            username,
+            password_set: true,
+          },
+        };
+      } catch (error) {
+        console.error('Error saving YGG plugin config:', error);
+        set.status = 500;
+        return { error: 'Failed to save YGG plugin config' };
+      }
+    },
+    {
+      body: t.Object({
+        flaresolverr_url: t.String(),
+        ygg_url: t.String(),
+        username: t.String(),
+        password: t.Optional(t.String()),
+        enabled: t.Optional(t.Boolean()),
+      }),
+    }
+  )
   .get('/jellyfin', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
@@ -846,6 +827,96 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
     {
       body: t.Object({
         website_url: t.String(),
+        enabled: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  .get('/weather', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'weather' },
+      });
+      const config = normalizeWeatherConfig(plugin?.config);
+
+      return {
+        plugin: {
+          type: 'weather',
+          enabled: plugin?.enabled || false,
+          address: config?.address || '',
+          temperature_unit: config?.temperature_unit || 'fahrenheit',
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching Weather plugin config:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch Weather plugin config' };
+    }
+  })
+  .put(
+    '/weather',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const address = body.address.trim();
+      const temperatureUnit = body.temperature_unit === 'celsius' ? 'celsius' : 'fahrenheit';
+      const enabled = body.enabled ?? true;
+
+      if (!address) {
+        set.status = 400;
+        return { error: 'address is required' };
+      }
+
+      try {
+        const now = nowUtc();
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'weather' },
+          update: {
+            enabled,
+            config: {
+              address,
+              temperature_unit: temperatureUnit,
+            },
+            updatedAt: now,
+          },
+          create: {
+            type: 'weather',
+            enabled,
+            config: {
+              address,
+              temperature_unit: temperatureUnit,
+            },
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            address,
+            temperature_unit: temperatureUnit,
+          },
+        };
+      } catch (error) {
+        console.error('Error saving Weather plugin config:', error);
+        set.status = 500;
+        return { error: 'Failed to save Weather plugin config' };
+      }
+    },
+    {
+      body: t.Object({
+        address: t.String(),
+        temperature_unit: t.Union([t.Literal('fahrenheit'), t.Literal('celsius')]),
         enabled: t.Optional(t.Boolean()),
       }),
     }

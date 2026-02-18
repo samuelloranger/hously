@@ -16,6 +16,10 @@ import type {
   ScrutinyPluginUpdateResponse,
   SonarrPlugin,
   SonarrPluginUpdateResponse,
+  WeatherPlugin,
+  WeatherPluginUpdateResponse,
+  YggPlugin,
+  YggPluginUpdateResponse,
 } from '../types';
 
 export function useJellyfinPlugin() {
@@ -73,6 +77,26 @@ export function useNetdataPlugin() {
   return useQuery({
     queryKey: queryKeys.plugins.netdata(),
     queryFn: () => fetcher<{ plugin: NetdataPlugin }>(PLUGIN_ENDPOINTS.NETDATA),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useWeatherPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.weather(),
+    queryFn: () => fetcher<{ plugin: WeatherPlugin }>(PLUGIN_ENDPOINTS.WEATHER),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useYggPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.ygg(),
+    queryFn: () => fetcher<{ plugin: YggPlugin }>(PLUGIN_ENDPOINTS.YGG),
     refetchOnMount: 'always',
     staleTime: 0,
   });
@@ -196,6 +220,46 @@ export function useUpdateNetdataPlugin() {
       queryClient.setQueryData(queryKeys.plugins.netdata(), { plugin: result.plugin });
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.netdata() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.netdataSummary() });
+    },
+  });
+}
+
+export function useUpdateWeatherPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { address: string; temperature_unit: 'fahrenheit' | 'celsius'; enabled: boolean }) =>
+      fetcher<WeatherPluginUpdateResponse>(PLUGIN_ENDPOINTS.WEATHER, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: result => {
+      queryClient.setQueryData(queryKeys.plugins.weather(), { plugin: result.plugin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.weather() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.weather.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.weather.current() });
+    },
+  });
+}
+
+export function useUpdateYggPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      flaresolverr_url: string;
+      ygg_url: string;
+      username: string;
+      password?: string;
+      enabled: boolean;
+    }) =>
+      fetcher<YggPluginUpdateResponse>(PLUGIN_ENDPOINTS.YGG, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: result => {
+      queryClient.setQueryData(queryKeys.plugins.ygg(), { plugin: result.plugin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.ygg() });
     },
   });
 }

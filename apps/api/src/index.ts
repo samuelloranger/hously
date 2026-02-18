@@ -3,7 +3,12 @@ import { swagger } from '@elysiajs/swagger';
 import { cron } from '@elysiajs/cron';
 
 import { cors } from '@elysiajs/cors';
-import { checkAndSendReminders, checkAndSendAllDayEventNotifications, cleanupOldNotifications } from './jobs';
+import {
+  checkAndSendReminders,
+  checkAndSendAllDayEventNotifications,
+  cleanupOldNotifications,
+  fetchYggTopPanelStats,
+} from './jobs';
 import { checkAndNotifyVersionChange } from './services/versionService';
 import { auth } from './auth';
 import { dashboardRoutes } from './routes/dashboard';
@@ -51,6 +56,13 @@ export const app = new Elysia()
       name: 'cleanupNotifications',
       pattern: '0 0 * * *', // Daily at midnight
       run: cleanupOldNotifications,
+    })
+  )
+  .use(
+    cron({
+      name: 'fetchYggTopPanelStats',
+      pattern: '0 * * * *', // Hourly
+      run: fetchYggTopPanelStats,
     })
   )
   .use(app => {

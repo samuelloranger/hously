@@ -59,9 +59,12 @@ export function createJsonSseResponse<T>({
       };
 
       const schedulePoll = (ms: number) => {
-        pollTimeout = setTimeout(() => {
-          void pollOnce();
-        }, Math.max(250, Math.trunc(ms)));
+        pollTimeout = setTimeout(
+          () => {
+            void pollOnce();
+          },
+          Math.max(250, Math.trunc(ms))
+        );
       };
 
       const pollOnce = async () => {
@@ -74,8 +77,7 @@ export function createJsonSseResponse<T>({
             writeChunk(`data: ${payload}\n\n`);
           }
 
-          const nextMs =
-            typeof intervalMs === 'function' ? intervalMs(snapshot) : intervalMs;
+          const nextMs = typeof intervalMs === 'function' ? intervalMs(snapshot) : intervalMs;
           schedulePoll(nextMs);
         } catch (error) {
           if (onError) {
@@ -115,4 +117,3 @@ export function createJsonSseResponse<T>({
     },
   });
 }
-

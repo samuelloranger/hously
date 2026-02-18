@@ -18,6 +18,7 @@ import type {
   DashboardQbittorrentTorrentFilesResponse,
   DashboardQbittorrentTorrentPeersResponse,
   DashboardQbittorrentMutationResponse,
+  DashboardYggStatsResponse,
 } from '../types';
 
 export function useDashboardStats() {
@@ -48,6 +49,16 @@ export function useDashboardJellyfinLatest(limit: number = 10, page: number = 1)
     queryKey: queryKeys.dashboard.jellyfinLatest(limit, page),
     queryFn: () =>
       fetcher<DashboardJellyfinLatestResponse>(`${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`),
+  });
+}
+
+export function useDashboardYggStats(options?: { enabled?: boolean }) {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.yggStats(),
+    queryFn: () => fetcher<DashboardYggStatsResponse>(DASHBOARD_ENDPOINTS.YGG.STATS),
+    enabled: options?.enabled ?? true,
   });
 }
 
@@ -131,13 +142,13 @@ export function useDashboardQbittorrentStatus() {
 
 export function useDashboardQbittorrentTorrents(
   params?: {
-  filter?: string;
-  category?: string;
-  tag?: string;
-  sort?: string;
-  reverse?: boolean;
-  limit?: number;
-  offset?: number;
+    filter?: string;
+    category?: string;
+    tag?: string;
+    sort?: string;
+    reverse?: boolean;
+    limit?: number;
+    offset?: number;
   },
   options?: { enabled?: boolean }
 ) {
@@ -157,7 +168,7 @@ export function useDashboardQbittorrentTorrents(
     queryKey: queryKeys.dashboard.qbittorrentTorrents(params ?? {}),
     queryFn: () =>
       fetcher<DashboardQbittorrentTorrentsResponse>(
-        suffix ? `${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?${suffix}` : DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS
+        `${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}${suffix ? `?${suffix}` : ''}`
       ),
     enabled: options?.enabled ?? true,
   });
