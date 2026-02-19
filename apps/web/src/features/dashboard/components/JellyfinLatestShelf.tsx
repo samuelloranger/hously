@@ -1,20 +1,9 @@
-import type { UIEvent } from 'react';
+import { useMemo, type UIEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { JellyfinLatestItem } from '@hously/shared';
+import { useDashboardJellyfinLatestInfinite } from '@hously/shared';
 import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
 import { ListItemSkeleton } from '../../../components/Skeleton';
 import { MovieCard } from './MovieCard';
-
-interface JellyfinLatestShelfProps {
-  enabled: boolean;
-  isLoading: boolean;
-  isRefreshing?: boolean;
-  isLoadingMore?: boolean;
-  hasMore?: boolean;
-  onLoadMore?: () => void;
-  onRefresh?: () => void;
-  items: JellyfinLatestItem[];
-}
 
 const mediaTypeConfig: Record<string, { emoji: string; badgeClass: string }> = {
   episode: { emoji: '📺', badgeClass: 'bg-cyan-500/15 text-cyan-200 border-cyan-400/30' },
@@ -35,29 +24,37 @@ const formatItemType = (itemType: string | null) => {
   return itemType.replace(/([a-z])([A-Z])/g, '$1 $2');
 };
 
-export function JellyfinLatestShelf({
-  enabled,
-  isLoading,
-  isRefreshing = false,
-  isLoadingMore = false,
-  hasMore = false,
-  onLoadMore,
-  onRefresh,
-  items,
-}: JellyfinLatestShelfProps) {
+export function JellyfinLatestShelf() {
+  const { data, isLoading, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage, refetch } =
+    useDashboardJellyfinLatestInfinite(10);
+
   const { t, i18n } = useTranslation('common');
   const locale = resolveDateFnsLocale(i18n.language);
 
   const handleShelfScroll = (event: UIEvent<HTMLDivElement>) => {
-    if (!hasMore || !onLoadMore || isLoadingMore) return;
+    if (!hasNextPage || !fetchNextPage || isFetchingNextPage) return;
     const { scrollLeft, scrollWidth, clientWidth } = event.currentTarget;
     if (scrollWidth - scrollLeft - clientWidth < 480) {
-      onLoadMore();
+      fetchNextPage();
     }
   };
 
+  const isEnabled = data?.pages[0]?.enabled ?? false;
+  const items = useMemo(() => {
+    const seen = new Set<string>();
+    return (
+      data?.pages
+        .flatMap(p => p.items)
+        .filter(item => {
+          if (seen.has(item.id)) return false;
+          seen.add(item.id);
+          return true;
+        }) ?? []
+    );
+  }, [data?.pages]);
+
   return (
-    <section className="h-full relative overflow-hidden rounded-3xl border border-blue-300/60 dark:border-neutral-700/80 bg-gradient-to-br from-[#b1cefe] via-[#618ad1] to-[#adc9f1] dark:from-[#0f172a] dark:via-[#112240] dark:to-[#1f2937] shadow-xl pb-6">
+    <section className="relative overflow-hidden rounded-3xl border border-blue-300/60 dark:border-neutral-700/80 bg-gradient-to-br from-[#b1cefe] via-[#618ad1] to-[#adc9f1] dark:from-[#0f172a] dark:via-[#112240] dark:to-[#1f2937] shadow-xl pb-6">
       <div className="pointer-events-none absolute -right-20 -top-16 h-64 w-64 rounded-full bg-blue-200/45 dark:bg-cyan-400/20 blur-3xl" />
       <div className="pointer-events-none absolute -left-24 -bottom-20 h-72 w-72 rounded-full bg-indigo-300/35 dark:bg-rose-500/15 blur-3xl" />
 
@@ -74,13 +71,13 @@ export function JellyfinLatestShelf({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={onRefresh}
-            disabled={!onRefresh || isRefreshing}
+            onClick={() => refetch()}
+            disabled={!refetch || isFetching}
             className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-900/20 dark:border-white/25 bg-black/10 dark:bg-white/10 text-slate-900 dark:text-cyan-50 hover:bg-black/20 dark:hover:bg-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
             title={t('dashboard.jellyfin.refresh')}
             aria-label={t('dashboard.jellyfin.refresh')}
           >
-            <span className={isRefreshing ? 'animate-spin' : ''}>↻</span>
+            <span className={isFetching ? 'animate-spin' : ''}>↻</span>
           </button>
           <div className="hidden md:flex h-12 w-12 items-center justify-center rounded-full border border-slate-900/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-2xl">
             🍿
@@ -94,7 +91,7 @@ export function JellyfinLatestShelf({
           <ListItemSkeleton />
           <ListItemSkeleton />
         </div>
-      ) : !enabled ? (
+      ) : !isEnabled ? (
         <div className="mx-6 md:mx-8 rounded-2xl border border-amber-500/40 dark:border-amber-300/30 bg-amber-100/60 dark:bg-amber-300/10 p-4 text-amber-900 dark:text-amber-100">
           <p className="font-medium">{t('dashboard.jellyfin.notConnectedTitle')}</p>
           <p className="text-sm text-amber-900/80 dark:text-amber-100/90 mt-1">
@@ -132,7 +129,7 @@ export function JellyfinLatestShelf({
                 />
               );
             })}
-            {isLoadingMore ? (
+            {isFetching ? (
               <div className="w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-slate-900/15 dark:border-white/15 bg-white/30 dark:bg-black/25 p-2.5 backdrop-blur-sm">
                 <div className="aspect-[2/3] rounded-xl bg-slate-900/15 dark:bg-neutral-900/60 flex items-center justify-center text-blue-900/80 dark:text-blue-100/85 text-xs">
                   {t('common.loading')}
