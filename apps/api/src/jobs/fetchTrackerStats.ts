@@ -1,6 +1,3 @@
-import { chromium } from 'playwright';
-import { mkdir } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
 import { prisma } from '../db';
 import { normalizeTrackerConfig } from '../utils/plugins/normalizers';
 import { cacheKey } from '../utils/dashboard/trackers';
@@ -8,22 +5,45 @@ import { setJsonCache } from '../services/cache';
 import { TRACKER_SCRAPERS } from '../services/trackers';
 import type { TrackerType } from '../utils/plugins/types';
 import { logActivity } from '../utils/activityLogs';
+import { decrypt } from '../services/crypto';
+import type { FlareSolverrCookie, FlareSolverrSolution } from '../services/trackers/httpScraper';
+
+/** Runtime guard for the FlareSolverr JSON response. Throws on invalid shape. */
+function validateFlareSolverrResponse(data: unknown, trackerLabel: string): { solution: FlareSolverrSolution } {
+  if (!data || typeof data !== 'object' || Array.isArray(data))
+    throw new Error(`${trackerLabel} FlareSolverr response is not an object`);
+  const obj = data as Record<string, unknown>;
+  const sol = obj.solution;
+  if (!sol || typeof sol !== 'object' || Array.isArray(sol))
+    throw new Error(`${trackerLabel} FlareSolverr response missing solution`);
+  const s = sol as Record<string, unknown>;
+  if (typeof s.userAgent !== 'string' || !s.userAgent)
+    throw new Error(`${trackerLabel} FlareSolverr response missing solution.userAgent`);
+  if (!Array.isArray(s.cookies))
+    throw new Error(`${trackerLabel} FlareSolverr response missing solution.cookies array`);
+  const cookies: FlareSolverrCookie[] = (s.cookies as unknown[]).map((c, i) => {
+    if (!c || typeof c !== 'object' || Array.isArray(c))
+      throw new Error(`${trackerLabel} FlareSolverr cookie[${i}] is not an object`);
+    const cookie = c as Record<string, unknown>;
+    if (typeof cookie.name !== 'string') throw new Error(`${trackerLabel} FlareSolverr cookie[${i}].name missing`);
+    if (typeof cookie.value !== 'string') throw new Error(`${trackerLabel} FlareSolverr cookie[${i}].value missing`);
+    if (typeof cookie.domain !== 'string') throw new Error(`${trackerLabel} FlareSolverr cookie[${i}].domain missing`);
+    return {
+      name: cookie.name,
+      value: cookie.value,
+      domain: cookie.domain,
+      path: typeof cookie.path === 'string' ? cookie.path : '/',
+      httpOnly: Boolean(cookie.httpOnly),
+      secure: Boolean(cookie.secure),
+    };
+  });
+  const response = typeof s.response === 'string' ? s.response : undefined;
+  return { solution: { userAgent: s.userAgent, cookies, response } };
+}
 
 const runningByTracker: Partial<Record<TrackerType, boolean>> = {};
-
-const isTruthyEnv = (value: string | undefined): boolean => {
-  if (!value) return false;
-  switch (value.trim().toLowerCase()) {
-    case '1':
-    case 'true':
-    case 'yes':
-    case 'y':
-    case 'on':
-      return true;
-    default:
-      return false;
-  }
-};
+const TRACKER_ORDER: TrackerType[] = ['ygg', 'torr9', 'g3mini', 'c411', 'la-cale'];
+let isFetchingAllTrackers = false;
 
 const trackerName = (type: TrackerType): string => type.toUpperCase();
 
@@ -32,19 +52,14 @@ export const fetchTrackerStats = async (
   options?: { trigger?: 'cron' | 'manual' | 'plugin' }
 ): Promise<{ uploadedGo: number | null; downloadedGo: number | null; ratio: number | null } | void> => {
   const trigger = options?.trigger ?? 'cron';
-  const jobId = `fetch${trackerName(trackerType)}TopPanelStats`;
-  const jobName = `Fetch ${trackerName(trackerType)} top panel stats`;
+  const jobId = `fetch${trackerName(trackerType)}Stats`;
+  const jobName = `Fetch ${trackerName(trackerType)} stats`;
   const startedAt = Date.now();
 
   if (runningByTracker[trackerType]) {
     await logActivity({
       type: 'cron_job_skipped',
-      payload: {
-        job_id: jobId,
-        job_name: jobName,
-        reason: 'already_running',
-        trigger,
-      },
+      payload: { job_id: jobId, job_name: jobName, reason: 'already_running', trigger },
     });
     return;
   }
@@ -53,18 +68,9 @@ export const fetchTrackerStats = async (
   const endLog = async (success: boolean, message?: string) => {
     await logActivity({
       type: 'cron_job_ended',
-      payload: {
-        job_id: jobId,
-        job_name: jobName,
-        success,
-        duration_ms: Date.now() - startedAt,
-        trigger,
-        message,
-      },
+      payload: { job_id: jobId, job_name: jobName, success, duration_ms: Date.now() - startedAt, trigger, message },
     });
   };
-
-  let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null;
 
   try {
     const scraper = TRACKER_SCRAPERS[trackerType];
@@ -101,71 +107,37 @@ export const fetchTrackerStats = async (
       return;
     }
 
-    if (!config.flaresolverr_url) {
-      console.log(`[warn] ${trackerName(trackerType)} plugin config missing flaresolverr_url, skipping stats fetch`);
-      await logActivity({
-        type: 'cron_job_skipped',
-        payload: { job_id: jobId, job_name: jobName, reason: 'missing_flaresolverr_url', trigger },
+    // Decrypt the password stored encrypted at rest.
+    const loginConfig = config.password ? { ...config, password: decrypt(config.password) } : config;
+
+    let solution: FlareSolverrSolution | undefined;
+
+    if (scraper.needsFlaresolverr !== false) {
+      if (!config.flaresolverr_url) {
+        console.log(`[warn] ${trackerName(trackerType)} plugin config missing flaresolverr_url, skipping stats fetch`);
+        await logActivity({
+          type: 'cron_job_skipped',
+          payload: { job_id: jobId, job_name: jobName, reason: 'missing_flaresolverr_url', trigger },
+        });
+        return;
+      }
+
+      // Use FlareSolverr to get CF clearance cookies + a valid User-Agent.
+      const fsRes = await fetch(config.flaresolverr_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cmd: 'request.get', url: config.tracker_url, maxTimeout: 60000 }),
       });
-      return;
+      const fsRaw = await fsRes.json();
+      const fsJson = validateFlareSolverrResponse(fsRaw, trackerName(trackerType));
+      if (!fsRes.ok) {
+        throw new Error(`${trackerName(trackerType)} FlareSolverr request failed`);
+      }
+      solution = fsJson.solution;
     }
 
-    const trackerUpper = trackerType.toUpperCase();
-    const storageStatePath =
-      process.env[`${trackerUpper}_STORAGE_STATE_PATH`]?.trim() ||
-      (trackerType === 'ygg' ? process.env.YGG_STORAGE_STATE_PATH?.trim() : '') ||
-      `.artifacts/${trackerType}/storageState.json`;
-    const storageStatePathAbs = resolve(process.cwd(), storageStatePath);
-
-    const headless = !isTruthyEnv(
-      process.env[`${trackerUpper}_HEADED`] || (trackerType === 'ygg' ? process.env.YGG_HEADED : undefined)
-    );
-
-    const fsRes = await fetch(config.flaresolverr_url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cmd: 'request.get',
-        url: config.tracker_url,
-        maxTimeout: 60000,
-      }),
-    });
-    const fsJson = (await fsRes.json()) as { solution?: { userAgent?: string; cookies?: any[] } };
-    if (!fsRes.ok || !fsJson.solution?.userAgent || !Array.isArray(fsJson.solution.cookies)) {
-      throw new Error(`${trackerName(trackerType)} flaresolverr request failed`);
-    }
-
-    browser = await chromium.launch({ headless });
-    const context = await browser.newContext({ userAgent: fsJson.solution.userAgent });
-    await context.addCookies(
-      fsJson.solution.cookies.map((cookie: any) => ({
-        name: cookie.name,
-        value: cookie.value,
-        domain: cookie.domain,
-        path: cookie.path,
-        httpOnly: cookie.httpOnly,
-        secure: cookie.secure,
-        sameSite: 'Lax' as const,
-      }))
-    );
-    const page = await context.newPage();
-
-    await page.route('**/*', route => {
-      const resourceType = route.request().resourceType();
-      if (resourceType === 'image' || resourceType === 'font') return route.abort();
-      return route.continue();
-    });
-
-    await page.goto(config.tracker_url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-    await page.waitForLoadState('load', { timeout: 30_000 }).catch(() => {});
-
-    await scraper.login(page, config);
-
-    await mkdir(dirname(storageStatePathAbs), { recursive: true }).catch(() => {});
-    await context.storageState({ path: storageStatePathAbs }).catch(() => {});
-
-    const stats = await scraper.getStats(page);
-    console.log(`[cron:${trackerType}] top panel stats`, stats);
+    const stats = await scraper.scrape(loginConfig, solution);
+    console.log(`[cron:${trackerType}] stats`, stats);
 
     await setJsonCache(
       cacheKey(trackerType),
@@ -185,7 +157,65 @@ export const fetchTrackerStats = async (
     await endLog(false, message);
     throw error;
   } finally {
-    await browser?.close().catch(() => {});
     runningByTracker[trackerType] = false;
+  }
+};
+
+export const fetchAllTrackerStats = async (options?: { trigger?: 'cron' | 'manual' | 'plugin' }): Promise<void> => {
+  const trigger = options?.trigger ?? 'cron';
+  const startedAt = Date.now();
+
+  if (isFetchingAllTrackers) {
+    await logActivity({
+      type: 'cron_job_skipped',
+      payload: {
+        job_id: 'fetchAllTrackerStats',
+        job_name: 'Fetch all tracker stats',
+        reason: 'already_running',
+        trigger,
+      },
+    });
+    return;
+  }
+
+  isFetchingAllTrackers = true;
+  try {
+    // Scrapers are run sequentially to avoid hammering FlareSolverr with
+    // concurrent requests, which can trigger rate-limiting or IP blocks.
+    for (const trackerType of TRACKER_ORDER) {
+      try {
+        await fetchTrackerStats(trackerType, { trigger });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`[cron:${trackerType}] fetch failed in batch run:`, message);
+      }
+    }
+
+    await logActivity({
+      type: 'cron_job_ended',
+      payload: {
+        job_id: 'fetchAllTrackerStats',
+        job_name: 'Fetch all tracker stats',
+        success: true,
+        duration_ms: Date.now() - startedAt,
+        trigger,
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    await logActivity({
+      type: 'cron_job_ended',
+      payload: {
+        job_id: 'fetchAllTrackerStats',
+        job_name: 'Fetch all tracker stats',
+        success: false,
+        duration_ms: Date.now() - startedAt,
+        trigger,
+        message,
+      },
+    });
+    throw error;
+  } finally {
+    isFetchingAllTrackers = false;
   }
 };

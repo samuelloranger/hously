@@ -38,7 +38,7 @@ export interface YggPluginConfig {
   password?: string;
 }
 
-export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'g3mini';
+export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'g3mini' | 'la-cale';
 
 export interface TrackerPluginConfig {
   flaresolverr_url?: string;

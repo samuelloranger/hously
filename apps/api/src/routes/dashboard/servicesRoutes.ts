@@ -14,6 +14,15 @@ import type { TrackerType } from '../../utils/plugins/types';
 const trackerLabel = (type: TrackerType): string => type.toUpperCase();
 
 async function getTrackerStatsHandler(type: TrackerType) {
+  // Check Redis first. Stats are cached for 24 h, so if we have a cache hit the
+  // plugin is enabled by definition — no DB query needed on every dashboard load.
+  const cached = await getJsonCache<CachedTrackerStats>(cacheKey(type));
+  const parsed = parseCachedTrackerStats(cached);
+  if (parsed) {
+    return { enabled: true, connected: true, ...parsed };
+  }
+
+  // Cache miss — fall back to DB to determine plugin state.
   const plugin = await prisma.plugin.findFirst({ where: { type } });
   const enabled = Boolean(plugin?.enabled);
 
@@ -41,24 +50,14 @@ async function getTrackerStatsHandler(type: TrackerType) {
     };
   }
 
-  const cached = await getJsonCache<CachedTrackerStats>(cacheKey(type));
-  const parsed = parseCachedTrackerStats(cached);
-  if (!parsed) {
-    return {
-      enabled: true,
-      connected: false,
-      updated_at: null,
-      uploaded_go: null,
-      downloaded_go: null,
-      ratio: null,
-      error: `${trackerLabel(type)} stats have not been fetched yet`,
-    };
-  }
-
   return {
     enabled: true,
-    connected: true,
-    ...parsed,
+    connected: false,
+    updated_at: null,
+    uploaded_go: null,
+    downloaded_go: null,
+    ratio: null,
+    error: `${trackerLabel(type)} stats have not been fetched yet`,
   };
 }
 
@@ -115,6 +114,20 @@ export const dashboardServiceRoutes = new Elysia()
 
     try {
       return await getTrackerStatsHandler('g3mini');
+    } catch (error) {
+      console.error('Error fetching G3mini stats:', error);
+      set.status = 500;
+      return { error: 'Failed to get G3mini stats' };
+    }
+  })
+  .get('/la-cale/stats', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      return await getTrackerStatsHandler('la-cale');
     } catch (error) {
       console.error('Error fetching G3mini stats:', error);
       set.status = 500;

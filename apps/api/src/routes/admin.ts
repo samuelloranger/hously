@@ -6,8 +6,66 @@ import {
   checkAndSendAllDayEventNotifications,
   checkAndSendReminders,
   cleanupOldNotifications,
-  fetchYggTopPanelStats,
+  fetchTrackerStats,
 } from '../jobs';
+import { logActivity } from '../utils/activityLogs';
+
+const resolveAdminActionJob = (action: string): { id: string; name: string } | null => {
+  switch (action) {
+    case 'check_reminders':
+      return { id: 'checkReminders', name: 'Check reminders' };
+    case 'check_all_day_events':
+      return { id: 'checkAllDayEvents', name: 'Check all-day events' };
+    case 'cleanup_notifications':
+      return { id: 'cleanupNotifications', name: 'Cleanup old notifications' };
+    case 'fetch_ygg_stats':
+      return { id: 'fetchYggStats', name: 'Fetch YGG stats' };
+    case 'fetch_c411_stats':
+      return { id: 'fetchC411Stats', name: 'Fetch C411 stats' };
+    case 'fetch_torr9_stats':
+      return { id: 'fetchTorr9Stats', name: 'Fetch Torr9 stats' };
+    case 'fetch_g3mini_stats':
+      return { id: 'fetchG3miniStats', name: 'Fetch G3mini stats' };
+    case 'fetch_la_cale_stats':
+      return { id: 'fetchLaCaleStats', name: 'Fetch La Cale stats' };
+    default:
+      return null;
+  }
+};
+
+const runManualJobWithActivity = async <T>(
+  job: { id: string; name: string },
+  userId: number,
+  fn: () => Promise<T>
+): Promise<T> => {
+  const startedAt = Date.now();
+  try {
+    const result = await fn();
+    const durationMs = Date.now() - startedAt;
+    await logActivity({
+      type: 'cron_job_ended',
+      userId,
+      payload: { job_id: job.id, job_name: job.name, success: true, duration_ms: durationMs, trigger: 'manual' },
+    });
+    return result;
+  } catch (error) {
+    const durationMs = Date.now() - startedAt;
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    await logActivity({
+      type: 'cron_job_ended',
+      userId,
+      payload: {
+        job_id: job.id,
+        job_name: job.name,
+        success: false,
+        duration_ms: durationMs,
+        trigger: 'manual',
+        message,
+      },
+    });
+    throw error;
+  }
+};
 
 // Generate a secure random password
 const generateSecurePassword = (length: number = 16): string => {
@@ -81,11 +139,39 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
           func: 'cleanup_old_notifications',
         },
         {
-          id: 'fetchYggTopPanelStats',
-          name: 'Fetch YGG top panel stats',
+          id: 'fetchYggStats',
+          name: 'Fetch YGG stats',
           next_run_time: null,
           trigger: '0 * * * *',
-          func: 'fetch_ygg_top_panel_stats',
+          func: 'fetch_ygg_stats',
+        },
+        {
+          id: 'fetchC411Stats',
+          name: 'Fetch C411 stats',
+          next_run_time: null,
+          trigger: '0 * * * *',
+          func: 'fetch_c411_stats',
+        },
+        {
+          id: 'fetchTorr9Stats',
+          name: 'Fetch Torr9 stats',
+          next_run_time: null,
+          trigger: '0 * * * *',
+          func: 'fetch_torr9_stats',
+        },
+        {
+          id: 'fetchG3miniStats',
+          name: 'Fetch G3mini stats',
+          next_run_time: null,
+          trigger: '0 * * * *',
+          func: 'fetch_g3mini_stats',
+        },
+        {
+          id: 'fetchLaCaleStats',
+          name: 'Fetch La Cale stats',
+          next_run_time: null,
+          trigger: '0 * * * *',
+          func: 'fetch_la_cale_stats',
         },
       ],
     };
@@ -97,24 +183,65 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
       if (!adminOnly(user, set)) {
         return { error: user ? 'Forbidden' : 'Unauthorized' };
       }
+      const adminUser = user!;
 
       try {
+        const job = resolveAdminActionJob(body.action);
+        if (job) {
+          await logActivity({
+            type: 'admin_triggered_job',
+            userId: adminUser.id,
+            payload: { action: body.action, job_id: job.id, job_name: job.name },
+          });
+        }
+
         switch (body.action) {
           case 'check_reminders': {
-            await checkAndSendReminders();
+            await runManualJobWithActivity(
+              { id: 'checkReminders', name: 'Check reminders' },
+              adminUser.id,
+              checkAndSendReminders
+            );
             return { success: true, message: 'Reminders check executed' };
           }
           case 'check_all_day_events': {
-            await checkAndSendAllDayEventNotifications();
+            await runManualJobWithActivity(
+              { id: 'checkAllDayEvents', name: 'Check all-day events' },
+              adminUser.id,
+              checkAndSendAllDayEventNotifications
+            );
             return { success: true, message: 'All-day events check executed' };
           }
           case 'cleanup_notifications': {
-            const deleted = await cleanupOldNotifications();
+            const deleted = await runManualJobWithActivity(
+              { id: 'cleanupNotifications', name: 'Cleanup old notifications' },
+              adminUser.id,
+              cleanupOldNotifications
+            );
             return { success: true, message: `Cleanup executed (${deleted} deleted)` };
           }
-          case 'fetch_ygg_top_panel_stats': {
-            await fetchYggTopPanelStats();
-            return { success: true, message: 'YGG top panel stats fetched' };
+          case 'fetch_ygg_stats': {
+            // fetchTrackerStats handles its own cron_job_ended logging, so we
+            // call it directly instead of wrapping in runManualJobWithActivity
+            // to avoid a duplicate cron_job_ended activity entry.
+            await fetchTrackerStats('ygg', { trigger: 'manual' });
+            return { success: true, message: 'YGG stats fetched' };
+          }
+          case 'fetch_c411_stats': {
+            await fetchTrackerStats('c411', { trigger: 'manual' });
+            return { success: true, message: 'C411 stats fetched' };
+          }
+          case 'fetch_torr9_stats': {
+            await fetchTrackerStats('torr9', { trigger: 'manual' });
+            return { success: true, message: 'Torr9 stats fetched' };
+          }
+          case 'fetch_g3mini_stats': {
+            await fetchTrackerStats('g3mini', { trigger: 'manual' });
+            return { success: true, message: 'G3mini stats fetched' };
+          }
+          case 'fetch_la_cale_stats': {
+            await fetchTrackerStats('la-cale', { trigger: 'manual' });
+            return { success: true, message: 'La Cale stats fetched' };
           }
           default: {
             set.status = 400;
@@ -449,18 +576,18 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
               const newChore = await tx.chore.create({
                 data: {
-                  choreName: choreData.chore_name,
-                  description: choreData.description,
+                  choreName: choreData.chore_name ?? '',
+                  description: choreData.description ?? null,
                   assignedTo: assignedToId,
                   completed: choreData.completed || false,
                   addedBy: addedById,
                   completedBy: completedById,
                   reminderEnabled: choreData.reminder_enabled || false,
-                  imagePath: choreData.image_path,
-                  recurrenceType: choreData.recurrence_type,
-                  recurrenceIntervalDays: choreData.recurrence_interval_days,
-                  recurrenceWeekday: choreData.recurrence_weekday,
-                  recurrenceOriginalCreatedAt: choreData.recurrence_original_created_at,
+                  imagePath: choreData.image_path ?? null,
+                  recurrenceType: choreData.recurrence_type ?? null,
+                  recurrenceIntervalDays: choreData.recurrence_interval_days ?? null,
+                  recurrenceWeekday: choreData.recurrence_weekday ?? null,
+                  recurrenceOriginalCreatedAt: choreData.recurrence_original_created_at ?? null,
                   recurrenceParentId: null,
                   position: 0,
                 },
@@ -476,7 +603,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
             for (const choreData of body.chores) {
               const oldId = choreData.id;
               const oldParentId = choreData.recurrence_parent_id;
-              if (oldParentId && choreIdMapping.has(oldId)) {
+              if (oldId !== undefined && oldParentId != null && choreIdMapping.has(oldId)) {
                 const newId = choreIdMapping.get(oldId);
                 const newParentId = choreIdMapping.get(oldParentId);
                 if (newId && newParentId) {
@@ -537,12 +664,12 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
               await tx.shoppingItem.create({
                 data: {
-                  itemName: itemData.item_name,
-                  notes: itemData.notes,
+                  itemName: itemData.item_name ?? '',
+                  notes: itemData.notes ?? null,
                   completed: itemData.completed || false,
                   addedBy: addedById,
                   completedBy: completedById,
-                  completedAt: itemData.completed_at,
+                  completedAt: itemData.completed_at ?? null,
                   position: 0,
                 },
               });
@@ -565,11 +692,11 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
               await tx.taskCompletion.create({
                 data: {
                   userId,
-                  taskType: completionData.task_type,
-                  taskId: completionData.task_id,
+                  taskType: completionData.task_type ?? '',
+                  taskId: completionData.task_id ?? 0,
                   completedAt: completionData.completed_at || nowUtc(),
-                  taskName: completionData.task_name,
-                  emotion: completionData.emotion,
+                  taskName: completionData.task_name ?? '',
+                  emotion: completionData.emotion ?? null,
                 },
               });
 
@@ -591,10 +718,61 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
     },
     {
       body: t.Object({
-        chores: t.Optional(t.Array(t.Any())),
-        reminders: t.Optional(t.Array(t.Any())),
-        shopping_items: t.Optional(t.Array(t.Any())),
-        task_completions: t.Optional(t.Array(t.Any())),
+        chores: t.Optional(
+          t.Array(
+            t.Object({
+              id: t.Optional(t.Number()),
+              chore_name: t.Optional(t.String()),
+              description: t.Optional(t.Union([t.String(), t.Null()])),
+              added_by_email: t.Optional(t.Union([t.String(), t.Null()])),
+              assigned_to_email: t.Optional(t.Union([t.String(), t.Null()])),
+              completed_by_email: t.Optional(t.Union([t.String(), t.Null()])),
+              completed: t.Optional(t.Boolean()),
+              reminder_enabled: t.Optional(t.Boolean()),
+              image_path: t.Optional(t.Union([t.String(), t.Null()])),
+              recurrence_type: t.Optional(t.Union([t.String(), t.Null()])),
+              recurrence_interval_days: t.Optional(t.Union([t.Number(), t.Null()])),
+              recurrence_weekday: t.Optional(t.Union([t.Number(), t.Null()])),
+              recurrence_original_created_at: t.Optional(t.Union([t.String(), t.Null()])),
+              recurrence_parent_id: t.Optional(t.Union([t.Number(), t.Null()])),
+            })
+          )
+        ),
+        reminders: t.Optional(
+          t.Array(
+            t.Object({
+              chore_id: t.Number(),
+              reminder_datetime: t.String(),
+              user_email: t.Optional(t.Union([t.String(), t.Null()])),
+              active: t.Optional(t.Boolean()),
+              last_notification_sent: t.Optional(t.Union([t.String(), t.Null()])),
+            })
+          )
+        ),
+        shopping_items: t.Optional(
+          t.Array(
+            t.Object({
+              item_name: t.Optional(t.String()),
+              notes: t.Optional(t.Union([t.String(), t.Null()])),
+              completed: t.Optional(t.Boolean()),
+              added_by_email: t.Optional(t.Union([t.String(), t.Null()])),
+              completed_by_email: t.Optional(t.Union([t.String(), t.Null()])),
+              completed_at: t.Optional(t.Union([t.String(), t.Null()])),
+            })
+          )
+        ),
+        task_completions: t.Optional(
+          t.Array(
+            t.Object({
+              user_email: t.Optional(t.Union([t.String(), t.Null()])),
+              task_type: t.Optional(t.String()),
+              task_id: t.Optional(t.Union([t.Number(), t.Null()])),
+              completed_at: t.Optional(t.Union([t.String(), t.Null()])),
+              task_name: t.Optional(t.Union([t.String(), t.Null()])),
+              emotion: t.Optional(t.Union([t.String(), t.Null()])),
+            })
+          )
+        ),
       }),
     }
   );

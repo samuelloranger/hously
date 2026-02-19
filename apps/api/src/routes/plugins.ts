@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { auth } from '../auth';
 import { prisma } from '../db';
 import { nowUtc } from '../utils';
-import { normalizeQbittorrentConfig } from '../services/qbittorrentService';
+import { normalizeQbittorrentConfig, invalidateQbittorrentPluginConfigCache } from '../services/qbittorrentService';
 import { clampInteger, isValidHttpUrl, toProfiles } from '../utils/plugins/utils';
 import {
   normalizeJellyfinConfig,
@@ -17,6 +17,7 @@ import {
 import { fetchTrackerStats } from '../jobs';
 import { enqueueTask } from '../services/backgroundQueue';
 import { logActivity } from '../utils/activityLogs';
+import { encrypt } from '../services/crypto';
 import type { TrackerType } from '../utils/plugins/types';
 
 type AdminUser = { id: number; is_admin: boolean };
@@ -137,7 +138,7 @@ async function updateTrackerPluginHandler(
       tracker_url: trackerUrl,
       ...(type === 'ygg' ? { ygg_url: trackerUrl } : {}),
       username,
-      password,
+      password: encrypt(password),
     };
 
     const plugin = await prisma.plugin.upsert({
@@ -156,7 +157,7 @@ async function updateTrackerPluginHandler(
       },
     });
 
-    enqueueTask(`${type}:fetchTopPanelStats`, async () => {
+    enqueueTask(`${type}:fetchStats`, async () => {
       await fetchTrackerStats(type, { trigger: 'plugin' });
     });
 
@@ -235,6 +236,16 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
   })
   .get('/g3mini', ({ user, set }) => getTrackerPluginHandler('g3mini', user, set))
   .put('/g3mini', ({ user, body, set }) => updateTrackerPluginHandler('g3mini', user, body, set), {
+    body: t.Object({
+      flaresolverr_url: t.String(),
+      tracker_url: t.String(),
+      username: t.String(),
+      password: t.Optional(t.String()),
+      enabled: t.Optional(t.Boolean()),
+    }),
+  })
+  .get('/la-cale', ({ user, set }) => getTrackerPluginHandler('la-cale', user, set))
+  .put('/la-cale', ({ user, body, set }) => updateTrackerPluginHandler('la-cale', user, body, set), {
     body: t.Object({
       flaresolverr_url: t.String(),
       tracker_url: t.String(),
@@ -1159,6 +1170,8 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             updatedAt: now,
           },
         });
+
+        await invalidateQbittorrentPluginConfigCache();
 
         enqueueTask('activity:plugin_updated:qbittorrent', async () => {
           await logActivity({

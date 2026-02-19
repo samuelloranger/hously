@@ -3,7 +3,7 @@ export interface ArrProfile {
   name: string;
 }
 
-export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'g3mini';
+export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'g3mini' | 'la-cale';
 
 export interface JellyfinPlugin {
   type: 'jellyfin';
@@ -81,6 +81,7 @@ export interface TrackerPlugin {
 export type C411Plugin = TrackerPlugin & { type: 'c411' };
 export type Torr9Plugin = TrackerPlugin & { type: 'torr9' };
 export type G3miniPlugin = TrackerPlugin & { type: 'g3mini' };
+export type LaCalePlugin = TrackerPlugin & { type: 'la-cale' };
 
 export interface JellyfinPluginUpdateResponse {
   success: boolean;

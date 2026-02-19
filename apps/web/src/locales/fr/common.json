@@ -88,6 +88,33 @@
       "reset": "Réinitialiser",
       "hint": "Glissez-déposez les cartes pour réordonner. Faites glisser ↔ pour redimensionner."
     },
+    "activity": {
+      "completed": "{{user}} a terminé {{task}}",
+      "appUpdated": "Application mise à jour ({{from}} → {{to}})",
+      "appUpdatedGeneric": "Application mise à jour",
+      "unknownUser": "Quelqu’un",
+      "unknownTask": "une tâche",
+      "pluginUpdated": "Plugin mis à jour : {{plugin}}",
+      "unknownPlugin": "Plugin inconnu",
+      "adminTriggeredJob": "Job lancé par un admin : {{job}}",
+      "cronEnded": "Cron terminé : {{job}} ({{seconds}}s)",
+      "cronFailed": "Cron échoué : {{job}}",
+      "cronSkipped": "Cron ignoré : {{job}} ({{reason}})",
+      "unknownJob": "Job inconnu",
+      "unknownReason": "Raison inconnue",
+      "recipeAdded": "Recette ajoutée : {{recipe}}",
+      "recipeUpdated": "Recette mise à jour : {{recipe}}",
+      "recipeDeleted": "Recette supprimée : {{recipe}}",
+      "unknownRecipe": "Recette inconnue",
+      "eventCreated": "Événement créé : {{event}}",
+      "eventUpdated": "Événement mis à jour : {{event}}",
+      "eventDeleted": "Événement supprimé : {{event}}",
+      "unknownEvent": "Événement inconnu",
+      "shoppingItemAdded": "Article ajouté : {{item}}",
+      "shoppingItemCompleted": "Article complété : {{item}}",
+      "shoppingCleared": "{{count}} article(s) complété(s) supprimé(s)",
+      "unknownItem": "Article inconnu"
+    },
     "weather": {
       "kicker": "Météo",
       "updating": "Mise à jour...",
@@ -206,6 +233,26 @@
       "downloaded": "Download",
       "ratio": "Ratio",
       "updated": "Mis à jour {{value}}"
+    },
+    "trackers": {
+      "kicker": "Depuis vos trackers privés",
+      "title": "Stats Trackers",
+      "subtitle": "Upload, download et ratio sur tous les trackers configurés.",
+      "connected": "{{count}}/{{total}} connectés",
+      "connectedSimple": "Connecté",
+      "disconnected": "Déconnecté",
+      "notConnectedDescription": "Pas encore connecté.",
+      "uploaded": "Upload",
+      "downloaded": "Download",
+      "ratio": "Ratio",
+      "updated": "Mis à jour {{value}}",
+      "providers": {
+        "ygg": "YGG",
+        "c411": "C411",
+        "torr9": "Torr9",
+        "g3mini": "G3mini",
+        "la-cale": "La Cale"
+      }
     },
     "scrutiny": {
       "kicker": "Depuis la surveillance disque",
@@ -473,6 +520,8 @@
     "loading": "Chargement...",
     "cancel": "Annuler",
     "save": "Enregistrer",
+    "saved": "Enregistré",
+    "copied": "Copié",
     "saving": "Enregistrement...",
     "close": "Fermer",
     "collapse": "Réduire",
@@ -593,6 +642,10 @@
   },
   "settings": {
     "title": "Réglages",
+    "sections": {
+      "account": "Compte",
+      "admin": "Admin"
+    },
     "notifications": {
       "title": "Notifications",
       "description": "Gérez vos notifications push pour les rappels de tâches.",
@@ -626,13 +679,21 @@
       "inactive": "Inactive",
       "unknownDate": "Date inconnue",
       "unknownDevice": "Appareil inconnu",
+      "thisDevice": "Cet appareil",
       "chromeDevice": "Navigateur Chrome",
       "firefoxDevice": "Navigateur Firefox",
       "safariDevice": "Navigateur Safari"
     },
     "calendar": {
       "title": "Calendrier",
-      "description": "Gérez les paramètres de votre calendrier."
+      "description": "Gérez les paramètres de votre calendrier.",
+      "comingSoon": "Paramètres du calendrier à venir",
+      "comingSoonDescription": "Nous travaillons sur des fonctionnalités de calendrier pour aider votre foyer à rester synchronisé.",
+      "features": {
+        "sync": "Synchronisation de calendrier externe (iCal, Google Calendar)",
+        "reminders": "Préférences de rappels personnalisées",
+        "availability": "Disponibilité et heures de travail"
+      }
     },
     "profile": {
       "title": "Profil",
@@ -790,6 +851,8 @@
       "save": "Enregistrer le plugin",
       "saveSuccess": "Plugin enregistré avec succès",
       "saveError": "Échec de l'enregistrement du plugin",
+      "unsavedChanges": "Modifications non enregistrées",
+      "invalidUrl": "Veuillez entrer une URL valide (ex. https://example.com)",
       "profileFetchHint": "Quittez le champ clé API pour charger automatiquement les profils disponibles.",
       "profileFetchLoading": "Chargement des profils...",
       "profileFetchError": "Impossible de charger les profils depuis le service",
@@ -840,6 +903,19 @@
         "username": "Nom d'utilisateur YGG",
         "password": "Mot de passe YGG",
         "passwordPlaceholder": "Laisser vide pour conserver le mot de passe existant"
+      },
+      "trackers": {
+        "title": "Trackers",
+        "description": "Configurez YGG, C411, Torr9, G3mini et La Cale au même endroit.",
+        "trackerUrl": "URL du tracker",
+        "usernamePlaceholder": "nom d'utilisateur",
+        "providers": {
+          "ygg": "YGG",
+          "c411": "C411",
+          "torr9": "Torr9",
+          "g3mini": "G3mini",
+          "la-cale": "La Cale"
+        }
       }
     },
     "dataExport": {
@@ -924,9 +1000,21 @@
           "label": "Nettoyer les anciennes notifications",
           "description": "Supprimer les anciennes notifications de la base de données."
         },
-        "fetchYggTopPanelStats": {
+        "fetchYggStats": {
           "label": "Récupérer les stats YGG",
-          "description": "Se connecter à YGG et récupérer upload/download/ratio depuis le panneau du haut."
+          "description": "Se connecter à YGG et récupérer upload/download/ratio."
+        },
+        "fetchC411Stats": {
+          "label": "Récupérer les stats C411",
+          "description": "Se connecter à C411 et récupérer upload/download/ratio."
+        },
+        "fetchTorr9Stats": {
+          "label": "Récupérer les stats Torr9",
+          "description": "Se connecter à Torr9 et récupérer upload/download/ratio."
+        },
+        "fetchG3miniStats": {
+          "label": "Récupérer les stats G3mini",
+          "description": "Se connecter à G3mini et récupérer upload/download/ratio."
         }
       }
     },

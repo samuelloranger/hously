@@ -4,11 +4,19 @@ import { toast } from 'sonner';
 import { formatCronTrigger, useScheduledJobs, useTriggerAction, useCurrentUser } from '@hously/shared';
 import { LoadingState } from '../../components/LoadingState';
 
-type JobAction = 'check_reminders' | 'check_all_day_events' | 'cleanup_notifications' | 'fetch_ygg_top_panel_stats';
+type JobAction =
+  | 'check_reminders'
+  | 'check_all_day_events'
+  | 'cleanup_notifications'
+  | 'fetch_ygg_stats'
+  | 'fetch_c411_stats'
+  | 'fetch_torr9_stats'
+  | 'fetch_g3mini_stats'
+  | 'fetch_la_cale_stats';
 
 type JobConfig = {
   action: JobAction;
-  funcName: string;
+  funcNames: string[];
   icon: string;
   labelKey: string;
   descriptionKey: string;
@@ -17,31 +25,59 @@ type JobConfig = {
 const JOBS: JobConfig[] = [
   {
     action: 'check_reminders',
-    funcName: 'check_and_send_reminders',
+    funcNames: ['check_and_send_reminders'],
     icon: '⏰',
     labelKey: 'settings.jobs.actions.checkReminders.label',
     descriptionKey: 'settings.jobs.actions.checkReminders.description',
   },
   {
     action: 'check_all_day_events',
-    funcName: 'check_and_send_all_day_custom_event_notifications',
+    funcNames: ['check_and_send_all_day_custom_event_notifications'],
     icon: '📆',
     labelKey: 'settings.jobs.actions.checkAllDayEvents.label',
     descriptionKey: 'settings.jobs.actions.checkAllDayEvents.description',
   },
   {
     action: 'cleanup_notifications',
-    funcName: 'cleanup_old_notifications',
+    funcNames: ['cleanup_old_notifications'],
     icon: '🧹',
     labelKey: 'settings.jobs.actions.cleanupNotifications.label',
     descriptionKey: 'settings.jobs.actions.cleanupNotifications.description',
   },
   {
-    action: 'fetch_ygg_top_panel_stats',
-    funcName: 'fetch_ygg_top_panel_stats',
+    action: 'fetch_ygg_stats',
+    funcNames: ['fetch_ygg_stats'],
     icon: '🧾',
-    labelKey: 'settings.jobs.actions.fetchYggTopPanelStats.label',
-    descriptionKey: 'settings.jobs.actions.fetchYggTopPanelStats.description',
+    labelKey: 'settings.jobs.actions.fetchYggStats.label',
+    descriptionKey: 'settings.jobs.actions.fetchYggStats.description',
+  },
+  {
+    action: 'fetch_c411_stats',
+    funcNames: ['fetch_c411_stats'],
+    icon: '🧾',
+    labelKey: 'settings.jobs.actions.fetchC411Stats.label',
+    descriptionKey: 'settings.jobs.actions.fetchC411Stats.description',
+  },
+  {
+    action: 'fetch_torr9_stats',
+    funcNames: ['fetch_torr9_stats'],
+    icon: '🧾',
+    labelKey: 'settings.jobs.actions.fetchTorr9Stats.label',
+    descriptionKey: 'settings.jobs.actions.fetchTorr9Stats.description',
+  },
+  {
+    action: 'fetch_g3mini_stats',
+    funcNames: ['fetch_g3mini_stats'],
+    icon: '🧾',
+    labelKey: 'settings.jobs.actions.fetchG3miniStats.label',
+    descriptionKey: 'settings.jobs.actions.fetchG3miniStats.description',
+  },
+  {
+    action: 'fetch_la_cale_stats',
+    funcNames: ['fetch_la_cale_stats'],
+    icon: '🧾',
+    labelKey: 'settings.jobs.actions.fetchLaCaleStats.label',
+    descriptionKey: 'settings.jobs.actions.fetchLaCaleStats.description',
   },
 ];
 
@@ -54,7 +90,9 @@ export function JobsTab() {
 
   const jobsByFunc = useMemo(() => {
     const map = new Map<string, JobConfig>();
-    JOBS.forEach(job => map.set(job.funcName, job));
+    JOBS.forEach(job => {
+      job.funcNames.forEach(funcName => map.set(funcName, job));
+    });
     return map;
   }, []);
 
@@ -75,8 +113,10 @@ export function JobsTab() {
 
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300" key="jobs-tab">
-      <div className="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">{t('settings.jobs.title')}</h2>
+      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+        <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+          {t('settings.jobs.title')}
+        </h2>
         <p className="text-neutral-600 dark:text-neutral-400 mb-6">{t('settings.jobs.description')}</p>
 
         {isLoading ? (
@@ -129,4 +169,3 @@ export function JobsTab() {
     </div>
   );
 }
-

@@ -89,6 +89,33 @@
       "reset": "Reset",
       "hint": "Drag cards to reorder. Drag ↔ to resize."
     },
+    "activity": {
+      "completed": "{{user}} completed {{task}}",
+      "appUpdated": "App updated ({{from}} → {{to}})",
+      "appUpdatedGeneric": "App updated",
+      "unknownUser": "Someone",
+      "unknownTask": "a task",
+      "pluginUpdated": "Plugin updated: {{plugin}}",
+      "unknownPlugin": "Unknown plugin",
+      "adminTriggeredJob": "Admin triggered job: {{job}}",
+      "cronEnded": "Cron job ended: {{job}} ({{seconds}}s)",
+      "cronFailed": "Cron job failed: {{job}}",
+      "cronSkipped": "Cron job skipped: {{job}} ({{reason}})",
+      "unknownJob": "Unknown job",
+      "unknownReason": "Unknown reason",
+      "recipeAdded": "Recipe added: {{recipe}}",
+      "recipeUpdated": "Recipe updated: {{recipe}}",
+      "recipeDeleted": "Recipe deleted: {{recipe}}",
+      "unknownRecipe": "Unknown recipe",
+      "eventCreated": "Event created: {{event}}",
+      "eventUpdated": "Event updated: {{event}}",
+      "eventDeleted": "Event deleted: {{event}}",
+      "unknownEvent": "Unknown event",
+      "shoppingItemAdded": "Shopping item added: {{item}}",
+      "shoppingItemCompleted": "Shopping item completed: {{item}}",
+      "shoppingCleared": "Cleared {{count}} completed shopping item(s)",
+      "unknownItem": "Unknown item"
+    },
     "weather": {
       "kicker": "Weather",
       "updating": "Updating...",
@@ -207,6 +234,26 @@
       "downloaded": "Downloaded",
       "ratio": "Ratio",
       "updated": "Updated {{value}}"
+    },
+    "trackers": {
+      "kicker": "From your private trackers",
+      "title": "Tracker Stats",
+      "subtitle": "Uploaded, downloaded, and ratio across all configured trackers.",
+      "connected": "{{count}}/{{total}} connected",
+      "connectedSimple": "Connected",
+      "disconnected": "Disconnected",
+      "notConnectedDescription": "Not connected yet.",
+      "uploaded": "Uploaded",
+      "downloaded": "Downloaded",
+      "ratio": "Ratio",
+      "updated": "Updated {{value}}",
+      "providers": {
+        "ygg": "YGG",
+        "c411": "C411",
+        "torr9": "Torr9",
+        "g3mini": "G3mini",
+        "la-cale": "La Cale"
+      }
     },
     "scrutiny": {
       "kicker": "From your disk monitor",
@@ -475,6 +522,8 @@
     "loading": "Loading...",
     "cancel": "Cancel",
     "save": "Save",
+    "saved": "Saved",
+    "copied": "Copied",
     "saving": "Saving...",
     "close": "Close",
     "collapse": "Collapse",
@@ -596,6 +645,10 @@
   },
   "settings": {
     "title": "Settings",
+    "sections": {
+      "account": "Account",
+      "admin": "Admin"
+    },
     "notifications": {
       "title": "Notifications",
       "description": "Manage your push notifications for chore reminders.",
@@ -629,13 +682,21 @@
       "inactive": "Inactive",
       "unknownDate": "Unknown date",
       "unknownDevice": "Unknown Device",
+      "thisDevice": "This device",
       "chromeDevice": "Chrome Browser",
       "firefoxDevice": "Firefox Browser",
       "safariDevice": "Safari Browser"
     },
     "calendar": {
       "title": "Calendar",
-      "description": "Manage your calendar settings."
+      "description": "Manage your calendar settings.",
+      "comingSoon": "Calendar Settings Coming Soon",
+      "comingSoonDescription": "We're working on powerful calendar features to help your household stay in sync.",
+      "features": {
+        "sync": "External calendar sync (iCal, Google Calendar)",
+        "reminders": "Custom reminder preferences",
+        "availability": "Availability & working hours"
+      }
     },
     "profile": {
       "title": "Profile",
@@ -791,6 +852,8 @@
       "save": "Save Plugin",
       "saveSuccess": "Plugin saved successfully",
       "saveError": "Failed to save plugin settings",
+      "unsavedChanges": "Unsaved changes",
+      "invalidUrl": "Please enter a valid URL (e.g. https://example.com)",
       "profileFetchHint": "Blur the API key field to auto-load available profiles.",
       "profileFetchLoading": "Loading profiles...",
       "profileFetchError": "Failed to load profiles from the service",
@@ -841,6 +904,19 @@
         "username": "YGG Username",
         "password": "YGG Password",
         "passwordPlaceholder": "Leave empty to keep existing password"
+      },
+      "trackers": {
+        "title": "Trackers",
+        "description": "Configure YGG, C411, Torr9, G3mini and La Cale in one place.",
+        "trackerUrl": "Tracker URL",
+        "usernamePlaceholder": "username",
+        "providers": {
+          "ygg": "YGG",
+          "c411": "C411",
+          "torr9": "Torr9",
+          "g3mini": "G3mini",
+          "la-cale": "La Cale"
+        }
       }
     },
     "dataExport": {
@@ -925,9 +1001,21 @@
           "label": "Cleanup Old Notifications",
           "description": "Remove old notifications from the database."
         },
-        "fetchYggTopPanelStats": {
+        "fetchYggStats": {
           "label": "Fetch YGG Stats",
-          "description": "Log into YGG and fetch uploaded/downloaded/ratio from the top panel."
+          "description": "Log into YGG and fetch uploaded/downloaded/ratio."
+        },
+        "fetchC411Stats": {
+          "label": "Fetch C411 Stats",
+          "description": "Log into C411 and fetch uploaded/downloaded/ratio."
+        },
+        "fetchTorr9Stats": {
+          "label": "Fetch Torr9 Stats",
+          "description": "Log into Torr9 and fetch uploaded/downloaded/ratio."
+        },
+        "fetchG3miniStats": {
+          "label": "Fetch G3mini Stats",
+          "description": "Log into G3mini and fetch uploaded/downloaded/ratio."
         }
       }
     },

@@ -31,6 +31,7 @@ const TRACKER_PLUGIN_ENDPOINTS: Record<TrackerType, string> = {
   c411: PLUGIN_ENDPOINTS.C411,
   torr9: PLUGIN_ENDPOINTS.TORR9,
   g3mini: PLUGIN_ENDPOINTS.G3MINI,
+  'la-cale': PLUGIN_ENDPOINTS.LA_CALE,
 };
 
 const TRACKER_DASHBOARD_ENDPOINTS: Record<TrackerType, string> = {
@@ -38,6 +39,7 @@ const TRACKER_DASHBOARD_ENDPOINTS: Record<TrackerType, string> = {
   c411: DASHBOARD_ENDPOINTS.C411.STATS,
   torr9: DASHBOARD_ENDPOINTS.TORR9.STATS,
   g3mini: DASHBOARD_ENDPOINTS.G3MINI.STATS,
+  'la-cale': DASHBOARD_ENDPOINTS.LA_CALE.STATS,
 };
 
 export function useTrackerPlugin<T extends TrackerType>(type: T) {
@@ -65,8 +67,7 @@ export function useUpdateTrackerPlugin(type: TrackerType) {
         method: 'PUT',
         body: data,
       }),
-    onSuccess: result => {
-      queryClient.setQueryData(queryKeys.plugins.tracker(type), { plugin: result.plugin });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.tracker(type) });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.trackerStats(type) });
     },
@@ -79,6 +80,8 @@ export function useDashboardTrackerStats(type: TrackerType, options?: { enabled?
     queryKey: queryKeys.dashboard.trackerStats(type),
     queryFn: () => fetcher<DashboardTrackerStatsResponse>(TRACKER_DASHBOARD_ENDPOINTS[type]),
     enabled: options?.enabled ?? true,
+    // Stats are cached server-side for 24 h; avoid refetching on every mount.
+    staleTime: 60 * 60 * 1000,
   });
 }
 
@@ -175,6 +178,7 @@ export function useYggPlugin() {
 export const useC411Plugin = () => useTrackerPlugin('c411');
 export const useTorr9Plugin = () => useTrackerPlugin('torr9');
 export const useG3miniPlugin = () => useTrackerPlugin('g3mini');
+export const useLaCalePlugin = () => useTrackerPlugin('la-cale');
 
 export function useUpdateJellyfinPlugin() {
   const fetcher = useFetcher();
@@ -185,8 +189,7 @@ export function useUpdateJellyfinPlugin() {
         method: 'PUT',
         body: data,
       }),
-    onSuccess: result => {
-      queryClient.setQueryData(queryKeys.plugins.jellyfin(), { plugin: result.plugin });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.jellyfin() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.jellyfinLatest() });
     },
@@ -208,8 +211,7 @@ export function useUpdateRadarrPlugin() {
         method: 'PUT',
         body: data,
       }),
-    onSuccess: result => {
-      queryClient.setQueryData(queryKeys.plugins.radarr(), { plugin: result.plugin });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.radarr() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() });
     },
@@ -232,8 +234,7 @@ export function useUpdateSonarrPlugin() {
         method: 'PUT',
         body: data,
       }),
-    onSuccess: result => {
-      queryClient.setQueryData(queryKeys.plugins.sonarr(), { plugin: result.plugin });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.sonarr() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() });
     },
@@ -256,8 +257,7 @@ export function useUpdateQbittorrentPlugin() {
         method: 'PUT',
         body: data,
       }),
-    onSuccess: result => {
-      queryClient.setQueryData(queryKeys.plugins.qbittorrent(), { plugin: result.plugin });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.qbittorrent() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.qbittorrentStatus() });
     },
@@ -273,8 +273,7 @@ export function useUpdateScrutinyPlugin() {
         method: 'PUT',
         body: data,
       }),
-    onSuccess: result => {
-      queryClient.setQueryData(queryKeys.plugins.scrutiny(), { plugin: result.plugin });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.scrutiny() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.scrutinySummary() });
     },
@@ -290,8 +289,7 @@ export function useUpdateNetdataPlugin() {
         method: 'PUT',
         body: data,
       }),
-    onSuccess: result => {
-      queryClient.setQueryData(queryKeys.plugins.netdata(), { plugin: result.plugin });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.netdata() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.netdataSummary() });
     },
@@ -307,8 +305,7 @@ export function useUpdateWeatherPlugin() {
         method: 'PUT',
         body: data,
       }),
-    onSuccess: result => {
-      queryClient.setQueryData(queryKeys.plugins.weather(), { plugin: result.plugin });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.weather() });
       queryClient.invalidateQueries({ queryKey: queryKeys.weather.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.weather.current() });
@@ -320,22 +317,18 @@ export function useUpdateYggPlugin() {
   const queryClient = useQueryClient();
   const fetcher = useFetcher();
   return useMutation({
-    mutationFn: (data: { flaresolverr_url: string; ygg_url: string; username: string; password?: string; enabled: boolean }) =>
+    mutationFn: (data: {
+      flaresolverr_url: string;
+      ygg_url: string;
+      username: string;
+      password?: string;
+      enabled: boolean;
+    }) =>
       fetcher<YggPluginUpdateResponse>(PLUGIN_ENDPOINTS.YGG, {
         method: 'PUT',
         body: data,
       }),
-    onSuccess: result => {
-      queryClient.setQueryData(queryKeys.plugins.tracker('ygg'), {
-        plugin: {
-          type: 'ygg',
-          enabled: result.plugin.enabled,
-          tracker_url: result.plugin.ygg_url,
-          flaresolverr_url: result.plugin.flaresolverr_url,
-          username: result.plugin.username,
-          password_set: result.plugin.password_set,
-        },
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.tracker('ygg') });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.trackerStats('ygg') });
     },
@@ -345,10 +338,13 @@ export function useUpdateYggPlugin() {
 export const useUpdateC411Plugin = () => useUpdateTrackerPlugin('c411');
 export const useUpdateTorr9Plugin = () => useUpdateTrackerPlugin('torr9');
 export const useUpdateG3miniPlugin = () => useUpdateTrackerPlugin('g3mini');
+export const useUpdateLaCalePlugin = () => useUpdateTrackerPlugin('la-cale');
 
 export const useDashboardC411Stats = (options?: { enabled?: boolean }) => useDashboardTrackerStats('c411', options);
 export const useDashboardTorr9Stats = (options?: { enabled?: boolean }) => useDashboardTrackerStats('torr9', options);
 export const useDashboardG3miniStats = (options?: { enabled?: boolean }) => useDashboardTrackerStats('g3mini', options);
+export const useDashboardLaCaleStats = (options?: { enabled?: boolean }) =>
+  useDashboardTrackerStats('la-cale', options);
 
 export function useRadarrProfiles() {
   const fetcher = useFetcher();

@@ -17,6 +17,9 @@ export const DASHBOARD_ENDPOINTS = {
   G3MINI: {
     STATS: '/api/dashboard/g3mini/stats',
   },
+  LA_CALE: {
+    STATS: '/api/dashboard/la-cale/stats',
+  },
   UPCOMING: {
     LIST: '/api/dashboard/upcoming',
     ADD: '/api/dashboard/upcoming/add',
