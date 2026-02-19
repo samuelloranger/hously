@@ -70,18 +70,13 @@ export function Dashboard() {
   return (
     <PageLayout>
       <div className="space-y-6">
-        {/* Header: Greeting + Weather */}
-        <div className="relative">
-          <SmartGreeting
-            userName={getUserFirstName(user, t('dashboard.user'))}
-            pendingChores={stats?.chores_count || 0}
-            shoppingItems={stats?.shopping_count || 0}
-            eventsToday={stats?.events_today || 0}
-          />
-          <WeatherWidget />
-        </div>
+        <SmartGreeting
+          userName={getUserFirstName(user, t('dashboard.user'))}
+          pendingChores={stats?.chores_count || 0}
+          shoppingItems={stats?.shopping_count || 0}
+          eventsToday={stats?.events_today || 0}
+        />
 
-        {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {statsLoading ? (
             <>
@@ -124,6 +119,7 @@ export function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="flex flex-col gap-6">
+            <WeatherWidget />
             <JellyfinLatestShelf
               enabled={jellyfinEnabled}
               items={jellyfinItems}
