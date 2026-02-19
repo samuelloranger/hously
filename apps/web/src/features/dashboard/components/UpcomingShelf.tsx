@@ -1,24 +1,16 @@
 import { format } from 'date-fns';
-import { type UIEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { type DashboardUpcomingItem, useAddUpcomingToArr, useUpcomingStatus } from '@hously/shared';
+import {
+  type DashboardUpcomingItem,
+  useAddUpcomingToArr,
+  useDashboardUpcoming,
+  useUpcomingStatus,
+} from '@hously/shared';
 import { MovieCard } from './MovieCard';
 import { Dialog } from '../../../components/dialog';
 import { ListItemSkeleton } from '../../../components/Skeleton';
-
-interface UpcomingShelfProps {
-  enabled: boolean;
-  radarrEnabled: boolean;
-  sonarrEnabled: boolean;
-  isLoading: boolean;
-  isRefreshing?: boolean;
-  isLoadingMore?: boolean;
-  hasMore?: boolean;
-  onLoadMore?: () => void;
-  onRefresh?: () => void;
-  items: DashboardUpcomingItem[];
-}
 
 import { enUS, fr } from 'date-fns/locale';
 const localeMap = { en: enUS, fr } as const;
@@ -39,30 +31,13 @@ const formatReleaseDate = (value: string | null, locale: string) => {
 const mediaTypeLabel = (mediaType: 'movie' | 'tv', t: (key: string) => string) =>
   mediaType === 'movie' ? t('dashboard.upcoming.movie') : t('dashboard.upcoming.tv');
 
-export function UpcomingShelf({
-  enabled,
-  radarrEnabled,
-  sonarrEnabled,
-  isLoading,
-  isRefreshing = false,
-  isLoadingMore = false,
-  hasMore = false,
-  onLoadMore,
-  onRefresh,
-  items,
-}: UpcomingShelfProps) {
+export function UpcomingShelf() {
+  const { data, isLoading, isFetching, refetch } = useDashboardUpcoming();
+
   const { t, i18n } = useTranslation('common');
   const [searchOnAdd, setSearchOnAdd] = useState(true);
   const [selectedItem, setSelectedItem] = useState<DashboardUpcomingItem | null>(null);
   const [upcomingStatus, setUpcomingStatus] = useState<{ exists: boolean; service: 'radarr' | 'sonarr' } | null>(null);
-
-  const handleShelfScroll = (event: UIEvent<HTMLDivElement>) => {
-    if (!hasMore || !onLoadMore || isLoadingMore) return;
-    const { scrollLeft, scrollWidth, clientWidth } = event.currentTarget;
-    if (scrollWidth - scrollLeft - clientWidth < 480) {
-      onLoadMore();
-    }
-  };
 
   const addMutation = useAddUpcomingToArr();
   const upcomingStatusMutation = useUpcomingStatus();
@@ -90,7 +65,7 @@ export function UpcomingShelf({
     return () => {
       canceled = true;
     };
-  }, [selectedItem, upcomingStatusMutation]);
+  }, [selectedItem, upcomingStatusMutation.mutateAsync]);
 
   const handleAdd = async (item: DashboardUpcomingItem) => {
     const tmdbId = parseInt(item.id.split('-')[1] || '', 10);
@@ -124,8 +99,8 @@ export function UpcomingShelf({
   };
 
   const confirmAdd = async () => {
-    if (!selectedItem) return;
-    const targetPluginEnabled = selectedItem.media_type === 'movie' ? radarrEnabled : sonarrEnabled;
+    if (!data || !selectedItem) return;
+    const targetPluginEnabled = selectedItem.media_type === 'movie' ? data.radarr_enabled : data.sonarr_enabled;
     if (!targetPluginEnabled) {
       window.open(selectedItem.tmdb_url, '_blank', 'noopener,noreferrer');
       setSelectedItem(null);
@@ -139,7 +114,7 @@ export function UpcomingShelf({
 
   return (
     <>
-      <section className="h-full relative overflow-hidden rounded-3xl border border-amber-300/70 dark:border-orange-500/30 bg-gradient-to-br from-[#fad0ab] via-[#ffbf7e] to-[#ffe7d1] dark:from-[#2a1c10] dark:via-[#533516] dark:to-[#8b4b1b] shadow-xl">
+      <section className="relative overflow-hidden rounded-3xl border border-amber-300/70 dark:border-orange-500/30 bg-gradient-to-br from-[#fad0ab] via-[#ffbf7e] to-[#ffe7d1] dark:from-[#2a1c10] dark:via-[#533516] dark:to-[#8b4b1b] shadow-xl">
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-200/45 dark:bg-amber-300/20 blur-3xl" />
         <div className="pointer-events-none absolute -left-14 -bottom-16 h-64 w-64 rounded-full bg-orange-300/40 dark:bg-orange-500/25 blur-3xl" />
 
@@ -156,13 +131,13 @@ export function UpcomingShelf({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={onRefresh}
-              disabled={!onRefresh || isRefreshing}
+              onClick={() => refetch()}
+              disabled={!data?.enabled || isFetching}
               className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-amber-950/20 dark:border-white/25 bg-black/10 dark:bg-white/10 text-amber-950 dark:text-amber-50 hover:bg-black/20 dark:hover:bg-white/20 disabled:opacity-60 disabled:cursor-not-allowed"
               title={t('dashboard.upcoming.refresh')}
               aria-label={t('dashboard.upcoming.refresh')}
             >
-              <span className={isRefreshing ? 'animate-spin' : ''}>↻</span>
+              <span className={isFetching ? 'animate-spin' : ''}>↻</span>
             </button>
             <div className="hidden md:flex h-12 w-12 items-center justify-center rounded-full border border-amber-950/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-2xl">
               🍿
@@ -176,14 +151,14 @@ export function UpcomingShelf({
             <ListItemSkeleton />
             <ListItemSkeleton />
           </div>
-        ) : !enabled ? (
+        ) : !data?.enabled ? (
           <div className="mx-6 md:mx-8 rounded-2xl border border-amber-500/40 dark:border-amber-300/30 bg-amber-100/60 dark:bg-black/20 p-4 text-amber-950 dark:text-amber-50">
             <p className="font-medium">{t('dashboard.upcoming.notConfiguredTitle')}</p>
             <p className="text-sm text-amber-950/80 dark:text-amber-100/90 mt-1">
               {t('dashboard.upcoming.notConfiguredDescription')}
             </p>
           </div>
-        ) : items.length === 0 ? (
+        ) : data.items.length === 0 ? (
           <div className="mx-6 md:mx-8 rounded-2xl border border-amber-950/20 dark:border-white/20 bg-white/35 dark:bg-black/20 p-6 text-center">
             <p className="text-amber-950 dark:text-white font-medium">{t('dashboard.upcoming.emptyTitle')}</p>
             <p className="text-sm text-amber-900/70 dark:text-amber-100/80 mt-1">
@@ -191,9 +166,9 @@ export function UpcomingShelf({
             </p>
           </div>
         ) : (
-          <div className="no-scrollbar overflow-x-auto overflow-y-visible px-6 pt-2 pb-6" onScroll={handleShelfScroll}>
+          <div className="no-scrollbar overflow-x-auto overflow-y-visible px-6 pt-2 pb-6">
             <div className="flex gap-3">
-              {items.map(item => (
+              {data.items.map(item => (
                 <MovieCard
                   key={item.id}
                   title={item.title}
@@ -211,7 +186,7 @@ export function UpcomingShelf({
                   accentRingClassName="focus:ring-amber-200/70"
                   disabled={addMutation.isPending}
                   onClick={() => {
-                    const targetPluginEnabled = item.media_type === 'movie' ? radarrEnabled : sonarrEnabled;
+                    const targetPluginEnabled = item.media_type === 'movie' ? data.radarr_enabled : data.sonarr_enabled;
                     if (!targetPluginEnabled) {
                       window.open(item.tmdb_url, '_blank', 'noopener,noreferrer');
                       return;
@@ -220,13 +195,6 @@ export function UpcomingShelf({
                   }}
                 />
               ))}
-              {isLoadingMore ? (
-                <div className="w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-amber-950/15 dark:border-white/15 bg-white/30 dark:bg-black/25 p-2.5 backdrop-blur-sm">
-                  <div className="aspect-[2/3] rounded-xl bg-amber-950/15 dark:bg-neutral-900/60 flex items-center justify-center text-amber-950/80 dark:text-amber-100/85 text-xs">
-                    {t('common.loading')}
-                  </div>
-                </div>
-              ) : null}
             </div>
           </div>
         )}

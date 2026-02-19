@@ -13,6 +13,7 @@ import { RecentActivityCard } from './components/RecentActivityCard';
 import { getUserFirstName, useCurrentUser, useDashboardStats } from '@hously/shared';
 import { StatCardSkeleton } from '../../components/Skeleton';
 import PendingChoresSection from './components/PendingChoresSection';
+import { UpcomingShelf } from './components/UpcomingShelf';
 
 export function Dashboard() {
   const { t } = useTranslation('common');
@@ -74,8 +75,9 @@ export function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="flex flex-col gap-6">
             <WeatherWidget />
-            <JellyfinLatestShelf />
             <QbittorrentLiveCard />
+            <JellyfinLatestShelf />
+            <UpcomingShelf />
             <ScrutinyHealthCard />
             <PendingChoresSection />
           </div>
