@@ -3,7 +3,6 @@ import { auth } from '../../auth';
 import {
   TMDB_UPCOMING_CACHE_TTL_SECONDS,
   collectTmdbUpcoming,
-  fetchJellyfinTmdbIds,
   fetchTmdbProviders,
   getArrPluginStatus,
   parseTmdbNumericId,
@@ -12,110 +11,11 @@ import {
 import { prisma } from '../../db';
 import { getJsonCache, setJsonCache } from '../../services/cache';
 import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
-import { toPositiveInt, toRecord } from '../../utils/coerce';
+import { toRecord } from '../../utils/coerce';
 import type { DashboardUpcomingItem } from '../../types/dashboardUpcoming';
 
 export const dashboardUpcomingRoutes = new Elysia()
   .use(auth)
-  .get(
-    '/upcoming/swipe',
-    async ({ user, query, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
-      try {
-        const arrPluginStatus = await getArrPluginStatus();
-        const tmdbApiKey = process.env.TMDB_API_KEY?.trim();
-        if (!tmdbApiKey) {
-          return { enabled: false, items: [], ...arrPluginStatus };
-        }
-
-        const requestedLimit = toPositiveInt(query.limit, 24);
-        const limit = Math.max(1, Math.min(60, requestedLimit));
-        const poolSizePerType = Math.max(120, Math.min(400, limit * 10));
-
-        const today = new Date();
-        const todayIso = toIsoDate(today);
-        const oneYearOut = new Date(Date.UTC(today.getUTCFullYear() + 1, today.getUTCMonth(), today.getUTCDate()));
-        const oneYearOutIso = toIsoDate(oneYearOut);
-        // const cacheKey = `dashboard:tmdb:swipe:v5:from:${todayIso}:pool:${poolSizePerType}`;
-
-        // const cached = await getJsonCache<{
-        //   enabled: boolean;
-        //   items: DashboardUpcomingItem[];
-        // }>(cacheKey);
-
-        let resolvedRawItems: DashboardUpcomingItem[] | null = null;
-        if (!resolvedRawItems) {
-          resolvedRawItems = await (async () => {
-            const [moviesResult, tvResult] = await Promise.all([
-              collectTmdbUpcoming('movie', poolSizePerType, tmdbApiKey, todayIso, oneYearOutIso),
-              collectTmdbUpcoming('tv', poolSizePerType, tmdbApiKey, todayIso, oneYearOutIso),
-            ]);
-
-            if (!moviesResult || !tvResult) {
-              set.status = 502;
-              return null;
-            }
-
-            const sortedItems = [...moviesResult.items, ...tvResult.items]
-              .filter(item => {
-                if (!item.release_date) return false;
-                const releaseTime = Date.parse(item.release_date);
-                const todayTime = Date.parse(todayIso);
-                const oneYearOutTime = Date.parse(oneYearOutIso);
-                return Number.isFinite(releaseTime) && releaseTime >= todayTime && releaseTime <= oneYearOutTime;
-              })
-              .sort((a, b) => {
-                const aTime = a.release_date ? Date.parse(a.release_date) : Number.POSITIVE_INFINITY;
-                const bTime = b.release_date ? Date.parse(b.release_date) : Number.POSITIVE_INFINITY;
-                return aTime - bTime;
-              });
-
-            // await setJsonCache(
-            //   cacheKey,
-            //   {
-            //     enabled: true,
-            //     items: sortedItems,
-            //   },
-            //   TMDB_UPCOMING_CACHE_TTL_SECONDS
-            // );
-            return sortedItems;
-          })();
-        }
-
-        if (!resolvedRawItems) {
-          return { error: 'TMDB request failed' };
-        }
-
-        const jellyfinTmdbIds = await fetchJellyfinTmdbIds();
-        const filteredItems = resolvedRawItems
-          .filter(item => {
-            const tmdbId = parseTmdbNumericId(item.id);
-            if (!tmdbId) return false;
-            return !jellyfinTmdbIds.has(tmdbId);
-          })
-          .slice(0, limit);
-
-        return {
-          enabled: true,
-          items: filteredItems,
-          ...arrPluginStatus,
-        };
-      } catch (error) {
-        console.error('Error getting TMDB swipe items:', error);
-        set.status = 500;
-        return { error: 'Failed to get TMDB swipe items' };
-      }
-    },
-    {
-      query: t.Object({
-        limit: t.Optional(t.String()),
-      }),
-    }
-  )
   .get('/upcoming', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
@@ -267,6 +167,19 @@ export const dashboardUpcomingRoutes = new Elysia()
 
           if (!addResponse.ok) {
             const debugText = await addResponse.text().catch(() => null);
+            // Radarr returns 400 with MovieExistsValidator when the movie is already added
+            if (
+              addResponse.status === 400 &&
+              debugText &&
+              debugText.includes('MovieExistsValidator')
+            ) {
+              return {
+                success: true,
+                service: 'radarr',
+                added: false,
+                already_exists: true,
+              };
+            }
             console.error('Failed to add movie to Radarr', {
               status: addResponse.status,
               tmdbId,

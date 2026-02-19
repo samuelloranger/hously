@@ -62,14 +62,16 @@ export function useDashboardYggStats(options?: { enabled?: boolean }) {
   });
 }
 
-export function useDashboardUpcoming() {
+export function useDashboardUpcoming(options?: { enabled?: boolean }) {
   const fetcher = useFetcher();
 
   return useQuery({
     queryKey: queryKeys.dashboard.upcoming(),
     queryFn: () => fetcher<DashboardUpcomingResponse>(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
+    enabled: options?.enabled ?? true,
   });
 }
+
 
 export function useDashboardJellyfinLatestInfinite(limit: number = 10) {
   const fetcher = useFetcher();
@@ -201,7 +203,7 @@ export function useQbittorrentTorrentTrackers(hash: string | null) {
   });
 }
 
-export function useQbittorrentTorrentFiles(hash: string | null) {
+export function useQbittorrentTorrentFiles(hash: string | null, refetchInterval?: number | false) {
   const fetcher = useFetcher();
   const safeHash = hash?.trim() ?? '';
 
@@ -209,6 +211,7 @@ export function useQbittorrentTorrentFiles(hash: string | null) {
     queryKey: queryKeys.dashboard.qbittorrentTorrentFiles(safeHash),
     queryFn: () => fetcher<DashboardQbittorrentTorrentFilesResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.FILES(safeHash)),
     enabled: Boolean(safeHash),
+    refetchInterval,
   });
 }
 
