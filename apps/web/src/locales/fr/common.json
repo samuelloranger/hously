@@ -1207,6 +1207,7 @@
     "monitored": "Surveillé",
     "unmonitored": "Non surveillé",
     "downloaded": "Téléchargé",
+    "downloading": "Téléchargement",
     "missing": "Manquant",
     "unknownYear": "Année inconnue",
     "seriesMeta": "{{seasons}} saisons • {{episodes}} épisodes",
@@ -1223,6 +1224,14 @@
       "title": "Recherche interactive : {{title}}",
       "loading": "Chargement des releases...",
       "empty": "Aucune release trouvée.",
+      "hideRejected": "Masquer les releases rejetées",
+      "sortLabel": "Trier par",
+      "sortOptions": {
+        "seeders": "Seeders",
+        "age": "Âge",
+        "size": "Taille",
+        "title": "Titre"
+      },
       "download": "Télécharger cette release",
       "downloading": "Démarrage...",
       "downloadStarted": "Téléchargement de la release lancé.",

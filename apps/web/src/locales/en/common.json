@@ -1163,6 +1163,7 @@
     "monitored": "Monitored",
     "unmonitored": "Unmonitored",
     "downloaded": "Downloaded",
+    "downloading": "Downloading",
     "missing": "Missing",
     "unknownYear": "Unknown year",
     "seriesMeta": "{{seasons}} seasons • {{episodes}} episodes",
@@ -1179,6 +1180,14 @@
       "title": "Interactive Search: {{title}}",
       "loading": "Loading releases...",
       "empty": "No releases found.",
+      "hideRejected": "Hide rejected releases",
+      "sortLabel": "Sort by",
+      "sortOptions": {
+        "seeders": "Seeders",
+        "age": "Age",
+        "size": "Size",
+        "title": "Title"
+      },
       "download": "Download this release",
       "downloading": "Starting...",
       "downloadStarted": "Release download started.",

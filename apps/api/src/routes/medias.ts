@@ -124,6 +124,7 @@ const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null => {
     status: toStringOrNull(row.status),
     monitored: toBoolean(row.monitored),
     downloaded: toBoolean(row.hasFile),
+    downloading: false,
     added_at: toIsoOrNull(row.added),
     tmdb_id: toNumberOrNull(row.tmdbId),
     imdb_id: toStringOrNull(row.imdbId),
@@ -167,6 +168,7 @@ const mapSonarrSeries = (raw: unknown, baseUrl: string): MediaItem | null => {
     status: toStringOrNull(row.status),
     monitored: toBoolean(row.monitored),
     downloaded,
+    downloading: false,
     added_at: toIsoOrNull(row.added),
     tmdb_id: toNumberOrNull(row.tmdbId),
     imdb_id: toStringOrNull(row.imdbId),
@@ -176,6 +178,72 @@ const mapSonarrSeries = (raw: unknown, baseUrl: string): MediaItem | null => {
     poster_url: extractPosterUrl(baseUrl, row.images),
     arr_url: buildArrItemUrl(baseUrl, 'sonarr', sourceId),
   };
+};
+
+const fetchRadarrDownloadingMovieIds = async (websiteUrl: string, apiKey: string): Promise<Set<number>> => {
+  const url = new URL('/api/v3/queue', websiteUrl);
+  url.searchParams.set('page', '1');
+  url.searchParams.set('pageSize', '2000');
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      'X-Api-Key': apiKey,
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) throw new Error(`Radarr queue request failed with status ${response.status}`);
+
+  const data = (await response.json()) as Record<string, unknown>;
+  const records = Array.isArray(data.records) ? data.records : [];
+  const ids = new Set<number>();
+
+  for (const raw of records) {
+    const row = toRecord(raw);
+    if (!row) continue;
+
+    const status = toStringOrNull(row.status)?.toLowerCase();
+    const trackedStatuses = new Set(['queued', 'delayed', 'downloading', 'completed', 'warning']);
+    if (status && !trackedStatuses.has(status)) continue;
+
+    const movieId = toNumberOrNull(row.movieId) ?? toNumberOrNull(toRecord(row.movie)?.id);
+    if (movieId && movieId > 0) ids.add(movieId);
+  }
+
+  return ids;
+};
+
+const fetchSonarrDownloadingSeriesIds = async (websiteUrl: string, apiKey: string): Promise<Set<number>> => {
+  const url = new URL('/api/v3/queue', websiteUrl);
+  url.searchParams.set('page', '1');
+  url.searchParams.set('pageSize', '2000');
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      'X-Api-Key': apiKey,
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) throw new Error(`Sonarr queue request failed with status ${response.status}`);
+
+  const data = (await response.json()) as Record<string, unknown>;
+  const records = Array.isArray(data.records) ? data.records : [];
+  const ids = new Set<number>();
+
+  for (const raw of records) {
+    const row = toRecord(raw);
+    if (!row) continue;
+
+    const status = toStringOrNull(row.status)?.toLowerCase();
+    const trackedStatuses = new Set(['queued', 'delayed', 'downloading', 'completed', 'warning']);
+    if (status && !trackedStatuses.has(status)) continue;
+
+    const seriesId = toNumberOrNull(row.seriesId) ?? toNumberOrNull(toRecord(row.series)?.id);
+    if (seriesId && seriesId > 0) ids.add(seriesId);
+  }
+
+  return ids;
 };
 
 const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
@@ -327,12 +395,15 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       } else {
         try {
           const radarrUrl = new URL('/api/v3/movie', radarrConfig.website_url);
-          const radarrRes = await fetch(radarrUrl.toString(), {
-            headers: {
-              'X-Api-Key': radarrConfig.api_key,
-              Accept: 'application/json',
-            },
-          });
+          const [radarrRes, queueIds] = await Promise.all([
+            fetch(radarrUrl.toString(), {
+              headers: {
+                'X-Api-Key': radarrConfig.api_key,
+                Accept: 'application/json',
+              },
+            }),
+            fetchRadarrDownloadingMovieIds(radarrConfig.website_url, radarrConfig.api_key).catch(() => new Set<number>()),
+          ]);
 
           if (!radarrRes.ok) {
             errors.radarr = `Radarr request failed with status ${radarrRes.status}`;
@@ -341,7 +412,14 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
             response.radarr_connected = true;
             response.items.push(
               ...movies
-                .map(movie => mapRadarrMovie(movie, radarrConfig.website_url))
+                .map(movie => {
+                  const item = mapRadarrMovie(movie, radarrConfig.website_url);
+                  if (!item) return null;
+                  return {
+                    ...item,
+                    downloading: !item.downloaded && queueIds.has(item.source_id),
+                  };
+                })
                 .filter((item): item is MediaItem => Boolean(item))
             );
           }
@@ -358,12 +436,17 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       } else {
         try {
           const sonarrUrl = new URL('/api/v3/series', sonarrConfig.website_url);
-          const sonarrRes = await fetch(sonarrUrl.toString(), {
-            headers: {
-              'X-Api-Key': sonarrConfig.api_key,
-              Accept: 'application/json',
-            },
-          });
+          const [sonarrRes, queueIds] = await Promise.all([
+            fetch(sonarrUrl.toString(), {
+              headers: {
+                'X-Api-Key': sonarrConfig.api_key,
+                Accept: 'application/json',
+              },
+            }),
+            fetchSonarrDownloadingSeriesIds(sonarrConfig.website_url, sonarrConfig.api_key).catch(
+              () => new Set<number>()
+            ),
+          ]);
 
           if (!sonarrRes.ok) {
             errors.sonarr = `Sonarr request failed with status ${sonarrRes.status}`;
@@ -372,7 +455,14 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
             response.sonarr_connected = true;
             response.items.push(
               ...series
-                .map(show => mapSonarrSeries(show, sonarrConfig.website_url))
+                .map(show => {
+                  const item = mapSonarrSeries(show, sonarrConfig.website_url);
+                  if (!item) return null;
+                  return {
+                    ...item,
+                    downloading: !item.downloaded && queueIds.has(item.source_id),
+                  };
+                })
                 .filter((item): item is MediaItem => Boolean(item))
             );
           }

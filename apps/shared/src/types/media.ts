@@ -9,6 +9,7 @@ export interface MediaItem {
   status: string | null;
   monitored: boolean;
   downloaded: boolean;
+  downloading: boolean;
   added_at: string | null;
   tmdb_id: number | null;
   imdb_id: string | null;

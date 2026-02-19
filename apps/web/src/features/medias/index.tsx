@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { PageLayout } from '../../components/PageLayout';
@@ -8,6 +8,7 @@ import { ArrowDownAZ, ArrowUpZA, Search } from 'lucide-react';
 import { TmdbMediaSearchPanel } from './components/TmdbMediaSearchPanel';
 import { toast } from 'sonner';
 import { InteractiveSearchDialog } from './components/InteractiveSearchDialog';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 type MediaFilter = 'all' | 'movie' | 'series';
 type SortKey = 'added_at' | 'title' | 'year' | 'service' | 'status' | 'downloaded' | 'monitored';
@@ -17,6 +18,13 @@ const getAddedTime = (item: MediaItem): number => {
   if (!item.added_at) return 0;
   const parsed = Date.parse(item.added_at);
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const getGridColumns = (width: number): number => {
+  if (width >= 1280) return 5;
+  if (width >= 1024) return 4;
+  if (width >= 768) return 3;
+  return 2;
 };
 
 export function MediasPage() {
@@ -153,17 +161,12 @@ export function MediasPage() {
               </div>
             ) : (
               <div className="p-4 sm:p-5">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {filtered.map(item => (
-                    <MediaGridCard
-                      key={item.id}
-                      item={item}
-                      onOpenInteractive={() => {
-                        setInteractiveItem(item);
-                      }}
-                    />
-                  ))}
-                </div>
+                <VirtualizedMediaGrid
+                  items={filtered}
+                  onOpenInteractive={item => {
+                    setInteractiveItem(item);
+                  }}
+                />
               </div>
             )}
           </div>
@@ -176,6 +179,75 @@ export function MediasPage() {
         </div>
       )}
     </PageLayout>
+  );
+}
+
+function VirtualizedMediaGrid({
+  items,
+  onOpenInteractive,
+}: {
+  items: MediaItem[];
+  onOpenInteractive: (item: MediaItem) => void;
+}) {
+  const parentRef = useRef<HTMLDivElement | null>(null);
+  const [columns, setColumns] = useState(2);
+  const rowCount = Math.ceil(items.length / columns);
+
+  useEffect(() => {
+    const el = parentRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(entries => {
+      const width = entries[0]?.contentRect.width ?? 0;
+      setColumns(getGridColumns(width));
+    });
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, []);
+
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 430,
+    overscan: 4,
+  });
+
+  return (
+    <div ref={parentRef} className="max-h-[72vh] overflow-auto pr-1">
+      <div
+        className="relative w-full"
+        style={{
+          height: `${rowVirtualizer.getTotalSize()}px`,
+        }}
+      >
+        {rowVirtualizer.getVirtualItems().map(virtualRow => {
+          const start = virtualRow.index * columns;
+          const rowItems = items.slice(start, start + columns);
+
+          return (
+            <div
+              key={virtualRow.key}
+              ref={rowVirtualizer.measureElement}
+              className="absolute left-0 top-0 w-full grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+              style={{
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              {rowItems.map(item => (
+                <MediaGridCard
+                  key={item.id}
+                  item={item}
+                  onOpenInteractive={() => {
+                    onOpenInteractive(item);
+                  }}
+                />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -201,7 +273,7 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-700/70 bg-white dark:bg-neutral-900 transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl">
-      <div className="relative aspect-[2/3] bg-neutral-100 dark:bg-neutral-800">
+      <div className="relative aspect-[2/3] bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
         {showImage ? (
           <img
             src={item.poster_url || ''}
@@ -214,7 +286,7 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
           <div className="h-full w-full flex items-center justify-center text-4xl">🎬</div>
         )}
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
+        <div className="pointer-events-none height-[110%] absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
 
         <div className="absolute left-2 top-2 inline-flex items-center rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
           {item.service === 'radarr' ? 'Radarr' : 'Sonarr'}
@@ -230,10 +302,18 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
             <span>{item.year ? String(item.year) : t('medias.unknownYear')}</span>
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                item.downloaded ? 'bg-emerald-500/85 text-white' : 'bg-amber-500/85 text-white'
+                item.downloaded
+                  ? 'bg-emerald-500/85 text-white'
+                  : item.downloading
+                    ? 'bg-sky-500/85 text-white'
+                    : 'bg-amber-500/85 text-white'
               }`}
             >
-              {item.downloaded ? t('medias.downloaded') : t('medias.missing')}
+              {item.downloaded
+                ? t('medias.downloaded')
+                : item.downloading
+                  ? t('medias.downloading')
+                  : t('medias.missing')}
             </span>
           </div>
         </div>
