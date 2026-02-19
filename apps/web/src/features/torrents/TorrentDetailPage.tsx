@@ -85,18 +85,17 @@ function getStatusConfig(state: string) {
   if (s === 'uploading') {
     return {
       labelKey: 'dashboard.qbittorrent.states.uploading',
-      dot: 'bg-violet-400',
+      dot: 'bg-orange-400',
       badge:
-        'text-violet-700 bg-violet-50 dark:text-violet-400 dark:bg-violet-400/10 border-violet-200 dark:border-violet-500/30',
+        'text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-400/10 border-orange-200 dark:border-orange-500/30',
       pulse: true,
     };
   }
   if (s === 'stalledup') {
     return {
       labelKey: 'dashboard.qbittorrent.states.stalledUp',
-      dot: 'bg-violet-400',
-      badge:
-        'text-violet-700 bg-violet-50 dark:text-violet-400 dark:bg-violet-400/10 border-violet-200 dark:border-violet-500/30',
+      dot: 'bg-rose-400',
+      badge: 'text-rose-700 bg-rose-50 dark:text-rose-400 dark:bg-rose-400/10 border-rose-200 dark:border-rose-500/30',
       pulse: false,
     };
   }
@@ -139,9 +138,9 @@ function getStatusConfig(state: string) {
   if (s === 'stalleddl') {
     return {
       labelKey: 'dashboard.qbittorrent.states.stalledDl',
-      dot: 'bg-orange-400',
+      dot: 'bg-yellow-400',
       badge:
-        'text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-400/10 border-orange-200 dark:border-orange-500/30',
+        'text-yellow-700 bg-yellow-50 dark:text-yellow-400 dark:bg-yellow-400/10 border-yellow-200 dark:border-yellow-500/30',
       pulse: false,
     };
   }
@@ -188,9 +187,9 @@ function getStatusConfig(state: string) {
   if (s === 'forcedup') {
     return {
       labelKey: 'dashboard.qbittorrent.states.forcedUp',
-      dot: 'bg-violet-400',
+      dot: 'bg-orange-400',
       badge:
-        'text-violet-700 bg-violet-50 dark:text-violet-400 dark:bg-violet-400/10 border-violet-200 dark:border-violet-500/30',
+        'text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-400/10 border-orange-200 dark:border-orange-500/30',
       pulse: true,
     };
   }
@@ -263,9 +262,14 @@ export function TorrentDetailPage() {
 
   const selectedTorrent = useMemo(() => torrentSnapshot?.torrent ?? null, [torrentSnapshot?.torrent]);
 
+  const isTransferring = (selectedTorrent?.download_speed ?? 0) > 0 || (selectedTorrent?.upload_speed ?? 0) > 0;
+
   const propertiesQuery = useQbittorrentTorrentProperties(torrentHash || null);
   const trackersQuery = useQbittorrentTorrentTrackers(torrentHash || null);
-  const filesQuery = useQbittorrentTorrentFiles(torrentHash || null);
+  const filesQuery = useQbittorrentTorrentFiles(
+    torrentHash || null,
+    activeTab === 'files' && isTransferring ? 2000 : false
+  );
 
   const renameTorrentMutation = useRenameQbittorrentTorrent(torrentHash);
   const renameFileMutation = useRenameQbittorrentTorrentFile(torrentHash);
@@ -619,11 +623,13 @@ export function TorrentDetailPage() {
                   label: t('torrents.download', 'Download'),
                   value: formatSpeed(selectedTorrent.download_speed),
                   Icon: TrendingDown,
+                  color: 'text-sky-600 dark:text-sky-400',
                 },
                 {
                   label: t('torrents.upload', 'Upload'),
                   value: formatSpeed(selectedTorrent.upload_speed),
                   Icon: TrendingUp,
+                  color: 'text-orange-500 dark:text-orange-400',
                 },
                 {
                   label: t('dashboard.qbittorrent.seeds', 'Seeds'),
@@ -632,13 +638,15 @@ export function TorrentDetailPage() {
                 },
                 { label: t('torrents.peers', 'Peers'), value: String(selectedTorrent.peers), Icon: Users },
                 { label: 'ETA', value: formatEta(selectedTorrent.eta_seconds), Icon: Clock },
-              ].map(({ label, value, Icon }) => (
+              ].map(({ label, value, Icon, color }) => (
                 <div key={label} className="bg-neutral-50/60 dark:bg-neutral-800/30 px-3 py-3">
                   <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-neutral-400 dark:text-neutral-400 font-medium mb-1">
                     <Icon size={10} />
                     {label}
                   </div>
-                  <p className="font-mono text-sm font-semibold text-neutral-900 dark:text-neutral-100 tabular-nums truncate">
+                  <p
+                    className={`font-mono text-sm font-semibold tabular-nums truncate ${color ?? 'text-neutral-900 dark:text-neutral-100'}`}
+                  >
                     {value}
                   </p>
                 </div>
@@ -1016,7 +1024,7 @@ export function TorrentDetailPage() {
                       <span className="font-mono text-[11px] text-sky-600 dark:text-sky-400 tabular-nums">
                         ↓ {peer.download_speed != null ? formatSpeed(peer.download_speed) : '--'}
                       </span>
-                      <span className="font-mono text-[11px] text-violet-600 dark:text-violet-400 tabular-nums">
+                      <span className="font-mono text-[11px] text-orange-500 dark:text-orange-400 tabular-nums">
                         ↑ {peer.upload_speed != null ? formatSpeed(peer.upload_speed) : '--'}
                       </span>
                     </div>

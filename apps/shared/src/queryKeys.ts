@@ -105,6 +105,7 @@ export const queryKeys = {
   medias: {
     all: ['medias'] as const,
     list: () => [...queryKeys.medias.all, 'list'] as const,
+    tmdbSearch: (query: string) => [...queryKeys.medias.all, 'tmdb-search', query] as const,
   },
 
   recipes: {

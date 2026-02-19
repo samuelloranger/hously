@@ -15,6 +15,7 @@ export interface MediaItem {
   tvdb_id: number | null;
   season_count: number | null;
   episode_count: number | null;
+  poster_url: string | null;
 }
 
 export interface MediasResponse {
@@ -23,6 +24,29 @@ export interface MediasResponse {
   radarr_connected: boolean;
   sonarr_connected: boolean;
   items: MediaItem[];
+  errors?: {
+    radarr?: string;
+    sonarr?: string;
+  };
+}
+
+export interface TmdbMediaSearchItem {
+  id: string;
+  tmdb_id: number;
+  media_type: 'movie' | 'tv';
+  title: string;
+  release_year: number | null;
+  poster_url: string | null;
+  service: 'radarr' | 'sonarr';
+  already_exists: boolean;
+  can_add: boolean;
+}
+
+export interface TmdbMediaSearchResponse {
+  enabled: boolean;
+  radarr_enabled: boolean;
+  sonarr_enabled: boolean;
+  items: TmdbMediaSearchItem[];
   errors?: {
     radarr?: string;
     sonarr?: string;

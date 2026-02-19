@@ -168,11 +168,7 @@ export const dashboardUpcomingRoutes = new Elysia()
           if (!addResponse.ok) {
             const debugText = await addResponse.text().catch(() => null);
             // Radarr returns 400 with MovieExistsValidator when the movie is already added
-            if (
-              addResponse.status === 400 &&
-              debugText &&
-              debugText.includes('MovieExistsValidator')
-            ) {
+            if (addResponse.status === 400 && debugText && debugText.includes('MovieExistsValidator')) {
               return {
                 success: true,
                 service: 'radarr',
