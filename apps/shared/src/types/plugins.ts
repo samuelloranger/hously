@@ -60,6 +60,12 @@ export interface WeatherPlugin {
   temperature_unit: 'fahrenheit' | 'celsius';
 }
 
+export interface TmdbPlugin {
+  type: 'tmdb';
+  enabled: boolean;
+  api_key: string;
+}
+
 export interface YggPlugin {
   type: 'ygg';
   enabled: boolean;
@@ -118,6 +124,11 @@ export interface NetdataPluginUpdateResponse {
 export interface WeatherPluginUpdateResponse {
   success: boolean;
   plugin: WeatherPlugin;
+}
+
+export interface TmdbPluginUpdateResponse {
+  success: boolean;
+  plugin: TmdbPlugin;
 }
 
 export interface YggPluginUpdateResponse {

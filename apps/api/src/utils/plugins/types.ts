@@ -31,6 +31,10 @@ export interface WeatherPluginConfig {
   temperature_unit: 'fahrenheit' | 'celsius';
 }
 
+export interface TmdbPluginConfig {
+  api_key: string;
+}
+
 export interface YggPluginConfig {
   flaresolverr_url?: string;
   ygg_url: string;

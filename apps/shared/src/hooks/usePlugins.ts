@@ -17,6 +17,8 @@ import type {
   ScrutinyPluginUpdateResponse,
   SonarrPlugin,
   SonarrPluginUpdateResponse,
+  TmdbPlugin,
+  TmdbPluginUpdateResponse,
   TrackerPlugin,
   TrackerPluginUpdateResponse,
   TrackerType,
@@ -150,6 +152,16 @@ export function useWeatherPlugin() {
   return useQuery({
     queryKey: queryKeys.plugins.weather(),
     queryFn: () => fetcher<{ plugin: WeatherPlugin }>(PLUGIN_ENDPOINTS.WEATHER),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useTmdbPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.tmdb(),
+    queryFn: () => fetcher<{ plugin: TmdbPlugin }>(PLUGIN_ENDPOINTS.TMDB),
     refetchOnMount: 'always',
     staleTime: 0,
   });
@@ -309,6 +321,22 @@ export function useUpdateWeatherPlugin() {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.weather() });
       queryClient.invalidateQueries({ queryKey: queryKeys.weather.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.weather.current() });
+    },
+  });
+}
+
+export function useUpdateTmdbPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { api_key: string; enabled: boolean }) =>
+      fetcher<TmdbPluginUpdateResponse>(PLUGIN_ENDPOINTS.TMDB, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.tmdb() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() });
     },
   });
 }

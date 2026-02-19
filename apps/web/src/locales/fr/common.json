@@ -154,7 +154,7 @@
       "tv": "Série",
       "unknownDate": "À venir",
       "notConfiguredTitle": "Le flux TMDB n'est pas configuré",
-      "notConfiguredDescription": "Ajoutez TMDB_API_KEY dans l'environnement de l'API pour activer les sorties à venir.",
+      "notConfiguredDescription": "Allez dans Paramètres > Plugins et configurez le plugin TMDB pour activer les sorties à venir.",
       "emptyTitle": "Aucune sortie à venir trouvée",
       "emptyDescription": "Réessayez plus tard pour voir les nouvelles sorties.",
       "searchOnAdd": "Rechercher à l'ajout",
@@ -863,6 +863,11 @@
         "apiKey": "Clé API Jellyfin",
         "apiKeyPlaceholder": "Collez votre clé API Jellyfin"
       },
+      "tmdb": {
+        "help": "Configurez TMDB pour que les sorties à venir et la recherche médias interrogent TMDB depuis le serveur.",
+        "apiKey": "Clé API TMDB",
+        "apiKeyPlaceholder": "Collez votre clé API TMDB"
+      },
       "radarr": {
         "help": "Connectez Radarr pour ajouter les films à venir directement depuis le tableau de bord.",
         "websiteUrl": "URL Radarr",
@@ -1206,6 +1211,26 @@
     "unknownYear": "Année inconnue",
     "seriesMeta": "{{seasons}} saisons • {{episodes}} épisodes",
     "unknownStatus": "Statut inconnu",
+    "viewInArr": "Voir dans Arr",
+    "autoSearch": {
+      "button": "Auto Search",
+      "running": "Recherche...",
+      "success": "Recherche automatique lancée dans {{service}}.",
+      "failed": "Impossible de lancer la recherche automatique."
+    },
+    "interactive": {
+      "button": "Recherche interactive",
+      "title": "Recherche interactive : {{title}}",
+      "loading": "Chargement des releases...",
+      "empty": "Aucune release trouvée.",
+      "download": "Télécharger cette release",
+      "downloading": "Démarrage...",
+      "downloadStarted": "Téléchargement de la release lancé.",
+      "downloadFailed": "Impossible de lancer le téléchargement de la release.",
+      "unknownIndexer": "Indexer inconnu",
+      "age": "Âge : {{age}}j",
+      "seedersLeechers": "S/L : {{seeders}}/{{leechers}}"
+    },
     "empty": "Aucun média trouvé.",
     "noResults": "Aucun média ne correspond à vos filtres.",
     "notConfiguredTitle": "Radarr et Sonarr ne sont pas configurés",

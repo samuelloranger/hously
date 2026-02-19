@@ -11,6 +11,7 @@ import {
   normalizeRadarrConfig,
   normalizeScrutinyConfig,
   normalizeSonarrConfig,
+  normalizeTmdbConfig,
   normalizeTrackerConfig,
   normalizeWeatherConfig,
 } from '../utils/plugins/normalizers';
@@ -1066,6 +1067,108 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       body: t.Object({
         address: t.String(),
         temperature_unit: t.Union([t.Literal('fahrenheit'), t.Literal('celsius')]),
+        enabled: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  .get('/tmdb', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    if (!user.is_admin) {
+      set.status = 403;
+      return { error: 'Admin privileges required' };
+    }
+
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'tmdb' },
+      });
+      const config = normalizeTmdbConfig(plugin?.config);
+
+      return {
+        plugin: {
+          type: 'tmdb',
+          enabled: plugin?.enabled || false,
+          api_key: config?.api_key || '',
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching TMDB plugin config:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch TMDB plugin config' };
+    }
+  })
+  .put(
+    '/tmdb',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: 'Admin privileges required' };
+      }
+
+      const apiKey = body.api_key.trim();
+      const enabled = body.enabled ?? true;
+
+      if (!apiKey) {
+        set.status = 400;
+        return { error: 'api_key is required' };
+      }
+
+      try {
+        const now = nowUtc();
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'tmdb' },
+          update: {
+            enabled,
+            config: {
+              api_key: apiKey,
+            },
+            updatedAt: now,
+          },
+          create: {
+            type: 'tmdb',
+            enabled,
+            config: {
+              api_key: apiKey,
+            },
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        enqueueTask('activity:plugin_updated:tmdb', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'tmdb' },
+          });
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            api_key: apiKey,
+          },
+        };
+      } catch (error) {
+        console.error('Error saving TMDB plugin config:', error);
+        set.status = 500;
+        return { error: 'Failed to save TMDB plugin config' };
+      }
+    },
+    {
+      body: t.Object({
+        api_key: t.String(),
         enabled: t.Optional(t.Boolean()),
       }),
     }

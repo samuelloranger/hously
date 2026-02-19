@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Search } from 'lucide-react';
-import { useAddUpcomingToArr, useTmdbMediaSearch, type TmdbMediaSearchItem } from '@hously/shared';
+import {
+  useAddUpcomingToArr,
+  useMediaAutoSearch,
+  useTmdbMediaSearch,
+  type TmdbMediaSearchItem,
+} from '@hously/shared';
 
 interface TmdbMediaSearchPanelProps {
   onAdded?: () => void;
@@ -24,6 +29,7 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
   const searchEnabled = debounced.length >= 2;
   const searchQuery = useTmdbMediaSearch(debounced, { enabled: searchEnabled });
   const addMutation = useAddUpcomingToArr();
+  const autoSearchMutation = useMediaAutoSearch();
 
   const results = useMemo(() => searchQuery.data?.items ?? [], [searchQuery.data?.items]);
 
@@ -48,6 +54,23 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
       onAdded?.();
     } catch (error) {
       const message = error instanceof Error ? error.message : t('medias.tmdb.addFailed');
+      toast.error(message);
+    }
+  };
+
+  const triggerAutoSearch = async (item: TmdbMediaSearchItem) => {
+    if (!item.already_exists || !item.can_add || autoSearchMutation.isPending) return;
+
+    try {
+      await autoSearchMutation.mutateAsync({
+        service: item.service,
+        source_id: item.source_id ?? 0,
+      });
+      toast.success(
+        t('medias.autoSearch.success', { service: item.service === 'radarr' ? 'Radarr' : 'Sonarr' })
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('medias.autoSearch.failed');
       toast.error(message);
     }
   };
@@ -78,20 +101,13 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {results.map(item => {
-                const disabled = item.already_exists || !item.can_add || addMutation.isPending;
+                const addDisabled = item.already_exists || !item.can_add || addMutation.isPending;
+                const canView = item.already_exists && Boolean(item.arr_url);
+                const canAutoSearch = item.already_exists && item.can_add && typeof item.source_id === 'number';
                 return (
-                  <button
+                  <div
                     key={item.id}
-                    type="button"
-                    onClick={() => {
-                      void addItem(item);
-                    }}
-                    disabled={disabled}
-                    className={`text-left rounded-xl border p-2.5 flex gap-2.5 transition-colors ${
-                      disabled
-                        ? 'border-neutral-200 dark:border-neutral-700 bg-neutral-100/70 dark:bg-neutral-800/60 cursor-not-allowed'
-                        : 'border-neutral-200 dark:border-neutral-700 hover:border-indigo-400 dark:hover:border-indigo-500 bg-white dark:bg-neutral-900'
-                    }`}
+                    className="text-left rounded-xl border p-2.5 flex gap-2.5 transition-colors border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900"
                   >
                     <div className="w-12 h-16 shrink-0 rounded-md overflow-hidden bg-neutral-200 dark:bg-neutral-700">
                       {item.poster_url ? (
@@ -124,8 +140,49 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
                           </span>
                         )}
                       </div>
+
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {!item.already_exists ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void addItem(item);
+                            }}
+                            disabled={addDisabled}
+                            className="rounded-md bg-indigo-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+                          >
+                            {addMutation.isPending ? t('medias.tmdb.adding') : t('medias.tmdb.add')}
+                          </button>
+                        ) : null}
+
+                        {canAutoSearch ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void triggerAutoSearch(item);
+                            }}
+                            disabled={autoSearchMutation.isPending}
+                            className="rounded-md border border-neutral-300 dark:border-neutral-600 px-2.5 py-1 text-[11px] font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-60"
+                          >
+                            {autoSearchMutation.isPending
+                              ? t('medias.autoSearch.running')
+                              : t('medias.autoSearch.button')}
+                          </button>
+                        ) : null}
+
+                        {canView ? (
+                          <a
+                            href={item.arr_url || undefined}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-md border border-neutral-300 dark:border-neutral-600 px-2.5 py-1 text-[11px] font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                          >
+                            {t('medias.viewInArr')}
+                          </a>
+                        ) : null}
+                      </div>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>

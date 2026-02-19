@@ -83,6 +83,7 @@ export const queryKeys = {
     scrutiny: () => [...queryKeys.plugins.all, 'scrutiny'] as const,
     netdata: () => [...queryKeys.plugins.all, 'netdata'] as const,
     weather: () => [...queryKeys.plugins.all, 'weather'] as const,
+    tmdb: () => [...queryKeys.plugins.all, 'tmdb'] as const,
     ygg: () => queryKeys.plugins.tracker('ygg'),
   },
 
@@ -106,6 +107,8 @@ export const queryKeys = {
     all: ['medias'] as const,
     list: () => [...queryKeys.medias.all, 'list'] as const,
     tmdbSearch: (query: string) => [...queryKeys.medias.all, 'tmdb-search', query] as const,
+    interactiveSearch: (service: 'radarr' | 'sonarr', sourceId: number) =>
+      [...queryKeys.medias.all, 'interactive-search', service, sourceId] as const,
   },
 
   recipes: {

@@ -155,7 +155,7 @@
       "tv": "TV",
       "unknownDate": "TBA",
       "notConfiguredTitle": "TMDB feed is not configured",
-      "notConfiguredDescription": "Set TMDB_API_KEY in your API environment to enable upcoming releases.",
+      "notConfiguredDescription": "Open Settings > Plugins and configure the TMDB plugin to enable upcoming releases.",
       "emptyTitle": "No upcoming releases found",
       "emptyDescription": "Try again later for the newest release calendar.",
       "searchOnAdd": "Search on add",
@@ -864,6 +864,11 @@
         "apiKey": "Jellyfin API Key",
         "apiKeyPlaceholder": "Paste your Jellyfin API key"
       },
+      "tmdb": {
+        "help": "Configure TMDB so upcoming releases and media search can query TMDB from the server.",
+        "apiKey": "TMDB API Key",
+        "apiKeyPlaceholder": "Paste your TMDB API key"
+      },
       "radarr": {
         "help": "Connect Radarr to add upcoming movies directly from the dashboard.",
         "websiteUrl": "Radarr URL",
@@ -1162,6 +1167,26 @@
     "unknownYear": "Unknown year",
     "seriesMeta": "{{seasons}} seasons • {{episodes}} episodes",
     "unknownStatus": "Unknown status",
+    "viewInArr": "View in Arr",
+    "autoSearch": {
+      "button": "Auto Search",
+      "running": "Searching...",
+      "success": "Auto search started in {{service}}.",
+      "failed": "Failed to start auto search."
+    },
+    "interactive": {
+      "button": "Interactive Search",
+      "title": "Interactive Search: {{title}}",
+      "loading": "Loading releases...",
+      "empty": "No releases found.",
+      "download": "Download this release",
+      "downloading": "Starting...",
+      "downloadStarted": "Release download started.",
+      "downloadFailed": "Failed to start release download.",
+      "unknownIndexer": "Unknown indexer",
+      "age": "Age: {{age}}d",
+      "seedersLeechers": "S/L: {{seeders}}/{{leechers}}"
+    },
     "empty": "No media found.",
     "noResults": "No media matches your filters.",
     "notConfiguredTitle": "Radarr and Sonarr are not configured",

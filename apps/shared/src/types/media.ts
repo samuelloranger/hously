@@ -16,6 +16,7 @@ export interface MediaItem {
   season_count: number | null;
   episode_count: number | null;
   poster_url: string | null;
+  arr_url: string | null;
 }
 
 export interface MediasResponse {
@@ -40,6 +41,8 @@ export interface TmdbMediaSearchItem {
   service: 'radarr' | 'sonarr';
   already_exists: boolean;
   can_add: boolean;
+  source_id: number | null;
+  arr_url: string | null;
 }
 
 export interface TmdbMediaSearchResponse {
@@ -51,4 +54,34 @@ export interface TmdbMediaSearchResponse {
     radarr?: string;
     sonarr?: string;
   };
+}
+
+export interface MediaAutoSearchResponse {
+  success: boolean;
+  service: 'radarr' | 'sonarr';
+}
+
+export interface InteractiveReleaseItem {
+  guid: string;
+  title: string;
+  indexer: string | null;
+  indexer_id: number | null;
+  protocol: string | null;
+  size_bytes: number | null;
+  age: number | null;
+  seeders: number | null;
+  leechers: number | null;
+  rejected: boolean;
+  rejection_reason: string | null;
+}
+
+export interface MediaInteractiveSearchResponse {
+  success: boolean;
+  service: 'radarr' | 'sonarr';
+  releases: InteractiveReleaseItem[];
+}
+
+export interface MediaInteractiveDownloadResponse {
+  success: boolean;
+  service: 'radarr' | 'sonarr';
 }

@@ -63,6 +63,8 @@ import type {
   ScrutinyPluginUpdateResponse,
   SonarrPlugin,
   SonarrPluginUpdateResponse,
+  TmdbPlugin,
+  TmdbPluginUpdateResponse,
   TemplateResponse,
   TemplatesResponse,
   TestEmailResponse,
@@ -190,7 +192,6 @@ export function createAuthApi(fetcher: ApiFetcher, options: AuthApiOptions = {})
       first_name: 'first_name' in data ? data.first_name : camel.firstName,
       last_name: 'last_name' in data ? data.last_name : camel.lastName,
       locale: data.locale ?? null,
-      dashboard_config: 'dashboard_config' in data ? data.dashboard_config : undefined,
     };
 
     return fetcher<AuthenticatedUserResponse>(USERS_ENDPOINTS.ME, {
@@ -595,6 +596,12 @@ export function createPluginsApi(fetcher: ApiFetcher) {
     getNetdataPlugin: () => fetcher<{ plugin: NetdataPlugin }>(PLUGIN_ENDPOINTS.NETDATA),
     updateNetdataPlugin: (data: { website_url: string; enabled: boolean }) =>
       fetcher<NetdataPluginUpdateResponse>(PLUGIN_ENDPOINTS.NETDATA, {
+        method: 'PUT',
+        body: data,
+      }),
+    getTmdbPlugin: () => fetcher<{ plugin: TmdbPlugin }>(PLUGIN_ENDPOINTS.TMDB),
+    updateTmdbPlugin: (data: { api_key: string; enabled: boolean }) =>
+      fetcher<TmdbPluginUpdateResponse>(PLUGIN_ENDPOINTS.TMDB, {
         method: 'PUT',
         body: data,
       }),

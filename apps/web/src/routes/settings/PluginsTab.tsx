@@ -6,6 +6,7 @@ import {
   RadarrPluginSection,
   ScrutinyPluginSection,
   SonarrPluginSection,
+  TmdbPluginSection,
   TrackersPluginSection,
   WeatherPluginSection,
 } from './components/plugins';
@@ -20,6 +21,7 @@ export function PluginsTab() {
         <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">{t('settings.plugins.description')}</p>
       </div>
       <WeatherPluginSection />
+      <TmdbPluginSection />
       <JellyfinPluginSection />
       <RadarrPluginSection />
       <SonarrPluginSection />

@@ -4,6 +4,7 @@ import type {
   RadarrPluginConfig,
   ScrutinyPluginConfig,
   SonarrPluginConfig,
+  TmdbPluginConfig,
   TrackerPluginConfig,
   TrackerType,
   WeatherPluginConfig,
@@ -121,6 +122,16 @@ export const normalizeWeatherConfig = (config: unknown): WeatherPluginConfig | n
   return {
     address,
     temperature_unit: temperatureUnit,
+  };
+};
+
+export const normalizeTmdbConfig = (config: unknown): TmdbPluginConfig | null => {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+  const cfg = config as Record<string, unknown>;
+  const apiKey = typeof cfg.api_key === 'string' ? cfg.api_key.trim() : '';
+  if (!apiKey) return null;
+  return {
+    api_key: apiKey,
   };
 };
 

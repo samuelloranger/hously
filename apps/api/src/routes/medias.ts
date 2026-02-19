@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { auth } from '../auth';
 import { prisma } from '../db';
-import { normalizeRadarrConfig, normalizeSonarrConfig } from '../utils/plugins/normalizers';
+import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../utils/plugins/normalizers';
 import type { MediaItem } from '@hously/shared';
 
 type TmdbSearchItem = {
@@ -14,6 +14,22 @@ type TmdbSearchItem = {
   service: 'radarr' | 'sonarr';
   already_exists: boolean;
   can_add: boolean;
+  source_id: number | null;
+  arr_url: string | null;
+};
+
+type InteractiveReleaseItem = {
+  guid: string;
+  title: string;
+  indexer: string | null;
+  indexer_id: number | null;
+  protocol: string | null;
+  size_bytes: number | null;
+  age: number | null;
+  seeders: number | null;
+  leechers: number | null;
+  rejected: boolean;
+  rejection_reason: string | null;
 };
 
 const toRecord = (value: unknown): Record<string, unknown> | null =>
@@ -48,6 +64,15 @@ const resolveImageUrl = (baseUrl: string, value: unknown): string | null => {
   if (/^https?:\/\//i.test(raw)) return raw;
   try {
     return new URL(raw.startsWith('/') ? raw : `/${raw}`, baseUrl).toString();
+  } catch {
+    return null;
+  }
+};
+
+const buildArrItemUrl = (baseUrl: string, service: 'radarr' | 'sonarr', sourceId: number): string | null => {
+  try {
+    const path = service === 'radarr' ? `/movie/${sourceId}` : `/series/${sourceId}`;
+    return new URL(path, baseUrl).toString();
   } catch {
     return null;
   }
@@ -106,6 +131,7 @@ const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null => {
     season_count: null,
     episode_count: null,
     poster_url: extractPosterUrl(baseUrl, row.images),
+    arr_url: buildArrItemUrl(baseUrl, 'radarr', sourceId),
   };
 };
 
@@ -148,6 +174,7 @@ const mapSonarrSeries = (raw: unknown, baseUrl: string): MediaItem | null => {
     season_count: seasonCount,
     episode_count: episodeCount,
     poster_url: extractPosterUrl(baseUrl, row.images),
+    arr_url: buildArrItemUrl(baseUrl, 'sonarr', sourceId),
   };
 };
 
@@ -177,10 +204,12 @@ const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
     service: mediaType === 'movie' ? 'radarr' : 'sonarr',
     already_exists: false,
     can_add: false,
+    source_id: null,
+    arr_url: null,
   };
 };
 
-const fetchRadarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Set<number>> => {
+const fetchRadarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Map<number, number>> => {
   const url = new URL('/api/v3/movie', websiteUrl);
   const response = await fetch(url.toString(), {
     headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
@@ -188,16 +217,17 @@ const fetchRadarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<S
   if (!response.ok) throw new Error(`Radarr request failed with status ${response.status}`);
 
   const data = (await response.json()) as unknown[];
-  const ids = new Set<number>();
+  const ids = new Map<number, number>();
   for (const raw of data) {
     const row = toRecord(raw);
     const tmdbId = row ? toNumberOrNull(row.tmdbId) : null;
-    if (tmdbId && tmdbId > 0) ids.add(tmdbId);
+    const sourceId = row ? toNumberOrNull(row.id) : null;
+    if (tmdbId && tmdbId > 0 && sourceId && sourceId > 0) ids.set(tmdbId, sourceId);
   }
   return ids;
 };
 
-const fetchSonarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Set<number>> => {
+const fetchSonarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Map<number, number>> => {
   const url = new URL('/api/v3/series', websiteUrl);
   const response = await fetch(url.toString(), {
     headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
@@ -205,13 +235,49 @@ const fetchSonarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<S
   if (!response.ok) throw new Error(`Sonarr request failed with status ${response.status}`);
 
   const data = (await response.json()) as unknown[];
-  const ids = new Set<number>();
+  const ids = new Map<number, number>();
   for (const raw of data) {
     const row = toRecord(raw);
     const tmdbId = row ? toNumberOrNull(row.tmdbId) : null;
-    if (tmdbId && tmdbId > 0) ids.add(tmdbId);
+    const sourceId = row ? toNumberOrNull(row.id) : null;
+    if (tmdbId && tmdbId > 0 && sourceId && sourceId > 0) ids.set(tmdbId, sourceId);
   }
   return ids;
+};
+
+const mapInteractiveRelease = (raw: unknown): InteractiveReleaseItem | null => {
+  const row = toRecord(raw);
+  if (!row) return null;
+
+  const guid = toStringOrNull(row.guid);
+  const title = toStringOrNull(row.title);
+  if (!guid || !title) return null;
+
+  const rejections = Array.isArray(row.rejections) ? row.rejections : [];
+  const rejectionReason =
+    rejections.length > 0
+      ? rejections
+          .map(r => {
+            const record = toRecord(r);
+            return toStringOrNull(record?.reason) || toStringOrNull(record?.type) || null;
+          })
+          .filter((v): v is string => Boolean(v))
+          .join(', ')
+      : null;
+
+  return {
+    guid,
+    title,
+    indexer: toStringOrNull(row.indexer),
+    indexer_id: toNumberOrNull(row.indexerId),
+    protocol: toStringOrNull(row.protocol),
+    size_bytes: toNumberOrNull(row.size),
+    age: toNumberOrNull(row.age),
+    seeders: toNumberOrNull(row.seeders),
+    leechers: toNumberOrNull(row.leechers),
+    rejected: toBoolean(row.rejected),
+    rejection_reason: rejectionReason,
+  };
 };
 
 export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
@@ -351,12 +417,6 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
         };
       }
 
-      const tmdbApiKey = process.env.TMDB_API_KEY?.trim();
-      if (!tmdbApiKey) {
-        set.status = 400;
-        return { error: 'TMDB is not configured' };
-      }
-
       const response: {
         enabled: boolean;
         radarr_enabled: boolean;
@@ -372,7 +432,11 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       const errors: { radarr?: string; sonarr?: string } = {};
 
       try {
-        const [radarrPlugin, sonarrPlugin] = await Promise.all([
+        const [tmdbPlugin, radarrPlugin, sonarrPlugin] = await Promise.all([
+          prisma.plugin.findFirst({
+            where: { type: 'tmdb' },
+            select: { enabled: true, config: true },
+          }),
           prisma.plugin.findFirst({
             where: { type: 'radarr' },
             select: { enabled: true, config: true },
@@ -383,13 +447,19 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
           }),
         ]);
 
+        const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+        if (!tmdbConfig) {
+          set.status = 400;
+          return { error: 'TMDB is not configured' };
+        }
+
         const radarrConfig = radarrPlugin?.enabled ? normalizeRadarrConfig(radarrPlugin.config) : null;
         const sonarrConfig = sonarrPlugin?.enabled ? normalizeSonarrConfig(sonarrPlugin.config) : null;
         response.radarr_enabled = Boolean(radarrConfig);
         response.sonarr_enabled = Boolean(sonarrConfig);
 
         const searchUrl = new URL('https://api.themoviedb.org/3/search/multi');
-        searchUrl.searchParams.set('api_key', tmdbApiKey);
+        searchUrl.searchParams.set('api_key', tmdbConfig.api_key);
         searchUrl.searchParams.set('query', q);
         searchUrl.searchParams.set('include_adult', 'false');
         searchUrl.searchParams.set('language', 'en-US');
@@ -407,8 +477,8 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
           .filter((item): item is TmdbSearchItem => Boolean(item))
           .slice(0, 20);
 
-        let radarrIds = new Set<number>();
-        let sonarrIds = new Set<number>();
+        let radarrIds = new Map<number, number>();
+        let sonarrIds = new Map<number, number>();
 
         await Promise.all([
           (async () => {
@@ -431,10 +501,14 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
 
         items = items.map(item => {
           const isMovie = item.media_type === 'movie';
+          const sourceId = isMovie ? radarrIds.get(item.tmdb_id) : sonarrIds.get(item.tmdb_id);
+          const sourceBaseUrl = isMovie ? radarrConfig?.website_url : sonarrConfig?.website_url;
           return {
             ...item,
             already_exists: isMovie ? radarrIds.has(item.tmdb_id) : sonarrIds.has(item.tmdb_id),
             can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
+            source_id: sourceId ?? null,
+            arr_url: sourceBaseUrl && sourceId ? buildArrItemUrl(sourceBaseUrl, item.service, sourceId) : null,
           };
         });
 
@@ -450,6 +524,343 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
     {
       query: t.Object({
         q: t.String(),
+      }),
+    }
+  )
+  .post(
+    '/:service/:sourceId/auto-search',
+    async ({ user, set, params }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const service = params.service === 'radarr' || params.service === 'sonarr' ? params.service : null;
+      const sourceId = parseInt(params.sourceId, 10);
+
+      if (!service) {
+        set.status = 400;
+        return { error: 'Invalid service' };
+      }
+      if (!Number.isFinite(sourceId) || sourceId <= 0) {
+        set.status = 400;
+        return { error: 'Invalid source ID' };
+      }
+
+      try {
+        if (service === 'radarr') {
+          const radarrPlugin = await prisma.plugin.findFirst({
+            where: { type: 'radarr' },
+            select: { enabled: true, config: true },
+          });
+          if (!radarrPlugin?.enabled) {
+            set.status = 400;
+            return { error: 'Radarr plugin is not enabled' };
+          }
+
+          const config = normalizeRadarrConfig(radarrPlugin.config);
+          if (!config) {
+            set.status = 400;
+            return { error: 'Radarr plugin is not configured' };
+          }
+
+          const commandUrl = new URL('/api/v3/command', config.website_url);
+          const commandRes = await fetch(commandUrl.toString(), {
+            method: 'POST',
+            headers: {
+              'X-Api-Key': config.api_key,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            body: JSON.stringify({
+              name: 'MoviesSearch',
+              movieIds: [sourceId],
+            }),
+          });
+
+          if (!commandRes.ok) {
+            set.status = 502;
+            return { error: `Radarr auto-search failed with status ${commandRes.status}` };
+          }
+
+          return { success: true, service: 'radarr' as const };
+        }
+
+        const sonarrPlugin = await prisma.plugin.findFirst({
+          where: { type: 'sonarr' },
+          select: { enabled: true, config: true },
+        });
+        if (!sonarrPlugin?.enabled) {
+          set.status = 400;
+          return { error: 'Sonarr plugin is not enabled' };
+        }
+
+        const config = normalizeSonarrConfig(sonarrPlugin.config);
+        if (!config) {
+          set.status = 400;
+          return { error: 'Sonarr plugin is not configured' };
+        }
+
+        const commandUrl = new URL('/api/v3/command', config.website_url);
+        const commandRes = await fetch(commandUrl.toString(), {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': config.api_key,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            name: 'SeriesSearch',
+            seriesId: sourceId,
+          }),
+        });
+
+        if (!commandRes.ok) {
+          set.status = 502;
+          return { error: `Sonarr auto-search failed with status ${commandRes.status}` };
+        }
+
+        return { success: true, service: 'sonarr' as const };
+      } catch (error) {
+        console.error('Error running auto-search:', error);
+        set.status = 500;
+        return { error: 'Failed to run auto-search' };
+      }
+    },
+    {
+      params: t.Object({
+        service: t.String(),
+        sourceId: t.String(),
+      }),
+    }
+  )
+  .get(
+    '/:service/:sourceId/interactive-search',
+    async ({ user, set, params }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const service = params.service === 'radarr' || params.service === 'sonarr' ? params.service : null;
+      const sourceId = parseInt(params.sourceId, 10);
+
+      if (!service) {
+        set.status = 400;
+        return { error: 'Invalid service' };
+      }
+      if (!Number.isFinite(sourceId) || sourceId <= 0) {
+        set.status = 400;
+        return { error: 'Invalid source ID' };
+      }
+
+      try {
+        if (service === 'radarr') {
+          const plugin = await prisma.plugin.findFirst({
+            where: { type: 'radarr' },
+            select: { enabled: true, config: true },
+          });
+          if (!plugin?.enabled) {
+            set.status = 400;
+            return { error: 'Radarr plugin is not enabled' };
+          }
+
+          const config = normalizeRadarrConfig(plugin.config);
+          if (!config) {
+            set.status = 400;
+            return { error: 'Radarr plugin is not configured' };
+          }
+
+          const url = new URL('/api/v3/release', config.website_url);
+          url.searchParams.set('movieId', String(sourceId));
+          const releaseRes = await fetch(url.toString(), {
+            headers: {
+              'X-Api-Key': config.api_key,
+              Accept: 'application/json',
+            },
+          });
+
+          if (!releaseRes.ok) {
+            set.status = 502;
+            return { error: `Radarr interactive search failed with status ${releaseRes.status}` };
+          }
+
+          const releases = (await releaseRes.json()) as unknown[];
+          return {
+            success: true,
+            service: 'radarr' as const,
+            releases: releases.map(mapInteractiveRelease).filter((r): r is InteractiveReleaseItem => Boolean(r)),
+          };
+        }
+
+        const plugin = await prisma.plugin.findFirst({
+          where: { type: 'sonarr' },
+          select: { enabled: true, config: true },
+        });
+        if (!plugin?.enabled) {
+          set.status = 400;
+          return { error: 'Sonarr plugin is not enabled' };
+        }
+
+        const config = normalizeSonarrConfig(plugin.config);
+        if (!config) {
+          set.status = 400;
+          return { error: 'Sonarr plugin is not configured' };
+        }
+
+        const url = new URL('/api/v3/release', config.website_url);
+        url.searchParams.set('seriesId', String(sourceId));
+        const releaseRes = await fetch(url.toString(), {
+          headers: {
+            'X-Api-Key': config.api_key,
+            Accept: 'application/json',
+          },
+        });
+
+        if (!releaseRes.ok) {
+          set.status = 502;
+          return { error: `Sonarr interactive search failed with status ${releaseRes.status}` };
+        }
+
+        const releases = (await releaseRes.json()) as unknown[];
+        return {
+          success: true,
+          service: 'sonarr' as const,
+          releases: releases.map(mapInteractiveRelease).filter((r): r is InteractiveReleaseItem => Boolean(r)),
+        };
+      } catch (error) {
+        console.error('Error loading interactive search releases:', error);
+        set.status = 500;
+        return { error: 'Failed to load interactive search releases' };
+      }
+    },
+    {
+      params: t.Object({
+        service: t.String(),
+        sourceId: t.String(),
+      }),
+    }
+  )
+  .post(
+    '/:service/:sourceId/interactive-search/download',
+    async ({ user, set, params, body }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const service = params.service === 'radarr' || params.service === 'sonarr' ? params.service : null;
+      const sourceId = parseInt(params.sourceId, 10);
+      const guid = body.guid.trim();
+      const indexerId = body.indexer_id;
+
+      if (!service) {
+        set.status = 400;
+        return { error: 'Invalid service' };
+      }
+      if (!Number.isFinite(sourceId) || sourceId <= 0) {
+        set.status = 400;
+        return { error: 'Invalid source ID' };
+      }
+      if (!guid) {
+        set.status = 400;
+        return { error: 'Invalid release GUID' };
+      }
+      if (!Number.isFinite(indexerId) || indexerId <= 0) {
+        set.status = 400;
+        return { error: 'Invalid indexer ID' };
+      }
+
+      try {
+        if (service === 'radarr') {
+          const plugin = await prisma.plugin.findFirst({
+            where: { type: 'radarr' },
+            select: { enabled: true, config: true },
+          });
+          if (!plugin?.enabled) {
+            set.status = 400;
+            return { error: 'Radarr plugin is not enabled' };
+          }
+
+          const config = normalizeRadarrConfig(plugin.config);
+          if (!config) {
+            set.status = 400;
+            return { error: 'Radarr plugin is not configured' };
+          }
+
+          const commandUrl = new URL('/api/v3/command', config.website_url);
+          const commandRes = await fetch(commandUrl.toString(), {
+            method: 'POST',
+            headers: {
+              'X-Api-Key': config.api_key,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            body: JSON.stringify({
+              name: 'DownloadRelease',
+              guid,
+              indexerId,
+            }),
+          });
+
+          if (!commandRes.ok) {
+            set.status = 502;
+            return { error: `Radarr download release failed with status ${commandRes.status}` };
+          }
+
+          return { success: true, service: 'radarr' as const };
+        }
+
+        const plugin = await prisma.plugin.findFirst({
+          where: { type: 'sonarr' },
+          select: { enabled: true, config: true },
+        });
+        if (!plugin?.enabled) {
+          set.status = 400;
+          return { error: 'Sonarr plugin is not enabled' };
+        }
+
+        const config = normalizeSonarrConfig(plugin.config);
+        if (!config) {
+          set.status = 400;
+          return { error: 'Sonarr plugin is not configured' };
+        }
+
+        const commandUrl = new URL('/api/v3/command', config.website_url);
+        const commandRes = await fetch(commandUrl.toString(), {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': config.api_key,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            name: 'DownloadRelease',
+            guid,
+            indexerId,
+          }),
+        });
+
+        if (!commandRes.ok) {
+          set.status = 502;
+          return { error: `Sonarr download release failed with status ${commandRes.status}` };
+        }
+
+        return { success: true, service: 'sonarr' as const };
+      } catch (error) {
+        console.error('Error downloading interactive release:', error);
+        set.status = 500;
+        return { error: 'Failed to download release' };
+      }
+    },
+    {
+      params: t.Object({
+        service: t.String(),
+        sourceId: t.String(),
+      }),
+      body: t.Object({
+        guid: t.String(),
+        indexer_id: t.Numeric(),
       }),
     }
   );

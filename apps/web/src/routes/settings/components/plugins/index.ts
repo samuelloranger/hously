@@ -6,6 +6,7 @@ export { QbittorrentPluginSection } from './QbittorrentPluginSection';
 export { RadarrPluginSection } from './RadarrPluginSection';
 export { ScrutinyPluginSection } from './ScrutinyPluginSection';
 export { SonarrPluginSection } from './SonarrPluginSection';
+export { TmdbPluginSection } from './TmdbPluginSection';
 export { TrackersPluginSection } from './TrackersPluginSection';
 export { WeatherPluginSection } from './WeatherPluginSection';
 export { YggPluginSection } from './YggPluginSection';

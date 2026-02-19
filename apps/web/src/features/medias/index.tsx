@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMedias, type MediaItem } from '@hously/shared';
+import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { PageLayout } from '../../components/PageLayout';
 import { PageHeader } from '../../components/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { ArrowDownAZ, ArrowUpZA, Search } from 'lucide-react';
 import { TmdbMediaSearchPanel } from './components/TmdbMediaSearchPanel';
+import { toast } from 'sonner';
+import { InteractiveSearchDialog } from './components/InteractiveSearchDialog';
 
 type MediaFilter = 'all' | 'movie' | 'series';
 type SortKey = 'added_at' | 'title' | 'year' | 'service' | 'status' | 'downloaded' | 'monitored';
@@ -24,6 +26,7 @@ export function MediasPage() {
   const [filter, setFilter] = useState<MediaFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>('added_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [interactiveItem, setInteractiveItem] = useState<MediaItem | null>(null);
 
   const items = data?.items ?? [];
   const isNotConfigured = data && !data.radarr_enabled && !data.sonarr_enabled;
@@ -152,22 +155,49 @@ export function MediasPage() {
               <div className="p-4 sm:p-5">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {filtered.map(item => (
-                    <MediaGridCard key={item.id} item={item} />
+                    <MediaGridCard
+                      key={item.id}
+                      item={item}
+                      onOpenInteractive={() => {
+                        setInteractiveItem(item);
+                      }}
+                    />
                   ))}
                 </div>
               </div>
             )}
           </div>
+
+          <InteractiveSearchDialog
+            isOpen={Boolean(interactiveItem)}
+            media={interactiveItem}
+            onClose={() => setInteractiveItem(null)}
+          />
         </div>
       )}
     </PageLayout>
   );
 }
 
-function MediaGridCard({ item }: { item: MediaItem }) {
+function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInteractive: () => void }) {
   const { t } = useTranslation('common');
   const [imageError, setImageError] = useState(false);
   const showImage = Boolean(item.poster_url) && !imageError;
+  const autoSearchMutation = useMediaAutoSearch();
+
+  const runAutoSearch = async () => {
+    if (autoSearchMutation.isPending) return;
+    try {
+      await autoSearchMutation.mutateAsync({
+        service: item.service,
+        source_id: item.source_id,
+      });
+      toast.success(t('medias.autoSearch.success', { service: item.service === 'radarr' ? 'Radarr' : 'Sonarr' }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('medias.autoSearch.failed');
+      toast.error(message);
+    }
+  };
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-700/70 bg-white dark:bg-neutral-900 transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl">
@@ -209,7 +239,7 @@ function MediaGridCard({ item }: { item: MediaItem }) {
         </div>
       </div>
 
-      <div className="p-3 space-y-1">
+      <div className="p-3 space-y-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
@@ -229,6 +259,38 @@ function MediaGridCard({ item }: { item: MediaItem }) {
               })
             : item.status || t('medias.unknownStatus')}
         </p>
+
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              void runAutoSearch();
+            }}
+            disabled={autoSearchMutation.isPending}
+            className="rounded-md bg-indigo-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+          >
+            {autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
+          </button>
+
+          {item.arr_url ? (
+            <a
+              href={item.arr_url}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-md border border-neutral-300 dark:border-neutral-600 px-2.5 py-1 text-[11px] font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              {t('medias.viewInArr')}
+            </a>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={onOpenInteractive}
+            className="rounded-md border border-neutral-300 dark:border-neutral-600 px-2.5 py-1 text-[11px] font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            {t('medias.interactive.button')}
+          </button>
+        </div>
       </div>
     </article>
   );

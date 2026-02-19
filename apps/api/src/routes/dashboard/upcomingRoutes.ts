@@ -10,7 +10,7 @@ import {
 } from '../../utils/dashboard/tmdbUpcoming';
 import { prisma } from '../../db';
 import { getJsonCache, setJsonCache } from '../../services/cache';
-import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
+import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../../utils/plugins/normalizers';
 import { toRecord } from '../../utils/coerce';
 import type { DashboardUpcomingItem } from '../../types/dashboardUpcoming';
 
@@ -24,7 +24,11 @@ export const dashboardUpcomingRoutes = new Elysia()
 
     try {
       const arrPluginStatus = await getArrPluginStatus();
-      const tmdbApiKey = process.env.TMDB_API_KEY?.trim();
+      const tmdbPlugin = await prisma.plugin.findFirst({
+        where: { type: 'tmdb' },
+        select: { enabled: true, config: true },
+      });
+      const tmdbApiKey = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config)?.api_key : null;
 
       if (!tmdbApiKey) {
         return { enabled: false, items: [], ...arrPluginStatus };
