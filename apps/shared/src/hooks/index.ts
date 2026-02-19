@@ -11,3 +11,4 @@ export * from './useAdmin';
 export * from './usePlugins';
 export * from './useExternalNotifications';
 export * from './useWeather';
+export * from './useMedias';

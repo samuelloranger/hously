@@ -5,6 +5,7 @@
     "chores": "Chores",
     "recipes": "Recipes",
     "kitchen": "Kitchen",
+    "medias": "Medias",
     "torrents": "Torrents",
     "tracker": "Tracker",
     "calendar": "Calendar",
@@ -1132,6 +1133,24 @@
         "snack": "Snack"
       }
     }
+  },
+  "medias": {
+    "title": "Medias",
+    "subtitle": "Merged Radarr and Sonarr library",
+    "searchPlaceholder": "Search medias...",
+    "filterAll": "All",
+    "filterMovies": "Movies",
+    "filterSeries": "Series",
+    "monitored": "Monitored",
+    "unmonitored": "Unmonitored",
+    "downloaded": "Downloaded",
+    "missing": "Missing",
+    "seriesMeta": "{{seasons}} seasons • {{episodes}} episodes",
+    "unknownStatus": "Unknown status",
+    "empty": "No media found.",
+    "noResults": "No media matches your filters.",
+    "notConfiguredTitle": "Radarr and Sonarr are not configured",
+    "notConfiguredDescription": "Open Settings > Plugins and configure Radarr and/or Sonarr to load your medias."
   },
   "torrents": {
     "title": "Torrents",

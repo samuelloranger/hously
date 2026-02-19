@@ -26,6 +26,7 @@ import { remindersRoutes } from './routes/reminders';
 import { adminRoutes } from './routes/admin';
 import { analyticsRoutes } from './routes/analytics';
 import { pluginsRoutes } from './routes/plugins';
+import { mediasRoutes } from './routes/medias';
 import { globalRateLimit } from './middleware/rateLimit';
 import { logActivity } from './utils/activityLogs';
 
@@ -129,6 +130,7 @@ export const app = new Elysia()
   .use(adminRoutes)
   .use(analyticsRoutes)
   .use(pluginsRoutes)
+  .use(mediasRoutes)
   .get('/', () => 'Hello Elysia')
   .get('/health', () => ({ status: 'ok' }))
   .get('/api/health', () => ({ status: 'ok' }));

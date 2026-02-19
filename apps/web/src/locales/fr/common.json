@@ -5,6 +5,7 @@
     "chores": "Tâches",
     "recipes": "Recettes",
     "kitchen": "Cuisine",
+    "medias": "Médias",
     "torrents": "Torrents",
     "tracker": "Péremption",
     "calendar": "Calendrier",
@@ -1176,6 +1177,24 @@
     "exportSuccess": "Liste de cadeaux copiée dans le presse-papiers",
     "exportError": "Échec de la copie dans le presse-papiers",
     "exportUnauthorized": "Vous ne pouvez exporter que votre propre liste de cadeaux"
+  },
+  "medias": {
+    "title": "Médias",
+    "subtitle": "Bibliothèque fusionnée Radarr et Sonarr",
+    "searchPlaceholder": "Rechercher des médias...",
+    "filterAll": "Tout",
+    "filterMovies": "Films",
+    "filterSeries": "Séries",
+    "monitored": "Surveillé",
+    "unmonitored": "Non surveillé",
+    "downloaded": "Téléchargé",
+    "missing": "Manquant",
+    "seriesMeta": "{{seasons}} saisons • {{episodes}} épisodes",
+    "unknownStatus": "Statut inconnu",
+    "empty": "Aucun média trouvé.",
+    "noResults": "Aucun média ne correspond à vos filtres.",
+    "notConfiguredTitle": "Radarr et Sonarr ne sont pas configurés",
+    "notConfiguredDescription": "Allez dans Paramètres > Plugins et configurez Radarr et/ou Sonarr pour charger vos médias."
   },
   "torrents": {
     "title": "Torrents",

@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { CHORES_ENDPOINTS, DASHBOARD_ENDPOINTS, queryKeys, SHOPPING_ENDPOINTS } from '@hously/shared';
+import { CHORES_ENDPOINTS, DASHBOARD_ENDPOINTS, MEDIAS_ENDPOINTS, queryKeys, SHOPPING_ENDPOINTS } from '@hously/shared';
 import { webFetcher } from './fetcher';
 
 /**
@@ -19,10 +19,6 @@ const routeQueryDefinitions = {
     {
       queryKey: queryKeys.dashboard.jellyfinLatest(),
       queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=10`),
-    },
-    {
-      queryKey: queryKeys.dashboard.upcoming(),
-      queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.UPCOMING.LIST}?limit=8`),
     },
     {
       queryKey: queryKeys.dashboard.qbittorrentStatus(),
@@ -52,6 +48,13 @@ const routeQueryDefinitions = {
     {
       queryKey: queryKeys.dashboard.qbittorrentTorrents({}),
       queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?sort=added_on&reverse=true&limit=250`),
+    },
+  ],
+
+  '/medias': () => [
+    {
+      queryKey: queryKeys.medias.list(),
+      queryFn: () => webFetcher(MEDIAS_ENDPOINTS.LIST),
     },
   ],
 

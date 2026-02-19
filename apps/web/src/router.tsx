@@ -48,12 +48,18 @@ const Notifications = cachedLazy('notifications', () =>
   import('./routes/notifications').then(m => ({ default: m.Notifications }))
 );
 const KitchenPage = cachedLazy('kitchen', () => import('./features/recipes').then(m => ({ default: m.KitchenPage })));
+const MediasPage = cachedLazy('medias', () => import('./features/medias').then(m => ({ default: m.MediasPage })));
 const RecipeDetail = cachedLazy('recipeDetail', () =>
   import('./features/recipes').then(m => ({ default: m.RecipeDetail }))
 );
 const Privacy = cachedLazy('privacy', () => import('./routes/privacy').then(m => ({ default: m.Privacy })));
 const Terms = cachedLazy('terms', () => import('./routes/terms').then(m => ({ default: m.Terms })));
-const TorrentsPage = cachedLazy('torrents', () => import('./features/torrents').then(m => ({ default: m.TorrentsPage })));
+const TorrentsPage = cachedLazy('torrents', () =>
+  import('./features/torrents').then(m => ({ default: m.TorrentsPage }))
+);
+const TorrentDetailPage = cachedLazy('torrent-detail', () =>
+  import('./features/torrents/TorrentDetailPage').then(m => ({ default: m.TorrentDetailPage }))
+);
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -257,6 +263,35 @@ const torrentsRoute = createRoute({
   },
 });
 
+const mediasRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/medias',
+  component: MediasPage,
+  beforeLoad: async () => {
+    const user = await getCurrentUser();
+    if (!user) {
+      throw redirect({ to: '/login' });
+    }
+  },
+  loader: async () => {
+    const queryClient = getQueryClient();
+    if (!queryClient) return;
+    await prefetchRouteData(queryClient, '/medias');
+  },
+});
+
+const torrentDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/torrents/$hash',
+  component: TorrentDetailPage,
+  beforeLoad: async () => {
+    const user = await getCurrentUser();
+    if (!user) {
+      throw redirect({ to: '/login' });
+    }
+  },
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
@@ -272,6 +307,8 @@ const routeTree = rootRoute.addChildren([
   privacyRoute,
   termsRoute,
   torrentsRoute,
+  mediasRoute,
+  torrentDetailRoute,
 ]);
 
 export const router = createRouter({ routeTree });

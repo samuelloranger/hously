@@ -102,6 +102,11 @@ export const queryKeys = {
     list: (year?: number, month?: number) => [...queryKeys.customEvents.all, year, month] as const,
   },
 
+  medias: {
+    all: ['medias'] as const,
+    list: () => [...queryKeys.medias.all, 'list'] as const,
+  },
+
   recipes: {
     all: ['recipes'] as const,
     lists: () => [...queryKeys.recipes.all, 'list'] as const,
