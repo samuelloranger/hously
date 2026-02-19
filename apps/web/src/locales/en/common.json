@@ -1214,6 +1214,13 @@
       "added": "Added to {{service}}.",
       "alreadyExists": "Already exists in {{service}}.",
       "addFailed": "Failed to add this title."
+    },
+    "pagination": {
+      "showing": "Showing {{start}}-{{end}} of {{total}} medias",
+      "perPage": "Per page",
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {{page}} / {{total}}"
     }
   },
   "torrents": {

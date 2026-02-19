@@ -1258,6 +1258,13 @@
       "added": "Ajouté à {{service}}.",
       "alreadyExists": "Déjà présent dans {{service}}.",
       "addFailed": "Impossible d’ajouter ce titre."
+    },
+    "pagination": {
+      "showing": "Affichage de {{start}} à {{end}} sur {{total}} médias",
+      "perPage": "Par page",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "pageOf": "Page {{page}} / {{total}}"
     }
   },
   "torrents": {

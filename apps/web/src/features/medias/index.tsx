@@ -1,14 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { PageLayout } from '../../components/PageLayout';
 import { PageHeader } from '../../components/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
-import { ArrowDownAZ, ArrowUpZA, Search } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpZA, ExternalLink, RefreshCw, Search } from 'lucide-react';
 import { TmdbMediaSearchPanel } from './components/TmdbMediaSearchPanel';
 import { toast } from 'sonner';
 import { InteractiveSearchDialog } from './components/InteractiveSearchDialog';
-import { useVirtualizer } from '@tanstack/react-virtual';
 
 type MediaFilter = 'all' | 'movie' | 'series';
 type SortKey = 'added_at' | 'title' | 'year' | 'service' | 'status' | 'downloaded' | 'monitored';
@@ -20,13 +19,6 @@ const getAddedTime = (item: MediaItem): number => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const getGridColumns = (width: number): number => {
-  if (width >= 1280) return 5;
-  if (width >= 1024) return 4;
-  if (width >= 768) return 3;
-  return 2;
-};
-
 export function MediasPage() {
   const { t } = useTranslation('common');
   const { data, isLoading, isFetching, refetch } = useMedias();
@@ -34,6 +26,8 @@ export function MediasPage() {
   const [filter, setFilter] = useState<MediaFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>('added_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [interactiveItem, setInteractiveItem] = useState<MediaItem | null>(null);
 
   const items = data?.items ?? [];
@@ -61,6 +55,24 @@ export function MediasPage() {
         return sortDir === 'asc' ? cmp : -cmp;
       });
   }, [items, filter, search, sortBy, sortDir]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, filter, sortBy, sortDir, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const pageStartIndex = (page - 1) * pageSize;
+  const pageEndIndex = pageStartIndex + pageSize;
+  const pagedItems = filtered.slice(pageStartIndex, pageEndIndex);
+  const showingStart = filtered.length === 0 ? 0 : pageStartIndex + 1;
+  const showingEnd = filtered.length === 0 ? 0 : Math.min(pageEndIndex, filtered.length);
 
   return (
     <PageLayout>
@@ -161,12 +173,64 @@ export function MediasPage() {
               </div>
             ) : (
               <div className="p-4 sm:p-5">
-                <VirtualizedMediaGrid
-                  items={filtered}
+                <MediaGrid
+                  items={pagedItems}
                   onOpenInteractive={item => {
                     setInteractiveItem(item);
                   }}
                 />
+
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 dark:border-neutral-800 pt-3">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {t('medias.pagination.showing', {
+                      start: showingStart,
+                      end: showingEnd,
+                      total: filtered.length,
+                    })}
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-neutral-500 dark:text-neutral-400" htmlFor="medias-page-size">
+                      {t('medias.pagination.perPage')}
+                    </label>
+                    <select
+                      id="medias-page-size"
+                      value={pageSize}
+                      onChange={e => {
+                        setPageSize(Number(e.target.value));
+                      }}
+                      className="rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-xs text-neutral-900 dark:text-neutral-100"
+                    >
+                      {[24, 50, 100].map(size => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                      disabled={page <= 1}
+                      className="rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50"
+                    >
+                      {t('medias.pagination.previous')}
+                    </button>
+
+                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                      {t('medias.pagination.pageOf', { page, total: totalPages })}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={page >= totalPages}
+                      className="rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50"
+                    >
+                      {t('medias.pagination.next')}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -182,71 +246,24 @@ export function MediasPage() {
   );
 }
 
-function VirtualizedMediaGrid({
+function MediaGrid({
   items,
   onOpenInteractive,
 }: {
   items: MediaItem[];
   onOpenInteractive: (item: MediaItem) => void;
 }) {
-  const parentRef = useRef<HTMLDivElement | null>(null);
-  const [columns, setColumns] = useState(2);
-  const rowCount = Math.ceil(items.length / columns);
-
-  useEffect(() => {
-    const el = parentRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-
-    const observer = new ResizeObserver(entries => {
-      const width = entries[0]?.contentRect.width ?? 0;
-      setColumns(getGridColumns(width));
-    });
-    observer.observe(el);
-
-    return () => observer.disconnect();
-  }, []);
-
-  const rowVirtualizer = useVirtualizer({
-    count: rowCount,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 430,
-    overscan: 4,
-  });
-
   return (
-    <div ref={parentRef} className="max-h-[72vh] overflow-auto pr-1">
-      <div
-        className="relative w-full"
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-        }}
-      >
-        {rowVirtualizer.getVirtualItems().map(virtualRow => {
-          const start = virtualRow.index * columns;
-          const rowItems = items.slice(start, start + columns);
-
-          return (
-            <div
-              key={virtualRow.key}
-              ref={rowVirtualizer.measureElement}
-              className="absolute left-0 top-0 w-full grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-              style={{
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-            >
-              {rowItems.map(item => (
-                <MediaGridCard
-                  key={item.id}
-                  item={item}
-                  onOpenInteractive={() => {
-                    onOpenInteractive(item);
-                  }}
-                />
-              ))}
-            </div>
-          );
-        })}
-      </div>
+    <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {items.map(item => (
+        <MediaGridCard
+          key={item.id}
+          item={item}
+          onOpenInteractive={() => {
+            onOpenInteractive(item);
+          }}
+        />
+      ))}
     </div>
   );
 }
@@ -272,7 +289,7 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
   };
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-700/70 bg-white dark:bg-neutral-900 transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl">
+    <article className="group relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-700/70 bg-white dark:bg-neutral-900 transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl">
       <div className="relative aspect-[2/3] bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
         {showImage ? (
           <img
@@ -294,6 +311,44 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
 
         <div className="absolute right-2 top-2 inline-flex items-center rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
           {item.media_type === 'movie' ? t('medias.filterMovies') : t('medias.filterSeries')}
+        </div>
+
+        <div className="absolute right-2 top-9 z-10 flex flex-col gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              void runAutoSearch();
+            }}
+            disabled={autoSearchMutation.isPending}
+            title={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
+            aria-label={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-black/70 text-white backdrop-blur-sm transition hover:bg-black/80 disabled:opacity-60"
+          >
+            <RefreshCw size={13} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
+          </button>
+
+          {item.arr_url ? (
+            <a
+              href={item.arr_url}
+              target="_blank"
+              rel="noreferrer"
+              title={t('medias.viewInArr')}
+              aria-label={t('medias.viewInArr')}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-black/70 text-white backdrop-blur-sm transition hover:bg-black/80"
+            >
+              <ExternalLink size={13} />
+            </a>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={onOpenInteractive}
+            title={t('medias.interactive.button')}
+            aria-label={t('medias.interactive.button')}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-black/70 text-white backdrop-blur-sm transition hover:bg-black/80"
+          >
+            <Search size={13} />
+          </button>
         </div>
 
         <div className="absolute inset-x-0 bottom-0 p-3">
@@ -339,38 +394,6 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
               })
             : item.status || t('medias.unknownStatus')}
         </p>
-
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            type="button"
-            onClick={() => {
-              void runAutoSearch();
-            }}
-            disabled={autoSearchMutation.isPending}
-            className="rounded-md bg-indigo-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
-          >
-            {autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
-          </button>
-
-          {item.arr_url ? (
-            <a
-              href={item.arr_url}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-md border border-neutral-300 dark:border-neutral-600 px-2.5 py-1 text-[11px] font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-            >
-              {t('medias.viewInArr')}
-            </a>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={onOpenInteractive}
-            className="rounded-md border border-neutral-300 dark:border-neutral-600 px-2.5 py-1 text-[11px] font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-          >
-            {t('medias.interactive.button')}
-          </button>
-        </div>
       </div>
     </article>
   );
