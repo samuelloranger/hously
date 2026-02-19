@@ -55,7 +55,8 @@ export function getStateFilter(state: string): StateFilter {
   if (s === 'metadl' || s === 'downloading') return 'downloading';
   if (s === 'uploading' || s === 'stalledup') return 'seeding';
   if (s === 'stalleddl') return 'stalled';
-  if (s === 'pauseddl' || s === 'pausedup' || s === 'stopped') return 'paused';
+  if (s === 'pauseddl' || s === 'pausedup' || s === 'stopped' || s === 'stoppeddl' || s === 'stoppedup')
+    return 'paused';
   if (s === 'completed') return 'complete';
   if (s === 'error' || s === 'missingfiles') return 'error';
   return 'all';
@@ -68,7 +69,8 @@ export function getStatusDot(state: string): { dot: string; pulse: boolean } {
   if (s === 'uploading' || s === 'forcedup') return { dot: 'bg-violet-400', pulse: true };
   if (s === 'stalledup') return { dot: 'bg-violet-400', pulse: false };
   if (s === 'stalleddl') return { dot: 'bg-orange-400', pulse: false };
-  if (s === 'pauseddl' || s === 'pausedup' || s === 'stopped') return { dot: 'bg-amber-400', pulse: false };
+  if (s === 'pauseddl' || s === 'pausedup' || s === 'stopped' || s === 'stoppeddl' || s === 'stoppedup')
+    return { dot: 'bg-amber-400', pulse: false };
   if (s === 'completed') return { dot: 'bg-emerald-400', pulse: false };
   if (s === 'error' || s === 'missingfiles') return { dot: 'bg-red-400', pulse: false };
   if (s === 'moving' || s.includes('checking')) return { dot: 'bg-cyan-400', pulse: true };
@@ -85,7 +87,8 @@ export function getProgressBarGradient(state: string): string {
   if (s === 'stalledup')
     return 'bg-gradient-to-r from-violet-400 to-purple-500 dark:from-violet-300 dark:to-purple-400 opacity-60';
   if (s === 'stalleddl') return 'bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-400 dark:to-amber-400';
-  if (s === 'pauseddl' || s === 'pausedup' || s === 'stopped') return 'bg-neutral-300 dark:bg-neutral-600';
+  if (s === 'pauseddl' || s === 'pausedup' || s === 'stopped' || s === 'stoppeddl' || s === 'stoppedup')
+    return 'bg-neutral-300 dark:bg-neutral-600';
   if (s === 'completed')
     return 'bg-gradient-to-r from-emerald-500 to-green-500 dark:from-emerald-400 dark:to-green-400';
   if (s === 'error' || s === 'missingfiles')

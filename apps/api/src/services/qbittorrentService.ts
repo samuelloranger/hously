@@ -1,3 +1,6 @@
+import { prisma } from '../db';
+import { getJsonCache, setJsonCache, deleteCache } from './cache';
+
 interface QbittorrentTransferInfo {
   dl_info_speed?: number;
   up_info_speed?: number;
@@ -242,11 +245,36 @@ const parseSidCookie = (response: Response): string | null => {
   return sidPart.split(';')[0] || null;
 };
 
+// --- Maindata delta sync state ---
+
+interface MaindataRaw {
+  rid?: number;
+  full_update?: boolean;
+  server_state?: Record<string, unknown>;
+  torrents?: Record<string, Record<string, unknown>>;
+  torrents_removed?: string[];
+}
+
+interface MaindataState {
+  rid: number;
+  serverState: Record<string, unknown>;
+  torrents: Map<string, Record<string, unknown>>;
+}
+
+let maindataState: MaindataState | null = null;
+
+export const resetMaindataState = () => {
+  maindataState = null;
+};
+
+// --- End maindata state ---
+
 const resetSessionIfConfigChanged = (config: QbittorrentPluginConfig) => {
   const key = buildConfigKey(config);
   if (qbSession.key === key) return;
   qbSession.key = key;
   qbSession.sidCookie = null;
+  maindataState = null;
 };
 
 const login = async (config: QbittorrentPluginConfig): Promise<boolean> => {
@@ -332,6 +360,132 @@ const qbFetchText = async (config: QbittorrentPluginConfig, path: string, init?:
 
   return await response.text();
 };
+
+// --- Maindata fetch & merge ---
+
+const MAINDATA_STATE_FILTER_MAP: Record<string, (state: string) => boolean> = {
+  downloading: s => DOWNLOAD_STATES.has(s),
+  seeding: s => SEEDING_STATES.has(s),
+  completed: s =>
+    s === 'uploading' ||
+    s === 'pausedUP' ||
+    s === 'stoppedUP' ||
+    s === 'stalledUP' ||
+    s === 'queuedUP' ||
+    s === 'forcedUP',
+  paused: s => s.startsWith('paused') || s.startsWith('stopped'),
+  active: s =>
+    DOWNLOAD_STATES.has(s) || SEEDING_STATES.has(s) || s === 'uploading' || s === 'forcedUP' || s === 'forcedDL',
+  inactive: s =>
+    !DOWNLOAD_STATES.has(s) && !SEEDING_STATES.has(s) && s !== 'uploading' && s !== 'forcedUP' && s !== 'forcedDL',
+  stalled: s => STALLED_STATES.has(s),
+  errored: s => s === 'error' || s === 'missingFiles',
+};
+
+const applyStateFilter = (torrents: Record<string, unknown>[], filter?: string): Record<string, unknown>[] => {
+  if (!filter || filter === 'all') return torrents;
+  const predicate = MAINDATA_STATE_FILTER_MAP[filter];
+  if (!predicate) return torrents;
+  return torrents.filter(t => {
+    const state = typeof t.state === 'string' ? t.state : '';
+    return predicate(state);
+  });
+};
+
+const applyCategoryFilter = (torrents: Record<string, unknown>[], category?: string): Record<string, unknown>[] => {
+  if (category === undefined) return torrents;
+  return torrents.filter(t => (typeof t.category === 'string' ? t.category : '') === category);
+};
+
+const applyTagFilter = (torrents: Record<string, unknown>[], tag?: string): Record<string, unknown>[] => {
+  if (!tag) return torrents;
+  return torrents.filter(t => {
+    const tags = typeof t.tags === 'string' ? t.tags : '';
+    return tags
+      .split(',')
+      .map(s => s.trim())
+      .includes(tag);
+  });
+};
+
+const applySorting = (
+  torrents: Record<string, unknown>[],
+  sort?: string,
+  reverse?: boolean
+): Record<string, unknown>[] => {
+  if (!sort) return torrents;
+  const sorted = [...torrents].sort((a, b) => {
+    const aVal = a[sort];
+    const bVal = b[sort];
+    if (typeof aVal === 'number' && typeof bVal === 'number') return aVal - bVal;
+    if (typeof aVal === 'string' && typeof bVal === 'string') return aVal.localeCompare(bVal);
+    return 0;
+  });
+  if (reverse) sorted.reverse();
+  return sorted;
+};
+
+export const fetchMaindata = async (
+  config: QbittorrentPluginConfig
+): Promise<{
+  serverState: Record<string, unknown>;
+  torrents: Map<string, Record<string, unknown>>;
+}> => {
+  const rid = maindataState?.rid ?? 0;
+  const raw = await qbFetchJson<MaindataRaw>(config, `/api/v2/sync/maindata?rid=${rid}`);
+
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Invalid maindata response');
+  }
+
+  if (raw.full_update || !maindataState) {
+    // Full sync - replace everything
+    const torrents = new Map<string, Record<string, unknown>>();
+    if (raw.torrents) {
+      for (const [hash, torrent] of Object.entries(raw.torrents)) {
+        torrents.set(hash, { ...torrent, hash });
+      }
+    }
+    maindataState = {
+      rid: typeof raw.rid === 'number' ? raw.rid : 0,
+      serverState: raw.server_state ?? {},
+      torrents,
+    };
+  } else {
+    // Delta update - merge changes
+    if (typeof raw.rid === 'number') {
+      maindataState.rid = raw.rid;
+    }
+
+    if (raw.server_state) {
+      Object.assign(maindataState.serverState, raw.server_state);
+    }
+
+    if (raw.torrents) {
+      for (const [hash, delta] of Object.entries(raw.torrents)) {
+        const existing = maindataState.torrents.get(hash);
+        if (existing) {
+          Object.assign(existing, delta);
+        } else {
+          maindataState.torrents.set(hash, { ...delta, hash });
+        }
+      }
+    }
+
+    if (raw.torrents_removed) {
+      for (const hash of raw.torrents_removed) {
+        maindataState.torrents.delete(hash);
+      }
+    }
+  }
+
+  return {
+    serverState: maindataState.serverState,
+    torrents: maindataState.torrents,
+  };
+};
+
+// --- End maindata ---
 
 const toTorrent = (value: unknown): QbittorrentDashboardTorrent | null => {
   const row = toRecord(value) as QbittorrentTorrentRaw | null;
@@ -468,7 +622,8 @@ const toTorrentFile = (value: unknown): QbittorrentTorrentFile | null => {
   const sizeBytes = Math.max(0, Math.trunc(toNumberOr(row.size, 0)));
   const progressRaw = toNumberOr(row.progress, 0);
   const progress = Math.min(1, Math.max(0, progressRaw));
-  const priorityRaw = typeof row.priority === 'number' && Number.isFinite(row.priority) ? Math.trunc(row.priority) : null;
+  const priorityRaw =
+    typeof row.priority === 'number' && Number.isFinite(row.priority) ? Math.trunc(row.priority) : null;
 
   return {
     index,
@@ -541,7 +696,7 @@ const computeSummary = (torrents: QbittorrentDashboardTorrent[]) => {
     if (DOWNLOAD_STATES.has(torrent.state)) downloadingCount += 1;
     if (STALLED_STATES.has(torrent.state)) stalledCount += 1;
     if (SEEDING_STATES.has(torrent.state)) seedingCount += 1;
-    if (torrent.state.startsWith('paused')) pausedCount += 1;
+    if (torrent.state.startsWith('paused') || torrent.state.startsWith('stopped')) pausedCount += 1;
     if (torrent.progress >= 0.999) completedCount += 1;
   }
 
@@ -573,10 +728,42 @@ export const normalizeQbittorrentConfig = (config: unknown): QbittorrentPluginCo
   };
 };
 
+// --- Plugin config cache (Redis, 30s TTL) ---
+
+const PLUGIN_CONFIG_CACHE_KEY = 'qbittorrent:plugin_config';
+const PLUGIN_CONFIG_CACHE_TTL_SECONDS = 86400; // 24h — invalidated on settings save
+
+export const getQbittorrentPluginConfig = async (): Promise<{
+  enabled: boolean;
+  config: QbittorrentPluginConfig | null;
+}> => {
+  const cached = await getJsonCache<{ enabled: boolean; config: QbittorrentPluginConfig | null }>(
+    PLUGIN_CONFIG_CACHE_KEY
+  );
+  if (cached) return cached;
+
+  const plugin = await prisma.plugin.findFirst({
+    where: { type: 'qbittorrent' },
+    select: { enabled: true, config: true },
+  });
+
+  const enabled = plugin?.enabled ?? false;
+  const config = enabled ? normalizeQbittorrentConfig(plugin?.config) : null;
+  const result = { enabled, config };
+  await setJsonCache(PLUGIN_CONFIG_CACHE_KEY, result, PLUGIN_CONFIG_CACHE_TTL_SECONDS);
+  return result;
+};
+
+export const invalidateQbittorrentPluginConfigCache = async () => {
+  await deleteCache(PLUGIN_CONFIG_CACHE_KEY);
+};
+
+// --- End plugin config cache ---
+
 export const buildQbittorrentDisabledSnapshot = (error?: string): QbittorrentDashboardSnapshot => ({
   enabled: false,
   connected: false,
-  updated_at: new Date().toISOString(),
+  updated_at: '',
   poll_interval_seconds: DEFAULT_POLL_INTERVAL_SECONDS,
   summary: {
     downloading_count: 0,
@@ -601,15 +788,10 @@ export const fetchQbittorrentSnapshot = async (
   if (!enabled) return buildQbittorrentDisabledSnapshot();
 
   try {
-    const [transferInfoRaw, torrentsRaw] = await Promise.all([
-      qbFetchJson<QbittorrentTransferInfo>(config, '/api/v2/transfer/info'),
-      qbFetchJson<QbittorrentTorrentRaw[]>(config, '/api/v2/torrents/info'),
-    ]);
+    const { serverState, torrents: torrentMap } = await fetchMaindata(config);
 
-    const transferInfo = toRecord(transferInfoRaw) as QbittorrentTransferInfo | null;
-    const torrents = Array.isArray(torrentsRaw)
-      ? torrentsRaw.map(toTorrent).filter((row): row is QbittorrentDashboardTorrent => !!row)
-      : [];
+    const allTorrents = Array.from(torrentMap.values());
+    const torrents = allTorrents.map(toTorrent).filter((row): row is QbittorrentDashboardTorrent => !!row);
     const summaryCounts = computeSummary(torrents);
     const prioritizedTorrents = [...torrents]
       .sort((a, b) => {
@@ -622,14 +804,14 @@ export const fetchQbittorrentSnapshot = async (
     return {
       enabled: true,
       connected: true,
-      updated_at: new Date().toISOString(),
+      updated_at: '',
       poll_interval_seconds: config.poll_interval_seconds,
       summary: {
         ...summaryCounts,
-        download_speed: Math.max(0, Math.trunc(toNumberOr(transferInfo?.dl_info_speed, 0))),
-        upload_speed: Math.max(0, Math.trunc(toNumberOr(transferInfo?.up_info_speed, 0))),
-        downloaded_bytes: Math.max(0, Math.trunc(toNumberOr(transferInfo?.dl_info_data, 0))),
-        uploaded_bytes: Math.max(0, Math.trunc(toNumberOr(transferInfo?.up_info_data, 0))),
+        download_speed: Math.max(0, Math.trunc(toNumberOr(serverState.dl_info_speed, 0))),
+        upload_speed: Math.max(0, Math.trunc(toNumberOr(serverState.up_info_speed, 0))),
+        downloaded_bytes: Math.max(0, Math.trunc(toNumberOr(serverState.dl_info_data, 0))),
+        uploaded_bytes: Math.max(0, Math.trunc(toNumberOr(serverState.up_info_data, 0))),
       },
       torrents: prioritizedTorrents,
     };
@@ -638,7 +820,7 @@ export const fetchQbittorrentSnapshot = async (
     return {
       enabled: true,
       connected: false,
-      updated_at: new Date().toISOString(),
+      updated_at: '',
       poll_interval_seconds: config.poll_interval_seconds,
       summary: {
         downloading_count: 0,
@@ -675,24 +857,26 @@ export const fetchQbittorrentTorrents = async (
 ): Promise<{ enabled: boolean; connected: boolean; torrents: QbittorrentTorrentListItem[]; error?: string }> => {
   if (!enabled) return { enabled: false, connected: false, torrents: [] };
 
-  const url = new URL('/api/v2/torrents/info', config.website_url);
-  if (params.filter) url.searchParams.set('filter', params.filter);
-  if (params.category) url.searchParams.set('category', params.category);
-  if (params.tag) url.searchParams.set('tag', params.tag);
-  if (params.sort) url.searchParams.set('sort', params.sort);
-  if (typeof params.reverse === 'boolean') url.searchParams.set('reverse', params.reverse ? 'true' : 'false');
-  if (typeof params.limit === 'number' && Number.isFinite(params.limit)) {
-    url.searchParams.set('limit', String(Math.max(1, Math.min(200, Math.trunc(params.limit)))));
-  }
-  if (typeof params.offset === 'number' && Number.isFinite(params.offset)) {
-    url.searchParams.set('offset', String(Math.max(0, Math.trunc(params.offset))));
-  }
-
   try {
-    const torrentsRaw = await qbFetchJson<QbittorrentTorrentRaw[]>(config, `${url.pathname}${url.search}`);
-    const torrents = Array.isArray(torrentsRaw)
-      ? torrentsRaw.map(toTorrentListItem).filter((row): row is QbittorrentTorrentListItem => Boolean(row))
-      : [];
+    const { torrents: torrentMap } = await fetchMaindata(config);
+    let rawList = Array.from(torrentMap.values());
+
+    // Apply filters locally since maindata doesn't support filter params
+    rawList = applyStateFilter(rawList, params.filter);
+    rawList = applyCategoryFilter(rawList, params.category);
+    rawList = applyTagFilter(rawList, params.tag);
+    rawList = applySorting(rawList, params.sort, params.reverse);
+
+    // Apply pagination
+    const offset =
+      typeof params.offset === 'number' && Number.isFinite(params.offset) ? Math.max(0, Math.trunc(params.offset)) : 0;
+    const limit =
+      typeof params.limit === 'number' && Number.isFinite(params.limit)
+        ? Math.max(1, Math.min(200, Math.trunc(params.limit)))
+        : rawList.length;
+    rawList = rawList.slice(offset, offset + limit);
+
+    const torrents = rawList.map(toTorrentListItem).filter((row): row is QbittorrentTorrentListItem => Boolean(row));
 
     return { enabled: true, connected: true, torrents };
   } catch (error) {
@@ -714,20 +898,15 @@ export const fetchQbittorrentTorrent = async (
   const safeHash = hash.trim();
   if (!safeHash) return { enabled: true, connected: false, torrent: null, error: 'Missing torrent hash' };
 
-  const url = new URL('/api/v2/torrents/info', config.website_url);
-  url.searchParams.set('hashes', safeHash);
-
   try {
-    const torrentsRaw = await qbFetchJson<QbittorrentTorrentRaw[]>(config, `${url.pathname}${url.search}`);
-    const torrents = Array.isArray(torrentsRaw)
-      ? torrentsRaw.map(toTorrentListItem).filter((row): row is QbittorrentTorrentListItem => Boolean(row))
-      : [];
-
-    if (!torrents.length) {
+    const { torrents: torrentMap } = await fetchMaindata(config);
+    const raw = torrentMap.get(safeHash);
+    if (!raw) {
       return { enabled: true, connected: true, torrent: null, error: 'Torrent not found' };
     }
 
-    return { enabled: true, connected: true, torrent: torrents[0] ?? null };
+    const torrent = toTorrentListItem(raw);
+    return { enabled: true, connected: true, torrent };
   } catch (error) {
     return {
       enabled: true,
@@ -742,7 +921,12 @@ export const fetchQbittorrentTorrentProperties = async (
   config: QbittorrentPluginConfig,
   enabled: boolean,
   hash: string
-): Promise<{ enabled: boolean; connected: boolean; properties: QbittorrentTorrentProperties | null; error?: string }> => {
+): Promise<{
+  enabled: boolean;
+  connected: boolean;
+  properties: QbittorrentTorrentProperties | null;
+  error?: string;
+}> => {
   if (!enabled) return { enabled: false, connected: false, properties: null };
   const safeHash = hash.trim();
   if (!safeHash) return { enabled: true, connected: false, properties: null, error: 'Missing torrent hash' };
@@ -803,7 +987,9 @@ export const fetchQbittorrentTorrentFiles = async (
   try {
     const path = `/api/v2/torrents/files?hash=${encodeURIComponent(safeHash)}`;
     const raw = await qbFetchJson<unknown>(config, path);
-    const files = Array.isArray(raw) ? raw.map(toTorrentFile).filter((row): row is QbittorrentTorrentFile => Boolean(row)) : [];
+    const files = Array.isArray(raw)
+      ? raw.map(toTorrentFile).filter((row): row is QbittorrentTorrentFile => Boolean(row))
+      : [];
     return { enabled: true, connected: true, files };
   } catch (error) {
     return {
@@ -820,10 +1006,18 @@ export const fetchQbittorrentTorrentPeers = async (
   enabled: boolean,
   hash: string,
   rid?: number
-): Promise<{ enabled: boolean; connected: boolean; rid: number; full_update: boolean; peers: QbittorrentTorrentPeer[]; error?: string }> => {
+): Promise<{
+  enabled: boolean;
+  connected: boolean;
+  rid: number;
+  full_update: boolean;
+  peers: QbittorrentTorrentPeer[];
+  error?: string;
+}> => {
   if (!enabled) return { enabled: false, connected: false, rid: 0, full_update: true, peers: [] };
   const safeHash = hash.trim();
-  if (!safeHash) return { enabled: true, connected: false, rid: 0, full_update: true, peers: [], error: 'Missing torrent hash' };
+  if (!safeHash)
+    return { enabled: true, connected: false, rid: 0, full_update: true, peers: [], error: 'Missing torrent hash' };
 
   try {
     const safeRid = typeof rid === 'number' && Number.isFinite(rid) && rid >= 0 ? Math.trunc(rid) : 0;
@@ -831,7 +1025,14 @@ export const fetchQbittorrentTorrentPeers = async (
     const raw = await qbFetchJson<unknown>(config, path);
     const parsed = toPeersSnapshot(raw);
     if (!parsed) {
-      return { enabled: true, connected: false, rid: safeRid, full_update: true, peers: [], error: 'Invalid peers payload' };
+      return {
+        enabled: true,
+        connected: false,
+        rid: safeRid,
+        full_update: true,
+        peers: [],
+        error: 'Invalid peers payload',
+      };
     }
     return { enabled: true, connected: true, ...parsed };
   } catch (error) {
@@ -1067,7 +1268,7 @@ export const pauseQbittorrentTorrent = async (
   body.set('hashes', safeHash);
 
   try {
-    await qbFetchText(config, '/api/v2/torrents/pause', {
+    await qbFetchText(config, '/api/v2/torrents/stop', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
@@ -1096,7 +1297,7 @@ export const resumeQbittorrentTorrent = async (
   body.set('hashes', safeHash);
 
   try {
-    await qbFetchText(config, '/api/v2/torrents/resume', {
+    await qbFetchText(config, '/api/v2/torrents/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
@@ -1157,7 +1358,14 @@ export const addQbittorrentMagnet = async (
   body.set('urls', magnet);
   if (payload.save_path) body.set('savepath', payload.save_path);
   if (payload.category) body.set('category', payload.category);
-  if (payload.tags && payload.tags.length > 0) body.set('tags', payload.tags.map(tag => tag.trim()).filter(Boolean).join(','));
+  if (payload.tags && payload.tags.length > 0)
+    body.set(
+      'tags',
+      payload.tags
+        .map(tag => tag.trim())
+        .filter(Boolean)
+        .join(',')
+    );
 
   try {
     await qbFetchText(config, '/api/v2/torrents/add', {
@@ -1188,7 +1396,14 @@ export const addQbittorrentTorrentFile = async (
   formData.set('torrents', payload.torrent);
   if (payload.save_path) formData.set('savepath', payload.save_path);
   if (payload.category) formData.set('category', payload.category);
-  if (payload.tags && payload.tags.length > 0) formData.set('tags', payload.tags.map(tag => tag.trim()).filter(Boolean).join(','));
+  if (payload.tags && payload.tags.length > 0)
+    formData.set(
+      'tags',
+      payload.tags
+        .map(tag => tag.trim())
+        .filter(Boolean)
+        .join(',')
+    );
 
   try {
     await qbFetchText(config, '/api/v2/torrents/add', {

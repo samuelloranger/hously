@@ -908,6 +908,9 @@
       "trackers": {
         "title": "Trackers",
         "description": "Configure YGG, C411, Torr9, G3mini and La Cale in one place.",
+        "flaresolverrUrl": "FlareSolverr URL",
+        "username": "Username",
+        "password": "Password",
         "trackerUrl": "Tracker URL",
         "usernamePlaceholder": "username",
         "providers": {
@@ -1016,6 +1019,10 @@
         "fetchG3miniStats": {
           "label": "Fetch G3mini Stats",
           "description": "Log into G3mini and fetch uploaded/downloaded/ratio."
+        },
+        "fetchLaCaleStats": {
+          "label": "Fetch La Cale Stats",
+          "description": "Log into La Cale and fetch uploaded/downloaded/ratio."
         }
       }
     },

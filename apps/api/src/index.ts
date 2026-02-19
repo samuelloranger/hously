@@ -7,7 +7,7 @@ import {
   checkAndSendReminders,
   checkAndSendAllDayEventNotifications,
   cleanupOldNotifications,
-  fetchTrackerStats,
+  fetchAllTrackerStats,
 } from './jobs';
 import { checkAndNotifyVersionChange } from './services/versionService';
 import { auth } from './auth';
@@ -95,29 +95,21 @@ export const app = new Elysia()
   )
   .use(
     cron({
-      name: 'fetchYggTopPanelStats',
+      name: 'fetchTrackerStats',
       pattern: '0 * * * *', // Hourly
-      run: () => {
-        runCronJobWithActivity({ id: 'fetchYggTopPanelStats', name: 'Fetch YGG top panel stats' }, () =>
-          fetchTrackerStats('ygg', { trigger: 'cron' })
-        );
-        runCronJobWithActivity({ id: 'fetchTorr9TopPanelStats', name: 'Fetch Torr9 top panel stats' }, () =>
-          fetchTrackerStats('torr9', { trigger: 'cron' })
-        );
-        runCronJobWithActivity({ id: 'fetchG3miniTopPanelStats', name: 'Fetch G3mini top panel stats' }, () =>
-          fetchTrackerStats('g3mini', { trigger: 'cron' })
-        );
-        runCronJobWithActivity({ id: 'fetchC411TopPanelStats', name: 'Fetch C411 top panel stats' }, () =>
-          fetchTrackerStats('c411', { trigger: 'cron' })
-        );
-      },
+      run: () =>
+        runCronJobWithActivity({ id: 'fetchTrackerStats', name: 'Fetch tracker stats' }, () =>
+          fetchAllTrackerStats({ trigger: 'cron' })
+        ),
     })
   )
   .use(app => {
     console.log('Elysia app initialized');
-    app.on('beforeHandle', context => {
-      console.log(`Incoming request: ${context.request.method} ${context.path}`);
-    });
+    if (Bun.env.LOG_LEVEL === 'debug') {
+      app.on('beforeHandle', context => {
+        console.log(`Incoming request: ${context.request.method} ${context.path}`);
+      });
+    }
     return app;
   })
   .use(auth)

@@ -32,6 +32,7 @@ type TrackerEditorProps = {
   websitePlaceholder: string;
   loading: boolean;
   saving: boolean;
+  showFlaresolverr?: boolean;
   initial: Omit<TrackerFormState, 'password'>;
   onSave: (payload: Omit<TrackerFormState, 'password'> & { password?: string }) => Promise<unknown>;
 };
@@ -44,6 +45,7 @@ function TrackerEditor({
   websitePlaceholder,
   loading,
   saving,
+  showFlaresolverr = true,
   initial,
   onSave,
 }: TrackerEditorProps) {
@@ -139,12 +141,14 @@ function TrackerEditor({
         </button>
       </div>
 
-      <PluginUrlInput
-        label={t('settings.plugins.trackers.flaresolverrUrl')}
-        value={state.flaresolverr_url}
-        onChange={value => setState(prev => ({ ...prev, flaresolverr_url: value }))}
-        placeholder="http://192.168.50.30:8191"
-      />
+      {showFlaresolverr && (
+        <PluginUrlInput
+          label={t('settings.plugins.trackers.flaresolverrUrl')}
+          value={state.flaresolverr_url}
+          onChange={value => setState(prev => ({ ...prev, flaresolverr_url: value }))}
+          placeholder="http://192.168.50.30:8191"
+        />
+      )}
 
       <PluginUrlInput
         label={websiteLabel}
@@ -311,6 +315,7 @@ export function TrackersPluginSection() {
       <TrackerEditor
         title={t('settings.plugins.trackers.providers.la-cale')}
         logoUrl="/icons/la-cale.png"
+        showFlaresolverr={false}
         usernamePlaceholder={t('settings.plugins.trackers.usernamePlaceholder')}
         websiteLabel={t('settings.plugins.trackers.trackerUrl')}
         websitePlaceholder="https://la-cale.space"

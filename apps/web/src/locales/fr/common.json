@@ -907,6 +907,9 @@
       "trackers": {
         "title": "Trackers",
         "description": "Configurez YGG, C411, Torr9, G3mini et La Cale au même endroit.",
+        "flaresolverrUrl": "URL FlareSolverr",
+        "username": "Nom d'utilisateur",
+        "password": "Mot de passe",
         "trackerUrl": "URL du tracker",
         "usernamePlaceholder": "nom d'utilisateur",
         "providers": {
@@ -1015,6 +1018,10 @@
         "fetchG3miniStats": {
           "label": "Récupérer les stats G3mini",
           "description": "Se connecter à G3mini et récupérer upload/download/ratio."
+        },
+        "fetchLaCaleStats": {
+          "label": "Récupérer les stats La Cale",
+          "description": "Se connecter à La Cale et récupérer upload/download/ratio."
         }
       }
     },

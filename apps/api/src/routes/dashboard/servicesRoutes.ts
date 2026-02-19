@@ -11,7 +11,15 @@ import type { CachedTrackerStats } from '../../utils/dashboard/trackers';
 import { cacheKey, parseCachedTrackerStats } from '../../utils/dashboard/trackers';
 import type { TrackerType } from '../../utils/plugins/types';
 
-const trackerLabel = (type: TrackerType): string => type.toUpperCase();
+const trackerLabel = (type: TrackerType): string => {
+  return {
+    ygg: 'YGG',
+    c411: 'C411',
+    torr9: 'Torr9',
+    g3mini: 'G3mini',
+    'la-cale': 'La Cale',
+  }[type];
+};
 
 async function getTrackerStatsHandler(type: TrackerType) {
   // Check Redis first. Stats are cached for 24 h, so if we have a cache hit the
