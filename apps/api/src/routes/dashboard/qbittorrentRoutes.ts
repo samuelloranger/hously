@@ -1,28 +1,40 @@
 import { Elysia, t } from 'elysia';
-import { prisma } from '../../db';
 import { createJsonSseResponse } from '../../utils/sse';
 import { getQbittorrentSnapshot } from '../../utils/dashboard/qbittorrent';
+import { createPollerSseResponse } from '../../services/qbittorrentPoller';
 import {
   addQbittorrentMagnet,
   addQbittorrentTorrentFile,
-  buildQbittorrentDisabledSnapshot,
   deleteQbittorrentTorrent,
   fetchQbittorrentCategories,
-  fetchQbittorrentTorrent,
   fetchQbittorrentTorrentFiles,
   fetchQbittorrentTorrentPeers,
   fetchQbittorrentTorrentProperties,
   fetchQbittorrentTorrentTrackers,
   fetchQbittorrentTorrents,
   fetchQbittorrentTags,
-  normalizeQbittorrentConfig,
+  getQbittorrentPluginConfig,
   pauseQbittorrentTorrent,
   renameQbittorrentTorrent,
   renameQbittorrentTorrentFile,
   resumeQbittorrentTorrent,
+  reannounceQbittorrentTorrent,
   setQbittorrentTorrentCategory,
   setQbittorrentTorrentTags,
 } from '../../services/qbittorrentService';
+
+const getConfigOrError = async (set: any) => {
+  const { enabled, config } = await getQbittorrentPluginConfig();
+  if (!enabled) {
+    set.status = 400;
+    return null;
+  }
+  if (!config) {
+    set.status = 400;
+    return null;
+  }
+  return config;
+};
 
 export const dashboardQbittorrentRoutes = new Elysia()
   .get('/qbittorrent/status', async (ctx: any) => {
@@ -33,7 +45,8 @@ export const dashboardQbittorrentRoutes = new Elysia()
     }
 
     try {
-      return await getQbittorrentSnapshot();
+      const snapshot = await getQbittorrentSnapshot();
+      return { ...snapshot, updated_at: new Date().toISOString() };
     } catch (error) {
       console.error('Error fetching qBittorrent status:', error);
       set.status = 500;
@@ -49,26 +62,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'Unauthorized' };
       }
 
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: 'qbittorrent' },
-        select: { enabled: true, config: true },
-      });
-
-      if (!plugin?.enabled) {
-        return {
-          enabled: false,
-          connected: false,
-          torrents: [],
-        };
-      }
-
-      const config = normalizeQbittorrentConfig(plugin.config);
+      const config = await getConfigOrError(set);
       if (!config) {
-        return {
-          enabled: false,
-          connected: false,
-          torrents: [],
-        };
+        return { enabled: false, connected: false, torrents: [] };
       }
 
       const result = await fetchQbittorrentTorrents(config, true, {
@@ -105,35 +101,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: 'qbittorrent' },
-      select: { enabled: true, config: true },
-    });
-
-    if (!plugin?.enabled) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is disabled' };
-    }
-
-    const config = normalizeQbittorrentConfig(plugin.config);
-    if (!config) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is enabled but not configured' };
-    }
-
-    return createJsonSseResponse({
-      request,
-      poll: () => fetchQbittorrentTorrents(config, true, { sort: 'added_on', reverse: true, limit: 250 }),
-      intervalMs: () => Math.max(1000, config.poll_interval_seconds * 1000),
-      retryMs: 3000,
-      onError: error => ({
-        enabled: true,
-        connected: false,
-        torrents: [],
-        error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
-      }),
-      logLabel: 'qBittorrent torrents list stream',
-    });
+    return createPollerSseResponse(request, 'torrents');
   })
   .get('/qbittorrent/torrents/:hash/properties', async (ctx: any) => {
     const { user, set, params } = ctx;
@@ -142,20 +110,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: 'qbittorrent' },
-      select: { enabled: true, config: true },
-    });
-
-    if (!plugin?.enabled) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is disabled' };
-    }
-
-    const config = normalizeQbittorrentConfig(plugin.config);
+    const config = await getConfigOrError(set);
     if (!config) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is enabled but not configured' };
+      return { error: 'qBittorrent plugin is disabled or not configured' };
     }
 
     const result = await fetchQbittorrentTorrentProperties(config, true, params.hash);
@@ -171,20 +128,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: 'qbittorrent' },
-      select: { enabled: true, config: true },
-    });
-
-    if (!plugin?.enabled) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is disabled' };
-    }
-
-    const config = normalizeQbittorrentConfig(plugin.config);
+    const config = await getConfigOrError(set);
     if (!config) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is enabled but not configured' };
+      return { error: 'qBittorrent plugin is disabled or not configured' };
     }
 
     const result = await fetchQbittorrentTorrentTrackers(config, true, params.hash);
@@ -200,20 +146,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: 'qbittorrent' },
-      select: { enabled: true, config: true },
-    });
-
-    if (!plugin?.enabled) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is disabled' };
-    }
-
-    const config = normalizeQbittorrentConfig(plugin.config);
+    const config = await getConfigOrError(set);
     if (!config) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is enabled but not configured' };
+      return { error: 'qBittorrent plugin is disabled or not configured' };
     }
 
     const result = await fetchQbittorrentCategories(config, true);
@@ -229,20 +164,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: 'qbittorrent' },
-      select: { enabled: true, config: true },
-    });
-
-    if (!plugin?.enabled) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is disabled' };
-    }
-
-    const config = normalizeQbittorrentConfig(plugin.config);
+    const config = await getConfigOrError(set);
     if (!config) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is enabled but not configured' };
+      return { error: 'qBittorrent plugin is disabled or not configured' };
     }
 
     const result = await fetchQbittorrentTags(config, true);
@@ -258,20 +182,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: 'qbittorrent' },
-      select: { enabled: true, config: true },
-    });
-
-    if (!plugin?.enabled) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is disabled' };
-    }
-
-    const config = normalizeQbittorrentConfig(plugin.config);
+    const config = await getConfigOrError(set);
     if (!config) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is enabled but not configured' };
+      return { error: 'qBittorrent plugin is disabled or not configured' };
     }
 
     const result = await fetchQbittorrentTorrentFiles(config, true, params.hash);
@@ -289,20 +202,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'Unauthorized' };
       }
 
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: 'qbittorrent' },
-        select: { enabled: true, config: true },
-      });
-
-      if (!plugin?.enabled) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is disabled' };
-      }
-
-      const config = normalizeQbittorrentConfig(plugin.config);
+      const config = await getConfigOrError(set);
       if (!config) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is enabled but not configured' };
+        return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
       const rid = query?.rid ? parseInt(query.rid, 10) : undefined;
@@ -325,20 +227,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: 'qbittorrent' },
-      select: { enabled: true, config: true },
-    });
-
-    if (!plugin?.enabled) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is disabled' };
-    }
-
-    const config = normalizeQbittorrentConfig(plugin.config);
+    const config = await getConfigOrError(set);
     if (!config) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is enabled but not configured' };
+      return { error: 'qBittorrent plugin is disabled or not configured' };
     }
 
     let rid = 0;
@@ -371,35 +262,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: 'qbittorrent' },
-      select: { enabled: true, config: true },
-    });
-
-    if (!plugin?.enabled) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is disabled' };
-    }
-
-    const config = normalizeQbittorrentConfig(plugin.config);
-    if (!config) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is enabled but not configured' };
-    }
-
-    return createJsonSseResponse({
-      request,
-      poll: () => fetchQbittorrentTorrent(config, true, params.hash),
-      intervalMs: () => Math.max(1000, config.poll_interval_seconds * 1000),
-      retryMs: 3000,
-      onError: error => ({
-        enabled: true,
-        connected: false,
-        torrent: null,
-        error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
-      }),
-      logLabel: 'qBittorrent torrent stream',
-    });
+    return createPollerSseResponse(request, `torrent:${params.hash}`);
   })
   .post(
     '/qbittorrent/torrents/:hash/rename',
@@ -410,20 +273,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'Unauthorized' };
       }
 
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: 'qbittorrent' },
-        select: { enabled: true, config: true },
-      });
-
-      if (!plugin?.enabled) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is disabled' };
-      }
-
-      const config = normalizeQbittorrentConfig(plugin.config);
+      const config = await getConfigOrError(set);
       if (!config) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is enabled but not configured' };
+        return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
       const result = await renameQbittorrentTorrent(config, true, { hash: params.hash, name: body.name });
@@ -447,20 +299,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'Unauthorized' };
       }
 
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: 'qbittorrent' },
-        select: { enabled: true, config: true },
-      });
-
-      if (!plugin?.enabled) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is disabled' };
-      }
-
-      const config = normalizeQbittorrentConfig(plugin.config);
+      const config = await getConfigOrError(set);
       if (!config) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is enabled but not configured' };
+        return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
       const result = await renameQbittorrentTorrentFile(config, true, {
@@ -489,20 +330,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'Unauthorized' };
       }
 
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: 'qbittorrent' },
-        select: { enabled: true, config: true },
-      });
-
-      if (!plugin?.enabled) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is disabled' };
-      }
-
-      const config = normalizeQbittorrentConfig(plugin.config);
+      const config = await getConfigOrError(set);
       if (!config) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is enabled but not configured' };
+        return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
       const category = typeof body.category === 'string' ? body.category : null;
@@ -527,20 +357,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'Unauthorized' };
       }
 
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: 'qbittorrent' },
-        select: { enabled: true, config: true },
-      });
-
-      if (!plugin?.enabled) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is disabled' };
-      }
-
-      const config = normalizeQbittorrentConfig(plugin.config);
+      const config = await getConfigOrError(set);
       if (!config) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is enabled but not configured' };
+        return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
       const tags = Array.isArray(body.tags) ? body.tags : [];
@@ -569,20 +388,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: 'qbittorrent' },
-      select: { enabled: true, config: true },
-    });
-
-    if (!plugin?.enabled) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is disabled' };
-    }
-
-    const config = normalizeQbittorrentConfig(plugin.config);
+    const config = await getConfigOrError(set);
     if (!config) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is enabled but not configured' };
+      return { error: 'qBittorrent plugin is disabled or not configured' };
     }
 
     const result = await pauseQbittorrentTorrent(config, true, { hash: params.hash });
@@ -598,23 +406,30 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: 'qbittorrent' },
-      select: { enabled: true, config: true },
-    });
-
-    if (!plugin?.enabled) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is disabled' };
-    }
-
-    const config = normalizeQbittorrentConfig(plugin.config);
+    const config = await getConfigOrError(set);
     if (!config) {
-      set.status = 400;
-      return { error: 'qBittorrent plugin is enabled but not configured' };
+      return { error: 'qBittorrent plugin is disabled or not configured' };
     }
 
     const result = await resumeQbittorrentTorrent(config, true, { hash: params.hash });
+    if (!result.connected || !result.success) {
+      set.status = 502;
+    }
+    return result;
+  })
+  .post('/qbittorrent/torrents/:hash/reannounce', async (ctx: any) => {
+    const { user, set, params } = ctx;
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const config = await getConfigOrError(set);
+    if (!config) {
+      return { error: 'qBittorrent plugin is disabled or not configured' };
+    }
+
+    const result = await reannounceQbittorrentTorrent(config, true, { hash: params.hash });
     if (!result.connected || !result.success) {
       set.status = 502;
     }
@@ -629,20 +444,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'Unauthorized' };
       }
 
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: 'qbittorrent' },
-        select: { enabled: true, config: true },
-      });
-
-      if (!plugin?.enabled) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is disabled' };
-      }
-
-      const config = normalizeQbittorrentConfig(plugin.config);
+      const config = await getConfigOrError(set);
       if (!config) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is enabled but not configured' };
+        return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
       const deleteFiles = Boolean(body.delete_files);
@@ -667,20 +471,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'Unauthorized' };
       }
 
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: 'qbittorrent' },
-        select: { enabled: true, config: true },
-      });
-
-      if (!plugin?.enabled) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is disabled' };
-      }
-
-      const config = normalizeQbittorrentConfig(plugin.config);
+      const config = await getConfigOrError(set);
       if (!config) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is enabled but not configured' };
+        return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
       const result = await addQbittorrentMagnet(config, true, { magnet: body.magnet });
@@ -704,20 +497,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'Unauthorized' };
       }
 
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: 'qbittorrent' },
-        select: { enabled: true, config: true },
-      });
-
-      if (!plugin?.enabled) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is disabled' };
-      }
-
-      const config = normalizeQbittorrentConfig(plugin.config);
+      const config = await getConfigOrError(set);
       if (!config) {
-        set.status = 400;
-        return { error: 'qBittorrent plugin is enabled but not configured' };
+        return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
       const torrent = body.torrent;
@@ -750,16 +532,5 @@ export const dashboardQbittorrentRoutes = new Elysia()
       return { error: 'Unauthorized' };
     }
 
-    return createJsonSseResponse({
-      request,
-      poll: getQbittorrentSnapshot,
-      intervalMs: snapshot => Math.max(1000, snapshot.poll_interval_seconds * 1000),
-      retryMs: 5000,
-      onError: () => ({
-        ...buildQbittorrentDisabledSnapshot('Failed to refresh qBittorrent status'),
-        enabled: true,
-        connected: false,
-      }),
-      logLabel: 'qBittorrent stream',
-    });
+    return createPollerSseResponse(request, 'dashboard');
   });

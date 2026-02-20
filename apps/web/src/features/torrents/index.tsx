@@ -15,6 +15,7 @@ import { TorrentRow } from './TorrentRow';
 import { STATE_FILTERS, getStateFilter, formatSpeed, type StateFilter, type SortKey, type SortDir } from './utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export function TorrentsPage() {
   const { t } = useTranslation('common');
@@ -26,16 +27,29 @@ export function TorrentsPage() {
 
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState<StateFilter>('all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortKey>('added_on');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const torrents = data?.torrents ?? [];
+
+  const availableCategories = useMemo(() => {
+    return Array.from(new Set(torrents.map(t => t.category).filter(Boolean))) as string[];
+  }, [torrents]);
+
+  const availableTags = useMemo(() => {
+    return Array.from(new Set(torrents.flatMap(t => t.tags).filter(Boolean))) as string[];
+  }, [torrents]);
 
   const filtered = useMemo(() => {
     let result = torrents;
     const q = search.trim().toLowerCase();
     if (q) result = result.filter(row => row.name.toLowerCase().includes(q));
     if (stateFilter !== 'all') result = result.filter(row => getStateFilter(row.state) === stateFilter);
+    if (selectedCategories.length > 0)
+      result = result.filter(row => row.category && selectedCategories.includes(row.category));
+    if (selectedTags.length > 0) result = result.filter(row => selectedTags.some(tag => row.tags.includes(tag)));
 
     return [...result].sort((a, b) => {
       let cmp = 0;
@@ -47,7 +61,7 @@ export function TorrentsPage() {
       else if (sortBy === 'upload_speed') cmp = a.upload_speed - b.upload_speed;
       return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, [search, stateFilter, torrents, sortBy, sortDir]);
+  }, [search, stateFilter, selectedCategories, selectedTags, torrents, sortBy, sortDir]);
 
   const counts = useMemo(() => {
     const map: Partial<Record<StateFilter, number>> = {};
@@ -138,7 +152,7 @@ export function TorrentsPage() {
                 <TrendingUp size={12} />
                 {formatSpeed(totalUp)}
               </span>
-              <span className="ml-auto text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
+              <span className="ml-auto text-xs text-neutral-400 dark:text-neutral-400 tabular-nums">
                 {torrents.length.toLocaleString()} {t('dashboard.qbittorrent.torrents', 'torrents')}
               </span>
             </div>
@@ -162,6 +176,86 @@ export function TorrentsPage() {
                   className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 dark:focus:border-sky-500 transition"
                 />
               </div>
+
+              {/* Multi-select filter pickers */}
+              {(availableCategories.length > 0 || availableTags.length > 0) && (
+                <div className="flex gap-2 items-center flex-wrap">
+                  {availableCategories.length > 0 && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-[11px] font-medium hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
+                          <span className="text-neutral-500">Categories</span>
+                          {selectedCategories.length > 0 && (
+                            <span className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 px-1.5 rounded text-[10px]">
+                              {selectedCategories.length}
+                            </span>
+                          )}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-2" align="start">
+                        <div className="space-y-1">
+                          {availableCategories.map(cat => (
+                            <label
+                              key={cat}
+                              className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedCategories.includes(cat)}
+                                onChange={e => {
+                                  if (e.target.checked) setSelectedCategories(p => [...p, cat]);
+                                  else setSelectedCategories(p => p.filter(c => c !== cat));
+                                }}
+                                className="rounded border-neutral-300 dark:border-neutral-600 focus:ring-sky-500 text-sky-500 bg-transparent h-3.5 w-3.5"
+                              />
+                              <span className="text-[12px] text-neutral-700 dark:text-neutral-300 truncate leading-none">
+                                {cat}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                  {availableTags.length > 0 && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-[11px] font-medium hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">
+                          <span className="text-neutral-500">Tags</span>
+                          {selectedTags.length > 0 && (
+                            <span className="bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 px-1.5 rounded text-[10px]">
+                              {selectedTags.length}
+                            </span>
+                          )}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-2" align="start">
+                        <div className="space-y-1">
+                          {availableTags.map(tag => (
+                            <label
+                              key={tag}
+                              className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedTags.includes(tag)}
+                                onChange={e => {
+                                  if (e.target.checked) setSelectedTags(p => [...p, tag]);
+                                  else setSelectedTags(p => p.filter(t => t !== tag));
+                                }}
+                                className="rounded border-neutral-300 dark:border-neutral-600 focus:ring-sky-500 text-sky-500 bg-transparent h-3.5 w-3.5"
+                              />
+                              <span className="text-[12px] text-neutral-700 dark:text-neutral-300 truncate leading-none">
+                                {tag}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
+              )}
 
               {/* State filter chips */}
               <div className="flex gap-1.5 overflow-x-auto pb-0.5">
@@ -191,7 +285,7 @@ export function TorrentsPage() {
 
               {/* Sort controls */}
               <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
-                <span className="shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500 mr-1">Sort:</span>
+                <span className="shrink-0 text-[11px] text-neutral-400 dark:text-neutral-400 mr-1">Sort:</span>
                 {(
                   [
                     { key: 'added_on', label: t('torrents.sortAdded', 'Date') },
@@ -212,7 +306,7 @@ export function TorrentsPage() {
                       key={key}
                       onClick={() => handleSort(key)}
                       title={titles[key]}
-                      className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                      className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 min-h-[26px] rounded-full text-xs font-medium transition-colors ${
                         active
                           ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-900'
                           : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
@@ -232,7 +326,7 @@ export function TorrentsPage() {
             </div>
 
             {/* Rows */}
-            <div className="divide-y divide-neutral-100 dark:divide-neutral-800/80">
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
               {isLoading ? (
                 <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
                   {t('common.loading', 'Loading...')}

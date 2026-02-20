@@ -1,13 +1,6 @@
 import { prisma } from '../db';
 import { getJsonCache, setJsonCache, deleteCache } from './cache';
 
-interface QbittorrentTransferInfo {
-  dl_info_speed?: number;
-  up_info_speed?: number;
-  dl_info_data?: number;
-  up_info_data?: number;
-}
-
 interface QbittorrentTorrentRaw {
   hash?: string;
   name?: string;
@@ -1309,6 +1302,35 @@ export const resumeQbittorrentTorrent = async (
       connected: false,
       success: false,
       error: error instanceof Error ? error.message : 'Failed to resume torrent',
+    };
+  }
+};
+
+export const reannounceQbittorrentTorrent = async (
+  config: QbittorrentPluginConfig,
+  enabled: boolean,
+  payload: { hash: string }
+): Promise<{ enabled: boolean; connected: boolean; success: boolean; error?: string }> => {
+  if (!enabled) return { enabled: false, connected: false, success: false };
+  const safeHash = payload.hash.trim();
+  if (!safeHash) return { enabled: true, connected: false, success: false, error: 'Missing torrent hash' };
+
+  const body = new URLSearchParams();
+  body.set('hashes', safeHash);
+
+  try {
+    await qbFetchText(config, '/api/v2/torrents/reannounce', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+    return { enabled: true, connected: true, success: true };
+  } catch (error) {
+    return {
+      enabled: true,
+      connected: false,
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to reannounce torrent',
     };
   }
 };

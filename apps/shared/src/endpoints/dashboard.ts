@@ -46,6 +46,7 @@ export const DASHBOARD_ENDPOINTS = {
     SET_TAGS: (hash: string) => `/api/dashboard/qbittorrent/torrents/${encodeURIComponent(hash)}/set-tags`,
     PAUSE: (hash: string) => `/api/dashboard/qbittorrent/torrents/${encodeURIComponent(hash)}/pause`,
     RESUME: (hash: string) => `/api/dashboard/qbittorrent/torrents/${encodeURIComponent(hash)}/resume`,
+    REANNOUNCE: (hash: string) => `/api/dashboard/qbittorrent/torrents/${encodeURIComponent(hash)}/reannounce`,
     DELETE: (hash: string) => `/api/dashboard/qbittorrent/torrents/${encodeURIComponent(hash)}/delete`,
   },
   SCRUTINY: {
