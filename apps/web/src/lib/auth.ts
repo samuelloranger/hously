@@ -2,6 +2,8 @@ import { AUTH_ENDPOINTS, type User } from '@hously/shared';
 import { getQueryClient, invalidateAuthCache } from './queryClient';
 import { queryKeys } from '@hously/shared';
 import { webFetcher } from './fetcher';
+import { ApiError } from './api';
+import { toast } from 'sonner';
 
 let currentUser: User | null = null;
 let userPromise: Promise<User | null> | null = null;
@@ -22,14 +24,21 @@ export async function getCurrentUser(): Promise<User | null> {
       return currentUser;
     } catch (error: any) {
       // If 401, user is not authenticated - clear cache
-      if (error?.status === 401) {
+      if (error instanceof ApiError && error.status === 401) {
         currentUser = null;
         userPromise = null;
         // Invalidate React Query cache to ensure UI updates
         invalidateAuthCache();
-      } else {
-        currentUser = null;
+        return null;
       }
+
+      // If 429, show toast and re-throw so the router can avoid redirect
+      if (error instanceof ApiError && error.status === 429) {
+        toast.error('Too many requests. Please slow down.');
+        throw error;
+      }
+
+      currentUser = null;
       return null;
     } finally {
       userPromise = null;

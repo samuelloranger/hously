@@ -6,6 +6,7 @@ import {
   DASHBOARD_ENDPOINTS,
   useDashboardQbittorrentStatus,
 } from '@hously/shared';
+import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
 
 const formatBytes = (bytes: number): string => {
   if (bytes <= 0) return '0 B';
@@ -20,6 +21,7 @@ const formatSpeed = (bytesPerSecond: number): string => `${formatBytes(bytesPerS
 export function QbittorrentLiveCard() {
   const { t } = useTranslation('common');
   const { data: fallbackData, isLoading } = useDashboardQbittorrentStatus();
+  const prefetchRoute = usePrefetchRoute();
   const [liveData, setLiveData] = useState<DashboardQbittorrentStatusResponse | null>(null);
   const [streamConnected, setStreamConnected] = useState(false);
 
@@ -61,31 +63,35 @@ export function QbittorrentLiveCard() {
   return (
     <Link
       to="/torrents"
-      className="block h-full rounded-3xl overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
+      onMouseEnter={() => prefetchRoute('/torrents')}
+      onTouchStart={() => prefetchRoute('/torrents')}
+      className="block rounded-3xl overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
     >
-      <section className="h-full relative border border-sky-300/60 dark:border-sky-200/30 bg-gradient-to-br from-[#c2e8fc] via-[#b1c4f9] to-[#a7a2d6] dark:from-sky-700 dark:via-blue-700 dark:to-indigo-700 p-6 shadow-xl">
+      <section className="relative border border-orange-300/60 dark:border-orange-500/30 bg-gradient-to-br from-[#fde8d8] via-[#fbc8a0] to-[#f4845a] dark:from-[#431407] dark:via-[#7c2d12] dark:to-[#c2410c] p-6 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-sky-950/70 dark:text-sky-200/90">
+            <p className="text-xs uppercase tracking-[0.22em] text-orange-950/70 dark:text-orange-200/90">
               {t('dashboard.qbittorrent.kicker')}
             </p>
-            <h3 className="text-2xl md:text-3xl font-bold text-sky-950 dark:text-sky-50">
+            <h3 className="text-2xl md:text-3xl font-bold text-orange-950 dark:text-orange-50">
               {t('dashboard.qbittorrent.title')}
             </h3>
-            <p className="text-sm text-sky-900/70 dark:text-sky-100/90 mt-1">{t('dashboard.qbittorrent.subtitle')}</p>
-            <p className="text-xs text-sky-900/70 dark:text-sky-100/80 mt-2">
+            <p className="text-sm text-orange-900/70 dark:text-orange-100/90 mt-1">
+              {t('dashboard.qbittorrent.subtitle')}
+            </p>
+            <p className="text-xs text-orange-900/70 dark:text-orange-100/80 mt-2">
               {t('dashboard.qbittorrent.openTorrents', 'Open Torrents')}
             </p>
           </div>
-          <span className="rounded-full bg-black/15 dark:bg-black/25 px-3 py-1 text-xs font-medium text-sky-950 dark:text-sky-100">
+          <span className="rounded-full bg-black/15 dark:bg-black/25 px-3 py-1 text-xs font-medium text-orange-950 dark:text-orange-100">
             {statusLabel}
           </span>
         </div>
 
         {shouldShowEmpty ? (
-          <div className="mt-5 rounded-2xl border border-sky-500/40 dark:border-sky-300/40 bg-sky-100/55 dark:bg-sky-100/15 p-4 text-sky-950 dark:text-sky-100">
+          <div className="mt-5 rounded-2xl border border-orange-500/40 dark:border-orange-400/40 bg-orange-100/55 dark:bg-orange-100/10 p-4 text-orange-950 dark:text-orange-100">
             <p className="font-medium">{t('dashboard.qbittorrent.notConnectedTitle')}</p>
-            <p className="text-sm text-sky-950/80 dark:text-sky-100/90 mt-1">
+            <p className="text-sm text-orange-950/80 dark:text-orange-100/90 mt-1">
               {t('dashboard.qbittorrent.notConnectedDescription')}
             </p>
           </div>
@@ -93,24 +99,40 @@ export function QbittorrentLiveCard() {
           <>
             <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
-                <p className="text-xs text-sky-950/75 dark:text-sky-200/80">{t('dashboard.qbittorrent.active')}</p>
-                <p className="text-xl font-semibold text-sky-950 dark:text-white">{data?.summary.downloading_count ?? 0}</p>
+                <p className="text-xs text-orange-950/75 dark:text-orange-200/80">
+                  {t('dashboard.qbittorrent.active')}
+                </p>
+                <p className="text-xl font-semibold text-orange-950 dark:text-white">
+                  {data?.summary.downloading_count ?? 0}
+                </p>
               </div>
               <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
-                <p className="text-xs text-sky-950/75 dark:text-sky-200/80">{t('dashboard.qbittorrent.stalled')}</p>
-                <p className="text-xl font-semibold text-sky-950 dark:text-white">{data?.summary.stalled_count ?? 0}</p>
+                <p className="text-xs text-orange-950/75 dark:text-orange-200/80">
+                  {t('dashboard.qbittorrent.stalled')}
+                </p>
+                <p className="text-xl font-semibold text-orange-950 dark:text-white">
+                  {data?.summary.stalled_count ?? 0}
+                </p>
               </div>
               <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
-                <p className="text-xs text-sky-950/75 dark:text-sky-200/80">{t('dashboard.qbittorrent.downloadSpeed')}</p>
-                <p className="text-xl font-semibold text-sky-950 dark:text-white">{formatSpeed(data?.summary.download_speed ?? 0)}</p>
+                <p className="text-xs text-orange-950/75 dark:text-orange-200/80">
+                  {t('dashboard.qbittorrent.downloadSpeed')}
+                </p>
+                <p className="text-xl font-semibold text-orange-950 dark:text-white">
+                  {formatSpeed(data?.summary.download_speed ?? 0)}
+                </p>
               </div>
               <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
-                <p className="text-xs text-sky-950/75 dark:text-sky-200/80">{t('dashboard.qbittorrent.uploadSpeed')}</p>
-                <p className="text-xl font-semibold text-sky-950 dark:text-white">{formatSpeed(data?.summary.upload_speed ?? 0)}</p>
+                <p className="text-xs text-orange-950/75 dark:text-orange-200/80">
+                  {t('dashboard.qbittorrent.uploadSpeed')}
+                </p>
+                <p className="text-xl font-semibold text-orange-950 dark:text-white">
+                  {formatSpeed(data?.summary.upload_speed ?? 0)}
+                </p>
               </div>
             </div>
 
-            {data?.error && <p className="mt-4 text-xs text-sky-950/85 dark:text-sky-100/90">{data.error}</p>}
+            {data?.error && <p className="mt-4 text-xs text-orange-950/85 dark:text-orange-100/90">{data.error}</p>}
           </>
         )}
       </section>

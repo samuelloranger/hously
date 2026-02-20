@@ -8,6 +8,7 @@ import {
 } from '@hously/shared';
 import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
 import { formatGo, formatRatio } from '@hously/shared/utils/ygg';
+import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
 
 type TrackerCardData = {
   key: 'ygg' | 'c411' | 'torr9' | 'g3mini' | 'la-cale';
@@ -24,6 +25,7 @@ type TrackerCardData = {
 export function TrackerStatsCard() {
   const { t, i18n } = useTranslation('common');
   const locale = resolveDateFnsLocale(i18n.language);
+  const prefetchRoute = usePrefetchRoute();
 
   const ygg = useDashboardYggStats();
   const c411 = useDashboardC411Stats();
@@ -95,7 +97,11 @@ export function TrackerStatsCard() {
   const anyConnected = connectedCount > 0;
 
   return (
-    <section className="h-full relative overflow-hidden rounded-3xl border border-emerald-300/60 dark:border-emerald-200/30 bg-gradient-to-br from-[#c9f7da] via-[#74d2a1] to-[#b7f3ee] dark:from-emerald-900/70 dark:via-emerald-900/60 dark:to-teal-900/60 p-6 shadow-xl">
+    <section
+      className="relative overflow-hidden rounded-3xl border border-emerald-300/60 dark:border-emerald-200/30 bg-gradient-to-br from-[#c9f7da] via-[#74d2a1] to-[#b7f3ee] dark:from-emerald-900/70 dark:via-emerald-900/60 dark:to-teal-900/60 p-6 shadow-xl"
+      onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+      onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+    >
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-emerald-950/70 dark:text-emerald-200/90">

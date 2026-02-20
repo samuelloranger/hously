@@ -1,10 +1,10 @@
-import { createRouter, createRootRoute, createRoute, redirect } from '@tanstack/react-router';
+import { createRouter, createRootRouteWithContext, createRoute, redirect } from '@tanstack/react-router';
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import { RootLayout } from './components/Layout';
-import { getCurrentUser, clearUser } from './lib/auth';
+import { getCurrentUser } from './lib/auth';
 import type { Tab } from './routes/settings';
-import { getQueryClient } from './lib/queryClient';
 import { prefetchRouteData } from './lib/routePrefetch';
+import type { QueryClient } from '@tanstack/react-query';
 
 // Cache for lazy components to prevent recreating them
 const lazyComponentCache = new Map<string, LazyExoticComponent<ComponentType<any>>>();
@@ -61,24 +61,42 @@ const TorrentDetailPage = cachedLazy('torrent-detail', () =>
   import('./features/torrents/TorrentDetailPage').then(m => ({ default: m.TorrentDetailPage }))
 );
 
-const rootRoute = createRootRoute({
+interface RouterContext {
+  queryClient: QueryClient;
+}
+
+const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: RootLayout,
 });
+
+/**
+ * Helper to require authentication for a route.
+ * Redirects to /login if not authenticated, but NOT if rate limited (429).
+ */
+const requireAuth = async () => {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      throw redirect({ to: '/login' });
+    }
+    return { user };
+  } catch (e: any) {
+    // If it's a 429, don't redirect to login. 
+    // This allows the user to stay on the page and see the toast error.
+    if (e?.status === 429) {
+      return { user: null };
+    }
+    throw e;
+  }
+};
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: Dashboard,
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw redirect({ to: '/login' });
-    }
-  },
-  loader: async () => {
-    const queryClient = getQueryClient();
-    if (!queryClient) return;
-    await prefetchRouteData(queryClient, '/');
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/');
   },
 });
 
@@ -87,7 +105,7 @@ const loginRoute = createRoute({
   path: '/login',
   component: Login,
   beforeLoad: async () => {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser().catch(() => null);
     if (user) {
       throw redirect({ to: '/' });
     }
@@ -99,7 +117,7 @@ const forgotPasswordRoute = createRoute({
   path: '/forgot-password',
   component: ForgotPassword,
   beforeLoad: async () => {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser().catch(() => null);
     if (user) {
       throw redirect({ to: '/' });
     }
@@ -116,7 +134,7 @@ const resetPasswordRoute = createRoute({
     };
   },
   beforeLoad: async () => {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser().catch(() => null);
     if (user) {
       throw redirect({ to: '/' });
     }
@@ -127,16 +145,9 @@ const shoppingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/shopping',
   component: ShoppingList,
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw redirect({ to: '/login' });
-    }
-  },
-  loader: async () => {
-    const queryClient = getQueryClient();
-    if (!queryClient) return;
-    await prefetchRouteData(queryClient, '/shopping');
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/shopping');
   },
 });
 
@@ -144,16 +155,9 @@ const choresRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/chores',
   component: ChoresList,
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw redirect({ to: '/login' });
-    }
-  },
-  loader: async () => {
-    const queryClient = getQueryClient();
-    if (!queryClient) return;
-    await prefetchRouteData(queryClient, '/chores');
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/chores');
   },
 });
 
@@ -161,11 +165,9 @@ const calendarRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/calendar',
   component: Calendar,
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw redirect({ to: '/login' });
-    }
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/calendar');
   },
 });
 
@@ -178,12 +180,10 @@ const settingsRoute = createRoute({
       tab: (search.tab as Tab) || 'profile',
     };
   },
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      clearUser();
-      throw redirect({ to: '/login' });
-    }
+  beforeLoad: requireAuth,
+  loaderDeps: ({ search: { tab } }) => ({ tab }),
+  loader: async ({ context, deps }) => {
+    await prefetchRouteData(context.queryClient, '/settings', deps);
   },
 });
 
@@ -191,17 +191,9 @@ const notificationsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/notifications',
   component: Notifications,
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      clearUser();
-      throw redirect({ to: '/login' });
-    }
-  },
-  loader: async () => {
-    const queryClient = getQueryClient();
-    if (!queryClient) return;
-    await prefetchRouteData(queryClient, '/notifications');
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/notifications');
   },
 });
 
@@ -209,16 +201,9 @@ const kitchenRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/kitchen',
   component: KitchenPage,
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw redirect({ to: '/login' });
-    }
-  },
-  loader: async () => {
-    const queryClient = getQueryClient();
-    if (!queryClient) return;
-    await prefetchRouteData(queryClient, '/kitchen');
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/kitchen');
   },
 });
 
@@ -226,11 +211,9 @@ const recipeDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/kitchen/$recipeId',
   component: RecipeDetail,
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw redirect({ to: '/login' });
-    }
+  beforeLoad: requireAuth,
+  loader: async ({ context, params }) => {
+    await prefetchRouteData(context.queryClient, '/kitchen/$recipeId', params);
   },
 });
 
@@ -250,16 +233,9 @@ const torrentsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/torrents',
   component: TorrentsPage,
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw redirect({ to: '/login' });
-    }
-  },
-  loader: async () => {
-    const queryClient = getQueryClient();
-    if (!queryClient) return;
-    await prefetchRouteData(queryClient, '/torrents');
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/torrents');
   },
 });
 
@@ -267,16 +243,9 @@ const mediasRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/medias',
   component: MediasPage,
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw redirect({ to: '/login' });
-    }
-  },
-  loader: async () => {
-    const queryClient = getQueryClient();
-    if (!queryClient) return;
-    await prefetchRouteData(queryClient, '/medias');
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/medias');
   },
 });
 
@@ -284,11 +253,9 @@ const torrentDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/torrents/$hash',
   component: TorrentDetailPage,
-  beforeLoad: async () => {
-    const user = await getCurrentUser();
-    if (!user) {
-      throw redirect({ to: '/login' });
-    }
+  beforeLoad: requireAuth,
+  loader: async ({ context, params }) => {
+    await prefetchRouteData(context.queryClient, '/torrents/$hash', params);
   },
 });
 
@@ -311,7 +278,12 @@ const routeTree = rootRoute.addChildren([
   torrentDetailRoute,
 ]);
 
-export const router = createRouter({ routeTree });
+export const router = createRouter({
+  routeTree,
+  context: {
+    queryClient: undefined!, // Will be provided in main.tsx
+  },
+});
 
 declare module '@tanstack/react-router' {
   interface Register {

@@ -1,12 +1,14 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardWeather, getWeatherVisualTheme, getWeatherConditionKey } from '@hously/shared';
+import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
 
 const toCelsius = (fahrenheit: number): number => (fahrenheit - 32) * (5 / 9);
 
 export function WeatherWidget() {
   const { t } = useTranslation('common');
   const weatherQuery = useDashboardWeather();
+  const prefetchRoute = usePrefetchRoute();
   const weatherTheme = useMemo(() => {
     if (!weatherQuery.data) {
       return {
@@ -23,7 +25,8 @@ export function WeatherWidget() {
   if (!weatherQuery.data || weatherQuery.isError) return null;
 
   const unit = weatherQuery.data.temperatureUnit || 'fahrenheit';
-  const temperatureValue = unit === 'celsius' ? toCelsius(weatherQuery.data.temperatureF) : weatherQuery.data.temperatureF;
+  const temperatureValue =
+    unit === 'celsius' ? toCelsius(weatherQuery.data.temperatureF) : weatherQuery.data.temperatureF;
   const feelsLikeValue = unit === 'celsius' ? toCelsius(weatherQuery.data.feelsLikeF) : weatherQuery.data.feelsLikeF;
   const unitLabel = unit === 'celsius' ? 'C' : 'F';
   const conditionLabel = t(`dashboard.weather.conditions.${getWeatherConditionKey(weatherQuery.data.weatherCode)}`, {
@@ -32,8 +35,10 @@ export function WeatherWidget() {
 
   return (
     <div
-      className="mt-4 rounded-xl shadow p-6"
+      className="rounded-xl shadow p-6"
       style={{ background: `linear-gradient(135deg, ${weatherTheme.startColor}, ${weatherTheme.endColor})` }}
+      onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+      onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>

@@ -20,7 +20,6 @@ const mapUser = (user: {
   createdAt: Date | null;
   lastActivity: Date | null;
   avatarUrl: string | null;
-  dashboardConfig?: any | null;
 }) => ({
   id: user.id,
   email: user.email,
@@ -32,7 +31,6 @@ const mapUser = (user: {
   created_at: user.createdAt?.toISOString() ?? new Date().toISOString(),
   last_activity: user.lastActivity?.toISOString() ?? null,
   avatar_url: user.avatarUrl || null,
-  dashboard_config: user.dashboardConfig ?? null,
 });
 
 const getJwtSecret = (): string => {
@@ -118,10 +116,12 @@ export const auth = (app: Elysia) =>
     })
     .group('/api/auth', app =>
       app
-        .use(authRateLimit)
-        .post(
-          '/login',
-          async ({ body, jwt, set, cookie: { auth } }) => {
+        .group('', app =>
+          app
+            .use(authRateLimit)
+            .post(
+              '/login',
+              async ({ body, jwt, set, cookie: { auth } }) => {
             const { email, password } = body;
             const user = await prisma.user.findFirst({
               where: { email },
@@ -278,6 +278,7 @@ export const auth = (app: Elysia) =>
             }),
           }
         )
+      )
         .post(
           '/refresh',
           async ({ body, jwt, set }) => {

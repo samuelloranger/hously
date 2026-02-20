@@ -7,16 +7,21 @@ import { rateLimit } from 'elysia-rate-limit';
 export const globalRateLimit = rateLimit({
   duration: 60 * 60 * 1000, // 1 hour in milliseconds
   max: 1000,
-  generator: (req, _server, derived: { user?: { id: number } | null }) => {
-    // Authenticated users are keyed by user ID and skipped by `skip`.
-    if (derived?.user?.id) {
-      return `user:${derived.user.id}`;
-    }
-
+  generator: (req) => {
     // Unauthenticated traffic is limited by IP (similar to Flask's get_remote_address)
     return req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown';
   },
-  skip: (_req, key) => typeof key === 'string' && key.startsWith('user:'),
+  skip: (req) => {
+    // Skip rate limiting for requests that look authenticated.
+    // These will be verified by the auth middleware downstream.
+    const authHeader = req.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) return true;
+
+    const cookie = req.headers.get('cookie');
+    if (cookie && (cookie.includes('auth=') || cookie.includes('refreshToken='))) return true;
+
+    return false;
+  },
   errorResponse: 'Too many requests. Please try again later.',
 });
 

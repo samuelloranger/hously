@@ -15,6 +15,7 @@ import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/r
 import { cn } from '../lib/utils';
 import { syncBadge } from '../lib/serviceWorker';
 import { useQueryClient } from '@tanstack/react-query';
+import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
 
 function getRelativeTime(dateStr: string, lang: string): string {
   try {
@@ -72,6 +73,7 @@ export function NotificationsMenu() {
   const { t, i18n } = useTranslation('common');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const prefetchRoute = usePrefetchRoute();
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: unreadData } = useUnreadCount();
@@ -131,6 +133,7 @@ export function NotificationsMenu() {
         <button
           className="flex h-9 w-9 items-center justify-center relative rounded-xl text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-neutral-800 dark:hover:text-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 transition-colors"
           aria-label={t('notifications.bell')}
+          onMouseEnter={() => prefetchRoute('/notifications')}
         >
           <Bell className="h-[18px] w-[18px]" />
           {unreadCount > 0 && (

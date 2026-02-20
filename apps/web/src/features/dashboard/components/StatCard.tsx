@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from '@tanstack/react-router';
+import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
 
 interface StatCardProps {
   icon: string;
@@ -80,13 +81,19 @@ function AnimatedNumber({ value }: { value: number }) {
 }
 
 export function StatCard({ icon, title, value, color: _color, link, t, index = 0 }: StatCardProps) {
+  const prefetchRoute = usePrefetchRoute();
   const isNumeric = typeof value === 'number';
   const isCurrency = typeof value === 'string' && value.startsWith('$');
   const numericValue = isCurrency ? parseFloat(value.replace('$', '')) : isNumeric ? value : null;
   const theme = cardThemes[index] || cardThemes[0];
 
   return (
-    <Link to={link} className="group block">
+    <Link
+      to={link}
+      className="group block"
+      onMouseEnter={() => prefetchRoute(link)}
+      onTouchStart={() => prefetchRoute(link)}
+    >
       <div
         className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${theme.card} ${theme.glow} p-5 transition-all duration-300 ease-out group-hover:shadow-lg group-hover:scale-[1.02] group-hover:-translate-y-0.5`}
       >

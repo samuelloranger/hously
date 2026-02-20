@@ -502,26 +502,47 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
-      const torrent = body.torrent;
-      const isWebFile = torrent instanceof File;
-      if (!isWebFile) {
+      const torrents = Array.isArray(body.torrents) ? body.torrents : [body.torrents];
+      if (torrents.length === 0 || !torrents[0]) {
         set.status = 400;
-        return { error: 'Invalid torrent file' };
-      }
-      if (torrent.size > 5 * 1024 * 1024) {
-        set.status = 413;
-        return { error: 'Torrent file is too large' };
+        return { error: 'Missing torrent files' };
       }
 
-      const result = await addQbittorrentTorrentFile(config, true, { torrent });
-      if (!result.connected || !result.success) {
-        set.status = 502;
+      if (torrents.length > 10) {
+        set.status = 400;
+        return { error: 'Too many files (max 10)' };
       }
-      return result;
+
+      for (const torrent of torrents) {
+        if (!(torrent instanceof File)) {
+          set.status = 400;
+          return { error: 'Invalid torrent file' };
+        }
+        if (torrent.size > 5 * 1024 * 1024) {
+          set.status = 413;
+          return { error: `Torrent file ${torrent.name} is too large` };
+        }
+      }
+
+      // We add them one by one for now to reuse the service function
+      const results = [];
+      for (const torrent of torrents) {
+        results.push(await addQbittorrentTorrentFile(config, true, { torrent }));
+      }
+
+      const allSuccess = results.every(r => r.success);
+      const someSuccess = results.some(r => r.success);
+
+      if (!someSuccess) {
+        set.status = 502;
+        return { enabled: true, connected: true, success: false, error: results[0].error };
+      }
+
+      return { enabled: true, connected: true, success: true, partial: !allSuccess };
     },
     {
       body: t.Object({
-        torrent: t.Any(),
+        torrents: t.Union([t.Any(), t.Array(t.Any())]),
       }),
     }
   )

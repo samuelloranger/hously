@@ -142,9 +142,12 @@ export function useAddQbittorrentTorrentFile() {
   const fetcher = useFetcher();
 
   return useMutation({
-    mutationFn: (torrent: File) => {
+    mutationFn: (torrents: File | File[]) => {
       const formData = new FormData();
-      formData.set('torrent', torrent);
+      const files = Array.isArray(torrents) ? torrents : [torrents];
+      files.forEach(file => {
+        formData.append('torrents', file as any);
+      });
       return fetcher<DashboardQbittorrentAddTorrentResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.ADD_FILE, {
         method: 'POST',
         body: formData,

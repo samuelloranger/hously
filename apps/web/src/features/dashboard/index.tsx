@@ -3,7 +3,6 @@ import { PageLayout } from '../../components/PageLayout';
 import { StatCard } from './components/StatCard';
 import { SmartGreeting } from './components/SmartGreeting';
 import { JellyfinLatestShelf } from './components/JellyfinLatestShelf';
-import { SwipeSuggestionsCard } from './components/SwipeSuggestionsCard';
 import { QbittorrentLiveCard } from './components/QbittorrentLiveCard';
 import { ScrutinyHealthCard } from './components/ScrutinyHealthCard';
 import { NetdataOverviewCard } from './components/NetdataOverviewCard';
@@ -14,10 +13,12 @@ import { getUserFirstName, useCurrentUser, useDashboardStats } from '@hously/sha
 import { StatCardSkeleton } from '../../components/Skeleton';
 import PendingChoresSection from './components/PendingChoresSection';
 import { UpcomingShelf } from './components/UpcomingShelf';
+import { usePrefetchRoute } from '../../hooks/usePrefetchRoute';
 
 export function Dashboard() {
   const { t } = useTranslation('common');
   const { data: user } = useCurrentUser();
+  const prefetchRoute = usePrefetchRoute();
 
   const { data: statsData, isLoading: statsLoading } = useDashboardStats();
   const stats = statsData?.stats;
@@ -75,16 +76,50 @@ export function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="flex flex-col gap-6">
             <WeatherWidget />
-            <QbittorrentLiveCard />
-            <JellyfinLatestShelf />
-            <UpcomingShelf />
-            <ScrutinyHealthCard />
-            <PendingChoresSection />
+            <div
+              onMouseEnter={() => prefetchRoute('/torrents')}
+              onTouchStart={() => prefetchRoute('/torrents')}
+            >
+              <QbittorrentLiveCard />
+            </div>
+            <div
+              onMouseEnter={() => prefetchRoute('/medias')}
+              onTouchStart={() => prefetchRoute('/medias')}
+            >
+              <JellyfinLatestShelf />
+            </div>
+            <div
+              onMouseEnter={() => prefetchRoute('/medias')}
+              onTouchStart={() => prefetchRoute('/medias')}
+            >
+              <UpcomingShelf />
+            </div>
+            <div
+              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+            >
+              <ScrutinyHealthCard />
+            </div>
+            <div
+              onMouseEnter={() => prefetchRoute('/chores')}
+              onTouchStart={() => prefetchRoute('/chores')}
+            >
+              <PendingChoresSection />
+            </div>
           </div>
           <div className="flex flex-col gap-6">
-            <SwipeSuggestionsCard />
-            <TrackerStatsCard />
-            <NetdataOverviewCard />
+            <div
+              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+            >
+              <TrackerStatsCard />
+            </div>
+            <div
+              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+            >
+              <NetdataOverviewCard />
+            </div>
             <RecentActivityCard />
           </div>
         </div>

@@ -4,7 +4,7 @@ import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { PageLayout } from '../../components/PageLayout';
 import { PageHeader } from '../../components/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
-import { ArrowDownAZ, ArrowUpZA, ExternalLink, RefreshCw, Search } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, User } from 'lucide-react';
 import { TmdbMediaSearchPanel } from './components/TmdbMediaSearchPanel';
 import { toast } from 'sonner';
 import { InteractiveSearchDialog } from './components/InteractiveSearchDialog';
@@ -96,18 +96,30 @@ export function MediasPage() {
           <TmdbMediaSearchPanel onAdded={refetch} />
 
           <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800 space-y-3">
-              <div className="relative">
-                <Search
-                  size={13}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
-                />
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder={t('medias.searchPlaceholder')}
-                  className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
-                />
+            {/* Filter toolbar */}
+            <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 space-y-2.5">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search
+                    size={13}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
+                  />
+                  <input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder={t('medias.searchPlaceholder')}
+                    className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc'))}
+                  className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+                  title={sortDir === 'asc' ? t('medias.sortDirectionAsc') : t('medias.sortDirectionDesc')}
+                >
+                  {sortDir === 'asc' ? <ArrowDownAZ size={14} /> : <ArrowUpZA size={14} />}
+                </button>
               </div>
 
               <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
@@ -118,9 +130,9 @@ export function MediasPage() {
                     <button
                       key={type}
                       onClick={() => setFilter(type)}
-                      className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                      className={`appearance-none shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150 ${
                         active
-                          ? 'bg-indigo-600 text-white'
+                          ? 'bg-indigo-600 text-white shadow-sm'
                           : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                       }`}
                     >
@@ -129,47 +141,46 @@ export function MediasPage() {
                         : type === 'movie'
                           ? t('medias.filterMovies')
                           : t('medias.filterSeries')}
-                      <span className={active ? 'text-indigo-100' : 'text-neutral-400 dark:text-neutral-500'}>
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                          active
+                            ? 'bg-white/20 text-white'
+                            : 'bg-neutral-200/70 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400'
+                        }`}
+                      >
                         {count}
                       </span>
                     </button>
                   );
                 })}
-              </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <label className="text-xs text-neutral-500 dark:text-neutral-400">{t('medias.sortLabel')}</label>
-                <select
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value as SortKey)}
-                  className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-900 dark:text-neutral-100"
-                >
-                  <option value="added_at">{t('medias.sortOptions.addedAt')}</option>
-                  <option value="title">{t('medias.sortOptions.title')}</option>
-                  <option value="year">{t('medias.sortOptions.year')}</option>
-                  <option value="service">{t('medias.sortOptions.service')}</option>
-                  <option value="status">{t('medias.sortOptions.status')}</option>
-                  <option value="downloaded">{t('medias.sortOptions.downloaded')}</option>
-                  <option value="monitored">{t('medias.sortOptions.monitored')}</option>
-                </select>
-
-                <button
-                  type="button"
-                  onClick={() => setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc'))}
-                  className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                  title={sortDir === 'asc' ? t('medias.sortDirectionAsc') : t('medias.sortDirectionDesc')}
-                >
-                  {sortDir === 'asc' ? <ArrowDownAZ size={13} /> : <ArrowUpZA size={13} />}
-                  <span>{sortDir === 'asc' ? t('medias.asc') : t('medias.desc')}</span>
-                </button>
+                <div className="ml-auto shrink-0">
+                  <select
+                    value={sortBy}
+                    onChange={e => setSortBy(e.target.value as SortKey)}
+                    className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                  >
+                    <option value="added_at">{t('medias.sortOptions.addedAt')}</option>
+                    <option value="title">{t('medias.sortOptions.title')}</option>
+                    <option value="year">{t('medias.sortOptions.year')}</option>
+                    <option value="service">{t('medias.sortOptions.service')}</option>
+                    <option value="status">{t('medias.sortOptions.status')}</option>
+                    <option value="downloaded">{t('medias.sortOptions.downloaded')}</option>
+                    <option value="monitored">{t('medias.sortOptions.monitored')}</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             {isLoading ? (
-              <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">{t('common.loading')}</div>
+              <div className="px-5 py-10 flex items-center justify-center">
+                <p className="text-sm text-neutral-400 dark:text-neutral-500">{t('common.loading')}</p>
+              </div>
             ) : filtered.length === 0 ? (
-              <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-                {search || filter !== 'all' ? t('medias.noResults') : t('medias.empty')}
+              <div className="px-5 py-10 flex items-center justify-center">
+                <p className="text-sm text-neutral-400 dark:text-neutral-500">
+                  {search || filter !== 'all' ? t('medias.noResults') : t('medias.empty')}
+                </p>
               </div>
             ) : (
               <div className="p-4 sm:p-5">
@@ -180,8 +191,9 @@ export function MediasPage() {
                   }}
                 />
 
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 dark:border-neutral-800 pt-3">
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                {/* Pagination */}
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 dark:border-neutral-800 pt-4">
+                  <p className="text-xs text-neutral-400 dark:text-neutral-500">
                     {t('medias.pagination.showing', {
                       start: showingStart,
                       end: showingEnd,
@@ -189,46 +201,45 @@ export function MediasPage() {
                     })}
                   </p>
 
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs text-neutral-500 dark:text-neutral-400" htmlFor="medias-page-size">
-                      {t('medias.pagination.perPage')}
-                    </label>
+                  <div className="flex items-center gap-1.5">
                     <select
                       id="medias-page-size"
                       value={pageSize}
                       onChange={e => {
                         setPageSize(Number(e.target.value));
                       }}
-                      className="rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-xs text-neutral-900 dark:text-neutral-100"
+                      className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                     >
                       {[24, 50, 100].map(size => (
                         <option key={size} value={size}>
-                          {size}
+                          {size} / {t('medias.pagination.perPage')}
                         </option>
                       ))}
                     </select>
 
-                    <button
-                      type="button"
-                      onClick={() => setPage(prev => Math.max(1, prev - 1))}
-                      disabled={page <= 1}
-                      className="rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50"
-                    >
-                      {t('medias.pagination.previous')}
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                        disabled={page <= 1}
+                        className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {t('medias.pagination.previous')}
+                      </button>
 
-                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {t('medias.pagination.pageOf', { page, total: totalPages })}
-                    </span>
+                      <span className="px-2 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                        {page} / {totalPages}
+                      </span>
 
-                    <button
-                      type="button"
-                      onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={page >= totalPages}
-                      className="rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50"
-                    >
-                      {t('medias.pagination.next')}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={page >= totalPages}
+                        className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {t('medias.pagination.next')}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -246,15 +257,9 @@ export function MediasPage() {
   );
 }
 
-function MediaGrid({
-  items,
-  onOpenInteractive,
-}: {
-  items: MediaItem[];
-  onOpenInteractive: (item: MediaItem) => void;
-}) {
+function MediaGrid({ items, onOpenInteractive }: { items: MediaItem[]; onOpenInteractive: (item: MediaItem) => void }) {
   return (
-    <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {items.map(item => (
         <MediaGridCard
           key={item.id}
@@ -288,9 +293,15 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
     }
   };
 
+  const statusConfig = item.downloaded
+    ? { label: t('medias.downloaded'), cls: 'bg-emerald-500/90' }
+    : item.downloading
+      ? { label: t('medias.downloading'), cls: 'bg-sky-500/90' }
+      : { label: t('medias.missing'), cls: 'bg-amber-500/90' };
+
   return (
-    <article className="group relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-700/70 bg-white dark:bg-neutral-900 transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl">
-      <div className="relative aspect-[2/3] bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+    <article className="group relative overflow-hidden rounded-2xl bg-neutral-100 dark:bg-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20">
+      <div className="relative aspect-[2/3] overflow-hidden">
         {showImage ? (
           <img
             src={item.poster_url || ''}
@@ -300,20 +311,28 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
           />
         ) : (
-          <div className="h-full w-full flex items-center justify-center text-4xl">🎬</div>
+          <div className="h-full w-full flex items-center justify-center text-4xl bg-neutral-200 dark:bg-neutral-800">
+            🎬
+          </div>
         )}
 
-        <div className="pointer-events-none height-[110%] absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
+        {/* Gradient overlay */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-        <div className="absolute left-2 top-2 inline-flex items-center rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
-          {item.service === 'radarr' ? 'Radarr' : 'Sonarr'}
+        {/* Top badges */}
+        <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-1">
+          <span className="inline-flex items-center rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90 backdrop-blur-sm">
+            {item.service === 'radarr' ? 'Radarr' : 'Sonarr'}
+          </span>
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold text-white ${statusConfig.cls} backdrop-blur-sm`}
+          >
+            {statusConfig.label}
+          </span>
         </div>
 
-        <div className="absolute right-2 top-2 inline-flex items-center rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
-          {item.media_type === 'movie' ? t('medias.filterMovies') : t('medias.filterSeries')}
-        </div>
-
-        <div className="absolute right-2 top-9 z-10 flex flex-col gap-1.5">
+        {/* Action buttons — visible, slightly more subtle on non-hover */}
+        <div className="absolute right-2 top-10 z-10 flex flex-col gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity duration-200">
           <button
             type="button"
             onClick={() => {
@@ -322,9 +341,10 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
             disabled={autoSearchMutation.isPending}
             title={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
             aria-label={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-black/70 text-white backdrop-blur-sm transition hover:bg-black/80 disabled:opacity-60"
+            style={{ touchAction: 'manipulation' }}
+            className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur-sm transition-colors hover:bg-black/90 disabled:opacity-50"
           >
-            <RefreshCw size={13} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
+            <Search size={12} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
           </button>
 
           {item.arr_url ? (
@@ -334,9 +354,9 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
               rel="noreferrer"
               title={t('medias.viewInArr')}
               aria-label={t('medias.viewInArr')}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-black/70 text-white backdrop-blur-sm transition hover:bg-black/80"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur-sm transition-colors hover:bg-black/90"
             >
-              <ExternalLink size={13} />
+              <ExternalLink size={12} />
             </a>
           ) : null}
 
@@ -345,56 +365,40 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
             onClick={onOpenInteractive}
             title={t('medias.interactive.button')}
             aria-label={t('medias.interactive.button')}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-black/70 text-white backdrop-blur-sm transition hover:bg-black/80"
+            style={{ touchAction: 'manipulation' }}
+            className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur-sm transition-colors hover:bg-black/90"
           >
-            <Search size={13} />
+            <User size={12} />
           </button>
         </div>
 
+        {/* Bottom info overlay */}
         <div className="absolute inset-x-0 bottom-0 p-3">
-          <h3 className="text-sm font-semibold text-white line-clamp-2 drop-shadow-sm">{item.title}</h3>
-          <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-white/85">
-            <span>{item.year ? String(item.year) : t('medias.unknownYear')}</span>
+          <h3 className="text-sm font-semibold text-white line-clamp-2 leading-snug drop-shadow-sm">{item.title}</h3>
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <span className="text-[11px] text-white/70">{item.year ? String(item.year) : '—'}</span>
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                item.downloaded
-                  ? 'bg-emerald-500/85 text-white'
-                  : item.downloading
-                    ? 'bg-sky-500/85 text-white'
-                    : 'bg-amber-500/85 text-white'
+                item.monitored ? 'bg-emerald-500/25 text-emerald-200' : 'bg-white/10 text-white/50'
               }`}
             >
-              {item.downloaded
-                ? t('medias.downloaded')
-                : item.downloading
-                  ? t('medias.downloading')
-                  : t('medias.missing')}
+              {item.monitored ? t('medias.monitored') : t('medias.unmonitored')}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="p-3 space-y-2">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-              item.monitored
-                ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300'
-            }`}
-          >
-            {item.monitored ? t('medias.monitored') : t('medias.unmonitored')}
-          </span>
+      {/* Card footer */}
+      {item.media_type === 'series' && item.episode_count !== null && (
+        <div className="px-3 py-2 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
+          <p className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate">
+            {t('medias.seriesMeta', {
+              episodes: item.episode_count,
+              seasons: item.season_count ?? 0,
+            })}
+          </p>
         </div>
-        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 line-clamp-2">
-          {item.media_type === 'series' && item.episode_count !== null
-            ? t('medias.seriesMeta', {
-                episodes: item.episode_count,
-                seasons: item.season_count ?? 0,
-              })
-            : item.status || t('medias.unknownStatus')}
-        </p>
-      </div>
+      )}
     </article>
   );
 }

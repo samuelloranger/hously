@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AUTH_ENDPOINTS, queryKeys } from '../index';
 import { useFetcher } from './context';
+import { queryKeys } from '../queryKeys';
+import { AUTH_ENDPOINTS } from '../endpoints';
 import type { UserResponse } from '../types';
 
 type AuthResponse = UserResponse & { token?: string; refreshToken?: string };
@@ -21,7 +22,11 @@ export function useCurrentUser() {
       try {
         const response = await fetcher<UserResponse>(AUTH_ENDPOINTS.ME);
         return response.user;
-      } catch {
+      } catch (error: any) {
+        // If it's a 429, re-throw so the UI can handle it (e.g., show toast)
+        if (error?.status === 429) {
+          throw error;
+        }
         return null;
       }
     },

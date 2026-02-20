@@ -34,7 +34,7 @@ function AppWithServiceWorkerIntegration() {
   useAutoInvalidateNotifications();
   useIOSImprovements();
 
-  return <RouterProvider router={router} />;
+  return <RouterProvider router={router} context={{ queryClient }} />;
 }
 
 // Register service worker for push notifications

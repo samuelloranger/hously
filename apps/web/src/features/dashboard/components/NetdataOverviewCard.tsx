@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DASHBOARD_ENDPOINTS, type DashboardNetdataSummaryResponse, useDashboardNetdataSummary } from '@hously/shared';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../components/ui/collapsible';
+import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
 
 const formatPercent = (value: number | null): string => {
   if (value == null || Number.isNaN(value)) return '--';
@@ -30,6 +31,7 @@ const formatNetwork = (valueKbps: number | null): string => {
 export function NetdataOverviewCard() {
   const { t } = useTranslation('common');
   const { data: fallbackData, isLoading } = useDashboardNetdataSummary();
+  const prefetchRoute = usePrefetchRoute();
   const [liveData, setLiveData] = useState<DashboardNetdataSummaryResponse | null>(null);
   const [streamConnected, setStreamConnected] = useState(false);
   const [showDisks, setShowDisks] = useState(false);
@@ -70,7 +72,11 @@ export function NetdataOverviewCard() {
   );
 
   return (
-    <section className="h-full relative overflow-hidden rounded-3xl border border-emerald-300/60 dark:border-emerald-200/40 bg-gradient-to-br from-[#caefd8] via-[#9ddce9] to-[#9dcaf5] dark:from-emerald-700 dark:via-cyan-700 dark:to-blue-700 p-6 shadow-xl">
+    <section
+      className="relative overflow-hidden rounded-3xl border border-emerald-300/60 dark:border-emerald-200/40 bg-gradient-to-br from-[#caefd8] via-[#9ddce9] to-[#9dcaf5] dark:from-emerald-700 dark:via-cyan-700 dark:to-blue-700 p-6 shadow-xl"
+      onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+      onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+    >
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-emerald-950/70 dark:text-emerald-200/90">
