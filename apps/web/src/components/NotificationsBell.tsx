@@ -25,7 +25,7 @@ function getRelativeTime(dateStr: string, lang: string): string {
   }
 }
 
-const typeConfig: Record<NotificationType, { icon: string; bg: string }> = {
+const typeConfig: Record<NotificationType, { icon: string | React.ReactNode; bg: string }> = {
   reminder: { icon: '⏰', bg: 'bg-amber-100 dark:bg-amber-900/30' },
   external: { icon: '📡', bg: 'bg-blue-100 dark:bg-blue-900/30' },
   'app-update': { icon: '✨', bg: 'bg-violet-100 dark:bg-violet-900/30' },
@@ -37,8 +37,35 @@ const typeConfig: Record<NotificationType, { icon: string; bg: string }> = {
   system: { icon: '⚙️', bg: 'bg-neutral-100 dark:bg-neutral-700/60' },
 };
 
-function getTypeStyle(type: NotificationType) {
-  return typeConfig[type] || typeConfig.system;
+export function getTypeStyle(notification: { type: NotificationType; metadata?: Record<string, unknown> | null }) {
+  if (notification.type === 'external' && notification.metadata?.service_name) {
+    const serviceName = notification.metadata.service_name as string;
+    if (serviceName === 'radarr') {
+      return {
+        icon: (
+          <img
+            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/radarr.png"
+            className="w-[18px] h-[18px] object-contain"
+            alt="Radarr"
+          />
+        ),
+        bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+      };
+    }
+    if (serviceName === 'sonarr') {
+      return {
+        icon: (
+          <img
+            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/sonarr.png"
+            className="w-[18px] h-[18px] object-contain"
+            alt="Sonarr"
+          />
+        ),
+        bg: 'bg-cyan-100 dark:bg-cyan-900/30',
+      };
+    }
+  }
+  return typeConfig[notification.type] || typeConfig.system;
 }
 
 export function NotificationsMenu() {
@@ -63,7 +90,10 @@ export function NotificationsMenu() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       const handleMessage = (event: MessageEvent) => {
-        if (event.data && event.data.type === 'NOTIFICATION_COUNT_UPDATE') {
+        if (
+          event.data &&
+          (event.data.type === 'NOTIFICATION_COUNT_UPDATE' || event.data.type === 'notification-received')
+        ) {
           queryClient.invalidateQueries({
             queryKey: queryKeys.notifications.unreadCount(),
           });
@@ -154,7 +184,7 @@ export function NotificationsMenu() {
             ) : (
               <div className="py-1">
                 {recentNotifications.map(notification => {
-                  const style = getTypeStyle(notification.type);
+                  const style = getTypeStyle(notification);
                   const isUnread = !notification.read;
 
                   return (
@@ -193,11 +223,25 @@ export function NotificationsMenu() {
                           {notification.title}
                         </p>
                         {notification.body && (
-                          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-2 leading-relaxed">
+                          <p
+                            className={cn(
+                              'text-xs mt-0.5 line-clamp-2 leading-relaxed',
+                              isUnread
+                                ? 'text-neutral-600 dark:text-neutral-300'
+                                : 'text-neutral-500 dark:text-neutral-400'
+                            )}
+                          >
                             {notification.body}
                           </p>
                         )}
-                        <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1">
+                        <p
+                          className={cn(
+                            'text-[11px] mt-1',
+                            isUnread
+                              ? 'text-neutral-500 dark:text-neutral-400'
+                              : 'text-neutral-400 dark:text-neutral-500'
+                          )}
+                        >
                           {getRelativeTime(notification.created_at, i18n.language || 'en')}
                         </p>
                       </div>

@@ -2,8 +2,15 @@ import type { MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
 import { Trash2 } from 'lucide-react';
-import { formatDate, formatTime, type Notification, useDeleteNotification, useMarkAsReadOptimistic } from '@hously/shared';
+import {
+  formatDate,
+  formatTime,
+  type Notification,
+  useDeleteNotification,
+  useMarkAsReadOptimistic,
+} from '@hously/shared';
 import { cn } from '../lib/utils';
+import { getTypeStyle } from './NotificationsBell';
 
 interface NotificationListProps {
   notifications: Notification[];
@@ -54,7 +61,16 @@ export function NotificationList({ notifications, onLoadMore, hasMore }: Notific
               : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30'
           )}
         >
-          <div className="flex items-start justify-between">
+          <div className="flex items-start gap-4">
+            {/* Type icon */}
+            <div
+              className={cn(
+                'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg mt-1',
+                getTypeStyle(notification).bg
+              )}
+            >
+              {getTypeStyle(notification).icon}
+            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2">
                 <div className="flex-1">
@@ -68,8 +84,24 @@ export function NotificationList({ notifications, onLoadMore, hasMore }: Notific
                   >
                     {notification.title}
                   </h4>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">{notification.body}</p>
-                  <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-2">
+                  <p
+                    className={cn(
+                      'text-sm mt-1',
+                      !notification.read
+                        ? 'text-neutral-700 dark:text-neutral-300'
+                        : 'text-neutral-600 dark:text-neutral-400'
+                    )}
+                  >
+                    {notification.body}
+                  </p>
+                  <p
+                    className={cn(
+                      'text-xs mt-2',
+                      !notification.read
+                        ? 'text-neutral-500 dark:text-neutral-400'
+                        : 'text-neutral-400 dark:text-neutral-500'
+                    )}
+                  >
                     {formatDate(notification.created_at, i18n.language || 'en')}{' '}
                     {formatTime(notification.created_at, i18n.language || 'en')}
                   </p>
