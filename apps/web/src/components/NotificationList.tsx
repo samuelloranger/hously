@@ -57,8 +57,8 @@ export function NotificationList({ notifications, onLoadMore, hasMore }: Notific
           className={cn(
             'relative p-4 rounded-lg border cursor-pointer transition-colors',
             notification.read
-              ? 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700'
-              : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+              ? 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/80'
+              : 'bg-primary-50/50 dark:bg-primary-500/10 border-primary-200 dark:border-primary-800 hover:bg-primary-100/50 dark:hover:bg-primary-500/20'
           )}
         >
           <div className="flex items-start gap-4">

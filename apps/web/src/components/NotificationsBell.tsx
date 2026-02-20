@@ -194,8 +194,8 @@ export function NotificationsMenu() {
                       className={cn(
                         'relative flex items-start gap-3 w-full text-left px-4 py-3 transition-colors',
                         isUnread
-                          ? 'bg-primary-50/50 dark:bg-primary-950/20 hover:bg-primary-50 dark:hover:bg-primary-950/30'
-                          : 'hover:bg-neutral-50 dark:hover:bg-white/[0.03]'
+                          ? 'bg-primary-50/50 dark:bg-primary-500/10 hover:bg-primary-100/50 dark:hover:bg-primary-500/20'
+                          : 'hover:bg-neutral-50 dark:hover:bg-white/[0.05]'
                       )}
                     >
                       {/* Unread left accent */}
