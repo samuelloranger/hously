@@ -21,4 +21,4 @@ jobs:
     - name: Restart containers
       if: github.ref == 'refs/heads/main'
       run: |
-        docker compose -f /home/samuelloranger/servers/hously/docker-compose.yml up -d --force-recreate hously-web hously-api
+        docker compose -f /servers/hously/docker-compose.yml up -d --force-recreate hously-web hously-api
