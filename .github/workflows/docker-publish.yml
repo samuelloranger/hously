@@ -11,9 +11,14 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      run: |
+        rm -rf "${{ github.workspace }}"
+        git clone --depth=1 \
+          "https://samuelloranger:${{ secrets.REGISTRY_TOKEN }}@git.example.com/samuelloranger/hously.git" \
+          "${{ github.workspace }}"
 
     - name: Build images
+      working-directory: ${{ github.workspace }}
       run: |
         docker build -t hously-web:latest -f Dockerfile.web .
         docker build -t hously-api:latest -f Dockerfile.api .
