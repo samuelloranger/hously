@@ -26,4 +26,4 @@ jobs:
           -v /home/samuelloranger/servers/hously:/project:ro \
           -w /project \
           docker:cli \
-          docker compose up -d --force-recreate hously-web hously-api
+          docker compose -p hously up -d --force-recreate hously-web hously-api
