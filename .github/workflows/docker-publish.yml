@@ -10,16 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Build and deploy
-      run: |
-        rm -rf /tmp/hously-build
-        git clone --depth=1 \
-          "https://samuelloranger:${{ secrets.REGISTRY_TOKEN }}@git.example.com/samuelloranger/hously.git" \
-          /tmp/hously-build
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-        docker build -t hously-web:latest -f /tmp/hously-build/Dockerfile.web /tmp/hously-build
-        docker build -t hously-api:latest -f /tmp/hously-build/Dockerfile.api /tmp/hously-build
+    - name: Build images
+      run: |
+        docker build -t hously-web:latest -f Dockerfile.web .
+        docker build -t hously-api:latest -f Dockerfile.api .
 
     - name: Restart containers
       if: github.ref == 'refs/heads/main'
-      run: docker compose -f ~/servers/hously/docker-compose.yml up -d --force-recreate hously-web hously-api
+      run: |
+        docker compose -f /home/samuelloranger/servers/hously/docker-compose.yml up -d --force-recreate hously-web hously-api
