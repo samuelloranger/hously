@@ -74,7 +74,7 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
+          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
           cd ~/servers/hously
-          make login
           docker compose pull
-          make restart
+          docker compose up -d --force-recreate hously-web hously-api
