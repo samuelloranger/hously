@@ -15,6 +15,12 @@ services:
       - S3_BUCKET_NAME= # Generated with minio
       - S3_REGION=us-east-1
       - S3_USE_SSL=false
+      # Apple Push Notification service (APNs) keys
+      - APNS_TEAM_ID=
+      - APNS_KEY_ID=
+      - APNS_AUTH_KEY=
+      - APNS_TOPIC=
+      - APNS_PRODUCTION=true
     restart: unless-stopped
     depends_on:
       db:

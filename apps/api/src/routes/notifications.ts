@@ -1,21 +1,82 @@
-import { Elysia, t } from "elysia";
-import { auth } from "../auth";
-import { prisma } from "../db";
-import {
-  getVapidPublicKey,
-  sendWebPushNotification,
-  type PushSubscription,
-} from "../utils/webpush";
+import { Elysia, t } from 'elysia';
+import { auth } from '../auth';
+import { prisma } from '../db';
+import { getVapidPublicKey, sendWebPushNotification, type PushSubscription } from '../utils/webpush';
+import { sendExpoPushNotifications } from '../utils/expoPush';
+import { sendApnNotifications } from '../utils/apnPush';
 
-export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
+const getUnreadCountForUser = async (userId: number): Promise<number> =>
+  prisma.notification.count({
+    where: { userId, read: false },
+  });
+
+const syncBadgesForUser = async (userId: number, unreadCount: number): Promise<void> => {
+  const pushTokens = await prisma.pushToken.findMany({
+    where: { userId },
+    select: { token: true, platform: true },
+  });
+
+  if (pushTokens.length === 0) {
+    return;
+  }
+
+  const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
+  const expoTokens = pushTokens.filter(t => t.platform !== 'ios').map(t => t.token);
+
+  if (expoTokens.length > 0) {
+    const { invalidTokens } = await sendExpoPushNotifications(
+      expoTokens,
+      {
+        data: {
+          notification_type: 'badge-sync',
+          unread_count: unreadCount,
+          silent: true,
+        },
+        sound: null,
+        badge: unreadCount,
+        contentAvailable: true,
+      }
+    );
+
+    if (invalidTokens.length > 0) {
+      await prisma.pushToken.deleteMany({
+        where: { token: { in: invalidTokens } },
+      });
+    }
+  }
+
+  if (iosTokens.length > 0) {
+    const { invalidTokens } = await sendApnNotifications(
+      iosTokens,
+      {
+        data: {
+          notification_type: 'badge-sync',
+          unread_count: unreadCount,
+          silent: true,
+        },
+        sound: null,
+        badge: unreadCount,
+        contentAvailable: true,
+      }
+    );
+
+    if (invalidTokens.length > 0) {
+      await prisma.pushToken.deleteMany({
+        where: { token: { in: invalidTokens } },
+      });
+    }
+  }
+};
+
+export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
   .use(auth)
   // GET /api/notifications - Get notifications with pagination
   .get(
-    "/",
+    '/',
     async ({ user, query, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const page = query.page ?? 1;
@@ -26,9 +87,9 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         // Build where conditions
         const where: any = { userId: user.id };
 
-        if (readFilter === "true") {
+        if (readFilter === 'true') {
           where.read = true;
-        } else if (readFilter === "false") {
+        } else if (readFilter === 'false') {
           where.read = false;
         }
 
@@ -44,7 +105,7 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         });
 
         return {
-          notifications: notificationsList.map((n) => ({
+          notifications: notificationsList.map(n => ({
             id: n.id,
             title: n.title,
             body: n.body,
@@ -63,9 +124,9 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
           },
         };
       } catch (error) {
-        console.error("Error getting notifications:", error);
+        console.error('Error getting notifications:', error);
         set.status = 500;
-        return { error: "Failed to get notifications" };
+        return { error: 'Failed to get notifications' };
       }
     },
     {
@@ -77,10 +138,10 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     }
   )
   // GET /api/notifications/unread-count - Get unread count
-  .get("/unread-count", async ({ user, set }) => {
+  .get('/unread-count', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     try {
@@ -90,22 +151,22 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
       return { unread_count: count };
     } catch (error) {
-      console.error("Error getting unread count:", error);
+      console.error('Error getting unread count:', error);
       set.status = 500;
-      return { error: "Failed to get unread count" };
+      return { error: 'Failed to get unread count' };
     }
   })
   // PUT /api/notifications/:id/read - Mark notification as read
-  .put("/:id/read", async ({ user, params, set }) => {
+  .put('/:id/read', async ({ user, params, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     const notificationId = parseInt(params.id, 10);
     if (isNaN(notificationId)) {
       set.status = 400;
-      return { error: "Invalid notification ID" };
+      return { error: 'Invalid notification ID' };
     }
 
     try {
@@ -119,7 +180,7 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
       if (!notification) {
         set.status = 404;
-        return { error: "Notification not found" };
+        return { error: 'Notification not found' };
       }
 
       if (!notification.read) {
@@ -130,20 +191,23 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
             readAt: new Date().toISOString(),
           },
         });
+
+        const unreadCount = await getUnreadCountForUser(user.id);
+        await syncBadgesForUser(user.id, unreadCount);
       }
 
-      return { success: true, message: "Notification marked as read" };
+      return { success: true, message: 'Notification marked as read' };
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      console.error('Error marking notification as read:', error);
       set.status = 500;
-      return { error: "Failed to mark notification as read" };
+      return { error: 'Failed to mark notification as read' };
     }
   })
   // PUT /api/notifications/read-all - Mark all notifications as read
-  .put("/read-all", async ({ user, set }) => {
+  .put('/read-all', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     try {
@@ -157,28 +221,30 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
       const count = result.count;
 
+      await syncBadgesForUser(user.id, 0);
+
       return {
         success: true,
         message: `Marked ${count} notifications as read`,
         count,
       };
     } catch (error) {
-      console.error("Error marking all notifications as read:", error);
+      console.error('Error marking all notifications as read:', error);
       set.status = 500;
-      return { error: "Failed to mark all notifications as read" };
+      return { error: 'Failed to mark all notifications as read' };
     }
   })
   // DELETE /api/notifications/:id - Delete notification
-  .delete("/:id", async ({ user, params, set }) => {
+  .delete('/:id', async ({ user, params, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     const notificationId = parseInt(params.id, 10);
     if (isNaN(notificationId)) {
       set.status = 400;
-      return { error: "Invalid notification ID" };
+      return { error: 'Invalid notification ID' };
     }
 
     try {
@@ -192,25 +258,30 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
       if (!notification) {
         set.status = 404;
-        return { error: "Notification not found" };
+        return { error: 'Notification not found' };
       }
 
       await prisma.notification.delete({
         where: { id: notificationId },
       });
 
-      return { success: true, message: "Notification deleted" };
+      if (!notification.read) {
+        const unreadCount = await getUnreadCountForUser(user.id);
+        await syncBadgesForUser(user.id, unreadCount);
+      }
+
+      return { success: true, message: 'Notification deleted' };
     } catch (error) {
-      console.error("Error deleting notification:", error);
+      console.error('Error deleting notification:', error);
       set.status = 500;
-      return { error: "Failed to delete notification" };
+      return { error: 'Failed to delete notification' };
     }
   })
   // GET /api/notifications/devices - Get user's notification devices
-  .get("/devices", async ({ user, set }) => {
+  .get('/devices', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     try {
@@ -220,7 +291,7 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
       });
 
       return {
-        devices: devices.map((d) => ({
+        devices: devices.map(d => ({
           id: d.id,
           endpoint: d.endpoint,
           device_name: d.deviceName,
@@ -234,16 +305,16 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         })),
       };
     } catch (error) {
-      console.error("Error getting devices:", error);
+      console.error('Error getting devices:', error);
       set.status = 500;
-      return { error: "Failed to get devices" };
+      return { error: 'Failed to get devices' };
     }
   })
   // DELETE /api/notifications/devices/:id - Delete notification device
-  .delete("/devices/:id", async ({ user, params, set }) => {
+  .delete('/devices/:id', async ({ user, params, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     const deviceId = parseInt(params.id, 10);
@@ -259,56 +330,55 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
       if (!device) {
         set.status = 404;
-        return { error: "Device not found" };
+        return { error: 'Device not found' };
       }
 
       await prisma.userSubscription.delete({
         where: { id: deviceId },
       });
 
-      return { success: true, message: "Device deleted successfully" };
+      return { success: true, message: 'Device deleted successfully' };
     } catch (error) {
-      console.error("Error deleting device:", error);
+      console.error('Error deleting device:', error);
       set.status = 500;
-      return { error: "Failed to delete device" };
+      return { error: 'Failed to delete device' };
     }
   })
   // GET /api/notifications/vapid-public-key - Get VAPID public key for push notifications
-  .get("/vapid-public-key", ({ set }) => {
+  .get('/vapid-public-key', ({ set }) => {
     try {
       const publicKey = getVapidPublicKey();
       return { publicKey };
     } catch (error) {
-      console.error("Error getting VAPID public key:", error);
+      console.error('Error getting VAPID public key:', error);
       set.status = 503;
       return {
-        error:
-          "VAPID keys not configured. Please set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables.",
+        error: 'VAPID keys not configured. Please set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables.',
       };
     }
   })
   // POST /api/notifications/subscribe - Subscribe to push notifications
   .post(
-    "/subscribe",
+    '/subscribe',
     async ({ user, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const { subscription, device_info } = body;
 
       if (!subscription || !subscription.endpoint) {
         set.status = 400;
-        return { error: "Subscription data is required" };
+        return { error: 'Subscription data is required' };
       }
 
       try {
         const endpoint = subscription.endpoint;
         const deviceName = device_info?.deviceName || null;
-        const osName = device_info?.osName || "Unknown";
+        const osName = device_info?.osName || 'Unknown';
         const osVersion = device_info?.osVersion || null;
-        const browserName = device_info?.browserName || "Unknown";
+        const browserName = device_info?.browserName || 'Unknown';
         const browserVersion = device_info?.browserVersion || null;
         const platform = device_info?.platform || null;
 
@@ -366,25 +436,22 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         if (isNewSubscription) {
           try {
             await sendWebPushNotification(subscription as PushSubscription, {
-              title: "Notifications enabled!",
-              body: "You will now receive notifications for your tasks, bills and reminders.",
-              data: { url: "/settings?tab=notifications" },
-              tag: "welcome-notification",
+              title: 'Notifications enabled!',
+              body: 'You will now receive notifications for your tasks, bills and reminders.',
+              data: { url: '/settings?tab=notifications' },
+              tag: 'welcome-notification',
             });
             console.log(`Welcome notification sent to user ${user.id}`);
           } catch (welcomeError) {
-            console.warn(
-              `Failed to send welcome notification to user ${user.id}:`,
-              welcomeError
-            );
+            console.warn(`Failed to send welcome notification to user ${user.id}:`, welcomeError);
           }
         }
 
-        return { success: true, message: "Subscription saved successfully" };
+        return { success: true, message: 'Subscription saved successfully' };
       } catch (error) {
-        console.error("Error subscribing to notifications:", error);
+        console.error('Error subscribing to notifications:', error);
         set.status = 500;
-        return { error: "Failed to subscribe" };
+        return { error: 'Failed to subscribe' };
       }
     },
     {
@@ -411,11 +478,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
   )
   // POST /api/notifications/unsubscribe - Unsubscribe from push notifications
   .post(
-    "/unsubscribe",
+    '/unsubscribe',
     async ({ user, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       try {
@@ -429,9 +496,7 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
               endpoint: subscription.endpoint,
             },
           });
-          console.log(
-            `User ${user.id} unsubscribed device: ${subscription.endpoint.slice(0, 50)}...`
-          );
+          console.log(`User ${user.id} unsubscribed device: ${subscription.endpoint.slice(0, 50)}...`);
         } else {
           // Unsubscribe all devices for this user
           await prisma.userSubscription.deleteMany({
@@ -440,11 +505,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
           console.log(`User ${user.id} unsubscribed all devices`);
         }
 
-        return { success: true, message: "Unsubscribed successfully" };
+        return { success: true, message: 'Unsubscribed successfully' };
       } catch (error) {
-        console.error("Error unsubscribing from notifications:", error);
+        console.error('Error unsubscribing from notifications:', error);
         set.status = 500;
-        return { error: "Failed to unsubscribe" };
+        return { error: 'Failed to unsubscribe' };
       }
     },
     {
@@ -461,73 +526,151 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
   )
   // POST /api/notifications/test - Send a test push notification
   .post(
-    "/test",
+    '/test',
     async ({ user, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const { subscription } = body;
 
-      if (!subscription) {
-        set.status = 400;
-        return { error: "Subscription data is required" };
-      }
-
       try {
-        const result = await sendWebPushNotification(
-          subscription as PushSubscription,
-          {
-            title: "Test notification",
-            body: "If you see this, notifications are working! 🎉",
-            data: { url: "/settings?tab=notifications" },
-            tag: "test-notification",
-          }
-        );
+        let webPushSuccess = false;
+        let expoPushSuccess = false;
+        let totalSent = 0;
 
-        if (result.success) {
-          console.log(`Test notification sent to user ${user.id}`);
-          return { success: true, message: "Test notification sent" };
-        } else if (result.expired) {
-          set.status = 410;
-          return { error: "Subscription expired. Please subscribe again." };
+        // Send to web push subscription if provided
+        if (subscription) {
+          const result = await sendWebPushNotification(subscription as PushSubscription, {
+            title: 'Test notification',
+            body: 'If you see this, notifications are working! 🎉',
+            data: { url: '/settings?tab=notifications' },
+            tag: 'test-notification',
+          });
+
+          if (result.success) {
+            webPushSuccess = true;
+            totalSent++;
+            console.log(`Test web push notification sent to user ${user.id}`);
+          } else if (result.expired) {
+            console.log(`Web push subscription expired for user ${user.id}`);
+          } else {
+            console.error(`Web push failed for user ${user.id}:`, result.error);
+          }
+        }
+
+        // Send to Expo & APNs push tokens (mobile)
+        const pushTokens = await prisma.pushToken.findMany({
+          where: { userId: user.id },
+          select: { token: true, platform: true },
+        });
+
+        if (pushTokens.length > 0) {
+          const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
+          const expoTokens = pushTokens.filter(t => t.platform !== 'ios').map(t => t.token);
+          const unreadCount = await prisma.notification.count({
+            where: { userId: user.id, read: false },
+          });
+
+          if (expoTokens.length > 0) {
+            const { successCount, invalidTokens } = await sendExpoPushNotifications(
+              expoTokens,
+              {
+                title: 'Test notification',
+                body: 'If you see this, notifications are working! 🎉',
+                data: { url: '/settings?tab=notifications' },
+                channelId: 'default',
+                badge: unreadCount,
+              }
+            );
+
+            if (successCount > 0) {
+              expoPushSuccess = true;
+              totalSent += successCount;
+              console.log(`Test Expo push notifications sent to user ${user.id}: ${successCount}`);
+            }
+
+            if (invalidTokens.length > 0) {
+              await prisma.pushToken.deleteMany({
+                where: { token: { in: invalidTokens } },
+              });
+              console.log(`Deleted ${invalidTokens.length} invalid Expo tokens for user ${user.id}`);
+            }
+          }
+
+          if (iosTokens.length > 0) {
+            const { successCount, invalidTokens } = await sendApnNotifications(
+              iosTokens,
+              {
+                title: 'Test notification',
+                body: 'If you see this, notifications are working! 🎉',
+                data: { url: '/settings?tab=notifications' },
+                channelId: 'default',
+                badge: unreadCount,
+              }
+            );
+
+            if (successCount > 0) {
+              expoPushSuccess = true; // reusing existing var or could rename to mobilePushSuccess
+              totalSent += successCount;
+              console.log(`Test APNs push notifications sent to user ${user.id}: ${successCount}`);
+            }
+
+            if (invalidTokens.length > 0) {
+              await prisma.pushToken.deleteMany({
+                where: { token: { in: invalidTokens } },
+              });
+              console.log(`Deleted ${invalidTokens.length} invalid APNs tokens for user ${user.id}`);
+            }
+          }
+        }
+
+        if (totalSent > 0) {
+          return {
+            success: true,
+            message: `Test notification sent to ${totalSent} device(s)`,
+            webPush: webPushSuccess,
+            mobilePush: expoPushSuccess,
+          };
         } else {
-          set.status = 500;
-          return { error: result.error || "Failed to send test notification" };
+          set.status = 400;
+          return { error: 'No valid push subscriptions or tokens found. Please register a device first.' };
         }
       } catch (error) {
-        console.error("Error sending test notification:", error);
+        console.error('Error sending test notification:', error);
         set.status = 500;
-        return { error: "Failed to send test notification" };
+        return { error: 'Failed to send test notification' };
       }
     },
     {
       body: t.Object({
-        subscription: t.Object({
-          endpoint: t.String(),
-          keys: t.Object({
-            p256dh: t.String(),
-            auth: t.String(),
-          }),
-        }),
+        subscription: t.Optional(
+          t.Object({
+            endpoint: t.String(),
+            keys: t.Object({
+              p256dh: t.String(),
+              auth: t.String(),
+            }),
+          })
+        ),
       }),
     }
   )
   // POST /api/notifications/register-device - Register mobile push token (Expo/APNs/FCM)
   .post(
-    "/register-device",
+    '/register-device',
     async ({ user, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const { token, platform } = body;
 
       if (!token || !platform) {
         set.status = 400;
-        return { error: "Token and platform are required" };
+        return { error: 'Token and platform are required' };
       }
 
       try {
@@ -565,11 +708,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
           console.log(`Push token registered for user ${user.id} (${platform})`);
         }
 
-        return { success: true, message: "Device registered successfully" };
+        return { success: true, message: 'Device registered successfully' };
       } catch (error) {
-        console.error("Error registering push token:", error);
+        console.error('Error registering push token:', error);
         set.status = 500;
-        return { error: "Failed to register device" };
+        return { error: 'Failed to register device' };
       }
     },
     {

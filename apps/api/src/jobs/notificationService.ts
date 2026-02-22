@@ -5,6 +5,7 @@
 import { prisma } from '../db';
 import { sendWebPushNotification, type PushSubscription } from '../utils/webpush';
 import { sendExpoPushNotifications } from '../utils/expoPush';
+import { sendApnNotifications } from '../utils/apnPush';
 import { nowUtc, getTimezone } from '../utils';
 
 /**
@@ -100,42 +101,88 @@ export async function createAndQueueNotification(
       }
     }
 
-    // Send Expo/EAS notifications (mobile push tokens)
+    // Send Expo/EAS & APNs notifications (mobile push tokens)
     const pushTokens = await prisma.pushToken.findMany({
       where: { userId },
-      select: { id: true, token: true },
+      select: { id: true, token: true, platform: true },
     });
 
     if (pushTokens.length > 0) {
-      const { successCount, invalidTokens } = await sendExpoPushNotifications(
-        pushTokens.map(t => t.token),
-        {
-          title,
-          body,
-          data: {
-            url,
-            notification_type: notificationType,
-            notification_id: notification.id,
-            ...metadata,
-          },
-          channelId:
-            notificationType === 'reminder'
-              ? 'chore-reminders'
-              : notificationType === 'custom_event'
-                ? 'calendar-events'
-                : 'default',
-        }
-      );
+      const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
+      const expoTokens = pushTokens.filter(t => t.platform !== 'ios').map(t => t.token);
+      
+      const unreadCount = await prisma.notification.count({
+        where: { userId, read: false },
+      });
 
-      if (successCount > 0) {
-        console.log(`Sent ${successCount} Expo push notifications for user ${userId}`);
+      // Handle Expo Tokens
+      if (expoTokens.length > 0) {
+        const { successCount, invalidTokens } = await sendExpoPushNotifications(
+          expoTokens,
+          {
+            title,
+            body,
+            data: {
+              url,
+              notification_type: notificationType,
+              notification_id: notification.id,
+              ...metadata,
+            },
+            channelId:
+              notificationType === 'reminder'
+                ? 'chore-reminders'
+                : notificationType === 'custom_event'
+                  ? 'calendar-events'
+                  : 'default',
+            badge: unreadCount,
+          }
+        );
+
+        if (successCount > 0) {
+          console.log(`Sent ${successCount} Expo push notifications for user ${userId}`);
+        }
+
+        if (invalidTokens.length > 0) {
+          await prisma.pushToken.deleteMany({
+            where: { token: { in: invalidTokens } },
+          });
+          console.log(`Deleted ${invalidTokens.length} invalid Expo push tokens for user ${userId}`);
+        }
       }
 
-      if (invalidTokens.length > 0) {
-        await prisma.pushToken.deleteMany({
-          where: { token: { in: invalidTokens } },
-        });
-        console.log(`Deleted ${invalidTokens.length} invalid Expo push tokens for user ${userId}`);
+      // Handle iOS (APNs) Tokens
+      if (iosTokens.length > 0) {
+        const { successCount, invalidTokens } = await sendApnNotifications(
+          iosTokens,
+          {
+            title,
+            body,
+            data: {
+              url,
+              notification_type: notificationType,
+              notification_id: notification.id,
+              ...metadata,
+            },
+            channelId:
+              notificationType === 'reminder'
+                ? 'chore-reminders'
+                : notificationType === 'custom_event'
+                  ? 'calendar-events'
+                  : 'default',
+            badge: unreadCount,
+          }
+        );
+
+        if (successCount > 0) {
+          console.log(`Sent ${successCount} APNs push notifications for user ${userId}`);
+        }
+
+        if (invalidTokens.length > 0) {
+          await prisma.pushToken.deleteMany({
+            where: { token: { in: invalidTokens } },
+          });
+          console.log(`Deleted ${invalidTokens.length} invalid APNs push tokens for user ${userId}`);
+        }
       }
     } else if (subscriptions.length === 0) {
       console.log(`No web subscriptions or mobile push tokens found for user ${userId}`);

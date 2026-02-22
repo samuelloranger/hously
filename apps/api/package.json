@@ -23,6 +23,7 @@
     "@elysiajs/jwt": "^1.4.0",
     "@elysiajs/swagger": "latest",
     "@hously/shared": "workspace:*",
+    "@parse/node-apn": "^7.1.0",
     "@prisma/client": "6.19.0",
     "elysia": "latest",
     "elysia-rate-limit": "^4.5.0",
@@ -32,6 +33,7 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@types/apn": "^2.1.6",
     "@types/uuid": "^10.0.0",
     "@types/web-push": "^3.6.4",
     "bun-types": "latest",

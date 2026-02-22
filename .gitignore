@@ -1,47 +1,12 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-# Ignore Python lib directories, but not src/lib/ in frontend apps
-lib/
-!apps/*/src/lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-tsconfig.tsbuildinfo
-
-# UV
-.venv
-
-# Database
-*.db
-homie.db
+# TypeScript
+*.tsbuildinfo
 
 # Environment
 .env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
 # IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
@@ -62,29 +27,22 @@ logs/
 # Instance configuration
 instance/
 
-# Flask
-.flaskenv
-
 # Node/Bun
 node_modules/
 dist/
 apps/web/dist/
 packages/*/dist/
-*.log
 bun.lockb
 .pnpm-store/
 
 # Docker
 .docker/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
 # VAPID Keys
 vapid_keys/
 
 # Uploaded images
 uploads/
+
+# APNs Keys
+*.p8
