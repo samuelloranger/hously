@@ -6,7 +6,7 @@ on:
     tags: [ 'v*.*.*' ]
 
 env:
-  REGISTRY: ghcr.io
+  REGISTRY: git.example.com
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
@@ -34,8 +34,8 @@ jobs:
       uses: docker/login-action@v3
       with:
         registry: ${{ env.REGISTRY }}
-        username: ${{ secrets.GHCR_USERNAME }}
-        password: ${{ secrets.GHCR_TOKEN }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Extract metadata
       id: meta
@@ -74,7 +74,7 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+          echo "${{ secrets.REGISTRY_TOKEN }}" | docker login git.example.com -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
           cd ~/servers/hously
           docker compose pull
           docker compose up -d --force-recreate hously-web hously-api
