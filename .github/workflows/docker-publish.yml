@@ -1,80 +1,24 @@
-name: Build and Push Docker Images
+name: Build and Deploy
 
 on:
   push:
     branches: [ main ]
     tags: [ 'v*.*.*' ]
 
-env:
-  REGISTRY: git.example.com
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    
-    strategy:
-      matrix:
-        include:
-          - service: web
-            dockerfile: Dockerfile.web
-            context: .
-          - service: api
-            dockerfile: Dockerfile.api
-            context: .
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Log in to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build images
+      run: |
+        docker build -t hously-web:latest -f Dockerfile.web .
+        docker build -t hously-api:latest -f Dockerfile.api .
 
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=raw,value=latest,enable={{is_default_branch}}
-
-    - name: Build and push Docker image (${{ matrix.service }})
-      uses: docker/build-push-action@v5
-      with:
-        context: ${{ matrix.context }}
-        file: ${{ matrix.dockerfile }}
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        build-args: |
-          GIT_COMMIT_SHA=${{ github.sha }}
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v1.2.3
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        port: ${{ secrets.SSH_PORT }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          echo "${{ secrets.REGISTRY_TOKEN }}" | docker login git.example.com -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
-          cd ~/servers/hously
-          docker compose pull
-          docker compose up -d --force-recreate hously-web hously-api
+    - name: Restart containers
+      if: github.ref == 'refs/heads/main'
+      run: |
+        docker compose -f ~/servers/hously/docker-compose.yml up -d --force-recreate hously-web hously-api
