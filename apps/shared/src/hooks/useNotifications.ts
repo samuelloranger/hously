@@ -1,18 +1,8 @@
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  useInfiniteQuery,
-  type UseQueryOptions,
-} from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { useFetcher } from './context';
-import { queryKeys, NOTIFICATION_ENDPOINTS } from '../index';
-import type {
-  NotificationsResponse,
-  UnreadCountResponse,
-  ApiResult,
-  NotificationDevicesResponse,
-} from '../types';
+import { queryKeys } from '../queryKeys';
+import { NOTIFICATION_ENDPOINTS } from '../endpoints';
+import type { NotificationsResponse, UnreadCountResponse, ApiResult, NotificationDevicesResponse } from '../types';
 
 export function useNotifications(page: number = 1, limit: number = 20, readFilter?: boolean) {
   const fetcher = useFetcher();
@@ -336,10 +326,9 @@ export function useTestPushNotification() {
   const fetcher = useFetcher();
 
   return useMutation({
-    mutationFn: (subscription: Record<string, unknown>) =>
+    mutationFn: () =>
       fetcher<{ success: boolean; message: string }>(NOTIFICATION_ENDPOINTS.TEST, {
         method: 'POST',
-        body: { subscription },
       }),
   });
 }

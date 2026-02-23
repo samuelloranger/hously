@@ -11,9 +11,11 @@ import {
   useTestPushNotification,
 } from '@hously/shared';
 import { getDeviceInfo } from '../../lib/deviceInfo';
+import { useAuth } from '@/hooks/useAuth';
 
 export function NotificationsTab() {
   const { t } = useTranslation('common');
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { permission, subscription, requestPermission, subscribe, unsubscribe, isSupported } = useNotifications();
   const [loading, setLoading] = useState(false);
@@ -165,14 +167,9 @@ export function NotificationsTab() {
   };
 
   const handleTestNotification = async () => {
-    if (!subscription) {
-      toast.error('Please subscribe to notifications first');
-      return;
-    }
-
     setLoading(true);
     try {
-      await testNotificationMutation.mutateAsync(subscription as unknown as Record<string, unknown>);
+      await testNotificationMutation.mutateAsync();
       toast.success('Test notification sent! Check your notifications.');
     } catch (error) {
       console.error('Error sending test notification:', error);
@@ -196,6 +193,23 @@ export function NotificationsTab() {
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Test Notification Button */}
+            {user?.is_admin && (
+              <div>
+                <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Test Notification</h3>
+                <button
+                  onClick={handleTestNotification}
+                  disabled={loading}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Send Test Notification
+                </button>
+                <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+                  Click to send a test notification to verify everything is working.
+                </p>
+              </div>
+            )}
+
             {/* Permission Status */}
             <div>
               <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
@@ -254,25 +268,6 @@ export function NotificationsTab() {
                     )}
                   </div>
                 </div>
-
-                {/* Test Notification Button */}
-                {subscription && (
-                  <div>
-                    <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                      Test Notification
-                    </h3>
-                    <button
-                      onClick={handleTestNotification}
-                      disabled={loading}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Send Test Notification
-                    </button>
-                    <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-                      Click to send a test notification to verify everything is working.
-                    </p>
-                  </div>
-                )}
 
                 {/* Devices List */}
                 <div>
