@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useExploreMedias, useRefreshRecommendations, type TmdbMediaSearchItem } from '@hously/shared';
 import { ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { ExploreCard } from './ExploreCard';
+import { TmdbMediaSearchPanel } from './TmdbMediaSearchPanel';
 
 export function MediasExplore() {
   const { t, i18n } = useTranslation('common');
@@ -24,6 +25,8 @@ export function MediasExplore() {
 
   return (
     <div className="space-y-10 pb-10">
+      <TmdbMediaSearchPanel onAdded={refetch} />
+
       <ExploreSection
         title={t('medias.explore.recommended')}
         items={data.recommended}

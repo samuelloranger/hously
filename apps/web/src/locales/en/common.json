@@ -1281,6 +1281,7 @@
     "trackerStatusNotWorking": "Not working",
     "trackerStatusUnknown": "Unknown",
     "submitTorrentFile": "Submit",
+    "submitTorrentFiles": "Submit {{count}} files",
     "actions": "Actions",
     "start": "Resume",
     "pause": "Pause",

@@ -4,14 +4,15 @@ import { clearUser } from '../lib/auth';
 import { useLogout } from '@hously/shared';
 import { NotificationsMenu } from './NotificationsBell';
 import { UserMenu } from './UserMenu';
-import { CalendarIcon, Loader } from 'lucide-react';
+import { CalendarIcon, Clapperboard, CookingPot, ListChecks, Loader, Magnet, ShoppingCart } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
 import { useAuth } from '@/hooks/useAuth';
 
 interface NavItem {
   path: string;
   translationKey: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 export function Navbar() {
@@ -24,11 +25,11 @@ export function Navbar() {
   const prefetchRoute = usePrefetchRoute();
 
   const navItems: NavItem[] = [
-    { path: '/shopping', translationKey: 'nav.shopping', icon: '🛒' },
-    { path: '/chores', translationKey: 'nav.chores', icon: '✅' },
-    { path: '/kitchen', translationKey: 'nav.kitchen', icon: '🍳' },
-    { path: '/medias', translationKey: 'nav.medias', icon: '🎞️' },
-    { path: '/torrents', translationKey: 'nav.torrents', icon: '🧲' },
+    { path: '/medias', translationKey: 'nav.medias', icon: Clapperboard },
+    { path: '/torrents', translationKey: 'nav.torrents', icon: Magnet },
+    { path: '/shopping', translationKey: 'nav.shopping', icon: ShoppingCart },
+    { path: '/chores', translationKey: 'nav.chores', icon: ListChecks },
+    { path: '/kitchen', translationKey: 'nav.kitchen', icon: CookingPot },
   ];
 
   const handleLogout = async () => {
@@ -83,17 +84,19 @@ export function Navbar() {
                   {navItems.map(item => {
                     const isActive =
                       currentPath === item.path || (item.path !== '/' && currentPath.startsWith(`${item.path}/`));
+                    const Icon = item.icon;
                     return (
                       <Link
                         key={item.path}
                         to={item.path}
                         onMouseEnter={() => prefetchRoute(item.path)}
-                        className={`px-3.5 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${
+                        className={`flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${
                           isActive
                             ? 'bg-white dark:bg-neutral-700/80 text-neutral-900 dark:text-white shadow-sm'
                             : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200'
                         }`}
                       >
+                        <Icon size={15} />
                         {t(item.translationKey)}
                       </Link>
                     );

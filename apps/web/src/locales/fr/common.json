@@ -1325,6 +1325,7 @@
     "trackerStatusNotWorking": "Ne fonctionne pas",
     "trackerStatusUnknown": "Inconnu",
     "submitTorrentFile": "Envoyer",
+    "submitTorrentFiles": "Envoyer {{count}} fichiers",
     "actions": "Actions",
     "start": "Reprendre",
     "pause": "Pause",

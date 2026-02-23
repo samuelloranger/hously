@@ -120,11 +120,6 @@ export function TorrentsPage() {
         iconColor="text-blue-600"
         title={t('torrents.title', 'Torrents')}
         subtitle={t('torrents.subtitle', 'Manage qBittorrent downloads')}
-        actions={
-          <>
-            <Button onClick={() => refetch()}>Refetch</Button>
-          </>
-        }
       />
 
       {isDisabled ? (

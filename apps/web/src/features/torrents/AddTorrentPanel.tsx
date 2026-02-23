@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAddQbittorrentMagnet, useAddQbittorrentTorrentFile } from '@hously/shared';
-import { ChevronRight, Magnet, Plus, Upload } from 'lucide-react';
+import { ChevronRight, File, Magnet, Plus, Upload, X } from 'lucide-react';
 
 export function AddTorrentPanel() {
   const { t } = useTranslation('common');
@@ -11,7 +11,7 @@ export function AddTorrentPanel() {
 
   const [open, setOpen] = useState(false);
   const [magnet, setMagnet] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const canInteract = !addMagnetMutation.isPending && !addFileMutation.isPending;
@@ -29,13 +29,27 @@ export function AddTorrentPanel() {
     );
   };
 
-  const handleSubmitFile = () => {
-    if (!selectedFile) return;
-    addFileMutation.mutate(selectedFile, {
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setSelectedFiles(prev => {
+      const existing = new Set(prev.map(f => f.name + f.size));
+      const newFiles = Array.from(files).filter(f => !existing.has(f.name + f.size));
+      return [...prev, ...newFiles];
+    });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmitFiles = () => {
+    if (selectedFiles.length === 0) return;
+    addFileMutation.mutate(selectedFiles, {
       onSuccess: res => {
         if (res.success) {
-          setSelectedFile(null);
-          if (fileInputRef.current) fileInputRef.current.value = '';
+          setSelectedFiles([]);
         }
       },
     });
@@ -101,17 +115,51 @@ export function AddTorrentPanel() {
               <input
                 ref={fileInputRef}
                 type="file"
+                multiple
                 accept=".torrent,application/x-bittorrent"
-                onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}
+                onChange={handleFilesSelected}
                 className="w-full text-sm text-neutral-600 dark:text-neutral-300 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-100 dark:file:bg-neutral-800 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-neutral-700 dark:file:text-neutral-200 file:cursor-pointer"
                 disabled={!canInteract}
               />
+
+              {selectedFiles.length > 0 && (
+                <div className="space-y-1">
+                  {selectedFiles.map((file, index) => (
+                    <div
+                      key={`${file.name}-${file.size}`}
+                      className="flex items-center gap-2 rounded-lg bg-neutral-50 dark:bg-neutral-800/60 px-2.5 py-1.5"
+                    >
+                      <File size={12} className="shrink-0 text-neutral-400" />
+                      <span className="flex-1 truncate text-xs text-neutral-700 dark:text-neutral-300">
+                        {file.name}
+                      </span>
+                      <span className="shrink-0 text-[10px] text-neutral-400">
+                        {(file.size / 1024).toFixed(0)} KB
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        disabled={!canInteract}
+                        className="shrink-0 rounded p-0.5 text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors disabled:opacity-40"
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <button
-                onClick={handleSubmitFile}
-                disabled={!canInteract || !selectedFile}
+                onClick={handleSubmitFiles}
+                disabled={!canInteract || selectedFiles.length === 0}
                 className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium disabled:opacity-40 disabled:pointer-events-none transition-colors"
               >
-                {t('torrents.submitTorrentFile', 'Submit')}
+                {addFileMutation.isPending
+                  ? t('common.loading', 'Uploading...')
+                  : selectedFiles.length > 1
+                    ? t('torrents.submitTorrentFiles', 'Submit {{count}} files', { count: selectedFiles.length })
+                    : t('torrents.submitTorrentFile', 'Submit')}
               </button>
             </div>
             {addFileMutation.error && (

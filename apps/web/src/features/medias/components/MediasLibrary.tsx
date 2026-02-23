@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { EmptyState } from '../../../components/EmptyState';
 import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, Sparkles, User } from 'lucide-react';
-import { TmdbMediaSearchPanel } from './TmdbMediaSearchPanel';
+
 import { toast } from 'sonner';
 import { InteractiveSearchDialog } from './InteractiveSearchDialog';
 import { SimilarMediasDialog } from './SimilarMediasDialog';
@@ -86,8 +86,6 @@ export function MediasLibrary() {
 
   return (
     <div className="space-y-4">
-      <TmdbMediaSearchPanel onAdded={refetch} />
-
       <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
         {/* Filter toolbar */}
         <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 space-y-2.5">
