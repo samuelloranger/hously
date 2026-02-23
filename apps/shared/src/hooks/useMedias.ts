@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFetcher } from './context';
 import { queryKeys } from '../queryKeys';
 import { MEDIAS_ENDPOINTS } from '../endpoints';
@@ -28,6 +28,22 @@ export function useExploreMedias(language?: string) {
   return useQuery({
     queryKey: [...queryKeys.medias.explore(), lang],
     queryFn: () => fetcher<ExploreMediasResponse>(`${MEDIAS_ENDPOINTS.EXPLORE}?language=${encodeURIComponent(lang)}`),
+  });
+}
+
+export function useRefreshRecommendations(language?: string) {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  const lang = language || 'en-US';
+
+  return useMutation({
+    mutationFn: () =>
+      fetcher<ExploreMediasResponse>(
+        `${MEDIAS_ENDPOINTS.EXPLORE}?language=${encodeURIComponent(lang)}&skipCache=true`
+      ),
+    onSuccess: (data) => {
+      queryClient.setQueryData([...queryKeys.medias.explore(), lang], data);
+    },
   });
 }
 

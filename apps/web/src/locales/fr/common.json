@@ -1207,6 +1207,13 @@
       "empty": "Aucun titre similaire trouvé.",
       "button": "Trouver similaire"
     },
+    "detail": {
+      "viewOnTmdb": "Voir sur TMDB",
+      "viewInArr": "Voir dans {{service}}",
+      "addToLibrary": "Ajouter à la bibliothèque",
+      "inLibrary": "Dans la bibliothèque",
+      "searchOnAdd": "Rechercher à l'ajout"
+    },
     "addSuccess": "{{title}} ajouté à la bibliothèque.",
     "addFailed": "Échec de l'ajout du média à la bibliothèque.",
     "movie": "Film",

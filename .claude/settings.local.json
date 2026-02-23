@@ -18,7 +18,10 @@
       "Bash(bun install:*)",
       "Bash(make typecheck:*)",
       "Bash(make lint:*)",
-      "Bash(bunx knip:*)"
+      "Bash(bunx knip:*)",
+      "Bash(npx vite build:*)",
+      "Bash(bun remove:*)",
+      "Bash(git:*)"
     ],
     "deny": [],
     "ask": []

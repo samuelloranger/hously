@@ -751,6 +751,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       const sonarrConfig = sonarrPlugin?.enabled ? normalizeSonarrConfig(sonarrPlugin.config) : null;
 
       const language = (query as Record<string, string | undefined>).language || 'en-US';
+      const skipCache = (query as Record<string, string | undefined>).skipCache === 'true';
 
       const fetchTmdb = async (path: string) => {
         const url = new URL(`https://api.themoviedb.org/3/${path}`);
@@ -766,9 +767,17 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
         items.map(item => (typeof item === 'object' && item !== null ? { ...item, media_type: type } : item));
 
       const [
-        trending, popularMovies, popularShows, upcomingMovies,
-        nowPlaying, airingToday, onTheAir, topRatedMovies, topRatedShows,
-        radarrIds, sonarrIds,
+        trending,
+        popularMovies,
+        popularShows,
+        upcomingMovies,
+        nowPlaying,
+        airingToday,
+        onTheAir,
+        topRatedMovies,
+        topRatedShows,
+        radarrIds,
+        sonarrIds,
       ] = await Promise.all([
         fetchTmdb('trending/all/day'),
         fetchTmdb('movie/popular').then(injectMediaType('movie')),
@@ -779,8 +788,12 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
         fetchTmdb('tv/on_the_air').then(injectMediaType('tv')),
         fetchTmdb('movie/top_rated').then(injectMediaType('movie')),
         fetchTmdb('tv/top_rated').then(injectMediaType('tv')),
-        radarrConfig ? fetchRadarrTmdbIds(radarrConfig.website_url, radarrConfig.api_key).catch(() => new Map()) : Promise.resolve(new Map()),
-        sonarrConfig ? fetchSonarrTmdbIds(sonarrConfig.website_url, sonarrConfig.api_key).catch(() => new Map()) : Promise.resolve(new Map()),
+        radarrConfig
+          ? fetchRadarrTmdbIds(radarrConfig.website_url, radarrConfig.api_key).catch(() => new Map())
+          : Promise.resolve(new Map()),
+        sonarrConfig
+          ? fetchSonarrTmdbIds(sonarrConfig.website_url, sonarrConfig.api_key).catch(() => new Map())
+          : Promise.resolve(new Map()),
       ]);
 
       const normalize = (items: unknown[]) =>
@@ -813,12 +826,16 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
 
       // Recommendations based on library items
       const recommendationsCacheKey = `medias:explore:recommendations:${language}`;
-      let recommended: TmdbSearchItem[] = [];
-      const cachedRecommendations = await getJsonCache<TmdbSearchItem[]>(recommendationsCacheKey);
 
-      if (cachedRecommendations) {
-        recommended = cachedRecommendations;
-      } else {
+      let recommended: TmdbSearchItem[] = [];
+      if (!skipCache) {
+        const cachedRecommendations = await getJsonCache<TmdbSearchItem[]>(recommendationsCacheKey);
+        if (cachedRecommendations) {
+          recommended = cachedRecommendations;
+        }
+      }
+
+      if (!recommended.length) {
         const movieTmdbIds = Array.from(radarrIds.keys());
         const showTmdbIds = Array.from(sonarrIds.keys());
 
@@ -836,21 +853,27 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
 
         const recResults = await Promise.all([
           ...sampleMovieIds.map(id =>
-            fetchTmdb(`movie/${id}/recommendations`).then(injectMediaType('movie')).catch(() => [] as unknown[])
+            fetchTmdb(`movie/${id}/recommendations`)
+              .then(injectMediaType('movie'))
+              .catch(() => [] as unknown[])
           ),
           ...sampleShowIds.map(id =>
-            fetchTmdb(`tv/${id}/recommendations`).then(injectMediaType('tv')).catch(() => [] as unknown[])
+            fetchTmdb(`tv/${id}/recommendations`)
+              .then(injectMediaType('tv'))
+              .catch(() => [] as unknown[])
           ),
         ]);
 
         const allExisting = new Set([...radarrIds.keys(), ...sonarrIds.keys()]);
         const seen = new Set<number>();
 
-        recommended = normalize(recResults.flat()).filter(item => {
-          if (seen.has(item.tmdb_id) || allExisting.has(item.tmdb_id)) return false;
-          seen.add(item.tmdb_id);
-          return true;
-        }).slice(0, 20);
+        recommended = normalize(recResults.flat())
+          .filter(item => {
+            if (seen.has(item.tmdb_id) || allExisting.has(item.tmdb_id)) return false;
+            seen.add(item.tmdb_id);
+            return true;
+          })
+          .slice(0, 20);
 
         if (recommended.length > 0) {
           await setJsonCache(recommendationsCacheKey, recommended, 60 * 60); // 1 hour
@@ -936,8 +959,16 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
         );
 
         const [radarrIds, sonarrIds] = await Promise.all([
-          radarrConfig ? fetchRadarrTmdbIds(radarrConfig.website_url, radarrConfig.api_key).catch(() => new Map<number, ArrEntry>()) : Promise.resolve(new Map<number, ArrEntry>()),
-          sonarrConfig ? fetchSonarrTmdbIds(sonarrConfig.website_url, sonarrConfig.api_key).catch(() => new Map<number, ArrEntry>()) : Promise.resolve(new Map<number, ArrEntry>()),
+          radarrConfig
+            ? fetchRadarrTmdbIds(radarrConfig.website_url, radarrConfig.api_key).catch(
+                () => new Map<number, ArrEntry>()
+              )
+            : Promise.resolve(new Map<number, ArrEntry>()),
+          sonarrConfig
+            ? fetchSonarrTmdbIds(sonarrConfig.website_url, sonarrConfig.api_key).catch(
+                () => new Map<number, ArrEntry>()
+              )
+            : Promise.resolve(new Map<number, ArrEntry>()),
         ]);
 
         const items = withType
