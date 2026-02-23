@@ -471,11 +471,10 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
           });
           console.log(`User ${user.id} unsubscribed device: ${subscription.endpoint.slice(0, 50)}...`);
         } else {
-          // Unsubscribe all devices for this user
-          await prisma.userSubscription.deleteMany({
-            where: { userId: user.id },
-          });
-          console.log(`User ${user.id} unsubscribed all devices`);
+          // No endpoint provided - do nothing rather than deleting all subscriptions.
+          // iOS push tokens should use /unregister-device instead.
+          console.log(`User ${user.id} called unsubscribe without endpoint - skipping`);
+          return { success: true, message: 'No endpoint provided, nothing to unsubscribe' };
         }
 
         return { success: true, message: 'Unsubscribed successfully' };
@@ -676,6 +675,49 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
       body: t.Object({
         token: t.String(),
         platform: t.String(),
+      }),
+    }
+  )
+  // POST /api/notifications/unregister-device - Unregister a mobile push token
+  .post(
+    '/unregister-device',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const { token } = body;
+
+      if (!token) {
+        set.status = 400;
+        return { error: 'Token is required' };
+      }
+
+      try {
+        const deleted = await prisma.pushToken.deleteMany({
+          where: {
+            userId: user.id,
+            token,
+          },
+        });
+
+        if (deleted.count === 0) {
+          console.log(`No push token found to unregister for user ${user.id}`);
+        } else {
+          console.log(`Push token unregistered for user ${user.id}`);
+        }
+
+        return { success: true, message: 'Device unregistered successfully' };
+      } catch (error) {
+        console.error('Error unregistering push token:', error);
+        set.status = 500;
+        return { error: 'Failed to unregister device' };
+      }
+    },
+    {
+      body: t.Object({
+        token: t.String(),
       }),
     }
   );

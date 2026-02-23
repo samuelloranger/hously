@@ -230,6 +230,13 @@ export function createAuthApi(fetcher: ApiFetcher, options: AuthApiOptions = {})
     });
   };
 
+  const unregisterPushToken = (token: string): Promise<void> => {
+    return fetcher<void>(NOTIFICATION_ENDPOINTS.UNREGISTER_DEVICE, {
+      method: 'POST',
+      body: { token },
+    });
+  };
+
   return {
     getCurrentUser,
     login,
@@ -241,6 +248,7 @@ export function createAuthApi(fetcher: ApiFetcher, options: AuthApiOptions = {})
     changePassword,
     uploadAvatar,
     registerPushToken,
+    unregisterPushToken,
   };
 }
 

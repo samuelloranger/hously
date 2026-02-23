@@ -11,4 +11,5 @@ export const NOTIFICATION_ENDPOINTS = {
   VAPID_PUBLIC_KEY: '/api/notifications/vapid-public-key',
   TEST: '/api/notifications/test',
   REGISTER_DEVICE: '/api/notifications/register-device',
+  UNREGISTER_DEVICE: '/api/notifications/unregister-device',
 } as const;
