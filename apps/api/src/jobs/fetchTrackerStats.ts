@@ -1,7 +1,8 @@
 import { prisma } from '../db';
 import { normalizeTrackerConfig } from '../utils/plugins/normalizers';
-import { cacheKey } from '../utils/dashboard/trackers';
-import { setJsonCache } from '../services/cache';
+import { cacheKey, parseCachedTrackerStats } from '../utils/dashboard/trackers';
+import type { CachedTrackerStats } from '../utils/dashboard/trackers';
+import { getJsonCache, setJsonCache } from '../services/cache';
 import { TRACKER_SCRAPERS } from '../services/trackers';
 import type { TrackerType } from '../utils/plugins/types';
 import { logActivity } from '../utils/activityLogs';
@@ -139,12 +140,35 @@ export const fetchTrackerStats = async (
     const stats = await scraper.scrape(loginConfig, solution);
     console.log(`[cron:${trackerType}] stats`, stats);
 
+    // Get current cached stats to preserve them as "previous" if they changed.
+    const currentCached = await getJsonCache<CachedTrackerStats>(cacheKey(trackerType));
+    const current = parseCachedTrackerStats(currentCached);
+
+    let previous_uploaded_go = current?.previous_uploaded_go ?? null;
+    let previous_downloaded_go = current?.previous_downloaded_go ?? null;
+    let previous_ratio = current?.previous_ratio ?? null;
+
+    // If stats changed, update the previous values to the old current ones.
+    if (
+      current &&
+      (current.uploaded_go !== stats.uploadedGo ||
+        current.downloaded_go !== stats.downloadedGo ||
+        current.ratio !== stats.ratio)
+    ) {
+      previous_uploaded_go = current.uploaded_go;
+      previous_downloaded_go = current.downloaded_go;
+      previous_ratio = current.ratio;
+    }
+
     await setJsonCache(
       cacheKey(trackerType),
       {
         uploaded_go: stats.uploadedGo,
         downloaded_go: stats.downloadedGo,
         ratio: stats.ratio,
+        previous_uploaded_go,
+        previous_downloaded_go,
+        previous_ratio,
         updated_at: new Date().toISOString(),
       },
       60 * 60 * 24

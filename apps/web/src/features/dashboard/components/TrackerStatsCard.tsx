@@ -18,6 +18,9 @@ type TrackerCardData = {
   uploaded_go: number | null;
   downloaded_go: number | null;
   ratio: number | null;
+  previous_uploaded_go?: number | null;
+  previous_downloaded_go?: number | null;
+  previous_ratio?: number | null;
   updated_at: string | null;
   error?: string;
 };
@@ -44,6 +47,9 @@ export function TrackerStatsCard() {
       uploaded_go: ygg.data?.uploaded_go ?? null,
       downloaded_go: ygg.data?.downloaded_go ?? null,
       ratio: ygg.data?.ratio ?? null,
+      previous_uploaded_go: ygg.data?.previous_uploaded_go,
+      previous_downloaded_go: ygg.data?.previous_downloaded_go,
+      previous_ratio: ygg.data?.previous_ratio,
       updated_at: ygg.data?.updated_at ?? null,
       error: ygg.data?.error,
     },
@@ -55,6 +61,9 @@ export function TrackerStatsCard() {
       uploaded_go: c411.data?.uploaded_go ?? null,
       downloaded_go: c411.data?.downloaded_go ?? null,
       ratio: c411.data?.ratio ?? null,
+      previous_uploaded_go: c411.data?.previous_uploaded_go,
+      previous_downloaded_go: c411.data?.previous_downloaded_go,
+      previous_ratio: c411.data?.previous_ratio,
       updated_at: c411.data?.updated_at ?? null,
       error: c411.data?.error,
     },
@@ -66,6 +75,9 @@ export function TrackerStatsCard() {
       uploaded_go: torr9.data?.uploaded_go ?? null,
       downloaded_go: torr9.data?.downloaded_go ?? null,
       ratio: torr9.data?.ratio ?? null,
+      previous_uploaded_go: torr9.data?.previous_uploaded_go,
+      previous_downloaded_go: torr9.data?.previous_downloaded_go,
+      previous_ratio: torr9.data?.previous_ratio,
       updated_at: torr9.data?.updated_at ?? null,
       error: torr9.data?.error,
     },
@@ -77,6 +89,9 @@ export function TrackerStatsCard() {
       uploaded_go: g3mini.data?.uploaded_go ?? null,
       downloaded_go: g3mini.data?.downloaded_go ?? null,
       ratio: g3mini.data?.ratio ?? null,
+      previous_uploaded_go: g3mini.data?.previous_uploaded_go,
+      previous_downloaded_go: g3mini.data?.previous_downloaded_go,
+      previous_ratio: g3mini.data?.previous_ratio,
       updated_at: g3mini.data?.updated_at ?? null,
       error: g3mini.data?.error,
     },
@@ -88,6 +103,9 @@ export function TrackerStatsCard() {
       uploaded_go: laCale.data?.uploaded_go ?? null,
       downloaded_go: laCale.data?.downloaded_go ?? null,
       ratio: laCale.data?.ratio ?? null,
+      previous_uploaded_go: laCale.data?.previous_uploaded_go,
+      previous_downloaded_go: laCale.data?.previous_downloaded_go,
+      previous_ratio: laCale.data?.previous_ratio,
       updated_at: laCale.data?.updated_at ?? null,
       error: laCale.data?.error,
     },
@@ -95,6 +113,23 @@ export function TrackerStatsCard() {
 
   const connectedCount = trackers.filter(item => item.enabled && item.connected).length;
   const anyConnected = connectedCount > 0;
+
+  const renderDelta = (current: number | null, previous: number | null | undefined, isRatio = false) => {
+    if (current === null || previous === null || previous === undefined || current === previous) return null;
+    const delta = current - previous;
+    if (Math.abs(delta) < 0.001) return null;
+
+    const sign = delta > 0 ? '+' : '';
+    const value = isRatio ? delta.toFixed(2) : formatGo(delta);
+    const colorClass = delta > 0 ? 'text-emerald-950/70 dark:text-emerald-400' : 'text-rose-950/70 dark:text-rose-400';
+
+    return (
+      <span className={`text-[10px] ml-1 font-medium ${colorClass}`}>
+        {sign}
+        {value}
+      </span>
+    );
+  };
 
   return (
     <section
@@ -159,24 +194,27 @@ export function TrackerStatsCard() {
                         <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.uploaded')}
                         </p>
-                        <p className="text-sm font-semibold text-emerald-950 dark:text-white">
+                        <p className="text-sm font-semibold text-emerald-950 dark:text-white flex items-center">
                           {formatGo(item.uploaded_go)}
+                          {renderDelta(item.uploaded_go, item.previous_uploaded_go)}
                         </p>
                       </div>
                       <div>
                         <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.downloaded')}
                         </p>
-                        <p className="text-sm font-semibold text-emerald-950 dark:text-white">
+                        <p className="text-sm font-semibold text-emerald-950 dark:text-white flex items-center">
                           {formatGo(item.downloaded_go)}
+                          {renderDelta(item.downloaded_go, item.previous_downloaded_go)}
                         </p>
                       </div>
                       <div>
                         <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.ratio')}
                         </p>
-                        <p className="text-sm font-semibold text-emerald-950 dark:text-white">
+                        <p className="text-sm font-semibold text-emerald-950 dark:text-white flex items-center">
                           {formatRatio(item.ratio)}
+                          {renderDelta(item.ratio, item.previous_ratio, true)}
                         </p>
                       </div>
                     </div>
