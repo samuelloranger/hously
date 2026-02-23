@@ -22,19 +22,16 @@ const syncBadgesForUser = async (userId: number, unreadCount: number): Promise<v
   const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
 
   if (iosTokens.length > 0) {
-    const { invalidTokens } = await sendApnNotifications(
-      iosTokens,
-      {
-        data: {
-          notification_type: 'badge-sync',
-          unread_count: unreadCount,
-          silent: true,
-        },
-        sound: null,
-        badge: unreadCount,
-        contentAvailable: true,
-      }
-    );
+    const { invalidTokens } = await sendApnNotifications(iosTokens, {
+      data: {
+        notification_type: 'badge-sync',
+        unread_count: unreadCount,
+        silent: true,
+      },
+      sound: null,
+      badge: unreadCount,
+      contentAvailable: true,
+    });
 
     if (invalidTokens.length > 0) {
       await prisma.pushToken.deleteMany({
@@ -503,93 +500,77 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
   // POST /api/notifications/test - Send a test push notification
   .post(
     '/test',
-    async ({ user, body, set }) => {
+    async ({ user, set }) => {
       if (!user) {
         set.status = 401;
         return { error: 'Unauthorized' };
       }
 
-      // Explicitly check for admin status if needed, assuming user.isAdmin or similar
-      const isAdmin = (user as any).isAdmin || (user as any).is_admin;
-      const { subscription } = body || {};
+      if (!user.is_admin) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
 
       try {
         let totalSent = 0;
-        let webPushSuccess = false;
-        let mobilePushSuccess = false;
 
-        // 1. If a specific subscription is provided (from Web UI test button), send to it first
-        if (subscription) {
-          const result = await sendWebPushNotification(subscription as PushSubscription, {
-            title: 'Test notification',
-            body: 'If you see this, notifications are working! 🎉',
-            data: { url: '/settings?tab=notifications' },
-            tag: 'test-notification',
-          });
+        // Send to web push subscription if provided
+        const webSubscriptions = await prisma.userSubscription.findMany();
 
-          if (result.success) {
-            webPushSuccess = true;
-            totalSent++;
+        if (webSubscriptions.length > 0) {
+          for (const sub of webSubscriptions) {
+            try {
+              let subscriptionInfo: PushSubscription;
+              try {
+                subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
+              } catch {
+                console.error(`Invalid subscription JSON for subscription ${sub.id}, skipping`);
+                continue;
+              }
+              const result = await sendWebPushNotification(subscriptionInfo, {
+                title: 'Test notification',
+                body: 'If you see this, notifications are working! 🎉',
+                data: { url: '/settings?tab=notifications' },
+                tag: 'test-notification',
+              });
+              if (!result.success) {
+                console.error(`Failed to send test web push to subscription ${sub.id}:`, result.error);
+              } else {
+                totalSent += 1;
+              }
+            } catch (error) {
+              console.error(`Error sending test web push to subscription ${sub.id}:`, error);
+            }
           }
         }
 
         // 2. Identify target users: all users if admin, otherwise just the current user
-        const targetUserWhere = isAdmin ? {} : { id: user.id };
-        const users = await prisma.user.findMany({
-          where: targetUserWhere,
-          select: { id: true },
+        const iosTokens = await prisma.pushToken.findMany({
+          where: { platform: 'ios' },
+          select: { token: true },
         });
 
-        for (const targetUser of users) {
-          // Send to saved Web Push subscriptions
-          const savedWebSubs = await prisma.userSubscription.findMany({
-            where: { userId: targetUser.id },
-          });
-
-          for (const sub of savedWebSubs) {
-            // Avoid double-sending if this matches the one in the body
-            if (subscription && sub.endpoint === subscription.endpoint) continue;
-
-            try {
-              const info = JSON.parse(sub.subscriptionInfo) as PushSubscription;
-              const result = await sendWebPushNotification(info, {
-                title: 'Global Test notification',
-                body: `Testing system notifications for user ${targetUser.id} 🚀`,
-                data: { url: '/settings?tab=notifications' },
-                tag: 'test-notification',
-              });
-              if (result.success) {
-                webPushSuccess = true;
-                totalSent++;
-              }
-            } catch (err) {
-              console.error(`Failed to send web test to user ${targetUser.id}, sub ${sub.id}:`, err);
-            }
-          }
-
-          // Send to APNs push tokens (mobile)
-          const pushTokens = await prisma.pushToken.findMany({
-            where: { userId: targetUser.id },
-            select: { token: true, platform: true },
-          });
-
-          if (pushTokens.length > 0) {
-            const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
-            const unreadCount = await prisma.notification.count({
-              where: { userId: targetUser.id, read: false },
+        // Send to saved Web Push subscriptions
+        if (iosTokens.length > 0) {
+          for (const { token } of iosTokens) {
+            const { successCount, invalidTokens } = await sendApnNotifications([token], {
+              title: 'Test notification',
+              body: 'If you see this, notifications are working! 🎉',
+              data: { url: '/settings?tab=notifications' },
+              channelId: 'default',
             });
 
-            if (iosTokens.length > 0) {
-              const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
-                title: 'Test notification',
-                body: 'If you see this, mobile notifications are working! 🎉',
-                data: { url: '/settings?tab=notifications' },
-                channelId: 'default',
-                badge: unreadCount,
+            if (successCount > 0) {
+              totalSent += successCount;
+              console.log(`Test APNs push notifications sent to user ${user.id}: ${successCount}`);
+            }
+
+            if (invalidTokens.length > 0) {
+              await prisma.pushToken.deleteMany({
+                where: { token: { in: invalidTokens } },
               });
 
               if (successCount > 0) {
-                mobilePushSuccess = true;
                 totalSent += successCount;
               }
 
@@ -605,9 +586,7 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
         if (totalSent > 0) {
           return {
             success: true,
-            message: `Test notification sent to ${totalSent} device(s) across ${users.length} user(s)`,
-            webPush: webPushSuccess,
-            mobilePush: mobilePushSuccess,
+            message: `Test notification sent to ${totalSent} device(s)`,
           };
         } else {
           set.status = 400;

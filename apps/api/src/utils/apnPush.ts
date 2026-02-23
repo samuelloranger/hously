@@ -1,4 +1,5 @@
 import apn from '@parse/node-apn';
+import { existsSync } from 'fs';
 
 interface ApnPushPayload {
   title?: string;
@@ -11,9 +12,12 @@ interface ApnPushPayload {
 }
 
 let apnProvider: apn.Provider | null = null;
+let apnInitAttempted = false;
 
 export const getApnProvider = () => {
   if (apnProvider) return apnProvider;
+  if (apnInitAttempted) return null;
+  apnInitAttempted = true;
 
   const {
     APNS_TEAM_ID,
@@ -46,6 +50,10 @@ export const getApnProvider = () => {
 
     // 2. Check for certificate-based auth (.p12)
     if (APNS_CERT_PATH) {
+      if (!existsSync(APNS_CERT_PATH)) {
+        console.warn(`APNs certificate file not found at: ${APNS_CERT_PATH}. Skipping APNs initialization.`);
+        return null;
+      }
       apnProvider = new apn.Provider({
         pfx: APNS_CERT_PATH,
         passphrase: APNS_CERT_PASSPHRASE,
@@ -55,10 +63,6 @@ export const getApnProvider = () => {
         `APNs Provider (Certificate) initialized (${isProduction ? 'Production' : 'Sandbox'}) for topic: ${APNS_TOPIC}`
       );
       return apnProvider;
-    }
-
-    if (!APNS_TOPIC) {
-      console.warn('APNS_TOPIC not configured. Notifications may fail.');
     }
 
     console.warn('APNs credentials not configured (neither token nor certificate). Node-apn will not be initialized.');
