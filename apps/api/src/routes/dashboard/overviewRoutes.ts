@@ -198,7 +198,7 @@ export const dashboardOverviewRoutes = new Elysia()
       const address = (config?.address || '').trim();
       const temperatureUnit = config?.temperature_unit === 'celsius' ? 'celsius' : 'fahrenheit';
 
-      if (!weatherPlugin?.enabled || !address) {
+      if (!address) {
         return error(404, 'Weather plugin is not configured.');
       }
 

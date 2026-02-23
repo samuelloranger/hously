@@ -25,13 +25,15 @@
     "db:migrate:push": "bun run --filter @hously/server db:push",
     "db:generate": "bun run --filter @hously/server db:generate",
     "db:studio": "bun run --filter @hously/server db:studio",
-    "db:refresh-collation": "sh -c 'DB_NAME=${DB_NAME:-hously}; DB_USER=${DB_USER:-hously}; echo \"Refreshing template1 collation version...\"; docker compose exec -T db psql -U \"$DB_USER\" -d postgres -c \"ALTER DATABASE template1 REFRESH COLLATION VERSION;\"; echo \"Refreshing database collation version for database: $DB_NAME...\"; docker compose exec -T db psql -U \"$DB_USER\" -d postgres -c \"ALTER DATABASE $DB_NAME REFRESH COLLATION VERSION;\"; echo \"Done.\"'"
+    "db:refresh-collation": "sh -c 'DB_NAME=${DB_NAME:-hously}; DB_USER=${DB_USER:-hously}; echo \"Refreshing template1 collation version...\"; docker compose exec -T db psql -U \"$DB_USER\" -d postgres -c \"ALTER DATABASE template1 REFRESH COLLATION VERSION;\"; echo \"Refreshing database collation version for database: $DB_NAME...\"; docker compose exec -T db psql -U \"$DB_USER\" -d postgres -c \"ALTER DATABASE $DB_NAME REFRESH COLLATION VERSION;\"; echo \"Done.\"'",
+    "prepare": "husky"
   },
   "workspaces": [
     "apps/*"
   ],
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "husky": "^9.1.7",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3"
   },
@@ -44,5 +46,5 @@
     "react-i18next": "^14.1.2",
     "sharp": "^0.34.4"
   },
-  "version": "2.0.66"
+  "version": "2.0.72"
 }
