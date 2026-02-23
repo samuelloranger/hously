@@ -18,10 +18,12 @@
     "typecheck": "bun run --workspaces --if-present typecheck",
     "typecheck:build": "tsc -b tsconfig.build.json --pretty false",
     "lint": "bun run --workspaces --if-present lint",
+    "bump-version": "./scripts/bump-version.sh",
     "clean": "rm -rf apps/web/dist node_modules apps/*/node_modules packages/*/node_modules && docker compose down -v",
     "db:migrate:dev": "bun run --filter @hously/server db:migrate:dev",
     "db:migrate:deploy": "bun run --filter @hously/server db:migrate",
     "db:migrate:push": "bun run --filter @hously/server db:push",
+    "db:generate": "bun run --filter @hously/server db:generate",
     "db:studio": "bun run --filter @hously/server db:studio",
     "db:refresh-collation": "sh -c 'DB_NAME=${DB_NAME:-hously}; DB_USER=${DB_USER:-hously}; echo \"Refreshing template1 collation version...\"; docker compose exec -T db psql -U \"$DB_USER\" -d postgres -c \"ALTER DATABASE template1 REFRESH COLLATION VERSION;\"; echo \"Refreshing database collation version for database: $DB_NAME...\"; docker compose exec -T db psql -U \"$DB_USER\" -d postgres -c \"ALTER DATABASE $DB_NAME REFRESH COLLATION VERSION;\"; echo \"Done.\"'"
   },
@@ -41,5 +43,6 @@
     "react-hook-form": "^7.68.0",
     "react-i18next": "^14.1.2",
     "sharp": "^0.34.4"
-  }
+  },
+  "version": "2.0.62"
 }

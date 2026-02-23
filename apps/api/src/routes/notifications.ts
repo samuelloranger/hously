@@ -441,12 +441,12 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
         }),
         device_info: t.Optional(
           t.Object({
-            deviceName: t.Optional(t.String()),
-            osName: t.Optional(t.String()),
-            osVersion: t.Optional(t.String()),
-            browserName: t.Optional(t.String()),
-            browserVersion: t.Optional(t.String()),
-            platform: t.Optional(t.String()),
+            deviceName: t.Optional(t.Nullable(t.String())),
+            osName: t.Optional(t.Nullable(t.String())),
+            osVersion: t.Optional(t.Nullable(t.String())),
+            browserName: t.Optional(t.Nullable(t.String())),
+            browserVersion: t.Optional(t.Nullable(t.String())),
+            platform: t.Optional(t.Nullable(t.String())),
           })
         ),
       }),
@@ -509,14 +509,16 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
         return { error: 'Unauthorized' };
       }
 
-      const { subscription } = body;
+      // Explicitly check for admin status if needed, assuming user.isAdmin or similar
+      const isAdmin = (user as any).isAdmin || (user as any).is_admin;
+      const { subscription } = body || {};
 
       try {
+        let totalSent = 0;
         let webPushSuccess = false;
         let mobilePushSuccess = false;
-        let totalSent = 0;
 
-        // Send to web push subscription if provided
+        // 1. If a specific subscription is provided (from Web UI test button), send to it first
         if (subscription) {
           const result = await sendWebPushNotification(subscription as PushSubscription, {
             title: 'Test notification',
@@ -528,49 +530,74 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
           if (result.success) {
             webPushSuccess = true;
             totalSent++;
-            console.log(`Test web push notification sent to user ${user.id}`);
-          } else if (result.expired) {
-            console.log(`Web push subscription expired for user ${user.id}`);
-          } else {
-            console.error(`Web push failed for user ${user.id}:`, result.error);
           }
         }
 
-        // Send to APNs push tokens (mobile)
-        const pushTokens = await prisma.pushToken.findMany({
-          where: { userId: user.id },
-          select: { token: true, platform: true },
+        // 2. Identify target users: all users if admin, otherwise just the current user
+        const targetUserWhere = isAdmin ? {} : { id: user.id };
+        const users = await prisma.user.findMany({
+          where: targetUserWhere,
+          select: { id: true },
         });
 
-        if (pushTokens.length > 0) {
-          const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
-          const unreadCount = await prisma.notification.count({
-            where: { userId: user.id, read: false },
+        for (const targetUser of users) {
+          // Send to saved Web Push subscriptions
+          const savedWebSubs = await prisma.userSubscription.findMany({
+            where: { userId: targetUser.id },
           });
 
-          if (iosTokens.length > 0) {
-            const { successCount, invalidTokens } = await sendApnNotifications(
-              iosTokens,
-              {
+          for (const sub of savedWebSubs) {
+            // Avoid double-sending if this matches the one in the body
+            if (subscription && sub.endpoint === subscription.endpoint) continue;
+
+            try {
+              const info = JSON.parse(sub.subscriptionInfo) as PushSubscription;
+              const result = await sendWebPushNotification(info, {
+                title: 'Global Test notification',
+                body: `Testing system notifications for user ${targetUser.id} 🚀`,
+                data: { url: '/settings?tab=notifications' },
+                tag: 'test-notification',
+              });
+              if (result.success) {
+                webPushSuccess = true;
+                totalSent++;
+              }
+            } catch (err) {
+              console.error(`Failed to send web test to user ${targetUser.id}, sub ${sub.id}:`, err);
+            }
+          }
+
+          // Send to APNs push tokens (mobile)
+          const pushTokens = await prisma.pushToken.findMany({
+            where: { userId: targetUser.id },
+            select: { token: true, platform: true },
+          });
+
+          if (pushTokens.length > 0) {
+            const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
+            const unreadCount = await prisma.notification.count({
+              where: { userId: targetUser.id, read: false },
+            });
+
+            if (iosTokens.length > 0) {
+              const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
                 title: 'Test notification',
-                body: 'If you see this, notifications are working! 🎉',
+                body: 'If you see this, mobile notifications are working! 🎉',
                 data: { url: '/settings?tab=notifications' },
                 channelId: 'default',
                 badge: unreadCount,
-              }
-            );
-
-            if (successCount > 0) {
-              mobilePushSuccess = true;
-              totalSent += successCount;
-              console.log(`Test APNs push notifications sent to user ${user.id}: ${successCount}`);
-            }
-
-            if (invalidTokens.length > 0) {
-              await prisma.pushToken.deleteMany({
-                where: { token: { in: invalidTokens } },
               });
-              console.log(`Deleted ${invalidTokens.length} invalid APNs tokens for user ${user.id}`);
+
+              if (successCount > 0) {
+                mobilePushSuccess = true;
+                totalSent += successCount;
+              }
+
+              if (invalidTokens.length > 0) {
+                await prisma.pushToken.deleteMany({
+                  where: { token: { in: invalidTokens } },
+                });
+              }
             }
           }
         }
@@ -578,13 +605,13 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
         if (totalSent > 0) {
           return {
             success: true,
-            message: `Test notification sent to ${totalSent} device(s)`,
+            message: `Test notification sent to ${totalSent} device(s) across ${users.length} user(s)`,
             webPush: webPushSuccess,
             mobilePush: mobilePushSuccess,
           };
         } else {
           set.status = 400;
-          return { error: 'No valid push subscriptions or tokens found. Please register a device first.' };
+          return { error: 'No valid push subscriptions or tokens found in the system.' };
         }
       } catch (error) {
         console.error('Error sending test notification:', error);
@@ -593,17 +620,19 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
       }
     },
     {
-      body: t.Object({
-        subscription: t.Optional(
-          t.Object({
-            endpoint: t.String(),
-            keys: t.Object({
-              p256dh: t.String(),
-              auth: t.String(),
-            }),
-          })
-        ),
-      }),
+      body: t.Optional(
+        t.Object({
+          subscription: t.Optional(
+            t.Object({
+              endpoint: t.String(),
+              keys: t.Object({
+                p256dh: t.String(),
+                auth: t.String(),
+              }),
+            })
+          ),
+        })
+      ),
     }
   )
   // POST /api/notifications/register-device - Register mobile push token (Expo/APNs/FCM)
