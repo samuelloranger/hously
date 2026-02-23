@@ -63,6 +63,14 @@ function ExploreSection({
 
   if (items.length === 0) return null;
 
+  const handleRefresh = () => {
+    onRefresh?.();
+    setCollapsed(false);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+  };
+
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;
     const scrollAmount = scrollRef.current.clientWidth * 0.75;
@@ -90,7 +98,7 @@ function ExploreSection({
             {onRefresh && (
               <button
                 type="button"
-                onClick={onRefresh}
+                onClick={handleRefresh}
                 disabled={isRefreshing}
                 className="rounded-lg p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50"
                 aria-label={t('common.refetch')}
