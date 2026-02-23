@@ -25,6 +25,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./apps/api/certs:/app/apps/api/certs:ro
     networks:
       - hously-network
     ports:
