@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useExploreMedias, type TmdbMediaSearchItem } from '@hously/shared';
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useExploreMedias, useRefreshRecommendations, type TmdbMediaSearchItem } from '@hously/shared';
+import { ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { ExploreCard } from './ExploreCard';
 
 export function MediasExplore() {
   const { t, i18n } = useTranslation('common');
   const { data, isLoading, refetch } = useExploreMedias(i18n.language);
+  const refreshRecommendations = useRefreshRecommendations(i18n.language);
 
   if (isLoading) {
     return (
@@ -23,7 +24,13 @@ export function MediasExplore() {
 
   return (
     <div className="space-y-10 pb-10">
-      <ExploreSection title={t('medias.explore.recommended')} items={data.recommended} onAdded={refetch} />
+      <ExploreSection
+        title={t('medias.explore.recommended')}
+        items={data.recommended}
+        onAdded={refetch}
+        onRefresh={() => refreshRecommendations.mutate()}
+        isRefreshing={refreshRecommendations.isPending}
+      />
       <ExploreSection title={t('medias.explore.trending')} items={data.trending} onAdded={refetch} />
       <ExploreSection title={t('medias.explore.nowPlaying')} items={data.now_playing} onAdded={refetch} />
       <ExploreSection title={t('medias.explore.airingToday')} items={data.airing_today} onAdded={refetch} />
@@ -37,7 +44,20 @@ export function MediasExplore() {
   );
 }
 
-function ExploreSection({ title, items, onAdded }: { title: string; items: TmdbMediaSearchItem[]; onAdded: () => void }) {
+function ExploreSection({
+  title,
+  items,
+  onAdded,
+  onRefresh,
+  isRefreshing,
+}: {
+  title: string;
+  items: TmdbMediaSearchItem[];
+  onAdded: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+}) {
+  const { t } = useTranslation('common');
   const [collapsed, setCollapsed] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -62,14 +82,23 @@ function ExploreSection({ title, items, onAdded }: { title: string; items: TmdbM
         >
           <span>{title}</span>
           <span className="text-xs font-medium text-neutral-400">({items.length})</span>
-          <ChevronDown
-            size={16}
-            className={`transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}
-          />
+          <ChevronDown size={16} className={`transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`} />
         </button>
 
         {!collapsed && (
           <div className="flex items-center gap-1">
+            {onRefresh && (
+              <button
+                type="button"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+                className="rounded-lg p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50"
+                aria-label={t('common.refetch')}
+                title={t('common.refetch')}
+              >
+                <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => scroll('left')}
