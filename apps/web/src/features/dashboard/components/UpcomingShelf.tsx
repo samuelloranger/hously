@@ -1,15 +1,13 @@
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import {
   type DashboardUpcomingItem,
-  useAddUpcomingToArr,
+  type TmdbMediaSearchItem,
   useDashboardUpcoming,
-  useUpcomingStatus,
 } from '@hously/shared';
 import { MovieCard } from './MovieCard';
-import { Dialog } from '../../../components/dialog';
+import { ExploreCardDetailDialog } from '../../medias/components/ExploreCardDetailDialog';
 import { ListItemSkeleton } from '../../../components/Skeleton';
 
 import { enUS, fr } from 'date-fns/locale';
@@ -31,86 +29,30 @@ const formatReleaseDate = (value: string | null, locale: string) => {
 const mediaTypeLabel = (mediaType: 'movie' | 'tv', t: (key: string) => string) =>
   mediaType === 'movie' ? t('dashboard.upcoming.movie') : t('dashboard.upcoming.tv');
 
+function toTmdbSearchItem(item: DashboardUpcomingItem): TmdbMediaSearchItem {
+  const tmdbId = parseInt(item.id.split('-')[1] || '', 10);
+  const releaseYear = item.release_date ? new Date(item.release_date).getFullYear() : null;
+
+  return {
+    id: item.id,
+    tmdb_id: tmdbId,
+    media_type: item.media_type,
+    title: item.title,
+    release_year: releaseYear && !Number.isNaN(releaseYear) ? releaseYear : null,
+    poster_url: item.poster_url,
+    service: item.media_type === 'movie' ? 'radarr' : 'sonarr',
+    already_exists: false,
+    can_add: true,
+    source_id: null,
+    arr_url: null,
+  };
+}
+
 export function UpcomingShelf() {
   const { data, isLoading, isFetching, refetch } = useDashboardUpcoming();
 
   const { t, i18n } = useTranslation('common');
-  const [searchOnAdd, setSearchOnAdd] = useState(true);
-  const [selectedItem, setSelectedItem] = useState<DashboardUpcomingItem | null>(null);
-  const [upcomingStatus, setUpcomingStatus] = useState<{ exists: boolean; service: 'radarr' | 'sonarr' } | null>(null);
-
-  const addMutation = useAddUpcomingToArr();
-  const upcomingStatusMutation = useUpcomingStatus();
-
-  useEffect(() => {
-    if (!selectedItem) {
-      setUpcomingStatus(null);
-      return;
-    }
-
-    let canceled = false;
-    upcomingStatusMutation
-      .mutateAsync({
-        media_type: selectedItem.media_type,
-        tmdb_id: parseInt(selectedItem.id.split('-')[1] || '', 10),
-      })
-      .then(status => {
-        console.log('status', status);
-        if (!canceled) setUpcomingStatus(status);
-      })
-      .catch(() => {
-        if (!canceled) setUpcomingStatus(null);
-      });
-
-    return () => {
-      canceled = true;
-    };
-  }, [selectedItem, upcomingStatusMutation.mutateAsync]);
-
-  const handleAdd = async (item: DashboardUpcomingItem) => {
-    const tmdbId = parseInt(item.id.split('-')[1] || '', 10);
-    if (!Number.isFinite(tmdbId) || tmdbId <= 0) {
-      toast.error(t('dashboard.upcoming.addFailed'));
-      return;
-    }
-
-    try {
-      const result = await addMutation.mutateAsync({
-        media_type: item.media_type,
-        tmdb_id: tmdbId,
-        search_on_add: searchOnAdd,
-      });
-
-      if (result.already_exists) {
-        toast.info(t('dashboard.upcoming.alreadyAddedDescription', { service: result.service }));
-        return;
-      }
-
-      toast.success(t('dashboard.upcoming.addedDescription', { service: result.service }));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t('dashboard.upcoming.addFailed');
-      toast.error(message);
-    }
-  };
-
-  const closeConfirmDialog = () => {
-    if (addMutation.isPending) return;
-    setSelectedItem(null);
-  };
-
-  const confirmAdd = async () => {
-    if (!data || !selectedItem) return;
-    const targetPluginEnabled = selectedItem.media_type === 'movie' ? data.radarr_enabled : data.sonarr_enabled;
-    if (!targetPluginEnabled) {
-      window.open(selectedItem.tmdb_url, '_blank', 'noopener,noreferrer');
-      setSelectedItem(null);
-      return;
-    }
-
-    const itemToAdd = selectedItem;
-    setSelectedItem(null);
-    await handleAdd(itemToAdd);
-  };
+  const [selectedItem, setSelectedItem] = useState<TmdbMediaSearchItem | null>(null);
 
   return (
     <>
@@ -184,15 +126,7 @@ export function UpcomingShelf() {
                   posterUrl={item.poster_url}
                   fallbackEmoji={item.media_type === 'movie' ? '🎬' : '📺'}
                   accentRingClassName="focus:ring-amber-200/70"
-                  disabled={addMutation.isPending}
-                  onClick={() => {
-                    const targetPluginEnabled = item.media_type === 'movie' ? data.radarr_enabled : data.sonarr_enabled;
-                    if (!targetPluginEnabled) {
-                      window.open(item.tmdb_url, '_blank', 'noopener,noreferrer');
-                      return;
-                    }
-                    setSelectedItem(item);
-                  }}
+                  onClick={() => setSelectedItem(toTmdbSearchItem(item))}
                 />
               ))}
             </div>
@@ -200,58 +134,17 @@ export function UpcomingShelf() {
         )}
       </section>
 
-      <Dialog isOpen={selectedItem !== null} onClose={closeConfirmDialog} title={t('dashboard.upcoming.confirmTitle')}>
-        {selectedItem ? (
-          <div className="space-y-4">
-            {upcomingStatus?.exists ? (
-              <p className="text-sm text-amber-700 dark:text-amber-300">
-                {upcomingStatus.service === 'radarr'
-                  ? t('dashboard.upcoming.alreadyAddedRadarr')
-                  : t('dashboard.upcoming.alreadyAddedSonarr')}
-              </p>
-            ) : (
-              <>
-                <p className="text-sm text-neutral-700 dark:text-neutral-200">
-                  {t('dashboard.upcoming.confirmDescription', {
-                    title: selectedItem.title,
-                    service: selectedItem.media_type === 'movie' ? 'Radarr' : 'Sonarr',
-                  })}
-                </p>
-
-                <label className="inline-flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-200 select-none">
-                  <input type="checkbox" checked={searchOnAdd} onChange={e => setSearchOnAdd(e.target.checked)} />
-                  {t('dashboard.upcoming.searchOnAdd')}
-                </label>
-              </>
-            )}
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={closeConfirmDialog}
-                disabled={addMutation.isPending}
-                className="rounded-lg border border-neutral-300 dark:border-neutral-600 px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-60"
-              >
-                {t('common.cancel')}
-              </button>
-              {!(
-                upcomingStatus?.exists &&
-                upcomingStatus.service === (selectedItem?.media_type === 'movie' ? 'radarr' : 'sonarr')
-              ) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    void confirmAdd();
-                  }}
-                  disabled={addMutation.isPending}
-                  className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-500 disabled:opacity-60"
-                >
-                  {addMutation.isPending ? t('common.loading') : t('dashboard.upcoming.confirmButton')}
-                </button>
-              )}
-            </div>
-          </div>
-        ) : null}
-      </Dialog>
+      {selectedItem && (
+        <ExploreCardDetailDialog
+          item={selectedItem}
+          isOpen
+          onClose={() => setSelectedItem(null)}
+          onAdded={() => {
+            setSelectedItem(null);
+            refetch();
+          }}
+        />
+      )}
     </>
   );
 }
