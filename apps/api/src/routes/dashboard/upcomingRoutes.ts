@@ -9,7 +9,7 @@ import {
   toIsoDate,
 } from '../../utils/dashboard/tmdbUpcoming';
 import { prisma } from '../../db';
-import { getJsonCache, setJsonCache } from '../../services/cache';
+import { getJsonCache, setJsonCache, deleteCache } from '../../services/cache';
 import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../../utils/plugins/normalizers';
 import { toRecord } from '../../utils/coerce';
 import type { DashboardUpcomingItem } from '../../types/dashboardUpcoming';
@@ -190,6 +190,8 @@ export const dashboardUpcomingRoutes = new Elysia()
             return { error: 'Failed to add movie to Radarr' };
           }
 
+          await deleteCache('medias:radarr:ids');
+
           return {
             success: true,
             service: 'radarr',
@@ -267,6 +269,8 @@ export const dashboardUpcomingRoutes = new Elysia()
           set.status = 502;
           return { error: 'Failed to add series to Sonarr' };
         }
+
+        await deleteCache('medias:sonarr:ids');
 
         return {
           success: true,

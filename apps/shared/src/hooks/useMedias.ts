@@ -3,6 +3,7 @@ import { useFetcher } from './context';
 import { queryKeys } from '../queryKeys';
 import { MEDIAS_ENDPOINTS } from '../endpoints';
 import type {
+  ExploreMediasResponse,
   MediaAutoSearchResponse,
   MediaInteractiveDownloadResponse,
   MediaInteractiveSearchResponse,
@@ -16,6 +17,15 @@ export function useMedias() {
   return useQuery({
     queryKey: queryKeys.medias.list(),
     queryFn: () => fetcher<MediasResponse>(MEDIAS_ENDPOINTS.LIST),
+  });
+}
+
+export function useExploreMedias() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.medias.explore(),
+    queryFn: () => fetcher<ExploreMediasResponse>(MEDIAS_ENDPOINTS.EXPLORE),
   });
 }
 

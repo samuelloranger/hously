@@ -106,6 +106,7 @@ export const queryKeys = {
   medias: {
     all: ['medias'] as const,
     list: () => [...queryKeys.medias.all, 'list'] as const,
+    explore: () => [...queryKeys.medias.all, 'explore'] as const,
     tmdbSearch: (query: string) => [...queryKeys.medias.all, 'tmdb-search', query] as const,
     interactiveSearch: (service: 'radarr' | 'sonarr', sourceId: number) =>
       [...queryKeys.medias.all, 'interactive-search', service, sourceId] as const,

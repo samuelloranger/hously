@@ -1,11 +1,12 @@
-import { Elysia } from "elysia";
-import { prisma } from "../db";
-import { webhookHandlers } from "../services/webhookHandlers";
-import { sendExternalNotification } from "../services/externalNotificationService";
+import { Elysia } from 'elysia';
+import { prisma } from '../db';
+import { webhookHandlers } from '../services/webhookHandlers';
+import { sendExternalNotification } from '../services/externalNotificationService';
+import { deleteCache } from '../services/cache';
 
-export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
+export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
   // POST /api/webhooks/:serviceName - Receive webhook from external service
-  .post("/:serviceName", async ({ params, query, body, set }) => {
+  .post('/:serviceName', async ({ params, query, body, set }) => {
     const { serviceName } = params;
     const token = query.token as string | undefined;
 
@@ -13,7 +14,7 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
     if (!token) {
       console.warn(`${serviceName} webhook received without token`);
       set.status = 400;
-      return { error: "Token required" };
+      return { error: 'Token required' };
     }
 
     // Check if handler exists for this service
@@ -21,7 +22,7 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
     if (!handler) {
       console.warn(`Unknown webhook service: ${serviceName}`);
       set.status = 404;
-      return { error: "Unknown service" };
+      return { error: 'Unknown service' };
     }
 
     try {
@@ -35,42 +36,42 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
       });
 
       if (!service) {
-        console.warn(
-          `Invalid or disabled token for ${serviceName} webhook: ${token.slice(0, 10)}...`
-        );
+        console.warn(`Invalid or disabled token for ${serviceName} webhook: ${token.slice(0, 10)}...`);
         set.status = 403;
-        return { error: "Invalid or disabled token" };
+        return { error: 'Invalid or disabled token' };
       }
 
       // Parse webhook payload
       const payload = body as Record<string, unknown>;
-      if (!payload || typeof payload !== "object") {
+      if (!payload || typeof payload !== 'object') {
         console.warn(`${serviceName} webhook received with empty payload`);
         set.status = 400;
-        return { error: "Invalid payload" };
+        return { error: 'Invalid payload' };
       }
 
       // Extract event type for logging
       const rawEventType =
-        (payload.event_type as string) ||
-        (payload.eventType as string) ||
-        (payload.event as string) ||
-        "unknown";
+        (payload.event_type as string) || (payload.eventType as string) || (payload.event as string) || 'unknown';
+
+      // Invalidate media cache if Radarr or Sonarr
+      if (serviceName.toLowerCase() === 'radarr') {
+        await deleteCache('medias:radarr:ids');
+      } else if (serviceName.toLowerCase() === 'sonarr') {
+        await deleteCache('medias:sonarr:ids');
+      }
 
       // Create log entry
       const logEntry = await prisma.externalNotificationServiceLog.create({
         data: {
           serviceId: service.id,
           eventType: rawEventType,
-          status: "pending",
+          status: 'pending',
           payload: JSON.stringify(payload),
           createdAt: new Date().toISOString(),
         },
       });
 
-      console.log(
-        `Created log entry for ${serviceName} webhook: ${logEntry.id}`
-      );
+      console.log(`Created log entry for ${serviceName} webhook: ${logEntry.id}`);
 
       // Handle webhook
       try {
@@ -92,64 +93,57 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
             serviceName.toLowerCase(),
             eventType,
             notificationPayload,
-            "en"
+            'en'
           );
 
           if (success) {
             await prisma.externalNotificationServiceLog.update({
               where: { id: logEntry.id },
-              data: { status: "success" },
+              data: { status: 'success' },
             });
 
-            console.log(
-              `Successfully processed ${serviceName} webhook: ${eventType}`
-            );
+            console.log(`Successfully processed ${serviceName} webhook: ${eventType}`);
             return {
               success: true,
-              message: "Webhook processed successfully",
+              message: 'Webhook processed successfully',
             };
           } else {
-            console.warn(
-              `Webhook processed but notifications failed for ${serviceName}: ${eventType}`
-            );
+            console.warn(`Webhook processed but notifications failed for ${serviceName}: ${eventType}`);
             await prisma.externalNotificationServiceLog.update({
               where: { id: logEntry.id },
-              data: { status: "failure" },
+              data: { status: 'failure' },
             });
 
             return {
               success: true,
-              message: "Webhook processed but no notifications sent",
+              message: 'Webhook processed but no notifications sent',
             };
           }
         } catch (notificationError) {
-          console.error(
-            `Error sending notifications for ${serviceName} webhook:`,
-            notificationError
-          );
+          console.error(`Error sending notifications for ${serviceName} webhook:`, notificationError);
           await prisma.externalNotificationServiceLog.update({
             where: { id: logEntry.id },
-            data: { status: "failure" },
+            data: { status: 'failure' },
           });
 
           return {
             success: true,
-            message: "Webhook received but notification sending encountered errors",
+            message: 'Webhook received but notification sending encountered errors',
           };
         }
       } catch (handlerError) {
         console.error(`Error processing ${serviceName} webhook:`, handlerError);
         await prisma.externalNotificationServiceLog.update({
           where: { id: logEntry.id },
-          data: { status: "failure" },
+          data: { status: 'failure' },
         });
 
         set.status = 500;
-        return { error: "Error processing webhook" };
+        return { error: 'Error processing webhook' };
       }
     } catch (error) {
       console.error(`Error receiving ${serviceName} webhook:`, error);
       set.status = 500;
-      return { error: "Internal server error" };
+      return { error: 'Internal server error' };
     }
   });

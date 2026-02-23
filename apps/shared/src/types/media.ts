@@ -67,6 +67,7 @@ export interface InteractiveReleaseItem {
   title: string;
   indexer: string | null;
   indexer_id: number | null;
+  languages: string[];
   protocol: string | null;
   size_bytes: number | null;
   age: number | null;
@@ -80,6 +81,13 @@ export interface MediaInteractiveSearchResponse {
   success: boolean;
   service: 'radarr' | 'sonarr';
   releases: InteractiveReleaseItem[];
+}
+
+export interface ExploreMediasResponse {
+  trending: TmdbMediaSearchItem[];
+  popular_movies: TmdbMediaSearchItem[];
+  popular_shows: TmdbMediaSearchItem[];
+  upcoming_movies: TmdbMediaSearchItem[];
 }
 
 export interface MediaInteractiveDownloadResponse {

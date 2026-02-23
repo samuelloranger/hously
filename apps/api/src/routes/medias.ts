@@ -2,6 +2,7 @@ import { Elysia, t } from 'elysia';
 import { auth } from '../auth';
 import { prisma } from '../db';
 import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../utils/plugins/normalizers';
+import { getJsonCache, setJsonCache } from '../services/cache';
 import type { MediaItem } from '@hously/shared';
 
 type TmdbSearchItem = {
@@ -23,6 +24,7 @@ type InteractiveReleaseItem = {
   title: string;
   indexer: string | null;
   indexer_id: number | null;
+  languages: string[];
   protocol: string | null;
   size_bytes: number | null;
   age: number | null;
@@ -52,6 +54,53 @@ const toStringOrNull = (value: unknown): string | null => {
 
 const toBoolean = (value: unknown): boolean => Boolean(value);
 
+const toUniqueStringArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+
+  for (const entry of value) {
+    let candidate: string | null = null;
+    if (typeof entry === 'string') candidate = toStringOrNull(entry);
+    else {
+      const record = toRecord(entry);
+      candidate =
+        toStringOrNull(record?.name) ||
+        toStringOrNull(record?.value) ||
+        toStringOrNull(record?.title) ||
+        toStringOrNull(record?.label);
+    }
+
+    if (!candidate) continue;
+    const key = candidate.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(candidate);
+  }
+
+  return out;
+};
+
+const extractInteractiveLanguages = (row: Record<string, unknown>): string[] => {
+  const languages = toUniqueStringArray(row.languages);
+  if (languages.length > 0) return languages;
+
+  const singleLanguage = row.language;
+  if (typeof singleLanguage === 'string') {
+    const value = toStringOrNull(singleLanguage);
+    return value ? [value] : [];
+  }
+
+  const languageRecord = toRecord(singleLanguage);
+  if (!languageRecord) return [];
+  const value =
+    toStringOrNull(languageRecord.name) ||
+    toStringOrNull(languageRecord.value) ||
+    toStringOrNull(languageRecord.title) ||
+    toStringOrNull(languageRecord.label);
+  return value ? [value] : [];
+};
+
 const toIsoOrNull = (value: unknown): string | null => {
   if (typeof value !== 'string' || !value.trim()) return null;
   const date = new Date(value);
@@ -69,10 +118,15 @@ const resolveImageUrl = (baseUrl: string, value: unknown): string | null => {
   }
 };
 
-const buildArrItemUrl = (baseUrl: string, service: 'radarr' | 'sonarr', sourceId: number): string | null => {
+const buildArrItemUrl = (baseUrl: string, service: 'radarr' | 'sonarr', slug: string): string | null => {
   try {
-    const path = service === 'radarr' ? `/movie/${sourceId}` : `/series/${sourceId}`;
-    return new URL(path, baseUrl).toString();
+    const url = new URL(baseUrl);
+    const basePath = url.pathname.replace(/\/+$/, '');
+    const itemPath = service === 'radarr' ? 'movie' : 'series';
+    url.pathname = `${basePath}/${itemPath}/${slug}`;
+    url.search = '';
+    url.hash = '';
+    return url.toString();
   } catch {
     return null;
   }
@@ -113,6 +167,8 @@ const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null => {
   const title = toStringOrNull(row.title);
   if (!sourceId || !title) return null;
 
+  const tmdbId = toNumberOrNull(row.tmdbId);
+
   return {
     id: `radarr-${sourceId}`,
     media_type: 'movie',
@@ -126,13 +182,13 @@ const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null => {
     downloaded: toBoolean(row.hasFile),
     downloading: false,
     added_at: toIsoOrNull(row.added),
-    tmdb_id: toNumberOrNull(row.tmdbId),
+    tmdb_id: tmdbId,
     imdb_id: toStringOrNull(row.imdbId),
     tvdb_id: null,
     season_count: null,
     episode_count: null,
     poster_url: extractPosterUrl(baseUrl, row.images),
-    arr_url: buildArrItemUrl(baseUrl, 'radarr', sourceId),
+    arr_url: tmdbId ? buildArrItemUrl(baseUrl, 'radarr', String(tmdbId)) : null,
   };
 };
 
@@ -157,6 +213,8 @@ const mapSonarrSeries = (raw: unknown, baseUrl: string): MediaItem | null => {
   const sizeOnDisk = toNumberOrNull(statistics?.sizeOnDisk);
   const downloaded = (episodeFileCount !== null && episodeFileCount > 0) || (sizeOnDisk !== null && sizeOnDisk > 0);
 
+  const titleSlug = toStringOrNull(row.titleSlug);
+
   return {
     id: `sonarr-${sourceId}`,
     media_type: 'series',
@@ -176,7 +234,7 @@ const mapSonarrSeries = (raw: unknown, baseUrl: string): MediaItem | null => {
     season_count: seasonCount,
     episode_count: episodeCount,
     poster_url: extractPosterUrl(baseUrl, row.images),
-    arr_url: buildArrItemUrl(baseUrl, 'sonarr', sourceId),
+    arr_url: titleSlug ? buildArrItemUrl(baseUrl, 'sonarr', titleSlug) : null,
   };
 };
 
@@ -277,7 +335,13 @@ const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
   };
 };
 
-const fetchRadarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Map<number, number>> => {
+type ArrEntry = { sourceId: number; titleSlug: string | null };
+
+const fetchRadarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Map<number, ArrEntry>> => {
+  const cacheKey = 'medias:radarr:ids';
+  const cached = await getJsonCache<[number, ArrEntry][]>(cacheKey);
+  if (cached) return new Map(cached);
+
   const url = new URL('/api/v3/movie', websiteUrl);
   const response = await fetch(url.toString(), {
     headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
@@ -285,17 +349,25 @@ const fetchRadarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<M
   if (!response.ok) throw new Error(`Radarr request failed with status ${response.status}`);
 
   const data = (await response.json()) as unknown[];
-  const ids = new Map<number, number>();
+  const ids = new Map<number, ArrEntry>();
   for (const raw of data) {
     const row = toRecord(raw);
     const tmdbId = row ? toNumberOrNull(row.tmdbId) : null;
     const sourceId = row ? toNumberOrNull(row.id) : null;
-    if (tmdbId && tmdbId > 0 && sourceId && sourceId > 0) ids.set(tmdbId, sourceId);
+    if (tmdbId && tmdbId > 0 && sourceId && sourceId > 0) {
+      ids.set(tmdbId, { sourceId, titleSlug: row ? toStringOrNull(row.titleSlug) : null });
+    }
   }
+
+  await setJsonCache(cacheKey, Array.from(ids.entries()), 6 * 60 * 60); // 6 hours
   return ids;
 };
 
-const fetchSonarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Map<number, number>> => {
+const fetchSonarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Map<number, ArrEntry>> => {
+  const cacheKey = 'medias:sonarr:ids';
+  const cached = await getJsonCache<[number, ArrEntry][]>(cacheKey);
+  if (cached) return new Map(cached);
+
   const url = new URL('/api/v3/series', websiteUrl);
   const response = await fetch(url.toString(), {
     headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
@@ -303,13 +375,17 @@ const fetchSonarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<M
   if (!response.ok) throw new Error(`Sonarr request failed with status ${response.status}`);
 
   const data = (await response.json()) as unknown[];
-  const ids = new Map<number, number>();
+  const ids = new Map<number, ArrEntry>();
   for (const raw of data) {
     const row = toRecord(raw);
     const tmdbId = row ? toNumberOrNull(row.tmdbId) : null;
     const sourceId = row ? toNumberOrNull(row.id) : null;
-    if (tmdbId && tmdbId > 0 && sourceId && sourceId > 0) ids.set(tmdbId, sourceId);
+    if (tmdbId && tmdbId > 0 && sourceId && sourceId > 0) {
+      ids.set(tmdbId, { sourceId, titleSlug: row ? toStringOrNull(row.titleSlug) : null });
+    }
   }
+
+  await setJsonCache(cacheKey, Array.from(ids.entries()), 6 * 60 * 60); // 6 hours
   return ids;
 };
 
@@ -322,6 +398,10 @@ const mapInteractiveRelease = (raw: unknown): InteractiveReleaseItem | null => {
   if (!guid || !title) return null;
 
   const rejections = Array.isArray(row.rejections) ? row.rejections : [];
+  const indexerRecord = toRecord(row.indexer);
+  const indexerName =
+    toStringOrNull(row.indexer) || toStringOrNull(indexerRecord?.name) || toStringOrNull(indexerRecord?.title);
+  const indexerId = toNumberOrNull(row.indexerId) || toNumberOrNull(row.indexerID) || toNumberOrNull(indexerRecord?.id);
   const rejectionReason =
     rejections.length > 0
       ? rejections
@@ -336,8 +416,9 @@ const mapInteractiveRelease = (raw: unknown): InteractiveReleaseItem | null => {
   return {
     guid,
     title,
-    indexer: toStringOrNull(row.indexer),
-    indexer_id: toNumberOrNull(row.indexerId),
+    indexer: indexerName,
+    indexer_id: indexerId,
+    languages: extractInteractiveLanguages(row),
     protocol: toStringOrNull(row.protocol),
     size_bytes: toNumberOrNull(row.size),
     age: toNumberOrNull(row.age),
@@ -348,6 +429,12 @@ const mapInteractiveRelease = (raw: unknown): InteractiveReleaseItem | null => {
   };
 };
 
+const isSonarrFullSeasonRelease = (raw: unknown): boolean => {
+  const row = toRecord(raw);
+  if (!row) return false;
+  return toBoolean(row.fullSeason);
+};
+
 export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
   .use(auth)
   .get('/', async ({ user, set }) => {
@@ -356,133 +443,135 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       return { error: 'Unauthorized' };
     }
 
-  const response: {
-    radarr_enabled: boolean;
-    sonarr_enabled: boolean;
-    radarr_connected: boolean;
-    sonarr_connected: boolean;
-    items: MediaItem[];
-    errors?: { radarr?: string; sonarr?: string };
-  } = {
-    radarr_enabled: false,
-    sonarr_enabled: false,
-    radarr_connected: false,
-    sonarr_connected: false,
-    items: [],
-  };
+    const response: {
+      radarr_enabled: boolean;
+      sonarr_enabled: boolean;
+      radarr_connected: boolean;
+      sonarr_connected: boolean;
+      items: MediaItem[];
+      errors?: { radarr?: string; sonarr?: string };
+    } = {
+      radarr_enabled: false,
+      sonarr_enabled: false,
+      radarr_connected: false,
+      sonarr_connected: false,
+      items: [],
+    };
 
-  const errors: { radarr?: string; sonarr?: string } = {};
+    const errors: { radarr?: string; sonarr?: string } = {};
 
-  try {
-    const [radarrPlugin, sonarrPlugin] = await Promise.all([
-      prisma.plugin.findFirst({
-        where: { type: 'radarr' },
-        select: { enabled: true, config: true },
-      }),
-      prisma.plugin.findFirst({
-        where: { type: 'sonarr' },
-        select: { enabled: true, config: true },
-      }),
-    ]);
+    try {
+      const [radarrPlugin, sonarrPlugin] = await Promise.all([
+        prisma.plugin.findFirst({
+          where: { type: 'radarr' },
+          select: { enabled: true, config: true },
+        }),
+        prisma.plugin.findFirst({
+          where: { type: 'sonarr' },
+          select: { enabled: true, config: true },
+        }),
+      ]);
 
-    response.radarr_enabled = Boolean(radarrPlugin?.enabled);
-    response.sonarr_enabled = Boolean(sonarrPlugin?.enabled);
+      response.radarr_enabled = Boolean(radarrPlugin?.enabled);
+      response.sonarr_enabled = Boolean(sonarrPlugin?.enabled);
 
-    if (radarrPlugin?.enabled) {
-      const radarrConfig = normalizeRadarrConfig(radarrPlugin.config);
-      if (!radarrConfig) {
-        errors.radarr = 'Radarr plugin is not configured';
-      } else {
-        try {
-          const radarrUrl = new URL('/api/v3/movie', radarrConfig.website_url);
-          const [radarrRes, queueIds] = await Promise.all([
-            fetch(radarrUrl.toString(), {
-              headers: {
-                'X-Api-Key': radarrConfig.api_key,
-                Accept: 'application/json',
-              },
-            }),
-            fetchRadarrDownloadingMovieIds(radarrConfig.website_url, radarrConfig.api_key).catch(() => new Set<number>()),
-          ]);
+      if (radarrPlugin?.enabled) {
+        const radarrConfig = normalizeRadarrConfig(radarrPlugin.config);
+        if (!radarrConfig) {
+          errors.radarr = 'Radarr plugin is not configured';
+        } else {
+          try {
+            const radarrUrl = new URL('/api/v3/movie', radarrConfig.website_url);
+            const [radarrRes, queueIds] = await Promise.all([
+              fetch(radarrUrl.toString(), {
+                headers: {
+                  'X-Api-Key': radarrConfig.api_key,
+                  Accept: 'application/json',
+                },
+              }),
+              fetchRadarrDownloadingMovieIds(radarrConfig.website_url, radarrConfig.api_key).catch(
+                () => new Set<number>()
+              ),
+            ]);
 
-          if (!radarrRes.ok) {
-            errors.radarr = `Radarr request failed with status ${radarrRes.status}`;
-          } else {
-            const movies = (await radarrRes.json()) as unknown[];
-            response.radarr_connected = true;
-            response.items.push(
-              ...movies
-                .map(movie => {
-                  const item = mapRadarrMovie(movie, radarrConfig.website_url);
-                  if (!item) return null;
-                  return {
-                    ...item,
-                    downloading: !item.downloaded && queueIds.has(item.source_id),
-                  };
-                })
-                .filter((item): item is MediaItem => Boolean(item))
-            );
+            if (!radarrRes.ok) {
+              errors.radarr = `Radarr request failed with status ${radarrRes.status}`;
+            } else {
+              const movies = (await radarrRes.json()) as unknown[];
+              response.radarr_connected = true;
+              response.items.push(
+                ...movies
+                  .map(movie => {
+                    const item = mapRadarrMovie(movie, radarrConfig.website_url);
+                    if (!item) return null;
+                    return {
+                      ...item,
+                      downloading: !item.downloaded && queueIds.has(item.source_id),
+                    };
+                  })
+                  .filter((item): item is MediaItem => Boolean(item))
+              );
+            }
+          } catch (error) {
+            errors.radarr = error instanceof Error ? error.message : 'Failed to fetch Radarr media';
           }
-        } catch (error) {
-          errors.radarr = error instanceof Error ? error.message : 'Failed to fetch Radarr media';
         }
       }
-    }
 
-    if (sonarrPlugin?.enabled) {
-      const sonarrConfig = normalizeSonarrConfig(sonarrPlugin.config);
-      if (!sonarrConfig) {
-        errors.sonarr = 'Sonarr plugin is not configured';
-      } else {
-        try {
-          const sonarrUrl = new URL('/api/v3/series', sonarrConfig.website_url);
-          const [sonarrRes, queueIds] = await Promise.all([
-            fetch(sonarrUrl.toString(), {
-              headers: {
-                'X-Api-Key': sonarrConfig.api_key,
-                Accept: 'application/json',
-              },
-            }),
-            fetchSonarrDownloadingSeriesIds(sonarrConfig.website_url, sonarrConfig.api_key).catch(
-              () => new Set<number>()
-            ),
-          ]);
+      if (sonarrPlugin?.enabled) {
+        const sonarrConfig = normalizeSonarrConfig(sonarrPlugin.config);
+        if (!sonarrConfig) {
+          errors.sonarr = 'Sonarr plugin is not configured';
+        } else {
+          try {
+            const sonarrUrl = new URL('/api/v3/series', sonarrConfig.website_url);
+            const [sonarrRes, queueIds] = await Promise.all([
+              fetch(sonarrUrl.toString(), {
+                headers: {
+                  'X-Api-Key': sonarrConfig.api_key,
+                  Accept: 'application/json',
+                },
+              }),
+              fetchSonarrDownloadingSeriesIds(sonarrConfig.website_url, sonarrConfig.api_key).catch(
+                () => new Set<number>()
+              ),
+            ]);
 
-          if (!sonarrRes.ok) {
-            errors.sonarr = `Sonarr request failed with status ${sonarrRes.status}`;
-          } else {
-            const series = (await sonarrRes.json()) as unknown[];
-            response.sonarr_connected = true;
-            response.items.push(
-              ...series
-                .map(show => {
-                  const item = mapSonarrSeries(show, sonarrConfig.website_url);
-                  if (!item) return null;
-                  return {
-                    ...item,
-                    downloading: !item.downloaded && queueIds.has(item.source_id),
-                  };
-                })
-                .filter((item): item is MediaItem => Boolean(item))
-            );
+            if (!sonarrRes.ok) {
+              errors.sonarr = `Sonarr request failed with status ${sonarrRes.status}`;
+            } else {
+              const series = (await sonarrRes.json()) as unknown[];
+              response.sonarr_connected = true;
+              response.items.push(
+                ...series
+                  .map(show => {
+                    const item = mapSonarrSeries(show, sonarrConfig.website_url);
+                    if (!item) return null;
+                    return {
+                      ...item,
+                      downloading: !item.downloaded && queueIds.has(item.source_id),
+                    };
+                  })
+                  .filter((item): item is MediaItem => Boolean(item))
+              );
+            }
+          } catch (error) {
+            errors.sonarr = error instanceof Error ? error.message : 'Failed to fetch Sonarr media';
           }
-        } catch (error) {
-          errors.sonarr = error instanceof Error ? error.message : 'Failed to fetch Sonarr media';
         }
       }
-    }
 
-    response.items.sort((a, b) => {
-      const aTitle = (a.sort_title || a.title).toLowerCase();
-      const bTitle = (b.sort_title || b.title).toLowerCase();
-      return aTitle.localeCompare(bTitle);
-    });
+      response.items.sort((a, b) => {
+        const aTitle = (a.sort_title || a.title).toLowerCase();
+        const bTitle = (b.sort_title || b.title).toLowerCase();
+        return aTitle.localeCompare(bTitle);
+      });
 
-    if (errors.radarr || errors.sonarr) {
-      response.errors = errors;
-    }
+      if (errors.radarr || errors.sonarr) {
+        response.errors = errors;
+      }
 
-    return response;
+      return response;
     } catch (error) {
       console.error('Error fetching medias:', error);
       set.status = 500;
@@ -567,8 +656,8 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
           .filter((item): item is TmdbSearchItem => Boolean(item))
           .slice(0, 20);
 
-        let radarrIds = new Map<number, number>();
-        let sonarrIds = new Map<number, number>();
+        let radarrIds = new Map<number, ArrEntry>();
+        let sonarrIds = new Map<number, ArrEntry>();
 
         await Promise.all([
           (async () => {
@@ -591,14 +680,27 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
 
         items = items.map(item => {
           const isMovie = item.media_type === 'movie';
-          const sourceId = isMovie ? radarrIds.get(item.tmdb_id) : sonarrIds.get(item.tmdb_id);
+          const entry = isMovie ? radarrIds.get(item.tmdb_id) : sonarrIds.get(item.tmdb_id);
+          const sourceId = entry?.sourceId ?? null;
           const sourceBaseUrl = isMovie ? radarrConfig?.website_url : sonarrConfig?.website_url;
+
+          let arr_url: string | null = null;
+          if (sourceBaseUrl && entry) {
+            if (isMovie) {
+              // Radarr uses the TMDB ID in its web UI URL
+              arr_url = buildArrItemUrl(sourceBaseUrl, 'radarr', String(item.tmdb_id));
+            } else if (entry.titleSlug) {
+              // Sonarr uses the title slug in its web UI URL
+              arr_url = buildArrItemUrl(sourceBaseUrl, 'sonarr', entry.titleSlug);
+            }
+          }
+
           return {
             ...item,
             already_exists: isMovie ? radarrIds.has(item.tmdb_id) : sonarrIds.has(item.tmdb_id),
             can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
-            source_id: sourceId ?? null,
-            arr_url: sourceBaseUrl && sourceId ? buildArrItemUrl(sourceBaseUrl, item.service, sourceId) : null,
+            source_id: sourceId,
+            arr_url,
           };
         });
 
@@ -617,6 +719,96 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       }),
     }
   )
+  .get('/explore', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      const [tmdbPlugin, radarrPlugin, sonarrPlugin] = await Promise.all([
+        prisma.plugin.findFirst({
+          where: { type: 'tmdb' },
+          select: { enabled: true, config: true },
+        }),
+        prisma.plugin.findFirst({
+          where: { type: 'radarr' },
+          select: { enabled: true, config: true },
+        }),
+        prisma.plugin.findFirst({
+          where: { type: 'sonarr' },
+          select: { enabled: true, config: true },
+        }),
+      ]);
+
+      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      if (!tmdbConfig) {
+        set.status = 400;
+        return { error: 'TMDB is not configured' };
+      }
+
+      const radarrConfig = radarrPlugin?.enabled ? normalizeRadarrConfig(radarrPlugin.config) : null;
+      const sonarrConfig = sonarrPlugin?.enabled ? normalizeSonarrConfig(sonarrPlugin.config) : null;
+
+      const fetchTmdb = async (path: string) => {
+        const url = new URL(`https://api.themoviedb.org/3/${path}`);
+        url.searchParams.set('api_key', tmdbConfig.api_key);
+        url.searchParams.set('language', 'en-US');
+        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+        if (!res.ok) return [];
+        const data = (await res.json()) as Record<string, unknown>;
+        return Array.isArray(data.results) ? data.results : [];
+      };
+
+      const [trending, popularMovies, popularShows, upcomingMovies, radarrIds, sonarrIds] = await Promise.all([
+        fetchTmdb('trending/all/day'),
+        fetchTmdb('movie/popular'),
+        fetchTmdb('tv/popular'),
+        fetchTmdb('movie/upcoming'),
+        radarrConfig ? fetchRadarrTmdbIds(radarrConfig.website_url, radarrConfig.api_key).catch(() => new Map()) : Promise.resolve(new Map()),
+        sonarrConfig ? fetchSonarrTmdbIds(sonarrConfig.website_url, sonarrConfig.api_key).catch(() => new Map()) : Promise.resolve(new Map()),
+      ]);
+
+      const normalize = (items: unknown[]) =>
+        items
+          .map(mapTmdbSearchItem)
+          .filter((item): item is TmdbSearchItem => Boolean(item))
+          .map(item => {
+            const isMovie = item.media_type === 'movie';
+            const entry = isMovie ? radarrIds.get(item.tmdb_id) : sonarrIds.get(item.tmdb_id);
+            const sourceId = entry?.sourceId ?? null;
+            const sourceBaseUrl = isMovie ? radarrConfig?.website_url : sonarrConfig?.website_url;
+
+            let arr_url: string | null = null;
+            if (sourceBaseUrl && entry) {
+              if (isMovie) {
+                arr_url = buildArrItemUrl(sourceBaseUrl, 'radarr', String(item.tmdb_id));
+              } else if (entry.titleSlug) {
+                arr_url = buildArrItemUrl(sourceBaseUrl, 'sonarr', entry.titleSlug);
+              }
+            }
+
+            return {
+              ...item,
+              already_exists: isMovie ? radarrIds.has(item.tmdb_id) : sonarrIds.has(item.tmdb_id),
+              can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
+              source_id: sourceId,
+              arr_url,
+            };
+          });
+
+      return {
+        trending: normalize(trending),
+        popular_movies: normalize(popularMovies),
+        popular_shows: normalize(popularShows),
+        upcoming_movies: normalize(upcomingMovies),
+      };
+    } catch (error) {
+      console.error('Error fetching TMDB explore:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch TMDB explore' };
+    }
+  })
   .post(
     '/:service/:sourceId/auto-search',
     async ({ user, set, params }) => {
@@ -813,10 +1005,13 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
         }
 
         const releases = (await releaseRes.json()) as unknown[];
+        const fullSeasonReleases = releases.filter(isSonarrFullSeasonRelease);
         return {
           success: true,
           service: 'sonarr' as const,
-          releases: releases.map(mapInteractiveRelease).filter((r): r is InteractiveReleaseItem => Boolean(r)),
+          releases: fullSeasonReleases
+            .map(mapInteractiveRelease)
+            .filter((r): r is InteractiveReleaseItem => Boolean(r)),
         };
       } catch (error) {
         console.error('Error loading interactive search releases:', error);
@@ -878,8 +1073,8 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
             return { error: 'Radarr plugin is not configured' };
           }
 
-          const commandUrl = new URL('/api/v3/command', config.website_url);
-          const commandRes = await fetch(commandUrl.toString(), {
+          const releaseUrl = new URL('/api/v3/release', config.website_url);
+          const commandRes = await fetch(releaseUrl.toString(), {
             method: 'POST',
             headers: {
               'X-Api-Key': config.api_key,
@@ -887,7 +1082,6 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
               Accept: 'application/json',
             },
             body: JSON.stringify({
-              name: 'DownloadRelease',
               guid,
               indexerId,
             }),
@@ -916,8 +1110,8 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
           return { error: 'Sonarr plugin is not configured' };
         }
 
-        const commandUrl = new URL('/api/v3/command', config.website_url);
-        const commandRes = await fetch(commandUrl.toString(), {
+        const releaseUrl = new URL('/api/v3/release', config.website_url);
+        const commandRes = await fetch(releaseUrl.toString(), {
           method: 'POST',
           headers: {
             'X-Api-Key': config.api_key,
@@ -925,7 +1119,6 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
             Accept: 'application/json',
           },
           body: JSON.stringify({
-            name: 'DownloadRelease',
             guid,
             indexerId,
           }),

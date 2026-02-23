@@ -1186,6 +1186,18 @@
   "medias": {
     "title": "Médias",
     "subtitle": "Bibliothèque fusionnée Radarr et Sonarr",
+    "tabs": {
+      "explore": "Découvrir",
+      "library": "Bibliothèque"
+    },
+    "explore": {
+      "trending": "Tendances",
+      "popularMovies": "Films populaires",
+      "popularShows": "Séries populaires",
+      "upcomingMovies": "Films à venir"
+    },
+    "addSuccess": "{{title}} ajouté à la bibliothèque.",
+    "addFailed": "Échec de l'ajout du média à la bibliothèque.",
     "searchPlaceholder": "Rechercher des médias...",
     "sortLabel": "Trier par",
     "asc": "Asc",
@@ -1224,7 +1236,14 @@
       "title": "Recherche interactive : {{title}}",
       "loading": "Chargement des releases...",
       "empty": "Aucune release trouvée.",
+      "filtersTitle": "Filtres",
+      "clearFilters": "Effacer",
       "hideRejected": "Masquer les releases rejetées",
+      "trackersInclude": "Inclure les trackers",
+      "trackersExclude": "Exclure les trackers",
+      "languagesInclude": "Inclure les langues",
+      "noTrackers": "Aucun tracker disponible",
+      "noLanguages": "Aucune langue disponible",
       "sortLabel": "Trier par",
       "sortOptions": {
         "seeders": "Seeders",
@@ -1237,8 +1256,10 @@
       "downloadStarted": "Téléchargement de la release lancé.",
       "downloadFailed": "Impossible de lancer le téléchargement de la release.",
       "unknownIndexer": "Indexer inconnu",
+      "unknownLanguage": "Langue inconnue",
       "age": "Âge : {{age}}j",
-      "seedersLeechers": "S/L : {{seeders}}/{{leechers}}"
+      "seedersLeechers": "S/L : {{seeders}}/{{leechers}}",
+      "languagesValue": "Langue : {{value}}"
     },
     "empty": "Aucun média trouvé.",
     "noResults": "Aucun média ne correspond à vos filtres.",

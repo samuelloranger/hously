@@ -1142,6 +1142,18 @@
   "medias": {
     "title": "Medias",
     "subtitle": "Merged Radarr and Sonarr library",
+    "tabs": {
+      "explore": "Explore",
+      "library": "Library"
+    },
+    "explore": {
+      "trending": "Trending",
+      "popularMovies": "Popular Movies",
+      "popularShows": "Popular TV Shows",
+      "upcomingMovies": "Upcoming Movies"
+    },
+    "addSuccess": "Added {{title}} to library.",
+    "addFailed": "Failed to add media to library.",
     "searchPlaceholder": "Search medias...",
     "sortLabel": "Sort by",
     "asc": "Asc",
@@ -1180,7 +1192,14 @@
       "title": "Interactive Search: {{title}}",
       "loading": "Loading releases...",
       "empty": "No releases found.",
+      "filtersTitle": "Filters",
+      "clearFilters": "Clear",
       "hideRejected": "Hide rejected releases",
+      "trackersInclude": "Include trackers",
+      "trackersExclude": "Exclude trackers",
+      "languagesInclude": "Include languages",
+      "noTrackers": "No trackers available",
+      "noLanguages": "No languages available",
       "sortLabel": "Sort by",
       "sortOptions": {
         "seeders": "Seeders",
@@ -1193,8 +1212,10 @@
       "downloadStarted": "Release download started.",
       "downloadFailed": "Failed to start release download.",
       "unknownIndexer": "Unknown indexer",
+      "unknownLanguage": "Unknown language",
       "age": "Age: {{age}}d",
-      "seedersLeechers": "S/L: {{seeders}}/{{leechers}}"
+      "seedersLeechers": "S/L: {{seeders}}/{{leechers}}",
+      "languagesValue": "Lang: {{value}}"
     },
     "empty": "No media found.",
     "noResults": "No media matches your filters.",
