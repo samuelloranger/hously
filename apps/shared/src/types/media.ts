@@ -88,6 +88,16 @@ export interface ExploreMediasResponse {
   popular_movies: TmdbMediaSearchItem[];
   popular_shows: TmdbMediaSearchItem[];
   upcoming_movies: TmdbMediaSearchItem[];
+  now_playing: TmdbMediaSearchItem[];
+  airing_today: TmdbMediaSearchItem[];
+  on_the_air: TmdbMediaSearchItem[];
+  top_rated_movies: TmdbMediaSearchItem[];
+  top_rated_shows: TmdbMediaSearchItem[];
+  recommended: TmdbMediaSearchItem[];
+}
+
+export interface SimilarMediasResponse {
+  items: TmdbMediaSearchItem[];
 }
 
 export interface MediaInteractiveDownloadResponse {

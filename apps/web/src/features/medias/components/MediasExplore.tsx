@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useExploreMedias, type TmdbMediaSearchItem, useAddUpcomingToArr } from '@hously/shared';
-import { Plus, Check, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
+import { useExploreMedias, type TmdbMediaSearchItem } from '@hously/shared';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ExploreCard } from './ExploreCard';
 
 export function MediasExplore() {
-  const { t } = useTranslation('common');
-  const { data, isLoading, refetch } = useExploreMedias();
+  const { t, i18n } = useTranslation('common');
+  const { data, isLoading, refetch } = useExploreMedias(i18n.language);
 
   if (isLoading) {
     return (
@@ -23,121 +23,88 @@ export function MediasExplore() {
 
   return (
     <div className="space-y-10 pb-10">
+      <ExploreSection title={t('medias.explore.recommended')} items={data.recommended} onAdded={refetch} />
       <ExploreSection title={t('medias.explore.trending')} items={data.trending} onAdded={refetch} />
+      <ExploreSection title={t('medias.explore.nowPlaying')} items={data.now_playing} onAdded={refetch} />
+      <ExploreSection title={t('medias.explore.airingToday')} items={data.airing_today} onAdded={refetch} />
       <ExploreSection title={t('medias.explore.popularMovies')} items={data.popular_movies} onAdded={refetch} />
       <ExploreSection title={t('medias.explore.popularShows')} items={data.popular_shows} onAdded={refetch} />
+      <ExploreSection title={t('medias.explore.onTheAir')} items={data.on_the_air} onAdded={refetch} />
       <ExploreSection title={t('medias.explore.upcomingMovies')} items={data.upcoming_movies} onAdded={refetch} />
+      <ExploreSection title={t('medias.explore.topRatedMovies')} items={data.top_rated_movies} onAdded={refetch} />
+      <ExploreSection title={t('medias.explore.topRatedShows')} items={data.top_rated_shows} onAdded={refetch} />
     </div>
   );
 }
 
 function ExploreSection({ title, items, onAdded }: { title: string; items: TmdbMediaSearchItem[]; onAdded: () => void }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  if (items.length === 0) return null;
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const scrollAmount = scrollRef.current.clientWidth * 0.75;
+    scrollRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
+  };
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">{title}</h2>
-      </div>
-
-      <div className="relative group">
-        <div 
-          className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        <button
+          type="button"
+          onClick={() => setCollapsed(v => !v)}
+          className="flex items-center gap-2 text-lg font-bold text-neutral-900 dark:text-neutral-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
         >
-          {items.map(item => (
-            <div key={item.id} className="flex-none w-40 sm:w-48 snap-start">
-              <ExploreCard item={item} onAdded={onAdded} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ExploreCard({ item, onAdded }: { item: TmdbMediaSearchItem; onAdded: () => void }) {
-  const { t } = useTranslation('common');
-  const [imageError, setImageError] = useState(false);
-  const addUpcomingMutation = useAddUpcomingToArr();
-
-  const handleAdd = async () => {
-    if (addUpcomingMutation.isPending || item.already_exists || !item.can_add) return;
-
-    try {
-      await addUpcomingMutation.mutateAsync({
-        media_type: item.media_type,
-        tmdb_id: item.tmdb_id,
-        search_on_add: true,
-      });
-      toast.success(t('medias.addSuccess', { title: item.title }));
-      onAdded();
-    } catch (error) {
-      toast.error(t('medias.addFailed'));
-    }
-  };
-
-  const isAdding = addUpcomingMutation.isPending;
-
-  return (
-    <div className="group relative space-y-2">
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800 shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:-translate-y-1">
-        {item.poster_url && !imageError ? (
-          <img
-            src={item.poster_url}
-            alt={item.title}
-            className="h-full w-full object-cover"
-            onError={() => setImageError(true)}
+          <span>{title}</span>
+          <span className="text-xs font-medium text-neutral-400">({items.length})</span>
+          <ChevronDown
+            size={16}
+            className={`transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}
           />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-3xl">🎬</div>
-        )}
+        </button>
 
-        <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-center justify-center gap-2">
-          {item.already_exists ? (
-            <div className="rounded-full bg-emerald-500 p-2 text-white shadow-lg">
-              <Check size={20} />
-            </div>
-          ) : item.can_add ? (
+        {!collapsed && (
+          <div className="flex items-center gap-1">
             <button
-              onClick={handleAdd}
-              disabled={isAdding}
-              className="rounded-full bg-indigo-600 p-2 text-white shadow-lg transition-transform hover:scale-110 active:scale-95 disabled:opacity-50"
+              type="button"
+              onClick={() => scroll('left')}
+              className="rounded-lg p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              aria-label="Scroll left"
             >
-              {isAdding ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              ) : (
-                <Plus size={20} />
-              )}
+              <ChevronLeft size={18} />
             </button>
-          ) : null}
-          
-          {item.arr_url && (
-             <a
-             href={item.arr_url}
-             target="_blank"
-             rel="noreferrer"
-             className="rounded-full bg-white/20 p-2 text-white backdrop-blur-md shadow-lg transition-transform hover:scale-110 active:scale-95"
-           >
-             <ExternalLink size={20} />
-           </a>
-          )}
-        </div>
-
-        {item.release_year && (
-          <div className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-            {item.release_year}
+            <button
+              type="button"
+              onClick={() => scroll('right')}
+              className="rounded-lg p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              aria-label="Scroll right"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
         )}
-        
-        <div className="absolute top-2 left-2 rounded-md bg-indigo-600/80 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm uppercase">
-          {item.media_type === 'movie' ? t('medias.filterMovies').slice(0, -1) : t('medias.filterSeries').slice(0, -1)}
-        </div>
       </div>
 
-      <div className="px-1">
-        <h3 className="line-clamp-1 text-sm font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-          {item.title}
-        </h3>
-      </div>
-    </div>
+      {!collapsed && (
+        <div className="relative">
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto pt-1 pb-4 scrollbar-hide snap-x"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {items.map(item => (
+              <div key={item.id} className="flex-none w-40 sm:w-48 snap-start">
+                <ExploreCard item={item} onAdded={onAdded} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
   );
 }

@@ -1150,10 +1150,23 @@
       "trending": "Trending",
       "popularMovies": "Popular Movies",
       "popularShows": "Popular TV Shows",
-      "upcomingMovies": "Upcoming Movies"
+      "upcomingMovies": "Upcoming Movies",
+      "nowPlaying": "Now Playing",
+      "airingToday": "Airing Today",
+      "onTheAir": "On The Air",
+      "topRatedMovies": "Top Rated Movies",
+      "topRatedShows": "Top Rated Shows",
+      "recommended": "Recommended For You"
+    },
+    "similar": {
+      "title": "Similar to {{title}}",
+      "empty": "No similar titles found.",
+      "button": "Find Similar"
     },
     "addSuccess": "Added {{title}} to library.",
     "addFailed": "Failed to add media to library.",
+    "movie": "Movie",
+    "series": "Series",
     "searchPlaceholder": "Search medias...",
     "sortLabel": "Sort by",
     "asc": "Asc",

@@ -1194,10 +1194,23 @@
       "trending": "Tendances",
       "popularMovies": "Films populaires",
       "popularShows": "Séries populaires",
-      "upcomingMovies": "Films à venir"
+      "upcomingMovies": "Films à venir",
+      "nowPlaying": "Actuellement au cinéma",
+      "airingToday": "Diffusé aujourd'hui",
+      "onTheAir": "En cours de diffusion",
+      "topRatedMovies": "Films les mieux notés",
+      "topRatedShows": "Séries les mieux notées",
+      "recommended": "Recommandé pour vous"
+    },
+    "similar": {
+      "title": "Similaire à {{title}}",
+      "empty": "Aucun titre similaire trouvé.",
+      "button": "Trouver similaire"
     },
     "addSuccess": "{{title}} ajouté à la bibliothèque.",
     "addFailed": "Échec de l'ajout du média à la bibliothèque.",
+    "movie": "Film",
+    "series": "Série",
     "searchPlaceholder": "Rechercher des médias...",
     "sortLabel": "Trier par",
     "asc": "Asc",

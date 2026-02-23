@@ -8,6 +8,7 @@ import type {
   MediaInteractiveDownloadResponse,
   MediaInteractiveSearchResponse,
   MediasResponse,
+  SimilarMediasResponse,
   TmdbMediaSearchResponse,
 } from '../types';
 
@@ -20,12 +21,33 @@ export function useMedias() {
   });
 }
 
-export function useExploreMedias() {
+export function useExploreMedias(language?: string) {
   const fetcher = useFetcher();
+  const lang = language || 'en-US';
 
   return useQuery({
-    queryKey: queryKeys.medias.explore(),
-    queryFn: () => fetcher<ExploreMediasResponse>(MEDIAS_ENDPOINTS.EXPLORE),
+    queryKey: [...queryKeys.medias.explore(), lang],
+    queryFn: () => fetcher<ExploreMediasResponse>(`${MEDIAS_ENDPOINTS.EXPLORE}?language=${encodeURIComponent(lang)}`),
+  });
+}
+
+export function useSimilarMedias(
+  tmdbId: number | null,
+  type: 'movie' | 'tv' | null,
+  language?: string,
+  options?: { enabled?: boolean }
+) {
+  const fetcher = useFetcher();
+  const lang = language || 'en-US';
+  const isEnabled = (options?.enabled ?? true) && tmdbId !== null && type !== null;
+
+  return useQuery({
+    queryKey: [...queryKeys.medias.similar(tmdbId ?? 0, type ?? 'movie'), lang],
+    queryFn: () =>
+      fetcher<SimilarMediasResponse>(
+        `${MEDIAS_ENDPOINTS.SIMILAR(tmdbId!, type!)}&language=${encodeURIComponent(lang)}`
+      ),
+    enabled: isEnabled,
   });
 }
 

@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { EmptyState } from '../../../components/EmptyState';
-import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, User } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, Sparkles, User } from 'lucide-react';
 import { TmdbMediaSearchPanel } from './TmdbMediaSearchPanel';
 import { toast } from 'sonner';
 import { InteractiveSearchDialog } from './InteractiveSearchDialog';
+import { SimilarMediasDialog } from './SimilarMediasDialog';
 
 type MediaFilter = 'all' | 'movie' | 'series';
 type SortKey = 'added_at' | 'title' | 'year' | 'service' | 'status' | 'downloaded' | 'monitored';
@@ -27,6 +28,7 @@ export function MediasLibrary() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [interactiveItem, setInteractiveItem] = useState<MediaItem | null>(null);
+  const [similarItem, setSimilarItem] = useState<MediaItem | null>(null);
 
   const items = data?.items ?? [];
   const isNotConfigured = data && !data.radarr_enabled && !data.sonarr_enabled;
@@ -180,6 +182,9 @@ export function MediasLibrary() {
               onOpenInteractive={item => {
                 setInteractiveItem(item);
               }}
+              onFindSimilar={item => {
+                setSimilarItem(item);
+              }}
             />
 
             {/* Pagination */}
@@ -242,11 +247,20 @@ export function MediasLibrary() {
         media={interactiveItem}
         onClose={() => setInteractiveItem(null)}
       />
+
+      <SimilarMediasDialog
+        isOpen={Boolean(similarItem)}
+        tmdbId={similarItem?.tmdb_id ?? null}
+        mediaType={similarItem ? (similarItem.media_type === 'movie' ? 'movie' : 'tv') : null}
+        title={similarItem?.title ?? ''}
+        onClose={() => setSimilarItem(null)}
+        onAdded={refetch}
+      />
     </div>
   );
 }
 
-function MediaGrid({ items, onOpenInteractive }: { items: MediaItem[]; onOpenInteractive: (item: MediaItem) => void }) {
+function MediaGrid({ items, onOpenInteractive, onFindSimilar }: { items: MediaItem[]; onOpenInteractive: (item: MediaItem) => void; onFindSimilar: (item: MediaItem) => void }) {
   return (
     <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {items.map(item => (
@@ -256,13 +270,14 @@ function MediaGrid({ items, onOpenInteractive }: { items: MediaItem[]; onOpenInt
           onOpenInteractive={() => {
             onOpenInteractive(item);
           }}
+          onFindSimilar={item.tmdb_id ? () => onFindSimilar(item) : undefined}
         />
       ))}
     </div>
   );
 }
 
-function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInteractive: () => void }) {
+function MediaGridCard({ item, onOpenInteractive, onFindSimilar }: { item: MediaItem; onOpenInteractive: () => void; onFindSimilar?: () => void }) {
   const { t } = useTranslation('common');
   const [imageError, setImageError] = useState(false);
   const showImage = Boolean(item.poster_url) && !imageError;
@@ -359,6 +374,19 @@ function MediaGridCard({ item, onOpenInteractive }: { item: MediaItem; onOpenInt
           >
             <User size={12} />
           </button>
+
+          {onFindSimilar && (
+            <button
+              type="button"
+              onClick={onFindSimilar}
+              title={t('medias.similar.button')}
+              aria-label={t('medias.similar.button')}
+              style={{ touchAction: 'manipulation' }}
+              className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur-sm transition-colors hover:bg-black/90"
+            >
+              <Sparkles size={12} />
+            </button>
+          )}
         </div>
 
         {/* Bottom info overlay */}
