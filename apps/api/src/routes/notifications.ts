@@ -2,7 +2,6 @@ import { Elysia, t } from 'elysia';
 import { auth } from '../auth';
 import { prisma } from '../db';
 import { getVapidPublicKey, sendWebPushNotification, type PushSubscription } from '../utils/webpush';
-import { sendExpoPushNotifications } from '../utils/expoPush';
 import { sendApnNotifications } from '../utils/apnPush';
 
 const getUnreadCountForUser = async (userId: number): Promise<number> =>
@@ -21,29 +20,6 @@ const syncBadgesForUser = async (userId: number, unreadCount: number): Promise<v
   }
 
   const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
-  const expoTokens = pushTokens.filter(t => t.platform !== 'ios').map(t => t.token);
-
-  if (expoTokens.length > 0) {
-    const { invalidTokens } = await sendExpoPushNotifications(
-      expoTokens,
-      {
-        data: {
-          notification_type: 'badge-sync',
-          unread_count: unreadCount,
-          silent: true,
-        },
-        sound: null,
-        badge: unreadCount,
-        contentAvailable: true,
-      }
-    );
-
-    if (invalidTokens.length > 0) {
-      await prisma.pushToken.deleteMany({
-        where: { token: { in: invalidTokens } },
-      });
-    }
-  }
 
   if (iosTokens.length > 0) {
     const { invalidTokens } = await sendApnNotifications(
@@ -537,7 +513,7 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
 
       try {
         let webPushSuccess = false;
-        let expoPushSuccess = false;
+        let mobilePushSuccess = false;
         let totalSent = 0;
 
         // Send to web push subscription if provided
@@ -560,7 +536,7 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
           }
         }
 
-        // Send to Expo & APNs push tokens (mobile)
+        // Send to APNs push tokens (mobile)
         const pushTokens = await prisma.pushToken.findMany({
           where: { userId: user.id },
           select: { token: true, platform: true },
@@ -568,36 +544,9 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
 
         if (pushTokens.length > 0) {
           const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
-          const expoTokens = pushTokens.filter(t => t.platform !== 'ios').map(t => t.token);
           const unreadCount = await prisma.notification.count({
             where: { userId: user.id, read: false },
           });
-
-          if (expoTokens.length > 0) {
-            const { successCount, invalidTokens } = await sendExpoPushNotifications(
-              expoTokens,
-              {
-                title: 'Test notification',
-                body: 'If you see this, notifications are working! 🎉',
-                data: { url: '/settings?tab=notifications' },
-                channelId: 'default',
-                badge: unreadCount,
-              }
-            );
-
-            if (successCount > 0) {
-              expoPushSuccess = true;
-              totalSent += successCount;
-              console.log(`Test Expo push notifications sent to user ${user.id}: ${successCount}`);
-            }
-
-            if (invalidTokens.length > 0) {
-              await prisma.pushToken.deleteMany({
-                where: { token: { in: invalidTokens } },
-              });
-              console.log(`Deleted ${invalidTokens.length} invalid Expo tokens for user ${user.id}`);
-            }
-          }
 
           if (iosTokens.length > 0) {
             const { successCount, invalidTokens } = await sendApnNotifications(
@@ -612,7 +561,7 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
             );
 
             if (successCount > 0) {
-              expoPushSuccess = true; // reusing existing var or could rename to mobilePushSuccess
+              mobilePushSuccess = true;
               totalSent += successCount;
               console.log(`Test APNs push notifications sent to user ${user.id}: ${successCount}`);
             }
@@ -631,7 +580,7 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
             success: true,
             message: `Test notification sent to ${totalSent} device(s)`,
             webPush: webPushSuccess,
-            mobilePush: expoPushSuccess,
+            mobilePush: mobilePushSuccess,
           };
         } else {
           set.status = 400;

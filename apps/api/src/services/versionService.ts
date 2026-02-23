@@ -2,14 +2,17 @@
  * Version service for checking app version changes and notifying users
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { prisma } from '../db';
 import { sendWebPushNotification, type PushSubscription } from '../utils/webpush';
-import { sendExpoPushNotifications } from '../utils/expoPush';
+import { sendApnNotifications } from '../utils/apnPush';
+import { logActivity } from '../utils/activityLogs';
+import { getJsonCache, setJsonCache } from './cache';
+import { sendExternalNotification } from './externalNotificationService';
 
-const VERSION_FILE_PATH = process.env.VERSION_FILE_PATH || '/app/.stored_version';
 const PACKAGE_VERSION = '1.0.0';
+const APP_VERSION_KEY = 'hously:app_version';
 
 function getCurrentAppVersion(): string {
   try {
@@ -49,28 +52,44 @@ export function getAppVersion(): string {
   return pkgVersion;
 }
 
-function getStoredAppVersion(): string | null {
+async function getStoredAppVersion(): Promise<string | null> {
+  return await getJsonCache<string>(APP_VERSION_KEY);
+}
+
+async function storeAppVersion(version: string): Promise<void> {
+  // Store with a very long TTL (e.g., 1 year) as this is semi-permanent state
+  await setJsonCache(APP_VERSION_KEY, version, 365 * 24 * 60 * 60);
+  console.log(`Stored app version in Redis: ${version}`);
+}
+
+export async function sendAppUpdateNotifications(newVersion?: string): Promise<void> {
   try {
-    if (existsSync(VERSION_FILE_PATH)) {
-      return readFileSync(VERSION_FILE_PATH, 'utf-8').trim();
+    const version = newVersion || getAppVersion();
+
+    // 1. Send "External" notification via the notification service if configured
+    try {
+      await sendExternalNotification(
+        'hously',
+        'AppUpdate',
+        {
+          template_variables: {
+            version,
+            message: `Hously has been updated to version ${version}`,
+            environment: process.env.NODE_ENV || 'production'
+          },
+          original_payload: {
+            version,
+            event: 'AppUpdate',
+            timestamp: new Date().toISOString()
+          }
+        },
+        'en'
+      );
+    } catch (err) {
+      console.warn('Failed to send external hously notification:', err);
     }
-  } catch (error) {
-    console.debug(`Could not read stored version file: ${error}`);
-  }
-  return null;
-}
 
-function storeAppVersion(version: string): void {
-  try {
-    writeFileSync(VERSION_FILE_PATH, version);
-    console.log(`Stored app version: ${version}`);
-  } catch (error) {
-    console.error(`Could not store app version: ${error}`);
-  }
-}
-
-async function sendAppUpdateNotifications(newVersion: string): Promise<void> {
-  try {
+    // 2. Standard internal notifications (Web Push, Expo Push)
     const userIds = await prisma.userSubscription.findMany({
       select: { userId: true },
       distinct: ['userId'],
@@ -81,7 +100,7 @@ async function sendAppUpdateNotifications(newVersion: string): Promise<void> {
       return;
     }
 
-    console.log(`Sending app update notifications to ${userIds.length} users`);
+    console.log(`Sending app update notifications for version ${version} to ${userIds.length} users`);
 
     for (const { userId } of userIds) {
       try {
@@ -89,10 +108,10 @@ async function sendAppUpdateNotifications(newVersion: string): Promise<void> {
           data: {
             userId,
             title: 'App Updated',
-            body: `Hously has been updated to version ${newVersion}`,
+            body: `Hously has been updated to version ${version}`,
             type: 'app-update',
             url: '/',
-            notificationMetadata: { version: newVersion, silent: true },
+            notificationMetadata: { version, silent: true },
             read: false,
             createdAt: new Date().toISOString(),
           },
@@ -107,13 +126,13 @@ async function sendAppUpdateNotifications(newVersion: string): Promise<void> {
             const subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
             await sendWebPushNotification(subscriptionInfo, {
               title: 'App Updated',
-              body: `Hously has been updated to version ${newVersion}`,
+              body: `Hously has been updated to version ${version}`,
               tag: 'app-update',
               data: {
                 url: '/',
                 notification_type: 'app-update',
                 notification_id: notification.id,
-                version: newVersion,
+                version,
                 silent: true,
               },
             });
@@ -124,25 +143,30 @@ async function sendAppUpdateNotifications(newVersion: string): Promise<void> {
 
         const pushTokens = await prisma.pushToken.findMany({
           where: { userId },
-          select: { token: true },
+          select: { token: true, platform: true },
         });
 
         if (pushTokens.length > 0) {
-          await sendExpoPushNotifications(
-            pushTokens.map(t => t.token),
-            {
+          const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
+          const unreadCount = await prisma.notification.count({
+            where: { userId, read: false },
+          });
+
+          if (iosTokens.length > 0) {
+            await sendApnNotifications(iosTokens, {
               title: 'App Updated',
-              body: `Hously has been updated to version ${newVersion}`,
+              body: `Hously has been updated to version ${version}`,
               data: {
                 url: '/',
                 notification_type: 'app-update',
                 notification_id: notification.id,
-                version: newVersion,
+                version,
                 silent: true,
               },
               channelId: 'default',
-            }
-          );
+              badge: unreadCount,
+            });
+          }
         }
 
         console.log(`App update notification sent to user ${userId}`);
@@ -160,18 +184,23 @@ async function sendAppUpdateNotifications(newVersion: string): Promise<void> {
 export async function checkAndNotifyVersionChange(): Promise<void> {
   try {
     const currentVersion = getAppVersion();
-    const storedVersion = getStoredAppVersion();
-
-    storeAppVersion(currentVersion);
+    const storedVersion = await getStoredAppVersion();
 
     if (storedVersion === null) {
-      console.log(`First startup detected with version: ${currentVersion}`);
+      console.log(`First startup or Redis empty. Storing current version and notifying: ${currentVersion}`);
+      await storeAppVersion(currentVersion);
+      await sendAppUpdateNotifications(currentVersion);
       return;
     }
 
     if (currentVersion !== storedVersion) {
       console.log(`App version changed from ${storedVersion} to ${currentVersion}`);
+      await logActivity({
+        type: 'app_updated',
+        payload: { from_version: storedVersion, to_version: currentVersion },
+      });
       await sendAppUpdateNotifications(currentVersion);
+      await storeAppVersion(currentVersion);
     } else {
       console.log(`App version unchanged: ${currentVersion}`);
     }

@@ -1,6 +1,6 @@
 import { prisma } from '../db';
 import { sendWebPushNotification } from '../utils/webpush';
-import { sendExpoPushNotifications } from '../utils/expoPush';
+import { sendApnNotifications } from '../utils/apnPush';
 
 /**
  * Generate a secure random token for webhook authentication
@@ -191,16 +191,21 @@ export async function sendExternalNotification(
           }
         }
 
-        // Expo Push: mobile tokens
+        // Mobile Push: APNs
         const pushTokens = await prisma.pushToken.findMany({
           where: { userId },
-          select: { token: true },
+          select: { token: true, platform: true },
         });
 
         if (pushTokens.length > 0) {
-          const { successCount, invalidTokens } = await sendExpoPushNotifications(
-            pushTokens.map(t => t.token),
-            {
+          const unreadCount = await prisma.notification.count({
+            where: { userId, read: false },
+          });
+
+          const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
+
+          if (iosTokens.length > 0) {
+            const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
               title,
               body,
               data: {
@@ -209,17 +214,18 @@ export async function sendExternalNotification(
                 notification_id: notification.id,
               },
               channelId: 'default',
-            }
-          );
-
-          if (successCount > 0) {
-            console.log(`Sent ${successCount} Expo external notifications to user ${userId}`);
-          }
-
-          if (invalidTokens.length > 0) {
-            await prisma.pushToken.deleteMany({
-              where: { token: { in: invalidTokens } },
+              badge: unreadCount,
             });
+
+            if (successCount > 0) {
+              console.log(`Sent ${successCount} APNs external notifications to user ${userId}`);
+            }
+
+            if (invalidTokens.length > 0) {
+              await prisma.pushToken.deleteMany({
+                where: { token: { in: invalidTokens } },
+              });
+            }
           }
         }
 

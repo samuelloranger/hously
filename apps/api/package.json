@@ -27,7 +27,6 @@
     "@prisma/client": "6.19.0",
     "elysia": "latest",
     "elysia-rate-limit": "^4.5.0",
-    "expo-server-sdk": "^5.0.0",
     "node-html-parser": "^7.0.2",
     "uuid": "^11.1.0",
     "web-push": "^3.6.7"

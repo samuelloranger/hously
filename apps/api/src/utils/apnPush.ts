@@ -15,27 +15,54 @@ let apnProvider: apn.Provider | null = null;
 export const getApnProvider = () => {
   if (apnProvider) return apnProvider;
 
-  const { APNS_TEAM_ID, APNS_KEY_ID, APNS_AUTH_KEY, APNS_TOPIC, APNS_PRODUCTION } = process.env;
+  const {
+    APNS_TEAM_ID,
+    APNS_KEY_ID,
+    APNS_AUTH_KEY,
+    APNS_TOPIC,
+    APNS_PRODUCTION,
+    APNS_CERT_PATH,
+    APNS_CERT_PASSPHRASE,
+  } = process.env;
 
-  if (!APNS_TEAM_ID || !APNS_KEY_ID || !APNS_AUTH_KEY || !APNS_TOPIC) {
-    console.warn('APNs credentials not fully configured. Node-apn will not be initialized.');
-    return null;
-  }
+  const isProduction = APNS_PRODUCTION === 'true';
 
   try {
-    const isProduction = APNS_PRODUCTION === 'true';
+    // 1. Check for token-based auth
+    if (APNS_TEAM_ID && APNS_KEY_ID && APNS_AUTH_KEY) {
+      apnProvider = new apn.Provider({
+        token: {
+          key: APNS_AUTH_KEY,
+          keyId: APNS_KEY_ID,
+          teamId: APNS_TEAM_ID,
+        },
+        production: isProduction,
+      });
+      console.log(
+        `APNs Provider (Token) initialized (${isProduction ? 'Production' : 'Sandbox'}) for topic: ${APNS_TOPIC}`
+      );
+      return apnProvider;
+    }
 
-    apnProvider = new apn.Provider({
-      token: {
-        key: APNS_AUTH_KEY,
-        keyId: APNS_KEY_ID,
-        teamId: APNS_TEAM_ID,
-      },
-      production: isProduction,
-    });
+    // 2. Check for certificate-based auth (.p12)
+    if (APNS_CERT_PATH) {
+      apnProvider = new apn.Provider({
+        pfx: APNS_CERT_PATH,
+        passphrase: APNS_CERT_PASSPHRASE,
+        production: isProduction,
+      });
+      console.log(
+        `APNs Provider (Certificate) initialized (${isProduction ? 'Production' : 'Sandbox'}) for topic: ${APNS_TOPIC}`
+      );
+      return apnProvider;
+    }
 
-    console.log(`APNs Provider initialized (${isProduction ? 'Production' : 'Sandbox'}) for topic: ${APNS_TOPIC}`);
-    return apnProvider;
+    if (!APNS_TOPIC) {
+      console.warn('APNS_TOPIC not configured. Notifications may fail.');
+    }
+
+    console.warn('APNs credentials not configured (neither token nor certificate). Node-apn will not be initialized.');
+    return null;
   } catch (error) {
     console.error('Failed to initialize APNs Provider:', error);
     return null;
