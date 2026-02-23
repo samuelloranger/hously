@@ -848,8 +848,8 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
           }
           return copy;
         };
-        const sampleMovieIds = shuffle(movieTmdbIds).slice(0, 3);
-        const sampleShowIds = shuffle(showTmdbIds).slice(0, 2);
+        const sampleMovieIds = shuffle(movieTmdbIds).slice(0, 5);
+        const sampleShowIds = shuffle(showTmdbIds).slice(0, 4);
 
         const recResults = await Promise.all([
           ...sampleMovieIds.map(id =>
