@@ -294,15 +294,15 @@ function MediaGridCard({
       : t('medias.missing');
 
   return (
-    <article className="group relative overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/15">
-      <div className="relative aspect-[2/3] overflow-hidden">
+    <article className="group relative overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800 shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="relative aspect-[2/3]">
         {showImage ? (
           <img
             src={item.poster_url || ''}
             alt={item.title}
             loading="lazy"
             onError={() => setImageError(true)}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover"
           />
         ) : (
           <div className="h-full w-full flex items-center justify-center text-4xl bg-neutral-200 dark:bg-neutral-700">
@@ -321,9 +321,54 @@ function MediaGridCard({
           />
         </div>
 
+        {/* Action column — left side, appears on hover */}
+        <div className="absolute left-0 top-0 bottom-0 flex flex-col items-center justify-center gap-1.5 px-1.5 opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all duration-200">
+          <button
+            type="button"
+            onClick={() => void runAutoSearch()}
+            disabled={autoSearchMutation.isPending}
+            title={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors disabled:opacity-50"
+          >
+            <Search size={11} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
+          </button>
+
+          {item.arr_url && (
+            <a
+              href={item.arr_url}
+              target="_blank"
+              rel="noreferrer"
+              title={t('medias.viewInArr')}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
+            >
+              <ExternalLink size={11} />
+            </a>
+          )}
+
+          <button
+            type="button"
+            onClick={onOpenInteractive}
+            title={t('medias.interactive.button')}
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
+          >
+            <User size={11} />
+          </button>
+
+          {onFindSimilar && (
+            <button
+              type="button"
+              onClick={onFindSimilar}
+              title={t('medias.similar.button')}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
+            >
+              <Sparkles size={11} />
+            </button>
+          )}
+        </div>
+
         {/* Bottom info */}
         <div className="absolute inset-x-0 bottom-0 p-2.5">
-          <h3 className="text-[12px] font-semibold text-white line-clamp-2 leading-snug drop-shadow-sm mb-1">
+          <h3 className="text-[12px] font-semibold text-white line-clamp-2 leading-snug drop-shadow-sm mb-0.5">
             {item.title}
           </h3>
           <div className="flex items-center justify-between gap-1">
@@ -334,51 +379,6 @@ function MediaGridCard({
               <span className="text-[10px] text-white/50">
                 {t('medias.seriesMeta', { seasons: item.season_count, episodes: item.episode_count ?? 0 })}
               </span>
-            )}
-          </div>
-
-          {/* Action bar — appears on hover */}
-          <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200">
-            <button
-              type="button"
-              onClick={() => void runAutoSearch()}
-              disabled={autoSearchMutation.isPending}
-              title={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
-              className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur-sm py-1.5 text-white transition-colors disabled:opacity-50"
-            >
-              <Search size={11} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
-            </button>
-
-            {item.arr_url && (
-              <a
-                href={item.arr_url}
-                target="_blank"
-                rel="noreferrer"
-                title={t('medias.viewInArr')}
-                className="flex-1 inline-flex items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur-sm py-1.5 text-white transition-colors"
-              >
-                <ExternalLink size={11} />
-              </a>
-            )}
-
-            <button
-              type="button"
-              onClick={onOpenInteractive}
-              title={t('medias.interactive.button')}
-              className="flex-1 inline-flex items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur-sm py-1.5 text-white transition-colors"
-            >
-              <User size={11} />
-            </button>
-
-            {onFindSimilar && (
-              <button
-                type="button"
-                onClick={onFindSimilar}
-                title={t('medias.similar.button')}
-                className="flex-1 inline-flex items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur-sm py-1.5 text-white transition-colors"
-              >
-                <Sparkles size={11} />
-              </button>
             )}
           </div>
         </div>
