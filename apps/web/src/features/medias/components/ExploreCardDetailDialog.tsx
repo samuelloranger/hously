@@ -70,7 +70,7 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
           </div>
 
           {/* Rating */}
-          {item.vote_average !== null && (
+          {item.vote_average != null && (
             <div className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 font-medium">
               <Star size={14} className="fill-amber-500 text-amber-500" />
               {item.vote_average.toFixed(1)}
