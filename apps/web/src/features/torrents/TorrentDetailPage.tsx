@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Play,
@@ -22,6 +23,7 @@ import {
 } from 'lucide-react';
 import {
   DASHBOARD_ENDPOINTS,
+  queryKeys,
   useDashboardQbittorrentCategories,
   useDashboardQbittorrentTags,
   useDeleteQbittorrentTorrent,
@@ -34,6 +36,8 @@ import {
   useResumeQbittorrentTorrent,
   useSetQbittorrentTorrentCategory,
   useSetQbittorrentTorrentTags,
+  type DashboardQbittorrentTorrentsResponse,
+  type DashboardQbittorrentTorrentFilesResponse,
   type DashboardQbittorrentTorrentPeersResponse,
   type DashboardQbittorrentTorrentStreamResponse,
 } from '@hously/shared';
@@ -248,6 +252,7 @@ function getStatusConfig(state: string) {
 export function TorrentDetailPage() {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { hash } = useParams({ strict: false }) as { hash: string };
   const torrentHash = (hash ?? '').trim();
 
@@ -299,7 +304,18 @@ export function TorrentDetailPage() {
       torrentEventSourceRef.current.close();
       torrentEventSourceRef.current = null;
     }
-    setTorrentSnapshot(null);
+
+    // Seed immediately from the cached torrent list so the page renders with
+    // known data (name, state, progress, speeds) while the SSE stream connects.
+    const listData = queryClient.getQueryData<DashboardQbittorrentTorrentsResponse>(
+      queryKeys.dashboard.qbittorrentTorrents({})
+    );
+    const cachedTorrent = listData?.torrents.find(t => t.id === torrentHash) ?? null;
+    setTorrentSnapshot(
+      cachedTorrent
+        ? { enabled: listData!.enabled, connected: listData!.connected, torrent: cachedTorrent }
+        : null
+    );
 
     if (!torrentHash) return;
     if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
@@ -366,19 +382,31 @@ export function TorrentDetailPage() {
     if (!selectedTorrent) return;
     const name = draftName.trim();
     if (!name || name === selectedTorrent.name) return;
-    renameTorrentMutation.mutate({ name });
+    const prev = torrentSnapshot;
+    setTorrentSnapshot(snap => snap?.torrent ? { ...snap, torrent: { ...snap.torrent, name } } : snap);
+    renameTorrentMutation.mutate({ name }, {
+      onError: () => setTorrentSnapshot(prev),
+    });
   };
 
   const handleSaveCategory = () => {
     if (!selectedTorrent) return;
     const category = draftCategory.trim();
     if ((selectedTorrent.category ?? '') === category) return;
-    setCategoryMutation.mutate(category ? { category } : {});
+    const prev = torrentSnapshot;
+    setTorrentSnapshot(snap => snap?.torrent ? { ...snap, torrent: { ...snap.torrent, category } } : snap);
+    setCategoryMutation.mutate(category ? { category } : {}, {
+      onError: () => setTorrentSnapshot(prev),
+    });
   };
 
   const handleSaveTagsFromSelect = (selected: string[]) => {
     if (!selectedTorrent) return;
-    setTagsMutation.mutate({ tags: selected, previous_tags: selectedTorrent.tags ?? [] }, undefined);
+    const prev = torrentSnapshot;
+    setTorrentSnapshot(snap => snap?.torrent ? { ...snap, torrent: { ...snap.torrent, tags: selected } } : snap);
+    setTagsMutation.mutate({ tags: selected, previous_tags: selectedTorrent.tags ?? [] }, {
+      onError: () => setTorrentSnapshot(prev),
+    });
   };
 
   const beginRenameFile = (path: string) => {
@@ -396,13 +424,17 @@ export function TorrentDetailPage() {
     const oldPath = renamingFilePath;
     const newPath = draftFilePath.trim();
     if (!newPath || newPath === oldPath) return;
+    const filesKey = queryKeys.dashboard.qbittorrentTorrentFiles(torrentHash);
+    const prevFiles = queryClient.getQueryData<DashboardQbittorrentTorrentFilesResponse>(filesKey);
+    queryClient.setQueryData<DashboardQbittorrentTorrentFilesResponse>(filesKey, old =>
+      old ? { ...old, files: old.files.map(f => f.name === oldPath ? { ...f, name: newPath } : f) } : old
+    );
+    cancelRenameFile();
     renameFileMutation.mutate(
       { old_path: oldPath, new_path: newPath },
       {
-        onSuccess: () => {
-          cancelRenameFile();
-          void filesQuery.refetch();
-        },
+        onSuccess: () => void filesQuery.refetch(),
+        onError: () => queryClient.setQueryData(filesKey, prevFiles),
       }
     );
   };

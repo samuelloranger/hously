@@ -476,7 +476,11 @@ export const dashboardQbittorrentRoutes = new Elysia()
         return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
-      const result = await addQbittorrentMagnet(config, true, { magnet: body.magnet });
+      const result = await addQbittorrentMagnet(config, true, {
+        magnet: body.magnet,
+        category: body.category ?? null,
+        tags: body.tags ?? null,
+      });
       if (!result.connected || !result.success) {
         set.status = 502;
       }
@@ -485,6 +489,8 @@ export const dashboardQbittorrentRoutes = new Elysia()
     {
       body: t.Object({
         magnet: t.String(),
+        category: t.Optional(t.String()),
+        tags: t.Optional(t.Array(t.String())),
       }),
     }
   )
@@ -527,7 +533,11 @@ export const dashboardQbittorrentRoutes = new Elysia()
       // We add them one by one for now to reuse the service function
       const results = [];
       for (const torrent of torrents) {
-        results.push(await addQbittorrentTorrentFile(config, true, { torrent }));
+        results.push(await addQbittorrentTorrentFile(config, true, {
+          torrent,
+          category: body.category ?? null,
+          tags: body.tags ? String(body.tags).split(',').filter(Boolean) : null,
+        }));
       }
 
       const allSuccess = results.every(r => r.success);
@@ -543,6 +553,8 @@ export const dashboardQbittorrentRoutes = new Elysia()
     {
       body: t.Object({
         torrents: t.Union([t.Any(), t.Array(t.Any())]),
+        category: t.Optional(t.String()),
+        tags: t.Optional(t.String()),
       }),
     }
   )

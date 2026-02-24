@@ -55,6 +55,8 @@ export function useDashboardQbittorrentTorrents(
         `${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}${suffix ? `?${suffix}` : ''}`
       ),
     enabled: options?.enabled ?? true,
+    // SSE keeps this data fresh — suppress redundant refetches on focus/reconnect.
+    staleTime: 30_000,
   });
 }
 
@@ -130,7 +132,7 @@ export function useAddQbittorrentMagnet() {
   const fetcher = useFetcher();
 
   return useMutation({
-    mutationFn: (data: { magnet: string }) =>
+    mutationFn: (data: { magnet: string; category?: string; tags?: string[] }) =>
       fetcher<DashboardQbittorrentAddTorrentResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.ADD_MAGNET, {
         method: 'POST',
         body: data,
@@ -142,12 +144,14 @@ export function useAddQbittorrentTorrentFile() {
   const fetcher = useFetcher();
 
   return useMutation({
-    mutationFn: (torrents: File | File[]) => {
+    mutationFn: ({ torrents, category, tags }: { torrents: File | File[]; category?: string; tags?: string[] }) => {
       const formData = new FormData();
       const files = Array.isArray(torrents) ? torrents : [torrents];
       files.forEach(file => {
         formData.append('torrents', file as any);
       });
+      if (category) formData.append('category', category);
+      if (tags && tags.length > 0) formData.append('tags', tags.join(','));
       return fetcher<DashboardQbittorrentAddTorrentResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.ADD_FILE, {
         method: 'POST',
         body: formData,
