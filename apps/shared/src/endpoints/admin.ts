@@ -7,4 +7,11 @@ export const ADMIN_ENDPOINTS = {
   DELETE_USER: (userId: number) => `/api/admin/users/${userId}`,
   TEST_EMAIL_TEMPLATES: '/api/admin/test-email-templates',
   TEST_EMAIL: '/api/admin/test-email',
+  SESSIONS: '/api/admin/sessions',
+  REVOKE_SESSION: (id: number) => `/api/admin/sessions/${id}`,
+  REVOKE_USER_SESSIONS: (userId: number) => `/api/admin/sessions/user/${userId}`,
+  PUSH_TOKENS: '/api/admin/push-tokens',
+  DELETE_PUSH_TOKEN: (id: number) => `/api/admin/push-tokens/${id}`,
+  WEB_PUSH: '/api/admin/web-push',
+  DELETE_WEB_PUSH: (id: number) => `/api/admin/web-push/${id}`,
 } as const;

@@ -440,6 +440,210 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
     }
   )
 
+  // GET /api/admin/sessions - List all active refresh tokens (sessions)
+  .get('/sessions', async ({ user, set }) => {
+    if (!adminOnly(user, set)) {
+      return { error: user ? 'Forbidden' : 'Unauthorized' };
+    }
+
+    try {
+      const tokens = await prisma.refreshToken.findMany({
+        where: { revoked: false, expiresAt: { gt: new Date() } },
+        include: { user: { select: { id: true, email: true, firstName: true, lastName: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return {
+        success: true,
+        sessions: tokens.map(t => ({
+          id: t.id,
+          user_id: t.userId,
+          user_email: t.user.email,
+          user_name: [t.user.firstName, t.user.lastName].filter(Boolean).join(' ') || null,
+          expires_at: t.expiresAt.toISOString(),
+          created_at: t.createdAt.toISOString(),
+        })),
+      };
+    } catch (error) {
+      console.error('Error listing sessions:', error);
+      set.status = 500;
+      return { error: 'Failed to list sessions' };
+    }
+  })
+
+  // DELETE /api/admin/sessions/:id - Revoke a specific session
+  .delete(
+    '/sessions/:id',
+    async ({ user, params, set }) => {
+      if (!adminOnly(user, set)) {
+        return { error: user ? 'Forbidden' : 'Unauthorized' };
+      }
+
+      const id = parseInt(params.id, 10);
+      if (isNaN(id)) {
+        set.status = 400;
+        return { error: 'Invalid session ID' };
+      }
+
+      try {
+        await prisma.refreshToken.update({ where: { id }, data: { revoked: true } });
+        return { success: true, message: 'Session revoked' };
+      } catch (error) {
+        console.error('Error revoking session:', error);
+        set.status = 500;
+        return { error: 'Failed to revoke session' };
+      }
+    },
+    { params: t.Object({ id: t.String() }) }
+  )
+
+  // DELETE /api/admin/sessions/user/:userId - Revoke all sessions for a user
+  .delete(
+    '/sessions/user/:userId',
+    async ({ user, params, set }) => {
+      if (!adminOnly(user, set)) {
+        return { error: user ? 'Forbidden' : 'Unauthorized' };
+      }
+
+      const userId = parseInt(params.userId, 10);
+      if (isNaN(userId)) {
+        set.status = 400;
+        return { error: 'Invalid user ID' };
+      }
+
+      try {
+        await prisma.refreshToken.updateMany({ where: { userId, revoked: false }, data: { revoked: true } });
+        return { success: true, message: 'All sessions revoked' };
+      } catch (error) {
+        console.error('Error revoking user sessions:', error);
+        set.status = 500;
+        return { error: 'Failed to revoke sessions' };
+      }
+    },
+    { params: t.Object({ userId: t.String() }) }
+  )
+
+  // GET /api/admin/push-tokens - List all iOS/mobile push tokens
+  .get('/push-tokens', async ({ user, set }) => {
+    if (!adminOnly(user, set)) {
+      return { error: user ? 'Forbidden' : 'Unauthorized' };
+    }
+
+    try {
+      const tokens = await prisma.pushToken.findMany({
+        include: { user: { select: { id: true, email: true, firstName: true, lastName: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return {
+        success: true,
+        push_tokens: tokens.map(t => ({
+          id: t.id,
+          user_id: t.userId,
+          user_email: t.user.email,
+          user_name: [t.user.firstName, t.user.lastName].filter(Boolean).join(' ') || null,
+          token: t.token.slice(0, 12) + '...',
+          platform: t.platform,
+          created_at: t.createdAt.toISOString(),
+          updated_at: t.updatedAt?.toISOString() ?? null,
+        })),
+      };
+    } catch (error) {
+      console.error('Error listing push tokens:', error);
+      set.status = 500;
+      return { error: 'Failed to list push tokens' };
+    }
+  })
+
+  // DELETE /api/admin/push-tokens/:id - Delete a push token
+  .delete(
+    '/push-tokens/:id',
+    async ({ user, params, set }) => {
+      if (!adminOnly(user, set)) {
+        return { error: user ? 'Forbidden' : 'Unauthorized' };
+      }
+
+      const id = parseInt(params.id, 10);
+      if (isNaN(id)) {
+        set.status = 400;
+        return { error: 'Invalid token ID' };
+      }
+
+      try {
+        await prisma.pushToken.delete({ where: { id } });
+        return { success: true, message: 'Push token deleted' };
+      } catch (error) {
+        console.error('Error deleting push token:', error);
+        set.status = 500;
+        return { error: 'Failed to delete push token' };
+      }
+    },
+    { params: t.Object({ id: t.String() }) }
+  )
+
+  // GET /api/admin/web-push - List all web push subscriptions
+  .get('/web-push', async ({ user, set }) => {
+    if (!adminOnly(user, set)) {
+      return { error: user ? 'Forbidden' : 'Unauthorized' };
+    }
+
+    try {
+      const subs = await prisma.userSubscription.findMany({
+        include: { user: { select: { id: true, email: true, firstName: true, lastName: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return {
+        success: true,
+        subscriptions: subs.map(s => ({
+          id: s.id,
+          user_id: s.userId,
+          user_email: s.user.email,
+          user_name: [s.user.firstName, s.user.lastName].filter(Boolean).join(' ') || null,
+          endpoint: s.endpoint ? s.endpoint.slice(0, 40) + '...' : null,
+          device_name: s.deviceName,
+          os_name: s.osName,
+          os_version: s.osVersion,
+          browser_name: s.browserName,
+          browser_version: s.browserVersion,
+          platform: s.platform,
+          created_at: s.createdAt?.toISOString() ?? null,
+          updated_at: s.updatedAt?.toISOString() ?? null,
+        })),
+      };
+    } catch (error) {
+      console.error('Error listing web push subscriptions:', error);
+      set.status = 500;
+      return { error: 'Failed to list web push subscriptions' };
+    }
+  })
+
+  // DELETE /api/admin/web-push/:id - Delete a web push subscription
+  .delete(
+    '/web-push/:id',
+    async ({ user, params, set }) => {
+      if (!adminOnly(user, set)) {
+        return { error: user ? 'Forbidden' : 'Unauthorized' };
+      }
+
+      const id = parseInt(params.id, 10);
+      if (isNaN(id)) {
+        set.status = 400;
+        return { error: 'Invalid subscription ID' };
+      }
+
+      try {
+        await prisma.userSubscription.delete({ where: { id } });
+        return { success: true, message: 'Web push subscription deleted' };
+      } catch (error) {
+        console.error('Error deleting web push subscription:', error);
+        set.status = 500;
+        return { error: 'Failed to delete web push subscription' };
+      }
+    },
+    { params: t.Object({ id: t.String() }) }
+  )
+
   // GET /api/admin/export - Export all data
   .get('/export', async ({ user, set }) => {
     if (!adminOnly(user, set)) {

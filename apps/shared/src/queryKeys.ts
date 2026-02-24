@@ -91,6 +91,9 @@ export const queryKeys = {
     all: ['admin'] as const,
     users: () => [...queryKeys.admin.all, 'users'] as const,
     export: () => [...queryKeys.admin.all, 'export'] as const,
+    sessions: () => [...queryKeys.admin.all, 'sessions'] as const,
+    pushTokens: () => [...queryKeys.admin.all, 'push-tokens'] as const,
+    webPush: () => [...queryKeys.admin.all, 'web-push'] as const,
   },
 
   calendar: {

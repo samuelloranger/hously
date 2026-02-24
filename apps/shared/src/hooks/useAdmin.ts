@@ -1,13 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ADMIN_ENDPOINTS, queryKeys } from '../index';
 import { useFetcher } from './context';
+import { queryKeys } from '../queryKeys';
+import { ADMIN_ENDPOINTS } from '../endpoints';
 import type {
+  AdminPushTokensResponse,
+  AdminSessionsResponse,
+  AdminWebPushResponse,
   CreateUserRequest,
   CreateUserResponse,
+  DeletePushTokenResponse,
   DeleteUserResponse,
+  DeleteWebPushResponse,
   ExportDataResponse,
   ImportDataResponse,
   ListUsersResponse,
+  RevokeSessionResponse,
   ScheduledJobsResponse,
   TestEmailResponse,
   TestEmailTemplatesResponse,
@@ -118,6 +125,85 @@ export function useTestEmail() {
         method: 'POST',
         body: { template_id: templateId || 'test' },
       }),
+  });
+}
+
+export function useAdminSessions() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.admin.sessions(),
+    queryFn: () => fetcher<AdminSessionsResponse>(ADMIN_ENDPOINTS.SESSIONS),
+  });
+}
+
+export function useRevokeSession() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<RevokeSessionResponse>(ADMIN_ENDPOINTS.REVOKE_SESSION(id), { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.sessions() });
+    },
+  });
+}
+
+export function useRevokeUserSessions() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: number) =>
+      fetcher<RevokeSessionResponse>(ADMIN_ENDPOINTS.REVOKE_USER_SESSIONS(userId), { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.sessions() });
+    },
+  });
+}
+
+export function useAdminPushTokens() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.admin.pushTokens(),
+    queryFn: () => fetcher<AdminPushTokensResponse>(ADMIN_ENDPOINTS.PUSH_TOKENS),
+  });
+}
+
+export function useDeletePushToken() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<DeletePushTokenResponse>(ADMIN_ENDPOINTS.DELETE_PUSH_TOKEN(id), { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.pushTokens() });
+    },
+  });
+}
+
+export function useAdminWebPush() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.admin.webPush(),
+    queryFn: () => fetcher<AdminWebPushResponse>(ADMIN_ENDPOINTS.WEB_PUSH),
+  });
+}
+
+export function useDeleteWebPush() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<DeleteWebPushResponse>(ADMIN_ENDPOINTS.DELETE_WEB_PUSH(id), { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.webPush() });
+    },
   });
 }
 

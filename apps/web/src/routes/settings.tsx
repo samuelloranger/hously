@@ -6,12 +6,12 @@ import { CalendarTab } from './settings/CalendarTab';
 import { ExternalNotificationsTab } from './settings/ExternalNotificationsTab';
 import { PluginsTab } from './settings/PluginsTab';
 import { DataExportTab } from './settings/DataExportTab';
-import { DevelopmentTab } from './settings/DevelopmentTab';
 import { UsersTab } from './settings/UsersTab';
 import { JobsTab } from './settings/JobsTab';
+import { SessionsTab } from './settings/SessionsTab';
 import { useCurrentUser } from '@hously/shared';
 import { cn } from '../lib/utils';
-import { User, Bell, Calendar, Puzzle, Link2, Users, Terminal, Database, Clock, type LucideIcon } from 'lucide-react';
+import { User, Bell, Calendar, Puzzle, Link2, Users, Database, Clock, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
 
 export type Tab =
@@ -21,9 +21,9 @@ export type Tab =
   | 'external-notifications'
   | 'plugins'
   | 'data-export'
-  | 'development'
   | 'jobs'
-  | 'users';
+  | 'users'
+  | 'sessions';
 
 interface TabItem {
   id: Tab;
@@ -54,7 +54,7 @@ export function Settings() {
         { id: 'plugins', label: t('settings.plugins.title'), icon: Puzzle },
         { id: 'external-notifications', label: t('settings.externalNotifications.title'), icon: Link2 },
         { id: 'users', label: t('settings.users.title'), icon: Users },
-        { id: 'development', label: t('settings.development.title'), icon: Terminal },
+        { id: 'sessions', label: t('settings.sessions.title'), icon: ShieldCheck },
         { id: 'jobs', label: t('settings.jobs.title'), icon: Clock },
         { id: 'data-export', label: t('settings.dataExport.title'), icon: Database },
       ]
@@ -144,7 +144,7 @@ export function Settings() {
           {activeTab === 'plugins' && currentUser?.is_admin && <PluginsTab />}
           {activeTab === 'data-export' && currentUser?.is_admin && <DataExportTab />}
           {activeTab === 'users' && currentUser?.is_admin && <UsersTab />}
-          {activeTab === 'development' && currentUser?.is_admin && <DevelopmentTab />}
+          {activeTab === 'sessions' && currentUser?.is_admin && <SessionsTab />}
           {activeTab === 'jobs' && currentUser?.is_admin && <JobsTab />}
         </div>
       </div>

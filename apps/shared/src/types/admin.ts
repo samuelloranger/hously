@@ -96,3 +96,69 @@ export interface DeleteUserResponse {
   success: boolean;
   message: string;
 }
+
+export interface AdminSession {
+  id: number;
+  user_id: number;
+  user_email: string;
+  user_name: string | null;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface AdminSessionsResponse {
+  success: boolean;
+  sessions: AdminSession[];
+}
+
+export interface RevokeSessionResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface AdminPushToken {
+  id: number;
+  user_id: number;
+  user_email: string;
+  user_name: string | null;
+  token: string;
+  platform: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface AdminPushTokensResponse {
+  success: boolean;
+  push_tokens: AdminPushToken[];
+}
+
+export interface DeletePushTokenResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface AdminWebPushSubscription {
+  id: number;
+  user_id: number;
+  user_email: string;
+  user_name: string | null;
+  endpoint: string | null;
+  device_name: string | null;
+  os_name: string | null;
+  os_version: string | null;
+  browser_name: string | null;
+  browser_version: string | null;
+  platform: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface AdminWebPushResponse {
+  success: boolean;
+  subscriptions: AdminWebPushSubscription[];
+}
+
+export interface DeleteWebPushResponse {
+  success: boolean;
+  message: string;
+}
