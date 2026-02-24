@@ -75,6 +75,7 @@ export interface InteractiveReleaseItem {
   leechers: number | null;
   rejected: boolean;
   rejection_reason: string | null;
+  info_url: string | null;
 }
 
 export interface MediaInteractiveSearchResponse {

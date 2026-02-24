@@ -32,6 +32,7 @@ type InteractiveReleaseItem = {
   leechers: number | null;
   rejected: boolean;
   rejection_reason: string | null;
+  info_url: string | null;
 };
 
 const toRecord = (value: unknown): Record<string, unknown> | null =>
@@ -426,6 +427,7 @@ const mapInteractiveRelease = (raw: unknown): InteractiveReleaseItem | null => {
     leechers: toNumberOrNull(row.leechers),
     rejected: toBoolean(row.rejected),
     rejection_reason: rejectionReason,
+    info_url: toStringOrNull(row.infoUrl),
   };
 };
 

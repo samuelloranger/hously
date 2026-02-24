@@ -1,4 +1,4 @@
-.PHONY: help install build typecheck dev dev-api dev-services dev-web down rebuild test lint clean migrate-dev migrate-deploy migrate-push migrate-studio db-refresh-collation
+.PHONY: help install build typecheck dev dev-api dev-services dev-web down rebuild test lint clean migrate-dev migrate-deploy migrate-push migrate-studio db-refresh-collation bump-version
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -7,12 +7,12 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 install: ## Install all dependencies (Bun)
-	@echo "Installing mobile dependencies..."
-	cd apps/app && bun install
 	@echo "Installing web dependencies..."
 	cd apps/web && bun install
 	@echo "Installing API dependencies..."
 	cd apps/api && bun install
+	@echo "Setting up git hooks..."
+	bunx husky
 	@echo "✓ Dependencies installed!"
 	@echo "  Start services: make dev-services"
 	@echo "  Start API:      make dev-api"
@@ -22,7 +22,7 @@ build: ## Build frontend for production
 	cd apps/web && bun run build
 
 typecheck: ## Typecheck frontend
-	cd apps/web && bun run typecheck
+	bun run typecheck
 
 dev-services: ## Start only database and MinIO services
 	docker compose up db minio minio-init -d
@@ -70,6 +70,9 @@ clean: ## Clean all build artifacts and caches
 	rm -rf apps/web/dist
 	rm -rf node_modules apps/*/node_modules packages/*/node_modules
 	docker compose down -v
+
+bump-version: ## Bump the patch version in all package.json files
+	@./scripts/bump-version.sh
 
 # ===== Database Migrations (Prisma) =====
 
