@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { EmptyState } from '../../../components/EmptyState';
+import { MediaPosterCard } from '../../../components/MediaPosterCard';
 import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, Sparkles, User } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -267,8 +268,6 @@ function MediaGridCard({
   onFindSimilar?: () => void;
 }) {
   const { t } = useTranslation('common');
-  const [imageError, setImageError] = useState(false);
-  const showImage = Boolean(item.poster_url) && !imageError;
   const autoSearchMutation = useMediaAutoSearch();
 
   const runAutoSearch = async () => {
@@ -281,111 +280,80 @@ function MediaGridCard({
     }
   };
 
-  const statusStrip = item.downloaded
-    ? 'bg-emerald-500'
-    : item.downloading
-      ? 'bg-sky-500'
-      : 'bg-amber-400';
-
+  const status = item.downloaded ? 'downloaded' : item.downloading ? 'downloading' : 'missing';
   const statusLabel = item.downloaded
     ? t('medias.downloaded')
     : item.downloading
       ? t('medias.downloading')
       : t('medias.missing');
 
+  const actions = (
+    <>
+      <button
+        type="button"
+        onClick={() => void runAutoSearch()}
+        disabled={autoSearchMutation.isPending}
+        title={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
+        className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors disabled:opacity-50"
+      >
+        <Search size={11} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
+      </button>
+
+      {item.arr_url && (
+        <a
+          href={item.arr_url}
+          target="_blank"
+          rel="noreferrer"
+          title={t('medias.viewInArr')}
+          className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
+        >
+          <ExternalLink size={11} />
+        </a>
+      )}
+
+      <button
+        type="button"
+        onClick={onOpenInteractive}
+        title={t('medias.interactive.button')}
+        className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
+      >
+        <User size={11} />
+      </button>
+
+      {onFindSimilar && (
+        <button
+          type="button"
+          onClick={onFindSimilar}
+          title={t('medias.similar.button')}
+          className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
+        >
+          <Sparkles size={11} />
+        </button>
+      )}
+    </>
+  );
+
   return (
-    <article className="group relative overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div className="relative aspect-[2/3]">
-        {showImage ? (
-          <img
-            src={item.poster_url || ''}
-            alt={item.title}
-            loading="lazy"
-            onError={() => setImageError(true)}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="h-full w-full flex items-center justify-center text-4xl bg-neutral-200 dark:bg-neutral-700">
-            🎬
-          </div>
+    <MediaPosterCard
+      posterUrl={item.poster_url}
+      title={item.title}
+      fallbackEmoji="🎬"
+      status={status}
+      statusLabel={statusLabel}
+      actionsLayout="left-column"
+      actionsSlot={actions}
+      accentRingClassName="focus:ring-indigo-400/70"
+      className="w-full"
+    >
+      <p className="text-[12px] font-semibold text-white line-clamp-2 leading-snug">{item.title}</p>
+      <div className="mt-1 flex items-center justify-between gap-1">
+        <span className="text-[10px] text-white/60 tabular-nums">{item.year ?? '—'}</span>
+        {item.media_type === 'series' && item.season_count !== null && (
+          <span className="text-[10px] text-white/50">
+            {t('medias.seriesMeta', { seasons: item.season_count, episodes: item.episode_count ?? 0 })}
+          </span>
         )}
-
-        {/* Gradient overlay */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-
-        {/* Status indicator — top-right dot */}
-        <div className="absolute top-2 right-2">
-          <span
-            title={statusLabel}
-            className={`block w-2 h-2 rounded-full ${statusStrip} ring-2 ring-black/30`}
-          />
-        </div>
-
-        {/* Action column — left side, appears on hover */}
-        <div className="absolute left-0 top-0 bottom-0 flex flex-col items-center justify-center gap-1.5 px-1.5 opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all duration-200">
-          <button
-            type="button"
-            onClick={() => void runAutoSearch()}
-            disabled={autoSearchMutation.isPending}
-            title={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors disabled:opacity-50"
-          >
-            <Search size={11} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
-          </button>
-
-          {item.arr_url && (
-            <a
-              href={item.arr_url}
-              target="_blank"
-              rel="noreferrer"
-              title={t('medias.viewInArr')}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
-            >
-              <ExternalLink size={11} />
-            </a>
-          )}
-
-          <button
-            type="button"
-            onClick={onOpenInteractive}
-            title={t('medias.interactive.button')}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
-          >
-            <User size={11} />
-          </button>
-
-          {onFindSimilar && (
-            <button
-              type="button"
-              onClick={onFindSimilar}
-              title={t('medias.similar.button')}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
-            >
-              <Sparkles size={11} />
-            </button>
-          )}
-        </div>
-
-        {/* Bottom info */}
-        <div className="absolute inset-x-0 bottom-0 p-2.5">
-          <h3 className="text-[12px] font-semibold text-white line-clamp-2 leading-snug drop-shadow-sm mb-0.5">
-            {item.title}
-          </h3>
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-[10px] text-white/60 tabular-nums">
-              {item.year ?? '—'}
-            </span>
-            {item.media_type === 'series' && item.season_count !== null && (
-              <span className="text-[10px] text-white/50">
-                {t('medias.seriesMeta', { seasons: item.season_count, episodes: item.episode_count ?? 0 })}
-              </span>
-            )}
-          </div>
-        </div>
       </div>
-
-      {/* Status strip at bottom */}
-      <div className={`h-0.5 w-full ${statusStrip}`} />
-    </article>
+    </MediaPosterCard>
   );
 }
