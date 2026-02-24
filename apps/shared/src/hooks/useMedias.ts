@@ -10,6 +10,7 @@ import type {
   MediasResponse,
   SimilarMediasResponse,
   TmdbMediaSearchResponse,
+  TmdbWatchProvidersResponse,
 } from '../types';
 
 export function useMedias() {
@@ -105,6 +106,23 @@ export function useMediaInteractiveSearch(
         MEDIAS_ENDPOINTS.INTERACTIVE_SEARCH(params.service, params.source_id ?? 0)
       ),
     enabled: isEnabled,
+  });
+}
+
+export function useTmdbWatchProviders(
+  mediaType: 'movie' | 'tv' | null,
+  tmdbId: number | null,
+  region?: string,
+  options?: { enabled?: boolean }
+) {
+  const fetcher = useFetcher();
+  const isEnabled = (options?.enabled ?? true) && mediaType !== null && tmdbId !== null && tmdbId > 0;
+
+  return useQuery({
+    queryKey: queryKeys.medias.providers(mediaType ?? 'movie', tmdbId ?? 0, region),
+    queryFn: () => fetcher<TmdbWatchProvidersResponse>(MEDIAS_ENDPOINTS.PROVIDERS(mediaType!, tmdbId!, region)),
+    enabled: isEnabled,
+    staleTime: 6 * 60 * 60 * 1000,
   });
 }
 

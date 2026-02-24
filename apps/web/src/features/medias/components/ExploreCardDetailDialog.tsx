@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAddUpcomingToArr, type TmdbMediaSearchItem } from '@hously/shared';
-import { Check, ExternalLink, Plus } from 'lucide-react';
+import { useAddUpcomingToArr, useTmdbWatchProviders, type TmdbMediaSearchItem } from '@hously/shared';
+import { Check, ExternalLink, Plus, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog } from '@/components/dialog';
 
@@ -17,6 +17,7 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
   const [searchOnAdd, setSearchOnAdd] = useState(true);
   const [imageError, setImageError] = useState(false);
   const addMutation = useAddUpcomingToArr();
+  const { data: providers } = useTmdbWatchProviders(item.media_type, item.tmdb_id, undefined, { enabled: isOpen });
 
   const handleAdd = async () => {
     if (addMutation.isPending || item.already_exists || !item.can_add) return;
@@ -67,6 +68,75 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
               <span className="text-sm text-neutral-500 dark:text-neutral-400">{item.release_year}</span>
             )}
           </div>
+
+          {/* Rating */}
+          {item.vote_average !== null && (
+            <div className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 font-medium">
+              <Star size={14} className="fill-amber-500 text-amber-500" />
+              {item.vote_average.toFixed(1)}
+              <span className="text-neutral-400 dark:text-neutral-500 font-normal">/10 · {t('medias.detail.tmdbRating')}</span>
+            </div>
+          )}
+
+          {/* Overview */}
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed line-clamp-4">
+            {item.overview || t('medias.detail.noOverview')}
+          </p>
+
+          {/* Where to watch */}
+          {providers && (
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                {t('medias.detail.whereToWatch')}
+              </span>
+              {providers.streaming.length === 0 && providers.free.length === 0 && providers.rent.length === 0 && providers.buy.length === 0 ? (
+                <p className="text-xs text-neutral-400 dark:text-neutral-500">{t('medias.detail.noProviders')}</p>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  {providers.streaming.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400 w-12 shrink-0">{t('medias.detail.stream')}</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {providers.streaming.map(p => (
+                          <img key={p.id} src={p.logo_url} alt={p.name} title={p.name} className="w-7 h-7 rounded-md object-cover" />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {providers.free.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400 w-12 shrink-0">{t('medias.detail.free')}</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {providers.free.map(p => (
+                          <img key={p.id} src={p.logo_url} alt={p.name} title={p.name} className="w-7 h-7 rounded-md object-cover" />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {providers.rent.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400 w-12 shrink-0">{t('medias.detail.rent')}</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {providers.rent.map(p => (
+                          <img key={p.id} src={p.logo_url} alt={p.name} title={p.name} className="w-7 h-7 rounded-md object-cover" />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {providers.buy.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400 w-12 shrink-0">{t('medias.detail.buy')}</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {providers.buy.map(p => (
+                          <img key={p.id} src={p.logo_url} alt={p.name} title={p.name} className="w-7 h-7 rounded-md object-cover" />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Links */}
           <div className="flex flex-wrap gap-2">

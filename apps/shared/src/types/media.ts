@@ -39,6 +39,8 @@ export interface TmdbMediaSearchItem {
   title: string;
   release_year: number | null;
   poster_url: string | null;
+  overview: string | null;
+  vote_average: number | null;
   service: 'radarr' | 'sonarr';
   already_exists: boolean;
   can_add: boolean;
@@ -55,6 +57,21 @@ export interface TmdbMediaSearchResponse {
     radarr?: string;
     sonarr?: string;
   };
+}
+
+export interface TmdbWatchProvider {
+  id: number;
+  name: string;
+  logo_url: string;
+}
+
+export interface TmdbWatchProvidersResponse {
+  region: string;
+  streaming: TmdbWatchProvider[];
+  free: TmdbWatchProvider[];
+  rent: TmdbWatchProvider[];
+  buy: TmdbWatchProvider[];
+  link: string | null;
 }
 
 export interface MediaAutoSearchResponse {

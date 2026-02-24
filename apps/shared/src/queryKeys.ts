@@ -115,6 +115,8 @@ export const queryKeys = {
     tmdbSearch: (query: string) => [...queryKeys.medias.all, 'tmdb-search', query] as const,
     interactiveSearch: (service: 'radarr' | 'sonarr', sourceId: number) =>
       [...queryKeys.medias.all, 'interactive-search', service, sourceId] as const,
+    providers: (mediaType: 'movie' | 'tv', tmdbId: number, region?: string) =>
+      [...queryKeys.medias.all, 'providers', mediaType, tmdbId, region ?? 'CA'] as const,
   },
 
   recipes: {

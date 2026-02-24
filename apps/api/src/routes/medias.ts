@@ -5,6 +5,21 @@ import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } fro
 import { getJsonCache, setJsonCache } from '../services/cache';
 import type { MediaItem } from '@hously/shared';
 
+type TmdbProvider = {
+  id: number;
+  name: string;
+  logo_url: string;
+};
+
+type TmdbWatchProvidersResult = {
+  region: string;
+  streaming: TmdbProvider[];
+  free: TmdbProvider[];
+  rent: TmdbProvider[];
+  buy: TmdbProvider[];
+  link: string | null;
+};
+
 type TmdbSearchItem = {
   id: string;
   tmdb_id: number;
@@ -12,6 +27,8 @@ type TmdbSearchItem = {
   title: string;
   release_year: number | null;
   poster_url: string | null;
+  overview: string | null;
+  vote_average: number | null;
   service: 'radarr' | 'sonarr';
   already_exists: boolean;
   can_add: boolean;
@@ -320,6 +337,8 @@ const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
 
   const posterPath = toStringOrNull(row.poster_path);
   const releaseYear = parseReleaseYear(row.release_date) ?? parseReleaseYear(row.first_air_date);
+  const overview = toStringOrNull(row.overview);
+  const voteAverage = toNumberOrNull(row.vote_average);
 
   return {
     id: `${mediaType}-${tmdbId}`,
@@ -328,6 +347,8 @@ const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
     title,
     release_year: releaseYear,
     poster_url: posterPath ? `${TMDB_IMAGE_BASE_URL}${posterPath}` : null,
+    overview: overview || null,
+    vote_average: voteAverage && voteAverage > 0 ? voteAverage : null,
     service: mediaType === 'movie' ? 'radarr' : 'sonarr',
     already_exists: false,
     can_add: false,
@@ -1011,6 +1032,92 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
     },
     {
       params: t.Object({ tmdbId: t.String() }),
+    }
+  )
+  .get(
+    '/providers/:mediaType/:tmdbId',
+    async ({ user, set, params, query: queryParams }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const { mediaType, tmdbId: tmdbIdStr } = params;
+      if (mediaType !== 'movie' && mediaType !== 'tv') {
+        set.status = 400;
+        return { error: 'Invalid media type' };
+      }
+
+      const tmdbId = parseInt(tmdbIdStr, 10);
+      if (!Number.isFinite(tmdbId) || tmdbId <= 0) {
+        set.status = 400;
+        return { error: 'Invalid TMDB ID' };
+      }
+
+      const typedQuery = queryParams as Record<string, string | undefined>;
+      const region = typedQuery.region?.toUpperCase() || 'CA';
+      const cacheKey = `medias:providers:${mediaType}:${tmdbId}:${region}`;
+
+      const cached = await getJsonCache<TmdbWatchProvidersResult>(cacheKey);
+      if (cached) return cached;
+
+      const tmdbPlugin = await prisma.plugin.findFirst({
+        where: { type: 'tmdb' },
+        select: { enabled: true, config: true },
+      });
+
+      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      if (!tmdbConfig) {
+        return { region, streaming: [], free: [], rent: [], buy: [], link: null };
+      }
+
+      try {
+        const LOGO_BASE = 'https://image.tmdb.org/t/p/w92';
+
+        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/watch/providers`);
+        url.searchParams.set('api_key', tmdbConfig.api_key);
+        const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+        if (!response.ok) {
+          return { region, streaming: [], free: [], rent: [], buy: [], link: null };
+        }
+
+        const data = (await response.json()) as Record<string, unknown>;
+        const results = toRecord(data.results);
+        const regionData = toRecord(results?.[region]);
+
+        const mapProviders = (raw: unknown[]): TmdbProvider[] => {
+          const seen = new Set<number>();
+          return raw
+            .map(item => {
+              const p = toRecord(item);
+              if (!p) return null;
+              const id = typeof p.provider_id === 'number' ? Math.trunc(p.provider_id) : null;
+              const name = toStringOrNull(p.provider_name);
+              const logoPath = toStringOrNull(p.logo_path);
+              if (!id || !name || !logoPath || seen.has(id)) return null;
+              seen.add(id);
+              return { id, name, logo_url: `${LOGO_BASE}${logoPath}` };
+            })
+            .filter((p): p is TmdbProvider => p !== null);
+        };
+
+        const result: TmdbWatchProvidersResult = {
+          region,
+          streaming: regionData ? mapProviders(Array.isArray(regionData.flatrate) ? (regionData.flatrate as unknown[]) : []) : [],
+          free: regionData ? mapProviders(Array.isArray(regionData.free) ? (regionData.free as unknown[]) : []) : [],
+          rent: regionData ? mapProviders(Array.isArray(regionData.rent) ? (regionData.rent as unknown[]) : []) : [],
+          buy: regionData ? mapProviders(Array.isArray(regionData.buy) ? (regionData.buy as unknown[]) : []) : [],
+          link: regionData ? toStringOrNull(regionData.link) : null,
+        };
+
+        await setJsonCache(cacheKey, result, 6 * 60 * 60);
+        return result;
+      } catch {
+        return { region, streaming: [], free: [], rent: [], buy: [], link: null };
+      }
+    },
+    {
+      params: t.Object({ mediaType: t.String(), tmdbId: t.String() }),
     }
   )
   .post(
