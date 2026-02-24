@@ -287,52 +287,6 @@ function MediaGridCard({
       ? t('medias.downloading')
       : t('medias.missing');
 
-  const actions = (
-    <>
-      <button
-        type="button"
-        onClick={() => void runAutoSearch()}
-        disabled={autoSearchMutation.isPending}
-        title={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
-        className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors disabled:opacity-50"
-      >
-        <Search size={11} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
-      </button>
-
-      {item.arr_url && (
-        <a
-          href={item.arr_url}
-          target="_blank"
-          rel="noreferrer"
-          title={t('medias.viewInArr')}
-          className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
-        >
-          <ExternalLink size={11} />
-        </a>
-      )}
-
-      <button
-        type="button"
-        onClick={onOpenInteractive}
-        title={t('medias.interactive.button')}
-        className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
-      >
-        <User size={11} />
-      </button>
-
-      {onFindSimilar && (
-        <button
-          type="button"
-          onClick={onFindSimilar}
-          title={t('medias.similar.button')}
-          className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
-        >
-          <Sparkles size={11} />
-        </button>
-      )}
-    </>
-  );
-
   return (
     <MediaPosterCard
       posterUrl={item.poster_url}
@@ -340,18 +294,59 @@ function MediaGridCard({
       fallbackEmoji="🎬"
       status={status}
       statusLabel={statusLabel}
-      actionsLayout="left-column"
-      actionsSlot={actions}
       accentRingClassName="focus:ring-indigo-400/70"
       className="w-full"
     >
-      <p className="text-[12px] font-semibold text-white line-clamp-2 leading-snug">{item.title}</p>
-      <div className="mt-1 flex items-center justify-between gap-1">
+      <p className="text-[11px] font-semibold text-white truncate">{item.title}</p>
+      <div className="mt-0.5 flex items-center justify-between gap-1">
         <span className="text-[10px] text-white/60 tabular-nums">{item.year ?? '—'}</span>
         {item.media_type === 'series' && item.season_count !== null && (
           <span className="text-[10px] text-white/50">
             {t('medias.seriesMeta', { seasons: item.season_count, episodes: item.episode_count ?? 0 })}
           </span>
+        )}
+      </div>
+      <div className="mt-1.5 flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => void runAutoSearch()}
+          disabled={autoSearchMutation.isPending}
+          title={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
+          className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/15 hover:bg-white/25 text-white disabled:opacity-50 transition-colors"
+        >
+          <Search size={10} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
+        </button>
+
+        {item.arr_url && (
+          <a
+            href={item.arr_url}
+            target="_blank"
+            rel="noreferrer"
+            title={t('medias.viewInArr')}
+            className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors"
+          >
+            <ExternalLink size={10} />
+          </a>
+        )}
+
+        <button
+          type="button"
+          onClick={onOpenInteractive}
+          title={t('medias.interactive.button')}
+          className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors"
+        >
+          <User size={10} />
+        </button>
+
+        {onFindSimilar && (
+          <button
+            type="button"
+            onClick={onFindSimilar}
+            title={t('medias.similar.button')}
+            className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors"
+          >
+            <Sparkles size={10} />
+          </button>
         )}
       </div>
     </MediaPosterCard>

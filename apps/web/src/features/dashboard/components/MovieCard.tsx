@@ -69,7 +69,7 @@ export function MovieCard(props: MovieCardProps) {
       onClick={'onClick' in props ? props.onClick : undefined}
       disabled={'onClick' in props ? props.disabled : undefined}
     >
-      <p className="text-[12px] font-semibold text-white truncate">{title}</p>
+      <p className="text-[11px] font-semibold text-white truncate">{title}</p>
       {subtitle ? <p className="mt-0.5 text-[10px] text-white/80 truncate">{subtitle}</p> : null}
       <div className="mt-1 flex items-center justify-between gap-2">
         <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-white/90">

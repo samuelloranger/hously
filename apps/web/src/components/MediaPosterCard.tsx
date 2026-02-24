@@ -18,17 +18,11 @@ export type MediaPosterCardProps = {
   statusLabel?: string;
 
   /**
-   * Actions rendered on hover.
-   * 'left-column'     → vertical pill column on the left (library mode)
-   * 'center-overlay'  → translucent overlay with centered actions (explore/shelf mode)
+   * Content rendered inside the glass panel that slides up on hover.
+   * Typically: smaller title, meta row (year/badge), and action buttons.
    */
-  actionsSlot?: ReactNode;
-  actionsLayout?: 'left-column' | 'center-overlay';
-
-  /** Content rendered inside the glass bottom panel */
   children?: ReactNode;
 
-  /** Container element — inferred from href / onClick */
   href?: string;
   target?: string;
   rel?: string;
@@ -47,8 +41,6 @@ export function MediaPosterCard({
   fallbackEmoji = '🎞️',
   status,
   statusLabel,
-  actionsSlot,
-  actionsLayout = 'center-overlay',
   children,
   href,
   target,
@@ -66,7 +58,7 @@ export function MediaPosterCard({
   const containerClass = [
     'group relative shrink-0 overflow-hidden rounded-2xl',
     'border border-white/15 bg-neutral-900 shadow-sm shadow-black/30',
-    'transition-all hover:-translate-y-0.5 hover:border-white/25 hover:shadow-black/40',
+    'hover:border-white/25 hover:shadow-black/40 transition-[border-color,box-shadow]',
     'focus:outline-none focus:ring-2',
     accentRingClassName,
     disabled ? 'opacity-60 cursor-not-allowed' : '',
@@ -101,8 +93,8 @@ export function MediaPosterCard({
         </div>
       )}
 
-      {/* Gradient overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/5 opacity-90 transition-opacity duration-300 group-hover:opacity-75" />
+      {/* Gradient — stronger at bottom to frame the title */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
 
       {/* Inner ring */}
       <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
@@ -117,31 +109,24 @@ export function MediaPosterCard({
         </div>
       )}
 
-      {/* Left-column actions */}
-      {actionsSlot && actionsLayout === 'left-column' && (
-        <div className="absolute left-0 top-0 bottom-0 z-20 flex flex-col items-center justify-center gap-1.5 px-1.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200">
-          {actionsSlot}
-        </div>
-      )}
+      {/* Default state: large title visible at bottom, fades out on hover */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-2.5 pb-3 pt-10 opacity-100 transition-opacity duration-150 group-hover:opacity-0">
+        <p className="text-[13px] font-bold text-white line-clamp-2 leading-snug drop-shadow-sm">
+          {title}
+        </p>
+      </div>
 
-      {/* Center-overlay actions */}
-      {actionsSlot && actionsLayout === 'center-overlay' && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          {actionsSlot}
-        </div>
-      )}
-
-      {/* Glass bottom panel */}
+      {/* Hover state: glass panel slides up from bottom */}
       {children && (
-        <div className="relative z-10 flex h-full flex-col justify-end">
-          <div className="min-w-0 rounded-xl bg-black/35 p-2 backdrop-blur-md ring-1 ring-inset ring-white/10">
+        <div className="absolute inset-x-0 bottom-0 z-20 translate-y-full transition-transform duration-200 ease-out group-hover:translate-y-0">
+          <div className="rounded-t-xl bg-black/60 p-2 pb-2.5 backdrop-blur-md ring-1 ring-inset ring-white/10">
             {children}
           </div>
         </div>
       )}
 
-      {/* Status strip at bottom edge */}
-      {status && <div className={`absolute inset-x-0 bottom-0 h-0.5 ${STATUS_COLORS[status]}`} />}
+      {/* Status strip — sits above everything at the bottom edge */}
+      {status && <div className={`absolute inset-x-0 bottom-0 h-0.5 ${STATUS_COLORS[status]} z-30`} />}
     </>
   );
 
