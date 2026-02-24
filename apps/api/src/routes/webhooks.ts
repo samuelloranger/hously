@@ -5,8 +5,11 @@ import { sendExternalNotification } from '../services/externalNotificationServic
 import { deleteCache } from '../services/cache';
 
 export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
+  // Read all webhook bodies as raw text to avoid Elysia's parser failing on
+  // non-standard payloads (e.g. Kopia sends application/json with plain text body)
+  .onParse(({ request }) => request.text())
   // POST /api/webhooks/:serviceName - Receive webhook from external service
-  .post('/:serviceName', async ({ params, query, body, set }) => {
+  .post('/:serviceName', async ({ params, query, body, set, request }) => {
     const { serviceName } = params;
     const token = query.token as string | undefined;
 
@@ -41,17 +44,24 @@ export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
         return { error: 'Invalid or disabled token' };
       }
 
-      // Parse webhook payload
-      const payload = body as Record<string, unknown>;
-      if (!payload || typeof payload !== 'object') {
+      // Parse webhook payload — onParse gives us raw text for all content types
+      let payload: Record<string, unknown>;
+      const rawText = typeof body === 'string' ? body : '';
+      if (!rawText) {
         console.warn(`${serviceName} webhook received with empty payload`);
         set.status = 400;
         return { error: 'Invalid payload' };
       }
+      try {
+        const parsed = JSON.parse(rawText);
+        payload = typeof parsed === 'object' && parsed !== null ? parsed : { body: rawText };
+      } catch {
+        payload = { body: rawText };
+      }
 
-      // Extract event type for logging
-      const rawEventType =
-        (payload.event_type as string) || (payload.eventType as string) || (payload.event as string) || 'unknown';
+      // Inject HTTP headers into payload (e.g. Kopia sends Subject as a header)
+      const subjectHeader = request.headers.get('subject');
+      if (subjectHeader && !payload.subject) payload.subject = subjectHeader;
 
       // Invalidate media cache if Radarr or Sonarr
       if (serviceName.toLowerCase() === 'radarr') {
@@ -60,26 +70,26 @@ export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
         await deleteCache('medias:sonarr:ids');
       }
 
-      // Create log entry
-      const logEntry = await prisma.externalNotificationServiceLog.create({
-        data: {
-          serviceId: service.id,
-          eventType: rawEventType,
-          status: 'pending',
-          payload: JSON.stringify(payload),
-          createdAt: new Date().toISOString(),
-        },
-      });
-
-      console.log(`Created log entry for ${serviceName} webhook: ${logEntry.id}`);
-
-      // Handle webhook
+      // Handle webhook first to get the real event_type
       try {
         const parsed = handler(payload);
         const eventType = parsed.event_type;
         const templateVariables = parsed.template_variables;
 
         console.log(`Processing ${serviceName} webhook: event_type=${eventType}`);
+
+        // Create log entry with the real event_type from the handler
+        const logEntry = await prisma.externalNotificationServiceLog.create({
+          data: {
+            serviceId: service.id,
+            eventType,
+            status: 'pending',
+            payload: JSON.stringify(payload),
+            createdAt: new Date().toISOString(),
+          },
+        });
+
+        console.log(`Created log entry for ${serviceName} webhook: ${logEntry.id}`);
 
         // Prepare payload for notification service
         const notificationPayload = {
@@ -133,11 +143,6 @@ export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
         }
       } catch (handlerError) {
         console.error(`Error processing ${serviceName} webhook:`, handlerError);
-        await prisma.externalNotificationServiceLog.update({
-          where: { id: logEntry.id },
-          data: { status: 'failure' },
-        });
-
         set.status = 500;
         return { error: 'Error processing webhook' };
       }

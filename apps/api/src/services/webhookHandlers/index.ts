@@ -272,27 +272,43 @@ const handlePlexWebhook: WebhookHandler = payload => {
   };
 };
 
-// Duplicati webhook handler
-const handleDuplicatiWebhook: WebhookHandler = payload => {
-  const eventType =
-    (payload.EventName as string) || (payload.eventName as string) || (payload.event as string) || 'BackupEvent';
+// Kopia webhook handler
+// Kopia sends: Subject as HTTP header, body as JSON { body: "plain text report" }
+// The body text is structured with lines like "Path: ...", "Status: ...", "Size: ..."
+const handleKopiaWebhook: WebhookHandler = payload => {
+  const bodyText = (payload.body as string) || '';
 
-  const variables: Record<string, unknown> = {};
+  // Parse structured fields from the body text
+  const extract = (key: string) => {
+    const match = bodyText.match(new RegExp(`^\\s*${key}:\\s*(.+)$`, 'm'));
+    return match ? match[1].trim() : '';
+  };
 
-  variables.backup_name = payload.BackupName || payload.backupName || '';
-  variables.operation = payload.Operation || payload.operation || '';
-  variables.result = payload.Result || payload.result || '';
-  variables.message = payload.Message || payload.message || '';
-  variables.duration = payload.Duration || payload.duration || '';
+  const path = extract('Path');
+  const status = extract('Status');
+  const duration = extract('Duration');
+  const size = extract('Size');
+  const files = extract('Files');
+  const directories = extract('Directories');
+  const subject = (payload.subject as string) || '';
 
-  // Parse statistics if available
-  const parsedResult = (payload.ParsedResult || payload.parsedResult) as Record<string, unknown> | undefined;
-  if (parsedResult) {
-    variables.added_files = parsedResult.AddedFiles || parsedResult.addedFiles || '0';
-    variables.modified_files = parsedResult.ModifiedFiles || parsedResult.modifiedFiles || '0';
-    variables.deleted_files = parsedResult.DeletedFiles || parsedResult.deletedFiles || '0';
-    variables.added_size = parsedResult.SizeOfAddedFiles || parsedResult.sizeOfAddedFiles || '0';
-  }
+  // Determine event type from status field
+  const statusLower = status.toLowerCase();
+  const eventType = statusLower.includes('fail') || statusLower.includes('error')
+    ? 'BackupError'
+    : statusLower.includes('warn')
+    ? 'BackupWarning'
+    : 'BackupSuccess';
+
+  const variables: Record<string, unknown> = {
+    subject,
+    path,
+    status,
+    duration,
+    size,
+    files,
+    directories,
+  };
 
   return {
     event_type: eventType,
@@ -333,6 +349,22 @@ const handleUptimekumaWebhook: WebhookHandler = payload => {
   };
 };
 
+// Hously webhook handler for app updates
+const handleHouslyWebhook: WebhookHandler = payload => {
+  const eventType = (payload.event_type as string) || (payload.event as string) || 'AppUpdate';
+  const variables: Record<string, unknown> = {
+    version: payload.version || 'unknown',
+    message: payload.message || 'Hously has been updated.',
+    environment: payload.environment || 'production',
+  };
+
+  return {
+    event_type: eventType,
+    template_variables: ensureStrings(variables),
+    original_payload: payload,
+  };
+};
+
 // Handler registry
 export const webhookHandlers: Record<string, WebhookHandler> = {
   radarr: handleRadarrWebhook,
@@ -340,6 +372,7 @@ export const webhookHandlers: Record<string, WebhookHandler> = {
   prowlarr: handleProwlarrWebhook,
   jellyfin: handleJellyfinWebhook,
   plex: handlePlexWebhook,
-  duplicati: handleDuplicatiWebhook,
+  kopia: handleKopiaWebhook,
   uptimekuma: handleUptimekumaWebhook,
+  hously: handleHouslyWebhook,
 };
