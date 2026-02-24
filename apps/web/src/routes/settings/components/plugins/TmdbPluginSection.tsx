@@ -46,7 +46,7 @@ export function TmdbPluginSection() {
       loading={isLoading}
       saving={saveMutation.isPending}
       isDirty={isDirty}
-      logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/themoviedb.png"
+      logoUrl="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg"
     >
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">

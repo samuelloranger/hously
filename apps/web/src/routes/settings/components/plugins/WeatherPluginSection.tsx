@@ -55,7 +55,6 @@ export function WeatherPluginSection() {
       loading={isLoading}
       saving={saveMutation.isPending}
       isDirty={isDirty}
-      logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/openweathermap.png"
     >
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Address</label>
