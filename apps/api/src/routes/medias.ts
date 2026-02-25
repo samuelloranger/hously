@@ -2,7 +2,7 @@ import { Elysia, t } from 'elysia';
 import { auth } from '../auth';
 import { prisma } from '../db';
 import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../utils/plugins/normalizers';
-import { getJsonCache, setJsonCache } from '../services/cache';
+import { getJsonCache, setJsonCache, deleteCache } from '../services/cache';
 import type { MediaItem } from '@hously/shared';
 
 type TmdbProvider = {
@@ -1455,6 +1455,116 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       body: t.Object({
         guid: t.String(),
         indexer_id: t.Numeric(),
+      }),
+    }
+  )
+  .delete(
+    '/:service/:sourceId',
+    async ({ user, set, params, query }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const service = params.service === 'radarr' || params.service === 'sonarr' ? params.service : null;
+      const sourceId = parseInt(params.sourceId, 10);
+      const deleteFiles = query.deleteFiles === 'true';
+
+      if (!service) {
+        set.status = 400;
+        return { error: 'Invalid service' };
+      }
+      if (!Number.isFinite(sourceId) || sourceId <= 0) {
+        set.status = 400;
+        return { error: 'Invalid source ID' };
+      }
+
+      try {
+        if (service === 'radarr') {
+          const plugin = await prisma.plugin.findFirst({
+            where: { type: 'radarr' },
+            select: { enabled: true, config: true },
+          });
+          if (!plugin?.enabled) {
+            set.status = 400;
+            return { error: 'Radarr plugin is not enabled' };
+          }
+
+          const config = normalizeRadarrConfig(plugin.config);
+          if (!config) {
+            set.status = 400;
+            return { error: 'Radarr plugin is not configured' };
+          }
+
+          const deleteUrl = new URL(`/api/v3/movie/${sourceId}`, config.website_url);
+          deleteUrl.searchParams.set('deleteFiles', String(deleteFiles));
+          deleteUrl.searchParams.set('addImportExclusion', 'false');
+
+          const deleteRes = await fetch(deleteUrl.toString(), {
+            method: 'DELETE',
+            headers: {
+              'X-Api-Key': config.api_key,
+              Accept: 'application/json',
+            },
+          });
+
+          if (!deleteRes.ok) {
+            set.status = 502;
+            return { error: `Radarr delete failed with status ${deleteRes.status}` };
+          }
+
+          // Invalidate cached Radarr IDs
+          await deleteCache('medias:radarr:ids').catch(() => {});
+
+          return { success: true, service: 'radarr' as const };
+        }
+
+        const plugin = await prisma.plugin.findFirst({
+          where: { type: 'sonarr' },
+          select: { enabled: true, config: true },
+        });
+        if (!plugin?.enabled) {
+          set.status = 400;
+          return { error: 'Sonarr plugin is not enabled' };
+        }
+
+        const config = normalizeSonarrConfig(plugin.config);
+        if (!config) {
+          set.status = 400;
+          return { error: 'Sonarr plugin is not configured' };
+        }
+
+        const deleteUrl = new URL(`/api/v3/series/${sourceId}`, config.website_url);
+        deleteUrl.searchParams.set('deleteFiles', String(deleteFiles));
+        deleteUrl.searchParams.set('addImportExclusion', 'false');
+
+        const deleteRes = await fetch(deleteUrl.toString(), {
+          method: 'DELETE',
+          headers: {
+            'X-Api-Key': config.api_key,
+            Accept: 'application/json',
+          },
+        });
+
+        if (!deleteRes.ok) {
+          set.status = 502;
+          return { error: `Sonarr delete failed with status ${deleteRes.status}` };
+        }
+
+        // Invalidate cached Sonarr IDs
+        await deleteCache('medias:sonarr:ids').catch(() => {});
+
+        return { success: true, service: 'sonarr' as const };
+      } catch (error) {
+        console.error('Error deleting media:', error);
+        set.status = 500;
+        return { error: 'Failed to delete media' };
+      }
+    },
+    {
+      params: t.Object({
+        service: t.String(),
+        sourceId: t.String(),
       }),
     }
   );

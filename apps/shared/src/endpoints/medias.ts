@@ -12,4 +12,6 @@ export const MEDIAS_ENDPOINTS = {
     `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}/interactive-search`,
   INTERACTIVE_SEARCH_DOWNLOAD: (service: 'radarr' | 'sonarr', sourceId: number) =>
     `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}/interactive-search/download`,
+  DELETE: (service: 'radarr' | 'sonarr', sourceId: number, deleteFiles: boolean) =>
+    `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}?deleteFiles=${deleteFiles}`,
 } as const;

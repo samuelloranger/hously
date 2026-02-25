@@ -1296,6 +1296,17 @@
       "success": "Recherche automatique lancée dans {{service}}.",
       "failed": "Impossible de lancer la recherche automatique."
     },
+    "delete": {
+      "button": "Supprimer",
+      "title": "Supprimer le média",
+      "warning": "Ceci supprimera « {{title}} » de {{service}}. Cette action est irréversible.",
+      "deleteFilesLabel": "Supprimer aussi les fichiers et dossiers",
+      "deleteFilesDescription": "Supprime définitivement tous les fichiers et dossiers téléchargés du disque.",
+      "confirm": "Supprimer",
+      "deleting": "Suppression...",
+      "success": "« {{title}} » a été supprimé.",
+      "failed": "Impossible de supprimer le média."
+    },
     "interactive": {
       "button": "Recherche interactive",
       "title": "Recherche interactive : {{title}}",

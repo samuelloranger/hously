@@ -122,3 +122,8 @@ export interface MediaInteractiveDownloadResponse {
   success: boolean;
   service: 'radarr' | 'sonarr';
 }
+
+export interface MediaDeleteResponse {
+  success: boolean;
+  service: 'radarr' | 'sonarr';
+}

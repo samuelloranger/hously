@@ -1252,6 +1252,17 @@
       "success": "Auto search started in {{service}}.",
       "failed": "Failed to start auto search."
     },
+    "delete": {
+      "button": "Delete",
+      "title": "Delete Media",
+      "warning": "This will remove \"{{title}}\" from {{service}}. This action cannot be undone.",
+      "deleteFilesLabel": "Also delete files and folders",
+      "deleteFilesDescription": "Permanently remove all downloaded files and folders from disk.",
+      "confirm": "Delete",
+      "deleting": "Deleting...",
+      "success": "\"{{title}}\" has been deleted.",
+      "failed": "Failed to delete media."
+    },
     "interactive": {
       "button": "Interactive Search",
       "title": "Interactive Search: {{title}}",

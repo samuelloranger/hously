@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { EmptyState } from '../../../components/EmptyState';
 import { MediaPosterCard } from '../../../components/MediaPosterCard';
-import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, Sparkles, User } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, Sparkles, Trash2, User } from 'lucide-react';
 
 import { toast } from 'sonner';
 import { InteractiveSearchDialog } from './InteractiveSearchDialog';
 import { SimilarMediasDialog } from './SimilarMediasDialog';
+import { DeleteMediaDialog } from './DeleteMediaDialog';
 
 type MediaFilter = 'all' | 'movie' | 'series';
 type SortKey = 'added_at' | 'title' | 'year' | 'service' | 'status' | 'downloaded' | 'monitored';
@@ -30,6 +31,7 @@ export function MediasLibrary() {
   const [pageSize, setPageSize] = useState(50);
   const [interactiveItem, setInteractiveItem] = useState<MediaItem | null>(null);
   const [similarItem, setSimilarItem] = useState<MediaItem | null>(null);
+  const [deleteItem, setDeleteItem] = useState<MediaItem | null>(null);
 
   const items = data?.items ?? [];
   const isNotConfigured = data && !data.radarr_enabled && !data.sonarr_enabled;
@@ -192,6 +194,7 @@ export function MediasLibrary() {
                   item={item}
                   onOpenInteractive={() => setInteractiveItem(item)}
                   onFindSimilar={item.tmdb_id ? () => setSimilarItem(item) : undefined}
+                  onDelete={() => setDeleteItem(item)}
                 />
               ))}
             </div>
@@ -254,6 +257,12 @@ export function MediasLibrary() {
         onClose={() => setSimilarItem(null)}
         onAdded={refetch}
       />
+
+      <DeleteMediaDialog
+        isOpen={Boolean(deleteItem)}
+        media={deleteItem}
+        onClose={() => setDeleteItem(null)}
+      />
     </div>
   );
 }
@@ -262,10 +271,12 @@ function MediaGridCard({
   item,
   onOpenInteractive,
   onFindSimilar,
+  onDelete,
 }: {
   item: MediaItem;
   onOpenInteractive: () => void;
   onFindSimilar?: () => void;
+  onDelete: () => void;
 }) {
   const { t } = useTranslation('common');
   const autoSearchMutation = useMediaAutoSearch();
@@ -347,6 +358,15 @@ function MediaGridCard({
             <Sparkles size={10} />
           </button>
         )}
+
+        <button
+          type="button"
+          onClick={onDelete}
+          title={t('medias.delete.button')}
+          className="inline-flex items-center justify-center h-5.5 w-5.5 rounded-full bg-white/10 text-red-400/70 transition-colors duration-200 hover:bg-red-500/20 hover:text-red-300 ml-auto"
+        >
+          <Trash2 size={10} />
+        </button>
       </div>
     </MediaPosterCard>
   );

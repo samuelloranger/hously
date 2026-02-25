@@ -5,6 +5,7 @@ import { MEDIAS_ENDPOINTS } from '../endpoints';
 import type {
   ExploreMediasResponse,
   MediaAutoSearchResponse,
+  MediaDeleteResponse,
   MediaInteractiveDownloadResponse,
   MediaInteractiveSearchResponse,
   MediasResponse,
@@ -138,5 +139,20 @@ export function useMediaInteractiveDownload() {
           indexer_id: params.indexer_id,
         },
       }),
+  });
+}
+
+export function useMediaDelete() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { service: 'radarr' | 'sonarr'; source_id: number; deleteFiles: boolean }) =>
+      fetcher<MediaDeleteResponse>(MEDIAS_ENDPOINTS.DELETE(params.service, params.source_id, params.deleteFiles), {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.list() });
+    },
   });
 }
