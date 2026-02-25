@@ -692,10 +692,23 @@
     "calendar": {
       "title": "Calendar",
       "description": "Manage your calendar settings.",
-      "comingSoon": "Calendar Settings Coming Soon",
-      "comingSoonDescription": "We're working on powerful calendar features to help your household stay in sync.",
+      "subscription": {
+        "title": "Calendar Subscription",
+        "description": "Subscribe to your Hously calendar from Apple Calendar, Google Calendar, or any iCal-compatible app.",
+        "generate": "Generate Subscription URL",
+        "regenerate": "Regenerate URL",
+        "revoke": "Revoke Access",
+        "copy": "Copy URL",
+        "copied": "Copied!",
+        "openInCalendar": "Open in Calendar",
+        "urlLabel": "Subscription URL",
+        "revokeConfirm": "Are you sure? Existing calendar subscriptions will stop updating.",
+        "regenerateConfirm": "Are you sure? Existing calendar subscriptions will need to be re-added.",
+        "instructions": "Copy the URL and add it as a calendar subscription, or click \"Open in Calendar\" to add it automatically."
+      },
+      "comingSoon": "More Features Coming Soon",
+      "comingSoonDescription": "We're working on more calendar features to help your household stay in sync.",
       "features": {
-        "sync": "External calendar sync (iCal, Google Calendar)",
         "reminders": "Custom reminder preferences",
         "availability": "Availability & working hours"
       }

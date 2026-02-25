@@ -104,3 +104,14 @@ export interface UpdateCustomEventRequest {
   reminder_enabled?: boolean;
   reminder_minutes_before?: number | null;
 }
+
+export interface ICalTokenResponse {
+  hasToken: boolean;
+  url: string | null;
+  webcalUrl: string | null;
+}
+
+export interface ICalTokenGenerateResponse {
+  url: string;
+  webcalUrl: string;
+}

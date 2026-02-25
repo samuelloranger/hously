@@ -21,7 +21,8 @@
       "Bash(bunx knip:*)",
       "Bash(npx vite build:*)",
       "Bash(bun remove:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(cd apps/api && bunx prisma generate 2>&1)"
     ],
     "deny": [],
     "ask": []

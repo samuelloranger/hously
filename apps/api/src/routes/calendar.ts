@@ -4,7 +4,7 @@ import { auth } from '../auth';
 import { formatIso, todayLocal, toLocalDate, getDaysInMonth } from '../utils';
 
 // Calculate recurring chore dates within a date range
-interface ChoreData {
+export interface ChoreData {
   id: number;
   choreName: string;
   description: string | null;
@@ -18,7 +18,7 @@ interface ChoreData {
   assignedTo: number | null;
 }
 
-const calculateRecurringChoreDates = (chore: ChoreData, startDate: Date, endDate: Date): Date[] => {
+export const calculateRecurringChoreDates = (chore: ChoreData, startDate: Date, endDate: Date): Date[] => {
   const dates: Date[] = [];
 
   if (!chore.recurrenceType) {
@@ -110,7 +110,7 @@ const calculateRecurringChoreDates = (chore: ChoreData, startDate: Date, endDate
 };
 
 // Calculate recurring custom event dates within a date range
-interface CustomEventData {
+export interface CustomEventData {
   id: number;
   title: string;
   description: string | null;
@@ -129,7 +129,7 @@ interface EventOccurrence {
   endDatetime: Date;
 }
 
-const calculateRecurringCustomEventDates = (
+export const calculateRecurringCustomEventDates = (
   event: CustomEventData,
   startDate: Date,
   endDate: Date

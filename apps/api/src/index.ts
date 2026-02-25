@@ -19,6 +19,7 @@ import { externalNotificationsRoutes } from './routes/externalNotifications';
 import { choresRoutes } from './routes/chores';
 import { shoppingRoutes } from './routes/shopping';
 import { calendarRoutes } from './routes/calendar';
+import { icalFeedRoutes } from './routes/icalFeed';
 import { customEventsRoutes } from './routes/customEvents';
 import { mealPlansRoutes } from './routes/mealPlans';
 import { recipesRoutes } from './routes/recipes';
@@ -122,6 +123,7 @@ export const app = new Elysia()
   .use(externalNotificationsRoutes)
   .use(choresRoutes)
   .use(shoppingRoutes)
+  .use(icalFeedRoutes)
   .use(calendarRoutes)
   .use(customEventsRoutes)
   .use(mealPlansRoutes)
@@ -136,7 +138,11 @@ export const app = new Elysia()
   .get('/api/health', () => ({ status: 'ok' }));
 
 if (import.meta.main) {
-  checkAndNotifyVersionChange();
   app.listen(3000);
   console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
+
+  // Check for version change after the server is up and ready
+  checkAndNotifyVersionChange().catch(err => {
+    console.error('Failed to check version change after startup:', err);
+  });
 }

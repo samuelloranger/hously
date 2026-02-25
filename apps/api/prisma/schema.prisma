@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique(map: "ix_users_email")
-  passwordHash String    @map("password_hash")
-  isAdmin      Boolean?  @map("is_admin")
-  lastLogin    DateTime? @map("last_login")
-  createdAt    DateTime? @map("created_at")
-  lastActivity DateTime? @map("last_activity")
-  firstName    String?   @map("first_name")
-  lastName     String?   @map("last_name")
-  locale       String?
-  avatarUrl    String?   @map("avatar_url")
-  dashboardConfig Json?  @map("dashboard_config")
+  id              Int       @id @default(autoincrement())
+  email           String    @unique(map: "ix_users_email")
+  passwordHash    String    @map("password_hash")
+  isAdmin         Boolean?  @map("is_admin")
+  lastLogin       DateTime? @map("last_login")
+  createdAt       DateTime? @map("created_at")
+  lastActivity    DateTime? @map("last_activity")
+  firstName       String?   @map("first_name")
+  lastName        String?   @map("last_name")
+  locale          String?
+  avatarUrl       String?   @map("avatar_url")
+  dashboardConfig Json?     @map("dashboard_config")
+  calendarToken   String?   @unique(map: "ix_users_calendar_token") @map("calendar_token")
 
   notifications          Notification[]
   customEvents           CustomEvent[]
@@ -29,6 +30,7 @@ model User {
   shoppingItemsCompleted ShoppingItem[]       @relation("ShoppingItemCompletedBy")
   userSubscriptions      UserSubscription[]
   taskCompletions        TaskCompletion[]
+  activityLogs           ActivityLog[]
   choresAdded            Chore[]              @relation("ChoreAddedBy")
   choresAssigned         Chore[]              @relation("ChoreAssignedTo")
   choresCompleted        Chore[]              @relation("ChoreCompletedBy")
@@ -224,6 +226,21 @@ model TaskCompletion {
   user User @relation(fields: [userId], references: [id])
 
   @@map("task_completions")
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  type      String   @db.VarChar(50)
+  userId    Int?     @map("user_id")
+  payload   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt], map: "ix_activity_logs_created_at")
+  @@index([type], map: "ix_activity_logs_type")
+  @@index([userId], map: "ix_activity_logs_user_id")
+  @@map("activity_logs")
 }
 
 model RecipeIngredient {

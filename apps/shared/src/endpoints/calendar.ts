@@ -6,4 +6,5 @@ export const CALENDAR_ENDPOINTS = {
     UPDATE: (id: number) => `/api/custom-events/${id}`,
     DELETE: (id: number) => `/api/custom-events/${id}`,
   },
+  ICAL_TOKEN: '/api/calendar/ical-token',
 } as const;

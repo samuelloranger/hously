@@ -99,6 +99,7 @@ export const queryKeys = {
   calendar: {
     all: ['calendar'] as const,
     events: (year?: number, month?: number) => [...queryKeys.calendar.all, 'events', year, month] as const,
+    icalToken: () => [...queryKeys.calendar.all, 'ical-token'] as const,
   },
 
   customEvents: {
