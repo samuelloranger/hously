@@ -297,8 +297,7 @@ function MediaGridCard({
       accentRingClassName="focus:ring-indigo-400/70"
       className="w-full"
     >
-      <p className="text-[11px] font-semibold text-white truncate">{item.title}</p>
-      <div className="mt-0.5 flex items-center justify-between gap-1">
+      <div className="flex items-center justify-between gap-1">
         <span className="text-[10px] text-white/60 tabular-nums">{item.year ?? '—'}</span>
         {item.media_type === 'series' && item.season_count !== null && (
           <span className="text-[10px] text-white/50">

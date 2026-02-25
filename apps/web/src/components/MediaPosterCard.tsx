@@ -13,14 +13,10 @@ export type MediaPosterCardProps = {
   title: string;
   fallbackEmoji?: string;
 
-  /** Shows a colored dot (top-right) and a thin strip at bottom */
   status?: MediaPosterCardStatus;
   statusLabel?: string;
 
-  /**
-   * Content rendered inside the glass panel that slides up on hover.
-   * Typically: smaller title, meta row (year/badge), and action buttons.
-   */
+  /** Extra content revealed below the title on hover (meta, actions, etc.) */
   children?: ReactNode;
 
   href?: string;
@@ -93,8 +89,8 @@ export function MediaPosterCard({
         </div>
       )}
 
-      {/* Gradient — stronger at bottom to frame the title */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+      {/* Subtle gradient for panel transition */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
 
       {/* Inner ring */}
       <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
@@ -109,23 +105,26 @@ export function MediaPosterCard({
         </div>
       )}
 
-      {/* Default state: large title visible at bottom, fades out on hover */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-2.5 pb-3 pt-10 opacity-100 transition-opacity duration-150 group-hover:opacity-0">
-        <p className="text-[13px] font-bold text-white line-clamp-2 leading-snug drop-shadow-sm">
-          {title}
-        </p>
+      {/* Glass panel — always at bottom, expands upward on hover */}
+      <div className="absolute inset-x-0 bottom-0 z-20">
+        <div className="rounded-t-xl bg-black/50 p-2 pb-2.5 backdrop-blur-md ring-1 ring-inset ring-white/10">
+          {/* Title — big by default, shrinks on hover */}
+          <p className="text-[13px] font-bold text-white truncate leading-snug drop-shadow-sm transition-[font-size] duration-200 group-hover:text-[11px] group-hover:font-semibold">
+            {title}
+          </p>
+
+          {/* Expandable section — 0-height by default, grows on hover */}
+          {children && (
+            <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 ease-out group-hover:grid-rows-[1fr]">
+              <div className="overflow-hidden">
+                <div className="pt-1">{children}</div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Hover state: glass panel slides up from bottom */}
-      {children && (
-        <div className="absolute inset-x-0 bottom-0 z-20 translate-y-full transition-transform duration-200 ease-out group-hover:translate-y-0">
-          <div className="rounded-t-xl bg-black/60 p-2 pb-2.5 backdrop-blur-md ring-1 ring-inset ring-white/10">
-            {children}
-          </div>
-        </div>
-      )}
-
-      {/* Status strip — sits above everything at the bottom edge */}
+      {/* Status strip — above everything at bottom edge */}
       {status && <div className={`absolute inset-x-0 bottom-0 h-0.5 ${STATUS_COLORS[status]} z-30`} />}
     </>
   );

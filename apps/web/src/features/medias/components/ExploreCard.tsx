@@ -40,8 +40,7 @@ export function ExploreCard({ item, onAdded }: { item: TmdbMediaSearchItem; onAd
         accentRingClassName="focus:ring-indigo-400/70"
         className="w-full"
       >
-        <p className="text-[11px] font-semibold text-white truncate">{item.title}</p>
-        <div className="mt-0.5 flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2">
           <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-white/90">
             {typeLabel}
           </span>
