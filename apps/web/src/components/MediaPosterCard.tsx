@@ -106,24 +106,13 @@ export function MediaPosterCard({
         </div>
       )}
 
-      {/* Glass panel — sits at bottom, expands on hover */}
+      {/* Glass panel — always visible at bottom */}
       <div className="absolute inset-x-0 bottom-0 z-20">
-        <div className="bg-black/30 px-2.5 pt-2 pb-2.5 backdrop-blur-xl transition-[background-color] duration-300 group-hover:bg-black/45">
-          {/* Title — larger by default, compact on hover */}
-          <p className="text-[12.5px] font-semibold text-white truncate leading-snug transition-[font-size] duration-300 ease-out group-hover:text-[11px]">
+        <div className="bg-black/30 px-2.5 pt-2 pb-2.5 backdrop-blur-xl">
+          <p className="text-[11px] font-semibold text-white truncate leading-snug">
             {title}
           </p>
-
-          {/* Expandable section */}
-          {children && (
-            <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out group-hover:grid-rows-[1fr]">
-              <div className="overflow-hidden">
-                <div className="pt-1 opacity-0 transition-opacity duration-300 delay-75 group-hover:opacity-100">
-                  {children}
-                </div>
-              </div>
-            </div>
-          )}
+          {children && <div className="pt-1">{children}</div>}
         </div>
       </div>
 
