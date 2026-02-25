@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useState, useRef, useCallback, type CSSProperties, type ReactNode } from 'react';
 
 export type MediaPosterCardStatus = 'downloaded' | 'downloading' | 'missing';
 
@@ -50,11 +50,29 @@ export function MediaPosterCard({
 }: MediaPosterCardProps) {
   const [imageError, setImageError] = useState(false);
   const showImage = Boolean(posterUrl) && !imageError;
+  const cardRef = useRef<HTMLElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    const rotateX = (y / (rect.height / 2)) * -5;
+    const rotateY = (x / (rect.width / 2)) * 5;
+    el.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    el.style.transform = '';
+  }, []);
 
   const containerClass = [
     'group relative shrink-0 overflow-hidden rounded-2xl',
     'border border-white/10 bg-neutral-900 shadow-sm shadow-black/20',
-    'transition-[border-color,box-shadow] duration-300 ease-out',
+    'transition-[border-color,box-shadow,transform] duration-300 ease-out',
     'hover:border-white/20 hover:shadow-md hover:shadow-black/25',
     'focus:outline-none focus:ring-2',
     accentRingClassName,
@@ -123,15 +141,19 @@ export function MediaPosterCard({
     </>
   );
 
+  const mouseProps = { onMouseMove: handleMouseMove, onMouseLeave: handleMouseLeave };
+
   if (href) {
     return (
       <a
+        ref={cardRef as React.RefObject<HTMLAnchorElement>}
         className={containerClass}
         style={combinedStyle}
         href={href}
         target={target ?? '_blank'}
         rel={rel ?? 'noreferrer'}
         aria-label={title}
+        {...mouseProps}
       >
         {content}
       </a>
@@ -141,12 +163,14 @@ export function MediaPosterCard({
   if (onClick) {
     return (
       <button
+        ref={cardRef as React.RefObject<HTMLButtonElement>}
         className={containerClass}
         style={combinedStyle}
         type="button"
         onClick={onClick}
         disabled={disabled}
         aria-label={title}
+        {...mouseProps}
       >
         {content}
       </button>
@@ -154,7 +178,14 @@ export function MediaPosterCard({
   }
 
   return (
-    <article className={containerClass} style={combinedStyle} role="group" aria-label={title}>
+    <article
+      ref={cardRef as React.RefObject<HTMLElement>}
+      className={containerClass}
+      style={combinedStyle}
+      role="group"
+      aria-label={title}
+      {...mouseProps}
+    >
       {content}
     </article>
   );
