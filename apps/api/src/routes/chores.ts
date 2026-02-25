@@ -1,14 +1,15 @@
-import { Elysia, t } from "elysia";
-import { prisma } from "../db";
-import { auth } from "../auth";
+import { Elysia, t } from 'elysia';
+import { prisma } from '../db';
+import { auth } from '../auth';
 import {
   saveImageAndCreateThumbnail,
   deleteImageFiles,
   getImage,
   getThumbnail,
   getContentType,
-} from "../services/imageService";
-import { formatIso, nowUtc, sanitizeInput } from "../utils";
+} from '../services/imageService';
+import { formatIso, nowUtc, sanitizeInput } from '../utils';
+import { sendSilentPushToUser } from '../services/externalNotificationService';
 
 // Map database chore to frontend format (snake_case)
 const mapChore = (
@@ -16,7 +17,7 @@ const mapChore = (
   activeReminder?: any | null,
   addedByUser?: { firstName: string | null; email: string } | null,
   assignedToUser?: { firstName: string | null; email: string } | null,
-  completedByUser?: { firstName: string | null; email: string } | null,
+  completedByUser?: { firstName: string | null; email: string } | null
 ) => ({
   id: chore.id,
   position: chore.position,
@@ -31,13 +32,9 @@ const mapChore = (
   created_at: formatIso(chore.createdAt),
   completed_at: formatIso(chore.completedAt),
   added_by_username: addedByUser?.firstName || addedByUser?.email || null,
-  assigned_to_username:
-    assignedToUser?.firstName || assignedToUser?.email || null,
-  completed_by_username:
-    completedByUser?.firstName || completedByUser?.email || null,
-  reminder_datetime: activeReminder
-    ? formatIso(activeReminder.reminderDatetime)
-    : null,
+  assigned_to_username: assignedToUser?.firstName || assignedToUser?.email || null,
+  completed_by_username: completedByUser?.firstName || completedByUser?.email || null,
+  reminder_datetime: activeReminder ? formatIso(activeReminder.reminderDatetime) : null,
   reminder_active: activeReminder?.active || false,
   recurrence_type: chore.recurrenceType,
   recurrence_interval_days: chore.recurrenceIntervalDays,
@@ -55,24 +52,15 @@ const deactivateRemindersForChore = async (choreId: number) => {
 };
 
 // Helper to create next chore occurrence for recurring chores
-const createNextChoreOccurrence = async (
-  chore: any,
-  completedAt: Date,
-) => {
+const createNextChoreOccurrence = async (chore: any, completedAt: Date) => {
   if (!chore.recurrenceType) return null;
 
   let nextDate: Date;
 
-  if (
-    chore.recurrenceType === "daily_interval" &&
-    chore.recurrenceIntervalDays
-  ) {
+  if (chore.recurrenceType === 'daily_interval' && chore.recurrenceIntervalDays) {
     nextDate = new Date(completedAt);
     nextDate.setDate(nextDate.getDate() + chore.recurrenceIntervalDays);
-  } else if (
-    chore.recurrenceType === "weekly" &&
-    chore.recurrenceWeekday !== null
-  ) {
+  } else if (chore.recurrenceType === 'weekly' && chore.recurrenceWeekday !== null) {
     nextDate = new Date(completedAt);
     const currentDay = nextDate.getDay();
     // Convert from Sunday=0 to Monday=0 format
@@ -127,23 +115,19 @@ const removeRecurrence = async (choreId: number) => {
   });
 };
 
-export const choresRoutes = new Elysia({ prefix: "/api/chores" })
+export const choresRoutes = new Elysia({ prefix: '/api/chores' })
   .use(auth)
   // GET /api/chores - Get all chores with users
-  .get("/", async ({ user, set }) => {
+  .get('/', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     try {
       // Get all chores ordered by completed, position, created_at
       const allChores = await prisma.chore.findMany({
-        orderBy: [
-          { completed: 'asc' },
-          { position: 'asc' },
-          { createdAt: 'desc' },
-        ],
+        orderBy: [{ completed: 'asc' }, { position: 'asc' }, { createdAt: 'desc' }],
       });
 
       // Get all users
@@ -160,10 +144,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       // Get all active reminders
       const activeReminders = await prisma.reminder.findMany({
         where: { active: true },
-        orderBy: [
-          { choreId: 'asc' },
-          { reminderDatetime: 'asc' },
-        ],
+        orderBy: [{ choreId: 'asc' }, { reminderDatetime: 'asc' }],
       });
 
       // Create lookup maps
@@ -174,35 +155,22 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         }
       }
 
-      const usersById = new Map<
-        number,
-        { firstName: string | null; email: string }
-      >();
+      const usersById = new Map<number, { firstName: string | null; email: string }>();
       for (const u of allUsers) {
         usersById.set(u.id, { firstName: u.firstName, email: u.email });
       }
 
       // Build response
-      const choresList = allChores.map((chore) => {
+      const choresList = allChores.map(chore => {
         const activeReminder = remindersByChoreId.get(chore.id);
         const addedByUser = chore.addedBy ? usersById.get(chore.addedBy) : null;
-        const assignedToUser = chore.assignedTo
-          ? usersById.get(chore.assignedTo)
-          : null;
-        const completedByUser = chore.completedBy
-          ? usersById.get(chore.completedBy)
-          : null;
+        const assignedToUser = chore.assignedTo ? usersById.get(chore.assignedTo) : null;
+        const completedByUser = chore.completedBy ? usersById.get(chore.completedBy) : null;
 
-        return mapChore(
-          chore,
-          activeReminder,
-          addedByUser,
-          assignedToUser,
-          completedByUser,
-        );
+        return mapChore(chore, activeReminder, addedByUser, assignedToUser, completedByUser);
       });
 
-      const usersList = allUsers.map((u) => ({
+      const usersList = allUsers.map(u => ({
         id: u.id,
         email: u.email,
         first_name: u.firstName,
@@ -211,19 +179,19 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
       return { chores: choresList, users: usersList };
     } catch (error) {
-      console.error("Error getting chores:", error);
+      console.error('Error getting chores:', error);
       set.status = 500;
-      return { error: "Failed to get chores" };
+      return { error: 'Failed to get chores' };
     }
   })
 
   // POST /api/chores - Add a new chore
   .post(
-    "/",
+    '/',
     async ({ user, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const {
@@ -239,26 +207,19 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       } = body;
 
       // Validate chore name
-      const choreName = sanitizeInput((chore_name || "").trim());
+      const choreName = sanitizeInput((chore_name || '').trim());
       if (!choreName) {
         set.status = 400;
-        return { error: "chore_name is required" };
+        return { error: 'chore_name is required' };
       }
 
       // Handle assigned_to
       let assignedTo: number | null = null;
-      if (
-        assigned_to !== undefined &&
-        assigned_to !== null &&
-        assigned_to !== ""
-      ) {
-        const parsedAssignedTo =
-          typeof assigned_to === "string"
-            ? parseInt(assigned_to, 10)
-            : assigned_to;
+      if (assigned_to !== undefined && assigned_to !== null && assigned_to !== '') {
+        const parsedAssignedTo = typeof assigned_to === 'string' ? parseInt(assigned_to, 10) : assigned_to;
         if (isNaN(parsedAssignedTo)) {
           set.status = 400;
-          return { error: "Invalid assigned user" };
+          return { error: 'Invalid assigned user' };
         }
         // Validate user exists
         const assignedUser = await prisma.user.findFirst({
@@ -266,7 +227,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         });
         if (!assignedUser) {
           set.status = 400;
-          return { error: "Assigned user does not exist" };
+          return { error: 'Assigned user does not exist' };
         }
         assignedTo = parsedAssignedTo;
       }
@@ -277,26 +238,24 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       let validatedRecurrenceWeekday: number | null = null;
 
       if (recurrence_type) {
-        if (!["daily_interval", "weekly"].includes(recurrence_type)) {
+        if (!['daily_interval', 'weekly'].includes(recurrence_type)) {
           set.status = 400;
           return {
-            error:
-              'Invalid recurrence_type. Must be "daily_interval" or "weekly"',
+            error: 'Invalid recurrence_type. Must be "daily_interval" or "weekly"',
           };
         }
 
         validatedRecurrenceType = recurrence_type;
 
-        if (recurrence_type === "daily_interval") {
+        if (recurrence_type === 'daily_interval') {
           if (!recurrence_interval_days || recurrence_interval_days <= 0) {
             set.status = 400;
             return {
-              error:
-                "recurrence_interval_days must be positive for daily_interval type",
+              error: 'recurrence_interval_days must be positive for daily_interval type',
             };
           }
           validatedRecurrenceIntervalDays = recurrence_interval_days;
-        } else if (recurrence_type === "weekly") {
+        } else if (recurrence_type === 'weekly') {
           if (
             recurrence_weekday === null ||
             recurrence_weekday === undefined ||
@@ -305,8 +264,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           ) {
             set.status = 400;
             return {
-              error:
-                "recurrence_weekday must be between 0 (Monday) and 6 (Sunday)",
+              error: 'recurrence_weekday must be between 0 (Monday) and 6 (Sunday)',
             };
           }
           validatedRecurrenceWeekday = recurrence_weekday;
@@ -335,9 +293,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
             recurrenceType: validatedRecurrenceType,
             recurrenceIntervalDays: validatedRecurrenceIntervalDays,
             recurrenceWeekday: validatedRecurrenceWeekday,
-            recurrenceOriginalCreatedAt: validatedRecurrenceType
-              ? nowUtc()
-              : null,
+            recurrenceOriginalCreatedAt: validatedRecurrenceType ? nowUtc() : null,
             completed: false,
             createdAt: nowUtc(),
           },
@@ -357,15 +313,19 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         }
 
         console.log(`User ${user.id} created chore ${newChore.id}`);
+        // Trigger calendar sync on iOS
+        sendSilentPushToUser(user.id, 'CALENDAR_SYNC').catch(err => 
+          console.error('Error triggering silent push after chore creation:', err)
+        );
         return {
           success: true,
           id: newChore.id,
-          message: "Chore created successfully",
+          message: 'Chore created successfully',
         };
       } catch (error) {
-        console.error("Error creating chore:", error);
+        console.error('Error creating chore:', error);
         set.status = 500;
-        return { error: "Failed to add chore" };
+        return { error: 'Failed to add chore' };
       }
     },
     {
@@ -380,22 +340,22 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         recurrence_interval_days: t.Optional(t.Union([t.Number(), t.Null()])),
         recurrence_weekday: t.Optional(t.Union([t.Number(), t.Null()])),
       }),
-    },
+    }
   )
 
   // POST /api/chores/:id/toggle - Toggle completion status
   .post(
-    "/:id/toggle",
+    '/:id/toggle',
     async ({ user, params, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const choreId = parseInt(params.id, 10);
       if (isNaN(choreId)) {
         set.status = 400;
-        return { error: "Invalid chore ID" };
+        return { error: 'Invalid chore ID' };
       }
 
       const { emotion } = body || {};
@@ -408,7 +368,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
         if (!chore) {
           set.status = 404;
-          return { error: "Chore not found" };
+          return { error: 'Chore not found' };
         }
 
         const newStatus = !chore.completed;
@@ -429,7 +389,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           await prisma.taskCompletion.create({
             data: {
               userId: user.id,
-              taskType: "chore",
+              taskType: 'chore',
               taskId: chore.id,
               taskName: chore.choreName,
               emotion: emotion || null,
@@ -446,7 +406,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
               userId: user.id,
               read: false,
               notificationMetadata: {
-                path: ["chore_id"],
+                path: ['chore_id'],
                 equals: String(choreId),
               },
             },
@@ -461,23 +421,22 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
             try {
               await createNextChoreOccurrence(chore, completedAt!);
             } catch (error) {
-              console.error(
-                `Error creating next occurrence for recurring chore ${choreId}:`,
-                error,
-              );
+              console.error(`Error creating next occurrence for recurring chore ${choreId}:`, error);
               // Don't fail the toggle if recurrence creation fails
             }
           }
         }
 
-        console.log(
-          `User ${user.id} toggled chore ${choreId} to ${newStatus ? "completed" : "pending"}`,
+        console.log(`User ${user.id} toggled chore ${choreId} to ${newStatus ? 'completed' : 'pending'}`);
+        // Trigger calendar sync on iOS
+        sendSilentPushToUser(user.id, 'CALENDAR_SYNC').catch(err => 
+          console.error('Error triggering silent push after chore toggle:', err)
         );
         return { success: true, completed: newStatus };
       } catch (error) {
-        console.error("Error toggling chore:", error);
+        console.error('Error toggling chore:', error);
         set.status = 500;
-        return { error: "Failed to toggle chore" };
+        return { error: 'Failed to toggle chore' };
       }
     },
     {
@@ -487,24 +446,24 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       body: t.Optional(
         t.Object({
           emotion: t.Optional(t.Union([t.String(), t.Null()])),
-        }),
+        })
       ),
-    },
+    }
   )
 
   // PUT /api/chores/:id - Update a chore
   .put(
-    "/:id",
+    '/:id',
     async ({ user, params, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const choreId = parseInt(params.id, 10);
       if (isNaN(choreId)) {
         set.status = 400;
-        return { error: "Invalid chore ID" };
+        return { error: 'Invalid chore ID' };
       }
 
       try {
@@ -515,59 +474,55 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
         if (!chore) {
           set.status = 404;
-          return { error: "Chore not found" };
+          return { error: 'Chore not found' };
         }
 
         // Check ownership or admin
         if (chore.addedBy !== user.id && !user.is_admin) {
           set.status = 403;
-          return { error: "Unauthorized" };
+          return { error: 'Unauthorized' };
         }
 
         // Don't allow updating completed chores
         if (chore.completed) {
           set.status = 400;
-          return { error: "Cannot update completed chore" };
+          return { error: 'Cannot update completed chore' };
         }
 
         const updateData: Record<string, any> = {};
 
         // Update chore name if provided
         if (body.chore_name !== undefined) {
-          const choreName = sanitizeInput((body.chore_name || "").trim());
+          const choreName = sanitizeInput((body.chore_name || '').trim());
           if (!choreName) {
             set.status = 400;
-            return { error: "chore_name cannot be empty" };
+            return { error: 'chore_name cannot be empty' };
           }
           updateData.choreName = choreName;
         }
 
         // Update description if provided
         if (body.description !== undefined) {
-          updateData.description = body.description
-            ? sanitizeInput(body.description.trim())
-            : null;
+          updateData.description = body.description ? sanitizeInput(body.description.trim()) : null;
         }
 
         // Update assigned_to if provided
         if (body.assigned_to !== undefined) {
-          if (body.assigned_to === null || body.assigned_to === "") {
+          if (body.assigned_to === null || body.assigned_to === '') {
             updateData.assignedTo = null;
           } else {
             const parsedAssignedTo =
-              typeof body.assigned_to === "string"
-                ? parseInt(body.assigned_to, 10)
-                : body.assigned_to;
+              typeof body.assigned_to === 'string' ? parseInt(body.assigned_to, 10) : body.assigned_to;
             if (isNaN(parsedAssignedTo)) {
               set.status = 400;
-              return { error: "Invalid assigned user" };
+              return { error: 'Invalid assigned user' };
             }
             const assignedUser = await prisma.user.findFirst({
               where: { id: parsedAssignedTo },
             });
             if (!assignedUser) {
               set.status = 400;
-              return { error: "Assigned user does not exist" };
+              return { error: 'Assigned user does not exist' };
             }
             updateData.assignedTo = parsedAssignedTo;
           }
@@ -586,13 +541,11 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
             let reminderUserId: number;
             if (body.assigned_to !== undefined) {
-              if (body.assigned_to === null || body.assigned_to === "") {
+              if (body.assigned_to === null || body.assigned_to === '') {
                 reminderUserId = user.id;
               } else {
-                const parsed = typeof body.assigned_to === "string"
-                  ? parseInt(body.assigned_to, 10)
-                  : body.assigned_to;
-                reminderUserId = isNaN(parsed as number) ? user.id : parsed as number;
+                const parsed = typeof body.assigned_to === 'string' ? parseInt(body.assigned_to, 10) : body.assigned_to;
+                reminderUserId = isNaN(parsed as number) ? user.id : (parsed as number);
               }
             } else {
               reminderUserId = chore.assignedTo || user.id;
@@ -633,30 +586,25 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
             updateData.recurrenceIntervalDays = null;
             updateData.recurrenceWeekday = null;
           } else if (body.recurrence_type) {
-            if (!["daily_interval", "weekly"].includes(body.recurrence_type)) {
+            if (!['daily_interval', 'weekly'].includes(body.recurrence_type)) {
               set.status = 400;
               return {
-                error:
-                  'Invalid recurrence_type. Must be "daily_interval" or "weekly"',
+                error: 'Invalid recurrence_type. Must be "daily_interval" or "weekly"',
               };
             }
 
             updateData.recurrenceType = body.recurrence_type;
 
-            if (body.recurrence_type === "daily_interval") {
-              if (
-                !body.recurrence_interval_days ||
-                body.recurrence_interval_days <= 0
-              ) {
+            if (body.recurrence_type === 'daily_interval') {
+              if (!body.recurrence_interval_days || body.recurrence_interval_days <= 0) {
                 set.status = 400;
                 return {
-                  error:
-                    "recurrence_interval_days must be positive for daily_interval type",
+                  error: 'recurrence_interval_days must be positive for daily_interval type',
                 };
               }
               updateData.recurrenceIntervalDays = body.recurrence_interval_days;
               updateData.recurrenceWeekday = null;
-            } else if (body.recurrence_type === "weekly") {
+            } else if (body.recurrence_type === 'weekly') {
               if (
                 body.recurrence_weekday === null ||
                 body.recurrence_weekday === undefined ||
@@ -665,8 +613,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
               ) {
                 set.status = 400;
                 return {
-                  error:
-                    "recurrence_weekday must be between 0 (Monday) and 6 (Sunday)",
+                  error: 'recurrence_weekday must be between 0 (Monday) and 6 (Sunday)',
                 };
               }
               updateData.recurrenceWeekday = body.recurrence_weekday;
@@ -689,11 +636,11 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         }
 
         console.log(`User ${user.id} updated chore ${choreId}`);
-        return { success: true, message: "Chore updated successfully" };
+        return { success: true, message: 'Chore updated successfully' };
       } catch (error) {
         console.error(`Error updating chore ${choreId}:`, error);
         set.status = 500;
-        return { error: "Failed to update chore" };
+        return { error: 'Failed to update chore' };
       }
     },
     {
@@ -712,22 +659,22 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         recurrence_interval_days: t.Optional(t.Union([t.Number(), t.Null()])),
         recurrence_weekday: t.Optional(t.Union([t.Number(), t.Null()])),
       }),
-    },
+    }
   )
 
   // PUT /api/chores/:id/remove-recurrence - Remove recurrence from a chore
   .put(
-    "/:id/remove-recurrence",
+    '/:id/remove-recurrence',
     async ({ user, params, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const choreId = parseInt(params.id, 10);
       if (isNaN(choreId)) {
         set.status = 400;
-        return { error: "Invalid chore ID" };
+        return { error: 'Invalid chore ID' };
       }
 
       try {
@@ -738,40 +685,37 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
         if (!chore) {
           set.status = 404;
-          return { error: "Chore not found" };
+          return { error: 'Chore not found' };
         }
 
         // Check ownership or admin
         if (chore.addedBy !== user.id && !user.is_admin) {
           set.status = 403;
-          return { error: "Unauthorized" };
+          return { error: 'Unauthorized' };
         }
 
         await removeRecurrence(choreId);
 
         console.log(`User ${user.id} removed recurrence from chore ${choreId}`);
-        return { success: true, message: "Recurrence removed successfully" };
+        return { success: true, message: 'Recurrence removed successfully' };
       } catch (error) {
-        console.error(
-          `Error removing recurrence from chore ${choreId}:`,
-          error,
-        );
+        console.error(`Error removing recurrence from chore ${choreId}:`, error);
         set.status = 500;
-        return { error: "Failed to remove recurrence" };
+        return { error: 'Failed to remove recurrence' };
       }
     },
     {
       params: t.Object({
         id: t.String(),
       }),
-    },
+    }
   )
 
   // POST /api/chores/clear-completed - Delete all completed chores
-  .post("/clear-completed", async ({ user, set }) => {
+  .post('/clear-completed', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     try {
@@ -786,31 +730,35 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       });
 
       console.log(`User ${user.id} deleted ${count} completed chores`);
+      // Trigger calendar sync on iOS
+      sendSilentPushToUser(user.id, 'CALENDAR_SYNC').catch(err => 
+        console.error('Error triggering silent push after clearing completed chores:', err)
+      );
       return {
         success: true,
         message: `Deleted ${count} completed chores`,
         count,
       };
     } catch (error) {
-      console.error("Error deleting completed chores:", error);
+      console.error('Error deleting completed chores:', error);
       set.status = 500;
-      return { error: "Failed to delete completed chores" };
+      return { error: 'Failed to delete completed chores' };
     }
   })
 
   // DELETE /api/chores/:id - Delete a chore
   .delete(
-    "/:id",
+    '/:id',
     async ({ user, params, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const choreId = parseInt(params.id, 10);
       if (isNaN(choreId)) {
         set.status = 400;
-        return { error: "Invalid chore ID" };
+        return { error: 'Invalid chore ID' };
       }
 
       try {
@@ -821,13 +769,13 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
         if (!chore) {
           set.status = 404;
-          return { error: "Chore not found" };
+          return { error: 'Chore not found' };
         }
 
         // Check ownership or admin
         if (chore.addedBy !== user.id && !user.is_admin) {
           set.status = 403;
-          return { error: "Unauthorized" };
+          return { error: 'Unauthorized' };
         }
 
         // Delete associated image files from S3
@@ -841,58 +789,57 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         });
 
         console.log(`User ${user.id} deleted chore ${choreId}`);
-        return { success: true, message: "Chore deleted successfully" };
+        // Trigger calendar sync on iOS
+        sendSilentPushToUser(user.id, 'CALENDAR_SYNC').catch(err => 
+          console.error('Error triggering silent push after chore deletion:', err)
+        );
+        return { success: true, message: 'Chore deleted successfully' };
       } catch (error) {
         console.error(`Error deleting chore ${choreId}:`, error);
         set.status = 500;
-        return { error: "Failed to delete chore" };
+        return { error: 'Failed to delete chore' };
       }
     },
     {
       params: t.Object({
         id: t.String(),
       }),
-    },
+    }
   )
 
   // POST /api/chores/upload-image - Upload an image for a chore
   .post(
-    "/upload-image",
+    '/upload-image',
     async ({ user, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const { image } = body;
 
       if (!image || !(image instanceof File)) {
         set.status = 400;
-        return { error: "No image file provided" };
+        return { error: 'No image file provided' };
       }
 
       if (image.size === 0) {
         set.status = 400;
-        return { error: "No file selected" };
+        return { error: 'No file selected' };
       }
 
       // Validate file type
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-      ];
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(image.type)) {
         set.status = 400;
-        return { error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP" };
+        return { error: 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP' };
       }
 
       // Validate file size (max 10MB)
       const maxSize = 10 * 1024 * 1024;
       if (image.size > maxSize) {
         set.status = 400;
-        return { error: "File too large. Maximum size is 10MB" };
+        return { error: 'File too large. Maximum size is 10MB' };
       }
 
       try {
@@ -907,33 +854,33 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           },
         };
       } catch (error) {
-        console.error("Error uploading image:", error);
+        console.error('Error uploading image:', error);
         set.status = 500;
-        return { error: "Failed to upload image" };
+        return { error: 'Failed to upload image' };
       }
     },
     {
       body: t.Object({
         image: t.File(),
       }),
-    },
+    }
   )
 
   // GET /api/chores/image/:filename - Serve chore image from S3
   .get(
-    "/image/:filename",
+    '/image/:filename',
     async ({ user, params, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const { filename } = params;
 
       // Security: ensure filename doesn't contain path traversal
-      if (filename.includes("..") || filename.startsWith("/")) {
+      if (filename.includes('..') || filename.startsWith('/')) {
         set.status = 400;
-        return { error: "Invalid filename" };
+        return { error: 'Invalid filename' };
       }
 
       try {
@@ -942,51 +889,51 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
         if (!imageBuffer) {
           set.status = 404;
-          return { error: "Image not found" };
+          return { error: 'Image not found' };
         }
 
         // Determine content type
         const contentType = getContentType(filename);
 
         set.headers = {
-          "Content-Type": contentType,
-          "Cache-Control": "public, max-age=31536000",
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=31536000',
         };
 
         return new Response(imageBuffer, {
           headers: {
-            "Content-Type": contentType,
-            "Cache-Control": "public, max-age=31536000",
+            'Content-Type': contentType,
+            'Cache-Control': 'public, max-age=31536000',
           },
         });
       } catch (error) {
-        console.error("Error serving image:", error);
+        console.error('Error serving image:', error);
         set.status = 500;
-        return { error: "Failed to serve image" };
+        return { error: 'Failed to serve image' };
       }
     },
     {
       params: t.Object({
         filename: t.String(),
       }),
-    },
+    }
   )
 
   // GET /api/chores/thumbnail/:filename - Serve chore thumbnail from S3
   .get(
-    "/thumbnail/:filename",
+    '/thumbnail/:filename',
     async ({ user, params, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const { filename } = params;
 
       // Security: ensure filename doesn't contain path traversal
-      if (filename.includes("..") || filename.startsWith("/")) {
+      if (filename.includes('..') || filename.startsWith('/')) {
         set.status = 400;
-        return { error: "Invalid filename" };
+        return { error: 'Invalid filename' };
       }
 
       try {
@@ -995,42 +942,42 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
         if (!thumbnailBuffer) {
           set.status = 404;
-          return { error: "Thumbnail not found" };
+          return { error: 'Thumbnail not found' };
         }
 
         return new Response(thumbnailBuffer, {
           headers: {
-            "Content-Type": "image/jpeg",
-            "Cache-Control": "public, max-age=31536000",
+            'Content-Type': 'image/jpeg',
+            'Cache-Control': 'public, max-age=31536000',
           },
         });
       } catch (error) {
-        console.error("Error serving thumbnail:", error);
+        console.error('Error serving thumbnail:', error);
         set.status = 500;
-        return { error: "Failed to serve thumbnail" };
+        return { error: 'Failed to serve thumbnail' };
       }
     },
     {
       params: t.Object({
         filename: t.String(),
       }),
-    },
+    }
   )
 
   // POST /api/chores/reorder - Reorder chores
   .post(
-    "/reorder",
+    '/reorder',
     async ({ user, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       const { chore_ids } = body;
 
       if (!Array.isArray(chore_ids)) {
         set.status = 400;
-        return { error: "chore_ids must be an array" };
+        return { error: 'chore_ids must be an array' };
       }
 
       try {
@@ -1043,7 +990,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         }
 
         // Update positions atomically in a transaction
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async tx => {
           for (let i = 0; i < chore_ids.length; i++) {
             await tx.chore.update({
               where: { id: chore_ids[i] },
@@ -1053,16 +1000,16 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         });
 
         console.log(`User ${user.id} reordered chores`);
-        return { success: true, message: "Chores reordered successfully" };
+        return { success: true, message: 'Chores reordered successfully' };
       } catch (error) {
-        console.error("Error reordering chores:", error);
+        console.error('Error reordering chores:', error);
         set.status = 500;
-        return { error: "Failed to reorder chores" };
+        return { error: 'Failed to reorder chores' };
       }
     },
     {
       body: t.Object({
         chore_ids: t.Array(t.Number()),
       }),
-    },
+    }
   );

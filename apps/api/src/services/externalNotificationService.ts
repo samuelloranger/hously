@@ -69,6 +69,41 @@ async function getTemplateForEvent(serviceName: string, eventType: string, langu
 }
 
 /**
+ * Send a silent background push notification to all user's iOS devices
+ * This is used for background synchronization (e.g., calendar sync)
+ */
+export async function sendSilentPushToUser(userId: number, type: string): Promise<boolean> {
+  try {
+    const pushTokens = await prisma.pushToken.findMany({
+      where: { userId },
+      select: { token: true, platform: true },
+    });
+
+    const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
+
+    if (iosTokens.length === 0) {
+      return false;
+    }
+
+    const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
+      contentAvailable: true,
+      data: { type },
+    });
+
+    if (invalidTokens.length > 0) {
+      await prisma.pushToken.deleteMany({
+        where: { token: { in: invalidTokens } },
+      });
+    }
+
+    return successCount > 0;
+  } catch (error) {
+    console.error(`Error sending silent push to user ${userId}:`, error);
+    return false;
+  }
+}
+
+/**
  * Send external notification to all subscribed users
  */
 export async function sendExternalNotification(
