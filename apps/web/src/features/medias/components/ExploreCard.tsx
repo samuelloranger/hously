@@ -37,33 +37,32 @@ export function ExploreCard({ item, onAdded }: { item: TmdbMediaSearchItem; onAd
         posterUrl={item.poster_url}
         title={item.title}
         onClick={() => setDetailOpen(true)}
-        accentRingClassName="focus:ring-indigo-400/70"
         className="w-full"
       >
         <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-white/90">
+          <span className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.08] px-1.5 py-0.5 text-[9.5px] uppercase tracking-wide text-white/80">
             {typeLabel}
           </span>
-          {item.release_year && <span className="text-[9px] text-white/80">{item.release_year}</span>}
+          {item.release_year && <span className="text-[9px] text-white/60">{item.release_year}</span>}
         </div>
 
         {(item.already_exists || item.can_add || item.arr_url) && (
-          <div className="mt-1.5 flex items-center gap-1">
+          <div className="mt-1.5 flex items-center gap-1.5">
             {item.already_exists ? (
-              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-emerald-500 text-white">
-                <Check size={11} />
+              <span className="inline-flex items-center justify-center h-5.5 w-5.5 rounded-full bg-emerald-500/80 text-white">
+                <Check size={10} />
               </span>
             ) : item.can_add ? (
               <button
                 type="button"
                 onClick={handleAdd}
                 disabled={isAdding}
-                className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50 transition-colors"
+                className="inline-flex items-center justify-center h-5.5 w-5.5 rounded-full bg-indigo-500/80 text-white transition-colors duration-200 hover:bg-indigo-400/90 disabled:opacity-40"
               >
                 {isAdding ? (
-                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <div className="h-2.5 w-2.5 animate-spin rounded-full border-[1.5px] border-white border-t-transparent" />
                 ) : (
-                  <Plus size={11} />
+                  <Plus size={10} />
                 )}
               </button>
             ) : null}
@@ -74,9 +73,9 @@ export function ExploreCard({ item, onAdded }: { item: TmdbMediaSearchItem; onAd
                 target="_blank"
                 rel="noreferrer"
                 onClick={e => e.stopPropagation()}
-                className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm transition-colors"
+                className="inline-flex items-center justify-center h-5.5 w-5.5 rounded-full bg-white/10 text-white/70 transition-colors duration-200 hover:bg-white/20 hover:text-white"
               >
-                <ExternalLink size={11} />
+                <ExternalLink size={10} />
               </a>
             )}
           </div>

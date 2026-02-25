@@ -69,12 +69,12 @@ export function MovieCard(props: MovieCardProps) {
       onClick={'onClick' in props ? props.onClick : undefined}
       disabled={'onClick' in props ? props.disabled : undefined}
     >
-      {subtitle ? <p className="text-[10px] text-white/80 truncate">{subtitle}</p> : null}
+      {subtitle ? <p className="text-[10px] text-white/60 truncate">{subtitle}</p> : null}
       <div className="mt-0.5 flex items-center justify-between gap-2">
-        <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-white/90">
+        <span className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.08] px-1.5 py-0.5 text-[9.5px] uppercase tracking-wide text-white/80">
           {type}
         </span>
-        {releaseDate ? <span className="text-[9px] text-white/80">{releaseDate}</span> : null}
+        {releaseDate ? <span className="text-[9px] text-white/60">{releaseDate}</span> : null}
       </div>
     </MediaPosterCard>
   );

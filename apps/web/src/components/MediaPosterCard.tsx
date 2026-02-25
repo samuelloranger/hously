@@ -3,8 +3,8 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 export type MediaPosterCardStatus = 'downloaded' | 'downloading' | 'missing';
 
 const STATUS_COLORS: Record<MediaPosterCardStatus, string> = {
-  downloaded: 'bg-emerald-500',
-  downloading: 'bg-sky-500',
+  downloaded: 'bg-emerald-400',
+  downloading: 'bg-sky-400',
   missing: 'bg-amber-400',
 };
 
@@ -43,7 +43,7 @@ export function MediaPosterCard({
   rel,
   onClick,
   disabled,
-  accentRingClassName = 'focus:ring-indigo-400/70',
+  accentRingClassName = 'focus:ring-indigo-400/60',
   className,
   style,
   animationDelayMs,
@@ -53,8 +53,9 @@ export function MediaPosterCard({
 
   const containerClass = [
     'group relative shrink-0 overflow-hidden rounded-2xl',
-    'border border-white/15 bg-neutral-900 shadow-sm shadow-black/30',
-    'hover:border-white/25 hover:shadow-black/40 transition-[border-color,box-shadow]',
+    'border border-white/10 bg-neutral-900 shadow-sm shadow-black/20',
+    'transition-[border-color,box-shadow] duration-300 ease-out',
+    'hover:border-white/20 hover:shadow-md hover:shadow-black/25',
     'focus:outline-none focus:ring-2',
     accentRingClassName,
     disabled ? 'opacity-60 cursor-not-allowed' : '',
@@ -84,48 +85,52 @@ export function MediaPosterCard({
 
       {/* Fallback */}
       {!showImage && (
-        <div className="absolute inset-0 flex items-center justify-center text-4xl text-white/60">
+        <div className="absolute inset-0 flex items-center justify-center text-4xl text-white/40">
           {fallbackEmoji}
         </div>
       )}
 
-      {/* Subtle gradient for panel transition */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
+      {/* Light gradient — just enough to read the title */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent transition-opacity duration-300 group-hover:from-black/60" />
 
-      {/* Inner ring */}
-      <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
+      {/* Soft inner ring */}
+      <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/[0.06]" />
 
-      {/* Status dot — top-right */}
+      {/* Status dot */}
       {status && (
         <div className="absolute top-2 right-2 z-20">
           <span
             title={statusLabel}
-            className={`block h-2 w-2 rounded-full ${STATUS_COLORS[status]} ring-2 ring-black/30`}
+            className={`block h-2 w-2 rounded-full ${STATUS_COLORS[status]} ring-1.5 ring-black/20 shadow-sm`}
           />
         </div>
       )}
 
-      {/* Glass panel — always at bottom, expands upward on hover */}
+      {/* Glass panel — sits at bottom, expands on hover */}
       <div className="absolute inset-x-0 bottom-0 z-20">
-        <div className="rounded-t-xl bg-black/50 p-2 pb-2.5 backdrop-blur-md ring-1 ring-inset ring-white/10">
-          {/* Title — big by default, shrinks on hover */}
-          <p className="text-[13px] font-bold text-white truncate leading-snug drop-shadow-sm transition-[font-size] duration-200 group-hover:text-[11px] group-hover:font-semibold">
+        <div className="bg-black/30 px-2.5 pt-2 pb-2.5 backdrop-blur-xl transition-[background-color] duration-300 group-hover:bg-black/45">
+          {/* Title — larger by default, compact on hover */}
+          <p className="text-[12.5px] font-semibold text-white truncate leading-snug transition-[font-size] duration-300 ease-out group-hover:text-[11px]">
             {title}
           </p>
 
-          {/* Expandable section — 0-height by default, grows on hover */}
+          {/* Expandable section */}
           {children && (
-            <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 ease-out group-hover:grid-rows-[1fr]">
+            <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out group-hover:grid-rows-[1fr]">
               <div className="overflow-hidden">
-                <div className="pt-1">{children}</div>
+                <div className="pt-1 opacity-0 transition-opacity duration-300 delay-75 group-hover:opacity-100">
+                  {children}
+                </div>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Status strip — above everything at bottom edge */}
-      {status && <div className={`absolute inset-x-0 bottom-0 h-0.5 ${STATUS_COLORS[status]} z-30`} />}
+      {/* Status strip */}
+      {status && (
+        <div className={`absolute inset-x-0 bottom-0 h-px ${STATUS_COLORS[status]} z-30 opacity-80`} />
+      )}
     </>
   );
 

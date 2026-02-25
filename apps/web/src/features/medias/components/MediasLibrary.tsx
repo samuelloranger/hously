@@ -298,20 +298,20 @@ function MediaGridCard({
       className="w-full"
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="text-[10px] text-white/60 tabular-nums">{item.year ?? '—'}</span>
+        <span className="text-[9.5px] text-white/55 tabular-nums">{item.year ?? '—'}</span>
         {item.media_type === 'series' && item.season_count !== null && (
-          <span className="text-[10px] text-white/50">
+          <span className="text-[9.5px] text-white/45">
             {t('medias.seriesMeta', { seasons: item.season_count, episodes: item.episode_count ?? 0 })}
           </span>
         )}
       </div>
-      <div className="mt-1.5 flex items-center gap-1">
+      <div className="mt-1.5 flex items-center gap-1.5">
         <button
           type="button"
           onClick={() => void runAutoSearch()}
           disabled={autoSearchMutation.isPending}
           title={autoSearchMutation.isPending ? t('medias.autoSearch.running') : t('medias.autoSearch.button')}
-          className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/15 hover:bg-white/25 text-white disabled:opacity-50 transition-colors"
+          className="inline-flex items-center justify-center h-5.5 w-5.5 rounded-full bg-white/10 text-white/70 transition-colors duration-200 hover:bg-white/20 hover:text-white disabled:opacity-40"
         >
           <Search size={10} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
         </button>
@@ -322,7 +322,7 @@ function MediaGridCard({
             target="_blank"
             rel="noreferrer"
             title={t('medias.viewInArr')}
-            className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors"
+            className="inline-flex items-center justify-center h-5.5 w-5.5 rounded-full bg-white/10 text-white/70 transition-colors duration-200 hover:bg-white/20 hover:text-white"
           >
             <ExternalLink size={10} />
           </a>
@@ -332,7 +332,7 @@ function MediaGridCard({
           type="button"
           onClick={onOpenInteractive}
           title={t('medias.interactive.button')}
-          className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors"
+          className="inline-flex items-center justify-center h-5.5 w-5.5 rounded-full bg-white/10 text-white/70 transition-colors duration-200 hover:bg-white/20 hover:text-white"
         >
           <User size={10} />
         </button>
@@ -342,7 +342,7 @@ function MediaGridCard({
             type="button"
             onClick={onFindSimilar}
             title={t('medias.similar.button')}
-            className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors"
+            className="inline-flex items-center justify-center h-5.5 w-5.5 rounded-full bg-white/10 text-white/70 transition-colors duration-200 hover:bg-white/20 hover:text-white"
           >
             <Sparkles size={10} />
           </button>
