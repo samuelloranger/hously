@@ -58,8 +58,8 @@ export function MediaPosterCard({
     const rect = el.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    const rotateX = (y / (rect.height / 2)) * -5;
-    const rotateY = (x / (rect.width / 2)) * 5;
+    const rotateX = (y / (rect.height / 2)) * -8;
+    const rotateY = (x / (rect.width / 2)) * 8;
     el.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
   }, []);
 
@@ -97,7 +97,7 @@ export function MediaPosterCard({
           loading="lazy"
           aria-hidden="true"
           onError={() => setImageError(true)}
-          className="absolute inset-0 h-full w-full object-cover brightness-[0.85] scale-100 transition-all duration-300 ease-out group-hover:brightness-100 group-hover:scale-105"
+          className="absolute inset-0 h-full w-full object-cover brightness-[0.85] transition-[filter] duration-300 ease-out group-hover:brightness-100"
         />
       )}
 
