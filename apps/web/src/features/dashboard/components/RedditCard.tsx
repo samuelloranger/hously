@@ -60,17 +60,6 @@ export function RedditCard() {
                 rel="noopener noreferrer"
                 className="flex gap-3 rounded-xl bg-black/15 dark:bg-black/25 p-3 hover:bg-black/25 dark:hover:bg-black/35 transition-colors"
               >
-                {post.thumbnail && (
-                  <img
-                    src={post.thumbnail}
-                    alt=""
-                    className="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-black/20"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                )}
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-white leading-snug line-clamp-2">
                     {post.title}
@@ -83,6 +72,17 @@ export function RedditCard() {
                     <span>{formatTimeAgo(post.created_utc)}</span>
                   </div>
                 </div>
+                {post.thumbnail && (
+                  <img
+                    src={post.thumbnail}
+                    alt=""
+                    className="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-black/20 self-center"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                )}
               </a>
             ))}
           </div>

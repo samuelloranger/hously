@@ -58,7 +58,7 @@ export function PluginSectionCard({
   return (
     <div
       className={cn(
-        'bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden',
+        'bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700',
         className
       )}
     >
@@ -101,7 +101,7 @@ export function PluginSectionCard({
             aria-checked={enabled}
             onClick={() => onEnabledChange(!enabled)}
             className={cn(
-              'relative inline-flex h-6 w-11 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800',
+              'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 appearance-none',
               enabled ? 'bg-primary-600' : 'bg-neutral-200 dark:bg-neutral-700'
             )}
           >

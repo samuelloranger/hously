@@ -61,17 +61,6 @@ export function RedditPostsModal({ isOpen, onClose }: RedditPostsModalProps) {
             rel="noopener noreferrer"
             className="flex gap-3 rounded-xl bg-neutral-100 dark:bg-neutral-700/50 p-3 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
           >
-            {post.thumbnail && (
-              <img
-                src={post.thumbnail}
-                alt=""
-                className="w-14 h-14 rounded-lg object-cover flex-shrink-0 bg-neutral-200 dark:bg-neutral-600"
-                loading="lazy"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            )}
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-neutral-900 dark:text-white leading-snug line-clamp-2">
                 {post.title}
@@ -84,6 +73,17 @@ export function RedditPostsModal({ isOpen, onClose }: RedditPostsModalProps) {
                 <span>{formatTimeAgo(post.created_utc)}</span>
               </div>
             </div>
+            {post.thumbnail && (
+              <img
+                src={post.thumbnail}
+                alt=""
+                className="w-14 h-14 rounded-lg object-cover flex-shrink-0 bg-neutral-200 dark:bg-neutral-600 self-center"
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            )}
           </a>
         ))}
 
