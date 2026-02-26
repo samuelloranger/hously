@@ -7,6 +7,7 @@ import { TRACKER_SCRAPERS } from '../services/trackers';
 import type { TrackerType } from '../utils/plugins/types';
 import { logActivity } from '../utils/activityLogs';
 import { decrypt } from '../services/crypto';
+import { sendApnNotifications } from '../utils/apnPush';
 import type { FlareSolverrCookie, FlareSolverrSolution } from '../services/trackers/httpScraper';
 
 /** Runtime guard for the FlareSolverr JSON response. Throws on invalid shape. */
@@ -47,6 +48,36 @@ const TRACKER_ORDER: TrackerType[] = ['ygg', 'torr9', 'g3mini', 'c411', 'la-cale
 let isFetchingAllTrackers = false;
 
 const trackerName = (type: TrackerType): string => type.toUpperCase();
+
+
+const sendTrackerWidgetRefreshSilentPush = async (): Promise<void> => {
+  try {
+    const pushTokens = await prisma.pushToken.findMany({
+      where: { platform: 'ios' },
+      select: { token: true },
+    });
+
+    const iosTokens = [...new Set(pushTokens.map(t => t.token).filter(Boolean))];
+    if (iosTokens.length === 0) return;
+
+    const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
+      contentAvailable: true,
+      sound: null,
+      data: { type: 'TRACKER_WIDGET_REFRESH' },
+    });
+
+    if (successCount > 0) {
+      console.log(`[cron:trackers] sent widget refresh silent push to ${successCount} iOS devices`);
+    }
+
+    if (invalidTokens.length > 0) {
+      await prisma.pushToken.deleteMany({ where: { token: { in: invalidTokens } } });
+      console.log(`[cron:trackers] deleted ${invalidTokens.length} invalid APNs tokens`);
+    }
+  } catch (error) {
+    console.error('[cron:trackers] failed to send widget refresh silent push:', error);
+  }
+};
 
 export const fetchTrackerStats = async (
   trackerType: TrackerType,
@@ -140,24 +171,31 @@ export const fetchTrackerStats = async (
     const stats = await scraper.scrape(loginConfig, solution);
     console.log(`[cron:${trackerType}] stats`, stats);
 
-    // Get current cached stats to preserve them as "previous" if they changed.
+    // Get current cached stats.
     const currentCached = await getJsonCache<CachedTrackerStats>(cacheKey(trackerType));
     const current = parseCachedTrackerStats(currentCached);
+
+    const now = new Date();
+    const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
 
     let previous_uploaded_go = current?.previous_uploaded_go ?? null;
     let previous_downloaded_go = current?.previous_downloaded_go ?? null;
     let previous_ratio = current?.previous_ratio ?? null;
+    let previous_updated_at = current?.previous_updated_at ?? null;
 
-    // If stats changed, update the previous values to the old current ones.
-    if (
-      current &&
-      (current.uploaded_go !== stats.uploadedGo ||
-        current.downloaded_go !== stats.downloadedGo ||
-        current.ratio !== stats.ratio)
-    ) {
-      previous_uploaded_go = current.uploaded_go;
-      previous_downloaded_go = current.downloaded_go;
-      previous_ratio = current.ratio;
+    // Only update the baseline (previous_ values) if:
+    // 1. We don't have a baseline yet
+    // 2. OR the existing baseline is older than 12 hours
+    const shouldUpdateBaseline =
+      !previous_updated_at || new Date(previous_updated_at).getTime() < twelveHoursAgo.getTime();
+
+    if (shouldUpdateBaseline) {
+      // Use the *last known* current values as the new baseline.
+      // If this is the very first run (no 'current'), use the newly fetched 'stats'.
+      previous_uploaded_go = current?.uploaded_go ?? stats.uploadedGo;
+      previous_downloaded_go = current?.downloaded_go ?? stats.downloadedGo;
+      previous_ratio = current?.ratio ?? stats.ratio;
+      previous_updated_at = now.toISOString();
     }
 
     await setJsonCache(
@@ -169,7 +207,8 @@ export const fetchTrackerStats = async (
         previous_uploaded_go,
         previous_downloaded_go,
         previous_ratio,
-        updated_at: new Date().toISOString(),
+        previous_updated_at,
+        updated_at: now.toISOString(),
       },
       60 * 60 * 24
     );
@@ -213,6 +252,10 @@ export const fetchAllTrackerStats = async (options?: { trigger?: 'cron' | 'manua
         const message = error instanceof Error ? error.message : 'Unknown error';
         console.error(`[cron:${trackerType}] fetch failed in batch run:`, message);
       }
+    }
+
+    if (trigger === 'cron') {
+      await sendTrackerWidgetRefreshSilentPush();
     }
 
     await logActivity({
