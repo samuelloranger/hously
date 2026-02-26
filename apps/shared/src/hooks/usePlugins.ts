@@ -5,6 +5,8 @@ import { DASHBOARD_ENDPOINTS, PLUGIN_ENDPOINTS } from '../endpoints';
 import type {
   ArrProfile,
   DashboardTrackerStatsResponse,
+  HackernewsPlugin,
+  HackernewsPluginUpdateResponse,
   JellyfinPlugin,
   JellyfinPluginUpdateResponse,
   NetdataPlugin,
@@ -373,6 +375,32 @@ export const useDashboardTorr9Stats = (options?: { enabled?: boolean }) => useDa
 export const useDashboardG3miniStats = (options?: { enabled?: boolean }) => useDashboardTrackerStats('g3mini', options);
 export const useDashboardLaCaleStats = (options?: { enabled?: boolean }) =>
   useDashboardTrackerStats('la-cale', options);
+
+export function useHackernewsPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.hackernews(),
+    queryFn: () => fetcher<{ plugin: HackernewsPlugin }>(PLUGIN_ENDPOINTS.HACKERNEWS),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useUpdateHackernewsPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { feed_type: string; story_count: number; enabled: boolean }) =>
+      fetcher<HackernewsPluginUpdateResponse>(PLUGIN_ENDPOINTS.HACKERNEWS, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.hackernews() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.hackerNews() });
+    },
+  });
+}
 
 export function useRadarrProfiles() {
   const fetcher = useFetcher();

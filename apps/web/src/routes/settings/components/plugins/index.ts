@@ -1,3 +1,4 @@
+export { HackernewsPluginSection } from './HackernewsPluginSection';
 export { JellyfinPluginSection } from './JellyfinPluginSection';
 export { PluginUrlInput } from './PluginUrlInput';
 export { NetdataPluginSection } from './NetdataPluginSection';

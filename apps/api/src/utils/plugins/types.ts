@@ -42,6 +42,11 @@ export interface YggPluginConfig {
   password?: string;
 }
 
+export interface HackernewsPluginConfig {
+  feed_type: 'top' | 'best' | 'new' | 'ask' | 'show' | 'job';
+  story_count: number;
+}
+
 export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'g3mini' | 'la-cale';
 
 export interface TrackerPluginConfig {

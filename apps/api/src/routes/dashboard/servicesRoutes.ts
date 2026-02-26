@@ -2,10 +2,12 @@ import { Elysia } from 'elysia';
 import { auth } from '../../auth';
 import { buildNetdataDisabledSummary, fetchNetdataSummary } from '../../utils/dashboard/netdata';
 import { fetchScrutinySummary } from '../../utils/dashboard/scrutiny';
+import { fetchHackerNewsStories, HN_CACHE_TTL_SECONDS } from '../../utils/dashboard/hackernews';
+import type { DashboardHackerNewsResponse } from '../../utils/dashboard/hackernews';
 import { dashboardQbittorrentRoutes } from './qbittorrentRoutes';
 import { createJsonSseResponse } from '../../utils/sse';
 import { prisma } from '../../db';
-import { getJsonCache } from '../../services/cache';
+import { getJsonCache, setJsonCache } from '../../services/cache';
 import { normalizeTrackerConfig } from '../../utils/plugins/normalizers';
 import type { CachedTrackerStats } from '../../utils/dashboard/trackers';
 import { cacheKey, parseCachedTrackerStats } from '../../utils/dashboard/trackers';
@@ -188,4 +190,27 @@ export const dashboardServiceRoutes = new Elysia()
       }),
       logLabel: 'Netdata stream',
     });
+  })
+  .get('/hackernews', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      const cached = await getJsonCache<DashboardHackerNewsResponse>('dashboard:hackernews');
+      if (cached) {
+        return cached;
+      }
+
+      const result = await fetchHackerNewsStories();
+      if (result.enabled && result.stories.length > 0) {
+        await setJsonCache('dashboard:hackernews', result, HN_CACHE_TTL_SECONDS);
+      }
+      return result;
+    } catch (error) {
+      console.error('Error fetching Hacker News stories:', error);
+      set.status = 500;
+      return { error: 'Failed to get Hacker News stories' };
+    }
   });

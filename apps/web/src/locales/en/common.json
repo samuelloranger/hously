@@ -299,6 +299,25 @@
       "hideDisks": "Hide disks",
       "emptyTitle": "No disk usage data available yet."
     },
+    "hackerNews": {
+      "kicker": "From Hacker News",
+      "title": "Tech News",
+      "subtitle": "Top stories from the Hacker News community.",
+      "notEnabledTitle": "Hacker News is not enabled",
+      "notEnabledDescription": "Open Settings > Plugins and enable Hacker News to see top stories here.",
+      "emptyTitle": "No stories available right now.",
+      "points": "{{count}} pts",
+      "comments": "{{count}} comments",
+      "postedBy": "by {{author}}",
+      "feedTypes": {
+        "top": "Top",
+        "best": "Best",
+        "new": "New",
+        "ask": "Ask HN",
+        "show": "Show HN",
+        "job": "Jobs"
+      }
+    },
     "loading": "Loading dashboard...",
     "user": "User",
     "subtexts": {
@@ -916,6 +935,11 @@
       "netdata": {
         "help": "Connect Netdata to show live system metrics and per-disk usage on the dashboard.",
         "websiteUrl": "Netdata URL"
+      },
+      "hackernews": {
+        "help": "Enable Hacker News to show top tech stories on the dashboard.",
+        "feedType": "Feed Type",
+        "storyCount": "Number of Stories"
       },
       "ygg": {
         "help": "Configure YGG credentials for server-side jobs.",

@@ -376,7 +376,27 @@ export interface DashboardYggStatsResponse {
   previous_uploaded_go?: number | null;
   previous_downloaded_go?: number | null;
   previous_ratio?: number | null;
+  previous_updated_at?: string | null;
   error?: string;
 }
 
 export type DashboardTrackerStatsResponse = DashboardYggStatsResponse;
+
+export interface HackerNewsStory {
+  id: number;
+  title: string;
+  url: string | null;
+  score: number;
+  by: string;
+  time: number;
+  comment_count: number;
+  type: 'story' | 'job' | 'poll';
+}
+
+export interface DashboardHackerNewsResponse {
+  enabled: boolean;
+  stories: HackerNewsStory[];
+  feed_type: string;
+  updated_at: string;
+  error?: string;
+}

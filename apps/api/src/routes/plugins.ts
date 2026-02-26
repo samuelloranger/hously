@@ -6,6 +6,7 @@ import { nowUtc } from '../utils';
 import { normalizeQbittorrentConfig, invalidateQbittorrentPluginConfigCache } from '../services/qbittorrentService';
 import { clampInteger, isValidHttpUrl, toProfiles } from '../utils/plugins/utils';
 import {
+  normalizeHackernewsConfig,
   normalizeJellyfinConfig,
   normalizeNetdataConfig,
   normalizeRadarrConfig,
@@ -19,6 +20,7 @@ import { fetchTrackerStats } from '../jobs';
 import { enqueueTask } from '../services/backgroundQueue';
 import { logActivity } from '../utils/activityLogs';
 import { encrypt } from '../services/crypto';
+import { deleteCache } from '../services/cache';
 import type { TrackerType } from '../utils/plugins/types';
 
 type AdminUser = { id: number; is_admin: boolean };
@@ -1309,6 +1311,104 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         password: t.Optional(t.String()),
         poll_interval_seconds: t.Optional(t.Numeric()),
         max_items: t.Optional(t.Numeric()),
+        enabled: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  .get('/hackernews', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'hackernews' },
+      });
+      const config = normalizeHackernewsConfig(plugin?.config);
+
+      return {
+        plugin: {
+          type: 'hackernews',
+          enabled: plugin?.enabled || false,
+          feed_type: config?.feed_type || 'top',
+          story_count: config?.story_count || 10,
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching Hacker News plugin config:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch Hacker News plugin config' };
+    }
+  })
+  .put(
+    '/hackernews',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const validFeedTypes = ['top', 'best', 'new', 'ask', 'show', 'job'] as const;
+      const feedType = validFeedTypes.includes(body.feed_type as (typeof validFeedTypes)[number])
+        ? body.feed_type
+        : 'top';
+      const storyCount = Math.max(1, Math.min(Math.trunc(Number(body.story_count) || 10), 50));
+      const enabled = body.enabled ?? true;
+
+      try {
+        const now = nowUtc();
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'hackernews' },
+          update: {
+            enabled,
+            config: {
+              feed_type: feedType,
+              story_count: storyCount,
+            },
+            updatedAt: now,
+          },
+          create: {
+            type: 'hackernews',
+            enabled,
+            config: {
+              feed_type: feedType,
+              story_count: storyCount,
+            },
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        await deleteCache('dashboard:hackernews');
+
+        enqueueTask('activity:plugin_updated:hackernews', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'hackernews' },
+          });
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            feed_type: feedType,
+            story_count: storyCount,
+          },
+        };
+      } catch (error) {
+        console.error('Error saving Hacker News plugin config:', error);
+        set.status = 500;
+        return { error: 'Failed to save Hacker News plugin config' };
+      }
+    },
+    {
+      body: t.Object({
+        feed_type: t.String(),
+        story_count: t.Numeric(),
         enabled: t.Optional(t.Boolean()),
       }),
     }
