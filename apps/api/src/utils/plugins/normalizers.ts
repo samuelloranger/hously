@@ -1,4 +1,5 @@
 import type {
+  RedditPluginConfig,
   HackernewsPluginConfig,
   JellyfinPluginConfig,
   NetdataPluginConfig,
@@ -153,6 +154,21 @@ export const normalizeYggConfig = (config: unknown): YggPluginConfig | null => {
     username,
     password: password || undefined,
   };
+};
+
+export const normalizeRedditConfig = (config: unknown): RedditPluginConfig => {
+  const defaults: RedditPluginConfig = { subreddits: ['selfhosted', 'homelab'] };
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return defaults;
+  const cfg = config as Record<string, unknown>;
+
+  if (!Array.isArray(cfg.subreddits) || cfg.subreddits.length === 0) return defaults;
+
+  const valid = (cfg.subreddits as unknown[])
+    .filter((s): s is string => typeof s === 'string')
+    .map(s => s.replace(/^r\//, '').trim())
+    .filter(s => /^[a-zA-Z0-9_]+$/.test(s));
+
+  return { subreddits: valid.length > 0 ? valid : defaults.subreddits };
 };
 
 export const normalizeHackernewsConfig = (config: unknown): HackernewsPluginConfig | null => {

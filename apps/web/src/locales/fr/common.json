@@ -317,6 +317,17 @@
         "job": "Emplois"
       }
     },
+    "reddit": {
+      "kicker": "Depuis Reddit",
+      "title": "Fil Reddit",
+      "subtitle": "Les publications populaires de vos subreddits favoris.",
+      "emptyTitle": "Aucune publication disponible pour le moment.",
+      "points": "{{count}} pts",
+      "comments": "{{count}} commentaires",
+      "postedBy": "par u/{{author}}",
+      "viewMore": "Voir plus",
+      "modalTitle": "Publications Reddit"
+    },
     "loading": "Chargement de l'accueil...",
     "user": "Utilisateur",
     "subtexts": {
@@ -939,6 +950,12 @@
         "help": "Activez Hacker News pour afficher les histoires tech populaires sur l'accueil.",
         "feedType": "Type de flux",
         "storyCount": "Nombre d'histoires"
+      },
+      "reddit": {
+        "help": "Activez Reddit pour afficher les publications populaires de vos subreddits favoris sur l'accueil.",
+        "subreddits": "Subreddits",
+        "searchPlaceholder": "Rechercher des subreddits...",
+        "noResults": "Aucun subreddit trouvé."
       },
       "ygg": {
         "help": "Configurer les identifiants YGG pour les tâches côté serveur.",

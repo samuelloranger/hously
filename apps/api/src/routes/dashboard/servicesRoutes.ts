@@ -4,6 +4,8 @@ import { buildNetdataDisabledSummary, fetchNetdataSummary } from '../../utils/da
 import { fetchScrutinySummary } from '../../utils/dashboard/scrutiny';
 import { fetchHackerNewsStories, HN_CACHE_TTL_SECONDS } from '../../utils/dashboard/hackernews';
 import type { DashboardHackerNewsResponse } from '../../utils/dashboard/hackernews';
+import { fetchRedditPosts, REDDIT_CACHE_TTL_SECONDS } from '../../utils/dashboard/reddit';
+import type { DashboardRedditResponse } from '../../utils/dashboard/reddit';
 import { dashboardQbittorrentRoutes } from './qbittorrentRoutes';
 import { createJsonSseResponse } from '../../utils/sse';
 import { prisma } from '../../db';
@@ -212,5 +214,34 @@ export const dashboardServiceRoutes = new Elysia()
       console.error('Error fetching Hacker News stories:', error);
       set.status = 500;
       return { error: 'Failed to get Hacker News stories' };
+    }
+  })
+  .get('/reddit', async ({ user, set, query }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      const afterCursor = (query as Record<string, string | undefined>).after;
+
+      // Only cache the first page (no cursor)
+      if (!afterCursor) {
+        const cached = await getJsonCache<DashboardRedditResponse>('dashboard:reddit');
+        if (cached) {
+          return cached;
+        }
+      }
+
+      const result = await fetchRedditPosts(afterCursor || undefined);
+
+      if (!afterCursor && result.enabled && result.posts.length > 0) {
+        await setJsonCache('dashboard:reddit', result, REDDIT_CACHE_TTL_SECONDS);
+      }
+      return result;
+    } catch (error) {
+      console.error('Error fetching Reddit posts:', error);
+      set.status = 500;
+      return { error: 'Failed to get Reddit posts' };
     }
   });

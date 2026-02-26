@@ -318,6 +318,17 @@
         "job": "Jobs"
       }
     },
+    "reddit": {
+      "kicker": "From Reddit",
+      "title": "Reddit Feed",
+      "subtitle": "Hot posts from your favorite subreddits.",
+      "emptyTitle": "No posts available right now.",
+      "points": "{{count}} pts",
+      "comments": "{{count}} comments",
+      "postedBy": "by u/{{author}}",
+      "viewMore": "View more",
+      "modalTitle": "Reddit Posts"
+    },
     "loading": "Loading dashboard...",
     "user": "User",
     "subtexts": {
@@ -940,6 +951,12 @@
         "help": "Enable Hacker News to show top tech stories on the dashboard.",
         "feedType": "Feed Type",
         "storyCount": "Number of Stories"
+      },
+      "reddit": {
+        "help": "Enable Reddit to show hot posts from your favorite subreddits on the dashboard.",
+        "subreddits": "Subreddits",
+        "searchPlaceholder": "Search subreddits...",
+        "noResults": "No subreddits found."
       },
       "ygg": {
         "help": "Configure YGG credentials for server-side jobs.",

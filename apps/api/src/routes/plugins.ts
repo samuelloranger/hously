@@ -10,12 +10,14 @@ import {
   normalizeJellyfinConfig,
   normalizeNetdataConfig,
   normalizeRadarrConfig,
+  normalizeRedditConfig,
   normalizeScrutinyConfig,
   normalizeSonarrConfig,
   normalizeTmdbConfig,
   normalizeTrackerConfig,
   normalizeWeatherConfig,
 } from '../utils/plugins/normalizers';
+import { searchSubreddits } from '../utils/dashboard/reddit';
 import { fetchTrackerStats } from '../jobs';
 import { enqueueTask } from '../services/backgroundQueue';
 import { logActivity } from '../utils/activityLogs';
@@ -1412,4 +1414,118 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         enabled: t.Optional(t.Boolean()),
       }),
     }
-  );
+  )
+  .get('/reddit', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'reddit' },
+      });
+      const config = normalizeRedditConfig(plugin?.config);
+
+      return {
+        plugin: {
+          type: 'reddit',
+          enabled: plugin?.enabled || false,
+          subreddits: config.subreddits,
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching Reddit plugin config:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch Reddit plugin config' };
+    }
+  })
+  .put(
+    '/reddit',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const rawSubreddits = body.subreddits ?? [];
+      const subreddits = rawSubreddits
+        .map((s: string) => s.replace(/^r\//, '').trim())
+        .filter((s: string) => /^[a-zA-Z0-9_]+$/.test(s));
+
+      if (subreddits.length === 0) {
+        set.status = 400;
+        return { error: 'At least one valid subreddit is required' };
+      }
+
+      const enabled = body.enabled ?? true;
+
+      try {
+        const now = nowUtc();
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'reddit' },
+          update: {
+            enabled,
+            config: { subreddits },
+            updatedAt: now,
+          },
+          create: {
+            type: 'reddit',
+            enabled,
+            config: { subreddits },
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        await deleteCache('dashboard:reddit');
+
+        enqueueTask('activity:plugin_updated:reddit', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'reddit' },
+          });
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            subreddits,
+          },
+        };
+      } catch (error) {
+        console.error('Error saving Reddit plugin config:', error);
+        set.status = 500;
+        return { error: 'Failed to save Reddit plugin config' };
+      }
+    },
+    {
+      body: t.Object({
+        subreddits: t.Array(t.String()),
+        enabled: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  .get('/reddit/search', async ({ user, set, query }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const q = (query as Record<string, string | undefined>).q?.trim() || '';
+    if (q.length < 2) {
+      return { results: [] };
+    }
+
+    try {
+      const results = await searchSubreddits(q);
+      return { results };
+    } catch (error) {
+      console.error('Error searching subreddits:', error);
+      set.status = 502;
+      return { error: 'Failed to search subreddits' };
+    }
+  });

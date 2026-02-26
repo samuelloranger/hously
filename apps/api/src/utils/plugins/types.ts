@@ -42,6 +42,10 @@ export interface YggPluginConfig {
   password?: string;
 }
 
+export interface RedditPluginConfig {
+  subreddits: string[];
+}
+
 export interface HackernewsPluginConfig {
   feed_type: 'top' | 'best' | 'new' | 'ask' | 'show' | 'job';
   story_count: number;

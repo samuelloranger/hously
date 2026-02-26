@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import {
   HackernewsPluginSection,
+  RedditPluginSection,
   JellyfinPluginSection,
   NetdataPluginSection,
   QbittorrentPluginSection,
@@ -23,6 +24,7 @@ export function PluginsTab() {
       </div>
       <WeatherPluginSection />
       <HackernewsPluginSection />
+      <RedditPluginSection />
       <TmdbPluginSection />
       <JellyfinPluginSection />
       <RadarrPluginSection />

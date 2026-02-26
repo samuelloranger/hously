@@ -60,4 +60,7 @@ export const DASHBOARD_ENDPOINTS = {
   HACKERNEWS: {
     STORIES: '/api/dashboard/hackernews',
   },
+  REDDIT: {
+    POSTS: '/api/dashboard/reddit',
+  },
 } as const;

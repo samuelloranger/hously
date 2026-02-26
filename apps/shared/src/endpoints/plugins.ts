@@ -11,6 +11,8 @@ export const PLUGIN_ENDPOINTS = {
   WEATHER: '/api/plugins/weather',
   TMDB: '/api/plugins/tmdb',
   HACKERNEWS: '/api/plugins/hackernews',
+  REDDIT: '/api/plugins/reddit',
+  REDDIT_SEARCH: '/api/plugins/reddit/search',
   YGG: '/api/plugins/ygg',
   C411: '/api/plugins/c411',
   TORR9: '/api/plugins/torr9',

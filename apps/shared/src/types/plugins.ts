@@ -66,6 +66,24 @@ export interface TmdbPlugin {
   api_key: string;
 }
 
+export interface RedditPlugin {
+  type: 'reddit';
+  enabled: boolean;
+  subreddits: string[];
+}
+
+export interface RedditPluginUpdateResponse {
+  success: boolean;
+  plugin: RedditPlugin;
+}
+
+export interface RedditSubredditSearchResult {
+  name: string;
+  title: string;
+  icon: string | null;
+  subscribers: number;
+}
+
 export interface HackernewsPlugin {
   type: 'hackernews';
   enabled: boolean;

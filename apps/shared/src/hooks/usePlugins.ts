@@ -7,6 +7,9 @@ import type {
   DashboardTrackerStatsResponse,
   HackernewsPlugin,
   HackernewsPluginUpdateResponse,
+  RedditPlugin,
+  RedditPluginUpdateResponse,
+  RedditSubredditSearchResult,
   JellyfinPlugin,
   JellyfinPluginUpdateResponse,
   NetdataPlugin,
@@ -421,5 +424,45 @@ export function useSonarrProfiles() {
         method: 'POST',
         body: data,
       }),
+  });
+}
+
+export function useRedditPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.reddit(),
+    queryFn: () => fetcher<{ plugin: RedditPlugin }>(PLUGIN_ENDPOINTS.REDDIT),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useUpdateRedditPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { subreddits: string[]; enabled: boolean }) =>
+      fetcher<RedditPluginUpdateResponse>(PLUGIN_ENDPOINTS.REDDIT, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.reddit() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.reddit() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.redditInfinite() });
+    },
+  });
+}
+
+export function useSearchSubreddits(query: string) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: ['subreddit-search', query] as const,
+    queryFn: () =>
+      fetcher<{ results: RedditSubredditSearchResult[] }>(
+        `${PLUGIN_ENDPOINTS.REDDIT_SEARCH}?q=${encodeURIComponent(query)}`
+      ),
+    enabled: query.length >= 2,
+    staleTime: 30 * 1000,
   });
 }
