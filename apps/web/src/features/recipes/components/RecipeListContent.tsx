@@ -149,7 +149,7 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
           <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">
             {hasActiveFilters
               ? t('recipes.tryDifferentFilter', 'Try adjusting your filters or search')
-              : t('recipes.startAdding', 'Start adding your favorite family recipes')}
+              : t('recipes.startAdding', 'Start adding your favorite recipes')}
           </p>
           {!hasActiveFilters && (
             <button

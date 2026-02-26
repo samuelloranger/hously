@@ -1,7 +1,7 @@
 {
   "name": "Hously",
   "short_name": "Hously",
-  "description": "Your family's utility app for managing shopping lists, chores and events",
+  "description": "Self-hosted command center for homelab enthusiasts",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f9fafb",

@@ -108,33 +108,30 @@ export async function createAndQueueNotification(
 
     if (pushTokens.length > 0) {
       const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
-      
+
       const unreadCount = await prisma.notification.count({
         where: { userId, read: false },
       });
 
       // Handle iOS (APNs) Tokens
       if (iosTokens.length > 0) {
-        const { successCount, invalidTokens } = await sendApnNotifications(
-          iosTokens,
-          {
-            title,
-            body,
-            data: {
-              url,
-              notification_type: notificationType,
-              notification_id: notification.id,
-              ...metadata,
-            },
-            channelId:
-              notificationType === 'reminder'
-                ? 'chore-reminders'
-                : notificationType === 'custom_event'
-                  ? 'calendar-events'
-                  : 'default',
-            badge: unreadCount,
-          }
-        );
+        const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
+          title,
+          body,
+          data: {
+            url,
+            notification_type: notificationType,
+            notification_id: notification.id,
+            ...metadata,
+          },
+          channelId:
+            notificationType === 'reminder'
+              ? 'chore-reminders'
+              : notificationType === 'custom_event'
+                ? 'calendar-events'
+                : 'default',
+          badge: unreadCount,
+        });
 
         if (successCount > 0) {
           console.log(`Sent ${successCount} APNs push notifications for user ${userId}`);
@@ -159,7 +156,7 @@ export async function createAndQueueNotification(
 }
 
 /**
- * Get all users (for sending notifications to all household members)
+ * Get all users (for sending broadcast notifications)
  */
 export async function getAllUsers(): Promise<Array<{ id: number; locale: string | null }>> {
   return prisma.user.findMany({

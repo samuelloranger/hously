@@ -424,7 +424,7 @@
   },
   "shopping": {
     "title": "Shopping List",
-    "subtitle": "Manage your family shopping list together.",
+    "subtitle": "Manage your shared shopping list.",
     "addNewItem": "Add New Item",
     "placeholder": "What do you need to buy?",
     "addItem": "Add Item",
@@ -456,7 +456,7 @@
   },
   "chores": {
     "title": "Chores",
-    "subtitle": "Keep track of household chores and responsibilities.",
+    "subtitle": "Keep track of chores and responsibilities.",
     "addNewChore": "Add Chore",
     "choreName": "Chore Name *",
     "choreNamePlaceholder": "e.g., Vacuum living room",
@@ -565,7 +565,7 @@
     "refresh": "Refresh",
     "refreshing": "Refreshing...",
     "personalInsights": "Personal Insights",
-    "trackYourProgress": "Track your household progress and productivity",
+    "trackYourProgress": "Track your progress and productivity",
     "thisWeek": "This Week",
     "avgPerDay": "avg/day",
     "noData": "No data",
@@ -707,7 +707,7 @@
         "instructions": "Copy the URL and add it as a calendar subscription, or click \"Open in Calendar\" to add it automatically."
       },
       "comingSoon": "More Features Coming Soon",
-      "comingSoonDescription": "We're working on more calendar features to help your household stay in sync.",
+      "comingSoonDescription": "We're working on more calendar features to help you stay in sync.",
       "features": {
         "reminders": "Custom reminder preferences",
         "availability": "Availability & working hours"
@@ -1394,12 +1394,12 @@
   },
   "recipes": {
     "title": "Recipes",
-    "subtitle": "Store and manage your family recipes",
+    "subtitle": "Store and manage your recipes",
     "loading": "Loading recipes...",
     "loadingRecipe": "Loading recipe...",
     "noRecipes": "No recipes yet",
     "noRecipesFiltered": "No recipes found",
-    "startAdding": "Start adding your favorite family recipes",
+    "startAdding": "Start adding your favorite recipes",
     "tryDifferentFilter": "Try adjusting your filters or search",
     "searchPlaceholder": "Search recipes...",
     "addRecipe": "Add Recipe",
