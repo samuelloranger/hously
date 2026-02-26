@@ -892,6 +892,10 @@
     "plugins": {
       "title": "Plugins",
       "description": "Connectez des plugins tiers utilisés par le tableau de bord.",
+      "tabs": {
+        "plugins": "Plugins",
+        "trackers": "Trackers"
+      },
       "enabled": "Activé",
       "save": "Enregistrer le plugin",
       "saveSuccess": "Plugin enregistré avec succès",

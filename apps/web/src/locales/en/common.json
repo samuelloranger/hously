@@ -893,6 +893,10 @@
     "plugins": {
       "title": "Plugins",
       "description": "Connect third-party plugins used by the dashboard.",
+      "tabs": {
+        "plugins": "Plugins",
+        "trackers": "Trackers"
+      },
       "enabled": "Enabled",
       "save": "Save Plugin",
       "saveSuccess": "Plugin saved successfully",
