@@ -79,7 +79,7 @@ export function MediaPosterCard({
           loading="lazy"
           aria-hidden="true"
           onError={() => setImageError(true)}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+          className="absolute inset-0 h-full w-full object-cover will-change-transform transition-transform duration-300 ease-out group-hover:scale-105"
         />
       )}
 
