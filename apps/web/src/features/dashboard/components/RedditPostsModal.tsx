@@ -1,4 +1,3 @@
-import { useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardRedditInfinite } from '@hously/shared';
 import { Dialog } from '../../../components/dialog';
@@ -27,26 +26,6 @@ interface RedditPostsModalProps {
 export function RedditPostsModal({ isOpen, onClose }: RedditPostsModalProps) {
   const { t } = useTranslation('common');
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useDashboardRedditInfinite();
-
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  const handleIntersect = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
-      }
-    },
-    [fetchNextPage, hasNextPage, isFetchingNextPage]
-  );
-
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el || !isOpen) return;
-
-    const observer = new IntersectionObserver(handleIntersect, { rootMargin: '200px' });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [isOpen, handleIntersect]);
 
   const posts = data?.pages.flatMap((p) => p.posts) ?? [];
 
@@ -87,13 +66,15 @@ export function RedditPostsModal({ isOpen, onClose }: RedditPostsModalProps) {
           </a>
         ))}
 
-        {/* Sentinel for infinite scroll */}
-        <div ref={sentinelRef} className="h-1" />
-
-        {isFetchingNextPage && (
-          <div className="flex justify-center py-4">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-300 dark:border-neutral-600 border-t-neutral-600 dark:border-t-neutral-300" />
-          </div>
+        {hasNextPage && (
+          <button
+            type="button"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="w-full mt-2 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors disabled:opacity-50"
+          >
+            {isFetchingNextPage ? t('common.loading') : t('dashboard.reddit.viewMore')}
+          </button>
         )}
       </div>
     </Dialog>
