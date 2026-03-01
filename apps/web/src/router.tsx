@@ -48,7 +48,8 @@ const Notifications = cachedLazy('notifications', () =>
   import('./routes/notifications').then(m => ({ default: m.Notifications }))
 );
 const KitchenPage = cachedLazy('kitchen', () => import('./features/recipes').then(m => ({ default: m.KitchenPage })));
-const MediasPage = cachedLazy('medias', () => import('./features/medias').then(m => ({ default: m.MediasPage })));
+const ExplorePage = cachedLazy('explore', () => import('./features/medias').then(m => ({ default: m.ExplorePage })));
+const LibraryPage = cachedLazy('library', () => import('./features/medias').then(m => ({ default: m.LibraryPage })));
 const RecipeDetail = cachedLazy('recipeDetail', () =>
   import('./features/recipes').then(m => ({ default: m.RecipeDetail }))
 );
@@ -81,7 +82,7 @@ const requireAuth = async () => {
     }
     return { user };
   } catch (e: any) {
-    // If it's a 429, don't redirect to login. 
+    // If it's a 429, don't redirect to login.
     // This allows the user to stay on the page and see the toast error.
     if (e?.status === 429) {
       return { user: null };
@@ -239,13 +240,23 @@ const torrentsRoute = createRoute({
   },
 });
 
-const mediasRoute = createRoute({
+const exploreRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/medias',
-  component: MediasPage,
+  path: '/explore',
+  component: ExplorePage,
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
-    await prefetchRouteData(context.queryClient, '/medias');
+    await prefetchRouteData(context.queryClient, '/explore');
+  },
+});
+
+const libraryRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/library',
+  component: LibraryPage,
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/library');
   },
 });
 
@@ -274,7 +285,8 @@ const routeTree = rootRoute.addChildren([
   privacyRoute,
   termsRoute,
   torrentsRoute,
-  mediasRoute,
+  exploreRoute,
+  libraryRoute,
   torrentDetailRoute,
 ]);
 

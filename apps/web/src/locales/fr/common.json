@@ -5,7 +5,8 @@
     "chores": "Tâches",
     "recipes": "Recettes",
     "kitchen": "Cuisine",
-    "medias": "Médias",
+    "explore": "Découvrir",
+    "library": "Bibliothèque",
     "torrents": "Torrents",
     "tracker": "Péremption",
     "calendar": "Calendrier",
@@ -1285,7 +1286,13 @@
       "explore": "Découvrir",
       "library": "Bibliothèque"
     },
+    "library": {
+      "pageTitle": "Bibliothèque",
+      "pageSubtitle": "Bibliothèque fusionnée Radarr et Sonarr"
+    },
     "explore": {
+      "pageTitle": "Découvrir",
+      "pageSubtitle": "Découvrez de nouveaux films et séries TV",
       "trending": "Tendances",
       "popularMovies": "Films populaires",
       "popularShows": "Séries populaires",

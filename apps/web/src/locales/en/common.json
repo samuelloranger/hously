@@ -5,7 +5,8 @@
     "chores": "Chores",
     "recipes": "Recipes",
     "kitchen": "Kitchen",
-    "medias": "Medias",
+    "explore": "Explore",
+    "library": "Library",
     "torrents": "Torrents",
     "tracker": "Tracker",
     "calendar": "Calendar",
@@ -1241,7 +1242,13 @@
       "explore": "Explore",
       "library": "Library"
     },
+    "library": {
+      "pageTitle": "Library",
+      "pageSubtitle": "Merged Radarr and Sonarr library"
+    },
     "explore": {
+      "pageTitle": "Explore",
+      "pageSubtitle": "Discover new movies and TV shows",
       "trending": "Trending",
       "popularMovies": "Popular Movies",
       "popularShows": "Popular TV Shows",

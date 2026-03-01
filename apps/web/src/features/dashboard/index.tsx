@@ -86,10 +86,10 @@ export function Dashboard() {
           >
             <TrackerStatsCard />
           </div>
-          <div onMouseEnter={() => prefetchRoute('/medias')} onTouchStart={() => prefetchRoute('/medias')}>
+          <div onMouseEnter={() => prefetchRoute('/library')} onTouchStart={() => prefetchRoute('/library')}>
             <JellyfinLatestShelf />
           </div>
-          <div onMouseEnter={() => prefetchRoute('/medias')} onTouchStart={() => prefetchRoute('/medias')}>
+          <div onMouseEnter={() => prefetchRoute('/library')} onTouchStart={() => prefetchRoute('/library')}>
             <UpcomingShelf />
           </div>
           <div

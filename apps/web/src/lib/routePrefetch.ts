@@ -55,10 +55,6 @@ const routeQueryDefinitions = {
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
     },
     {
-      queryKey: queryKeys.dashboard.jellyfinLatestInfinite(10),
-      queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=10&page=1`),
-    },
-    {
       queryKey: queryKeys.plugins.radarr(),
       queryFn: () => webFetcher(PLUGIN_ENDPOINTS.RADARR),
     },
@@ -148,7 +144,14 @@ const routeQueryDefinitions = {
     },
   ],
 
-  '/medias': () => [
+  '/explore': () => [
+    {
+      queryKey: queryKeys.medias.explore(),
+      queryFn: () => webFetcher(`${MEDIAS_ENDPOINTS.EXPLORE}?language=en`),
+    },
+  ],
+
+  '/library': () => [
     {
       queryKey: queryKeys.medias.list(),
       queryFn: () => webFetcher(MEDIAS_ENDPOINTS.LIST),
@@ -205,7 +208,10 @@ const routeQueryDefinitions = {
       queries.push({ queryKey: queryKeys.plugins.jellyfin(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.JELLYFIN) });
       queries.push({ queryKey: queryKeys.plugins.radarr(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.RADARR) });
       queries.push({ queryKey: queryKeys.plugins.sonarr(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SONARR) });
-      queries.push({ queryKey: queryKeys.plugins.qbittorrent(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.QBITTORRENT) });
+      queries.push({
+        queryKey: queryKeys.plugins.qbittorrent(),
+        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.QBITTORRENT),
+      });
       queries.push({ queryKey: queryKeys.plugins.scrutiny(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SCRUTINY) });
       queries.push({ queryKey: queryKeys.plugins.netdata(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.NETDATA) });
       queries.push({ queryKey: queryKeys.plugins.tracker('ygg'), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.YGG) });
@@ -225,11 +231,7 @@ const routeQueryDefinitions = {
 /**
  * Generic helper to prefetch queries for a route using ensureQueryData
  */
-async function prefetchQueriesForRoute(
-  queryClient: QueryClient,
-  routeId: string,
-  params: any = {}
-): Promise<void> {
+async function prefetchQueriesForRoute(queryClient: QueryClient, routeId: string, params: any = {}): Promise<void> {
   const queryDef = (routeQueryDefinitions as any)[routeId];
   if (!queryDef) return;
 
@@ -241,11 +243,7 @@ async function prefetchQueriesForRoute(
  * Prefetch data for a route
  * Used by router loaders - uses ensureQueryData (waits for data)
  */
-export async function prefetchRouteData(
-  queryClient: QueryClient,
-  routeId: string,
-  params: any = {}
-): Promise<void> {
+export async function prefetchRouteData(queryClient: QueryClient, routeId: string, params: any = {}): Promise<void> {
   await prefetchQueriesForRoute(queryClient, routeId, params);
 }
 
@@ -253,11 +251,7 @@ export async function prefetchRouteData(
  * Optimistically prefetch data for a route (fire and forget)
  * Used by hover prefetching - uses prefetchQuery (non-blocking)
  */
-export function prefetchRouteDataOptimistic(
-  queryClient: QueryClient,
-  routeId: string,
-  params: any = {}
-): void {
+export function prefetchRouteDataOptimistic(queryClient: QueryClient, routeId: string, params: any = {}): void {
   // Normalize routeId
   const normalizedRouteId = routeId === '/dashboard' ? '/' : routeId;
 
