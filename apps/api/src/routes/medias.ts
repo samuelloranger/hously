@@ -1057,7 +1057,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       const language = typedQuery.language || 'en-US';
 
       try {
-        const cacheKey = `medias:similar:${mediaType}:${tmdbId}:${language}`;
+        const cacheKey = `medias:recommendations:${mediaType}:${tmdbId}:${language}`;
         const cached = await getJsonCache<TmdbSearchItem[]>(cacheKey);
         if (cached) {
           return { items: cached };
@@ -1078,7 +1078,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
         const radarrConfig = radarrPlugin?.enabled ? normalizeRadarrConfig(radarrPlugin.config) : null;
         const sonarrConfig = sonarrPlugin?.enabled ? normalizeSonarrConfig(sonarrPlugin.config) : null;
 
-        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/similar`);
+        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/recommendations`);
         url.searchParams.set('api_key', tmdbConfig.api_key);
         url.searchParams.set('language', language);
         const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
@@ -1088,7 +1088,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
           if (Array.isArray(data.results)) rawResults.push(...data.results);
         }
 
-        // Inject media_type since /similar doesn't include it
+        // Inject media_type for consistency (recommendations may not always include it)
         const withType = rawResults.map(item =>
           typeof item === 'object' && item !== null ? { ...item, media_type: mediaType } : item
         );
@@ -1132,7 +1132,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
               arr_url,
             };
           })
-          .slice(0, 20);
+          .slice(0, 40);
 
         await setJsonCache(cacheKey, items, 60 * 60); // 1 hour
         return { items };
