@@ -92,12 +92,12 @@ export async function sendLiveActivityStartPush(
       event: 'start',
       'content-state': payload.contentState,
       'attributes-type': 'HabitActivityAttributes',
+      attributes: payload.attributes,
       alert: {
         title: `${payload.attributes.emoji} ${payload.attributes.name}`,
         body: 'Time for your habit!',
       },
     },
-    attributes: payload.attributes,
   };
 
   try {
