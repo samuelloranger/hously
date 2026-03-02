@@ -39,6 +39,7 @@ model User {
   refreshTokens          RefreshToken[]
   pushTokens             PushToken[]
   habits                 Habit[]
+  liveActivityTokens     LiveActivityToken[]
 
   @@map("users")
 }
@@ -341,6 +342,20 @@ model PushToken {
 
   @@index([userId], map: "ix_push_tokens_user_id")
   @@map("push_tokens")
+}
+
+model LiveActivityToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  token     String    @unique(map: "ix_live_activity_tokens_token")
+  platform  String    @default("ios")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "ix_live_activity_tokens_user_id")
+  @@map("live_activity_tokens")
 }
 
 model Habit {
