@@ -143,10 +143,13 @@ async function sendLiveActivityPushes(now: Date, tz: string, startOfToday: Date)
 
       if (laTokens.length === 0) continue;
 
-      // Calculate the scheduled time as a Unix timestamp
+      // Calculate the scheduled time as timeIntervalSinceReferenceDate
+      // (seconds since Jan 1 2001, which is what Swift's Date uses by default)
+      const APPLE_REFERENCE_DATE = Date.UTC(2001, 0, 1); // Jan 1, 2001 UTC in ms
       const [hours, minutes] = schedule.time.split(':').map(Number);
       const scheduledDate = new Date(startOfToday);
       scheduledDate.setHours(hours, minutes, 0, 0);
+      const scheduledTimeApple = (scheduledDate.getTime() - APPLE_REFERENCE_DATE) / 1000;
 
       const { successCount, invalidTokens } = await sendLiveActivityStartPush(
         laTokens.map(t => t.token),
@@ -159,7 +162,7 @@ async function sendLiveActivityPushes(now: Date, tz: string, startOfToday: Date)
           },
           contentState: {
             completions: todayCompletions,
-            scheduledTime: Math.floor(scheduledDate.getTime() / 1000),
+            scheduledTime: scheduledTimeApple,
           },
         }
       );
