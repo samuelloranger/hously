@@ -58,4 +58,10 @@ export const DASHBOARD_ENDPOINTS = {
     STREAM: '/api/dashboard/netdata/stream',
   },
   WEATHER: '/api/dashboard/weather',
+  HACKERNEWS: {
+    STORIES: '/api/dashboard/hackernews',
+  },
+  REDDIT: {
+    POSTS: '/api/dashboard/reddit',
+  },
 } as const;

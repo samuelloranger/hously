@@ -46,7 +46,7 @@ export function RecipeList() {
         icon="🍽️"
         iconColor="text-orange-600"
         title={t('recipes.title', 'Recipes')}
-        subtitle={t('recipes.subtitle', 'Store and manage your family recipes')}
+        subtitle={t('recipes.subtitle', 'Store and manage your recipes')}
         onRefresh={refetch}
         isRefreshing={isFetching}
       />
@@ -132,7 +132,7 @@ export function RecipeList() {
           <p className="text-neutral-600 dark:text-neutral-400 mb-6 max-w-md mx-auto">
             {searchQuery || selectedCategory || showFavoritesOnly
               ? t('recipes.tryDifferentFilter', 'Try adjusting your filters or search')
-              : t('recipes.startAdding', 'Start adding your favorite family recipes')}
+              : t('recipes.startAdding', 'Start adding your favorite recipes')}
           </p>
         </div>
       )}

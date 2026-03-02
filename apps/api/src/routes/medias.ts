@@ -921,6 +921,118 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       return { error: 'Failed to fetch TMDB explore' };
     }
   })
+  .get('/explore/:category', async ({ user, set, params, query }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const categoryPaths: Record<string, { path: string; type?: 'movie' | 'tv' }> = {
+      trending: { path: 'trending/all/day' },
+      popular_movies: { path: 'movie/popular', type: 'movie' },
+      popular_shows: { path: 'tv/popular', type: 'tv' },
+      upcoming_movies: { path: 'movie/upcoming', type: 'movie' },
+      now_playing: { path: 'movie/now_playing', type: 'movie' },
+      airing_today: { path: 'tv/airing_today', type: 'tv' },
+      on_the_air: { path: 'tv/on_the_air', type: 'tv' },
+      top_rated_movies: { path: 'movie/top_rated', type: 'movie' },
+      top_rated_shows: { path: 'tv/top_rated', type: 'tv' },
+    };
+
+    const category = (params as Record<string, string>).category;
+    const config = categoryPaths[category];
+    if (!config) {
+      set.status = 400;
+      return { error: `Unknown category: ${category}` };
+    }
+
+    try {
+      const [tmdbPlugin, radarrPlugin, sonarrPlugin] = await Promise.all([
+        prisma.plugin.findFirst({ where: { type: 'tmdb' }, select: { enabled: true, config: true } }),
+        prisma.plugin.findFirst({ where: { type: 'radarr' }, select: { enabled: true, config: true } }),
+        prisma.plugin.findFirst({ where: { type: 'sonarr' }, select: { enabled: true, config: true } }),
+      ]);
+
+      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      if (!tmdbConfig) {
+        set.status = 400;
+        return { error: 'TMDB is not configured' };
+      }
+
+      const radarrConfig = radarrPlugin?.enabled ? normalizeRadarrConfig(radarrPlugin.config) : null;
+      const sonarrConfig = sonarrPlugin?.enabled ? normalizeSonarrConfig(sonarrPlugin.config) : null;
+
+      const q = query as Record<string, string | undefined>;
+      const language = q.language || 'en-US';
+      const page = parseInt(q.page || '1', 10);
+
+      const url = new URL(`https://api.themoviedb.org/3/${config.path}`);
+      url.searchParams.set('api_key', tmdbConfig.api_key);
+      url.searchParams.set('language', language);
+      url.searchParams.set('page', String(page));
+
+      const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+      if (!res.ok) {
+        set.status = 502;
+        return { error: 'TMDB request failed' };
+      }
+
+      const data = (await res.json()) as Record<string, unknown>;
+      let items = Array.isArray(data.results) ? data.results : [];
+
+      if (config.type) {
+        items = items.map(item =>
+          typeof item === 'object' && item !== null ? { ...item, media_type: config.type } : item
+        );
+      }
+
+      const [radarrIds, sonarrIds] = await Promise.all([
+        radarrConfig
+          ? fetchRadarrTmdbIds(radarrConfig.website_url, radarrConfig.api_key).catch(() => new Map())
+          : Promise.resolve(new Map()),
+        sonarrConfig
+          ? fetchSonarrTmdbIds(sonarrConfig.website_url, sonarrConfig.api_key).catch(() => new Map())
+          : Promise.resolve(new Map()),
+      ]);
+
+      const normalized = items
+        .map(mapTmdbSearchItem)
+        .filter((item): item is TmdbSearchItem => Boolean(item))
+        .map(item => {
+          const isMovie = item.media_type === 'movie';
+          const entry = isMovie ? radarrIds.get(item.tmdb_id) : sonarrIds.get(item.tmdb_id);
+          const sourceId = entry?.sourceId ?? null;
+          const sourceBaseUrl = isMovie ? radarrConfig?.website_url : sonarrConfig?.website_url;
+
+          let arr_url: string | null = null;
+          if (sourceBaseUrl && entry) {
+            if (isMovie) {
+              arr_url = buildArrItemUrl(sourceBaseUrl, 'radarr', String(item.tmdb_id));
+            } else if (entry.titleSlug) {
+              arr_url = buildArrItemUrl(sourceBaseUrl, 'sonarr', entry.titleSlug);
+            }
+          }
+
+          return {
+            ...item,
+            already_exists: isMovie ? radarrIds.has(item.tmdb_id) : sonarrIds.has(item.tmdb_id),
+            can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
+            source_id: sourceId,
+            arr_url,
+          };
+        });
+
+      return {
+        items: normalized,
+        page,
+        total_pages: typeof data.total_pages === 'number' ? data.total_pages : 1,
+      };
+    } catch (error) {
+      console.error('Error fetching explore category:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch category' };
+    }
+  })
   .get(
     '/similar/:tmdbId',
     async ({ user, set, params, query: queryParams }) => {
@@ -945,7 +1057,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       const language = typedQuery.language || 'en-US';
 
       try {
-        const cacheKey = `medias:similar:${mediaType}:${tmdbId}:${language}`;
+        const cacheKey = `medias:recommendations:${mediaType}:${tmdbId}:${language}`;
         const cached = await getJsonCache<TmdbSearchItem[]>(cacheKey);
         if (cached) {
           return { items: cached };
@@ -966,7 +1078,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
         const radarrConfig = radarrPlugin?.enabled ? normalizeRadarrConfig(radarrPlugin.config) : null;
         const sonarrConfig = sonarrPlugin?.enabled ? normalizeSonarrConfig(sonarrPlugin.config) : null;
 
-        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/similar`);
+        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/recommendations`);
         url.searchParams.set('api_key', tmdbConfig.api_key);
         url.searchParams.set('language', language);
         const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
@@ -976,7 +1088,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
           if (Array.isArray(data.results)) rawResults.push(...data.results);
         }
 
-        // Inject media_type since /similar doesn't include it
+        // Inject media_type for consistency (recommendations may not always include it)
         const withType = rawResults.map(item =>
           typeof item === 'object' && item !== null ? { ...item, media_type: mediaType } : item
         );
@@ -1020,7 +1132,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
               arr_url,
             };
           })
-          .slice(0, 20);
+          .slice(0, 40);
 
         await setJsonCache(cacheKey, items, 60 * 60); // 1 hour
         return { items };
@@ -1103,7 +1215,9 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
 
         const result: TmdbWatchProvidersResult = {
           region,
-          streaming: regionData ? mapProviders(Array.isArray(regionData.flatrate) ? (regionData.flatrate as unknown[]) : []) : [],
+          streaming: regionData
+            ? mapProviders(Array.isArray(regionData.flatrate) ? (regionData.flatrate as unknown[]) : [])
+            : [],
           free: regionData ? mapProviders(Array.isArray(regionData.free) ? (regionData.free as unknown[]) : []) : [],
           rent: regionData ? mapProviders(Array.isArray(regionData.rent) ? (regionData.rent as unknown[]) : []) : [],
           buy: regionData ? mapProviders(Array.isArray(regionData.buy) ? (regionData.buy as unknown[]) : []) : [],
@@ -1229,7 +1343,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
   )
   .get(
     '/:service/:sourceId/interactive-search',
-    async ({ user, set, params }) => {
+    async ({ user, set, params, query }) => {
       if (!user) {
         set.status = 401;
         return { error: 'Unauthorized' };
@@ -1237,6 +1351,7 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
 
       const service = params.service === 'radarr' || params.service === 'sonarr' ? params.service : null;
       const sourceId = parseInt(params.sourceId, 10);
+      const seasonNumber = query.season ? parseInt(query.season, 10) : null;
 
       if (!service) {
         set.status = 400;
@@ -1303,6 +1418,9 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
 
         const url = new URL('/api/v3/release', config.website_url);
         url.searchParams.set('seriesId', String(sourceId));
+        if (seasonNumber !== null && Number.isFinite(seasonNumber) && seasonNumber >= 0) {
+          url.searchParams.set('seasonNumber', String(seasonNumber));
+        }
         const releaseRes = await fetch(url.toString(), {
           headers: {
             'X-Api-Key': config.api_key,
@@ -1316,11 +1434,12 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
         }
 
         const releases = (await releaseRes.json()) as unknown[];
-        const fullSeasonReleases = releases.filter(isSonarrFullSeasonRelease);
+        // When searching by season, return all releases; otherwise only full season packs
+        const filtered = seasonNumber !== null ? releases : releases.filter(isSonarrFullSeasonRelease);
         return {
           success: true,
           service: 'sonarr' as const,
-          releases: fullSeasonReleases
+          releases: filtered
             .map(mapInteractiveRelease)
             .filter((r): r is InteractiveReleaseItem => Boolean(r)),
         };
@@ -1334,6 +1453,9 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       params: t.Object({
         service: t.String(),
         sourceId: t.String(),
+      }),
+      query: t.Object({
+        season: t.Optional(t.String()),
       }),
     }
   )

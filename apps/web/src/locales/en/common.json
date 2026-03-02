@@ -5,7 +5,8 @@
     "chores": "Chores",
     "recipes": "Recipes",
     "kitchen": "Kitchen",
-    "medias": "Medias",
+    "explore": "Explore",
+    "library": "Library",
     "torrents": "Torrents",
     "tracker": "Tracker",
     "calendar": "Calendar",
@@ -299,6 +300,36 @@
       "hideDisks": "Hide disks",
       "emptyTitle": "No disk usage data available yet."
     },
+    "hackerNews": {
+      "kicker": "From Hacker News",
+      "title": "Tech News",
+      "subtitle": "Top stories from the Hacker News community.",
+      "notEnabledTitle": "Hacker News is not enabled",
+      "notEnabledDescription": "Open Settings > Plugins and enable Hacker News to see top stories here.",
+      "emptyTitle": "No stories available right now.",
+      "points": "{{count}} pts",
+      "comments": "{{count}} comments",
+      "postedBy": "by {{author}}",
+      "feedTypes": {
+        "top": "Top",
+        "best": "Best",
+        "new": "New",
+        "ask": "Ask HN",
+        "show": "Show HN",
+        "job": "Jobs"
+      }
+    },
+    "reddit": {
+      "kicker": "From Reddit",
+      "title": "Reddit Feed",
+      "subtitle": "Hot posts from your favorite subreddits.",
+      "emptyTitle": "No posts available right now.",
+      "points": "{{count}} pts",
+      "comments": "{{count}} comments",
+      "postedBy": "by u/{{author}}",
+      "viewMore": "View more",
+      "modalTitle": "Reddit Posts"
+    },
     "loading": "Loading dashboard...",
     "user": "User",
     "subtexts": {
@@ -424,7 +455,7 @@
   },
   "shopping": {
     "title": "Shopping List",
-    "subtitle": "Manage your family shopping list together.",
+    "subtitle": "Manage your shared shopping list.",
     "addNewItem": "Add New Item",
     "placeholder": "What do you need to buy?",
     "addItem": "Add Item",
@@ -456,7 +487,7 @@
   },
   "chores": {
     "title": "Chores",
-    "subtitle": "Keep track of household chores and responsibilities.",
+    "subtitle": "Keep track of chores and responsibilities.",
     "addNewChore": "Add Chore",
     "choreName": "Chore Name *",
     "choreNamePlaceholder": "e.g., Vacuum living room",
@@ -565,7 +596,7 @@
     "refresh": "Refresh",
     "refreshing": "Refreshing...",
     "personalInsights": "Personal Insights",
-    "trackYourProgress": "Track your household progress and productivity",
+    "trackYourProgress": "Track your progress and productivity",
     "thisWeek": "This Week",
     "avgPerDay": "avg/day",
     "noData": "No data",
@@ -629,6 +660,39 @@
       "chore": "Chores",
       "shopping": "Shopping"
     }
+  },
+  "habits": {
+    "title": "Habits",
+    "subtitle": "Track your daily habits",
+    "addHabit": "Add Habit",
+    "editHabit": "Edit Habit",
+    "deleteHabit": "Delete Habit",
+    "deleteConfirm": "Are you sure you want to delete this habit?",
+    "name": "Name",
+    "namePlaceholder": "e.g. Drink water",
+    "emoji": "Emoji",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional details...",
+    "timesPerDay": "Times per day",
+    "scheduleTimes": "Notification times",
+    "addTime": "Add time",
+    "streak": "{{count}} day streak",
+    "streakDays": "days",
+    "completed": "Completed",
+    "completedForToday": "All done for today!",
+    "progress": "{{current}}/{{target}}",
+    "noHabits": "No habits yet",
+    "addFirstHabit": "Create your first habit to start tracking",
+    "habitCreated": "Habit created",
+    "habitUpdated": "Habit updated",
+    "habitDeleted": "Habit deleted",
+    "completionRecorded": "Completion recorded",
+    "completionUndone": "Completion undone",
+    "nameRequired": "Name is required",
+    "emojiRequired": "Please select an emoji",
+    "scheduleRequired": "At least one notification time is required",
+    "active": "Active",
+    "inactive": "Paused"
   },
   "emotion": {
     "howDidYouFeel": "How did you feel?",
@@ -707,7 +771,7 @@
         "instructions": "Copy the URL and add it as a calendar subscription, or click \"Open in Calendar\" to add it automatically."
       },
       "comingSoon": "More Features Coming Soon",
-      "comingSoonDescription": "We're working on more calendar features to help your household stay in sync.",
+      "comingSoonDescription": "We're working on more calendar features to help you stay in sync.",
       "features": {
         "reminders": "Custom reminder preferences",
         "availability": "Availability & working hours"
@@ -863,6 +927,10 @@
     "plugins": {
       "title": "Plugins",
       "description": "Connect third-party plugins used by the dashboard.",
+      "tabs": {
+        "plugins": "Plugins",
+        "trackers": "Trackers"
+      },
       "enabled": "Enabled",
       "save": "Save Plugin",
       "saveSuccess": "Plugin saved successfully",
@@ -916,6 +984,17 @@
       "netdata": {
         "help": "Connect Netdata to show live system metrics and per-disk usage on the dashboard.",
         "websiteUrl": "Netdata URL"
+      },
+      "hackernews": {
+        "help": "Enable Hacker News to show top tech stories on the dashboard.",
+        "feedType": "Feed Type",
+        "storyCount": "Number of Stories"
+      },
+      "reddit": {
+        "help": "Enable Reddit to show hot posts from your favorite subreddits on the dashboard.",
+        "subreddits": "Subreddits",
+        "searchPlaceholder": "Search subreddits...",
+        "noResults": "No subreddits found."
       },
       "ygg": {
         "help": "Configure YGG credentials for server-side jobs.",
@@ -1196,7 +1275,13 @@
       "explore": "Explore",
       "library": "Library"
     },
+    "library": {
+      "pageTitle": "Library",
+      "pageSubtitle": "Merged Radarr and Sonarr library"
+    },
     "explore": {
+      "pageTitle": "Explore",
+      "pageSubtitle": "Discover new movies and TV shows",
       "trending": "Trending",
       "popularMovies": "Popular Movies",
       "popularShows": "Popular TV Shows",
@@ -1394,12 +1479,12 @@
   },
   "recipes": {
     "title": "Recipes",
-    "subtitle": "Store and manage your family recipes",
+    "subtitle": "Store and manage your recipes",
     "loading": "Loading recipes...",
     "loadingRecipe": "Loading recipe...",
     "noRecipes": "No recipes yet",
     "noRecipesFiltered": "No recipes found",
-    "startAdding": "Start adding your favorite family recipes",
+    "startAdding": "Start adding your favorite recipes",
     "tryDifferentFilter": "Try adjusting your filters or search",
     "searchPlaceholder": "Search recipes...",
     "addRecipe": "Add Recipe",

@@ -19,19 +19,12 @@ export function BottomNav() {
   const prefetchRoute = usePrefetchRoute();
 
   const navItems: NavItem[] = [
-    {
-      path: '/',
-      translationKey: 'nav.dashboard',
-      icon: '📊',
-    },
-    {
-      path: '/shopping',
-      translationKey: 'nav.shopping',
-      icon: '🛒',
-    },
+    { path: '/', translationKey: 'nav.dashboard', icon: '📊' },
+    { path: '/shopping', translationKey: 'nav.shopping', icon: '🛒' },
     { path: '/chores', translationKey: 'nav.chores', icon: '✅' },
     { path: '/kitchen', translationKey: 'nav.kitchen', icon: '🍳' },
-    { path: '/medias', translationKey: 'nav.medias', icon: '🎞️' },
+    { path: '/explore', translationKey: 'nav.explore', icon: '🧭' },
+    { path: '/library', translationKey: 'nav.library', icon: '🎞️' },
     { path: '/torrents', translationKey: 'nav.torrents', icon: '🧲' },
   ];
 
@@ -41,8 +34,11 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 theme-transition pt-0! pb-[env(safe-area-inset-bottom)]">
-      <div className="flex justify-around items-center h-16 px-2 py-2">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 px-3"
+      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 10px)' }}
+    >
+      <div className="flex items-stretch rounded-2xl bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200/70 dark:border-white/[0.07] shadow-2xl shadow-black/[0.15] overflow-hidden">
         {navItems.map(item => {
           const isActive = currentPath === item.path || (item.path !== '/' && currentPath.startsWith(`${item.path}/`));
           return (
@@ -51,15 +47,28 @@ export function BottomNav() {
               to={item.path}
               onMouseEnter={() => prefetchRoute(item.path)}
               onTouchStart={() => prefetchRoute(item.path)}
-              style={{
-                width: `calc(100% / ${navItems.length})`,
-              }}
-              className={`flex flex-col items-center justify-center flex-1 h-full rounded-lg transition-colors duration-200 ${
-                isActive ? 'text-primary-600 dark:text-primary-400' : 'text-neutral-500 dark:text-neutral-400'
-              } hover:text-neutral-900 dark:hover:text-neutral-100 active:bg-neutral-100 dark:active:bg-neutral-700`}
+              style={{ width: `calc(100% / ${navItems.length})`, touchAction: 'manipulation' }}
+              className={`flex flex-col items-center justify-center h-[58px] gap-1 relative transition-all duration-200 ${
+                isActive
+                  ? 'text-indigo-600 dark:text-indigo-400'
+                  : 'text-neutral-400 dark:text-neutral-500 active:bg-neutral-100/80 dark:active:bg-white/[0.05]'
+              }`}
             >
-              <span className="text-sm mb-1">{item.icon}</span>
-              <span className="text-[10px] font-medium truncate w-full text-center">{t(item.translationKey)}</span>
+              {isActive && (
+                <span className="absolute top-0 left-2 right-2 h-[2px] rounded-b-full bg-indigo-500 dark:bg-indigo-400" />
+              )}
+              <span
+                className={`text-[17px] leading-none transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}
+              >
+                {item.icon}
+              </span>
+              <span
+                className={`text-[9px] font-semibold leading-none truncate w-full text-center px-0.5 transition-colors ${
+                  isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-400 dark:text-neutral-500'
+                }`}
+              >
+                {t(item.translationKey)}
+              </span>
             </Link>
           );
         })}

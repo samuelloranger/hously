@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFetcher } from './context';
-import { queryKeys, EXTERNAL_NOTIFICATION_ENDPOINTS } from '../index';
+import { queryKeys } from '../queryKeys';
+import { EXTERNAL_NOTIFICATION_ENDPOINTS } from '../endpoints';
 import type {
   LogsResponse,
   ServiceResponse,
@@ -78,6 +79,22 @@ export function useUpdateExternalNotificationAdminsOnly() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.externalNotifications.services() });
+    },
+  });
+}
+
+export function useToggleExternalNotificationTemplate() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ serviceId, eventType, enabled }: { serviceId: number; eventType: string; enabled: boolean }) =>
+      fetcher<{ success: boolean; updated: number }>(EXTERNAL_NOTIFICATION_ENDPOINTS.TOGGLE_TEMPLATE, {
+        method: 'POST',
+        body: { service_id: serviceId, event_type: eventType, enabled },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.externalNotifications.services() });
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.externalNotifications.all, 'templates'] as const });
     },
   });
 }

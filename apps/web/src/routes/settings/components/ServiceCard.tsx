@@ -8,20 +8,24 @@ interface ServiceCardProps {
   service: ExternalNotificationService;
   templatesByEvent: Record<string, NotificationTemplate[]>;
   isLoading: boolean;
+  togglingEventType: string | null;
   onToggleService: () => void;
   onRegenerateToken: () => void;
   onToggleNotifyAdminsOnly: () => void;
   onEditTemplate: (eventType: string) => void;
+  onToggleTemplate: (eventType: string, enabled: boolean) => void;
 }
 
 export function ServiceCard({
   service,
   templatesByEvent,
   isLoading,
+  togglingEventType,
   onToggleService,
   onRegenerateToken,
   onToggleNotifyAdminsOnly,
   onEditTemplate,
+  onToggleTemplate,
 }: ServiceCardProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -29,7 +33,7 @@ export function ServiceCard({
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
-      className="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg border border-neutral-200 dark:border-neutral-600 overflow-hidden"
+      className="bg-white dark:bg-neutral-800/60 rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden"
     >
       <CollapsibleTrigger asChild>
         <button className="w-full text-left">
@@ -41,10 +45,12 @@ export function ServiceCard({
           service={service}
           templatesByEvent={templatesByEvent}
           isLoading={isLoading}
+          togglingEventType={togglingEventType}
           onToggleService={onToggleService}
           onRegenerateToken={onRegenerateToken}
           onToggleNotifyAdminsOnly={onToggleNotifyAdminsOnly}
           onEditTemplate={onEditTemplate}
+          onToggleTemplate={onToggleTemplate}
         />
       </CollapsibleContent>
     </Collapsible>

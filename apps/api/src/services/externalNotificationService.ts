@@ -45,12 +45,13 @@ async function getTemplateForEvent(serviceName: string, eventType: string, langu
     return null;
   }
 
-  // Try to find template with exact language
+  // Try to find template with exact language (only enabled templates)
   let template = await prisma.notificationTemplate.findFirst({
     where: {
       serviceId: service.id,
       eventType,
       language,
+      enabled: true,
     },
   });
 
@@ -61,6 +62,7 @@ async function getTemplateForEvent(serviceName: string, eventType: string, langu
         serviceId: service.id,
         eventType,
         language: 'en',
+        enabled: true,
       },
     });
   }
@@ -102,6 +104,17 @@ export async function sendSilentPushToUser(userId: number, type: string): Promis
     return false;
   }
 }
+
+/**
+ * Map external service names to their corresponding frontend URL paths
+ */
+const serviceUrlMap: Record<string, string> = {
+  radarr: '/medias',
+  sonarr: '/medias',
+  jellyfin: '/medias',
+  plex: '/medias',
+  prowlarr: '/torrents',
+};
 
 /**
  * Send external notification to all subscribed users
@@ -176,6 +189,7 @@ export async function sendExternalNotification(
 
     // Create notifications and send push notifications for each user
     let sentCount = 0;
+    const url = serviceUrlMap[serviceName] ?? '/';
 
     for (const userId of targetUserIds) {
       try {
@@ -186,7 +200,7 @@ export async function sendExternalNotification(
             title,
             body,
             type: 'external',
-            url: '/',
+            url,
             notificationMetadata: {
               service_name: serviceName,
               event_type: eventType,
@@ -216,7 +230,7 @@ export async function sendExternalNotification(
               body,
               tag: `external-${serviceName}-${notification.id}`,
               data: {
-                url: '/',
+                url,
                 notification_type: 'external',
                 notification_id: notification.id,
               },
@@ -244,7 +258,7 @@ export async function sendExternalNotification(
               title,
               body,
               data: {
-                url: '/',
+                url,
                 notification_type: 'external',
                 notification_id: notification.id,
               },

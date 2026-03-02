@@ -66,6 +66,31 @@ export interface TmdbPlugin {
   api_key: string;
 }
 
+export interface RedditPlugin {
+  type: 'reddit';
+  enabled: boolean;
+  subreddits: string[];
+}
+
+export interface RedditPluginUpdateResponse {
+  success: boolean;
+  plugin: RedditPlugin;
+}
+
+export interface RedditSubredditSearchResult {
+  name: string;
+  title: string;
+  icon: string | null;
+  subscribers: number;
+}
+
+export interface HackernewsPlugin {
+  type: 'hackernews';
+  enabled: boolean;
+  feed_type: 'top' | 'best' | 'new' | 'ask' | 'show' | 'job';
+  story_count: number;
+}
+
 export interface YggPlugin {
   type: 'ygg';
   enabled: boolean;
@@ -134,6 +159,11 @@ export interface TmdbPluginUpdateResponse {
 export interface YggPluginUpdateResponse {
   success: boolean;
   plugin: YggPlugin;
+}
+
+export interface HackernewsPluginUpdateResponse {
+  success: boolean;
+  plugin: HackernewsPlugin;
 }
 
 export interface TrackerPluginUpdateResponse {

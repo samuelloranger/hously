@@ -1,4 +1,4 @@
-export type NotificationType = 'reminder' | 'external' | 'app-update' | 'service_monitor' | 'chore' | 'shopping' | 'recipe' | 'event' | 'system';
+export type NotificationType = 'reminder' | 'external' | 'app-update' | 'service_monitor' | 'chore' | 'shopping' | 'recipe' | 'event' | 'system' | 'habit';
 
 export interface Notification {
   id: number;

@@ -41,6 +41,9 @@ export const queryKeys = {
     qbittorrentTorrentPeers: (hash: string) => [...queryKeys.dashboard.all, 'qbittorrent-torrent-peers', hash] as const,
     scrutinySummary: () => [...queryKeys.dashboard.all, 'scrutiny-summary'] as const,
     netdataSummary: () => [...queryKeys.dashboard.all, 'netdata-summary'] as const,
+    hackerNews: () => [...queryKeys.dashboard.all, 'hackernews'] as const,
+    reddit: () => [...queryKeys.dashboard.all, 'reddit'] as const,
+    redditInfinite: () => [...queryKeys.dashboard.all, 'reddit-infinite'] as const,
   },
 
   weather: {
@@ -83,6 +86,8 @@ export const queryKeys = {
     scrutiny: () => [...queryKeys.plugins.all, 'scrutiny'] as const,
     netdata: () => [...queryKeys.plugins.all, 'netdata'] as const,
     weather: () => [...queryKeys.plugins.all, 'weather'] as const,
+    hackernews: () => [...queryKeys.plugins.all, 'hackernews'] as const,
+    reddit: () => [...queryKeys.plugins.all, 'reddit'] as const,
     tmdb: () => [...queryKeys.plugins.all, 'tmdb'] as const,
     ygg: () => queryKeys.plugins.tracker('ygg'),
   },
@@ -133,6 +138,11 @@ export const queryKeys = {
     lists: () => [...queryKeys.mealPlans.all, 'list'] as const,
     list: (start_date?: string, end_date?: string) => [...queryKeys.mealPlans.lists(), start_date, end_date] as const,
     detail: (id: number) => [...queryKeys.mealPlans.all, 'detail', id] as const,
+  },
+  habits: {
+    all: ['habits'] as const,
+    list: () => [...queryKeys.habits.all, 'list'] as const,
+    history: (id: number) => [...queryKeys.habits.all, 'history', id] as const,
   },
 } as const;
 

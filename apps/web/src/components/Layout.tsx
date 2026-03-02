@@ -1,4 +1,4 @@
-import { Navbar } from './Navbar';
+import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { PWAInstallBanner } from './PWAInstallBanner';
 import { PageTransition } from './PageTransition';
@@ -9,7 +9,7 @@ import { usePWA } from '../hooks/usePWA';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useAutoSubscribeNotifications } from '../hooks/useAutoSubscribeNotifications';
 import { Toaster } from 'sonner';
-import { useRouterState } from '@tanstack/react-router';
+import { useRouterState, ScrollRestoration } from '@tanstack/react-router';
 
 export function RootLayout() {
   const { user } = useAuth();
@@ -22,27 +22,22 @@ export function RootLayout() {
   const showBottomNav = isStandalone && isMobile;
   const isSettings = router.location.pathname.startsWith('/settings');
 
-  const shouldShowNavbar = !['/login'].includes(router.location.pathname);
-
-  // if (isLoading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-neutral-500 dark:text-neutral-400">Loading...</div>
-  //     </div>
-  //   );
-  // }
+  const shouldShowNav = !['/login'].includes(router.location.pathname);
 
   return (
     <>
-      {shouldShowNavbar && <Navbar />}
-      <main
-        className={`user min-h-full flex-1 flex flex-col ${`${
-          showBottomNav ? 'pb-24' : isSettings ? 'pb-0' : 'pb-10'
-        }`}`}
-      >
-        <RouteDataRefetcher />
-        <PageTransition />
-      </main>
+      <ScrollRestoration />
+      {shouldShowNav && <Sidebar />}
+      <div className={shouldShowNav ? 'lg:pl-60' : ''}>
+        <main
+          className={`user min-h-full flex-1 flex flex-col ${
+            showBottomNav ? 'pb-24' : isSettings ? 'pb-0' : 'pb-10'
+          }`}
+        >
+          <RouteDataRefetcher />
+          <PageTransition />
+        </main>
+      </div>
       {user && <BottomNav />}
       <PWAInstallBanner />
       <NotificationPermissionModal isOpen={showModal} onAllow={handleAllow} onDismiss={handleDismiss} />

@@ -6,19 +6,23 @@ import { nowUtc } from '../utils';
 import { normalizeQbittorrentConfig, invalidateQbittorrentPluginConfigCache } from '../services/qbittorrentService';
 import { clampInteger, isValidHttpUrl, toProfiles } from '../utils/plugins/utils';
 import {
+  normalizeHackernewsConfig,
   normalizeJellyfinConfig,
   normalizeNetdataConfig,
   normalizeRadarrConfig,
+  normalizeRedditConfig,
   normalizeScrutinyConfig,
   normalizeSonarrConfig,
   normalizeTmdbConfig,
   normalizeTrackerConfig,
   normalizeWeatherConfig,
 } from '../utils/plugins/normalizers';
+import { searchSubreddits } from '../utils/dashboard/reddit';
 import { fetchTrackerStats } from '../jobs';
 import { enqueueTask } from '../services/backgroundQueue';
 import { logActivity } from '../utils/activityLogs';
 import { encrypt } from '../services/crypto';
+import { deleteCache } from '../services/cache';
 import type { TrackerType } from '../utils/plugins/types';
 
 type AdminUser = { id: number; is_admin: boolean };
@@ -1312,4 +1316,216 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         enabled: t.Optional(t.Boolean()),
       }),
     }
-  );
+  )
+  .get('/hackernews', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'hackernews' },
+      });
+      const config = normalizeHackernewsConfig(plugin?.config);
+
+      return {
+        plugin: {
+          type: 'hackernews',
+          enabled: plugin?.enabled || false,
+          feed_type: config?.feed_type || 'top',
+          story_count: config?.story_count || 10,
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching Hacker News plugin config:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch Hacker News plugin config' };
+    }
+  })
+  .put(
+    '/hackernews',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const validFeedTypes = ['top', 'best', 'new', 'ask', 'show', 'job'] as const;
+      const feedType = validFeedTypes.includes(body.feed_type as (typeof validFeedTypes)[number])
+        ? body.feed_type
+        : 'top';
+      const storyCount = Math.max(1, Math.min(Math.trunc(Number(body.story_count) || 10), 50));
+      const enabled = body.enabled ?? true;
+
+      try {
+        const now = nowUtc();
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'hackernews' },
+          update: {
+            enabled,
+            config: {
+              feed_type: feedType,
+              story_count: storyCount,
+            },
+            updatedAt: now,
+          },
+          create: {
+            type: 'hackernews',
+            enabled,
+            config: {
+              feed_type: feedType,
+              story_count: storyCount,
+            },
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        await deleteCache('dashboard:hackernews');
+
+        enqueueTask('activity:plugin_updated:hackernews', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'hackernews' },
+          });
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            feed_type: feedType,
+            story_count: storyCount,
+          },
+        };
+      } catch (error) {
+        console.error('Error saving Hacker News plugin config:', error);
+        set.status = 500;
+        return { error: 'Failed to save Hacker News plugin config' };
+      }
+    },
+    {
+      body: t.Object({
+        feed_type: t.String(),
+        story_count: t.Numeric(),
+        enabled: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  .get('/reddit', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'reddit' },
+      });
+      const config = normalizeRedditConfig(plugin?.config);
+
+      return {
+        plugin: {
+          type: 'reddit',
+          enabled: plugin?.enabled || false,
+          subreddits: config.subreddits,
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching Reddit plugin config:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch Reddit plugin config' };
+    }
+  })
+  .put(
+    '/reddit',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const rawSubreddits = body.subreddits ?? [];
+      const subreddits = rawSubreddits
+        .map((s: string) => s.replace(/^r\//, '').trim())
+        .filter((s: string) => /^[a-zA-Z0-9_]+$/.test(s));
+
+      if (subreddits.length === 0) {
+        set.status = 400;
+        return { error: 'At least one valid subreddit is required' };
+      }
+
+      const enabled = body.enabled ?? true;
+
+      try {
+        const now = nowUtc();
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'reddit' },
+          update: {
+            enabled,
+            config: { subreddits },
+            updatedAt: now,
+          },
+          create: {
+            type: 'reddit',
+            enabled,
+            config: { subreddits },
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        await deleteCache('dashboard:reddit');
+
+        enqueueTask('activity:plugin_updated:reddit', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'reddit' },
+          });
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            subreddits,
+          },
+        };
+      } catch (error) {
+        console.error('Error saving Reddit plugin config:', error);
+        set.status = 500;
+        return { error: 'Failed to save Reddit plugin config' };
+      }
+    },
+    {
+      body: t.Object({
+        subreddits: t.Array(t.String()),
+        enabled: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  .get('/reddit/search', async ({ user, set, query }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const q = (query as Record<string, string | undefined>).q?.trim() || '';
+    if (q.length < 2) {
+      return { results: [] };
+    }
+
+    try {
+      const results = await searchSubreddits(q);
+      return { results };
+    } catch (error) {
+      console.error('Error searching subreddits:', error);
+      set.status = 502;
+      return { error: 'Failed to search subreddits' };
+    }
+  });

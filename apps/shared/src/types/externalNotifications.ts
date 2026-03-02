@@ -6,6 +6,7 @@ export interface NotificationTemplate {
   language: string;
   title_template: string;
   body_template: string;
+  enabled: boolean;
   variables?: Record<string, string>;
   created_at: string | null;
   updated_at: string | null;

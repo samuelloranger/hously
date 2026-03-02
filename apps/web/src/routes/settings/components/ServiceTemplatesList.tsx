@@ -4,10 +4,17 @@ import { ServiceTemplateItem } from './ServiceTemplateItem';
 
 interface ServiceTemplatesListProps {
   templatesByEvent: Record<string, NotificationTemplate[]>;
+  togglingEventType: string | null;
   onEditTemplate: (eventType: string) => void;
+  onToggleTemplate: (eventType: string, enabled: boolean) => void;
 }
 
-export function ServiceTemplatesList({ templatesByEvent, onEditTemplate }: ServiceTemplatesListProps) {
+export function ServiceTemplatesList({
+  templatesByEvent,
+  togglingEventType,
+  onEditTemplate,
+  onToggleTemplate,
+}: ServiceTemplatesListProps) {
   const { t } = useTranslation('common');
   const eventTypes = Object.keys(templatesByEvent).sort();
 
@@ -23,13 +30,15 @@ export function ServiceTemplatesList({ templatesByEvent, onEditTemplate }: Servi
     <div className="space-y-4">
       {eventTypes.map(eventType => {
         const eventTemplates = templatesByEvent[eventType];
-        const template = eventTemplates[0]; // Get first template for this event type
+        const template = eventTemplates[0];
         return (
           <ServiceTemplateItem
             key={eventType}
             template={template}
             eventType={eventType}
+            isToggling={togglingEventType === eventType}
             onEdit={() => onEditTemplate(eventType)}
+            onToggle={() => onToggleTemplate(eventType, !template.enabled)}
           />
         );
       })}

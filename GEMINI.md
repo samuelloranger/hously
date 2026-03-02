@@ -2,28 +2,27 @@
 
 This file contains foundational mandates for Gemini CLI when working on the Hously project. These instructions take absolute precedence over general defaults.
 
+## Project Identity
+
+Hously is a self-hosted command center for homelab enthusiasts. It combines infrastructure monitoring, media pipeline management, and everyday life tools into a single unified dashboard.
+
 ## Foundational Mandates
 
 1.  **Workflow Precedence**: Always follow the **Research -> Strategy -> Execution** lifecycle.
-2.  **Sprint Planning**: When working on sprint plans in `docs/react-native-plan/sprint-*.md`:
-    - Update the original sprint file with implementation details, statuses, and acceptance criteria.
-    - Do NOT create separate summary or implementation files.
-    - Mark tasks with ✅ DONE or ⚠️ PARTIAL.
-3.  **Tooling & Runtime**: Use **Bun** as the primary package manager and runtime.
-4.  **Makefile First**: Always prefer `make` commands for common operations (install, dev, test, lint, migrations). If a necessary command is missing from the `Makefile`, propose adding it.
-5.  **Database Migrations**: ALWAYS use `make migrate-dev` for creating migrations. Never run Prisma commands directly if a Makefile equivalent exists.
-6.  **Architecture Consistency**:
+2.  **Tooling & Runtime**: Use **Bun** as the primary package manager and runtime.
+3.  **Makefile First**: Always prefer `make` commands for common operations (install, dev, test, lint, migrations). If a necessary command is missing from the `Makefile`, propose adding it.
+4.  **Database Migrations**: ALWAYS use `make migrate-dev` for creating migrations. Never run Prisma commands directly if a Makefile equivalent exists.
+5.  **Architecture Consistency**:
     - **API**: Elysia plugins, Prisma ORM, JWT cookies, route/service separation.
     - **Web**: TanStack Router/Query, Feature-based folder structure, Tailwind CSS 4.
-    - **App**: Expo, React Native, TanStack Query, Zustand, NativeWind.
+    - **Mobile**: Native iOS app (external repo `../hously-ios`).
 
 ## Technical Standards
 
 - **Type Safety**: Ensure strict TypeScript compliance across all apps. Use `make typecheck` to validate.
 - **Testing**: Every feature or bug fix must include verification. Use `make test` or app-specific test commands.
-- **Styling**: 
+- **Styling**:
     - Web: Tailwind CSS 4 (Vanilla CSS preferred for custom components).
-    - App: NativeWind.
 - **Security**: Never log or commit secrets. Protect `.env` files and sensitive credentials.
 
 ## Common Operations Reference

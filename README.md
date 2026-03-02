@@ -1,16 +1,40 @@
-# This project is very unstable and may be subject to breaking changes. 
+# This project is very unstable and may be subject to breaking changes.
 # Hously 🏠
 
-A simple family utility app for managing household tasks.
+A self-hosted command center for homelab enthusiasts. Monitor your infrastructure, manage your media pipeline, and keep your life organized — all from a single dashboard.
 
-## Features
+## What is Hously?
 
-- 🛒 **Shopping List** - Collaborative family shopping
-- 🧹 **Chores** - Track household tasks  
-- 📅 **Expiry Tracker** - Monitor food expiration dates (30-day alerts)
-- 📱 **Mobile Friendly** - Responsive design
+Hously is a unified control panel built for people who run homelabs. Instead of juggling dozens of service UIs, Hously brings your entire stack into one place: real-time torrent management, media library automation, server health monitoring, disk diagnostics, and tracker statistics — alongside practical life tools like shared shopping lists, chores, recipes, and a calendar.
 
-## 🚀 Quick Start with Docker
+## Core Features
+
+### Infrastructure & Media
+- **Dashboard** - Unified overview of your entire homelab: server health, disk status, torrent activity, media releases, and more
+- **Torrent Management** - Full qBittorrent integration with real-time SSE streaming, search, filtering, and magnet/file uploads
+- **Media Pipeline** - Radarr & Sonarr integration for automated movie/TV management with TMDB discovery and interactive release search
+- **Tracker Statistics** - Monitor ratio, upload stats, and account health across multiple private trackers (YGG, C411, Torr9, G3mini, La Cale)
+- **Server Monitoring** - Live CPU, RAM, disk, and network stats via Netdata integration
+- **Disk Health** - S.M.A.R.T. monitoring via Scrutiny integration
+- **Jellyfin Integration** - Latest additions from your media server on the dashboard
+
+### Life Management
+- **Shopping List** - Collaborative shopping with drag-and-drop reordering
+- **Chores** - Task assignment and tracking with recurring schedules and reminders
+- **Calendar** - Shared calendar with custom events, recurring entries, and iCal feed export
+- **Recipes & Meal Plans** - Recipe management with ingredients, images, and weekly meal planning
+
+### Notifications & Webhooks
+- **External Service Webhooks** - Receive and forward notifications from Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma, and Prowlarr
+- **Customizable Templates** - Edit notification title/body templates with per-service variables
+- **Multi-Channel Push** - Web Push (VAPID) and Apple Push Notifications (APNs)
+- **Webhook Audit Logs** - Track every incoming event with status and payload
+
+## Mobile App
+
+The native iOS companion app is located in a separate repository: [hously-ios](../hously-ios).
+
+## Quick Start with Docker
 
 1. **Download the compose file:**
    ```bash
@@ -25,7 +49,7 @@ A simple family utility app for managing household tasks.
    docker compose up -d
    ```
 
-## 🔧 Configuration Details
+## Configuration
 
 ### Database
 
@@ -44,7 +68,7 @@ DATABASE_URL=postgresql://username:password@localhost:5432/hously
 | `ADMIN_EMAILS` | Comma-separated list of admin emails | `admin@example.com` |
 | `DATABASE_URL` | PostgreSQL database connection string | `postgresql://user:pass@localhost:5432/hously` |
 
-## 🛠️ Docker Development Setup
+## Development Setup
 
 ```bash
 # 1. Clone the repository
@@ -58,32 +82,34 @@ cp .env.example .env
 #   - ADMIN_EMAILS=your-email@example.com
 #   - SECRET_KEY=your-secret-key (change from default!)
 
-```bash
-# 1. Install dependencies
+# 3. Install dependencies
 make install
 
-# 3. Start API locally (Terminal 2)
+# 4. Start dev services (Terminal 1)
+make dev-services
+
+# 5. Start API locally (Terminal 2)
 make dev-api
 
-# 4. Start frontend locally (Terminal 3)
+# 6. Start frontend locally (Terminal 3)
 make dev-web
 ```
 
-## 🔔 External Notifications
+## External Notifications
 
-Hously supports webhook-based notifications from external services, allowing you to receive push notifications for events from your media servers, download managers, and monitoring tools.
+Hously supports webhook-based notifications from external services, allowing you to receive push notifications for events from your homelab services.
 
 ### Supported Services
 
 - **Media Servers**: Jellyfin, Plex
 - **Media Management**: Radarr, Sonarr, Prowlarr
-- **Backup**: Duplicati
+- **Backup**: Kopia
 - **Monitoring**: UptimeKuma
 
 ### Setup
 
 1. **Enable a Service**:
-   - Go to Settings → External Notifications
+   - Go to Settings > External Notifications
    - Find the service you want to enable
    - Click "Enable" to activate the service
 
@@ -105,12 +131,12 @@ Hously supports webhook-based notifications from external services, allowing you
 
 - **Radarr/Sonarr**: Movie/Episode grabbed, downloaded, upgraded, health issues
 - **Jellyfin/Plex**: Playback started/stopped, new items added, user events
-- **Duplicati**: Backup started, completed, failed
+- **Kopia**: Snapshot started, completed, failed
 - **UptimeKuma**: Monitor up/down, certificate expiry
 
 Available variables are shown when editing templates in the settings.
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 

@@ -5,5 +5,6 @@
 export { checkAndSendReminders } from './checkReminders';
 export { checkAndSendAllDayEventNotifications } from './checkAllDayEvents';
 export { cleanupOldNotifications } from './cleanupNotifications';
+export { fetchAllTrackerStats } from './fetchTrackerStats';
 export { fetchTrackerStats } from './fetchTrackerStats';
-export { fetchYggTopPanelStats } from './yggTopPanelStats';
+export { checkHabitReminders } from './checkHabitReminders';

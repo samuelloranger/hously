@@ -8,20 +8,24 @@ interface ServiceDrawerProps {
   service: ExternalNotificationService;
   templatesByEvent: Record<string, NotificationTemplate[]>;
   isLoading: boolean;
+  togglingEventType: string | null;
   onToggleService: () => void;
   onRegenerateToken: () => void;
   onEditTemplate: (eventType: string) => void;
   onToggleNotifyAdminsOnly: () => void;
+  onToggleTemplate: (eventType: string, enabled: boolean) => void;
 }
 
 export function ServiceDrawer({
   service,
   templatesByEvent,
   isLoading,
+  togglingEventType,
   onToggleService,
   onRegenerateToken,
   onEditTemplate,
   onToggleNotifyAdminsOnly,
+  onToggleTemplate,
 }: ServiceDrawerProps) {
   return (
     <div className="border-t border-neutral-200 dark:border-neutral-600 px-6 py-4 space-y-4">
@@ -35,7 +39,14 @@ export function ServiceDrawer({
       <ServiceNotifyAdminsOnly service={service} isLoading={isLoading} onToggle={onToggleNotifyAdminsOnly} />
 
       {/* Templates - only if service is enabled */}
-      {service.enabled && <ServiceTemplatesList templatesByEvent={templatesByEvent} onEditTemplate={onEditTemplate} />}
+      {service.enabled && (
+        <ServiceTemplatesList
+          templatesByEvent={templatesByEvent}
+          togglingEventType={togglingEventType}
+          onEditTemplate={onEditTemplate}
+          onToggleTemplate={onToggleTemplate}
+        />
+      )}
     </div>
   );
 }

@@ -1,32 +1,32 @@
-import { Elysia, t } from "elysia";
-import { auth } from "../auth";
-import { prisma } from "../db";
-import { generateServiceToken } from "../services/externalNotificationService";
+import { Elysia, t } from 'elysia';
+import { auth } from '../auth';
+import { prisma } from '../db';
+import { generateServiceToken } from '../services/externalNotificationService';
 
 // Helper to get base URL
 function getBaseUrl(): string {
-  return process.env.BASE_URL || "http://localhost:3000";
+  return process.env.BASE_URL || 'http://localhost:3000';
 }
 
 export const externalNotificationsRoutes = new Elysia({
-  prefix: "/api/external-notifications",
+  prefix: '/api/external-notifications',
 })
   .use(auth)
   // GET /api/external-notifications/services - Get all services with templates
-  .get("/services", async ({ user, set }) => {
+  .get('/services', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     if (!user.is_admin) {
       set.status = 403;
-      return { error: "Admin privileges required" };
+      return { error: 'Admin privileges required' };
     }
 
     try {
       const services = await prisma.externalNotificationService.findMany({
-        orderBy: { serviceName: "asc" },
+        orderBy: { serviceName: 'asc' },
       });
 
       const baseUrl = getBaseUrl();
@@ -41,7 +41,7 @@ export const externalNotificationsRoutes = new Elysia({
         // Get templates for this service
         const templates = await prisma.notificationTemplate.findMany({
           where: { serviceId: service.id },
-          orderBy: [{ eventType: "asc" }, { language: "asc" }],
+          orderBy: [{ eventType: 'asc' }, { language: 'asc' }],
         });
 
         servicesList.push({
@@ -51,13 +51,14 @@ export const externalNotificationsRoutes = new Elysia({
           token: service.token,
           notify_admins_only: service.notifyAdminsOnly,
           webhook_url: webhookUrl,
-          templates: templates.map((t) => ({
+          templates: templates.map(t => ({
             id: t.id,
             service_id: t.serviceId,
             event_type: t.eventType,
             language: t.language,
             title_template: t.titleTemplate,
             body_template: t.bodyTemplate,
+            enabled: t.enabled,
             created_at: t.createdAt,
             updated_at: t.updatedAt,
           })),
@@ -68,21 +69,21 @@ export const externalNotificationsRoutes = new Elysia({
 
       return { services: servicesList };
     } catch (error) {
-      console.error("Error getting services:", error);
+      console.error('Error getting services:', error);
       set.status = 500;
-      return { error: "Failed to get services" };
+      return { error: 'Failed to get services' };
     }
   })
   // POST /api/external-notifications/services/:id/enable - Enable service
-  .post("/services/:id/enable", async ({ user, params, set }) => {
+  .post('/services/:id/enable', async ({ user, params, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     if (!user.is_admin) {
       set.status = 403;
-      return { error: "Admin privileges required" };
+      return { error: 'Admin privileges required' };
     }
 
     const serviceId = parseInt(params.id, 10);
@@ -94,7 +95,7 @@ export const externalNotificationsRoutes = new Elysia({
 
       if (!service) {
         set.status = 404;
-        return { error: "Service not found" };
+        return { error: 'Service not found' };
       }
 
       const newToken = generateServiceToken();
@@ -125,21 +126,21 @@ export const externalNotificationsRoutes = new Elysia({
         },
       };
     } catch (error) {
-      console.error("Error enabling service:", error);
+      console.error('Error enabling service:', error);
       set.status = 500;
-      return { error: "Failed to enable service" };
+      return { error: 'Failed to enable service' };
     }
   })
   // POST /api/external-notifications/services/:id/disable - Disable service
-  .post("/services/:id/disable", async ({ user, params, set }) => {
+  .post('/services/:id/disable', async ({ user, params, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     if (!user.is_admin) {
       set.status = 403;
-      return { error: "Admin privileges required" };
+      return { error: 'Admin privileges required' };
     }
 
     const serviceId = parseInt(params.id, 10);
@@ -151,7 +152,7 @@ export const externalNotificationsRoutes = new Elysia({
 
       if (!service) {
         set.status = 404;
-        return { error: "Service not found" };
+        return { error: 'Service not found' };
       }
 
       await prisma.externalNotificationService.update({
@@ -175,21 +176,21 @@ export const externalNotificationsRoutes = new Elysia({
         },
       };
     } catch (error) {
-      console.error("Error disabling service:", error);
+      console.error('Error disabling service:', error);
       set.status = 500;
-      return { error: "Failed to disable service" };
+      return { error: 'Failed to disable service' };
     }
   })
   // POST /api/external-notifications/services/:id/regenerate-token
-  .post("/services/:id/regenerate-token", async ({ user, params, set }) => {
+  .post('/services/:id/regenerate-token', async ({ user, params, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     if (!user.is_admin) {
       set.status = 403;
-      return { error: "Admin privileges required" };
+      return { error: 'Admin privileges required' };
     }
 
     const serviceId = parseInt(params.id, 10);
@@ -201,7 +202,7 @@ export const externalNotificationsRoutes = new Elysia({
 
       if (!service) {
         set.status = 404;
-        return { error: "Service not found" };
+        return { error: 'Service not found' };
       }
 
       const newToken = generateServiceToken();
@@ -229,31 +230,31 @@ export const externalNotificationsRoutes = new Elysia({
         },
       };
     } catch (error) {
-      console.error("Error regenerating token:", error);
+      console.error('Error regenerating token:', error);
       set.status = 500;
-      return { error: "Failed to regenerate token" };
+      return { error: 'Failed to regenerate token' };
     }
   })
   // POST /api/external-notifications/services/:id/notify-admins-only
   .post(
-    "/services/:id/notify-admins-only",
+    '/services/:id/notify-admins-only',
     async ({ user, params, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       if (!user.is_admin) {
         set.status = 403;
-        return { error: "Admin privileges required" };
+        return { error: 'Admin privileges required' };
       }
 
       const serviceId = parseInt(params.id, 10);
       const { notify_admins_only } = body;
 
-      if (typeof notify_admins_only !== "boolean") {
+      if (typeof notify_admins_only !== 'boolean') {
         set.status = 400;
-        return { error: "notify_admins_only must be a boolean" };
+        return { error: 'notify_admins_only must be a boolean' };
       }
 
       try {
@@ -263,7 +264,7 @@ export const externalNotificationsRoutes = new Elysia({
 
         if (!service) {
           set.status = 404;
-          return { error: "Service not found" };
+          return { error: 'Service not found' };
         }
 
         await prisma.externalNotificationService.update({
@@ -274,9 +275,7 @@ export const externalNotificationsRoutes = new Elysia({
           },
         });
 
-        console.log(
-          `Updated notify_admins_only=${notify_admins_only} for service ${service.serviceName}`
-        );
+        console.log(`Updated notify_admins_only=${notify_admins_only} for service ${service.serviceName}`);
 
         return {
           success: true,
@@ -287,9 +286,9 @@ export const externalNotificationsRoutes = new Elysia({
           },
         };
       } catch (error) {
-        console.error("Error updating notify_admins_only:", error);
+        console.error('Error updating notify_admins_only:', error);
         set.status = 500;
-        return { error: "Failed to update notify_admins_only setting" };
+        return { error: 'Failed to update notify_admins_only setting' };
       }
     },
     {
@@ -299,35 +298,35 @@ export const externalNotificationsRoutes = new Elysia({
     }
   )
   // GET /api/external-notifications/services/logs - Get service logs
-  .get("/services/logs", async ({ user, set }) => {
+  .get('/services/logs', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     if (!user.is_admin) {
       set.status = 403;
-      return { error: "Admin privileges required" };
+      return { error: 'Admin privileges required' };
     }
 
     try {
       const logs = await prisma.externalNotificationServiceLog.findMany({
         include: {
-          ExternalNotificationService: {
+          service: {
             select: {
               serviceName: true,
             },
           },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: 100,
       });
 
       return {
-        logs: logs.map((log) => ({
+        logs: logs.map(log => ({
           id: log.id,
           service_id: log.serviceId,
-          service_name: log.ExternalNotificationService?.serviceName || null,
+          service_name: log.service?.serviceName || null,
           event_type: log.eventType,
           status: log.status,
           payload: log.payload,
@@ -335,70 +334,112 @@ export const externalNotificationsRoutes = new Elysia({
         })),
       };
     } catch (error) {
-      console.error("Error fetching logs:", error);
+      console.error('Error fetching logs:', error);
       set.status = 500;
-      return { error: "Failed to fetch logs" };
+      return { error: 'Failed to fetch logs' };
     }
   })
+  // POST /api/external-notifications/templates/toggle - Toggle all templates for a service + event type
+  .post(
+    '/templates/toggle',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: 'Admin privileges required' };
+      }
+
+      const { service_id, event_type, enabled } = body;
+
+      try {
+        const result = await prisma.notificationTemplate.updateMany({
+          where: {
+            serviceId: service_id,
+            eventType: event_type,
+          },
+          data: {
+            enabled,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+
+        console.log(`Toggled ${result.count} templates for service ${service_id}/${event_type} to enabled=${enabled}`);
+
+        return { success: true, updated: result.count };
+      } catch (error) {
+        console.error('Error toggling templates:', error);
+        set.status = 500;
+        return { error: 'Failed to toggle templates' };
+      }
+    },
+    {
+      body: t.Object({
+        service_id: t.Number(),
+        event_type: t.String(),
+        enabled: t.Boolean(),
+      }),
+    }
+  )
   // GET /api/external-notifications/templates - Get all templates
-  .get("/templates", async ({ user, set }) => {
+  .get('/templates', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: "Unauthorized" };
+      return { error: 'Unauthorized' };
     }
 
     if (!user.is_admin) {
       set.status = 403;
-      return { error: "Admin privileges required" };
+      return { error: 'Admin privileges required' };
     }
 
     try {
       const templates = await prisma.notificationTemplate.findMany({
         include: {
-          ExternalNotificationService: {
+          service: {
             select: {
               serviceName: true,
             },
           },
         },
-        orderBy: [
-          { serviceId: "asc" },
-          { eventType: "asc" },
-          { language: "asc" },
-        ],
+        orderBy: [{ serviceId: 'asc' }, { eventType: 'asc' }, { language: 'asc' }],
       });
 
       return {
-        templates: templates.map((t) => ({
+        templates: templates.map(t => ({
           id: t.id,
           service_id: t.serviceId,
-          service_name: t.ExternalNotificationService?.serviceName || null,
+          service_name: t.service?.serviceName || null,
           event_type: t.eventType,
           language: t.language,
           title_template: t.titleTemplate,
           body_template: t.bodyTemplate,
+          enabled: t.enabled,
           created_at: t.createdAt,
           updated_at: t.updatedAt,
         })),
       };
     } catch (error) {
-      console.error("Error fetching templates:", error);
+      console.error('Error fetching templates:', error);
       set.status = 500;
-      return { error: "Failed to fetch templates" };
+      return { error: 'Failed to fetch templates' };
     }
   })
   // PUT /api/external-notifications/templates/:id - Update a template
   .put(
-    "/templates/:id",
+    '/templates/:id',
     async ({ user, params, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: "Unauthorized" };
+        return { error: 'Unauthorized' };
       }
 
       if (!user.is_admin) {
         set.status = 403;
-        return { error: "Admin privileges required" };
+        return { error: 'Admin privileges required' };
       }
 
       const templateId = parseInt(params.id, 10);
@@ -407,7 +448,7 @@ export const externalNotificationsRoutes = new Elysia({
       // At least one field must be provided
       if (title_template === undefined && body_template === undefined) {
         set.status = 400;
-        return { error: "At least one of title_template or body_template is required" };
+        return { error: 'At least one of title_template or body_template is required' };
       }
 
       try {
@@ -417,7 +458,7 @@ export const externalNotificationsRoutes = new Elysia({
 
         if (!template) {
           set.status = 404;
-          return { error: "Template not found" };
+          return { error: 'Template not found' };
         }
 
         // Build update object
@@ -458,14 +499,15 @@ export const externalNotificationsRoutes = new Elysia({
             language: updatedTemplate.language,
             title_template: updatedTemplate.titleTemplate,
             body_template: updatedTemplate.bodyTemplate,
+            enabled: updatedTemplate.enabled,
             created_at: updatedTemplate.createdAt,
             updated_at: updatedTemplate.updatedAt,
           },
         };
       } catch (error) {
-        console.error("Error updating template:", error);
+        console.error('Error updating template:', error);
         set.status = 500;
-        return { error: "Failed to update template" };
+        return { error: 'Failed to update template' };
       }
     },
     {

@@ -11,3 +11,4 @@ export * from './plugins';
 export * from './externalNotifications';
 export * from './weather';
 export * from './media';
+export * from './habits';

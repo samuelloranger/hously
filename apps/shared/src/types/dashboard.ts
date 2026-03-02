@@ -389,3 +389,45 @@ export interface DashboardYggStatsResponse {
 }
 
 export type DashboardTrackerStatsResponse = DashboardYggStatsResponse;
+
+export interface RedditPost {
+  id: string;
+  title: string;
+  author: string;
+  score: number;
+  url: string;
+  permalink: string;
+  created_utc: number;
+  num_comments: number;
+  subreddit: string;
+  thumbnail: string | null;
+  is_self: boolean;
+}
+
+export interface DashboardRedditResponse {
+  enabled: boolean;
+  posts: RedditPost[];
+  subreddits: string[];
+  after: string | null;
+  updated_at: string;
+  error?: string;
+}
+
+export interface HackerNewsStory {
+  id: number;
+  title: string;
+  url: string | null;
+  score: number;
+  by: string;
+  time: number;
+  comment_count: number;
+  type: 'story' | 'job' | 'poll';
+}
+
+export interface DashboardHackerNewsResponse {
+  enabled: boolean;
+  stories: HackerNewsStory[];
+  feed_type: string;
+  updated_at: string;
+  error?: string;
+}

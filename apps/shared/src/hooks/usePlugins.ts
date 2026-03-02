@@ -5,6 +5,11 @@ import { DASHBOARD_ENDPOINTS, PLUGIN_ENDPOINTS } from '../endpoints';
 import type {
   ArrProfile,
   DashboardTrackerStatsResponse,
+  HackernewsPlugin,
+  HackernewsPluginUpdateResponse,
+  RedditPlugin,
+  RedditPluginUpdateResponse,
+  RedditSubredditSearchResult,
   JellyfinPlugin,
   JellyfinPluginUpdateResponse,
   NetdataPlugin,
@@ -374,6 +379,32 @@ export const useDashboardG3miniStats = (options?: { enabled?: boolean }) => useD
 export const useDashboardLaCaleStats = (options?: { enabled?: boolean }) =>
   useDashboardTrackerStats('la-cale', options);
 
+export function useHackernewsPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.hackernews(),
+    queryFn: () => fetcher<{ plugin: HackernewsPlugin }>(PLUGIN_ENDPOINTS.HACKERNEWS),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useUpdateHackernewsPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { feed_type: string; story_count: number; enabled: boolean }) =>
+      fetcher<HackernewsPluginUpdateResponse>(PLUGIN_ENDPOINTS.HACKERNEWS, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.hackernews() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.hackerNews() });
+    },
+  });
+}
+
 export function useRadarrProfiles() {
   const fetcher = useFetcher();
   return useMutation({
@@ -393,5 +424,45 @@ export function useSonarrProfiles() {
         method: 'POST',
         body: data,
       }),
+  });
+}
+
+export function useRedditPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.reddit(),
+    queryFn: () => fetcher<{ plugin: RedditPlugin }>(PLUGIN_ENDPOINTS.REDDIT),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useUpdateRedditPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { subreddits: string[]; enabled: boolean }) =>
+      fetcher<RedditPluginUpdateResponse>(PLUGIN_ENDPOINTS.REDDIT, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.reddit() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.reddit() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.redditInfinite() });
+    },
+  });
+}
+
+export function useSearchSubreddits(query: string) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: ['subreddit-search', query] as const,
+    queryFn: () =>
+      fetcher<{ results: RedditSubredditSearchResult[] }>(
+        `${PLUGIN_ENDPOINTS.REDDIT_SEARCH}?q=${encodeURIComponent(query)}`
+      ),
+    enabled: query.length >= 2,
+    staleTime: 30 * 1000,
   });
 }

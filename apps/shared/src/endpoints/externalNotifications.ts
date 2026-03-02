@@ -6,6 +6,7 @@ export const EXTERNAL_NOTIFICATION_ENDPOINTS = {
   UPDATE_NOTIFY_ADMINS_ONLY: (serviceId: number) =>
     `/api/external-notifications/services/${serviceId}/notify-admins-only`,
   TEMPLATES: '/api/external-notifications/templates',
+  TOGGLE_TEMPLATE: '/api/external-notifications/templates/toggle',
   TEMPLATE: (templateId: number) => `/api/external-notifications/templates/${templateId}`,
   LOGS: '/api/external-notifications/services/logs',
 } as const;

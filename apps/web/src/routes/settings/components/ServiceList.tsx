@@ -7,6 +7,7 @@ import {
   useEnableExternalNotificationService,
   useRegenerateExternalNotificationToken,
   useUpdateExternalNotificationAdminsOnly,
+  useToggleExternalNotificationTemplate,
   type ExternalNotificationService,
   type NotificationTemplate,
 } from '@hously/shared';
@@ -29,6 +30,15 @@ export function ServiceList({ services, templatesByService, isLoading, onEditTem
   const enableService = useEnableExternalNotificationService();
   const regenerateToken = useRegenerateExternalNotificationToken();
   const updateNotifyAdminsOnly = useUpdateExternalNotificationAdminsOnly();
+  const toggleTemplate = useToggleExternalNotificationTemplate();
+
+  const handleToggleTemplate = async (service: ExternalNotificationService, eventType: string, enabled: boolean) => {
+    try {
+      await toggleTemplate.mutateAsync({ serviceId: service.id, eventType, enabled });
+    } catch (error: any) {
+      toast.error(error?.message || t('settings.externalNotifications.error'));
+    }
+  };
 
   const handleToggleService = async (service: ExternalNotificationService) => {
     setLoadingServiceId(service.id);
@@ -138,9 +148,11 @@ export function ServiceList({ services, templatesByService, isLoading, onEditTem
             service={service}
             templatesByEvent={templatesByEvent}
             isLoading={isLoading}
+            togglingEventType={toggleTemplate.isPending ? (toggleTemplate.variables?.eventType ?? null) : null}
             onToggleService={() => handleToggleService(service)}
             onRegenerateToken={() => handleRegenerateToken(service)}
             onToggleNotifyAdminsOnly={() => handleToggleNotifyAdminsOnly(service)}
+            onToggleTemplate={(eventType, enabled) => handleToggleTemplate(service, eventType, enabled)}
             onEditTemplate={eventType => {
               const templates = allTemplatesByEvent[eventType] || [];
               // Find template for current language or fallback to first available

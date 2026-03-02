@@ -36,6 +36,7 @@ const typeConfig: Record<NotificationType, { icon: string | React.ReactNode; bg:
   recipe: { icon: '🍳', bg: 'bg-orange-100 dark:bg-orange-900/30' },
   event: { icon: '📅', bg: 'bg-rose-100 dark:bg-rose-900/30' },
   system: { icon: '⚙️', bg: 'bg-neutral-100 dark:bg-neutral-700/60' },
+  habit: { icon: '🎯', bg: 'bg-orange-100 dark:bg-orange-900/30' },
 };
 
 export function getTypeStyle(notification: { type: NotificationType; metadata?: Record<string, unknown> | null }) {
