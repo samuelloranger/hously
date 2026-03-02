@@ -119,6 +119,7 @@ export async function sendLiveActivityStartPush(
           '--header', 'apns-push-type: liveactivity',
           '--header', 'apns-priority: 10',
           '--header', `authorization: bearer ${bearerToken}`,
+          '--header', 'content-type: application/json',
           '--data-binary', `@${payloadPath}`,
           `${baseUrl}/3/device/${token}`,
         ]);
