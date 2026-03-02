@@ -8,6 +8,7 @@ import {
   checkAndSendAllDayEventNotifications,
   cleanupOldNotifications,
   fetchAllTrackerStats,
+  checkHabitReminders,
 } from './jobs';
 import { checkAndNotifyVersionChange } from './services/versionService';
 import { auth } from './auth';
@@ -28,6 +29,7 @@ import { adminRoutes } from './routes/admin';
 import { analyticsRoutes } from './routes/analytics';
 import { pluginsRoutes } from './routes/plugins';
 import { mediasRoutes } from './routes/medias';
+import { habitsRoutes } from './routes/habits';
 import { globalRateLimit } from './middleware/rateLimit';
 import { logActivity } from './utils/activityLogs';
 
@@ -105,6 +107,14 @@ export const app = new Elysia()
         ),
     })
   )
+  .use(
+    cron({
+      name: 'checkHabitReminders',
+      pattern: '* * * * *', // Every minute
+      run: () =>
+        runCronJobWithActivity({ id: 'checkHabitReminders', name: 'Check habit reminders' }, checkHabitReminders),
+    })
+  )
   .use(app => {
     console.log('Elysia app initialized');
     if (Bun.env.LOG_LEVEL === 'debug') {
@@ -133,6 +143,7 @@ export const app = new Elysia()
   .use(analyticsRoutes)
   .use(pluginsRoutes)
   .use(mediasRoutes)
+  .use(habitsRoutes)
   .get('/', () => 'Hello Elysia')
   .get('/health', () => ({ status: 'ok' }))
   .get('/api/health', () => ({ status: 'ok' }));

@@ -12,6 +12,7 @@ import {
   queryKeys,
   RECIPES_ENDPOINTS,
   SHOPPING_ENDPOINTS,
+  HABIT_ENDPOINTS,
 } from '@hously/shared';
 import { webFetcher } from './fetcher';
 
@@ -96,6 +97,8 @@ const routeQueryDefinitions = {
   ],
 
   '/chores': () => [{ queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) }],
+
+  '/habits': () => [{ queryKey: queryKeys.habits.list(), queryFn: () => webFetcher(HABIT_ENDPOINTS.LIST) }],
 
   '/calendar': () => [
     {

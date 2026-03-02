@@ -16,6 +16,7 @@ import {
   Magnet,
   Settings,
   ShoppingCart,
+  Target,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
@@ -47,6 +48,7 @@ export function Sidebar() {
     { path: '/torrents', translationKey: 'nav.torrents', icon: Magnet },
     { path: '/shopping', translationKey: 'nav.shopping', icon: ShoppingCart },
     { path: '/chores', translationKey: 'nav.chores', icon: ListChecks },
+    { path: '/habits', translationKey: 'nav.habits', icon: Target },
     { path: '/kitchen', translationKey: 'nav.kitchen', icon: CookingPot },
     { path: '/calendar', translationKey: 'nav.calendar', icon: CalendarIcon },
   ];

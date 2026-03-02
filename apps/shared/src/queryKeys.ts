@@ -139,6 +139,11 @@ export const queryKeys = {
     list: (start_date?: string, end_date?: string) => [...queryKeys.mealPlans.lists(), start_date, end_date] as const,
     detail: (id: number) => [...queryKeys.mealPlans.all, 'detail', id] as const,
   },
+  habits: {
+    all: ['habits'] as const,
+    list: () => [...queryKeys.habits.all, 'list'] as const,
+    history: (id: number) => [...queryKeys.habits.all, 'history', id] as const,
+  },
 } as const;
 
 export type QueryKeys = typeof queryKeys;

@@ -12,3 +12,4 @@ export * from './plugins';
 export * from './externalNotifications';
 export * from './system';
 export * from './medias';
+export * from './habits';

@@ -38,6 +38,7 @@ model User {
   passwordResetTokens    PasswordResetToken[]
   refreshTokens          RefreshToken[]
   pushTokens             PushToken[]
+  habits                 Habit[]
 
   @@map("users")
 }
@@ -68,6 +69,7 @@ model NotificationTemplate {
   language      String    @default("en")
   titleTemplate String    @map("title_template")
   bodyTemplate  String    @map("body_template")
+  enabled       Boolean   @default(true)
   createdAt     DateTime? @map("created_at")
   updatedAt     DateTime? @map("updated_at")
 
@@ -339,4 +341,47 @@ model PushToken {
 
   @@index([userId], map: "ix_push_tokens_user_id")
   @@map("push_tokens")
+}
+
+model Habit {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @map("user_id")
+  name        String
+  emoji       String
+  description String?
+  timesPerDay Int       @map("times_per_day") @default(1)
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @map("updated_at")
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedules   HabitSchedule[]
+  completions HabitCompletion[]
+
+  @@index([userId], map: "ix_habits_user_id")
+  @@map("habits")
+}
+
+model HabitSchedule {
+  id                   Int       @id @default(autoincrement())
+  habitId              Int       @map("habit_id")
+  time                 String    // "HH:mm" format (e.g. "08:00", "14:30")
+  lastNotificationSent DateTime? @map("last_notification_sent")
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@index([habitId], map: "ix_habit_schedules_habit_id")
+  @@map("habit_schedules")
+}
+
+model HabitCompletion {
+  id          Int      @id @default(autoincrement())
+  habitId     Int      @map("habit_id")
+  date        DateTime // Date-only (start of day UTC) for grouping
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@index([habitId, date], map: "ix_habit_completions_habit_date")
+  @@map("habit_completions")
 }

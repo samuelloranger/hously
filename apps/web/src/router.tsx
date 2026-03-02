@@ -42,6 +42,7 @@ const ShoppingList = cachedLazy('shopping', () =>
   import('./features/shopping').then(m => ({ default: m.ShoppingList }))
 );
 const ChoresList = cachedLazy('chores', () => import('./features/chores').then(m => ({ default: m.ChoresList })));
+const HabitsList = cachedLazy('habits', () => import('./features/habits').then(m => ({ default: m.HabitsList })));
 const Calendar = cachedLazy('calendar', () => import('./features/calendar').then(m => ({ default: m.Calendar })));
 const Settings = cachedLazy('settings', () => import('./routes/settings').then(m => ({ default: m.Settings })));
 const Notifications = cachedLazy('notifications', () =>
@@ -162,6 +163,16 @@ const choresRoute = createRoute({
   },
 });
 
+const habitsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/habits',
+  component: HabitsList,
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/habits');
+  },
+});
+
 const calendarRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/calendar',
@@ -277,6 +288,7 @@ const routeTree = rootRoute.addChildren([
   resetPasswordRoute,
   shoppingRoute,
   choresRoute,
+  habitsRoute,
   calendarRoute,
   settingsRoute,
   notificationsRoute,
