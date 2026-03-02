@@ -25,7 +25,6 @@ export const EditHabitForm: React.FC<EditHabitFormProps> = ({ habit, onSubmit, i
     defaultValues: {
       name: habit.name,
       description: habit.description || '',
-      times_per_day: habit.times_per_day,
     }
   });
 
@@ -79,13 +78,12 @@ export const EditHabitForm: React.FC<EditHabitFormProps> = ({ habit, onSubmit, i
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormInput
-          type="number"
-          {...register('times_per_day', { valueAsNumber: true, min: 1 })}
-          label={t('habits.timesPerDay')}
-        />
-
         <ScheduleTimePicker times={times} onChange={setTimes} />
+
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-300">
+          <div className="font-semibold text-neutral-800 dark:text-white">{t('habits.timesPerDay')}</div>
+          <div className="mt-1">{t('habits.timesPerDayDerived', { count: times.length })}</div>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 py-2 px-1">

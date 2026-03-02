@@ -10,6 +10,8 @@ export interface Habit {
   updated_at: string | null;
   schedules: HabitScheduleTime[];
   today_completions: number;
+  today_skips: number;
+  today_remaining: number;
   current_streak: number;
 }
 
@@ -23,13 +25,13 @@ export interface HabitCompletion {
   habit_id: number;
   date: string;
   completed_at: string;
+  status: 'done' | 'skipped';
 }
 
 export interface CreateHabitRequest {
   name: string;
   emoji: string;
   description?: string;
-  times_per_day: number;
   schedules: string[]; // Array of "HH:mm" strings
 }
 
@@ -37,7 +39,6 @@ export interface UpdateHabitRequest {
   name?: string;
   emoji?: string;
   description?: string;
-  times_per_day?: number;
   active?: boolean;
   schedules?: string[]; // Replace all schedules
 }
@@ -50,7 +51,16 @@ export interface HabitHistoryResponse {
   history: {
     date: string;
     completions: number;
+    skipped: number;
     target: number;
+    accounted: number;
     completed: boolean; // completions >= target
   }[];
+}
+
+export interface HabitStatusResponse {
+  completions: number;
+  skipped: number;
+  remaining: number;
+  accounted: number;
 }

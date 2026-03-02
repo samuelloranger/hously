@@ -1,7 +1,46 @@
 import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
-import type { User } from '@prisma/client';
+
+const DONE_STATUS = 'done';
+const SKIPPED_STATUS = 'skipped';
+
+const getTodayStatusCounts = (entries: Array<{ status: string }>) => {
+  let doneCount = 0;
+  let skippedCount = 0;
+
+  for (const entry of entries) {
+    if (entry.status === DONE_STATUS) {
+      doneCount++;
+    } else if (entry.status === SKIPPED_STATUS) {
+      skippedCount++;
+    }
+  }
+
+  return {
+    doneCount,
+    skippedCount,
+    accountedCount: doneCount + skippedCount,
+  };
+};
+
+const buildHabitStatusResponse = (timesPerDay: number, doneCount: number, skippedCount: number) => ({
+  completions: doneCount,
+  skipped: skippedCount,
+  remaining: Math.max(timesPerDay - doneCount - skippedCount, 0),
+  accounted: Math.min(doneCount + skippedCount, timesPerDay),
+});
+
+const getScheduleTimes = (body: { schedules?: string[]; schedule_times?: string[] }) =>
+  body.schedules ?? body.schedule_times ?? [];
+
+const getUserId = (user: { id: number } | null | undefined) => {
+  if (!user) {
+    throw new Error('Unauthorized');
+  }
+
+  return user.id;
+};
 
 export const habitsRoutes = new Elysia()
   .use(auth)
@@ -10,7 +49,7 @@ export const habitsRoutes = new Elysia()
       .post(
         '/live-activity/register',
         async ({ body, user }) => {
-          const userId = (user as User).id;
+          const userId = getUserId(user);
 
           await prisma.liveActivityToken.upsert({
             where: { token: body.token },
@@ -37,7 +76,7 @@ export const habitsRoutes = new Elysia()
         }
       )
       .get('/', async ({ user }) => {
-        const userId = (user as User).id;
+        const userId = getUserId(user);
         const startOfToday = new Date();
         startOfToday.setUTCHours(0, 0, 0, 0);
 
@@ -65,12 +104,17 @@ export const habitsRoutes = new Elysia()
 
         const habitsWithStats = await Promise.all(
           habits.map(async (habit) => {
-            const todayCompletions = habit.completions.length;
+            const {
+              doneCount: todayCompletions,
+              skippedCount: todaySkips,
+              accountedCount: todayAccounted,
+            } = getTodayStatusCounts(habit.completions);
 
             const allCompletions = await prisma.habitCompletion.groupBy({
               by: ['date'],
               where: {
                 habitId: habit.id,
+                status: DONE_STATUS,
                 date: {
                   lt: startOfToday,
                 },
@@ -117,6 +161,8 @@ export const habitsRoutes = new Elysia()
               updated_at: habit.updatedAt?.toISOString() || null,
               schedules: habit.schedules,
               today_completions: todayCompletions,
+              today_skips: todaySkips,
+              today_remaining: Math.max(habit.timesPerDay - todayAccounted, 0),
               current_streak: currentStreak,
             };
           })
@@ -126,8 +172,14 @@ export const habitsRoutes = new Elysia()
       })
       .post(
         '/',
-        async ({ body, user }) => {
-          const userId = (user as User).id;
+        async ({ body, user, set }) => {
+          const userId = getUserId(user);
+          const schedules = getScheduleTimes(body);
+
+          if (schedules.length === 0) {
+            set.status = 422;
+            return { error: 'At least one schedule is required' };
+          }
 
           const habit = await prisma.$transaction(async (tx) => {
             const newHabit = await tx.habit.create({
@@ -136,13 +188,13 @@ export const habitsRoutes = new Elysia()
                 name: body.name,
                 emoji: body.emoji,
                 description: body.description,
-                timesPerDay: body.times_per_day,
+                timesPerDay: schedules.length,
               },
             });
 
-            if (body.schedules.length > 0) {
+            if (schedules.length > 0) {
               await tx.habitSchedule.createMany({
-                data: body.schedules.map((time) => ({
+                data: schedules.map((time) => ({
                   habitId: newHabit.id,
                   time,
                 })),
@@ -161,16 +213,18 @@ export const habitsRoutes = new Elysia()
           body: t.Object({
             name: t.String({ minLength: 1, maxLength: 100 }),
             emoji: t.String({ minLength: 1 }),
-            description: t.Optional(t.String()),
-            times_per_day: t.Number({ minimum: 1 }),
-            schedules: t.Array(t.String()),
+            description: t.Optional(t.Nullable(t.String())),
+            times_per_day: t.Optional(t.Number({ minimum: 1 })),
+            schedules: t.Optional(t.Array(t.String())),
+            schedule_times: t.Optional(t.Array(t.String())),
           }),
         }
       )
       .put(
         '/:id',
         async ({ params: { id }, body, user, set }) => {
-          const userId = (user as User).id;
+          const userId = getUserId(user);
+          const scheduleTimes = getScheduleTimes(body);
 
           const existingHabit = await prisma.habit.findFirst({
             where: { id: Number(id), userId },
@@ -181,13 +235,18 @@ export const habitsRoutes = new Elysia()
             return { error: 'Habit not found' };
           }
 
+          if ((body.schedules || body.schedule_times) && scheduleTimes.length === 0) {
+            set.status = 422;
+            return { error: 'At least one schedule is required' };
+          }
+
           const updatedHabit = await prisma.$transaction(async (tx) => {
-            if (body.schedules) {
+            if (body.schedules || body.schedule_times) {
               await tx.habitSchedule.deleteMany({
                 where: { habitId: Number(id) },
               });
               await tx.habitSchedule.createMany({
-                data: body.schedules.map((time) => ({
+                data: scheduleTimes.map((time) => ({
                   habitId: Number(id),
                   time,
                 })),
@@ -200,7 +259,10 @@ export const habitsRoutes = new Elysia()
                 name: body.name,
                 emoji: body.emoji,
                 description: body.description,
-                timesPerDay: body.times_per_day,
+                timesPerDay:
+                  body.schedules || body.schedule_times
+                    ? scheduleTimes.length
+                    : body.times_per_day,
                 active: body.active,
                 updatedAt: new Date(),
               },
@@ -214,15 +276,16 @@ export const habitsRoutes = new Elysia()
           body: t.Object({
             name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
             emoji: t.Optional(t.String({ minLength: 1 })),
-            description: t.Optional(t.String()),
+            description: t.Optional(t.Nullable(t.String())),
             times_per_day: t.Optional(t.Number({ minimum: 1 })),
             active: t.Optional(t.Boolean()),
             schedules: t.Optional(t.Array(t.String())),
+            schedule_times: t.Optional(t.Array(t.String())),
           }),
         }
       )
       .delete('/:id', async ({ params: { id }, user, set }) => {
-        const userId = (user as User).id;
+        const userId = getUserId(user);
 
         const existingHabit = await prisma.habit.findFirst({
           where: { id: Number(id), userId },
@@ -240,7 +303,7 @@ export const habitsRoutes = new Elysia()
         return { success: true };
       })
       .post('/:id/complete', async ({ params: { id }, user, set }) => {
-        const userId = (user as User).id;
+        const userId = getUserId(user);
         const habitIdNum = Number(id);
 
         const existingHabit = await prisma.habit.findFirst({
@@ -258,14 +321,25 @@ export const habitsRoutes = new Elysia()
         const todayCompletions = await prisma.habitCompletion.count({
           where: {
             habitId: habitIdNum,
+            status: DONE_STATUS,
             date: {
               gte: startOfToday,
             },
           },
         });
 
-        if (todayCompletions >= existingHabit.timesPerDay) {
-          return { completions: todayCompletions };
+        const todaySkipped = await prisma.habitCompletion.count({
+          where: {
+            habitId: habitIdNum,
+            status: SKIPPED_STATUS,
+            date: {
+              gte: startOfToday,
+            },
+          },
+        });
+
+        if (todayCompletions + todaySkipped >= existingHabit.timesPerDay) {
+          return buildHabitStatusResponse(existingHabit.timesPerDay, todayCompletions, todaySkipped);
         }
 
         await prisma.$transaction(async (tx) => {
@@ -274,10 +348,11 @@ export const habitsRoutes = new Elysia()
               habitId: habitIdNum,
               date: startOfToday,
               completedAt: new Date(),
+              status: DONE_STATUS,
             },
           });
 
-          if (todayCompletions + 1 >= existingHabit.timesPerDay) {
+          if (todayCompletions + todaySkipped + 1 >= existingHabit.timesPerDay) {
             await tx.habitSchedule.updateMany({
               where: { habitId: habitIdNum },
               data: { lastNotificationSent: null },
@@ -285,10 +360,10 @@ export const habitsRoutes = new Elysia()
           }
         });
 
-        return { completions: todayCompletions + 1 };
+        return buildHabitStatusResponse(existingHabit.timesPerDay, todayCompletions + 1, todaySkipped);
       })
       .delete('/:id/complete', async ({ params: { id }, user, set }) => {
-        const userId = (user as User).id;
+        const userId = getUserId(user);
         const habitIdNum = Number(id);
 
         const existingHabit = await prisma.habit.findFirst({
@@ -306,6 +381,7 @@ export const habitsRoutes = new Elysia()
         const lastCompletion = await prisma.habitCompletion.findFirst({
           where: {
             habitId: habitIdNum,
+            status: DONE_STATUS,
             date: {
               gte: startOfToday,
             },
@@ -315,11 +391,25 @@ export const habitsRoutes = new Elysia()
           },
         });
 
+        const skippedCount = await prisma.habitCompletion.count({
+          where: {
+            habitId: habitIdNum,
+            status: SKIPPED_STATUS,
+            date: {
+              gte: startOfToday,
+            },
+          },
+        });
+
         if (!lastCompletion) {
           const count = await prisma.habitCompletion.count({
-             where: { habitId: habitIdNum, date: { gte: startOfToday } }
+            where: {
+              habitId: habitIdNum,
+              status: DONE_STATUS,
+              date: { gte: startOfToday },
+            },
           });
-          return { completions: count };
+          return buildHabitStatusResponse(existingHabit.timesPerDay, count, skippedCount);
         }
 
         await prisma.habitCompletion.delete({
@@ -329,18 +419,145 @@ export const habitsRoutes = new Elysia()
         const newCount = await prisma.habitCompletion.count({
           where: {
             habitId: habitIdNum,
+            status: DONE_STATUS,
             date: {
               gte: startOfToday,
             },
           },
         });
 
-        return { completions: newCount };
+        return buildHabitStatusResponse(existingHabit.timesPerDay, newCount, skippedCount);
+      })
+      .post('/:id/skip', async ({ params: { id }, user, set }) => {
+        const userId = getUserId(user);
+        const habitIdNum = Number(id);
+
+        const existingHabit = await prisma.habit.findFirst({
+          where: { id: habitIdNum, userId },
+        });
+
+        if (!existingHabit) {
+          set.status = 404;
+          return { error: 'Habit not found' };
+        }
+
+        const startOfToday = new Date();
+        startOfToday.setUTCHours(0, 0, 0, 0);
+
+        const todayCompletions = await prisma.habitCompletion.count({
+          where: {
+            habitId: habitIdNum,
+            status: DONE_STATUS,
+            date: {
+              gte: startOfToday,
+            },
+          },
+        });
+
+        const todaySkipped = await prisma.habitCompletion.count({
+          where: {
+            habitId: habitIdNum,
+            status: SKIPPED_STATUS,
+            date: {
+              gte: startOfToday,
+            },
+          },
+        });
+
+        if (todayCompletions + todaySkipped >= existingHabit.timesPerDay) {
+          return buildHabitStatusResponse(existingHabit.timesPerDay, todayCompletions, todaySkipped);
+        }
+
+        await prisma.$transaction(async (tx) => {
+          await tx.habitCompletion.create({
+            data: {
+              habitId: habitIdNum,
+              date: startOfToday,
+              completedAt: new Date(),
+              status: SKIPPED_STATUS,
+            },
+          });
+
+          if (todayCompletions + todaySkipped + 1 >= existingHabit.timesPerDay) {
+            await tx.habitSchedule.updateMany({
+              where: { habitId: habitIdNum },
+              data: { lastNotificationSent: null },
+            });
+          }
+        });
+
+        return buildHabitStatusResponse(existingHabit.timesPerDay, todayCompletions, todaySkipped + 1);
+      })
+      .delete('/:id/skip', async ({ params: { id }, user, set }) => {
+        const userId = getUserId(user);
+        const habitIdNum = Number(id);
+
+        const existingHabit = await prisma.habit.findFirst({
+          where: { id: habitIdNum, userId },
+        });
+
+        if (!existingHabit) {
+          set.status = 404;
+          return { error: 'Habit not found' };
+        }
+
+        const startOfToday = new Date();
+        startOfToday.setUTCHours(0, 0, 0, 0);
+
+        const lastSkipped = await prisma.habitCompletion.findFirst({
+          where: {
+            habitId: habitIdNum,
+            status: SKIPPED_STATUS,
+            date: {
+              gte: startOfToday,
+            },
+          },
+          orderBy: {
+            completedAt: 'desc',
+          },
+        });
+
+        const completionCount = await prisma.habitCompletion.count({
+          where: {
+            habitId: habitIdNum,
+            status: DONE_STATUS,
+            date: {
+              gte: startOfToday,
+            },
+          },
+        });
+
+        if (!lastSkipped) {
+          const skippedCount = await prisma.habitCompletion.count({
+            where: {
+              habitId: habitIdNum,
+              status: SKIPPED_STATUS,
+              date: { gte: startOfToday },
+            },
+          });
+          return buildHabitStatusResponse(existingHabit.timesPerDay, completionCount, skippedCount);
+        }
+
+        await prisma.habitCompletion.delete({
+          where: { id: lastSkipped.id },
+        });
+
+        const newSkippedCount = await prisma.habitCompletion.count({
+          where: {
+            habitId: habitIdNum,
+            status: SKIPPED_STATUS,
+            date: {
+              gte: startOfToday,
+            },
+          },
+        });
+
+        return buildHabitStatusResponse(existingHabit.timesPerDay, completionCount, newSkippedCount);
       })
       .get(
         '/:id/history',
         async ({ params: { id }, query: { days }, user, set }) => {
-          const userId = (user as User).id;
+          const userId = getUserId(user);
           const habitIdNum = Number(id);
           const historyDays = days ? Number(days) : 30;
 
@@ -358,7 +575,7 @@ export const habitsRoutes = new Elysia()
           startDate.setUTCDate(startDate.getUTCDate() - historyDays + 1);
 
           const completions = await prisma.habitCompletion.groupBy({
-            by: ['date'],
+            by: ['date', 'status'],
             where: {
               habitId: habitIdNum,
               date: {
@@ -373,9 +590,18 @@ export const habitsRoutes = new Elysia()
             },
           });
 
-          const historyMap = new Map<string, number>();
+          const historyMap = new Map<string, { completions: number; skipped: number }>();
           for (const c of completions) {
-            historyMap.set(c.date.toISOString().split('T')[0], c._count.id);
+            const dateKey = c.date.toISOString().split('T')[0];
+            const current = historyMap.get(dateKey) || { completions: 0, skipped: 0 };
+
+            if (c.status === DONE_STATUS) {
+              current.completions = c._count.id;
+            } else if (c.status === SKIPPED_STATUS) {
+              current.skipped = c._count.id;
+            }
+
+            historyMap.set(dateKey, current);
           }
 
           const history = [];
@@ -384,13 +610,15 @@ export const habitsRoutes = new Elysia()
             date.setUTCHours(0, 0, 0, 0);
             date.setUTCDate(date.getUTCDate() - i);
             const dateStr = date.toISOString().split('T')[0];
-            const count = historyMap.get(dateStr) || 0;
+            const counts = historyMap.get(dateStr) || { completions: 0, skipped: 0 };
 
             history.push({
               date: dateStr,
-              completions: count,
+              completions: counts.completions,
+              skipped: counts.skipped,
               target: existingHabit.timesPerDay,
-              completed: count >= existingHabit.timesPerDay,
+              accounted: Math.min(counts.completions + counts.skipped, existingHabit.timesPerDay),
+              completed: counts.completions >= existingHabit.timesPerDay,
             });
           }
 

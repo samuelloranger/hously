@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Plus } from 'lucide-react';
-import { Habit, useCompleteHabit, useUncompleteHabit } from '@hously/shared';
+import { Check, Plus, X } from 'lucide-react';
+import { Habit, useCompleteHabit, useSkipHabit, useUncompleteHabit, useUnskipHabit } from '@hously/shared';
 import { cn } from '../../../lib/utils';
 import { HabitProgress } from './HabitProgress';
 import { StreakBadge } from './StreakBadge';
@@ -17,18 +17,32 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
   const { t } = useTranslation('common');
   const completeMutation = useCompleteHabit();
   const uncompleteMutation = useUncompleteHabit();
-  
+  const skipMutation = useSkipHabit();
+  const unskipMutation = useUnskipHabit();
+
   const isFullyCompleted = habit.today_completions >= habit.times_per_day;
+  const isAccountedForToday = habit.today_remaining <= 0;
 
   const handleComplete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isFullyCompleted) return;
+    if (isAccountedForToday) return;
     completeMutation.mutate(habit.id);
+  };
+
+  const handleSkip = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isAccountedForToday) return;
+    skipMutation.mutate(habit.id);
   };
 
   const handleUncomplete = () => {
     if (habit.today_completions <= 0) return;
     uncompleteMutation.mutate(habit.id);
+  };
+
+  const handleUnskip = () => {
+    if (habit.today_skips <= 0) return;
+    unskipMutation.mutate(habit.id);
   };
 
   const actionMenuItems = [
@@ -41,6 +55,11 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
       label: t('shopping.undo'),
       icon: '↩️',
       onClick: handleUncomplete,
+    }] : []),
+    ...(habit.today_skips > 0 ? [{
+      label: t('habits.undoNotDone'),
+      icon: '⤺',
+      onClick: handleUnskip,
     }] : []),
     {
       label: t('common.delete'),
@@ -56,6 +75,8 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
         "group relative overflow-hidden p-4 rounded-2xl bg-white dark:bg-neutral-800 border transition-all duration-300",
         isFullyCompleted
           ? "border-green-500/30 bg-green-50/10 dark:bg-green-500/5 shadow-sm"
+          : isAccountedForToday
+            ? "border-rose-500/30 bg-rose-50/40 dark:bg-rose-500/5 shadow-sm"
           : "border-neutral-200/80 dark:border-neutral-700/60 hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/5",
         !habit.active && "opacity-60 grayscale-[0.3]"
       )}
@@ -84,7 +105,11 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
 
       <div className="flex items-center justify-between mt-auto">
         <div className="space-y-2">
-          <HabitProgress current={habit.today_completions} target={habit.times_per_day} />
+          <HabitProgress
+            completed={habit.today_completions}
+            skipped={habit.today_skips}
+            target={habit.times_per_day}
+          />
           <div className="flex flex-wrap gap-1.5 mt-1">
             {habit.schedules.map((s) => (
               <span 
@@ -99,24 +124,49 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
 
         <div className="flex flex-col items-end gap-2">
           <StreakBadge streak={habit.current_streak} />
-          
-          <button
-            onClick={handleComplete}
-            disabled={isFullyCompleted || completeMutation.isPending}
-            className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
-              isFullyCompleted
-                ? "bg-green-500/20 text-green-600 dark:text-green-400 cursor-default"
-                : "bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/20 active:scale-90"
-            )}
-          >
-            {isFullyCompleted ? (
-              <Check size={20} strokeWidth={3} />
-            ) : (
-              <Plus size={20} strokeWidth={3} className={cn(completeMutation.isPending && "animate-pulse")} />
-            )}
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSkip}
+              disabled={isAccountedForToday || skipMutation.isPending}
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 border",
+                isAccountedForToday
+                  ? "border-rose-200 bg-rose-50 text-rose-400 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-500 cursor-default"
+                  : "border-rose-200 bg-white hover:bg-rose-50 text-rose-500 dark:border-rose-900/40 dark:bg-neutral-900 dark:hover:bg-rose-950/20 shadow-sm active:scale-90"
+              )}
+              aria-label={t('habits.notDone')}
+            >
+              <X size={18} strokeWidth={3} className={cn(skipMutation.isPending && "animate-pulse")} />
+            </button>
+
+            <button
+              onClick={handleComplete}
+              disabled={isAccountedForToday || completeMutation.isPending}
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
+                isFullyCompleted
+                  ? "bg-green-500/20 text-green-600 dark:text-green-400 cursor-default"
+                  : isAccountedForToday
+                    ? "bg-neutral-200 text-neutral-400 dark:bg-neutral-700 dark:text-neutral-500 cursor-default"
+                    : "bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/20 active:scale-90"
+              )}
+              aria-label={t('habits.done')}
+            >
+              {isFullyCompleted ? (
+                <Check size={20} strokeWidth={3} />
+              ) : (
+                <Plus size={20} strokeWidth={3} className={cn(completeMutation.isPending && "animate-pulse")} />
+              )}
+            </button>
+          </div>
         </div>
+      </div>
+
+      <div className="mt-3 flex items-center gap-3 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+        <span>{t('habits.doneCount', { count: habit.today_completions })}</span>
+        <span>{t('habits.notDoneCount', { count: habit.today_skips })}</span>
+        <span>{t('habits.remainingCount', { count: habit.today_remaining })}</span>
       </div>
     </div>
   );

@@ -13,9 +13,10 @@ interface WeatherPluginConfig {
 
 export const dashboardOverviewRoutes = new Elysia()
   .use(auth)
-  .get('/stats', async ({ user, error }) => {
+  .get('/stats', async ({ user, set }) => {
     if (!user) {
-      return error(401, 'Unauthorized');
+      set.status = 401;
+      return { error: 'Unauthorized' };
     }
 
     try {
@@ -65,14 +66,16 @@ export const dashboardOverviewRoutes = new Elysia()
       };
     } catch (err) {
       console.error('Error getting dashboard stats:', err);
-      return error(500, 'Failed to get dashboard stats');
+      set.status = 500;
+      return { error: 'Failed to get dashboard stats' };
     }
   })
   .get(
     '/activities',
-    async ({ user, query, error }) => {
+    async ({ user, query, set }) => {
       if (!user) {
-        return error(401, 'Unauthorized');
+        set.status = 401;
+        return { error: 'Unauthorized' };
       }
 
       try {
@@ -176,7 +179,8 @@ export const dashboardOverviewRoutes = new Elysia()
         return { activities: merged.slice(0, safeLimit) };
       } catch (err) {
         console.error('Error getting dashboard activities:', err);
-        return error(500, 'Failed to get dashboard activities');
+        set.status = 500;
+        return { error: 'Failed to get dashboard activities' };
       }
     },
     {
@@ -185,9 +189,10 @@ export const dashboardOverviewRoutes = new Elysia()
       }),
     }
   )
-  .get('/weather', async ({ user, error }) => {
+  .get('/weather', async ({ user, set }) => {
     if (!user) {
-      return error(401, 'Unauthorized');
+      set.status = 401;
+      return { error: 'Unauthorized' };
     }
 
     try {
@@ -199,7 +204,8 @@ export const dashboardOverviewRoutes = new Elysia()
       const temperatureUnit = config?.temperature_unit === 'celsius' ? 'celsius' : 'fahrenheit';
 
       if (!address) {
-        return error(404, 'Weather plugin is not configured.');
+        set.status = 404;
+        return { error: 'Weather plugin is not configured.' };
       }
 
       const normalizedAddress = normalizeWeatherAddress(address);
@@ -214,6 +220,7 @@ export const dashboardOverviewRoutes = new Elysia()
       return weather;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to get weather';
-      return error(502, message);
+      set.status = 502;
+      return { error: message };
     }
   });

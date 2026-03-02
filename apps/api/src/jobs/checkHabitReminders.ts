@@ -3,6 +3,21 @@ import { isNightTime, createAndQueueNotification } from './notificationService';
 import { getTimezone, todayLocal } from '../utils';
 import { sendLiveActivityStartPush } from '../utils/apnLiveActivity';
 
+const getHabitStatusCounts = (entries: Array<{ status: string }>) => {
+  let completions = 0;
+  let skipped = 0;
+
+  for (const entry of entries) {
+    if (entry.status === 'done') {
+      completions++;
+    } else if (entry.status === 'skipped') {
+      skipped++;
+    }
+  }
+
+  return { completions, skipped, accounted: completions + skipped };
+};
+
 export const checkHabitReminders = async () => {
   try {
     if (isNightTime()) {
@@ -54,7 +69,9 @@ export const checkHabitReminders = async () => {
     });
 
     for (const schedule of schedules) {
-      if (schedule.habit.completions.length >= schedule.habit.timesPerDay) {
+      const statusCounts = getHabitStatusCounts(schedule.habit.completions);
+
+      if (statusCounts.accounted >= schedule.habit.timesPerDay) {
         continue;
       }
 
@@ -128,10 +145,10 @@ async function sendLiveActivityPushes(now: Date, tz: string, startOfToday: Date)
 
     for (const schedule of upcomingSchedules) {
       const habit = schedule.habit;
-      const todayCompletions = habit.completions.length;
+      const statusCounts = getHabitStatusCounts(habit.completions);
 
       // Skip if already completed today
-      if (todayCompletions >= habit.timesPerDay) {
+      if (statusCounts.accounted >= habit.timesPerDay) {
         continue;
       }
 
@@ -159,7 +176,7 @@ async function sendLiveActivityPushes(now: Date, tz: string, startOfToday: Date)
             timesPerDay: habit.timesPerDay,
           },
           contentState: {
-            completions: todayCompletions,
+            completions: statusCounts.completions,
             scheduledTime: scheduledTimeUnix,
           },
         }

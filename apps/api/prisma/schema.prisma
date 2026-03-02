@@ -377,6 +377,11 @@ model Habit {
   @@map("habits")
 }
 
+enum HabitCompletionStatus {
+  done
+  skipped
+}
+
 model HabitSchedule {
   id                   Int       @id @default(autoincrement())
   habitId              Int       @map("habit_id")
@@ -394,6 +399,7 @@ model HabitCompletion {
   habitId     Int      @map("habit_id")
   date        DateTime // Date-only (start of day UTC) for grouping
   completedAt DateTime @default(now()) @map("completed_at")
+  status      HabitCompletionStatus @default(done)
 
   habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
 

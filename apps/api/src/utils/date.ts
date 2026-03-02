@@ -7,7 +7,7 @@
  * Get timezone from environment variable or default to America/New_York
  */
 export const getTimezone = (): string => {
-  return Bun.env.TZ || "America/New_York";
+  return Bun.env.TZ || 'America/New_York';
 };
 
 /**
@@ -15,7 +15,7 @@ export const getTimezone = (): string => {
  */
 export const formatIso = (date: string | Date | null | undefined): string | null => {
   if (!date) return null;
-  if (typeof date === "string") return date;
+  if (typeof date === 'string') return date;
   return date.toISOString();
 };
 
@@ -29,35 +29,35 @@ export const nowUtc = (): string => new Date().toISOString();
  */
 export const todayLocal = (): Date => {
   const now = new Date();
-  const formatter = new Intl.DateTimeFormat("en-CA", {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: getTimezone(),
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   });
   const parts = formatter.formatToParts(now);
-  const year = parseInt(parts.find((p) => p.type === "year")?.value || "0");
-  const month = parseInt(parts.find((p) => p.type === "month")?.value || "0");
-  const day = parseInt(parts.find((p) => p.type === "day")?.value || "0");
+  const year = parseInt(parts.find(p => p.type === 'year')?.value || '0');
+  const month = parseInt(parts.find(p => p.type === 'month')?.value || '0');
+  const day = parseInt(parts.find(p => p.type === 'day')?.value || '0');
   return new Date(year, month - 1, day);
 };
 
 /**
- * Convert UTC datetime string to local date (date only, no time)
+ * Convert UTC datetime to local date (date only, no time)
  */
-export const toLocalDate = (utcDateStr: string | null | undefined): Date | null => {
-  if (!utcDateStr) return null;
-  const utcDate = new Date(utcDateStr);
-  const formatter = new Intl.DateTimeFormat("en-CA", {
+export const toLocalDate = (utcDateInput: string | Date | null | undefined): Date | null => {
+  if (!utcDateInput) return null;
+  const utcDate = utcDateInput instanceof Date ? utcDateInput : new Date(utcDateInput);
+  const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: getTimezone(),
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   });
   const parts = formatter.formatToParts(utcDate);
-  const year = parseInt(parts.find((p) => p.type === "year")?.value || "0");
-  const month = parseInt(parts.find((p) => p.type === "month")?.value || "0");
-  const day = parseInt(parts.find((p) => p.type === "day")?.value || "0");
+  const year = parseInt(parts.find(p => p.type === 'year')?.value || '0');
+  const month = parseInt(parts.find(p => p.type === 'month')?.value || '0');
+  const day = parseInt(parts.find(p => p.type === 'day')?.value || '0');
   return new Date(year, month - 1, day);
 };
 
@@ -66,27 +66,26 @@ export const toLocalDate = (utcDateStr: string | null | undefined): Date | null 
  */
 export const utcToTimezone = (date: Date | string | null): Date | null => {
   if (!date) return null;
-  const d = typeof date === "string" ? new Date(date) : date;
-  const formatter = new Intl.DateTimeFormat("en-US", {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone: getTimezone(),
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
     hour12: false,
   });
   const parts = formatter.formatToParts(d);
-  const getPart = (type: string) =>
-    parts.find((p) => p.type === type)?.value || "0";
+  const getPart = (type: string) => parts.find(p => p.type === type)?.value || '0';
   return new Date(
-    parseInt(getPart("year")),
-    parseInt(getPart("month")) - 1,
-    parseInt(getPart("day")),
-    parseInt(getPart("hour")),
-    parseInt(getPart("minute")),
-    parseInt(getPart("second"))
+    parseInt(getPart('year')),
+    parseInt(getPart('month')) - 1,
+    parseInt(getPart('day')),
+    parseInt(getPart('hour')),
+    parseInt(getPart('minute')),
+    parseInt(getPart('second'))
   );
 };
 
@@ -94,13 +93,13 @@ export const utcToTimezone = (date: Date | string | null): Date | null => {
  * Format date in local timezone as YYYY-MM-DD
  */
 export const formatDateInTimezone = (date: Date | string | null): string => {
-  if (!date) return "";
-  const d = typeof date === "string" ? new Date(date) : date;
-  const formatter = new Intl.DateTimeFormat("en-CA", {
+  if (!date) return '';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: getTimezone(),
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   });
   return formatter.format(d);
 };
@@ -118,11 +117,9 @@ export const getDaysInMonth = (year: number, month: number): number => {
 export const parseDateTime = (dateStr: string): Date => {
   // Handle datetime-local format (without timezone)
   let normalizedDateStr = dateStr;
-  if (dateStr.includes("T") && dateStr.length === 16) {
-    console.warn(
-      `Received datetime-local format without timezone: ${dateStr}. Treating as UTC.`
-    );
-    normalizedDateStr = dateStr + ":00Z";
+  if (dateStr.includes('T') && dateStr.length === 16) {
+    console.warn(`Received datetime-local format without timezone: ${dateStr}. Treating as UTC.`);
+    normalizedDateStr = dateStr + ':00Z';
   }
 
   const date = new Date(normalizedDateStr);
@@ -176,10 +173,7 @@ export const endOfDay = (date: Date): Date => {
 /**
  * Calculate period boundaries for analytics
  */
-export const calculatePeriodDates = (
-  period: string,
-  startDateStr?: string
-): { start: Date; end: Date } => {
+export const calculatePeriodDates = (period: string, startDateStr?: string): { start: Date; end: Date } => {
   const todayTz = todayLocal();
 
   let startDate = todayTz;
@@ -197,7 +191,7 @@ export const calculatePeriodDates = (
   let startOfPeriod: Date;
   let endOfPeriod: Date;
 
-  if (period === "week") {
+  if (period === 'week') {
     // Start of week (Monday)
     const dayOfWeek = startDate.getDay();
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -208,16 +202,16 @@ export const calculatePeriodDates = (
     endOfPeriod = new Date(startOfPeriod);
     endOfPeriod.setDate(startOfPeriod.getDate() + 6);
     endOfPeriod.setHours(23, 59, 59, 999);
-  } else if (period === "month") {
+  } else if (period === 'month') {
     startOfPeriod = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
     endOfPeriod = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
     endOfPeriod.setHours(23, 59, 59, 999);
-  } else if (period === "quarter") {
+  } else if (period === 'quarter') {
     const quarterStartMonth = Math.floor(startDate.getMonth() / 3) * 3;
     startOfPeriod = new Date(startDate.getFullYear(), quarterStartMonth, 1);
     endOfPeriod = new Date(startDate.getFullYear(), quarterStartMonth + 3, 0);
     endOfPeriod.setHours(23, 59, 59, 999);
-  } else if (period === "year") {
+  } else if (period === 'year') {
     startOfPeriod = new Date(startDate.getFullYear(), 0, 1);
     endOfPeriod = new Date(startDate.getFullYear(), 11, 31);
     endOfPeriod.setHours(23, 59, 59, 999);
