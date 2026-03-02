@@ -1,10 +1,10 @@
 import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
-import { authPlugin } from '../auth';
+import { auth } from '../auth';
 import type { User } from '@prisma/client';
 
 export const habitsRoutes = new Elysia()
-  .use(authPlugin)
+  .use(auth)
   .group('/api/habits', (app) =>
     app
       .get('/', async ({ user }) => {
