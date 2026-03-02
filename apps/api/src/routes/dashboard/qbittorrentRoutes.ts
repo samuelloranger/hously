@@ -528,34 +528,49 @@ export const dashboardQbittorrentRoutes = new Elysia()
     '/qbittorrent/torrents/add-file',
     async (ctx: any) => {
       const { user, set, body } = ctx;
+      const logPrefix = '[qbittorrent:add-file]';
       if (!user) {
         set.status = 401;
+        console.warn(`${logPrefix} unauthorized request`);
         return { error: 'Unauthorized' };
       }
 
       const config = await getConfigOrError(set);
       if (!config) {
+        console.warn(`${logPrefix} plugin disabled or misconfigured for user id=${user.id}`);
         return { error: 'qBittorrent plugin is disabled or not configured' };
       }
 
       const torrents = Array.isArray(body.torrents) ? body.torrents : [body.torrents];
+      console.log(
+        `${logPrefix} user id=${user.id} body keys=${Object.keys(body || {}).join(',') || 'none'} torrent_count=${torrents.filter(Boolean).length} category=${body.category ?? 'none'} tags=${body.tags ?? 'none'}`
+      );
       if (torrents.length === 0 || !torrents[0]) {
         set.status = 400;
+        console.warn(`${logPrefix} missing torrent files body.torrents_type=${typeof body.torrents}`);
         return { error: 'Missing torrent files' };
       }
 
       if (torrents.length > 10) {
         set.status = 400;
+        console.warn(`${logPrefix} too many torrent files count=${torrents.length}`);
         return { error: 'Too many files (max 10)' };
       }
 
-      for (const torrent of torrents) {
+      for (const [index, torrent] of torrents.entries()) {
         if (!(torrent instanceof File)) {
           set.status = 400;
+          console.warn(
+            `${logPrefix} invalid torrent payload at index=${index} type=${typeof torrent} ctor=${torrent?.constructor?.name ?? 'unknown'}`
+          );
           return { error: 'Invalid torrent file' };
         }
+        console.log(
+          `${logPrefix} torrent index=${index} name="${torrent.name}" size=${torrent.size} type="${torrent.type || 'none'}"`
+        );
         if (torrent.size > 5 * 1024 * 1024) {
           set.status = 413;
+          console.warn(`${logPrefix} torrent too large name="${torrent.name}" size=${torrent.size}`);
           return { error: `Torrent file ${torrent.name} is too large` };
         }
       }
@@ -574,6 +589,9 @@ export const dashboardQbittorrentRoutes = new Elysia()
 
       const allSuccess = results.every(r => r.success);
       const someSuccess = results.some(r => r.success);
+      console.log(
+        `${logPrefix} completed all_success=${allSuccess} some_success=${someSuccess} results=${JSON.stringify(results)}`
+      );
 
       if (!someSuccess) {
         set.status = 502;

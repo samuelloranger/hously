@@ -1411,6 +1411,7 @@ export const addQbittorrentTorrentFile = async (
   enabled: boolean,
   payload: { torrent: File; save_path?: string | null; category?: string | null; tags?: string[] | null }
 ): Promise<{ enabled: boolean; connected: boolean; success: boolean; error?: string }> => {
+  const logPrefix = '[qbittorrentService:add-file]';
   if (!enabled) return { enabled: false, connected: false, success: false };
   if (!payload.torrent) return { enabled: true, connected: false, success: false, error: 'Missing torrent file' };
 
@@ -1428,12 +1429,20 @@ export const addQbittorrentTorrentFile = async (
     );
 
   try {
+    console.log(
+      `${logPrefix} sending torrent name="${payload.torrent.name}" size=${payload.torrent.size} category=${payload.category ?? 'none'} tags=${payload.tags?.join(',') || 'none'}`
+    );
     await qbFetchText(config, '/api/v2/torrents/add', {
       method: 'POST',
       body: formData,
     });
+    console.log(`${logPrefix} qBittorrent accepted torrent name="${payload.torrent.name}"`);
     return { enabled: true, connected: true, success: true };
   } catch (error) {
+    console.error(
+      `${logPrefix} qBittorrent rejected torrent name="${payload.torrent.name}" error=`,
+      error
+    );
     return {
       enabled: true,
       connected: false,
