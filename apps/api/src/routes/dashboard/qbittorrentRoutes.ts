@@ -157,6 +157,36 @@ export const dashboardQbittorrentRoutes = new Elysia()
     }
     return result;
   })
+  .get('/qbittorrent/options', async (ctx: any) => {
+    const { user, set } = ctx;
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    const config = await getConfigOrError(set);
+    if (!config) {
+      return { error: 'qBittorrent plugin is disabled or not configured' };
+    }
+
+    const [categoriesResult, tagsResult] = await Promise.all([
+      fetchQbittorrentCategories(config, true),
+      fetchQbittorrentTags(config, true),
+    ]);
+
+    const connected = categoriesResult.connected && tagsResult.connected;
+    if (!connected) {
+      set.status = 502;
+    }
+
+    return {
+      enabled: true,
+      connected,
+      categories: categoriesResult.categories,
+      tags: tagsResult.tags,
+      error: categoriesResult.error ?? tagsResult.error,
+    };
+  })
   .get('/qbittorrent/tags', async (ctx: any) => {
     const { user, set } = ctx;
     if (!user) {
@@ -533,11 +563,13 @@ export const dashboardQbittorrentRoutes = new Elysia()
       // We add them one by one for now to reuse the service function
       const results = [];
       for (const torrent of torrents) {
-        results.push(await addQbittorrentTorrentFile(config, true, {
-          torrent,
-          category: body.category ?? null,
-          tags: body.tags ? String(body.tags).split(',').filter(Boolean) : null,
-        }));
+        results.push(
+          await addQbittorrentTorrentFile(config, true, {
+            torrent,
+            category: body.category ?? null,
+            tags: body.tags ? String(body.tags).split(',').filter(Boolean) : null,
+          })
+        );
       }
 
       const allSuccess = results.every(r => r.success);

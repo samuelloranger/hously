@@ -213,6 +213,14 @@ export interface DashboardQbittorrentTagsResponse {
   error?: string;
 }
 
+export interface DashboardQbittorrentOptionsResponse {
+  enabled: boolean;
+  connected: boolean;
+  categories: QbittorrentCategory[];
+  tags: string[];
+  error?: string;
+}
+
 export interface QbittorrentTorrentProperties {
   save_path: string | null;
   total_size_bytes: number | null;
@@ -376,6 +384,7 @@ export interface DashboardYggStatsResponse {
   previous_uploaded_go?: number | null;
   previous_downloaded_go?: number | null;
   previous_ratio?: number | null;
+  previous_updated_at?: string | null;
   error?: string;
 }
 

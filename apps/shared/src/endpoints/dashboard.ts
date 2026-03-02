@@ -30,6 +30,7 @@ export const DASHBOARD_ENDPOINTS = {
     STREAM: '/api/dashboard/qbittorrent/stream',
     TORRENTS: '/api/dashboard/qbittorrent/torrents',
     TORRENTS_STREAM: '/api/dashboard/qbittorrent/torrents/stream',
+    OPTIONS: '/api/dashboard/qbittorrent/options',
     CATEGORIES: '/api/dashboard/qbittorrent/categories',
     TAGS: '/api/dashboard/qbittorrent/tags',
     ADD_MAGNET: '/api/dashboard/qbittorrent/torrents/add-magnet',
