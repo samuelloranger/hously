@@ -606,6 +606,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
         category: t.Optional(t.String()),
         tags: t.Optional(t.String()),
       }),
+      type: 'multipart/form-data',
     }
   )
   .get('/qbittorrent/stream', async (ctx: any) => {
