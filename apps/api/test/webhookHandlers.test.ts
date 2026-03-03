@@ -82,29 +82,34 @@ describe('webhookHandlers.jellyfin', () => {
 describe('webhookHandlers.cross-seed', () => {
   it('maps cross-seed RESULTS payloads into notification variables', () => {
     const result = webhookHandlers['cross-seed']({
-      event: 'RESULTS',
-      name: 'Stuart Little (1999)',
-      infoHashes: ['3ea08dcec3baedb5800e8f42f7acdb6555966084'],
-      trackers: ['La Cale (API)'],
-      source: 'torrentClient',
-      searchee: {
-        category: 'radarr',
-        client: 'qbittorrent',
-        path: '/data/Downloads/movies',
-      },
-      result: {
-        title: 'Stuart Little (1999) MULTi VF2 1080p BluRay x264-PopHD.mkv',
-        guid: 'https://la-cale.space/torrents/dffuqrd3tg1k',
+      title: 'cross-seed found matches',
+      body: 'Stuart Little (1999) matched on La Cale (API)',
+      extra: {
+        event: 'RESULTS',
+        name: 'Stuart Little (1999)',
+        infoHashes: ['3ea08dcec3baedb5800e8f42f7acdb6555966084'],
+        trackers: ['La Cale (API)'],
+        source: 'torrentClient',
+        result: 'injected',
+        decisions: ['MATCH'],
+        searchee: {
+          category: 'radarr',
+          client: 'qbittorrent',
+          path: '/data/Downloads/movies',
+          infoHash: 'f236801a00000000000000000000000000000000',
+        },
       },
     });
 
     expect(result.event_type).toBe('RESULTS');
+    expect(result.template_variables.title).toBe('cross-seed found matches');
+    expect(result.template_variables.body).toBe('Stuart Little (1999) matched on La Cale (API)');
     expect(result.template_variables.name).toBe('Stuart Little (1999)');
     expect(result.template_variables.trackers).toBe('La Cale (API)');
     expect(result.template_variables.tracker).toBe('La Cale (API)');
     expect(result.template_variables.source).toBe('torrentClient');
     expect(result.template_variables.client).toBe('qbittorrent');
     expect(result.template_variables.category).toBe('radarr');
-    expect(result.template_variables.result_title).toContain('Stuart Little');
+    expect(result.template_variables.result).toBe('injected');
   });
 });
