@@ -66,6 +66,12 @@ export function getTypeStyle(notification: { type: NotificationType; metadata?: 
         bg: 'bg-cyan-100 dark:bg-cyan-900/30',
       };
     }
+    if (serviceName === 'cross-seed') {
+      return {
+        icon: '🌱',
+        bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      };
+    }
   }
   return typeConfig[notification.type] || typeConfig.system;
 }

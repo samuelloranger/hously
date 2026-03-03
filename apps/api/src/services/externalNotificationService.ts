@@ -114,6 +114,7 @@ const serviceUrlMap: Record<string, string> = {
   jellyfin: '/medias',
   plex: '/medias',
   prowlarr: '/torrents',
+  'cross-seed': '/torrents',
 };
 
 /**

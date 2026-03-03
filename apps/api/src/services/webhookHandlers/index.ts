@@ -449,6 +449,39 @@ const handleHouslyWebhook: WebhookHandler = payload => {
   };
 };
 
+// cross-seed webhook handler
+const handleCrossSeedWebhook: WebhookHandler = payload => {
+  const eventType = firstString(payload.event, payload.eventType).toUpperCase() || 'RESULTS';
+  const searchee = asRecord(payload.searchee);
+  const result = asRecord(payload.result);
+
+  const variables: Record<string, unknown> = {
+    event: eventType,
+    name: firstString(payload.name, searchee?.title, searchee?.name, result?.title) || 'Unknown release',
+    source: firstString(payload.source, searchee?.source) || 'unknown',
+    info_hashes: joinValues(payload.infoHashes),
+    trackers: joinValues(payload.trackers),
+    tracker: firstString(
+      Array.isArray(payload.trackers) ? payload.trackers[0] : '',
+      result?.tracker,
+      result?.indexer,
+      searchee?.tracker
+    ),
+    result_title: firstString(result?.title, result?.name),
+    result_guid: firstString(result?.guid),
+    result_link: firstString(result?.link, result?.url),
+    category: firstString(searchee?.category),
+    client: firstString(searchee?.client),
+    save_path: firstString(searchee?.path, searchee?.savePath),
+  };
+
+  return {
+    event_type: eventType,
+    template_variables: ensureStrings(variables),
+    original_payload: payload,
+  };
+};
+
 // Handler registry
 export const webhookHandlers: Record<string, WebhookHandler> = {
   radarr: handleRadarrWebhook,
@@ -459,4 +492,6 @@ export const webhookHandlers: Record<string, WebhookHandler> = {
   kopia: handleKopiaWebhook,
   uptimekuma: handleUptimekumaWebhook,
   hously: handleHouslyWebhook,
+  'cross-seed': handleCrossSeedWebhook,
+  crossseed: handleCrossSeedWebhook,
 };

@@ -78,3 +78,33 @@ describe('webhookHandlers.jellyfin', () => {
     expect(result.template_variables.NotificationType).toBe('UserCreated');
   });
 });
+
+describe('webhookHandlers.cross-seed', () => {
+  it('maps cross-seed RESULTS payloads into notification variables', () => {
+    const result = webhookHandlers['cross-seed']({
+      event: 'RESULTS',
+      name: 'Stuart Little (1999)',
+      infoHashes: ['3ea08dcec3baedb5800e8f42f7acdb6555966084'],
+      trackers: ['La Cale (API)'],
+      source: 'torrentClient',
+      searchee: {
+        category: 'radarr',
+        client: 'qbittorrent',
+        path: '/data/Downloads/movies',
+      },
+      result: {
+        title: 'Stuart Little (1999) MULTi VF2 1080p BluRay x264-PopHD.mkv',
+        guid: 'https://la-cale.space/torrents/dffuqrd3tg1k',
+      },
+    });
+
+    expect(result.event_type).toBe('RESULTS');
+    expect(result.template_variables.name).toBe('Stuart Little (1999)');
+    expect(result.template_variables.trackers).toBe('La Cale (API)');
+    expect(result.template_variables.tracker).toBe('La Cale (API)');
+    expect(result.template_variables.source).toBe('torrentClient');
+    expect(result.template_variables.client).toBe('qbittorrent');
+    expect(result.template_variables.category).toBe('radarr');
+    expect(result.template_variables.result_title).toContain('Stuart Little');
+  });
+});
