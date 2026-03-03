@@ -42,7 +42,7 @@ export const mockDashboardStats: DashboardStats = {
   shopping_count: 5,
   events_today: 10,
   chores_count: 3,
-  monthly_total: 500.0,
+  habits_streak: 5,
 };
 
 export const mockActivity: Activity = {
@@ -50,4 +50,55 @@ export const mockActivity: Activity = {
   time: '2 hours ago',
   icon: '🛒',
   type: 'shopping_added',
+};
+
+export const mockPluginUpdatedActivity: Activity = {
+  type: 'plugin_updated',
+  plugin_type: 'ygg',
+  completed_at: '2024-01-01T00:00:00Z',
+};
+
+export const mockCronEndedActivity: Activity = {
+  type: 'cron_job_ended',
+  job_id: 'fetchYggStats',
+  job_name: 'Fetch YGG stats',
+  success: true,
+  duration_ms: 1500,
+  completed_at: '2024-01-01T00:00:00Z',
+};
+
+export const mockCronSkippedActivity: Activity = {
+  type: 'cron_job_skipped',
+  job_id: 'fetchYggStats',
+  job_name: 'Fetch YGG stats',
+  reason: 'already_running',
+  completed_at: '2024-01-01T00:00:00Z',
+};
+
+export const mockAppUpdatedActivity: Activity = {
+  type: 'app_updated',
+  from_version: '1.0.0',
+  to_version: '1.0.1',
+  completed_at: '2024-01-01T00:00:00Z',
+};
+
+export const mockRecipeAddedActivity: Activity = {
+  type: 'recipe_added',
+  recipe_id: 1,
+  recipe_name: 'Pasta',
+  completed_at: '2024-01-01T00:00:00Z',
+};
+
+export const mockEventCreatedActivity: Activity = {
+  type: 'event_created',
+  event_id: 1,
+  event_title: 'Dentist',
+  completed_at: '2024-01-01T00:00:00Z',
+};
+
+export const mockShoppingItemCompletedActivity: Activity = {
+  type: 'shopping_item_completed',
+  shopping_item_id: 1,
+  item_name: 'Milk',
+  completed_at: '2024-01-01T00:00:00Z',
 };

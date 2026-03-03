@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
+import { refreshHabitsStreakForUser } from '../utils/dashboard/habitsStreak';
 
 const DONE_STATUS = 'done';
 const SKIPPED_STATUS = 'skipped';
@@ -366,6 +367,7 @@ export const habitsRoutes = new Elysia()
           }
         });
 
+        refreshHabitsStreakForUser(userId).catch(() => {});
         return buildHabitStatusResponse(existingHabit.timesPerDay, todayCompletions + 1, todaySkipped);
       })
       .delete('/:id/complete', async ({ params: { id }, user, set }) => {
@@ -432,6 +434,7 @@ export const habitsRoutes = new Elysia()
           },
         });
 
+        refreshHabitsStreakForUser(userId).catch(() => {});
         return buildHabitStatusResponse(existingHabit.timesPerDay, newCount, skippedCount);
       })
       .post('/:id/skip', async ({ params: { id }, user, set }) => {
@@ -492,6 +495,7 @@ export const habitsRoutes = new Elysia()
           }
         });
 
+        refreshHabitsStreakForUser(userId).catch(() => {});
         return buildHabitStatusResponse(existingHabit.timesPerDay, todayCompletions, todaySkipped + 1);
       })
       .delete('/:id/skip', async ({ params: { id }, user, set }) => {
@@ -558,6 +562,7 @@ export const habitsRoutes = new Elysia()
           },
         });
 
+        refreshHabitsStreakForUser(userId).catch(() => {});
         return buildHabitStatusResponse(existingHabit.timesPerDay, completionCount, newSkippedCount);
       })
       .get(

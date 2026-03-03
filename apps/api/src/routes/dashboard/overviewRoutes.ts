@@ -4,6 +4,7 @@ import { prisma } from '../../db';
 import { formatIso } from '../../utils';
 import { getJsonCache, setJsonCache } from '../../services/cache';
 import { fetchAddressWeather, normalizeWeatherAddress, WEATHER_CACHE_TTL_SECONDS } from '../../utils/dashboard/weather';
+import { getCachedHabitsStreak } from '../../utils/dashboard/habitsStreak';
 import type { DashboardWeatherResponse } from '../../types/dashboardWeather';
 
 interface WeatherPluginConfig {
@@ -48,19 +49,14 @@ export const dashboardOverviewRoutes = new Elysia()
         },
       });
 
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const monthlyTotal = await prisma.taskCompletion.count({
-        where: {
-          completedAt: { gte: startOfMonth },
-        },
-      });
+      const habitsStreak = await getCachedHabitsStreak(user.id);
 
       return {
         stats: {
           events_today: eventsTodayCount,
           shopping_count: shoppingCount,
           chores_count: choresCount,
-          monthly_total: monthlyTotal,
+          habits_streak: habitsStreak,
         },
         activities: [],
       };

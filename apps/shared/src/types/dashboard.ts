@@ -2,7 +2,7 @@ export interface DashboardStats {
   events_today: number;
   shopping_count: number;
   chores_count: number;
-  monthly_total: number;
+  habits_streak: number;
 }
 
 export interface Activity {

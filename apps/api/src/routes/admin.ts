@@ -8,6 +8,7 @@ import {
   cleanupOldNotifications,
   fetchTrackerStats,
   refreshUpcoming,
+  refreshHabitsStreaks,
 } from '../jobs';
 import { logActivity } from '../utils/activityLogs';
 import { sendInvitationEmail } from '../services/emailService';
@@ -32,6 +33,8 @@ const resolveAdminActionJob = (action: string): { id: string; name: string } | n
       return { id: 'fetchLaCaleStats', name: 'Fetch La Cale stats' };
     case 'refresh_upcoming':
       return { id: 'refreshUpcoming', name: 'Refresh upcoming releases' };
+    case 'refresh_habits_streaks':
+      return { id: 'refreshHabitsStreaks', name: 'Refresh habits streaks' };
     default:
       return null;
   }
@@ -184,6 +187,13 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
           trigger: '30 */12 * * *',
           func: 'refresh_upcoming',
         },
+        {
+          id: 'refreshHabitsStreaks',
+          name: 'Refresh habits streaks',
+          next_run_time: null,
+          trigger: '*/15 * * * *',
+          func: 'refresh_habits_streaks',
+        },
       ],
     };
   })
@@ -257,6 +267,10 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
           case 'refresh_upcoming': {
             await refreshUpcoming({ trigger: 'manual' });
             return { success: true, message: 'Upcoming releases refreshed' };
+          }
+          case 'refresh_habits_streaks': {
+            await refreshHabitsStreaks({ trigger: 'manual' });
+            return { success: true, message: 'Habits streaks refreshed' };
           }
           default: {
             set.status = 400;
