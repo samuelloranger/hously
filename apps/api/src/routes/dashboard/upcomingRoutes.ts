@@ -1,11 +1,10 @@
 import { Elysia, t } from 'elysia';
 import { auth } from '../../auth';
 import {
-  TMDB_UPCOMING_CACHE_TTL_SECONDS,
+  TMDB_UPCOMING_CACHE_KEY,
+  TMDB_POPULARITY_THRESHOLD,
   collectTmdbUpcoming,
-  fetchTmdbProviders,
   getArrPluginStatus,
-  parseTmdbNumericId,
   toIsoDate,
 } from '../../utils/dashboard/tmdbUpcoming';
 import { prisma } from '../../db';
@@ -34,21 +33,24 @@ export const dashboardUpcomingRoutes = new Elysia()
         return { enabled: false, items: [], ...arrPluginStatus };
       }
 
-      const today = new Date();
-      const todayIso = toIsoDate(today);
-      const oneYearOut = new Date(Date.UTC(today.getUTCFullYear() + 1, today.getUTCMonth(), today.getUTCDate()));
-      const oneYearOutIso = toIsoDate(oneYearOut);
-      const cacheKey = `dashboard:tmdb:upcoming:v5:from:${todayIso}`;
-
+      // Serve from cron-populated cache
       const cached = await getJsonCache<{
         enabled: boolean;
         items: DashboardUpcomingItem[];
-      }>(cacheKey);
+      }>(TMDB_UPCOMING_CACHE_KEY);
+
       if (cached) {
         return { ...cached, ...arrPluginStatus };
       }
 
-      const POOL_SIZE_PER_TYPE = 60; // ~3 TMDB pages per media type → ~120 items total
+      // Cold cache fallback: lightweight fetch without per-movie enrichment or providers
+      console.log('[upcoming] Cache miss, running inline fallback');
+      const today = new Date();
+      const todayIso = toIsoDate(today);
+      const oneYearOut = new Date(Date.UTC(today.getUTCFullYear() + 1, today.getUTCMonth(), today.getUTCDate()));
+      const oneYearOutIso = toIsoDate(oneYearOut);
+
+      const POOL_SIZE_PER_TYPE = 40;
       const [moviesResult, tvResult] = await Promise.all([
         collectTmdbUpcoming('movie', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
         collectTmdbUpcoming('tv', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
@@ -60,6 +62,7 @@ export const dashboardUpcomingRoutes = new Elysia()
       }
 
       const sortedItems = [...moviesResult.items, ...tvResult.items]
+        .filter(item => (item.popularity ?? 0) >= TMDB_POPULARITY_THRESHOLD)
         .filter(item => {
           if (!item.release_date) return false;
           const releaseTime = Date.parse(item.release_date);
@@ -73,17 +76,12 @@ export const dashboardUpcomingRoutes = new Elysia()
           return aTime - bTime;
         });
 
-      const itemsWithProviders = await Promise.all(
-        sortedItems.map(async item => {
-          const tmdbId = parseTmdbNumericId(item.id);
-          if (!tmdbId) return item;
-          const providers = await fetchTmdbProviders(item.media_type, tmdbId, tmdbApiKey);
-          return { ...item, providers };
-        })
-      );
+      // Strip popularity before caching
+      const cleanItems: DashboardUpcomingItem[] = sortedItems.map(({ popularity: _, ...rest }) => rest);
 
-      const responsePayload = { enabled: true, items: itemsWithProviders };
-      await setJsonCache(cacheKey, responsePayload, TMDB_UPCOMING_CACHE_TTL_SECONDS);
+      // Cache with a shorter TTL so the cron job overwrites it soon
+      const responsePayload = { enabled: true, items: cleanItems };
+      await setJsonCache(TMDB_UPCOMING_CACHE_KEY, responsePayload, 60 * 60);
       return { ...responsePayload, ...arrPluginStatus };
     } catch (error) {
       console.error('Error getting TMDB upcoming items:', error);

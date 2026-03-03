@@ -7,6 +7,7 @@ import {
   checkAndSendReminders,
   cleanupOldNotifications,
   fetchTrackerStats,
+  refreshUpcoming,
 } from '../jobs';
 import { logActivity } from '../utils/activityLogs';
 import { sendInvitationEmail } from '../services/emailService';
@@ -29,6 +30,8 @@ const resolveAdminActionJob = (action: string): { id: string; name: string } | n
       return { id: 'fetchG3miniStats', name: 'Fetch G3mini stats' };
     case 'fetch_la_cale_stats':
       return { id: 'fetchLaCaleStats', name: 'Fetch La Cale stats' };
+    case 'refresh_upcoming':
+      return { id: 'refreshUpcoming', name: 'Refresh upcoming releases' };
     default:
       return null;
   }
@@ -174,6 +177,13 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
           trigger: '0 * * * *',
           func: 'fetch_la_cale_stats',
         },
+        {
+          id: 'refreshUpcoming',
+          name: 'Refresh upcoming releases',
+          next_run_time: null,
+          trigger: '30 */12 * * *',
+          func: 'refresh_upcoming',
+        },
       ],
     };
   })
@@ -243,6 +253,10 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
           case 'fetch_la_cale_stats': {
             await fetchTrackerStats('la-cale', { trigger: 'manual' });
             return { success: true, message: 'La Cale stats fetched' };
+          }
+          case 'refresh_upcoming': {
+            await refreshUpcoming({ trigger: 'manual' });
+            return { success: true, message: 'Upcoming releases refreshed' };
           }
           default: {
             set.status = 400;

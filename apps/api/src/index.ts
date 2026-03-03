@@ -9,6 +9,7 @@ import {
   cleanupOldNotifications,
   fetchAllTrackerStats,
   checkHabitReminders,
+  refreshUpcoming,
 } from './jobs';
 import { checkAndNotifyVersionChange } from './services/versionService';
 import { auth } from './auth';
@@ -113,6 +114,13 @@ export const app = new Elysia()
       pattern: '* * * * *', // Every minute
       run: () =>
         runCronJobWithActivity({ id: 'checkHabitReminders', name: 'Check habit reminders' }, checkHabitReminders),
+    })
+  )
+  .use(
+    cron({
+      name: 'refreshUpcoming',
+      pattern: '30 */12 * * *', // Every 12 hours at :30
+      run: () => refreshUpcoming({ trigger: 'cron' }),
     })
   )
   .use(app => {

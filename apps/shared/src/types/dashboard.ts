@@ -116,6 +116,7 @@ export interface DashboardUpcomingItem {
   overview: string | null;
   tmdb_url: string;
   providers: DashboardUpcomingProvider[];
+  popularity?: number;
 }
 
 export interface DashboardUpcomingProvider {

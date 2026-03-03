@@ -15,6 +15,9 @@ export interface DashboardUpcomingItem {
   media_type: 'movie' | 'tv';
   release_date: string | null;
   poster_url: string | null;
+  backdrop_url: string | null;
+  overview: string | null;
   tmdb_url: string;
   providers: DashboardUpcomingProvider[];
+  popularity?: number;
 }
