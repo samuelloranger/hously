@@ -2,6 +2,7 @@ import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
 import { refreshHabitsStreakForUser } from '../utils/dashboard/habitsStreak';
+import { formatDateInTimezone, todayLocal } from '../utils/date';
 
 const DONE_STATUS = 'done';
 const SKIPPED_STATUS = 'skipped';
@@ -41,6 +42,18 @@ const getUserId = (user: { id: number } | null | undefined) => {
   }
 
   return user.id;
+};
+
+const getTodayDateKey = (date: Date) => formatDateInTimezone(date);
+
+const getDayRange = (date = todayLocal()) => {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  return { start, end };
 };
 
 export const habitsRoutes = new Elysia()
@@ -84,8 +97,7 @@ export const habitsRoutes = new Elysia()
       )
       .get('/', async ({ user }) => {
         const userId = getUserId(user);
-        const startOfToday = new Date();
-        startOfToday.setUTCHours(0, 0, 0, 0);
+        const { start: startOfToday, end: startOfTomorrow } = getDayRange();
 
         const habits = await prisma.habit.findMany({
           where: {
@@ -101,8 +113,9 @@ export const habitsRoutes = new Elysia()
             },
             completions: {
               where: {
-                date: {
+                completedAt: {
                   gte: startOfToday,
+                  lt: startOfTomorrow,
                 },
               },
             },
@@ -117,39 +130,36 @@ export const habitsRoutes = new Elysia()
               accountedCount: todayAccounted,
             } = getTodayStatusCounts(habit.completions);
 
-            const allCompletions = await prisma.habitCompletion.groupBy({
-              by: ['date'],
+            const allCompletions = await prisma.habitCompletion.findMany({
               where: {
                 habitId: habit.id,
                 status: DONE_STATUS,
-                date: {
-                  lt: startOfToday,
+                completedAt: {
+                  lt: startOfTomorrow,
                 },
               },
-              _count: {
-                id: true,
+              select: {
+                completedAt: true,
               },
               orderBy: {
-                date: 'desc',
+                completedAt: 'desc',
               },
             });
 
-            let currentStreak = 0;
-            let checkDate = new Date(startOfToday);
-            checkDate.setUTCDate(checkDate.getUTCDate() - 1);
+            const completionsByDay = new Map<string, number>();
 
             for (const completion of allCompletions) {
-              const completionDate = new Date(completion.date);
-              if (completionDate.getTime() === checkDate.getTime()) {
-                if (completion._count.id >= habit.timesPerDay) {
-                  currentStreak++;
-                  checkDate.setUTCDate(checkDate.getUTCDate() - 1);
-                } else {
-                  break;
-                }
-              } else if (completionDate.getTime() < checkDate.getTime()) {
-                break;
-              }
+              const dateKey = getTodayDateKey(completion.completedAt);
+              completionsByDay.set(dateKey, (completionsByDay.get(dateKey) ?? 0) + 1);
+            }
+
+            let currentStreak = 0;
+            let checkDate = new Date(startOfToday);
+            checkDate.setDate(checkDate.getDate() - 1);
+
+            while ((completionsByDay.get(getTodayDateKey(checkDate)) ?? 0) >= habit.timesPerDay) {
+              currentStreak++;
+              checkDate.setDate(checkDate.getDate() - 1);
             }
 
             if (todayCompletions >= habit.timesPerDay) {
@@ -322,15 +332,15 @@ export const habitsRoutes = new Elysia()
           return { error: 'Habit not found' };
         }
 
-        const startOfToday = new Date();
-        startOfToday.setUTCHours(0, 0, 0, 0);
+        const { start: startOfToday, end: startOfTomorrow } = getDayRange();
 
         const todayCompletions = await prisma.habitCompletion.count({
           where: {
             habitId: habitIdNum,
             status: DONE_STATUS,
-            date: {
+            completedAt: {
               gte: startOfToday,
+              lt: startOfTomorrow,
             },
           },
         });
@@ -339,8 +349,9 @@ export const habitsRoutes = new Elysia()
           where: {
             habitId: habitIdNum,
             status: SKIPPED_STATUS,
-            date: {
+            completedAt: {
               gte: startOfToday,
+              lt: startOfTomorrow,
             },
           },
         });
@@ -383,15 +394,15 @@ export const habitsRoutes = new Elysia()
           return { error: 'Habit not found' };
         }
 
-        const startOfToday = new Date();
-        startOfToday.setUTCHours(0, 0, 0, 0);
+        const { start: startOfToday, end: startOfTomorrow } = getDayRange();
 
         const lastCompletion = await prisma.habitCompletion.findFirst({
           where: {
             habitId: habitIdNum,
             status: DONE_STATUS,
-            date: {
+            completedAt: {
               gte: startOfToday,
+              lt: startOfTomorrow,
             },
           },
           orderBy: {
@@ -403,8 +414,9 @@ export const habitsRoutes = new Elysia()
           where: {
             habitId: habitIdNum,
             status: SKIPPED_STATUS,
-            date: {
+            completedAt: {
               gte: startOfToday,
+              lt: startOfTomorrow,
             },
           },
         });
@@ -414,7 +426,10 @@ export const habitsRoutes = new Elysia()
             where: {
               habitId: habitIdNum,
               status: DONE_STATUS,
-              date: { gte: startOfToday },
+              completedAt: {
+                gte: startOfToday,
+                lt: startOfTomorrow,
+              },
             },
           });
           return buildHabitStatusResponse(existingHabit.timesPerDay, count, skippedCount);
@@ -428,8 +443,9 @@ export const habitsRoutes = new Elysia()
           where: {
             habitId: habitIdNum,
             status: DONE_STATUS,
-            date: {
+            completedAt: {
               gte: startOfToday,
+              lt: startOfTomorrow,
             },
           },
         });
@@ -450,15 +466,15 @@ export const habitsRoutes = new Elysia()
           return { error: 'Habit not found' };
         }
 
-        const startOfToday = new Date();
-        startOfToday.setUTCHours(0, 0, 0, 0);
+        const { start: startOfToday, end: startOfTomorrow } = getDayRange();
 
         const todayCompletions = await prisma.habitCompletion.count({
           where: {
             habitId: habitIdNum,
             status: DONE_STATUS,
-            date: {
+            completedAt: {
               gte: startOfToday,
+              lt: startOfTomorrow,
             },
           },
         });
@@ -467,8 +483,9 @@ export const habitsRoutes = new Elysia()
           where: {
             habitId: habitIdNum,
             status: SKIPPED_STATUS,
-            date: {
+            completedAt: {
               gte: startOfToday,
+              lt: startOfTomorrow,
             },
           },
         });
@@ -511,15 +528,15 @@ export const habitsRoutes = new Elysia()
           return { error: 'Habit not found' };
         }
 
-        const startOfToday = new Date();
-        startOfToday.setUTCHours(0, 0, 0, 0);
+        const { start: startOfToday, end: startOfTomorrow } = getDayRange();
 
         const lastSkipped = await prisma.habitCompletion.findFirst({
           where: {
             habitId: habitIdNum,
             status: SKIPPED_STATUS,
-            date: {
+            completedAt: {
               gte: startOfToday,
+              lt: startOfTomorrow,
             },
           },
           orderBy: {
@@ -531,8 +548,9 @@ export const habitsRoutes = new Elysia()
           where: {
             habitId: habitIdNum,
             status: DONE_STATUS,
-            date: {
+            completedAt: {
               gte: startOfToday,
+              lt: startOfTomorrow,
             },
           },
         });
@@ -542,7 +560,10 @@ export const habitsRoutes = new Elysia()
             where: {
               habitId: habitIdNum,
               status: SKIPPED_STATUS,
-              date: { gte: startOfToday },
+              completedAt: {
+                gte: startOfToday,
+                lt: startOfTomorrow,
+              },
             },
           });
           return buildHabitStatusResponse(existingHabit.timesPerDay, completionCount, skippedCount);
@@ -556,8 +577,9 @@ export const habitsRoutes = new Elysia()
           where: {
             habitId: habitIdNum,
             status: SKIPPED_STATUS,
-            date: {
+            completedAt: {
               gte: startOfToday,
+              lt: startOfTomorrow,
             },
           },
         });
@@ -581,35 +603,35 @@ export const habitsRoutes = new Elysia()
             return { error: 'Habit not found' };
           }
 
-          const startDate = new Date();
-          startDate.setUTCHours(0, 0, 0, 0);
-          startDate.setUTCDate(startDate.getUTCDate() - historyDays + 1);
+          const { start: startDate, end: startOfTomorrow } = getDayRange();
+          startDate.setDate(startDate.getDate() - historyDays + 1);
 
-          const completions = await prisma.habitCompletion.groupBy({
-            by: ['date', 'status'],
+          const completions = await prisma.habitCompletion.findMany({
             where: {
               habitId: habitIdNum,
-              date: {
+              completedAt: {
                 gte: startDate,
+                lt: startOfTomorrow,
               },
             },
-            _count: {
-              id: true,
+            select: {
+              status: true,
+              completedAt: true,
             },
             orderBy: {
-              date: 'desc',
+              completedAt: 'desc',
             },
           });
 
           const historyMap = new Map<string, { completions: number; skipped: number }>();
           for (const c of completions) {
-            const dateKey = c.date.toISOString().split('T')[0];
+            const dateKey = getTodayDateKey(c.completedAt);
             const current = historyMap.get(dateKey) || { completions: 0, skipped: 0 };
 
             if (c.status === DONE_STATUS) {
-              current.completions = c._count.id;
+              current.completions += 1;
             } else if (c.status === SKIPPED_STATUS) {
-              current.skipped = c._count.id;
+              current.skipped += 1;
             }
 
             historyMap.set(dateKey, current);
@@ -617,10 +639,9 @@ export const habitsRoutes = new Elysia()
 
           const history = [];
           for (let i = 0; i < historyDays; i++) {
-            const date = new Date();
-            date.setUTCHours(0, 0, 0, 0);
-            date.setUTCDate(date.getUTCDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
+            const date = todayLocal();
+            date.setDate(date.getDate() - i);
+            const dateStr = getTodayDateKey(date);
             const counts = historyMap.get(dateStr) || { completions: 0, skipped: 0 };
 
             history.push({

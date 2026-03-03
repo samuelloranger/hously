@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { PageLayout } from '../../components/PageLayout';
@@ -18,8 +18,44 @@ export const HabitsList: React.FC = () => {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const lastSeenDateKeyRef = useRef(new Date().toDateString());
 
   const habits = data?.habits || [];
+
+  useEffect(() => {
+    const refreshIfDateChanged = () => {
+      const nextDateKey = new Date().toDateString();
+
+      if (nextDateKey === lastSeenDateKeyRef.current) {
+        return;
+      }
+
+      lastSeenDateKeyRef.current = nextDateKey;
+      void refetch();
+    };
+
+    const scheduleMidnightRefresh = () => {
+      const now = new Date();
+      const nextMidnight = new Date(now);
+      nextMidnight.setHours(24, 0, 0, 0);
+
+      return window.setTimeout(() => {
+        refreshIfDateChanged();
+        timeoutId = scheduleMidnightRefresh();
+      }, nextMidnight.getTime() - now.getTime() + 1000);
+    };
+
+    let timeoutId = scheduleMidnightRefresh();
+
+    window.addEventListener('focus', refreshIfDateChanged);
+    document.addEventListener('visibilitychange', refreshIfDateChanged);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.removeEventListener('focus', refreshIfDateChanged);
+      document.removeEventListener('visibilitychange', refreshIfDateChanged);
+    };
+  }, [refetch]);
 
   const handleDelete = (habit: Habit) => {
     if (!confirm(t('habits.deleteConfirm'))) return;
