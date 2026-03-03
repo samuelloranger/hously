@@ -9,8 +9,6 @@ import { NetdataOverviewCard } from './components/NetdataOverviewCard';
 import { WeatherWidget } from './components/WeatherWidget';
 import { TrackerStatsCard } from './components/TrackerStatsCard';
 import { RecentActivityCard } from './components/RecentActivityCard';
-import { HackerNewsCard } from './components/HackerNewsCard';
-import { RedditCard } from './components/RedditCard';
 import { getUserFirstName, useCurrentUser, useDashboardStats } from '@hously/shared';
 import { StatCardSkeleton } from '../../components/Skeleton';
 import PendingChoresSection from './components/PendingChoresSection';
@@ -104,8 +102,6 @@ export function Dashboard() {
           >
             <ScrutinyHealthCard />
           </div>
-          <HackerNewsCard />
-          <RedditCard />
           <div onMouseEnter={() => prefetchRoute('/chores')} onTouchStart={() => prefetchRoute('/chores')}>
             <PendingChoresSection />
           </div>

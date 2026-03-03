@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   useC411Plugin,
-  useG3miniPlugin,
   useLaCalePlugin,
   useTorr9Plugin,
   useUpdateC411Plugin,
-  useUpdateG3miniPlugin,
   useUpdateLaCalePlugin,
   useUpdateTorr9Plugin,
   useUpdateYggPlugin,
@@ -220,8 +218,6 @@ export function TrackersPluginSection() {
   const c411Mutation = useUpdateC411Plugin();
   const torr9Query = useTorr9Plugin();
   const torr9Mutation = useUpdateTorr9Plugin();
-  const g3miniQuery = useG3miniPlugin();
-  const g3miniMutation = useUpdateG3miniPlugin();
   const laCaleQuery = useLaCalePlugin();
   const laCaleMutation = useUpdateLaCalePlugin();
 
@@ -293,23 +289,6 @@ export function TrackersPluginSection() {
           username: torr9Query.data?.plugin.username || '',
         }}
         onSave={payload => torr9Mutation.mutateAsync(payload)}
-      />
-
-      <TrackerEditor
-        title={t('settings.plugins.trackers.providers.g3mini')}
-        logoUrl="/icons/g3mini.ico"
-        usernamePlaceholder={t('settings.plugins.trackers.usernamePlaceholder')}
-        websiteLabel={t('settings.plugins.trackers.trackerUrl')}
-        websitePlaceholder="https://www.g3mini.com"
-        loading={g3miniQuery.isLoading}
-        saving={g3miniMutation.isPending}
-        initial={{
-          enabled: Boolean(g3miniQuery.data?.plugin.enabled),
-          flaresolverr_url: g3miniQuery.data?.plugin.flaresolverr_url || '',
-          tracker_url: g3miniQuery.data?.plugin.tracker_url || '',
-          username: g3miniQuery.data?.plugin.username || '',
-        }}
-        onSave={payload => g3miniMutation.mutateAsync(payload)}
       />
 
       <TrackerEditor

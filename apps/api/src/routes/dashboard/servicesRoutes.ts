@@ -20,7 +20,6 @@ const trackerLabel = (type: TrackerType): string => {
     ygg: 'YGG',
     c411: 'C411',
     torr9: 'Torr9',
-    g3mini: 'G3mini',
     'la-cale': 'La Cale',
   }[type];
 };
@@ -73,9 +72,51 @@ async function getTrackerStatsHandler(type: TrackerType) {
   };
 }
 
+const TRACKER_TYPES: TrackerType[] = ['ygg', 'c411', 'torr9', 'la-cale'];
+
+async function getAllTrackerStatsHandler() {
+  const results = await Promise.all(
+    TRACKER_TYPES.map(async type => {
+      try {
+        return [type, await getTrackerStatsHandler(type)] as const;
+      } catch (error) {
+        console.error(`Error fetching ${trackerLabel(type)} stats:`, error);
+        return [
+          type,
+          {
+            enabled: false,
+            connected: false,
+            updated_at: null,
+            uploaded_go: null,
+            downloaded_go: null,
+            ratio: null,
+            error: `Failed to get ${trackerLabel(type)} stats`,
+          },
+        ] as const;
+      }
+    })
+  );
+
+  return Object.fromEntries(results);
+}
+
 export const dashboardServiceRoutes = new Elysia()
   .use(auth)
   .use(dashboardQbittorrentRoutes)
+  .get('/trackers/stats', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      return await getAllTrackerStatsHandler();
+    } catch (error) {
+      console.error('Error fetching trackers stats:', error);
+      set.status = 500;
+      return { error: 'Failed to get trackers stats' };
+    }
+  })
   .get('/ygg/stats', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
@@ -118,20 +159,6 @@ export const dashboardServiceRoutes = new Elysia()
       return { error: 'Failed to get Torr9 stats' };
     }
   })
-  .get('/g3mini/stats', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
-    try {
-      return await getTrackerStatsHandler('g3mini');
-    } catch (error) {
-      console.error('Error fetching G3mini stats:', error);
-      set.status = 500;
-      return { error: 'Failed to get G3mini stats' };
-    }
-  })
   .get('/la-cale/stats', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
@@ -141,9 +168,9 @@ export const dashboardServiceRoutes = new Elysia()
     try {
       return await getTrackerStatsHandler('la-cale');
     } catch (error) {
-      console.error('Error fetching G3mini stats:', error);
+      console.error('Error fetching La Cale stats:', error);
       set.status = 500;
-      return { error: 'Failed to get G3mini stats' };
+      return { error: 'Failed to get La Cale stats' };
     }
   })
   .get('/scrutiny/summary', async ({ user, set }) => {

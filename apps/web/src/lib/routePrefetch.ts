@@ -68,24 +68,8 @@ const routeQueryDefinitions = {
       queryFn: () => webFetcher(PLUGIN_ENDPOINTS.TMDB),
     },
     {
-      queryKey: queryKeys.dashboard.trackerStats('ygg'),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.YGG.STATS),
-    },
-    {
-      queryKey: queryKeys.dashboard.trackerStats('c411'),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.C411.STATS),
-    },
-    {
-      queryKey: queryKeys.dashboard.trackerStats('torr9'),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.TORR9.STATS),
-    },
-    {
-      queryKey: queryKeys.dashboard.trackerStats('g3mini'),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.G3MINI.STATS),
-    },
-    {
-      queryKey: queryKeys.dashboard.trackerStats('la-cale'),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.LA_CALE.STATS),
+      queryKey: queryKeys.dashboard.trackersStats(),
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.TRACKERS.STATS),
     },
   ],
 

@@ -239,16 +239,6 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       enabled: t.Optional(t.Boolean()),
     }),
   })
-  .get('/g3mini', ({ user, set }) => getTrackerPluginHandler('g3mini', user, set))
-  .put('/g3mini', ({ user, body, set }) => updateTrackerPluginHandler('g3mini', user, body, set), {
-    body: t.Object({
-      flaresolverr_url: t.String(),
-      tracker_url: t.String(),
-      username: t.String(),
-      password: t.Optional(t.String()),
-      enabled: t.Optional(t.Boolean()),
-    }),
-  })
   .get('/la-cale', ({ user, set }) => getTrackerPluginHandler('la-cale', user, set))
   .put('/la-cale', ({ user, body, set }) => updateTrackerPluginHandler('la-cale', user, body, set), {
     body: t.Object({

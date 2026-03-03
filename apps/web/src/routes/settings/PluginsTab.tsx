@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 import {
-  HackernewsPluginSection,
-  RedditPluginSection,
   JellyfinPluginSection,
   NetdataPluginSection,
   QbittorrentPluginSection,
@@ -58,8 +56,6 @@ export function PluginsTab() {
       {subTab === 'plugins' ? (
         <div className="space-y-4 animate-in fade-in duration-200">
           <WeatherPluginSection />
-          <HackernewsPluginSection />
-          <RedditPluginSection />
           <TmdbPluginSection />
           <JellyfinPluginSection />
           <RadarrPluginSection />

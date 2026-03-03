@@ -26,6 +26,7 @@ export const queryKeys = {
       [...queryKeys.dashboard.all, 'jellyfin-latest', limit, page] as const,
     jellyfinLatestInfinite: (limit?: number) =>
       [...queryKeys.dashboard.all, 'jellyfin-latest-infinite', limit] as const,
+    trackersStats: () => [...queryKeys.dashboard.all, 'trackers-stats'] as const,
     trackerStats: (type: TrackerType) => [...queryKeys.dashboard.all, 'tracker-stats', type] as const,
     yggStats: () => queryKeys.dashboard.trackerStats('ygg'),
     upcoming: () => [...queryKeys.dashboard.all, 'upcoming'] as const,
@@ -41,9 +42,6 @@ export const queryKeys = {
     qbittorrentTorrentPeers: (hash: string) => [...queryKeys.dashboard.all, 'qbittorrent-torrent-peers', hash] as const,
     scrutinySummary: () => [...queryKeys.dashboard.all, 'scrutiny-summary'] as const,
     netdataSummary: () => [...queryKeys.dashboard.all, 'netdata-summary'] as const,
-    hackerNews: () => [...queryKeys.dashboard.all, 'hackernews'] as const,
-    reddit: () => [...queryKeys.dashboard.all, 'reddit'] as const,
-    redditInfinite: () => [...queryKeys.dashboard.all, 'reddit-infinite'] as const,
   },
 
   weather: {
@@ -86,8 +84,6 @@ export const queryKeys = {
     scrutiny: () => [...queryKeys.plugins.all, 'scrutiny'] as const,
     netdata: () => [...queryKeys.plugins.all, 'netdata'] as const,
     weather: () => [...queryKeys.plugins.all, 'weather'] as const,
-    hackernews: () => [...queryKeys.plugins.all, 'hackernews'] as const,
-    reddit: () => [...queryKeys.plugins.all, 'reddit'] as const,
     tmdb: () => [...queryKeys.plugins.all, 'tmdb'] as const,
     ygg: () => queryKeys.plugins.tracker('ygg'),
   },

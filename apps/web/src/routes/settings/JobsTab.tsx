@@ -11,7 +11,6 @@ type JobAction =
   | 'fetch_ygg_stats'
   | 'fetch_c411_stats'
   | 'fetch_torr9_stats'
-  | 'fetch_g3mini_stats'
   | 'fetch_la_cale_stats';
 
 type JobConfig = {
@@ -64,13 +63,6 @@ const JOBS: JobConfig[] = [
     icon: '🧾',
     labelKey: 'settings.jobs.actions.fetchTorr9Stats.label',
     descriptionKey: 'settings.jobs.actions.fetchTorr9Stats.description',
-  },
-  {
-    action: 'fetch_g3mini_stats',
-    funcNames: ['fetch_g3mini_stats'],
-    icon: '🧾',
-    labelKey: 'settings.jobs.actions.fetchG3miniStats.label',
-    descriptionKey: 'settings.jobs.actions.fetchG3miniStats.description',
   },
   {
     action: 'fetch_la_cale_stats',

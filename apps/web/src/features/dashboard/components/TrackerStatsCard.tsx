@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import {
   useDashboardC411Stats,
-  useDashboardG3miniStats,
   useDashboardLaCaleStats,
   useDashboardTorr9Stats,
   useDashboardYggStats,
@@ -11,7 +10,7 @@ import { formatGo, formatRatio } from '@hously/shared/utils/ygg';
 import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
 
 type TrackerCardData = {
-  key: 'ygg' | 'c411' | 'torr9' | 'g3mini' | 'la-cale';
+  key: 'ygg' | 'c411' | 'torr9' | 'la-cale';
   label: string;
   enabled: boolean;
   connected: boolean;
@@ -33,10 +32,9 @@ export function TrackerStatsCard() {
   const ygg = useDashboardYggStats();
   const c411 = useDashboardC411Stats();
   const torr9 = useDashboardTorr9Stats();
-  const g3mini = useDashboardG3miniStats();
   const laCale = useDashboardLaCaleStats();
 
-  const isLoading = ygg.isLoading || c411.isLoading || torr9.isLoading || g3mini.isLoading || laCale.isLoading;
+  const isLoading = ygg.isLoading || c411.isLoading || torr9.isLoading || laCale.isLoading;
 
   const trackers: TrackerCardData[] = [
     {
@@ -82,20 +80,6 @@ export function TrackerStatsCard() {
       error: torr9.data?.error,
     },
     {
-      key: 'g3mini',
-      label: t('dashboard.trackers.providers.g3mini'),
-      enabled: Boolean(g3mini.data?.enabled),
-      connected: Boolean(g3mini.data?.connected),
-      uploaded_go: g3mini.data?.uploaded_go ?? null,
-      downloaded_go: g3mini.data?.downloaded_go ?? null,
-      ratio: g3mini.data?.ratio ?? null,
-      previous_uploaded_go: g3mini.data?.previous_uploaded_go,
-      previous_downloaded_go: g3mini.data?.previous_downloaded_go,
-      previous_ratio: g3mini.data?.previous_ratio,
-      updated_at: g3mini.data?.updated_at ?? null,
-      error: g3mini.data?.error,
-    },
-    {
       key: 'la-cale',
       label: t('dashboard.trackers.providers.la-cale'),
       enabled: Boolean(laCale.data?.enabled),
@@ -124,7 +108,7 @@ export function TrackerStatsCard() {
     const colorClass = delta > 0 ? 'text-emerald-950/70 dark:text-emerald-400' : 'text-rose-950/70 dark:text-rose-400';
 
     return (
-      <span className={`text-[10px] ml-1 font-medium ${colorClass}`}>
+      <span className={`text-[10px] font-medium leading-none ${colorClass}`}>
         {sign}
         {value}
       </span>
@@ -164,9 +148,11 @@ export function TrackerStatsCard() {
                   <div className="h-4 w-16 rounded bg-black/20 dark:bg-black/30" />
                   <div className="h-3 w-12 rounded bg-black/20 dark:bg-black/30" />
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="h-8 rounded bg-black/20 dark:bg-black/30" />
-                  <div className="h-8 rounded bg-black/20 dark:bg-black/30" />
+                <div className="flex flex-col gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="h-8 rounded bg-black/20 dark:bg-black/30" />
+                    <div className="h-8 rounded bg-black/20 dark:bg-black/30" />
+                  </div>
                   <div className="h-8 rounded bg-black/20 dark:bg-black/30" />
                 </div>
               </article>
@@ -189,31 +175,33 @@ export function TrackerStatsCard() {
                       {item.error || t('dashboard.trackers.notConnectedDescription')}
                     </p>
                   ) : (
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
-                          {t('dashboard.trackers.uploaded')}
-                        </p>
-                        <p className="text-sm font-semibold text-emerald-950 dark:text-white flex items-center">
-                          {formatGo(item.uploaded_go)}
-                          {renderDelta(item.uploaded_go, item.previous_uploaded_go)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
-                          {t('dashboard.trackers.downloaded')}
-                        </p>
-                        <p className="text-sm font-semibold text-emerald-950 dark:text-white flex items-center">
-                          {formatGo(item.downloaded_go)}
-                          {renderDelta(item.downloaded_go, item.previous_downloaded_go)}
-                        </p>
+                    <div className="flex flex-col gap-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
+                            {t('dashboard.trackers.uploaded')}
+                          </p>
+                          <p className="text-sm font-semibold text-emerald-950 dark:text-white flex flex-col items-start gap-0.5">
+                            <span className="leading-none">{formatGo(item.uploaded_go)}</span>
+                            {renderDelta(item.uploaded_go, item.previous_uploaded_go)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
+                            {t('dashboard.trackers.downloaded')}
+                          </p>
+                          <p className="text-sm font-semibold text-emerald-950 dark:text-white flex flex-col items-start gap-0.5">
+                            <span className="leading-none">{formatGo(item.downloaded_go)}</span>
+                            {renderDelta(item.downloaded_go, item.previous_downloaded_go)}
+                          </p>
+                        </div>
                       </div>
                       <div>
                         <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.ratio')}
                         </p>
-                        <p className="text-sm font-semibold text-emerald-950 dark:text-white flex items-center">
-                          {formatRatio(item.ratio)}
+                        <p className="text-sm font-semibold text-emerald-950 dark:text-white flex flex-col items-start gap-0.5">
+                          <span className="leading-none">{formatRatio(item.ratio)}</span>
                           {renderDelta(item.ratio, item.previous_ratio, true)}
                         </p>
                       </div>

@@ -27,8 +27,6 @@ const resolveAdminActionJob = (action: string): { id: string; name: string } | n
       return { id: 'fetchC411Stats', name: 'Fetch C411 stats' };
     case 'fetch_torr9_stats':
       return { id: 'fetchTorr9Stats', name: 'Fetch Torr9 stats' };
-    case 'fetch_g3mini_stats':
-      return { id: 'fetchG3miniStats', name: 'Fetch G3mini stats' };
     case 'fetch_la_cale_stats':
       return { id: 'fetchLaCaleStats', name: 'Fetch La Cale stats' };
     case 'refresh_upcoming':
@@ -167,13 +165,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
           func: 'fetch_torr9_stats',
         },
         {
-          id: 'fetchG3miniStats',
-          name: 'Fetch G3mini stats',
-          next_run_time: null,
-          trigger: '0 * * * *',
-          func: 'fetch_g3mini_stats',
-        },
-        {
           id: 'fetchLaCaleStats',
           name: 'Fetch La Cale stats',
           next_run_time: null,
@@ -255,10 +246,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
           case 'fetch_torr9_stats': {
             await fetchTrackerStats('torr9', { trigger: 'manual' });
             return { success: true, message: 'Torr9 stats fetched' };
-          }
-          case 'fetch_g3mini_stats': {
-            await fetchTrackerStats('g3mini', { trigger: 'manual' });
-            return { success: true, message: 'G3mini stats fetched' };
           }
           case 'fetch_la_cale_stats': {
             await fetchTrackerStats('la-cale', { trigger: 'manual' });

@@ -390,6 +390,7 @@ export interface DashboardYggStatsResponse {
 }
 
 export type DashboardTrackerStatsResponse = DashboardYggStatsResponse;
+export type DashboardTrackersStatsResponse = Record<'ygg' | 'c411' | 'torr9' | 'la-cale', DashboardTrackerStatsResponse>;
 
 export interface RedditPost {
   id: string;

@@ -4,6 +4,7 @@ import { queryKeys } from '../../queryKeys';
 import { DASHBOARD_ENDPOINTS } from '../../endpoints';
 import type {
   DashboardYggStatsResponse,
+  DashboardTrackersStatsResponse,
   DashboardScrutinySummaryResponse,
   DashboardNetdataSummaryResponse,
 } from '../../types';
@@ -12,9 +13,11 @@ export function useDashboardYggStats(options?: { enabled?: boolean }) {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: queryKeys.dashboard.yggStats(),
-    queryFn: () => fetcher<DashboardYggStatsResponse>(DASHBOARD_ENDPOINTS.YGG.STATS),
+    queryKey: queryKeys.dashboard.trackersStats(),
+    queryFn: () => fetcher<DashboardTrackersStatsResponse>(DASHBOARD_ENDPOINTS.TRACKERS.STATS),
     enabled: options?.enabled ?? true,
+    staleTime: 60 * 60 * 1000,
+    select: data => data.ygg satisfies DashboardYggStatsResponse,
   });
 }
 

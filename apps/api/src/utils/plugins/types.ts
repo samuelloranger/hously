@@ -52,7 +52,7 @@ export interface HackernewsPluginConfig {
   story_count: number;
 }
 
-export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'g3mini' | 'la-cale';
+export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'la-cale';
 
 export interface TrackerPluginConfig {
   flaresolverr_url?: string;

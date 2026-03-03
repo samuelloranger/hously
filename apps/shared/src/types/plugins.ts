@@ -3,7 +3,7 @@ export interface ArrProfile {
   name: string;
 }
 
-export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'g3mini' | 'la-cale';
+export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'la-cale';
 
 export interface JellyfinPlugin {
   type: 'jellyfin';
@@ -67,31 +67,6 @@ export interface TmdbPlugin {
   popularity_threshold: number;
 }
 
-export interface RedditPlugin {
-  type: 'reddit';
-  enabled: boolean;
-  subreddits: string[];
-}
-
-export interface RedditPluginUpdateResponse {
-  success: boolean;
-  plugin: RedditPlugin;
-}
-
-export interface RedditSubredditSearchResult {
-  name: string;
-  title: string;
-  icon: string | null;
-  subscribers: number;
-}
-
-export interface HackernewsPlugin {
-  type: 'hackernews';
-  enabled: boolean;
-  feed_type: 'top' | 'best' | 'new' | 'ask' | 'show' | 'job';
-  story_count: number;
-}
-
 export interface YggPlugin {
   type: 'ygg';
   enabled: boolean;
@@ -112,7 +87,6 @@ export interface TrackerPlugin {
 
 export type C411Plugin = TrackerPlugin & { type: 'c411' };
 export type Torr9Plugin = TrackerPlugin & { type: 'torr9' };
-export type G3miniPlugin = TrackerPlugin & { type: 'g3mini' };
 export type LaCalePlugin = TrackerPlugin & { type: 'la-cale' };
 
 export interface JellyfinPluginUpdateResponse {
@@ -160,11 +134,6 @@ export interface TmdbPluginUpdateResponse {
 export interface YggPluginUpdateResponse {
   success: boolean;
   plugin: YggPlugin;
-}
-
-export interface HackernewsPluginUpdateResponse {
-  success: boolean;
-  plugin: HackernewsPlugin;
 }
 
 export interface TrackerPluginUpdateResponse {

@@ -1,12 +1,11 @@
 /**
  * Quick test script for HTTP tracker scrapers.
- * Usage: bun run test-http-scraper.ts [ygg|c411|torr9|g3mini]
+ * Usage: bun run test-http-scraper.ts [ygg|c411|torr9|la-cale]
  */
 import type { FlareSolverrSolution } from './src/services/trackers/httpScraper';
 import { scrapeYgg } from './src/services/trackers/httpYgg';
 import { scrapeC411 } from './src/services/trackers/httpC411';
 import { scrapeTorr9 } from './src/services/trackers/httpTorr9';
-import { scrapeG3mini } from './src/services/trackers/httpG3mini';
 import { scrapeLaCale } from './src/services/trackers/httpLaCale';
 
 const FLARESOLVERR_URL = 'http://localhost:8191/v1';
@@ -40,13 +39,6 @@ const TRACKERS = {
     password: '$Benji122',
     flaresolverr_url: FLARESOLVERR_URL,
     scrape: scrapeTorr9,
-  },
-  g3mini: {
-    tracker_url: 'https://gemini-tracker.org/login',
-    username: 'samlo122',
-    password: '$Benji122',
-    flaresolverr_url: FLARESOLVERR_URL,
-    scrape: scrapeG3mini,
   },
 } as const;
 
@@ -160,11 +152,9 @@ async function probeSite(label: string, loginUrl: string, username: string, pass
   }
 }
 
-const target = process.argv[2] as TrackerKey | 'probe-torr9' | 'probe-g3mini' | undefined;
+const target = process.argv[2] as TrackerKey | 'probe-torr9' | undefined;
 if (target === 'probe-torr9') {
   await probeSite('Torr9', 'https://torr9.xyz/login', 'samlo122', '$Benji122');
-} else if (target === 'probe-g3mini') {
-  await probeSite('G3mini', 'https://gemini-tracker.org/login', 'samlo122', '$Benji122');
 } else if (target && TRACKERS[target as TrackerKey]) {
   await testTracker(target as TrackerKey);
 } else {

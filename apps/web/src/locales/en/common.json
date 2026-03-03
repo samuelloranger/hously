@@ -255,7 +255,6 @@
         "ygg": "YGG",
         "c411": "C411",
         "torr9": "Torr9",
-        "g3mini": "G3mini",
         "la-cale": "La Cale"
       }
     },
@@ -300,36 +299,6 @@
       "showDisks": "Show disks",
       "hideDisks": "Hide disks",
       "emptyTitle": "No disk usage data available yet."
-    },
-    "hackerNews": {
-      "kicker": "From Hacker News",
-      "title": "Tech News",
-      "subtitle": "Top stories from the Hacker News community.",
-      "notEnabledTitle": "Hacker News is not enabled",
-      "notEnabledDescription": "Open Settings > Plugins and enable Hacker News to see top stories here.",
-      "emptyTitle": "No stories available right now.",
-      "points": "{{count}} pts",
-      "comments": "{{count}} comments",
-      "postedBy": "by {{author}}",
-      "feedTypes": {
-        "top": "Top",
-        "best": "Best",
-        "new": "New",
-        "ask": "Ask HN",
-        "show": "Show HN",
-        "job": "Jobs"
-      }
-    },
-    "reddit": {
-      "kicker": "From Reddit",
-      "title": "Reddit Feed",
-      "subtitle": "Hot posts from your favorite subreddits.",
-      "emptyTitle": "No posts available right now.",
-      "points": "{{count}} pts",
-      "comments": "{{count}} comments",
-      "postedBy": "by u/{{author}}",
-      "viewMore": "View more",
-      "modalTitle": "Reddit Posts"
     },
     "loading": "Loading dashboard...",
     "user": "User",
@@ -1011,17 +980,6 @@
         "help": "Connect Netdata to show live system metrics and per-disk usage on the dashboard.",
         "websiteUrl": "Netdata URL"
       },
-      "hackernews": {
-        "help": "Enable Hacker News to show top tech stories on the dashboard.",
-        "feedType": "Feed Type",
-        "storyCount": "Number of Stories"
-      },
-      "reddit": {
-        "help": "Enable Reddit to show hot posts from your favorite subreddits on the dashboard.",
-        "subreddits": "Subreddits",
-        "searchPlaceholder": "Search subreddits...",
-        "noResults": "No subreddits found."
-      },
       "ygg": {
         "help": "Configure YGG credentials for server-side jobs.",
         "flaresolverrUrl": "FlareSolverr URL",
@@ -1032,7 +990,7 @@
       },
       "trackers": {
         "title": "Trackers",
-        "description": "Configure YGG, C411, Torr9, G3mini and La Cale in one place.",
+        "description": "Configure YGG, C411, Torr9 and La Cale in one place.",
         "flaresolverrUrl": "FlareSolverr URL",
         "username": "Username",
         "password": "Password",
@@ -1042,7 +1000,6 @@
           "ygg": "YGG",
           "c411": "C411",
           "torr9": "Torr9",
-          "g3mini": "G3mini",
           "la-cale": "La Cale"
         }
       }
@@ -1140,10 +1097,6 @@
         "fetchTorr9Stats": {
           "label": "Fetch Torr9 Stats",
           "description": "Log into Torr9 and fetch uploaded/downloaded/ratio."
-        },
-        "fetchG3miniStats": {
-          "label": "Fetch G3mini Stats",
-          "description": "Log into G3mini and fetch uploaded/downloaded/ratio."
         },
         "fetchLaCaleStats": {
           "label": "Fetch La Cale Stats",

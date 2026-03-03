@@ -14,11 +14,11 @@ export const DASHBOARD_ENDPOINTS = {
   TORR9: {
     STATS: '/api/dashboard/torr9/stats',
   },
-  G3MINI: {
-    STATS: '/api/dashboard/g3mini/stats',
-  },
   LA_CALE: {
     STATS: '/api/dashboard/la-cale/stats',
+  },
+  TRACKERS: {
+    STATS: '/api/dashboard/trackers/stats',
   },
   UPCOMING: {
     LIST: '/api/dashboard/upcoming',
@@ -58,10 +58,4 @@ export const DASHBOARD_ENDPOINTS = {
     STREAM: '/api/dashboard/netdata/stream',
   },
   WEATHER: '/api/dashboard/weather',
-  HACKERNEWS: {
-    STORIES: '/api/dashboard/hackernews',
-  },
-  REDDIT: {
-    POSTS: '/api/dashboard/reddit',
-  },
 } as const;

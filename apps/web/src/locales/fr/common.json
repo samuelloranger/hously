@@ -254,7 +254,6 @@
         "ygg": "YGG",
         "c411": "C411",
         "torr9": "Torr9",
-        "g3mini": "G3mini",
         "la-cale": "La Cale"
       }
     },
@@ -299,36 +298,6 @@
       "showDisks": "Afficher les disques",
       "hideDisks": "Masquer les disques",
       "emptyTitle": "Aucune donnée d'utilisation disque disponible pour le moment."
-    },
-    "hackerNews": {
-      "kicker": "Depuis Hacker News",
-      "title": "Actu Tech",
-      "subtitle": "Les histoires populaires de la communauté Hacker News.",
-      "notEnabledTitle": "Hacker News n'est pas activé",
-      "notEnabledDescription": "Allez dans Paramètres > Plugins et activez Hacker News pour voir les histoires populaires ici.",
-      "emptyTitle": "Aucune histoire disponible pour le moment.",
-      "points": "{{count}} pts",
-      "comments": "{{count}} commentaires",
-      "postedBy": "par {{author}}",
-      "feedTypes": {
-        "top": "Top",
-        "best": "Meilleurs",
-        "new": "Nouveaux",
-        "ask": "Ask HN",
-        "show": "Show HN",
-        "job": "Emplois"
-      }
-    },
-    "reddit": {
-      "kicker": "Depuis Reddit",
-      "title": "Fil Reddit",
-      "subtitle": "Les publications populaires de vos subreddits favoris.",
-      "emptyTitle": "Aucune publication disponible pour le moment.",
-      "points": "{{count}} pts",
-      "comments": "{{count}} commentaires",
-      "postedBy": "par u/{{author}}",
-      "viewMore": "Voir plus",
-      "modalTitle": "Publications Reddit"
     },
     "loading": "Chargement de l'accueil...",
     "user": "Utilisateur",
@@ -1010,17 +979,6 @@
         "help": "Connectez Netdata pour afficher les métriques système en direct et l'usage par disque sur l'accueil.",
         "websiteUrl": "URL Netdata"
       },
-      "hackernews": {
-        "help": "Activez Hacker News pour afficher les histoires tech populaires sur l'accueil.",
-        "feedType": "Type de flux",
-        "storyCount": "Nombre d'histoires"
-      },
-      "reddit": {
-        "help": "Activez Reddit pour afficher les publications populaires de vos subreddits favoris sur l'accueil.",
-        "subreddits": "Subreddits",
-        "searchPlaceholder": "Rechercher des subreddits...",
-        "noResults": "Aucun subreddit trouvé."
-      },
       "ygg": {
         "help": "Configurer les identifiants YGG pour les tâches côté serveur.",
         "flaresolverrUrl": "URL FlareSolverr",
@@ -1031,7 +989,7 @@
       },
       "trackers": {
         "title": "Trackers",
-        "description": "Configurez YGG, C411, Torr9, G3mini et La Cale au même endroit.",
+        "description": "Configurez YGG, C411, Torr9 et La Cale au même endroit.",
         "flaresolverrUrl": "URL FlareSolverr",
         "username": "Nom d'utilisateur",
         "password": "Mot de passe",
@@ -1041,7 +999,6 @@
           "ygg": "YGG",
           "c411": "C411",
           "torr9": "Torr9",
-          "g3mini": "G3mini",
           "la-cale": "La Cale"
         }
       }
@@ -1139,10 +1096,6 @@
         "fetchTorr9Stats": {
           "label": "Récupérer les stats Torr9",
           "description": "Se connecter à Torr9 et récupérer upload/download/ratio."
-        },
-        "fetchG3miniStats": {
-          "label": "Récupérer les stats G3mini",
-          "description": "Se connecter à G3mini et récupérer upload/download/ratio."
         },
         "fetchLaCaleStats": {
           "label": "Récupérer les stats La Cale",

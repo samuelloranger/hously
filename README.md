@@ -13,7 +13,7 @@ Hously is a unified control panel built for people who run homelabs. Instead of 
 - **Dashboard** - Unified overview of your entire homelab: server health, disk status, torrent activity, media releases, and more
 - **Torrent Management** - Full qBittorrent integration with real-time SSE streaming, search, filtering, and magnet/file uploads
 - **Media Pipeline** - Radarr & Sonarr integration for automated movie/TV management with TMDB discovery and interactive release search
-- **Tracker Statistics** - Monitor ratio, upload stats, and account health across multiple private trackers (YGG, C411, Torr9, G3mini, La Cale)
+- **Tracker Statistics** - Monitor ratio, upload stats, and account health across multiple private trackers (YGG, C411, Torr9, La Cale)
 - **Server Monitoring** - Live CPU, RAM, disk, and network stats via Netdata integration
 - **Disk Health** - S.M.A.R.T. monitoring via Scrutiny integration
 - **Jellyfin Integration** - Latest additions from your media server on the dashboard
