@@ -46,57 +46,26 @@ const getUserId = (user: { id: number } | null | undefined) => {
 
 const getTodayDateKey = (date: Date) => formatDateInTimezone(date);
 
-const toMinutes = (timeStr: string) => {
-  const [h, m] = timeStr.split(':').map(Number);
-  return h * 60 + m;
-};
-
 const getScheduleStatuses = (
   schedules: { id: number; time: string }[],
   completions: { completedAt: Date; status: string }[],
-  tz: string
+  _tz: string
 ): { time: string; status: 'done' | 'skipped' | 'pending' }[] => {
   const sorted = [...schedules].sort((a, b) => a.time.localeCompare(b.time));
   if (sorted.length === 0) return [];
 
-  const schedMins = sorted.map(s => toMinutes(s.time));
-
-  // Compute midpoint boundaries between consecutive schedules
-  const boundaries: number[] = [0];
-  for (let i = 1; i < schedMins.length; i++) {
-    boundaries.push(Math.floor((schedMins[i - 1] + schedMins[i]) / 2));
-  }
-
   const statuses = sorted.map(s => ({ time: s.time, status: 'pending' as const }));
 
-  const timeFormatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: tz,
-    hourCycle: 'h23',
-    hour: 'numeric',
-    minute: 'numeric',
-  });
+  // Assign completions to slots sequentially (first action → slot 1, second → slot 2, etc.)
+  const sortedCompletions = [...completions].sort(
+    (a, b) => a.completedAt.getTime() - b.completedAt.getTime()
+  );
 
-  for (const c of completions) {
-    const parts = timeFormatter.formatToParts(c.completedAt);
-    const h = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
-    const m = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
-    const cMin = h * 60 + m;
-
-    // Find which time window this completion falls into
-    let slotIdx = schedMins.length - 1;
-    for (let i = 1; i < boundaries.length; i++) {
-      if (cMin < boundaries[i]) {
-        slotIdx = i - 1;
-        break;
-      }
-    }
-
-    if (statuses[slotIdx].status === 'pending') {
-      statuses[slotIdx] = {
-        time: sorted[slotIdx].time,
-        status: c.status === DONE_STATUS ? 'done' : 'skipped',
-      };
-    }
+  for (let i = 0; i < Math.min(sortedCompletions.length, statuses.length); i++) {
+    statuses[i] = {
+      time: sorted[i].time,
+      status: sortedCompletions[i].status === DONE_STATUS ? 'done' : 'skipped',
+    };
   }
 
   return statuses;
