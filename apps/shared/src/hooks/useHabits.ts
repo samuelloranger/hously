@@ -120,11 +120,17 @@ export const useCompleteHabit = () => {
 
       queryClient.setQueryData<HabitsResponse>(
         queryKeys.habits.list(),
-        updateHabitStatus(previousHabits, id, (habit) => ({
-          ...habit,
-          today_completions: habit.today_completions + (habit.today_remaining > 0 ? 1 : 0),
-          today_remaining: Math.max(habit.today_remaining - 1, 0),
-        }))
+        updateHabitStatus(previousHabits, id, (habit) => {
+          const pendingIdx = habit.schedule_statuses.findIndex(s => s.status === 'pending');
+          return {
+            ...habit,
+            today_completions: habit.today_completions + (habit.today_remaining > 0 ? 1 : 0),
+            today_remaining: Math.max(habit.today_remaining - 1, 0),
+            schedule_statuses: pendingIdx >= 0
+              ? habit.schedule_statuses.map((s, i) => i === pendingIdx ? { ...s, status: 'done' as const } : s)
+              : habit.schedule_statuses,
+          };
+        })
       );
 
       return { previousHabits };
@@ -162,11 +168,20 @@ export const useUncompleteHabit = () => {
 
       queryClient.setQueryData<HabitsResponse>(
         queryKeys.habits.list(),
-        updateHabitStatus(previousHabits, id, (habit) => ({
-          ...habit,
-          today_completions: Math.max(habit.today_completions - 1, 0),
-          today_remaining: Math.min(habit.today_remaining + 1, habit.times_per_day),
-        }))
+        updateHabitStatus(previousHabits, id, (habit) => {
+          let doneIdx = -1;
+          for (let i = habit.schedule_statuses.length - 1; i >= 0; i--) {
+            if (habit.schedule_statuses[i].status === 'done') { doneIdx = i; break; }
+          }
+          return {
+            ...habit,
+            today_completions: Math.max(habit.today_completions - 1, 0),
+            today_remaining: Math.min(habit.today_remaining + 1, habit.times_per_day),
+            schedule_statuses: doneIdx >= 0
+              ? habit.schedule_statuses.map((s, i) => i === doneIdx ? { ...s, status: 'pending' as const } : s)
+              : habit.schedule_statuses,
+          };
+        })
       );
 
       return { previousHabits };
@@ -204,11 +219,17 @@ export const useSkipHabit = () => {
 
       queryClient.setQueryData<HabitsResponse>(
         queryKeys.habits.list(),
-        updateHabitStatus(previousHabits, id, (habit) => ({
-          ...habit,
-          today_skips: habit.today_skips + (habit.today_remaining > 0 ? 1 : 0),
-          today_remaining: Math.max(habit.today_remaining - 1, 0),
-        }))
+        updateHabitStatus(previousHabits, id, (habit) => {
+          const pendingIdx = habit.schedule_statuses.findIndex(s => s.status === 'pending');
+          return {
+            ...habit,
+            today_skips: habit.today_skips + (habit.today_remaining > 0 ? 1 : 0),
+            today_remaining: Math.max(habit.today_remaining - 1, 0),
+            schedule_statuses: pendingIdx >= 0
+              ? habit.schedule_statuses.map((s, i) => i === pendingIdx ? { ...s, status: 'skipped' as const } : s)
+              : habit.schedule_statuses,
+          };
+        })
       );
 
       return { previousHabits };
@@ -246,11 +267,20 @@ export const useUnskipHabit = () => {
 
       queryClient.setQueryData<HabitsResponse>(
         queryKeys.habits.list(),
-        updateHabitStatus(previousHabits, id, (habit) => ({
-          ...habit,
-          today_skips: Math.max(habit.today_skips - 1, 0),
-          today_remaining: Math.min(habit.today_remaining + 1, habit.times_per_day),
-        }))
+        updateHabitStatus(previousHabits, id, (habit) => {
+          let skippedIdx = -1;
+          for (let i = habit.schedule_statuses.length - 1; i >= 0; i--) {
+            if (habit.schedule_statuses[i].status === 'skipped') { skippedIdx = i; break; }
+          }
+          return {
+            ...habit,
+            today_skips: Math.max(habit.today_skips - 1, 0),
+            today_remaining: Math.min(habit.today_remaining + 1, habit.times_per_day),
+            schedule_statuses: skippedIdx >= 0
+              ? habit.schedule_statuses.map((s, i) => i === skippedIdx ? { ...s, status: 'pending' as const } : s)
+              : habit.schedule_statuses,
+          };
+        })
       );
 
       return { previousHabits };

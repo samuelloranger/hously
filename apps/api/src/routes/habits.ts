@@ -2,7 +2,7 @@ import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
 import { refreshHabitsStreakForUser } from '../utils/dashboard/habitsStreak';
-import { formatDateInTimezone, todayLocal } from '../utils/date';
+import { addDaysInTz, formatDateInTimezone, getTimezone, todayLocal } from '../utils/date';
 
 const DONE_STATUS = 'done';
 const SKIPPED_STATUS = 'skipped';
@@ -46,13 +46,65 @@ const getUserId = (user: { id: number } | null | undefined) => {
 
 const getTodayDateKey = (date: Date) => formatDateInTimezone(date);
 
+const toMinutes = (timeStr: string) => {
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+};
+
+const getScheduleStatuses = (
+  schedules: { id: number; time: string }[],
+  completions: { completedAt: Date; status: string }[],
+  tz: string
+): { time: string; status: 'done' | 'skipped' | 'pending' }[] => {
+  const sorted = [...schedules].sort((a, b) => a.time.localeCompare(b.time));
+  if (sorted.length === 0) return [];
+
+  const schedMins = sorted.map(s => toMinutes(s.time));
+
+  // Compute midpoint boundaries between consecutive schedules
+  const boundaries: number[] = [0];
+  for (let i = 1; i < schedMins.length; i++) {
+    boundaries.push(Math.floor((schedMins[i - 1] + schedMins[i]) / 2));
+  }
+
+  const statuses = sorted.map(s => ({ time: s.time, status: 'pending' as const }));
+
+  const timeFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    hourCycle: 'h23',
+    hour: 'numeric',
+    minute: 'numeric',
+  });
+
+  for (const c of completions) {
+    const parts = timeFormatter.formatToParts(c.completedAt);
+    const h = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
+    const m = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
+    const cMin = h * 60 + m;
+
+    // Find which time window this completion falls into
+    let slotIdx = schedMins.length - 1;
+    for (let i = 1; i < boundaries.length; i++) {
+      if (cMin < boundaries[i]) {
+        slotIdx = i - 1;
+        break;
+      }
+    }
+
+    if (statuses[slotIdx].status === 'pending') {
+      statuses[slotIdx] = {
+        time: sorted[slotIdx].time,
+        status: c.status === DONE_STATUS ? 'done' : 'skipped',
+      };
+    }
+  }
+
+  return statuses;
+};
+
 const getDayRange = (date = todayLocal()) => {
-  const start = new Date(date);
-  start.setHours(0, 0, 0, 0);
-
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-
+  const start = new Date(date.getTime());
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
   return { start, end };
 };
 
@@ -154,12 +206,11 @@ export const habitsRoutes = new Elysia()
             }
 
             let currentStreak = 0;
-            let checkDate = new Date(startOfToday);
-            checkDate.setDate(checkDate.getDate() - 1);
+            let checkDate = addDaysInTz(startOfToday, -1);
 
             while ((completionsByDay.get(getTodayDateKey(checkDate)) ?? 0) >= habit.timesPerDay) {
               currentStreak++;
-              checkDate.setDate(checkDate.getDate() - 1);
+              checkDate = addDaysInTz(checkDate, -1);
             }
 
             if (todayCompletions >= habit.timesPerDay) {
@@ -181,6 +232,7 @@ export const habitsRoutes = new Elysia()
               today_skips: todaySkips,
               today_remaining: Math.max(habit.timesPerDay - todayAccounted, 0),
               current_streak: currentStreak,
+              schedule_statuses: getScheduleStatuses(habit.schedules, habit.completions, getTimezone()),
             };
           })
         );
@@ -603,8 +655,8 @@ export const habitsRoutes = new Elysia()
             return { error: 'Habit not found' };
           }
 
-          const { start: startDate, end: startOfTomorrow } = getDayRange();
-          startDate.setDate(startDate.getDate() - historyDays + 1);
+          const { end: startOfTomorrow } = getDayRange();
+          const startDate = addDaysInTz(todayLocal(), -(historyDays - 1));
 
           const completions = await prisma.habitCompletion.findMany({
             where: {
@@ -638,9 +690,9 @@ export const habitsRoutes = new Elysia()
           }
 
           const history = [];
+          const today = todayLocal();
           for (let i = 0; i < historyDays; i++) {
-            const date = todayLocal();
-            date.setDate(date.getDate() - i);
+            const date = addDaysInTz(today, -i);
             const dateStr = getTodayDateKey(date);
             const counts = historyMap.get(dateStr) || { completions: 0, skipped: 0 };
 

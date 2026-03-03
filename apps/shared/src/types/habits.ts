@@ -1,3 +1,8 @@
+export interface ScheduleStatus {
+  time: string;
+  status: 'done' | 'skipped' | 'pending';
+}
+
 export interface Habit {
   id: number;
   user_id: number;
@@ -13,6 +18,7 @@ export interface Habit {
   today_skips: number;
   today_remaining: number;
   current_streak: number;
+  schedule_statuses: ScheduleStatus[];
 }
 
 export interface HabitScheduleTime {

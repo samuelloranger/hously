@@ -105,11 +105,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
 
       <div className="flex items-center justify-between mt-auto">
         <div className="space-y-2">
-          <HabitProgress
-            completed={habit.today_completions}
-            skipped={habit.today_skips}
-            target={habit.times_per_day}
-          />
+          <HabitProgress statuses={habit.schedule_statuses} />
           <div className="flex flex-wrap gap-1.5 mt-1">
             {habit.schedules.map((s) => (
               <span 
