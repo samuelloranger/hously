@@ -64,6 +64,7 @@ export interface TmdbPlugin {
   type: 'tmdb';
   enabled: boolean;
   api_key: string;
+  popularity_threshold: number;
 }
 
 export interface RedditPlugin {

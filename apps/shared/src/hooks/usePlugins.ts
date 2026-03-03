@@ -334,7 +334,7 @@ export function useUpdateTmdbPlugin() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { api_key: string; enabled: boolean }) =>
+    mutationFn: (data: { api_key: string; enabled: boolean; popularity_threshold?: number }) =>
       fetcher<TmdbPluginUpdateResponse>(PLUGIN_ENDPOINTS.TMDB, {
         method: 'PUT',
         body: data,

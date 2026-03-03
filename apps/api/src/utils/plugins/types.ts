@@ -33,6 +33,7 @@ export interface WeatherPluginConfig {
 
 export interface TmdbPluginConfig {
   api_key: string;
+  popularity_threshold: number;
 }
 
 export interface YggPluginConfig {

@@ -2,7 +2,6 @@ import { Elysia, t } from 'elysia';
 import { auth } from '../../auth';
 import {
   TMDB_UPCOMING_CACHE_KEY,
-  TMDB_POPULARITY_THRESHOLD,
   collectTmdbUpcoming,
   getArrPluginStatus,
   toIsoDate,
@@ -27,7 +26,8 @@ export const dashboardUpcomingRoutes = new Elysia()
         where: { type: 'tmdb' },
         select: { enabled: true, config: true },
       });
-      const tmdbApiKey = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config)?.api_key : null;
+      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      const tmdbApiKey = tmdbConfig?.api_key ?? null;
 
       if (!tmdbApiKey) {
         return { enabled: false, items: [], ...arrPluginStatus };
@@ -62,7 +62,7 @@ export const dashboardUpcomingRoutes = new Elysia()
       }
 
       const sortedItems = [...moviesResult.items, ...tvResult.items]
-        .filter(item => (item.popularity ?? 0) >= TMDB_POPULARITY_THRESHOLD)
+        .filter(item => (item.popularity ?? 0) >= (tmdbConfig?.popularity_threshold ?? 15))
         .filter(item => {
           if (!item.release_date) return false;
           const releaseTime = Date.parse(item.release_date);

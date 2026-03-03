@@ -9,7 +9,6 @@ import {
   toIsoDate,
   TMDB_UPCOMING_CACHE_KEY,
   TMDB_UPCOMING_CACHE_TTL_SECONDS,
-  TMDB_POPULARITY_THRESHOLD,
 } from '../utils/dashboard/tmdbUpcoming';
 import { setJsonCache } from '../services/cache';
 import { logActivity } from '../utils/activityLogs';
@@ -50,7 +49,8 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' })
       where: { type: 'tmdb' },
       select: { enabled: true, config: true },
     });
-    const tmdbApiKey = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config)?.api_key : null;
+    const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+    const tmdbApiKey = tmdbConfig?.api_key ?? null;
 
     if (!tmdbApiKey) {
       console.log('[cron:upcoming] TMDB plugin not configured, skipping');
@@ -85,9 +85,10 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' })
       return;
     }
 
-    // Filter by popularity threshold
-    const filteredMovies = moviesResult.items.filter(item => (item.popularity ?? 0) >= TMDB_POPULARITY_THRESHOLD);
-    const filteredTv = tvResult.items.filter(item => (item.popularity ?? 0) >= TMDB_POPULARITY_THRESHOLD);
+    // Filter by popularity threshold from plugin config
+    const popularityThreshold = tmdbConfig?.popularity_threshold ?? 15;
+    const filteredMovies = moviesResult.items.filter(item => (item.popularity ?? 0) >= popularityThreshold);
+    const filteredTv = tvResult.items.filter(item => (item.popularity ?? 0) >= popularityThreshold);
 
     console.log(
       `[cron:upcoming] After popularity filter: ${filteredMovies.length} movies, ${filteredTv.length} TV shows ` +

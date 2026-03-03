@@ -969,7 +969,9 @@
       "tmdb": {
         "help": "Configurez TMDB pour que les sorties à venir et la recherche médias interrogent TMDB depuis le serveur.",
         "apiKey": "Clé API TMDB",
-        "apiKeyPlaceholder": "Collez votre clé API TMDB"
+        "apiKeyPlaceholder": "Collez votre clé API TMDB",
+        "popularityThreshold": "Seuil de popularité",
+        "popularityThresholdHelp": "Score de popularité TMDB minimum (0–100) pour les sorties à venir. Les valeurs élevées n'affichent que les titres populaires."
       },
       "radarr": {
         "help": "Connectez Radarr pour ajouter les films à venir directement depuis le tableau de bord.",

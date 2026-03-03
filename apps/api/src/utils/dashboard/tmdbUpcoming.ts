@@ -11,7 +11,6 @@ const TMDB_WEB_BASE_URL = 'https://www.themoviedb.org';
 
 export const TMDB_UPCOMING_CACHE_TTL_SECONDS = 24 * 60 * 60;
 export const TMDB_UPCOMING_CACHE_KEY = 'dashboard:tmdb:upcoming:v6';
-export const TMDB_POPULARITY_THRESHOLD = 15;
 const JELLYFIN_TMDB_IDS_CACHE_TTL_SECONDS = 60 * 60;
 const JELLYFIN_TMDB_IDS_CACHE_KEY = 'dashboard:jellyfin:tmdb-ids:v1';
 

@@ -11,26 +11,33 @@ export function TmdbPluginSection() {
 
   const [apiKey, setApiKey] = useState('');
   const [enabled, setEnabled] = useState(false);
+  const [popularityThreshold, setPopularityThreshold] = useState(15);
 
   useEffect(() => {
     if (!data?.plugin) return;
     setApiKey(data.plugin.api_key || '');
     setEnabled(Boolean(data.plugin.enabled));
+    setPopularityThreshold(data.plugin.popularity_threshold ?? 15);
   }, [data]);
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;
-    return apiKey !== (data.plugin.api_key || '') || enabled !== Boolean(data.plugin.enabled);
-  }, [data, apiKey, enabled]);
+    return (
+      apiKey !== (data.plugin.api_key || '') ||
+      enabled !== Boolean(data.plugin.enabled) ||
+      popularityThreshold !== (data.plugin.popularity_threshold ?? 15)
+    );
+  }, [data, apiKey, enabled, popularityThreshold]);
 
   const handleCancel = () => {
     setApiKey(data?.plugin.api_key || '');
     setEnabled(Boolean(data?.plugin.enabled));
+    setPopularityThreshold(data?.plugin.popularity_threshold ?? 15);
   };
 
   const handleSave = () => {
     saveMutation
-      .mutateAsync({ api_key: apiKey, enabled })
+      .mutateAsync({ api_key: apiKey, enabled, popularity_threshold: popularityThreshold })
       .then(() => toast.success(t('settings.plugins.saveSuccess')))
       .catch(() => toast.error(t('settings.plugins.saveError')));
   };
@@ -59,6 +66,22 @@ export function TmdbPluginSection() {
           placeholder={t('settings.plugins.tmdb.apiKeyPlaceholder')}
           className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
         />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+          {t('settings.plugins.tmdb.popularityThreshold')}
+        </label>
+        <input
+          type="number"
+          min={0}
+          max={100}
+          value={popularityThreshold}
+          onChange={event => setPopularityThreshold(Math.max(0, Math.min(100, Number(event.target.value) || 0)))}
+          className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+        />
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          {t('settings.plugins.tmdb.popularityThresholdHelp')}
+        </p>
       </div>
     </PluginSectionCard>
   );

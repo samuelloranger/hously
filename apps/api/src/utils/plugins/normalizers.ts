@@ -127,13 +127,19 @@ export const normalizeWeatherConfig = (config: unknown): WeatherPluginConfig | n
   };
 };
 
+const DEFAULT_TMDB_POPULARITY_THRESHOLD = 15;
+
 export const normalizeTmdbConfig = (config: unknown): TmdbPluginConfig | null => {
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
   const cfg = config as Record<string, unknown>;
   const apiKey = typeof cfg.api_key === 'string' ? cfg.api_key.trim() : '';
   if (!apiKey) return null;
+  const rawThreshold =
+    typeof cfg.popularity_threshold === 'number' ? cfg.popularity_threshold : DEFAULT_TMDB_POPULARITY_THRESHOLD;
+  const popularityThreshold = Math.max(0, Math.min(100, Math.round(rawThreshold)));
   return {
     api_key: apiKey,
+    popularity_threshold: popularityThreshold,
   };
 };
 

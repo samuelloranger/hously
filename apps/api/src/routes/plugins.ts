@@ -1097,6 +1097,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           type: 'tmdb',
           enabled: plugin?.enabled || false,
           api_key: config?.api_key || '',
+          popularity_threshold: config?.popularity_threshold ?? 15,
         },
       };
     } catch (error) {
@@ -1120,6 +1121,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
 
       const apiKey = body.api_key.trim();
       const enabled = body.enabled ?? true;
+      const popularityThreshold = Math.max(0, Math.min(100, Math.round(body.popularity_threshold ?? 15)));
 
       if (!apiKey) {
         set.status = 400;
@@ -1128,21 +1130,21 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
 
       try {
         const now = nowUtc();
+        const configPayload = {
+          api_key: apiKey,
+          popularity_threshold: popularityThreshold,
+        };
         const plugin = await prisma.plugin.upsert({
           where: { type: 'tmdb' },
           update: {
             enabled,
-            config: {
-              api_key: apiKey,
-            },
+            config: configPayload,
             updatedAt: now,
           },
           create: {
             type: 'tmdb',
             enabled,
-            config: {
-              api_key: apiKey,
-            },
+            config: configPayload,
             createdAt: now,
             updatedAt: now,
           },
@@ -1162,6 +1164,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             type: plugin.type,
             enabled: plugin.enabled,
             api_key: apiKey,
+            popularity_threshold: popularityThreshold,
           },
         };
       } catch (error) {
@@ -1174,6 +1177,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       body: t.Object({
         api_key: t.String(),
         enabled: t.Optional(t.Boolean()),
+        popularity_threshold: t.Optional(t.Number()),
       }),
     }
   )
