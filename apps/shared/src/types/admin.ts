@@ -36,25 +36,56 @@ export interface ScheduledJobsResponse {
   message?: string;
 }
 
-export interface CreateUserRequest {
+export interface InviteUserRequest {
   email: string;
-  first_name?: string | null;
-  last_name?: string | null;
   is_admin?: boolean;
   locale?: string;
 }
 
-export interface CreateUserResponse {
+export interface Invitation {
+  id: number;
+  email: string;
+  status: 'pending' | 'accepted' | 'revoked' | 'expired';
+  is_admin: boolean;
+  locale: string;
+  expires_at: string;
+  created_at: string;
+  accepted_at: string | null;
+  invited_by_email?: string;
+  invited_by_name?: string | null;
+}
+
+export interface InviteUserResponse {
   success: boolean;
-  user: {
-    id: number;
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-    is_admin: boolean;
-    locale: string;
-  };
+  invitation: Invitation;
+}
+
+export interface ListInvitationsResponse {
+  success: boolean;
+  invitations: Invitation[];
+}
+
+export interface ResendInvitationResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface RevokeInvitationResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ValidateInvitationResponse {
+  valid: boolean;
+  email?: string;
+  error?: string;
+}
+
+export interface AcceptInvitationRequest {
+  token: string;
   password: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 export interface TestEmailResponse {

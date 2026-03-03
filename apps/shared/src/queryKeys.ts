@@ -95,6 +95,7 @@ export const queryKeys = {
   admin: {
     all: ['admin'] as const,
     users: () => [...queryKeys.admin.all, 'users'] as const,
+    invitations: () => [...queryKeys.admin.all, 'invitations'] as const,
     export: () => [...queryKeys.admin.all, 'export'] as const,
     sessions: () => [...queryKeys.admin.all, 'sessions'] as const,
     pushTokens: () => [...queryKeys.admin.all, 'push-tokens'] as const,

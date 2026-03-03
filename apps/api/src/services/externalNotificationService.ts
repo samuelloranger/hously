@@ -187,14 +187,14 @@ export async function sendExternalNotification(
       return false;
     }
 
-    // Create notifications and send push notifications for each user
-    let sentCount = 0;
+    // Batch: create all notifications and fetch all push channels up front
     const url = serviceUrlMap[serviceName] ?? '/';
+    const now = new Date().toISOString();
 
-    for (const userId of targetUserIds) {
-      try {
-        // Create notification record
-        const notification = await prisma.notification.create({
+    // Create notification records for all users in bulk
+    const notifications = await Promise.all(
+      targetUserIds.map(userId =>
+        prisma.notification.create({
           data: {
             userId,
             title,
@@ -207,81 +207,135 @@ export async function sendExternalNotification(
               payload: payload.original_payload as Record<string, string | number | boolean | null>,
             },
             read: false,
-            createdAt: new Date().toISOString(),
+            createdAt: now,
           },
-        });
+        }).catch(error => {
+          console.error(`Error creating notification for user ${userId}:`, error);
+          return null;
+        })
+      )
+    );
 
-        // Web Push: browser subscriptions
-        const userSubs = await prisma.userSubscription.findMany({
-          where: { userId },
-        });
+    // Build userId -> notification map for created records
+    const userNotificationMap = new Map<number, { id: number }>();
+    for (let i = 0; i < targetUserIds.length; i++) {
+      const notification = notifications[i];
+      if (notification) {
+        userNotificationMap.set(targetUserIds[i], notification);
+      }
+    }
 
-        for (const sub of userSubs) {
+    const activeUserIds = [...userNotificationMap.keys()];
+
+    if (activeUserIds.length === 0) {
+      console.warn('All notification creates failed, skipping push delivery');
+      return false;
+    }
+
+    // Fetch all web subscriptions and push tokens in bulk (2 queries instead of 2*N)
+    const [allUserSubs, allPushTokens, unreadCounts] = await Promise.all([
+      prisma.userSubscription.findMany({
+        where: { userId: { in: activeUserIds } },
+      }),
+      prisma.pushToken.findMany({
+        where: { userId: { in: activeUserIds } },
+        select: { token: true, platform: true, userId: true },
+      }),
+      prisma.notification.groupBy({
+        by: ['userId'],
+        where: { userId: { in: activeUserIds }, read: false },
+        _count: { id: true },
+      }),
+    ]);
+
+    // Index by userId
+    const subsByUser = new Map<number, typeof allUserSubs>();
+    for (const sub of allUserSubs) {
+      const list = subsByUser.get(sub.userId) || [];
+      list.push(sub);
+      subsByUser.set(sub.userId, list);
+    }
+
+    const tokensByUser = new Map<number, typeof allPushTokens>();
+    for (const token of allPushTokens) {
+      const list = tokensByUser.get(token.userId) || [];
+      list.push(token);
+      tokensByUser.set(token.userId, list);
+    }
+
+    const unreadByUser = new Map<number, number>();
+    for (const entry of unreadCounts) {
+      unreadByUser.set(entry.userId, entry._count.id);
+    }
+
+    // Send push notifications per user (no more DB queries in this loop)
+    let sentCount = 0;
+    const allInvalidTokens: string[] = [];
+
+    for (const userId of activeUserIds) {
+      const notification = userNotificationMap.get(userId)!;
+
+      // Web Push: browser subscriptions
+      const userSubs = subsByUser.get(userId) || [];
+      for (const sub of userSubs) {
+        try {
+          let subscriptionInfo;
           try {
-            let subscriptionInfo;
-            try {
-              subscriptionInfo = JSON.parse(sub.subscriptionInfo);
-            } catch {
-              console.error(`Invalid subscription JSON for subscription ${sub.id}, skipping`);
-              continue;
-            }
-            await sendWebPushNotification(subscriptionInfo, {
-              title,
-              body,
-              tag: `external-${serviceName}-${notification.id}`,
-              data: {
-                url,
-                notification_type: 'external',
-                notification_id: notification.id,
-              },
-            });
-          } catch (pushError) {
-            console.error(`Error sending push notification to user ${userId}:`, pushError);
+            subscriptionInfo = JSON.parse(sub.subscriptionInfo);
+          } catch {
+            console.error(`Invalid subscription JSON for subscription ${sub.id}, skipping`);
+            continue;
           }
+          await sendWebPushNotification(subscriptionInfo, {
+            title,
+            body,
+            tag: `external-${serviceName}-${notification.id}`,
+            data: {
+              url,
+              notification_type: 'external',
+              notification_id: notification.id,
+            },
+          });
+        } catch (pushError) {
+          console.error(`Error sending push notification to user ${userId}:`, pushError);
         }
+      }
 
-        // Mobile Push: APNs
-        const pushTokens = await prisma.pushToken.findMany({
-          where: { userId },
-          select: { token: true, platform: true },
-        });
+      // Mobile Push: APNs
+      const pushTokens = tokensByUser.get(userId) || [];
+      if (pushTokens.length > 0) {
+        const unreadCount = unreadByUser.get(userId) || 0;
+        const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
 
-        if (pushTokens.length > 0) {
-          const unreadCount = await prisma.notification.count({
-            where: { userId, read: false },
+        if (iosTokens.length > 0) {
+          const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
+            title,
+            body,
+            data: {
+              url,
+              notification_type: 'external',
+              notification_id: notification.id,
+            },
+            channelId: 'default',
+            badge: unreadCount,
           });
 
-          const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
-
-          if (iosTokens.length > 0) {
-            const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
-              title,
-              body,
-              data: {
-                url,
-                notification_type: 'external',
-                notification_id: notification.id,
-              },
-              channelId: 'default',
-              badge: unreadCount,
-            });
-
-            if (successCount > 0) {
-              console.log(`Sent ${successCount} APNs external notifications to user ${userId}`);
-            }
-
-            if (invalidTokens.length > 0) {
-              await prisma.pushToken.deleteMany({
-                where: { token: { in: invalidTokens } },
-              });
-            }
+          if (successCount > 0) {
+            console.log(`Sent ${successCount} APNs external notifications to user ${userId}`);
           }
-        }
 
-        sentCount++;
-      } catch (error) {
-        console.error(`Error creating notification for user ${userId}:`, error);
+          allInvalidTokens.push(...invalidTokens);
+        }
       }
+
+      sentCount++;
+    }
+
+    // Clean up invalid tokens in a single batch
+    if (allInvalidTokens.length > 0) {
+      await prisma.pushToken.deleteMany({
+        where: { token: { in: allInvalidTokens } },
+      });
     }
 
     console.log(`Created ${sentCount} external notifications for ${serviceName}/${eventType}`);

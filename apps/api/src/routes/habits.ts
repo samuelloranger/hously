@@ -46,6 +46,12 @@ export const habitsRoutes = new Elysia()
   .use(auth)
   .group('/api/habits', (app) =>
     app
+      .onBeforeHandle(({ user, set }) => {
+        if (!user) {
+          set.status = 401;
+          return { error: 'Unauthorized' };
+        }
+      })
       .post(
         '/live-activity/register',
         async ({ body, user }) => {

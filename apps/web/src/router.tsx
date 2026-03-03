@@ -38,6 +38,9 @@ const ForgotPassword = cachedLazy('forgot-password', () =>
 const ResetPassword = cachedLazy('reset-password', () =>
   import('./routes/reset-password').then(m => ({ default: m.ResetPassword }))
 );
+const AcceptInvitation = cachedLazy('accept-invitation', () =>
+  import('./routes/accept-invitation').then(m => ({ default: m.AcceptInvitation }))
+);
 const ShoppingList = cachedLazy('shopping', () =>
   import('./features/shopping').then(m => ({ default: m.ShoppingList }))
 );
@@ -130,6 +133,23 @@ const resetPasswordRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/reset-password',
   component: ResetPassword,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      token: (search.token as string) || '',
+    };
+  },
+  beforeLoad: async () => {
+    const user = await getCurrentUser().catch(() => null);
+    if (user) {
+      throw redirect({ to: '/' });
+    }
+  },
+});
+
+const acceptInvitationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/accept-invitation',
+  component: AcceptInvitation,
   validateSearch: (search: Record<string, unknown>) => {
     return {
       token: (search.token as string) || '',
@@ -286,6 +306,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   forgotPasswordRoute,
   resetPasswordRoute,
+  acceptInvitationRoute,
   shoppingRoute,
   choresRoute,
   habitsRoute,

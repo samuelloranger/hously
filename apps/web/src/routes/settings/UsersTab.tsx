@@ -1,85 +1,64 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { FormInput } from '../../components/ui/form-field';
 import { Button } from '../../components/ui/button';
 import {
-  useCreateUser,
   useAdminUsers,
   useDeleteUser,
   useCurrentUser,
-  type CreateUserRequest,
+  useInviteUser,
+  useAdminInvitations,
+  useResendInvitation,
+  useRevokeInvitation,
+  formatDateTime,
 } from '@hously/shared';
 import { LoadingState } from '../../components/LoadingState';
-import { formatDateTime } from '@hously/shared';
 
-interface FormData {
+interface InviteFormData {
   email: string;
-  first_name: string;
-  last_name: string;
   is_admin: boolean;
   locale: string;
 }
 
 export function UsersTab() {
   const { t, i18n } = useTranslation('common');
-  const createMutation = useCreateUser();
+  const inviteMutation = useInviteUser();
   const deleteMutation = useDeleteUser();
+  const resendMutation = useResendInvitation();
+  const revokeMutation = useRevokeInvitation();
   const { data: currentUser } = useCurrentUser();
-  const { data: usersData, isLoading, error } = useAdminUsers();
-  const [createdUser, setCreatedUser] = useState<{
-    user: CreateUserRequest;
-    password: string;
-  } | null>(null);
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useAdminUsers();
+  const { data: invitationsData, isLoading: invitationsLoading } = useAdminInvitations();
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormData>({
+  } = useForm<InviteFormData>({
     defaultValues: {
       email: '',
-      first_name: '',
-      last_name: '',
       is_admin: false,
       locale: 'en',
     },
   });
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: InviteFormData) => {
     try {
-      const result = await createMutation.mutateAsync({
+      const result = await inviteMutation.mutateAsync({
         email: data.email.trim(),
-        first_name: data.first_name.trim() || null,
-        last_name: data.last_name.trim() || null,
         is_admin: data.is_admin,
         locale: data.locale,
       });
 
       if (result.success) {
-        setCreatedUser({
-          user: {
-            email: result.user.email,
-            first_name: result.user.first_name,
-            last_name: result.user.last_name,
-            is_admin: result.user.is_admin,
-            locale: result.user.locale,
-          },
-          password: result.password,
-        });
         reset();
-        toast.success(t('settings.users.createSuccess'));
+        toast.success(t('settings.users.inviteSuccess'));
       }
     } catch (error: any) {
-      console.error('Error creating user:', error);
-      toast.error(error?.error || t('settings.users.createError') || 'Failed to create user');
+      toast.error(error?.error || t('settings.users.inviteError') || 'Failed to send invitation');
     }
-  };
-
-  const handleClosePasswordDisplay = () => {
-    setCreatedUser(null);
   };
 
   const handleDeleteUser = async (userId: number, userEmail: string) => {
@@ -91,8 +70,29 @@ export function UsersTab() {
       await deleteMutation.mutateAsync(userId);
       toast.success(t('settings.users.deleteSuccess'));
     } catch (error: any) {
-      console.error('Error deleting user:', error);
       toast.error(error?.error || t('settings.users.deleteError') || 'Failed to delete user');
+    }
+  };
+
+  const handleResendInvitation = async (id: number) => {
+    try {
+      await resendMutation.mutateAsync(id);
+      toast.success(t('settings.users.resendSuccess'));
+    } catch (error: any) {
+      toast.error(error?.error || t('settings.users.resendError') || 'Failed to resend invitation');
+    }
+  };
+
+  const handleRevokeInvitation = async (id: number, email: string) => {
+    if (!confirm(t('settings.users.revokeConfirm', { email }))) {
+      return;
+    }
+
+    try {
+      await revokeMutation.mutateAsync(id);
+      toast.success(t('settings.users.revokeSuccess'));
+    } catch (error: any) {
+      toast.error(error?.error || t('settings.users.revokeError') || 'Failed to revoke invitation');
     }
   };
 
@@ -103,19 +103,50 @@ export function UsersTab() {
     return user.email;
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+            {t('settings.users.statusPending')}
+          </span>
+        );
+      case 'accepted':
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+            {t('settings.users.statusAccepted')}
+          </span>
+        );
+      case 'revoked':
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+            {t('settings.users.statusRevoked')}
+          </span>
+        );
+      case 'expired':
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200">
+            {t('settings.users.statusExpired')}
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300" key="users-tab">
       <div className="space-y-6">
         {/* Users List */}
-        <div className="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
             {t('settings.users.listTitle')}
           </h2>
           <p className="text-neutral-600 dark:text-neutral-400 mb-6">{t('settings.users.listDescription')}</p>
 
-          {isLoading ? (
+          {usersLoading ? (
             <LoadingState />
-          ) : error ? (
+          ) : usersError ? (
             <div className="text-red-600 dark:text-red-400">
               {t('settings.users.loadError') || 'Failed to load users'}
             </div>
@@ -147,6 +178,12 @@ export function UsersTab() {
                 <tbody>
                   {usersData.users.map(user => {
                     const isCurrentUser = currentUser?.id === user.id;
+                    const displayName = formatDisplayName(user);
+                    const initials =
+                      [user.first_name, user.last_name]
+                        .filter(Boolean)
+                        .map(n => n![0].toUpperCase())
+                        .join('') || user.email[0].toUpperCase();
                     return (
                       <tr
                         key={user.id}
@@ -154,7 +191,12 @@ export function UsersTab() {
                       >
                         <td className="py-3 px-4 text-sm text-neutral-900 dark:text-neutral-100">{user.email}</td>
                         <td className="py-3 px-4 text-sm text-neutral-900 dark:text-neutral-100">
-                          {formatDisplayName(user)}
+                          <div className="flex items-center gap-2.5">
+                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-400 text-xs font-semibold flex-shrink-0">
+                              {initials}
+                            </span>
+                            {displayName}
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-sm">
                           {user.is_admin ? (
@@ -203,53 +245,103 @@ export function UsersTab() {
           )}
         </div>
 
-        {/* Create User Form */}
-        <div className="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">
-            {t('settings.users.createTitle')}
+        {/* Pending Invitations */}
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+            {t('settings.users.pendingInvitations')}
           </h2>
-          <p className="text-neutral-600 dark:text-neutral-400 mb-6">{t('settings.users.description')}</p>
 
-          {/* Password Display Modal */}
-          {createdUser && (
-            <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-100">
-                  {t('settings.users.userCreated')}
-                </h3>
-                <button
-                  onClick={handleClosePasswordDisplay}
-                  className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-200"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="space-y-2 text-sm">
-                <p className="text-neutral-700 dark:text-neutral-300">
-                  <strong>{t('settings.users.email')}:</strong> {createdUser.user.email}
-                </p>
-                {createdUser.user.first_name && (
-                  <p className="text-neutral-700 dark:text-neutral-300">
-                    <strong>{t('settings.users.firstName')}:</strong> {createdUser.user.first_name}
-                  </p>
-                )}
-                {createdUser.user.last_name && (
-                  <p className="text-neutral-700 dark:text-neutral-300">
-                    <strong>{t('settings.users.lastName')}:</strong> {createdUser.user.last_name}
-                  </p>
-                )}
-                <div className="mt-4 p-3 bg-white dark:bg-neutral-800 border border-yellow-300 dark:border-yellow-700 rounded">
-                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mb-1">
-                    {t('settings.users.generatedPassword')}
-                  </p>
-                  <p className="text-lg font-mono font-bold text-neutral-900 dark:text-neutral-100 break-all">
-                    {createdUser.password}
-                  </p>
-                  <p className="text-xs text-red-600 dark:text-red-400 mt-2">{t('settings.users.passwordWarning')}</p>
-                </div>
-              </div>
+          {invitationsLoading ? (
+            <LoadingState />
+          ) : invitationsData?.invitations && invitationsData.invitations.length > 0 ? (
+            <div className="overflow-x-auto mt-4">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-neutral-200 dark:border-neutral-700">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      {t('settings.users.email')}
+                    </th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      {t('settings.users.status')}
+                    </th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      {t('settings.users.invitedAt')}
+                    </th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      {t('settings.users.expiresAt')}
+                    </th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      {t('settings.users.actions')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invitationsData.invitations.map(inv => (
+                    <tr
+                      key={inv.id}
+                      className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
+                    >
+                      <td className="py-3 px-4 text-sm text-neutral-900 dark:text-neutral-100">{inv.email}</td>
+                      <td className="py-3 px-4 text-sm">{getStatusBadge(inv.status)}</td>
+                      <td className="py-3 px-4 text-sm text-neutral-600 dark:text-neutral-400">
+                        {formatDateTime(inv.created_at, i18n.language)}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-neutral-600 dark:text-neutral-400">
+                        {formatDateTime(inv.expires_at, i18n.language)}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-right">
+                        {inv.status === 'pending' && (
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => handleResendInvitation(inv.id)}
+                              disabled={resendMutation.isPending}
+                              className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {resendMutation.isPending
+                                ? t('settings.users.resending') || 'Resending...'
+                                : t('settings.users.resend') || 'Resend'}
+                            </button>
+                            <button
+                              onClick={() => handleRevokeInvitation(inv.id, inv.email)}
+                              disabled={revokeMutation.isPending}
+                              className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {revokeMutation.isPending
+                                ? t('settings.users.revoking') || 'Revoking...'
+                                : t('settings.users.revoke') || 'Revoke'}
+                            </button>
+                          </div>
+                        )}
+                        {inv.status === 'expired' && (
+                          <button
+                            onClick={() => handleResendInvitation(inv.id)}
+                            disabled={resendMutation.isPending}
+                            className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {resendMutation.isPending
+                              ? t('settings.users.resending') || 'Resending...'
+                              : t('settings.users.resend') || 'Resend'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+              {t('settings.users.noPendingInvitations') || 'No invitations'}
             </div>
           )}
+        </div>
+
+        {/* Invite User Form */}
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+            {t('settings.users.inviteTitle')}
+          </h2>
+          <p className="text-neutral-600 dark:text-neutral-400 mb-6">{t('settings.users.inviteDescription')}</p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <FormInput
@@ -269,16 +361,6 @@ export function UsersTab() {
                     : errors.email.message
                   : undefined
               }
-            />
-
-            <FormInput
-              {...register('first_name')}
-              placeholder={t('settings.users.firstNamePlaceholder') || 'First name (optional)'}
-            />
-
-            <FormInput
-              {...register('last_name')}
-              placeholder={t('settings.users.lastNamePlaceholder') || 'Last name (optional)'}
             />
 
             <div>
@@ -307,10 +389,10 @@ export function UsersTab() {
             </div>
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending
-                  ? t('settings.users.creating') || 'Creating...'
-                  : t('settings.users.createButton') || 'Create User'}
+              <Button type="submit" disabled={inviteMutation.isPending}>
+                {inviteMutation.isPending
+                  ? t('settings.users.inviting') || 'Sending...'
+                  : t('settings.users.inviteButton') || 'Send Invitation'}
               </Button>
             </div>
           </form>

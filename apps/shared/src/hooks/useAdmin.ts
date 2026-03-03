@@ -6,8 +6,11 @@ import type {
   AdminPushTokensResponse,
   AdminSessionsResponse,
   AdminWebPushResponse,
-  CreateUserRequest,
-  CreateUserResponse,
+  InviteUserRequest,
+  InviteUserResponse,
+  ListInvitationsResponse,
+  ResendInvitationResponse,
+  RevokeInvitationResponse,
   DeletePushTokenResponse,
   DeleteUserResponse,
   DeleteWebPushResponse,
@@ -83,19 +86,57 @@ export function useAdminUsers() {
   });
 }
 
-export function useCreateUser() {
+export function useInviteUser() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateUserRequest) =>
-      fetcher<CreateUserResponse>(ADMIN_ENDPOINTS.USERS, {
+    mutationFn: (data: InviteUserRequest) =>
+      fetcher<InviteUserResponse>(ADMIN_ENDPOINTS.INVITE_USER, {
         method: 'POST',
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.invitations() });
+    },
+  });
+}
+
+export function useAdminInvitations() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.admin.invitations(),
+    queryFn: () => fetcher<ListInvitationsResponse>(ADMIN_ENDPOINTS.INVITATIONS),
+  });
+}
+
+export function useResendInvitation() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<ResendInvitationResponse>(ADMIN_ENDPOINTS.RESEND_INVITATION(id), {
+        method: 'POST',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.invitations() });
+    },
+  });
+}
+
+export function useRevokeInvitation() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<RevokeInvitationResponse>(ADMIN_ENDPOINTS.REVOKE_INVITATION(id), {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.invitations() });
     },
   });
 }

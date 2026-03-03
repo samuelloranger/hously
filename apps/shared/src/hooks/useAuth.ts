@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFetcher } from './context';
 import { queryKeys } from '../queryKeys';
 import { AUTH_ENDPOINTS } from '../endpoints';
-import type { UserResponse } from '../types';
+import type { UserResponse, ValidateInvitationResponse, AcceptInvitationRequest } from '../types';
 
 type AuthResponse = UserResponse & { token?: string; refreshToken?: string };
 
@@ -57,29 +57,29 @@ export function useLogin() {
   });
 }
 
-export function useSignup() {
+export function useValidateInvitation(token: string) {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: ['auth', 'validate-invitation', token],
+    queryFn: () =>
+      fetcher<ValidateInvitationResponse>(
+        `${AUTH_ENDPOINTS.ACCEPT_INVITATION}?token=${encodeURIComponent(token)}`
+      ),
+    enabled: !!token,
+    retry: false,
+  });
+}
+
+export function useAcceptInvitation() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: {
-      email: string;
-      password: string;
-      first_name?: string;
-      last_name?: string;
-      firstName?: string;
-      lastName?: string;
-      locale?: string;
-    }) =>
-      fetcher<AuthResponse>(AUTH_ENDPOINTS.SIGNUP, {
+    mutationFn: (data: AcceptInvitationRequest) =>
+      fetcher<AuthResponse>(AUTH_ENDPOINTS.ACCEPT_INVITATION, {
         method: 'POST',
-        body: {
-          email: data.email,
-          password: data.password,
-          first_name: data.first_name ?? data.firstName,
-          last_name: data.last_name ?? data.lastName,
-          locale: data.locale || defaultLocale(),
-        },
+        body: data,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });

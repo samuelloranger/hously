@@ -23,8 +23,6 @@ import type {
   CreateChoreRequest,
   CreateRecipeRequest,
   CreateShoppingItemRequest,
-  CreateUserRequest,
-  CreateUserResponse,
   DashboardJellyfinLatestResponse,
   DashboardNetdataSummaryResponse,
   DashboardScrutinySummaryResponse,
@@ -128,23 +126,27 @@ export function createAuthApi(fetcher: ApiFetcher, options: AuthApiOptions = {})
     });
   };
 
-  const signup = async (credentials: {
-    email: string;
+  const validateInvitation = async (token: string) => {
+    return fetcher<{ valid: boolean; email?: string; error?: string }>(
+      `${AUTH_ENDPOINTS.ACCEPT_INVITATION}?token=${encodeURIComponent(token)}`
+    );
+  };
+
+  const acceptInvitation = async (data: {
+    token: string;
     password: string;
     first_name?: string;
     last_name?: string;
     firstName?: string;
     lastName?: string;
-    locale?: string;
   }): Promise<AuthenticatedUserResponse> => {
-    return fetcher<AuthenticatedUserResponse>(AUTH_ENDPOINTS.SIGNUP, {
+    return fetcher<AuthenticatedUserResponse>(AUTH_ENDPOINTS.ACCEPT_INVITATION, {
       method: 'POST',
       body: {
-        email: credentials.email,
-        password: credentials.password,
-        first_name: credentials.first_name ?? credentials.firstName,
-        last_name: credentials.last_name ?? credentials.lastName,
-        locale: resolveLocale(credentials.locale),
+        token: data.token,
+        password: data.password,
+        first_name: data.first_name ?? data.firstName,
+        last_name: data.last_name ?? data.lastName,
       },
     });
   };
@@ -240,7 +242,8 @@ export function createAuthApi(fetcher: ApiFetcher, options: AuthApiOptions = {})
   return {
     getCurrentUser,
     login,
-    signup,
+    validateInvitation,
+    acceptInvitation,
     logout,
     forgotPassword,
     resetPassword,
@@ -521,10 +524,20 @@ export function createAdminApi(fetcher: ApiFetcher) {
       }),
     getScheduledJobs: () => fetcher<ScheduledJobsResponse>(ADMIN_ENDPOINTS.SCHEDULED_JOBS),
     getUsers: () => fetcher<ListUsersResponse>(ADMIN_ENDPOINTS.USERS),
-    createUser: (data: CreateUserRequest) =>
-      fetcher<CreateUserResponse>(ADMIN_ENDPOINTS.USERS, {
+    inviteUser: (data: { email: string; is_admin?: boolean; locale?: string }) =>
+      fetcher<{ success: boolean; invitation: Record<string, unknown> }>(ADMIN_ENDPOINTS.INVITE_USER, {
         method: 'POST',
         body: data,
+      }),
+    getInvitations: () =>
+      fetcher<{ success: boolean; invitations: Array<Record<string, unknown>> }>(ADMIN_ENDPOINTS.INVITATIONS),
+    resendInvitation: (id: number) =>
+      fetcher<{ success: boolean; message: string }>(ADMIN_ENDPOINTS.RESEND_INVITATION(id), {
+        method: 'POST',
+      }),
+    revokeInvitation: (id: number) =>
+      fetcher<{ success: boolean; message: string }>(ADMIN_ENDPOINTS.REVOKE_INVITATION(id), {
+        method: 'DELETE',
       }),
     deleteUser: (userId: number) =>
       fetcher<DeleteUserResponse>(ADMIN_ENDPOINTS.DELETE_USER(userId), {

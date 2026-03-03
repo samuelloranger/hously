@@ -7,6 +7,7 @@ import { authRateLimit } from './middleware/rateLimit';
 import { validateEmail, validatePassword } from './utils/validation';
 import { loadAccessControl, getBaseUrl } from './utils/config';
 import { saveImageAndCreateThumbnail, deleteImageFiles, getAvatarUrl } from './services/imageService';
+import { sendPasswordResetEmail, isEmailConfigured } from './services/emailService';
 
 // Map database user (camelCase) to frontend user (snake_case)
 const mapUser = (user: {
@@ -122,163 +123,207 @@ export const auth = (app: Elysia) =>
             .post(
               '/login',
               async ({ body, jwt, set, cookie: { auth } }) => {
-            const { email, password } = body;
-            const user = await prisma.user.findFirst({
-              where: { email },
-            });
+                const { email, password } = body;
+                const user = await prisma.user.findFirst({
+                  where: { email },
+                });
 
-            if (!user) {
-              set.status = 401;
-              return { success: false, error: 'Invalid credentials' };
+                if (!user) {
+                  set.status = 401;
+                  return { success: false, error: 'Invalid credentials' };
+                }
+
+                try {
+                  const isValid = await verifyPassword(password, user.passwordHash);
+                  if (!isValid) {
+                    set.status = 401;
+                    return { success: false, error: 'Invalid credentials' };
+                  }
+                } catch (e) {
+                  console.error('Password verification error:', e);
+                  set.status = 500;
+                  return { success: false, error: 'Internal server error' };
+                }
+
+                // Generate JWT access token
+                const accessToken = await jwt.sign({ id: user.id });
+
+                // Set secure cookie for web clients
+                // - httpOnly: Prevents XSS attacks from stealing the token
+                // - sameSite: 'lax' provides CSRF protection (cookies not sent on cross-site POST)
+                // - secure: HTTPS only in production
+                auth.set({
+                  value: accessToken,
+                  httpOnly: true,
+                  maxAge: 7 * 86400, // 7 days
+                  path: '/',
+                  sameSite: 'lax',
+                  secure: process.env.NODE_ENV === 'production',
+                });
+
+                // Update last login
+                await prisma.user.update({
+                  where: { id: user.id },
+                  data: { lastLogin: new Date().toISOString() },
+                });
+
+                // Generate refresh token for mobile clients
+                const refreshToken = await createRefreshToken(user.id);
+
+                return {
+                  user: mapUser(user),
+                  token: accessToken,
+                  refreshToken,
+                };
+              },
+              {
+                body: t.Object({
+                  email: t.String(),
+                  password: t.String(),
+                  locale: t.Optional(t.String()),
+                }),
+              }
+            )
+        )
+        .get(
+          '/accept-invitation',
+          async ({ query, set }) => {
+            const { token } = query;
+
+            if (!token) {
+              set.status = 400;
+              return { valid: false, error: 'Token is required' };
             }
 
             try {
-              const isValid = await verifyPassword(password, user.passwordHash);
-              if (!isValid) {
-                set.status = 401;
-                return { success: false, error: 'Invalid credentials' };
+              const invitation = await prisma.invitation.findFirst({
+                where: {
+                  token,
+                  status: 'pending',
+                  expiresAt: { gt: new Date() },
+                },
+              });
+
+              if (!invitation) {
+                return { valid: false, error: 'Invalid or expired invitation' };
               }
-            } catch (e) {
-              console.error('Password verification error:', e);
+
+              return { valid: true, email: invitation.email };
+            } catch (error) {
+              console.error('Error validating invitation:', error);
               set.status = 500;
-              return { success: false, error: 'Internal server error' };
+              return { valid: false, error: 'Failed to validate invitation' };
             }
-
-            // Generate JWT access token
-            const accessToken = await jwt.sign({ id: user.id });
-
-            // Set secure cookie for web clients
-            // - httpOnly: Prevents XSS attacks from stealing the token
-            // - sameSite: 'lax' provides CSRF protection (cookies not sent on cross-site POST)
-            // - secure: HTTPS only in production
-            auth.set({
-              value: accessToken,
-              httpOnly: true,
-              maxAge: 7 * 86400, // 7 days
-              path: '/',
-              sameSite: 'lax',
-              secure: process.env.NODE_ENV === 'production',
-            });
-
-            // Update last login
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { lastLogin: new Date().toISOString() },
-            });
-
-            // Generate refresh token for mobile clients
-            const refreshToken = await createRefreshToken(user.id);
-
-            return {
-              user: mapUser(user),
-              token: accessToken,
-              refreshToken,
-            };
           },
           {
-            body: t.Object({
-              email: t.String(),
-              password: t.String(),
-              locale: t.Optional(t.String()),
+            query: t.Object({
+              token: t.String(),
             }),
           }
         )
         .post(
-          '/signup',
+          '/accept-invitation',
           async ({ body, jwt, set, cookie: { auth } }) => {
-            const { email, password, first_name, last_name, locale } = body;
-
-            console.log('Signup attempt:', { email, first_name, last_name });
-            // Validate email
-            if (!validateEmail(email)) {
-              set.status = 400;
-              console.log('Signup validation failed for email:', email);
-              return { error: 'Invalid email format' };
-            }
+            const { token, password, first_name, last_name } = body;
 
             // Validate password
             const [isValid, passwordError] = validatePassword(password);
             if (!isValid) {
               set.status = 400;
-              console.log('Signup validation failed for email:', email, 'Error:', passwordError);
               return { error: passwordError };
             }
 
-            console.log('Signup validation passed for email:', email);
-            // Check if user already exists
             try {
-              const existingUser = await prisma.user.findFirst({
-                where: { email },
+              // Find and validate invitation
+              const invitation = await prisma.invitation.findFirst({
+                where: {
+                  token,
+                  status: 'pending',
+                  expiresAt: { gt: new Date() },
+                },
               });
-              console.log('Existing user check for email:', email, 'Found:', !!existingUser);
+
+              if (!invitation) {
+                set.status = 400;
+                return { error: 'Invalid or expired invitation' };
+              }
+
+              // Check if user already exists (race condition guard)
+              const existingUser = await prisma.user.findFirst({
+                where: { email: invitation.email },
+              });
 
               if (existingUser) {
                 set.status = 400;
-                console.log('Signup attempt with existing email:', email);
-                return { error: 'User with this email already exists' };
+                return { error: 'An account with this email already exists' };
               }
+
+              // Create user and mark invitation as accepted in a transaction
+              const passwordHash = await hashPassword(password);
+
+              const newUser = await prisma.$transaction(async (tx) => {
+                const user = await tx.user.create({
+                  data: {
+                    email: invitation.email,
+                    passwordHash,
+                    firstName: first_name || null,
+                    lastName: last_name || null,
+                    isAdmin: invitation.isAdmin,
+                    locale: invitation.locale || 'en',
+                    createdAt: new Date().toISOString(),
+                  },
+                });
+
+                await tx.invitation.update({
+                  where: { id: invitation.id },
+                  data: {
+                    status: 'accepted',
+                    acceptedAt: new Date(),
+                  },
+                });
+
+                return user;
+              });
+
+              // Generate JWT access token
+              const accessToken = await jwt.sign({ id: newUser.id });
+
+              // Set secure cookie for web clients
+              auth.set({
+                value: accessToken,
+                httpOnly: true,
+                maxAge: 7 * 86400, // 7 days
+                path: '/',
+                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+              });
+
+              // Generate refresh token for mobile clients
+              const refreshToken = await createRefreshToken(newUser.id);
+
+              console.log(`User registered via invitation: ${invitation.email}`);
+
+              set.status = 201;
+              return {
+                user: mapUser(newUser),
+                token: accessToken,
+                refreshToken,
+              };
             } catch (error) {
-              console.error('Error checking existing user:', error);
+              console.error('Error accepting invitation:', error);
               set.status = 500;
-              return { error: 'Internal server error' };
+              return { error: 'Failed to create account' };
             }
-
-            // Load access control and check if user should be admin
-            const accessControl = loadAccessControl();
-            const isAdmin = accessControl.adminEmails.includes(email);
-
-            // Hash password and create user
-            const passwordHash = await hashPassword(password);
-            console.log('Creating user with email:', email, 'isAdmin:', isAdmin);
-            const newUser = await prisma.user.create({
-              data: {
-                email,
-                passwordHash,
-                firstName: first_name || null,
-                lastName: last_name || null,
-                isAdmin,
-                locale: locale || 'en',
-                createdAt: new Date().toISOString(),
-              },
-            });
-            console.log('New user created with ID:', newUser.id);
-
-            // Generate JWT access token
-            const accessToken = await jwt.sign({ id: newUser.id });
-
-            // Set secure cookie for web clients
-            auth.set({
-              value: accessToken,
-              httpOnly: true,
-              maxAge: 7 * 86400, // 7 days
-              path: '/',
-              sameSite: 'lax',
-              secure: process.env.NODE_ENV === 'production',
-            });
-
-            // Generate refresh token for mobile clients
-            const refreshToken = await createRefreshToken(newUser.id);
-
-            console.log(`New user registered: ${email}`);
-
-            set.status = 201;
-            return {
-              user: mapUser(newUser),
-              token: accessToken,
-              refreshToken,
-            };
           },
           {
             body: t.Object({
-              email: t.String(),
+              token: t.String(),
               password: t.String(),
               first_name: t.Optional(t.String()),
               last_name: t.Optional(t.String()),
-              locale: t.Optional(t.String()),
             }),
           }
         )
-      )
         .post(
           '/refresh',
           async ({ body, jwt, set }) => {
@@ -390,12 +435,9 @@ export const auth = (app: Elysia) =>
                   },
                 });
 
-                // Build reset URL
-                const baseUrl = getBaseUrl();
-                const resetUrl = `${baseUrl}/reset-password?token=${token}`;
-
-                console.log(`Password reset requested for: ${email}. Reset URL: ${resetUrl}`);
-                // TODO: Send email with reset URL when email service is implemented
+                // Send password reset email
+                const locale = body.locale || 'en';
+                await sendPasswordResetEmail(email, token, locale);
               }
             } catch (error) {
               console.error('Error processing forgot password request:', error);

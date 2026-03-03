@@ -9,6 +9,7 @@ import {
   fetchTrackerStats,
 } from '../jobs';
 import { logActivity } from '../utils/activityLogs';
+import { sendInvitationEmail } from '../services/emailService';
 
 const resolveAdminActionJob = (action: string): { id: string; name: string } | null => {
   switch (action) {
@@ -293,20 +294,17 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
     }
   })
 
-  // POST /api/admin/users - Create a new user
+  // POST /api/admin/invitations - Send an invitation email
   .post(
-    '/users',
+    '/invitations',
     async ({ user, body, set }) => {
       if (!adminOnly(user, set)) {
         return { error: user ? 'Forbidden' : 'Unauthorized' };
       }
 
       try {
-        const { email, first_name, last_name, is_admin, locale } = body;
+        const emailTrimmed = (body.email || '').trim().toLowerCase();
 
-        const emailTrimmed = (email || '').trim().toLowerCase();
-
-        // Validate email
         if (!emailTrimmed) {
           set.status = 400;
           return { error: 'Email is required' };
@@ -317,70 +315,235 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
           return { error: 'Invalid email format' };
         }
 
-        // Sanitize inputs
         const sanitizedEmail = sanitizeInput(emailTrimmed);
-        const sanitizedFirstName = first_name ? sanitizeInput(first_name.trim()) : null;
-        const sanitizedLastName = last_name ? sanitizeInput(last_name.trim()) : null;
-        const userLocale = (locale || 'en').trim().slice(0, 10);
 
         // Check if user already exists
-        const existing = await prisma.user.findFirst({
+        const existingUser = await prisma.user.findFirst({
           where: { email: sanitizedEmail },
         });
 
-        if (existing) {
-          console.warn(`Attempted to create user with existing email: ${sanitizedEmail}`);
+        if (existingUser) {
           set.status = 400;
-          return { error: 'User with this email already exists' };
+          return { error: 'A user with this email already exists' };
         }
 
-        // Generate secure password
-        const password = generateSecurePassword();
-        const passwordHash = await hashPassword(password);
-
-        // Create user
-        const newUser = await prisma.user.create({
-          data: {
+        // Check if there is already a pending, non-expired invitation
+        const existingInvitation = await prisma.invitation.findFirst({
+          where: {
             email: sanitizedEmail,
-            passwordHash,
-            firstName: sanitizedFirstName,
-            lastName: sanitizedLastName,
-            isAdmin: is_admin || false,
-            locale: userLocale,
-            createdAt: nowUtc(),
+            status: 'pending',
+            expiresAt: { gt: new Date() },
           },
         });
 
-        console.log(`Admin created new user: ${sanitizedEmail}`);
+        if (existingInvitation) {
+          set.status = 400;
+          return { error: 'A pending invitation already exists for this email. You can resend it instead.' };
+        }
+
+        // Generate secure token
+        const tokenBytes = new Uint8Array(32);
+        crypto.getRandomValues(tokenBytes);
+        const token = btoa(String.fromCharCode(...tokenBytes))
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=/g, '');
+
+        const locale = (body.locale || 'en').trim().slice(0, 10);
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+        const invitation = await prisma.invitation.create({
+          data: {
+            email: sanitizedEmail,
+            token,
+            status: 'pending',
+            expiresAt,
+            invitedBy: user!.id,
+            locale,
+            isAdmin: body.is_admin || false,
+          },
+        });
+
+        // Build inviter display name
+        const inviterName = [user!.first_name, user!.last_name].filter(Boolean).join(' ') || user!.email;
+
+        await sendInvitationEmail(sanitizedEmail, token, inviterName, locale);
+
+        console.log(`Admin ${user!.email} invited ${sanitizedEmail}`);
 
         set.status = 201;
         return {
           success: true,
-          user: {
-            id: newUser.id,
-            email: newUser.email,
-            first_name: newUser.firstName,
-            last_name: newUser.lastName,
-            is_admin: newUser.isAdmin,
-            locale: newUser.locale,
+          invitation: {
+            id: invitation.id,
+            email: invitation.email,
+            status: invitation.status,
+            is_admin: invitation.isAdmin,
+            locale: invitation.locale,
+            expires_at: invitation.expiresAt.toISOString(),
+            created_at: invitation.createdAt.toISOString(),
+            accepted_at: null,
           },
-          password, // Return plain password for display (only shown once)
         };
       } catch (error) {
-        console.error('Error creating user:', error);
+        console.error('Error sending invitation:', error);
         set.status = 500;
-        return { error: 'Failed to create user' };
+        return { error: 'Failed to send invitation' };
       }
     },
     {
       body: t.Object({
         email: t.String(),
-        first_name: t.Optional(t.Union([t.String(), t.Null()])),
-        last_name: t.Optional(t.Union([t.String(), t.Null()])),
         is_admin: t.Optional(t.Boolean()),
         locale: t.Optional(t.String()),
       }),
     }
+  )
+
+  // GET /api/admin/invitations - List all invitations
+  .get('/invitations', async ({ user, set }) => {
+    if (!adminOnly(user, set)) {
+      return { error: user ? 'Forbidden' : 'Unauthorized' };
+    }
+
+    try {
+      const invitations = await prisma.invitation.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          inviter: {
+            select: { email: true, firstName: true, lastName: true },
+          },
+        },
+      });
+
+      const now = new Date();
+
+      return {
+        success: true,
+        invitations: invitations.map(inv => ({
+          id: inv.id,
+          email: inv.email,
+          status: inv.status === 'pending' && inv.expiresAt < now ? 'expired' : inv.status,
+          is_admin: inv.isAdmin,
+          locale: inv.locale,
+          expires_at: inv.expiresAt.toISOString(),
+          created_at: inv.createdAt.toISOString(),
+          accepted_at: inv.acceptedAt?.toISOString() || null,
+          invited_by_email: inv.inviter.email,
+          invited_by_name: [inv.inviter.firstName, inv.inviter.lastName].filter(Boolean).join(' ') || null,
+        })),
+      };
+    } catch (error) {
+      console.error('Error listing invitations:', error);
+      set.status = 500;
+      return { error: 'Failed to list invitations' };
+    }
+  })
+
+  // POST /api/admin/invitations/:id/resend - Resend an invitation
+  .post(
+    '/invitations/:id/resend',
+    async ({ user, params, set }) => {
+      if (!adminOnly(user, set)) {
+        return { error: user ? 'Forbidden' : 'Unauthorized' };
+      }
+
+      const id = parseInt(params.id, 10);
+      if (isNaN(id)) {
+        set.status = 400;
+        return { error: 'Invalid invitation ID' };
+      }
+
+      try {
+        const invitation = await prisma.invitation.findFirst({
+          where: { id },
+        });
+
+        if (!invitation) {
+          set.status = 404;
+          return { error: 'Invitation not found' };
+        }
+
+        if (invitation.status !== 'pending') {
+          set.status = 400;
+          return { error: 'Can only resend pending invitations' };
+        }
+
+        // Generate new token and reset expiry
+        const tokenBytes = new Uint8Array(32);
+        crypto.getRandomValues(tokenBytes);
+        const token = btoa(String.fromCharCode(...tokenBytes))
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=/g, '');
+
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+        await prisma.invitation.update({
+          where: { id },
+          data: { token, expiresAt },
+        });
+
+        const inviterName = [user!.first_name, user!.last_name].filter(Boolean).join(' ') || user!.email;
+
+        await sendInvitationEmail(invitation.email, token, inviterName, invitation.locale);
+
+        console.log(`Admin ${user!.email} resent invitation to ${invitation.email}`);
+
+        return { success: true, message: 'Invitation resent' };
+      } catch (error) {
+        console.error('Error resending invitation:', error);
+        set.status = 500;
+        return { error: 'Failed to resend invitation' };
+      }
+    },
+    { params: t.Object({ id: t.String() }) }
+  )
+
+  // DELETE /api/admin/invitations/:id - Revoke an invitation
+  .delete(
+    '/invitations/:id',
+    async ({ user, params, set }) => {
+      if (!adminOnly(user, set)) {
+        return { error: user ? 'Forbidden' : 'Unauthorized' };
+      }
+
+      const id = parseInt(params.id, 10);
+      if (isNaN(id)) {
+        set.status = 400;
+        return { error: 'Invalid invitation ID' };
+      }
+
+      try {
+        const invitation = await prisma.invitation.findFirst({
+          where: { id },
+        });
+
+        if (!invitation) {
+          set.status = 404;
+          return { error: 'Invitation not found' };
+        }
+
+        if (invitation.status !== 'pending') {
+          set.status = 400;
+          return { error: 'Can only revoke pending invitations' };
+        }
+
+        await prisma.invitation.update({
+          where: { id },
+          data: { status: 'revoked' },
+        });
+
+        console.log(`Admin ${user!.email} revoked invitation for ${invitation.email}`);
+
+        return { success: true, message: 'Invitation revoked' };
+      } catch (error) {
+        console.error('Error revoking invitation:', error);
+        set.status = 500;
+        return { error: 'Failed to revoke invitation' };
+      }
+    },
+    { params: t.Object({ id: t.String() }) }
   )
 
   // DELETE /api/admin/users/:id - Delete a user

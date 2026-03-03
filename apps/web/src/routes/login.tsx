@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LoginForm } from '../features/auth/components/LoginForm';
 
 export function Login() {
   const { t } = useTranslation('common');
-  const [isSignup, setIsSignup] = useState(false);
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -17,10 +15,10 @@ export function Login() {
             {t('login.welcome')}
           </h2>
           <p className="mt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
-            {isSignup ? t('login.createAccount') : t('login.signIn')}
+            {t('login.signIn')}
           </p>
         </div>
-        <LoginForm isSignup={isSignup} onToggleMode={() => setIsSignup(!isSignup)} />
+        <LoginForm />
       </div>
     </div>
   );

@@ -40,6 +40,7 @@ model User {
   pushTokens             PushToken[]
   habits                 Habit[]
   liveActivityTokens     LiveActivityToken[]
+  invitationsSent        Invitation[]         @relation("InvitationInviter")
 
   @@map("users")
 }
@@ -328,6 +329,24 @@ model RefreshToken {
 
   @@index([userId], map: "ix_refresh_tokens_user_id")
   @@map("refresh_tokens")
+}
+
+model Invitation {
+  id         Int       @id @default(autoincrement())
+  email      String
+  token      String    @unique(map: "ix_invitations_token")
+  status     String    @default("pending") @db.VarChar(20)
+  expiresAt  DateTime  @map("expires_at")
+  invitedBy  Int       @map("invited_by")
+  locale     String    @default("en")
+  isAdmin    Boolean   @default(false) @map("is_admin")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  acceptedAt DateTime? @map("accepted_at")
+
+  inviter User @relation("InvitationInviter", fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@index([email], map: "ix_invitations_email")
+  @@map("invitations")
 }
 
 model PushToken {
