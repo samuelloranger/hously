@@ -105,8 +105,12 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' })
       return movie;
     });
 
-    // Combine all items
-    const allItems = [...enrichedMovies, ...filteredTv];
+    // Combine and keep only future releases
+    const allItems = [...enrichedMovies, ...filteredTv].filter(item => {
+      if (!item.release_date) return false;
+      const releaseTime = Date.parse(item.release_date);
+      return Number.isFinite(releaseTime) && releaseTime >= Date.parse(todayIso);
+    });
 
     const sortedItems = allItems.sort((a, b) => {
       const aTime = a.release_date ? Date.parse(a.release_date) : Number.POSITIVE_INFINITY;
