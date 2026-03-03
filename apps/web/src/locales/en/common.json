@@ -903,9 +903,11 @@
         "PlaybackStop": "On Playback Stop",
         "PlaybackProgress": "On Playback Progress",
         "UserAdded": "On User Added",
+        "UserCreated": "On User Created",
         "UserDeleted": "On User Deleted",
         "UserUpdated": "On User Updated",
         "ItemAdded": "On Item Added",
+        "ItemDeleted": "On Item Deleted",
         "ItemRemoved": "On Item Removed",
         "ItemUpdated": "On Item Updated"
       },

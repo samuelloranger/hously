@@ -9,6 +9,65 @@ function ensureStrings(obj: Record<string, unknown>): Record<string, string> {
   return result;
 }
 
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  return value as Record<string, unknown>;
+}
+
+function firstString(...values: unknown[]): string {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value;
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    if (typeof value === 'boolean') {
+      return String(value);
+    }
+  }
+
+  return '';
+}
+
+function joinValues(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value
+      .map(entry => String(entry))
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  return typeof value === 'string' ? value : '';
+}
+
+function formatTicks(value: unknown): string {
+  const ticks = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(ticks) || ticks <= 0) return '';
+
+  const totalSeconds = Math.floor(ticks / 10_000_000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
+function normalizeJellyfinEventType(eventType: string): string {
+  const mappings: Record<string, string> = {
+    ItemRemoved: 'ItemDeleted',
+    UserAdded: 'UserCreated',
+  };
+
+  return mappings[eventType] || eventType;
+}
+
 // Radarr webhook handler
 const handleRadarrWebhook: WebhookHandler = payload => {
   const eventType = (payload.eventType as string) || '';
@@ -156,52 +215,76 @@ const handleProwlarrWebhook: WebhookHandler = payload => {
 
 // Jellyfin webhook handler
 const handleJellyfinWebhook: WebhookHandler = payload => {
-  let eventType =
+  const item = asRecord(payload.Item || payload.item);
+  const user = asRecord(payload.User || payload.user);
+  const server = asRecord(payload.Server || payload.server);
+  const playbackInfo = asRecord(payload.PlaybackInfo || payload.playbackInfo);
+  const providerIds = asRecord(item?.ProviderIds || item?.providerIds || payload.ProviderIds || payload.providerIds);
+
+  let eventType = normalizeJellyfinEventType(
     (payload.NotificationType as string) ||
-    (payload.notificationType as string) ||
-    (payload.Event as string) ||
-    (payload.event as string) ||
-    (payload.Type as string) ||
-    (payload.type as string) ||
-    '';
+      (payload.notificationType as string) ||
+      (payload.Event as string) ||
+      (payload.event as string) ||
+      (payload.Type as string) ||
+      (payload.type as string) ||
+      ''
+  );
 
   if (!eventType) {
-    if (payload.Item || payload.item) {
-      eventType = payload.PlaybackInfo || payload.playbackInfo ? 'PlaybackProgress' : 'ItemEvent';
-    } else if (payload.User || payload.user) {
-      eventType = 'UserEvent';
+    if (item) {
+      eventType = playbackInfo || payload.PlaybackPosition ? 'PlaybackStop' : 'ItemAdded';
+    } else if (user) {
+      eventType = 'UserCreated';
     } else {
-      eventType = 'JellyfinEvent';
+      eventType = 'Notification';
     }
   }
 
-  const variables: Record<string, unknown> = {};
+  const variables: Record<string, unknown> = {
+    NotificationType: eventType,
+    Title: firstString(payload.Title, payload.title, item?.Name, item?.name) || 'Unknown Item',
+    Overview: firstString(payload.Overview, payload.overview, item?.Overview, item?.overview),
+    ReleaseDate: firstString(payload.ReleaseDate, payload.releaseDate, item?.PremiereDate, item?.premiereDate),
+    DateAdded: firstString(payload.DateAdded, payload.dateAdded, item?.DateCreated, item?.dateCreated),
+    Genres: joinValues(payload.Genres || payload.genres || item?.Genres || item?.genres),
+    Runtime:
+      firstString(payload.Runtime, payload.runtime) ||
+      formatTicks(item?.RunTimeTicks || item?.runTimeTicks || payload.RunTimeTicks || payload.runTimeTicks),
+    PlaybackPosition:
+      firstString(payload.PlaybackPosition, payload.playbackPosition) ||
+      formatTicks(playbackInfo?.PositionTicks || playbackInfo?.positionTicks),
+    NotificationUsername:
+      firstString(payload.NotificationUsername, payload.notificationUsername, user?.Name, user?.name) || 'Unknown User',
+    NotificationUserId: firstString(payload.NotificationUserId, payload.notificationUserId, user?.Id, user?.id),
+    ItemId: firstString(payload.ItemId, payload.itemId, item?.Id, item?.id),
+    ItemType: firstString(payload.ItemType, payload.itemType, item?.Type, item?.type),
+    ServerId: firstString(payload.ServerId, payload.serverId, server?.Id, server?.id),
+    ServerName: firstString(payload.ServerName, payload.serverName, server?.Name, server?.name) || 'Jellyfin Server',
+    Provider_tmdb: firstString(payload.Provider_tmdb, payload.provider_tmdb, providerIds?.Tmdb, providerIds?.tmdb),
+    Provider_tvdb: firstString(payload.Provider_tvdb, payload.provider_tvdb, providerIds?.Tvdb, providerIds?.tvdb),
+    Provider_imdb: firstString(payload.Provider_imdb, payload.provider_imdb, providerIds?.Imdb, providerIds?.imdb),
+    Year: firstString(payload.Year, payload.year, item?.ProductionYear, item?.productionYear, item?.Year),
+  };
 
-  // Item information
-  const item = (payload.Item || payload.item) as Record<string, unknown> | undefined;
-  if (item) {
-    variables.item_name = item.Name || item.name || 'Unknown Item';
-    variables.item_type = item.Type || item.type || '';
-    variables.item_id = item.Id || item.id || '';
-    variables.year = item.ProductionYear || item.productionYear || item.Year || '';
-
-    const providerIds = (item.ProviderIds || item.providerIds || {}) as Record<string, unknown>;
-    variables.imdb_id = providerIds.Imdb || providerIds.imdb || '';
-    variables.tmdb_id = providerIds.Tmdb || providerIds.tmdb || '';
-  }
-
-  // User information
-  const user = (payload.User || payload.user) as Record<string, unknown> | undefined;
-  if (user) {
-    variables.user_name = user.Name || user.name || 'Unknown User';
-    variables.user_id = user.Id || user.id || '';
-  }
-
-  // Server information
-  const server = (payload.Server || payload.server) as Record<string, unknown> | undefined;
-  if (server) {
-    variables.server_name = server.Name || server.name || 'Jellyfin Server';
-  }
+  // Legacy aliases kept for existing custom templates.
+  variables.item_name = variables.Title;
+  variables.item_type = variables.ItemType;
+  variables.item_id = variables.ItemId;
+  variables.user_name = variables.NotificationUsername;
+  variables.user_id = variables.NotificationUserId;
+  variables.server_name = variables.ServerName;
+  variables.tmdb_id = variables.Provider_tmdb;
+  variables.tvdb_id = variables.Provider_tvdb;
+  variables.imdb_id = variables.Provider_imdb;
+  variables.year = variables.Year;
+  variables.runtime = variables.Runtime;
+  variables.playback_position = variables.PlaybackPosition;
+  variables.notification_type = variables.NotificationType;
+  variables.overview = variables.Overview;
+  variables.release_date = variables.ReleaseDate;
+  variables.date_added = variables.DateAdded;
+  variables.genres = variables.Genres;
 
   return {
     event_type: eventType,
@@ -294,11 +377,12 @@ const handleKopiaWebhook: WebhookHandler = payload => {
 
   // Determine event type from status field
   const statusLower = status.toLowerCase();
-  const eventType = statusLower.includes('fail') || statusLower.includes('error')
-    ? 'BackupError'
-    : statusLower.includes('warn')
-    ? 'BackupWarning'
-    : 'BackupSuccess';
+  const eventType =
+    statusLower.includes('fail') || statusLower.includes('error')
+      ? 'BackupError'
+      : statusLower.includes('warn')
+        ? 'BackupWarning'
+        : 'BackupSuccess';
 
   const variables: Record<string, unknown> = {
     subject,

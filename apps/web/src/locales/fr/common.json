@@ -902,9 +902,11 @@
         "PlaybackStop": "Lors de l'arrêt de la lecture",
         "PlaybackProgress": "Lors de la progression de la lecture",
         "UserAdded": "Lors de l'ajout d'utilisateur",
+        "UserCreated": "Lors de la création d'utilisateur",
         "UserDeleted": "Lors de la suppression d'utilisateur",
         "UserUpdated": "Lors de la mise à jour d'utilisateur",
         "ItemAdded": "Lors de l'ajout d'élément",
+        "ItemDeleted": "Lors de la suppression d'élément",
         "ItemRemoved": "Lors de la suppression d'élément",
         "ItemUpdated": "Lors de la mise à jour d'élément"
       },
