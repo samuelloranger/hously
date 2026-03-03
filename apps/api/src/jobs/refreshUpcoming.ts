@@ -4,7 +4,6 @@ import {
   collectTmdbUpcoming,
   fetchMovieReleaseDates,
   fetchTmdbProviders,
-  fetchJellyfinTmdbIds,
   parseTmdbNumericId,
   toIsoDate,
   TMDB_UPCOMING_CACHE_KEY,
@@ -63,10 +62,9 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' })
     const oneYearOutIso = toIsoDate(oneYearOut);
 
     const POOL_SIZE_PER_TYPE = 60;
-    const [moviesResult, tvResult, jellyfinIds] = await Promise.all([
+    const [moviesResult, tvResult] = await Promise.all([
       collectTmdbUpcoming('movie', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
       collectTmdbUpcoming('tv', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
-      fetchJellyfinTmdbIds(),
     ]);
 
     if (!moviesResult || !tvResult) {
@@ -107,21 +105,10 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' })
       return movie;
     });
 
-    // Combine, filter by valid date range, exclude items already in Jellyfin
-    const allItems = [...enrichedMovies, ...filteredTv].filter(item => {
-      if (!item.release_date) return false;
-      const releaseTime = Date.parse(item.release_date);
-      const todayTime = Date.parse(todayIso);
-      const oneYearOutTime = Date.parse(oneYearOutIso);
-      return Number.isFinite(releaseTime) && releaseTime >= todayTime && releaseTime <= oneYearOutTime;
-    });
+    // Combine all items
+    const allItems = [...enrichedMovies, ...filteredTv];
 
-    const itemsNotInJellyfin = allItems.filter(item => {
-      const numericId = parseTmdbNumericId(item.id);
-      return numericId ? !jellyfinIds.has(numericId) : true;
-    });
-
-    const sortedItems = itemsNotInJellyfin.sort((a, b) => {
+    const sortedItems = allItems.sort((a, b) => {
       const aTime = a.release_date ? Date.parse(a.release_date) : Number.POSITIVE_INFINITY;
       const bTime = b.release_date ? Date.parse(b.release_date) : Number.POSITIVE_INFINITY;
       return aTime - bTime;
