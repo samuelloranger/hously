@@ -201,7 +201,6 @@ const routeQueryDefinitions = {
       });
       queries.push({ queryKey: queryKeys.plugins.scrutiny(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SCRUTINY) });
       queries.push({ queryKey: queryKeys.plugins.netdata(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.NETDATA) });
-      queries.push({ queryKey: queryKeys.plugins.tracker('ygg'), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.YGG) });
     }
 
     if (tab === 'jobs') {

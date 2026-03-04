@@ -3,14 +3,13 @@ import {
   useDashboardC411Stats,
   useDashboardLaCaleStats,
   useDashboardTorr9Stats,
-  useDashboardYggStats,
 } from '@hously/shared';
 import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
-import { formatGo, formatRatio } from '@hously/shared/utils/ygg';
+import { formatGo, formatRatio } from '@hously/shared/utils/trackers';
 import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
 
 type TrackerCardData = {
-  key: 'ygg' | 'c411' | 'torr9' | 'la-cale';
+  key: 'c411' | 'torr9' | 'la-cale';
   label: string;
   enabled: boolean;
   connected: boolean;
@@ -29,28 +28,13 @@ export function TrackerStatsCard() {
   const locale = resolveDateFnsLocale(i18n.language);
   const prefetchRoute = usePrefetchRoute();
 
-  const ygg = useDashboardYggStats();
   const c411 = useDashboardC411Stats();
   const torr9 = useDashboardTorr9Stats();
   const laCale = useDashboardLaCaleStats();
 
-  const isLoading = ygg.isLoading || c411.isLoading || torr9.isLoading || laCale.isLoading;
+  const isLoading = c411.isLoading || torr9.isLoading || laCale.isLoading;
 
   const trackers: TrackerCardData[] = [
-    {
-      key: 'ygg',
-      label: t('dashboard.trackers.providers.ygg'),
-      enabled: Boolean(ygg.data?.enabled),
-      connected: Boolean(ygg.data?.connected),
-      uploaded_go: ygg.data?.uploaded_go ?? null,
-      downloaded_go: ygg.data?.downloaded_go ?? null,
-      ratio: ygg.data?.ratio ?? null,
-      previous_uploaded_go: ygg.data?.previous_uploaded_go,
-      previous_downloaded_go: ygg.data?.previous_downloaded_go,
-      previous_ratio: ygg.data?.previous_ratio,
-      updated_at: ygg.data?.updated_at ?? null,
-      error: ygg.data?.error,
-    },
     {
       key: 'c411',
       label: t('dashboard.trackers.providers.c411'),

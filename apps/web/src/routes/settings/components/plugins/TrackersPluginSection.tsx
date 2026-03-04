@@ -6,8 +6,6 @@ import {
   useUpdateC411Plugin,
   useUpdateLaCalePlugin,
   useUpdateTorr9Plugin,
-  useUpdateYggPlugin,
-  useYggPlugin,
 } from '@hously/shared';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -176,7 +174,7 @@ function TrackerEditor({
           type="password"
           value={state.password}
           onChange={event => setState(prev => ({ ...prev, password: event.target.value }))}
-          placeholder={t('settings.plugins.ygg.passwordPlaceholder')}
+          placeholder={t('settings.plugins.trackers.passwordPlaceholder')}
           className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
         />
       </div>
@@ -212,8 +210,6 @@ function TrackerEditor({
 
 export function TrackersPluginSection() {
   const { t } = useTranslation('common');
-  const yggQuery = useYggPlugin();
-  const yggMutation = useUpdateYggPlugin();
   const c411Query = useC411Plugin();
   const c411Mutation = useUpdateC411Plugin();
   const torr9Query = useTorr9Plugin();
@@ -231,31 +227,6 @@ export function TrackersPluginSection() {
           {t('settings.plugins.trackers.description')}
         </p>
       </div>
-
-      <TrackerEditor
-        title={t('settings.plugins.trackers.providers.ygg')}
-        logoUrl="/icons/ygg.svg"
-        usernamePlaceholder={t('settings.plugins.trackers.usernamePlaceholder')}
-        websiteLabel={t('settings.plugins.ygg.yggUrl')}
-        websitePlaceholder="https://www.yggtorrent.org"
-        loading={yggQuery.isLoading}
-        saving={yggMutation.isPending}
-        initial={{
-          enabled: Boolean(yggQuery.data?.plugin.enabled),
-          flaresolverr_url: yggQuery.data?.plugin.flaresolverr_url || '',
-          tracker_url: yggQuery.data?.plugin.ygg_url || '',
-          username: yggQuery.data?.plugin.username || '',
-        }}
-        onSave={payload =>
-          yggMutation.mutateAsync({
-            enabled: payload.enabled,
-            flaresolverr_url: payload.flaresolverr_url,
-            ygg_url: payload.tracker_url,
-            username: payload.username,
-            password: payload.password,
-          })
-        }
-      />
 
       <TrackerEditor
         title={t('settings.plugins.trackers.providers.c411')}

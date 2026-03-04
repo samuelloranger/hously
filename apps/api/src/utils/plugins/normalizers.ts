@@ -10,7 +10,6 @@ import type {
   TrackerPluginConfig,
   TrackerType,
   WeatherPluginConfig,
-  YggPluginConfig,
 } from './types';
 
 export const normalizeJellyfinConfig = (config: unknown): JellyfinPluginConfig | null => {
@@ -143,25 +142,6 @@ export const normalizeTmdbConfig = (config: unknown): TmdbPluginConfig | null =>
   };
 };
 
-export const normalizeYggConfig = (config: unknown): YggPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
-  const cfg = config as Record<string, unknown>;
-
-  const flaresolverrUrl = typeof cfg.flaresolverr_url === 'string' ? cfg.flaresolverr_url.trim() : '';
-  const yggUrl = typeof cfg.ygg_url === 'string' ? cfg.ygg_url.trim() : '';
-  const username = typeof cfg.username === 'string' ? cfg.username.trim() : '';
-  const password = typeof cfg.password === 'string' ? cfg.password : '';
-
-  if (!yggUrl || !username) return null;
-
-  return {
-    flaresolverr_url: flaresolverrUrl ? flaresolverrUrl.replace(/\/+$/, '') : undefined,
-    ygg_url: yggUrl.replace(/\/+$/, ''),
-    username,
-    password: password || undefined,
-  };
-};
-
 export const normalizeRedditConfig = (config: unknown): RedditPluginConfig => {
   const defaults: RedditPluginConfig = { subreddits: ['selfhosted', 'homelab'] };
   if (!config || typeof config !== 'object' || Array.isArray(config)) return defaults;
@@ -204,16 +184,7 @@ export const normalizeTrackerConfig = (type: TrackerType, config: unknown): Trac
   const cfg = config as Record<string, unknown>;
 
   const flaresolverrUrl = typeof cfg.flaresolverr_url === 'string' ? cfg.flaresolverr_url.trim() : '';
-  const trackerUrlRaw =
-    type === 'ygg'
-      ? typeof cfg.ygg_url === 'string'
-        ? cfg.ygg_url.trim()
-        : typeof cfg.tracker_url === 'string'
-          ? cfg.tracker_url.trim()
-          : ''
-      : typeof cfg.tracker_url === 'string'
-        ? cfg.tracker_url.trim()
-        : '';
+  const trackerUrlRaw = typeof cfg.tracker_url === 'string' ? cfg.tracker_url.trim() : '';
   const username = typeof cfg.username === 'string' ? cfg.username.trim() : '';
   const password = typeof cfg.password === 'string' ? cfg.password : '';
 

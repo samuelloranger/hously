@@ -27,7 +27,6 @@ import type {
   DashboardNetdataSummaryResponse,
   DashboardScrutinySummaryResponse,
   DashboardQbittorrentStatusResponse,
-  DashboardYggStatsResponse,
   DashboardStatsResponse,
   DashboardUpcomingResponse,
   DeleteUserResponse,
@@ -378,7 +377,6 @@ export function createDashboardApi(fetcher: ApiFetcher) {
       fetcher<{ activities: DashboardStatsResponse['activities'] }>(DASHBOARD_ENDPOINTS.ACTIVITIES),
     getDashboardJellyfinLatest: (limit: number = 10, page: number = 1) =>
       fetcher<DashboardJellyfinLatestResponse>(withParams(DASHBOARD_ENDPOINTS.JELLYFIN.LATEST, { limit, page })),
-    getDashboardYggStats: () => fetcher<DashboardYggStatsResponse>(DASHBOARD_ENDPOINTS.YGG.STATS),
     getDashboardUpcoming: (limit: number = 8, page: number = 1) =>
       fetcher<DashboardUpcomingResponse>(withParams(DASHBOARD_ENDPOINTS.UPCOMING.LIST, { limit, page })),
     addUpcomingToArr: (data: { media_type: 'movie' | 'tv'; tmdb_id: number; search_on_add: boolean }) =>

@@ -48,19 +48,6 @@ async function getTrackerPluginHandler(
     const plugin = await prisma.plugin.findFirst({ where: { type } });
     const config = normalizeTrackerConfig(type, plugin?.config);
 
-    if (type === 'ygg') {
-      return {
-        plugin: {
-          type: 'ygg',
-          enabled: plugin?.enabled || false,
-          flaresolverr_url: config?.flaresolverr_url || '',
-          ygg_url: config?.tracker_url || '',
-          username: config?.username || '',
-          password_set: Boolean(config?.password),
-        },
-      };
-    }
-
     return {
       plugin: {
         type,
@@ -84,7 +71,6 @@ async function updateTrackerPluginHandler(
   body: {
     flaresolverr_url: string;
     tracker_url?: string;
-    ygg_url?: string;
     username: string;
     password?: string;
     enabled?: boolean;
@@ -102,8 +88,7 @@ async function updateTrackerPluginHandler(
   }
 
   const flaresolverrUrl = body.flaresolverr_url.trim().replace(/\/+$/, '');
-  const trackerUrlRaw = type === 'ygg' ? (body.ygg_url ?? body.tracker_url) : body.tracker_url;
-  const trackerUrl = trackerUrlRaw?.trim().replace(/\/+$/, '') || '';
+  const trackerUrl = body.tracker_url?.trim().replace(/\/+$/, '') || '';
   const username = body.username.trim();
 
   if (flaresolverrUrl && !isValidHttpUrl(flaresolverrUrl)) {
@@ -114,7 +99,7 @@ async function updateTrackerPluginHandler(
   if (!trackerUrl || !isValidHttpUrl(trackerUrl)) {
     set.status = 400;
     return {
-      error: `Invalid ${type === 'ygg' ? 'ygg_url' : 'tracker_url'}. Must be a valid http(s) URL.`,
+      error: 'Invalid tracker_url. Must be a valid http(s) URL.',
     };
   }
 
@@ -141,7 +126,6 @@ async function updateTrackerPluginHandler(
     const config: Prisma.InputJsonValue = {
       flaresolverr_url: flaresolverrUrl || undefined,
       tracker_url: trackerUrl,
-      ...(type === 'ygg' ? { ygg_url: trackerUrl } : {}),
       username,
       password: encrypt(password),
     };
@@ -174,20 +158,6 @@ async function updateTrackerPluginHandler(
       });
     });
 
-    if (type === 'ygg') {
-      return {
-        success: true,
-        plugin: {
-          type: plugin.type,
-          enabled: plugin.enabled,
-          flaresolverr_url: flaresolverrUrl,
-          ygg_url: trackerUrl,
-          username,
-          password_set: true,
-        },
-      };
-    }
-
     return {
       success: true,
       plugin: {
@@ -208,17 +178,6 @@ async function updateTrackerPluginHandler(
 
 export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
   .use(auth)
-  .get('/ygg', ({ user, set }) => getTrackerPluginHandler('ygg', user, set))
-  .put('/ygg', ({ user, body, set }) => updateTrackerPluginHandler('ygg', user, body, set), {
-    body: t.Object({
-      flaresolverr_url: t.String(),
-      ygg_url: t.Optional(t.String()),
-      tracker_url: t.Optional(t.String()),
-      username: t.String(),
-      password: t.Optional(t.String()),
-      enabled: t.Optional(t.Boolean()),
-    }),
-  })
   .get('/c411', ({ user, set }) => getTrackerPluginHandler('c411', user, set))
   .put('/c411', ({ user, body, set }) => updateTrackerPluginHandler('c411', user, body, set), {
     body: t.Object({

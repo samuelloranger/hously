@@ -226,19 +226,6 @@
         "unknown": "Unknown"
       }
     },
-    "ygg": {
-      "kicker": "From your tracker",
-      "title": "YGG Stats",
-      "subtitle": "Uploaded, downloaded, and ratio from your account.",
-      "connected": "Connected",
-      "disconnected": "Disconnected",
-      "notConnectedTitle": "YGG stats are not available yet",
-      "notConnectedDescription": "Open Settings > Plugins and connect YGG to show your stats here.",
-      "uploaded": "Uploaded",
-      "downloaded": "Downloaded",
-      "ratio": "Ratio",
-      "updated": "Updated {{value}}"
-    },
     "trackers": {
       "kicker": "From your private trackers",
       "title": "Tracker Stats",
@@ -252,7 +239,6 @@
       "ratio": "Ratio",
       "updated": "Updated {{value}}",
       "providers": {
-        "ygg": "YGG",
         "c411": "C411",
         "torr9": "Torr9",
         "la-cale": "La Cale"
@@ -980,24 +966,16 @@
         "help": "Connect Netdata to show live system metrics and per-disk usage on the dashboard.",
         "websiteUrl": "Netdata URL"
       },
-      "ygg": {
-        "help": "Configure YGG credentials for server-side jobs.",
-        "flaresolverrUrl": "FlareSolverr URL",
-        "yggUrl": "YGG URL",
-        "username": "YGG Username",
-        "password": "YGG Password",
-        "passwordPlaceholder": "Leave empty to keep existing password"
-      },
       "trackers": {
         "title": "Trackers",
-        "description": "Configure YGG, C411, Torr9 and La Cale in one place.",
+        "description": "Configure C411, Torr9 and La Cale in one place.",
         "flaresolverrUrl": "FlareSolverr URL",
         "username": "Username",
         "password": "Password",
+        "passwordPlaceholder": "Leave empty to keep existing password",
         "trackerUrl": "Tracker URL",
         "usernamePlaceholder": "username",
         "providers": {
-          "ygg": "YGG",
           "c411": "C411",
           "torr9": "Torr9",
           "la-cale": "La Cale"
@@ -1085,10 +1063,6 @@
         "cleanupNotifications": {
           "label": "Cleanup Old Notifications",
           "description": "Remove old notifications from the database."
-        },
-        "fetchYggStats": {
-          "label": "Fetch YGG Stats",
-          "description": "Log into YGG and fetch uploaded/downloaded/ratio."
         },
         "fetchC411Stats": {
           "label": "Fetch C411 Stats",

@@ -54,14 +54,14 @@ export const mockActivity: Activity = {
 
 export const mockPluginUpdatedActivity: Activity = {
   type: 'plugin_updated',
-  plugin_type: 'ygg',
+  plugin_type: 'c411',
   completed_at: '2024-01-01T00:00:00Z',
 };
 
 export const mockCronEndedActivity: Activity = {
   type: 'cron_job_ended',
-  job_id: 'fetchYggStats',
-  job_name: 'Fetch YGG stats',
+  job_id: 'fetchC411Stats',
+  job_name: 'Fetch C411 stats',
   success: true,
   duration_ms: 1500,
   completed_at: '2024-01-01T00:00:00Z',
@@ -69,8 +69,8 @@ export const mockCronEndedActivity: Activity = {
 
 export const mockCronSkippedActivity: Activity = {
   type: 'cron_job_skipped',
-  job_id: 'fetchYggStats',
-  job_name: 'Fetch YGG stats',
+  job_id: 'fetchC411Stats',
+  job_name: 'Fetch C411 stats',
   reason: 'already_running',
   completed_at: '2024-01-01T00:00:00Z',
 };

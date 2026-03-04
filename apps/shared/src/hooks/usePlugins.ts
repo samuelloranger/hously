@@ -25,12 +25,9 @@ import type {
   TrackerType,
   WeatherPlugin,
   WeatherPluginUpdateResponse,
-  YggPlugin,
-  YggPluginUpdateResponse,
 } from '../types';
 
 const TRACKER_PLUGIN_ENDPOINTS: Record<TrackerType, string> = {
-  ygg: PLUGIN_ENDPOINTS.YGG,
   c411: PLUGIN_ENDPOINTS.C411,
   torr9: PLUGIN_ENDPOINTS.TORR9,
   'la-cale': PLUGIN_ENDPOINTS.LA_CALE,
@@ -166,26 +163,6 @@ export function useTmdbPlugin() {
     refetchOnMount: 'always',
     staleTime: 0,
   });
-}
-
-export function useYggPlugin() {
-  const query = useTrackerPlugin('ygg');
-
-  if (!query.data) return query as typeof query & { data: undefined };
-
-  return {
-    ...query,
-    data: {
-      plugin: {
-        type: 'ygg' as const,
-        enabled: query.data.plugin.enabled,
-        flaresolverr_url: query.data.plugin.flaresolverr_url,
-        ygg_url: query.data.plugin.tracker_url,
-        username: query.data.plugin.username,
-        password_set: query.data.plugin.password_set,
-      } satisfies YggPlugin,
-    },
-  };
 }
 
 export const useC411Plugin = () => useTrackerPlugin('c411');
@@ -337,28 +314,6 @@ export function useUpdateTmdbPlugin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.tmdb() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() });
-    },
-  });
-}
-
-export function useUpdateYggPlugin() {
-  const queryClient = useQueryClient();
-  const fetcher = useFetcher();
-  return useMutation({
-    mutationFn: (data: {
-      flaresolverr_url: string;
-      ygg_url: string;
-      username: string;
-      password?: string;
-      enabled: boolean;
-    }) =>
-      fetcher<YggPluginUpdateResponse>(PLUGIN_ENDPOINTS.YGG, {
-        method: 'PUT',
-        body: data,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.tracker('ygg') });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.trackersStats() });
     },
   });
 }

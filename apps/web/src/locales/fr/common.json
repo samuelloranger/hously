@@ -225,19 +225,6 @@
         "unknown": "Inconnu"
       }
     },
-    "ygg": {
-      "kicker": "Depuis votre tracker",
-      "title": "Stats YGG",
-      "subtitle": "Upload, download et ratio de votre compte.",
-      "connected": "Connecté",
-      "disconnected": "Déconnecté",
-      "notConnectedTitle": "Les stats YGG ne sont pas encore disponibles",
-      "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez YGG pour afficher vos stats ici.",
-      "uploaded": "Upload",
-      "downloaded": "Download",
-      "ratio": "Ratio",
-      "updated": "Mis à jour {{value}}"
-    },
     "trackers": {
       "kicker": "Depuis vos trackers privés",
       "title": "Stats Trackers",
@@ -251,7 +238,6 @@
       "ratio": "Ratio",
       "updated": "Mis à jour {{value}}",
       "providers": {
-        "ygg": "YGG",
         "c411": "C411",
         "torr9": "Torr9",
         "la-cale": "La Cale"
@@ -979,24 +965,16 @@
         "help": "Connectez Netdata pour afficher les métriques système en direct et l'usage par disque sur l'accueil.",
         "websiteUrl": "URL Netdata"
       },
-      "ygg": {
-        "help": "Configurer les identifiants YGG pour les tâches côté serveur.",
-        "flaresolverrUrl": "URL FlareSolverr",
-        "yggUrl": "URL YGG",
-        "username": "Nom d'utilisateur YGG",
-        "password": "Mot de passe YGG",
-        "passwordPlaceholder": "Laisser vide pour conserver le mot de passe existant"
-      },
       "trackers": {
         "title": "Trackers",
-        "description": "Configurez YGG, C411, Torr9 et La Cale au même endroit.",
+        "description": "Configurez C411, Torr9 et La Cale au même endroit.",
         "flaresolverrUrl": "URL FlareSolverr",
         "username": "Nom d'utilisateur",
         "password": "Mot de passe",
+        "passwordPlaceholder": "Laisser vide pour conserver le mot de passe existant",
         "trackerUrl": "URL du tracker",
         "usernamePlaceholder": "nom d'utilisateur",
         "providers": {
-          "ygg": "YGG",
           "c411": "C411",
           "torr9": "Torr9",
           "la-cale": "La Cale"
@@ -1084,10 +1062,6 @@
         "cleanupNotifications": {
           "label": "Nettoyer les anciennes notifications",
           "description": "Supprimer les anciennes notifications de la base de données."
-        },
-        "fetchYggStats": {
-          "label": "Récupérer les stats YGG",
-          "description": "Se connecter à YGG et récupérer upload/download/ratio."
         },
         "fetchC411Stats": {
           "label": "Récupérer les stats C411",

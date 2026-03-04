@@ -28,7 +28,6 @@ export const queryKeys = {
       [...queryKeys.dashboard.all, 'jellyfin-latest-infinite', limit] as const,
     trackersStats: () => [...queryKeys.dashboard.all, 'trackers-stats'] as const,
     trackerStats: (type: TrackerType) => [...queryKeys.dashboard.all, 'tracker-stats', type] as const,
-    yggStats: () => queryKeys.dashboard.trackerStats('ygg'),
     upcoming: () => [...queryKeys.dashboard.all, 'upcoming'] as const,
     qbittorrentStatus: () => [...queryKeys.dashboard.all, 'qbittorrent-status'] as const,
     qbittorrentTorrents: (params: Record<string, unknown>) => [...queryKeys.dashboard.all, 'qbittorrent-torrents', params] as const,
@@ -85,7 +84,6 @@ export const queryKeys = {
     netdata: () => [...queryKeys.plugins.all, 'netdata'] as const,
     weather: () => [...queryKeys.plugins.all, 'weather'] as const,
     tmdb: () => [...queryKeys.plugins.all, 'tmdb'] as const,
-    ygg: () => queryKeys.plugins.tracker('ygg'),
   },
 
   admin: {

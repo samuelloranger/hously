@@ -44,7 +44,7 @@ function validateFlareSolverrResponse(data: unknown, trackerLabel: string): { so
 }
 
 const runningByTracker: Partial<Record<TrackerType, boolean>> = {};
-const TRACKER_ORDER: TrackerType[] = ['ygg', 'torr9', 'c411', 'la-cale'];
+const TRACKER_ORDER: TrackerType[] = ['torr9', 'c411', 'la-cale'];
 let isFetchingAllTrackers = false;
 
 const trackerName = (type: TrackerType): string => type.toUpperCase();

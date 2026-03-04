@@ -5,9 +5,6 @@ export const DASHBOARD_ENDPOINTS = {
     LATEST: '/api/dashboard/jellyfin/latest',
     IMAGE: '/api/dashboard/jellyfin/image',
   },
-  YGG: {
-    STATS: '/api/dashboard/ygg/stats',
-  },
   C411: {
     STATS: '/api/dashboard/c411/stats',
   },

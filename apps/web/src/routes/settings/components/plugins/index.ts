@@ -9,4 +9,3 @@ export { SonarrPluginSection } from './SonarrPluginSection';
 export { TmdbPluginSection } from './TmdbPluginSection';
 export { TrackersPluginSection } from './TrackersPluginSection';
 export { WeatherPluginSection } from './WeatherPluginSection';
-export { YggPluginSection } from './YggPluginSection';

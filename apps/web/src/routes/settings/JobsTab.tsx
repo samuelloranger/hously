@@ -8,7 +8,6 @@ type JobAction =
   | 'check_reminders'
   | 'check_all_day_events'
   | 'cleanup_notifications'
-  | 'fetch_ygg_stats'
   | 'fetch_c411_stats'
   | 'fetch_torr9_stats'
   | 'fetch_la_cale_stats';
@@ -42,13 +41,6 @@ const JOBS: JobConfig[] = [
     icon: '🧹',
     labelKey: 'settings.jobs.actions.cleanupNotifications.label',
     descriptionKey: 'settings.jobs.actions.cleanupNotifications.description',
-  },
-  {
-    action: 'fetch_ygg_stats',
-    funcNames: ['fetch_ygg_stats'],
-    icon: '🧾',
-    labelKey: 'settings.jobs.actions.fetchYggStats.label',
-    descriptionKey: 'settings.jobs.actions.fetchYggStats.description',
   },
   {
     action: 'fetch_c411_stats',

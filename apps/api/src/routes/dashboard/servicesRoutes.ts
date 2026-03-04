@@ -17,7 +17,6 @@ import type { TrackerType } from '../../utils/plugins/types';
 
 const trackerLabel = (type: TrackerType): string => {
   return {
-    ygg: 'YGG',
     c411: 'C411',
     torr9: 'Torr9',
     'la-cale': 'La Cale',
@@ -72,7 +71,7 @@ async function getTrackerStatsHandler(type: TrackerType) {
   };
 }
 
-const TRACKER_TYPES: TrackerType[] = ['ygg', 'c411', 'torr9', 'la-cale'];
+const TRACKER_TYPES: TrackerType[] = ['c411', 'torr9', 'la-cale'];
 
 async function getAllTrackerStatsHandler() {
   const results = await Promise.all(
@@ -115,20 +114,6 @@ export const dashboardServiceRoutes = new Elysia()
       console.error('Error fetching trackers stats:', error);
       set.status = 500;
       return { error: 'Failed to get trackers stats' };
-    }
-  })
-  .get('/ygg/stats', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
-    try {
-      return await getTrackerStatsHandler('ygg');
-    } catch (error) {
-      console.error('Error fetching YGG stats:', error);
-      set.status = 500;
-      return { error: 'Failed to get YGG stats' };
     }
   })
   .get('/c411/stats', async ({ user, set }) => {

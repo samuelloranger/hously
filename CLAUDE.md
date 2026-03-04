@@ -126,7 +126,7 @@ make rebuild                    # Rebuild containers (fixes dependency issues)
 - **Dashboard** - Unified overview with server health (Netdata), disk diagnostics (Scrutiny), torrent activity, and media releases
 - **Torrent Management** - Full qBittorrent integration with real-time SSE streaming
 - **Media Pipeline** - Radarr & Sonarr integration with TMDB discovery and interactive release search
-- **Tracker Statistics** - Monitor ratio and stats across private trackers (YGG, C411, Torr9, La Cale)
+- **Tracker Statistics** - Monitor ratio and stats across private trackers (C411, Torr9, La Cale)
 - **Jellyfin Integration** - Latest media additions on the dashboard
 - **External Notifications** - Webhook integrations for Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma
 

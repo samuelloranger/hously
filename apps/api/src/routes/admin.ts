@@ -21,8 +21,6 @@ const resolveAdminActionJob = (action: string): { id: string; name: string } | n
       return { id: 'checkAllDayEvents', name: 'Check all-day events' };
     case 'cleanup_notifications':
       return { id: 'cleanupNotifications', name: 'Cleanup old notifications' };
-    case 'fetch_ygg_stats':
-      return { id: 'fetchYggStats', name: 'Fetch YGG stats' };
     case 'fetch_c411_stats':
       return { id: 'fetchC411Stats', name: 'Fetch C411 stats' };
     case 'fetch_torr9_stats':
@@ -144,13 +142,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
           func: 'cleanup_old_notifications',
         },
         {
-          id: 'fetchYggStats',
-          name: 'Fetch YGG stats',
-          next_run_time: null,
-          trigger: '0 * * * *',
-          func: 'fetch_ygg_stats',
-        },
-        {
           id: 'fetchC411Stats',
           name: 'Fetch C411 stats',
           next_run_time: null,
@@ -231,13 +222,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
               cleanupOldNotifications
             );
             return { success: true, message: `Cleanup executed (${deleted} deleted)` };
-          }
-          case 'fetch_ygg_stats': {
-            // fetchTrackerStats handles its own cron_job_ended logging, so we
-            // call it directly instead of wrapping in runManualJobWithActivity
-            // to avoid a duplicate cron_job_ended activity entry.
-            await fetchTrackerStats('ygg', { trigger: 'manual' });
-            return { success: true, message: 'YGG stats fetched' };
           }
           case 'fetch_c411_stats': {
             await fetchTrackerStats('c411', { trigger: 'manual' });

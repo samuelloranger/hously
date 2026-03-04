@@ -375,7 +375,7 @@ export interface DashboardNetdataSummaryResponse {
   error?: string;
 }
 
-export interface DashboardYggStatsResponse {
+export interface DashboardTrackerStatsResponse {
   enabled: boolean;
   connected: boolean;
   updated_at: string | null;
@@ -389,8 +389,7 @@ export interface DashboardYggStatsResponse {
   error?: string;
 }
 
-export type DashboardTrackerStatsResponse = DashboardYggStatsResponse;
-export type DashboardTrackersStatsResponse = Record<'ygg' | 'c411' | 'torr9' | 'la-cale', DashboardTrackerStatsResponse>;
+export type DashboardTrackersStatsResponse = Record<'c411' | 'torr9' | 'la-cale', DashboardTrackerStatsResponse>;
 
 export interface RedditPost {
   id: string;

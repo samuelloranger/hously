@@ -36,13 +36,6 @@ export interface TmdbPluginConfig {
   popularity_threshold: number;
 }
 
-export interface YggPluginConfig {
-  flaresolverr_url?: string;
-  ygg_url: string;
-  username: string;
-  password?: string;
-}
-
 export interface RedditPluginConfig {
   subreddits: string[];
 }
@@ -52,7 +45,7 @@ export interface HackernewsPluginConfig {
   story_count: number;
 }
 
-export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'la-cale';
+export type TrackerType = 'c411' | 'torr9' | 'la-cale';
 
 export interface TrackerPluginConfig {
   flaresolverr_url?: string;

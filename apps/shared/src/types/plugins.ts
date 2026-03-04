@@ -3,7 +3,7 @@ export interface ArrProfile {
   name: string;
 }
 
-export type TrackerType = 'ygg' | 'c411' | 'torr9' | 'la-cale';
+export type TrackerType = 'c411' | 'torr9' | 'la-cale';
 
 export interface JellyfinPlugin {
   type: 'jellyfin';
@@ -67,15 +67,6 @@ export interface TmdbPlugin {
   popularity_threshold: number;
 }
 
-export interface YggPlugin {
-  type: 'ygg';
-  enabled: boolean;
-  flaresolverr_url: string;
-  ygg_url: string;
-  username: string;
-  password_set: boolean;
-}
-
 export interface TrackerPlugin {
   type: TrackerType;
   enabled: boolean;
@@ -129,11 +120,6 @@ export interface WeatherPluginUpdateResponse {
 export interface TmdbPluginUpdateResponse {
   success: boolean;
   plugin: TmdbPlugin;
-}
-
-export interface YggPluginUpdateResponse {
-  success: boolean;
-  plugin: YggPlugin;
 }
 
 export interface TrackerPluginUpdateResponse {

@@ -10,7 +10,6 @@ export const PLUGIN_ENDPOINTS = {
   NETDATA: '/api/plugins/netdata',
   WEATHER: '/api/plugins/weather',
   TMDB: '/api/plugins/tmdb',
-  YGG: '/api/plugins/ygg',
   C411: '/api/plugins/c411',
   TORR9: '/api/plugins/torr9',
   LA_CALE: '/api/plugins/la-cale',
