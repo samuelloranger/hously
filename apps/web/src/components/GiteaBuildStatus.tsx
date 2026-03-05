@@ -14,14 +14,24 @@ const formatDuration = (seconds: number | null): string => {
 
 type StatusDisplay = { label: string; dotClass: string; barClass: string };
 
+const statusMap: Record<string, StatusDisplay> = {
+  // Conclusions
+  success: { label: 'Success', dotClass: 'bg-emerald-500', barClass: 'bg-emerald-500' },
+  failure: { label: 'Failed', dotClass: 'bg-red-500', barClass: 'bg-red-500' },
+  cancelled: { label: 'Cancelled', dotClass: 'bg-neutral-400', barClass: 'bg-neutral-400' },
+  skipped: { label: 'Skipped', dotClass: 'bg-neutral-400', barClass: 'bg-neutral-400' },
+  // Statuses
+  running: { label: 'Running', dotClass: 'bg-amber-500 animate-pulse', barClass: 'bg-amber-500' },
+  in_progress: { label: 'Running', dotClass: 'bg-amber-500 animate-pulse', barClass: 'bg-amber-500' },
+  waiting: { label: 'Waiting', dotClass: 'bg-blue-400 animate-pulse', barClass: 'bg-blue-400' },
+  queued: { label: 'Queued', dotClass: 'bg-blue-400 animate-pulse', barClass: 'bg-blue-400' },
+  pending: { label: 'Pending', dotClass: 'bg-blue-400 animate-pulse', barClass: 'bg-blue-400' },
+  completed: { label: 'Completed', dotClass: 'bg-emerald-500', barClass: 'bg-emerald-500' },
+};
+
 const getStatusDisplay = (status: string, conclusion: string | null): StatusDisplay => {
-  if (conclusion === 'success') return { label: 'Success', dotClass: 'bg-emerald-500', barClass: 'bg-emerald-500' };
-  if (conclusion === 'failure') return { label: 'Failed', dotClass: 'bg-red-500', barClass: 'bg-red-500' };
-  if (conclusion === 'cancelled') return { label: 'Cancelled', dotClass: 'bg-neutral-400', barClass: 'bg-neutral-400' };
-  if (status === 'running') return { label: 'Running', dotClass: 'bg-amber-500 animate-pulse', barClass: 'bg-amber-500' };
-  if (status === 'waiting') return { label: 'Waiting', dotClass: 'bg-blue-400 animate-pulse', barClass: 'bg-blue-400' };
-  if (status === 'completed') return { label: 'Completed', dotClass: 'bg-emerald-500', barClass: 'bg-emerald-500' };
-  return { label: status, dotClass: 'bg-neutral-400', barClass: 'bg-neutral-400' };
+  if (conclusion && statusMap[conclusion]) return statusMap[conclusion];
+  return statusMap[status] || { label: status.replace(/_/g, ' '), dotClass: 'bg-neutral-400', barClass: 'bg-neutral-400' };
 };
 
 export function GiteaBuildStatus() {
@@ -59,7 +69,7 @@ export function GiteaBuildStatus() {
   if (!data?.enabled || !data?.run) return null;
 
   const runStatus = getStatusDisplay(data.run.status, data.jobs?.[0]?.conclusion ?? null);
-  const isRunning = data.run.status === 'running' || data.run.status === 'waiting';
+  const isRunning = data.building || data.run.status === 'running' || data.run.status === 'in_progress' || data.run.status === 'waiting' || data.run.status === 'queued' || data.run.status === 'pending';
 
   return (
     <Popover.Root open={isOpen} onOpenChange={setIsOpen}>

@@ -133,7 +133,7 @@ export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaB
       return { enabled: true, connected: true, building: false, run: null, jobs: null, logs: null };
     }
 
-    const isRunning = latestRun.status === 'running' || latestRun.status === 'waiting';
+    const isRunning = ['running', 'in_progress', 'waiting', 'queued', 'pending'].includes(latestRun.status);
 
     const run: GiteaRunSummary = {
       id: latestRun.id,
