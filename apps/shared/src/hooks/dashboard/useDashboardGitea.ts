@@ -10,5 +10,7 @@ export function useDashboardGiteaBuilds() {
   return useQuery({
     queryKey: queryKeys.dashboard.giteaBuilds(),
     queryFn: () => fetcher<DashboardGiteaBuildResponse>(DASHBOARD_ENDPOINTS.GITEA.BUILDS),
+    staleTime: 30_000,
+    refetchInterval: 30_000,
   });
 }

@@ -23,15 +23,21 @@ export function useCurrentUser() {
         const response = await fetcher<UserResponse>(AUTH_ENDPOINTS.ME);
         return response.user;
       } catch (error: any) {
-        // If it's a 429, re-throw so the UI can handle it (e.g., show toast)
-        if (error?.status === 429) {
-          throw error;
+        // Only return null for 401 (actually not authenticated)
+        if (error?.status === 401) {
+          return null;
         }
-        return null;
+        // Re-throw other errors (network, 429, 500) so TanStack Query
+        // keeps the previous cached data instead of wiping the user
+        throw error;
       }
     },
-    retry: false,
-    staleTime: 0,
+    retry: (failureCount, error: any) => {
+      // Don't retry auth failures, but retry transient errors once
+      if (error?.status === 401) return false;
+      return failureCount < 1;
+    },
+    staleTime: 5000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,

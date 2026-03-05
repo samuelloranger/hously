@@ -12,6 +12,19 @@ const formatDuration = (seconds: number | null): string => {
   return `${mins}m ${secs}s`;
 };
 
+function LiveElapsed({ startedAt }: { startedAt: string }) {
+  const [elapsed, setElapsed] = useState(() => Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 1000)));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed(Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 1000)));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startedAt]);
+
+  return <>{formatDuration(elapsed)}</>;
+}
+
 type StatusDisplay = { label: string; dotClass: string; barClass: string };
 
 const statusMap: Record<string, StatusDisplay> = {
@@ -49,14 +62,32 @@ export function GiteaBuildStatus() {
   useEffect(() => {
     if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
 
-    const source = new EventSource(DASHBOARD_ENDPOINTS.GITEA.STREAM, { withCredentials: true });
-    source.onmessage = (event) => {
-      try {
-        setLiveData(JSON.parse(event.data) as DashboardGiteaBuildResponse);
-      } catch {}
+    let source: EventSource | null = null;
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const connect = () => {
+      source = new EventSource(DASHBOARD_ENDPOINTS.GITEA.STREAM, { withCredentials: true });
+      source.onmessage = (event) => {
+        try {
+          setLiveData(JSON.parse(event.data) as DashboardGiteaBuildResponse);
+        } catch {}
+      };
+      source.onerror = () => {
+        // EventSource auto-reconnects, but if it fails repeatedly
+        // close and retry after a delay to avoid rapid reconnect loops
+        if (source?.readyState === EventSource.CLOSED) {
+          source.close();
+          reconnectTimeout = setTimeout(connect, 5000);
+        }
+      };
     };
 
-    return () => source.close();
+    connect();
+
+    return () => {
+      source?.close();
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+    };
   }, []);
 
   useEffect(() => {
@@ -136,7 +167,9 @@ export function GiteaBuildStatus() {
                         <span className="text-xs text-neutral-700 dark:text-neutral-300 truncate">{job.name}</span>
                       </div>
                       <span className="text-[11px] text-neutral-400 tabular-nums shrink-0">
-                        {formatDuration(job.duration_seconds)}
+                        {job.started_at && !job.completed_at
+                          ? <LiveElapsed startedAt={job.started_at} />
+                          : formatDuration(job.duration_seconds)}
                       </span>
                     </div>
                   );
