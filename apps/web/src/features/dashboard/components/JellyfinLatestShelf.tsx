@@ -54,19 +54,19 @@ export function JellyfinLatestShelf() {
   }, [data?.pages]);
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-blue-300/60 dark:border-neutral-700/80 bg-gradient-to-br from-[#b1cefe] via-[#618ad1] to-[#adc9f1] dark:from-[#0f172a] dark:via-[#112240] dark:to-[#1f2937] shadow-xl pb-6">
+    <section className="relative overflow-hidden rounded-3xl border border-blue-300/60 dark:border-neutral-700/80 bg-gradient-to-br from-[#b1cefe] via-[#618ad1] to-[#adc9f1] dark:from-[#0f172a] dark:via-[#112240] dark:to-[#1f2937] shadow-xl pb-5">
       <div className="pointer-events-none absolute -right-20 -top-16 h-64 w-64 rounded-full bg-blue-200/45 dark:bg-cyan-400/20 blur-3xl" />
       <div className="pointer-events-none absolute -left-24 -bottom-20 h-72 w-72 rounded-full bg-indigo-300/35 dark:bg-rose-500/15 blur-3xl" />
 
-      <div className="relative flex items-center justify-between gap-4 mb-6 px-6 md:px-8 pt-6 md:pt-8">
+      <div className="relative flex items-center justify-between gap-4 mb-5 px-5 md:px-6 pt-5 md:pt-6">
         <div>
           <p className="text-xs uppercase tracking-[0.22em] text-blue-900/75 dark:text-cyan-200/80">
             {t('dashboard.jellyfin.kicker')}
           </p>
-          <h3 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
+          <h3 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">
             {t('dashboard.jellyfin.title')}
           </h3>
-          <p className="text-sm text-blue-900/70 dark:text-blue-100/80 mt-1">{t('dashboard.jellyfin.subtitle')}</p>
+          <p className="text-xs text-blue-900/70 dark:text-blue-100/80 mt-1">{t('dashboard.jellyfin.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -79,7 +79,7 @@ export function JellyfinLatestShelf() {
           >
             <span className={isFetching ? 'animate-spin' : ''}>↻</span>
           </button>
-          <div className="hidden md:flex h-12 w-12 items-center justify-center rounded-full border border-slate-900/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-2xl">
+          <div className="hidden md:flex h-10 w-10 items-center justify-center rounded-full border border-slate-900/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-xl">
             🍿
           </div>
         </div>

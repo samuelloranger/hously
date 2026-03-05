@@ -1,11 +1,7 @@
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  type DashboardUpcomingItem,
-  type TmdbMediaSearchItem,
-  useDashboardUpcoming,
-} from '@hously/shared';
+import { type DashboardUpcomingItem, type TmdbMediaSearchItem, useDashboardUpcoming } from '@hously/shared';
 import { MovieCard } from './MovieCard';
 import { ExploreCardDetailDialog } from '../../medias/components/ExploreCardDetailDialog';
 import { ListItemSkeleton } from '../../../components/Skeleton';
@@ -40,6 +36,8 @@ function toTmdbSearchItem(item: DashboardUpcomingItem): TmdbMediaSearchItem {
     title: item.title,
     release_year: releaseYear && !Number.isNaN(releaseYear) ? releaseYear : null,
     poster_url: item.poster_url,
+    overview: item.overview,
+    vote_average: null,
     service: item.media_type === 'movie' ? 'radarr' : 'sonarr',
     already_exists: false,
     can_add: true,
@@ -60,15 +58,15 @@ export function UpcomingShelf() {
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-200/45 dark:bg-amber-300/20 blur-3xl" />
         <div className="pointer-events-none absolute -left-14 -bottom-16 h-64 w-64 rounded-full bg-orange-300/40 dark:bg-orange-500/25 blur-3xl" />
 
-        <div className="relative flex items-center justify-between gap-4 mb-6 px-6 md:px-8 pt-6 md:pt-8">
+        <div className="relative flex items-center justify-between gap-4 mb-5 px-5 md:px-6 pt-5 md:pt-6">
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-amber-950/70 dark:text-amber-200/80">
               {t('dashboard.upcoming.kicker')}
             </p>
-            <h3 className="text-2xl md:text-3xl font-bold text-amber-950 dark:text-amber-50">
+            <h3 className="text-xl md:text-2xl font-bold text-amber-950 dark:text-amber-50">
               {t('dashboard.upcoming.title')}
             </h3>
-            <p className="text-sm text-amber-900/70 dark:text-amber-100/80 mt-1">{t('dashboard.upcoming.subtitle')}</p>
+            <p className="text-xs text-amber-900/70 dark:text-amber-100/80 mt-1">{t('dashboard.upcoming.subtitle')}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -81,7 +79,7 @@ export function UpcomingShelf() {
             >
               <span className={isFetching ? 'animate-spin' : ''}>↻</span>
             </button>
-            <div className="hidden md:flex h-12 w-12 items-center justify-center rounded-full border border-amber-950/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-2xl">
+            <div className="hidden md:flex h-10 w-10 items-center justify-center rounded-full border border-amber-950/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-xl">
               🍿
             </div>
           </div>

@@ -73,7 +73,7 @@ export function NetdataOverviewCard() {
 
   return (
     <section
-      className="relative overflow-hidden rounded-3xl border border-emerald-300/60 dark:border-emerald-200/40 bg-gradient-to-br from-[#caefd8] via-[#9ddce9] to-[#9dcaf5] dark:from-emerald-700 dark:via-cyan-700 dark:to-blue-700 p-6 shadow-xl"
+      className="relative overflow-hidden rounded-3xl border border-emerald-300/60 dark:border-emerald-200/40 bg-gradient-to-br from-[#caefd8] via-[#9ddce9] to-[#9dcaf5] dark:from-emerald-700 dark:via-cyan-700 dark:to-blue-700 p-5 shadow-xl"
       onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
       onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
     >
@@ -82,10 +82,10 @@ export function NetdataOverviewCard() {
           <p className="text-xs uppercase tracking-[0.22em] text-emerald-950/70 dark:text-emerald-200/90">
             {t('dashboard.netdata.kicker')}
           </p>
-          <h3 className="text-2xl md:text-3xl font-bold text-emerald-950 dark:text-emerald-50">
+          <h3 className="text-xl md:text-2xl font-bold text-emerald-950 dark:text-emerald-50">
             {t('dashboard.netdata.title')}
           </h3>
-          <p className="text-sm text-emerald-900/70 dark:text-emerald-100/90 mt-1">{t('dashboard.netdata.subtitle')}</p>
+          <p className="text-xs text-emerald-900/70 dark:text-emerald-100/90 mt-1">{t('dashboard.netdata.subtitle')}</p>
         </div>
         <span className="rounded-full bg-black/15 dark:bg-black/25 px-3 py-1 text-xs font-medium text-emerald-950 dark:text-emerald-100">
           {showNotConnected
@@ -108,13 +108,13 @@ export function NetdataOverviewCard() {
           <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
               <p className="text-xs text-emerald-950/75 dark:text-emerald-200/80">{t('dashboard.netdata.cpu')}</p>
-              <p className="text-xl font-semibold text-emerald-950 dark:text-white">
+              <p className="text-base font-semibold text-emerald-950 dark:text-white">
                 {formatPercent(data?.summary.cpu_percent ?? null)}
               </p>
             </div>
             <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
               <p className="text-xs text-emerald-950/75 dark:text-emerald-200/80">{t('dashboard.netdata.ram')}</p>
-              <p className="text-xl font-semibold text-emerald-950 dark:text-white">
+              <p className="text-base font-semibold text-emerald-950 dark:text-white">
                 {formatPercent(data?.summary.ram_used_percent ?? null)}
               </p>
               <p className="text-[11px] text-emerald-950/85 dark:text-emerald-100/90">
@@ -123,13 +123,13 @@ export function NetdataOverviewCard() {
             </div>
             <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
               <p className="text-xs text-emerald-950/75 dark:text-emerald-200/80">{t('dashboard.netdata.load')}</p>
-              <p className="text-xl font-semibold text-emerald-950 dark:text-white">
+              <p className="text-base font-semibold text-emerald-950 dark:text-white">
                 {`${formatLoad(data?.summary.load_1 ?? null)} / ${formatLoad(data?.summary.load_5 ?? null)} / ${formatLoad(data?.summary.load_15 ?? null)}`}
               </p>
             </div>
             <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
               <p className="text-xs text-emerald-950/75 dark:text-emerald-200/80">{t('dashboard.netdata.network')}</p>
-              <p className="text-xl font-semibold text-emerald-950 dark:text-white">
+              <p className="text-base font-semibold text-emerald-950 dark:text-white">
                 ↓ {formatNetwork(data?.summary.network_in_kbps ?? null)}
               </p>
               <p className="text-[11px] text-emerald-950/85 dark:text-emerald-100/90">

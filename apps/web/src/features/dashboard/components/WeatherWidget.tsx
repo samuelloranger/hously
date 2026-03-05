@@ -35,17 +35,17 @@ export function WeatherWidget() {
 
   return (
     <div
-      className="rounded-xl shadow p-6"
+      className="rounded-xl shadow p-5"
       style={{ background: `linear-gradient(135deg, ${weatherTheme.startColor}, ${weatherTheme.endColor})` }}
       onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
       onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
     >
-      <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: weatherTheme.subtextColor }}>
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: weatherTheme.subtextColor }}>
             {t('dashboard.weather.kicker')}
           </p>
-          <h3 className="text-xl font-bold" style={{ color: weatherTheme.textColor }}>
+          <h3 className="text-lg font-bold" style={{ color: weatherTheme.textColor }}>
             {weatherTheme.icon} {weatherQuery.data.locationName}
           </h3>
         </div>
@@ -55,7 +55,7 @@ export function WeatherWidget() {
       </div>
 
       <div className="mb-1">
-        <p className="text-4xl font-bold leading-none" style={{ color: weatherTheme.textColor }}>
+        <p className="text-3xl font-bold leading-none" style={{ color: weatherTheme.textColor }}>
           {t('dashboard.weather.temperature', { temp: Math.round(temperatureValue), unit: unitLabel })}
         </p>
         <p className="mt-1 text-sm" style={{ color: weatherTheme.subtextColor }}>

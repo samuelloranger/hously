@@ -101,7 +101,7 @@ export function TrackerStatsCard() {
 
   return (
     <section
-      className="relative overflow-hidden rounded-3xl border border-emerald-300/60 dark:border-emerald-200/30 bg-gradient-to-br from-[#c9f7da] via-[#74d2a1] to-[#b7f3ee] dark:from-emerald-900/70 dark:via-emerald-900/60 dark:to-teal-900/60 p-6 shadow-xl"
+      className="relative overflow-hidden rounded-3xl border border-emerald-300/60 dark:border-emerald-200/30 bg-gradient-to-br from-[#c9f7da] via-[#74d2a1] to-[#b7f3ee] dark:from-emerald-900/70 dark:via-emerald-900/60 dark:to-teal-900/60 p-5 shadow-xl"
       onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
       onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
     >
@@ -110,10 +110,10 @@ export function TrackerStatsCard() {
           <p className="text-xs uppercase tracking-[0.22em] text-emerald-950/70 dark:text-emerald-200/90">
             {t('dashboard.trackers.kicker')}
           </p>
-          <h3 className="text-2xl md:text-3xl font-bold text-emerald-950 dark:text-emerald-50">
+          <h3 className="text-xl md:text-2xl font-bold text-emerald-950 dark:text-emerald-50">
             {t('dashboard.trackers.title')}
           </h3>
-          <p className="text-sm text-emerald-900/70 dark:text-emerald-100/90 mt-1">
+          <p className="text-xs text-emerald-900/70 dark:text-emerald-100/90 mt-1">
             {t('dashboard.trackers.subtitle')}
           </p>
         </div>

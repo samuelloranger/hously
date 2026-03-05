@@ -22,7 +22,9 @@
       "Bash(npx vite build:*)",
       "Bash(bun remove:*)",
       "Bash(git:*)",
-      "Bash(cd apps/api && bunx prisma generate 2>&1)"
+      "Bash(cd apps/api && bunx prisma generate 2>&1)",
+      "Bash(python3:*)",
+      "Bash(bun add:*)"
     ],
     "deny": [],
     "ask": []

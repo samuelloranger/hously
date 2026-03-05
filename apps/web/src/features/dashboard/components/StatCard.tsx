@@ -95,14 +95,14 @@ export function StatCard({ icon, title, value, color: _color, link, t, index = 0
       onTouchStart={() => prefetchRoute(link)}
     >
       <div
-        className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${theme.card} ${theme.glow} p-5 transition-all duration-300 ease-out group-hover:shadow-lg group-hover:scale-[1.02] group-hover:-translate-y-0.5`}
+        className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${theme.card} ${theme.glow} p-4 transition-all duration-300 ease-out group-hover:shadow-lg group-hover:scale-[1.02] group-hover:-translate-y-0.5`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${theme.icon} text-xl`}>{icon}</div>
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${theme.icon} text-base`}>{icon}</div>
             <div>
-              <p className={`text-xs font-medium uppercase tracking-wide ${theme.label}`}>{title}</p>
-              <p className={`text-2xl font-bold tabular-nums ${theme.value}`}>
+              <p className={`text-[11px] font-medium uppercase tracking-wide ${theme.label}`}>{title}</p>
+              <p className={`text-xl font-bold tabular-nums ${theme.value}`}>
                 {numericValue !== null ? (
                   <>
                     {isCurrency && '$'}
@@ -122,7 +122,7 @@ export function StatCard({ icon, title, value, color: _color, link, t, index = 0
             </svg>
           </div>
         </div>
-        <p className={`mt-2 text-xs font-medium ${theme.label}`}>{t('dashboard.view')} →</p>
+        <p className={`mt-1.5 text-[11px] font-medium ${theme.label}`}>{t('dashboard.view')} →</p>
       </div>
     </Link>
   );
