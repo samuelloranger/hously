@@ -1,10 +1,6 @@
 import { Elysia } from 'elysia';
 import { createJsonSseResponse } from '../../utils/sse';
-import {
-  fetchGiteaBuildStatus,
-  getCachedGiteaBuildStatus,
-  isBuildActive,
-} from '../../utils/dashboard/gitea';
+import { fetchGiteaBuildStatus, isBuildActive } from '../../utils/dashboard/gitea';
 
 export const dashboardGiteaRoutes = new Elysia()
   .get('/gitea/builds', async ({ user, set }) => {
@@ -30,25 +26,13 @@ export const dashboardGiteaRoutes = new Elysia()
 
     return createJsonSseResponse({
       request,
-      poll: async () => {
-        // Only actively poll Gitea when a build is in progress
-        if (isBuildActive()) {
-          return fetchGiteaBuildStatus(true);
-        }
-
-        // Otherwise return cached data (no API call)
-        const cached = getCachedGiteaBuildStatus();
-        if (cached) return cached;
-
-        // First connection or no cache — do one fetch
-        return fetchGiteaBuildStatus(true);
-      },
+      poll: () => fetchGiteaBuildStatus(true),
       intervalMs: (snapshot) => {
+        // 3s when building, 10s idle (so new builds show up within ~10s)
         if (isBuildActive() || snapshot.building) {
           return 3000;
         }
-        // Idle: very slow heartbeat just to keep connection alive
-        return 30000;
+        return 10000;
       },
       retryMs: 5000,
       onError: (error) => ({

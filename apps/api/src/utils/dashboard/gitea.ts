@@ -90,14 +90,11 @@ export interface GiteaBuildStatus {
 
 let buildActive = false;
 let lastSignalAt = 0;
-let cachedStatus: GiteaBuildStatus | null = null;
-
 const SIGNAL_TTL_MS = 10 * 60 * 1000; // auto-expire after 10 min in case we miss completion
 
 export function signalBuildStarted() {
   buildActive = true;
   lastSignalAt = Date.now();
-  cachedStatus = null; // force a fresh poll
 }
 
 export function isBuildActive(): boolean {
@@ -173,9 +170,7 @@ export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaB
       markBuildCompleted();
     }
 
-    const result: GiteaBuildStatus = { enabled: true, connected: true, building: isRunning, run, jobs, logs };
-    cachedStatus = result;
-    return result;
+    return { enabled: true, connected: true, building: isRunning, run, jobs, logs };
   } catch (error) {
     return {
       enabled: true,
@@ -189,7 +184,3 @@ export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaB
   }
 }
 
-/** Returns cached status without hitting Gitea API (for idle SSE intervals). */
-export function getCachedGiteaBuildStatus(): GiteaBuildStatus | null {
-  return cachedStatus;
-}
