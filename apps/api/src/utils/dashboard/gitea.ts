@@ -116,7 +116,16 @@ function markBuildCompleted() {
   buildActive = false;
 }
 
+/** Gitea returns "1970-01-01T00:00:00Z" instead of null for unset timestamps */
+function sanitizeTimestamp(ts: string | null): string | null {
+  if (!ts) return null;
+  if (new Date(ts).getTime() <= 0) return null;
+  return ts;
+}
+
 function computeDuration(started: string | null, completed: string | null): number | null {
+  started = sanitizeTimestamp(started);
+  completed = sanitizeTimestamp(completed);
   if (!started) return null;
   const start = new Date(started).getTime();
   const end = completed ? new Date(completed).getTime() : Date.now();
@@ -147,7 +156,7 @@ export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaB
       event: latestRun.event,
       created_at: latestRun.created_at,
       updated_at: latestRun.updated_at,
-      duration_seconds: computeDuration(latestRun.started_at ?? latestRun.created_at, latestRun.completed_at),
+      duration_seconds: computeDuration(sanitizeTimestamp(latestRun.started_at) ?? latestRun.created_at, latestRun.completed_at),
     };
 
     const jobsData = await giteaFetch<{ jobs: GiteaJobRaw[] }>(`/actions/runs/${latestRun.id}/jobs`);
@@ -156,8 +165,8 @@ export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaB
       name: j.name,
       status: j.status,
       conclusion: j.conclusion,
-      started_at: j.started_at,
-      completed_at: j.completed_at,
+      started_at: sanitizeTimestamp(j.started_at),
+      completed_at: sanitizeTimestamp(j.completed_at),
       duration_seconds: computeDuration(j.started_at, j.completed_at),
     }));
 
