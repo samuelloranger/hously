@@ -457,6 +457,7 @@ export interface GiteaJobSummary {
 export interface DashboardGiteaBuildResponse {
   enabled: boolean;
   connected: boolean;
+  building: boolean;
   run: GiteaRunSummary | null;
   jobs: GiteaJobSummary[] | null;
   logs: string | null;

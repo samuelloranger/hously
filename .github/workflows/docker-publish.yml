@@ -10,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Signal build started
+      run: |
+        curl -s -X POST \
+          -H "X-Gitea-Signal-Token: ${{ secrets.HOUSLY_BUILD_SIGNAL_SECRET }}" \
+          https://hously.example.com/api/webhooks/gitea/builds/signal || true
+
     - name: Checkout repository
       uses: actions/checkout@v4
 

@@ -1,6 +1,10 @@
 import { Elysia } from 'elysia';
 import { createJsonSseResponse } from '../../utils/sse';
-import { fetchGiteaBuildStatus } from '../../utils/dashboard/gitea';
+import {
+  fetchGiteaBuildStatus,
+  getCachedGiteaBuildStatus,
+  isBuildActive,
+} from '../../utils/dashboard/gitea';
 
 export const dashboardGiteaRoutes = new Elysia()
   .get('/gitea/builds', async ({ user, set }) => {
@@ -17,6 +21,7 @@ export const dashboardGiteaRoutes = new Elysia()
       return { error: 'Failed to get Gitea build status' };
     }
   })
+
   .get('/gitea/builds/stream', async ({ user, set, request }) => {
     if (!user) {
       set.status = 401;
@@ -25,18 +30,31 @@ export const dashboardGiteaRoutes = new Elysia()
 
     return createJsonSseResponse({
       request,
-      poll: () => fetchGiteaBuildStatus(true),
+      poll: async () => {
+        // Only actively poll Gitea when a build is in progress
+        if (isBuildActive()) {
+          return fetchGiteaBuildStatus(true);
+        }
+
+        // Otherwise return cached data (no API call)
+        const cached = getCachedGiteaBuildStatus();
+        if (cached) return cached;
+
+        // First connection or no cache — do one fetch
+        return fetchGiteaBuildStatus(true);
+      },
       intervalMs: (snapshot) => {
-        // Poll faster while a build is running
-        if (snapshot.run?.status === 'running' || snapshot.run?.status === 'waiting') {
+        if (isBuildActive() || snapshot.building) {
           return 3000;
         }
-        return 15000;
+        // Idle: very slow heartbeat just to keep connection alive
+        return 30000;
       },
       retryMs: 5000,
       onError: (error) => ({
         enabled: true,
         connected: false,
+        building: false,
         run: null,
         jobs: null,
         logs: null,

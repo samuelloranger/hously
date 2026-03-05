@@ -43,11 +43,6 @@ export interface GiteaRunSummary {
   updated_at: string;
 }
 
-interface GiteaActorRaw {
-  login: string;
-  avatar_url: string;
-}
-
 interface GiteaRunRaw {
   id: number;
   display_title: string;
@@ -57,7 +52,7 @@ interface GiteaRunRaw {
   event: string;
   created_at: string;
   updated_at: string;
-  actor: GiteaActorRaw;
+  actor: { login: string; avatar_url: string };
 }
 
 interface GiteaJobRaw {
@@ -82,10 +77,41 @@ export interface GiteaJobSummary {
 export interface GiteaBuildStatus {
   enabled: boolean;
   connected: boolean;
+  building: boolean;
   run: GiteaRunSummary | null;
   jobs: GiteaJobSummary[] | null;
   logs: string | null;
   error?: string;
+}
+
+// --- Build signal state ---
+// The workflow calls /api/dashboard/gitea/builds/signal to activate polling.
+// Polling stays active until the build completes, then goes idle.
+
+let buildActive = false;
+let lastSignalAt = 0;
+let cachedStatus: GiteaBuildStatus | null = null;
+
+const SIGNAL_TTL_MS = 10 * 60 * 1000; // auto-expire after 10 min in case we miss completion
+
+export function signalBuildStarted() {
+  buildActive = true;
+  lastSignalAt = Date.now();
+  cachedStatus = null; // force a fresh poll
+}
+
+export function isBuildActive(): boolean {
+  if (!buildActive) return false;
+  // Auto-expire stale signals
+  if (Date.now() - lastSignalAt > SIGNAL_TTL_MS) {
+    buildActive = false;
+    return false;
+  }
+  return true;
+}
+
+function markBuildCompleted() {
+  buildActive = false;
 }
 
 function computeDuration(started: string | null, completed: string | null): number | null {
@@ -97,15 +123,17 @@ function computeDuration(started: string | null, completed: string | null): numb
 
 export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaBuildStatus> {
   if (!GITEA_TOKEN) {
-    return { enabled: false, connected: false, run: null, jobs: null, logs: null };
+    return { enabled: false, connected: false, building: false, run: null, jobs: null, logs: null };
   }
 
   try {
     const runsData = await giteaFetch<{ workflow_runs: GiteaRunRaw[] }>('/actions/runs?limit=1');
     const latestRun = runsData.workflow_runs?.[0];
     if (!latestRun) {
-      return { enabled: true, connected: true, run: null, jobs: null, logs: null };
+      return { enabled: true, connected: true, building: false, run: null, jobs: null, logs: null };
     }
+
+    const isRunning = latestRun.status === 'running' || latestRun.status === 'waiting';
 
     const run: GiteaRunSummary = {
       id: latestRun.id,
@@ -133,7 +161,6 @@ export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaB
     if (includeLogs && jobs.length > 0) {
       try {
         const rawLogs = await giteaFetchText(`/actions/jobs/${jobs[0].id}/logs`);
-        // Keep last 100 lines to avoid huge payloads
         const lines = rawLogs.split('\n');
         logs = lines.slice(-100).join('\n');
       } catch {
@@ -141,15 +168,28 @@ export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaB
       }
     }
 
-    return { enabled: true, connected: true, run, jobs, logs };
+    // If the build was active but just completed, mark it done
+    if (buildActive && !isRunning) {
+      markBuildCompleted();
+    }
+
+    const result: GiteaBuildStatus = { enabled: true, connected: true, building: isRunning, run, jobs, logs };
+    cachedStatus = result;
+    return result;
   } catch (error) {
     return {
       enabled: true,
       connected: false,
+      building: false,
       run: null,
       jobs: null,
       logs: null,
       error: error instanceof Error ? error.message : 'Failed to fetch Gitea build status',
     };
   }
+}
+
+/** Returns cached status without hitting Gitea API (for idle SSE intervals). */
+export function getCachedGiteaBuildStatus(): GiteaBuildStatus | null {
+  return cachedStatus;
 }
