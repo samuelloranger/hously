@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { clearUser } from '../lib/auth';
 import { formatDisplayName, useLogout, useUpdateProfile } from '@hously/shared';
 import { NotificationsMenu } from './NotificationsBell';
+import { GiteaBuildStatus } from './GiteaBuildStatus';
 import { UserMenu } from './UserMenu';
 import {
   CalendarIcon,
@@ -147,6 +148,9 @@ export function Sidebar() {
 
         {/* Bottom section */}
         <div className="shrink-0 border-t border-neutral-950/[0.06] dark:border-white/[0.08] px-3 py-3 space-y-1">
+          {/* Build status */}
+          <GiteaBuildStatus />
+
           {/* Notifications */}
           <div className="flex items-center">
             <NotificationsMenu />

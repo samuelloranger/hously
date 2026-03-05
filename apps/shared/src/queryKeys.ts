@@ -41,6 +41,7 @@ export const queryKeys = {
     qbittorrentTorrentPeers: (hash: string) => [...queryKeys.dashboard.all, 'qbittorrent-torrent-peers', hash] as const,
     scrutinySummary: () => [...queryKeys.dashboard.all, 'scrutiny-summary'] as const,
     netdataSummary: () => [...queryKeys.dashboard.all, 'netdata-summary'] as const,
+    giteaBuilds: () => [...queryKeys.dashboard.all, 'gitea-builds'] as const,
   },
 
   weather: {

@@ -432,3 +432,33 @@ export interface DashboardHackerNewsResponse {
   updated_at: string;
   error?: string;
 }
+
+export interface GiteaRunSummary {
+  id: number;
+  display_title: string;
+  status: string;
+  head_branch: string;
+  head_sha: string;
+  event: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GiteaJobSummary {
+  id: number;
+  name: string;
+  status: string;
+  conclusion: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  duration_seconds: number | null;
+}
+
+export interface DashboardGiteaBuildResponse {
+  enabled: boolean;
+  connected: boolean;
+  run: GiteaRunSummary | null;
+  jobs: GiteaJobSummary[] | null;
+  logs: string | null;
+  error?: string;
+}
