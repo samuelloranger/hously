@@ -68,7 +68,7 @@ export function GiteaBuildStatus() {
   const data = liveData;
   if (!data?.enabled || !data?.run) return null;
 
-  const runStatus = getStatusDisplay(data.run.status, data.jobs?.[0]?.conclusion ?? null);
+  const runStatus = getStatusDisplay(data.run.status, data.run.conclusion ?? data.jobs?.[0]?.conclusion ?? null);
   const isRunning = data.building || data.run.status === 'running' || data.run.status === 'in_progress' || data.run.status === 'waiting' || data.run.status === 'queued' || data.run.status === 'pending';
 
   return (
@@ -110,7 +110,9 @@ export function GiteaBuildStatus() {
               </h3>
               <div className="flex items-center gap-1.5">
                 <span className={`h-2 w-2 rounded-full ${runStatus.dotClass}`} />
-                <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">{runStatus.label}</span>
+                <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+                  {runStatus.label}{data.run.duration_seconds != null && !isRunning ? ` · ${formatDuration(data.run.duration_seconds)}` : ''}
+                </span>
               </div>
             </div>
 

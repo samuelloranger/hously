@@ -36,22 +36,27 @@ export interface GiteaRunSummary {
   id: number;
   display_title: string;
   status: string;
+  conclusion: string | null;
   head_branch: string;
   head_sha: string;
   event: string;
   created_at: string;
   updated_at: string;
+  duration_seconds: number | null;
 }
 
 interface GiteaRunRaw {
   id: number;
   display_title: string;
   status: string;
+  conclusion: string | null;
   head_branch: string;
   head_sha: string;
   event: string;
   created_at: string;
   updated_at: string;
+  started_at: string | null;
+  completed_at: string | null;
   actor: { login: string; avatar_url: string };
 }
 
@@ -136,11 +141,13 @@ export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaB
       id: latestRun.id,
       display_title: latestRun.display_title,
       status: latestRun.status,
+      conclusion: latestRun.conclusion ?? null,
       head_branch: latestRun.head_branch,
       head_sha: latestRun.head_sha,
       event: latestRun.event,
       created_at: latestRun.created_at,
       updated_at: latestRun.updated_at,
+      duration_seconds: computeDuration(latestRun.started_at ?? latestRun.created_at, latestRun.completed_at),
     };
 
     const jobsData = await giteaFetch<{ jobs: GiteaJobRaw[] }>(`/actions/runs/${latestRun.id}/jobs`);

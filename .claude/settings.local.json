@@ -25,7 +25,8 @@
       "Bash(cd apps/api && bunx prisma generate 2>&1)",
       "Bash(python3:*)",
       "Bash(bun add:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(docker ps:*)"
     ],
     "deny": [],
     "ask": []

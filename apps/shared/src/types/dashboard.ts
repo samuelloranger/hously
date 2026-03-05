@@ -437,11 +437,13 @@ export interface GiteaRunSummary {
   id: number;
   display_title: string;
   status: string;
+  conclusion: string | null;
   head_branch: string;
   head_sha: string;
   event: string;
   created_at: string;
   updated_at: string;
+  duration_seconds: number | null;
 }
 
 export interface GiteaJobSummary {
