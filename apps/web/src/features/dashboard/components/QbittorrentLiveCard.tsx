@@ -67,16 +67,16 @@ export function QbittorrentLiveCard() {
       onTouchStart={() => prefetchRoute('/torrents')}
       className="block rounded-3xl overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
     >
-      <section className="relative border border-orange-300/60 dark:border-orange-500/30 bg-gradient-to-br from-[#fde8d8] via-[#fbc8a0] to-[#f4845a] dark:from-[#431407] dark:via-[#7c2d12] dark:to-[#c2410c] p-5 shadow-xl">
+      <section className="relative border border-orange-300/60 dark:border-orange-500/30 bg-gradient-to-br from-[#fde8d8] via-[#fbc8a0] to-[#f4845a] dark:from-[#431407] dark:via-[#7c2d12] dark:to-[#c2410c] p-4 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-orange-950/70 dark:text-orange-200/90">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-orange-950/70 dark:text-orange-200/90">
               {t('dashboard.qbittorrent.kicker')}
             </p>
-            <h3 className="text-xl md:text-2xl font-bold text-orange-950 dark:text-orange-50">
+            <h3 className="text-lg md:text-xl font-bold text-orange-950 dark:text-orange-50">
               {t('dashboard.qbittorrent.title')}
             </h3>
-            <p className="text-xs text-orange-900/70 dark:text-orange-100/90 mt-1">
+            <p className="text-[11px] text-orange-900/70 dark:text-orange-100/90 mt-1">
               {t('dashboard.qbittorrent.subtitle')}
             </p>
             <p className="text-xs text-orange-900/70 dark:text-orange-100/80 mt-2">
@@ -102,7 +102,7 @@ export function QbittorrentLiveCard() {
                 <p className="text-xs text-orange-950/75 dark:text-orange-200/80">
                   {t('dashboard.qbittorrent.active')}
                 </p>
-                <p className="text-base font-semibold text-orange-950 dark:text-white">
+                <p className="text-sm font-semibold text-orange-950 dark:text-white">
                   {data?.summary.downloading_count ?? 0}
                 </p>
               </div>
@@ -110,7 +110,7 @@ export function QbittorrentLiveCard() {
                 <p className="text-xs text-orange-950/75 dark:text-orange-200/80">
                   {t('dashboard.qbittorrent.stalled')}
                 </p>
-                <p className="text-base font-semibold text-orange-950 dark:text-white">
+                <p className="text-sm font-semibold text-orange-950 dark:text-white">
                   {data?.summary.stalled_count ?? 0}
                 </p>
               </div>
@@ -118,7 +118,7 @@ export function QbittorrentLiveCard() {
                 <p className="text-xs text-orange-950/75 dark:text-orange-200/80">
                   {t('dashboard.qbittorrent.downloadSpeed')}
                 </p>
-                <p className="text-base font-semibold text-orange-950 dark:text-white">
+                <p className="text-sm font-semibold text-orange-950 dark:text-white">
                   {formatSpeed(data?.summary.download_speed ?? 0)}
                 </p>
               </div>
@@ -126,7 +126,7 @@ export function QbittorrentLiveCard() {
                 <p className="text-xs text-orange-950/75 dark:text-orange-200/80">
                   {t('dashboard.qbittorrent.uploadSpeed')}
                 </p>
-                <p className="text-base font-semibold text-orange-950 dark:text-white">
+                <p className="text-sm font-semibold text-orange-950 dark:text-white">
                   {formatSpeed(data?.summary.upload_speed ?? 0)}
                 </p>
               </div>

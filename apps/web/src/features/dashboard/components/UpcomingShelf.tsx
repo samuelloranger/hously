@@ -58,15 +58,15 @@ export function UpcomingShelf() {
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-200/45 dark:bg-amber-300/20 blur-3xl" />
         <div className="pointer-events-none absolute -left-14 -bottom-16 h-64 w-64 rounded-full bg-orange-300/40 dark:bg-orange-500/25 blur-3xl" />
 
-        <div className="relative flex items-center justify-between gap-4 mb-5 px-5 md:px-6 pt-5 md:pt-6">
+        <div className="relative flex items-center justify-between gap-4 mb-4 px-4 md:px-5 pt-4 md:pt-5">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-amber-950/70 dark:text-amber-200/80">
+            <p className="text-[10px] uppercase tracking-[0.22em] text-amber-950/70 dark:text-amber-200/80">
               {t('dashboard.upcoming.kicker')}
             </p>
-            <h3 className="text-xl md:text-2xl font-bold text-amber-950 dark:text-amber-50">
+            <h3 className="text-lg md:text-xl font-bold text-amber-950 dark:text-amber-50">
               {t('dashboard.upcoming.title')}
             </h3>
-            <p className="text-xs text-amber-900/70 dark:text-amber-100/80 mt-1">{t('dashboard.upcoming.subtitle')}</p>
+            <p className="text-[11px] text-amber-900/70 dark:text-amber-100/80 mt-1">{t('dashboard.upcoming.subtitle')}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -79,7 +79,7 @@ export function UpcomingShelf() {
             >
               <span className={isFetching ? 'animate-spin' : ''}>↻</span>
             </button>
-            <div className="hidden md:flex h-10 w-10 items-center justify-center rounded-full border border-amber-950/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-xl">
+            <div className="hidden md:flex h-9 w-9 items-center justify-center rounded-full border border-amber-950/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-lg">
               🍿
             </div>
           </div>

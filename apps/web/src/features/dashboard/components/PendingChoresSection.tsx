@@ -15,12 +15,12 @@ const PendingChoresSection = () => {
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-gradient-to-br from-white via-neutral-50/50 to-neutral-100/30 dark:from-neutral-800 dark:via-neutral-800/80 dark:to-neutral-900/60 shadow-sm">
-      <div className="px-5 py-3 flex items-center justify-between border-b border-neutral-200/60 dark:border-neutral-700/50">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100/80 dark:bg-emerald-900/30 text-xs">
+      <div className="px-4 py-2.5 flex items-center justify-between border-b border-neutral-200/60 dark:border-neutral-700/50">
+        <div className="flex items-center gap-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-100/80 dark:bg-emerald-900/30 text-[11px]">
             ✅
           </div>
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">{t('dashboard.pendingChores')}</h3>
+          <h3 className="text-xs font-semibold text-neutral-900 dark:text-white">{t('dashboard.pendingChores')}</h3>
         </div>
         {pendingChores.length > 5 && (
           <a href="/chores" className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline">

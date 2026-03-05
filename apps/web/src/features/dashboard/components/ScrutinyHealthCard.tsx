@@ -33,19 +33,19 @@ export function ScrutinyHealthCard() {
 
   return (
     <section
-      className="relative overflow-hidden rounded-3xl border border-rose-300/60 dark:border-rose-200/40 bg-gradient-to-br from-[#f9d2dd] via-[#f6b6c8] to-[#ffe0cd] dark:from-rose-700 dark:via-rose-700 dark:to-orange-700 p-5 shadow-xl"
+      className="relative overflow-hidden rounded-3xl border border-rose-300/60 dark:border-rose-200/40 bg-gradient-to-br from-[#f9d2dd] via-[#f6b6c8] to-[#ffe0cd] dark:from-rose-700 dark:via-rose-700 dark:to-orange-700 p-4 shadow-xl"
       onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
       onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.22em] text-rose-950/70 dark:text-rose-200/90">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-rose-950/70 dark:text-rose-200/90">
             {t('dashboard.scrutiny.kicker')}
           </p>
-          <h3 className="text-xl md:text-2xl font-bold text-rose-950 dark:text-rose-50">
+          <h3 className="text-lg md:text-xl font-bold text-rose-950 dark:text-rose-50">
             {t('dashboard.scrutiny.title')}
           </h3>
-          <p className="text-xs text-rose-900/70 dark:text-rose-100/90 mt-1">{t('dashboard.scrutiny.subtitle')}</p>
+          <p className="text-[11px] text-rose-900/70 dark:text-rose-100/90 mt-1">{t('dashboard.scrutiny.subtitle')}</p>
         </div>
         <span className="rounded-full bg-black/15 dark:bg-black/25 px-3 py-1 text-xs font-medium text-rose-950 dark:text-rose-100">
           {showNotConnected ? t('dashboard.scrutiny.disconnected') : t('dashboard.scrutiny.connected')}
@@ -64,19 +64,19 @@ export function ScrutinyHealthCard() {
           <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
               <p className="text-xs text-rose-950/75 dark:text-rose-200/80">{t('dashboard.scrutiny.totalDrives')}</p>
-              <p className="text-base font-semibold text-rose-950 dark:text-white">{data?.summary.total_drives ?? 0}</p>
+              <p className="text-sm font-semibold text-rose-950 dark:text-white">{data?.summary.total_drives ?? 0}</p>
             </div>
             <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
               <p className="text-xs text-rose-950/75 dark:text-rose-200/80">{t('dashboard.scrutiny.healthyDrives')}</p>
-              <p className="text-base font-semibold text-rose-950 dark:text-white">{data?.summary.healthy_drives ?? 0}</p>
+              <p className="text-sm font-semibold text-rose-950 dark:text-white">{data?.summary.healthy_drives ?? 0}</p>
             </div>
             <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
               <p className="text-xs text-rose-950/75 dark:text-rose-200/80">{t('dashboard.scrutiny.warningDrives')}</p>
-              <p className="text-base font-semibold text-rose-950 dark:text-white">{data?.summary.warning_drives ?? 0}</p>
+              <p className="text-sm font-semibold text-rose-950 dark:text-white">{data?.summary.warning_drives ?? 0}</p>
             </div>
             <div className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
               <p className="text-xs text-rose-950/75 dark:text-rose-200/80">{t('dashboard.scrutiny.hottestTemp')}</p>
-              <p className="text-base font-semibold text-rose-950 dark:text-white">
+              <p className="text-sm font-semibold text-rose-950 dark:text-white">
                 {formatTemp(data?.summary.hottest_temp_c ?? null)}
               </p>
             </div>

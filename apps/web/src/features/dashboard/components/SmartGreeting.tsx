@@ -193,12 +193,12 @@ export function SmartGreeting({ userName, pendingChores, shoppingItems, eventsTo
   return (
     <div className="mb-2">
       <div className="flex items-center gap-3">
-        <span className="text-2xl md:text-3xl greeting-icon">{icon}</span>
+        <span className="text-xl md:text-2xl greeting-icon">{icon}</span>
         <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+          <h1 className="text-lg md:text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
             {greeting}, {userName}
           </h1>
-          <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
             <span className="inline-block greeting-subtext">{subtext}</span>
           </p>
         </div>
