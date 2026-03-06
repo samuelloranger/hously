@@ -1,8 +1,7 @@
 import { prisma } from '../db';
 import { normalizeTrackerConfig } from '../utils/plugins/normalizers';
-import { cacheKey, parseCachedTrackerStats } from '../utils/dashboard/trackers';
-import type { CachedTrackerStats } from '../utils/dashboard/trackers';
-import { getJsonCache, setJsonCache } from '../services/cache';
+import { cacheKey } from '../utils/dashboard/trackers';
+import { setJsonCache } from '../services/cache';
 import { TRACKER_SCRAPERS } from '../services/trackers';
 import type { TrackerType } from '../utils/plugins/types';
 import { logActivity } from '../utils/activityLogs';
@@ -171,32 +170,7 @@ export const fetchTrackerStats = async (
     const stats = await scraper.scrape(loginConfig, solution);
     console.log(`[cron:${trackerType}] stats`, stats);
 
-    // Get current cached stats.
-    const currentCached = await getJsonCache<CachedTrackerStats>(cacheKey(trackerType));
-    const current = parseCachedTrackerStats(currentCached);
-
     const now = new Date();
-    const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
-
-    let previous_uploaded_go = current?.previous_uploaded_go ?? null;
-    let previous_downloaded_go = current?.previous_downloaded_go ?? null;
-    let previous_ratio = current?.previous_ratio ?? null;
-    let previous_updated_at = current?.previous_updated_at ?? null;
-
-    // Only update the baseline (previous_ values) if:
-    // 1. We don't have a baseline yet
-    // 2. OR the existing baseline is older than 12 hours
-    const shouldUpdateBaseline =
-      !previous_updated_at || new Date(previous_updated_at).getTime() < twelveHoursAgo.getTime();
-
-    if (shouldUpdateBaseline) {
-      // Use the *last known* current values as the new baseline.
-      // If this is the very first run (no 'current'), use the newly fetched 'stats'.
-      previous_uploaded_go = current?.uploaded_go ?? stats.uploadedGo;
-      previous_downloaded_go = current?.downloaded_go ?? stats.downloadedGo;
-      previous_ratio = current?.ratio ?? stats.ratio;
-      previous_updated_at = now.toISOString();
-    }
 
     await setJsonCache(
       cacheKey(trackerType),
@@ -204,10 +178,6 @@ export const fetchTrackerStats = async (
         uploaded_go: stats.uploadedGo,
         downloaded_go: stats.downloadedGo,
         ratio: stats.ratio,
-        previous_uploaded_go,
-        previous_downloaded_go,
-        previous_ratio,
-        previous_updated_at,
         updated_at: now.toISOString(),
       },
       60 * 60 * 24

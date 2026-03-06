@@ -382,10 +382,6 @@ export interface DashboardTrackerStatsResponse {
   uploaded_go: number | null;
   downloaded_go: number | null;
   ratio: number | null;
-  previous_uploaded_go?: number | null;
-  previous_downloaded_go?: number | null;
-  previous_ratio?: number | null;
-  previous_updated_at?: string | null;
   error?: string;
 }
 

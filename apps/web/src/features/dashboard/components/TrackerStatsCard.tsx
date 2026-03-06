@@ -16,9 +16,6 @@ type TrackerCardData = {
   uploaded_go: number | null;
   downloaded_go: number | null;
   ratio: number | null;
-  previous_uploaded_go?: number | null;
-  previous_downloaded_go?: number | null;
-  previous_ratio?: number | null;
   updated_at: string | null;
   error?: string;
 };
@@ -43,9 +40,6 @@ export function TrackerStatsCard() {
       uploaded_go: c411.data?.uploaded_go ?? null,
       downloaded_go: c411.data?.downloaded_go ?? null,
       ratio: c411.data?.ratio ?? null,
-      previous_uploaded_go: c411.data?.previous_uploaded_go,
-      previous_downloaded_go: c411.data?.previous_downloaded_go,
-      previous_ratio: c411.data?.previous_ratio,
       updated_at: c411.data?.updated_at ?? null,
       error: c411.data?.error,
     },
@@ -57,9 +51,6 @@ export function TrackerStatsCard() {
       uploaded_go: torr9.data?.uploaded_go ?? null,
       downloaded_go: torr9.data?.downloaded_go ?? null,
       ratio: torr9.data?.ratio ?? null,
-      previous_uploaded_go: torr9.data?.previous_uploaded_go,
-      previous_downloaded_go: torr9.data?.previous_downloaded_go,
-      previous_ratio: torr9.data?.previous_ratio,
       updated_at: torr9.data?.updated_at ?? null,
       error: torr9.data?.error,
     },
@@ -71,9 +62,6 @@ export function TrackerStatsCard() {
       uploaded_go: laCale.data?.uploaded_go ?? null,
       downloaded_go: laCale.data?.downloaded_go ?? null,
       ratio: laCale.data?.ratio ?? null,
-      previous_uploaded_go: laCale.data?.previous_uploaded_go,
-      previous_downloaded_go: laCale.data?.previous_downloaded_go,
-      previous_ratio: laCale.data?.previous_ratio,
       updated_at: laCale.data?.updated_at ?? null,
       error: laCale.data?.error,
     },
@@ -81,23 +69,6 @@ export function TrackerStatsCard() {
 
   const connectedCount = trackers.filter(item => item.enabled && item.connected).length;
   const anyConnected = connectedCount > 0;
-
-  const renderDelta = (current: number | null, previous: number | null | undefined, isRatio = false) => {
-    if (current === null || previous === null || previous === undefined || current === previous) return null;
-    const delta = current - previous;
-    if (Math.abs(delta) < 0.001) return null;
-
-    const sign = delta > 0 ? '+' : '';
-    const value = isRatio ? delta.toFixed(2) : formatGo(delta);
-    const colorClass = delta > 0 ? 'text-emerald-950/70 dark:text-emerald-400' : 'text-rose-950/70 dark:text-rose-400';
-
-    return (
-      <span className={`text-[10px] font-medium leading-none ${colorClass}`}>
-        {sign}
-        {value}
-      </span>
-    );
-  };
 
   return (
     <section
@@ -159,28 +130,19 @@ export function TrackerStatsCard() {
                         <p className="text-[10px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.uploaded')}
                         </p>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatGo(item.uploaded_go)}</span>
-                          {renderDelta(item.uploaded_go, item.previous_uploaded_go)}
-                        </div>
+                        <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatGo(item.uploaded_go)}</span>
                       </div>
                       <div className="flex items-baseline justify-between">
                         <p className="text-[10px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.downloaded')}
                         </p>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatGo(item.downloaded_go)}</span>
-                          {renderDelta(item.downloaded_go, item.previous_downloaded_go)}
-                        </div>
+                        <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatGo(item.downloaded_go)}</span>
                       </div>
                       <div className="flex items-baseline justify-between">
                         <p className="text-[10px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.ratio')}
                         </p>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatRatio(item.ratio)}</span>
-                          {renderDelta(item.ratio, item.previous_ratio, true)}
-                        </div>
+                        <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatRatio(item.ratio)}</span>
                       </div>
                     </div>
                   )}
