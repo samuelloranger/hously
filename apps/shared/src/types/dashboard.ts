@@ -446,6 +446,11 @@ export interface GiteaRunSummary {
   duration_seconds: number | null;
 }
 
+export interface GiteaStepSummary {
+  name: string;
+  status: 'pending' | 'running' | 'success' | 'failure';
+}
+
 export interface GiteaJobSummary {
   id: number;
   name: string;
@@ -454,13 +459,13 @@ export interface GiteaJobSummary {
   started_at: string | null;
   completed_at: string | null;
   duration_seconds: number | null;
+  steps: GiteaStepSummary[];
 }
 
 export interface DashboardGiteaBuildResponse {
   enabled: boolean;
   connected: boolean;
   building: boolean;
-  avg_duration_seconds: number | null;
   run: GiteaRunSummary | null;
   jobs: GiteaJobSummary[] | null;
   logs: string | null;

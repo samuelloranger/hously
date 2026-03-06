@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as Popover from '@radix-ui/react-popover';
-import { type DashboardGiteaBuildResponse, DASHBOARD_ENDPOINTS, useDashboardGiteaBuilds } from '@hously/shared';
-import { Hammer } from 'lucide-react';
+import { type DashboardGiteaBuildResponse, type GiteaStepSummary, DASHBOARD_ENDPOINTS, useDashboardGiteaBuilds } from '@hously/shared';
+import { Check, Circle, Hammer, Loader2, X } from 'lucide-react';
 
 const formatDuration = (seconds: number | null): string => {
   if (seconds == null) return '--';
@@ -37,12 +37,10 @@ function LiveElapsed({ startedAt }: { startedAt: string }) {
 type StatusDisplay = { label: string; dotClass: string; barClass: string };
 
 const statusMap: Record<string, StatusDisplay> = {
-  // Conclusions
   success: { label: 'Success', dotClass: 'bg-emerald-500', barClass: 'bg-emerald-500' },
   failure: { label: 'Failed', dotClass: 'bg-red-500', barClass: 'bg-red-500' },
   cancelled: { label: 'Cancelled', dotClass: 'bg-neutral-400', barClass: 'bg-neutral-400' },
   skipped: { label: 'Skipped', dotClass: 'bg-neutral-400', barClass: 'bg-neutral-400' },
-  // Statuses
   running: { label: 'Running', dotClass: 'bg-amber-500 animate-pulse', barClass: 'bg-amber-500' },
   in_progress: { label: 'Running', dotClass: 'bg-amber-500 animate-pulse', barClass: 'bg-amber-500' },
   waiting: { label: 'Waiting', dotClass: 'bg-blue-400 animate-pulse', barClass: 'bg-blue-400' },
@@ -55,6 +53,19 @@ const getStatusDisplay = (status: string, conclusion: string | null): StatusDisp
   if (conclusion && statusMap[conclusion]) return statusMap[conclusion];
   return statusMap[status] || { label: status.replace(/_/g, ' '), dotClass: 'bg-neutral-400', barClass: 'bg-neutral-400' };
 };
+
+function StepIcon({ status }: { status: GiteaStepSummary['status'] }) {
+  switch (status) {
+    case 'success':
+      return <Check size={10} className="text-emerald-500" />;
+    case 'failure':
+      return <X size={10} className="text-red-500" />;
+    case 'running':
+      return <Loader2 size={10} className="text-amber-500 animate-spin" />;
+    default:
+      return <Circle size={8} className="text-neutral-300 dark:text-neutral-600" />;
+  }
+}
 
 export function GiteaBuildStatus() {
   const { t } = useTranslation('common');
@@ -82,8 +93,6 @@ export function GiteaBuildStatus() {
         } catch {}
       };
       source.onerror = () => {
-        // EventSource auto-reconnects, but if it fails repeatedly
-        // close and retry after a delay to avoid rapid reconnect loops
         if (source?.readyState === EventSource.CLOSED) {
           source.close();
           reconnectTimeout = setTimeout(connect, 5000);
@@ -108,13 +117,15 @@ export function GiteaBuildStatus() {
   const data = liveData;
   const isRunning = data?.building || data?.run?.status === 'running' || data?.run?.status === 'in_progress' || data?.run?.status === 'waiting' || data?.run?.status === 'queued' || data?.run?.status === 'pending';
 
-  // Calculate progress from elapsed time vs average build duration
+  // Step-based progress
+  const steps = data?.jobs?.[0]?.steps ?? [];
+  const completedSteps = steps.filter(s => s.status === 'success' || s.status === 'failure').length;
+  const totalSteps = steps.length;
+  const stepProgress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
+  // Keep useElapsed hook call stable (before early return)
   const jobStartedAt = data?.jobs?.[0]?.started_at ?? data?.run?.created_at ?? null;
-  const elapsed = useElapsed(isRunning ? jobStartedAt : null);
-  const avgDuration = data?.avg_duration_seconds;
-  const buildProgress = !isRunning ? 100
-    : avgDuration && avgDuration > 0 ? Math.min(95, Math.round((elapsed / avgDuration) * 100))
-    : 10;
+  useElapsed(isRunning ? jobStartedAt : null);
 
   if (!data?.enabled || !data?.run) return null;
 
@@ -134,12 +145,13 @@ export function GiteaBuildStatus() {
           <div className="flex-1 min-w-0 text-left">
             <span className="truncate block">{t('dashboard.gitea.sidebarLabel', 'Build')}</span>
           </div>
-          {isRunning && (
-            <div className="w-12 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
-              <div className={`h-full rounded-full transition-all duration-500 ${runStatus.barClass}`} style={{ width: `${buildProgress}%` }} />
-            </div>
-          )}
-          {!isRunning && (
+          {isRunning && totalSteps > 0 ? (
+            <span className="text-[11px] tabular-nums text-amber-500 dark:text-amber-400 font-medium shrink-0">
+              {completedSteps}/{totalSteps}
+            </span>
+          ) : isRunning ? (
+            <Loader2 size={14} className="text-amber-500 animate-spin shrink-0" />
+          ) : (
             <span className={`h-2 w-2 rounded-full shrink-0 ${runStatus.dotClass}`} />
           )}
         </button>
@@ -175,31 +187,57 @@ export function GiteaBuildStatus() {
             </div>
 
             {data.jobs && data.jobs.length > 0 && (
-              <div className="space-y-1.5 mb-3">
+              <div className="space-y-2 mb-3">
                 {data.jobs.map((job) => {
                   const display = getStatusDisplay(job.status, job.conclusion);
                   return (
-                    <div key={job.id} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-md bg-neutral-50 dark:bg-neutral-900/40">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${display.dotClass}`} />
-                        <span className="text-xs text-neutral-700 dark:text-neutral-300 truncate">{job.name}</span>
+                    <div key={job.id}>
+                      {/* Job header */}
+                      <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-t-md bg-neutral-50 dark:bg-neutral-900/40">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${display.dotClass}`} />
+                          <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300 truncate">{job.name}</span>
+                        </div>
+                        <span className="text-[11px] text-neutral-400 tabular-nums shrink-0">
+                          {job.started_at && !job.completed_at
+                            ? <LiveElapsed startedAt={job.started_at} />
+                            : formatDuration(job.duration_seconds)}
+                        </span>
                       </div>
-                      <span className="text-[11px] text-neutral-400 tabular-nums shrink-0">
-                        {job.started_at && !job.completed_at
-                          ? <LiveElapsed startedAt={job.started_at} />
-                          : formatDuration(job.duration_seconds)}
-                      </span>
+                      {/* Steps inside job */}
+                      {job.steps.length > 0 && (
+                        <div className="border-x border-b border-neutral-100 dark:border-neutral-700/40 rounded-b-md px-2 py-1.5 space-y-1">
+                          {job.steps.map((step, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <span className="shrink-0 w-3.5 flex items-center justify-center">
+                                <StepIcon status={step.status} />
+                              </span>
+                              <span className={`text-[11px] truncate ${
+                                step.status === 'running' ? 'text-amber-600 dark:text-amber-400 font-medium' :
+                                step.status === 'success' ? 'text-neutral-500 dark:text-neutral-400' :
+                                step.status === 'failure' ? 'text-red-500' :
+                                'text-neutral-400 dark:text-neutral-500'
+                              }`}>
+                                {step.name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
               </div>
             )}
 
-            {isRunning && (
+            {isRunning && totalSteps > 0 && (
               <div className="mb-3">
                 <div className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
-                  <div className={`h-full rounded-full transition-all duration-500 ${runStatus.barClass}`} style={{ width: `${buildProgress}%` }} />
+                  <div className={`h-full rounded-full transition-all duration-500 ${runStatus.barClass}`} style={{ width: `${stepProgress}%` }} />
                 </div>
+                <p className="text-[10px] text-neutral-400 mt-1 text-right tabular-nums">
+                  {completedSteps}/{totalSteps}
+                </p>
               </div>
             )}
 
