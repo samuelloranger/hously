@@ -1,8 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  useUnsubscribeFromPushNotifications,
-  useVapidPublicKey,
-} from '@hously/shared';
+import { useUnsubscribeFromPushNotifications, useVapidPublicKey } from '@hously/shared';
 
 interface PushSubscription {
   endpoint: string;
@@ -44,13 +41,22 @@ export function useNotifications(): UseNotificationsReturn {
   const { data: vapidData } = useVapidPublicKey();
   const unsubscribeMutation = useUnsubscribeFromPushNotifications();
 
+  const getSubscriptionSafe = useCallback(async (registration: ServiceWorkerRegistration) => {
+    try {
+      return await registration.pushManager.getSubscription();
+    } catch (err) {
+      console.error('Error retrieving push subscription:', err);
+      return null;
+    }
+  }, []);
+
   // Check and sync subscription state
   const checkSubscriptionState = useCallback(async () => {
     if (!('serviceWorker' in navigator)) return;
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      const sub = await registration.pushManager.getSubscription();
+      const sub = await getSubscriptionSafe(registration);
 
       if (sub) {
         const subData = {
@@ -69,7 +75,7 @@ export function useNotifications(): UseNotificationsReturn {
     } catch (err) {
       console.error('Error getting subscription:', err);
     }
-  }, []);
+  }, [getSubscriptionSafe]);
 
   useEffect(() => {
     // Check if notifications and service workers are supported
@@ -125,7 +131,7 @@ export function useNotifications(): UseNotificationsReturn {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      const existingSubscription = await registration.pushManager.getSubscription();
+      const existingSubscription = await getSubscriptionSafe(registration);
 
       if (existingSubscription) {
         const sub = {
@@ -148,12 +154,23 @@ export function useNotifications(): UseNotificationsReturn {
 
       // Convert VAPID key to Uint8Array
       const vapidKey: Uint8Array = urlBase64ToUint8Array(vapidPublicKey);
-      const keyBuffer = new Uint8Array(vapidKey).buffer;
+      const applicationServerKey = vapidKey as unknown as BufferSource;
 
-      const newSubscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: keyBuffer,
-      });
+      let newSubscription: globalThis.PushSubscription;
+      try {
+        newSubscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        });
+      } catch (error) {
+        // Firefox can intermittently fail to read/create a subscription while registration is changing.
+        console.warn('Initial push subscribe failed, retrying after SW update:', error);
+        await registration.update();
+        newSubscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        });
+      }
 
       const sub = {
         endpoint: newSubscription.endpoint,
@@ -170,7 +187,7 @@ export function useNotifications(): UseNotificationsReturn {
       console.error('Error subscribing to push notifications:', error);
       return null;
     }
-  }, [isSupported, permission, vapidData?.publicKey]);
+  }, [isSupported, permission, vapidData?.publicKey, getSubscriptionSafe]);
 
   const unsubscribe = useCallback(async (): Promise<boolean> => {
     if (!isSupported) {
@@ -180,7 +197,7 @@ export function useNotifications(): UseNotificationsReturn {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      const existingSubscription = await registration.pushManager.getSubscription();
+      const existingSubscription = await getSubscriptionSafe(registration);
 
       let endpoint: string | null = null;
       if (existingSubscription) {
@@ -205,7 +222,7 @@ export function useNotifications(): UseNotificationsReturn {
       console.error('Error unsubscribing from push notifications:', error);
       return false;
     }
-  }, [isSupported, unsubscribeMutation]);
+  }, [isSupported, unsubscribeMutation, getSubscriptionSafe]);
 
   return {
     permission,
