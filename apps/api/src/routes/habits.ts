@@ -119,9 +119,10 @@ export const habitsRoutes = new Elysia()
           }),
         }
       )
-      .get('/', async ({ user }) => {
+      .get('/', async ({ user, query: { date: queryDate } }) => {
         const userId = getUserId(user);
-        const { start: startOfToday, end: startOfTomorrow } = getDayRange();
+        const targetDay = queryDate ? midnightOf(queryDate) : todayLocal();
+        const { start: startOfToday, end: startOfTomorrow } = getDayRange(targetDay);
 
         const habits = await prisma.habit.findMany({
           where: {

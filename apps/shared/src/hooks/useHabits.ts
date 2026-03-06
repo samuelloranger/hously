@@ -35,11 +35,15 @@ const syncHabitStatus = (
   today_remaining: response.remaining,
 }));
 
-export const useHabits = () => {
+export const useHabits = (date?: string) => {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: queryKeys.habits.list(),
-    queryFn: () => fetcher<HabitsResponse>(HABIT_ENDPOINTS.LIST),
+    queryKey: [...queryKeys.habits.list(), date] as const,
+    queryFn: () => {
+      let url = HABIT_ENDPOINTS.LIST;
+      if (date) url += `?date=${date}`;
+      return fetcher<HabitsResponse>(url);
+    },
   });
 };
 

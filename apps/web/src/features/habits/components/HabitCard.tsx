@@ -1,7 +1,15 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Plus, X } from 'lucide-react';
-import { Habit, useCompleteHabit, useSkipHabit, useUncompleteHabit, useUnskipHabit } from '@hously/shared';
+import {
+  Habit,
+  useCompleteHabit,
+  useSkipHabit,
+  useUncompleteHabit,
+  useUnskipHabit,
+  useCompleteHabitForDate,
+  useUncompleteHabitForDate,
+} from '@hously/shared';
 import { cn } from '../../../lib/utils';
 import { HabitProgress } from './HabitProgress';
 import { StreakBadge } from './StreakBadge';
@@ -9,16 +17,21 @@ import { ActionMenu } from '../../../components/ActionMenu';
 
 interface HabitCardProps {
   habit: Habit;
+  date?: string;
   onEdit: (habit: Habit) => void;
   onDelete: (habit: Habit) => void;
 }
 
-export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete }) => {
+export const HabitCard: React.FC<HabitCardProps> = ({ habit, date, onEdit, onDelete }) => {
   const { t } = useTranslation('common');
   const completeMutation = useCompleteHabit();
   const uncompleteMutation = useUncompleteHabit();
   const skipMutation = useSkipHabit();
   const unskipMutation = useUnskipHabit();
+  const completeDateMutation = useCompleteHabitForDate();
+  const uncompleteDateMutation = useUncompleteHabitForDate();
+
+  const isPastDay = !!date;
 
   const isFullyCompleted = habit.today_completions >= habit.times_per_day;
   const isAccountedForToday = habit.today_remaining <= 0;
@@ -26,7 +39,11 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
   const handleComplete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isAccountedForToday) return;
-    completeMutation.mutate(habit.id);
+    if (isPastDay) {
+      completeDateMutation.mutate({ id: habit.id, date });
+    } else {
+      completeMutation.mutate(habit.id);
+    }
   };
 
   const handleSkip = (e: React.MouseEvent) => {
@@ -37,7 +54,11 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
 
   const handleUncomplete = () => {
     if (habit.today_completions <= 0) return;
-    uncompleteMutation.mutate(habit.id);
+    if (isPastDay) {
+      uncompleteDateMutation.mutate({ id: habit.id, date });
+    } else {
+      uncompleteMutation.mutate(habit.id);
+    }
   };
 
   const handleUnskip = () => {
@@ -68,6 +89,9 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
       variant: 'danger' as const,
     },
   ];
+
+  const isCompletePending = completeMutation.isPending || completeDateMutation.isPending;
+  const isSkipPending = skipMutation.isPending;
 
   return (
     <div
@@ -108,8 +132,8 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
           <HabitProgress statuses={habit.schedule_statuses} />
           <div className="flex flex-wrap gap-1.5 mt-1">
             {habit.schedules.map((s) => (
-              <span 
-                key={s.id} 
+              <span
+                key={s.id}
                 className="px-1.5 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-700/60 text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700"
               >
                 {s.time}
@@ -124,7 +148,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
           <div className="flex items-center gap-2">
             <button
               onClick={handleSkip}
-              disabled={isAccountedForToday || skipMutation.isPending}
+              disabled={isAccountedForToday || isSkipPending}
               className={cn(
                 "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 border",
                 isAccountedForToday
@@ -133,12 +157,12 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
               )}
               aria-label={t('habits.notDone')}
             >
-              <X size={18} strokeWidth={3} className={cn(skipMutation.isPending && "animate-pulse")} />
+              <X size={18} strokeWidth={3} className={cn(isSkipPending && "animate-pulse")} />
             </button>
 
             <button
               onClick={handleComplete}
-              disabled={isAccountedForToday || completeMutation.isPending}
+              disabled={isAccountedForToday || isCompletePending}
               className={cn(
                 "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300",
                 isFullyCompleted
@@ -152,7 +176,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({ habit, onEdit, onDelete })
               {isFullyCompleted ? (
                 <Check size={20} strokeWidth={3} />
               ) : (
-                <Plus size={20} strokeWidth={3} className={cn(completeMutation.isPending && "animate-pulse")} />
+                <Plus size={20} strokeWidth={3} className={cn(isCompletePending && "animate-pulse")} />
               )}
             </button>
           </div>
