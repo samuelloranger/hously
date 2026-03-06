@@ -70,3 +70,26 @@ export interface HabitStatusResponse {
   remaining: number;
   accounted: number;
 }
+
+export interface WeeklyHabitDay {
+  completions: number;
+  skipped: number;
+  target: number;
+}
+
+export interface WeeklyHabit {
+  id: number;
+  name: string;
+  emoji: string;
+  description: string | null;
+  times_per_day: number;
+  active: boolean;
+  current_streak: number;
+  days: Record<string, WeeklyHabitDay>;
+}
+
+export interface WeeklyHabitsResponse {
+  habits: WeeklyHabit[];
+  days: string[];
+  week_start: string;
+}

@@ -8,6 +8,7 @@ import type {
   HabitsResponse,
   HabitStatusResponse,
   UpdateHabitRequest,
+  WeeklyHabitsResponse,
 } from '../types/habits';
 
 const updateHabitStatus = (
@@ -54,6 +55,51 @@ export const useHabitHistory = (id: number, days?: number) => {
       return fetcher<HabitHistoryResponse>(url);
     },
     enabled: !!id,
+  });
+};
+
+export const useWeeklyHabits = (weekStart?: string) => {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: [...queryKeys.habits.all, 'weekly', weekStart] as const,
+    queryFn: () => {
+      let url = HABIT_ENDPOINTS.WEEKLY;
+      if (weekStart) {
+        url += `?start=${weekStart}`;
+      }
+      return fetcher<WeeklyHabitsResponse>(url);
+    },
+  });
+};
+
+export const useCompleteHabitForDate = () => {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, date }: { id: number; date: string }) =>
+      fetcher<HabitStatusResponse>(HABIT_ENDPOINTS.COMPLETE(id), {
+        method: 'POST',
+        body: { date },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.habits.all });
+    },
+  });
+};
+
+export const useUncompleteHabitForDate = () => {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, date }: { id: number; date: string }) =>
+      fetcher<HabitStatusResponse>(`${HABIT_ENDPOINTS.UNCOMPLETE(id)}?date=${date}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.habits.all });
+    },
   });
 };
 

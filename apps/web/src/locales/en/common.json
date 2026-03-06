@@ -668,7 +668,9 @@
     "emojiRequired": "Please select an emoji",
     "scheduleRequired": "At least one notification time is required",
     "active": "Active",
-    "inactive": "Paused"
+    "inactive": "Paused",
+    "weeklyView": "Weekly view",
+    "cardView": "Card view"
   },
   "emotion": {
     "howDidYouFeel": "How did you feel?",

@@ -2,7 +2,7 @@ import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
 import { refreshHabitsStreakForUser } from '../utils/dashboard/habitsStreak';
-import { addDaysInTz, formatDateInTimezone, getTimezone, todayLocal } from '../utils/date';
+import { addDaysInTz, formatDateInTimezone, getTimezone, midnightOf, todayLocal } from '../utils/date';
 
 const DONE_STATUS = 'done';
 const SKIPPED_STATUS = 'skipped';
@@ -343,274 +343,358 @@ export const habitsRoutes = new Elysia()
 
         return { success: true };
       })
-      .post('/:id/complete', async ({ params: { id }, user, set }) => {
-        const userId = getUserId(user);
-        const habitIdNum = Number(id);
+      .post(
+        '/:id/complete',
+        async ({ params: { id }, body, user, set }) => {
+          const userId = getUserId(user);
+          const habitIdNum = Number(id);
 
-        const existingHabit = await prisma.habit.findFirst({
-          where: { id: habitIdNum, userId },
-        });
-
-        if (!existingHabit) {
-          set.status = 404;
-          return { error: 'Habit not found' };
-        }
-
-        const { start: startOfToday, end: startOfTomorrow } = getDayRange();
-
-        const todayCompletions = await prisma.habitCompletion.count({
-          where: {
-            habitId: habitIdNum,
-            status: DONE_STATUS,
-            completedAt: {
-              gte: startOfToday,
-              lt: startOfTomorrow,
-            },
-          },
-        });
-
-        const todaySkipped = await prisma.habitCompletion.count({
-          where: {
-            habitId: habitIdNum,
-            status: SKIPPED_STATUS,
-            completedAt: {
-              gte: startOfToday,
-              lt: startOfTomorrow,
-            },
-          },
-        });
-
-        if (todayCompletions + todaySkipped >= existingHabit.timesPerDay) {
-          return buildHabitStatusResponse(existingHabit.timesPerDay, todayCompletions, todaySkipped);
-        }
-
-        await prisma.$transaction(async (tx) => {
-          await tx.habitCompletion.create({
-            data: {
-              habitId: habitIdNum,
-              date: startOfToday,
-              completedAt: new Date(),
-              status: DONE_STATUS,
-            },
+          const existingHabit = await prisma.habit.findFirst({
+            where: { id: habitIdNum, userId },
           });
 
-          if (todayCompletions + todaySkipped + 1 >= existingHabit.timesPerDay) {
-            await tx.habitSchedule.updateMany({
-              where: { habitId: habitIdNum },
-              data: { lastNotificationSent: null },
-            });
+          if (!existingHabit) {
+            set.status = 404;
+            return { error: 'Habit not found' };
           }
-        });
 
-        refreshHabitsStreakForUser(userId).catch(() => {});
-        return buildHabitStatusResponse(existingHabit.timesPerDay, todayCompletions + 1, todaySkipped);
-      })
-      .delete('/:id/complete', async ({ params: { id }, user, set }) => {
-        const userId = getUserId(user);
-        const habitIdNum = Number(id);
+          const { start: dayStart, end: dayEnd } = body?.date
+            ? getDayRange(midnightOf(body.date))
+            : getDayRange();
 
-        const existingHabit = await prisma.habit.findFirst({
-          where: { id: habitIdNum, userId },
-        });
-
-        if (!existingHabit) {
-          set.status = 404;
-          return { error: 'Habit not found' };
-        }
-
-        const { start: startOfToday, end: startOfTomorrow } = getDayRange();
-
-        const lastCompletion = await prisma.habitCompletion.findFirst({
-          where: {
-            habitId: habitIdNum,
-            status: DONE_STATUS,
-            completedAt: {
-              gte: startOfToday,
-              lt: startOfTomorrow,
-            },
-          },
-          orderBy: {
-            completedAt: 'desc',
-          },
-        });
-
-        const skippedCount = await prisma.habitCompletion.count({
-          where: {
-            habitId: habitIdNum,
-            status: SKIPPED_STATUS,
-            completedAt: {
-              gte: startOfToday,
-              lt: startOfTomorrow,
-            },
-          },
-        });
-
-        if (!lastCompletion) {
-          const count = await prisma.habitCompletion.count({
+          const dayCompletions = await prisma.habitCompletion.count({
             where: {
               habitId: habitIdNum,
               status: DONE_STATUS,
-              completedAt: {
-                gte: startOfToday,
-                lt: startOfTomorrow,
-              },
+              completedAt: { gte: dayStart, lt: dayEnd },
             },
           });
-          return buildHabitStatusResponse(existingHabit.timesPerDay, count, skippedCount);
-        }
 
-        await prisma.habitCompletion.delete({
-          where: { id: lastCompletion.id },
-        });
-
-        const newCount = await prisma.habitCompletion.count({
-          where: {
-            habitId: habitIdNum,
-            status: DONE_STATUS,
-            completedAt: {
-              gte: startOfToday,
-              lt: startOfTomorrow,
-            },
-          },
-        });
-
-        refreshHabitsStreakForUser(userId).catch(() => {});
-        return buildHabitStatusResponse(existingHabit.timesPerDay, newCount, skippedCount);
-      })
-      .post('/:id/skip', async ({ params: { id }, user, set }) => {
-        const userId = getUserId(user);
-        const habitIdNum = Number(id);
-
-        const existingHabit = await prisma.habit.findFirst({
-          where: { id: habitIdNum, userId },
-        });
-
-        if (!existingHabit) {
-          set.status = 404;
-          return { error: 'Habit not found' };
-        }
-
-        const { start: startOfToday, end: startOfTomorrow } = getDayRange();
-
-        const todayCompletions = await prisma.habitCompletion.count({
-          where: {
-            habitId: habitIdNum,
-            status: DONE_STATUS,
-            completedAt: {
-              gte: startOfToday,
-              lt: startOfTomorrow,
-            },
-          },
-        });
-
-        const todaySkipped = await prisma.habitCompletion.count({
-          where: {
-            habitId: habitIdNum,
-            status: SKIPPED_STATUS,
-            completedAt: {
-              gte: startOfToday,
-              lt: startOfTomorrow,
-            },
-          },
-        });
-
-        if (todayCompletions + todaySkipped >= existingHabit.timesPerDay) {
-          return buildHabitStatusResponse(existingHabit.timesPerDay, todayCompletions, todaySkipped);
-        }
-
-        await prisma.$transaction(async (tx) => {
-          await tx.habitCompletion.create({
-            data: {
+          const daySkipped = await prisma.habitCompletion.count({
+            where: {
               habitId: habitIdNum,
-              date: startOfToday,
-              completedAt: new Date(),
               status: SKIPPED_STATUS,
+              completedAt: { gte: dayStart, lt: dayEnd },
             },
           });
 
-          if (todayCompletions + todaySkipped + 1 >= existingHabit.timesPerDay) {
-            await tx.habitSchedule.updateMany({
-              where: { habitId: habitIdNum },
-              data: { lastNotificationSent: null },
-            });
+          if (dayCompletions + daySkipped >= existingHabit.timesPerDay) {
+            return buildHabitStatusResponse(existingHabit.timesPerDay, dayCompletions, daySkipped);
           }
-        });
 
-        refreshHabitsStreakForUser(userId).catch(() => {});
-        return buildHabitStatusResponse(existingHabit.timesPerDay, todayCompletions, todaySkipped + 1);
-      })
-      .delete('/:id/skip', async ({ params: { id }, user, set }) => {
-        const userId = getUserId(user);
-        const habitIdNum = Number(id);
+          await prisma.$transaction(async (tx) => {
+            await tx.habitCompletion.create({
+              data: {
+                habitId: habitIdNum,
+                date: dayStart,
+                completedAt: body?.date ? dayStart : new Date(),
+                status: DONE_STATUS,
+              },
+            });
 
-        const existingHabit = await prisma.habit.findFirst({
-          where: { id: habitIdNum, userId },
-        });
+            if (!body?.date && dayCompletions + daySkipped + 1 >= existingHabit.timesPerDay) {
+              await tx.habitSchedule.updateMany({
+                where: { habitId: habitIdNum },
+                data: { lastNotificationSent: null },
+              });
+            }
+          });
 
-        if (!existingHabit) {
-          set.status = 404;
-          return { error: 'Habit not found' };
+          refreshHabitsStreakForUser(userId).catch(() => {});
+          return buildHabitStatusResponse(existingHabit.timesPerDay, dayCompletions + 1, daySkipped);
+        },
+        {
+          body: t.Optional(t.Object({
+            date: t.Optional(t.String()),
+          })),
         }
+      )
+      .delete(
+        '/:id/complete',
+        async ({ params: { id }, query: { date: queryDate }, user, set }) => {
+          const userId = getUserId(user);
+          const habitIdNum = Number(id);
 
-        const { start: startOfToday, end: startOfTomorrow } = getDayRange();
+          const existingHabit = await prisma.habit.findFirst({
+            where: { id: habitIdNum, userId },
+          });
 
-        const lastSkipped = await prisma.habitCompletion.findFirst({
-          where: {
-            habitId: habitIdNum,
-            status: SKIPPED_STATUS,
-            completedAt: {
-              gte: startOfToday,
-              lt: startOfTomorrow,
+          if (!existingHabit) {
+            set.status = 404;
+            return { error: 'Habit not found' };
+          }
+
+          const { start: dayStart, end: dayEnd } = queryDate
+            ? getDayRange(midnightOf(queryDate))
+            : getDayRange();
+
+          const lastCompletion = await prisma.habitCompletion.findFirst({
+            where: {
+              habitId: habitIdNum,
+              status: DONE_STATUS,
+              completedAt: { gte: dayStart, lt: dayEnd },
             },
-          },
-          orderBy: {
-            completedAt: 'desc',
-          },
-        });
+            orderBy: { completedAt: 'desc' },
+          });
 
-        const completionCount = await prisma.habitCompletion.count({
-          where: {
-            habitId: habitIdNum,
-            status: DONE_STATUS,
-            completedAt: {
-              gte: startOfToday,
-              lt: startOfTomorrow,
-            },
-          },
-        });
-
-        if (!lastSkipped) {
           const skippedCount = await prisma.habitCompletion.count({
             where: {
               habitId: habitIdNum,
               status: SKIPPED_STATUS,
-              completedAt: {
-                gte: startOfToday,
-                lt: startOfTomorrow,
+              completedAt: { gte: dayStart, lt: dayEnd },
+            },
+          });
+
+          if (!lastCompletion) {
+            const count = await prisma.habitCompletion.count({
+              where: {
+                habitId: habitIdNum,
+                status: DONE_STATUS,
+                completedAt: { gte: dayStart, lt: dayEnd },
+              },
+            });
+            return buildHabitStatusResponse(existingHabit.timesPerDay, count, skippedCount);
+          }
+
+          await prisma.habitCompletion.delete({
+            where: { id: lastCompletion.id },
+          });
+
+          const newCount = await prisma.habitCompletion.count({
+            where: {
+              habitId: habitIdNum,
+              status: DONE_STATUS,
+              completedAt: { gte: dayStart, lt: dayEnd },
+            },
+          });
+
+          refreshHabitsStreakForUser(userId).catch(() => {});
+          return buildHabitStatusResponse(existingHabit.timesPerDay, newCount, skippedCount);
+        }
+      )
+      .post(
+        '/:id/skip',
+        async ({ params: { id }, body, user, set }) => {
+          const userId = getUserId(user);
+          const habitIdNum = Number(id);
+
+          const existingHabit = await prisma.habit.findFirst({
+            where: { id: habitIdNum, userId },
+          });
+
+          if (!existingHabit) {
+            set.status = 404;
+            return { error: 'Habit not found' };
+          }
+
+          const { start: dayStart, end: dayEnd } = body?.date
+            ? getDayRange(midnightOf(body.date))
+            : getDayRange();
+
+          const dayCompletions = await prisma.habitCompletion.count({
+            where: {
+              habitId: habitIdNum,
+              status: DONE_STATUS,
+              completedAt: { gte: dayStart, lt: dayEnd },
+            },
+          });
+
+          const daySkipped = await prisma.habitCompletion.count({
+            where: {
+              habitId: habitIdNum,
+              status: SKIPPED_STATUS,
+              completedAt: { gte: dayStart, lt: dayEnd },
+            },
+          });
+
+          if (dayCompletions + daySkipped >= existingHabit.timesPerDay) {
+            return buildHabitStatusResponse(existingHabit.timesPerDay, dayCompletions, daySkipped);
+          }
+
+          await prisma.$transaction(async (tx) => {
+            await tx.habitCompletion.create({
+              data: {
+                habitId: habitIdNum,
+                date: dayStart,
+                completedAt: body?.date ? dayStart : new Date(),
+                status: SKIPPED_STATUS,
+              },
+            });
+
+            if (!body?.date && dayCompletions + daySkipped + 1 >= existingHabit.timesPerDay) {
+              await tx.habitSchedule.updateMany({
+                where: { habitId: habitIdNum },
+                data: { lastNotificationSent: null },
+              });
+            }
+          });
+
+          refreshHabitsStreakForUser(userId).catch(() => {});
+          return buildHabitStatusResponse(existingHabit.timesPerDay, dayCompletions, daySkipped + 1);
+        },
+        {
+          body: t.Optional(t.Object({
+            date: t.Optional(t.String()),
+          })),
+        }
+      )
+      .delete(
+        '/:id/skip',
+        async ({ params: { id }, query: { date: queryDate }, user, set }) => {
+          const userId = getUserId(user);
+          const habitIdNum = Number(id);
+
+          const existingHabit = await prisma.habit.findFirst({
+            where: { id: habitIdNum, userId },
+          });
+
+          if (!existingHabit) {
+            set.status = 404;
+            return { error: 'Habit not found' };
+          }
+
+          const { start: dayStart, end: dayEnd } = queryDate
+            ? getDayRange(midnightOf(queryDate))
+            : getDayRange();
+
+          const lastSkipped = await prisma.habitCompletion.findFirst({
+            where: {
+              habitId: habitIdNum,
+              status: SKIPPED_STATUS,
+              completedAt: { gte: dayStart, lt: dayEnd },
+            },
+            orderBy: { completedAt: 'desc' },
+          });
+
+          const completionCount = await prisma.habitCompletion.count({
+            where: {
+              habitId: habitIdNum,
+              status: DONE_STATUS,
+              completedAt: { gte: dayStart, lt: dayEnd },
+            },
+          });
+
+          if (!lastSkipped) {
+            const skippedCount = await prisma.habitCompletion.count({
+              where: {
+                habitId: habitIdNum,
+                status: SKIPPED_STATUS,
+                completedAt: { gte: dayStart, lt: dayEnd },
+              },
+            });
+            return buildHabitStatusResponse(existingHabit.timesPerDay, completionCount, skippedCount);
+          }
+
+          await prisma.habitCompletion.delete({
+            where: { id: lastSkipped.id },
+          });
+
+          const newSkippedCount = await prisma.habitCompletion.count({
+            where: {
+              habitId: habitIdNum,
+              status: SKIPPED_STATUS,
+              completedAt: { gte: dayStart, lt: dayEnd },
+            },
+          });
+
+          refreshHabitsStreakForUser(userId).catch(() => {});
+          return buildHabitStatusResponse(existingHabit.timesPerDay, completionCount, newSkippedCount);
+        }
+      )
+      .get(
+        '/weekly',
+        async ({ query: { start }, user }) => {
+          const userId = getUserId(user);
+          const weekStart = start ? midnightOf(start) : (() => {
+            const today = todayLocal();
+            const dow = new Date(today.getTime() + 12 * 60 * 60 * 1000).getUTCDay();
+            const mondayOffset = dow === 0 ? -6 : 1 - dow;
+            return addDaysInTz(today, mondayOffset);
+          })();
+          const weekEnd = addDaysInTz(weekStart, 7);
+
+          const habits = await prisma.habit.findMany({
+            where: { userId, active: true },
+            include: {
+              schedules: { select: { id: true, time: true } },
+              completions: {
+                where: {
+                  completedAt: { gte: weekStart, lt: weekEnd },
+                },
               },
             },
           });
-          return buildHabitStatusResponse(existingHabit.timesPerDay, completionCount, skippedCount);
+
+          const days: string[] = [];
+          for (let i = 0; i < 7; i++) {
+            days.push(formatDateInTimezone(addDaysInTz(weekStart, i)));
+          }
+
+          const weeklyHabits = habits.map((habit) => {
+            const dayData: Record<string, { completions: number; skipped: number; target: number }> = {};
+
+            for (const day of days) {
+              dayData[day] = { completions: 0, skipped: 0, target: habit.timesPerDay };
+            }
+
+            for (const c of habit.completions) {
+              const dateKey = formatDateInTimezone(c.completedAt);
+              if (dayData[dateKey]) {
+                if (c.status === DONE_STATUS) {
+                  dayData[dateKey].completions += 1;
+                } else if (c.status === SKIPPED_STATUS) {
+                  dayData[dateKey].skipped += 1;
+                }
+              }
+            }
+
+            return {
+              id: habit.id,
+              name: habit.name,
+              emoji: habit.emoji,
+              description: habit.description,
+              times_per_day: habit.timesPerDay,
+              active: habit.active,
+              current_streak: 0,
+              days: dayData,
+            };
+          });
+
+          // Calculate streaks
+          const todayStr = formatDateInTimezone(todayLocal());
+          for (const habit of weeklyHabits) {
+            const dbHabit = habits.find(h => h.id === habit.id)!;
+            const allCompletions = await prisma.habitCompletion.findMany({
+              where: {
+                habitId: habit.id,
+                status: DONE_STATUS,
+                completedAt: { lt: weekEnd },
+              },
+              select: { completedAt: true },
+              orderBy: { completedAt: 'desc' },
+            });
+
+            const completionsByDay = new Map<string, number>();
+            for (const c of allCompletions) {
+              const dateKey = formatDateInTimezone(c.completedAt);
+              completionsByDay.set(dateKey, (completionsByDay.get(dateKey) ?? 0) + 1);
+            }
+
+            let streak = 0;
+            let checkDate = addDaysInTz(todayLocal(), -1);
+            while ((completionsByDay.get(formatDateInTimezone(checkDate)) ?? 0) >= dbHabit.timesPerDay) {
+              streak++;
+              checkDate = addDaysInTz(checkDate, -1);
+            }
+            if ((completionsByDay.get(todayStr) ?? 0) >= dbHabit.timesPerDay) {
+              streak++;
+            }
+            habit.current_streak = streak;
+          }
+
+          return { habits: weeklyHabits, days, week_start: formatDateInTimezone(weekStart) };
         }
-
-        await prisma.habitCompletion.delete({
-          where: { id: lastSkipped.id },
-        });
-
-        const newSkippedCount = await prisma.habitCompletion.count({
-          where: {
-            habitId: habitIdNum,
-            status: SKIPPED_STATUS,
-            completedAt: {
-              gte: startOfToday,
-              lt: startOfTomorrow,
-            },
-          },
-        });
-
-        refreshHabitsStreakForUser(userId).catch(() => {});
-        return buildHabitStatusResponse(existingHabit.timesPerDay, completionCount, newSkippedCount);
-      })
+      )
       .get(
         '/:id/history',
         async ({ params: { id }, query: { days }, user, set }) => {

@@ -665,7 +665,9 @@
     "emojiRequired": "Veuillez sélectionner un emoji",
     "scheduleRequired": "Au moins une heure de notification est requise",
     "active": "Active",
-    "inactive": "En pause"
+    "inactive": "En pause",
+    "weeklyView": "Vue hebdomadaire",
+    "cardView": "Vue en cartes"
   },
   "emotion": {
     "howDidYouFeel": "Comment vous êtes-vous senti ?",

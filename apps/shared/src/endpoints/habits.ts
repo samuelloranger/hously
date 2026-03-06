@@ -8,4 +8,5 @@ export const HABIT_ENDPOINTS = {
   SKIP: (id: number) => `/api/habits/${id}/skip`,
   UNSKIP: (id: number) => `/api/habits/${id}/skip`,
   HISTORY: (id: number) => `/api/habits/${id}/history`,
+  WEEKLY: '/api/habits/weekly',
 } as const;

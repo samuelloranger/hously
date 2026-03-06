@@ -1,15 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus } from 'lucide-react';
+import { Plus, LayoutGrid, CalendarDays } from 'lucide-react';
 import { PageLayout } from '../../components/PageLayout';
 import { PageHeader } from '../../components/PageHeader';
-import { useHabits, useDeleteHabit, Habit } from '@hously/shared';
+import { useHabits, useDeleteHabit, Habit, WeeklyHabit } from '@hously/shared';
 import { HouseLoader } from '../../components/HouseLoader';
 import { EmptyState } from '../../components/EmptyState';
 import { HabitCard } from './components/HabitCard';
+import { WeeklyView } from './components/WeeklyView';
 import { CreateHabitModal } from './components/CreateHabitModal';
 import { EditHabitModal } from './components/EditHabitModal';
 import { toast } from 'sonner';
+import { cn } from '../../lib/utils';
+
+type ViewMode = 'weekly' | 'cards';
 
 export const HabitsList: React.FC = () => {
   const { t } = useTranslation('common');
@@ -18,6 +22,7 @@ export const HabitsList: React.FC = () => {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('weekly');
   const lastSeenDateKeyRef = useRef(new Date().toDateString());
 
   const habits = data?.habits || [];
@@ -57,13 +62,20 @@ export const HabitsList: React.FC = () => {
     };
   }, [refetch]);
 
-  const handleDelete = (habit: Habit) => {
+  const handleDelete = (habit: Habit | WeeklyHabit) => {
     if (!confirm(t('habits.deleteConfirm'))) return;
     deleteMutation.mutate(habit.id, {
       onSuccess: () => {
         toast.success(t('habits.habitDeleted'));
       }
     });
+  };
+
+  const handleEditFromWeekly = (weeklyHabit: WeeklyHabit) => {
+    const fullHabit = habits.find(h => h.id === weeklyHabit.id);
+    if (fullHabit) {
+      setEditingHabit(fullHabit);
+    }
   };
 
   return (
@@ -76,13 +88,43 @@ export const HabitsList: React.FC = () => {
         onRefresh={refetch}
         isRefreshing={isRefetching || isLoading}
         actions={
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 px-4 h-10 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-md shadow-primary-600/20 transition-all active:scale-95"
-          >
-            <Plus size={18} />
-            <span className="hidden sm:inline">{t('habits.addHabit')}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {/* View mode toggle */}
+            <div className="flex items-center rounded-xl bg-neutral-100 dark:bg-neutral-800 p-0.5">
+              <button
+                onClick={() => setViewMode('weekly')}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200",
+                  viewMode === 'weekly'
+                    ? "bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-sm"
+                    : "text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300"
+                )}
+                title={t('habits.weeklyView', 'Weekly view')}
+              >
+                <CalendarDays size={16} />
+              </button>
+              <button
+                onClick={() => setViewMode('cards')}
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200",
+                  viewMode === 'cards'
+                    ? "bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-sm"
+                    : "text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300"
+                )}
+                title={t('habits.cardView', 'Card view')}
+              >
+                <LayoutGrid size={16} />
+              </button>
+            </div>
+
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 px-4 h-10 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-md shadow-primary-600/20 transition-all active:scale-95"
+            >
+              <Plus size={18} />
+              <span className="hidden sm:inline">{t('habits.addHabit')}</span>
+            </button>
+          </div>
         }
       />
 
@@ -106,6 +148,11 @@ export const HabitsList: React.FC = () => {
               {t('habits.addHabit')}
             </button>
           </div>
+        ) : viewMode === 'weekly' ? (
+          <WeeklyView
+            onEdit={handleEditFromWeekly}
+            onDelete={handleDelete}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {habits.map((habit: Habit) => (
@@ -120,9 +167,9 @@ export const HabitsList: React.FC = () => {
         )}
       </div>
 
-      <CreateHabitModal 
-        isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
+      <CreateHabitModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
       />
 
       {editingHabit && (
