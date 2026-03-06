@@ -241,15 +241,34 @@ const handleJellyfinWebhook: WebhookHandler = payload => {
     }
   }
 
+  const rawName = firstString(payload.Name, payload.name, payload.Title, payload.title, item?.Name, item?.name);
+  const seriesName = firstString(payload.SeriesName, payload.seriesName, item?.SeriesName, item?.seriesName);
+  const seasonNum = firstString(payload.SeasonNumber00, payload.SeasonNumber, payload.seasonNumber);
+  const episodeNum = firstString(payload.EpisodeNumber00, payload.EpisodeNumber, payload.episodeNumber);
+  const itemType = firstString(payload.ItemType, payload.itemType, item?.Type, item?.type);
+
+  // Build a smart title: "SeriesName - S01E05" for episodes, raw name for everything else
+  let title = rawName || 'Unknown Item';
+  if (itemType === 'Episode' && seriesName) {
+    if (seasonNum && episodeNum) {
+      title = `${seriesName} - S${seasonNum.padStart(2, '0')}E${episodeNum.padStart(2, '0')}`;
+    } else {
+      title = `${seriesName} - ${rawName}`;
+    }
+  }
+
   const variables: Record<string, unknown> = {
     NotificationType: eventType,
-    Title: firstString(payload.Title, payload.title, item?.Name, item?.name) || 'Unknown Item',
+    Title: title,
+    SeriesName: seriesName,
+    SeasonNumber: seasonNum,
+    EpisodeNumber: episodeNum,
     Overview: firstString(payload.Overview, payload.overview, item?.Overview, item?.overview),
     ReleaseDate: firstString(payload.ReleaseDate, payload.releaseDate, item?.PremiereDate, item?.premiereDate),
     DateAdded: firstString(payload.DateAdded, payload.dateAdded, item?.DateCreated, item?.dateCreated),
     Genres: joinValues(payload.Genres || payload.genres || item?.Genres || item?.genres),
     Runtime:
-      firstString(payload.Runtime, payload.runtime) ||
+      firstString(payload.Runtime, payload.runtime, payload.RunTime, payload.runTime) ||
       formatTicks(item?.RunTimeTicks || item?.runTimeTicks || payload.RunTimeTicks || payload.runTimeTicks),
     PlaybackPosition:
       firstString(payload.PlaybackPosition, payload.playbackPosition) ||
@@ -258,9 +277,10 @@ const handleJellyfinWebhook: WebhookHandler = payload => {
       firstString(payload.NotificationUsername, payload.notificationUsername, user?.Name, user?.name) || 'Unknown User',
     NotificationUserId: firstString(payload.NotificationUserId, payload.notificationUserId, user?.Id, user?.id),
     ItemId: firstString(payload.ItemId, payload.itemId, item?.Id, item?.id),
-    ItemType: firstString(payload.ItemType, payload.itemType, item?.Type, item?.type),
+    ItemType: itemType,
     ServerId: firstString(payload.ServerId, payload.serverId, server?.Id, server?.id),
     ServerName: firstString(payload.ServerName, payload.serverName, server?.Name, server?.name) || 'Jellyfin Server',
+    ServerUrl: firstString(payload.ServerUrl, payload.serverUrl),
     Provider_tmdb: firstString(payload.Provider_tmdb, payload.provider_tmdb, providerIds?.Tmdb, providerIds?.tmdb),
     Provider_tvdb: firstString(payload.Provider_tvdb, payload.provider_tvdb, providerIds?.Tvdb, providerIds?.tvdb),
     Provider_imdb: firstString(payload.Provider_imdb, payload.provider_imdb, providerIds?.Imdb, providerIds?.imdb),
