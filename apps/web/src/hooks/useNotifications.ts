@@ -41,14 +41,45 @@ export function useNotifications(): UseNotificationsReturn {
   const { data: vapidData } = useVapidPublicKey();
   const unsubscribeMutation = useUnsubscribeFromPushNotifications();
 
-  const getSubscriptionSafe = useCallback(async (registration: ServiceWorkerRegistration) => {
-    try {
-      return await registration.pushManager.getSubscription();
-    } catch (err) {
-      console.error('Error retrieving push subscription:', err);
-      return null;
-    }
-  }, []);
+  const getSubscriptionSafe = useCallback(
+    async (registration: ServiceWorkerRegistration, options?: { allowReset?: boolean }) => {
+      const allowReset = options?.allowReset ?? false;
+
+      const readSubscription = async (swRegistration: ServiceWorkerRegistration) => {
+        return await swRegistration.pushManager.getSubscription();
+      };
+
+      try {
+        return await readSubscription(registration);
+      } catch (err) {
+        console.warn('Error retrieving push subscription, refreshing service worker registration:', err);
+      }
+
+      try {
+        await registration.update();
+        const refreshedRegistration = (await navigator.serviceWorker.getRegistration('/sw.js')) || registration;
+        return await readSubscription(refreshedRegistration);
+      } catch (err) {
+        console.warn('Push subscription still unavailable after registration refresh:', err);
+      }
+
+      if (!allowReset) {
+        return null;
+      }
+
+      try {
+        console.warn('Resetting service worker registration to recover push subscription state');
+        await registration.unregister();
+        await navigator.serviceWorker.register('/sw.js');
+        const readyRegistration = await navigator.serviceWorker.ready;
+        return await readSubscription(readyRegistration);
+      } catch (err) {
+        console.error('Error retrieving push subscription after service worker reset:', err);
+        return null;
+      }
+    },
+    []
+  );
 
   // Check and sync subscription state
   const checkSubscriptionState = useCallback(async () => {
@@ -131,7 +162,7 @@ export function useNotifications(): UseNotificationsReturn {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      const existingSubscription = await getSubscriptionSafe(registration);
+      const existingSubscription = await getSubscriptionSafe(registration, { allowReset: true });
 
       if (existingSubscription) {
         const sub = {
@@ -166,7 +197,8 @@ export function useNotifications(): UseNotificationsReturn {
         // Firefox can intermittently fail to read/create a subscription while registration is changing.
         console.warn('Initial push subscribe failed, retrying after SW update:', error);
         await registration.update();
-        newSubscription = await registration.pushManager.subscribe({
+        const refreshedRegistration = (await navigator.serviceWorker.getRegistration('/sw.js')) || registration;
+        newSubscription = await refreshedRegistration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey,
         });

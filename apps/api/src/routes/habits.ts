@@ -54,7 +54,10 @@ const getScheduleStatuses = (
   const sorted = [...schedules].sort((a, b) => a.time.localeCompare(b.time));
   if (sorted.length === 0) return [];
 
-  const statuses = sorted.map(s => ({ time: s.time, status: 'pending' as const }));
+  const statuses: { time: string; status: 'done' | 'skipped' | 'pending' }[] = sorted.map(s => ({
+    time: s.time,
+    status: 'pending',
+  }));
 
   // Assign completions to slots sequentially (first action → slot 1, second → slot 2, etc.)
   const sortedCompletions = [...completions].sort(

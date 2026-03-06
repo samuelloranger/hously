@@ -1,8 +1,10 @@
 import { Elysia } from 'elysia';
+import { auth } from '../../auth';
 import { createJsonSseResponse } from '../../utils/sse';
 import { fetchGiteaBuildStatus, isBuildActive } from '../../utils/dashboard/gitea';
 
 export const dashboardGiteaRoutes = new Elysia()
+  .use(auth)
   .get('/gitea/builds', async ({ user, set }) => {
     if (!user) {
       set.status = 401;
@@ -39,6 +41,7 @@ export const dashboardGiteaRoutes = new Elysia()
         enabled: true,
         connected: false,
         building: false,
+        avg_duration_seconds: null,
         run: null,
         jobs: null,
         logs: null,

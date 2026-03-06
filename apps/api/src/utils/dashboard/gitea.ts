@@ -89,6 +89,7 @@ export interface GiteaBuildStatus {
   enabled: boolean;
   connected: boolean;
   building: boolean;
+  avg_duration_seconds: number | null;
   run: GiteaRunSummary | null;
   jobs: GiteaJobSummary[] | null;
   logs: string | null;
@@ -238,17 +239,17 @@ export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaB
       markBuildCompleted();
     }
 
-    return { enabled: true, connected: true, building: isRunning, run, jobs, logs };
+    return { enabled: true, connected: true, building: isRunning, avg_duration_seconds: null, run, jobs, logs };
   } catch (error) {
     return {
       enabled: true,
       connected: false,
       building: false,
-           run: null,
+      avg_duration_seconds: null,
+      run: null,
       jobs: null,
       logs: null,
       error: error instanceof Error ? error.message : 'Failed to fetch Gitea build status',
     };
   }
 }
-
