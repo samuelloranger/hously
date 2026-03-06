@@ -100,7 +100,7 @@ const WORKFLOW_STEPS: { name: string; marker: string }[] = [
   { name: 'Signal build', marker: '⭐ Run Main Signal' },
   { name: 'Checkout', marker: 'Syncing repository' },
   { name: 'Build images', marker: 'load build definition from Dockerfile' },
-  { name: 'Restart containers', marker: 'Container hously-web Starting' },
+  { name: 'Restart containers', marker: 'up -d --force-recreate' },
 ];
 
 function parseStepsFromLogs(logText: string, jobCompleted: boolean): GiteaStepSummary[] {
