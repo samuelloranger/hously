@@ -78,17 +78,17 @@ export function TrackerStatsCard() {
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-emerald-950/70 dark:text-emerald-200/90">
+          <p className="text-[9px] uppercase tracking-[0.22em] text-emerald-950/70 dark:text-emerald-200/90">
             {t('dashboard.trackers.kicker')}
           </p>
-          <h3 className="text-lg md:text-xl font-bold text-emerald-950 dark:text-emerald-50">
+          <h3 className="text-base md:text-lg font-bold text-emerald-950 dark:text-emerald-50">
             {t('dashboard.trackers.title')}
           </h3>
-          <p className="text-[11px] text-emerald-900/70 dark:text-emerald-100/90 mt-1">
+          <p className="text-[10px] text-emerald-900/70 dark:text-emerald-100/90 mt-1">
             {t('dashboard.trackers.subtitle')}
           </p>
         </div>
-        <span className="rounded-full bg-black/15 dark:bg-black/25 px-3 py-1 text-xs font-medium text-emerald-950 dark:text-emerald-100">
+        <span className="rounded-full bg-black/15 dark:bg-black/25 px-3 py-1 text-[11px] font-medium text-emerald-950 dark:text-emerald-100">
           {anyConnected
             ? t('dashboard.trackers.connected', { count: connectedCount, total: trackers.length })
             : t('dashboard.trackers.disconnected')}
@@ -114,41 +114,41 @@ export function TrackerStatsCard() {
               return (
                 <article key={item.key} className="rounded-lg bg-black/10 dark:bg-black/20 p-2.5">
                   <div className="flex items-center justify-between gap-1 mb-1.5">
-                    <p className="text-xs font-semibold text-emerald-950 dark:text-white truncate">{item.label}</p>
-                    <span className="text-[9px] shrink-0 text-emerald-950/70 dark:text-emerald-100/80">
+                    <p className="text-[11px] font-semibold text-emerald-950 dark:text-white truncate">{item.label}</p>
+                    <span className="text-[8px] shrink-0 text-emerald-950/70 dark:text-emerald-100/80">
                       {showUnavailable ? t('dashboard.trackers.disconnected') : t('dashboard.trackers.connectedSimple')}
                     </span>
                   </div>
 
                   {showUnavailable ? (
-                    <p className="text-[10px] leading-tight text-emerald-950/85 dark:text-emerald-100/90">
+                    <p className="text-[9px] leading-tight text-emerald-950/85 dark:text-emerald-100/90">
                       {item.error || t('dashboard.trackers.notConnectedDescription')}
                     </p>
                   ) : (
                     <div className="flex flex-col gap-1">
                       <div className="flex items-baseline justify-between">
-                        <p className="text-[10px] text-emerald-950/75 dark:text-emerald-200/80">
+                        <p className="text-[9px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.uploaded')}
                         </p>
-                        <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatGo(item.uploaded_go)}</span>
+                        <span className="text-[11px] font-semibold text-emerald-950 dark:text-white leading-none">{formatGo(item.uploaded_go)}</span>
                       </div>
                       <div className="flex items-baseline justify-between">
-                        <p className="text-[10px] text-emerald-950/75 dark:text-emerald-200/80">
+                        <p className="text-[9px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.downloaded')}
                         </p>
-                        <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatGo(item.downloaded_go)}</span>
+                        <span className="text-[11px] font-semibold text-emerald-950 dark:text-white leading-none">{formatGo(item.downloaded_go)}</span>
                       </div>
                       <div className="flex items-baseline justify-between">
-                        <p className="text-[10px] text-emerald-950/75 dark:text-emerald-200/80">
+                        <p className="text-[9px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.ratio')}
                         </p>
-                        <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatRatio(item.ratio)}</span>
+                        <span className="text-[11px] font-semibold text-emerald-950 dark:text-white leading-none">{formatRatio(item.ratio)}</span>
                       </div>
                     </div>
                   )}
 
                   {updatedLabel ? (
-                    <p className="text-[9px] text-emerald-950/70 dark:text-emerald-100/80 mt-1.5">
+                    <p className="text-[8px] text-emerald-950/70 dark:text-emerald-100/80 mt-1.5">
                       {t('dashboard.trackers.updated', { value: updatedLabel })}
                     </p>
                   ) : null}

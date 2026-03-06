@@ -60,13 +60,13 @@ export function JellyfinLatestShelf() {
 
       <div className="relative flex items-center justify-between gap-4 mb-4 px-4 md:px-5 pt-4 md:pt-5">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-blue-900/75 dark:text-cyan-200/80">
+          <p className="text-[9px] uppercase tracking-[0.22em] text-blue-900/75 dark:text-cyan-200/80">
             {t('dashboard.jellyfin.kicker')}
           </p>
-          <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white">
+          <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">
             {t('dashboard.jellyfin.title')}
           </h3>
-          <p className="text-[11px] text-blue-900/70 dark:text-blue-100/80 mt-1">{t('dashboard.jellyfin.subtitle')}</p>
+          <p className="text-[10px] text-blue-900/70 dark:text-blue-100/80 mt-1">{t('dashboard.jellyfin.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -79,7 +79,7 @@ export function JellyfinLatestShelf() {
           >
             <span className={isFetching ? 'animate-spin' : ''}>↻</span>
           </button>
-          <div className="hidden md:flex h-9 w-9 items-center justify-center rounded-full border border-slate-900/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-lg">
+          <div className="hidden md:flex h-9 w-9 items-center justify-center rounded-full border border-slate-900/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-base">
             🍿
           </div>
         </div>
@@ -94,14 +94,14 @@ export function JellyfinLatestShelf() {
       ) : !isEnabled ? (
         <div className="mx-6 md:mx-8 rounded-2xl border border-amber-500/40 dark:border-amber-300/30 bg-amber-100/60 dark:bg-amber-300/10 p-4 text-amber-900 dark:text-amber-100">
           <p className="font-medium">{t('dashboard.jellyfin.notConnectedTitle')}</p>
-          <p className="text-sm text-amber-900/80 dark:text-amber-100/90 mt-1">
+          <p className="text-xs text-amber-900/80 dark:text-amber-100/90 mt-1">
             {t('dashboard.jellyfin.notConnectedDescription')}
           </p>
         </div>
       ) : items.length === 0 ? (
         <div className="mx-6 md:mx-8 rounded-2xl border border-slate-900/20 dark:border-white/20 bg-white/35 dark:bg-black/20 p-6 text-center">
           <p className="text-slate-900 dark:text-white font-medium">{t('dashboard.jellyfin.emptyTitle')}</p>
-          <p className="text-sm text-blue-900/70 dark:text-blue-100/80 mt-1">
+          <p className="text-xs text-blue-900/70 dark:text-blue-100/80 mt-1">
             {t('dashboard.jellyfin.emptyDescription')}
           </p>
         </div>
@@ -131,7 +131,7 @@ export function JellyfinLatestShelf() {
             })}
             {isFetching ? (
               <div className="w-[130px] md:w-[150px] shrink-0 rounded-2xl border border-slate-900/15 dark:border-white/15 bg-white/30 dark:bg-black/25 p-2.5 backdrop-blur-sm">
-                <div className="aspect-[2/3] rounded-xl bg-slate-900/15 dark:bg-neutral-900/60 flex items-center justify-center text-blue-900/80 dark:text-blue-100/85 text-xs">
+                <div className="aspect-[2/3] rounded-xl bg-slate-900/15 dark:bg-neutral-900/60 flex items-center justify-center text-blue-900/80 dark:text-blue-100/85 text-[11px]">
                   {t('common.loading')}
                 </div>
               </div>

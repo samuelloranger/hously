@@ -30,6 +30,11 @@ interface NavItem {
   icon: LucideIcon;
 }
 
+interface NavSection {
+  labelKey: string;
+  items: NavItem[];
+}
+
 export function Sidebar() {
   const { user } = useAuth();
   const { t, i18n } = useTranslation('common');
@@ -41,16 +46,26 @@ export function Sidebar() {
   const { isDark, toggleTheme } = useTheme();
   const updateProfile = useUpdateProfile();
 
-  const navItems: NavItem[] = [
-    { path: '/', translationKey: 'nav.dashboard', icon: LayoutDashboard },
-    { path: '/explore', translationKey: 'nav.explore', icon: Compass },
-    { path: '/library', translationKey: 'nav.library', icon: Library },
-    { path: '/torrents', translationKey: 'nav.torrents', icon: Magnet },
-    { path: '/shopping', translationKey: 'nav.shopping', icon: ShoppingCart },
-    { path: '/chores', translationKey: 'nav.chores', icon: ListChecks },
-    { path: '/habits', translationKey: 'nav.habits', icon: Target },
-    { path: '/kitchen', translationKey: 'nav.kitchen', icon: CookingPot },
-    { path: '/calendar', translationKey: 'nav.calendar', icon: CalendarIcon },
+  const navSections: NavSection[] = [
+    {
+      labelKey: 'nav.section_life',
+      items: [
+        { path: '/', translationKey: 'nav.dashboard', icon: LayoutDashboard },
+        { path: '/chores', translationKey: 'nav.chores', icon: ListChecks },
+        { path: '/habits', translationKey: 'nav.habits', icon: Target },
+        { path: '/shopping', translationKey: 'nav.shopping', icon: ShoppingCart },
+        { path: '/calendar', translationKey: 'nav.calendar', icon: CalendarIcon },
+        { path: '/kitchen', translationKey: 'nav.kitchen', icon: CookingPot },
+      ],
+    },
+    {
+      labelKey: 'nav.section_homelab',
+      items: [
+        { path: '/library', translationKey: 'nav.library', icon: Library },
+        { path: '/torrents', translationKey: 'nav.torrents', icon: Magnet },
+        { path: '/explore', translationKey: 'nav.explore', icon: Compass },
+      ],
+    },
   ];
 
   const languages = [
@@ -119,30 +134,39 @@ export function Sidebar() {
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
-          {navItems.map(item => {
-            const isActive =
-              item.path === '/'
-                ? currentPath === '/'
-                : currentPath === item.path || currentPath.startsWith(`${item.path}/`);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onMouseEnter={() => prefetchRoute(item.path)}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150',
-                  isActive
-                    ? 'bg-neutral-100 dark:bg-white/[0.08] text-neutral-900 dark:text-white'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] hover:text-neutral-800 dark:hover:text-neutral-200'
-                )}
-              >
-                <Icon size={18} className={cn(isActive && 'text-indigo-600 dark:text-indigo-400')} />
-                {t(item.translationKey)}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-5">
+          {navSections.map(section => (
+            <div key={section.labelKey}>
+              <span className="px-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                {t(section.labelKey)}
+              </span>
+              <div className="mt-1.5 space-y-0.5">
+                {section.items.map(item => {
+                  const isActive =
+                    item.path === '/'
+                      ? currentPath === '/'
+                      : currentPath === item.path || currentPath.startsWith(`${item.path}/`);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onMouseEnter={() => prefetchRoute(item.path)}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150',
+                        isActive
+                          ? 'bg-neutral-100 dark:bg-white/[0.08] text-neutral-900 dark:text-white'
+                          : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] hover:text-neutral-800 dark:hover:text-neutral-200'
+                      )}
+                    >
+                      <Icon size={18} className={cn(isActive && 'text-indigo-600 dark:text-indigo-400')} />
+                      {t(item.translationKey)}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Bottom section */}

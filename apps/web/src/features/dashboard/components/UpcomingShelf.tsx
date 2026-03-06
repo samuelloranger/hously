@@ -60,13 +60,13 @@ export function UpcomingShelf() {
 
         <div className="relative flex items-center justify-between gap-4 mb-4 px-4 md:px-5 pt-4 md:pt-5">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.22em] text-amber-950/70 dark:text-amber-200/80">
+            <p className="text-[9px] uppercase tracking-[0.22em] text-amber-950/70 dark:text-amber-200/80">
               {t('dashboard.upcoming.kicker')}
             </p>
-            <h3 className="text-lg md:text-xl font-bold text-amber-950 dark:text-amber-50">
+            <h3 className="text-base md:text-lg font-bold text-amber-950 dark:text-amber-50">
               {t('dashboard.upcoming.title')}
             </h3>
-            <p className="text-[11px] text-amber-900/70 dark:text-amber-100/80 mt-1">{t('dashboard.upcoming.subtitle')}</p>
+            <p className="text-[10px] text-amber-900/70 dark:text-amber-100/80 mt-1">{t('dashboard.upcoming.subtitle')}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -79,7 +79,7 @@ export function UpcomingShelf() {
             >
               <span className={isFetching ? 'animate-spin' : ''}>↻</span>
             </button>
-            <div className="hidden md:flex h-9 w-9 items-center justify-center rounded-full border border-amber-950/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-lg">
+            <div className="hidden md:flex h-9 w-9 items-center justify-center rounded-full border border-amber-950/15 dark:border-white/20 bg-black/10 dark:bg-white/10 text-base">
               🍿
             </div>
           </div>
@@ -94,14 +94,14 @@ export function UpcomingShelf() {
         ) : !data?.enabled ? (
           <div className="mx-6 md:mx-8 rounded-2xl border border-amber-500/40 dark:border-amber-300/30 bg-amber-100/60 dark:bg-black/20 p-4 text-amber-950 dark:text-amber-50">
             <p className="font-medium">{t('dashboard.upcoming.notConfiguredTitle')}</p>
-            <p className="text-sm text-amber-950/80 dark:text-amber-100/90 mt-1">
+            <p className="text-xs text-amber-950/80 dark:text-amber-100/90 mt-1">
               {t('dashboard.upcoming.notConfiguredDescription')}
             </p>
           </div>
         ) : data.items.length === 0 ? (
           <div className="mx-6 md:mx-8 rounded-2xl border border-amber-950/20 dark:border-white/20 bg-white/35 dark:bg-black/20 p-6 text-center">
             <p className="text-amber-950 dark:text-white font-medium">{t('dashboard.upcoming.emptyTitle')}</p>
-            <p className="text-sm text-amber-900/70 dark:text-amber-100/80 mt-1">
+            <p className="text-xs text-amber-900/70 dark:text-amber-100/80 mt-1">
               {t('dashboard.upcoming.emptyDescription')}
             </p>
           </div>

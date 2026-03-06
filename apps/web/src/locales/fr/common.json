@@ -12,7 +12,9 @@
     "tracker": "Péremption",
     "calendar": "Calendrier",
     "gifts": "Cadeaux",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "section_life": "Vie",
+    "section_homelab": "Homelab"
   },
   "calendar": {
     "title": "Calendrier",

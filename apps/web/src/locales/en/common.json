@@ -13,7 +13,9 @@
     "calendar": "Calendar",
     "services": "Services",
     "gifts": "Gifts",
-    "logout": "Logout"
+    "logout": "Logout",
+    "section_life": "Life",
+    "section_homelab": "Homelab"
   },
   "calendar": {
     "title": "Calendar",

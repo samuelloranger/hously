@@ -73,7 +73,7 @@ export function Dashboard() {
           )}
         </div>
 
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid">
+        <div className="columns-1 md:columns-2 gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid">
           <WeatherWidget />
           <div onMouseEnter={() => prefetchRoute('/torrents')} onTouchStart={() => prefetchRoute('/torrents')}>
             <QbittorrentLiveCard />
