@@ -51,11 +51,11 @@ export function Dialog({
             >
               <DialogPanel
                 className={cn(
-                  'pointer-events-auto w-full max-w-2xl max-h-[90dvh] transform overflow-y-auto rounded-2xl bg-neutral-50 dark:bg-neutral-800 p-6 text-left align-middle shadow-xl transition-all border border-neutral-200 dark:border-neutral-700',
+                  'pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col transform overflow-y-auto rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl transition-all dark:border-neutral-700 dark:bg-neutral-800',
                   panelClassName
                 )}
               >
-                <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="mb-4 flex shrink-0 items-start justify-between gap-4">
                   <DialogTitle as="h3" className="text-lg font-medium leading-6 text-neutral-900 dark:text-white">
                     {title}
                   </DialogTitle>
@@ -71,7 +71,7 @@ export function Dialog({
                   )}
                 </div>
 
-                {children}
+                <div className="min-h-0 flex-1">{children}</div>
               </DialogPanel>
             </TransitionChild>
           </div>
