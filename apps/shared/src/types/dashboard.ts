@@ -460,6 +460,7 @@ export interface DashboardGiteaBuildResponse {
   enabled: boolean;
   connected: boolean;
   building: boolean;
+  avg_duration_seconds: number | null;
   run: GiteaRunSummary | null;
   jobs: GiteaJobSummary[] | null;
   logs: string | null;

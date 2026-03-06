@@ -12,16 +12,25 @@ const formatDuration = (seconds: number | null): string => {
   return `${mins}m ${secs}s`;
 };
 
-function LiveElapsed({ startedAt }: { startedAt: string }) {
-  const [elapsed, setElapsed] = useState(() => Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 1000)));
+function useElapsed(startedAt: string | null | undefined) {
+  const [elapsed, setElapsed] = useState(() =>
+    startedAt ? Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 1000)) : 0
+  );
 
   useEffect(() => {
+    if (!startedAt) { setElapsed(0); return; }
+    setElapsed(Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 1000)));
     const interval = setInterval(() => {
       setElapsed(Math.max(0, Math.round((Date.now() - new Date(startedAt).getTime()) / 1000)));
     }, 1000);
     return () => clearInterval(interval);
   }, [startedAt]);
 
+  return elapsed;
+}
+
+function LiveElapsed({ startedAt }: { startedAt: string }) {
+  const elapsed = useElapsed(startedAt);
   return <>{formatDuration(elapsed)}</>;
 }
 
@@ -97,10 +106,19 @@ export function GiteaBuildStatus() {
   }, [liveData?.logs, showLogs]);
 
   const data = liveData;
+  const isRunning = data?.building || data?.run?.status === 'running' || data?.run?.status === 'in_progress' || data?.run?.status === 'waiting' || data?.run?.status === 'queued' || data?.run?.status === 'pending';
+
+  // Calculate progress from elapsed time vs average build duration
+  const jobStartedAt = data?.jobs?.[0]?.started_at ?? data?.run?.created_at ?? null;
+  const elapsed = useElapsed(isRunning ? jobStartedAt : null);
+  const avgDuration = data?.avg_duration_seconds;
+  const buildProgress = !isRunning ? 100
+    : avgDuration && avgDuration > 0 ? Math.min(95, Math.round((elapsed / avgDuration) * 100))
+    : 10;
+
   if (!data?.enabled || !data?.run) return null;
 
   const runStatus = getStatusDisplay(data.run.status, data.run.conclusion ?? data.jobs?.[0]?.conclusion ?? null);
-  const isRunning = data.building || data.run.status === 'running' || data.run.status === 'in_progress' || data.run.status === 'waiting' || data.run.status === 'queued' || data.run.status === 'pending';
 
   return (
     <Popover.Root open={isOpen} onOpenChange={setIsOpen}>
@@ -118,7 +136,7 @@ export function GiteaBuildStatus() {
           </div>
           {isRunning && (
             <div className="w-12 h-1.5 rounded-full bg-neutral-200 dark:bg-white/10 overflow-hidden">
-              <div className={`h-full rounded-full animate-pulse ${runStatus.barClass}`} style={{ width: '66%' }} />
+              <div className={`h-full rounded-full transition-all duration-500 ${runStatus.barClass}`} style={{ width: `${buildProgress}%` }} />
             </div>
           )}
           {!isRunning && (
@@ -180,7 +198,7 @@ export function GiteaBuildStatus() {
             {isRunning && (
               <div className="mb-3">
                 <div className="h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
-                  <div className={`h-full rounded-full animate-pulse ${runStatus.barClass}`} style={{ width: '66%' }} />
+                  <div className={`h-full rounded-full transition-all duration-500 ${runStatus.barClass}`} style={{ width: `${buildProgress}%` }} />
                 </div>
               </div>
             )}

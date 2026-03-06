@@ -83,6 +83,7 @@ export interface GiteaBuildStatus {
   enabled: boolean;
   connected: boolean;
   building: boolean;
+  avg_duration_seconds: number | null;
   run: GiteaRunSummary | null;
   jobs: GiteaJobSummary[] | null;
   logs: string | null;
@@ -116,6 +117,33 @@ function markBuildCompleted() {
   buildActive = false;
 }
 
+// --- Average build duration cache ---
+let cachedAvgDuration: number | null = null;
+let avgDurationFetchedAt = 0;
+const AVG_DURATION_TTL_MS = 5 * 60 * 1000;
+
+async function getAvgBuildDuration(): Promise<number | null> {
+  if (cachedAvgDuration !== null && Date.now() - avgDurationFetchedAt < AVG_DURATION_TTL_MS) {
+    return cachedAvgDuration;
+  }
+  try {
+    const data = await giteaFetch<{ workflow_runs: GiteaRunRaw[] }>('/actions/runs?limit=5');
+    const completedRuns = data.workflow_runs.filter(r =>
+      r.status === 'completed' && sanitizeTimestamp(r.started_at) && sanitizeTimestamp(r.completed_at)
+    );
+    if (completedRuns.length === 0) return null;
+    const durations = completedRuns.map(r =>
+      computeDuration(r.started_at, r.completed_at)!
+    ).filter(d => d > 0);
+    if (durations.length === 0) return null;
+    cachedAvgDuration = Math.round(durations.reduce((a, b) => a + b, 0) / durations.length);
+    avgDurationFetchedAt = Date.now();
+    return cachedAvgDuration;
+  } catch {
+    return cachedAvgDuration;
+  }
+}
+
 /** Gitea returns "1970-01-01T00:00:00Z" instead of null for unset timestamps */
 function sanitizeTimestamp(ts: string | null): string | null {
   if (!ts) return null;
@@ -134,14 +162,14 @@ function computeDuration(started: string | null, completed: string | null): numb
 
 export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaBuildStatus> {
   if (!GITEA_TOKEN) {
-    return { enabled: false, connected: false, building: false, run: null, jobs: null, logs: null };
+    return { enabled: false, connected: false, building: false, avg_duration_seconds: null, run: null, jobs: null, logs: null };
   }
 
   try {
     const runsData = await giteaFetch<{ workflow_runs: GiteaRunRaw[] }>('/actions/runs?limit=1');
     const latestRun = runsData.workflow_runs?.[0];
     if (!latestRun) {
-      return { enabled: true, connected: true, building: false, run: null, jobs: null, logs: null };
+      return { enabled: true, connected: true, building: false, avg_duration_seconds: null, run: null, jobs: null, logs: null };
     }
 
     const isRunning = ['running', 'in_progress', 'waiting', 'queued', 'pending'].includes(latestRun.status);
@@ -186,12 +214,15 @@ export async function fetchGiteaBuildStatus(includeLogs = false): Promise<GiteaB
       markBuildCompleted();
     }
 
-    return { enabled: true, connected: true, building: isRunning, run, jobs, logs };
+    const avgDuration = isRunning ? await getAvgBuildDuration() : null;
+
+    return { enabled: true, connected: true, building: isRunning, avg_duration_seconds: avgDuration, run, jobs, logs };
   } catch (error) {
     return {
       enabled: true,
       connected: false,
       building: false,
+      avg_duration_seconds: null,
       run: null,
       jobs: null,
       logs: null,
