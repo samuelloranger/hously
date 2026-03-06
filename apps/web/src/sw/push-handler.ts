@@ -3,6 +3,8 @@ import { handleAppUpdate } from './app-update';
 import { syncBadgeCount } from './badge';
 import type { PushNotificationData } from './types';
 
+const NOTIFICATION_EVENT_CHANNEL = 'hously-notification-events';
+
 export function handlePush(event: PushEvent): void {
   let data: PushNotificationData = {};
 
@@ -14,13 +16,22 @@ export function handlePush(event: PushEvent): void {
     }
   }
 
+  const messagePayload = {
+    type: 'notification-received' as const,
+    notificationData: data,
+  };
+
   const broadcast_promise = sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
     clients.forEach(client => {
-      client.postMessage({
-        type: 'notification-received',
-        notificationData: data,
-      });
+      client.postMessage(messagePayload);
     });
+
+    // Fallback for browsers/tabs where SW client messaging is flaky for uncontrolled windows.
+    if ('BroadcastChannel' in self) {
+      const channel = new BroadcastChannel(NOTIFICATION_EVENT_CHANNEL);
+      channel.postMessage(messagePayload);
+      channel.close();
+    }
   });
 
   const title = data.title || 'Hously';
