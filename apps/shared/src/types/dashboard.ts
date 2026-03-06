@@ -260,6 +260,33 @@ export interface DashboardQbittorrentTorrentTrackersResponse {
   error?: string;
 }
 
+export interface DashboardAdguardTopEntry {
+  name: string;
+  hits: number;
+}
+
+export interface DashboardAdguardSummary {
+  dns_queries: number;
+  blocked_queries: number;
+  blocked_ratio: number | null;
+  avg_processing_time_ms: number | null;
+  safebrowsing_blocked: number;
+  safesearch_rewritten: number;
+  parental_blocked: number;
+}
+
+export interface DashboardAdguardSummaryResponse {
+  enabled: boolean;
+  connected: boolean;
+  updated_at: string;
+  protection_enabled: boolean;
+  version: string | null;
+  summary: DashboardAdguardSummary;
+  top_blocked_domains: DashboardAdguardTopEntry[];
+  top_clients: DashboardAdguardTopEntry[];
+  error?: string;
+}
+
 export interface QbittorrentTorrentFile {
   index: number;
   name: string;

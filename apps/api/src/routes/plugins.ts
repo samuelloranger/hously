@@ -6,6 +6,7 @@ import { nowUtc } from '../utils';
 import { normalizeQbittorrentConfig, invalidateQbittorrentPluginConfigCache } from '../services/qbittorrentService';
 import { clampInteger, isValidHttpUrl, toProfiles } from '../utils/plugins/utils';
 import {
+  normalizeAdguardConfig,
   normalizeHackernewsConfig,
   normalizeJellyfinConfig,
   normalizeNetdataConfig,
@@ -1068,6 +1069,139 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
     {
       body: t.Object({
         website_url: t.String(),
+        enabled: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  .get('/adguard', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    if (!user.is_admin) {
+      set.status = 403;
+      return { error: 'Admin privileges required' };
+    }
+
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'adguard' },
+      });
+
+      const config = normalizeAdguardConfig(plugin?.config);
+      const rawConfig =
+        plugin?.config && typeof plugin.config === 'object' && !Array.isArray(plugin.config)
+          ? (plugin.config as Record<string, unknown>)
+          : null;
+
+      return {
+        plugin: {
+          type: 'adguard',
+          enabled: plugin?.enabled || false,
+          website_url: config?.website_url || '',
+          username: config?.username || (typeof rawConfig?.username === 'string' ? rawConfig.username : ''),
+          password_set: Boolean(config?.password),
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching AdGuard Home plugin config:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch AdGuard Home plugin config' };
+    }
+  })
+  .put(
+    '/adguard',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: 'Admin privileges required' };
+      }
+
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const username = body.username.trim();
+
+      if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
+        set.status = 400;
+        return { error: 'Invalid website_url. Must be a valid http(s) URL.' };
+      }
+
+      if (!username) {
+        set.status = 400;
+        return { error: 'username is required' };
+      }
+
+      try {
+        const existingPlugin = await prisma.plugin.findFirst({
+          where: { type: 'adguard' },
+        });
+        const existingConfig = normalizeAdguardConfig(existingPlugin?.config);
+        const providedPassword = body.password?.trim() || '';
+        const password = providedPassword || existingConfig?.password || '';
+
+        if (!password) {
+          set.status = 400;
+          return { error: 'password is required' };
+        }
+
+        const now = nowUtc();
+        const enabled = body.enabled ?? existingPlugin?.enabled ?? true;
+        const config: Prisma.InputJsonValue = {
+          website_url: websiteUrl,
+          username,
+          password: encrypt(password),
+        };
+
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'adguard' },
+          update: {
+            enabled,
+            config,
+            updatedAt: now,
+          },
+          create: {
+            type: 'adguard',
+            enabled,
+            config,
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        enqueueTask('activity:plugin_updated:adguard', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'adguard' },
+          });
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            website_url: websiteUrl,
+            username,
+            password_set: true,
+          },
+        };
+      } catch (error) {
+        console.error('Error saving AdGuard Home plugin config:', error);
+        set.status = 500;
+        return { error: 'Failed to save AdGuard Home plugin config' };
+      }
+    },
+    {
+      body: t.Object({
+        website_url: t.String(),
+        username: t.String(),
+        password: t.Optional(t.String()),
         enabled: t.Optional(t.Boolean()),
       }),
     }

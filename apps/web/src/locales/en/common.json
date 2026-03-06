@@ -288,6 +288,28 @@
       "hideDisks": "Hide disks",
       "emptyTitle": "No disk usage data available yet."
     },
+    "adguard": {
+      "kicker": "From your DNS shield",
+      "title": "AdGuard Home",
+      "subtitle": "DNS protection, blocked traffic, and busiest clients.",
+      "disconnected": "Disconnected",
+      "protectionOn": "Protection on",
+      "protectionOff": "Protection paused",
+      "notConnectedTitle": "AdGuard Home is not connected yet",
+      "notConnectedDescription": "Open Settings > Plugins and connect AdGuard Home to display DNS protection stats here.",
+      "queries": "Queries",
+      "blocked": "Blocked",
+      "blockRate": "Block rate",
+      "avgTime": "Avg time",
+      "topBlocked": "Top blocked domains",
+      "topClients": "Top clients",
+      "safeBrowsing": "Safe Browsing",
+      "safeSearch": "Safe Search",
+      "parental": "Parental",
+      "version": "v{{value}}",
+      "emptyBlocked": "No blocked domains recorded yet.",
+      "emptyClients": "No client activity recorded yet."
+    },
     "loading": "Loading dashboard...",
     "user": "User",
     "subtexts": {
@@ -975,6 +997,13 @@
       "netdata": {
         "help": "Connect Netdata to show live system metrics and per-disk usage on the dashboard.",
         "websiteUrl": "Netdata URL"
+      },
+      "adguard": {
+        "help": "Connect AdGuard Home to surface DNS filtering, blocked traffic, and active clients on the dashboard.",
+        "websiteUrl": "AdGuard Home URL",
+        "username": "AdGuard Home Username",
+        "password": "AdGuard Home Password",
+        "passwordPlaceholder": "Leave empty to keep existing password"
       },
       "trackers": {
         "title": "Trackers",

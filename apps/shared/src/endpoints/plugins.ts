@@ -9,6 +9,7 @@ export const PLUGIN_ENDPOINTS = {
   QBITTORRENT: '/api/plugins/qbittorrent',
   SCRUTINY: '/api/plugins/scrutiny',
   NETDATA: '/api/plugins/netdata',
+  ADGUARD: '/api/plugins/adguard',
   WEATHER: '/api/plugins/weather',
   TMDB: '/api/plugins/tmdb',
   C411: '/api/plugins/c411',

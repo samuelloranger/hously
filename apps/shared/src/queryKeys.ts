@@ -41,6 +41,7 @@ export const queryKeys = {
     qbittorrentTorrentPeers: (hash: string) => [...queryKeys.dashboard.all, 'qbittorrent-torrent-peers', hash] as const,
     scrutinySummary: () => [...queryKeys.dashboard.all, 'scrutiny-summary'] as const,
     netdataSummary: () => [...queryKeys.dashboard.all, 'netdata-summary'] as const,
+    adguardSummary: () => [...queryKeys.dashboard.all, 'adguard-summary'] as const,
   },
 
   weather: {
@@ -83,6 +84,7 @@ export const queryKeys = {
     qbittorrent: () => [...queryKeys.plugins.all, 'qbittorrent'] as const,
     scrutiny: () => [...queryKeys.plugins.all, 'scrutiny'] as const,
     netdata: () => [...queryKeys.plugins.all, 'netdata'] as const,
+    adguard: () => [...queryKeys.plugins.all, 'adguard'] as const,
     weather: () => [...queryKeys.plugins.all, 'weather'] as const,
     tmdb: () => [...queryKeys.plugins.all, 'tmdb'] as const,
   },

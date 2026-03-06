@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 import {
+  AdguardPluginSection,
   JellyfinPluginSection,
   NetdataPluginSection,
   ProwlarrPluginSection,
@@ -65,6 +66,7 @@ export function PluginsTab() {
           <QbittorrentPluginSection />
           <ScrutinyPluginSection />
           <NetdataPluginSection />
+          <AdguardPluginSection />
         </div>
       ) : (
         <div className="space-y-4 animate-in fade-in duration-200">

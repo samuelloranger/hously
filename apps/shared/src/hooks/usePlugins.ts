@@ -3,6 +3,8 @@ import { useFetcher } from './context';
 import { queryKeys } from '../queryKeys';
 import { DASHBOARD_ENDPOINTS, PLUGIN_ENDPOINTS } from '../endpoints';
 import type {
+  AdguardPlugin,
+  AdguardPluginUpdateResponse,
   ArrProfile,
   DashboardTrackerStatsResponse,
   DashboardTrackersStatsResponse,
@@ -152,6 +154,16 @@ export function useNetdataPlugin() {
   return useQuery({
     queryKey: queryKeys.plugins.netdata(),
     queryFn: () => fetcher<{ plugin: NetdataPlugin }>(PLUGIN_ENDPOINTS.NETDATA),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useAdguardPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.adguard(),
+    queryFn: () => fetcher<{ plugin: AdguardPlugin }>(PLUGIN_ENDPOINTS.ADGUARD),
     refetchOnMount: 'always',
     staleTime: 0,
   });
@@ -308,6 +320,22 @@ export function useUpdateNetdataPlugin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.netdata() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.netdataSummary() });
+    },
+  });
+}
+
+export function useUpdateAdguardPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { website_url: string; username: string; password?: string; enabled: boolean }) =>
+      fetcher<AdguardPluginUpdateResponse>(PLUGIN_ENDPOINTS.ADGUARD, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.adguard() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.adguardSummary() });
     },
   });
 }

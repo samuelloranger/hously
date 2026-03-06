@@ -60,6 +60,14 @@ export interface NetdataPlugin {
   website_url: string;
 }
 
+export interface AdguardPlugin {
+  type: 'adguard';
+  enabled: boolean;
+  website_url: string;
+  username: string;
+  password_set: boolean;
+}
+
 export interface WeatherPlugin {
   type: 'weather';
   enabled: boolean;
@@ -122,6 +130,11 @@ export interface ScrutinyPluginUpdateResponse {
 export interface NetdataPluginUpdateResponse {
   success: boolean;
   plugin: NetdataPlugin;
+}
+
+export interface AdguardPluginUpdateResponse {
+  success: boolean;
+  plugin: AdguardPlugin;
 }
 
 export interface WeatherPluginUpdateResponse {

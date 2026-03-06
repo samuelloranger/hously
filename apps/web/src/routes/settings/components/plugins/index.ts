@@ -1,3 +1,4 @@
+export { AdguardPluginSection } from './AdguardPluginSection';
 export { JellyfinPluginSection } from './JellyfinPluginSection';
 export { PluginUrlInput } from './PluginUrlInput';
 export { NetdataPluginSection } from './NetdataPluginSection';

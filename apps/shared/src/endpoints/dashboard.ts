@@ -54,5 +54,8 @@ export const DASHBOARD_ENDPOINTS = {
     SUMMARY: '/api/dashboard/netdata/summary',
     STREAM: '/api/dashboard/netdata/stream',
   },
+  ADGUARD: {
+    SUMMARY: '/api/dashboard/adguard/summary',
+  },
   WEATHER: '/api/dashboard/weather',
 } as const;

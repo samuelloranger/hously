@@ -6,6 +6,7 @@ import { JellyfinLatestShelf } from './components/JellyfinLatestShelf';
 import { QbittorrentLiveCard } from './components/QbittorrentLiveCard';
 import { ScrutinyHealthCard } from './components/ScrutinyHealthCard';
 import { NetdataOverviewCard } from './components/NetdataOverviewCard';
+import { AdguardOverviewCard } from './components/AdguardOverviewCard';
 import { WeatherWidget } from './components/WeatherWidget';
 import { TrackerStatsCard } from './components/TrackerStatsCard';
 import { RecentActivityCard } from './components/RecentActivityCard';
@@ -95,6 +96,12 @@ export function Dashboard() {
             onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
           >
             <NetdataOverviewCard />
+          </div>
+          <div
+            onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+            onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+          >
+            <AdguardOverviewCard />
           </div>
           <div
             onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}

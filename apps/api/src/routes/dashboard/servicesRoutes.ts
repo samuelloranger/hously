@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia';
 import { auth } from '../../auth';
+import { fetchAdguardSummary } from '../../utils/dashboard/adguard';
 import { buildNetdataDisabledSummary, fetchNetdataSummary } from '../../utils/dashboard/netdata';
 import { fetchScrutinySummary } from '../../utils/dashboard/scrutiny';
 import { fetchHackerNewsStories, HN_CACHE_TTL_SECONDS } from '../../utils/dashboard/hackernews';
@@ -204,6 +205,20 @@ export const dashboardServiceRoutes = new Elysia()
       }),
       logLabel: 'Netdata stream',
     });
+  })
+  .get('/adguard/summary', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    try {
+      return await fetchAdguardSummary();
+    } catch (error) {
+      console.error('Error fetching AdGuard Home summary:', error);
+      set.status = 500;
+      return { error: 'Failed to get AdGuard Home summary' };
+    }
   })
   .get('/hackernews', async ({ user, set }) => {
     if (!user) {

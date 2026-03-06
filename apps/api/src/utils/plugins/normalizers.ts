@@ -1,4 +1,5 @@
 import type {
+  AdguardPluginConfig,
   RedditPluginConfig,
   HackernewsPluginConfig,
   JellyfinPluginConfig,
@@ -138,6 +139,20 @@ export const normalizeNetdataConfig = (config: unknown): NetdataPluginConfig | n
   if (!websiteUrl) return null;
   return {
     website_url: websiteUrl.replace(/\/+$/, ''),
+  };
+};
+
+export const normalizeAdguardConfig = (config: unknown): AdguardPluginConfig | null => {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+  const cfg = config as Record<string, unknown>;
+  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
+  const username = typeof cfg.username === 'string' ? cfg.username.trim() : '';
+  const password = normalizeSecret(cfg.password);
+  if (!websiteUrl || !username || !password) return null;
+  return {
+    website_url: websiteUrl.replace(/\/+$/, ''),
+    username,
+    password,
   };
 };
 

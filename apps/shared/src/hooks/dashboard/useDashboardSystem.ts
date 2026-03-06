@@ -3,7 +3,7 @@ import { useFetcher } from '../context';
 import { queryKeys } from '../../queryKeys';
 import { DASHBOARD_ENDPOINTS } from '../../endpoints';
 import type {
-  DashboardTrackersStatsResponse,
+  DashboardAdguardSummaryResponse,
   DashboardScrutinySummaryResponse,
   DashboardNetdataSummaryResponse,
 } from '../../types';
@@ -23,5 +23,14 @@ export function useDashboardNetdataSummary() {
   return useQuery({
     queryKey: queryKeys.dashboard.netdataSummary(),
     queryFn: () => fetcher<DashboardNetdataSummaryResponse>(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
+  });
+}
+
+export function useDashboardAdguardSummary() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.adguardSummary(),
+    queryFn: () => fetcher<DashboardAdguardSummaryResponse>(DASHBOARD_ENDPOINTS.ADGUARD.SUMMARY),
   });
 }

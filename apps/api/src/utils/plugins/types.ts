@@ -31,6 +31,12 @@ export interface NetdataPluginConfig {
   website_url: string;
 }
 
+export interface AdguardPluginConfig {
+  website_url: string;
+  username: string;
+  password: string;
+}
+
 export interface WeatherPluginConfig {
   address: string;
   temperature_unit: 'fahrenheit' | 'celsius';

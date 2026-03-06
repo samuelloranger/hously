@@ -287,6 +287,28 @@
       "hideDisks": "Masquer les disques",
       "emptyTitle": "Aucune donnée d'utilisation disque disponible pour le moment."
     },
+    "adguard": {
+      "kicker": "Depuis votre bouclier DNS",
+      "title": "AdGuard Home",
+      "subtitle": "Protection DNS, trafic bloqué et clients les plus actifs.",
+      "disconnected": "Déconnecté",
+      "protectionOn": "Protection active",
+      "protectionOff": "Protection en pause",
+      "notConnectedTitle": "AdGuard Home n'est pas encore connecté",
+      "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez AdGuard Home pour afficher les statistiques DNS ici.",
+      "queries": "Requêtes",
+      "blocked": "Bloquées",
+      "blockRate": "Taux de blocage",
+      "avgTime": "Temps moyen",
+      "topBlocked": "Domaines les plus bloqués",
+      "topClients": "Clients principaux",
+      "safeBrowsing": "Safe Browsing",
+      "safeSearch": "Safe Search",
+      "parental": "Contrôle parental",
+      "version": "v{{value}}",
+      "emptyBlocked": "Aucun domaine bloqué enregistré pour le moment.",
+      "emptyClients": "Aucune activité client enregistrée pour le moment."
+    },
     "loading": "Chargement de l'accueil...",
     "user": "Utilisateur",
     "subtexts": {
@@ -974,6 +996,13 @@
       "netdata": {
         "help": "Connectez Netdata pour afficher les métriques système en direct et l'usage par disque sur l'accueil.",
         "websiteUrl": "URL Netdata"
+      },
+      "adguard": {
+        "help": "Connectez AdGuard Home pour afficher le filtrage DNS, le trafic bloqué et les clients actifs sur l'accueil.",
+        "websiteUrl": "URL AdGuard Home",
+        "username": "Nom d'utilisateur AdGuard Home",
+        "password": "Mot de passe AdGuard Home",
+        "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel"
       },
       "trackers": {
         "title": "Trackers",
