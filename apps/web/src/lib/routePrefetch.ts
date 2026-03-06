@@ -222,7 +222,7 @@ async function prefetchQueriesForRoute(queryClient: QueryClient, routeId: string
   if (!queryDef) return;
 
   const queries = queryDef(params);
-  await Promise.all(queries.map((q: any) => queryClient.ensureQueryData(q)));
+  await Promise.allSettled(queries.map((q: any) => queryClient.ensureQueryData(q)));
 }
 
 /**
