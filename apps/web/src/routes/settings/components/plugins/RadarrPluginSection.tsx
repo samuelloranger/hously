@@ -62,7 +62,7 @@ export function RadarrPluginSection() {
   const handleApiKeyBlur = () => {
     const trimmedUrl = websiteUrl.trim();
     const trimmedApiKey = apiKey.trim();
-    if (!trimmedUrl || !trimmedApiKey) return;
+    if (!trimmedUrl) return;
 
     fetchProfilesMutation
       .mutateAsync({ website_url: trimmedUrl, api_key: trimmedApiKey })

@@ -11,6 +11,7 @@ model User {
   id              Int       @id @default(autoincrement())
   email           String    @unique(map: "ix_users_email")
   passwordHash    String    @map("password_hash")
+  authVersion     Int       @default(1) @map("auth_version")
   isAdmin         Boolean?  @map("is_admin")
   lastLogin       DateTime? @map("last_login")
   createdAt       DateTime? @map("created_at")

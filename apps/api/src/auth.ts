@@ -5,9 +5,9 @@ import { prisma } from './db';
 import { hashPassword, verifyPassword } from './utils/password';
 import { authRateLimit } from './middleware/rateLimit';
 import { validateEmail, validatePassword } from './utils/validation';
-import { loadAccessControl, getBaseUrl } from './utils/config';
+import { generateOpaqueToken, hashOpaqueToken, opaqueTokenCandidates } from './utils/tokens';
 import { saveImageAndCreateThumbnail, deleteImageFiles, getAvatarUrl } from './services/imageService';
-import { sendPasswordResetEmail, isEmailConfigured } from './services/emailService';
+import { sendPasswordResetEmail } from './services/emailService';
 
 // Map database user (camelCase) to frontend user (snake_case)
 const mapUser = (user: {
@@ -42,31 +42,41 @@ const getJwtSecret = (): string => {
   return secret || 'dev-key-change-in-production';
 };
 
-// Generate a cryptographically secure refresh token
-const generateRefreshToken = (): string => {
-  const tokenBytes = new Uint8Array(32);
-  crypto.getRandomValues(tokenBytes);
-  return btoa(String.fromCharCode(...tokenBytes))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-};
+const ACCESS_TOKEN_TTL_SECONDS = 7 * 86400;
+
+const signAccessToken = async (
+  jwt: { sign: (value: any) => Promise<string> },
+  userId: number,
+  authVersion: number
+): Promise<string> =>
+  jwt.sign({
+    id: userId,
+    ver: authVersion,
+    exp: Math.floor(Date.now() / 1000) + ACCESS_TOKEN_TTL_SECONDS,
+  });
 
 // Create and store a refresh token for a user, returns the raw token string
 const createRefreshToken = async (userId: number): Promise<string> => {
-  const token = generateRefreshToken();
+  const token = generateOpaqueToken();
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days
 
   await prisma.refreshToken.create({
     data: {
       userId,
-      token,
+      token: hashOpaqueToken(token),
       expiresAt,
       revoked: false,
     },
   });
 
   return token;
+};
+
+const revokeAllRefreshTokens = async (userId: number): Promise<void> => {
+  await prisma.refreshToken.updateMany({
+    where: { userId, revoked: false },
+    data: { revoked: true },
+  });
 };
 
 export const auth = (app: Elysia) =>
@@ -88,7 +98,7 @@ export const auth = (app: Elysia) =>
           const user = await prisma.user.findFirst({
             where: { id: Number(profile.id) },
           });
-          if (user) {
+          if (user && typeof profile.ver === 'number' && profile.ver === user.authVersion) {
             return { user: mapUser(user) };
           }
         }
@@ -109,7 +119,7 @@ export const auth = (app: Elysia) =>
         where: { id: Number(profile.id) },
       });
 
-      if (!user) {
+      if (!user || typeof profile.ver !== 'number' || profile.ver !== user.authVersion) {
         return { user: null };
       }
 
@@ -146,7 +156,7 @@ export const auth = (app: Elysia) =>
                 }
 
                 // Generate JWT access token
-                const accessToken = await jwt.sign({ id: user.id });
+                const accessToken = await signAccessToken(jwt, user.id, user.authVersion);
 
                 // Set secure cookie for web clients
                 // - httpOnly: Prevents XSS attacks from stealing the token
@@ -198,7 +208,7 @@ export const auth = (app: Elysia) =>
             try {
               const invitation = await prisma.invitation.findFirst({
                 where: {
-                  token,
+                  token: { in: opaqueTokenCandidates(token) },
                   status: 'pending',
                   expiresAt: { gt: new Date() },
                 },
@@ -237,7 +247,7 @@ export const auth = (app: Elysia) =>
               // Find and validate invitation
               const invitation = await prisma.invitation.findFirst({
                 where: {
-                  token,
+                  token: { in: opaqueTokenCandidates(token) },
                   status: 'pending',
                   expiresAt: { gt: new Date() },
                 },
@@ -286,7 +296,7 @@ export const auth = (app: Elysia) =>
               });
 
               // Generate JWT access token
-              const accessToken = await jwt.sign({ id: newUser.id });
+              const accessToken = await signAccessToken(jwt, newUser.id, newUser.authVersion);
 
               // Set secure cookie for web clients
               auth.set({
@@ -338,7 +348,7 @@ export const auth = (app: Elysia) =>
               // Find valid refresh token
               const storedToken = await prisma.refreshToken.findFirst({
                 where: {
-                  token: tokenValue,
+                  token: { in: opaqueTokenCandidates(tokenValue) },
                   revoked: false,
                   expiresAt: { gt: new Date().toISOString() },
                 },
@@ -366,7 +376,7 @@ export const auth = (app: Elysia) =>
               });
 
               // Generate new access token
-              const accessToken = await jwt.sign({ id: user.id });
+              const accessToken = await signAccessToken(jwt, user.id, user.authVersion);
 
               // Generate new refresh token
               const newRefreshToken = await createRefreshToken(user.id);
@@ -407,12 +417,7 @@ export const auth = (app: Elysia) =>
 
               if (user) {
                 // Generate secure token (32 bytes = 43 characters in base64url)
-                const tokenBytes = new Uint8Array(32);
-                crypto.getRandomValues(tokenBytes);
-                const token = btoa(String.fromCharCode(...tokenBytes))
-                  .replace(/\+/g, '-')
-                  .replace(/\//g, '_')
-                  .replace(/=/g, '');
+                const token = generateOpaqueToken();
 
                 // Token expires in 1 hour
                 const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
@@ -429,7 +434,7 @@ export const auth = (app: Elysia) =>
                 await prisma.passwordResetToken.create({
                   data: {
                     userId: user.id,
-                    token,
+                    token: hashOpaqueToken(token),
                     expiresAt,
                     used: false,
                   },
@@ -477,7 +482,7 @@ export const auth = (app: Elysia) =>
               // Get and validate token
               const resetToken = await prisma.passwordResetToken.findFirst({
                 where: {
-                  token,
+                  token: { in: opaqueTokenCandidates(token) },
                   used: false,
                   expiresAt: { gt: new Date().toISOString() },
                 },
@@ -492,16 +497,23 @@ export const auth = (app: Elysia) =>
 
               // Update password
               const passwordHash = await hashPassword(password);
-              await prisma.user.update({
-                where: { id: resetToken.userId },
-                data: { passwordHash },
-              });
-
-              // Mark token as used
-              await prisma.passwordResetToken.update({
-                where: { id: resetToken.id },
-                data: { used: true },
-              });
+              await prisma.$transaction([
+                prisma.user.update({
+                  where: { id: resetToken.userId },
+                  data: {
+                    passwordHash,
+                    authVersion: { increment: 1 },
+                  },
+                }),
+                prisma.passwordResetToken.update({
+                  where: { id: resetToken.id },
+                  data: { used: true },
+                }),
+                prisma.refreshToken.updateMany({
+                  where: { userId: resetToken.userId, revoked: false },
+                  data: { revoked: true },
+                }),
+              ]);
 
               console.log(`Password reset successful for user_id: ${resetToken.userId}`);
 
@@ -599,7 +611,7 @@ export const auth = (app: Elysia) =>
         )
         .post(
           '/change-password',
-          async ({ user, body, set }) => {
+          async ({ user, body, set, jwt, cookie: { auth } }) => {
             if (!user) {
               set.status = 401;
               return { error: 'Unauthorized' };
@@ -616,6 +628,7 @@ export const auth = (app: Elysia) =>
             try {
               const dbUser = await prisma.user.findFirst({
                 where: { id: user.id },
+                select: { id: true, passwordHash: true, authVersion: true },
               });
 
               if (!dbUser) {
@@ -630,12 +643,27 @@ export const auth = (app: Elysia) =>
               }
 
               const passwordHash = await hashPassword(new_password);
-              await prisma.user.update({
+              const updatedUser = await prisma.user.update({
                 where: { id: user.id },
-                data: { passwordHash },
+                data: {
+                  passwordHash,
+                  authVersion: { increment: 1 },
+                },
+                select: { id: true, authVersion: true },
+              });
+              await revokeAllRefreshTokens(user.id);
+
+              const accessToken = await signAccessToken(jwt, updatedUser.id, updatedUser.authVersion);
+              auth.set({
+                value: accessToken,
+                httpOnly: true,
+                maxAge: ACCESS_TOKEN_TTL_SECONDS,
+                path: '/',
+                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
               });
 
-              return { message: 'Password updated successfully' };
+              return { message: 'Password updated successfully', token: accessToken };
             } catch (error) {
               console.error('Error changing password:', error);
               set.status = 500;
@@ -758,10 +786,16 @@ export const auth = (app: Elysia) =>
           // Revoke all refresh tokens for user on logout
           if (user) {
             try {
-              await prisma.refreshToken.updateMany({
-                where: { userId: user.id },
-                data: { revoked: true },
-              });
+              await prisma.$transaction([
+                prisma.refreshToken.updateMany({
+                  where: { userId: user.id, revoked: false },
+                  data: { revoked: true },
+                }),
+                prisma.user.update({
+                  where: { id: user.id },
+                  data: { authVersion: { increment: 1 } },
+                }),
+              ]);
             } catch (error) {
               console.error('Error revoking refresh tokens:', error);
             }

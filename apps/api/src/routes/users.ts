@@ -24,32 +24,7 @@ const mapUser = (user: any) => ({
   created_at: user.createdAt || new Date().toISOString(),
   last_activity: user.lastActivity,
   avatar_url: user.avatarUrl || null,
-  dashboard_config: user.dashboardConfig ?? null,
 });
-
-const normalizeDashboardConfig = (value: unknown): { version: 1; cards: { id: string; size: 'half' | 'full' }[] } | null => {
-  if (value == null) return null;
-  if (typeof value !== 'object' || Array.isArray(value)) return null;
-
-  const rawCards = (value as any).cards;
-  if (!Array.isArray(rawCards)) return null;
-
-  const cards: { id: string; size: 'half' | 'full' }[] = [];
-  const seen = new Set<string>();
-
-  for (const entry of rawCards) {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
-    const id = typeof (entry as any).id === 'string' ? (entry as any).id.trim() : '';
-    if (!id || id.length > 64) continue;
-    if (seen.has(id)) continue;
-    const size = (entry as any).size === 'full' ? 'full' : 'half';
-    cards.push({ id, size });
-    seen.add(id);
-    if (cards.length >= 50) break;
-  }
-
-  return { version: 1, cards };
-};
 
 export const usersRoutes = new Elysia({ prefix: '/api/users' })
   .use(auth)
@@ -81,10 +56,10 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         return { error: 'Unauthorized' };
       }
 
-      const { first_name, last_name, locale, dashboard_config } = body;
+      const { first_name, last_name, locale } = body;
 
       // Check if at least one field is provided
-      if (first_name === undefined && last_name === undefined && locale === undefined && dashboard_config === undefined) {
+      if (first_name === undefined && last_name === undefined && locale === undefined) {
         set.status = 400;
         return { error: 'At least one field must be provided' };
       }
@@ -96,13 +71,6 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
       }
 
       try {
-        const normalizedDashboardConfig =
-          dashboard_config === undefined ? undefined : normalizeDashboardConfig(dashboard_config);
-        if (dashboard_config !== undefined && normalizedDashboardConfig == null && dashboard_config !== null) {
-          set.status = 400;
-          return { error: 'Invalid dashboard_config' };
-        }
-
         // Build update object with only provided fields
         const updateData: Partial<{
           firstName: string | null;
@@ -119,9 +87,6 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         }
         if (locale !== undefined) {
           updateData.locale = locale;
-        }
-        if (dashboard_config !== undefined) {
-          updateData.dashboardConfig = normalizedDashboardConfig;
         }
 
         // Update user
@@ -142,14 +107,13 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         first_name: t.Optional(t.Union([t.String(), t.Null()])),
         last_name: t.Optional(t.Union([t.String(), t.Null()])),
         locale: t.Optional(t.Union([t.String(), t.Null()])),
-        dashboard_config: t.Optional(t.Any()),
       }),
     }
   )
   // POST /api/users/me/password - Change password
   .post(
     '/me/password',
-    async ({ user, body, set }) => {
+    async ({ user, body, set, jwt, cookie: { auth } }) => {
       if (!user) {
         set.status = 401;
         return { error: 'Unauthorized' };
@@ -168,6 +132,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         // Fetch user with password hash
         const dbUser = await prisma.user.findFirst({
           where: { id: user.id },
+          select: { id: true, passwordHash: true, authVersion: true },
         });
 
         if (!dbUser) {
@@ -184,12 +149,35 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
 
         // Hash new password and update
         const passwordHash = await hashPassword(new_password);
-        await prisma.user.update({
+        const updatedUser = await prisma.user.update({
           where: { id: user.id },
-          data: { passwordHash },
+          data: {
+            passwordHash,
+            authVersion: { increment: 1 },
+          },
+          select: { id: true, authVersion: true },
+        });
+        await prisma.refreshToken.updateMany({
+          where: { userId: user.id, revoked: false },
+          data: { revoked: true },
         });
 
-        return { message: 'Password updated successfully' };
+        const accessToken = await jwt.sign({
+          id: updatedUser.id,
+          ver: updatedUser.authVersion,
+          exp: Math.floor(Date.now() / 1000) + 7 * 86400,
+        });
+
+        auth.set({
+          value: accessToken,
+          httpOnly: true,
+          maxAge: 7 * 86400,
+          path: '/',
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+        });
+
+        return { message: 'Password updated successfully', token: accessToken };
       } catch (error) {
         console.error('Error changing password:', error);
         set.status = 500;

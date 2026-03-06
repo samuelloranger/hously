@@ -11,12 +11,25 @@ import type {
   TrackerType,
   WeatherPluginConfig,
 } from './types';
+import { decrypt } from '../../services/crypto';
+
+const normalizeSecret = (value: unknown): string => {
+  if (typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  try {
+    return decrypt(trimmed).trim();
+  } catch {
+    return trimmed;
+  }
+};
 
 export const normalizeJellyfinConfig = (config: unknown): JellyfinPluginConfig | null => {
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
   const cfg = config as Record<string, unknown>;
 
-  const apiKey = typeof cfg.api_key === 'string' ? cfg.api_key.trim() : '';
+  const apiKey = normalizeSecret(cfg.api_key);
   const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
 
   if (!apiKey || !websiteUrl) return null;
@@ -30,7 +43,7 @@ export const normalizeRadarrConfig = (config: unknown): RadarrPluginConfig | nul
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
   const cfg = config as Record<string, unknown>;
 
-  const apiKey = typeof cfg.api_key === 'string' ? cfg.api_key.trim() : '';
+  const apiKey = normalizeSecret(cfg.api_key);
   const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
   const rootFolderPath = typeof cfg.root_folder_path === 'string' ? cfg.root_folder_path.trim() : '';
   const qualityProfileId =
@@ -56,7 +69,7 @@ export const normalizeSonarrConfig = (config: unknown): SonarrPluginConfig | nul
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
   const cfg = config as Record<string, unknown>;
 
-  const apiKey = typeof cfg.api_key === 'string' ? cfg.api_key.trim() : '';
+  const apiKey = normalizeSecret(cfg.api_key);
   const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
   const rootFolderPath = typeof cfg.root_folder_path === 'string' ? cfg.root_folder_path.trim() : '';
   const qualityProfileId =
@@ -131,7 +144,7 @@ const DEFAULT_TMDB_POPULARITY_THRESHOLD = 15;
 export const normalizeTmdbConfig = (config: unknown): TmdbPluginConfig | null => {
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
   const cfg = config as Record<string, unknown>;
-  const apiKey = typeof cfg.api_key === 'string' ? cfg.api_key.trim() : '';
+  const apiKey = normalizeSecret(cfg.api_key);
   if (!apiKey) return null;
   const rawThreshold =
     typeof cfg.popularity_threshold === 'number' ? cfg.popularity_threshold : DEFAULT_TMDB_POPULARITY_THRESHOLD;
@@ -186,7 +199,7 @@ export const normalizeTrackerConfig = (type: TrackerType, config: unknown): Trac
   const flaresolverrUrl = typeof cfg.flaresolverr_url === 'string' ? cfg.flaresolverr_url.trim() : '';
   const trackerUrlRaw = typeof cfg.tracker_url === 'string' ? cfg.tracker_url.trim() : '';
   const username = typeof cfg.username === 'string' ? cfg.username.trim() : '';
-  const password = typeof cfg.password === 'string' ? cfg.password : '';
+  const password = normalizeSecret(cfg.password);
 
   if (!trackerUrlRaw || !username) return null;
 

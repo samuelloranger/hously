@@ -230,7 +230,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           type: 'jellyfin',
           enabled: plugin?.enabled || false,
           website_url: config?.website_url || '',
-          api_key: config?.api_key || '',
+          api_key: '',
         },
       };
     } catch (error) {
@@ -253,7 +253,12 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       }
 
       const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
-      const apiKey = body.api_key.trim();
+      const existingPlugin = await prisma.plugin.findFirst({
+        where: { type: 'jellyfin' },
+      });
+      const existingConfig = normalizeJellyfinConfig(existingPlugin?.config);
+      const providedApiKey = body.api_key.trim();
+      const apiKey = providedApiKey || existingConfig?.api_key || '';
       const enabled = body.enabled ?? true;
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
@@ -274,7 +279,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             enabled,
             config: {
               website_url: websiteUrl,
-              api_key: apiKey,
+              api_key: encrypt(apiKey),
             },
             updatedAt: now,
           },
@@ -283,7 +288,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             enabled,
             config: {
               website_url: websiteUrl,
-              api_key: apiKey,
+              api_key: encrypt(apiKey),
             },
             createdAt: now,
             updatedAt: now,
@@ -304,7 +309,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             type: plugin.type,
             enabled: plugin.enabled,
             website_url: websiteUrl,
-            api_key: apiKey,
+            api_key: '',
           },
         };
       } catch (error) {
@@ -343,7 +348,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           type: 'radarr',
           enabled: plugin?.enabled || false,
           website_url: config?.website_url || '',
-          api_key: config?.api_key || '',
+          api_key: '',
           root_folder_path: config?.root_folder_path || '',
           quality_profile_id: config?.quality_profile_id || 1,
         },
@@ -368,7 +373,12 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       }
 
       const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
-      const apiKey = body.api_key.trim();
+      const existingPlugin = await prisma.plugin.findFirst({
+        where: { type: 'radarr' },
+      });
+      const existingConfig = normalizeRadarrConfig(existingPlugin?.config);
+      const providedApiKey = body.api_key.trim();
+      const apiKey = providedApiKey || existingConfig?.api_key || '';
       const rootFolderPath = body.root_folder_path.trim();
       const qualityProfileId = Math.trunc(body.quality_profile_id);
       const enabled = body.enabled ?? true;
@@ -401,7 +411,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             enabled,
             config: {
               website_url: websiteUrl,
-              api_key: apiKey,
+              api_key: encrypt(apiKey),
               root_folder_path: rootFolderPath,
               quality_profile_id: qualityProfileId,
             },
@@ -412,7 +422,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             enabled,
             config: {
               website_url: websiteUrl,
-              api_key: apiKey,
+              api_key: encrypt(apiKey),
               root_folder_path: rootFolderPath,
               quality_profile_id: qualityProfileId,
             },
@@ -435,7 +445,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             type: plugin.type,
             enabled: plugin.enabled,
             website_url: websiteUrl,
-            api_key: apiKey,
+            api_key: '',
             root_folder_path: rootFolderPath,
             quality_profile_id: qualityProfileId,
           },
@@ -477,7 +487,13 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         return { error: 'Invalid website_url. Must be a valid http(s) URL.' };
       }
 
-      if (!apiKey) {
+      const existingPlugin = await prisma.plugin.findFirst({
+        where: { type: 'radarr' },
+      });
+      const existingConfig = normalizeRadarrConfig(existingPlugin?.config);
+      const resolvedApiKey = apiKey || existingConfig?.api_key || '';
+
+      if (!resolvedApiKey) {
         set.status = 400;
         return { error: 'api_key is required' };
       }
@@ -485,7 +501,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       try {
         const qualityUrl = new URL('/api/v3/qualityprofile', websiteUrl);
         const qualityResponse = await fetch(qualityUrl.toString(), {
-          headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
+          headers: { 'X-Api-Key': resolvedApiKey, Accept: 'application/json' },
         });
 
         if (!qualityResponse.ok) {
@@ -532,7 +548,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           type: 'sonarr',
           enabled: plugin?.enabled || false,
           website_url: config?.website_url || '',
-          api_key: config?.api_key || '',
+          api_key: '',
           root_folder_path: config?.root_folder_path || '',
           quality_profile_id: config?.quality_profile_id || 1,
           language_profile_id: config?.language_profile_id || 1,
@@ -558,7 +574,12 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       }
 
       const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
-      const apiKey = body.api_key.trim();
+      const existingPlugin = await prisma.plugin.findFirst({
+        where: { type: 'sonarr' },
+      });
+      const existingConfig = normalizeSonarrConfig(existingPlugin?.config);
+      const providedApiKey = body.api_key.trim();
+      const apiKey = providedApiKey || existingConfig?.api_key || '';
       const rootFolderPath = body.root_folder_path.trim();
       const qualityProfileId = Math.trunc(body.quality_profile_id);
       const languageProfileId = Math.trunc(body.language_profile_id);
@@ -597,7 +618,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             enabled,
             config: {
               website_url: websiteUrl,
-              api_key: apiKey,
+              api_key: encrypt(apiKey),
               root_folder_path: rootFolderPath,
               quality_profile_id: qualityProfileId,
               language_profile_id: languageProfileId,
@@ -609,7 +630,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             enabled,
             config: {
               website_url: websiteUrl,
-              api_key: apiKey,
+              api_key: encrypt(apiKey),
               root_folder_path: rootFolderPath,
               quality_profile_id: qualityProfileId,
               language_profile_id: languageProfileId,
@@ -633,7 +654,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             type: plugin.type,
             enabled: plugin.enabled,
             website_url: websiteUrl,
-            api_key: apiKey,
+            api_key: '',
             root_folder_path: rootFolderPath,
             quality_profile_id: qualityProfileId,
             language_profile_id: languageProfileId,
@@ -677,7 +698,13 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         return { error: 'Invalid website_url. Must be a valid http(s) URL.' };
       }
 
-      if (!apiKey) {
+      const existingPlugin = await prisma.plugin.findFirst({
+        where: { type: 'sonarr' },
+      });
+      const existingConfig = normalizeSonarrConfig(existingPlugin?.config);
+      const resolvedApiKey = apiKey || existingConfig?.api_key || '';
+
+      if (!resolvedApiKey) {
         set.status = 400;
         return { error: 'api_key is required' };
       }
@@ -688,10 +715,10 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
 
         const [qualityResponse, languageResponse] = await Promise.all([
           fetch(qualityUrl.toString(), {
-            headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
+            headers: { 'X-Api-Key': resolvedApiKey, Accept: 'application/json' },
           }),
           fetch(languageUrl.toString(), {
-            headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
+            headers: { 'X-Api-Key': resolvedApiKey, Accept: 'application/json' },
           }),
         ]);
 
@@ -932,6 +959,11 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       return { error: 'Unauthorized' };
     }
 
+    if (!user.is_admin) {
+      set.status = 403;
+      return { error: 'Admin privileges required' };
+    }
+
     try {
       const plugin = await prisma.plugin.findFirst({
         where: { type: 'weather' },
@@ -958,6 +990,11 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       if (!user) {
         set.status = 401;
         return { error: 'Unauthorized' };
+      }
+
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: 'Admin privileges required' };
       }
 
       const address = body.address.trim();
@@ -1045,7 +1082,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         plugin: {
           type: 'tmdb',
           enabled: plugin?.enabled || false,
-          api_key: config?.api_key || '',
+          api_key: '',
           popularity_threshold: config?.popularity_threshold ?? 15,
         },
       };
@@ -1068,7 +1105,12 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         return { error: 'Admin privileges required' };
       }
 
-      const apiKey = body.api_key.trim();
+      const existingPlugin = await prisma.plugin.findFirst({
+        where: { type: 'tmdb' },
+      });
+      const existingConfig = normalizeTmdbConfig(existingPlugin?.config);
+      const providedApiKey = body.api_key.trim();
+      const apiKey = providedApiKey || existingConfig?.api_key || '';
       const enabled = body.enabled ?? true;
       const popularityThreshold = Math.max(0, Math.min(100, Math.round(body.popularity_threshold ?? 15)));
 
@@ -1080,7 +1122,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       try {
         const now = nowUtc();
         const configPayload = {
-          api_key: apiKey,
+          api_key: encrypt(apiKey),
           popularity_threshold: popularityThreshold,
         };
         const plugin = await prisma.plugin.upsert({
@@ -1112,7 +1154,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           plugin: {
             type: plugin.type,
             enabled: plugin.enabled,
-            api_key: apiKey,
+            api_key: '',
             popularity_threshold: popularityThreshold,
           },
         };
@@ -1210,7 +1252,7 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         const config: Prisma.InputJsonValue = {
           website_url: websiteUrl,
           username,
-          password,
+          password: encrypt(password),
           poll_interval_seconds: pollIntervalSeconds,
           max_items: maxItems,
         };
@@ -1276,6 +1318,11 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       return { error: 'Unauthorized' };
     }
 
+    if (!user.is_admin) {
+      set.status = 403;
+      return { error: 'Admin privileges required' };
+    }
+
     try {
       const plugin = await prisma.plugin.findFirst({
         where: { type: 'hackernews' },
@@ -1302,6 +1349,11 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       if (!user) {
         set.status = 401;
         return { error: 'Unauthorized' };
+      }
+
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: 'Admin privileges required' };
       }
 
       const validFeedTypes = ['top', 'best', 'new', 'ask', 'show', 'job'] as const;
@@ -1374,6 +1426,11 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       return { error: 'Unauthorized' };
     }
 
+    if (!user.is_admin) {
+      set.status = 403;
+      return { error: 'Admin privileges required' };
+    }
+
     try {
       const plugin = await prisma.plugin.findFirst({
         where: { type: 'reddit' },
@@ -1399,6 +1456,11 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       if (!user) {
         set.status = 401;
         return { error: 'Unauthorized' };
+      }
+
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: 'Admin privileges required' };
       }
 
       const rawSubreddits = body.subreddits ?? [];
@@ -1466,6 +1528,11 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
     if (!user) {
       set.status = 401;
       return { error: 'Unauthorized' };
+    }
+
+    if (!user.is_admin) {
+      set.status = 403;
+      return { error: 'Admin privileges required' };
     }
 
     const q = (query as Record<string, string | undefined>).q?.trim() || '';

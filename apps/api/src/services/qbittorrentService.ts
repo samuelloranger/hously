@@ -1,5 +1,6 @@
 import { prisma } from '../db';
 import { getJsonCache, setJsonCache, deleteCache } from './cache';
+import { decrypt } from './crypto';
 
 interface QbittorrentTorrentRaw {
   hash?: string;
@@ -709,7 +710,14 @@ export const normalizeQbittorrentConfig = (config: unknown): QbittorrentPluginCo
 
   const websiteUrl = toStringOrNull(cfg.website_url);
   const username = toStringOrNull(cfg.username);
-  const password = toStringOrNull(cfg.password);
+  let password = toStringOrNull(cfg.password);
+  if (password) {
+    try {
+      password = decrypt(password);
+    } catch {
+      // Keep legacy plaintext values working until they are re-saved.
+    }
+  }
   if (!websiteUrl || !username || !password) return null;
 
   return {

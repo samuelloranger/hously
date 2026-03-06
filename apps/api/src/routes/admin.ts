@@ -12,6 +12,7 @@ import {
 } from '../jobs';
 import { logActivity } from '../utils/activityLogs';
 import { sendInvitationEmail } from '../services/emailService';
+import { generateOpaqueToken, hashOpaqueToken } from '../utils/tokens';
 
 const resolveAdminActionJob = (action: string): { id: string; name: string } | null => {
   switch (action) {
@@ -341,12 +342,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         }
 
         // Generate secure token
-        const tokenBytes = new Uint8Array(32);
-        crypto.getRandomValues(tokenBytes);
-        const token = btoa(String.fromCharCode(...tokenBytes))
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_')
-          .replace(/=/g, '');
+        const token = generateOpaqueToken();
 
         const locale = (body.locale || 'en').trim().slice(0, 10);
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
@@ -354,7 +350,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         const invitation = await prisma.invitation.create({
           data: {
             email: sanitizedEmail,
-            token,
+            token: hashOpaqueToken(token),
             status: 'pending',
             expiresAt,
             invitedBy: user!.id,
@@ -469,18 +465,13 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         }
 
         // Generate new token and reset expiry
-        const tokenBytes = new Uint8Array(32);
-        crypto.getRandomValues(tokenBytes);
-        const token = btoa(String.fromCharCode(...tokenBytes))
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_')
-          .replace(/=/g, '');
+        const token = generateOpaqueToken();
 
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
         await prisma.invitation.update({
           where: { id },
-          data: { token, expiresAt },
+          data: { token: hashOpaqueToken(token), expiresAt },
         });
 
         const inviterName = [user!.first_name, user!.last_name].filter(Boolean).join(' ') || user!.email;
