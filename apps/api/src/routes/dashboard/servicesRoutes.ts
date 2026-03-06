@@ -7,7 +7,6 @@ import type { DashboardHackerNewsResponse } from '../../utils/dashboard/hackerne
 import { fetchRedditPosts, REDDIT_CACHE_TTL_SECONDS } from '../../utils/dashboard/reddit';
 import type { DashboardRedditResponse } from '../../utils/dashboard/reddit';
 import { dashboardQbittorrentRoutes } from './qbittorrentRoutes';
-import { dashboardGiteaRoutes } from './giteaRoutes';
 import { createJsonSseResponse } from '../../utils/sse';
 import { prisma } from '../../db';
 import { getJsonCache, setJsonCache } from '../../services/cache';
@@ -103,7 +102,6 @@ async function getAllTrackerStatsHandler() {
 export const dashboardServiceRoutes = new Elysia()
   .use(auth)
   .use(dashboardQbittorrentRoutes)
-  .use(dashboardGiteaRoutes)
   .get('/trackers/stats', async ({ user, set }) => {
     if (!user) {
       set.status = 401;

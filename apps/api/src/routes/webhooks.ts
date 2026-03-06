@@ -3,23 +3,8 @@ import { prisma } from '../db';
 import { webhookHandlers } from '../services/webhookHandlers';
 import { sendExternalNotification } from '../services/externalNotificationService';
 import { deleteCache } from '../services/cache';
-import { signalBuildStarted } from '../utils/dashboard/gitea';
-
-const GITEA_WEBHOOK_SECRET = process.env.GITEA_WEBHOOK_SECRET || '';
 
 export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
-  // POST /api/webhooks/gitea/builds/signal - Signal from Gitea workflow that a build started
-  .post('/gitea/builds/signal', async ({ set, headers }) => {
-    const token = headers['x-gitea-signal-token'] || '';
-    if (!GITEA_WEBHOOK_SECRET || token !== GITEA_WEBHOOK_SECRET) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
-    signalBuildStarted();
-    console.log('[gitea] Build signal received, active polling started');
-    return { ok: true };
-  })
   // Read all webhook bodies as raw text to avoid Elysia's parser failing on
   // non-standard payloads (e.g. Kopia sends application/json with plain text body)
   .onParse(({ request }) => request.text())

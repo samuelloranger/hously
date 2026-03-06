@@ -55,8 +55,4 @@ export const DASHBOARD_ENDPOINTS = {
     STREAM: '/api/dashboard/netdata/stream',
   },
   WEATHER: '/api/dashboard/weather',
-  GITEA: {
-    BUILDS: '/api/dashboard/gitea/builds',
-    STREAM: '/api/dashboard/gitea/builds/stream',
-  },
 } as const;
