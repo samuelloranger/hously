@@ -51,6 +51,8 @@ export function useUnreadCount() {
   return useQuery({
     queryKey: queryKeys.notifications.unreadCount(),
     queryFn: () => fetcher<UnreadCountResponse>(NOTIFICATION_ENDPOINTS.UNREAD_COUNT),
+    staleTime: 10_000,
+    refetchOnWindowFocus: true,
   });
 }
 

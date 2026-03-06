@@ -96,26 +96,6 @@ export function NotificationsMenu() {
   const unreadCount = unreadData?.unread_count || 0;
   const recentNotifications = notificationsData?.notifications || [];
 
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      const handleMessage = (event: MessageEvent) => {
-        if (
-          event.data &&
-          (event.data.type === 'NOTIFICATION_COUNT_UPDATE' || event.data.type === 'notification-received')
-        ) {
-          queryClient.invalidateQueries({
-            queryKey: queryKeys.notifications.unreadCount(),
-          });
-        }
-      };
-
-      navigator.serviceWorker.addEventListener('message', handleMessage);
-      return () => {
-        navigator.serviceWorker.removeEventListener('message', handleMessage);
-      };
-    }
-    return undefined;
-  }, [queryClient]);
 
   const handleNotificationClick = async (notification: { id: number; read: boolean; url: string | null }) => {
     if (!notification.read) {

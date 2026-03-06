@@ -5,7 +5,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { queryKeys } from '@hously/shared';
+import { queryKeys, type UnreadCountResponse } from '@hously/shared';
 
 const syncNotificationTypes = ['notification-sync', 'notification-received'];
 
@@ -16,9 +16,15 @@ export function useAutoInvalidateNotifications(): void {
     // Listen for messages from the service worker
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data && syncNotificationTypes.includes(event.data.type)) {
-        console.log('Received notification from service worker, invalidating queries');
+        // Optimistically increment unread count for instant badge update
+        if (event.data.type === 'notification-received') {
+          queryClient.setQueryData<UnreadCountResponse>(
+            queryKeys.notifications.unreadCount(),
+            (old) => ({ unread_count: (old?.unread_count ?? 0) + 1 })
+          );
+        }
 
-        // Invalidate notification-related queries
+        // Invalidate to refetch the real count and notification list
         queryClient.invalidateQueries({
           queryKey: queryKeys.notifications.all,
         });
