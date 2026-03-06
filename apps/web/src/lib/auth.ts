@@ -38,8 +38,15 @@ export async function getCurrentUser(): Promise<User | null> {
         throw error;
       }
 
-      currentUser = null;
-      return null;
+      // For transient/non-auth errors, preserve any known user state and re-throw.
+      // This prevents protected routes from redirecting to login due to flaky /me requests.
+      const cachedUser = getQueryClient()?.getQueryData<User | null>(queryKeys.auth.me);
+      if (cachedUser !== undefined) {
+        currentUser = cachedUser;
+        return currentUser;
+      }
+
+      throw error;
     } finally {
       userPromise = null;
     }
