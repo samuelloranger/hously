@@ -1,7 +1,13 @@
 import { Elysia, t } from 'elysia';
+import { randomUUID } from 'crypto';
 import { auth } from '../auth';
 import { prisma } from '../db';
-import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../utils/plugins/normalizers';
+import {
+  normalizeProwlarrConfig,
+  normalizeRadarrConfig,
+  normalizeSonarrConfig,
+  normalizeTmdbConfig,
+} from '../utils/plugins/normalizers';
 import { getJsonCache, setJsonCache, deleteCache } from '../services/cache';
 import type { MediaItem } from '@hously/shared';
 
@@ -50,7 +56,12 @@ type InteractiveReleaseItem = {
   rejected: boolean;
   rejection_reason: string | null;
   info_url: string | null;
+  source: 'arr' | 'prowlarr';
+  download_token?: string | null;
 };
+
+const PROWLARR_RELEASE_TTL_MS = 15 * 60 * 1000;
+const prowlarrReleasePayloads = new Map<string, { expiresAt: number; payload: Record<string, unknown> }>();
 
 const toRecord = (value: unknown): Record<string, unknown> | null =>
   value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
@@ -449,6 +460,48 @@ const mapInteractiveRelease = (raw: unknown): InteractiveReleaseItem | null => {
     rejected: toBoolean(row.rejected),
     rejection_reason: rejectionReason,
     info_url: toStringOrNull(row.infoUrl),
+    source: 'arr',
+    download_token: null,
+  };
+};
+
+const cleanupExpiredProwlarrPayloads = () => {
+  const now = Date.now();
+  for (const [token, entry] of prowlarrReleasePayloads.entries()) {
+    if (entry.expiresAt <= now) {
+      prowlarrReleasePayloads.delete(token);
+    }
+  }
+};
+
+const storeProwlarrReleasePayload = (payload: Record<string, unknown>): string => {
+  cleanupExpiredProwlarrPayloads();
+  const token = randomUUID();
+  prowlarrReleasePayloads.set(token, {
+    payload,
+    expiresAt: Date.now() + PROWLARR_RELEASE_TTL_MS,
+  });
+  return token;
+};
+
+const takeProwlarrReleasePayload = (token: string): Record<string, unknown> | null => {
+  cleanupExpiredProwlarrPayloads();
+  const entry = prowlarrReleasePayloads.get(token);
+  if (!entry) return null;
+  prowlarrReleasePayloads.delete(token);
+  return entry.payload;
+};
+
+const mapProwlarrInteractiveRelease = (raw: unknown): InteractiveReleaseItem | null => {
+  const base = mapInteractiveRelease(raw);
+  const row = toRecord(raw);
+  if (!base || !row) return null;
+
+  const downloadToken = storeProwlarrReleasePayload(row);
+  return {
+    ...base,
+    source: 'prowlarr',
+    download_token: downloadToken,
   };
 };
 
@@ -1459,6 +1512,73 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       }),
     }
   )
+  .get(
+    '/prowlarr/interactive-search',
+    async ({ user, set, query }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const searchQuery = query.q.trim();
+      if (searchQuery.length < 2) {
+        set.status = 400;
+        return { error: 'Search query must be at least 2 characters long' };
+      }
+
+      try {
+        const plugin = await prisma.plugin.findFirst({
+          where: { type: 'prowlarr' },
+          select: { enabled: true, config: true },
+        });
+        if (!plugin?.enabled) {
+          set.status = 400;
+          return { error: 'Prowlarr plugin is not enabled' };
+        }
+
+        const config = normalizeProwlarrConfig(plugin.config);
+        if (!config) {
+          set.status = 400;
+          return { error: 'Prowlarr plugin is not configured' };
+        }
+
+        const url = new URL('/api/v1/search', config.website_url);
+        url.searchParams.set('query', searchQuery);
+        url.searchParams.set('type', 'search');
+        url.searchParams.set('limit', '100');
+
+        const response = await fetch(url.toString(), {
+          headers: {
+            'X-Api-Key': config.api_key,
+            Accept: 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          set.status = 502;
+          return { error: `Prowlarr interactive search failed with status ${response.status}` };
+        }
+
+        const releases = (await response.json()) as unknown[];
+        return {
+          success: true,
+          service: 'prowlarr' as const,
+          releases: releases
+            .map(mapProwlarrInteractiveRelease)
+            .filter((release): release is InteractiveReleaseItem => Boolean(release)),
+        };
+      } catch (error) {
+        console.error('Error loading Prowlarr interactive search releases:', error);
+        set.status = 500;
+        return { error: 'Failed to load Prowlarr interactive search releases' };
+      }
+    },
+    {
+      query: t.Object({
+        q: t.String(),
+      }),
+    }
+  )
   .post(
     '/:service/:sourceId/interactive-search/download',
     async ({ user, set, params, body }) => {
@@ -1577,6 +1697,74 @@ export const mediasRoutes = new Elysia({ prefix: '/api/medias' })
       body: t.Object({
         guid: t.String(),
         indexer_id: t.Numeric(),
+      }),
+    }
+  )
+  .post(
+    '/prowlarr/interactive-search/download',
+    async ({ user, set, body }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      const token = body.token.trim();
+      if (!token) {
+        set.status = 400;
+        return { error: 'Invalid release token' };
+      }
+
+      try {
+        const plugin = await prisma.plugin.findFirst({
+          where: { type: 'prowlarr' },
+          select: { enabled: true, config: true },
+        });
+        if (!plugin?.enabled) {
+          set.status = 400;
+          return { error: 'Prowlarr plugin is not enabled' };
+        }
+
+        const config = normalizeProwlarrConfig(plugin.config);
+        if (!config) {
+          set.status = 400;
+          return { error: 'Prowlarr plugin is not configured' };
+        }
+
+        const releasePayload = takeProwlarrReleasePayload(token);
+        if (!releasePayload) {
+          set.status = 404;
+          return { error: 'Selected release is no longer available. Run the search again.' };
+        }
+
+        const searchUrl = new URL('/api/v1/search', config.website_url);
+        const response = await fetch(searchUrl.toString(), {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': config.api_key,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(releasePayload),
+        });
+
+        if (!response.ok) {
+          set.status = 502;
+          return { error: `Prowlarr download release failed with status ${response.status}` };
+        }
+
+        return {
+          success: true,
+          service: 'prowlarr' as const,
+        };
+      } catch (error) {
+        console.error('Error downloading Prowlarr release:', error);
+        set.status = 500;
+        return { error: 'Failed to download release' };
+      }
+    },
+    {
+      body: t.Object({
+        token: t.String(),
       }),
     }
   )

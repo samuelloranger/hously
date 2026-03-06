@@ -3,6 +3,7 @@ import type {
   HackernewsPluginConfig,
   JellyfinPluginConfig,
   NetdataPluginConfig,
+  ProwlarrPluginConfig,
   RadarrPluginConfig,
   ScrutinyPluginConfig,
   SonarrPluginConfig,
@@ -103,6 +104,20 @@ export const normalizeSonarrConfig = (config: unknown): SonarrPluginConfig | nul
     root_folder_path: rootFolderPath,
     quality_profile_id: qualityProfileId,
     language_profile_id: languageProfileId,
+  };
+};
+
+export const normalizeProwlarrConfig = (config: unknown): ProwlarrPluginConfig | null => {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+  const cfg = config as Record<string, unknown>;
+
+  const apiKey = normalizeSecret(cfg.api_key);
+  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
+
+  if (!apiKey || !websiteUrl) return null;
+  return {
+    api_key: apiKey,
+    website_url: websiteUrl.replace(/\/+$/, ''),
   };
 };
 

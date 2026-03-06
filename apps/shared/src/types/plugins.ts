@@ -31,6 +31,13 @@ export interface SonarrPlugin {
   language_profile_id: number;
 }
 
+export interface ProwlarrPlugin {
+  type: 'prowlarr';
+  enabled: boolean;
+  website_url: string;
+  api_key: string;
+}
+
 export interface QbittorrentPlugin {
   type: 'qbittorrent';
   enabled: boolean;
@@ -95,6 +102,11 @@ export interface RadarrPluginUpdateResponse {
 export interface SonarrPluginUpdateResponse {
   success: boolean;
   plugin: SonarrPlugin;
+}
+
+export interface ProwlarrPluginUpdateResponse {
+  success: boolean;
+  plugin: ProwlarrPlugin;
 }
 
 export interface QbittorrentPluginUpdateResponse {

@@ -5,6 +5,7 @@ export const PLUGIN_ENDPOINTS = {
   RADARR_PROFILES: '/api/plugins/radarr/profiles',
   SONARR: '/api/plugins/sonarr',
   SONARR_PROFILES: '/api/plugins/sonarr/profiles',
+  PROWLARR: '/api/plugins/prowlarr',
   QBITTORRENT: '/api/plugins/qbittorrent',
   SCRUTINY: '/api/plugins/scrutiny',
   NETDATA: '/api/plugins/netdata',

@@ -18,6 +18,11 @@ export interface SonarrPluginConfig {
   language_profile_id: number;
 }
 
+export interface ProwlarrPluginConfig {
+  api_key: string;
+  website_url: string;
+}
+
 export interface ScrutinyPluginConfig {
   website_url: string;
 }

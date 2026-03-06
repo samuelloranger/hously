@@ -79,6 +79,7 @@ export const queryKeys = {
     jellyfin: () => [...queryKeys.plugins.all, 'jellyfin'] as const,
     radarr: () => [...queryKeys.plugins.all, 'radarr'] as const,
     sonarr: () => [...queryKeys.plugins.all, 'sonarr'] as const,
+    prowlarr: () => [...queryKeys.plugins.all, 'prowlarr'] as const,
     qbittorrent: () => [...queryKeys.plugins.all, 'qbittorrent'] as const,
     scrutiny: () => [...queryKeys.plugins.all, 'scrutiny'] as const,
     netdata: () => [...queryKeys.plugins.all, 'netdata'] as const,
@@ -116,6 +117,8 @@ export const queryKeys = {
     tmdbSearch: (query: string) => [...queryKeys.medias.all, 'tmdb-search', query] as const,
     interactiveSearch: (service: 'radarr' | 'sonarr', sourceId: number) =>
       [...queryKeys.medias.all, 'interactive-search', service, sourceId] as const,
+    prowlarrInteractiveSearch: (query: string) =>
+      [...queryKeys.medias.all, 'interactive-search', 'prowlarr', query] as const,
     providers: (mediaType: 'movie' | 'tv', tmdbId: number, region?: string) =>
       [...queryKeys.medias.all, 'providers', mediaType, tmdbId, region ?? 'CA'] as const,
   },

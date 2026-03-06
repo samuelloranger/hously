@@ -10,6 +10,8 @@ import type {
   JellyfinPluginUpdateResponse,
   NetdataPlugin,
   NetdataPluginUpdateResponse,
+  ProwlarrPlugin,
+  ProwlarrPluginUpdateResponse,
   QbittorrentPlugin,
   QbittorrentPluginUpdateResponse,
   RadarrPlugin,
@@ -110,6 +112,16 @@ export function useSonarrPlugin() {
   return useQuery({
     queryKey: queryKeys.plugins.sonarr(),
     queryFn: () => fetcher<{ plugin: SonarrPlugin }>(PLUGIN_ENDPOINTS.SONARR),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useProwlarrPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.prowlarr(),
+    queryFn: () => fetcher<{ plugin: ProwlarrPlugin }>(PLUGIN_ENDPOINTS.PROWLARR),
     refetchOnMount: 'always',
     staleTime: 0,
   });
@@ -226,6 +238,21 @@ export function useUpdateSonarrPlugin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.sonarr() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() });
+    },
+  });
+}
+
+export function useUpdateProwlarrPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { website_url: string; api_key: string; enabled: boolean }) =>
+      fetcher<ProwlarrPluginUpdateResponse>(PLUGIN_ENDPOINTS.PROWLARR, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.prowlarr() });
     },
   });
 }

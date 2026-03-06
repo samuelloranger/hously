@@ -935,6 +935,12 @@
         "popularityThreshold": "Seuil de popularité",
         "popularityThresholdHelp": "Score de popularité TMDB minimum (0–100) pour les sorties à venir. Les valeurs élevées n'affichent que les titres populaires."
       },
+      "prowlarr": {
+        "help": "Connectez Prowlarr pour lancer des recherches globales de releases et envoyer les résultats à votre client de téléchargement configuré.",
+        "websiteUrl": "URL Prowlarr",
+        "apiKey": "Clé API Prowlarr",
+        "apiKeyPlaceholder": "Collez votre clé API Prowlarr"
+      },
       "radarr": {
         "help": "Connectez Radarr pour ajouter les films à venir directement depuis le tableau de bord.",
         "websiteUrl": "URL Radarr",
@@ -1375,7 +1381,9 @@
     },
     "interactive": {
       "button": "Recherche interactive",
+      "globalButton": "Recherche Prowlarr",
       "title": "Recherche interactive : {{title}}",
+      "prowlarrTitle": "Recherche Prowlarr",
       "loading": "Chargement des releases...",
       "empty": "Aucune release trouvée.",
       "noMatches": "Aucune release ne correspond à la vue actuelle.",
@@ -1390,6 +1398,9 @@
       "noTrackers": "Aucun tracker disponible",
       "noLanguages": "Aucune langue disponible",
       "searchPlaceholder": "Filtrer les releases par titre ou tracker...",
+      "prowlarrSearchPlaceholder": "Rechercher dans tous les indexers Prowlarr...",
+      "minQuery": "Tapez au moins 2 caractères pour interroger Prowlarr.",
+      "notConfigured": "Configurez et activez le plugin Prowlarr pour lancer des recherches globales.",
       "resultsVisible": "{{visible}} sur {{total}} releases",
       "hiddenCount": "{{count}} masquées",
       "resetView": "Réinitialiser la vue",

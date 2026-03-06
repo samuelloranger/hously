@@ -110,6 +110,20 @@ export function useMediaInteractiveSearch(
   });
 }
 
+export function useProwlarrInteractiveSearch(query: string, options?: { enabled?: boolean }) {
+  const fetcher = useFetcher();
+  const trimmed = query.trim();
+
+  return useQuery({
+    queryKey: queryKeys.medias.prowlarrInteractiveSearch(trimmed),
+    queryFn: () =>
+      fetcher<MediaInteractiveSearchResponse>(MEDIAS_ENDPOINTS.PROWLARR_INTERACTIVE_SEARCH, {
+        params: { q: trimmed },
+      }),
+    enabled: (options?.enabled ?? true) && trimmed.length >= 2,
+  });
+}
+
 export function useTmdbWatchProviders(
   mediaType: 'movie' | 'tv' | null,
   tmdbId: number | null,
@@ -137,6 +151,20 @@ export function useMediaInteractiveDownload() {
         body: {
           guid: params.guid,
           indexer_id: params.indexer_id,
+        },
+      }),
+  });
+}
+
+export function useProwlarrInteractiveDownload() {
+  const fetcher = useFetcher();
+
+  return useMutation({
+    mutationFn: (params: { token: string }) =>
+      fetcher<MediaInteractiveDownloadResponse>(MEDIAS_ENDPOINTS.PROWLARR_INTERACTIVE_SEARCH_DOWNLOAD, {
+        method: 'POST',
+        body: {
+          token: params.token,
         },
       }),
   });

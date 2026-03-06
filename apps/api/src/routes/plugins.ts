@@ -9,6 +9,7 @@ import {
   normalizeHackernewsConfig,
   normalizeJellyfinConfig,
   normalizeNetdataConfig,
+  normalizeProwlarrConfig,
   normalizeRadarrConfig,
   normalizeRedditConfig,
   normalizeScrutinyConfig,
@@ -316,6 +317,124 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         console.error('Error saving Jellyfin plugin config:', error);
         set.status = 500;
         return { error: 'Failed to save Jellyfin plugin config' };
+      }
+    },
+    {
+      body: t.Object({
+        website_url: t.String(),
+        api_key: t.String(),
+        enabled: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  .get('/prowlarr', async ({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    if (!user.is_admin) {
+      set.status = 403;
+      return { error: 'Admin privileges required' };
+    }
+
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'prowlarr' },
+      });
+
+      const config = normalizeProwlarrConfig(plugin?.config);
+      return {
+        plugin: {
+          type: 'prowlarr',
+          enabled: plugin?.enabled || false,
+          website_url: config?.website_url || '',
+          api_key: '',
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching Prowlarr plugin config:', error);
+      set.status = 500;
+      return { error: 'Failed to fetch Prowlarr plugin config' };
+    }
+  })
+  .put(
+    '/prowlarr',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: 'Admin privileges required' };
+      }
+
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const existingPlugin = await prisma.plugin.findFirst({
+        where: { type: 'prowlarr' },
+      });
+      const existingConfig = normalizeProwlarrConfig(existingPlugin?.config);
+      const providedApiKey = body.api_key.trim();
+      const apiKey = providedApiKey || existingConfig?.api_key || '';
+      const enabled = body.enabled ?? true;
+
+      if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
+        set.status = 400;
+        return { error: 'Invalid website_url. Must be a valid http(s) URL.' };
+      }
+
+      if (!apiKey) {
+        set.status = 400;
+        return { error: 'api_key is required' };
+      }
+
+      try {
+        const now = nowUtc();
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'prowlarr' },
+          update: {
+            enabled,
+            config: {
+              website_url: websiteUrl,
+              api_key: encrypt(apiKey),
+            },
+            updatedAt: now,
+          },
+          create: {
+            type: 'prowlarr',
+            enabled,
+            config: {
+              website_url: websiteUrl,
+              api_key: encrypt(apiKey),
+            },
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        enqueueTask('activity:plugin_updated:prowlarr', async () => {
+          await logActivity({
+            type: 'plugin_updated',
+            userId: user.id,
+            payload: { plugin_type: 'prowlarr' },
+          });
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            website_url: websiteUrl,
+            api_key: '',
+          },
+        };
+      } catch (error) {
+        console.error('Error saving Prowlarr plugin config:', error);
+        set.status = 500;
+        return { error: 'Failed to save Prowlarr plugin config' };
       }
     },
     {

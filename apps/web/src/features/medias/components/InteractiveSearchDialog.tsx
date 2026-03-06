@@ -1,20 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import {
-  ArrowDownAZ,
-  ArrowUpZA,
-  ChevronDown,
-  Download,
-  RefreshCw,
-  Search,
-  TriangleAlert,
-  X,
-} from 'lucide-react';
+import { ArrowDownAZ, ArrowUpZA, ChevronDown, Download, RefreshCw, Search, TriangleAlert, X } from 'lucide-react';
 import { Dialog } from '../../../components/dialog';
 import {
   useMediaInteractiveDownload,
   useMediaInteractiveSearch,
+  useProwlarrInteractiveDownload,
+  useProwlarrInteractiveSearch,
   type InteractiveReleaseItem,
   type MediaItem,
 } from '@hously/shared';
@@ -22,7 +15,8 @@ import {
 interface InteractiveSearchDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  media: MediaItem | null;
+  media?: MediaItem | null;
+  mode?: 'arr' | 'prowlarr';
 }
 
 type InteractiveSortKey = 'seeders' | 'age' | 'size' | 'title';
@@ -81,7 +75,7 @@ function ChipMultiSelect({
   }
 
   return (
-    <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto pr-1">
+    <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto pr-1 pb-2">
       {options.map(option => {
         const active = selected.includes(option.key);
         return (
@@ -142,12 +136,20 @@ const formatBytes = (bytes: number | null): string => {
   return `${value >= 100 ? value.toFixed(0) : value.toFixed(1)} ${units[power]}`;
 };
 
-export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveSearchDialogProps) {
+export function InteractiveSearchDialog({
+  isOpen,
+  onClose,
+  media = null,
+  mode = 'arr',
+}: InteractiveSearchDialogProps) {
   const { t } = useTranslation('common');
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const isProwlarrMode = mode === 'prowlarr';
   const sourceId = media?.source_id ?? null;
   const service = media?.service ?? 'radarr';
-  const [titleQuery, setTitleQuery] = useState('');
+  const [filterQuery, setFilterQuery] = useState('');
+  const [prowlarrQuery, setProwlarrQuery] = useState('');
+  const [debouncedProwlarrQuery, setDebouncedProwlarrQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [hideRejected, setHideRejected] = useState(true);
   const [sortBy, setSortBy] = useState<InteractiveSortKey>('seeders');
@@ -157,19 +159,28 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
   const [includedLanguages, setIncludedLanguages] = useState<string[]>([]);
   const [pendingReleaseKey, setPendingReleaseKey] = useState<string | null>(null);
 
-  const releasesQuery = useMediaInteractiveSearch(
+  const arrQuery = useMediaInteractiveSearch(
     { service, source_id: sourceId },
     {
-      enabled: isOpen && Boolean(media),
+      enabled: isOpen && !isProwlarrMode && Boolean(media),
     }
   );
-  const downloadMutation = useMediaInteractiveDownload();
+  const prowlarrSearchQuery = useProwlarrInteractiveSearch(debouncedProwlarrQuery, {
+    enabled: isOpen && isProwlarrMode,
+  });
+  const arrDownloadMutation = useMediaInteractiveDownload();
+  const prowlarrDownloadMutation = useProwlarrInteractiveDownload();
+  const activeQuery = isProwlarrMode ? prowlarrSearchQuery : arrQuery;
+  const activeDownloadMutation = isProwlarrMode ? prowlarrDownloadMutation : arrDownloadMutation;
 
   useEffect(() => {
     if (!isOpen) return;
 
-    setTitleQuery('');
+    setFilterQuery('');
+    setProwlarrQuery('');
+    setDebouncedProwlarrQuery('');
     setShowFilters(false);
+    setHideRejected(true);
     setIncludedTrackers([]);
     setExcludedTrackers([]);
     setIncludedLanguages([]);
@@ -180,12 +191,22 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [isOpen, media?.id]);
+  }, [isOpen, isProwlarrMode, media?.id]);
+
+  useEffect(() => {
+    if (!isProwlarrMode) return;
+
+    const timeout = window.setTimeout(() => {
+      setDebouncedProwlarrQuery(prowlarrQuery.trim());
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [isProwlarrMode, prowlarrQuery]);
 
   const trackerOptions = useMemo<FilterOption[]>(() => {
     const options = new Map<string, string>();
 
-    for (const release of releasesQuery.data?.releases ?? []) {
+    for (const release of activeQuery.data?.releases ?? []) {
       const trackerLabel = release.indexer?.trim() || t('medias.interactive.unknownIndexer');
       const trackerKey = release.indexer?.trim() ? normalizeFilterKey(release.indexer) : UNKNOWN_TRACKER_KEY;
       if (!options.has(trackerKey)) options.set(trackerKey, trackerLabel);
@@ -194,12 +215,12 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
     return [...options.entries()]
       .map(([key, label]) => ({ key, label }))
       .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }));
-  }, [releasesQuery.data?.releases, t]);
+  }, [activeQuery.data?.releases, t]);
 
   const languageOptions = useMemo<FilterOption[]>(() => {
     const options = new Map<string, string>();
 
-    for (const release of releasesQuery.data?.releases ?? []) {
+    for (const release of activeQuery.data?.releases ?? []) {
       const languages = release.languages.length > 0 ? release.languages : [t('medias.interactive.unknownLanguage')];
       for (const language of languages) {
         const trimmed = language.trim();
@@ -212,14 +233,14 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
     return [...options.entries()]
       .map(([key, label]) => ({ key, label }))
       .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }));
-  }, [releasesQuery.data?.releases, t]);
+  }, [activeQuery.data?.releases, t]);
 
   const releases = useMemo(() => {
-    const raw = releasesQuery.data?.releases ?? [];
+    const raw = activeQuery.data?.releases ?? [];
     const includeTrackers = new Set(includedTrackers);
     const excludeTrackers = new Set(excludedTrackers);
     const includeLanguages = new Set(includedLanguages);
-    const normalizedQuery = normalizeFilterKey(titleQuery);
+    const normalizedQuery = isProwlarrMode ? '' : normalizeFilterKey(filterQuery);
 
     const filtered = raw.filter(release => {
       if (hideRejected && release.rejected) return false;
@@ -256,29 +277,37 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
       return sortDir === 'asc' ? cmp : -cmp;
     });
   }, [
-    releasesQuery.data?.releases,
-    hideRejected,
-    includedTrackers,
+    activeQuery.data?.releases,
     excludedTrackers,
+    filterQuery,
+    hideRejected,
     includedLanguages,
+    includedTrackers,
+    isProwlarrMode,
     sortBy,
     sortDir,
-    titleQuery,
   ]);
 
   const downloadRelease = async (release: InteractiveReleaseItem) => {
-    if (!media || !sourceId || !release.indexer_id || downloadMutation.isPending) return;
-
-    const releaseKey = `${release.guid}-${release.indexer_id}`;
+    const releaseKey = `${release.guid}-${release.indexer_id ?? 'x'}`;
     setPendingReleaseKey(releaseKey);
 
     try {
-      await downloadMutation.mutateAsync({
-        service,
-        source_id: sourceId,
-        guid: release.guid,
-        indexer_id: release.indexer_id,
-      });
+      if (isProwlarrMode) {
+        if (!release.download_token || prowlarrDownloadMutation.isPending) return;
+        await prowlarrDownloadMutation.mutateAsync({
+          token: release.download_token,
+        });
+      } else {
+        if (!media || !sourceId || !release.indexer_id || arrDownloadMutation.isPending) return;
+        await arrDownloadMutation.mutateAsync({
+          service,
+          source_id: sourceId,
+          guid: release.guid,
+          indexer_id: release.indexer_id,
+        });
+      }
+
       toast.success(t('medias.interactive.downloadStarted'));
       onClose();
     } catch (error) {
@@ -289,16 +318,19 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
     }
   };
 
-  const totalReleases = releasesQuery.data?.releases.length ?? 0;
+  const totalReleases = activeQuery.data?.releases.length ?? 0;
   const hasAdvancedFilters = includedTrackers.length > 0 || excludedTrackers.length > 0 || includedLanguages.length > 0;
   const totalActiveFilters = includedTrackers.length + excludedTrackers.length + includedLanguages.length;
-  const hasViewOverrides = titleQuery.trim().length > 0 || totalActiveFilters > 0 || !hideRejected;
+  const hasViewOverrides =
+    (!isProwlarrMode && filterQuery.trim().length > 0) || totalActiveFilters > 0 || !hideRejected;
   const visibleCount = releases.length;
   const hiddenCount = Math.max(0, totalReleases - visibleCount);
-  const errorMessage = releasesQuery.error instanceof Error ? releasesQuery.error.message : null;
+  const errorMessage = activeQuery.error instanceof Error ? activeQuery.error.message : null;
+  const needsProwlarrQuery = isProwlarrMode && debouncedProwlarrQuery.length < 2;
+  const canRenderBody = isProwlarrMode || Boolean(media);
 
   const resetView = () => {
-    setTitleQuery('');
+    setFilterQuery('');
     setHideRejected(false);
     setIncludedTrackers([]);
     setExcludedTrackers([]);
@@ -319,12 +351,16 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title={t('medias.interactive.title', {
-        title: media?.title ?? '',
-      })}
+      title={
+        isProwlarrMode
+          ? t('medias.interactive.prowlarrTitle')
+          : t('medias.interactive.title', {
+              title: media?.title ?? '',
+            })
+      }
       panelClassName="max-w-5xl overflow-hidden"
     >
-      {!media ? null : (
+      {!canRenderBody ? null : (
         <div className="flex max-h-[calc(90dvh-6rem)] flex-col overflow-hidden">
           <div className="border-b border-neutral-200 pb-4 dark:border-neutral-700">
             <div className="flex flex-col gap-3">
@@ -336,15 +372,19 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
                   />
                   <input
                     ref={searchInputRef}
-                    value={titleQuery}
-                    onChange={event => setTitleQuery(event.target.value)}
-                    placeholder={t('medias.interactive.searchPlaceholder')}
+                    value={isProwlarrMode ? prowlarrQuery : filterQuery}
+                    onChange={event => (isProwlarrMode ? setProwlarrQuery(event.target.value) : setFilterQuery(event.target.value))}
+                    placeholder={
+                      isProwlarrMode
+                        ? t('medias.interactive.prowlarrSearchPlaceholder')
+                        : t('medias.interactive.searchPlaceholder')
+                    }
                     className="w-full rounded-xl border border-neutral-200 bg-white py-2 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                   />
-                  {titleQuery && (
+                  {(isProwlarrMode ? prowlarrQuery : filterQuery) && (
                     <button
                       type="button"
-                      onClick={() => setTitleQuery('')}
+                      onClick={() => (isProwlarrMode ? setProwlarrQuery('') : setFilterQuery(''))}
                       className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
                       aria-label={t('medias.interactive.clearSearch')}
                     >
@@ -371,15 +411,19 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
                     )}
                   </button>
 
-                  <Toggle checked={hideRejected} onChange={setHideRejected} label={t('medias.interactive.hideRejected')} />
+                  <Toggle
+                    checked={hideRejected}
+                    onChange={setHideRejected}
+                    label={t('medias.interactive.hideRejected')}
+                  />
 
                   <button
                     type="button"
-                    onClick={() => void releasesQuery.refetch()}
-                    disabled={releasesQuery.isFetching}
+                    onClick={() => void activeQuery.refetch()}
+                    disabled={activeQuery.isFetching || needsProwlarrQuery}
                     className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
                   >
-                    <RefreshCw size={13} className={releasesQuery.isFetching ? 'animate-spin' : ''} />
+                    <RefreshCw size={13} className={activeQuery.isFetching ? 'animate-spin' : ''} />
                     {t('medias.interactive.refresh')}
                   </button>
                 </div>
@@ -387,19 +431,19 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-                  <span className="font-medium text-neutral-700 dark:text-neutral-200">
-                    {t('medias.interactive.resultsVisible', { visible: visibleCount, total: totalReleases })}
-                  </span>
-                  {hiddenCount > 0 && (
+                  {!needsProwlarrQuery && (
+                    <span className="font-medium text-neutral-700 dark:text-neutral-200">
+                      {t('medias.interactive.resultsVisible', { visible: visibleCount, total: totalReleases })}
+                    </span>
+                  )}
+                  {!needsProwlarrQuery && hiddenCount > 0 && (
                     <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] dark:bg-neutral-800">
                       {t('medias.interactive.hiddenCount', { count: hiddenCount })}
                     </span>
                   )}
-                  {service && (
-                    <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] capitalize dark:bg-neutral-800">
-                      {service}
-                    </span>
-                  )}
+                  <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] capitalize dark:bg-neutral-800">
+                    {isProwlarrMode ? 'prowlarr' : service}
+                  </span>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
@@ -475,7 +519,7 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
                       />
                     </FilterSection>
 
-                    <div className="pt-3">
+                    <div className="pt-1.5">
                       <FilterSection title={t('medias.interactive.trackersExclude')} badge={excludedTrackers.length}>
                         <ChipMultiSelect
                           options={trackerOptions}
@@ -486,7 +530,7 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
                       </FilterSection>
                     </div>
 
-                    <div className="pt-3">
+                    <div className="pt-1.5">
                       <FilterSection title={t('medias.interactive.languagesInclude')} badge={includedLanguages.length}>
                         <ChipMultiSelect
                           options={languageOptions}
@@ -503,11 +547,17 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
           </div>
 
           <div className="min-h-0 flex-1 overflow-hidden pt-4">
-            {releasesQuery.isLoading ? (
+            {needsProwlarrQuery ? (
+              <div className="flex h-full items-center justify-center py-8">
+                <div className="max-w-md text-center text-sm text-neutral-500 dark:text-neutral-400">
+                  {t('medias.interactive.minQuery')}
+                </div>
+              </div>
+            ) : activeQuery.isLoading ? (
               <div className="flex h-full items-center justify-center py-8">
                 <div className="text-sm text-neutral-500 dark:text-neutral-400">{t('medias.interactive.loading')}</div>
               </div>
-            ) : releasesQuery.isError ? (
+            ) : activeQuery.isError ? (
               <div className="flex h-full items-center justify-center py-8">
                 <div className="max-w-md rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center dark:border-amber-700/40 dark:bg-amber-950/20">
                   <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
@@ -521,7 +571,7 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
                   </p>
                   <button
                     type="button"
-                    onClick={() => void releasesQuery.refetch()}
+                    onClick={() => void activeQuery.refetch()}
                     className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500"
                   >
                     <RefreshCw size={14} />
@@ -557,7 +607,7 @@ export function InteractiveSearchDialog({ isOpen, onClose, media }: InteractiveS
                         release={release}
                         onDownload={() => void downloadRelease(release)}
                         isDownloading={pendingReleaseKey === releaseKey}
-                        isBusy={downloadMutation.isPending}
+                        isBusy={activeDownloadMutation.isPending}
                         t={t}
                       />
                     );

@@ -4,6 +4,7 @@ import { cn } from '../../lib/utils';
 import {
   JellyfinPluginSection,
   NetdataPluginSection,
+  ProwlarrPluginSection,
   QbittorrentPluginSection,
   RadarrPluginSection,
   ScrutinyPluginSection,
@@ -58,6 +59,7 @@ export function PluginsTab() {
           <WeatherPluginSection />
           <TmdbPluginSection />
           <JellyfinPluginSection />
+          <ProwlarrPluginSection />
           <RadarrPluginSection />
           <SonarrPluginSection />
           <QbittorrentPluginSection />

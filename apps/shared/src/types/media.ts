@@ -93,11 +93,13 @@ export interface InteractiveReleaseItem {
   rejected: boolean;
   rejection_reason: string | null;
   info_url: string | null;
+  source: 'arr' | 'prowlarr';
+  download_token?: string | null;
 }
 
 export interface MediaInteractiveSearchResponse {
   success: boolean;
-  service: 'radarr' | 'sonarr';
+  service: 'radarr' | 'sonarr' | 'prowlarr';
   releases: InteractiveReleaseItem[];
 }
 
@@ -120,7 +122,7 @@ export interface SimilarMediasResponse {
 
 export interface MediaInteractiveDownloadResponse {
   success: boolean;
-  service: 'radarr' | 'sonarr';
+  service: 'radarr' | 'sonarr' | 'prowlarr';
 }
 
 export interface MediaDeleteResponse {
