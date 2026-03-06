@@ -34,6 +34,22 @@ const removeEndpoint = () => {
   }
 };
 
+const isPushStoreError = (error: unknown): boolean => {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.toLowerCase().includes('error retrieving push subscription');
+};
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const hardResetServiceWorkerForPush = async (): Promise<ServiceWorkerRegistration> => {
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(registrations.map(reg => reg.unregister()));
+  await navigator.serviceWorker.register('/sw.js');
+  const readyRegistration = await navigator.serviceWorker.ready;
+  await wait(200);
+  return readyRegistration;
+};
+
 export function useNotifications(): UseNotificationsReturn {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
@@ -194,14 +210,31 @@ export function useNotifications(): UseNotificationsReturn {
           applicationServerKey,
         });
       } catch (error) {
-        // Firefox can intermittently fail to read/create a subscription while registration is changing.
-        console.warn('Initial push subscribe failed, retrying after SW update:', error);
-        await registration.update();
-        const refreshedRegistration = (await navigator.serviceWorker.getRegistration('/sw.js')) || registration;
-        newSubscription = await refreshedRegistration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey,
-        });
+        if (!isPushStoreError(error)) {
+          throw error;
+        }
+
+        console.warn('Push store appears corrupted, resetting service worker registration:', error);
+        const resetRegistration = await hardResetServiceWorkerForPush();
+        const recoveredSubscription = await getSubscriptionSafe(resetRegistration, { allowReset: false });
+
+        if (recoveredSubscription) {
+          newSubscription = recoveredSubscription;
+        } else {
+          newSubscription = await resetRegistration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey,
+          });
+        }
+      }
+
+      if (!newSubscription) {
+        return null;
+      }
+
+      if (!newSubscription.getKey('p256dh') || !newSubscription.getKey('auth')) {
+        console.warn('Push subscription keys are missing; subscription will be ignored');
+        return null;
       }
 
       const sub = {
