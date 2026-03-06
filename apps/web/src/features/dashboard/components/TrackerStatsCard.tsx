@@ -124,20 +124,15 @@ export function TrackerStatsCard() {
         </span>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="mt-4 grid grid-cols-3 gap-2">
         {isLoading
           ? trackers.map(item => (
-              <article key={item.key} className="rounded-xl bg-black/10 dark:bg-black/20 p-3 animate-pulse">
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="h-4 w-16 rounded bg-black/20 dark:bg-black/30" />
-                  <div className="h-3 w-12 rounded bg-black/20 dark:bg-black/30" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="h-8 rounded bg-black/20 dark:bg-black/30" />
-                    <div className="h-8 rounded bg-black/20 dark:bg-black/30" />
-                  </div>
-                  <div className="h-8 rounded bg-black/20 dark:bg-black/30" />
+              <article key={item.key} className="rounded-lg bg-black/10 dark:bg-black/20 p-2.5 animate-pulse">
+                <div className="h-3.5 w-14 rounded bg-black/20 dark:bg-black/30 mb-2" />
+                <div className="flex flex-col gap-1.5">
+                  <div className="h-6 rounded bg-black/20 dark:bg-black/30" />
+                  <div className="h-6 rounded bg-black/20 dark:bg-black/30" />
+                  <div className="h-6 rounded bg-black/20 dark:bg-black/30" />
                 </div>
               </article>
             ))
@@ -146,54 +141,52 @@ export function TrackerStatsCard() {
               const showUnavailable = !item.enabled || !item.connected;
 
               return (
-                <article key={item.key} className="rounded-xl bg-black/10 dark:bg-black/20 p-3">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-sm font-semibold text-emerald-950 dark:text-white">{item.label}</p>
-                    <span className="text-[11px] text-emerald-950/80 dark:text-emerald-100/90">
+                <article key={item.key} className="rounded-lg bg-black/10 dark:bg-black/20 p-2.5">
+                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                    <p className="text-xs font-semibold text-emerald-950 dark:text-white truncate">{item.label}</p>
+                    <span className="text-[9px] shrink-0 text-emerald-950/70 dark:text-emerald-100/80">
                       {showUnavailable ? t('dashboard.trackers.disconnected') : t('dashboard.trackers.connectedSimple')}
                     </span>
                   </div>
 
                   {showUnavailable ? (
-                    <p className="text-xs text-emerald-950/85 dark:text-emerald-100/90">
+                    <p className="text-[10px] leading-tight text-emerald-950/85 dark:text-emerald-100/90">
                       {item.error || t('dashboard.trackers.notConnectedDescription')}
                     </p>
                   ) : (
-                    <div className="flex flex-col gap-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
-                            {t('dashboard.trackers.uploaded')}
-                          </p>
-                          <p className="text-sm font-semibold text-emerald-950 dark:text-white flex flex-col items-start gap-0.5">
-                            <span className="leading-none">{formatGo(item.uploaded_go)}</span>
-                            {renderDelta(item.uploaded_go, item.previous_uploaded_go)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
-                            {t('dashboard.trackers.downloaded')}
-                          </p>
-                          <p className="text-sm font-semibold text-emerald-950 dark:text-white flex flex-col items-start gap-0.5">
-                            <span className="leading-none">{formatGo(item.downloaded_go)}</span>
-                            {renderDelta(item.downloaded_go, item.previous_downloaded_go)}
-                          </p>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-baseline justify-between">
+                        <p className="text-[10px] text-emerald-950/75 dark:text-emerald-200/80">
+                          {t('dashboard.trackers.uploaded')}
+                        </p>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatGo(item.uploaded_go)}</span>
+                          {renderDelta(item.uploaded_go, item.previous_uploaded_go)}
                         </div>
                       </div>
-                      <div>
-                        <p className="text-[11px] text-emerald-950/75 dark:text-emerald-200/80">
+                      <div className="flex items-baseline justify-between">
+                        <p className="text-[10px] text-emerald-950/75 dark:text-emerald-200/80">
+                          {t('dashboard.trackers.downloaded')}
+                        </p>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatGo(item.downloaded_go)}</span>
+                          {renderDelta(item.downloaded_go, item.previous_downloaded_go)}
+                        </div>
+                      </div>
+                      <div className="flex items-baseline justify-between">
+                        <p className="text-[10px] text-emerald-950/75 dark:text-emerald-200/80">
                           {t('dashboard.trackers.ratio')}
                         </p>
-                        <p className="text-sm font-semibold text-emerald-950 dark:text-white flex flex-col items-start gap-0.5">
-                          <span className="leading-none">{formatRatio(item.ratio)}</span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xs font-semibold text-emerald-950 dark:text-white leading-none">{formatRatio(item.ratio)}</span>
                           {renderDelta(item.ratio, item.previous_ratio, true)}
-                        </p>
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {updatedLabel ? (
-                    <p className="text-[11px] text-emerald-950/80 dark:text-emerald-100/90 mt-2">
+                    <p className="text-[9px] text-emerald-950/70 dark:text-emerald-100/80 mt-1.5">
                       {t('dashboard.trackers.updated', { value: updatedLabel })}
                     </p>
                   ) : null}
