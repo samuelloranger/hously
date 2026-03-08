@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { useDashboardAdguardSummary } from '@hously/shared';
+import { useDashboardAdguardSummary, useSetAdguardProtection } from '@hously/shared';
+import { Button } from '../../../components/ui/button';
+import { useAuth } from '../../../hooks/useAuth';
 import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
 
 const formatPercent = (value: number | null): string => {
@@ -15,9 +17,18 @@ const formatProcessingTime = (value: number | null): string => {
 export function AdguardOverviewCard() {
   const { t } = useTranslation('common');
   const { data, isLoading } = useDashboardAdguardSummary();
+  const setAdguardProtection = useSetAdguardProtection();
+  const { user } = useAuth();
   const prefetchRoute = usePrefetchRoute();
 
   const showNotConnected = !isLoading && (!data || !data.enabled || !data.connected);
+  const canToggleProtection = Boolean(user?.is_admin) && !showNotConnected && data;
+  const toggleError = setAdguardProtection.error instanceof Error ? setAdguardProtection.error.message : null;
+
+  const handleToggleProtection = () => {
+    if (!data || setAdguardProtection.isPending) return;
+    setAdguardProtection.mutate({ enabled: !data.protection_enabled });
+  };
 
   return (
     <section
@@ -35,13 +46,31 @@ export function AdguardOverviewCard() {
           </h3>
           <p className="text-[10px] text-sky-900/70 dark:text-sky-100/90 mt-1">{t('dashboard.adguard.subtitle')}</p>
         </div>
-        <span className="rounded-full bg-black/15 dark:bg-black/25 px-3 py-1 text-[11px] font-medium text-sky-950 dark:text-sky-100">
-          {showNotConnected
-            ? t('dashboard.adguard.disconnected')
-            : data?.protection_enabled
-              ? t('dashboard.adguard.protectionOn')
-              : t('dashboard.adguard.protectionOff')}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <span className="rounded-full bg-black/15 dark:bg-black/25 px-3 py-1 text-[11px] font-medium text-sky-950 dark:text-sky-100">
+            {showNotConnected
+              ? t('dashboard.adguard.disconnected')
+              : data?.protection_enabled
+                ? t('dashboard.adguard.protectionOn')
+                : t('dashboard.adguard.protectionOff')}
+          </span>
+          {canToggleProtection ? (
+            <Button
+              type="button"
+              size="sm"
+              variant={data?.protection_enabled ? 'outline' : 'default'}
+              className="h-8 rounded-full border-white/40 bg-white/70 px-3 text-xs text-sky-950 hover:bg-white dark:border-sky-200/40 dark:bg-sky-950/25 dark:text-sky-50 dark:hover:bg-sky-950/40"
+              onClick={handleToggleProtection}
+              disabled={setAdguardProtection.isPending}
+            >
+              {setAdguardProtection.isPending
+                ? t('dashboard.adguard.updating')
+                : data?.protection_enabled
+                  ? t('dashboard.adguard.turnOff')
+                  : t('dashboard.adguard.turnOn')}
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {showNotConnected ? (
@@ -80,7 +109,9 @@ export function AdguardOverviewCard() {
             </div>
           </div>
 
-          {data?.error && <p className="mt-4 text-[11px] text-sky-950/85 dark:text-sky-100/90">{data.error}</p>}
+          {(toggleError || data?.error) && (
+            <p className="mt-4 text-[11px] text-sky-950/85 dark:text-sky-100/90">{toggleError || data?.error}</p>
+          )}
         </>
       )}
     </section>

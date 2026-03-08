@@ -4,6 +4,7 @@ import { queryKeys } from '../queryKeys';
 import { DASHBOARD_ENDPOINTS, PLUGIN_ENDPOINTS } from '../endpoints';
 import type {
   AdguardPlugin,
+  AdguardProtectionUpdateResponse,
   AdguardPluginUpdateResponse,
   ArrProfile,
   DashboardTrackerStatsResponse,
@@ -331,6 +332,22 @@ export function useUpdateAdguardPlugin() {
     mutationFn: (data: { website_url: string; username: string; password?: string; enabled: boolean }) =>
       fetcher<AdguardPluginUpdateResponse>(PLUGIN_ENDPOINTS.ADGUARD, {
         method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.adguard() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.adguardSummary() });
+    },
+  });
+}
+
+export function useSetAdguardProtection() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { enabled: boolean }) =>
+      fetcher<AdguardProtectionUpdateResponse>(PLUGIN_ENDPOINTS.ADGUARD_PROTECTION, {
+        method: 'POST',
         body: data,
       }),
     onSuccess: () => {

@@ -137,6 +137,11 @@ export interface AdguardPluginUpdateResponse {
   plugin: AdguardPlugin;
 }
 
+export interface AdguardProtectionUpdateResponse {
+  success: boolean;
+  protection_enabled: boolean;
+}
+
 export interface WeatherPluginUpdateResponse {
   success: boolean;
   plugin: WeatherPlugin;

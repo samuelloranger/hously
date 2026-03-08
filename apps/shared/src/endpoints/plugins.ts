@@ -10,6 +10,7 @@ export const PLUGIN_ENDPOINTS = {
   SCRUTINY: '/api/plugins/scrutiny',
   NETDATA: '/api/plugins/netdata',
   ADGUARD: '/api/plugins/adguard',
+  ADGUARD_PROTECTION: '/api/plugins/adguard/protection',
   WEATHER: '/api/plugins/weather',
   TMDB: '/api/plugins/tmdb',
   C411: '/api/plugins/c411',

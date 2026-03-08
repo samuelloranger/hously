@@ -30,6 +30,35 @@ import type { TrackerType } from '../utils/plugins/types';
 type AdminUser = { id: number; is_admin: boolean };
 
 const trackerLabel = (type: TrackerType): string => type.toUpperCase();
+const toBoolean = (value: unknown): boolean => value === true;
+
+type AdguardApiConfig = {
+  website_url: string;
+  username: string;
+  password: string;
+};
+
+async function getAdguardApiConfig(
+  set: { status?: number | string }
+): Promise<{ config?: AdguardApiConfig; error?: string }> {
+  const plugin = await prisma.plugin.findFirst({
+    where: { type: 'adguard' },
+    select: { enabled: true, config: true },
+  });
+
+  if (!plugin?.enabled) {
+    set.status = 400;
+    return { error: 'AdGuard Home plugin is not enabled' };
+  }
+
+  const config = normalizeAdguardConfig(plugin.config);
+  if (!config) {
+    set.status = 400;
+    return { error: 'AdGuard Home plugin is not configured' };
+  }
+
+  return { config };
+}
 
 async function getTrackerPluginHandler(
   type: TrackerType,
@@ -1203,6 +1232,83 @@ export const pluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         username: t.String(),
         password: t.Optional(t.String()),
         enabled: t.Optional(t.Boolean()),
+      }),
+    }
+  )
+  .post(
+    '/adguard/protection',
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: 'Unauthorized' };
+      }
+
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: 'Admin privileges required' };
+      }
+
+      try {
+        const { config, error } = await getAdguardApiConfig(set);
+        if (!config) {
+          return { error: error || 'AdGuard Home plugin is not configured' };
+        }
+
+        const authHeader = `Basic ${Buffer.from(`${config.username}:${config.password}`).toString('base64')}`;
+        const protectionUrl = new URL('/control/protection', config.website_url);
+        const statusUrl = new URL('/control/status', config.website_url);
+
+        const protectionResponse = await fetch(protectionUrl.toString(), {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            Authorization: authHeader,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ enabled: body.enabled }),
+        });
+
+        if (!protectionResponse.ok) {
+          set.status = 502;
+          return { error: `AdGuard protection request failed with status ${protectionResponse.status}` };
+        }
+
+        const statusResponse = await fetch(statusUrl.toString(), {
+          headers: {
+            Accept: 'application/json',
+            Authorization: authHeader,
+          },
+        });
+
+        if (!statusResponse.ok) {
+          set.status = 502;
+          return { error: `AdGuard status request failed with status ${statusResponse.status}` };
+        }
+
+        const statusPayload = (await statusResponse.json()) as unknown;
+        const status =
+          statusPayload && typeof statusPayload === 'object' && !Array.isArray(statusPayload)
+            ? (statusPayload as Record<string, unknown>)
+            : null;
+
+        if (!status) {
+          set.status = 502;
+          return { error: 'Invalid AdGuard Home status payload' };
+        }
+
+        return {
+          success: true,
+          protection_enabled: toBoolean(status.protection_enabled),
+        };
+      } catch (error) {
+        console.error('Error updating AdGuard Home protection:', error);
+        set.status = 500;
+        return { error: 'Failed to update AdGuard Home protection' };
+      }
+    },
+    {
+      body: t.Object({
+        enabled: t.Boolean(),
       }),
     }
   )
