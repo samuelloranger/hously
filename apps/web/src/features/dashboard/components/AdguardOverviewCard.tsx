@@ -80,62 +80,6 @@ export function AdguardOverviewCard() {
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-black/10 dark:bg-black/20 p-3">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[11px] font-semibold text-sky-950 dark:text-white">
-                  {t('dashboard.adguard.topBlocked')}
-                </p>
-                <span className="text-[10px] text-sky-900/80 dark:text-sky-100/80">
-                  {data?.version ? t('dashboard.adguard.version', { value: data.version }) : ''}
-                </span>
-              </div>
-              <div className="mt-3 space-y-2">
-                {data?.top_blocked_domains.length ? (
-                  data.top_blocked_domains.slice(0, 3).map(entry => (
-                    <div key={entry.name} className="flex items-center justify-between gap-3 text-xs">
-                      <span className="truncate text-sky-950 dark:text-white">{entry.name}</span>
-                      <span className="shrink-0 text-sky-900 dark:text-sky-100">{entry.hits.toLocaleString()}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-sky-950/80 dark:text-sky-100/90">{t('dashboard.adguard.emptyBlocked')}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-2xl bg-black/10 dark:bg-black/20 p-3">
-              <p className="text-[11px] font-semibold text-sky-950 dark:text-white">{t('dashboard.adguard.topClients')}</p>
-              <div className="mt-3 space-y-2">
-                {data?.top_clients.length ? (
-                  data.top_clients.slice(0, 3).map(entry => (
-                    <div key={entry.name} className="flex items-center justify-between gap-3 text-xs">
-                      <span className="truncate text-sky-950 dark:text-white">{entry.name}</span>
-                      <span className="shrink-0 text-sky-900 dark:text-sky-100">{entry.hits.toLocaleString()}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-sky-950/80 dark:text-sky-100/90">{t('dashboard.adguard.emptyClients')}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-3 gap-2 text-[11px]">
-            <div className="rounded-xl bg-black/10 dark:bg-black/20 p-2.5 text-sky-950 dark:text-white">
-              <p className="text-sky-950/75 dark:text-sky-200/80">{t('dashboard.adguard.safeBrowsing')}</p>
-              <p className="mt-1 font-semibold">{data?.summary.safebrowsing_blocked.toLocaleString() ?? 0}</p>
-            </div>
-            <div className="rounded-xl bg-black/10 dark:bg-black/20 p-2.5 text-sky-950 dark:text-white">
-              <p className="text-sky-950/75 dark:text-sky-200/80">{t('dashboard.adguard.safeSearch')}</p>
-              <p className="mt-1 font-semibold">{data?.summary.safesearch_rewritten.toLocaleString() ?? 0}</p>
-            </div>
-            <div className="rounded-xl bg-black/10 dark:bg-black/20 p-2.5 text-sky-950 dark:text-white">
-              <p className="text-sky-950/75 dark:text-sky-200/80">{t('dashboard.adguard.parental')}</p>
-              <p className="mt-1 font-semibold">{data?.summary.parental_blocked.toLocaleString() ?? 0}</p>
-            </div>
-          </div>
-
           {data?.error && <p className="mt-4 text-[11px] text-sky-950/85 dark:text-sky-100/90">{data.error}</p>}
         </>
       )}

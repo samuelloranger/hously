@@ -290,7 +290,7 @@
     "adguard": {
       "kicker": "Depuis votre bouclier DNS",
       "title": "AdGuard Home",
-      "subtitle": "Protection DNS, trafic bloqué et clients les plus actifs.",
+      "subtitle": "Protection DNS et possibilité d'activer ou désactiver AdGuard depuis Hously.",
       "disconnected": "Déconnecté",
       "protectionOn": "Protection active",
       "protectionOff": "Protection en pause",
@@ -299,15 +299,7 @@
       "queries": "Requêtes",
       "blocked": "Bloquées",
       "blockRate": "Taux de blocage",
-      "avgTime": "Temps moyen",
-      "topBlocked": "Domaines les plus bloqués",
-      "topClients": "Clients principaux",
-      "safeBrowsing": "Safe Browsing",
-      "safeSearch": "Safe Search",
-      "parental": "Contrôle parental",
-      "version": "v{{value}}",
-      "emptyBlocked": "Aucun domaine bloqué enregistré pour le moment.",
-      "emptyClients": "Aucune activité client enregistrée pour le moment."
+      "avgTime": "Temps moyen"
     },
     "loading": "Chargement de l'accueil...",
     "user": "Utilisateur",
@@ -998,7 +990,7 @@
         "websiteUrl": "URL Netdata"
       },
       "adguard": {
-        "help": "Connectez AdGuard Home pour afficher le filtrage DNS, le trafic bloqué et les clients actifs sur l'accueil.",
+        "help": "Connectez AdGuard Home pour afficher le filtrage DNS et activer ou désactiver AdGuard depuis Hously.",
         "websiteUrl": "URL AdGuard Home",
         "username": "Nom d'utilisateur AdGuard Home",
         "password": "Mot de passe AdGuard Home",

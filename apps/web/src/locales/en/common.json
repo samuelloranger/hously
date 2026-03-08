@@ -291,7 +291,7 @@
     "adguard": {
       "kicker": "From your DNS shield",
       "title": "AdGuard Home",
-      "subtitle": "DNS protection, blocked traffic, and busiest clients.",
+      "subtitle": "DNS protection and turning AdGuard on or off from Hously.",
       "disconnected": "Disconnected",
       "protectionOn": "Protection on",
       "protectionOff": "Protection paused",
@@ -300,15 +300,7 @@
       "queries": "Queries",
       "blocked": "Blocked",
       "blockRate": "Block rate",
-      "avgTime": "Avg time",
-      "topBlocked": "Top blocked domains",
-      "topClients": "Top clients",
-      "safeBrowsing": "Safe Browsing",
-      "safeSearch": "Safe Search",
-      "parental": "Parental",
-      "version": "v{{value}}",
-      "emptyBlocked": "No blocked domains recorded yet.",
-      "emptyClients": "No client activity recorded yet."
+      "avgTime": "Avg time"
     },
     "loading": "Loading dashboard...",
     "user": "User",
@@ -999,7 +991,7 @@
         "websiteUrl": "Netdata URL"
       },
       "adguard": {
-        "help": "Connect AdGuard Home to surface DNS filtering, blocked traffic, and active clients on the dashboard.",
+        "help": "Connect AdGuard Home to show DNS filtering and turn AdGuard on or off from Hously.",
         "websiteUrl": "AdGuard Home URL",
         "username": "AdGuard Home Username",
         "password": "AdGuard Home Password",
