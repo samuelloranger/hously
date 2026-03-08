@@ -116,6 +116,7 @@ export interface DashboardUpcomingItem {
   overview: string | null;
   tmdb_url: string;
   providers: DashboardUpcomingProvider[];
+  vote_average?: number | null;
   popularity?: number;
 }
 
@@ -135,6 +136,9 @@ export interface DashboardUpcomingResponse {
 export interface DashboardUpcomingStatusResponse {
   exists: boolean;
   service: 'radarr' | 'sonarr';
+  can_add: boolean;
+  source_id: number | null;
+  arr_url: string | null;
 }
 
 export interface QbittorrentDashboardSummary {

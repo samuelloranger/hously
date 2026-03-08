@@ -390,7 +390,13 @@ export function createDashboardApi(fetcher: ApiFetcher) {
         body: data,
       }),
     getUpcomingStatus: (data: { media_type: 'movie' | 'tv'; tmdb_id: number }) =>
-      fetcher<{ exists: boolean; service: 'radarr' | 'sonarr' }>(DASHBOARD_ENDPOINTS.UPCOMING.STATUS, {
+      fetcher<{
+        exists: boolean;
+        service: 'radarr' | 'sonarr';
+        can_add: boolean;
+        source_id: number | null;
+        arr_url: string | null;
+      }>(DASHBOARD_ENDPOINTS.UPCOMING.STATUS, {
         method: 'POST',
         body: data,
       }),

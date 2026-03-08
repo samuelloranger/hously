@@ -9,8 +9,22 @@ import {
 import { prisma } from '../../db';
 import { getJsonCache, setJsonCache, deleteCache } from '../../services/cache';
 import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../../utils/plugins/normalizers';
-import { toRecord } from '../../utils/coerce';
+import { toRecord, toStringOrNull } from '../../utils/coerce';
 import type { DashboardUpcomingItem } from '../../types/dashboardUpcoming';
+
+const buildArrItemUrl = (baseUrl: string, service: 'radarr' | 'sonarr', slug: string): string | null => {
+  try {
+    const url = new URL(baseUrl);
+    const basePath = url.pathname.replace(/\/+$/, '');
+    const itemPath = service === 'radarr' ? 'movie' : 'series';
+    url.pathname = `${basePath}/${itemPath}/${slug}`;
+    url.search = '';
+    url.hash = '';
+    return url.toString();
+  } catch {
+    return null;
+  }
+};
 
 export const dashboardUpcomingRoutes = new Elysia()
   .use(auth)
@@ -308,12 +322,12 @@ export const dashboardUpcomingRoutes = new Elysia()
           });
 
           if (!radarrPlugin?.enabled) {
-            return { exists: false, service: 'radarr' };
+            return { exists: false, service: 'radarr', can_add: false, source_id: null, arr_url: null };
           }
 
           const config = normalizeRadarrConfig(radarrPlugin.config);
           if (!config) {
-            return { exists: false, service: 'radarr' };
+            return { exists: false, service: 'radarr', can_add: false, source_id: null, arr_url: null };
           }
 
           const movieUrl = new URL('/api/v3/movie', config.website_url);
@@ -328,7 +342,17 @@ export const dashboardUpcomingRoutes = new Elysia()
           }
 
           const movieData = (await movieResponse.json()) as unknown[];
-          return { exists: Array.isArray(movieData) && movieData.length > 0, service: 'radarr' };
+          const firstMovie = Array.isArray(movieData) ? toRecord(movieData[0]) : null;
+          const sourceId = firstMovie && typeof firstMovie.id === 'number' ? Math.trunc(firstMovie.id) : null;
+          const exists = Array.isArray(movieData) && movieData.length > 0;
+
+          return {
+            exists,
+            service: 'radarr',
+            can_add: true,
+            source_id: sourceId,
+            arr_url: exists ? buildArrItemUrl(config.website_url, 'radarr', String(tmdbId)) : null,
+          };
         }
 
         const sonarrPlugin = await prisma.plugin.findFirst({
@@ -337,12 +361,12 @@ export const dashboardUpcomingRoutes = new Elysia()
         });
 
         if (!sonarrPlugin?.enabled) {
-          return { exists: false, service: 'sonarr' };
+          return { exists: false, service: 'sonarr', can_add: false, source_id: null, arr_url: null };
         }
 
         const config = normalizeSonarrConfig(sonarrPlugin.config);
         if (!config) {
-          return { exists: false, service: 'sonarr' };
+          return { exists: false, service: 'sonarr', can_add: false, source_id: null, arr_url: null };
         }
 
         const seriesUrl = new URL('/api/v3/series', config.website_url);
@@ -357,7 +381,18 @@ export const dashboardUpcomingRoutes = new Elysia()
         }
 
         const seriesData = (await seriesResponse.json()) as unknown[];
-        return { exists: Array.isArray(seriesData) && seriesData.length > 0, service: 'sonarr' };
+        const firstSeries = Array.isArray(seriesData) ? toRecord(seriesData[0]) : null;
+        const sourceId = firstSeries && typeof firstSeries.id === 'number' ? Math.trunc(firstSeries.id) : null;
+        const titleSlug = firstSeries ? toStringOrNull(firstSeries.titleSlug) : null;
+        const exists = Array.isArray(seriesData) && seriesData.length > 0;
+
+        return {
+          exists,
+          service: 'sonarr',
+          can_add: true,
+          source_id: sourceId,
+          arr_url: exists && titleSlug ? buildArrItemUrl(config.website_url, 'sonarr', titleSlug) : null,
+        };
       } catch (error) {
         console.error('Error checking upcoming item status', error);
         set.status = 500;

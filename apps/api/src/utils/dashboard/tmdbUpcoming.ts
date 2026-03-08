@@ -55,6 +55,10 @@ const mapTmdbItem = (rawItem: unknown, mediaType: 'movie' | 'tv'): DashboardUpco
   const backdropPath = toStringOrNull(item.backdrop_path);
   const overview = toStringOrNull(item.overview);
   const popularity = typeof item.popularity === 'number' && Number.isFinite(item.popularity) ? item.popularity : 0;
+  const voteAverage =
+    typeof item.vote_average === 'number' && Number.isFinite(item.vote_average) && item.vote_average > 0
+      ? item.vote_average
+      : null;
 
   return {
     id: `${mediaType}-${numericId}`,
@@ -66,6 +70,7 @@ const mapTmdbItem = (rawItem: unknown, mediaType: 'movie' | 'tv'): DashboardUpco
     overview,
     tmdb_url: `${TMDB_WEB_BASE_URL}/${mediaType}/${numericId}`,
     providers: [],
+    vote_average: voteAverage,
     popularity,
   };
 };

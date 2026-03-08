@@ -25,9 +25,13 @@ const formatReleaseDate = (value: string | null, locale: string) => {
 const mediaTypeLabel = (mediaType: 'movie' | 'tv', t: (key: string) => string) =>
   mediaType === 'movie' ? t('dashboard.upcoming.movie') : t('dashboard.upcoming.tv');
 
-function toTmdbSearchItem(item: DashboardUpcomingItem): TmdbMediaSearchItem {
+function toTmdbSearchItem(
+  item: DashboardUpcomingItem,
+  options: { radarrEnabled: boolean; sonarrEnabled: boolean }
+): TmdbMediaSearchItem {
   const tmdbId = parseInt(item.id.split('-')[1] || '', 10);
   const releaseYear = item.release_date ? new Date(item.release_date).getFullYear() : null;
+  const canAdd = item.media_type === 'movie' ? options.radarrEnabled : options.sonarrEnabled;
 
   return {
     id: item.id,
@@ -37,10 +41,10 @@ function toTmdbSearchItem(item: DashboardUpcomingItem): TmdbMediaSearchItem {
     release_year: releaseYear && !Number.isNaN(releaseYear) ? releaseYear : null,
     poster_url: item.poster_url,
     overview: item.overview,
-    vote_average: null,
+    vote_average: item.vote_average ?? null,
     service: item.media_type === 'movie' ? 'radarr' : 'sonarr',
     already_exists: false,
-    can_add: true,
+    can_add: canAdd,
     source_id: null,
     arr_url: null,
   };
@@ -124,7 +128,14 @@ export function UpcomingShelf() {
                   posterUrl={item.poster_url}
                   fallbackEmoji={item.media_type === 'movie' ? '🎬' : '📺'}
                   accentRingClassName="focus:ring-amber-200/70"
-                  onClick={() => setSelectedItem(toTmdbSearchItem(item))}
+                  onClick={() =>
+                    setSelectedItem(
+                      toTmdbSearchItem(item, {
+                        radarrEnabled: Boolean(data.radarr_enabled),
+                        sonarrEnabled: Boolean(data.sonarr_enabled),
+                      })
+                    )
+                  }
                 />
               ))}
             </div>

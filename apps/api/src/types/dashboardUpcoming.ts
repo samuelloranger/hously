@@ -19,5 +19,6 @@ export interface DashboardUpcomingItem {
   overview: string | null;
   tmdb_url: string;
   providers: DashboardUpcomingProvider[];
+  vote_average?: number | null;
   popularity?: number;
 }
