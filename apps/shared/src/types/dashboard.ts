@@ -5,6 +5,30 @@ export interface DashboardStats {
   habits_streak: number;
 }
 
+export type ActivityType =
+  | 'task_completed'
+  | 'shopping_added'
+  | 'shopping_completed'
+  | 'chore_added'
+  | 'chore_completed'
+  | 'habit_completed'
+  | 'recipe_completed'
+  | 'plugin_updated'
+  | 'cron_job_ended'
+  | 'cron_job_skipped'
+  | 'app_updated'
+  | 'recipe_added'
+  | 'recipe_updated'
+  | 'recipe_deleted'
+  | 'admin_triggered_job'
+  | 'event_created'
+  | 'event_updated'
+  | 'event_deleted'
+  | 'shopping_item_added'
+  | 'shopping_item_completed'
+  | 'shopping_list_cleared'
+  | (string & {});
+
 export interface Activity {
   id?: number;
   user_id?: number;
@@ -17,25 +41,8 @@ export interface Activity {
   description?: string;
   time?: string;
   icon?: string;
-  type?:
-    | 'shopping_added'
-    | 'shopping_completed'
-    | 'chore_added'
-    | 'chore_completed'
-    | 'plugin_updated'
-    | 'cron_job_ended'
-    | 'cron_job_skipped'
-    | 'app_updated'
-    | 'recipe_added'
-    | 'recipe_updated'
-    | 'recipe_deleted'
-    | 'admin_triggered_job'
-    | 'event_created'
-    | 'event_updated'
-    | 'event_deleted'
-    | 'shopping_item_added'
-    | 'shopping_item_completed'
-    | 'shopping_list_cleared';
+  type?: ActivityType;
+  service?: string;
   plugin_type?: string;
   job_id?: string;
   job_name?: string;
@@ -60,30 +67,21 @@ export interface ActivityDisplay {
   description: string;
   time: string;
   icon: string;
-  type:
-    | 'shopping_added'
-    | 'shopping_completed'
-    | 'chore_added'
-    | 'chore_completed'
-    | 'plugin_updated'
-    | 'cron_job_ended'
-    | 'cron_job_skipped'
-    | 'app_updated'
-    | 'recipe_added'
-    | 'recipe_updated'
-    | 'recipe_deleted'
-    | 'admin_triggered_job'
-    | 'event_created'
-    | 'event_updated'
-    | 'event_deleted'
-    | 'shopping_item_added'
-    | 'shopping_item_completed'
-    | 'shopping_list_cleared';
+  type: ActivityType;
 }
 
 export interface DashboardStatsResponse {
   stats: DashboardStats;
   activities: Activity[];
+}
+
+export interface DashboardActivityFeedResponse {
+  activities: Activity[];
+  available_services: string[];
+  available_types: string[];
+  total: number;
+  limit: number;
+  has_more: boolean;
 }
 
 export interface JellyfinLatestItem {

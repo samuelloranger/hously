@@ -1,6 +1,7 @@
 export const DASHBOARD_ENDPOINTS = {
   STATS: '/api/dashboard/stats',
   ACTIVITIES: '/api/dashboard/activities',
+  ACTIVITIES_FEED: '/api/dashboard/activities/feed',
   JELLYFIN: {
     LATEST: '/api/dashboard/jellyfin/latest',
     IMAGE: '/api/dashboard/jellyfin/image',

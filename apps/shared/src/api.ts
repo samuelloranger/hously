@@ -24,6 +24,7 @@ import type {
   CreateRecipeRequest,
   CreateShoppingItemRequest,
   DashboardJellyfinLatestResponse,
+  DashboardActivityFeedResponse,
   DashboardNetdataSummaryResponse,
   DashboardScrutinySummaryResponse,
   DashboardQbittorrentStatusResponse,
@@ -373,8 +374,12 @@ export function createChoresApi(fetcher: ApiFetcher) {
 export function createDashboardApi(fetcher: ApiFetcher) {
   return {
     getDashboardStats: () => fetcher<DashboardStatsResponse>(DASHBOARD_ENDPOINTS.STATS),
-    getDashboardActivities: () =>
-      fetcher<{ activities: DashboardStatsResponse['activities'] }>(DASHBOARD_ENDPOINTS.ACTIVITIES),
+    getDashboardActivities: (limit?: number) =>
+      fetcher<{ activities: DashboardStatsResponse['activities'] }>(
+        withParams(DASHBOARD_ENDPOINTS.ACTIVITIES, { limit })
+      ),
+    getDashboardActivityFeed: (params: { limit?: number; service?: string; type?: string } = {}) =>
+      fetcher<DashboardActivityFeedResponse>(withParams(DASHBOARD_ENDPOINTS.ACTIVITIES_FEED, params)),
     getDashboardJellyfinLatest: (limit: number = 10, page: number = 1) =>
       fetcher<DashboardJellyfinLatestResponse>(withParams(DASHBOARD_ENDPOINTS.JELLYFIN.LATEST, { limit, page })),
     getDashboardUpcoming: (limit: number = 8, page: number = 1) =>

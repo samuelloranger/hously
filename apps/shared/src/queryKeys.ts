@@ -22,6 +22,8 @@ export const queryKeys = {
     all: ['dashboard'] as const,
     stats: () => [...queryKeys.dashboard.all, 'stats'] as const,
     activities: (limit?: number) => [...queryKeys.dashboard.all, 'activities', limit] as const,
+    activityFeed: (params?: { limit?: number; service?: string; type?: string }) =>
+      [...queryKeys.dashboard.all, 'activity-feed', params?.limit, params?.service, params?.type] as const,
     jellyfinLatest: (limit?: number, page?: number) =>
       [...queryKeys.dashboard.all, 'jellyfin-latest', limit, page] as const,
     jellyfinLatestInfinite: (limit?: number) =>

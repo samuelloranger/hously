@@ -31,6 +31,9 @@ function cachedLazy<T extends ComponentType<any>>(
 
 // Lazy load route components for code splitting with caching
 const Dashboard = cachedLazy('dashboard', () => import('./features/dashboard').then(m => ({ default: m.Dashboard })));
+const RecentActivityPage = cachedLazy('recent-activity', () =>
+  import('./features/dashboard/RecentActivityPage').then(m => ({ default: m.RecentActivityPage }))
+);
 const Login = cachedLazy('login', () => import('./routes/login').then(m => ({ default: m.Login })));
 const ForgotPassword = cachedLazy('forgot-password', () =>
   import('./routes/forgot-password').then(m => ({ default: m.ForgotPassword }))
@@ -114,6 +117,23 @@ const loginRoute = createRoute({
     if (user) {
       throw redirect({ to: '/' });
     }
+  },
+});
+
+const activityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/activity',
+  component: RecentActivityPage,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      service: typeof search.service === 'string' ? search.service : '',
+      type: typeof search.type === 'string' ? search.type : '',
+    };
+  },
+  beforeLoad: requireAuth,
+  loaderDeps: ({ search: { service, type } }) => ({ service, type }),
+  loader: async ({ context, deps }) => {
+    await prefetchRouteData(context.queryClient, '/activity', deps);
   },
 });
 
@@ -303,6 +323,7 @@ const torrentDetailRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  activityRoute,
   loginRoute,
   forgotPasswordRoute,
   resetPasswordRoute,

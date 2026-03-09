@@ -27,8 +27,8 @@ const routeQueryDefinitions = {
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.STATS),
     },
     {
-      queryKey: queryKeys.dashboard.activities(),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.ACTIVITIES),
+      queryKey: queryKeys.dashboard.activities(10),
+      queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.ACTIVITIES}?limit=10`),
     },
     {
       queryKey: queryKeys.dashboard.jellyfinLatest(),
@@ -152,6 +152,18 @@ const routeQueryDefinitions = {
     },
     // Note: notifications list uses useInfiniteQuery which is harder to prefetch
     // with ensureQueryData due to structure mismatch if not careful.
+  ],
+
+  '/activity': (params: { service?: string; type?: string }) => [
+    {
+      queryKey: queryKeys.dashboard.activityFeed({ limit: 25, service: params.service, type: params.type }),
+      queryFn: () => {
+        const search = new URLSearchParams({ limit: '25' });
+        if (params.service) search.set('service', params.service);
+        if (params.type) search.set('type', params.type);
+        return webFetcher(`${DASHBOARD_ENDPOINTS.ACTIVITIES_FEED}?${search.toString()}`);
+      },
+    },
   ],
 
   '/settings': (params: { tab?: string }) => {
