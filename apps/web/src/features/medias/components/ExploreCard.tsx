@@ -4,7 +4,7 @@ import { useAddUpcomingToArr, type TmdbMediaSearchItem } from '@hously/shared';
 import { Plus, Check, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExploreCardDetailDialog } from './ExploreCardDetailDialog';
-import { MediaPosterCard } from '../../../components/MediaPosterCard';
+import { MediaPosterCard } from '@/components/MediaPosterCard';
 
 export function ExploreCard({ item, onAdded }: { item: TmdbMediaSearchItem; onAdded: () => void }) {
   const { t } = useTranslation('common');
@@ -82,12 +82,7 @@ export function ExploreCard({ item, onAdded }: { item: TmdbMediaSearchItem; onAd
         )}
       </MediaPosterCard>
 
-      <ExploreCardDetailDialog
-        item={item}
-        isOpen={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        onAdded={onAdded}
-      />
+      <ExploreCardDetailDialog item={item} isOpen={detailOpen} onClose={() => setDetailOpen(false)} onAdded={onAdded} />
     </>
   );
 }

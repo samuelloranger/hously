@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog } from '../../../components/dialog';
+import { Dialog } from '@/components/dialog';
 import { CreateHabitForm } from './CreateHabitForm';
 import { useCreateHabit } from '@hously/shared';
 import { toast } from 'sonner';

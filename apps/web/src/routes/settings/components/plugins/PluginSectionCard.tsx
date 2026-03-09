@@ -1,5 +1,5 @@
 import { type ReactNode, useState, useEffect, useRef } from 'react';
-import { cn } from '../../../../lib/utils';
+import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, Check } from 'lucide-react';
 

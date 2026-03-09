@@ -1,33 +1,21 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
-import { PageLayout } from '../../components/PageLayout';
-import { PageHeader } from '../../components/PageHeader';
+import { PageLayout } from '@/components/PageLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { useHabits, useDeleteHabit, Habit } from '@hously/shared';
-import { HouseLoader } from '../../components/HouseLoader';
-import { EmptyState } from '../../components/EmptyState';
+import { HouseLoader } from '@/components/HouseLoader';
+import { EmptyState } from '@/components/EmptyState';
 import { HabitCard } from './components/HabitCard';
 import { CreateHabitModal } from './components/CreateHabitModal';
 import { EditHabitModal } from './components/EditHabitModal';
 import { toast } from 'sonner';
-import { cn } from '../../lib/utils';
-
-function formatLocal(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function addDays(dateStr: string, days: number): string {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const date = new Date(y, m - 1, d + days);
-  return formatLocal(date);
-}
+import { cn } from '@/lib/utils';
+import { formatLocalDate, addDays } from '@/lib/date';
 
 export const HabitsList: React.FC = () => {
   const { t, i18n } = useTranslation('common');
-  const todayStr = formatLocal(new Date());
+  const todayStr = formatLocalDate(new Date());
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const isToday = selectedDate === todayStr;
 

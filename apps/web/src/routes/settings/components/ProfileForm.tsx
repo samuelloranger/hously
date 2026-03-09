@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop } from 'react-image-crop';
 import { useCurrentUser, useUpdateProfile, useChangePassword, useUploadAvatar } from '@hously/shared';
-import { Dialog } from '../../../components/dialog';
+import { Dialog } from '@/components/dialog';
 import 'react-image-crop/dist/ReactCrop.css';
 
 interface ProfileFormData {
@@ -78,7 +78,6 @@ export function ProfileForm() {
 
   const newPassword = watch('new_password');
 
-  // Initialize profile form when user data loads
   useEffect(() => {
     if (currentUser) {
       resetProfile({
@@ -270,7 +269,9 @@ export function ProfileForm() {
               />
             </label>
           </div>
-          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">{t('settings.profile.imageRequirements')}</p>
+          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+            {t('settings.profile.imageRequirements')}
+          </p>
         </div>
 
         {/* Email (Read-only) */}

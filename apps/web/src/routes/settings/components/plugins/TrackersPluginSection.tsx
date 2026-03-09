@@ -9,7 +9,7 @@ import {
 } from '@hously/shared';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { cn } from '../../../../lib/utils';
+import { cn } from '@/lib/utils';
 import { PluginUrlInput } from './PluginUrlInput';
 
 type TrackerFormState = {

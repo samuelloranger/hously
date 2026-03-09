@@ -6,24 +6,24 @@ import {
   useDashboardQbittorrentTorrents,
   type DashboardQbittorrentTorrentsResponse,
 } from '@hously/shared';
-import { PageLayout } from '../../components/PageLayout';
-import { PageHeader } from '../../components/PageHeader';
-import { EmptyState } from '../../components/EmptyState';
+import { PageLayout } from '@/components/PageLayout';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
 import { Search, TrendingDown, TrendingUp, ArrowUp, ArrowDown, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { AddTorrentPanel } from './AddTorrentPanel';
 import { TorrentRow } from './TorrentRow';
 import { STATE_FILTERS, getStateFilter, formatSpeed, type StateFilter, type SortKey, type SortDir } from './utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export function TorrentsPage() {
   const { t } = useTranslation('common');
 
   const queryClient = useQueryClient();
-  const { data, isLoading, refetch } = useDashboardQbittorrentTorrents();
+  const { data, isLoading } = useDashboardQbittorrentTorrents();
 
   const sseRef = useRef<EventSource | null>(null);
+  const [sseConnected, setSseConnected] = useState(false);
 
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState<StateFilter>('all');
@@ -93,6 +93,8 @@ export function TorrentsPage() {
     const source = new EventSource(DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS_STREAM, { withCredentials: true });
     sseRef.current = source;
 
+    source.onopen = () => setSseConnected(true);
+
     source.onmessage = event => {
       try {
         const parsed = JSON.parse(event.data) as DashboardQbittorrentTorrentsResponse;
@@ -102,8 +104,11 @@ export function TorrentsPage() {
       }
     };
 
+    source.onerror = () => setSseConnected(false);
+
     return () => {
       source.close();
+      setSseConnected(false);
       if (sseRef.current === source) sseRef.current = null;
     };
   }, [data?.enabled]);
@@ -147,8 +152,22 @@ export function TorrentsPage() {
                 <TrendingUp size={12} />
                 {formatSpeed(totalUp)}
               </span>
-              <span className="ml-auto text-xs text-neutral-400 dark:text-neutral-400 tabular-nums">
-                {torrents.length.toLocaleString()} {t('dashboard.qbittorrent.torrents', 'torrents')}
+              <span className="ml-auto flex items-center gap-2">
+                {data?.enabled && (
+                  <span
+                    className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${sseConnected ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${sseConnected ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`}
+                    />
+                    {sseConnected
+                      ? t('dashboard.qbittorrent.live', 'Live')
+                      : t('dashboard.qbittorrent.reconnecting', 'Reconnecting…')}
+                  </span>
+                )}
+                <span className="text-xs text-neutral-400 dark:text-neutral-400 tabular-nums">
+                  {torrents.length.toLocaleString()} {t('dashboard.qbittorrent.torrents', 'torrents')}
+                </span>
               </span>
             </div>
           )}

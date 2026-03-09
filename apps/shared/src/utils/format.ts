@@ -100,3 +100,15 @@ export function isChoreOverdue(reminderDatetime: string | null | undefined, comp
   if (!reminderDate) return false;
   return isDateBefore(reminderDate, now());
 }
+
+export function formatBytes(bytes: number | null | undefined): string {
+  if (bytes == null || !Number.isFinite(bytes) || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const power = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / 1024 ** power;
+  return `${value >= 100 ? value.toFixed(0) : value.toFixed(1)} ${units[power]}`;
+}
+
+export function formatSpeed(bytesPerSecond: number | null | undefined): string {
+  return `${formatBytes(bytesPerSecond)}/s`;
+}

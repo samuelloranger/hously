@@ -11,9 +11,9 @@ import {
   useUploadChoreImage,
   type ChoreUser,
 } from '@hously/shared';
-import { useNotifications } from '../../../hooks/useNotifications';
-import { DateTimePicker } from '../../../components/DateTimePicker';
-import { MinimalTiptap } from '../../../components/ui/minimal-tiptap';
+import { useNotifications } from '@/hooks/useNotifications';
+import { DateTimePicker } from '@/components/DateTimePicker';
+import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
 
 interface CreateChoreFormProps {
   users: ChoreUser[];

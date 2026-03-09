@@ -1,7 +1,9 @@
 import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
+import { requireUser } from '../middleware/auth';
 import { formatIso, todayLocal, toLocalDate, getDaysInMonth } from '../utils';
+import { badRequest, serverError, unauthorized } from '../utils/errors';
 
 // Calculate recurring chore dates within a date range
 export interface ChoreData {
@@ -375,31 +377,30 @@ export const calculateRecurringCustomEventDates = (
 
 export const calendarRoutes = new Elysia({ prefix: '/api/calendar' })
   .use(auth)
+  .use(requireUser)
   // GET /api/calendar - Get all calendar events for a specific month
   .get(
     '/',
     async ({ user, query, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       try {
         // Get year and month from query parameters, default to current month
         const today = todayLocal();
         const year = query.year ? parseInt(query.year) : today.getFullYear();
         const month = query.month ? parseInt(query.month) : today.getMonth() + 1;
+        const months = query.months ? Math.min(Math.max(parseInt(query.months), 1), 12) : 1;
 
         // Validate month
         if (month < 1 || month > 12) {
-          set.status = 400;
-          return { error: 'Invalid month' };
+          return badRequest(set, 'Invalid month');
         }
 
-        // Calculate date range: start of month to end of month
+        // Calculate date range: start of month to end of (month + months - 1)
         const startDate = new Date(year, month - 1, 1);
-        const daysInMonth = getDaysInMonth(year, month);
-        const endDate = new Date(year, month - 1, daysInMonth);
+        const endMonth = month - 1 + months;
+        const endYear = year + Math.floor(endMonth / 12);
+        const endMonthNormalized = endMonth % 12;
+        const daysInEndMonth = getDaysInMonth(endYear, endMonthNormalized + 1);
+        const endDate = new Date(endYear, endMonthNormalized, daysInEndMonth);
 
         const events: Array<{
           id: string;
@@ -537,7 +538,7 @@ export const calendarRoutes = new Elysia({ prefix: '/api/calendar' })
 
         // Get custom events for this user
         const userCustomEvents = await prisma.customEvent.findMany({
-          where: { userId: user.id },
+          where: { userId: user!.id },
         });
 
         for (const event of userCustomEvents) {
@@ -602,14 +603,14 @@ export const calendarRoutes = new Elysia({ prefix: '/api/calendar' })
         return { events };
       } catch (error) {
         console.error('Error getting calendar events:', error);
-        set.status = 500;
-        return { error: 'Failed to get calendar events' };
+        return serverError(set, 'Failed to get calendar events');
       }
     },
     {
       query: t.Object({
         year: t.Optional(t.String()),
         month: t.Optional(t.String()),
+        months: t.Optional(t.String()),
       }),
     }
   );

@@ -1,26 +1,11 @@
-// TODO: Adaptive poll interval — poll every 1s when active transfers exist,
-// increase to 5-10s when everything is seeding/paused/idle.
-
+import { getQbittorrentPluginConfig } from './qbittorrent/config';
+import { resetMaindataState } from './qbittorrent/client';
 import {
   buildQbittorrentDisabledSnapshot,
-  fetchMaindata,
   fetchQbittorrentSnapshot,
   fetchQbittorrentTorrents,
   fetchQbittorrentTorrent,
-  getQbittorrentPluginConfig,
-  resetMaindataState,
-  type QbittorrentDashboardSnapshot,
-  type QbittorrentTorrentListItem,
-} from './qbittorrentService';
-
-type DashboardData = QbittorrentDashboardSnapshot;
-type TorrentsData = { enabled: boolean; connected: boolean; torrents: QbittorrentTorrentListItem[]; error?: string };
-type TorrentData = {
-  enabled: boolean;
-  connected: boolean;
-  torrent: QbittorrentTorrentListItem | null;
-  error?: string;
-};
+} from './qbittorrent/torrents';
 
 type ChannelCallback<T = unknown> = (data: T) => void;
 
@@ -71,7 +56,7 @@ const pollOnce = async () => {
       return;
     }
 
-    // Single maindata fetch powers all channels
+    // Single maindata fetch powers all channels.
     // fetchQbittorrentSnapshot and fetchQbittorrentTorrents both use fetchMaindata internally,
     // and since maindata state is module-level, the second call gets the cached delta result.
     const dashboardSnapshot = await fetchQbittorrentSnapshot(config, true);
@@ -104,10 +89,19 @@ const pollOnce = async () => {
       notifySubscribers(channel, torrentResult);
     }
 
-    const intervalMs = Math.max(1000, config.poll_interval_seconds * 1000);
+    // Adaptive interval: poll fast when transfers are active, slow when idle.
+    const configuredMs = Math.max(1000, config.poll_interval_seconds * 1000);
+    const hasActiveTransfers =
+      dashboardSnapshot.connected &&
+      (dashboardSnapshot.summary.download_speed > 0 ||
+        dashboardSnapshot.summary.upload_speed > 0 ||
+        dashboardSnapshot.summary.downloading_count > 0);
+    const intervalMs = hasActiveTransfers ? configuredMs : Math.min(30000, Math.max(10000, configuredMs * 10));
     schedulePoll(intervalMs);
   } catch (error) {
     console.error('qBittorrent poller error:', error);
+    // Reset delta state so the next successful poll starts from a clean full sync.
+    resetMaindataState();
     schedulePoll(3000);
   }
 };
@@ -197,6 +191,13 @@ export const createPollerSseResponse = (request: Request, channel: string): Resp
         writeChunk(`data: ${payload}\n\n`);
         scheduleHeartbeat(); // Reset heartbeat on data push
       });
+
+      // Push the last known payload immediately so the client gets data right
+      // away without waiting for the next poll cycle.
+      const cachedPayload = lastPayloads.get(channel);
+      if (cachedPayload) {
+        writeChunk(`data: ${cachedPayload}\n\n`);
+      }
 
       signal.addEventListener('abort', closeStream);
 

@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { PageLayout } from '../../components/PageLayout';
-import { PageHeader } from '../../components/PageHeader';
-import { Button } from '../../components/ui/button';
+import { PageLayout } from '@/components/PageLayout';
+import { PageHeader } from '@/components/PageHeader';
+import { Button } from '@/components/ui/button';
 import {
   formatDate,
   parseDate,
@@ -249,7 +249,7 @@ export function Calendar() {
                       'relative aspect-square p-1 sm:p-2 flex flex-col items-center transition-all duration-150 border-b border-r border-neutral-50 dark:border-neutral-800/80',
                       !isCurrentMonthDay && 'opacity-30',
                       isCurrentMonthDay && 'hover:bg-primary-50/50 dark:hover:bg-primary-900/10',
-                      isSelectedDate && 'bg-primary-50 dark:bg-primary-900/20',
+                      isSelectedDate && 'bg-primary-50 dark:bg-primary-900/20'
                     )}
                   >
                     {/* Day number */}
@@ -257,9 +257,11 @@ export function Calendar() {
                       className={cn(
                         'relative z-10 text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full transition-all duration-200',
                         isTodayDay && 'bg-primary-600 text-white font-semibold shadow-sm shadow-primary-600/30',
-                        isSelectedDate && !isTodayDay && 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold',
+                        isSelectedDate &&
+                          !isTodayDay &&
+                          'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold',
                         !isTodayDay && !isSelectedDate && isCurrentMonthDay && 'text-neutral-700 dark:text-neutral-300',
-                        !isCurrentMonthDay && 'text-neutral-400 dark:text-neutral-600',
+                        !isCurrentMonthDay && 'text-neutral-400 dark:text-neutral-600'
                       )}
                     >
                       {date?.getDate()}
@@ -316,7 +318,8 @@ export function Calendar() {
                     {formatDate(selectedDate, i18n.language)}
                   </p>
                   <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">
-                    {selectedDayEvents.length} {selectedDayEvents.length === 1 ? (t('calendar.event') || 'event') : (t('calendar.events') || 'events')}
+                    {selectedDayEvents.length}{' '}
+                    {selectedDayEvents.length === 1 ? t('calendar.event') || 'event' : t('calendar.events') || 'events'}
                   </p>
                 </div>
                 <button
@@ -328,7 +331,10 @@ export function Calendar() {
               </div>
 
               {/* Events List */}
-              <div className="p-3 max-h-[calc(100vh-280px)] overflow-y-auto no-scrollbar" ref={selectedDayEventsContainerRef}>
+              <div
+                className="p-3 max-h-[calc(100vh-280px)] overflow-y-auto no-scrollbar"
+                ref={selectedDayEventsContainerRef}
+              >
                 {selectedDayEvents.length > 0 ? (
                   <div className="flex flex-col gap-2">
                     {selectedDayEvents.map(event => (
@@ -347,7 +353,9 @@ export function Calendar() {
                                 setSelectedDate(null);
                               },
                               onError: (error: any) => {
-                                toast.error(error?.message || t('calendar.customEventDeleteError') || t('common.error'));
+                                toast.error(
+                                  error?.message || t('calendar.customEventDeleteError') || t('common.error')
+                                );
                               },
                             });
                           }

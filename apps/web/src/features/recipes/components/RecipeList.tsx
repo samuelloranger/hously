@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Search, Star } from 'lucide-react';
-import { PageLayout } from '../../../components/PageLayout';
-import { PageHeader } from '../../../components/PageHeader';
-import { LoadingState } from '../../../components/LoadingState';
+import { PageLayout } from '@/components/PageLayout';
+import { PageHeader } from '@/components/PageHeader';
+import { LoadingState } from '@/components/LoadingState';
 import { RecipeCard } from './RecipeCard';
 import { useRecipes, type Recipe } from '@hously/shared';
 import { CreateRecipeModal } from './CreateRecipeModal';

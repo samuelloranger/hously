@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { mockDashboardStats, mockActivity } from '../../test-utils/mocks';
+import { mockDashboardStats, mockActivity } from '@/test-utils/mocks';
 import { Dashboard } from '@/features/dashboard';
 
 const mockGetDashboardStats = vi.fn();

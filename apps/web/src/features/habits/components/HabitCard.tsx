@@ -10,10 +10,10 @@ import {
   useCompleteHabitForDate,
   useUncompleteHabitForDate,
 } from '@hously/shared';
-import { cn } from '../../../lib/utils';
+import { cn } from '@/lib/utils';
 import { HabitProgress } from './HabitProgress';
 import { StreakBadge } from './StreakBadge';
-import { ActionMenu } from '../../../components/ActionMenu';
+import { ActionMenu } from '@/components/ActionMenu';
 
 interface HabitCardProps {
   habit: Habit;

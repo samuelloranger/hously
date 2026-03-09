@@ -1,25 +1,15 @@
-import { prisma } from '../../db';
-import {
-  buildQbittorrentDisabledSnapshot,
-  fetchQbittorrentSnapshot,
-  normalizeQbittorrentConfig,
-  type QbittorrentDashboardSnapshot,
-} from '../../services/qbittorrentService';
+import { getQbittorrentPluginConfig } from '../../services/qbittorrent/config';
+import { buildQbittorrentDisabledSnapshot, fetchQbittorrentSnapshot } from '../../services/qbittorrent/torrents';
+import type { QbittorrentDashboardSnapshot } from '../../services/qbittorrent/client';
 
 export const getQbittorrentSnapshot = async (): Promise<QbittorrentDashboardSnapshot> => {
-  const plugin = await prisma.plugin.findFirst({
-    where: { type: 'qbittorrent' },
-    select: { enabled: true, config: true },
-  });
+  const { enabled, config } = await getQbittorrentPluginConfig();
 
-  if (!plugin?.enabled) {
-    return buildQbittorrentDisabledSnapshot();
-  }
-
-  const config = normalizeQbittorrentConfig(plugin.config);
-  if (!config) {
-    const disabled = buildQbittorrentDisabledSnapshot('qBittorrent plugin is enabled but not configured');
-    return { ...disabled, enabled: true };
+  if (!enabled || !config) {
+    const snapshot = buildQbittorrentDisabledSnapshot(
+      enabled && !config ? 'qBittorrent plugin is enabled but not configured' : undefined
+    );
+    return enabled ? { ...snapshot, enabled: true } : snapshot;
   }
 
   return fetchQbittorrentSnapshot(config, true);

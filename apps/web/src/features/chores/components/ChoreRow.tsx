@@ -1,12 +1,12 @@
 import { useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { CompleteCheckbox } from '../../../components/CompleteCheckbox';
-import { ActionMenu } from '../../../components/ActionMenu';
-import { ImageModal } from '../../../components/ImageModal';
-import { EmotionModal } from '../../../components/EmotionModal';
-import { DragHandle } from '../../../components/SortableList';
-import { SafeHtml } from '../../../components/SafeHtml';
+import { CompleteCheckbox } from '@/components/CompleteCheckbox';
+import { ActionMenu } from '@/components/ActionMenu';
+import { ImageModal } from '@/components/ImageModal';
+import { EmotionModal } from '@/components/EmotionModal';
+import { DragHandle } from '@/components/SortableList';
+import { SafeHtml } from '@/components/SafeHtml';
 import {
   formatUsername,
   getChoreImageUrl,
@@ -23,7 +23,7 @@ import {
 } from '@hously/shared';
 import { EditChoreModal } from './EditChoreModal';
 import { RecurrenceBadge } from './RecurrenceBadge';
-import { syncBadge } from '../../../lib/serviceWorker';
+import { syncBadge } from '@/lib/serviceWorker';
 
 interface ChoreRowProps {
   chore: Chore;

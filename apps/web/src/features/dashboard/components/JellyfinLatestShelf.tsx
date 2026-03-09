@@ -2,7 +2,7 @@ import { useMemo, type UIEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardJellyfinLatestInfinite } from '@hously/shared';
 import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
-import { ListItemSkeleton } from '../../../components/Skeleton';
+import { ListItemSkeleton } from '@/components/Skeleton';
 import { MovieCard } from './MovieCard';
 
 const mediaTypeConfig: Record<string, { emoji: string; badgeClass: string }> = {
@@ -38,38 +38,6 @@ export function JellyfinLatestShelf() {
       fetchNextPage();
     }
   };
-
-  if (isError) {
-    return (
-      <section className="relative overflow-hidden rounded-3xl border border-blue-300/60 dark:border-neutral-700/80 bg-gradient-to-br from-[#b1cefe] via-[#618ad1] to-[#adc9f1] dark:from-[#0f172a] dark:via-[#112240] dark:to-[#1f2937] shadow-xl pb-4">
-        <div className="relative flex items-center justify-between gap-4 mb-4 px-4 md:px-5 pt-4 md:pt-5">
-          <div>
-            <p className="text-[9px] uppercase tracking-[0.22em] text-blue-900/75 dark:text-cyan-200/80">
-              {t('dashboard.jellyfin.kicker')}
-            </p>
-            <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">
-              {t('dashboard.jellyfin.title')}
-            </h3>
-          </div>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-900/20 dark:border-white/25 bg-black/10 dark:bg-white/10 text-slate-900 dark:text-cyan-50 hover:bg-black/20 dark:hover:bg-white/20"
-            title={t('dashboard.jellyfin.refresh')}
-            aria-label={t('dashboard.jellyfin.refresh')}
-          >
-            <span>↻</span>
-          </button>
-        </div>
-        <div className="mx-6 md:mx-8 rounded-2xl border border-red-500/40 dark:border-red-300/30 bg-red-100/60 dark:bg-red-300/10 p-4 text-red-900 dark:text-red-100">
-          <p className="font-medium">{t('dashboard.jellyfin.errorTitle', 'Connection failed')}</p>
-          <p className="text-xs text-red-900/80 dark:text-red-100/90 mt-1">
-            {t('dashboard.jellyfin.errorDescription', 'Unable to reach Jellyfin. Tap refresh to retry.')}
-          </p>
-        </div>
-      </section>
-    );
-  }
 
   const isEnabled = data?.pages[0]?.enabled ?? false;
   const items = useMemo(() => {
@@ -117,7 +85,14 @@ export function JellyfinLatestShelf() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <div className="mx-6 md:mx-8 rounded-2xl border border-red-500/40 dark:border-red-300/30 bg-red-100/60 dark:bg-red-300/10 p-4 text-red-900 dark:text-red-100">
+          <p className="font-medium">{t('dashboard.jellyfin.errorTitle', 'Connection failed')}</p>
+          <p className="text-xs text-red-900/80 dark:text-red-100/90 mt-1">
+            {t('dashboard.jellyfin.errorDescription', 'Unable to reach Jellyfin. Tap refresh to retry.')}
+          </p>
+        </div>
+      ) : isLoading ? (
         <div className="mx-6 md:mx-8 rounded-2xl border border-slate-900/15 dark:border-white/15 bg-white/35 dark:bg-black/20 p-4 space-y-3">
           <ListItemSkeleton />
           <ListItemSkeleton />

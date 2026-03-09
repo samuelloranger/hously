@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
+import { requireUser } from '../middleware/auth';
 import {
   formatIso,
   nowUtc,
@@ -15,21 +16,19 @@ import {
 } from '../utils';
 import { logActivity } from '../utils/activityLogs';
 import { sendSilentPushToUser } from '../services/externalNotificationService';
+import { badRequest, notFound, serverError, unauthorized } from '../utils/errors';
+import { hasUpdates } from '../utils/updates';
 
 // Valid recurrence types
 const VALID_RECURRENCE_TYPES = ['yearly', 'monthly', 'weekly', 'biweekly', 'daily_interval'];
 
 export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
   .use(auth)
+  .use(requireUser)
   // GET /api/custom-events - Get all custom events for the authenticated user
   .get(
     '/',
     async ({ user, query, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       try {
         const year = query.year ? parseInt(query.year) : undefined;
         const month = query.month ? parseInt(query.month) : undefined;
@@ -45,7 +44,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
           // Get events that overlap with the month
           events = await prisma.customEvent.findMany({
             where: {
-              userId: user.id,
+              userId: user!.id,
               startDatetime: { lte: endDateVal.toISOString() },
               endDatetime: { gte: startDate.toISOString() },
             },
@@ -53,7 +52,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
           });
         } else {
           events = await prisma.customEvent.findMany({
-            where: { userId: user.id },
+            where: { userId: user!.id },
             orderBy: { startDatetime: 'asc' },
           });
         }
@@ -75,8 +74,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         return { events: eventsList };
       } catch (error) {
         console.error('Error getting custom events:', error);
-        set.status = 500;
-        return { error: 'Failed to get custom events' };
+        return serverError(set, 'Failed to get custom events');
       }
     },
     {
@@ -91,11 +89,6 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
   .post(
     '/',
     async ({ user, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       try {
         const {
           title,
@@ -111,13 +104,11 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         // Validate required fields
         const titleTrimmed = (title || '').trim();
         if (!titleTrimmed) {
-          set.status = 400;
-          return { error: 'title is required' };
+          return badRequest(set, 'title is required');
         }
 
         if (!start_datetime || !end_datetime) {
-          set.status = 400;
-          return { error: 'start_datetime and end_datetime are required' };
+          return badRequest(set, 'start_datetime and end_datetime are required');
         }
 
         // Parse datetimes
@@ -127,8 +118,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
           startDt = parseDateTime(start_datetime);
           endDt = parseDateTime(end_datetime);
         } catch (e) {
-          set.status = 400;
-          return { error: `Invalid datetime format: ${e}` };
+          return badRequest(set, `Invalid datetime format: ${e}`);
         }
 
         // Round to 15-minute intervals if not all_day
@@ -145,23 +135,18 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
 
         // Validate end is after start
         if (endDt <= startDt) {
-          set.status = 400;
-          return { error: 'end_datetime must be after start_datetime' };
+          return badRequest(set, 'end_datetime must be after start_datetime');
         }
 
         // Validate recurrence
         if (recurrence_type) {
           if (!VALID_RECURRENCE_TYPES.includes(recurrence_type)) {
-            set.status = 400;
-            return { error: 'Invalid recurrence_type' };
+            return badRequest(set, 'Invalid recurrence_type');
           }
 
           if (recurrence_type === 'daily_interval') {
             if (!recurrence_interval_days || recurrence_interval_days < 1) {
-              set.status = 400;
-              return {
-                error: 'recurrence_interval_days must be >= 1 for daily_interval',
-              };
+              return badRequest(set, 'recurrence_interval_days must be >= 1 for daily_interval');
             }
           }
         }
@@ -173,8 +158,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         // Validate color
         const eventColor = color || '#3b82f6';
         if (!isValidColor(eventColor)) {
-          set.status = 400;
-          return { error: 'Invalid color format' };
+          return badRequest(set, 'Invalid color format');
         }
 
         // Create event
@@ -186,7 +170,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
             endDatetime: endDt.toISOString(),
             allDay: all_day || false,
             color: eventColor,
-            userId: user.id,
+            userId: user!.id,
             recurrenceType: recurrence_type || null,
             recurrenceIntervalDays: recurrence_interval_days || null,
             recurrenceOriginalCreatedAt: recurrence_type ? nowUtc() : null,
@@ -194,15 +178,15 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
           },
         });
 
-        console.log(`User ${user.id} created custom event ${newEvent.id}`);
+        console.log(`User ${user!.id} created custom event ${newEvent.id}`);
         await logActivity({
           type: 'event_created',
-          userId: user.id,
+          userId: user!.id,
           payload: { event_id: newEvent.id, event_title: newEvent.title },
         });
 
         // Trigger calendar sync on iOS
-        sendSilentPushToUser(user.id, 'CALENDAR_SYNC').catch(err => 
+        sendSilentPushToUser(user!.id, 'CALENDAR_SYNC').catch(err => 
           console.error('Error triggering silent push after event creation:', err)
         );
 
@@ -222,8 +206,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         };
       } catch (error) {
         console.error('Error creating custom event:', error);
-        set.status = 500;
-        return { error: 'Failed to create custom event' };
+        return serverError(set, 'Failed to create custom event');
       }
     },
     {
@@ -244,15 +227,9 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
   .put(
     '/:id',
     async ({ user, params, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       const eventId = parseInt(params.id, 10);
       if (isNaN(eventId)) {
-        set.status = 400;
-        return { error: 'Invalid event ID' };
+        return badRequest(set, 'Invalid event ID');
       }
 
       try {
@@ -260,13 +237,12 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         const event = await prisma.customEvent.findFirst({
           where: {
             id: eventId,
-            userId: user.id,
+            userId: user!.id,
           },
         });
 
         if (!event) {
-          set.status = 404;
-          return { error: 'Event not found' };
+          return notFound(set, 'Event not found');
         }
 
         const updateData: Record<string, any> = {};
@@ -292,8 +268,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
             startDt = parseDateTime(body.start_datetime);
             endDt = parseDateTime(body.end_datetime);
           } catch (e) {
-            set.status = 400;
-            return { error: `Invalid datetime format: ${e}` };
+            return badRequest(set, `Invalid datetime format: ${e}`);
           }
 
           const allDay = body.all_day !== undefined ? body.all_day : event.allDay;
@@ -312,8 +287,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
 
           // Validate end is after start
           if (endDt <= startDt) {
-            set.status = 400;
-            return { error: 'end_datetime must be after start_datetime' };
+            return badRequest(set, 'end_datetime must be after start_datetime');
           }
 
           updateData.startDatetime = startDt.toISOString();
@@ -329,8 +303,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         if (body.color !== undefined) {
           const eventColor = body.color || '#3b82f6';
           if (!isValidColor(eventColor)) {
-            set.status = 400;
-            return { error: 'Invalid color format' };
+            return badRequest(set, 'Invalid color format');
           }
           updateData.color = eventColor;
         }
@@ -340,17 +313,13 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
           const recurrenceType = body.recurrence_type;
           if (recurrenceType) {
             if (!VALID_RECURRENCE_TYPES.includes(recurrenceType)) {
-              set.status = 400;
-              return { error: 'Invalid recurrence_type' };
+              return badRequest(set, 'Invalid recurrence_type');
             }
 
             if (recurrenceType === 'daily_interval') {
               const intervalDays = body.recurrence_interval_days;
               if (!intervalDays || intervalDays < 1) {
-                set.status = 400;
-                return {
-                  error: 'recurrence_interval_days must be >= 1 for daily_interval',
-                };
+                return badRequest(set, 'recurrence_interval_days must be >= 1 for daily_interval');
               }
               updateData.recurrenceIntervalDays = intervalDays;
             } else {
@@ -363,7 +332,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         }
 
         // Apply updates
-        if (Object.keys(updateData).length > 0) {
+        if (hasUpdates(updateData)) {
           await prisma.customEvent.update({
             where: { id: eventId },
             data: updateData,
@@ -376,19 +345,18 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         });
 
         if (!updatedEvent) {
-          set.status = 500;
-          return { error: 'Failed to retrieve updated event' };
+          return serverError(set, 'Failed to retrieve updated event');
         }
 
-        console.log(`User ${user.id} updated custom event ${eventId}`);
+        console.log(`User ${user!.id} updated custom event ${eventId}`);
         await logActivity({
           type: 'event_updated',
-          userId: user.id,
+          userId: user!.id,
           payload: { event_id: updatedEvent.id, event_title: updatedEvent.title },
         });
 
         // Trigger calendar sync on iOS
-        sendSilentPushToUser(user.id, 'CALENDAR_SYNC').catch(err => 
+        sendSilentPushToUser(user!.id, 'CALENDAR_SYNC').catch(err => 
           console.error('Error triggering silent push after event update:', err)
         );
 
@@ -407,8 +375,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         };
       } catch (error) {
         console.error(`Error updating custom event ${eventId}:`, error);
-        set.status = 500;
-        return { error: 'Failed to update custom event' };
+        return serverError(set, 'Failed to update custom event');
       }
     },
     {
@@ -432,15 +399,9 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
   .delete(
     '/:id',
     async ({ user, params, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       const eventId = parseInt(params.id, 10);
       if (isNaN(eventId)) {
-        set.status = 400;
-        return { error: 'Invalid event ID' };
+        return badRequest(set, 'Invalid event ID');
       }
 
       try {
@@ -448,13 +409,12 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         const event = await prisma.customEvent.findFirst({
           where: {
             id: eventId,
-            userId: user.id,
+            userId: user!.id,
           },
         });
 
         if (!event) {
-          set.status = 404;
-          return { error: 'Event not found' };
+          return notFound(set, 'Event not found');
         }
 
         // Delete event
@@ -462,23 +422,22 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
           where: { id: eventId },
         });
 
-        console.log(`User ${user.id} deleted custom event ${eventId}`);
+        console.log(`User ${user!.id} deleted custom event ${eventId}`);
         await logActivity({
           type: 'event_deleted',
-          userId: user.id,
+          userId: user!.id,
           payload: { event_id: eventId, event_title: event.title },
         });
 
         // Trigger calendar sync on iOS
-        sendSilentPushToUser(user.id, 'CALENDAR_SYNC').catch(err => 
+        sendSilentPushToUser(user!.id, 'CALENDAR_SYNC').catch(err => 
           console.error('Error triggering silent push after event deletion:', err)
         );
 
         return { success: true };
       } catch (error) {
         console.error(`Error deleting custom event ${eventId}:`, error);
-        set.status = 500;
-        return { error: 'Failed to delete custom event' };
+        return serverError(set, 'Failed to delete custom event');
       }
     },
     {

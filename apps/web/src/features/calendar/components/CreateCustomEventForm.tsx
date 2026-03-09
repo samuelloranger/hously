@@ -9,17 +9,17 @@ import {
   type CalendarEvent,
   type CalendarEventCustomEventMetadata,
 } from '@hously/shared';
-import { Dialog } from '../../../components/dialog';
-import { Input } from '../../../components/ui/input';
-import { Button } from '../../../components/ui/button';
-import { MinimalTiptap } from '../../../components/ui/minimal-tiptap';
+import { Dialog } from '@/components/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
 import {
   ColorPicker,
   ColorPickerSelection,
   ColorPickerHue,
   ColorPickerFormat,
-} from '../../../components/ui/color-picker';
-import { DateRangePicker } from '../../../components/DateRangePicker';
+} from '@/components/ui/color-picker';
+import { DateRangePicker } from '@/components/DateRangePicker';
 
 interface CreateCustomEventFormProps {
   isOpen: boolean;
@@ -177,7 +177,11 @@ export function CreateCustomEventForm({ isOpen, onClose, eventToEdit }: CreateCu
           </label>
           <MinimalTiptap
             content={watch('description') || ''}
-            onChange={value => setValue('description', value)}
+            onChange={value => {
+              if (value !== watch('description')) {
+                setValue('description', value);
+              }
+            }}
             placeholder={t('calendar.descriptionPlaceholder')}
           />
         </div>
@@ -235,7 +239,14 @@ export function CreateCustomEventForm({ isOpen, onClose, eventToEdit }: CreateCu
               style={{ backgroundColor: watch('color') || '#3b82f6' }}
             />
             <div className="flex-1">
-              <ColorPicker value={watch('color') || '#3b82f6'} onChange={(value: string) => setValue('color', value)}>
+              <ColorPicker
+                value={watch('color') || '#3b82f6'}
+                onChange={(value: string) => {
+                  if (value !== watch('color')) {
+                    setValue('color', value);
+                  }
+                }}
+              >
                 <div className="w-full h-32">
                   <ColorPickerSelection />
                 </div>

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { PageLayout } from '../../components/PageLayout';
+import { PageLayout } from '@/components/PageLayout';
 import { StatCard } from './components/StatCard';
 import { SmartGreeting } from './components/SmartGreeting';
 import { JellyfinLatestShelf } from './components/JellyfinLatestShelf';
@@ -11,10 +11,10 @@ import { WeatherWidget } from './components/WeatherWidget';
 import { TrackerStatsCard } from './components/TrackerStatsCard';
 import { RecentActivityCard } from './components/RecentActivityCard';
 import { getUserFirstName, useCurrentUser, useDashboardStats } from '@hously/shared';
-import { StatCardSkeleton } from '../../components/Skeleton';
+import { StatCardSkeleton } from '@/components/Skeleton';
 import PendingChoresSection from './components/PendingChoresSection';
 import { UpcomingShelf } from './components/UpcomingShelf';
-import { usePrefetchRoute } from '../../hooks/usePrefetchRoute';
+import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 
 export function Dashboard() {
   const { t } = useTranslation('common');

@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useDashboardAdguardSummary, useSetAdguardProtection } from '@hously/shared';
-import { Button } from '../../../components/ui/button';
-import { useAuth } from '../../../hooks/useAuth';
-import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 
 const formatPercent = (value: number | null): string => {
   if (value == null || Number.isNaN(value)) return '--';

@@ -29,9 +29,16 @@ import { recipesRoutes } from './routes/recipes';
 import { remindersRoutes } from './routes/reminders';
 import { adminRoutes } from './routes/admin';
 import { analyticsRoutes } from './routes/analytics';
-import { pluginsRoutes } from './routes/plugins';
-import { mediasRoutes } from './routes/medias';
+import { trackerPluginsRoutes } from './routes/plugins/trackerPlugins';
+import { mediaPluginsRoutes } from './routes/plugins/mediaPlugins';
+import { monitoringPluginsRoutes } from './routes/plugins/monitoringPlugins';
+import { dashboardPluginsRoutes } from './routes/plugins/dashboardPlugins';
+import { mediasLibraryRoutes } from './routes/medias/library';
+import { mediasTmdbRoutes } from './routes/medias/tmdb';
+import { mediasProwlarrRoutes } from './routes/medias/prowlarr';
+import { mediasArrRoutes } from './routes/medias/arr';
 import { habitsRoutes } from './routes/habits';
+import { systemRoutes } from './routes/system';
 import { globalRateLimit } from './middleware/rateLimit';
 import { logActivity } from './utils/activityLogs';
 
@@ -157,9 +164,16 @@ export const app = new Elysia()
   .use(remindersRoutes)
   .use(adminRoutes)
   .use(analyticsRoutes)
-  .use(pluginsRoutes)
-  .use(mediasRoutes)
+  .use(trackerPluginsRoutes)
+  .use(mediaPluginsRoutes)
+  .use(monitoringPluginsRoutes)
+  .use(dashboardPluginsRoutes)
+  .use(mediasLibraryRoutes)
+  .use(mediasTmdbRoutes)
+  .use(mediasProwlarrRoutes)
+  .use(mediasArrRoutes)
   .use(habitsRoutes)
+  .use(systemRoutes)
   .get('/', () => 'Hello Elysia')
   .get('/health', () => ({ status: 'ok' }))
   .get('/api/health', () => ({ status: 'ok' }));

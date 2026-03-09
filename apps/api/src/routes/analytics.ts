@@ -1,7 +1,9 @@
 import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
-import { todayLocal, formatDateInTimezone, utcToTimezone, calculatePeriodDates } from '../utils';
+import { requireUser } from '../middleware/auth';
+import { todayLocal, addDaysInTz, formatDateInTimezone, utcToTimezone, calculatePeriodDates } from '../utils';
+import { badRequest, serverError, unauthorized } from '../utils/errors';
 
 // Day names in different locales
 const dayNames: Record<string, Record<string, string>> = {
@@ -27,30 +29,26 @@ const dayNames: Record<string, Record<string, string>> = {
 
 export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
   .use(auth)
+  .use(requireUser)
   // GET /api/analytics/weekly-summary - Get weekly task completion summary
   .get(
     '/weekly-summary',
     async ({ user, query, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       try {
         const locale = query.locale || 'en';
         const todayTz = todayLocal();
 
-        // Calculate start of week (Monday)
-        const dayOfWeek = todayTz.getDay();
-        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        const startOfWeekTz = new Date(todayTz);
-        startOfWeekTz.setDate(todayTz.getDate() + mondayOffset);
-        startOfWeekTz.setHours(0, 0, 0, 0);
+        // Calculate start of week (Monday) using timezone-safe day navigation
+        const dateStr = formatDateInTimezone(todayTz);
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const dow = new Date(Date.UTC(y, m - 1, d, 12, 0, 0)).getUTCDay();
+        const mondayOffset = dow === 0 ? -6 : 1 - dow;
+        const startOfWeekTz = addDaysInTz(todayTz, mondayOffset);
 
         // Get weekly completions
         const weeklyCompletions = await prisma.taskCompletion.findMany({
           where: {
-            userId: user.id,
+            userId: user!.id,
             completedAt: { gte: startOfWeekTz.toISOString() },
           },
         });
@@ -131,15 +129,12 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
             .sort(([, a], [, b]) => b - a)[0]?.[0] || null;
 
         // Calculate previous week comparison
-        const endOfPreviousWeekTz = new Date(startOfWeekTz);
-        endOfPreviousWeekTz.setSeconds(endOfPreviousWeekTz.getSeconds() - 1);
-        const startOfPreviousWeekTz = new Date(endOfPreviousWeekTz);
-        startOfPreviousWeekTz.setDate(startOfPreviousWeekTz.getDate() - 6);
-        startOfPreviousWeekTz.setHours(0, 0, 0, 0);
+        const startOfPreviousWeekTz = addDaysInTz(startOfWeekTz, -7);
+        const endOfPreviousWeekTz = new Date(startOfWeekTz.getTime() - 1);
 
         const previousWeekCompletions = await prisma.taskCompletion.findMany({
           where: {
-            userId: user.id,
+            userId: user!.id,
             completedAt: {
               gte: startOfPreviousWeekTz.toISOString(),
               lte: endOfPreviousWeekTz.toISOString(),
@@ -180,8 +175,7 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         };
       } catch (error) {
         console.error('Error getting weekly summary:', error);
-        set.status = 500;
-        return { error: 'Failed to get weekly summary' };
+        return serverError(set, 'Failed to get weekly summary');
       }
     },
     {
@@ -195,20 +189,12 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
   .get(
     '/summary',
     async ({ user, query, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       try {
         const locale = query.locale || 'en';
         const period = query.period || 'week';
 
         if (!['week', 'month', 'quarter', 'year'].includes(period)) {
-          set.status = 400;
-          return {
-            error: 'Invalid period. Must be: week, month, quarter, or year',
-          };
+          return badRequest(set, 'Invalid period. Must be: week, month, quarter, or year');
         }
 
         const { start: startOfPeriod, end: endOfPeriod } = calculatePeriodDates(period, query.start_date);
@@ -216,7 +202,7 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         // Get completions for the period
         const completions = await prisma.taskCompletion.findMany({
           where: {
-            userId: user.id,
+            userId: user!.id,
             completedAt: {
               gte: startOfPeriod.toISOString(),
               lte: endOfPeriod.toISOString(),
@@ -308,8 +294,7 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         };
       } catch (error) {
         console.error('Error getting summary:', error);
-        set.status = 500;
-        return { error: 'Failed to get summary' };
+        return serverError(set, 'Failed to get summary');
       }
     },
     {
@@ -323,17 +308,12 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
 
   // GET /api/analytics/personal-insights - Get personal insights
   .get('/personal-insights', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       const dayNamesArr = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
       // Get all completions for this user
       const allCompletions = await prisma.taskCompletion.findMany({
-        where: { userId: user.id },
+        where: { userId: user!.id },
       });
 
       // Group by day of week
@@ -382,22 +362,16 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
       };
     } catch (error) {
       console.error('Error getting personal insights:', error);
-      set.status = 500;
-      return { error: 'Failed to get personal insights' };
+      return serverError(set, 'Failed to get personal insights');
     }
   })
 
   // GET /api/analytics/shopping - Get shopping analytics
   .get('/shopping', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       // Get all shopping items for the user
       const allItems = await prisma.shoppingItem.findMany({
-        where: { addedBy: user.id },
+        where: { addedBy: user!.id },
       });
 
       const totalItems = allItems.length;
@@ -427,11 +401,11 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
 
       // Items completed this week
       const todayTz = todayLocal();
-      const dayOfWeek = todayTz.getDay();
-      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      const startOfWeekTz = new Date(todayTz);
-      startOfWeekTz.setDate(todayTz.getDate() + mondayOffset);
-      startOfWeekTz.setHours(0, 0, 0, 0);
+      const shoppingDateStr = formatDateInTimezone(todayTz);
+      const [sy, sm, sd] = shoppingDateStr.split('-').map(Number);
+      const shoppingDow = new Date(Date.UTC(sy, sm - 1, sd, 12, 0, 0)).getUTCDay();
+      const shoppingMondayOffset = shoppingDow === 0 ? -6 : 1 - shoppingDow;
+      const startOfWeekTz = addDaysInTz(todayTz, shoppingMondayOffset);
 
       const weeklyCompleted = completedItems.filter(item => {
         if (!item.completedAt) return false;
@@ -447,22 +421,16 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
       };
     } catch (error) {
       console.error('Error getting shopping analytics:', error);
-      set.status = 500;
-      return { error: 'Failed to get shopping analytics' };
+      return serverError(set, 'Failed to get shopping analytics');
     }
   })
 
   // GET /api/analytics/productivity - Get productivity metrics
   .get('/productivity', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       // Get all completions for this user
       const allCompletions = await prisma.taskCompletion.findMany({
-        where: { userId: user.id },
+        where: { userId: user!.id },
       });
 
       if (allCompletions.length === 0) {
@@ -488,11 +456,11 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
       // Calculate current streak
       const todayTz = todayLocal();
       let currentStreak = 0;
-      const checkDate = new Date(todayTz);
+      let checkDate = new Date(todayTz);
 
       while (completionDates.has(formatDateInTimezone(checkDate))) {
         currentStreak++;
-        checkDate.setDate(checkDate.getDate() - 1);
+        checkDate = addDaysInTz(checkDate, -1);
       }
 
       // Calculate best streak
@@ -554,7 +522,6 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
       };
     } catch (error) {
       console.error('Error getting productivity metrics:', error);
-      set.status = 500;
-      return { error: 'Failed to get productivity metrics' };
+      return serverError(set, 'Failed to get productivity metrics');
     }
   });

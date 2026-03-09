@@ -12,9 +12,17 @@ import {
   useCurrentUser,
   formatDateTime,
 } from '@hously/shared';
-import { LoadingState } from '../../components/LoadingState';
+import { LoadingState } from '@/components/LoadingState';
 
-function SectionCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+function SectionCard({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
       <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">{title}</h2>
@@ -25,9 +33,7 @@ function SectionCard({ title, description, children }: { title: string; descript
 }
 
 function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="text-center py-8 text-neutral-500 dark:text-neutral-400 text-sm">{message}</div>
-  );
+  return <div className="text-center py-8 text-neutral-500 dark:text-neutral-400 text-sm">{message}</div>;
 }
 
 export function SessionsTab() {
@@ -111,10 +117,18 @@ export function SessionsTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.user')}</th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.createdAt')}</th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.expiresAt')}</th>
-                  <th className="text-right py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.actions')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.user')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.createdAt')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.expiresAt')}
+                  </th>
+                  <th className="text-right py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.actions')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -124,7 +138,9 @@ export function SessionsTab() {
                     className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
                   >
                     <td className="py-3 px-4">
-                      <div className="font-medium text-neutral-900 dark:text-neutral-100">{session.user_name || session.user_email}</div>
+                      <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                        {session.user_name || session.user_email}
+                      </div>
                       <div className="text-xs text-neutral-500 dark:text-neutral-400">{session.user_email}</div>
                     </td>
                     <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400">
@@ -178,11 +194,21 @@ export function SessionsTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.user')}</th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.platform')}</th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.token')}</th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.createdAt')}</th>
-                  <th className="text-right py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.actions')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.user')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.platform')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.token')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.createdAt')}
+                  </th>
+                  <th className="text-right py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.actions')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -192,7 +218,9 @@ export function SessionsTab() {
                     className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
                   >
                     <td className="py-3 px-4">
-                      <div className="font-medium text-neutral-900 dark:text-neutral-100">{token.user_name || token.user_email}</div>
+                      <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                        {token.user_name || token.user_email}
+                      </div>
                       <div className="text-xs text-neutral-500 dark:text-neutral-400">{token.user_email}</div>
                     </td>
                     <td className="py-3 px-4">
@@ -201,7 +229,9 @@ export function SessionsTab() {
                         {token.platform}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-mono text-xs text-neutral-600 dark:text-neutral-400">{token.token}</td>
+                    <td className="py-3 px-4 font-mono text-xs text-neutral-600 dark:text-neutral-400">
+                      {token.token}
+                    </td>
                     <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400">
                       {formatDateTime(token.created_at, i18n.language)}
                     </td>
@@ -224,10 +254,7 @@ export function SessionsTab() {
       </SectionCard>
 
       {/* Web Push Subscriptions */}
-      <SectionCard
-        title={t('settings.sessions.webPushTitle')}
-        description={t('settings.sessions.webPushDescription')}
-      >
+      <SectionCard title={t('settings.sessions.webPushTitle')} description={t('settings.sessions.webPushDescription')}>
         {loadingWebPush ? (
           <LoadingState />
         ) : !webPushData?.subscriptions?.length ? (
@@ -237,23 +264,38 @@ export function SessionsTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.user')}</th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.device')}</th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.endpoint')}</th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.createdAt')}</th>
-                  <th className="text-right py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">{t('settings.sessions.actions')}</th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.user')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.device')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.endpoint')}
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.createdAt')}
+                  </th>
+                  <th className="text-right py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                    {t('settings.sessions.actions')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {webPushData.subscriptions.map(sub => {
-                  const deviceLabel = [sub.browser_name, sub.os_name].filter(Boolean).join(' / ') || sub.device_name || t('settings.sessions.unknownDevice');
+                  const deviceLabel =
+                    [sub.browser_name, sub.os_name].filter(Boolean).join(' / ') ||
+                    sub.device_name ||
+                    t('settings.sessions.unknownDevice');
                   return (
                     <tr
                       key={sub.id}
                       className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
                     >
                       <td className="py-3 px-4">
-                        <div className="font-medium text-neutral-900 dark:text-neutral-100">{sub.user_name || sub.user_email}</div>
+                        <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                          {sub.user_name || sub.user_email}
+                        </div>
                         <div className="text-xs text-neutral-500 dark:text-neutral-400">{sub.user_email}</div>
                       </td>
                       <td className="py-3 px-4">

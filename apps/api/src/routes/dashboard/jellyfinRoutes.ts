@@ -1,20 +1,18 @@
 import { Elysia, t } from 'elysia';
 import { auth } from '../../auth';
+import { requireUser } from '../../middleware/auth';
 import { prisma } from '../../db';
 import { toPositiveInt } from '../../utils/coerce';
 import { mapJellyfinApiItem } from '../../utils/dashboard/jellyfin';
 import { normalizeJellyfinConfig } from '../../utils/plugins/normalizers';
+import { badGateway, notFound, serverError, unauthorized } from '../../utils/errors';
 
 export const dashboardJellyfinRoutes = new Elysia()
   .use(auth)
+  .use(requireUser)
   .get(
     '/jellyfin/image',
     async ({ user, query, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       try {
         const jellyfinPlugin = await prisma.plugin.findFirst({
           where: { type: 'jellyfin' },
@@ -22,14 +20,12 @@ export const dashboardJellyfinRoutes = new Elysia()
         });
 
         if (!jellyfinPlugin?.enabled) {
-          set.status = 404;
-          return { error: 'Jellyfin plugin not enabled' };
+          return notFound(set, 'Jellyfin plugin not enabled');
         }
 
         const config = normalizeJellyfinConfig(jellyfinPlugin.config);
         if (!config) {
-          set.status = 404;
-          return { error: 'Jellyfin plugin not configured' };
+          return notFound(set, 'Jellyfin plugin not configured');
         }
 
         const candidates =
@@ -77,12 +73,10 @@ export const dashboardJellyfinRoutes = new Elysia()
           });
         }
 
-        set.status = 404;
-        return { error: 'Image not found' };
+        return notFound(set, 'Image not found');
       } catch (error) {
         console.error('Error proxying Jellyfin image:', error);
-        set.status = 500;
-        return { error: 'Failed to proxy Jellyfin image' };
+        return serverError(set, 'Failed to proxy Jellyfin image');
       }
     },
     {
@@ -99,11 +93,6 @@ export const dashboardJellyfinRoutes = new Elysia()
   .get(
     '/jellyfin/latest',
     async ({ user, query, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       try {
         const requestedPage = toPositiveInt(query.page, 1);
         const page = Math.max(1, Math.min(100, requestedPage));
@@ -145,8 +134,7 @@ export const dashboardJellyfinRoutes = new Elysia()
         });
 
         if (!response.ok) {
-          set.status = 502;
-          return { error: 'Jellyfin request failed' };
+          return badGateway(set, 'Jellyfin request failed');
         }
 
         const data = (await response.json()) as Record<string, unknown>;
@@ -161,8 +149,7 @@ export const dashboardJellyfinRoutes = new Elysia()
         return { enabled: true, items, page, limit, has_more: hasMore };
       } catch (error) {
         console.error('Error getting latest Jellyfin items:', error);
-        set.status = 500;
-        return { error: 'Failed to get latest Jellyfin items' };
+        return serverError(set, 'Failed to get latest Jellyfin items');
       }
     },
     {

@@ -1,6 +1,6 @@
 import { fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { renderWithProviders, screen } from '../../../../test-utils/render';
+import { renderWithProviders, screen } from '@/test-utils/render';
 import { AdguardOverviewCard } from '../AdguardOverviewCard';
 
 const mockUseDashboardAdguardSummary = vi.fn();

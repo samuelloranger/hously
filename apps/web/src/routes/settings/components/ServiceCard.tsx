@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { ExternalNotificationService, NotificationTemplate } from '@hously/shared';
 import { ServiceHeader } from './ServiceHeader';
 import { ServiceDrawer } from './ServiceDrawer';

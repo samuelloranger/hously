@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useSimilarMedias } from '@hously/shared';
-import { Dialog } from '../../../components/dialog';
+import { Dialog } from '@/components/dialog';
 import { ExploreCard } from './ExploreCard';
 
 interface SimilarMediasDialogProps {
@@ -28,9 +28,7 @@ export function SimilarMediasDialog({ isOpen, onClose, tmdbId, mediaType, title,
           </div>
         </div>
       ) : items.length === 0 ? (
-        <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 py-12">
-          {t('medias.similar.empty')}
-        </p>
+        <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 py-12">{t('medias.similar.empty')}</p>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[60dvh] overflow-y-auto py-1">
           {items.map(item => (

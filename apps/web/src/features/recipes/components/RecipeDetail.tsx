@@ -3,8 +3,8 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Users, Pencil, Trash2, Star, ChefHat, ListChecks } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
-import { PageLayout } from '../../../components/PageLayout';
-import { LoadingState } from '../../../components/LoadingState';
+import { PageLayout } from '@/components/PageLayout';
+import { LoadingState } from '@/components/LoadingState';
 import { Button } from '@/components/ui/button';
 import { getRecipeImageUrl, useDeleteRecipe, useRecipe, useToggleFavorite } from '@hously/shared';
 import { useState } from 'react';
@@ -199,9 +199,7 @@ export function RecipeDetail() {
                         </span>
                       )}
                       {ingredient.quantity && !ingredient.unit && (
-                        <span className="font-semibold text-neutral-900 dark:text-white">
-                          {ingredient.quantity}{' '}
-                        </span>
+                        <span className="font-semibold text-neutral-900 dark:text-white">{ingredient.quantity} </span>
                       )}
                       {ingredient.name}
                     </span>

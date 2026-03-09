@@ -1,16 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDashboardScrutinySummary } from '@hously/shared';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../components/ui/collapsible';
-import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
-
-const formatBytes = (bytes: number | null): string => {
-  if (bytes == null || bytes <= 0) return '--';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const power = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  const value = bytes / 1024 ** power;
-  return `${value >= 100 ? value.toFixed(0) : value.toFixed(1)} ${units[power]}`;
-};
+import { formatBytes, useDashboardScrutinySummary } from '@hously/shared';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 
 const formatTemp = (value: number | null): string => (value == null ? '--' : `${Math.round(value)}C`);
 

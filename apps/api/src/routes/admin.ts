@@ -13,6 +13,8 @@ import {
 import { logActivity } from '../utils/activityLogs';
 import { sendInvitationEmail } from '../services/emailService';
 import { generateOpaqueToken, hashOpaqueToken } from '../utils/tokens';
+import { requireAdmin } from '../middleware/auth';
+import { badRequest, notFound, serverError } from '../utils/errors';
 
 const resolveAdminActionJob = (action: string): { id: string; name: string } | null => {
   switch (action) {
@@ -94,30 +96,11 @@ const validateEmail = (email: string): boolean => {
   return emailRegex.test(email);
 };
 
-// Admin-only middleware
-const adminOnly = (
-  user: { id: number; email: string; is_admin: boolean } | null,
-  set: { status?: number | string }
-): boolean => {
-  if (!user) {
-    set.status = 401;
-    return false;
-  }
-  if (!user.is_admin) {
-    set.status = 403;
-    return false;
-  }
-  return true;
-};
-
 export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .use(auth)
+  .use(requireAdmin)
   // GET /api/admin/scheduled-jobs - List scheduled cron jobs (admin only)
   .get('/scheduled-jobs', async ({ user, set }) => {
-    if (!adminOnly(user, set)) {
-      return { error: user ? 'Forbidden' : 'Unauthorized' };
-    }
-
     return {
       scheduler_running: true,
       jobs: [
@@ -184,9 +167,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .post(
     '/trigger-action',
     async ({ user, body, set }) => {
-      if (!adminOnly(user, set)) {
-        return { error: user ? 'Forbidden' : 'Unauthorized' };
-      }
       const adminUser = user!;
 
       try {
@@ -263,10 +243,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   )
   // GET /api/admin/users - List all users
   .get('/users', async ({ user, set }) => {
-    if (!adminOnly(user, set)) {
-      return { error: user ? 'Forbidden' : 'Unauthorized' };
-    }
-
     try {
       const allUsers = await prisma.user.findMany({
         orderBy: { createdAt: 'desc' },
@@ -289,8 +265,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
       };
     } catch (error) {
       console.error('Error listing users:', error);
-      set.status = 500;
-      return { error: 'Failed to list users' };
+      return serverError(set, 'Failed to list users');
     }
   })
 
@@ -298,21 +273,15 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .post(
     '/invitations',
     async ({ user, body, set }) => {
-      if (!adminOnly(user, set)) {
-        return { error: user ? 'Forbidden' : 'Unauthorized' };
-      }
-
       try {
         const emailTrimmed = (body.email || '').trim().toLowerCase();
 
         if (!emailTrimmed) {
-          set.status = 400;
-          return { error: 'Email is required' };
+          return badRequest(set, 'Email is required');
         }
 
         if (!validateEmail(emailTrimmed)) {
-          set.status = 400;
-          return { error: 'Invalid email format' };
+          return badRequest(set, 'Invalid email format');
         }
 
         const sanitizedEmail = sanitizeInput(emailTrimmed);
@@ -323,8 +292,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         });
 
         if (existingUser) {
-          set.status = 400;
-          return { error: 'A user with this email already exists' };
+          return badRequest(set, 'A user with this email already exists');
         }
 
         // Check if there is already a pending, non-expired invitation
@@ -337,8 +305,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         });
 
         if (existingInvitation) {
-          set.status = 400;
-          return { error: 'A pending invitation already exists for this email. You can resend it instead.' };
+          return badRequest(set, 'A pending invitation already exists for this email. You can resend it instead.');
         }
 
         // Generate secure token
@@ -382,8 +349,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         };
       } catch (error) {
         console.error('Error sending invitation:', error);
-        set.status = 500;
-        return { error: 'Failed to send invitation' };
+        return serverError(set, 'Failed to send invitation');
       }
     },
     {
@@ -397,10 +363,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
   // GET /api/admin/invitations - List all invitations
   .get('/invitations', async ({ user, set }) => {
-    if (!adminOnly(user, set)) {
-      return { error: user ? 'Forbidden' : 'Unauthorized' };
-    }
-
     try {
       const invitations = await prisma.invitation.findMany({
         orderBy: { createdAt: 'desc' },
@@ -430,8 +392,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
       };
     } catch (error) {
       console.error('Error listing invitations:', error);
-      set.status = 500;
-      return { error: 'Failed to list invitations' };
+      return serverError(set, 'Failed to list invitations');
     }
   })
 
@@ -439,14 +400,9 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .post(
     '/invitations/:id/resend',
     async ({ user, params, set }) => {
-      if (!adminOnly(user, set)) {
-        return { error: user ? 'Forbidden' : 'Unauthorized' };
-      }
-
       const id = parseInt(params.id, 10);
       if (isNaN(id)) {
-        set.status = 400;
-        return { error: 'Invalid invitation ID' };
+        return badRequest(set, 'Invalid invitation ID');
       }
 
       try {
@@ -455,13 +411,11 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         });
 
         if (!invitation) {
-          set.status = 404;
-          return { error: 'Invitation not found' };
+          return notFound(set, 'Invitation not found');
         }
 
         if (invitation.status !== 'pending') {
-          set.status = 400;
-          return { error: 'Can only resend pending invitations' };
+          return badRequest(set, 'Can only resend pending invitations');
         }
 
         // Generate new token and reset expiry
@@ -483,8 +437,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         return { success: true, message: 'Invitation resent' };
       } catch (error) {
         console.error('Error resending invitation:', error);
-        set.status = 500;
-        return { error: 'Failed to resend invitation' };
+        return serverError(set, 'Failed to resend invitation');
       }
     },
     { params: t.Object({ id: t.String() }) }
@@ -494,14 +447,9 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .delete(
     '/invitations/:id',
     async ({ user, params, set }) => {
-      if (!adminOnly(user, set)) {
-        return { error: user ? 'Forbidden' : 'Unauthorized' };
-      }
-
       const id = parseInt(params.id, 10);
       if (isNaN(id)) {
-        set.status = 400;
-        return { error: 'Invalid invitation ID' };
+        return badRequest(set, 'Invalid invitation ID');
       }
 
       try {
@@ -510,13 +458,11 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         });
 
         if (!invitation) {
-          set.status = 404;
-          return { error: 'Invitation not found' };
+          return notFound(set, 'Invitation not found');
         }
 
         if (invitation.status !== 'pending') {
-          set.status = 400;
-          return { error: 'Can only revoke pending invitations' };
+          return badRequest(set, 'Can only revoke pending invitations');
         }
 
         await prisma.invitation.update({
@@ -529,8 +475,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         return { success: true, message: 'Invitation revoked' };
       } catch (error) {
         console.error('Error revoking invitation:', error);
-        set.status = 500;
-        return { error: 'Failed to revoke invitation' };
+        return serverError(set, 'Failed to revoke invitation');
       }
     },
     { params: t.Object({ id: t.String() }) }
@@ -540,21 +485,15 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .delete(
     '/users/:id',
     async ({ user, params, set }) => {
-      if (!adminOnly(user, set)) {
-        return { error: user ? 'Forbidden' : 'Unauthorized' };
-      }
-
       const userId = parseInt(params.id, 10);
       if (isNaN(userId)) {
-        set.status = 400;
-        return { error: 'Invalid user ID' };
+        return badRequest(set, 'Invalid user ID');
       }
 
       try {
         // Prevent self-deletion
         if (userId === user!.id) {
-          set.status = 400;
-          return { error: 'Cannot delete your own account' };
+          return badRequest(set, 'Cannot delete your own account');
         }
 
         // Find user to delete
@@ -563,8 +502,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         });
 
         if (!userToDelete) {
-          set.status = 404;
-          return { error: 'User not found' };
+          return notFound(set, 'User not found');
         }
 
         const userEmail = userToDelete.email;
@@ -582,8 +520,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         };
       } catch (error) {
         console.error('Error deleting user:', error);
-        set.status = 500;
-        return { error: 'Failed to delete user' };
+        return serverError(set, 'Failed to delete user');
       }
     },
     {
@@ -595,10 +532,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
   // GET /api/admin/sessions - List all active refresh tokens (sessions)
   .get('/sessions', async ({ user, set }) => {
-    if (!adminOnly(user, set)) {
-      return { error: user ? 'Forbidden' : 'Unauthorized' };
-    }
-
     try {
       const tokens = await prisma.refreshToken.findMany({
         where: { revoked: false, expiresAt: { gt: new Date() } },
@@ -619,8 +552,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
       };
     } catch (error) {
       console.error('Error listing sessions:', error);
-      set.status = 500;
-      return { error: 'Failed to list sessions' };
+      return serverError(set, 'Failed to list sessions');
     }
   })
 
@@ -628,14 +560,9 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .delete(
     '/sessions/:id',
     async ({ user, params, set }) => {
-      if (!adminOnly(user, set)) {
-        return { error: user ? 'Forbidden' : 'Unauthorized' };
-      }
-
       const id = parseInt(params.id, 10);
       if (isNaN(id)) {
-        set.status = 400;
-        return { error: 'Invalid session ID' };
+        return badRequest(set, 'Invalid session ID');
       }
 
       try {
@@ -643,8 +570,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         return { success: true, message: 'Session revoked' };
       } catch (error) {
         console.error('Error revoking session:', error);
-        set.status = 500;
-        return { error: 'Failed to revoke session' };
+        return serverError(set, 'Failed to revoke session');
       }
     },
     { params: t.Object({ id: t.String() }) }
@@ -654,14 +580,9 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .delete(
     '/sessions/user/:userId',
     async ({ user, params, set }) => {
-      if (!adminOnly(user, set)) {
-        return { error: user ? 'Forbidden' : 'Unauthorized' };
-      }
-
       const userId = parseInt(params.userId, 10);
       if (isNaN(userId)) {
-        set.status = 400;
-        return { error: 'Invalid user ID' };
+        return badRequest(set, 'Invalid user ID');
       }
 
       try {
@@ -669,8 +590,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         return { success: true, message: 'All sessions revoked' };
       } catch (error) {
         console.error('Error revoking user sessions:', error);
-        set.status = 500;
-        return { error: 'Failed to revoke sessions' };
+        return serverError(set, 'Failed to revoke sessions');
       }
     },
     { params: t.Object({ userId: t.String() }) }
@@ -678,10 +598,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
   // GET /api/admin/push-tokens - List all iOS/mobile push tokens
   .get('/push-tokens', async ({ user, set }) => {
-    if (!adminOnly(user, set)) {
-      return { error: user ? 'Forbidden' : 'Unauthorized' };
-    }
-
     try {
       const tokens = await prisma.pushToken.findMany({
         include: { user: { select: { id: true, email: true, firstName: true, lastName: true } } },
@@ -703,8 +619,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
       };
     } catch (error) {
       console.error('Error listing push tokens:', error);
-      set.status = 500;
-      return { error: 'Failed to list push tokens' };
+      return serverError(set, 'Failed to list push tokens');
     }
   })
 
@@ -712,14 +627,9 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .delete(
     '/push-tokens/:id',
     async ({ user, params, set }) => {
-      if (!adminOnly(user, set)) {
-        return { error: user ? 'Forbidden' : 'Unauthorized' };
-      }
-
       const id = parseInt(params.id, 10);
       if (isNaN(id)) {
-        set.status = 400;
-        return { error: 'Invalid token ID' };
+        return badRequest(set, 'Invalid token ID');
       }
 
       try {
@@ -727,8 +637,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         return { success: true, message: 'Push token deleted' };
       } catch (error) {
         console.error('Error deleting push token:', error);
-        set.status = 500;
-        return { error: 'Failed to delete push token' };
+        return serverError(set, 'Failed to delete push token');
       }
     },
     { params: t.Object({ id: t.String() }) }
@@ -736,10 +645,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
   // GET /api/admin/web-push - List all web push subscriptions
   .get('/web-push', async ({ user, set }) => {
-    if (!adminOnly(user, set)) {
-      return { error: user ? 'Forbidden' : 'Unauthorized' };
-    }
-
     try {
       const subs = await prisma.userSubscription.findMany({
         include: { user: { select: { id: true, email: true, firstName: true, lastName: true } } },
@@ -766,8 +671,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
       };
     } catch (error) {
       console.error('Error listing web push subscriptions:', error);
-      set.status = 500;
-      return { error: 'Failed to list web push subscriptions' };
+      return serverError(set, 'Failed to list web push subscriptions');
     }
   })
 
@@ -775,14 +679,9 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .delete(
     '/web-push/:id',
     async ({ user, params, set }) => {
-      if (!adminOnly(user, set)) {
-        return { error: user ? 'Forbidden' : 'Unauthorized' };
-      }
-
       const id = parseInt(params.id, 10);
       if (isNaN(id)) {
-        set.status = 400;
-        return { error: 'Invalid subscription ID' };
+        return badRequest(set, 'Invalid subscription ID');
       }
 
       try {
@@ -790,8 +689,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         return { success: true, message: 'Web push subscription deleted' };
       } catch (error) {
         console.error('Error deleting web push subscription:', error);
-        set.status = 500;
-        return { error: 'Failed to delete web push subscription' };
+        return serverError(set, 'Failed to delete web push subscription');
       }
     },
     { params: t.Object({ id: t.String() }) }
@@ -799,10 +697,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
   // GET /api/admin/export - Export all data
   .get('/export', async ({ user, set }) => {
-    if (!adminOnly(user, set)) {
-      return { error: user ? 'Forbidden' : 'Unauthorized' };
-    }
-
     try {
       // Build user ID to email mapping
       const allUsers = await prisma.user.findMany();
@@ -880,8 +774,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
       };
     } catch (error) {
       console.error('Error exporting data:', error);
-      set.status = 500;
-      return { error: 'Failed to export data' };
+      return serverError(set, 'Failed to export data');
     }
   })
 
@@ -889,10 +782,6 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .post(
     '/import',
     async ({ user, body, set }) => {
-      if (!adminOnly(user, set)) {
-        return { error: user ? 'Forbidden' : 'Unauthorized' };
-      }
-
       try {
         // Build email to user ID mapping
         const allUsers = await prisma.user.findMany();
@@ -1069,8 +958,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         };
       } catch (error) {
         console.error('Error importing data:', error);
-        set.status = 500;
-        return { error: 'Failed to import data' };
+        return serverError(set, 'Failed to import data');
       }
     },
     {

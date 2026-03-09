@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { mockChore, mockUser } from '../../test-utils/mocks';
+import { mockChore, mockUser } from '@/test-utils/mocks';
 import { ChoresList } from '@/features/chores';
 
 const mockGetChores = vi.fn();

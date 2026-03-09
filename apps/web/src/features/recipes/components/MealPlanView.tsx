@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Plus, ShoppingCart, Trash2, CalendarRange } from 'lucide-react';
 import { toast } from 'sonner';
-import { LoadingState } from '../../../components/LoadingState';
+import { LoadingState } from '@/components/LoadingState';
 import {
   formatDateOnly,
   getRecipeImageUrl,
@@ -340,9 +340,7 @@ function MealCard({ meal, onDelete, onAddToShopping }: MealCardProps) {
 
   return (
     <div className="group relative bg-neutral-50 dark:bg-neutral-700/60 rounded-lg overflow-hidden">
-      {imageUrl && (
-        <img src={imageUrl} alt={meal.recipe_name || ''} className="w-full h-12 object-cover" />
-      )}
+      {imageUrl && <img src={imageUrl} alt={meal.recipe_name || ''} className="w-full h-12 object-cover" />}
       <div className="p-1.5">
         <p className="text-[11px] font-medium text-neutral-900 dark:text-white truncate leading-tight">
           {meal.recipe_name}

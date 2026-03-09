@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useExternalNotificationLogs } from '@hously/shared';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, RefreshCw } from 'lucide-react';
-import { cn } from '../../../lib/utils';
+import { cn } from '@/lib/utils';
 
 export function ServicesLogsList() {
   const { t } = useTranslation('common');

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PageLayout } from '../../../components/PageLayout';
-import { PageHeader } from '../../../components/PageHeader';
+import { PageLayout } from '@/components/PageLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { RecipeListContent } from './RecipeListContent';
 import { MealPlanView } from './MealPlanView';
 import { UtensilsCrossed, CalendarRange } from 'lucide-react';

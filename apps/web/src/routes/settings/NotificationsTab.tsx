@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useNotifications } from '../../hooks/useNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   queryKeys,
   useDeleteNotificationDevice,
@@ -10,7 +10,7 @@ import {
   useSubscribeToPushNotifications,
   useTestPushNotification,
 } from '@hously/shared';
-import { getDeviceInfo } from '../../lib/deviceInfo';
+import { getDeviceInfo } from '@/lib/deviceInfo';
 import { useAuth } from '@/hooks/useAuth';
 
 export function NotificationsTab() {

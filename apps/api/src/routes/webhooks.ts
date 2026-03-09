@@ -3,6 +3,7 @@ import { prisma } from '../db';
 import { webhookHandlers } from '../services/webhookHandlers';
 import { sendExternalNotification } from '../services/externalNotificationService';
 import { deleteCache } from '../services/cache';
+import { badRequest, forbidden, notFound, serverError } from '../utils/errors';
 
 export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
   // Read all webhook bodies as raw text to avoid Elysia's parser failing on
@@ -16,16 +17,14 @@ export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
     // Validate token is provided
     if (!token) {
       console.warn(`${serviceName} webhook received without token`);
-      set.status = 400;
-      return { error: 'Token required' };
+      return badRequest(set, 'Token required');
     }
 
     // Check if handler exists for this service
     const handler = webhookHandlers[serviceName.toLowerCase()];
     if (!handler) {
       console.warn(`Unknown webhook service: ${serviceName}`);
-      set.status = 404;
-      return { error: 'Unknown service' };
+      return notFound(set, 'Unknown service');
     }
 
     try {
@@ -40,8 +39,7 @@ export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
 
       if (!service) {
         console.warn(`Invalid or disabled token for ${serviceName} webhook: ${token.slice(0, 10)}...`);
-        set.status = 403;
-        return { error: 'Invalid or disabled token' };
+        return forbidden(set, 'Invalid or disabled token');
       }
 
       // Parse webhook payload — onParse gives us raw text for all content types
@@ -49,8 +47,7 @@ export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
       const rawText = typeof body === 'string' ? body : '';
       if (!rawText) {
         console.warn(`${serviceName} webhook received with empty payload`);
-        set.status = 400;
-        return { error: 'Invalid payload' };
+        return badRequest(set, 'Invalid payload');
       }
       try {
         const parsed = JSON.parse(rawText);
@@ -143,12 +140,10 @@ export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
         }
       } catch (handlerError) {
         console.error(`Error processing ${serviceName} webhook:`, handlerError);
-        set.status = 500;
-        return { error: 'Error processing webhook' };
+        return serverError(set, 'Error processing webhook');
       }
     } catch (error) {
       console.error(`Error receiving ${serviceName} webhook:`, error);
-      set.status = 500;
-      return { error: 'Internal server error' };
+      return serverError(set, 'Internal server error');
     }
   });

@@ -1,9 +1,16 @@
 import { useState, useRef, useEffect, type CSSProperties, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CompleteCheckbox } from '../../../components/CompleteCheckbox';
-import { ActionMenu } from '../../../components/ActionMenu';
-import { DragHandle } from '../../../components/SortableList';
-import { formatUsername, formatDate, useToggleShoppingItem, useDeleteShoppingItem, useUpdateShoppingItem, type ShoppingItem } from '@hously/shared';
+import { CompleteCheckbox } from '@/components/CompleteCheckbox';
+import { ActionMenu } from '@/components/ActionMenu';
+import { DragHandle } from '@/components/SortableList';
+import {
+  formatUsername,
+  formatDate,
+  useToggleShoppingItem,
+  useDeleteShoppingItem,
+  useUpdateShoppingItem,
+  type ShoppingItem,
+} from '@hously/shared';
 
 interface ShoppingItemRowProps {
   item: ShoppingItem;

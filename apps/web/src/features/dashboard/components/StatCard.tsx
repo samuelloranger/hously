@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from '@tanstack/react-router';
-import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
+import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 
 interface StatCardProps {
   icon: string;
