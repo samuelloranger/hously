@@ -9,6 +9,8 @@ import {
   type ChoreData,
   type CustomEventData,
 } from './calendar';
+import { requireUser } from '../middleware/auth';
+import { unauthorized } from '../utils/errors';
 
 const generateCalendarToken = (): string => {
   const tokenBytes = new Uint8Array(32);
@@ -214,14 +216,11 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
   )
   // Authenticated endpoints for token management
   .use(auth)
+  .use(requireUser)
   .get('/ical-token', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
 
     const dbUser = await prisma.user.findFirst({
-      where: { id: user.id },
+      where: { id: user!.id },
       select: { calendarToken: true },
     });
 
@@ -236,15 +235,10 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
     };
   })
   .post('/ical-token', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     const token = generateCalendarToken();
 
     await prisma.user.update({
-      where: { id: user.id },
+      where: { id: user!.id },
       data: { calendarToken: token },
     });
 
@@ -254,13 +248,8 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
     };
   })
   .delete('/ical-token', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     await prisma.user.update({
-      where: { id: user.id },
+      where: { id: user!.id },
       data: { calendarToken: null },
     });
 

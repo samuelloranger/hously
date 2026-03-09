@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
-import { Button } from "./button";
-import { Separator } from "./separator";
-import { Toggle } from "./toggle";
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+import { Button } from './button';
+import { Separator } from './separator';
+import { Toggle } from './toggle';
 import {
   Bold,
   Italic,
@@ -21,8 +21,8 @@ import {
   Undo,
   Redo,
   Link as LinkIcon,
-} from "lucide-react";
-import { cn } from "../../lib/utils";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface MinimalTiptapProps {
   content?: string;
@@ -33,9 +33,9 @@ interface MinimalTiptapProps {
 }
 
 export function MinimalTiptap({
-  content = "",
+  content = '',
   onChange,
-  placeholder = "Start typing...",
+  placeholder = 'Start typing...',
   editable = true,
   className,
 }: MinimalTiptapProps) {
@@ -54,7 +54,7 @@ export function MinimalTiptap({
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: "text-blue-600 underline cursor-pointer",
+          class: 'text-blue-600 underline cursor-pointer',
         },
       }),
     ],
@@ -66,8 +66,8 @@ export function MinimalTiptap({
     editorProps: {
       attributes: {
         class: cn(
-          "prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none",
-          "min-h-[200px] p-4 border-0 dark:prose-invert"
+          'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
+          'min-h-[200px] p-4 border-0 dark:prose-invert'
         ),
       },
     },
@@ -78,12 +78,12 @@ export function MinimalTiptap({
   }
 
   return (
-    <div className={cn("border rounded-lg overflow-hidden", className)}>
+    <div className={cn('border rounded-lg overflow-hidden', className)}>
       {editable && (
         <div className="border-b p-2 flex flex-wrap items-center gap-1 bg-neutral-50 dark:bg-neutral-900">
           <Toggle
             size="sm"
-            pressed={editor.isActive("bold")}
+            pressed={editor.isActive('bold')}
             onPressedChange={() => editor.chain().focus().toggleBold().run()}
             disabled={!editor.can().chain().focus().toggleBold().run()}
           >
@@ -92,7 +92,7 @@ export function MinimalTiptap({
 
           <Toggle
             size="sm"
-            pressed={editor.isActive("italic")}
+            pressed={editor.isActive('italic')}
             onPressedChange={() => editor.chain().focus().toggleItalic().run()}
             disabled={!editor.can().chain().focus().toggleItalic().run()}
           >
@@ -101,7 +101,7 @@ export function MinimalTiptap({
 
           <Toggle
             size="sm"
-            pressed={editor.isActive("strike")}
+            pressed={editor.isActive('strike')}
             onPressedChange={() => editor.chain().focus().toggleStrike().run()}
             disabled={!editor.can().chain().focus().toggleStrike().run()}
           >
@@ -110,7 +110,7 @@ export function MinimalTiptap({
 
           <Toggle
             size="sm"
-            pressed={editor.isActive("code")}
+            pressed={editor.isActive('code')}
             onPressedChange={() => editor.chain().focus().toggleCode().run()}
             disabled={!editor.can().chain().focus().toggleCode().run()}
           >
@@ -121,18 +121,15 @@ export function MinimalTiptap({
 
           <Toggle
             size="sm"
-            pressed={editor.isActive("link")}
+            pressed={editor.isActive('link')}
             onPressedChange={() => {
-              const url = editor.getAttributes("link").href;
-              const inputUrl = window.prompt(
-                url ? "Edit URL (leave empty to remove link):" : "Enter URL:",
-                url || ""
-              );
+              const url = editor.getAttributes('link').href;
+              const inputUrl = window.prompt(url ? 'Edit URL (leave empty to remove link):' : 'Enter URL:', url || '');
               if (inputUrl === null) {
                 // User cancelled
                 return;
               }
-              if (inputUrl === "") {
+              if (inputUrl === '') {
                 // Remove link
                 editor.chain().focus().unsetLink().run();
               } else {
@@ -148,30 +145,24 @@ export function MinimalTiptap({
 
           <Toggle
             size="sm"
-            pressed={editor.isActive("heading", { level: 1 })}
-            onPressedChange={() =>
-              editor.chain().focus().toggleHeading({ level: 1 }).run()
-            }
+            pressed={editor.isActive('heading', { level: 1 })}
+            onPressedChange={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           >
             <Heading1 className="h-4 w-4" />
           </Toggle>
 
           <Toggle
             size="sm"
-            pressed={editor.isActive("heading", { level: 2 })}
-            onPressedChange={() =>
-              editor.chain().focus().toggleHeading({ level: 2 }).run()
-            }
+            pressed={editor.isActive('heading', { level: 2 })}
+            onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           >
             <Heading2 className="h-4 w-4" />
           </Toggle>
 
           <Toggle
             size="sm"
-            pressed={editor.isActive("heading", { level: 3 })}
-            onPressedChange={() =>
-              editor.chain().focus().toggleHeading({ level: 3 }).run()
-            }
+            pressed={editor.isActive('heading', { level: 3 })}
+            onPressedChange={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           >
             <Heading3 className="h-4 w-4" />
           </Toggle>
@@ -180,30 +171,24 @@ export function MinimalTiptap({
 
           <Toggle
             size="sm"
-            pressed={editor.isActive("bulletList")}
-            onPressedChange={() =>
-              editor.chain().focus().toggleBulletList().run()
-            }
+            pressed={editor.isActive('bulletList')}
+            onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
           >
             <List className="h-4 w-4" />
           </Toggle>
 
           <Toggle
             size="sm"
-            pressed={editor.isActive("orderedList")}
-            onPressedChange={() =>
-              editor.chain().focus().toggleOrderedList().run()
-            }
+            pressed={editor.isActive('orderedList')}
+            onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
           >
             <ListOrdered className="h-4 w-4" />
           </Toggle>
 
           <Toggle
             size="sm"
-            pressed={editor.isActive("blockquote")}
-            onPressedChange={() =>
-              editor.chain().focus().toggleBlockquote().run()
-            }
+            pressed={editor.isActive('blockquote')}
+            onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
           >
             <Quote className="h-4 w-4" />
           </Toggle>

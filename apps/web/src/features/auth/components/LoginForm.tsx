@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { setUser } from '../../../lib/auth';
+import { setUser } from '@/lib/auth';
 import { useLogin } from '@hously/shared';
 
 interface FormData {

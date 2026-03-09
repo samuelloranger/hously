@@ -11,6 +11,7 @@ import {
   getImage,
   getContentType,
 } from '../services/imageService';
+import { badRequest, notFound, serverError, unauthorized } from '../utils/errors';
 
 // Map database user to frontend user (snake_case)
 const mapUser = (user: any) => ({
@@ -31,8 +32,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
   // GET /api/users/me - Get current user profile
   .get('/me', async ({ user, set }) => {
     if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
+      return unauthorized(set, 'Unauthorized');
     }
 
     // Fetch fresh user data from database (including locale)
@@ -41,8 +41,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
     });
 
     if (!dbUser) {
-      set.status = 401;
-      return { error: 'User not found' };
+      return unauthorized(set, 'User not found');
     }
 
     return { user: mapUser(dbUser) };
@@ -52,22 +51,19 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
     '/me',
     async ({ user, body, set }) => {
       if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
+        return unauthorized(set, 'Unauthorized');
       }
 
       const { first_name, last_name, locale } = body;
 
       // Check if at least one field is provided
       if (first_name === undefined && last_name === undefined && locale === undefined) {
-        set.status = 400;
-        return { error: 'At least one field must be provided' };
+        return badRequest(set, 'At least one field must be provided');
       }
 
       // Validate locale if provided
       if (locale && locale.length > 10) {
-        set.status = 400;
-        return { error: 'Locale must be 10 characters or less' };
+        return badRequest(set, 'Locale must be 10 characters or less');
       }
 
       try {
@@ -98,8 +94,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         return { user: mapUser(updatedUser) };
       } catch (error) {
         console.error('Error updating user profile:', error);
-        set.status = 500;
-        return { error: 'Failed to update profile' };
+        return serverError(set, 'Failed to update profile');
       }
     },
     {
@@ -115,8 +110,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
     '/me/password',
     async ({ user, body, set, jwt, cookie: { auth } }) => {
       if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
+        return unauthorized(set, 'Unauthorized');
       }
 
       const { current_password, new_password } = body;
@@ -124,8 +118,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
       // Validate new password
       const [isValid, passwordError] = validatePassword(new_password);
       if (!isValid) {
-        set.status = 400;
-        return { error: passwordError };
+        return badRequest(set, passwordError ?? 'Invalid password');
       }
 
       try {
@@ -136,15 +129,13 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         });
 
         if (!dbUser) {
-          set.status = 401;
-          return { error: 'User not found' };
+          return unauthorized(set, 'User not found');
         }
 
         // Verify current password
         const isCurrentValid = await verifyPassword(current_password, dbUser.passwordHash);
         if (!isCurrentValid) {
-          set.status = 400;
-          return { error: 'Current password is incorrect' };
+          return badRequest(set, 'Current password is incorrect');
         }
 
         // Hash new password and update
@@ -180,8 +171,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         return { message: 'Password updated successfully', token: accessToken };
       } catch (error) {
         console.error('Error changing password:', error);
-        set.status = 500;
-        return { error: 'Failed to change password' };
+        return serverError(set, 'Failed to change password');
       }
     },
     {
@@ -196,16 +186,14 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
     const { filename } = params;
 
     if (!filename || !isAllowedFile(filename)) {
-      set.status = 400;
-      return { error: 'Invalid filename' };
+      return badRequest(set, 'Invalid filename');
     }
 
     try {
       const imageBuffer = await getImage(filename);
 
       if (!imageBuffer) {
-        set.status = 404;
-        return { error: 'Image not found' };
+        return notFound(set, 'Image not found');
       }
 
       // Set content type based on filename extension
@@ -215,8 +203,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
       return imageBuffer;
     } catch (error) {
       console.error('Error serving avatar:', error);
-      set.status = 500;
-      return { error: 'Failed to serve avatar' };
+      return serverError(set, 'Failed to serve avatar');
     }
   })
   // POST /api/users/me/avatar - Upload avatar
@@ -228,8 +215,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
 
       if (!user) {
         console.warn(`${logPrefix} unauthorized request (no user in auth context)`);
-        set.status = 401;
-        return { error: 'Unauthorized' };
+        return unauthorized(set, 'Unauthorized');
       }
 
       const { avatar } = body;
@@ -245,8 +231,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         console.warn(
           `${logPrefix} invalid payload: avatar missing or not File (type=${typeof avatar}, isWebFile=${isWebFile}, isReactNativeFile=${isReactNativeFile})`
         );
-        set.status = 400;
-        return { error: 'Avatar file is required' };
+        return badRequest(set, 'Avatar file is required');
       }
 
       console.log(
@@ -257,16 +242,14 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(avatar.type)) {
         console.warn(`${logPrefix} invalid avatar mime type="${avatar.type}" allowed=${allowedTypes.join(',')}`);
-        set.status = 400;
-        return { error: 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP' };
+        return badRequest(set, 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP');
       }
 
       // Validate file size (max 5MB) - only for Web File objects that have size property
       const maxSize = 5 * 1024 * 1024;
       if (avatar.size && avatar.size > maxSize) {
         console.warn(`${logPrefix} avatar too large size=${avatar.size} max=${maxSize} bytes`);
-        set.status = 400;
-        return { error: 'File too large. Maximum size is 5MB' };
+        return badRequest(set, 'File too large. Maximum size is 5MB');
       }
 
       try {
@@ -313,8 +296,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         };
       } catch (error) {
         console.error(`${logPrefix} failed with error:`, error);
-        set.status = 500;
-        return { error: 'Failed to upload avatar' };
+        return serverError(set, 'Failed to upload avatar');
       }
     },
     {

@@ -17,9 +17,6 @@ import {
   Activity,
   Clock,
   Tag,
-  Check,
-  Edit2,
-  X as XIcon,
 } from 'lucide-react';
 import {
   DASHBOARD_ENDPOINTS,
@@ -41,213 +38,16 @@ import {
   type DashboardQbittorrentTorrentPeersResponse,
   type DashboardQbittorrentTorrentStreamResponse,
 } from '@hously/shared';
-import { PageLayout } from '../../components/PageLayout';
-import { Button } from '../../components/ui/button';
-import { Select } from '../../components/ui/select';
-import { Dialog } from '../../components/dialog';
-
-function formatBytes(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const power = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  const value = bytes / 1024 ** power;
-  return `${value >= 100 ? value.toFixed(0) : value.toFixed(1)} ${units[power]}`;
-}
-
-function formatSpeed(bytesPerSecond: number): string {
-  return `${formatBytes(bytesPerSecond)}/s`;
-}
-
-function formatEta(seconds: number | null): string {
-  if (!seconds || seconds <= 0 || !Number.isFinite(seconds) || seconds > 999 * 3600) return '∞';
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
-}
+import { PageLayout } from '@/components/PageLayout';
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/dialog';
+import { formatBytes, formatSpeed, formatEta, getStatusConfig } from './utils';
+import { TorrentPropertiesTab } from './TorrentPropertiesTab';
+import { TorrentFilesTab } from './TorrentFilesTab';
+import { TorrentTrackersTab } from './TorrentTrackersTab';
+import { TorrentPeersTab } from './TorrentPeersTab';
 
 type TabId = 'properties' | 'files' | 'trackers' | 'peers';
-
-function getStatusConfig(state: string) {
-  const s = (state ?? '').toLowerCase();
-  if (s === 'metadl') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.metaDl',
-      dot: 'bg-teal-400',
-      badge: 'text-teal-700 bg-teal-50 dark:text-teal-400 dark:bg-teal-400/10 border-teal-200 dark:border-teal-500/30',
-      pulse: true,
-    };
-  }
-  if (s === 'downloading') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.downloading',
-      dot: 'bg-sky-400',
-      badge: 'text-sky-700 bg-sky-50 dark:text-sky-400 dark:bg-sky-400/10 border-sky-200 dark:border-sky-500/30',
-      pulse: true,
-    };
-  }
-  if (s === 'uploading') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.uploading',
-      dot: 'bg-orange-400',
-      badge:
-        'text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-400/10 border-orange-200 dark:border-orange-500/30',
-      pulse: true,
-    };
-  }
-  if (s === 'stalledup') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.stalledUp',
-      dot: 'bg-rose-400',
-      badge: 'text-rose-700 bg-rose-50 dark:text-rose-400 dark:bg-rose-400/10 border-rose-200 dark:border-rose-500/30',
-      pulse: false,
-    };
-  }
-  if (s === 'pauseddl') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.pausedDl',
-      dot: 'bg-amber-400',
-      badge:
-        'text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-400/10 border-amber-200 dark:border-amber-500/30',
-      pulse: false,
-    };
-  }
-  if (s === 'pausedup') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.pausedUp',
-      dot: 'bg-amber-400',
-      badge:
-        'text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-400/10 border-amber-200 dark:border-amber-500/30',
-      pulse: false,
-    };
-  }
-  if (s === 'stopped' || s === 'stoppeddl') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.pausedDl',
-      dot: 'bg-amber-400',
-      badge:
-        'text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-400/10 border-amber-200 dark:border-amber-500/30',
-      pulse: false,
-    };
-  }
-  if (s === 'stoppedup') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.pausedUp',
-      dot: 'bg-amber-400',
-      badge:
-        'text-amber-700 bg-amber-50 dark:text-amber-400 dark:bg-amber-400/10 border-amber-200 dark:border-amber-500/30',
-      pulse: false,
-    };
-  }
-  if (s === 'stalleddl') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.stalledDl',
-      dot: 'bg-yellow-400',
-      badge:
-        'text-yellow-700 bg-yellow-50 dark:text-yellow-400 dark:bg-yellow-400/10 border-yellow-200 dark:border-yellow-500/30',
-      pulse: false,
-    };
-  }
-  if (s === 'checkingdl') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.checkingDl',
-      dot: 'bg-cyan-400',
-      badge: 'text-cyan-700 bg-cyan-50 dark:text-cyan-400 dark:bg-cyan-400/10 border-cyan-200 dark:border-cyan-500/30',
-      pulse: true,
-    };
-  }
-  if (s === 'checkingup') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.checkingUp',
-      dot: 'bg-cyan-400',
-      badge: 'text-cyan-700 bg-cyan-50 dark:text-cyan-400 dark:bg-cyan-400/10 border-cyan-200 dark:border-cyan-500/30',
-      pulse: true,
-    };
-  }
-  if (s === 'checkingresumedata') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.checkingResumeData',
-      dot: 'bg-cyan-400',
-      badge: 'text-cyan-700 bg-cyan-50 dark:text-cyan-400 dark:bg-cyan-400/10 border-cyan-200 dark:border-cyan-500/30',
-      pulse: true,
-    };
-  }
-  if (s === 'moving') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.moving',
-      dot: 'bg-cyan-400',
-      badge: 'text-cyan-700 bg-cyan-50 dark:text-cyan-400 dark:bg-cyan-400/10 border-cyan-200 dark:border-cyan-500/30',
-      pulse: true,
-    };
-  }
-  if (s === 'forceddl') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.forcedDl',
-      dot: 'bg-sky-400',
-      badge: 'text-sky-700 bg-sky-50 dark:text-sky-400 dark:bg-sky-400/10 border-sky-200 dark:border-sky-500/30',
-      pulse: true,
-    };
-  }
-  if (s === 'forcedup') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.forcedUp',
-      dot: 'bg-orange-400',
-      badge:
-        'text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-400/10 border-orange-200 dark:border-orange-500/30',
-      pulse: true,
-    };
-  }
-  if (s === 'queueddl') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.queuedDl',
-      dot: 'bg-neutral-400',
-      badge:
-        'text-neutral-600 bg-neutral-50 dark:text-neutral-400 dark:bg-neutral-400/10 border-neutral-200 dark:border-neutral-500/30',
-      pulse: false,
-    };
-  }
-  if (s === 'queuedup') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.queuedUp',
-      dot: 'bg-neutral-400',
-      badge:
-        'text-neutral-600 bg-neutral-50 dark:text-neutral-400 dark:bg-neutral-400/10 border-neutral-200 dark:border-neutral-500/30',
-      pulse: false,
-    };
-  }
-  if (s === 'error') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.error',
-      dot: 'bg-red-400',
-      badge: 'text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-400/10 border-red-200 dark:border-red-500/30',
-      pulse: false,
-    };
-  }
-  if (s === 'missingfiles') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.missingFiles',
-      dot: 'bg-red-400',
-      badge: 'text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-400/10 border-red-200 dark:border-red-500/30',
-      pulse: false,
-    };
-  }
-  if (s === 'completed') {
-    return {
-      labelKey: 'dashboard.qbittorrent.states.completed',
-      dot: 'bg-emerald-400',
-      badge:
-        'text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-400/10 border-emerald-200 dark:border-emerald-500/30',
-      pulse: false,
-    };
-  }
-  return {
-    labelKey: 'dashboard.qbittorrent.states.unknown',
-    dot: 'bg-neutral-400',
-    badge:
-      'text-neutral-600 bg-neutral-50 dark:text-neutral-400 dark:bg-neutral-400/10 border-neutral-200 dark:border-neutral-500/30',
-    pulse: false,
-  };
-}
 
 export function TorrentDetailPage() {
   const { t } = useTranslation('common');
@@ -290,9 +90,6 @@ export function TorrentDetailPage() {
   const [draftName, setDraftName] = useState('');
   const [draftCategory, setDraftCategory] = useState('');
 
-  const [renamingFilePath, setRenamingFilePath] = useState<string | null>(null);
-  const [draftFilePath, setDraftFilePath] = useState('');
-
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteFiles, setDeleteFiles] = useState(false);
 
@@ -312,9 +109,7 @@ export function TorrentDetailPage() {
     );
     const cachedTorrent = listData?.torrents.find(t => t.id === torrentHash) ?? null;
     setTorrentSnapshot(
-      cachedTorrent
-        ? { enabled: listData!.enabled, connected: listData!.connected, torrent: cachedTorrent }
-        : null
+      cachedTorrent ? { enabled: listData!.enabled, connected: listData!.connected, torrent: cachedTorrent } : null
     );
 
     if (!torrentHash) return;
@@ -383,10 +178,13 @@ export function TorrentDetailPage() {
     const name = draftName.trim();
     if (!name || name === selectedTorrent.name) return;
     const prev = torrentSnapshot;
-    setTorrentSnapshot(snap => snap?.torrent ? { ...snap, torrent: { ...snap.torrent, name } } : snap);
-    renameTorrentMutation.mutate({ name }, {
-      onError: () => setTorrentSnapshot(prev),
-    });
+    setTorrentSnapshot(snap => (snap?.torrent ? { ...snap, torrent: { ...snap.torrent, name } } : snap));
+    renameTorrentMutation.mutate(
+      { name },
+      {
+        onError: () => setTorrentSnapshot(prev),
+      }
+    );
   };
 
   const handleSaveCategory = () => {
@@ -394,7 +192,7 @@ export function TorrentDetailPage() {
     const category = draftCategory.trim();
     if ((selectedTorrent.category ?? '') === category) return;
     const prev = torrentSnapshot;
-    setTorrentSnapshot(snap => snap?.torrent ? { ...snap, torrent: { ...snap.torrent, category } } : snap);
+    setTorrentSnapshot(snap => (snap?.torrent ? { ...snap, torrent: { ...snap.torrent, category } } : snap));
     setCategoryMutation.mutate(category ? { category } : {}, {
       onError: () => setTorrentSnapshot(prev),
     });
@@ -403,33 +201,21 @@ export function TorrentDetailPage() {
   const handleSaveTagsFromSelect = (selected: string[]) => {
     if (!selectedTorrent) return;
     const prev = torrentSnapshot;
-    setTorrentSnapshot(snap => snap?.torrent ? { ...snap, torrent: { ...snap.torrent, tags: selected } } : snap);
-    setTagsMutation.mutate({ tags: selected, previous_tags: selectedTorrent.tags ?? [] }, {
-      onError: () => setTorrentSnapshot(prev),
-    });
+    setTorrentSnapshot(snap => (snap?.torrent ? { ...snap, torrent: { ...snap.torrent, tags: selected } } : snap));
+    setTagsMutation.mutate(
+      { tags: selected, previous_tags: selectedTorrent.tags ?? [] },
+      {
+        onError: () => setTorrentSnapshot(prev),
+      }
+    );
   };
 
-  const beginRenameFile = (path: string) => {
-    setRenamingFilePath(path);
-    setDraftFilePath(path);
-  };
-
-  const cancelRenameFile = () => {
-    setRenamingFilePath(null);
-    setDraftFilePath('');
-  };
-
-  const submitRenameFile = () => {
-    if (!renamingFilePath) return;
-    const oldPath = renamingFilePath;
-    const newPath = draftFilePath.trim();
-    if (!newPath || newPath === oldPath) return;
+  const handleRenameFile = (oldPath: string, newPath: string) => {
     const filesKey = queryKeys.dashboard.qbittorrentTorrentFiles(torrentHash);
     const prevFiles = queryClient.getQueryData<DashboardQbittorrentTorrentFilesResponse>(filesKey);
     queryClient.setQueryData<DashboardQbittorrentTorrentFilesResponse>(filesKey, old =>
-      old ? { ...old, files: old.files.map(f => f.name === oldPath ? { ...f, name: newPath } : f) } : old
+      old ? { ...old, files: old.files.map(f => (f.name === oldPath ? { ...f, name: newPath } : f)) } : old
     );
-    cancelRenameFile();
     renameFileMutation.mutate(
       { old_path: oldPath, new_path: newPath },
       {
@@ -460,40 +246,6 @@ export function TorrentDetailPage() {
     );
   };
 
-  const trackerStatusLabel = (status: number | null) => {
-    switch (status) {
-      case 0:
-        return t('torrents.trackerStatusDisabled', 'Disabled');
-      case 1:
-        return t('torrents.trackerStatusNotContacted', 'Not contacted yet');
-      case 2:
-        return t('torrents.trackerStatusWorking', 'Working');
-      case 3:
-        return t('torrents.trackerStatusUpdating', 'Updating');
-      case 4:
-        return t('torrents.trackerStatusNotWorking', 'Not working');
-      default:
-        return t('torrents.trackerStatusUnknown', 'Unknown');
-    }
-  };
-
-  const trackerStatusColor = (status: number | null) => {
-    switch (status) {
-      case 2:
-        return 'text-emerald-600 dark:text-emerald-400';
-      case 3:
-        return 'text-sky-600 dark:text-sky-400';
-      case 4:
-        return 'text-red-500 dark:text-red-400';
-      case 1:
-        return 'text-amber-600 dark:text-amber-400';
-      default:
-        return 'text-neutral-400';
-    }
-  };
-
-  const formatTrackerNumber = (value: number | null) => (value == null ? '--' : value.toLocaleString());
-
   const progress = selectedTorrent ? Math.round(selectedTorrent.progress * 100) : 0;
   const statusConfig = getStatusConfig(selectedTorrent?.state ?? '');
   const isPaused = ['pauseddl', 'pausedup', 'stopped', 'stoppeddl', 'stoppedup'].includes(
@@ -521,8 +273,6 @@ export function TorrentDetailPage() {
       count: peersSnapshot?.peers?.length,
     },
   ];
-
-  const props = propertiesQuery.data?.properties;
 
   return (
     <PageLayout>
@@ -706,348 +456,44 @@ export function TorrentDetailPage() {
         </nav>
       </div>
 
-      {/* ── Tab: Properties ── */}
+      {/* ── Tab panels ── */}
       {activeTab === 'properties' && (
-        <div className="space-y-5">
-          {/* Metadata */}
-          {propertiesQuery.isLoading ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 py-2">{t('common.loading', 'Loading...')}</p>
-          ) : props ? (
-            <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
-                  {t('torrents.properties', 'Properties')}
-                </h2>
-              </div>
-              <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
-                {[
-                  { label: t('torrents.savePath', 'Save path'), value: props.save_path, mono: true },
-                  {
-                    label: t('torrents.totalDownloaded', 'Downloaded'),
-                    value: props.total_downloaded_bytes != null ? formatBytes(props.total_downloaded_bytes) : null,
-                    mono: true,
-                  },
-                  {
-                    label: t('torrents.totalUploaded', 'Uploaded'),
-                    value: props.total_uploaded_bytes != null ? formatBytes(props.total_uploaded_bytes) : null,
-                    mono: true,
-                  },
-                  {
-                    label: t('torrents.shareRatio', 'Ratio'),
-                    value: props.share_ratio != null ? props.share_ratio.toFixed(3) : null,
-                    mono: true,
-                  },
-                  { label: 'Comment', value: props.comment, mono: false },
-                  { label: 'Created', value: props.creation_date, mono: false },
-                  { label: 'Added', value: props.addition_date, mono: false },
-                  { label: 'Completed', value: props.completion_date, mono: false },
-                ]
-                  .filter(row => row.value)
-                  .map(row => (
-                    <div key={row.label} className="px-5 py-3 flex flex-wrap items-start justify-between gap-3">
-                      <span className="shrink-0 text-xs text-neutral-500 dark:text-neutral-400 pt-0.5 min-w-[110px]">
-                        {row.label}
-                      </span>
-                      <span
-                        className={`text-sm text-neutral-900 dark:text-neutral-100 break-all text-right ${row.mono ? 'font-mono' : ''}`}
-                      >
-                        {row.value}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 py-2">
-              {propertiesQuery.data?.error ?? t('torrents.noProperties', 'No properties')}
-            </p>
-          )}
-
-          {/* Edit controls */}
-          <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800 flex items-center gap-2">
-              <Settings2 size={13} className="text-neutral-400" />
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
-                Edit
-              </h2>
-            </div>
-            <div className="p-5 space-y-6">
-              {/* Name */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2">
-                  {t('torrents.renameTorrent', 'Name')}
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    value={draftName}
-                    onChange={e => setDraftName(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleSaveName()}
-                    className="flex-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2.5 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 dark:focus:border-sky-500 transition"
-                  />
-                  <button
-                    onClick={handleSaveName}
-                    disabled={renameTorrentMutation.isPending || draftName.trim().length === 0}
-                    className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-sky-500 hover:bg-sky-600 text-white disabled:opacity-40 disabled:pointer-events-none transition-colors shrink-0"
-                  >
-                    <Check size={14} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2">
-                  {t('torrents.category', 'Category')}
-                </label>
-                <div className="flex items-center gap-2">
-                  <Select value={draftCategory} onChange={e => setDraftCategory(e.target.value)} className="flex-1">
-                    <option value="">{t('torrents.noCategory', 'No category')}</option>
-                    {categories.map(category => (
-                      <option key={category.name} value={category.name}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <button
-                    onClick={handleSaveCategory}
-                    disabled={setCategoryMutation.isPending}
-                    className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-sky-500 hover:bg-sky-600 text-white disabled:opacity-40 disabled:pointer-events-none transition-colors shrink-0"
-                  >
-                    <Check size={14} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2">
-                  {t('torrents.tags', 'Tags')}
-                </label>
-                <div className="space-y-2.5">
-                  {selectedTorrent?.tags && selectedTorrent.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedTorrent.tags.map(tag => (
-                        <button
-                          key={tag}
-                          type="button"
-                          onClick={() => {
-                            const next = (selectedTorrent.tags ?? []).filter(t2 => t2 !== tag);
-                            handleSaveTagsFromSelect(next);
-                          }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800 hover:bg-red-50 hover:border-red-200 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:border-red-500/30 dark:hover:text-red-400 transition-colors"
-                        >
-                          <Tag size={9} />
-                          {tag}
-                          <XIcon size={10} />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {availableTags.length > 0 && (
-                    <Select
-                      value=""
-                      onChange={e => {
-                        const selected = e.target.value;
-                        if (!selected) return;
-                        const currentTags = selectedTorrent?.tags ?? [];
-                        if (currentTags.includes(selected)) return;
-                        handleSaveTagsFromSelect([...currentTags, selected]);
-                      }}
-                    >
-                      <option value="">+ {t('torrents.tags', 'Tags')}</option>
-                      {availableTags
-                        .filter(tag => !(selectedTorrent?.tags ?? []).includes(tag))
-                        .map(tag => (
-                          <option key={tag} value={tag}>
-                            {tag}
-                          </option>
-                        ))}
-                    </Select>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TorrentPropertiesTab
+          propertiesQuery={propertiesQuery}
+          selectedTorrent={selectedTorrent}
+          categories={categories}
+          availableTags={availableTags}
+          draftName={draftName}
+          onDraftNameChange={setDraftName}
+          draftCategory={draftCategory}
+          onDraftCategoryChange={setDraftCategory}
+          onSaveName={handleSaveName}
+          onSaveCategory={handleSaveCategory}
+          onSaveTags={handleSaveTagsFromSelect}
+          isRenamePending={renameTorrentMutation.isPending}
+          isCategoryPending={setCategoryMutation.isPending}
+        />
       )}
 
-      {/* ── Tab: Files ── */}
       {activeTab === 'files' && (
-        <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
-          <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
-            {filesQuery.isLoading ? (
-              <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-                {t('common.loading', 'Loading...')}
-              </div>
-            ) : filesQuery.data?.files?.length ? (
-              filesQuery.data.files.map(file => (
-                <div key={`${file.index}-${file.name}`} className="px-5 py-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-mono text-xs text-neutral-700 dark:text-neutral-200 break-all leading-relaxed">
-                        {file.name}
-                      </p>
-                      <div className="mt-2 flex items-center gap-3">
-                        <div className="flex-1 h-1 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-400 dark:to-blue-500"
-                            style={{ width: `${Math.round(file.progress * 100)}%` }}
-                          />
-                        </div>
-                        <span className="font-mono text-[11px] text-neutral-500 dark:text-neutral-400 tabular-nums whitespace-nowrap">
-                          {Math.round(file.progress * 100)}% · {formatBytes(file.size_bytes)}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => beginRenameFile(file.name)}
-                      className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-                    >
-                      <Edit2 size={11} />
-                      {t('torrents.rename', 'Rename')}
-                    </button>
-                  </div>
-
-                  {renamingFilePath === file.name && (
-                    <div className="mt-3 flex flex-col sm:flex-row gap-2">
-                      <input
-                        value={draftFilePath}
-                        onChange={e => setDraftFilePath(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') submitRenameFile();
-                          if (e.key === 'Escape') cancelRenameFile();
-                        }}
-                        className="flex-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2 text-sm font-mono text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 transition"
-                        autoFocus
-                      />
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={submitRenameFile}
-                          disabled={renameFileMutation.isPending}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-medium disabled:opacity-40 transition-colors"
-                        >
-                          <Check size={12} />
-                          {t('common.save', 'Save')}
-                        </button>
-                        <button
-                          onClick={cancelRenameFile}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-xs font-medium transition-colors"
-                        >
-                          <XIcon size={12} />
-                          {t('common.cancel', 'Cancel')}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-                {filesQuery.data?.error ?? t('torrents.noFiles', 'No files')}
-              </div>
-            )}
-          </div>
-        </div>
+        <TorrentFilesTab
+          isLoading={filesQuery.isLoading}
+          files={filesQuery.data?.files}
+          error={filesQuery.data?.error}
+          onRenameFile={handleRenameFile}
+          isRenamePending={renameFileMutation.isPending}
+        />
       )}
 
-      {/* ── Tab: Trackers ── */}
       {activeTab === 'trackers' && (
-        <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
-          <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
-            {trackersQuery.isLoading ? (
-              <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-                {t('common.loading', 'Loading...')}
-              </div>
-            ) : trackersQuery.data?.trackers?.length ? (
-              trackersQuery.data.trackers.map(tracker => (
-                <div key={tracker.url} className="px-5 py-4">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <p className="font-mono text-xs text-neutral-800 dark:text-neutral-200 break-all flex-1 min-w-0">
-                      {tracker.url}
-                    </p>
-                    <span className={`shrink-0 text-xs font-medium ${trackerStatusColor(tracker.status)}`}>
-                      {trackerStatusLabel(tracker.status)}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-                    {[
-                      { label: t('torrents.trackerSeeds', 'Seeds'), value: formatTrackerNumber(tracker.seeds) },
-                      { label: t('torrents.trackerPeers', 'Peers'), value: formatTrackerNumber(tracker.peers) },
-                      { label: t('torrents.trackerLeeches', 'Leeches'), value: formatTrackerNumber(tracker.leeches) },
-                      {
-                        label: t('torrents.trackerDownloaded', 'Downloaded'),
-                        value: formatTrackerNumber(tracker.downloaded),
-                      },
-                    ].map(({ label, value }) => (
-                      <span
-                        key={label}
-                        className="text-[11px] text-neutral-400 dark:text-neutral-400 font-mono tabular-nums"
-                      >
-                        {label}: <span className="text-neutral-600 dark:text-neutral-300">{value}</span>
-                      </span>
-                    ))}
-                  </div>
-                  {tracker.message && (
-                    <p className="mt-1.5 text-[11px] text-neutral-400 dark:text-neutral-500 italic">
-                      {tracker.message}
-                    </p>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-                {trackersQuery.data?.error ?? t('dashboard.qbittorrent.noTrackers', 'No trackers found.')}
-              </div>
-            )}
-          </div>
-        </div>
+        <TorrentTrackersTab
+          isLoading={trackersQuery.isLoading}
+          trackers={trackersQuery.data?.trackers}
+          error={trackersQuery.data?.error}
+        />
       )}
 
-      {/* ── Tab: Peers ── */}
-      {activeTab === 'peers' && (
-        <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
-          {peersSnapshot?.connected === false ? (
-            <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-              {peersSnapshot.error ?? t('torrents.disconnectedDescription', 'qBittorrent is unreachable.')}
-            </div>
-          ) : peersSnapshot?.peers?.length ? (
-            <div className="max-h-[60dvh] overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-700/50">
-              {peersSnapshot.peers.slice(0, 150).map(peer => (
-                <div key={peer.id} className="px-5 py-3.5 flex items-center gap-4">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-mono text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">
-                      {peer.ip ?? peer.id}
-                      {peer.port != null ? `:${peer.port}` : ''}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-neutral-400 dark:text-neutral-400 truncate">
-                      {peer.client ?? '--'}
-                      {peer.country_code ? ` · ${peer.country_code}` : ''}
-                    </p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <div className="flex items-center gap-3 justify-end">
-                      <span className="font-mono text-[11px] text-sky-600 dark:text-sky-400 tabular-nums">
-                        ↓ {peer.download_speed != null ? formatSpeed(peer.download_speed) : '--'}
-                      </span>
-                      <span className="font-mono text-[11px] text-orange-500 dark:text-orange-400 tabular-nums">
-                        ↑ {peer.upload_speed != null ? formatSpeed(peer.upload_speed) : '--'}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 font-mono text-[11px] text-neutral-400 dark:text-neutral-400 tabular-nums">
-                      {peer.progress != null ? `${Math.round(peer.progress * 100)}%` : '--'}
-                      {peer.relevance != null ? ` · ${peer.relevance.toFixed(2)}` : ''}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-              {t('torrents.noPeers', 'No peers')}
-            </div>
-          )}
-        </div>
-      )}
+      {activeTab === 'peers' && <TorrentPeersTab peersSnapshot={peersSnapshot} />}
 
       {/* ── Delete dialog ── */}
       <Dialog

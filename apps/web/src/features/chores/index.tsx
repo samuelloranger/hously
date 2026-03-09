@@ -2,13 +2,13 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { Plus } from 'lucide-react';
-import { PageLayout } from '../../components/PageLayout';
-import { PageHeader } from '../../components/PageHeader';
+import { PageLayout } from '@/components/PageLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { ChoreRow } from './components/ChoreRow';
 import { CreateChoreModal } from './components/CreateChoreModal';
-import { EmptyState } from '../../components/EmptyState';
-import { Button } from '../../components/ui/button';
-import { SortableList } from '../../components/SortableList';
+import { EmptyState } from '@/components/EmptyState';
+import { Button } from '@/components/ui/button';
+import { SortableList } from '@/components/SortableList';
 import { useChores, useClearAllCompletedChores, useReorderChores } from '@hously/shared';
 import { HouseLoader } from '@/components/HouseLoader';
 
@@ -46,12 +46,14 @@ export function ChoresList() {
         }
       />
 
-      <div className="bg-white dark:bg-neutral-800 shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
+      <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-800 overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-700/50">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium text-neutral-900 dark:text-white">{t('chores.currentChores')}</h3>
-            <div className="text-sm text-neutral-500 dark:text-neutral-400">
-              {pendingChores.length} {pendingChores.length !== 1 ? t('chores.choresPlural') : t('chores.chore')}
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">{t('chores.currentChores')}</h3>
+              <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">
+                {pendingChores.length} {pendingChores.length !== 1 ? t('chores.choresPlural') : t('chores.chore')}
+              </span>
             </div>
           </div>
         </div>
@@ -65,7 +67,7 @@ export function ChoresList() {
               const choreIds = newOrder.map(chore => chore.id);
               reorderMutation.mutate(choreIds);
             }}
-            className="divide-y divide-neutral-200 dark:divide-neutral-700"
+            className="divide-y divide-neutral-100 dark:divide-neutral-700/50"
           >
             {(chore, handleProps) => (
               <ChoreRow key={chore.id} chore={chore} users={users} dragHandleProps={handleProps} />
@@ -79,12 +81,17 @@ export function ChoresList() {
       <CreateChoreModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} users={users} />
 
       {completedChores.length > 0 && (
-        <div className="bg-white dark:bg-neutral-800 shadow rounded-lg mt-8">
-          <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
+        <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-800 overflow-hidden mt-6">
+          <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-700/50">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-neutral-900 dark:text-white">
-                {t('chores.recentlyCompleted')} ({completedChores.length})
-              </h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                  {t('chores.recentlyCompleted')}
+                </h3>
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-700/60 px-1.5 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">
+                  {completedChores.length}
+                </span>
+              </div>
               <Button
                 onClick={() => clearCompletedMutation.mutate()}
                 disabled={clearCompletedMutation.isPending}
@@ -95,7 +102,7 @@ export function ChoresList() {
               </Button>
             </div>
           </div>
-          <div className="divide-y divide-neutral-200 dark:divide-neutral-700" ref={completedChoresRef}>
+          <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50" ref={completedChoresRef}>
             {completedChores.map(chore => (
               <ChoreRow key={chore.id} chore={chore} users={users} />
             ))}

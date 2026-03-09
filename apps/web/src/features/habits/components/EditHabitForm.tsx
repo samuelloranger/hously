@@ -4,10 +4,10 @@ import { useForm } from 'react-hook-form';
 import { Habit, UpdateHabitRequest } from '@hously/shared';
 import { EmojiPicker } from './EmojiPicker';
 import { ScheduleTimePicker } from './ScheduleTimePicker';
-import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover';
-import { FormInput, FormTextarea } from '../../../components/ui/form-field';
-import { Button } from '../../../components/ui/button';
-import { cn } from '../../../lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { FormInput, FormTextarea } from '@/components/ui/form-field';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface EditHabitFormProps {
   habit: Habit;

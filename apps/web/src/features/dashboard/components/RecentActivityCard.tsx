@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardActivities } from '@hously/shared';
 import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
-import { ListItemSkeleton } from '../../../components/Skeleton';
+import { ListItemSkeleton } from '@/components/Skeleton';
 
 type ActivityRow = { icon: string; description: string; time: string };
 

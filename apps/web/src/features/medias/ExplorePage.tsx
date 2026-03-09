@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useQueryClient, useIsFetching } from '@tanstack/react-query';
 import { queryKeys } from '@hously/shared';
-import { PageLayout } from '../../components/PageLayout';
-import { PageHeader } from '../../components/PageHeader';
+import { PageLayout } from '@/components/PageLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { MediasExplore } from './components/MediasExplore';
 
 export function ExplorePage() {

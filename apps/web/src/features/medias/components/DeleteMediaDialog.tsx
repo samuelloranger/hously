@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { AlertTriangle } from 'lucide-react';
-import { Dialog } from '../../../components/dialog';
+import { Dialog } from '@/components/dialog';
 import { useMediaDelete, type MediaItem } from '@hously/shared';
 
 interface DeleteMediaDialogProps {
@@ -42,11 +42,7 @@ export function DeleteMediaDialog({ isOpen, onClose, media }: DeleteMediaDialogP
   const serviceName = media?.service === 'radarr' ? 'Radarr' : 'Sonarr';
 
   return (
-    <Dialog
-      isOpen={isOpen}
-      onClose={handleClose}
-      title={t('medias.delete.title')}
-    >
+    <Dialog isOpen={isOpen} onClose={handleClose} title={t('medias.delete.title')}>
       <div className="space-y-4">
         <div className="flex items-start gap-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-3">
           <AlertTriangle size={18} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />

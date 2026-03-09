@@ -1,11 +1,13 @@
 import { Elysia, t } from 'elysia';
 import { auth } from '../../auth';
+import { requireUser } from '../../middleware/auth';
 import { prisma } from '../../db';
-import { formatIso } from '../../utils';
+import { formatIso, todayLocal } from '../../utils';
 import { getJsonCache, setJsonCache } from '../../services/cache';
 import { fetchAddressWeather, normalizeWeatherAddress, WEATHER_CACHE_TTL_SECONDS } from '../../utils/dashboard/weather';
 import { getCachedHabitsStreak } from '../../utils/dashboard/habitsStreak';
 import type { DashboardWeatherResponse } from '../../types/dashboardWeather';
+import { badGateway, notFound, serverError, unauthorized } from '../../utils/errors';
 
 interface WeatherPluginConfig {
   address?: string;
@@ -14,21 +16,15 @@ interface WeatherPluginConfig {
 
 export const dashboardOverviewRoutes = new Elysia()
   .use(auth)
+  .use(requireUser)
   .get('/stats', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      const today = todayLocal();
+      const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
       const eventsTodayCount = await prisma.customEvent.count({
         where: {
-          userId: user.id,
+          userId: user!.id,
           startDatetime: {
             gte: today,
             lt: tomorrow,
@@ -49,7 +45,7 @@ export const dashboardOverviewRoutes = new Elysia()
         },
       });
 
-      const habitsStreak = await getCachedHabitsStreak(user.id);
+      const habitsStreak = await getCachedHabitsStreak(user!.id);
 
       return {
         stats: {
@@ -62,18 +58,12 @@ export const dashboardOverviewRoutes = new Elysia()
       };
     } catch (err) {
       console.error('Error getting dashboard stats:', err);
-      set.status = 500;
-      return { error: 'Failed to get dashboard stats' };
+      return serverError(set, 'Failed to get dashboard stats');
     }
   })
   .get(
     '/activities',
     async ({ user, query, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       try {
         const limit = query.limit ? parseInt(query.limit, 10) : 5;
         const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.min(limit, 50) : 5;
@@ -175,8 +165,7 @@ export const dashboardOverviewRoutes = new Elysia()
         return { activities: merged.slice(0, safeLimit) };
       } catch (err) {
         console.error('Error getting dashboard activities:', err);
-        set.status = 500;
-        return { error: 'Failed to get dashboard activities' };
+        return serverError(set, 'Failed to get dashboard activities');
       }
     },
     {
@@ -186,11 +175,6 @@ export const dashboardOverviewRoutes = new Elysia()
     }
   )
   .get('/weather', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       const weatherPlugin = await prisma.plugin.findFirst({
         where: { type: 'weather' },
@@ -200,8 +184,7 @@ export const dashboardOverviewRoutes = new Elysia()
       const temperatureUnit = config?.temperature_unit === 'celsius' ? 'celsius' : 'fahrenheit';
 
       if (!address) {
-        set.status = 404;
-        return { error: 'Weather plugin is not configured.' };
+        return notFound(set, 'Weather plugin is not configured.');
       }
 
       const normalizedAddress = normalizeWeatherAddress(address);
@@ -216,7 +199,6 @@ export const dashboardOverviewRoutes = new Elysia()
       return weather;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to get weather';
-      set.status = 502;
-      return { error: message };
+      return badGateway(set, message);
     }
   });

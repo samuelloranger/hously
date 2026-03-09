@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { CreateChoreForm } from './CreateChoreForm';
 import type { ChoreUser } from '@hously/shared';
-import { Dialog } from '../../../components/dialog';
+import { Dialog } from '@/components/dialog';
 
 interface CreateChoreModalProps {
   isOpen: boolean;

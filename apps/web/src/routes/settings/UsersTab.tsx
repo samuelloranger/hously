@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { FormInput } from '../../components/ui/form-field';
-import { Button } from '../../components/ui/button';
+import { FormInput } from '@/components/ui/form-field';
+import { Button } from '@/components/ui/button';
 import {
   useAdminUsers,
   useDeleteUser,
@@ -13,7 +13,7 @@ import {
   useRevokeInvitation,
   formatDateTime,
 } from '@hously/shared';
-import { LoadingState } from '../../components/LoadingState';
+import { LoadingState } from '@/components/LoadingState';
 
 interface InviteFormData {
   email: string;

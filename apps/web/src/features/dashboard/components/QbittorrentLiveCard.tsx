@@ -4,19 +4,10 @@ import { useTranslation } from 'react-i18next';
 import {
   type DashboardQbittorrentStatusResponse,
   DASHBOARD_ENDPOINTS,
+  formatSpeed,
   useDashboardQbittorrentStatus,
 } from '@hously/shared';
-import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
-
-const formatBytes = (bytes: number): string => {
-  if (bytes <= 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const power = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  const value = bytes / 1024 ** power;
-  return `${value >= 100 ? value.toFixed(0) : value.toFixed(1)} ${units[power]}`;
-};
-
-const formatSpeed = (bytesPerSecond: number): string => `${formatBytes(bytesPerSecond)}/s`;
+import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 
 export function QbittorrentLiveCard() {
   const { t } = useTranslation('common');

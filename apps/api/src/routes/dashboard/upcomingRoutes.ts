@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { auth } from '../../auth';
+import { requireUser } from '../../middleware/auth';
 import {
   TMDB_UPCOMING_CACHE_KEY,
   collectTmdbUpcoming,
@@ -11,6 +12,7 @@ import { getJsonCache, setJsonCache, deleteCache } from '../../services/cache';
 import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../../utils/plugins/normalizers';
 import { toRecord, toStringOrNull } from '../../utils/coerce';
 import type { DashboardUpcomingItem } from '../../types/dashboardUpcoming';
+import { badGateway, badRequest, notFound, serverError, unauthorized } from '../../utils/errors';
 
 const buildArrItemUrl = (baseUrl: string, service: 'radarr' | 'sonarr', slug: string): string | null => {
   try {
@@ -28,12 +30,8 @@ const buildArrItemUrl = (baseUrl: string, service: 'radarr' | 'sonarr', slug: st
 
 export const dashboardUpcomingRoutes = new Elysia()
   .use(auth)
+  .use(requireUser)
   .get('/upcoming', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       const arrPluginStatus = await getArrPluginStatus();
       const tmdbPlugin = await prisma.plugin.findFirst({
@@ -71,8 +69,7 @@ export const dashboardUpcomingRoutes = new Elysia()
       ]);
 
       if (!moviesResult || !tvResult) {
-        set.status = 502;
-        return { error: 'TMDB request failed' };
+        return badGateway(set, 'TMDB request failed');
       }
 
       const sortedItems = [...moviesResult.items, ...tvResult.items]
@@ -99,18 +96,12 @@ export const dashboardUpcomingRoutes = new Elysia()
       return { ...responsePayload, ...arrPluginStatus };
     } catch (error) {
       console.error('Error getting TMDB upcoming items:', error);
-      set.status = 500;
-      return { error: 'Failed to get TMDB upcoming items' };
+      return serverError(set, 'Failed to get TMDB upcoming items');
     }
   })
   .post(
     '/upcoming/add',
     async ({ user, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       const { media_type: mediaType, tmdb_id: tmdbId } = body;
       const searchOnAdd = body.search_on_add ?? true;
 
@@ -122,14 +113,12 @@ export const dashboardUpcomingRoutes = new Elysia()
           });
 
           if (!radarrPlugin?.enabled) {
-            set.status = 400;
-            return { error: 'Radarr plugin is not enabled' };
+            return badRequest(set, 'Radarr plugin is not enabled');
           }
 
           const config = normalizeRadarrConfig(radarrPlugin.config);
           if (!config) {
-            set.status = 400;
-            return { error: 'Radarr plugin is not configured' };
+            return badRequest(set, 'Radarr plugin is not configured');
           }
 
           const lookupUrl = new URL('/api/v3/movie/lookup/tmdb', config.website_url);
@@ -139,16 +128,14 @@ export const dashboardUpcomingRoutes = new Elysia()
           });
 
           if (!lookupResponse.ok) {
-            set.status = 502;
-            return { error: 'Radarr lookup failed' };
+            return badGateway(set, 'Radarr lookup failed');
           }
 
           const lookupData = (await lookupResponse.json()) as Record<string, unknown> | Record<string, unknown>[];
           const movieRecord = Array.isArray(lookupData) ? lookupData[0] : lookupData;
           const movie = toRecord(movieRecord);
           if (!movie) {
-            set.status = 404;
-            return { error: 'Movie not found in Radarr lookup' };
+            return notFound(set, 'Movie not found in Radarr lookup');
           }
 
           const payload = {
@@ -198,8 +185,7 @@ export const dashboardUpcomingRoutes = new Elysia()
               payload: (payload as any).title || (payload as any).tmdbId || payload,
               body: debugText,
             });
-            set.status = 502;
-            return { error: 'Failed to add movie to Radarr' };
+            return badGateway(set, 'Failed to add movie to Radarr');
           }
 
           await deleteCache('medias:radarr:ids');
@@ -218,14 +204,12 @@ export const dashboardUpcomingRoutes = new Elysia()
         });
 
         if (!sonarrPlugin?.enabled) {
-          set.status = 400;
-          return { error: 'Sonarr plugin is not enabled' };
+          return badRequest(set, 'Sonarr plugin is not enabled');
         }
 
         const config = normalizeSonarrConfig(sonarrPlugin.config);
         if (!config) {
-          set.status = 400;
-          return { error: 'Sonarr plugin is not configured' };
+          return badRequest(set, 'Sonarr plugin is not configured');
         }
 
         const lookupUrl = new URL('/api/v3/series/lookup', config.website_url);
@@ -235,15 +219,13 @@ export const dashboardUpcomingRoutes = new Elysia()
         });
 
         if (!lookupResponse.ok) {
-          set.status = 502;
-          return { error: 'Sonarr lookup failed' };
+          return badGateway(set, 'Sonarr lookup failed');
         }
 
         const lookupData = (await lookupResponse.json()) as unknown[];
         const firstMatch = Array.isArray(lookupData) ? toRecord(lookupData[0]) : null;
         if (!firstMatch) {
-          set.status = 404;
-          return { error: 'Series not found in Sonarr lookup' };
+          return notFound(set, 'Series not found in Sonarr lookup');
         }
 
         const payload = {
@@ -278,8 +260,7 @@ export const dashboardUpcomingRoutes = new Elysia()
         }
 
         if (!addResponse.ok) {
-          set.status = 502;
-          return { error: 'Failed to add series to Sonarr' };
+          return badGateway(set, 'Failed to add series to Sonarr');
         }
 
         await deleteCache('medias:sonarr:ids');
@@ -292,8 +273,7 @@ export const dashboardUpcomingRoutes = new Elysia()
         };
       } catch (error) {
         console.error('Error adding upcoming item to *arr:', error);
-        set.status = 500;
-        return { error: 'Failed to add upcoming item' };
+        return serverError(set, 'Failed to add upcoming item');
       }
     },
     {
@@ -307,11 +287,6 @@ export const dashboardUpcomingRoutes = new Elysia()
   .post(
     '/upcoming/status',
     async ({ user, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: 'Unauthorized' };
-      }
-
       const { media_type: mediaType, tmdb_id: tmdbId } = body;
 
       try {
@@ -337,8 +312,7 @@ export const dashboardUpcomingRoutes = new Elysia()
           });
 
           if (!movieResponse.ok) {
-            set.status = 502;
-            return { error: 'Radarr movie lookup failed' };
+            return badGateway(set, 'Radarr movie lookup failed');
           }
 
           const movieData = (await movieResponse.json()) as unknown[];
@@ -376,8 +350,7 @@ export const dashboardUpcomingRoutes = new Elysia()
         });
 
         if (!seriesResponse.ok) {
-          set.status = 502;
-          return { error: 'Sonarr series lookup failed' };
+          return badGateway(set, 'Sonarr series lookup failed');
         }
 
         const seriesData = (await seriesResponse.json()) as unknown[];
@@ -395,8 +368,7 @@ export const dashboardUpcomingRoutes = new Elysia()
         };
       } catch (error) {
         console.error('Error checking upcoming item status', error);
-        set.status = 500;
-        return { error: 'Failed to check upcoming item status' };
+        return serverError(set, 'Failed to check upcoming item status');
       }
     },
     {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScheduleStatus } from '@hously/shared';
-import { cn } from '../../../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface HabitProgressProps {
   statuses: ScheduleStatus[];

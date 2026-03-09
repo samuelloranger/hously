@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { PageLayout } from '../../components/PageLayout';
-import { PageHeader } from '../../components/PageHeader';
+import { PageLayout } from '@/components/PageLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { ShoppingItemRow } from './components/ShoppingItemRow';
 import { CreateShoppingItemForm } from './components/CreateShoppingItemForm';
-import { EmptyState } from '../../components/EmptyState';
-import { Button } from '../../components/ui/button';
-import { SortableList } from '../../components/SortableList';
+import { EmptyState } from '@/components/EmptyState';
+import { Button } from '@/components/ui/button';
+import { SortableList } from '@/components/SortableList';
 import {
   useShoppingItems,
   useClearAllCompletedShoppingItems,
@@ -95,14 +95,16 @@ export function ShoppingList() {
 
       <CreateShoppingItemForm />
 
-      <div className="bg-white dark:bg-neutral-800 shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
+      <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-800 overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-700/50">
           <div className="flex flex-wrap justify-between items-center gap-3">
-            <h3 className="text-lg font-medium text-neutral-900 dark:text-white">{t('shopping.currentList')}</h3>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="text-sm text-neutral-500 dark:text-neutral-400">
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">{t('shopping.currentList')}</h3>
+              <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">
                 {activeItems.length} {activeItems.length !== 1 ? t('shopping.itemsPlural') : t('shopping.items')}
-              </div>
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               {isSelectionMode && selectedCount > 0 && (
                 <Button
                   onClick={handleDeleteSelected}
@@ -126,7 +128,7 @@ export function ShoppingList() {
               const itemIds = newOrder.map(item => item.id);
               reorderMutation.mutate(itemIds);
             }}
-            className="divide-y divide-neutral-200 dark:divide-neutral-700"
+            className="divide-y divide-neutral-100 dark:divide-neutral-700/50"
             disabled={isSelectionMode}
           >
             {(item, handleProps) => (
@@ -146,12 +148,17 @@ export function ShoppingList() {
       </div>
 
       {completedItems.length > 0 && (
-        <div className="bg-white dark:bg-neutral-800 shadow rounded-lg mt-8">
-          <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
+        <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-800 overflow-hidden mt-6">
+          <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-700/50">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-neutral-900 dark:text-white">
-                {t('shopping.recentlyCompleted')} ({completedItems.length})
-              </h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                  {t('shopping.recentlyCompleted')}
+                </h3>
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-700/60 px-1.5 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">
+                  {completedItems.length}
+                </span>
+              </div>
               <Button
                 onClick={() => clearCompletedMutation.mutate()}
                 disabled={clearCompletedMutation.isPending}
@@ -162,7 +169,7 @@ export function ShoppingList() {
               </Button>
             </div>
           </div>
-          <div className="divide-y divide-neutral-200 dark:divide-neutral-700" ref={completedItemsRef}>
+          <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50" ref={completedItemsRef}>
             {completedItems.map(item => (
               <ShoppingItemRow
                 key={item.id}

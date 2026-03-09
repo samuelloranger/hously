@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardWeather, getWeatherVisualTheme, getWeatherConditionKey } from '@hously/shared';
-import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
+import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 
 const toCelsius = (fahrenheit: number): number => (fahrenheit - 32) * (5 / 9);
 

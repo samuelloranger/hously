@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { MediaPosterCard } from '../../../components/MediaPosterCard';
+import { MediaPosterCard } from '@/components/MediaPosterCard';
 
 type MovieCardBaseProps = {
   title: string;

@@ -3,7 +3,7 @@ import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EditChoreForm } from './EditChoreForm';
-import { ImageModal } from '../../../components/ImageModal';
+import { ImageModal } from '@/components/ImageModal';
 import { getChoreImageUrl, type Chore, type ChoreUser } from '@hously/shared';
 import { X } from 'lucide-react';
 

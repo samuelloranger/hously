@@ -3,6 +3,8 @@ import { prisma } from '../db';
 import { auth } from '../auth';
 import { refreshHabitsStreakForUser } from '../utils/dashboard/habitsStreak';
 import { addDaysInTz, formatDateInTimezone, getTimezone, midnightOf, todayLocal } from '../utils/date';
+import { requireUser } from '../middleware/auth';
+import { notFound, unauthorized, unprocessable } from '../utils/errors';
 
 const DONE_STATUS = 'done';
 const SKIPPED_STATUS = 'skipped';
@@ -82,14 +84,9 @@ const getDayRange = (date = todayLocal()) => {
 
 export const habitsRoutes = new Elysia()
   .use(auth)
+  .use(requireUser)
   .group('/api/habits', (app) =>
     app
-      .onBeforeHandle(({ user, set }) => {
-        if (!user) {
-          set.status = 401;
-          return { error: 'Unauthorized' };
-        }
-      })
       .post(
         '/live-activity/register',
         async ({ body, user }) => {
@@ -219,8 +216,7 @@ export const habitsRoutes = new Elysia()
           const schedules = getScheduleTimes(body);
 
           if (schedules.length === 0) {
-            set.status = 422;
-            return { error: 'At least one schedule is required' };
+            return unprocessable(set, 'At least one schedule is required');
           }
 
           const habit = await prisma.$transaction(async (tx) => {
@@ -273,13 +269,11 @@ export const habitsRoutes = new Elysia()
           });
 
           if (!existingHabit) {
-            set.status = 404;
-            return { error: 'Habit not found' };
+            return notFound(set, 'Habit not found');
           }
 
           if ((body.schedules || body.schedule_times) && scheduleTimes.length === 0) {
-            set.status = 422;
-            return { error: 'At least one schedule is required' };
+            return unprocessable(set, 'At least one schedule is required');
           }
 
           const updatedHabit = await prisma.$transaction(async (tx) => {
@@ -334,8 +328,7 @@ export const habitsRoutes = new Elysia()
         });
 
         if (!existingHabit) {
-          set.status = 404;
-          return { error: 'Habit not found' };
+          return notFound(set, 'Habit not found');
         }
 
         await prisma.habit.delete({
@@ -355,8 +348,7 @@ export const habitsRoutes = new Elysia()
           });
 
           if (!existingHabit) {
-            set.status = 404;
-            return { error: 'Habit not found' };
+            return notFound(set, 'Habit not found');
           }
 
           const { start: dayStart, end: dayEnd } = body?.date
@@ -421,8 +413,7 @@ export const habitsRoutes = new Elysia()
           });
 
           if (!existingHabit) {
-            set.status = 404;
-            return { error: 'Habit not found' };
+            return notFound(set, 'Habit not found');
           }
 
           const { start: dayStart, end: dayEnd } = queryDate
@@ -484,8 +475,7 @@ export const habitsRoutes = new Elysia()
           });
 
           if (!existingHabit) {
-            set.status = 404;
-            return { error: 'Habit not found' };
+            return notFound(set, 'Habit not found');
           }
 
           const { start: dayStart, end: dayEnd } = body?.date
@@ -550,8 +540,7 @@ export const habitsRoutes = new Elysia()
           });
 
           if (!existingHabit) {
-            set.status = 404;
-            return { error: 'Habit not found' };
+            return notFound(set, 'Habit not found');
           }
 
           const { start: dayStart, end: dayEnd } = queryDate
@@ -708,8 +697,7 @@ export const habitsRoutes = new Elysia()
           });
 
           if (!existingHabit) {
-            set.status = 404;
-            return { error: 'Habit not found' };
+            return notFound(set, 'Habit not found');
           }
 
           const { end: startOfTomorrow } = getDayRange();

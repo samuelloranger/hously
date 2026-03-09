@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { ArrowDownAZ, ArrowUpZA, ChevronDown, Download, RefreshCw, Search, TriangleAlert, X } from 'lucide-react';
-import { Dialog } from '../../../components/dialog';
+import { Dialog } from '@/components/dialog';
 import {
+  formatBytes,
   useMediaInteractiveDownload,
   useMediaInteractiveSearch,
   useProwlarrInteractiveDownload,
@@ -128,20 +129,7 @@ function FilterSection({ title, children, badge }: { title: string; children: Re
   );
 }
 
-const formatBytes = (bytes: number | null): string => {
-  if (!bytes || bytes <= 0) return '-';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const power = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  const value = bytes / 1024 ** power;
-  return `${value >= 100 ? value.toFixed(0) : value.toFixed(1)} ${units[power]}`;
-};
-
-export function InteractiveSearchDialog({
-  isOpen,
-  onClose,
-  media = null,
-  mode = 'arr',
-}: InteractiveSearchDialogProps) {
+export function InteractiveSearchDialog({ isOpen, onClose, media = null, mode = 'arr' }: InteractiveSearchDialogProps) {
   const { t } = useTranslation('common');
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const isProwlarrMode = mode === 'prowlarr';
@@ -373,7 +361,9 @@ export function InteractiveSearchDialog({
                   <input
                     ref={searchInputRef}
                     value={isProwlarrMode ? prowlarrQuery : filterQuery}
-                    onChange={event => (isProwlarrMode ? setProwlarrQuery(event.target.value) : setFilterQuery(event.target.value))}
+                    onChange={event =>
+                      isProwlarrMode ? setProwlarrQuery(event.target.value) : setFilterQuery(event.target.value)
+                    }
                     placeholder={
                       isProwlarrMode
                         ? t('medias.interactive.prowlarrSearchPlaceholder')
@@ -546,7 +536,7 @@ export function InteractiveSearchDialog({
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-hidden pt-4">
+          <div className="min-h-0 flex-1 overflow-y-scroll overflow-x-hidden pt-4">
             {needsProwlarrQuery ? (
               <div className="flex h-full items-center justify-center py-8">
                 <div className="max-w-md text-center text-sm text-neutral-500 dark:text-neutral-400">
@@ -597,7 +587,7 @@ export function InteractiveSearchDialog({
                 </div>
               </div>
             ) : (
-              <div className="h-full overflow-y-auto pr-1">
+              <div className="pr-1">
                 <div className="space-y-2">
                   {releases.map(release => {
                     const releaseKey = `${release.guid}-${release.indexer_id ?? 'x'}`;

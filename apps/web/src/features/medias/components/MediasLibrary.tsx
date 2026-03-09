@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
-import { EmptyState } from '../../../components/EmptyState';
-import { MediaPosterCard } from '../../../components/MediaPosterCard';
+import { EmptyState } from '@/components/EmptyState';
+import { MediaPosterCard } from '@/components/MediaPosterCard';
 import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, Sparkles, Trash2, User } from 'lucide-react';
 
 import { toast } from 'sonner';
@@ -83,11 +83,7 @@ export function MediasLibrary() {
 
   if (isNotConfigured) {
     return (
-      <EmptyState
-        icon="🎞️"
-        title={t('medias.notConfiguredTitle')}
-        description={t('medias.notConfiguredDescription')}
-      />
+      <EmptyState icon="🎞️" title={t('medias.notConfiguredTitle')} description={t('medias.notConfiguredDescription')} />
     );
   }
 
@@ -98,7 +94,10 @@ export function MediasLibrary() {
         <div className="px-4 py-3 flex flex-wrap items-center gap-2">
           {/* Search */}
           <div className="relative flex-1 min-w-40">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+            <Search
+              size={13}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
+            />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -122,8 +121,14 @@ export function MediasLibrary() {
                       : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                   }`}
                 >
-                  {type === 'all' ? t('medias.filterAll') : type === 'movie' ? t('medias.filterMovies') : t('medias.filterSeries')}
-                  <span className={`rounded-full px-1 text-[10px] font-semibold ${active ? 'text-white/70' : 'text-neutral-400 dark:text-neutral-500'}`}>
+                  {type === 'all'
+                    ? t('medias.filterAll')
+                    : type === 'movie'
+                      ? t('medias.filterMovies')
+                      : t('medias.filterSeries')}
+                  <span
+                    className={`rounded-full px-1 text-[10px] font-semibold ${active ? 'text-white/70' : 'text-neutral-400 dark:text-neutral-500'}`}
+                  >
                     {count}
                   </span>
                 </button>
@@ -161,13 +166,16 @@ export function MediasLibrary() {
         {!isLoading && items.length > 0 && (
           <div className="px-4 py-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center gap-4">
             <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-              <span className="font-semibold text-neutral-700 dark:text-neutral-200">{movieCount}</span> {t('medias.filterMovies').toLowerCase()}
+              <span className="font-semibold text-neutral-700 dark:text-neutral-200">{movieCount}</span>{' '}
+              {t('medias.filterMovies').toLowerCase()}
             </span>
             <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-              <span className="font-semibold text-neutral-700 dark:text-neutral-200">{seriesCount}</span> {t('medias.filterSeries').toLowerCase()}
+              <span className="font-semibold text-neutral-700 dark:text-neutral-200">{seriesCount}</span>{' '}
+              {t('medias.filterSeries').toLowerCase()}
             </span>
             <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">{downloadedCount}</span> {t('medias.downloaded').toLowerCase()}
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">{downloadedCount}</span>{' '}
+              {t('medias.downloaded').toLowerCase()}
             </span>
           </div>
         )}
@@ -212,7 +220,9 @@ export function MediasLibrary() {
                   className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                 >
                   {[24, 50, 100].map(size => (
-                    <option key={size} value={size}>{size} / {t('medias.pagination.perPage')}</option>
+                    <option key={size} value={size}>
+                      {size} / {t('medias.pagination.perPage')}
+                    </option>
                   ))}
                 </select>
 
@@ -258,11 +268,7 @@ export function MediasLibrary() {
         onAdded={refetch}
       />
 
-      <DeleteMediaDialog
-        isOpen={Boolean(deleteItem)}
-        media={deleteItem}
-        onClose={() => setDeleteItem(null)}
-      />
+      <DeleteMediaDialog isOpen={Boolean(deleteItem)} media={deleteItem} onClose={() => setDeleteItem(null)} />
     </div>
   );
 }

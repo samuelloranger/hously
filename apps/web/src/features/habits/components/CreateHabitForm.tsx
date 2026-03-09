@@ -4,9 +4,9 @@ import { useForm } from 'react-hook-form';
 import { CreateHabitRequest } from '@hously/shared';
 import { EmojiPicker } from './EmojiPicker';
 import { ScheduleTimePicker } from './ScheduleTimePicker';
-import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover';
-import { FormInput, FormTextarea } from '../../../components/ui/form-field';
-import { Button } from '../../../components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { FormInput, FormTextarea } from '@/components/ui/form-field';
+import { Button } from '@/components/ui/button';
 
 interface CreateHabitFormProps {
   onSubmit: (data: CreateHabitRequest) => void;

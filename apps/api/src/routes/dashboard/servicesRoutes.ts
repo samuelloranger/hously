@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia';
 import { auth } from '../../auth';
+import { requireUser } from '../../middleware/auth';
 import { fetchAdguardSummary } from '../../utils/dashboard/adguard';
 import { buildNetdataDisabledSummary, fetchNetdataSummary } from '../../utils/dashboard/netdata';
 import { fetchScrutinySummary } from '../../utils/dashboard/scrutiny';
@@ -15,6 +16,7 @@ import { normalizeTrackerConfig } from '../../utils/plugins/normalizers';
 import type { CachedTrackerStats } from '../../utils/dashboard/trackers';
 import { cacheKey, parseCachedTrackerStats } from '../../utils/dashboard/trackers';
 import type { TrackerType } from '../../utils/plugins/types';
+import { serverError, unauthorized } from '../../utils/errors';
 
 const trackerLabel = (type: TrackerType): string => {
   return {
@@ -102,97 +104,57 @@ async function getAllTrackerStatsHandler() {
 
 export const dashboardServiceRoutes = new Elysia()
   .use(auth)
+  .use(requireUser)
   .use(dashboardQbittorrentRoutes)
   .get('/trackers/stats', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       return await getAllTrackerStatsHandler();
     } catch (error) {
       console.error('Error fetching trackers stats:', error);
-      set.status = 500;
-      return { error: 'Failed to get trackers stats' };
+      return serverError(set, 'Failed to get trackers stats');
     }
   })
   .get('/c411/stats', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       return await getTrackerStatsHandler('c411');
     } catch (error) {
       console.error('Error fetching C411 stats:', error);
-      set.status = 500;
-      return { error: 'Failed to get C411 stats' };
+      return serverError(set, 'Failed to get C411 stats');
     }
   })
   .get('/torr9/stats', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       return await getTrackerStatsHandler('torr9');
     } catch (error) {
       console.error('Error fetching Torr9 stats:', error);
-      set.status = 500;
-      return { error: 'Failed to get Torr9 stats' };
+      return serverError(set, 'Failed to get Torr9 stats');
     }
   })
   .get('/la-cale/stats', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       return await getTrackerStatsHandler('la-cale');
     } catch (error) {
       console.error('Error fetching La Cale stats:', error);
-      set.status = 500;
-      return { error: 'Failed to get La Cale stats' };
+      return serverError(set, 'Failed to get La Cale stats');
     }
   })
   .get('/scrutiny/summary', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       return await fetchScrutinySummary();
     } catch (error) {
       console.error('Error fetching Scrutiny summary:', error);
-      set.status = 500;
-      return { error: 'Failed to get Scrutiny summary' };
+      return serverError(set, 'Failed to get Scrutiny summary');
     }
   })
   .get('/netdata/summary', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       return await fetchNetdataSummary();
     } catch (error) {
       console.error('Error fetching Netdata summary:', error);
-      set.status = 500;
-      return { error: 'Failed to get Netdata summary' };
+      return serverError(set, 'Failed to get Netdata summary');
     }
   })
   .get('/netdata/stream', async ({ user, set, request }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     return createJsonSseResponse({
       request,
       poll: fetchNetdataSummary,
@@ -207,25 +169,14 @@ export const dashboardServiceRoutes = new Elysia()
     });
   })
   .get('/adguard/summary', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       return await fetchAdguardSummary();
     } catch (error) {
       console.error('Error fetching AdGuard Home summary:', error);
-      set.status = 500;
-      return { error: 'Failed to get AdGuard Home summary' };
+      return serverError(set, 'Failed to get AdGuard Home summary');
     }
   })
   .get('/hackernews', async ({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       const cached = await getJsonCache<DashboardHackerNewsResponse>('dashboard:hackernews');
       if (cached) {
@@ -239,16 +190,10 @@ export const dashboardServiceRoutes = new Elysia()
       return result;
     } catch (error) {
       console.error('Error fetching Hacker News stories:', error);
-      set.status = 500;
-      return { error: 'Failed to get Hacker News stories' };
+      return serverError(set, 'Failed to get Hacker News stories');
     }
   })
   .get('/reddit', async ({ user, set, query }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: 'Unauthorized' };
-    }
-
     try {
       const afterCursor = (query as Record<string, string | undefined>).after;
 
@@ -268,7 +213,6 @@ export const dashboardServiceRoutes = new Elysia()
       return result;
     } catch (error) {
       console.error('Error fetching Reddit posts:', error);
-      set.status = 500;
-      return { error: 'Failed to get Reddit posts' };
+      return serverError(set, 'Failed to get Reddit posts');
     }
   });

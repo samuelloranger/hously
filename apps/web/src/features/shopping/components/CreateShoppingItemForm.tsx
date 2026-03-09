@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useCreateShoppingItem } from '@hously/shared';
-import { FormInput, FormTextarea } from '../../../components/ui/form-field';
-import { Button } from '../../../components/ui/button';
+import { FormInput, FormTextarea } from '@/components/ui/form-field';
+import { Button } from '@/components/ui/button';
 
 interface FormData {
   item_name: string;
@@ -40,13 +40,13 @@ export function CreateShoppingItemForm() {
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-800 shadow rounded-lg mb-8">
-      <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
-        <h3 className="text-lg font-medium text-neutral-900 dark:text-white">{t('shopping.addNewItem')}</h3>
+    <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-800 overflow-hidden mb-6">
+      <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-700/50">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">{t('shopping.addNewItem')}</h3>
       </div>
-      <div className="p-6">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+      <div className="p-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-grow">
               <FormInput
                 {...register('item_name', { required: true })}
@@ -55,7 +55,6 @@ export function CreateShoppingItemForm() {
               />
             </div>
             <Button type="submit" disabled={createMutation.isPending} className="w-full sm:w-auto">
-              <span className="mr-2">➕</span>
               {t('shopping.addItem')}
             </Button>
           </div>

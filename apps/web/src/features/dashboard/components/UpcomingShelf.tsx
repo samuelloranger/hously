@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type DashboardUpcomingItem, type TmdbMediaSearchItem, useDashboardUpcoming } from '@hously/shared';
 import { MovieCard } from './MovieCard';
-import { ExploreCardDetailDialog } from '../../medias/components/ExploreCardDetailDialog';
-import { ListItemSkeleton } from '../../../components/Skeleton';
+import { ExploreCardDetailDialog } from '@/features/medias/components/ExploreCardDetailDialog';
+import { ListItemSkeleton } from '@/components/Skeleton';
 
 import { enUS, fr } from 'date-fns/locale';
 const localeMap = { en: enUS, fr } as const;

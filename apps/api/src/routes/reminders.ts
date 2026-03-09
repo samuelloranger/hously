@@ -1,25 +1,22 @@
-import { Elysia, t } from "elysia";
-import { prisma } from "../db";
-import { auth } from "../auth";
-import { formatIso, nowUtc, parseDateTime } from "../utils";
+import { Elysia, t } from 'elysia';
+import { prisma } from '../db';
+import { auth } from '../auth';
+import { requireUser } from '../middleware/auth';
+import { formatIso, nowUtc, parseDateTime } from '../utils';
+import { badRequest, unauthorized, notFound, serverError } from '../utils/errors';
 
-export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
+export const remindersRoutes = new Elysia({ prefix: '/api/reminders' })
   .use(auth)
+  .use(requireUser)
   // POST /api/reminders - Create a new reminder
   .post(
-    "/",
+    '/',
     async ({ user, body, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-
       try {
         const { chore_id, reminder_datetime } = body;
 
         if (!chore_id || !reminder_datetime) {
-          set.status = 400;
-          return { error: "chore_id and reminder_datetime are required" };
+          return badRequest(set, 'chore_id and reminder_datetime are required');
         }
 
         // Verify chore exists
@@ -28,8 +25,7 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
         });
 
         if (!chore) {
-          set.status = 404;
-          return { error: "Chore not found" };
+          return notFound(set, 'Chore not found');
         }
 
         // Parse datetime
@@ -37,8 +33,7 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
         try {
           reminderDt = parseDateTime(reminder_datetime);
         } catch (e) {
-          set.status = 400;
-          return { error: `Invalid reminder_datetime format: ${e}` };
+          return badRequest(set, `Invalid reminder_datetime format: ${e}`);
         }
 
         // Create reminder
@@ -46,25 +41,22 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
           data: {
             choreId: chore_id,
             reminderDatetime: reminderDt.toISOString(),
-            userId: user.id,
+            userId: user!.id,
             active: true,
             createdAt: nowUtc(),
           },
         });
 
-        console.log(
-          `User ${user.id} created reminder ${newReminder.id} for chore ${chore_id}`
-        );
+        console.log(`User ${user!.id} created reminder ${newReminder.id} for chore ${chore_id}`);
 
         return {
           success: true,
           id: newReminder.id,
-          message: "Reminder created successfully",
+          message: 'Reminder created successfully',
         };
       } catch (error) {
-        console.error("Error creating reminder:", error);
-        set.status = 500;
-        return { error: "Failed to create reminder" };
+        console.error('Error creating reminder:', error);
+        return serverError(set, 'Failed to create reminder');
       }
     },
     {
@@ -77,17 +69,11 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
 
   // GET /api/reminders/chore/:choreId - Get all reminders for a chore
   .get(
-    "/chore/:choreId",
+    '/chore/:choreId',
     async ({ user, params, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-
       const choreId = parseInt(params.choreId, 10);
       if (isNaN(choreId)) {
-        set.status = 400;
-        return { error: "Invalid chore ID" };
+        return badRequest(set, 'Invalid chore ID');
       }
 
       try {
@@ -96,7 +82,7 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
           orderBy: { reminderDatetime: 'asc' },
         });
 
-        const remindersList = choreReminders.map((reminder) => ({
+        const remindersList = choreReminders.map(reminder => ({
           id: reminder.id,
           chore_id: reminder.choreId,
           reminder_datetime: formatIso(reminder.reminderDatetime),
@@ -108,9 +94,8 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
 
         return { reminders: remindersList };
       } catch (error) {
-        console.error("Error getting reminders:", error);
-        set.status = 500;
-        return { error: "Failed to get reminders" };
+        console.error('Error getting reminders:', error);
+        return serverError(set, 'Failed to get reminders');
       }
     },
     {
@@ -122,17 +107,11 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
 
   // DELETE /api/reminders/:id - Delete a reminder
   .delete(
-    "/:id",
+    '/:id',
     async ({ user, params, set }) => {
-      if (!user) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-
       const reminderId = parseInt(params.id, 10);
       if (isNaN(reminderId)) {
-        set.status = 400;
-        return { error: "Invalid reminder ID" };
+        return badRequest(set, 'Invalid reminder ID');
       }
 
       try {
@@ -140,13 +119,12 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
         const reminder = await prisma.reminder.findFirst({
           where: {
             id: reminderId,
-            userId: user.id,
+            userId: user!.id,
           },
         });
 
         if (!reminder) {
-          set.status = 404;
-          return { error: "Reminder not found" };
+          return notFound(set, 'Reminder not found');
         }
 
         // Delete reminder
@@ -154,13 +132,12 @@ export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
           where: { id: reminderId },
         });
 
-        console.log(`User ${user.id} deleted reminder ${reminderId}`);
+        console.log(`User ${user!.id} deleted reminder ${reminderId}`);
 
-        return { success: true, message: "Reminder deleted successfully" };
+        return { success: true, message: 'Reminder deleted successfully' };
       } catch (error) {
         console.error(`Error deleting reminder ${reminderId}:`, error);
-        set.status = 500;
-        return { error: "Failed to delete reminder" };
+        return serverError(set, 'Failed to delete reminder');
       }
     },
     {

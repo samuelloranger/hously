@@ -1,7 +1,7 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "../../lib/utils";
-import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import {
   startOfMonth,
   endOfMonth,
@@ -15,7 +15,7 @@ import {
   addMonths,
   subMonths,
   format,
-} from "date-fns";
+} from 'date-fns';
 
 export interface CalendarRange {
   from?: Date;
@@ -29,7 +29,7 @@ interface CalendarProps {
   onRangeSelect?: (range: CalendarRange) => void;
   disabled?: (date: Date) => boolean;
   className?: string;
-  mode?: "single" | "range";
+  mode?: 'single' | 'range';
 }
 
 export function Calendar({
@@ -39,23 +39,21 @@ export function Calendar({
   onRangeSelect,
   disabled,
   className,
-  mode = "single",
+  mode = 'single',
 }: CalendarProps) {
-  const { t } = useTranslation("common");
-  const [currentMonth, setCurrentMonth] = useState<Date>(
-    selected || range?.from || new Date()
-  );
+  const { t } = useTranslation('common');
+  const [currentMonth, setCurrentMonth] = useState<Date>(selected || range?.from || new Date());
   const [hoveredDate, setHoveredDate] = useState<Date | undefined>(undefined);
 
   // Week day labels
   const weekDays = [
-    t("calendar.sunday"),
-    t("calendar.monday"),
-    t("calendar.tuesday"),
-    t("calendar.wednesday"),
-    t("calendar.thursday"),
-    t("calendar.friday"),
-    t("calendar.saturday"),
+    t('calendar.sunday'),
+    t('calendar.monday'),
+    t('calendar.tuesday'),
+    t('calendar.wednesday'),
+    t('calendar.thursday'),
+    t('calendar.friday'),
+    t('calendar.saturday'),
   ];
 
   // Get calendar days for current month
@@ -74,7 +72,7 @@ export function Calendar({
 
   // Calculate hover preview range
   const getHoverRange = (): { from: Date; to: Date } | undefined => {
-    if (mode === "range" && range?.from && hoveredDate && !range.to) {
+    if (mode === 'range' && range?.from && hoveredDate && !range.to) {
       const from = normalizeDate(range.from);
       const to = normalizeDate(hoveredDate);
 
@@ -113,7 +111,7 @@ export function Calendar({
   const handleDateClick = (date: Date) => {
     if (disabled?.(date)) return;
 
-    if (mode === "range" && onRangeSelect) {
+    if (mode === 'range' && onRangeSelect) {
       // If range is complete, reset and start new selection
       if (range?.from && range?.to) {
         onRangeSelect({ from: date, to: undefined });
@@ -144,7 +142,7 @@ export function Calendar({
   };
 
   const handleDateHover = (date: Date) => {
-    if (mode === "range" && range?.from && !range?.to) {
+    if (mode === 'range' && range?.from && !range?.to) {
       setHoveredDate(date);
     }
   };
@@ -162,12 +160,7 @@ export function Calendar({
   };
 
   return (
-    <div
-      className={cn(
-        "rounded-md border border-neutral-200 dark:border-neutral-800 p-3",
-        className
-      )}
-    >
+    <div className={cn('rounded-md border border-neutral-200 dark:border-neutral-800 p-3', className)}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button
@@ -177,9 +170,7 @@ export function Calendar({
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <div className="text-sm font-semibold">
-          {format(currentMonth, "MMMM yyyy")}
-        </div>
+        <div className="text-sm font-semibold">{format(currentMonth, 'MMMM yyyy')}</div>
         <button
           type="button"
           onClick={nextMonth}
@@ -192,10 +183,7 @@ export function Calendar({
       {/* Week day headers */}
       <div className="flex mb-2">
         {weekDays.map((day, index) => (
-          <div
-            key={index}
-            className="flex-1 text-center text-xs font-normal text-neutral-500 dark:text-neutral-400"
-          >
+          <div key={index} className="flex-1 text-center text-xs font-normal text-neutral-500 dark:text-neutral-400">
             {day.slice(0, 2)}
           </div>
         ))}
@@ -206,26 +194,15 @@ export function Calendar({
         {days.map((day, index) => {
           const isCurrentMonth = isSameMonth(day, currentMonth);
           const isToday = isSameDay(day, new Date());
-          const isSelected =
-            mode === "single" && selected && isSameDay(day, selected);
+          const isSelected = mode === 'single' && selected && isSameDay(day, selected);
           const isRangeStartDate =
-            mode === "range" &&
-            (isRangeStart(day, range?.from) ||
-              (hoverRange && isRangeStart(day, hoverRange.from)));
+            mode === 'range' && (isRangeStart(day, range?.from) || (hoverRange && isRangeStart(day, hoverRange.from)));
           const isRangeEndDate =
-            mode === "range" &&
-            (isRangeEnd(day, range?.to) ||
-              (hoverRange && isRangeEnd(day, hoverRange.to)));
+            mode === 'range' && (isRangeEnd(day, range?.to) || (hoverRange && isRangeEnd(day, hoverRange.to)));
           const isInSelectedRange =
-            mode === "range" &&
-            range?.from &&
-            range?.to &&
-            isInRange(day, range.from, range.to);
+            mode === 'range' && range?.from && range?.to && isInRange(day, range.from, range.to);
           const isInHoverRange =
-            mode === "range" &&
-            hoverRange &&
-            isInRange(day, hoverRange.from, hoverRange.to) &&
-            !isInSelectedRange;
+            mode === 'range' && hoverRange && isInRange(day, hoverRange.from, hoverRange.to) && !isInSelectedRange;
           const isDisabled = disabled?.(day) || false;
 
           return (
@@ -237,39 +214,31 @@ export function Calendar({
               onMouseLeave={handleDateLeave}
               disabled={isDisabled}
               className={cn(
-                "h-9 w-full aspect-square p-0 font-normal rounded-md transition-colors",
-                !isCurrentMonth &&
-                  "text-neutral-400 dark:text-neutral-600 opacity-50",
-                isToday && "font-semibold",
-                isDisabled &&
-                  "text-neutral-400 dark:text-neutral-600 opacity-50 cursor-not-allowed",
+                'h-9 w-full aspect-square p-0 font-normal rounded-md transition-colors',
+                !isCurrentMonth && 'text-neutral-400 dark:text-neutral-600 opacity-50',
+                isToday && 'font-semibold',
+                isDisabled && 'text-neutral-400 dark:text-neutral-600 opacity-50 cursor-not-allowed',
                 // Single mode selected
-                isSelected && "bg-primary-600 text-white hover:bg-primary-700",
+                isSelected && 'bg-primary-600 text-white hover:bg-primary-700',
                 // Range mode - selected range
-                isInSelectedRange && "bg-blue-600 !rounded-none text-white",
-                isRangeStartDate &&
-                  !isRangeEndDate &&
-                  "!rounded-l-md rounded-r-none bg-primary-600 text-white",
-                isRangeEndDate &&
-                  !isRangeStartDate &&
-                  "!rounded-r-md rounded-l-none bg-primary-600 text-white",
-                isRangeStartDate &&
-                  isRangeEndDate &&
-                  "rounded-md bg-primary-600 text-white",
+                isInSelectedRange && 'bg-blue-600 !rounded-none text-white',
+                isRangeStartDate && !isRangeEndDate && '!rounded-l-md rounded-r-none bg-primary-600 text-white',
+                isRangeEndDate && !isRangeStartDate && '!rounded-r-md rounded-l-none bg-primary-600 text-white',
+                isRangeStartDate && isRangeEndDate && 'rounded-md bg-primary-600 text-white',
                 // Range mode - hover preview
-                isInHoverRange && "bg-blue-100 dark:bg-blue-900",
+                isInHoverRange && 'bg-blue-100 dark:bg-blue-900',
                 hoverRange &&
                   isRangeStart(day, hoverRange.from) &&
                   !isRangeEnd(day, hoverRange.to) &&
-                  "rounded-l-md rounded-r-none bg-primary-600 text-white",
+                  'rounded-l-md rounded-r-none bg-primary-600 text-white',
                 hoverRange &&
                   isRangeEnd(day, hoverRange.to) &&
                   !isRangeStart(day, hoverRange.from) &&
-                  "rounded-r-md rounded-l-none bg-primary-600 text-white",
+                  'rounded-r-md rounded-l-none bg-primary-600 text-white',
                 hoverRange &&
                   isRangeStart(day, hoverRange.from) &&
                   isRangeEnd(day, hoverRange.to) &&
-                  "rounded-md bg-primary-600 text-white"
+                  'rounded-md bg-primary-600 text-white'
               )}
             >
               {day.getDate()}

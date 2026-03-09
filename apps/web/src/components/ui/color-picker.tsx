@@ -14,7 +14,7 @@ import {
 } from 'react';
 import Color from 'color';
 import { Input } from './input';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 import * as Slider from '@radix-ui/react-slider';
 
 interface ColorPickerContextValue {
@@ -68,23 +68,38 @@ export const ColorPicker = ({ value, defaultValue = '#000000', onChange, classNa
     if (value) {
       try {
         const color = Color(value);
-        setHue(color.hue());
-        setSaturation(color.saturationl());
-        setLightness(color.lightness());
-        setAlpha(color.alpha() * 100);
+        const newHue = color.hue();
+        const newSaturation = color.saturationl();
+        const newLightness = color.lightness();
+        const newAlpha = color.alpha() * 100;
+
+        setHue(h => (Math.abs(h - newHue) > 0.01 ? newHue : h));
+        setSaturation(s => (Math.abs(s - newSaturation) > 0.01 ? newSaturation : s));
+        setLightness(l => (Math.abs(l - newLightness) > 0.01 ? newLightness : l));
+        setAlpha(a => (Math.abs(a - newAlpha) > 0.01 ? newAlpha : a));
       } catch {
         // Invalid color, ignore
       }
     }
   }, [value]);
 
+  const isFirstRender = useRef(true);
+
   // Notify parent of changes
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     if (onChange) {
       const color = Color.hsl(hue, saturation, lightness).alpha(alpha / 100);
-      onChange(color.hex());
+      const newHex = color.hex();
+      if (newHex !== value) {
+        onChange(newHex);
+      }
     }
-  }, [hue, saturation, lightness, alpha, onChange]);
+  }, [hue, saturation, lightness, alpha, onChange, value]);
 
   return (
     <ColorPickerContext.Provider

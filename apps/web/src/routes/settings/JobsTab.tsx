@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { formatCronTrigger, useScheduledJobs, useTriggerAction, useCurrentUser } from '@hously/shared';
-import { LoadingState } from '../../components/LoadingState';
+import { LoadingState } from '@/components/LoadingState';
 
 type JobAction =
   | 'check_reminders'

@@ -6,7 +6,7 @@ import {
 } from '@hously/shared';
 import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
 import { formatGo, formatRatio } from '@hously/shared/utils/trackers';
-import { usePrefetchRoute } from '../../../hooks/usePrefetchRoute';
+import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 
 type TrackerCardData = {
   key: 'c411' | 'torr9' | 'la-cale';
