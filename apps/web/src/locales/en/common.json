@@ -1544,6 +1544,7 @@
     "tagsPlaceholder": "tag1, tag2",
     "filterAll": "All",
     "filterDownloading": "Downloading",
+    "filterUploading": "Uploading",
     "filterSeeding": "Seeding",
     "filterPaused": "Paused",
     "filterComplete": "Complete",

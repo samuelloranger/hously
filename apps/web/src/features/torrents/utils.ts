@@ -1,12 +1,15 @@
+import type { QbittorrentTorrentListItem } from '@hously/shared';
+
 export { formatBytes, formatSpeed } from '@hously/shared';
 
-export type StateFilter = 'all' | 'downloading' | 'seeding' | 'paused' | 'complete' | 'stalled' | 'error';
+export type StateFilter = 'all' | 'downloading' | 'uploading' | 'seeding' | 'paused' | 'complete' | 'stalled' | 'error';
 export type SortKey = 'name' | 'ratio' | 'added_on' | 'size' | 'download_speed' | 'upload_speed';
 export type SortDir = 'asc' | 'desc';
 
 export const STATE_FILTERS: { id: StateFilter; labelKey: string }[] = [
   { id: 'all', labelKey: 'torrents.filterAll' },
   { id: 'downloading', labelKey: 'torrents.filterDownloading' },
+  { id: 'uploading', labelKey: 'torrents.filterUploading' },
   { id: 'seeding', labelKey: 'torrents.filterSeeding' },
   { id: 'paused', labelKey: 'torrents.filterPaused' },
   { id: 'complete', labelKey: 'torrents.filterComplete' },
@@ -32,6 +35,19 @@ export function getStateFilter(state: string): StateFilter {
   if (s === 'completed') return 'complete';
   if (s === 'error' || s === 'missingfiles') return 'error';
   return 'all';
+}
+
+export function isActivelyUploadingTorrent(torrent: Pick<QbittorrentTorrentListItem, 'state' | 'upload_speed'>): boolean {
+  return getStateFilter(torrent.state) === 'seeding' && torrent.upload_speed > 0;
+}
+
+export function matchesStateFilter(
+  torrent: Pick<QbittorrentTorrentListItem, 'state' | 'upload_speed'>,
+  filter: StateFilter
+): boolean {
+  if (filter === 'all') return true;
+  if (filter === 'uploading') return isActivelyUploadingTorrent(torrent);
+  return getStateFilter(torrent.state) === filter;
 }
 
 export function getStatusDot(state: string): { dot: string; pulse: boolean } {

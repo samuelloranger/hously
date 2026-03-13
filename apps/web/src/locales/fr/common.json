@@ -1588,6 +1588,7 @@
     "tagsPlaceholder": "tag1, tag2",
     "filterAll": "Tout",
     "filterDownloading": "Téléchargement",
+    "filterUploading": "Envoi",
     "filterSeeding": "Partage",
     "filterPaused": "En pause",
     "filterComplete": "Terminé",

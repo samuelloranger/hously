@@ -12,7 +12,15 @@ import { EmptyState } from '@/components/EmptyState';
 import { Search, TrendingDown, TrendingUp, ArrowUp, ArrowDown, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { AddTorrentPanel } from './AddTorrentPanel';
 import { TorrentRow } from './TorrentRow';
-import { STATE_FILTERS, getStateFilter, formatSpeed, type StateFilter, type SortKey, type SortDir } from './utils';
+import {
+  STATE_FILTERS,
+  formatSpeed,
+  getStateFilter,
+  matchesStateFilter,
+  type StateFilter,
+  type SortKey,
+  type SortDir,
+} from './utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -46,7 +54,7 @@ export function TorrentsPage() {
     let result = torrents;
     const q = search.trim().toLowerCase();
     if (q) result = result.filter(row => row.name.toLowerCase().includes(q));
-    if (stateFilter !== 'all') result = result.filter(row => getStateFilter(row.state) === stateFilter);
+    if (stateFilter !== 'all') result = result.filter(row => matchesStateFilter(row, stateFilter));
     if (selectedCategories.length > 0)
       result = result.filter(row => row.category && selectedCategories.includes(row.category));
     if (selectedTags.length > 0) result = result.filter(row => selectedTags.some(tag => row.tags.includes(tag)));
@@ -66,8 +74,11 @@ export function TorrentsPage() {
   const counts = useMemo(() => {
     const map: Partial<Record<StateFilter, number>> = {};
     for (const t of torrents) {
-      const f = getStateFilter(t.state);
-      map[f] = (map[f] ?? 0) + 1;
+      const state = getStateFilter(t.state);
+      map[state] = (map[state] ?? 0) + 1;
+      if (matchesStateFilter(t, 'uploading')) {
+        map.uploading = (map.uploading ?? 0) + 1;
+      }
     }
     return map;
   }, [torrents]);
@@ -275,7 +286,7 @@ export function TorrentsPage() {
               <div className="flex gap-1.5 overflow-x-auto pb-0.5">
                 {STATE_FILTERS.map(filter => {
                   const count = filter.id === 'all' ? torrents.length : (counts[filter.id] ?? 0);
-                  if (filter.id !== 'all' && count === 0) return null;
+                  if (filter.id !== 'all' && count === 0 && stateFilter !== filter.id) return null;
                   return (
                     <button
                       key={filter.id}
