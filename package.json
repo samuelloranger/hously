@@ -40,11 +40,12 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.12",
     "date-fns": "^4.1.0",
+    "elysia": "^1.4.27",
     "i18next": "^23.14.0",
     "react": "19.1.0",
     "react-hook-form": "^7.68.0",
     "react-i18next": "^14.1.2",
     "sharp": "^0.34.4"
   },
-  "version": "2.0.228"
+  "version": "2.0.229"
 }
