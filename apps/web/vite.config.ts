@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 import { loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import type { ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
 import { serviceWorkerPlugin } from './vite-plugin-service-worker';
 
@@ -31,6 +32,12 @@ const excludeTestFiles = (): Plugin => {
   };
 };
 
+const isServerResponse = (value: unknown): value is ServerResponse => {
+  return (
+    typeof value === 'object' && value !== null && 'headersSent' in value && 'writeHead' in value && 'end' in value
+  );
+};
+
 export default defineConfig(({ mode }) => {
   // Load env from root directory (parent of apps/web)
   const env = loadEnv(mode, path.resolve(__dirname, '../..'), '');
@@ -44,6 +51,35 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+      },
+    },
+    build: {
+      rolldownOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+              return 'react';
+            }
+            if (id.includes('node_modules/@tanstack/react-router')) {
+              return 'router';
+            }
+            if (id.includes('node_modules/@tanstack/react-query')) {
+              return 'query';
+            }
+            if (id.includes('node_modules/@dnd-kit/')) {
+              return 'dnd';
+            }
+            if (id.includes('node_modules/@tiptap/')) {
+              return 'tiptap';
+            }
+            if (
+              id.includes('node_modules/@headlessui/') ||
+              id.includes('node_modules/@radix-ui/')
+            ) {
+              return 'ui';
+            }
+          },
+        },
       },
     },
     server: {
@@ -61,7 +97,7 @@ export default defineConfig(({ mode }) => {
                 console.error('Proxy error:', err);
               }
               // Return a proper error response if response object is available
-              if (res && !res.headersSent) {
+              if (isServerResponse(res) && !res.headersSent) {
                 res.writeHead(502, {
                   'Content-Type': 'application/json',
                 });
