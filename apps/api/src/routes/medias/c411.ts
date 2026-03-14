@@ -8,7 +8,7 @@ import { requireUser } from '../../middleware/auth';
 import { prisma } from '../../db';
 import { badRequest, serverError } from '../../utils/errors';
 import { getJsonCache, setJsonCache } from '../../services/cache';
-import { getFileFromS3 } from '../../services/s3Service';
+import { getFileFromS3, deleteFromS3 } from '../../services/s3Service';
 import {
   withC411Session,
   loadC411Config,
@@ -223,6 +223,41 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     } catch (error: any) {
       console.error('[c411:update-release]', error);
       return serverError(set, error.message || 'Failed to update release');
+    }
+  })
+
+  .delete('/releases/:id', async ({ params, set }) => {
+    const id = parseInt(params.id);
+    if (!id) return badRequest(set, 'Invalid release ID');
+    try {
+      const release = await prisma.c411Release.findUnique({
+        where: { id },
+        select: { torrentS3Key: true, hardlinkPath: true },
+      });
+      if (!release) return badRequest(set, 'Release not found');
+
+      // Delete hardlink file
+      if (release.hardlinkPath) {
+        try {
+          await import('node:fs/promises').then((fs) => fs.unlink(release.hardlinkPath!));
+          console.log(`[c411:delete] Removed hardlink: ${release.hardlinkPath}`);
+        } catch (err: any) {
+          if (err.code !== 'ENOENT') console.warn(`[c411:delete] Failed to remove hardlink: ${err.message}`);
+        }
+      }
+
+      // Delete .torrent from S3
+      if (release.torrentS3Key) {
+        await deleteFromS3(release.torrentS3Key);
+      }
+
+      // Delete from DB (cascade deletes presentation)
+      await prisma.c411Release.delete({ where: { id } });
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('[c411:delete-release]', error);
+      return serverError(set, error.message || 'Failed to delete release');
     }
   })
 

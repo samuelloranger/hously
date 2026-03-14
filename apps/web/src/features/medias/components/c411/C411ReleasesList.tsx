@@ -1,5 +1,6 @@
-import { Loader2, FolderOpen, Pencil } from 'lucide-react';
+import { Loader2, FolderOpen, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useC411DeleteRelease } from '@hously/shared';
 import type { C411ReleasesResponse } from '@hously/shared';
 
 interface Props {
@@ -24,6 +25,8 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function C411ReleasesList({ data, isLoading, tmdbId, onEdit, prepareStatus }: Props) {
+  const deleteRelease = useC411DeleteRelease();
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -91,6 +94,13 @@ export function C411ReleasesList({ data, isLoading, tmdbId, onEdit, prepareStatu
             className="rounded-lg p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors"
           >
             <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => { if (confirm('Delete this release? This will also remove the hardlink and .torrent file.')) deleteRelease.mutate(r.id); }}
+            disabled={deleteRelease.isPending}
+            className="rounded-lg p-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>

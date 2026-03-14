@@ -104,6 +104,18 @@ export function useC411Release(id: number | null, options?: { enabled?: boolean 
   });
 }
 
+export function useC411DeleteRelease() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher(C411_ENDPOINTS.RELEASE(id), { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.c411.releases() });
+    },
+  });
+}
+
 export function useC411UpdateRelease() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
