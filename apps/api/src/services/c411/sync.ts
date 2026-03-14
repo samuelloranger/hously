@@ -12,18 +12,7 @@ export interface SyncResult {
 }
 
 /**
- * Discover the authenticated user's C411 display username.
- * Fetches page 1 of all torrents and finds one with isOwner=true.
- */
-async function discoverC411Username(session: C411Session): Promise<string | null> {
-  // Fetch a small page — we just need to find one torrent we own
-  const response = await fetchMyTorrents(session, { page: 1, perPage: 25 });
-  const owned = response.data.find((t) => t.isOwner);
-  return owned?.uploader ?? null;
-}
-
-/**
- * Fetch all torrents by a specific uploader, paginating.
+ * Fetch all torrents by a specific uploader (the C411 display username), paginating.
  */
 async function fetchAllByUploader(session: C411Session, uploader: string): Promise<C411Torrent[]> {
   const all: C411Torrent[] = [];
@@ -41,20 +30,11 @@ async function fetchAllByUploader(session: C411Session, uploader: string): Promi
 
 /**
  * Pull the user's C411 uploads and upsert into C411Release table.
+ * Uses the C411 display username (from plugin config) as the uploader filter.
  * Fetches BBCode description for each torrent and stores as presentation.
  */
-export async function syncC411Releases(session: C411Session): Promise<SyncResult> {
-  // Step 1: Discover our C411 username
-  console.log('[c411:sync] Discovering C411 username...');
-  const username = await discoverC411Username(session);
-  if (!username) {
-    console.log('[c411:sync] Could not find any owned torrents to discover username');
-    return { created: 0, updated: 0 };
-  }
-  console.log(`[c411:sync] Username: ${username}`);
-
-  // Step 2: Fetch all torrents by this uploader
-  console.log(`[c411:sync] Fetching all torrents for uploader ${username}...`);
+export async function syncC411Releases(session: C411Session, username: string): Promise<SyncResult> {
+  console.log(`[c411:sync] Fetching all torrents for uploader "${username}"...`);
   const torrents = await fetchAllByUploader(session, username);
   console.log(`[c411:sync] Found ${torrents.length} torrents`);
 
