@@ -3,7 +3,7 @@
  */
 
 import { prisma } from '../../db';
-import { fetchMyTorrents } from './torrents';
+import { fetchMyTorrents, fetchTorrentDetail } from './torrents';
 import type { C411Session, C411Torrent } from './types';
 
 export interface SyncResult {
@@ -13,7 +13,7 @@ export interface SyncResult {
 
 /**
  * Fetch all torrents owned by the authenticated user, paginating through results.
- * Uses the isOwner flag set by C411 based on the session, not the uploader filter.
+ * Uses the isOwner flag set by C411 based on the session.
  */
 async function fetchAllOwnedTorrents(session: C411Session): Promise<C411Torrent[]> {
   const all: C411Torrent[] = [];
@@ -23,8 +23,6 @@ async function fetchAllOwnedTorrents(session: C411Session): Promise<C411Torrent[
     const response = await fetchMyTorrents(session, { page, perPage: 100 });
     const owned = response.data.filter((t) => t.isOwner);
     all.push(...owned);
-
-    // If we got fewer owned torrents than total, and there are more pages, keep going
     if (page >= response.meta.totalPages) break;
     page++;
   }
@@ -34,7 +32,7 @@ async function fetchAllOwnedTorrents(session: C411Session): Promise<C411Torrent[
 
 /**
  * Pull the user's C411 uploads and upsert into C411Release table.
- * Does NOT overwrite locally-prepared data (bbcode, torrentS3Key, hardlinkPath).
+ * Fetches BBCode description for each torrent and stores as presentation.
  */
 export async function syncC411Releases(session: C411Session): Promise<SyncResult> {
   console.log('[c411:sync] Fetching owned torrents...');
@@ -46,12 +44,25 @@ export async function syncC411Releases(session: C411Session): Promise<SyncResult
   const now = new Date();
 
   for (const torrent of torrents) {
+    // Fetch detail to get the description (BBCode)
+    let description: string | null = null;
+    let tmdbData: any = null;
+    let nfoContent: string | null = null;
+    try {
+      const detail = await fetchTorrentDetail(session, torrent.infoHash);
+      description = detail.description || null;
+      tmdbData = detail.metadata?.tmdbData || null;
+      nfoContent = detail.metadata?.nfoContent || null;
+    } catch (err) {
+      console.warn(`[c411:sync] Failed to fetch detail for ${torrent.name}: ${err}`);
+    }
+
     const existing = await prisma.c411Release.findUnique({
       where: { c411TorrentId: torrent.id },
+      include: { presentation: true },
     });
 
     if (existing) {
-      // Update remote-sourced fields only
       await prisma.c411Release.update({
         where: { id: existing.id },
         data: {
@@ -60,14 +71,26 @@ export async function syncC411Releases(session: C411Session): Promise<SyncResult
           leechers: torrent.leechers,
           completions: torrent.completions,
           infoHash: torrent.infoHash,
+          tmdbData: tmdbData ?? existing.tmdbData,
+          nfoContent: nfoContent ?? existing.nfoContent,
           syncedAt: now,
         },
       });
+      // Update or create presentation with BBCode
+      if (description && !existing.presentation) {
+        await prisma.c411Presentation.create({
+          data: { releaseId: existing.id, bbcode: description },
+        });
+      } else if (description && existing.presentation) {
+        await prisma.c411Presentation.update({
+          where: { releaseId: existing.id },
+          data: { bbcode: description },
+        });
+      }
       updated++;
     } else {
-      // Also check by infoHash in case it was prepared locally
       const byHash = torrent.infoHash
-        ? await prisma.c411Release.findUnique({ where: { infoHash: torrent.infoHash } })
+        ? await prisma.c411Release.findUnique({ where: { infoHash: torrent.infoHash }, include: { presentation: true } })
         : null;
 
       if (byHash) {
@@ -79,13 +102,24 @@ export async function syncC411Releases(session: C411Session): Promise<SyncResult
             seeders: torrent.seeders,
             leechers: torrent.leechers,
             completions: torrent.completions,
+            tmdbData: tmdbData ?? byHash.tmdbData,
+            nfoContent: nfoContent ?? byHash.nfoContent,
             syncedAt: now,
           },
         });
+        if (description && !byHash.presentation) {
+          await prisma.c411Presentation.create({
+            data: { releaseId: byHash.id, bbcode: description },
+          });
+        } else if (description && byHash.presentation) {
+          await prisma.c411Presentation.update({
+            where: { releaseId: byHash.id },
+            data: { bbcode: description },
+          });
+        }
         updated++;
       } else {
-        // Create new release from C411 data
-        await prisma.c411Release.create({
+        const release = await prisma.c411Release.create({
           data: {
             c411TorrentId: torrent.id,
             infoHash: torrent.infoHash,
@@ -100,12 +134,22 @@ export async function syncC411Releases(session: C411Session): Promise<SyncResult
             seeders: torrent.seeders,
             leechers: torrent.leechers,
             completions: torrent.completions,
+            tmdbData: tmdbData,
+            nfoContent: nfoContent,
             syncedAt: now,
           },
         });
+        if (description) {
+          await prisma.c411Presentation.create({
+            data: { releaseId: release.id, bbcode: description },
+          });
+        }
         created++;
       }
     }
+
+    // Small delay to avoid hammering C411 API
+    await new Promise((r) => setTimeout(r, 200));
   }
 
   console.log(`[c411:sync] Done: ${created} created, ${updated} updated`);
