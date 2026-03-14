@@ -10,6 +10,9 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/shared/package.json ./apps/shared/
 COPY apps/web/package.json ./apps/web/
 
+# Copy Prisma schema so the API postinstall (prisma generate) succeeds.
+COPY apps/api/prisma/schema.prisma ./apps/api/prisma/schema.prisma
+
 # Install workspace dependencies from repo root.
 RUN bun install --frozen-lockfile
 
