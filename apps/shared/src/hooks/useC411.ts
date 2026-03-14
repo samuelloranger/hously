@@ -123,7 +123,7 @@ export function useC411DeleteRelease() {
     mutationFn: (id: number) =>
       fetcher(C411_ENDPOINTS.RELEASE(id), { method: 'DELETE' }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.c411.releases() });
+      queryClient.refetchQueries({ queryKey: queryKeys.c411.releases() });
     },
   });
 }
@@ -135,7 +135,7 @@ export function useC411UpdateRelease() {
     mutationFn: ({ id, payload }: { id: number; payload: Record<string, any> }) =>
       fetcher(C411_ENDPOINTS.RELEASE(id), { method: 'PATCH', body: payload }),
     onSuccess: (_data, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.c411.releases() });
+      queryClient.refetchQueries({ queryKey: queryKeys.c411.releases() });
       queryClient.invalidateQueries({ queryKey: queryKeys.c411.release(id) });
     },
   });
@@ -157,7 +157,7 @@ export function useC411PrepareRelease() {
     mutationFn: (radarrSourceId: number) =>
       fetcher(C411_ENDPOINTS.PREPARE_RELEASE, { method: 'POST', body: { radarrSourceId } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.c411.releases() });
+      queryClient.refetchQueries({ queryKey: queryKeys.c411.releases() });
     },
   });
 }
@@ -168,7 +168,7 @@ export function useC411Sync() {
   return useMutation({
     mutationFn: () => fetcher<C411SyncResponse>(C411_ENDPOINTS.SYNC, { method: 'POST' }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.c411.releases() });
+      queryClient.refetchQueries({ queryKey: queryKeys.c411.releases() });
     },
   });
 }
