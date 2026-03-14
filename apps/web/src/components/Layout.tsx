@@ -1,6 +1,6 @@
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
-import { PWAInstallBanner } from './PWAInstallBanner';
+
 import { PageTransition } from './PageTransition';
 import { NotificationPermissionModal } from './NotificationPermissionModal';
 import { RouteDataRefetcher } from './RouteDataRefetcher';
@@ -39,7 +39,6 @@ export function RootLayout() {
         </main>
       </div>
       {user && <BottomNav />}
-      <PWAInstallBanner />
       <NotificationPermissionModal isOpen={showModal} onAllow={handleAllow} onDismiss={handleDismiss} />
       <Toaster position="top-center" richColors />
     </>
