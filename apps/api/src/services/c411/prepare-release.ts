@@ -86,6 +86,7 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
   const radarrPath = movie.movieFile.path as string;
   const originalPath = radarrPath.replace(/^\/data\//, '/mnt/storage/');
   const originalName = movie.movieFile.sceneName || movie.movieFile.relativePath || '';
+  const releaseGroup = movie.movieFile.releaseGroup || '';
   const tmdbId = movie.tmdbId as number;
   const imdbId = (movie.imdbId || '') as string;
 
@@ -94,9 +95,28 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
   const media = await getMediaInfo(originalPath, originalName);
   if (!media) throw new Error(`MediaInfo failed for ${originalPath}`);
 
-  // 3. Detect languages via ffprobe
+  // 3. Detect languages via ffprobe, with fallback heuristics
   console.log('[c411:prepare] Detecting languages...');
-  const langTag: LanguageTag = await detectLanguages(originalPath);
+  let langTag: LanguageTag = await detectLanguages(originalPath);
+
+  // If ffprobe found nothing, infer from subtitle tracks and release name
+  if (langTag === 'UNKNOWN') {
+    const hasFrSub = media.subtitles.some((s) => /^(fre|fra|fr)$/.test(s.language.toLowerCase()));
+    const hasEnSub = media.subtitles.some((s) => /^(eng|en)$/.test(s.language.toLowerCase()));
+    const hasVfqSub = media.subtitles.some((s) => /canad|québ|quebec|vfq/i.test(s.title));
+    const name = originalName.toUpperCase();
+
+    if (name.includes('MULTI') && name.includes('VF2')) langTag = 'MULTI.VF2';
+    else if (name.includes('MULTI') && name.includes('VFQ')) langTag = 'MULTI';
+    else if (name.includes('MULTI')) langTag = 'MULTI';
+    else if (name.includes('VFQ')) langTag = 'VFQ';
+    else if (name.includes('VFF') || name.includes('TRUEFRENCH')) langTag = 'VFF';
+    else if (name.includes('FRENCH')) langTag = 'FRENCH';
+    else if (hasFrSub && hasEnSub && hasVfqSub) langTag = 'MULTI.VF2';
+    else if (hasFrSub && hasEnSub) langTag = 'MULTI';
+    else if (hasFrSub) langTag = 'FRENCH';
+    else if (hasEnSub) langTag = 'EN';
+  }
   console.log(`[c411:prepare] Language: ${langTag}`);
 
   // 4. Fetch TMDB details
@@ -105,8 +125,12 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
   if (!tmdb) tmdb = buildFallbackTmdbDetails(originalName);
 
   // 5. Build C411 release name
-  const releaseInfo = buildReleaseInfo(tmdb, media, originalName, langTag !== 'UNKNOWN' ? langTag : undefined);
-  const c411Name = buildC411ReleaseName(releaseInfo, originalName);
+  // Use releaseGroup from Radarr if the original name has no tag
+  const nameForTag = releaseGroup && !originalName.includes(`-${releaseGroup}`)
+    ? `${originalName.replace(/\.[^.]+$/, '')}-${releaseGroup}`
+    : originalName;
+  const releaseInfo = buildReleaseInfo(tmdb, media, nameForTag, langTag !== 'UNKNOWN' ? langTag : undefined);
+  const c411Name = buildC411ReleaseName(releaseInfo, nameForTag);
   console.log(`[c411:prepare] Release name: ${c411Name}`);
 
   // 6. Create hardlink

@@ -145,8 +145,24 @@ function buildSubtitleLanguage(subtitle: SubtitleStreamInfo): string {
   return getFullLangName(subtitle.language, langOnly);
 }
 
+/** Only French and English subtitles are allowed in C411 presentations. */
+function filterAllowedSubtitles(subtitles: SubtitleStreamInfo[]): SubtitleStreamInfo[] {
+  return subtitles.filter((s) => {
+    const lang = s.language.toLowerCase();
+    const title = (s.title || '').toLowerCase();
+    // French variants
+    if (/^(fre|fra|fr)$/.test(lang)) return true;
+    if (/vff|vfq|french|francais|canada|québ|quebec/.test(title)) return true;
+    // English
+    if (/^(eng|en)$/.test(lang)) return true;
+    if (/english|vo\b/.test(title)) return true;
+    return false;
+  });
+}
+
 export function buildSubtitleRows(template: string, media: MediaInfoData | null): string {
-  const subtitles = media?.subtitles ?? [];
+  const allSubtitles = media?.subtitles ?? [];
+  const subtitles = filterAllowedSubtitles(allSubtitles);
   if (subtitles.length === 0) return removeSubtitleSection(template);
 
   const subtitleRowPattern = /(^\[tr\].*\{LANGUAGE_FORMAT\}.*\{LANGUAGE_TYPE\}.*\[\/tr\]$)/m;
