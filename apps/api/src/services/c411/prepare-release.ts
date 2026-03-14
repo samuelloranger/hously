@@ -82,7 +82,9 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
   const movie = await fetchRadarrMovie(radarrConfig.baseUrl, radarrConfig.apiKey, radarrMovieId);
   if (!movie.hasFile || !movie.movieFile) throw new Error('Movie has no file in Radarr');
 
-  const originalPath = movie.movieFile.path as string;
+  // Radarr returns container paths (/data/...), remap to host mount (/mnt/storage/...)
+  const radarrPath = movie.movieFile.path as string;
+  const originalPath = radarrPath.replace(/^\/data\//, '/mnt/storage/');
   const originalName = movie.movieFile.sceneName || movie.movieFile.relativePath || '';
   const tmdbId = movie.tmdbId as number;
   const imdbId = (movie.imdbId || '') as string;

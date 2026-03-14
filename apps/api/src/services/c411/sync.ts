@@ -12,17 +12,26 @@ export interface SyncResult {
 }
 
 /**
- * Fetch all torrents owned by the authenticated user, paginating through results.
- * Uses the isOwner flag set by C411 based on the session.
+ * Discover the authenticated user's C411 display username.
+ * Fetches page 1 of all torrents and finds one with isOwner=true.
  */
-async function fetchAllOwnedTorrents(session: C411Session): Promise<C411Torrent[]> {
+async function discoverC411Username(session: C411Session): Promise<string | null> {
+  // Fetch a small page — we just need to find one torrent we own
+  const response = await fetchMyTorrents(session, { page: 1, perPage: 25 });
+  const owned = response.data.find((t) => t.isOwner);
+  return owned?.uploader ?? null;
+}
+
+/**
+ * Fetch all torrents by a specific uploader, paginating.
+ */
+async function fetchAllByUploader(session: C411Session, uploader: string): Promise<C411Torrent[]> {
   const all: C411Torrent[] = [];
   let page = 1;
 
   while (true) {
-    const response = await fetchMyTorrents(session, { page, perPage: 100 });
-    const owned = response.data.filter((t) => t.isOwner);
-    all.push(...owned);
+    const response = await fetchMyTorrents(session, { uploader, page, perPage: 100 });
+    all.push(...response.data);
     if (page >= response.meta.totalPages) break;
     page++;
   }
@@ -35,16 +44,26 @@ async function fetchAllOwnedTorrents(session: C411Session): Promise<C411Torrent[
  * Fetches BBCode description for each torrent and stores as presentation.
  */
 export async function syncC411Releases(session: C411Session): Promise<SyncResult> {
-  console.log('[c411:sync] Fetching owned torrents...');
-  const torrents = await fetchAllOwnedTorrents(session);
-  console.log(`[c411:sync] Found ${torrents.length} owned torrents`);
+  // Step 1: Discover our C411 username
+  console.log('[c411:sync] Discovering C411 username...');
+  const username = await discoverC411Username(session);
+  if (!username) {
+    console.log('[c411:sync] Could not find any owned torrents to discover username');
+    return { created: 0, updated: 0 };
+  }
+  console.log(`[c411:sync] Username: ${username}`);
+
+  // Step 2: Fetch all torrents by this uploader
+  console.log(`[c411:sync] Fetching all torrents for uploader ${username}...`);
+  const torrents = await fetchAllByUploader(session, username);
+  console.log(`[c411:sync] Found ${torrents.length} torrents`);
 
   let created = 0;
   let updated = 0;
   const now = new Date();
 
   for (const torrent of torrents) {
-    // Fetch detail to get the description (BBCode)
+    // Fetch detail to get the description (BBCode), TMDB data, NFO
     let description: string | null = null;
     let tmdbData: any = null;
     let nfoContent: string | null = null;
@@ -76,7 +95,6 @@ export async function syncC411Releases(session: C411Session): Promise<SyncResult
           syncedAt: now,
         },
       });
-      // Update or create presentation with BBCode
       if (description && !existing.presentation) {
         await prisma.c411Presentation.create({
           data: { releaseId: existing.id, bbcode: description },
@@ -148,8 +166,8 @@ export async function syncC411Releases(session: C411Session): Promise<SyncResult
       }
     }
 
-    // Small delay to avoid hammering C411 API
-    await new Promise((r) => setTimeout(r, 200));
+    // Delay between detail fetches to avoid 429
+    await new Promise((r) => setTimeout(r, 300));
   }
 
   console.log(`[c411:sync] Done: ${created} created, ${updated} updated`);
