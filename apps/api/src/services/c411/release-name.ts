@@ -67,7 +67,7 @@ export function buildC411ReleaseName(info: C411ReleaseInfo, originalName: string
   }
 
   if (info.languages) tokens.push(...info.languages.split('.'));
-  if (info.resolution) tokens.push(info.resolution.replace(/4K/i, '2160p'));
+  if (info.resolution) tokens.push(info.resolution.replace(/\s*\(4K\)/i, '').replace(/^4K$/i, '2160p'));
   if (info.source) tokens.push(info.source.replace(/WEB-?DL|WEBRip/i, 'WEB'));
   if (info.hdr) tokens.push(info.hdr);
 
