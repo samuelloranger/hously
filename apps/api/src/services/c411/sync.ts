@@ -3,7 +3,7 @@
  */
 
 import { prisma } from '../../db';
-import { fetchAllMyTorrents } from './torrents';
+import { fetchMyTorrents } from './torrents';
 import type { C411Session, C411Torrent } from './types';
 
 export interface SyncResult {
@@ -12,13 +12,34 @@ export interface SyncResult {
 }
 
 /**
+ * Fetch all torrents owned by the authenticated user, paginating through results.
+ * Uses the isOwner flag set by C411 based on the session, not the uploader filter.
+ */
+async function fetchAllOwnedTorrents(session: C411Session): Promise<C411Torrent[]> {
+  const all: C411Torrent[] = [];
+  let page = 1;
+
+  while (true) {
+    const response = await fetchMyTorrents(session, { page, perPage: 100 });
+    const owned = response.data.filter((t) => t.isOwner);
+    all.push(...owned);
+
+    // If we got fewer owned torrents than total, and there are more pages, keep going
+    if (page >= response.meta.totalPages) break;
+    page++;
+  }
+
+  return all;
+}
+
+/**
  * Pull the user's C411 uploads and upsert into C411Release table.
  * Does NOT overwrite locally-prepared data (bbcode, torrentS3Key, hardlinkPath).
  */
-export async function syncC411Releases(session: C411Session, username: string): Promise<SyncResult> {
-  console.log(`[c411:sync] Fetching all torrents for ${username}...`);
-  const torrents = await fetchAllMyTorrents(session, username);
-  console.log(`[c411:sync] Found ${torrents.length} torrents`);
+export async function syncC411Releases(session: C411Session): Promise<SyncResult> {
+  console.log('[c411:sync] Fetching owned torrents...');
+  const torrents = await fetchAllOwnedTorrents(session);
+  console.log(`[c411:sync] Found ${torrents.length} owned torrents`);
 
   let created = 0;
   let updated = 0;

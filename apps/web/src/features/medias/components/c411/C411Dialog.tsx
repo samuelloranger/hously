@@ -56,7 +56,7 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
         isOpen={isOpen}
         onClose={() => { setEditingReleaseId(null); onClose(); }}
         title="Edit Release"
-        panelClassName="max-w-5xl overflow-hidden"
+        panelClassName="max-w-5xl"
       >
         <C411ReleaseEditor
           releaseId={editingReleaseId}
@@ -71,7 +71,7 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
       isOpen={isOpen}
       onClose={onClose}
       title={`C411 — ${media?.title ?? ''}`}
-      panelClassName="max-w-5xl overflow-hidden"
+      panelClassName="max-w-5xl"
     >
       {/* Tab bar */}
       <div className="mb-4 flex items-center gap-2 flex-wrap">

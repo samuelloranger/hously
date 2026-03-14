@@ -11,7 +11,6 @@ import { getJsonCache, setJsonCache } from '../../services/cache';
 import { getFileFromS3 } from '../../services/s3Service';
 import {
   withC411Session,
-  loadC411Config,
   searchTorrents,
   fetchReleaseStatus,
   fetchDrafts,
@@ -270,9 +269,8 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
   // ─── Sync ───────────────────────────────────────────────
   .post('/sync', async ({ set }) => {
     try {
-      const config = await loadC411Config();
       const result = await withC411Session((session) =>
-        syncC411Releases(session, config.username),
+        syncC411Releases(session),
       );
       return result;
     } catch (error: any) {
