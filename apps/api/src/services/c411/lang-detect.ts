@@ -86,7 +86,7 @@ export async function detectLanguages(contentPath: string): Promise<LanguageTag>
     if (hasVff) return 'VFF';
     if (hasVfq) return 'VFQ';
     if (hasVfi) return 'VFI';
-    return 'FRENCH';
+    return 'VFF'; // C411 requires specific tag — default to VFF when unspecified
   }
   if (enCount > 0) return 'EN';
   return 'UNKNOWN';

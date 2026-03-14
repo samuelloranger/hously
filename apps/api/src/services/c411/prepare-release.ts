@@ -110,7 +110,7 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
     else if (name.includes('MULTI')) langTag = 'MULTI';
     else if (name.includes('VFQ')) langTag = 'VFQ';
     else if (name.includes('VFF') || name.includes('TRUEFRENCH')) langTag = 'VFF';
-    else if (name.includes('FRENCH')) langTag = 'FRENCH';
+    else if (name.includes('FRENCH')) langTag = 'VFF'; // C411 requires VFF/VFQ/VFI, not FRENCH
     // If no language markers in the name and only 1 audio track, assume VO (English)
     else if (media.audioStreams.length <= 1) langTag = 'EN';
   }
