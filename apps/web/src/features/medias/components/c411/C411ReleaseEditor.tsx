@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Loader2, Upload } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ArrowLeft, Save, Loader2, Upload, Eye, Code } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import {
   useC411Release,
   useC411UpdateRelease,
@@ -8,6 +9,47 @@ import {
   useC411CategoryOptions,
 } from '@hously/shared';
 import type { C411DraftPayload } from '@hously/shared';
+
+/** Convert BBCode to HTML for preview. */
+function bbcodeToHtml(input: string): string {
+  let html = input
+    // Escape HTML entities first
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Block tags
+  html = html.replace(/\[h1\]([\s\S]*?)\[\/h1\]/gi, '<h1 class="text-xl font-bold text-neutral-900 dark:text-white mb-1">$1</h1>');
+  html = html.replace(/\[h2\]([\s\S]*?)\[\/h2\]/gi, '<h2 class="text-lg font-semibold text-neutral-700 dark:text-neutral-300 mb-2">$1</h2>');
+  html = html.replace(/\[h3\]([\s\S]*?)\[\/h3\]/gi, '<h3 class="text-base font-semibold text-neutral-700 dark:text-neutral-300 mb-1">$1</h3>');
+
+  // Inline tags
+  html = html.replace(/\[b\]([\s\S]*?)\[\/b\]/gi, '<strong>$1</strong>');
+  html = html.replace(/\[i\]([\s\S]*?)\[\/i\]/gi, '<em>$1</em>');
+  html = html.replace(/\[u\]([\s\S]*?)\[\/u\]/gi, '<u>$1</u>');
+  html = html.replace(/\[s\]([\s\S]*?)\[\/s\]/gi, '<s>$1</s>');
+
+  // URLs
+  html = html.replace(/\[url=(.*?)\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noreferrer" class="text-indigo-500 hover:text-indigo-400 underline">$2</a>');
+  html = html.replace(/\[url\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noreferrer" class="text-indigo-500 hover:text-indigo-400 underline">$1</a>');
+
+  // Images
+  html = html.replace(/\[img=(\d+)x(\d+)\](.*?)\[\/img\]/gi, '<img src="$3" width="$1" height="$2" class="inline-block" loading="lazy" />');
+  html = html.replace(/\[img\](.*?)\[\/img\]/gi, '<img src="$1" class="max-w-full rounded-lg my-1" loading="lazy" />');
+
+  // Tables
+  html = html.replace(/\[table\]/gi, '<table class="w-full text-xs border-collapse my-2">');
+  html = html.replace(/\[\/table\]/gi, '</table>');
+  html = html.replace(/\[tr\]/gi, '<tr>');
+  html = html.replace(/\[\/tr\]/gi, '</tr>');
+  html = html.replace(/\[th\]([\s\S]*?)\[\/th\]/gi, '<th class="border border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-700 px-2 py-1 text-left font-semibold">$1</th>');
+  html = html.replace(/\[td\]([\s\S]*?)\[\/td\]/gi, '<td class="border border-neutral-300 dark:border-neutral-600 px-2 py-1">$1</td>');
+
+  // Newlines to <br>
+  html = html.replace(/\n/g, '<br/>');
+
+  return html;
+}
 
 interface Props {
   releaseId: number;
@@ -27,6 +69,9 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
   const [name, setName] = useState('');
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [subcategoryId, setSubcategoryId] = useState<number | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  const previewHtml = useMemo(() => showPreview ? bbcodeToHtml(bbcode) : '', [bbcode, showPreview]);
 
   useEffect(() => {
     if (release) {
@@ -170,19 +215,40 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
         </div>
       </div>
 
-      {/* BBCode editor */}
+      {/* BBCode editor / preview */}
       <div>
-        <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 block">
-          BBCode Presentation
-          <span className="ml-2 text-[10px] text-neutral-400 font-normal">{bbcode.length} chars</span>
-        </label>
-        <textarea
-          value={bbcode}
-          onChange={(e) => setBbcode(e.target.value)}
-          rows={20}
-          className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono resize-y min-h-[200px]"
-          placeholder="BBCode will be generated when you prepare a release..."
-        />
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            BBCode Presentation
+            <span className="ml-2 text-[10px] text-neutral-400 font-normal">{bbcode.length} chars</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowPreview((p) => !p)}
+            className={cn(
+              'inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full transition-all duration-150',
+              showPreview
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'bg-neutral-100 dark:bg-neutral-700/50 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700',
+            )}
+          >
+            {showPreview ? <><Code className="h-3 w-3" /> Edit</> : <><Eye className="h-3 w-3" /> Preview</>}
+          </button>
+        </div>
+        {showPreview ? (
+          <div
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-3 text-sm text-neutral-900 dark:text-white overflow-y-auto max-h-[600px] min-h-[200px] [&_img]:inline-block [&_table]:my-2 [&_strong]:font-bold"
+            dangerouslySetInnerHTML={{ __html: previewHtml }}
+          />
+        ) : (
+          <textarea
+            value={bbcode}
+            onChange={(e) => setBbcode(e.target.value)}
+            rows={20}
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono resize-y min-h-[200px]"
+            placeholder="BBCode will be generated when you prepare a release..."
+          />
+        )}
       </div>
 
       {/* Metadata */}
