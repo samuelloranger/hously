@@ -24,7 +24,7 @@ COPY apps/web/ ./apps/web/
 RUN cd apps/web && bun run build
 
 # Final production stage (using a slim Bun image)
-FROM oven/bun:latest-slim
+FROM oven/bun:slim
 
 WORKDIR /app
 
