@@ -97,6 +97,18 @@ export function useC411UpdateDraft() {
   });
 }
 
+export function useC411DeleteDraft() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher(C411_ENDPOINTS.DRAFT(id), { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.c411.drafts() });
+    },
+  });
+}
+
 export function useC411Releases() {
   const fetcher = useFetcher();
   return useQuery({
@@ -155,7 +167,7 @@ export function useC411PrepareRelease() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (radarrSourceId: number) =>
-      fetcher(C411_ENDPOINTS.PREPARE_RELEASE, { method: 'POST', body: { radarrSourceId } }),
+      fetcher<{ id: number }>(C411_ENDPOINTS.PREPARE_RELEASE, { method: 'POST', body: { radarrSourceId } }),
     onSuccess: () => {
       queryClient.refetchQueries({ queryKey: queryKeys.c411.releases() });
     },

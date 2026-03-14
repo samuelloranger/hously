@@ -18,6 +18,7 @@ import {
   fetchDraft,
   createDraft,
   updateDraft,
+  deleteDraft,
   fetchCategories,
   fetchCategoryOptions,
   fetchTmdbDetails,
@@ -102,6 +103,18 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     } catch (error: any) {
       console.error('[c411:update-draft]', error);
       return serverError(set, error.message || 'Failed to update draft');
+    }
+  })
+
+  .delete('/drafts/:id', async ({ params, set }) => {
+    const id = parseInt(params.id);
+    if (!id) return badRequest(set, 'Invalid draft ID');
+    try {
+      await withC411Session((session) => deleteDraft(session, id));
+      return { success: true };
+    } catch (error: any) {
+      console.error('[c411:delete-draft]', error);
+      return serverError(set, error.message || 'Failed to delete draft');
     }
   })
 

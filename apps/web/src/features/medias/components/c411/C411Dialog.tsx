@@ -50,7 +50,14 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
 
   const handlePrepareRelease = () => {
     if (!media?.source_id) return;
-    prepareRelease.mutate(media.source_id);
+    prepareRelease.mutate(media.source_id, {
+      onSuccess: (data) => {
+        // Auto-open the editor for the newly prepared release
+        if (data?.id) {
+          setEditingReleaseId(data.id);
+        }
+      },
+    });
   };
 
   const handleSync = () => {
@@ -143,11 +150,11 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
         )}
         {activeTab === 'releases' && (
           <C411ReleasesList
-            data={releases.data ?? null}
+            releases={(releases.data?.releases ?? []).filter((r) => r.tmdb_id === tmdbId)}
             isLoading={releases.isLoading}
-            tmdbId={tmdbId}
             onEdit={(id) => setEditingReleaseId(id)}
             prepareStatus={prepareRelease.isPending ? 'pending' : prepareRelease.isSuccess ? 'success' : null}
+            emptyMessage="No releases for this movie. Use &quot;Prepare Release&quot; to create one."
           />
         )}
         {activeTab === 'drafts' && (
@@ -160,4 +167,3 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
     </Dialog>
   );
 }
-

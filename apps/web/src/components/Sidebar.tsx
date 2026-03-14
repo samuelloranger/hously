@@ -14,6 +14,7 @@ import {
   Loader,
   LogOut,
   Magnet,
+  Package,
   Settings,
   ShoppingCart,
   Target,
@@ -63,6 +64,7 @@ export function Sidebar() {
       items: [
         { path: '/library', translationKey: 'nav.library', icon: Library },
         { path: '/torrents', translationKey: 'nav.torrents', icon: Magnet },
+        { path: '/releases', translationKey: 'nav.releases', icon: Package },
         { path: '/explore', translationKey: 'nav.explore', icon: Compass },
       ],
     },

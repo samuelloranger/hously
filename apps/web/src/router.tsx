@@ -57,6 +57,7 @@ const Notifications = cachedLazy('notifications', () =>
 const KitchenPage = cachedLazy('kitchen', () => import('./features/recipes').then(m => ({ default: m.KitchenPage })));
 const ExplorePage = cachedLazy('explore', () => import('./features/medias').then(m => ({ default: m.ExplorePage })));
 const LibraryPage = cachedLazy('library', () => import('./features/medias').then(m => ({ default: m.LibraryPage })));
+const ReleasesPage = cachedLazy('releases', () => import('./features/medias').then(m => ({ default: m.ReleasesPage })));
 const RecipeDetail = cachedLazy('recipeDetail', () =>
   import('./features/recipes').then(m => ({ default: m.RecipeDetail }))
 );
@@ -311,6 +312,13 @@ const libraryRoute = createRoute({
   },
 });
 
+const releasesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/releases',
+  component: ReleasesPage,
+  beforeLoad: requireAuth,
+});
+
 const torrentDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/torrents/$hash',
@@ -341,6 +349,7 @@ const routeTree = rootRoute.addChildren([
   torrentsRoute,
   exploreRoute,
   libraryRoute,
+  releasesRoute,
   torrentDetailRoute,
 ]);
 

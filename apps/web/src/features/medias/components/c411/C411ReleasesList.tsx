@@ -1,18 +1,18 @@
 import { Loader2, FolderOpen, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useC411DeleteRelease } from '@hously/shared';
-import type { C411ReleasesResponse } from '@hously/shared';
+import type { C411LocalRelease } from '@hously/shared';
 import { formatSize, STATUS_BADGE, BADGE_BASE, BADGE_NEUTRAL, BADGE_SKY, BADGE_VIOLET, CARD_HOVER, STAT_LINE, STAT_SEED, STAT_LEECH } from './c411-utils';
 
 interface Props {
-  data: C411ReleasesResponse | null;
+  releases: C411LocalRelease[];
   isLoading: boolean;
-  tmdbId: number | null;
   onEdit: (id: number) => void;
-  prepareStatus: 'pending' | 'success' | null;
+  prepareStatus?: 'pending' | 'success' | null;
+  emptyMessage?: string;
 }
 
-export function C411ReleasesList({ data, isLoading, tmdbId, onEdit, prepareStatus }: Props) {
+export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, emptyMessage }: Props) {
   const deleteRelease = useC411DeleteRelease();
 
   if (isLoading) {
@@ -23,10 +23,6 @@ export function C411ReleasesList({ data, isLoading, tmdbId, onEdit, prepareStatu
     );
   }
 
-  const releases = data?.releases ?? [];
-  const filtered = tmdbId ? releases.filter((r) => r.tmdb_id === tmdbId) : [];
-  const others = tmdbId ? releases.filter((r) => r.tmdb_id !== tmdbId) : releases;
-
   if (releases.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -35,13 +31,13 @@ export function C411ReleasesList({ data, isLoading, tmdbId, onEdit, prepareStatu
         </div>
         <p className="text-sm font-medium text-neutral-900 dark:text-white">No releases</p>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-          Use "Prepare Release" to create one, or "Sync" to import from C411
+          {emptyMessage ?? 'Use "Prepare Release" to create one, or "Sync" to import from C411'}
         </p>
       </div>
     );
   }
 
-  const renderRelease = (r: (typeof releases)[0]) => (
+  const renderRelease = (r: C411LocalRelease) => (
     <div key={r.id} className={cn('p-3', CARD_HOVER)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -90,22 +86,7 @@ export function C411ReleasesList({ data, isLoading, tmdbId, onEdit, prepareStatu
           Release prepared successfully!
         </div>
       )}
-      {filtered.length > 0 && (
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
-            This movie
-          </p>
-          <div className="space-y-2">{filtered.map(renderRelease)}</div>
-        </div>
-      )}
-      {others.length > 0 && (
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
-            {filtered.length > 0 ? 'Other releases' : 'All releases'}
-          </p>
-          <div className="space-y-2">{others.map(renderRelease)}</div>
-        </div>
-      )}
+      <div className="space-y-2">{releases.map(renderRelease)}</div>
     </div>
   );
 }

@@ -10,6 +10,13 @@ import {
 } from '@hously/shared';
 import type { C411DraftPayload } from '@hously/shared';
 
+/** Only allow safe URL schemes in BBCode preview to prevent XSS. */
+function sanitizeUrl(url: string): string {
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return '#';
+}
+
 /** Convert BBCode to HTML for preview. */
 function bbcodeToHtml(input: string): string {
   let html = input
@@ -29,13 +36,17 @@ function bbcodeToHtml(input: string): string {
   html = html.replace(/\[u\]([\s\S]*?)\[\/u\]/gi, '<u>$1</u>');
   html = html.replace(/\[s\]([\s\S]*?)\[\/s\]/gi, '<s>$1</s>');
 
-  // URLs
-  html = html.replace(/\[url=(.*?)\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noreferrer" class="text-indigo-500 hover:text-indigo-400 underline">$2</a>');
-  html = html.replace(/\[url\]([\s\S]*?)\[\/url\]/gi, '<a href="$1" target="_blank" rel="noreferrer" class="text-indigo-500 hover:text-indigo-400 underline">$1</a>');
+  // URLs — sanitize href to block javascript:/data: schemes
+  html = html.replace(/\[url=(.*?)\]([\s\S]*?)\[\/url\]/gi, (_m, url, text) =>
+    `<a href="${sanitizeUrl(url)}" target="_blank" rel="noreferrer" class="text-indigo-500 hover:text-indigo-400 underline">${text}</a>`);
+  html = html.replace(/\[url\]([\s\S]*?)\[\/url\]/gi, (_m, url) =>
+    `<a href="${sanitizeUrl(url)}" target="_blank" rel="noreferrer" class="text-indigo-500 hover:text-indigo-400 underline">${url}</a>`);
 
-  // Images
-  html = html.replace(/\[img=(\d+)x(\d+)\](.*?)\[\/img\]/gi, '<img src="$3" width="$1" height="$2" class="inline-block" loading="lazy" />');
-  html = html.replace(/\[img\](.*?)\[\/img\]/gi, '<img src="$1" class="max-w-full rounded-lg my-1" loading="lazy" />');
+  // Images — only allow http(s) sources
+  html = html.replace(/\[img=(\d+)x(\d+)\](.*?)\[\/img\]/gi, (_m, w, h, src) =>
+    `<img src="${sanitizeUrl(src)}" width="${w}" height="${h}" class="inline-block" loading="lazy" />`);
+  html = html.replace(/\[img\](.*?)\[\/img\]/gi, (_m, src) =>
+    `<img src="${sanitizeUrl(src)}" class="max-w-full rounded-lg my-1" loading="lazy" />`);
 
   // Tables
   html = html.replace(/\[table\]/gi, '<table class="w-full text-xs border-collapse my-2">');
@@ -89,6 +100,16 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
     });
   };
 
+  /** Encode an ArrayBuffer to base64 without blowing the call stack. */
+  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    const bytes = new Uint8Array(buffer);
+    const chunks: string[] = [];
+    for (let i = 0; i < bytes.length; i += 8192) {
+      chunks.push(String.fromCharCode(...bytes.subarray(i, i + 8192)));
+    }
+    return btoa(chunks.join(''));
+  };
+
   const handleCreateDraft = async () => {
     if (!release) return;
 
@@ -105,12 +126,11 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
     // If we have torrent and nfo, include them
     if (release.torrent_s3_key) {
       payload.torrentFileName = `${name}.torrent`;
-      // Fetch torrent data from API
       try {
         const res = await fetch(`/api/medias/c411/releases/${releaseId}/torrent`);
         if (res.ok) {
           const buf = await res.arrayBuffer();
-          payload.torrentFileData = btoa(String.fromCharCode(...new Uint8Array(buf)));
+          payload.torrentFileData = arrayBufferToBase64(buf);
         }
       } catch { /* skip torrent */ }
     }
@@ -169,6 +189,21 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
       {createDraft.isSuccess && (
         <div className="rounded-xl border border-emerald-200/60 dark:border-emerald-800/30 bg-emerald-50/30 dark:bg-emerald-950/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
           Draft created on C411!
+        </div>
+      )}
+      {createDraft.isError && (
+        <div className="rounded-xl border border-red-200/60 dark:border-red-800/30 bg-red-50/30 dark:bg-red-950/10 p-3 text-xs text-red-700 dark:text-red-300">
+          Failed to create draft: {(createDraft.error as Error)?.message ?? 'Unknown error'}
+        </div>
+      )}
+      {updateRelease.isSuccess && (
+        <div className="rounded-xl border border-emerald-200/60 dark:border-emerald-800/30 bg-emerald-50/30 dark:bg-emerald-950/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
+          Release saved!
+        </div>
+      )}
+      {updateRelease.isError && (
+        <div className="rounded-xl border border-red-200/60 dark:border-red-800/30 bg-red-50/30 dark:bg-red-950/10 p-3 text-xs text-red-700 dark:text-red-300">
+          Failed to save: {(updateRelease.error as Error)?.message ?? 'Unknown error'}
         </div>
       )}
 

@@ -63,3 +63,14 @@ export async function updateDraft(session: C411Session, id: number, payload: C41
   const response = JSON.parse(html);
   return response.data ?? response;
 }
+
+export async function deleteDraft(session: C411Session, id: number): Promise<void> {
+  const url = new URL(`/api/user/drafts/${id}`, session.trackerUrl).href;
+  const { html, status } = await httpFetch(url, {
+    method: 'DELETE',
+    jar: session.jar,
+    userAgent: session.userAgent,
+    extraHeaders: { Accept: 'application/json' },
+  });
+  if (status !== 200 && status !== 204) throw new Error(`C411: delete draft ${id} failed (${status}) ${html.slice(0, 200)}`);
+}

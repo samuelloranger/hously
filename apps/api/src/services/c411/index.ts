@@ -7,7 +7,7 @@ export { getC411Session, clearC411Session, withC411Session, loadC411Config } fro
 
 // C411 API
 export { searchTorrents, fetchReleaseStatus, fetchMyTorrents, fetchAllMyTorrents } from './torrents';
-export { fetchDrafts, fetchDraft, createDraft, updateDraft } from './drafts';
+export { fetchDrafts, fetchDraft, createDraft, updateDraft, deleteDraft } from './drafts';
 export { fetchCategories, fetchCategoryOptions } from './categories';
 
 // Release preparation
