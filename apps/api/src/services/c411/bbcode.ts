@@ -120,13 +120,48 @@ export function removeSubtitleSection(template: string): string {
   );
 }
 
-export function buildAudioRows(template: string, media: MediaInfoData | null): string {
+/**
+ * When audio streams have no language metadata, generate virtual rows
+ * based on the detected language tag (e.g., MULTI.VF2 → VFF + VFQ + VO).
+ */
+function expandAudioByLangTag(
+  streams: AudioStreamInfo[],
+  langTag?: string,
+): AudioStreamInfo[] {
+  const hasLang = streams.some((s) => s.language && s.language !== 'und');
+  if (hasLang || !langTag) return streams;
+
+  const base = streams[0] ?? { codec: 'N/A', channels: 'N/A', bitrate: 'N/A', language: 'und', title: '' };
+  const make = (lang: string, title: string): AudioStreamInfo => ({ ...base, language: lang, title });
+
+  switch (langTag) {
+    case 'MULTI.VF2':
+      return [make('fre', 'VFF'), make('fre', 'VFQ'), make('eng', 'VO')];
+    case 'MULTI':
+      return [make('fre', 'French'), make('eng', 'VO')];
+    case 'VFF':
+      return [make('fre', 'VFF')];
+    case 'VFQ':
+      return [make('fre', 'VFQ')];
+    case 'VFI':
+      return [make('fre', 'VFI')];
+    case 'FRENCH':
+      return [make('fre', 'French')];
+    case 'EN':
+      return [make('eng', 'VO')];
+    default:
+      return streams;
+  }
+}
+
+export function buildAudioRows(template: string, media: MediaInfoData | null, langTag?: string): string {
   const audioRowPattern = /(^\[tr\].*\{LANGUAGE_FLAG\}.*\{LANGUAGE_BITRATE\}.*\[\/tr\]$)/m;
   const match = template.match(audioRowPattern);
   if (!match) return template;
 
   const rowTemplate = match[1];
-  const audioStreams = media?.audioStreams ?? [];
+  const rawStreams = media?.audioStreams ?? [];
+  const audioStreams = expandAudioByLangTag(rawStreams, langTag);
   const rows = (audioStreams.length > 0 ? audioStreams : [{ language: 'und', title: '', channels: 'N/A', codec: 'N/A', bitrate: 'N/A' }])
     .map((audio, index) => replacePlaceholders(rowTemplate, {
       LANGUAGE_INDEX: String(index + 1),
@@ -141,6 +176,11 @@ export function buildAudioRows(template: string, media: MediaInfoData | null): s
 
 function buildSubtitleLanguage(subtitle: SubtitleStreamInfo): string {
   const cleanedTitle = stripForcedMarker(subtitle.title);
+  const t = cleanedTitle.toLowerCase();
+  // Detect French variants from title
+  if (/canad|québ|quebec|vfq/.test(t)) return 'VFQ';
+  if (/vff|france|european/.test(t)) return 'VFF';
+  if (/vfi|international/.test(t)) return 'VFI';
   const langOnly = cleanedTitle.replace(/\s*(Full|Forced|SDH)\s*[:/]?\s*(SRT|ASS|SSA|PGS|VobSub|SUP|WebVTT)?\s*$/i, '').trim();
   return getFullLangName(subtitle.language, langOnly);
 }
@@ -226,6 +266,7 @@ export function generateBBCode(ctx: PrezContext): string {
     buildAudioRows(
       renderSourceConditionals(renderConditionals(template, tmdb), media, originalPlatform),
       media,
+      ctx.languages,
     ),
     media,
   );
