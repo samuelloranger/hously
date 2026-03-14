@@ -10,11 +10,8 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/shared/package.json ./apps/shared/
 COPY apps/web/package.json ./apps/web/
 
-# Copy Prisma schema so the API postinstall (prisma generate) succeeds.
-COPY apps/api/prisma/schema.prisma ./apps/api/prisma/schema.prisma
-
-# Install workspace dependencies from repo root.
-RUN bun install --frozen-lockfile
+# Install deps — skip postinstall scripts (web doesn't need prisma generate).
+RUN bun install --frozen-lockfile --ignore-scripts
 
 # Copy parent tsconfig.json (required by apps/web/tsconfig.json)
 COPY tsconfig.json ./
