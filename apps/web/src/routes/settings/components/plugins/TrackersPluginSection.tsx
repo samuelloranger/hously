@@ -18,6 +18,7 @@ type TrackerFormState = {
   tracker_url: string;
   username: string;
   password: string;
+  announce_url: string;
 };
 
 type TrackerEditorProps = {
@@ -29,6 +30,7 @@ type TrackerEditorProps = {
   loading: boolean;
   saving: boolean;
   showFlaresolverr?: boolean;
+  showAnnounceUrl?: boolean;
   initial: Omit<TrackerFormState, 'password'>;
   onSave: (payload: Omit<TrackerFormState, 'password'> & { password?: string }) => Promise<unknown>;
 };
@@ -42,6 +44,7 @@ function TrackerEditor({
   loading,
   saving,
   showFlaresolverr = true,
+  showAnnounceUrl = false,
   initial,
   onSave,
 }: TrackerEditorProps) {
@@ -59,6 +62,7 @@ function TrackerEditor({
     flaresolverr_url: initialFsUrl,
     tracker_url: initialTrackerUrl,
     username: initialUsername,
+    announce_url: initialAnnounceUrl,
   } = initial;
   useEffect(() => {
     setState({
@@ -66,9 +70,10 @@ function TrackerEditor({
       flaresolverr_url: initialFsUrl,
       tracker_url: initialTrackerUrl,
       username: initialUsername,
+      announce_url: initialAnnounceUrl,
       password: '',
     });
-  }, [initialEnabled, initialFsUrl, initialTrackerUrl, initialUsername]);
+  }, [initialEnabled, initialFsUrl, initialTrackerUrl, initialUsername, initialAnnounceUrl]);
 
   const isDirty = useMemo(
     () =>
@@ -76,6 +81,7 @@ function TrackerEditor({
       state.flaresolverr_url !== initial.flaresolverr_url ||
       state.tracker_url !== initial.tracker_url ||
       state.username !== initial.username ||
+      state.announce_url !== initial.announce_url ||
       state.password !== '',
     [initial, state]
   );
@@ -93,6 +99,7 @@ function TrackerEditor({
       flaresolverr_url: state.flaresolverr_url,
       tracker_url: state.tracker_url,
       username: state.username,
+      announce_url: state.announce_url,
       password: state.password.trim() ? state.password : undefined,
     })
       .then(() => {
@@ -179,6 +186,21 @@ function TrackerEditor({
         />
       </div>
 
+      {showAnnounceUrl && (
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            Announce URL
+          </label>
+          <input
+            type="text"
+            value={state.announce_url}
+            onChange={event => setState(prev => ({ ...prev, announce_url: event.target.value }))}
+            placeholder="https://c411.org/announce/your-passkey"
+            className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono text-xs"
+          />
+        </div>
+      )}
+
       <div className="flex items-center gap-3">
         {isDirty && (
           <span className="text-xs text-amber-600 dark:text-amber-400 font-medium mr-auto">
@@ -236,11 +258,13 @@ export function TrackersPluginSection() {
         websitePlaceholder="https://c411.org"
         loading={c411Query.isLoading}
         saving={c411Mutation.isPending}
+        showAnnounceUrl
         initial={{
           enabled: Boolean(c411Query.data?.plugin.enabled),
           flaresolverr_url: c411Query.data?.plugin.flaresolverr_url || '',
           tracker_url: c411Query.data?.plugin.tracker_url || '',
           username: c411Query.data?.plugin.username || '',
+          announce_url: c411Query.data?.plugin.announce_url || '',
         }}
         onSave={payload => c411Mutation.mutateAsync(payload)}
       />
@@ -258,6 +282,7 @@ export function TrackersPluginSection() {
           flaresolverr_url: torr9Query.data?.plugin.flaresolverr_url || '',
           tracker_url: torr9Query.data?.plugin.tracker_url || '',
           username: torr9Query.data?.plugin.username || '',
+          announce_url: '',
         }}
         onSave={payload => torr9Mutation.mutateAsync(payload)}
       />
@@ -276,6 +301,7 @@ export function TrackersPluginSection() {
           flaresolverr_url: laCaleQuery.data?.plugin.flaresolverr_url || '',
           tracker_url: laCaleQuery.data?.plugin.tracker_url || '',
           username: laCaleQuery.data?.plugin.username || '',
+          announce_url: '',
         }}
         onSave={payload => laCaleMutation.mutateAsync(payload)}
       />

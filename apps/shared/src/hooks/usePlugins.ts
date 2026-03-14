@@ -65,6 +65,7 @@ export function useUpdateTrackerPlugin(type: TrackerType) {
       username: string;
       password?: string;
       enabled: boolean;
+      announce_url?: string;
     }) =>
       fetcher<TrackerPluginUpdateResponse>(TRACKER_PLUGIN_ENDPOINTS[type], {
         method: 'PUT',
