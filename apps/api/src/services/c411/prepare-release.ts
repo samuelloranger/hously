@@ -168,7 +168,11 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
   console.log(`[c411:prepare] Uploaded torrent to S3: ${s3Key}`);
 
   // 9. Generate NFO + BBCode
-  const nfoContent = media.fullOutput;
+  // Strip the full path from the NFO "Complete name" line — show only the release filename
+  const nfoContent = media.fullOutput.replace(
+    /^(Complete name\s*:\s*).*$/m,
+    `$1${c411Name}${ext}`,
+  );
   const bbcode = generateBBCode({
     tmdb,
     media,
