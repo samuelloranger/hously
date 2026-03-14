@@ -94,7 +94,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
 
     const payload: C411DraftPayload = {
       name,
-      title: release.title ?? undefined,
+      title: name,
       description: bbcode,
       categoryId: categoryId ?? undefined,
       subcategoryId: subcategoryId ?? undefined,
