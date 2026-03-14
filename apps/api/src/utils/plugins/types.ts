@@ -63,4 +63,5 @@ export interface TrackerPluginConfig {
   tracker_url: string;
   username: string;
   password?: string;
+  announce_url?: string;
 }

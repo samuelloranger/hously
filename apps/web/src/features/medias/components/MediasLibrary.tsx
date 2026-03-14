@@ -3,12 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaPosterCard } from '@/components/MediaPosterCard';
-import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, Sparkles, Trash2, User } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, Sparkles, Trash2, User, Upload } from 'lucide-react';
 
 import { toast } from 'sonner';
 import { InteractiveSearchDialog } from './InteractiveSearchDialog';
 import { SimilarMediasDialog } from './SimilarMediasDialog';
 import { DeleteMediaDialog } from './DeleteMediaDialog';
+import { C411Dialog } from './c411/C411Dialog';
 
 type MediaFilter = 'all' | 'movie' | 'series';
 type SortKey = 'added_at' | 'title' | 'year' | 'service' | 'status' | 'downloaded' | 'monitored';
@@ -32,8 +33,10 @@ export function MediasLibrary() {
   const [interactiveItem, setInteractiveItem] = useState<MediaItem | null>(null);
   const [similarItem, setSimilarItem] = useState<MediaItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<MediaItem | null>(null);
+  const [c411Item, setC411Item] = useState<MediaItem | null>(null);
 
   const items = data?.items ?? [];
+  const c411Enabled = data?.c411_enabled ?? false;
   const isNotConfigured = data && !data.radarr_enabled && !data.sonarr_enabled;
 
   const filtered = useMemo(() => {
@@ -202,6 +205,7 @@ export function MediasLibrary() {
                   item={item}
                   onOpenInteractive={() => setInteractiveItem(item)}
                   onFindSimilar={item.tmdb_id ? () => setSimilarItem(item) : undefined}
+                  onOpenC411={c411Enabled && item.media_type === 'movie' && item.source_id ? () => setC411Item(item) : undefined}
                   onDelete={() => setDeleteItem(item)}
                 />
               ))}
@@ -269,6 +273,8 @@ export function MediasLibrary() {
       />
 
       <DeleteMediaDialog isOpen={Boolean(deleteItem)} media={deleteItem} onClose={() => setDeleteItem(null)} />
+
+      <C411Dialog isOpen={Boolean(c411Item)} media={c411Item} onClose={() => setC411Item(null)} />
     </div>
   );
 }
@@ -277,11 +283,13 @@ function MediaGridCard({
   item,
   onOpenInteractive,
   onFindSimilar,
+  onOpenC411,
   onDelete,
 }: {
   item: MediaItem;
   onOpenInteractive: () => void;
   onFindSimilar?: () => void;
+  onOpenC411?: () => void;
   onDelete: () => void;
 }) {
   const { t } = useTranslation('common');
@@ -362,6 +370,17 @@ function MediaGridCard({
             className="inline-flex items-center justify-center h-5.5 w-5.5 rounded-full bg-white/10 text-white/70 transition-colors duration-200 hover:bg-white/20 hover:text-white"
           >
             <Sparkles size={10} />
+          </button>
+        )}
+
+        {onOpenC411 && (
+          <button
+            type="button"
+            onClick={onOpenC411}
+            title="C411"
+            className="inline-flex items-center justify-center h-5.5 w-5.5 rounded-full bg-white/10 text-white/70 transition-colors duration-200 hover:bg-white/20 hover:text-white"
+          >
+            <Upload size={10} />
           </button>
         )}
 

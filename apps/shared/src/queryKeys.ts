@@ -112,6 +112,19 @@ export const queryKeys = {
     list: (year?: number, month?: number) => [...queryKeys.customEvents.all, year, month] as const,
   },
 
+  c411: {
+    all: ['c411'] as const,
+    search: (query: string) => ['c411', 'search', query] as const,
+    releaseStatus: (tmdbId: number) => ['c411', 'release-status', tmdbId] as const,
+    drafts: () => ['c411', 'drafts'] as const,
+    draft: (id: number) => ['c411', 'draft', id] as const,
+    releases: () => ['c411', 'releases'] as const,
+    release: (id: number) => ['c411', 'release', id] as const,
+    generateBBCode: (tmdbId: number) => ['c411', 'generate-bbcode', tmdbId] as const,
+    categories: () => ['c411', 'categories'] as const,
+    categoryOptions: (id: number) => ['c411', 'category-options', id] as const,
+  },
+
   medias: {
     all: ['medias'] as const,
     list: () => [...queryKeys.medias.all, 'list'] as const,

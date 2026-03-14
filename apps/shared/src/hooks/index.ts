@@ -13,3 +13,4 @@ export * from './useExternalNotifications';
 export * from './useWeather';
 export * from './useMedias';
 export * from './useHabits';
+export * from './useC411';

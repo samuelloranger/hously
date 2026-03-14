@@ -230,6 +230,7 @@ export const normalizeTrackerConfig = (type: TrackerType, config: unknown): Trac
   const trackerUrlRaw = typeof cfg.tracker_url === 'string' ? cfg.tracker_url.trim() : '';
   const username = typeof cfg.username === 'string' ? cfg.username.trim() : '';
   const password = normalizeSecret(cfg.password);
+  const announceUrl = typeof cfg.announce_url === 'string' ? cfg.announce_url.trim() : '';
 
   if (!trackerUrlRaw || !username) return null;
 
@@ -238,5 +239,6 @@ export const normalizeTrackerConfig = (type: TrackerType, config: unknown): Trac
     tracker_url: trackerUrlRaw.replace(/\/+$/, ''),
     username,
     password: password || undefined,
+    announce_url: announceUrl || undefined,
   };
 };

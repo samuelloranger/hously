@@ -37,6 +37,7 @@ import { mediasLibraryRoutes } from './routes/medias/library';
 import { mediasTmdbRoutes } from './routes/medias/tmdb';
 import { mediasProwlarrRoutes } from './routes/medias/prowlarr';
 import { mediasArrRoutes } from './routes/medias/arr';
+import { mediasC411Routes } from './routes/medias/c411';
 import { habitsRoutes } from './routes/habits';
 import { systemRoutes } from './routes/system';
 import { globalRateLimit } from './middleware/rateLimit';
@@ -172,6 +173,7 @@ export const app = new Elysia()
   .use(mediasTmdbRoutes)
   .use(mediasProwlarrRoutes)
   .use(mediasArrRoutes)
+  .use(mediasC411Routes)
   .use(habitsRoutes)
   .use(systemRoutes)
   .get('/', () => 'Hello Elysia')

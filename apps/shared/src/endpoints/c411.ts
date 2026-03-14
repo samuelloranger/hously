@@ -1,0 +1,14 @@
+export const C411_ENDPOINTS = {
+  SEARCH: '/api/medias/c411/search',
+  RELEASE_STATUS: '/api/medias/c411/release-status',
+  DRAFTS: '/api/medias/c411/drafts',
+  DRAFT: (id: number) => `/api/medias/c411/drafts/${id}`,
+  PREPARE_RELEASE: '/api/medias/c411/prepare-release',
+  RELEASES: '/api/medias/c411/releases',
+  RELEASE: (id: number) => `/api/medias/c411/releases/${id}`,
+  RELEASE_TORRENT: (id: number) => `/api/medias/c411/releases/${id}/torrent`,
+  SYNC: '/api/medias/c411/sync',
+  GENERATE_BBCODE: '/api/medias/c411/generate-bbcode',
+  CATEGORIES: '/api/medias/c411/categories',
+  CATEGORY_OPTIONS: (id: number) => `/api/medias/c411/categories/${id}/options`,
+} as const;

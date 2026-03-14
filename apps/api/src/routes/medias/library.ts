@@ -21,6 +21,7 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
       sonarr_enabled: boolean;
       radarr_connected: boolean;
       sonarr_connected: boolean;
+      c411_enabled: boolean;
       items: MediaItem[];
       errors?: { radarr?: string; sonarr?: string };
     } = {
@@ -28,13 +29,14 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
       sonarr_enabled: false,
       radarr_connected: false,
       sonarr_connected: false,
+      c411_enabled: false,
       items: [],
     };
 
     const errors: { radarr?: string; sonarr?: string } = {};
 
     try {
-      const [radarrPlugin, sonarrPlugin] = await Promise.all([
+      const [radarrPlugin, sonarrPlugin, c411Plugin] = await Promise.all([
         prisma.plugin.findFirst({
           where: { type: 'radarr' },
           select: { enabled: true, config: true },
@@ -43,10 +45,15 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
           where: { type: 'sonarr' },
           select: { enabled: true, config: true },
         }),
+        prisma.plugin.findFirst({
+          where: { type: 'c411' },
+          select: { enabled: true },
+        }),
       ]);
 
       response.radarr_enabled = Boolean(radarrPlugin?.enabled);
       response.sonarr_enabled = Boolean(sonarrPlugin?.enabled);
+      response.c411_enabled = Boolean(c411Plugin?.enabled);
 
       if (radarrPlugin?.enabled) {
         const radarrConfig = normalizeRadarrConfig(radarrPlugin.config);
