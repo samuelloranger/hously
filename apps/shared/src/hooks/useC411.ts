@@ -16,6 +16,16 @@ import type {
   C411CategoryOption,
 } from '../types';
 
+export function useC411FrenchTitle(tmdbId: number | null, type: string, options?: { enabled?: boolean }) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: ['c411', 'tmdb-title', tmdbId],
+    queryFn: () => fetcher<{ title: string }>(`${C411_ENDPOINTS.TMDB_TITLE}?tmdbId=${tmdbId}&type=${encodeURIComponent(type)}`),
+    enabled: (options?.enabled ?? true) && tmdbId !== null,
+    staleTime: Infinity,
+  });
+}
+
 export function useC411Search(query: string, options?: { enabled?: boolean }) {
   const fetcher = useFetcher();
   const trimmed = query.trim();

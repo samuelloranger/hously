@@ -316,6 +316,24 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     }
   })
 
+  // ─── French TMDB Title ───────────────────────────────────
+  .get('/tmdb-title', async ({ query, set }) => {
+    const tmdbId = parseInt(query.tmdbId as string);
+    const type = (query.type as string) || 'movie';
+    if (!tmdbId) return badRequest(set, 'tmdbId is required');
+    try {
+      const tmdbPlugin = await prisma.plugin.findFirst({
+        where: { type: { startsWith: 'tmdb' }, enabled: true },
+      });
+      if (!tmdbPlugin?.config) return badRequest(set, 'TMDB plugin not configured');
+      const apiKey = (tmdbPlugin.config as any).api_key;
+      const tmdb = await fetchTmdbDetails(apiKey, type as 'movie' | 'tv', tmdbId);
+      return { title: tmdb.title };
+    } catch (error: any) {
+      return serverError(set, error.message || 'Failed to fetch TMDB title');
+    }
+  })
+
   // ─── Generate BBCode ────────────────────────────────────
   .get('/generate-bbcode', async ({ query, set }) => {
     const tmdbId = parseInt(query.tmdbId as string);

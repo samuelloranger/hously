@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Search, Grid3X3, FileText, FolderOpen, Loader2, RefreshCw, Plus } from 'lucide-react';
 import { Dialog } from '@/components/dialog';
 import { cn } from '@/lib/utils';
-import { useC411Search, useC411ReleaseStatus, useC411Releases, useC411Drafts, useC411PrepareRelease, useC411Sync } from '@hously/shared';
+import { useC411FrenchTitle, useC411Search, useC411ReleaseStatus, useC411Releases, useC411Drafts, useC411PrepareRelease, useC411Sync } from '@hously/shared';
 import type { MediaItem } from '@hously/shared';
 import { C411SearchResults } from './C411SearchResults';
 import { C411SlotGrid } from './C411SlotGrid';
@@ -29,10 +29,13 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('search');
   const [editingReleaseId, setEditingReleaseId] = useState<number | null>(null);
 
-  const searchQuery = media?.title ?? '';
   const tmdbId = media?.tmdb_id ?? null;
   const year = media?.year ?? 0;
   const imdbId = (media as any)?.imdb_id ?? '';
+  const mediaType = media?.media_type === 'series' ? 'tv' : 'movie';
+
+  const frenchTitle = useC411FrenchTitle(tmdbId, mediaType, { enabled: isOpen && tmdbId !== null });
+  const searchQuery = frenchTitle.data?.title ?? media?.title ?? '';
 
   const searchResult = useC411Search(searchQuery, { enabled: isOpen && activeTab === 'search' && searchQuery.length >= 2 });
   const releaseStatus = useC411ReleaseStatus(tmdbId, searchQuery, year, imdbId, { enabled: isOpen && activeTab === 'slots' && tmdbId !== null });
