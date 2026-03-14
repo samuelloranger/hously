@@ -43,11 +43,15 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
 
   const handlePrepareRelease = () => {
     if (!media?.source_id) return;
-    prepareRelease.mutate(media.source_id);
+    prepareRelease.mutate(media.source_id, {
+      onSuccess: () => releases.refetch(),
+    });
   };
 
   const handleSync = () => {
-    sync.mutate();
+    sync.mutate(undefined, {
+      onSuccess: () => releases.refetch(),
+    });
   };
 
   if (editingReleaseId !== null) {
