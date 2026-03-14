@@ -104,7 +104,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
 
     // If we have torrent and nfo, include them
     if (release.torrent_s3_key) {
-      payload.torrentFileName = `${release.name}.torrent`;
+      payload.torrentFileName = `${name}.torrent`;
       // Fetch torrent data from API
       try {
         const res = await fetch(`/api/medias/c411/releases/${releaseId}/torrent`);
@@ -116,7 +116,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
     }
 
     if (release.nfo_content) {
-      payload.nfoFileName = `${release.name}.nfo`;
+      payload.nfoFileName = `${name}.nfo`;
       payload.nfoFileData = btoa(release.nfo_content);
     }
 
