@@ -237,15 +237,16 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
         </div>
         {showPreview ? (
           <div
-            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-3 text-sm text-neutral-900 dark:text-white overflow-y-auto max-h-[600px] min-h-[200px] [&_img]:inline-block [&_table]:my-2 [&_strong]:font-bold"
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-3 text-sm text-neutral-900 dark:text-white [&_img]:inline-block [&_table]:my-2 [&_strong]:font-bold"
             dangerouslySetInnerHTML={{ __html: previewHtml }}
           />
         ) : (
           <textarea
+            ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
             value={bbcode}
             onChange={(e) => setBbcode(e.target.value)}
-            rows={20}
-            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono resize-y min-h-[200px]"
+            rows={10}
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 px-3 py-2 text-xs text-neutral-900 dark:text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono resize-none"
             placeholder="BBCode will be generated when you prepare a release..."
           />
         )}
