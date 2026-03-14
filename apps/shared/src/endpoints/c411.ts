@@ -3,6 +3,7 @@ export const C411_ENDPOINTS = {
   RELEASE_STATUS: '/api/medias/c411/release-status',
   DRAFTS: '/api/medias/c411/drafts',
   DRAFT: (id: number) => `/api/medias/c411/drafts/${id}`,
+  MEDIA_INFO: '/api/medias/c411/media-info',
   PREPARE_RELEASE: '/api/medias/c411/prepare-release',
   RELEASES: '/api/medias/c411/releases',
   RELEASE: (id: number) => `/api/medias/c411/releases/${id}`,

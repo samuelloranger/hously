@@ -139,6 +139,15 @@ export function useC411UpdateRelease() {
   });
 }
 
+export function useC411MediaInfo(radarrSourceId: number | null, options?: { enabled?: boolean }) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: ['c411', 'media-info', radarrSourceId],
+    queryFn: () => fetcher<any>(`${C411_ENDPOINTS.MEDIA_INFO}?radarrSourceId=${radarrSourceId}`),
+    enabled: (options?.enabled ?? false) && radarrSourceId !== null,
+  });
+}
+
 export function useC411PrepareRelease() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();

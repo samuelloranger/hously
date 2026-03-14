@@ -283,6 +283,75 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     }
   })
 
+  // ─── Media Info Preview ──────────────────────────────────
+  .get('/media-info', async ({ query, set }) => {
+    const radarrSourceId = parseInt(query.radarrSourceId as string);
+    if (!radarrSourceId) return badRequest(set, 'radarrSourceId is required');
+
+    try {
+      const radarrPlugin = await prisma.plugin.findFirst({
+        where: { type: 'radarr', enabled: true },
+        select: { config: true },
+      });
+      if (!radarrPlugin?.config) return badRequest(set, 'Radarr plugin not configured');
+      const cfg = radarrPlugin.config as any;
+      const baseUrl = (cfg.website_url as string).replace(/\/$/, '');
+      const apiKey = cfg.api_key as string;
+
+      const res = await fetch(`${baseUrl}/api/v3/movie/${radarrSourceId}`, {
+        headers: { 'X-Api-Key': apiKey },
+      });
+      if (!res.ok) return serverError(set, `Radarr API error: ${res.status}`);
+      const movie = await res.json() as any;
+      if (!movie.hasFile || !movie.movieFile) return badRequest(set, 'Movie has no file');
+
+      const radarrPath = movie.movieFile.path as string;
+      const filePath = radarrPath.replace(/^\/data\//, '/mnt/storage/');
+      const sceneName = movie.movieFile.sceneName || movie.movieFile.relativePath || '';
+      const releaseGroup = movie.movieFile.releaseGroup || '';
+
+      // Run mediainfo + ffprobe
+      const { getMediaInfo } = await import('../../services/c411/mediainfo');
+      const { detectLanguages } = await import('../../services/c411/lang-detect');
+
+      const [media, langTag] = await Promise.all([
+        getMediaInfo(filePath, sceneName),
+        detectLanguages(filePath),
+      ]);
+
+      return {
+        file_path: radarrPath,
+        scene_name: sceneName,
+        release_group: releaseGroup,
+        language_tag: langTag,
+        media_info: media ? {
+          container: media.container,
+          resolution: media.resolution,
+          video_codec: media.videoCodec,
+          video_bitrate: media.videoBitrate,
+          source: media.source,
+          duration: media.duration,
+          audio_streams: media.audioStreams.map((a) => ({
+            codec: a.codec,
+            channels: a.channels,
+            bitrate: a.bitrate,
+            language: a.language,
+            title: a.title,
+          })),
+          subtitles: media.subtitles.map((s) => ({
+            language: s.language,
+            title: s.title,
+            format: s.format,
+            forced: s.forced,
+          })),
+        } : null,
+      };
+    } catch (error: any) {
+      console.error('[c411:media-info]', error);
+      return serverError(set, error.message || 'Failed to get media info');
+    }
+  })
+
   // ─── Prepare Release ────────────────────────────────────
   .post('/prepare-release', async ({ body, set }) => {
     const data = body as any;
