@@ -197,7 +197,7 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
   const bbcode = generateBBCode({
     tmdb,
     media,
-    releaseName: originalName,
+    releaseName: c411Name,
     fileCount: 1,
     totalSize: formatSize(Number(fileStat.size)),
     languages: langTag !== 'UNKNOWN' ? langTag : undefined,
