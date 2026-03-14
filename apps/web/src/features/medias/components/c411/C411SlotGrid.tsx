@@ -1,17 +1,12 @@
 import { Loader2, Grid3X3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { C411ReleaseStatusResponse } from '@hously/shared';
+import { formatSize, BADGE_BASE, CARD, STAT_SEED } from './c411-utils';
 
 interface Props {
   data: C411ReleaseStatusResponse | null;
   isLoading: boolean;
   enabled: boolean;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(1)} Go`;
-  if (bytes >= 1_048_576) return `${(bytes / 1_048_576).toFixed(0)} Mo`;
-  return `${(bytes / 1024).toFixed(0)} Ko`;
 }
 
 export function C411SlotGrid({ data, isLoading, enabled }: Props) {
@@ -50,20 +45,15 @@ export function C411SlotGrid({ data, isLoading, enabled }: Props) {
         <span className="text-emerald-600 dark:text-emerald-400">{data.totalFree} free</span>
       </div>
 
-      {/* Profile summary */}
       <div className="flex flex-wrap gap-2 mb-2">
         {data.profiles.map((p) => (
-          <div
-            key={p.profile}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900/60 px-2.5 py-1.5"
-          >
+          <div key={p.profile} className={cn(CARD, 'px-2.5 py-1.5')}>
             <span className="text-xs font-medium text-neutral-900 dark:text-white">{p.profile}</span>
-            <span className="text-[10px] text-neutral-500 dark:text-neutral-400">{p.occupied}/{p.total}</span>
+            <span className="text-[10px] text-neutral-500 dark:text-neutral-400 ml-1.5">{p.occupied}/{p.total}</span>
           </div>
         ))}
       </div>
 
-      {/* Slot grid */}
       <div className="space-y-2">
         {data.slotGrid.map((slot) => (
           <div
@@ -72,13 +62,13 @@ export function C411SlotGrid({ data, isLoading, enabled }: Props) {
               'rounded-xl border p-3',
               slot.occupants.length > 0
                 ? 'border-emerald-200/60 bg-emerald-50/20 dark:border-emerald-800/30 dark:bg-emerald-950/10'
-                : 'border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900/60',
+                : CARD,
             )}
           >
             <div className="flex items-center justify-between gap-2 mb-1">
               <span className="text-xs font-medium text-neutral-900 dark:text-white">{slot.label}</span>
               <span className={cn(
-                'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium',
+                BADGE_BASE,
                 slot.occupants.length > 0
                   ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
                   : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400',
@@ -95,7 +85,7 @@ export function C411SlotGrid({ data, isLoading, enabled }: Props) {
                   <span>{occ.videoCodec}</span>
                   <span>{occ.audioCodec}</span>
                   <span>{formatSize(occ.fileSize)}</span>
-                  <span className="text-emerald-600 dark:text-emerald-400">{occ.seeders}S</span>
+                  <span className={STAT_SEED}>{occ.seeders}S</span>
                 </div>
               </div>
             ))}
