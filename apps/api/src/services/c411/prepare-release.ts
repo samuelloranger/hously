@@ -64,6 +64,23 @@ async function fetchRadarrMovie(baseUrl: string, apiKey: string, movieId: number
 }
 
 /**
+ * Fetch release group from Radarr grab history when movieFile.releaseGroup is null.
+ */
+async function fetchReleaseGroupFromHistory(baseUrl: string, apiKey: string, movieId: number): Promise<string> {
+  try {
+    const res = await fetch(`${baseUrl}/api/v3/history/movie?movieId=${movieId}`, {
+      headers: { 'X-Api-Key': apiKey },
+    });
+    if (!res.ok) return '';
+    const history = await res.json() as any[];
+    const grabbed = history.find((h: any) => h.eventType === 'grabbed' && h.data?.releaseGroup);
+    return grabbed?.data?.releaseGroup || '';
+  } catch {
+    return '';
+  }
+}
+
+/**
  * Prepare a full C411 release from a Radarr movie.
  */
 export async function prepareRelease(options: PrepareReleaseOptions): Promise<PrepareReleaseResult> {
@@ -86,7 +103,13 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
   const radarrPath = movie.movieFile.path as string;
   const originalPath = radarrPath.replace(/^\/data\//, '/mnt/storage/');
   const originalName = movie.movieFile.sceneName || movie.movieFile.relativePath || '';
-  const releaseGroup = movie.movieFile.releaseGroup || '';
+  let releaseGroup = movie.movieFile.releaseGroup || '';
+
+  // Radarr sometimes loses the releaseGroup on import — check grab history as fallback
+  if (!releaseGroup) {
+    releaseGroup = await fetchReleaseGroupFromHistory(radarrConfig.baseUrl, radarrConfig.apiKey, radarrMovieId);
+    if (releaseGroup) console.log(`[c411:prepare] Found release group from history: ${releaseGroup}`);
+  }
   const tmdbId = movie.tmdbId as number;
   const imdbId = (movie.imdbId || '') as string;
 

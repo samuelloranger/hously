@@ -308,7 +308,21 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
       const radarrPath = movie.movieFile.path as string;
       const filePath = radarrPath.replace(/^\/data\//, '/mnt/storage/');
       const sceneName = movie.movieFile.sceneName || movie.movieFile.relativePath || '';
-      const releaseGroup = movie.movieFile.releaseGroup || '';
+      let releaseGroup = movie.movieFile.releaseGroup || '';
+
+      // Fallback: check Radarr grab history for release group
+      if (!releaseGroup) {
+        try {
+          const histRes = await fetch(`${baseUrl}/api/v3/history/movie?movieId=${radarrSourceId}`, {
+            headers: { 'X-Api-Key': apiKey },
+          });
+          if (histRes.ok) {
+            const history = await histRes.json() as any[];
+            const grabbed = history.find((h: any) => h.eventType === 'grabbed' && h.data?.releaseGroup);
+            releaseGroup = grabbed?.data?.releaseGroup || '';
+          }
+        } catch { /* ignore */ }
+      }
 
       // Run mediainfo + ffprobe
       const { getMediaInfo } = await import('../../services/c411/mediainfo');
