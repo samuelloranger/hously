@@ -1,10 +1,10 @@
 import { join } from 'path';
-import type { Plugin } from 'vite';
-import { build } from 'esbuild';
+import { build as viteBuild, type Plugin } from 'vite';
+import { readFile, writeFile, rm } from 'fs/promises';
 
 /**
- * Vite plugin to compile TypeScript service worker files into a single sw.js file
- * The service worker is compiled at build time using esbuild and output to the public directory
+ * Vite plugin to compile TypeScript service worker files into a single sw.js file.
+ * Uses Vite's own build API (Rolldown in Vite 8) instead of esbuild directly.
  */
 export function serviceWorkerPlugin(): Plugin {
   let root: string;
@@ -20,23 +20,38 @@ export function serviceWorkerPlugin(): Plugin {
       // This will run during dev server startup and build
     },
     async writeBundle() {
-      // This runs after all files are written during build
-      // Write directly to dist folder since writeBundle runs after public files are copied
       try {
         const swEntry = join(root, 'src/sw/index.ts');
-        const outputPath = join(outDir, 'sw.js');
+        const swOutDir = join(outDir, '_sw_tmp');
 
-        await build({
-          entryPoints: [swEntry],
-          bundle: true,
-          outfile: outputPath,
-          platform: 'browser',
-          format: 'iife',
-          minify: process.env.NODE_ENV === 'production',
-          sourcemap: process.env.NODE_ENV === 'production' ? false : 'inline',
-          target: 'es2020',
-          tsconfig: join(root, 'src/sw/tsconfig.json'),
+        await viteBuild({
+          configFile: false,
+          root,
+          logLevel: 'silent',
+          build: {
+            lib: {
+              entry: swEntry,
+              formats: ['iife'],
+              name: 'sw',
+              fileName: () => 'sw.js',
+            },
+            outDir: swOutDir,
+            emptyOutDir: true,
+            minify: process.env.NODE_ENV === 'production',
+            sourcemap: process.env.NODE_ENV === 'production' ? false : 'inline',
+            rolldownOptions: {
+              output: {
+                entryFileNames: 'sw.js',
+              },
+            },
+          },
         });
+
+        // Move sw.js from temp dir to dist root
+        const compiled = await readFile(join(swOutDir, 'sw.js'), 'utf-8');
+        await writeFile(join(outDir, 'sw.js'), compiled);
+        // Clean up temp dir
+        await rm(swOutDir, { recursive: true }).catch(() => {});
 
         console.log('✓ Service worker compiled successfully');
       } catch (error) {
@@ -45,36 +60,37 @@ export function serviceWorkerPlugin(): Plugin {
       }
     },
     configureServer(server) {
-      // During dev, compile service worker on request
+      // During dev, compile service worker on request using Vite's build API
       server.middlewares.use(async (req, res, next) => {
         if (req.url === '/sw.js') {
           try {
             const swEntry = join(root, 'src/sw/index.ts');
+            const tmpDir = join(root, '.sw-dev-tmp');
 
-            const result = await build({
-              entryPoints: [swEntry],
-              bundle: true,
-              write: false,
-              platform: 'browser',
-              format: 'iife',
-              minify: false,
-              sourcemap: 'inline',
-              target: 'es2020',
-              tsconfig: join(root, 'src/sw/tsconfig.json'),
+            await viteBuild({
+              configFile: false,
+              root,
+              logLevel: 'silent',
+              build: {
+                lib: {
+                  entry: swEntry,
+                  formats: ['iife'],
+                  name: 'sw',
+                  fileName: () => 'sw.js',
+                },
+                outDir: tmpDir,
+                emptyOutDir: true,
+                minify: false,
+                sourcemap: 'inline',
+              },
             });
 
-            if (result.errors.length > 0) {
-              throw new Error(`esbuild failed: ${result.errors.map(e => e.text).join(', ')}`);
-            }
-
-            const output = result.outputFiles?.[0];
-            if (!output) {
-              throw new Error('No output from esbuild');
-            }
+            const output = await readFile(join(tmpDir, 'sw.js'), 'utf-8');
+            await rm(tmpDir, { recursive: true }).catch(() => {});
 
             res.setHeader('Content-Type', 'application/javascript');
             res.setHeader('Cache-Control', 'no-cache');
-            res.end(output.text);
+            res.end(output);
           } catch (error) {
             console.error('Failed to compile service worker:', error);
             res.statusCode = 500;
