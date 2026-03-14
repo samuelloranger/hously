@@ -102,6 +102,8 @@ export function useC411Releases() {
   return useQuery({
     queryKey: queryKeys.c411.releases(),
     queryFn: () => fetcher<C411ReleasesResponse>(C411_ENDPOINTS.RELEASES),
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 }
 
