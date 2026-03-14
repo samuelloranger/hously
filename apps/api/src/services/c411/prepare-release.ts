@@ -99,11 +99,10 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
   console.log('[c411:prepare] Detecting languages...');
   let langTag: LanguageTag = await detectLanguages(originalPath);
 
-  // If ffprobe found nothing, infer from subtitle tracks and release name
+  // If ffprobe found nothing, infer from release name only.
+  // Subtitles are NOT reliable — a single English audio track can have 40 subtitle
+  // languages (including French), that doesn't make it MULTI.
   if (langTag === 'UNKNOWN') {
-    const hasFrSub = media.subtitles.some((s) => /^(fre|fra|fr)$/.test(s.language.toLowerCase()));
-    const hasEnSub = media.subtitles.some((s) => /^(eng|en)$/.test(s.language.toLowerCase()));
-    const hasVfqSub = media.subtitles.some((s) => /canad|québ|quebec|vfq/i.test(s.title));
     const name = originalName.toUpperCase();
 
     if (name.includes('MULTI') && name.includes('VF2')) langTag = 'MULTI.VF2';
@@ -112,10 +111,8 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
     else if (name.includes('VFQ')) langTag = 'VFQ';
     else if (name.includes('VFF') || name.includes('TRUEFRENCH')) langTag = 'VFF';
     else if (name.includes('FRENCH')) langTag = 'FRENCH';
-    else if (hasFrSub && hasEnSub && hasVfqSub) langTag = 'MULTI.VF2';
-    else if (hasFrSub && hasEnSub) langTag = 'MULTI';
-    else if (hasFrSub) langTag = 'FRENCH';
-    else if (hasEnSub) langTag = 'EN';
+    // If no language markers in the name and only 1 audio track, assume VO (English)
+    else if (media.audioStreams.length <= 1) langTag = 'EN';
   }
   console.log(`[c411:prepare] Language: ${langTag}`);
 
