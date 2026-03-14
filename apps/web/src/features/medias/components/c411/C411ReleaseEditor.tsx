@@ -5,6 +5,7 @@ import {
   useC411Release,
   useC411UpdateRelease,
   useC411CreateDraft,
+  useC411PublishRelease,
   useC411Categories,
   useC411CategoryOptions,
 } from '@hously/shared';
@@ -71,6 +72,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
   const { data: release, isLoading } = useC411Release(releaseId);
   const updateRelease = useC411UpdateRelease();
   const createDraft = useC411CreateDraft();
+  const publishRelease = useC411PublishRelease();
   const categories = useC411Categories();
   useC411CategoryOptions(release?.category_id ?? null, {
     enabled: release?.category_id != null,
@@ -143,6 +145,16 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
     createDraft.mutate(payload);
   };
 
+  const handlePublish = () => {
+    if (!release) return;
+    if (!confirm(`Publish "${name}" directly on C411?`)) return;
+    // Save first, then publish
+    updateRelease.mutate(
+      { id: releaseId, payload: { name, bbcode, category_id: categoryId, subcategory_id: subcategoryId } },
+      { onSuccess: () => publishRelease.mutate(releaseId) },
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -173,7 +185,15 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-neutral-100 dark:bg-neutral-700/50 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all duration-150 disabled:opacity-50"
           >
             {createDraft.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-            Create Draft on C411
+            Draft
+          </button>
+          <button
+            onClick={handlePublish}
+            disabled={publishRelease.isPending || updateRelease.isPending}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-emerald-600 text-white shadow-sm hover:bg-emerald-500 transition-all duration-150 disabled:opacity-50"
+          >
+            {publishRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+            Publish
           </button>
           <button
             onClick={handleSave}
@@ -186,6 +206,16 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
         </div>
       </div>
 
+      {publishRelease.isSuccess && (
+        <div className="rounded-xl border border-emerald-200/60 dark:border-emerald-800/30 bg-emerald-50/30 dark:bg-emerald-950/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
+          Published on C411! Torrent added to qBittorrent.
+        </div>
+      )}
+      {publishRelease.isError && (
+        <div className="rounded-xl border border-red-200/60 dark:border-red-800/30 bg-red-50/30 dark:bg-red-950/10 p-3 text-xs text-red-700 dark:text-red-300">
+          {(publishRelease.error as any)?.data?.message ?? (publishRelease.error as Error)?.message ?? 'Publish failed'}
+        </div>
+      )}
       {createDraft.isSuccess && (
         <div className="rounded-xl border border-emerald-200/60 dark:border-emerald-800/30 bg-emerald-50/30 dark:bg-emerald-950/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
           Draft created on C411!
@@ -196,7 +226,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
           Failed to create draft: {(createDraft.error as Error)?.message ?? 'Unknown error'}
         </div>
       )}
-      {updateRelease.isSuccess && (
+      {updateRelease.isSuccess && !publishRelease.isPending && (
         <div className="rounded-xl border border-emerald-200/60 dark:border-emerald-800/30 bg-emerald-50/30 dark:bg-emerald-950/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
           Release saved!
         </div>

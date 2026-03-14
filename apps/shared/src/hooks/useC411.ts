@@ -8,6 +8,7 @@ import type {
   C411DraftsResponse,
   C411DraftDetail,
   C411DraftPayload,
+  C411PublishResponse,
   C411ReleasesResponse,
   C411LocalReleaseDetail,
   C411SyncResponse,
@@ -97,6 +98,19 @@ export function useC411UpdateDraft() {
   });
 }
 
+export function useC411PublishDraft() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<C411PublishResponse>(C411_ENDPOINTS.PUBLISH_DRAFT(id), { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.c411.drafts() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.c411.releases() });
+    },
+  });
+}
+
 export function useC411DeleteDraft() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
@@ -125,6 +139,19 @@ export function useC411Release(id: number | null, options?: { enabled?: boolean 
     queryKey: queryKeys.c411.release(id ?? 0),
     queryFn: () => fetcher<C411LocalReleaseDetail>(C411_ENDPOINTS.RELEASE(id!)),
     enabled: (options?.enabled ?? true) && id !== null,
+  });
+}
+
+export function useC411PublishRelease() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<C411PublishResponse>(C411_ENDPOINTS.PUBLISH_RELEASE(id), { method: 'POST' }),
+    onSuccess: (_data, id) => {
+      queryClient.refetchQueries({ queryKey: queryKeys.c411.releases() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.c411.release(id) });
+    },
   });
 }
 

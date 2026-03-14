@@ -19,12 +19,17 @@ import {
   createDraft,
   updateDraft,
   deleteDraft,
+  publishDraft,
+  publishToC411,
+  downloadPublishedTorrent,
   fetchCategories,
   fetchCategoryOptions,
   fetchTmdbDetails,
   generateBBCode,
   buildFallbackTmdbDetails,
 } from '../../services/c411';
+import { getQbittorrentPluginConfig } from '../../services/qbittorrent/config';
+import { addQbittorrentTorrentFile } from '../../services/qbittorrent/torrents';
 import { prepareRelease } from '../../services/c411/prepare-release';
 import { syncC411Releases } from '../../services/c411/sync';
 
@@ -115,6 +120,45 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     } catch (error: any) {
       console.error('[c411:delete-draft]', error);
       return serverError(set, error.message || 'Failed to delete draft');
+    }
+  })
+
+  .post('/drafts/:id/publish', async ({ params, set }) => {
+    const id = parseInt(params.id);
+    if (!id) return badRequest(set, 'Invalid draft ID');
+    try {
+      const result = await withC411Session((session) => publishDraft(session, id));
+
+      if (!result.success) {
+        set.status = result.statusCode ?? 400;
+        return { success: false, message: result.message };
+      }
+
+      // Download the generated .torrent file and add it to qBittorrent
+      const infoHash = result.data!.infoHash;
+      try {
+        const { buffer, filename } = await withC411Session((session) =>
+          downloadPublishedTorrent(session, infoHash),
+        );
+
+        const { enabled, config } = await getQbittorrentPluginConfig();
+        if (enabled && config) {
+          const torrentFile = new File([buffer], filename, { type: 'application/x-bittorrent' });
+          const qbResult = await addQbittorrentTorrentFile(config, true, { torrent: torrentFile });
+          if (!qbResult.success) {
+            console.warn(`[c411:publish] Torrent published but failed to add to qBittorrent: ${qbResult.error}`);
+          }
+        } else {
+          console.warn('[c411:publish] Torrent published but qBittorrent is not configured');
+        }
+      } catch (dlError: any) {
+        console.error('[c411:publish] Failed to download/add torrent to qBittorrent:', dlError.message);
+      }
+
+      return { success: true, data: result.data, message: result.message };
+    } catch (error: any) {
+      console.error('[c411:publish-draft]', error);
+      return serverError(set, error.message || 'Failed to publish draft');
     }
   })
 
@@ -293,6 +337,79 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     } catch (error: any) {
       console.error('[c411:torrent-download]', error);
       return serverError(set, error.message || 'Failed to download torrent');
+    }
+  })
+
+  .post('/releases/:id/publish', async ({ params, set }) => {
+    const id = parseInt(params.id);
+    if (!id) return badRequest(set, 'Invalid release ID');
+    try {
+      const release = await prisma.c411Release.findUnique({
+        where: { id },
+        include: { presentation: true },
+      });
+      if (!release) return badRequest(set, 'Release not found');
+      if (!release.torrentS3Key) return badRequest(set, 'Release has no .torrent file');
+      if (!release.categoryId || !release.subcategoryId) return badRequest(set, 'Release missing category/subcategory');
+
+      // Get torrent file from S3
+      const torrentBuffer = await getFileFromS3(release.torrentS3Key);
+      if (!torrentBuffer) return serverError(set, 'Failed to retrieve torrent from storage');
+
+      const result = await withC411Session((session) =>
+        publishToC411(session, {
+          torrentBuffer: Buffer.from(torrentBuffer),
+          torrentFileName: `${release.name}.torrent`,
+          nfoContent: release.nfoContent ?? undefined,
+          nfoFileName: release.nfoContent ? `${release.name}.nfo` : undefined,
+          title: release.name,
+          categoryId: release.categoryId!,
+          subcategoryId: release.subcategoryId!,
+          description: release.presentation?.bbcode ?? undefined,
+          options: (release.options as Record<string, number | number[]>) ?? undefined,
+          tmdbData: release.tmdbData ?? undefined,
+        }),
+      );
+
+      if (!result.success) {
+        set.status = result.statusCode ?? 400;
+        return { success: false, message: result.message };
+      }
+
+      // Update the local release with C411 data
+      await prisma.c411Release.update({
+        where: { id },
+        data: {
+          c411TorrentId: result.data!.id,
+          infoHash: result.data!.infoHash,
+          status: result.data!.status,
+        },
+      });
+
+      // Download the C411-generated .torrent and add to qBittorrent
+      try {
+        const { buffer: dlBuffer, filename } = await withC411Session((session) =>
+          downloadPublishedTorrent(session, result.data!.infoHash),
+        );
+
+        const { enabled, config } = await getQbittorrentPluginConfig();
+        if (enabled && config) {
+          const torrentFile = new File([dlBuffer], filename, { type: 'application/x-bittorrent' });
+          const qbResult = await addQbittorrentTorrentFile(config, true, { torrent: torrentFile });
+          if (!qbResult.success) {
+            console.warn(`[c411:publish-release] Published but failed to add to qBittorrent: ${qbResult.error}`);
+          }
+        } else {
+          console.warn('[c411:publish-release] Published but qBittorrent is not configured');
+        }
+      } catch (dlError: any) {
+        console.error('[c411:publish-release] Failed to download/add torrent to qBittorrent:', dlError.message);
+      }
+
+      return { success: true, data: result.data, message: result.message };
+    } catch (error: any) {
+      console.error('[c411:publish-release]', error);
+      return serverError(set, error.message || 'Failed to publish release');
     }
   })
 

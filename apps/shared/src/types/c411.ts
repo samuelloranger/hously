@@ -108,6 +108,13 @@ export interface C411DraftPayload {
   nfoFileData?: string | null;
 }
 
+// ─── C411 Publish ────────────────────────────────────────
+export interface C411PublishResponse {
+  success: boolean;
+  data?: { id: number; infoHash: string; status: string };
+  message?: string;
+}
+
 // ─── C411 Categories ──────────────────────────────────────
 export interface C411CategoryListItem {
   id: number;
@@ -177,6 +184,7 @@ export interface C411ReleasesResponse {
 export interface C411SyncResponse {
   created: number;
   updated: number;
+  merged: number;
 }
 
 export interface C411GenerateBBCodeResponse {
