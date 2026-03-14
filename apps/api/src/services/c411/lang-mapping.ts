@@ -61,9 +61,12 @@ export function getShortLangLabel(langCode: string, title: string): string {
   if (t.includes('vfi')) return 'VFI';
   if (t.includes('truefrench')) return 'TRUEFRENCH';
   if (t.includes('french') || t === 'francais') return 'French';
-  if (t.includes('vo') || t === 'english') return 'VO';
-  if (title) return title;
-  return SHORT_LABEL_MAP[langCode.toLowerCase()] ?? langCode;
+  if (t.includes('vo') || t === 'english' || /\beng\b/.test(t)) return 'VO';
+  // Check langCode before falling back to raw title (which may contain codec info)
+  const fromLangCode = SHORT_LABEL_MAP[langCode.toLowerCase()];
+  if (fromLangCode) return fromLangCode;
+  if (title && !/\d/.test(title)) return title; // Only use title if it's not technical info
+  return langCode;
 }
 
 export function getFullLangName(langCode: string, title: string): string {
