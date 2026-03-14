@@ -95,13 +95,15 @@ export function C411ReleasesList({ data, isLoading, tmdbId, onEdit, prepareStatu
           >
             <Pencil className="h-3.5 w-3.5" />
           </button>
-          <button
-            onClick={() => { if (confirm('Delete this release? This will also remove the hardlink and .torrent file.')) deleteRelease.mutate(r.id); }}
-            disabled={deleteRelease.isPending}
-            className="rounded-lg p-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+          {r.status === 'local' && (
+            <button
+              onClick={() => { if (confirm('Delete this release? This will also remove the hardlink and .torrent file.')) deleteRelease.mutate(r.id); }}
+              disabled={deleteRelease.isPending}
+              className="rounded-lg p-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
       {r.seeders !== null && (
