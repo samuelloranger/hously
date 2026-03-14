@@ -106,8 +106,9 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
     const name = originalName.toUpperCase();
 
     if (name.includes('MULTI') && name.includes('VF2')) langTag = 'MULTI.VF2';
-    else if (name.includes('MULTI') && name.includes('VFQ')) langTag = 'MULTI';
-    else if (name.includes('MULTI')) langTag = 'MULTI';
+    else if (name.includes('MULTI') && name.includes('VFQ')) langTag = 'MULTI.VFQ';
+    else if (name.includes('MULTI') && name.includes('VFI')) langTag = 'MULTI.VFI';
+    else if (name.includes('MULTI')) langTag = 'MULTI.VFF';
     else if (name.includes('VFQ')) langTag = 'VFQ';
     else if (name.includes('VFF') || name.includes('TRUEFRENCH')) langTag = 'VFF';
     else if (name.includes('FRENCH')) langTag = 'VFF'; // C411 requires VFF/VFQ/VFI, not FRENCH

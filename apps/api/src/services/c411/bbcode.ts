@@ -137,8 +137,12 @@ function expandAudioByLangTag(
   switch (langTag) {
     case 'MULTI.VF2':
       return [make('fre', 'VFF'), make('fre', 'VFQ'), make('eng', 'VO')];
-    case 'MULTI':
+    case 'MULTI.VFF':
       return [make('fre', 'VFF'), make('eng', 'VO')];
+    case 'MULTI.VFQ':
+      return [make('fre', 'VFQ'), make('eng', 'VO')];
+    case 'MULTI.VFI':
+      return [make('fre', 'VFI'), make('eng', 'VO')];
     case 'VFF':
       return [make('fre', 'VFF')];
     case 'VFQ':

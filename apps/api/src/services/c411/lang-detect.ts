@@ -81,7 +81,13 @@ export async function detectLanguages(contentPath: string): Promise<LanguageTag>
     }
   }
 
-  if (frCount > 0 && enCount > 0) return frCount >= 2 ? 'MULTI.VF2' : 'MULTI';
+  if (frCount > 0 && enCount > 0) {
+    if (frCount >= 2) return 'MULTI.VF2';
+    if (hasVff) return 'MULTI.VFF';
+    if (hasVfq) return 'MULTI.VFQ';
+    if (hasVfi) return 'MULTI.VFI';
+    return 'MULTI.VFF'; // Default to VFF when variant unspecified
+  }
   if (frCount > 0) {
     if (hasVff) return 'VFF';
     if (hasVfq) return 'VFQ';

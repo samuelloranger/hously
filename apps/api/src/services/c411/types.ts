@@ -297,4 +297,4 @@ export type C411Session = {
 };
 
 // Language tag detected from audio tracks
-export type LanguageTag = "MULTI.VF2" | "MULTI" | "VFF" | "VFQ" | "VFI" | "EN" | "UNKNOWN";
+export type LanguageTag = "MULTI.VF2" | "MULTI.VFF" | "MULTI.VFQ" | "MULTI.VFI" | "VFF" | "VFQ" | "VFI" | "EN" | "UNKNOWN";
