@@ -303,19 +303,28 @@ const exploreRoute = createRoute({
 });
 
 export type LibrarySearchParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
   c411?: number;
   c411Tab?: string;
   c411Release?: number;
 };
+
+const parseOptionalInt = (val: unknown): number | undefined =>
+  typeof val === 'number' ? val : (typeof val === 'string' && val ? Number(val) || undefined : undefined);
 
 const libraryRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/library',
   component: LibraryPage,
   validateSearch: (search: Record<string, unknown>): LibrarySearchParams => ({
-    c411: typeof search.c411 === 'number' ? search.c411 : (typeof search.c411 === 'string' && search.c411 ? Number(search.c411) || undefined : undefined),
+    page: parseOptionalInt(search.page),
+    pageSize: parseOptionalInt(search.pageSize),
+    search: typeof search.search === 'string' && search.search ? search.search : undefined,
+    c411: parseOptionalInt(search.c411),
     c411Tab: typeof search.c411Tab === 'string' ? search.c411Tab : undefined,
-    c411Release: typeof search.c411Release === 'number' ? search.c411Release : (typeof search.c411Release === 'string' && search.c411Release ? Number(search.c411Release) || undefined : undefined),
+    c411Release: parseOptionalInt(search.c411Release),
   }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {

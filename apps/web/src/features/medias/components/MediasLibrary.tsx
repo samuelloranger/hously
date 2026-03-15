@@ -29,18 +29,19 @@ const getAddedTime = (item: MediaItem): number => {
 export function MediasLibrary() {
   const { t } = useTranslation('common');
   const { data, isLoading, refetch } = useMedias();
-  const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<MediaFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>('added_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
   const [interactiveItem, setInteractiveItem] = useState<MediaItem | null>(null);
   const [similarItem, setSimilarItem] = useState<MediaItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<MediaItem | null>(null);
 
   const searchParams = useSearch({ from: '/library' }) as LibrarySearchParams;
   const { setParams, resetParams } = useModalSearchParams('/library', searchParams);
+
+  const search = searchParams.search ?? '';
+  const page = searchParams.page ?? 1;
+  const pageSize = searchParams.pageSize ?? 50;
 
   const items = data?.items ?? [];
   const c411Enabled = data?.c411_enabled ?? false;
@@ -73,17 +74,13 @@ export function MediasLibrary() {
       });
   }, [items, filter, search, sortBy, sortDir]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [search, filter, sortBy, sortDir, pageSize]);
-
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
 
   useEffect(() => {
     if (page > totalPages) {
-      setPage(totalPages);
+      setParams({ page: totalPages > 1 ? totalPages : undefined });
     }
-  }, [page, totalPages]);
+  }, [page, totalPages, setParams]);
 
   const pageStartIndex = (page - 1) * pageSize;
   const pageEndIndex = pageStartIndex + pageSize;
@@ -114,7 +111,7 @@ export function MediasLibrary() {
             />
             <input
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => setParams({ search: e.target.value || undefined, page: undefined })}
               placeholder={t('medias.searchPlaceholder')}
               className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition"
             />
@@ -231,7 +228,7 @@ export function MediasLibrary() {
               <div className="flex items-center gap-1.5">
                 <select
                   value={pageSize}
-                  onChange={e => setPageSize(Number(e.target.value))}
+                  onChange={e => { const v = Number(e.target.value); setParams({ pageSize: v !== 50 ? v : undefined, page: undefined }); }}
                   className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                 >
                   {[24, 50, 100].map(size => (
@@ -244,7 +241,7 @@ export function MediasLibrary() {
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
-                    onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                    onClick={() => { const p = Math.max(1, page - 1); setParams({ page: p > 1 ? p : undefined }); }}
                     disabled={page <= 1}
                     className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
@@ -255,7 +252,7 @@ export function MediasLibrary() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                    onClick={() => setParams({ page: Math.min(totalPages, page + 1) })}
                     disabled={page >= totalPages}
                     className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
