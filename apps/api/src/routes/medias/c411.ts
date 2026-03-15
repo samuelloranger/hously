@@ -7,7 +7,7 @@ import { auth } from '../../auth';
 import { requireUser } from '../../middleware/auth';
 import { prisma } from '../../db';
 import { badRequest, serverError } from '../../utils/errors';
-import { getJsonCache, setJsonCache } from '../../services/cache';
+import { getJsonCache, setJsonCache, deleteCache } from '../../services/cache';
 import { getFileFromS3, deleteFromS3 } from '../../services/s3Service';
 import {
   withC411Session,
@@ -60,10 +60,16 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
 
     if (!tmdbId || !title) return badRequest(set, 'tmdbId and title are required');
 
+    const cacheKey = `c411:release-status:${tmdbId}`;
     try {
-      return await withC411Session((session) =>
+      const cached = await getJsonCache(cacheKey);
+      if (cached) return cached;
+
+      const result = await withC411Session((session) =>
         fetchReleaseStatus(session, { tmdbId, tmdbType: 'movie', imdbId, title, year: year || 0 }),
       );
+      await setJsonCache(cacheKey, result, 1800); // 30 min cache
+      return result;
     } catch (error: any) {
       console.error('[c411:release-status]', error);
       return serverError(set, error.message || 'Failed to fetch release status');
@@ -389,6 +395,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
           status: result.data!.status,
         },
       });
+      await deleteCache('c411:library-tmdb-ids');
 
       // Download the C411-generated .torrent and add to qBittorrent
       try {
@@ -543,6 +550,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
       const result = await withC411Session((session) =>
         syncC411Releases(session, config.username),
       );
+      await deleteCache('c411:library-tmdb-ids');
       return result;
     } catch (error: any) {
       console.error('[c411:sync]', error);

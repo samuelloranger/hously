@@ -2,7 +2,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 
 export type MediaPosterCardStatus = 'downloaded' | 'downloading' | 'missing';
 
-const STATUS_COLORS: Record<MediaPosterCardStatus, string> = {
+const STATUS_BORDER_COLORS: Record<MediaPosterCardStatus, string> = {
   downloaded: 'bg-emerald-400',
   downloading: 'bg-sky-400',
   missing: 'bg-amber-400',
@@ -16,7 +16,12 @@ export type MediaPosterCardProps = {
   status?: MediaPosterCardStatus;
   statusLabel?: string;
 
-  /** Extra content revealed below the title on hover (meta, actions, etc.) */
+  /** Slot for top-left badge (e.g. C411 logo) */
+  topLeftBadge?: ReactNode;
+  /** Slot for top-right overlay content (e.g. dropdown menu) */
+  topRightContent?: ReactNode;
+
+  /** Extra content revealed below the title (meta, actions, etc.) */
   children?: ReactNode;
 
   href?: string;
@@ -37,6 +42,8 @@ export function MediaPosterCard({
   fallbackEmoji = '🎞️',
   status,
   statusLabel,
+  topLeftBadge,
+  topRightContent,
   children,
   href,
   target,
@@ -52,10 +59,10 @@ export function MediaPosterCard({
   const showImage = Boolean(posterUrl) && !imageError;
 
   const containerClass = [
-    'group relative shrink-0 overflow-hidden rounded-2xl',
+    'group/card relative shrink-0 overflow-hidden rounded-2xl',
     'border border-white/10 bg-neutral-900 shadow-sm shadow-black/20',
-    'transition-[border-color,box-shadow,transform] duration-300 ease-out',
-    'hover:border-white/20 hover:shadow-md hover:shadow-black/25',
+    'transition-all duration-300 ease-out',
+    'hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30 hover:border-white/15',
     'focus:outline-none focus:ring-2',
     accentRingClassName,
     disabled ? 'opacity-60 cursor-not-allowed' : '',
@@ -79,7 +86,7 @@ export function MediaPosterCard({
           loading="lazy"
           aria-hidden="true"
           onError={() => setImageError(true)}
-          className="absolute inset-0 h-full w-full object-cover will-change-transform transition-transform duration-300 ease-out group-hover:scale-105"
+          className="absolute inset-0 h-full w-full object-cover will-change-transform transition-transform duration-500 ease-out group-hover/card:scale-[1.03]"
         />
       )}
 
@@ -88,19 +95,23 @@ export function MediaPosterCard({
         <div className="absolute inset-0 flex items-center justify-center text-4xl text-white/40">{fallbackEmoji}</div>
       )}
 
-      {/* Light gradient — just enough to read the title */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent transition-opacity duration-300 group-hover:from-black/60" />
+      {/* Hover vignette overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent transition-opacity duration-300 group-hover/card:from-black/65" />
 
       {/* Soft inner ring */}
-      <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/[0.06]" />
+      <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/[0.06]" />
 
-      {/* Status dot */}
-      {status && (
-        <div className="absolute top-2 right-2 z-20">
-          <span
-            title={statusLabel}
-            className={`block h-2 w-2 rounded-full ${STATUS_COLORS[status]} ring-1.5 ring-black/20 shadow-sm`}
-          />
+      {/* Top-left badge */}
+      {topLeftBadge && (
+        <div className="absolute top-2 left-2 z-20">
+          {topLeftBadge}
+        </div>
+      )}
+
+      {/* Top-right content (dropdown, etc.) — visible on hover */}
+      {topRightContent && (
+        <div className="absolute top-1.5 right-1.5 z-20 opacity-0 translate-y-[-2px] transition-all duration-200 group-hover/card:opacity-100 group-hover/card:translate-y-0">
+          {topRightContent}
         </div>
       )}
 
@@ -112,8 +123,13 @@ export function MediaPosterCard({
         </div>
       </div>
 
-      {/* Status strip */}
-      {status && <div className={`absolute inset-x-0 bottom-0 h-px ${STATUS_COLORS[status]} z-30 opacity-80`} />}
+      {/* Status bottom border */}
+      {status && (
+        <div
+          className={`absolute inset-x-0 bottom-0 h-[2.5px] ${STATUS_BORDER_COLORS[status]} z-30`}
+          title={statusLabel}
+        />
+      )}
     </>
   );
 

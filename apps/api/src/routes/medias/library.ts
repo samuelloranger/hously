@@ -4,6 +4,7 @@ import { requireUser } from '../../middleware/auth';
 import { prisma } from '../../db';
 import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
 import { serverError } from '../../utils/errors';
+import { getJsonCache, setJsonCache } from '../../services/cache';
 import type { MediaItem } from '@hously/shared';
 import {
   mapRadarrMovie,
@@ -22,6 +23,7 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
       radarr_connected: boolean;
       sonarr_connected: boolean;
       c411_enabled: boolean;
+      c411_tmdb_ids: number[];
       items: MediaItem[];
       errors?: { radarr?: string; sonarr?: string };
     } = {
@@ -30,6 +32,7 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
       radarr_connected: false,
       sonarr_connected: false,
       c411_enabled: false,
+      c411_tmdb_ids: [],
       items: [],
     };
 
@@ -54,6 +57,28 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
       response.radarr_enabled = Boolean(radarrPlugin?.enabled);
       response.sonarr_enabled = Boolean(sonarrPlugin?.enabled);
       response.c411_enabled = Boolean(c411Plugin?.enabled);
+
+      // Fetch TMDB IDs that have releases on C411 (with Redis cache)
+      if (c411Plugin?.enabled) {
+        try {
+          const cacheKey = 'c411:library-tmdb-ids';
+          const cached = await getJsonCache<number[]>(cacheKey);
+          if (cached) {
+            response.c411_tmdb_ids = cached;
+          } else {
+            const c411Releases = await prisma.c411Release.findMany({
+              where: { tmdbId: { not: null }, c411TorrentId: { not: null } },
+              select: { tmdbId: true },
+              distinct: ['tmdbId'],
+            });
+            const tmdbIds = c411Releases.map((r) => r.tmdbId!);
+            response.c411_tmdb_ids = tmdbIds;
+            await setJsonCache(cacheKey, tmdbIds, 1800); // 30 min cache
+          }
+        } catch {
+          // Non-critical, continue without C411 data
+        }
+      }
 
       if (radarrPlugin?.enabled) {
         const radarrConfig = normalizeRadarrConfig(radarrPlugin.config);
