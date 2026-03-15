@@ -27,6 +27,7 @@ export interface MediasResponse {
   sonarr_connected: boolean;
   c411_enabled: boolean;
   c411_tmdb_ids: number[];
+  c411_release_tags: Record<number, string[]>;
   items: MediaItem[];
   errors?: {
     radarr?: string;

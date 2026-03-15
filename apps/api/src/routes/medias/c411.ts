@@ -395,7 +395,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
           status: result.data!.status,
         },
       });
-      await deleteCache('c411:library-tmdb-ids');
+      await deleteCache('c411:library-release-data');
 
       // Download the C411-generated .torrent and add to qBittorrent
       try {
@@ -550,7 +550,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
       const result = await withC411Session((session) =>
         syncC411Releases(session, config.username),
       );
-      await deleteCache('c411:library-tmdb-ids');
+      await deleteCache('c411:library-release-data');
       return result;
     } catch (error: any) {
       console.error('[c411:sync]', error);

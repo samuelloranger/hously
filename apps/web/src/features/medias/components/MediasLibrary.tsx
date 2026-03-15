@@ -49,6 +49,7 @@ export function MediasLibrary() {
     () => new Set(data?.c411_tmdb_ids ?? []),
     [data?.c411_tmdb_ids],
   );
+  const c411ReleaseTags = data?.c411_release_tags ?? {};
   const c411Item = useMemo(
     () => items.find((i) => i.tmdb_id === searchParams.c411) ?? null,
     [items, searchParams.c411],
@@ -216,6 +217,7 @@ export function MediasLibrary() {
                   key={item.id}
                   item={item}
                   isOnC411={c411Enabled && item.tmdb_id !== null && c411TmdbIds.has(item.tmdb_id)}
+                  releaseTags={item.tmdb_id ? c411ReleaseTags[item.tmdb_id] : undefined}
                   onOpenInteractive={() => setInteractiveItem(item)}
                   onFindSimilar={item.tmdb_id ? () => setSimilarItem(item) : undefined}
                   onOpenC411={c411Enabled && item.media_type === 'movie' && item.source_id && item.tmdb_id ? () => setParams({ c411: item.tmdb_id! }) : undefined}
@@ -420,6 +422,7 @@ function CardDropdownMenu({
 function MediaGridCard({
   item,
   isOnC411,
+  releaseTags,
   onOpenInteractive,
   onFindSimilar,
   onOpenC411,
@@ -427,6 +430,7 @@ function MediaGridCard({
 }: {
   item: MediaItem;
   isOnC411: boolean;
+  releaseTags?: string[];
   onOpenInteractive: () => void;
   onFindSimilar?: () => void;
   onOpenC411?: () => void;
@@ -451,6 +455,7 @@ function MediaGridCard({
       accentRingClassName="focus:ring-indigo-400/70"
       className="w-full"
       topLeftBadge={isOnC411 ? <C411Badge /> : undefined}
+      hoverTags={releaseTags}
       topRightContent={
         <CardDropdownMenu
           item={item}
