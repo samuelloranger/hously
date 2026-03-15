@@ -81,6 +81,32 @@ async function fetchReleaseGroupFromHistory(baseUrl: string, apiKey: string, mov
 }
 
 /**
+ * Fetch the release group for a movie from Radarr by its tmdbId.
+ * Tries movieFile.releaseGroup first, then grab history.
+ */
+async function fetchReleaseGroupFromRadarr(tmdbId: number): Promise<string> {
+  try {
+    const radarrConfig = await loadRadarrConfig();
+    // Look up movie by tmdbId
+    const res = await fetch(`${radarrConfig.baseUrl}/api/v3/movie?tmdbId=${tmdbId}`, {
+      headers: { 'X-Api-Key': radarrConfig.apiKey },
+    });
+    if (!res.ok) return '';
+    const movies = await res.json() as any[];
+    const movie = movies[0];
+    if (!movie) return '';
+
+    // Try movieFile.releaseGroup first
+    if (movie.movieFile?.releaseGroup) return movie.movieFile.releaseGroup;
+
+    // Fallback to grab history
+    return fetchReleaseGroupFromHistory(radarrConfig.baseUrl, radarrConfig.apiKey, movie.id);
+  } catch {
+    return '';
+  }
+}
+
+/**
  * Prepare a full C411 release from a Radarr movie.
  */
 export async function prepareRelease(options: PrepareReleaseOptions): Promise<PrepareReleaseResult> {
@@ -319,8 +345,12 @@ export async function refreshRelease(releaseId: number): Promise<void> {
   if (!tmdb) tmdb = buildFallbackTmdbDetails(originalName);
 
   // 4. Build release name
-  // Use stored releaseGroup from metadata (set during prepare), fallback to parsing from filename
-  const releaseGroup = metadata?.releaseGroup || '';
+  // Use stored releaseGroup from metadata, fallback to fetching from Radarr
+  let releaseGroup = metadata?.releaseGroup || '';
+  if (!releaseGroup && tmdbId) {
+    releaseGroup = await fetchReleaseGroupFromRadarr(tmdbId);
+    if (releaseGroup) console.log(`[c411:refresh] Found release group from Radarr: ${releaseGroup}`);
+  }
   const releaseInfo = buildReleaseInfo(tmdb, media, originalName, langTag !== 'UNKNOWN' ? langTag : undefined);
   const c411Name = buildC411ReleaseName(releaseInfo, originalName, releaseGroup || undefined);
   console.log(`[c411:refresh] Release name: ${c411Name}`);
