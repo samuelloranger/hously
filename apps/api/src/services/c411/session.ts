@@ -109,17 +109,40 @@ export async function getC411Session(): Promise<C411Session> {
   const config = await loadC411Config();
   if (!config.flaresolverrUrl) throw new Error('C411 plugin missing flaresolverr_url');
 
-  console.log('[c411] Creating new session...');
-  const solution = await callFlareSolverr(config.flaresolverrUrl, config.trackerUrl);
-  const session = await loginC411(
-    { trackerUrl: config.trackerUrl, username: config.username, password: config.password },
-    solution,
-  );
+  const MAX_RETRIES = 3;
+  let lastError: Error | null = null;
 
-  cachedSession = session;
-  sessionCreatedAt = now;
-  console.log('[c411] Session created successfully');
-  return session;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      console.log(`[c411] Creating new session (attempt ${attempt}/${MAX_RETRIES})...`);
+      const solution = await callFlareSolverr(config.flaresolverrUrl, config.trackerUrl);
+      const session = await loginC411(
+        { trackerUrl: config.trackerUrl, username: config.username, password: config.password },
+        solution,
+      );
+
+      cachedSession = session;
+      sessionCreatedAt = Date.now();
+      console.log('[c411] Session created successfully');
+      return session;
+    } catch (error: any) {
+      lastError = error;
+      const isCsrf = error?.message?.includes('csrf-token');
+      const isFlare = error?.message?.includes('FlareSolverr');
+      if ((isCsrf || isFlare) && attempt < MAX_RETRIES) {
+        console.warn(`[c411] Attempt ${attempt} failed (${error.message}), retrying...`);
+        continue;
+      }
+      break;
+    }
+  }
+
+  // Provide a clearer error message
+  const msg = lastError?.message ?? '';
+  if (msg.includes('csrf-token')) {
+    throw new Error('C411 is unreachable — FlareSolverr could not bypass Cloudflare protection. The site may be down or FlareSolverr needs a restart.');
+  }
+  throw lastError!;
 }
 
 /**
