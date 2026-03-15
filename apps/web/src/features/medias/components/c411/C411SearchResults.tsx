@@ -1,7 +1,7 @@
 import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { C411SearchResponse } from '@hously/shared';
-import { formatSize, STATUS_BADGE, BADGE_BASE, BADGE_NEUTRAL, BADGE_INDIGO, CARD, CARD_HIGHLIGHT, STAT_LINE, STAT_SEED, STAT_LEECH } from './c411-utils';
+import { formatSize, capitalizeStatus, STATUS_BADGE, BADGE_BASE, BADGE_NEUTRAL, BADGE_INDIGO, CARD, CARD_HIGHLIGHT, STAT_LINE, STAT_SEED, STAT_LEECH } from './c411-utils';
 
 interface Props {
   data: C411SearchResponse | null;
@@ -44,7 +44,7 @@ export function C411SearchResults({ data, isLoading, query }: Props) {
               <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">{torrent.name}</p>
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
                 <span className={BADGE_NEUTRAL}>{torrent.category.name}</span>
-                <span className={cn(BADGE_BASE, STATUS_BADGE[torrent.status] ?? STATUS_BADGE.local)}>{torrent.status}</span>
+                <span className={cn(BADGE_BASE, STATUS_BADGE[torrent.status] ?? STATUS_BADGE.local)}>{capitalizeStatus(torrent.status)}</span>
                 {torrent.isOwner && <span className={BADGE_INDIGO}>yours</span>}
               </div>
             </div>

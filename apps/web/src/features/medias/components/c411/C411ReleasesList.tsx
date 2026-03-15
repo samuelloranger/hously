@@ -1,8 +1,20 @@
-import { Loader2, FolderOpen, Pencil, Trash2 } from 'lucide-react';
+import { Loader2, FolderOpen, Pencil, Trash2, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useC411DeleteRelease } from '@hously/shared';
 import type { C411LocalRelease } from '@hously/shared';
-import { formatSize, STATUS_BADGE, BADGE_BASE, BADGE_NEUTRAL, BADGE_SKY, BADGE_VIOLET, CARD_HOVER, STAT_LINE, STAT_SEED, STAT_LEECH } from './c411-utils';
+import {
+  formatSize,
+  capitalizeStatus,
+  STATUS_BADGE,
+  STATUS_BORDER,
+  STATUS_BG,
+  BADGE_BASE,
+  BADGE_NEUTRAL,
+  BADGE_SKY,
+  BADGE_VIOLET,
+  CARD_STATUS,
+  STAT_LINE,
+} from './c411-utils';
 
 interface Props {
   releases: C411LocalRelease[];
@@ -10,6 +22,29 @@ interface Props {
   onEdit: (id: number) => void;
   prepareStatus?: 'pending' | 'success' | null;
   emptyMessage?: string;
+}
+
+/** Tiny seeder/leecher bar — visual at-a-glance health. */
+function SeedBar({ seeders, leechers }: { seeders: number; leechers: number }) {
+  const total = seeders + leechers || 1;
+  const pct = Math.round((seeders / total) * 100);
+  return (
+    <div className="flex items-center gap-2">
+      <div className="h-1 w-14 rounded-full bg-neutral-200/80 dark:bg-neutral-700/60 overflow-hidden">
+        <div
+          className={cn(
+            'h-full rounded-full transition-all duration-300',
+            pct >= 60 ? 'bg-emerald-500 dark:bg-emerald-400' : pct >= 30 ? 'bg-amber-400 dark:bg-amber-500' : 'bg-red-400 dark:bg-red-500',
+          )}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className={STAT_LINE}>
+        <span className="text-emerald-600 dark:text-emerald-400 tabular-nums">{seeders}<span className="opacity-60">S</span></span>
+        <span className="text-red-500/80 dark:text-red-400/80 tabular-nums">{leechers}<span className="opacity-60">L</span></span>
+      </span>
+    </div>
+  );
 }
 
 export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, emptyMessage }: Props) {
@@ -37,47 +72,68 @@ export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, e
     );
   }
 
-  const renderRelease = (r: C411LocalRelease) => (
-    <div key={r.id} className={cn('p-3', CARD_HOVER)}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">{r.name}</p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <span className={cn(BADGE_BASE, STATUS_BADGE[r.status] ?? STATUS_BADGE.local)}>{r.status}</span>
-            {r.resolution && <span className={BADGE_NEUTRAL}>{r.resolution}</span>}
-            {r.language && <span className={BADGE_NEUTRAL}>{r.language}</span>}
-            {r.has_presentation && <span className={BADGE_SKY}>prez</span>}
-            {r.has_torrent && <span className={BADGE_VIOLET}>.torrent</span>}
+  const renderRelease = (r: C411LocalRelease) => {
+    const borderColor = STATUS_BORDER[r.status] ?? STATUS_BORDER.local;
+    const bgTint = STATUS_BG[r.status] ?? '';
+
+    return (
+      <div key={r.id} className={cn(CARD_STATUS, borderColor, bgTint, 'p-3.5')}>
+        <div className="flex items-start justify-between gap-3">
+          {/* Left content */}
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate leading-snug">{r.name}</p>
+
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className={cn(BADGE_BASE, STATUS_BADGE[r.status] ?? STATUS_BADGE.local, 'gap-1')}>
+                {r.status === 'approved' && <CheckCircle2 className="h-2.5 w-2.5" />}
+                {r.status === 'pending' && <ArrowUpCircle className="h-2.5 w-2.5" />}
+                {r.status === 'rejected' && <ArrowDownCircle className="h-2.5 w-2.5" />}
+                {capitalizeStatus(r.status)}
+              </span>
+              {r.resolution && <span className={BADGE_NEUTRAL}>{r.resolution}</span>}
+              {r.language && <span className={BADGE_NEUTRAL}>{r.language}</span>}
+              {r.has_presentation && <span className={BADGE_SKY}>prez</span>}
+              {r.has_torrent && <span className={BADGE_VIOLET}>.torrent</span>}
+            </div>
+
+            {/* Stats row */}
+            <div className="mt-2 flex items-center gap-3">
+              {r.seeders !== null && (
+                <SeedBar seeders={r.seeders ?? 0} leechers={r.leechers ?? 0} />
+              )}
+              {r.completions !== null && r.completions !== undefined && (
+                <span className="text-[10px] text-neutral-400 dark:text-neutral-500 tabular-nums">{r.completions} compl.</span>
+              )}
+              {r.size && (
+                <span className="text-[10px] font-medium text-neutral-500 dark:text-neutral-400 tabular-nums">{formatSize(r.size)}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex shrink-0 items-center gap-0.5">
+            <button
+              onClick={() => onEdit(r.id)}
+              className="rounded-lg p-1.5 text-neutral-400 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+              title="Edit release"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            {r.status === 'local' && (
+              <button
+                onClick={() => { if (confirm('Delete this release? This will also remove the hardlink and .torrent file.')) deleteRelease.mutate(r.id); }}
+                disabled={deleteRelease.isPending}
+                className="rounded-lg p-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                title="Delete release"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {r.size && <span className="text-xs text-neutral-500 dark:text-neutral-400 mr-2">{formatSize(r.size)}</span>}
-          <button
-            onClick={() => onEdit(r.id)}
-            className="rounded-lg p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </button>
-          {r.status === 'local' && (
-            <button
-              onClick={() => { if (confirm('Delete this release? This will also remove the hardlink and .torrent file.')) deleteRelease.mutate(r.id); }}
-              disabled={deleteRelease.isPending}
-              className="rounded-lg p-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
       </div>
-      {r.seeders !== null && (
-        <div className={cn(STAT_LINE, 'mt-1.5')}>
-          <span className={STAT_SEED}>{r.seeders}S</span>
-          <span className={STAT_LEECH}>{r.leechers}L</span>
-          <span>{r.completions}C</span>
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-4">

@@ -53,18 +53,28 @@ export function ReleasesPage() {
       />
 
       {/* Tabs */}
-      <div className="mb-4 flex items-center gap-2">
-        {(['releases', 'drafts'] as const).map((tab) => (
+      <div className="mb-4 flex items-center gap-1">
+        {([
+          { key: 'releases' as const, label: 'Releases', count: releases.data?.releases.length ?? 0 },
+          { key: 'drafts' as const, label: 'Drafts', count: drafts.data?.count ?? 0 },
+        ]).map(({ key, label, count }) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-150 ${
-              activeTab === tab
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-xl transition-all duration-150 ${
+              activeTab === key
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'bg-neutral-100 dark:bg-neutral-700/50 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
             }`}
           >
-            {tab === 'releases' ? `Releases (${releases.data?.releases.length ?? 0})` : `Drafts (${drafts.data?.count ?? 0})`}
+            {label}
+            <span className={`tabular-nums rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+              activeTab === key
+                ? 'bg-white/20 text-white'
+                : 'bg-neutral-200/80 dark:bg-neutral-600/50 text-neutral-500 dark:text-neutral-400'
+            }`}>
+              {count}
+            </span>
           </button>
         ))}
       </div>
