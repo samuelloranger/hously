@@ -4,10 +4,15 @@
 
 const VIDEO_EXTENSIONS = /\.(mkv|avi|mp4|m4v|wmv|ts|m2ts)$/i;
 
+const TECHNICAL_TOKENS = /^(2160p|1080p|720p|480p|4K|WEB|WEB[-.]?DL|WEBRip|BluRay|BDRip|HDRip|DVDRip|HDTV|REMUX|HDLight|x264|x265|H264|H265|HEVC|AVC|AV1|AAC|AC3|EAC3|DTS|FLAC|TrueHD|MULTI|VFF|VFQ|VFI|FRENCH|TRUEFRENCH)$/i;
+
 export function parseTeam(releaseName: string): string {
   const normalized = releaseName.replace(VIDEO_EXTENSIONS, '').trim().replace(/\s*[\[(].*[\])]$/, '');
   const match = normalized.match(/-([A-Za-z0-9_]+)$/);
-  return match?.[1] ?? 'N/A';
+  if (!match) return 'N/A';
+  // Reject matches that are technical tokens (resolution, codec, source, etc.)
+  if (TECHNICAL_TOKENS.test(match[1])) return 'N/A';
+  return match[1];
 }
 
 export function parseSeason(releaseName: string): string | null {
