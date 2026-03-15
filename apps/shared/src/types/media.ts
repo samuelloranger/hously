@@ -18,6 +18,7 @@ export interface MediaItem {
   episode_count: number | null;
   poster_url: string | null;
   arr_url: string | null;
+  release_tags: string[] | null;
 }
 
 export interface MediasResponse {
@@ -27,7 +28,6 @@ export interface MediasResponse {
   sonarr_connected: boolean;
   c411_enabled: boolean;
   c411_tmdb_ids: number[];
-  c411_release_tags: Record<number, string[]>;
   items: MediaItem[];
   errors?: {
     radarr?: string;

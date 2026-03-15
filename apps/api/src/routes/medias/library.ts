@@ -13,32 +13,6 @@ import {
   fetchSonarrDownloadingSeriesIds,
 } from './mappers';
 
-const LANG_TAGS = /\b(MULTI[._]?VF2|MULTI[._]?VFF|MULTI[._]?VFQ|MULTI|VF2|VFF|VFQ|VFI|TRUEFRENCH|FRENCH)\b/i;
-const RESOLUTION_TAGS = /\b(2160p|1080p|720p|480p|4K|UHD)\b/i;
-const SOURCE_TAGS = /\b(BluRay|BDRip|BRRip|HDLight|WEBRip|WEB-DL|WEB|HDTV|DVDRip|Remux)\b/i;
-
-function parseReleaseTags(name: string): string[] {
-  const tags: string[] = [];
-  const parts = name.replace(/\./g, ' ');
-
-  const lang = parts.match(LANG_TAGS);
-  if (lang) tags.push(lang[1].replace(/[._]/g, '.'));
-
-  const res = parts.match(RESOLUTION_TAGS);
-  if (res) tags.push(res[1]);
-
-  const src = parts.match(SOURCE_TAGS);
-  if (src) tags.push(src[1]);
-
-  // Release group: after the last hyphen
-  const lastHyphen = name.lastIndexOf('-');
-  if (lastHyphen > 0 && lastHyphen < name.length - 1) {
-    tags.push(name.substring(lastHyphen + 1));
-  }
-
-  return tags;
-}
-
 export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
   .use(auth)
   .use(requireUser)
@@ -50,7 +24,6 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
       sonarr_connected: boolean;
       c411_enabled: boolean;
       c411_tmdb_ids: number[];
-      c411_release_tags: Record<number, string[]>;
       items: MediaItem[];
       errors?: { radarr?: string; sonarr?: string };
     } = {
@@ -60,7 +33,6 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
       sonarr_connected: false,
       c411_enabled: false,
       c411_tmdb_ids: [],
-      c411_release_tags: {},
       items: [],
     };
 
@@ -86,33 +58,23 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
       response.sonarr_enabled = Boolean(sonarrPlugin?.enabled);
       response.c411_enabled = Boolean(c411Plugin?.enabled);
 
-      // Fetch C411 release data (TMDB IDs + parsed tags) with Redis cache
+      // Fetch TMDB IDs that have releases on C411 (with Redis cache)
       if (c411Plugin?.enabled) {
         try {
           const cacheKey = 'c411:library-release-data';
-          const cached = await getJsonCache<{ tmdb_ids: number[]; tags: Record<number, string[]> }>(cacheKey);
+          const cached = await getJsonCache<number[]>(cacheKey);
           if (cached) {
-            response.c411_tmdb_ids = cached.tmdb_ids;
-            response.c411_release_tags = cached.tags;
+            response.c411_tmdb_ids = cached;
           } else {
-            const rows = await prisma.$queryRaw<{ tmdb_id: number; name: string }[]>`
-              SELECT DISTINCT ON (COALESCE(tmdb_id, (tmdb_data->>'id')::int))
-                COALESCE(tmdb_id, (tmdb_data->>'id')::int) AS tmdb_id,
-                name
+            const rows = await prisma.$queryRaw<{ tmdb_id: number }[]>`
+              SELECT DISTINCT COALESCE(tmdb_id, (tmdb_data->>'id')::int) AS tmdb_id
               FROM c411_releases
               WHERE c411_torrent_id IS NOT NULL
                 AND (tmdb_id IS NOT NULL OR tmdb_data->>'id' IS NOT NULL)
-              ORDER BY COALESCE(tmdb_id, (tmdb_data->>'id')::int), id DESC
             `;
-            const tmdbIds: number[] = [];
-            const tags: Record<number, string[]> = {};
-            for (const r of rows) {
-              tmdbIds.push(r.tmdb_id);
-              tags[r.tmdb_id] = parseReleaseTags(r.name);
-            }
+            const tmdbIds = rows.map((r) => r.tmdb_id);
             response.c411_tmdb_ids = tmdbIds;
-            response.c411_release_tags = tags;
-            await setJsonCache(cacheKey, { tmdb_ids: tmdbIds, tags }, 1800);
+            await setJsonCache(cacheKey, tmdbIds, 1800);
           }
         } catch {
           // Non-critical, continue without C411 data

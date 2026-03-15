@@ -49,7 +49,6 @@ export function MediasLibrary() {
     () => new Set(data?.c411_tmdb_ids ?? []),
     [data?.c411_tmdb_ids],
   );
-  const c411ReleaseTags = data?.c411_release_tags ?? {};
   const c411Item = useMemo(
     () => items.find((i) => i.tmdb_id === searchParams.c411) ?? null,
     [items, searchParams.c411],
@@ -217,7 +216,7 @@ export function MediasLibrary() {
                   key={item.id}
                   item={item}
                   isOnC411={c411Enabled && item.tmdb_id !== null && c411TmdbIds.has(item.tmdb_id)}
-                  releaseTags={item.tmdb_id ? c411ReleaseTags[item.tmdb_id] : undefined}
+                  releaseTags={item.release_tags ?? undefined}
                   onOpenInteractive={() => setInteractiveItem(item)}
                   onFindSimilar={item.tmdb_id ? () => setSimilarItem(item) : undefined}
                   onOpenC411={c411Enabled && item.media_type === 'movie' && item.source_id && item.tmdb_id ? () => setParams({ c411: item.tmdb_id! }) : undefined}

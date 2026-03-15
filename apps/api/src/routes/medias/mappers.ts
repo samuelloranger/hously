@@ -181,6 +181,61 @@ export const extractPosterUrl = (baseUrl: string, imagesValue: unknown): string 
   return null;
 };
 
+const LANG_TAGS = /\b(MULTI[._]?VF2|MULTI[._]?VFF|MULTI[._]?VFQ|MULTI|VF2|VFF|VFQ|VFI|TRUEFRENCH|FRENCH)\b/i;
+const RESOLUTION_TAGS = /\b(2160p|1080p|720p|480p|4K|UHD)\b/i;
+const SOURCE_TAGS = /\b(BluRay|BDRip|BRRip|HDLight|WEBRip|WEB-DL|WEB|HDTV|DVDRip|Remux)\b/i;
+
+export function parseReleaseTags(name: string): string[] {
+  const tags: string[] = [];
+  const parts = name.replace(/\./g, ' ');
+
+  const lang = parts.match(LANG_TAGS);
+  if (lang) tags.push(lang[1].replace(/[._]/g, '.'));
+
+  const res = parts.match(RESOLUTION_TAGS);
+  if (res) tags.push(res[1]);
+
+  const src = parts.match(SOURCE_TAGS);
+  if (src) tags.push(src[1]);
+
+  // Release group: after the last hyphen
+  const lastHyphen = name.lastIndexOf('-');
+  if (lastHyphen > 0 && lastHyphen < name.length - 1) {
+    const group = name.substring(lastHyphen + 1).replace(/\.\w{2,4}$/, ''); // strip file extension
+    if (group) tags.push(group);
+  }
+
+  return tags;
+}
+
+function extractReleaseTags(row: Record<string, unknown>): string[] | null {
+  const movieFile = toRecord(row.movieFile);
+  if (!movieFile) return null;
+
+  const sceneName = toStringOrNull(movieFile.sceneName);
+  if (sceneName) return parseReleaseTags(sceneName);
+
+  const relativePath = toStringOrNull(movieFile.relativePath);
+  if (relativePath) return parseReleaseTags(relativePath);
+
+  return null;
+}
+
+function extractSeriesReleaseTags(row: Record<string, unknown>): string[] | null {
+  // Sonarr series don't embed episode files in the list response,
+  // but some fields from the series-level quality profile can be used.
+  // We can try to parse from the series path if nothing else.
+  const path = toStringOrNull(row.path);
+  if (!path) return null;
+
+  // The series folder often has the release name format
+  const folderName = path.split('/').pop();
+  if (!folderName) return null;
+
+  const tags = parseReleaseTags(folderName);
+  return tags.length > 0 ? tags : null;
+}
+
 export const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null => {
   const row = toRecord(raw);
   if (!row) return null;
@@ -211,6 +266,7 @@ export const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null 
     episode_count: null,
     poster_url: extractPosterUrl(baseUrl, row.images),
     arr_url: tmdbId ? buildArrItemUrl(baseUrl, 'radarr', String(tmdbId)) : null,
+    release_tags: extractReleaseTags(row),
   };
 };
 
@@ -257,6 +313,7 @@ export const mapSonarrSeries = (raw: unknown, baseUrl: string): MediaItem | null
     episode_count: episodeCount,
     poster_url: extractPosterUrl(baseUrl, row.images),
     arr_url: titleSlug ? buildArrItemUrl(baseUrl, 'sonarr', titleSlug) : null,
+    release_tags: extractSeriesReleaseTags(row),
   };
 };
 
