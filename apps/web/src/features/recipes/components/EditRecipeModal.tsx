@@ -13,7 +13,7 @@ export function EditRecipeModal({ recipe, isOpen, onClose }: EditRecipeModalProp
   const { t } = useTranslation('common');
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={t('recipes.editRecipe', 'Edit recipe')} showCloseButton>
+    <Dialog isOpen={isOpen} onClose={onClose} title={t('recipes.editRecipe', 'Edit recipe')} showCloseButton panelClassName="max-w-3xl">
       <RecipeForm recipe={recipe} onCancel={onClose} onSuccess={onClose} />
     </Dialog>
   );

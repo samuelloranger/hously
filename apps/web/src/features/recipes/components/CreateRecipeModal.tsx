@@ -18,7 +18,7 @@ export function CreateRecipeModal({ isOpen, onClose }: CreateRecipeModalProps) {
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={t('recipes.addRecipe', 'Add Recipe')}>
+    <Dialog isOpen={isOpen} onClose={onClose} title={t('recipes.addRecipe', 'Add Recipe')} panelClassName="max-w-3xl">
       <RecipeForm onCancel={onClose} onSuccess={handleSuccess} />
     </Dialog>
   );
