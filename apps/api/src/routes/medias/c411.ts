@@ -30,7 +30,7 @@ import {
 } from '../../services/c411';
 import { getQbittorrentPluginConfig } from '../../services/qbittorrent/config';
 import { addQbittorrentTorrentFile } from '../../services/qbittorrent/torrents';
-import { prepareRelease } from '../../services/c411/prepare-release';
+import { prepareRelease, refreshRelease } from '../../services/c411/prepare-release';
 import { syncC411Releases } from '../../services/c411/sync';
 
 export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
@@ -144,7 +144,11 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
         const { enabled, config } = await getQbittorrentPluginConfig();
         if (enabled && config) {
           const torrentFile = new File([buffer], filename, { type: 'application/x-bittorrent' });
-          const qbResult = await addQbittorrentTorrentFile(config, true, { torrent: torrentFile });
+          const qbResult = await addQbittorrentTorrentFile(config, true, {
+            torrent: torrentFile,
+            category: 'radarr',
+            tags: ['c411'],
+          });
           if (!qbResult.success) {
             console.warn(`[c411:publish] Torrent published but failed to add to qBittorrent: ${qbResult.error}`);
           }
@@ -395,7 +399,11 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
         const { enabled, config } = await getQbittorrentPluginConfig();
         if (enabled && config) {
           const torrentFile = new File([dlBuffer], filename, { type: 'application/x-bittorrent' });
-          const qbResult = await addQbittorrentTorrentFile(config, true, { torrent: torrentFile });
+          const qbResult = await addQbittorrentTorrentFile(config, true, {
+            torrent: torrentFile,
+            category: 'radarr',
+            tags: ['c411'],
+          });
           if (!qbResult.success) {
             console.warn(`[c411:publish-release] Published but failed to add to qBittorrent: ${qbResult.error}`);
           }
@@ -511,6 +519,20 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     } catch (error: any) {
       console.error('[c411:prepare-release]', error);
       return serverError(set, error.message || 'Failed to prepare release');
+    }
+  })
+
+  // ─── Refresh Release ────────────────────────────────────
+  .post('/releases/:id/refresh', async ({ params, set }) => {
+    const id = parseInt(params.id);
+    if (!id) return badRequest(set, 'Invalid release ID');
+
+    try {
+      await refreshRelease(id);
+      return { success: true };
+    } catch (error: any) {
+      console.error('[c411:refresh-release]', error);
+      return serverError(set, error.message || 'Failed to refresh release');
     }
   })
 

@@ -5,7 +5,7 @@
 import { link, stat, mkdir } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { prisma } from '../../db';
-import { uploadToS3 } from '../s3Service';
+import { uploadToS3, deleteFromS3 } from '../s3Service';
 import { loadC411Config } from './session';
 import { getMediaInfo } from './mediainfo';
 import { findMediaFile } from './lang-detect';
@@ -264,4 +264,183 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
 
   console.log(`[c411:prepare] Release saved: id=${release.id} name=${c411Name}`);
   return { releaseId: release.id };
+}
+
+/**
+ * Refresh an existing C411 release: re-run mediainfo, lang detection,
+ * TMDB fetch, torrent creation, BBCode generation — then update the record in-place.
+ */
+export async function refreshRelease(releaseId: number): Promise<void> {
+  const existing = await prisma.c411Release.findUnique({
+    where: { id: releaseId },
+    include: { presentation: true },
+  });
+  if (!existing) throw new Error('Release not found');
+  if (!existing.originalPath) throw new Error('Release has no original path');
+
+  const originalPath = existing.originalPath;
+  const metadata = existing.metadata as Record<string, any> | null;
+  const originalName = metadata?.originalName || '';
+  const tmdbId = existing.tmdbId;
+  const imdbId = existing.imdbId || '';
+
+  // Load configs
+  const [c411Config, tmdbApiKey] = await Promise.all([
+    loadC411Config(),
+    loadTmdbApiKey(),
+  ]);
+  if (!c411Config.announceUrl) throw new Error('C411 announce_url not configured');
+
+  // 1. Run mediainfo
+  console.log(`[c411:refresh] Running mediainfo on ${originalPath}`);
+  const media = await getMediaInfo(originalPath, originalName);
+  if (!media) throw new Error(`MediaInfo failed for ${originalPath}`);
+
+  // 2. Detect languages
+  console.log('[c411:refresh] Detecting languages...');
+  let langTag: LanguageTag = await detectLanguages(originalPath);
+
+  if (langTag === 'UNKNOWN') {
+    const name = originalName.toUpperCase();
+    if (name.includes('MULTI') && name.includes('VF2')) langTag = 'MULTI.VF2';
+    else if (name.includes('MULTI') && name.includes('VFQ')) langTag = 'MULTI.VFQ';
+    else if (name.includes('MULTI') && name.includes('VFI')) langTag = 'MULTI.VFI';
+    else if (name.includes('MULTI')) langTag = 'MULTI.VFF';
+    else if (name.includes('VFQ')) langTag = 'VFQ';
+    else if (name.includes('VFF') || name.includes('TRUEFRENCH')) langTag = 'VFF';
+    else if (name.includes('FRENCH')) langTag = 'VFF';
+    else if (media.audioStreams.length <= 1) langTag = 'EN';
+  }
+  console.log(`[c411:refresh] Language: ${langTag}`);
+
+  // 3. Fetch TMDB details
+  let tmdb = tmdbId
+    ? await fetchTmdbDetails(tmdbApiKey, existing.tmdbType || 'movie', tmdbId).catch(() => null)
+    : null;
+  if (!tmdb) tmdb = buildFallbackTmdbDetails(originalName);
+
+  // 4. Build release name
+  const releaseGroup = originalName.match(/-([A-Za-z0-9]+)(?:\.[^.]+)?$/)?.[1] || '';
+  const nameForTag = releaseGroup && !originalName.includes(`-${releaseGroup}`)
+    ? `${originalName.replace(/\.[^.]+$/, '')}-${releaseGroup}`
+    : originalName;
+  const releaseInfo = buildReleaseInfo(tmdb, media, nameForTag, langTag !== 'UNKNOWN' ? langTag : undefined);
+  const c411Name = buildC411ReleaseName(releaseInfo, nameForTag);
+  console.log(`[c411:refresh] Release name: ${c411Name}`);
+
+  // 5. Create hardlink
+  const ext = extname(originalPath);
+  const hardlinkPath = join(HARDLINK_BASE, `${c411Name}${ext}`);
+  try {
+    await stat(hardlinkPath);
+  } catch {
+    await mkdir(HARDLINK_BASE, { recursive: true });
+    await link(originalPath, hardlinkPath);
+  }
+
+  // 6. Create .torrent
+  const tmpDir = `/tmp/c411-${Date.now()}`;
+  await mkdir(tmpDir, { recursive: true });
+  const torrentPath = join(tmpDir, `${c411Name}.torrent`);
+  const fileStat = await stat(originalPath);
+  const pieceLength = calcPieceLength(Number(fileStat.size));
+
+  console.log('[c411:refresh] Creating torrent...');
+  await createTorrent({
+    announceUrl: c411Config.announceUrl,
+    pieceLength,
+    outputPath: torrentPath,
+    contentPath: hardlinkPath,
+  });
+
+  // 7. Upload .torrent to S3 (delete old one first)
+  if (existing.torrentS3Key) {
+    await deleteFromS3(existing.torrentS3Key);
+  }
+  const torrentBuffer = await Bun.file(torrentPath).arrayBuffer();
+  const s3Key = `c411/torrents/${c411Name}.torrent`;
+  const uploaded = await uploadToS3(Buffer.from(torrentBuffer), s3Key, 'application/x-bittorrent');
+  if (!uploaded) throw new Error('Failed to upload .torrent to S3');
+
+  // 8. Generate NFO + BBCode
+  const nfoContent = media.fullOutput.replace(
+    /^(Complete name\s*:\s*).*$/m,
+    `$1${c411Name}${ext}`,
+  );
+  const bbcode = generateBBCode({
+    tmdb,
+    media,
+    releaseName: c411Name,
+    fileCount: 1,
+    totalSize: formatSize(Number(fileStat.size)),
+    languages: langTag !== 'UNKNOWN' ? langTag : undefined,
+  });
+
+  // 9. Resolve C411 options
+  const { categoryId, subcategoryId } = resolveCategory(undefined, tmdb.type);
+  const languageOptionIds = resolveLanguage(c411Name);
+  const genreOptionIds = resolveGenres(bbcode);
+
+  // 10. Update DB record in-place
+  await prisma.c411Release.update({
+    where: { id: releaseId },
+    data: {
+      name: c411Name,
+      title: tmdb.title,
+      tmdbId: tmdbId ?? undefined,
+      imdbId: imdbId || null,
+      tmdbType: tmdb.type,
+      categoryId,
+      subcategoryId,
+      categoryName: tmdb.type === 'movie' ? 'Films' : 'Séries',
+      language: langTag !== 'UNKNOWN' ? langTag : null,
+      resolution: media.resolution !== 'N/A' ? media.resolution : null,
+      source: media.source !== 'N/A' ? media.source : null,
+      videoCodec: media.videoCodec !== 'N/A' ? media.videoCodec : null,
+      audioCodec: media.audioStreams[0]?.codec || null,
+      size: BigInt(fileStat.size),
+      torrentS3Key: s3Key,
+      nfoContent,
+      hardlinkPath,
+      options: { '1': languageOptionIds, '5': genreOptionIds },
+      tmdbData: {
+        id: tmdb.id,
+        type: tmdb.type,
+        title: tmdb.title,
+        originalTitle: tmdb.originalTitle,
+        year: parseInt(tmdb.year) || 0,
+        overview: tmdb.overview,
+        posterUrl: tmdb.posterUrl,
+        genres: tmdb.genres,
+        rating: parseFloat(tmdb.rating) || 0,
+        directors: [tmdb.director],
+        cast: tmdb.cast.map(name => ({ name, character: '' })),
+        releaseDate: tmdb.releaseDate,
+        countries: tmdb.productionCountries,
+        imdbId: tmdb.imdbId,
+      },
+      metadata: {
+        sizeHuman: formatSize(Number(fileStat.size)),
+        platform: tmdb.network || null,
+        originalName,
+      },
+    },
+  });
+
+  // Update presentation
+  if (existing.presentation) {
+    await prisma.c411Presentation.update({
+      where: { id: existing.presentation.id },
+      data: { bbcode },
+    });
+  } else {
+    await prisma.c411Presentation.create({
+      data: { releaseId, bbcode },
+    });
+  }
+
+  // Cleanup tmp
+  await Bun.file(torrentPath).exists() && await import('node:fs/promises').then(fs => fs.rm(tmpDir, { recursive: true }).catch(() => {}));
+
+  console.log(`[c411:refresh] Release refreshed: id=${releaseId} name=${c411Name}`);
 }

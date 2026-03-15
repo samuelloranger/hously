@@ -28,7 +28,14 @@
       "Bash(curl:*)",
       "Bash(docker ps:*)",
       "Bash(bunx tsc:*)",
-      "Bash(bun build:*)"
+      "Bash(bun build:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Bash(for feat in chores shopping calendar habits medias recipes torrents dashboard)",
+      "Bash(do echo \"=== $feat ===\")",
+      "Read(//home/samuelloranger/sites/hously/apps/web/src/features/$feat/**)",
+      "Bash(done)",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []

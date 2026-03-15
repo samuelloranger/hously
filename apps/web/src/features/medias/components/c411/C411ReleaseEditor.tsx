@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Save, Loader2, Upload, Eye, Code } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Upload, Eye, Code, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useC411Release,
   useC411UpdateRelease,
   useC411CreateDraft,
   useC411PublishRelease,
+  useC411RefreshRelease,
   useC411Categories,
   useC411CategoryOptions,
 } from '@hously/shared';
@@ -73,6 +74,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
   const updateRelease = useC411UpdateRelease();
   const createDraft = useC411CreateDraft();
   const publishRelease = useC411PublishRelease();
+  const refreshRelease = useC411RefreshRelease();
   const categories = useC411Categories();
   useC411CategoryOptions(release?.category_id ?? null, {
     enabled: release?.category_id != null,
@@ -145,6 +147,11 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
     createDraft.mutate(payload);
   };
 
+  const handleRefresh = () => {
+    if (!confirm('Refresh this release? This will regenerate the torrent, BBCode, and all metadata.')) return;
+    refreshRelease.mutate(releaseId);
+  };
+
   const handlePublish = () => {
     if (!release) return;
     if (!confirm(`Publish "${name}" directly on C411?`)) return;
@@ -179,6 +186,14 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
           Back
         </button>
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshRelease.isPending}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-neutral-100 dark:bg-neutral-700/50 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all duration-150 disabled:opacity-50"
+          >
+            {refreshRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+            Refresh
+          </button>
           <button
             onClick={handleCreateDraft}
             disabled={createDraft.isPending}
@@ -224,6 +239,16 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
       {createDraft.isError && (
         <div className="rounded-xl border border-red-200/60 dark:border-red-800/30 bg-red-50/30 dark:bg-red-950/10 p-3 text-xs text-red-700 dark:text-red-300">
           Failed to create draft: {(createDraft.error as Error)?.message ?? 'Unknown error'}
+        </div>
+      )}
+      {refreshRelease.isSuccess && (
+        <div className="rounded-xl border border-emerald-200/60 dark:border-emerald-800/30 bg-emerald-50/30 dark:bg-emerald-950/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
+          Release refreshed! Torrent, BBCode, and metadata have been regenerated.
+        </div>
+      )}
+      {refreshRelease.isError && (
+        <div className="rounded-xl border border-red-200/60 dark:border-red-800/30 bg-red-50/30 dark:bg-red-950/10 p-3 text-xs text-red-700 dark:text-red-300">
+          Failed to refresh: {(refreshRelease.error as Error)?.message ?? 'Unknown error'}
         </div>
       )}
       {updateRelease.isSuccess && !publishRelease.isPending && (

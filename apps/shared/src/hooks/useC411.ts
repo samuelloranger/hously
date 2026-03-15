@@ -201,6 +201,19 @@ export function useC411PrepareRelease() {
   });
 }
 
+export function useC411RefreshRelease() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<{ success: boolean }>(C411_ENDPOINTS.REFRESH_RELEASE(id), { method: 'POST' }),
+    onSuccess: (_data, id) => {
+      queryClient.refetchQueries({ queryKey: queryKeys.c411.releases() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.c411.release(id) });
+    },
+  });
+}
+
 export function useC411Sync() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
