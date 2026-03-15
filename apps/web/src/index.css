@@ -1,8 +1,10 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
-.prose > p {
-  margin-bottom: 0;
+@layer utilities {
+  .prose :where(p):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    margin-bottom: 0;
+  }
 }
 
 /* Source paths for Tailwind to scan */
