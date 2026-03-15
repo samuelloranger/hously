@@ -177,7 +177,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={onBack}
           className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
@@ -185,7 +185,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </button>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleRefresh}
             disabled={refreshRelease.isPending}
