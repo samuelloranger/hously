@@ -504,11 +504,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
 
     try {
       const result = await prepareRelease({ radarrMovieId: radarrSourceId });
-      const release = await prisma.c411Release.findUnique({
-        where: { id: result.releaseId },
-        include: { presentation: true },
-      });
-      return release;
+      return { id: result.releaseId };
     } catch (error: any) {
       console.error('[c411:prepare-release]', error);
       return serverError(set, error.message || 'Failed to prepare release');
