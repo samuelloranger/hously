@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearch } from '@tanstack/react-router';
 import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaPosterCard } from '@/components/MediaPosterCard';
@@ -7,10 +8,13 @@ import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, Sparkles, Trash2, User, U
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 import { toast } from 'sonner';
+import { useModalSearchParams } from '@/hooks/useModalSearchParams';
 import { InteractiveSearchDialog } from './InteractiveSearchDialog';
 import { SimilarMediasDialog } from './SimilarMediasDialog';
 import { DeleteMediaDialog } from './DeleteMediaDialog';
 import { C411Dialog } from './c411/C411Dialog';
+import type { LibrarySearchParams } from '@/router';
+import type { TabKey } from './c411/C411Dialog';
 
 type MediaFilter = 'all' | 'movie' | 'series';
 type SortKey = 'added_at' | 'title' | 'year' | 'service' | 'status' | 'downloaded' | 'monitored';
@@ -34,10 +38,16 @@ export function MediasLibrary() {
   const [interactiveItem, setInteractiveItem] = useState<MediaItem | null>(null);
   const [similarItem, setSimilarItem] = useState<MediaItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<MediaItem | null>(null);
-  const [c411Item, setC411Item] = useState<MediaItem | null>(null);
+
+  const searchParams = useSearch({ from: '/library' }) as LibrarySearchParams;
+  const { setParams, resetParams } = useModalSearchParams('/library', searchParams);
 
   const items = data?.items ?? [];
   const c411Enabled = data?.c411_enabled ?? false;
+  const c411Item = useMemo(
+    () => items.find((i) => i.tmdb_id === searchParams.c411) ?? null,
+    [items, searchParams.c411],
+  );
   const isNotConfigured = data && !data.radarr_enabled && !data.sonarr_enabled;
 
   const filtered = useMemo(() => {
@@ -206,7 +216,7 @@ export function MediasLibrary() {
                   item={item}
                   onOpenInteractive={() => setInteractiveItem(item)}
                   onFindSimilar={item.tmdb_id ? () => setSimilarItem(item) : undefined}
-                  onOpenC411={c411Enabled && item.media_type === 'movie' && item.source_id ? () => setC411Item(item) : undefined}
+                  onOpenC411={c411Enabled && item.media_type === 'movie' && item.source_id && item.tmdb_id ? () => setParams({ c411: item.tmdb_id! }) : undefined}
                   onDelete={() => setDeleteItem(item)}
                 />
               ))}
@@ -275,7 +285,15 @@ export function MediasLibrary() {
 
       <DeleteMediaDialog isOpen={Boolean(deleteItem)} media={deleteItem} onClose={() => setDeleteItem(null)} />
 
-      <C411Dialog isOpen={Boolean(c411Item)} media={c411Item} onClose={() => setC411Item(null)} />
+      <C411Dialog
+        isOpen={Boolean(c411Item)}
+        media={c411Item}
+        onClose={() => resetParams(['c411', 'c411Tab', 'c411Release'])}
+        activeTab={(searchParams.c411Tab as TabKey) || 'search'}
+        onTabChange={(tab) => setParams({ c411Tab: tab, c411Release: undefined })}
+        editingReleaseId={searchParams.c411Release ?? null}
+        onEditingReleaseChange={(id) => setParams({ c411Release: id ?? undefined })}
+      />
     </div>
   );
 }

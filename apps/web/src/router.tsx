@@ -302,10 +302,21 @@ const exploreRoute = createRoute({
   },
 });
 
+export type LibrarySearchParams = {
+  c411?: number;
+  c411Tab?: string;
+  c411Release?: number;
+};
+
 const libraryRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/library',
   component: LibraryPage,
+  validateSearch: (search: Record<string, unknown>): LibrarySearchParams => ({
+    c411: typeof search.c411 === 'number' ? search.c411 : (typeof search.c411 === 'string' && search.c411 ? Number(search.c411) || undefined : undefined),
+    c411Tab: typeof search.c411Tab === 'string' ? search.c411Tab : undefined,
+    c411Release: typeof search.c411Release === 'number' ? search.c411Release : (typeof search.c411Release === 'string' && search.c411Release ? Number(search.c411Release) || undefined : undefined),
+  }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
     await prefetchRouteData(context.queryClient, '/library');

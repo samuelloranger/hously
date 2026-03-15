@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Search, Grid3X3, FileText, FolderOpen, Loader2, RefreshCw, Plus, AudioLines } from 'lucide-react';
 // AudioLines used in TABS definition below
 import { Dialog } from '@/components/dialog';
@@ -16,9 +15,13 @@ interface C411DialogProps {
   isOpen: boolean;
   onClose: () => void;
   media: MediaItem | null;
+  activeTab: TabKey;
+  onTabChange: (tab: TabKey) => void;
+  editingReleaseId: number | null;
+  onEditingReleaseChange: (id: number | null) => void;
 }
 
-type TabKey = 'search' | 'slots' | 'info' | 'releases' | 'drafts';
+export type TabKey = 'search' | 'slots' | 'info' | 'releases' | 'drafts';
 
 const TABS: { key: TabKey; icon: typeof Search; label: string }[] = [
   { key: 'search', icon: Search, label: 'Search' },
@@ -28,10 +31,7 @@ const TABS: { key: TabKey; icon: typeof Search; label: string }[] = [
   { key: 'drafts', icon: FileText, label: 'Drafts' },
 ];
 
-export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>('search');
-  const [editingReleaseId, setEditingReleaseId] = useState<number | null>(null);
-
+export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, editingReleaseId, onEditingReleaseChange }: C411DialogProps) {
   const tmdbId = media?.tmdb_id ?? null;
   const year = media?.year ?? 0;
   const imdbId = (media as any)?.imdb_id ?? '';
@@ -54,7 +54,7 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
       onSuccess: (data) => {
         // Auto-open the editor for the newly prepared release
         if (data?.id) {
-          setEditingReleaseId(data.id);
+          onEditingReleaseChange(data.id);
         }
       },
     });
@@ -68,13 +68,13 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
     return (
       <Dialog
         isOpen={isOpen}
-        onClose={() => { setEditingReleaseId(null); onClose(); }}
+        onClose={() => { onEditingReleaseChange(null); onClose(); }}
         title="Edit Release"
         panelClassName="max-w-5xl"
       >
         <C411ReleaseEditor
           releaseId={editingReleaseId}
-          onBack={() => setEditingReleaseId(null)}
+          onBack={() => onEditingReleaseChange(null)}
         />
       </Dialog>
     );
@@ -94,7 +94,7 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
             {TABS.map(({ key, icon: Icon, label }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => onTabChange(key)}
                 className={cn(
                   'relative inline-flex shrink-0 items-center gap-1.5 px-3.5 py-2 text-xs font-medium whitespace-nowrap transition-colors duration-150',
                   activeTab === key
@@ -157,7 +157,7 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
           <C411ReleasesList
             releases={(releases.data?.releases ?? []).filter((r) => r.tmdb_id === tmdbId)}
             isLoading={releases.isLoading}
-            onEdit={(id) => setEditingReleaseId(id)}
+            onEdit={(id) => onEditingReleaseChange(id)}
             prepareStatus={prepareRelease.isPending ? 'pending' : prepareRelease.isSuccess ? 'success' : null}
             emptyMessage="No releases for this movie. Use &quot;Prepare Release&quot; to create one."
           />
