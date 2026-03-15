@@ -46,7 +46,7 @@ export interface C411ReleaseInfo {
   videoCodec?: string;
 }
 
-export function buildC411ReleaseName(info: C411ReleaseInfo, originalName: string): string {
+export function buildC411ReleaseName(info: C411ReleaseInfo, originalName: string, teamOverride?: string): string {
   const tokens: string[] = [];
 
   const cleanTitle = info.title
@@ -89,7 +89,8 @@ export function buildC411ReleaseName(info: C411ReleaseInfo, originalName: string
     tokens.push(codec);
   }
 
-  const rawTeam = parseTeam(originalName);
+  // Priority: explicit override > parsed from filename
+  const rawTeam = teamOverride || parseTeam(originalName);
   const team = rawTeam === 'N/A' ? 'NOTAG' : rawTeam;
   let result = tokens.join('.') + `-${team}`;
 

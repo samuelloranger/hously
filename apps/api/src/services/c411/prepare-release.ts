@@ -146,12 +146,9 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
   if (!tmdb) tmdb = buildFallbackTmdbDetails(originalName);
 
   // 5. Build C411 release name
-  // Use releaseGroup from Radarr if the original name has no tag
-  const nameForTag = releaseGroup && !originalName.includes(`-${releaseGroup}`)
-    ? `${originalName.replace(/\.[^.]+$/, '')}-${releaseGroup}`
-    : originalName;
-  const releaseInfo = buildReleaseInfo(tmdb, media, nameForTag, langTag !== 'UNKNOWN' ? langTag : undefined);
-  const c411Name = buildC411ReleaseName(releaseInfo, nameForTag);
+  // Radarr releaseGroup is the authoritative source, fallback to parsing from filename
+  const releaseInfo = buildReleaseInfo(tmdb, media, originalName, langTag !== 'UNKNOWN' ? langTag : undefined);
+  const c411Name = buildC411ReleaseName(releaseInfo, originalName, releaseGroup || undefined);
   console.log(`[c411:prepare] Release name: ${c411Name}`);
 
   // 6. Create hardlink
@@ -201,6 +198,7 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
     fileCount: 1,
     totalSize: formatSize(Number(fileStat.size)),
     languages: langTag !== 'UNKNOWN' ? langTag : undefined,
+    teamOverride: releaseGroup || undefined,
   });
 
   // 10. Resolve C411 options
@@ -251,6 +249,7 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
         sizeHuman: formatSize(Number(fileStat.size)),
         platform: tmdb.network || null,
         originalName,
+        releaseGroup: releaseGroup || null,
       },
       presentation: {
         create: { bbcode },
@@ -320,12 +319,10 @@ export async function refreshRelease(releaseId: number): Promise<void> {
   if (!tmdb) tmdb = buildFallbackTmdbDetails(originalName);
 
   // 4. Build release name
-  const releaseGroup = originalName.match(/-([A-Za-z0-9]+)(?:\.[^.]+)?$/)?.[1] || '';
-  const nameForTag = releaseGroup && !originalName.includes(`-${releaseGroup}`)
-    ? `${originalName.replace(/\.[^.]+$/, '')}-${releaseGroup}`
-    : originalName;
-  const releaseInfo = buildReleaseInfo(tmdb, media, nameForTag, langTag !== 'UNKNOWN' ? langTag : undefined);
-  const c411Name = buildC411ReleaseName(releaseInfo, nameForTag);
+  // Use stored releaseGroup from metadata (set during prepare), fallback to parsing from filename
+  const releaseGroup = metadata?.releaseGroup || '';
+  const releaseInfo = buildReleaseInfo(tmdb, media, originalName, langTag !== 'UNKNOWN' ? langTag : undefined);
+  const c411Name = buildC411ReleaseName(releaseInfo, originalName, releaseGroup || undefined);
   console.log(`[c411:refresh] Release name: ${c411Name}`);
 
   // 5. Create hardlink
@@ -374,6 +371,7 @@ export async function refreshRelease(releaseId: number): Promise<void> {
     fileCount: 1,
     totalSize: formatSize(Number(fileStat.size)),
     languages: langTag !== 'UNKNOWN' ? langTag : undefined,
+    teamOverride: releaseGroup || undefined,
   });
 
   // 9. Resolve C411 options
@@ -423,6 +421,7 @@ export async function refreshRelease(releaseId: number): Promise<void> {
         sizeHuman: formatSize(Number(fileStat.size)),
         platform: tmdb.network || null,
         originalName,
+        releaseGroup: releaseGroup || null,
       },
     },
   });

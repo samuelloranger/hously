@@ -260,6 +260,7 @@ export interface PrezContext {
   fileCount: number;
   totalSize: string;
   languages?: string;
+  teamOverride?: string;
 }
 
 export function generateBBCode(ctx: PrezContext): string {
@@ -279,6 +280,7 @@ export function generateBBCode(ctx: PrezContext): string {
   );
 
   const info = buildReleaseInfo(tmdb, media, releaseName, ctx.languages);
+  const team = ctx.teamOverride || parseTeam(releaseName);
 
   return replacePlaceholders(renderedTemplate, {
     TMDB_TITLE: tmdb.title || 'N/A',
@@ -303,8 +305,8 @@ export function generateBBCode(ctx: PrezContext): string {
     AUDIO_CODEC: media?.audioStreams?.[0]?.codec ?? 'N/A',
     AUDIO_BITRATE: media?.audioStreams?.[0]?.bitrate ? normalizeBitrate(media.audioStreams[0].bitrate) : 'N/A',
     AUDIO_CHANNELS: media?.audioStreams?.[0]?.channels ? formatChannels(media.audioStreams[0].channels) : 'N/A',
-    RELEASE_NAME: buildC411ReleaseName(info, releaseName),
-    RELEASE_TEAM: parseTeam(releaseName),
+    RELEASE_NAME: buildC411ReleaseName(info, releaseName, ctx.teamOverride),
+    RELEASE_TEAM: team === 'N/A' ? 'NOTAG' : team,
     NBR_FICHIERS: ctx.fileCount > 0 ? String(ctx.fileCount) : 'N/A',
     POIDS_TOTAL: ctx.totalSize,
   });
