@@ -162,9 +162,9 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
   const imageUrl = getRecipeImageUrl(imagePath);
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-0">
+    <form onSubmit={handleSubmit} className="relative">
       {/* Scrollable content area */}
-      <div className="space-y-8 pb-4">
+      <div className="space-y-8 pb-20">
         {/* ── Details Section ── */}
         <section>
           <SectionHeader icon={BookOpen} label={t('recipes.sectionDetails', 'Details')} />
@@ -421,8 +421,8 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
         </section>
       </div>
 
-      {/* ── Sticky Footer Actions ── */}
-      <div className="sticky bottom-0 -mx-6 -mb-6 px-6 py-4 bg-neutral-50/80 dark:bg-neutral-800/80 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-700 rounded-b-2xl flex items-center justify-end gap-3">
+      {/* ── Frosted Footer Actions ── */}
+      <div className="absolute -bottom-6 -left-6 -right-6 px-6 py-4 bg-neutral-50/80 dark:bg-neutral-800/80 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-700 rounded-b-2xl flex items-center justify-end gap-3">
         <button
           type="button"
           onClick={handleCancel}
