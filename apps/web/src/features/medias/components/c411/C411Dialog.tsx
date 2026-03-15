@@ -88,26 +88,31 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
       panelClassName="max-w-5xl"
     >
       {/* Tab bar */}
-      <div className="mb-4 flex items-center gap-2 flex-wrap">
-        {TABS.map(({ key, icon: Icon, label }) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key)}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-150',
-              activeTab === key
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-neutral-100 dark:bg-neutral-700/50 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700',
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" />
-            {label}
-          </button>
-        ))}
+      <div className="mb-4">
+        <div className="flex items-end justify-between border-b border-neutral-200/80 dark:border-neutral-700/60">
+          <nav className="flex gap-0.5 -mb-px">
+            {TABS.map(({ key, icon: Icon, label }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={cn(
+                  'relative inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium transition-colors duration-150',
+                  activeTab === key
+                    ? 'text-indigo-600 dark:text-indigo-400'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300',
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+                {activeTab === key && (
+                  <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+                )}
+              </button>
+            ))}
+          </nav>
 
-        <div className="ml-auto flex items-center gap-2">
           {activeTab === 'releases' && (
-            <>
+            <div className="flex items-center gap-2 pb-2">
               <button
                 onClick={handleSync}
                 disabled={sync.isPending}
@@ -124,7 +129,7 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
                 {prepareRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
                 Prepare Release
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>
