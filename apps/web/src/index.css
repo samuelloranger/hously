@@ -1,6 +1,10 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+.prose > p {
+  margin-bottom: 0;
+}
+
 /* Source paths for Tailwind to scan */
 @source "../index.html";
 @source "./**/*.{js,ts,jsx,tsx}";
