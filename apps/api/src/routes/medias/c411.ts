@@ -465,6 +465,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
 
       return {
         file_path: radarrPath,
+        file_size: movie.movieFile.size ?? null,
         scene_name: sceneName,
         release_group: releaseGroup,
         language_tag: langTag,
@@ -473,6 +474,8 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
           resolution: media.resolution,
           video_codec: media.videoCodec,
           video_bitrate: media.videoBitrate,
+          video_bit_depth: media.videoBitDepth,
+          framerate: media.framerate,
           source: media.source,
           duration: media.duration,
           audio_streams: media.audioStreams.map((a) => ({
