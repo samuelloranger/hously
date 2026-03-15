@@ -302,8 +302,8 @@ export function MediasLibrary() {
 
 function C411Badge() {
   return (
-    <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-md bg-black/50 backdrop-blur-sm border border-white/10 text-[9px] font-bold tracking-wide text-amber-400 uppercase shadow-sm">
-      C411
+    <span className="inline-flex items-center justify-center h-5 rounded-md bg-black/50 backdrop-blur-sm border border-white/10 shadow-sm overflow-hidden">
+      <img src="/icons/c411.png" alt="C411" className="h-3.5" />
     </span>
   );
 }
