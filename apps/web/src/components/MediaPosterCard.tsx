@@ -61,8 +61,8 @@ export function MediaPosterCard({
   const containerClass = [
     'group/card relative shrink-0 overflow-hidden rounded-2xl',
     'border border-white/10 bg-neutral-900 shadow-sm shadow-black/20',
-    'transition-all duration-300 ease-out',
-    'hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30 hover:border-white/15',
+    'transition-[border-color,box-shadow] duration-300 ease-out',
+    'hover:border-white/20 hover:shadow-md hover:shadow-black/30',
     'focus:outline-none focus:ring-2',
     accentRingClassName,
     disabled ? 'opacity-60 cursor-not-allowed' : '',
@@ -86,7 +86,7 @@ export function MediaPosterCard({
           loading="lazy"
           aria-hidden="true"
           onError={() => setImageError(true)}
-          className="absolute inset-0 h-full w-full object-cover will-change-transform transition-transform duration-500 ease-out group-hover/card:scale-[1.03]"
+          className="absolute inset-0 h-full w-full object-cover"
         />
       )}
 
@@ -95,8 +95,9 @@ export function MediaPosterCard({
         <div className="absolute inset-0 flex items-center justify-center text-4xl text-white/40">{fallbackEmoji}</div>
       )}
 
-      {/* Hover vignette overlay */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent transition-opacity duration-300 group-hover/card:from-black/65" />
+      {/* Gradient + hover brighten overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-white/0 transition-[background-color] duration-300 ease-out group-hover/card:bg-white/[0.06]" />
 
       {/* Soft inner ring */}
       <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/[0.06]" />
@@ -108,9 +109,9 @@ export function MediaPosterCard({
         </div>
       )}
 
-      {/* Top-right content (dropdown, etc.) — visible on hover */}
+      {/* Top-right content (dropdown, etc.) */}
       {topRightContent && (
-        <div className="absolute top-1.5 right-1.5 z-20 opacity-0 translate-y-[-2px] transition-all duration-200 group-hover/card:opacity-100 group-hover/card:translate-y-0">
+        <div className="absolute top-1.5 right-1.5 z-20">
           {topRightContent}
         </div>
       )}

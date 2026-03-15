@@ -1,6 +1,6 @@
 {
   "name": "@hously/shared",
-  "version": "2.0.296",
+  "version": "2.0.297",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
