@@ -69,7 +69,7 @@ export async function detectLanguages(contentPath: string): Promise<LanguageTag>
   let hasVfi = false;
 
   for (const track of tracks) {
-    const lang = track.language.toLowerCase();
+    const lang = track.language.toLowerCase().split('-')[0];
     const title = track.title.toLowerCase();
     if (/^(fre|fra|fr)$/.test(lang)) {
       frCount++;

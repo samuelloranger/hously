@@ -45,17 +45,24 @@ const SHORT_LABEL_MAP: Record<string, string> = {
   eng: 'VO', en: 'VO',
 };
 
+/** Normalize BCP-47 tags like "en-US" or "fr-CA" to their base language code. */
+function normalizeLangCode(code: string): string {
+  return code.toLowerCase().split('-')[0];
+}
+
 export function getFlagCode(langCode: string, title: string): string {
   const t = (title || langCode).toLowerCase();
+  const lc = normalizeLangCode(langCode);
   if (t.includes('vfq') || t.includes('vqc') || t.includes('quebec') || t.includes('canadien') || t.includes('canadian') || t.includes('canada')) return 'ca';
   if (t.includes('vff') || t.includes('france') || t.includes('truefrench') || t.includes('european')) return 'fr';
-  if (t.includes('french') || t.includes('vfi') || langCode === 'fre' || langCode === 'fra' || langCode === 'fr') return 'fr';
-  if (t.includes('vo') || t.includes('english') || langCode === 'eng' || langCode === 'en') return 'gb';
-  return FLAG_CODE_MAP[langCode.toLowerCase()] ?? 'un';
+  if (t.includes('french') || t.includes('vfi') || lc === 'fre' || lc === 'fra' || lc === 'fr') return 'fr';
+  if (t.includes('vo') || t.includes('english') || lc === 'eng' || lc === 'en') return 'gb';
+  return FLAG_CODE_MAP[lc] ?? 'un';
 }
 
 export function getShortLangLabel(langCode: string, title: string): string {
   const t = (title || '').toLowerCase();
+  const lc = normalizeLangCode(langCode);
   if (t.includes('vfq') || t.includes('vqc') || t.includes('canadian') || t.includes('canada') || t.includes('quebec') || t.includes('québ')) return 'VFQ';
   if (t.includes('vff') || t.includes('european') || t.includes('france')) return 'VFF';
   if (t.includes('vfi')) return 'VFI';
@@ -63,13 +70,14 @@ export function getShortLangLabel(langCode: string, title: string): string {
   if (t.includes('french') || t === 'francais') return 'French';
   if (t.includes('vo') || t === 'english' || /\beng\b/.test(t)) return 'VO';
   // Check langCode before falling back to raw title (which may contain codec info)
-  const fromLangCode = SHORT_LABEL_MAP[langCode.toLowerCase()];
+  const fromLangCode = SHORT_LABEL_MAP[lc];
   if (fromLangCode) return fromLangCode;
   if (title && !/\d/.test(title)) return title; // Only use title if it's not technical info
   return langCode;
 }
 
 export function getFullLangName(langCode: string, title: string): string {
+  const lc = normalizeLangCode(langCode);
   const t = (title || langCode).toLowerCase();
-  return FULL_LANG_NAME_MAP[langCode.toLowerCase()] ?? FULL_LANG_NAME_MAP[t] ?? (title || langCode);
+  return FULL_LANG_NAME_MAP[lc] ?? FULL_LANG_NAME_MAP[t] ?? (title || langCode);
 }

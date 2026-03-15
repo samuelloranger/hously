@@ -187,10 +187,15 @@ function buildSubtitleLanguage(subtitle: SubtitleStreamInfo): string {
   return getFullLangName(subtitle.language, langOnly);
 }
 
+/** Normalize BCP-47 tags like "en-US" or "fr-CA" to their base language code. */
+function normalizeLangCode(code: string): string {
+  return code.toLowerCase().split('-')[0];
+}
+
 /** Only French and English subtitles are allowed in C411 presentations. */
 function filterAllowedSubtitles(subtitles: SubtitleStreamInfo[]): SubtitleStreamInfo[] {
   return subtitles.filter((s) => {
-    const lang = s.language.toLowerCase();
+    const lang = normalizeLangCode(s.language);
     const title = (s.title || '').toLowerCase();
     // French variants
     if (/^(fre|fra|fr)$/.test(lang)) return true;
