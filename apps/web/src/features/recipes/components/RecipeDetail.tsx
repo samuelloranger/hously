@@ -195,7 +195,7 @@ export function RecipeDetail() {
                     <span>
                       {ingredient.quantity && ingredient.unit && (
                         <span className="font-semibold text-neutral-900 dark:text-white">
-                          {ingredient.quantity} {ingredient.unit}{' '}
+                          {ingredient.quantity} {t(`recipes.units.${ingredient.unit}`, ingredient.unit)}{' '}
                         </span>
                       )}
                       {ingredient.quantity && !ingredient.unit && (

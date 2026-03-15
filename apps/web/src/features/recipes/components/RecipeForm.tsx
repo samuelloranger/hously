@@ -6,6 +6,7 @@ import {
   useCreateRecipe,
   useUpdateRecipe,
   useUploadRecipeImage,
+  COOKING_UNITS,
   type Recipe,
   type RecipeIngredient,
 } from '@hously/shared';
@@ -264,14 +265,14 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
 
       {/* Ingredients */}
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
             {t('recipes.ingredients', 'Ingredients')}
           </label>
           <button
             type="button"
             onClick={addIngredient}
-            className="text-sm text-orange-600 hover:text-orange-700 flex items-center gap-1"
+            className="text-sm font-medium text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 flex items-center gap-1.5 transition-colors"
           >
             <Plus className="w-4 h-4" />
             {t('recipes.addIngredient', 'Add Ingredient')}
@@ -280,33 +281,45 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
 
         <div className="space-y-2">
           {ingredients.map((ingredient, index) => (
-            <div key={index} className="flex flex-col items-end gap-2">
+            <div
+              key={index}
+              className="flex items-center gap-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/80 dark:border-neutral-700/50 p-2 transition-colors hover:border-orange-300 dark:hover:border-orange-700/50"
+            >
               <input
                 type="text"
                 placeholder={t('recipes.ingredientName', 'Name')}
                 value={ingredient.name}
                 onChange={e => updateIngredient(index, 'name', e.target.value)}
-                className="flex-1 px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm"
+                className="flex-1 min-w-0 px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-shadow"
               />
               <input
                 type="number"
                 placeholder={t('recipes.quantity', 'Qty')}
                 value={ingredient.quantity || ''}
                 onChange={e => updateIngredient(index, 'quantity', e.target.value ? parseFloat(e.target.value) : null)}
-                className="w-20 px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm"
+                className="w-20 shrink-0 px-3 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-shadow tabular-nums"
                 step="0.1"
               />
-              <input
-                type="text"
-                placeholder={t('recipes.unit', 'Unit')}
+              <select
                 value={ingredient.unit || ''}
                 onChange={e => updateIngredient(index, 'unit', e.target.value || null)}
-                className="w-24 px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm"
-              />
+                className="w-28 shrink-0 px-2 py-2 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-shadow"
+              >
+                <option value="">{t('recipes.unitSelect', 'Unit...')}</option>
+                {(['volume', 'weight', 'other'] as const).map(category => (
+                  <optgroup key={category} label={t(`recipes.units.${category}`, category)}>
+                    {COOKING_UNITS.filter(u => u.category === category).map(u => (
+                      <option key={u.key} value={u.key}>
+                        {t(`recipes.units.${u.key}`, u.key)}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
               <button
                 type="button"
                 onClick={() => removeIngredient(index)}
-                className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                className="p-2 shrink-0 text-neutral-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>

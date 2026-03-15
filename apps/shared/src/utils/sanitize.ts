@@ -1,10 +1,5 @@
 export const sanitizeInput = (input: string): string => {
-  return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+  return input.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 };
 
 const ALLOWED_TAGS = new Set([
