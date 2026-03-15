@@ -88,9 +88,9 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
       panelClassName="max-w-5xl"
     >
       {/* Tab bar */}
-      <div className="mb-4">
-        <div className="flex items-end justify-between border-b border-neutral-200/80 dark:border-neutral-700/60">
-          <nav className="flex gap-0.5 -mb-px overflow-x-auto scrollbar-none">
+      <div className="mb-4 space-y-3">
+        <div className="border-b border-neutral-200/80 dark:border-neutral-700/60">
+          <nav className="flex gap-0.5 -mb-px overflow-x-auto overflow-y-hidden scrollbar-none">
             {TABS.map(({ key, icon: Icon, label }) => (
               <button
                 key={key}
@@ -110,28 +110,28 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
               </button>
             ))}
           </nav>
-
-          {activeTab === 'releases' && (
-            <div className="flex items-center gap-2 pb-2">
-              <button
-                onClick={handleSync}
-                disabled={sync.isPending}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-neutral-100 dark:bg-neutral-700/50 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all duration-150 disabled:opacity-50"
-              >
-                {sync.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                Sync
-              </button>
-              <button
-                onClick={handlePrepareRelease}
-                disabled={prepareRelease.isPending || !media?.source_id}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-indigo-600 text-white shadow-sm hover:bg-indigo-500 transition-all duration-150 disabled:opacity-50"
-              >
-                {prepareRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                Prepare Release
-              </button>
-            </div>
-          )}
         </div>
+
+        {activeTab === 'releases' && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSync}
+              disabled={sync.isPending}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-neutral-100 dark:bg-neutral-700/50 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all duration-150 disabled:opacity-50"
+            >
+              {sync.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+              Sync
+            </button>
+            <button
+              onClick={handlePrepareRelease}
+              disabled={prepareRelease.isPending || !media?.source_id}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-indigo-600 text-white shadow-sm hover:bg-indigo-500 transition-all duration-150 disabled:opacity-50"
+            >
+              {prepareRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+              Prepare Release
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tab content */}

@@ -46,7 +46,7 @@ export type HttpClientOptions = {
 
 export type HttpRequestOptions = {
   method?: FetcherOptions['method'];
-  headers?: HeadersInit;
+  headers?: Record<string, string> | Headers | [string, string][];
   body?: unknown;
 };
 
@@ -59,7 +59,7 @@ export type HttpClient = {
   delete: <T>(endpoint: string, options?: Omit<HttpRequestOptions, 'method' | 'body'>) => Promise<T>;
 };
 
-function normalizeHeaders(input?: HeadersInit): Record<string, string> {
+function normalizeHeaders(input?: Record<string, string> | Headers | [string, string][]): Record<string, string> {
   const out: Record<string, string> = {};
   if (!input) return out;
   if (input instanceof Headers) {
@@ -110,7 +110,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
       if (token) headers.Authorization = `Bearer ${token}`;
     }
 
-    let body: BodyInit | undefined;
+    let body: string | FormData | Blob | ArrayBuffer | ReadableStream | undefined;
     if (hasBody) {
       if (!isFormData && !headers['Content-Type']) {
         headers['Content-Type'] = 'application/json';
@@ -119,7 +119,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
       if (!isFormData && typeof requestOptions.body !== 'string') {
         body = JSON.stringify(requestOptions.body);
       } else {
-        body = requestOptions.body as BodyInit;
+        body = requestOptions.body as typeof body;
       }
     }
 
@@ -162,7 +162,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
           (errorData && typeof errorData === 'object' && 'error' in errorData && (errorData as any).error) ||
           `HTTP error! status: ${response.status}`;
 
-        if (options.prod && response.status >= 500) {
+        if (options.prod && response.status >= 500 && !errorMessage) {
           errorMessage = 'An internal server error occurred. Please try again later.';
         }
 
