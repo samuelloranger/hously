@@ -66,12 +66,13 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
           if (cached) {
             response.c411_tmdb_ids = cached;
           } else {
-            const c411Releases = await prisma.c411Release.findMany({
-              where: { tmdbId: { not: null }, c411TorrentId: { not: null } },
-              select: { tmdbId: true },
-              distinct: ['tmdbId'],
-            });
-            const tmdbIds = c411Releases.map((r) => r.tmdbId!);
+            const rows = await prisma.$queryRaw<{ tmdb_id: number }[]>`
+              SELECT DISTINCT COALESCE(tmdb_id, (tmdb_data->>'id')::int) AS tmdb_id
+              FROM c411_releases
+              WHERE c411_torrent_id IS NOT NULL
+                AND (tmdb_id IS NOT NULL OR tmdb_data->>'id' IS NOT NULL)
+            `;
+            const tmdbIds = rows.map((r) => r.tmdb_id);
             response.c411_tmdb_ids = tmdbIds;
             await setJsonCache(cacheKey, tmdbIds, 1800); // 30 min cache
           }

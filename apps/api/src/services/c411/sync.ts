@@ -56,12 +56,20 @@ async function fetchAllByUploader(session: C411Session, uploader: string): Promi
  * Never overwrites existing BBCode presentation with C411's HTML description.
  */
 async function updateExistingRelease(
-  existing: { id: number; tmdbData: any; nfoContent: string | null; presentation: { id: number; bbcode: string } | null },
+  existing: { id: number; tmdbId: number | null; tmdbData: any; nfoContent: string | null; presentation: { id: number; bbcode: string } | null },
   torrent: C411Torrent,
   detail: { description: string | null; tmdbData: any; nfoContent: string | null },
   now: Date,
   extraData?: Record<string, any>,
 ) {
+  // Extract TMDB ID from tmdbData if the release doesn't have one yet
+  const newTmdbData = detail.tmdbData ?? existing.tmdbData;
+  const tmdbId = existing.tmdbId ?? (newTmdbData?.id ? parseInt(String(newTmdbData.id), 10) : null) ?? undefined;
+  const tmdbType = tmdbId && !existing.tmdbId
+    ? (newTmdbData?.media_type || (newTmdbData?.title ? 'movie' : newTmdbData?.name ? 'tv' : null))
+    : undefined;
+  const imdbId = tmdbId && !existing.tmdbId ? (newTmdbData?.imdb_id || null) : undefined;
+
   await prisma.c411Release.update({
     where: { id: existing.id },
     data: {
@@ -72,8 +80,11 @@ async function updateExistingRelease(
       seeders: torrent.seeders,
       leechers: torrent.leechers,
       completions: torrent.completions,
-      tmdbData: detail.tmdbData ?? existing.tmdbData,
+      tmdbData: newTmdbData,
       nfoContent: detail.nfoContent ?? existing.nfoContent,
+      ...(tmdbId !== undefined ? { tmdbId } : {}),
+      ...(tmdbType !== undefined ? { tmdbType } : {}),
+      ...(imdbId !== undefined ? { imdbId } : {}),
       syncedAt: now,
       ...extraData,
     },
@@ -111,7 +122,7 @@ export async function syncC411Releases(session: C411Session, username: string): 
   // Pre-fetch all local releases for name-based matching
   const localReleases = await prisma.c411Release.findMany({
     where: { status: 'local' },
-    include: { presentation: true },
+    select: { id: true, name: true, tmdbId: true, tmdbData: true, nfoContent: true, presentation: true },
   });
   const localByNormalizedName = new Map<string, typeof localReleases[0]>();
   const localByNormalizedNameNoGroup = new Map<string, typeof localReleases[0]>();
@@ -126,20 +137,25 @@ export async function syncC411Releases(session: C411Session, username: string): 
     let tmdbData: any = null;
     let nfoContent: string | null = null;
     try {
-      const detail = await fetchTorrentDetail(session, torrent.infoHash);
-      description = detail.description || null;
-      tmdbData = detail.metadata?.tmdbData || null;
-      nfoContent = detail.metadata?.nfoContent || null;
+      const detailResult = await fetchTorrentDetail(session, torrent.infoHash);
+      description = detailResult.description || null;
+      tmdbData = detailResult.metadata?.tmdbData || null;
+      nfoContent = detailResult.metadata?.nfoContent || null;
     } catch (err) {
       console.warn(`[c411:sync] Failed to fetch detail for ${torrent.name}: ${err}`);
     }
+
+    // Extract TMDB ID from tmdbData if available
+    const extractedTmdbId = tmdbData?.id ? parseInt(String(tmdbData.id), 10) : null;
+    const extractedTmdbType = tmdbData?.media_type || (tmdbData?.title ? 'movie' : tmdbData?.name ? 'tv' : null);
+    const extractedImdbId = tmdbData?.imdb_id || null;
 
     const detail = { description, tmdbData, nfoContent };
 
     // 1. Match by c411TorrentId
     const byTorrentId = await prisma.c411Release.findUnique({
       where: { c411TorrentId: torrent.id },
-      include: { presentation: true },
+      select: { id: true, tmdbId: true, tmdbData: true, nfoContent: true, presentation: true },
     });
 
     if (byTorrentId) {
@@ -148,7 +164,7 @@ export async function syncC411Releases(session: C411Session, username: string): 
     } else {
       // 2. Match by infoHash
       const byHash = torrent.infoHash
-        ? await prisma.c411Release.findUnique({ where: { infoHash: torrent.infoHash }, include: { presentation: true } })
+        ? await prisma.c411Release.findUnique({ where: { infoHash: torrent.infoHash }, select: { id: true, tmdbId: true, tmdbData: true, nfoContent: true, presentation: true } })
         : null;
 
       if (byHash) {
@@ -189,6 +205,9 @@ export async function syncC411Releases(session: C411Session, username: string): 
               seeders: torrent.seeders,
               leechers: torrent.leechers,
               completions: torrent.completions,
+              tmdbId: extractedTmdbId,
+              tmdbType: extractedTmdbType,
+              imdbId: extractedImdbId,
               tmdbData: tmdbData,
               nfoContent: nfoContent,
               syncedAt: now,
