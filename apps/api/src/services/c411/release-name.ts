@@ -76,7 +76,13 @@ export function buildC411ReleaseName(info: C411ReleaseInfo, originalName: string
     tokens.push(codec);
   }
   if (info.audioChannels) tokens.push(info.audioChannels);
-  if (info.videoCodec) tokens.push(info.videoCodec);
+  if (info.videoCodec) {
+    const isWebSource = /WEB/i.test(info.source ?? '');
+    const codec = isWebSource
+      ? info.videoCodec.replace(/^H264$/i, 'x264').replace(/^H265$/i, 'x265')
+      : info.videoCodec;
+    tokens.push(codec);
+  }
 
   const rawTeam = parseTeam(originalName);
   const team = rawTeam === 'N/A' ? 'NOTAG' : rawTeam;
