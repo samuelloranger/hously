@@ -90,13 +90,13 @@ export function C411Dialog({ isOpen, onClose, media }: C411DialogProps) {
       {/* Tab bar */}
       <div className="mb-4">
         <div className="flex items-end justify-between border-b border-neutral-200/80 dark:border-neutral-700/60">
-          <nav className="flex gap-0.5 -mb-px">
+          <nav className="flex gap-0.5 -mb-px overflow-x-auto scrollbar-none">
             {TABS.map(({ key, icon: Icon, label }) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
                 className={cn(
-                  'relative inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium transition-colors duration-150',
+                  'relative inline-flex shrink-0 items-center gap-1.5 px-3.5 py-2 text-xs font-medium whitespace-nowrap transition-colors duration-150',
                   activeTab === key
                     ? 'text-indigo-600 dark:text-indigo-400'
                     : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300',
