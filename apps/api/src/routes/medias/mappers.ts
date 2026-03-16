@@ -222,9 +222,82 @@ function extractReleaseTags(row: Record<string, unknown>): string[] | null {
 }
 
 function extractSeriesReleaseTags(_row: Record<string, unknown>): string[] | null {
-  // Sonarr series list response doesn't include episode file data,
-  // and the series folder name is just the show title — not a release name.
+  // Sonarr series list response doesn't include episode file data.
+  // Tags are populated separately via fetchSonarrSeriesReleaseTags.
   return null;
+}
+
+/**
+ * Fetch one episode file per series from Sonarr, parse release tags, and cache in Redis.
+ * Returns a map of sourceId -> tags.
+ */
+export async function fetchSonarrSeriesReleaseTags(
+  websiteUrl: string,
+  apiKey: string,
+  seriesIds: number[],
+): Promise<Map<number, string[]>> {
+  const result = new Map<number, string[]>();
+  if (seriesIds.length === 0) return result;
+
+  // Check Redis cache for each series
+  const uncachedIds: number[] = [];
+  await Promise.all(
+    seriesIds.map(async (id) => {
+      const cached = await getJsonCache<string[]>(`sonarr:release-tags:${id}`);
+      if (cached) {
+        result.set(id, cached);
+      } else {
+        uncachedIds.push(id);
+      }
+    }),
+  );
+
+  if (uncachedIds.length === 0) return result;
+
+  // Fetch episode files for uncached series (concurrency limited to 5)
+  const CONCURRENCY = 5;
+  for (let i = 0; i < uncachedIds.length; i += CONCURRENCY) {
+    const batch = uncachedIds.slice(i, i + CONCURRENCY);
+    const results = await Promise.allSettled(
+      batch.map(async (seriesId) => {
+        const url = new URL('/api/v3/episodefile', websiteUrl);
+        url.searchParams.set('seriesId', String(seriesId));
+        const res = await fetch(url.toString(), {
+          headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
+        });
+        if (!res.ok) return { seriesId, tags: null as string[] | null };
+
+        const files = (await res.json()) as unknown[];
+        // Pick the most recent file (last in array)
+        for (let j = files.length - 1; j >= 0; j--) {
+          const file = toRecord(files[j]);
+          if (!file) continue;
+          const sceneName = toStringOrNull(file.sceneName);
+          if (sceneName) {
+            const tags = parseReleaseTags(sceneName);
+            if (tags.length > 0) return { seriesId, tags };
+          }
+          const relativePath = toStringOrNull(file.relativePath);
+          if (relativePath) {
+            const tags = parseReleaseTags(relativePath);
+            if (tags.length > 0) return { seriesId, tags };
+          }
+        }
+        return { seriesId, tags: null as string[] | null };
+      }),
+    );
+
+    for (const r of results) {
+      if (r.status !== 'fulfilled') continue;
+      const { seriesId, tags } = r.value;
+      if (tags && tags.length > 0) {
+        result.set(seriesId, tags);
+        await setJsonCache(`sonarr:release-tags:${seriesId}`, tags, 86400); // 24h cache
+      }
+    }
+  }
+
+  return result;
 }
 
 export const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null => {

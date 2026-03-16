@@ -11,6 +11,7 @@ import {
   mapSonarrSeries,
   fetchRadarrDownloadingMovieIds,
   fetchSonarrDownloadingSeriesIds,
+  fetchSonarrSeriesReleaseTags,
 } from './mappers';
 
 export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
@@ -148,18 +149,33 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
             } else {
               const series = (await sonarrRes.json()) as unknown[];
               response.sonarr_connected = true;
-              response.items.push(
-                ...series
-                  .map(show => {
-                    const item = mapSonarrSeries(show, sonarrConfig.website_url);
-                    if (!item) return null;
-                    return {
-                      ...item,
-                      downloading: !item.downloaded && queueIds.has(item.source_id),
-                    };
-                  })
-                  .filter((item): item is MediaItem => Boolean(item))
-              );
+              const sonarrItems = series
+                .map(show => {
+                  const item = mapSonarrSeries(show, sonarrConfig.website_url);
+                  if (!item) return null;
+                  return {
+                    ...item,
+                    downloading: !item.downloaded && queueIds.has(item.source_id),
+                  };
+                })
+                .filter((item): item is MediaItem => Boolean(item));
+
+              // Fetch release tags from episode files (cached per series)
+              const downloadedIds = sonarrItems
+                .filter((i) => i.downloaded)
+                .map((i) => i.source_id);
+              const tagMap = await fetchSonarrSeriesReleaseTags(
+                sonarrConfig.website_url,
+                sonarrConfig.api_key,
+                downloadedIds,
+              ).catch(() => new Map<number, string[]>());
+
+              for (const item of sonarrItems) {
+                const tags = tagMap.get(item.source_id);
+                if (tags) item.release_tags = tags;
+              }
+
+              response.items.push(...sonarrItems);
             }
           } catch (error) {
             errors.sonarr = error instanceof Error ? error.message : 'Failed to fetch Sonarr media';
