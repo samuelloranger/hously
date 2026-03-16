@@ -121,6 +121,11 @@ export interface C411PrepareReleaseRequest {
   seasonNumber?: number | null;
 }
 
+export interface C411PrepareReleaseResponse {
+  id: number;
+  queued: boolean;
+}
+
 export interface C411MediaInfoResponse {
   file_path: string;
   file_size: number | null;

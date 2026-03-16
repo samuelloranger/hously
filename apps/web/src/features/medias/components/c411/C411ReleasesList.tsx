@@ -96,6 +96,10 @@ export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, e
               {r.has_torrent && <span className={BADGE_VIOLET}>.torrent</span>}
             </div>
 
+            {typeof r.metadata?.prepareError === 'string' && r.metadata.prepareError && (
+              <p className="mt-2 text-[11px] text-red-600 dark:text-red-300">{r.metadata.prepareError}</p>
+            )}
+
             {/* Stats row */}
             <div className="mt-2 flex items-center gap-3">
               {r.seeders !== null && (
@@ -119,7 +123,7 @@ export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, e
             >
               <Pencil className="h-3.5 w-3.5" />
             </button>
-            {r.status === 'local' && (
+            {(r.status === 'local' || r.status === 'prepare_failed') && (
               <button
                 onClick={() => { if (confirm('Delete this release? This will also remove the hardlink and .torrent file.')) deleteRelease.mutate(r.id); }}
                 disabled={deleteRelease.isPending}
@@ -138,8 +142,8 @@ export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, e
   return (
     <div className="space-y-4">
       {prepareStatus === 'success' && (
-        <div className="rounded-xl border border-emerald-200/60 dark:border-emerald-800/30 bg-emerald-50/30 dark:bg-emerald-950/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
-          Release prepared successfully!
+        <div className="rounded-xl border border-sky-200/60 dark:border-sky-800/30 bg-sky-50/30 dark:bg-sky-950/10 p-3 text-xs text-sky-700 dark:text-sky-300">
+          Release queued. Torrent generation is running in the background.
         </div>
       )}
       <div className="space-y-2">{releases.map(renderRelease)}</div>

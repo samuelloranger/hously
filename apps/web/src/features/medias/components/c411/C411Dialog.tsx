@@ -76,13 +76,6 @@ export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, edi
       service: media.service,
       sourceId: media.source_id,
       seasonNumber: isSeries ? selectedSeason : null,
-    }, {
-      onSuccess: (data) => {
-        // Auto-open the editor for the newly prepared release
-        if (data?.id) {
-          onEditingReleaseChange(data.id);
-        }
-      },
     });
   };
 

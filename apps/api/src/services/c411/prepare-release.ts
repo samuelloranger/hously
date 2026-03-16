@@ -6,7 +6,9 @@ import { dirname, extname, join, relative } from 'node:path';
 import { link, mkdir, rm, stat } from 'node:fs/promises';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../../db';
+import { createAndQueueNotification } from '../../jobs/notificationService';
 import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
+import { enqueueTask } from '../backgroundQueue';
 import { uploadToS3, deleteFromS3 } from '../s3Service';
 import { loadC411Config } from './session';
 import { getMediaInfo, type MediaInfoData } from './mediainfo';
@@ -42,6 +44,7 @@ type ResolvedReleaseSource = {
   service: MediaService;
   sourceId: number;
   seasonNumber: number | null;
+  sourceTitle: string;
   originalPath: string;
   originalName: string;
   primaryFilePath: string;
@@ -76,14 +79,17 @@ export interface PrepareReleaseOptions {
   seasonNumber?: number | null;
   radarrMovieId?: number;
   radarrSourceId?: number;
+  requestedByUserId?: number;
 }
 
 interface PrepareReleaseResult {
   releaseId: number;
+  queued: boolean;
 }
 
 type RadarrMovie = {
   id: number;
+  title?: string | null;
   tmdbId: number;
   imdbId?: string | null;
   hasFile: boolean;
@@ -276,6 +282,7 @@ async function resolveMovieSource(sourceId: number): Promise<ResolvedReleaseSour
     service: 'radarr',
     sourceId,
     seasonNumber: null,
+    sourceTitle: movie.title || originalName || 'Movie',
     originalPath,
     originalName,
     primaryFilePath: originalPath,
@@ -336,6 +343,7 @@ async function resolveSeasonSource(sourceId: number, seasonNumber: number): Prom
     service: 'sonarr',
     sourceId,
     seasonNumber,
+    sourceTitle: series.title || fallbackName,
     originalPath,
     originalName: primaryFile.sceneName || fallbackName,
     primaryFilePath: primaryFile.path,
@@ -589,6 +597,147 @@ function mapReleaseRecord(
   };
 }
 
+function buildPlaceholderName(source: ResolvedReleaseSource): string {
+  if (source.service === 'sonarr' && source.seasonNumber !== null) {
+    return `${source.sourceTitle} S${String(source.seasonNumber).padStart(2, '0')} (preparing...)`;
+  }
+  return `${source.sourceTitle} (preparing...)`;
+}
+
+function buildBaseMetadata(source: ResolvedReleaseSource): Prisma.InputJsonObject {
+  return {
+    service: source.service,
+    sourceId: source.sourceId,
+    seasonNumber: source.seasonNumber,
+    fileCount: source.files.length,
+    qbittorrentCategory: source.qbittorrentCategory,
+    prepareError: null,
+  } satisfies Prisma.InputJsonObject;
+}
+
+async function createPlaceholderRelease(source: ResolvedReleaseSource): Promise<number> {
+  const { categoryId, subcategoryId } = resolveCategory(undefined, source.tmdbType);
+  const release = await prisma.c411Release.create({
+    data: {
+      name: buildPlaceholderName(source),
+      title: source.sourceTitle,
+      tmdbId: source.tmdbId,
+      imdbId: source.imdbId || null,
+      tmdbType: source.tmdbType,
+      categoryId,
+      subcategoryId,
+      categoryName: source.tmdbType === 'movie' ? 'Films' : 'Séries',
+      size: BigInt(source.totalSize),
+      status: 'preparing',
+      originalPath: source.originalPath,
+      metadata: buildBaseMetadata(source),
+    },
+    select: { id: true },
+  });
+
+  return release.id;
+}
+
+async function sendPrepareNotification(params: {
+  userId: number | undefined;
+  title: string;
+  body: string;
+  releaseId: number;
+  tmdbId: number;
+  success: boolean;
+  seasonNumber: number | null;
+}): Promise<void> {
+  if (!params.userId) return;
+
+  const url =
+    `/medias?c411=${params.tmdbId}&c411Tab=releases&c411Release=${params.releaseId}`;
+
+  await createAndQueueNotification(
+    params.userId,
+    params.title,
+    params.body,
+    'c411_release_prepare',
+    url,
+    {
+      release_id: params.releaseId,
+      tmdb_id: params.tmdbId,
+      season_number: params.seasonNumber,
+      success: params.success,
+    },
+  );
+}
+
+async function processQueuedPrepareRelease(
+  releaseId: number,
+  source: ResolvedReleaseSource,
+  requestedByUserId?: number,
+): Promise<void> {
+  try {
+    const artifacts = await buildPreparedArtifacts(source);
+    await prisma.c411Release.update({
+      where: { id: releaseId },
+      data: mapReleaseRecord(source, artifacts),
+    });
+
+    await prisma.c411Presentation.upsert({
+      where: { releaseId },
+      update: { bbcode: artifacts.bbcode },
+      create: { releaseId, bbcode: artifacts.bbcode },
+    });
+
+    console.log(`[c411:prepare] Release saved: id=${releaseId} name=${artifacts.c411Name}`);
+
+    await sendPrepareNotification({
+      userId: requestedByUserId,
+      title: 'C411 release ready',
+      body: `${artifacts.c411Name} is ready to review and publish.`,
+      releaseId,
+      tmdbId: source.tmdbId,
+      success: true,
+      seasonNumber: source.seasonNumber,
+    });
+  } catch (error: any) {
+    const existing = await prisma.c411Release.findUnique({
+      where: { id: releaseId },
+      select: { metadata: true, hardlinkPath: true, torrentS3Key: true, title: true },
+    });
+    const existingMetadata =
+      existing?.metadata && typeof existing.metadata === 'object' && !Array.isArray(existing.metadata)
+        ? existing.metadata as Record<string, unknown>
+        : {};
+    const message = error?.message || 'Unknown prepare failure';
+
+    await prisma.c411Release.update({
+      where: { id: releaseId },
+      data: {
+        status: 'prepare_failed',
+        metadata: {
+          ...existingMetadata,
+          prepareError: message,
+        } satisfies Prisma.InputJsonObject,
+      },
+    });
+
+    if (existing?.torrentS3Key) {
+      await deleteFromS3(existing.torrentS3Key).catch(() => {});
+    }
+    if (existing?.hardlinkPath) {
+      await removeHardlinkPath(existing.hardlinkPath).catch(() => {});
+    }
+
+    console.error(`[c411:prepare] Background prepare failed for release ${releaseId}:`, error);
+    await sendPrepareNotification({
+      userId: requestedByUserId,
+      title: 'C411 release failed',
+      body: `${existing?.title || source.sourceTitle}: ${message}`,
+      releaseId,
+      tmdbId: source.tmdbId,
+      success: false,
+      seasonNumber: source.seasonNumber,
+    });
+  }
+}
+
 function getStoredPrepareOptions(existing: {
   originalPath: string | null;
   metadata: unknown;
@@ -635,19 +784,14 @@ async function removeHardlinkPath(hardlinkPath: string | null): Promise<void> {
  */
 export async function prepareRelease(options: PrepareReleaseOptions): Promise<PrepareReleaseResult> {
   const source = await resolveReleaseSource(options);
-  const artifacts = await buildPreparedArtifacts(source);
-  const release = await prisma.c411Release.create({
-    data: {
-      ...mapReleaseRecord(source, artifacts),
-      presentation: {
-        create: { bbcode: artifacts.bbcode },
-      },
-    },
-    include: { presentation: true },
+  const releaseId = await createPlaceholderRelease(source);
+
+  enqueueTask(`c411:prepare:${releaseId}`, async () => {
+    await processQueuedPrepareRelease(releaseId, source, options.requestedByUserId);
   });
 
-  console.log(`[c411:prepare] Release saved: id=${release.id} name=${artifacts.c411Name}`);
-  return { releaseId: release.id };
+  console.log(`[c411:prepare] Release queued: id=${releaseId} source=${source.service}:${source.sourceId}`);
+  return { releaseId, queued: true };
 }
 
 export async function fetchReleaseMediaInfoPreview(options: PrepareReleaseOptions) {

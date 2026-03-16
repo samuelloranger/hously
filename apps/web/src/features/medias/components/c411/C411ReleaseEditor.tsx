@@ -85,6 +85,8 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [subcategoryId, setSubcategoryId] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const isPreparing = release?.status === 'preparing';
+  const canPublishArtifacts = Boolean(release?.torrent_s3_key) && !isPreparing;
 
   const previewHtml = useMemo(() => showPreview ? bbcodeToHtml(bbcode) : '', [bbcode, showPreview]);
 
@@ -196,7 +198,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
           </button>
           <button
             onClick={handleCreateDraft}
-            disabled={createDraft.isPending}
+            disabled={createDraft.isPending || !canPublishArtifacts}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-neutral-100 dark:bg-neutral-700/50 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all duration-150 disabled:opacity-50"
           >
             {createDraft.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
@@ -204,7 +206,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
           </button>
           <button
             onClick={handlePublish}
-            disabled={publishRelease.isPending || updateRelease.isPending}
+            disabled={publishRelease.isPending || updateRelease.isPending || !canPublishArtifacts}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-emerald-600 text-white shadow-sm hover:bg-emerald-500 transition-all duration-150 disabled:opacity-50"
           >
             {publishRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
@@ -229,6 +231,16 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
       {publishRelease.isError && (
         <div className="rounded-xl border border-red-200/60 dark:border-red-800/30 bg-red-50/30 dark:bg-red-950/10 p-3 text-xs text-red-700 dark:text-red-300">
           {(publishRelease.error as any)?.data?.message ?? (publishRelease.error as Error)?.message ?? 'Publish failed'}
+        </div>
+      )}
+      {isPreparing && (
+        <div className="rounded-xl border border-sky-200/60 dark:border-sky-800/30 bg-sky-50/30 dark:bg-sky-950/10 p-3 text-xs text-sky-700 dark:text-sky-300">
+          Torrent preparation is still running in the background. Draft creation and publishing will be available when it finishes.
+        </div>
+      )}
+      {release.metadata?.prepareError && (
+        <div className="rounded-xl border border-red-200/60 dark:border-red-800/30 bg-red-50/30 dark:bg-red-950/10 p-3 text-xs text-red-700 dark:text-red-300">
+          {String(release.metadata.prepareError)}
         </div>
       )}
       {createDraft.isSuccess && (

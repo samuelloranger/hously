@@ -10,11 +10,14 @@ export function formatSize(bytes: number): string {
 
 /** Capitalize first letter of a status string for display. */
 export function capitalizeStatus(status: string): string {
-  return status.charAt(0).toUpperCase() + status.slice(1);
+  const normalized = status.replace(/_/g, ' ');
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
 export const STATUS_BADGE: Record<string, string> = {
   local: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
+  preparing: 'bg-sky-100/60 dark:bg-sky-950/20 text-sky-700 dark:text-sky-300',
+  prepare_failed: 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300',
   pending: 'bg-amber-100/60 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400',
   approved: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300',
   rejected: 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300',
@@ -23,6 +26,8 @@ export const STATUS_BADGE: Record<string, string> = {
 /** Left-border accent color for release cards keyed by status. */
 export const STATUS_BORDER: Record<string, string> = {
   local: 'border-l-neutral-300 dark:border-l-neutral-600',
+  preparing: 'border-l-sky-400 dark:border-l-sky-500',
+  prepare_failed: 'border-l-red-400 dark:border-l-red-500',
   pending: 'border-l-amber-400 dark:border-l-amber-500',
   approved: 'border-l-emerald-500 dark:border-l-emerald-400',
   rejected: 'border-l-red-400 dark:border-l-red-500',
@@ -31,6 +36,8 @@ export const STATUS_BORDER: Record<string, string> = {
 /** Subtle background tint for status-accented cards. */
 export const STATUS_BG: Record<string, string> = {
   local: '',
+  preparing: 'bg-sky-50/20 dark:bg-sky-950/5',
+  prepare_failed: 'bg-red-50/20 dark:bg-red-950/5',
   pending: 'bg-amber-50/20 dark:bg-amber-950/5',
   approved: 'bg-emerald-50/20 dark:bg-emerald-950/5',
   rejected: 'bg-red-50/20 dark:bg-red-950/5',

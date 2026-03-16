@@ -16,6 +16,7 @@ import type {
   C411CategoryListItem,
   C411CategoryOption,
   C411PrepareReleaseRequest,
+  C411PrepareReleaseResponse,
   C411MediaInfoResponse,
 } from '../types';
 
@@ -212,7 +213,7 @@ export function useC411PrepareRelease() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: C411PrepareReleaseRequest) =>
-      fetcher<{ id: number }>(C411_ENDPOINTS.PREPARE_RELEASE, { method: 'POST', body: payload }),
+      fetcher<C411PrepareReleaseResponse>(C411_ENDPOINTS.PREPARE_RELEASE, { method: 'POST', body: payload }),
     onSuccess: () => {
       queryClient.refetchQueries({ queryKey: queryKeys.c411.releases() });
     },

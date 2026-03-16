@@ -458,7 +458,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
   })
 
   // ─── Prepare Release ────────────────────────────────────
-  .post('/prepare-release', async ({ body, set }) => {
+  .post('/prepare-release', async ({ body, set, user }) => {
     const data = body as any;
     const service = data.service === 'sonarr' ? 'sonarr' : 'radarr';
     const sourceId = parseInt(data.sourceId ?? data.radarrSourceId);
@@ -466,8 +466,13 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     if (!sourceId) return badRequest(set, 'sourceId is required');
 
     try {
-      const result = await prepareRelease({ service, sourceId, seasonNumber });
-      return { id: result.releaseId };
+      const result = await prepareRelease({
+        service,
+        sourceId,
+        seasonNumber,
+        requestedByUserId: user?.id,
+      });
+      return { id: result.releaseId, queued: result.queued };
     } catch (error: any) {
       console.error('[c411:prepare-release]', error);
       return serverError(set, error.message || 'Failed to prepare release');
