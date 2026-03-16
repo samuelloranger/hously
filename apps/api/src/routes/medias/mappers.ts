@@ -212,13 +212,71 @@ function extractReleaseTags(row: Record<string, unknown>): string[] | null {
   const movieFile = toRecord(row.movieFile);
   if (!movieFile) return null;
 
+  const tags: string[] = [];
+
+  // 1. Language tag — try scene name first for specific FR tags (VF2, VFF, VFQ, VFI)
   const sceneName = toStringOrNull(movieFile.sceneName);
-  if (sceneName) return parseReleaseTags(sceneName);
-
   const relativePath = toStringOrNull(movieFile.relativePath);
-  if (relativePath) return parseReleaseTags(relativePath);
+  const nameSource = sceneName || relativePath || '';
+  const langMatch = nameSource.replace(/\./g, ' ').match(LANG_TAGS);
 
-  return null;
+  if (langMatch) {
+    tags.push(langMatch[1].replace(/[._]/g, '.'));
+  } else {
+    // Derive language tag from Radarr's structured languages array
+    const languages = Array.isArray(movieFile.languages) ? movieFile.languages : [];
+    const langNames = languages
+      .map((l: unknown) => toStringOrNull(toRecord(l)?.name)?.toLowerCase())
+      .filter(Boolean) as string[];
+    const hasFrench = langNames.some((n) => n === 'french');
+    const hasEnglish = langNames.some((n) => n === 'english');
+    if (hasFrench && hasEnglish) tags.push('MULTI');
+    else if (hasFrench) tags.push('VF');
+    else if (hasEnglish && langNames.length === 1) tags.push('EN');
+  }
+
+  // 2. Resolution — from Radarr quality data, fallback to name parsing
+  const quality = toRecord(movieFile.quality);
+  const qualityDetail = quality ? toRecord(quality.quality) : null;
+  const resolution = qualityDetail ? toNumberOrNull(qualityDetail.resolution) : null;
+  if (resolution && resolution > 0) {
+    tags.push(`${resolution}p`);
+  } else {
+    const resMatch = nameSource.match(RESOLUTION_TAGS);
+    if (resMatch) tags.push(resMatch[1]);
+  }
+
+  // 3. Source — from Radarr quality source, fallback to name parsing
+  const qualitySource = qualityDetail ? toStringOrNull(qualityDetail.source) : null;
+  if (qualitySource) {
+    const sourceMap: Record<string, string> = {
+      bluray: 'BluRay',
+      webdl: 'WEB-DL',
+      webrip: 'WEBRip',
+      television: 'HDTV',
+      televisionRaw: 'HDTV',
+      dvd: 'DVDRip',
+    };
+    const mapped = sourceMap[qualitySource.toLowerCase()];
+    if (mapped) tags.push(mapped);
+  } else {
+    const srcMatch = nameSource.match(SOURCE_TAGS);
+    if (srcMatch) tags.push(srcMatch[1]);
+  }
+
+  // 4. Release group — from Radarr data, fallback to name parsing
+  const releaseGroup = toStringOrNull(movieFile.releaseGroup);
+  if (releaseGroup) {
+    tags.push(releaseGroup);
+  } else {
+    const lastHyphen = nameSource.lastIndexOf('-');
+    if (lastHyphen > 0 && lastHyphen < nameSource.length - 1) {
+      const group = nameSource.substring(lastHyphen + 1).replace(/\.\w{2,4}$/, '');
+      if (group) tags.push(group);
+    }
+  }
+
+  return tags.length > 0 ? tags : null;
 }
 
 function extractSeriesReleaseTags(_row: Record<string, unknown>): string[] | null {
