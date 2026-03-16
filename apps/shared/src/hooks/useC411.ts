@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFetcher } from './context';
 import { queryKeys } from '../queryKeys';
@@ -274,4 +275,59 @@ export function useC411CategoryOptions(categoryId: number | null, options?: { en
     staleTime: 60 * 60 * 1000,
     enabled: (options?.enabled ?? true) && categoryId !== null,
   });
+}
+
+/**
+ * SSE stream that watches for releases leaving the "preparing" state.
+ * When the set of preparing IDs shrinks, the releases query is invalidated
+ * so the UI refreshes automatically.
+ *
+ * The stream connects when `enabled` is true and disconnects on cleanup,
+ * so closing and reopening the dialog reconnects automatically.
+ */
+export function useC411ReleasePrepareStream(options: { enabled: boolean }) {
+  const queryClient = useQueryClient();
+  const previousIdsRef = useRef<Set<number> | null>(null);
+
+  useEffect(() => {
+    if (!options.enabled) {
+      previousIdsRef.current = null;
+      return;
+    }
+
+    if (typeof EventSource === 'undefined') return;
+
+    const source = new EventSource(C411_ENDPOINTS.RELEASES_STREAM, { withCredentials: true });
+
+    source.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data) as { preparing_ids: number[] };
+        const currentIds = new Set(data.preparing_ids);
+        const prevIds = previousIdsRef.current;
+
+        if (prevIds !== null) {
+          // Check if any previously-preparing release is no longer preparing
+          const finished = [...prevIds].some((id) => !currentIds.has(id));
+          if (finished) {
+            queryClient.invalidateQueries({ queryKey: queryKeys.c411.releases() });
+          }
+        }
+
+        previousIdsRef.current = currentIds;
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    source.onerror = () => {
+      // EventSource auto-reconnects; reset tracking so next message
+      // does a fresh comparison rather than a stale diff.
+      previousIdsRef.current = null;
+    };
+
+    return () => {
+      source.close();
+      previousIdsRef.current = null;
+    };
+  }, [options.enabled, queryClient]);
 }

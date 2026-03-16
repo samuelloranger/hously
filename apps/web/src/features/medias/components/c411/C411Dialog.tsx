@@ -3,7 +3,7 @@ import { Search, Grid3X3, FileText, FolderOpen, Loader2, RefreshCw, Plus, AudioL
 // AudioLines used in TABS definition below
 import { Dialog } from '@/components/dialog';
 import { cn } from '@/lib/utils';
-import { useC411FrenchTitle, useC411Search, useC411ReleaseStatus, useC411Releases, useC411Drafts, useC411PrepareRelease, useC411Sync, useC411MediaInfo } from '@hously/shared';
+import { useC411FrenchTitle, useC411Search, useC411ReleaseStatus, useC411Releases, useC411Drafts, useC411PrepareRelease, useC411Sync, useC411MediaInfo, useC411ReleasePrepareStream } from '@hously/shared';
 import type { MediaItem } from '@hously/shared';
 import { C411SearchResults } from './C411SearchResults';
 import { C411SlotGrid } from './C411SlotGrid';
@@ -67,6 +67,10 @@ export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, edi
   const drafts = useC411Drafts({ enabled: isOpen && activeTab === 'drafts' });
   const prepareRelease = useC411PrepareRelease();
   const sync = useC411Sync();
+
+  // SSE stream: auto-refresh releases when a prepare finishes
+  const hasPreparing = (releases.data?.releases ?? []).some((r) => r.status === 'preparing');
+  useC411ReleasePrepareStream({ enabled: isOpen && hasPreparing });
 
   const handlePrepareRelease = () => {
     if (!media?.source_id) return;

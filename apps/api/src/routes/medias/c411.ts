@@ -9,6 +9,7 @@ import { prisma } from '../../db';
 import { badRequest, serverError } from '../../utils/errors';
 import { getJsonCache, setJsonCache, deleteCache } from '../../services/cache';
 import { getFileFromS3, deleteFromS3 } from '../../services/s3Service';
+import { createJsonSseResponse } from '../../utils/sse';
 import {
   withC411Session,
   loadC411Config,
@@ -211,6 +212,22 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
       console.error('[c411:releases]', error);
       return serverError(set, error.message || 'Failed to fetch releases');
     }
+  })
+
+  // SSE stream — emits preparing release IDs; clients invalidate on transition
+  .get('/releases/stream', async ({ request }) => {
+    return createJsonSseResponse({
+      request,
+      poll: async () => {
+        const preparing = await prisma.c411Release.findMany({
+          where: { status: 'preparing' },
+          select: { id: true, tmdbId: true, metadata: true },
+        });
+        return { preparing_ids: preparing.map((r) => r.id) };
+      },
+      intervalMs: 2000,
+      logLabel: '[c411:releases:stream]',
+    });
   })
 
   .get('/releases/:id', async ({ params, set }) => {

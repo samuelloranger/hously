@@ -7,6 +7,7 @@ export const C411_ENDPOINTS = {
   MEDIA_INFO: '/api/medias/c411/media-info',
   PREPARE_RELEASE: '/api/medias/c411/prepare-release',
   RELEASES: '/api/medias/c411/releases',
+  RELEASES_STREAM: '/api/medias/c411/releases/stream',
   RELEASE: (id: number) => `/api/medias/c411/releases/${id}`,
   RELEASE_TORRENT: (id: number) => `/api/medias/c411/releases/${id}/torrent`,
   PUBLISH_RELEASE: (id: number) => `/api/medias/c411/releases/${id}/publish`,
