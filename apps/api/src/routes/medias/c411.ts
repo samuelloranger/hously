@@ -154,7 +154,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
           const torrentFile = new File([buffer], filename, { type: 'application/x-bittorrent' });
           const qbResult = await addQbittorrentTorrentFile(config, true, {
             torrent: torrentFile,
-            category: draft.subcategory?.name?.toLowerCase().includes('série') ? 'sonarr' : 'radarr',
+            category: draft.subcategory?.name?.toLowerCase().includes('série') ? 'tv-sonarr' : 'radarr',
             tags: ['c411'],
           });
           if (!qbResult.success) {
@@ -418,7 +418,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
           const torrentFile = new File([dlBuffer], filename, { type: 'application/x-bittorrent' });
           const qbResult = await addQbittorrentTorrentFile(config, true, {
             torrent: torrentFile,
-            category: release.tmdbType === 'tv' ? 'sonarr' : 'radarr',
+            category: release.tmdbType === 'tv' ? 'tv-sonarr' : 'radarr',
             tags: ['c411'],
           });
           if (!qbResult.success) {

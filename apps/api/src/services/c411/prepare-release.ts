@@ -51,7 +51,7 @@ type ResolvedReleaseSource = {
   imdbId: string;
   tmdbType: 'movie' | 'tv';
   hardlinkBase: string;
-  qbittorrentCategory: 'radarr' | 'sonarr';
+  qbittorrentCategory: 'radarr' | 'tv-sonarr';
   files: ReleaseSourceFile[];
   totalSize: number;
 };
@@ -345,7 +345,7 @@ async function resolveSeasonSource(sourceId: number, seasonNumber: number): Prom
     imdbId: series.imdbId || '',
     tmdbType: 'tv',
     hardlinkBase: TV_HARDLINK_BASE,
-    qbittorrentCategory: 'sonarr',
+    qbittorrentCategory: 'tv-sonarr',
     files: files.map((file) => ({
       ...file,
       relativePath: sanitizeRelativePath(file.path, originalPath),
