@@ -181,7 +181,7 @@ export const extractPosterUrl = (baseUrl: string, imagesValue: unknown): string 
   return null;
 };
 
-const LANG_TAGS = /\b(MULTI[._]?VF2|MULTI[._]?VFF|MULTI[._]?VFQ|MULTI|VF2|VFF|VFQ|VFI|TRUEFRENCH|FRENCH)\b/i;
+const LANG_TAGS = /\b(MULTI[._]VF2|MULTI[._]VFF|MULTI[._]VFQ|VF2|VFF|VFQ|VFI|TRUEFRENCH|FRENCH)\b/i;
 const RESOLUTION_TAGS = /\b(2160p|1080p|720p|480p|4K|UHD)\b/i;
 const SOURCE_TAGS = /\b(BluRay|BDRip|BRRip|HDLight|WEBRip|WEB-DL|WEB|HDTV|DVDRip|Remux)\b/i;
 
@@ -221,19 +221,10 @@ function extractReleaseTags(row: Record<string, unknown>): string[] | null {
   return null;
 }
 
-function extractSeriesReleaseTags(row: Record<string, unknown>): string[] | null {
-  // Sonarr series don't embed episode files in the list response,
-  // but some fields from the series-level quality profile can be used.
-  // We can try to parse from the series path if nothing else.
-  const path = toStringOrNull(row.path);
-  if (!path) return null;
-
-  // The series folder often has the release name format
-  const folderName = path.split('/').pop();
-  if (!folderName) return null;
-
-  const tags = parseReleaseTags(folderName);
-  return tags.length > 0 ? tags : null;
+function extractSeriesReleaseTags(_row: Record<string, unknown>): string[] | null {
+  // Sonarr series list response doesn't include episode file data,
+  // and the series folder name is just the show title — not a release name.
+  return null;
 }
 
 export const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null => {
