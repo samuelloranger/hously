@@ -3,7 +3,7 @@
  */
 
 import type { TmdbDetails } from './tmdb';
-import type { MediaInfoData, SubtitleStreamInfo } from './mediainfo';
+import type { AudioStreamInfo, MediaInfoData, SubtitleStreamInfo } from './mediainfo';
 import { buildC411ReleaseName, formatChannels, parseSeason, parseTeam, extractHdrFromName, type C411ReleaseInfo } from './release-name';
 import { getFlagCode, getShortLangLabel, getFullLangName } from './lang-mapping';
 import { formatSize } from './utils';
@@ -241,13 +241,13 @@ export function buildReleaseInfo(
     title: tmdb.title || releaseName,
     year: tmdb.year || undefined,
     languages,
-    resolution: media?.resolution ?? undefined,
-    source: media?.source ?? undefined,
+    resolution: media?.resolution && media.resolution !== 'N/A' ? media.resolution : undefined,
+    source: media?.source && media.source !== 'N/A' ? media.source : undefined,
     hdr: extractHdrFromName(releaseName) ?? undefined,
-    audioCodec: media?.audioStreams?.[0]?.codec ?? undefined,
+    audioCodec: media?.audioStreams?.[0]?.codec && media.audioStreams[0].codec !== 'N/A' ? media.audioStreams[0].codec : undefined,
     audioChannels: media?.audioStreams?.[0]?.channels && media.audioStreams[0].channels !== 'N/A'
       ? formatChannels(media.audioStreams[0].channels) : undefined,
-    videoCodec: media?.videoCodec ?? undefined,
+    videoCodec: media?.videoCodec && media.videoCodec !== 'N/A' ? media.videoCodec : undefined,
   };
 }
 

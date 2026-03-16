@@ -15,6 +15,8 @@ import type {
   C411GenerateBBCodeResponse,
   C411CategoryListItem,
   C411CategoryOption,
+  C411PrepareReleaseRequest,
+  C411MediaInfoResponse,
 } from '../types';
 
 export function useC411FrenchTitle(tmdbId: number | null, type: string, options?: { enabled?: boolean }) {
@@ -39,6 +41,7 @@ export function useC411Search(query: string, options?: { enabled?: boolean }) {
 
 export function useC411ReleaseStatus(
   tmdbId: number | null,
+  tmdbType: 'movie' | 'tv',
   title: string,
   year: number,
   imdbId: string,
@@ -46,10 +49,10 @@ export function useC411ReleaseStatus(
 ) {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: queryKeys.c411.releaseStatus(tmdbId ?? 0),
+    queryKey: queryKeys.c411.releaseStatus(tmdbId ?? 0, tmdbType),
     queryFn: () =>
       fetcher<C411ReleaseStatusResponse>(
-        `${C411_ENDPOINTS.RELEASE_STATUS}?tmdbId=${tmdbId}&title=${encodeURIComponent(title)}&year=${year}&imdbId=${encodeURIComponent(imdbId)}`,
+        `${C411_ENDPOINTS.RELEASE_STATUS}?tmdbId=${tmdbId}&tmdbType=${tmdbType}&title=${encodeURIComponent(title)}&year=${year}&imdbId=${encodeURIComponent(imdbId)}`,
       ),
     enabled: (options?.enabled ?? true) && tmdbId !== null,
   });
@@ -180,12 +183,27 @@ export function useC411UpdateRelease() {
   });
 }
 
-export function useC411MediaInfo(radarrSourceId: number | null, options?: { enabled?: boolean }) {
+export function useC411MediaInfo(
+  params: { service: 'radarr' | 'sonarr'; sourceId: number | null; seasonNumber?: number | null },
+  options?: { enabled?: boolean },
+) {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: ['c411', 'media-info', radarrSourceId],
-    queryFn: () => fetcher<any>(`${C411_ENDPOINTS.MEDIA_INFO}?radarrSourceId=${radarrSourceId}`),
-    enabled: (options?.enabled ?? false) && radarrSourceId !== null,
+    queryKey: ['c411', 'media-info', params.service, params.sourceId, params.seasonNumber ?? null],
+    queryFn: () => {
+      const search = new URLSearchParams({
+        service: params.service,
+        sourceId: String(params.sourceId),
+      });
+      if (params.seasonNumber != null) {
+        search.set('seasonNumber', String(params.seasonNumber));
+      }
+      return fetcher<C411MediaInfoResponse>(`${C411_ENDPOINTS.MEDIA_INFO}?${search.toString()}`);
+    },
+    enabled:
+      (options?.enabled ?? false) &&
+      params.sourceId !== null &&
+      (params.service === 'radarr' || params.seasonNumber != null),
   });
 }
 
@@ -193,8 +211,8 @@ export function useC411PrepareRelease() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (radarrSourceId: number) =>
-      fetcher<{ id: number }>(C411_ENDPOINTS.PREPARE_RELEASE, { method: 'POST', body: { radarrSourceId } }),
+    mutationFn: (payload: C411PrepareReleaseRequest) =>
+      fetcher<{ id: number }>(C411_ENDPOINTS.PREPARE_RELEASE, { method: 'POST', body: payload }),
     onSuccess: () => {
       queryClient.refetchQueries({ queryKey: queryKeys.c411.releases() });
     },

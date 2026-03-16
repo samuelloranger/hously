@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Search, Grid3X3, FileText, FolderOpen, Loader2, RefreshCw, Plus, AudioLines } from 'lucide-react';
 // AudioLines used in TABS definition below
 import { Dialog } from '@/components/dialog';
@@ -36,13 +37,32 @@ export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, edi
   const year = media?.year ?? 0;
   const imdbId = (media as any)?.imdb_id ?? '';
   const mediaType = media?.media_type === 'series' ? 'tv' : 'movie';
+  const isSeries = media?.media_type === 'series';
+  const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!isSeries) {
+      setSelectedSeason(null);
+      return;
+    }
+
+    const seasonCount = media?.season_count ?? 0;
+    setSelectedSeason(seasonCount > 0 ? 1 : null);
+  }, [isSeries, media?.id, media?.season_count]);
 
   const frenchTitle = useC411FrenchTitle(tmdbId, mediaType, { enabled: isOpen && tmdbId !== null });
   const searchQuery = frenchTitle.data?.title ?? media?.title ?? '';
 
   const searchResult = useC411Search(searchQuery, { enabled: isOpen && activeTab === 'search' && searchQuery.length >= 2 });
-  const releaseStatus = useC411ReleaseStatus(tmdbId, searchQuery, year, imdbId, { enabled: isOpen && activeTab === 'slots' && tmdbId !== null });
-  const mediaInfo = useC411MediaInfo(media?.source_id ?? null, { enabled: isOpen && activeTab === 'info' });
+  const releaseStatus = useC411ReleaseStatus(tmdbId, mediaType, searchQuery, year, imdbId, { enabled: isOpen && activeTab === 'slots' && tmdbId !== null });
+  const mediaInfo = useC411MediaInfo(
+    {
+      service: media?.service === 'sonarr' ? 'sonarr' : 'radarr',
+      sourceId: media?.source_id ?? null,
+      seasonNumber: isSeries ? selectedSeason : null,
+    },
+    { enabled: isOpen && activeTab === 'info' },
+  );
   const releases = useC411Releases();
   const drafts = useC411Drafts({ enabled: isOpen && activeTab === 'drafts' });
   const prepareRelease = useC411PrepareRelease();
@@ -50,7 +70,13 @@ export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, edi
 
   const handlePrepareRelease = () => {
     if (!media?.source_id) return;
-    prepareRelease.mutate(media.source_id, {
+    if (isSeries && selectedSeason == null) return;
+
+    prepareRelease.mutate({
+      service: media.service,
+      sourceId: media.source_id,
+      seasonNumber: isSeries ? selectedSeason : null,
+    }, {
       onSuccess: (data) => {
         // Auto-open the editor for the newly prepared release
         if (data?.id) {
@@ -112,8 +138,27 @@ export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, edi
           </nav>
         </div>
 
-        {activeTab === 'releases' && (
+        {isSeries && (media?.season_count ?? 0) > 0 && (
           <div className="flex items-center gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+              Season
+            </span>
+            <select
+              value={selectedSeason ?? ''}
+              onChange={(event) => setSelectedSeason(event.target.value ? Number(event.target.value) : null)}
+              className="h-8 rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-xs text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+            >
+              {Array.from({ length: media?.season_count ?? 0 }, (_, index) => index + 1).map((seasonNumber) => (
+                <option key={seasonNumber} value={seasonNumber}>
+                  Season {seasonNumber}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {activeTab === 'releases' && (
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleSync}
               disabled={sync.isPending}
@@ -124,7 +169,7 @@ export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, edi
             </button>
             <button
               onClick={handlePrepareRelease}
-              disabled={prepareRelease.isPending || !media?.source_id}
+              disabled={prepareRelease.isPending || !media?.source_id || (isSeries && selectedSeason == null)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-indigo-600 text-white shadow-sm hover:bg-indigo-500 transition-all duration-150 disabled:opacity-50"
             >
               {prepareRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
@@ -155,11 +200,19 @@ export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, edi
         )}
         {activeTab === 'releases' && (
           <C411ReleasesList
-            releases={(releases.data?.releases ?? []).filter((r) => r.tmdb_id === tmdbId)}
+            releases={(releases.data?.releases ?? []).filter((release) => {
+              if (release.tmdb_id !== tmdbId) return false;
+              if (!isSeries || selectedSeason == null) return true;
+              return Number(release.metadata?.seasonNumber ?? -1) === selectedSeason;
+            })}
             isLoading={releases.isLoading}
             onEdit={(id) => onEditingReleaseChange(id)}
             prepareStatus={prepareRelease.isPending ? 'pending' : prepareRelease.isSuccess ? 'success' : null}
-            emptyMessage="No releases for this movie. Use &quot;Prepare Release&quot; to create one."
+            emptyMessage={
+              isSeries
+                ? 'No releases for this season. Use "Prepare Release" to create one.'
+                : 'No releases for this movie. Use "Prepare Release" to create one.'
+            }
           />
         )}
         {activeTab === 'drafts' && (

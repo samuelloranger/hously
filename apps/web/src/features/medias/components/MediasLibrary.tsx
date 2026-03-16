@@ -219,7 +219,7 @@ export function MediasLibrary() {
                   releaseTags={item.release_tags ?? undefined}
                   onOpenInteractive={() => setInteractiveItem(item)}
                   onFindSimilar={item.tmdb_id ? () => setSimilarItem(item) : undefined}
-                  onOpenC411={c411Enabled && item.media_type === 'movie' && item.source_id && item.tmdb_id ? () => setParams({ c411: item.tmdb_id! }) : undefined}
+                  onOpenC411={c411Enabled && item.source_id && item.tmdb_id ? () => setParams({ c411: item.tmdb_id! }) : undefined}
                   onDelete={() => setDeleteItem(item)}
                 />
               ))}

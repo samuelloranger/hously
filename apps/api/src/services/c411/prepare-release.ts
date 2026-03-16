@@ -2,15 +2,16 @@
  * Full release preparation pipeline for C411.
  */
 
-import { link, stat, mkdir } from 'node:fs/promises';
-import { extname, join } from 'node:path';
+import { dirname, extname, join, relative } from 'node:path';
+import { link, mkdir, rm, stat } from 'node:fs/promises';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../db';
+import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
 import { uploadToS3, deleteFromS3 } from '../s3Service';
 import { loadC411Config } from './session';
-import { getMediaInfo } from './mediainfo';
-import { findMediaFile } from './lang-detect';
+import { getMediaInfo, type MediaInfoData } from './mediainfo';
 import { detectLanguages } from './lang-detect';
-import { fetchTmdbDetails, buildFallbackTmdbDetails } from './tmdb';
+import { fetchTmdbDetails, buildFallbackTmdbDetails, type TmdbDetails } from './tmdb';
 import { buildC411ReleaseName } from './release-name';
 import { generateBBCode, buildReleaseInfo } from './bbcode';
 import { createTorrent } from './mktorrent';
@@ -18,458 +19,718 @@ import { calcPieceLength, formatSize } from './utils';
 import { resolveCategory, resolveLanguage, resolveGenres } from './resolvers';
 import type { LanguageTag } from './types';
 
-const HARDLINK_BASE = '/mnt/storage/Downloads/movies';
+const MOVIE_HARDLINK_BASE = '/mnt/storage/Downloads/movies';
+const TV_HARDLINK_BASE = '/mnt/storage/Downloads/tv_shows';
 
-interface PrepareReleaseOptions {
-  /** Radarr movie source_id (the Radarr internal movie ID) */
-  radarrMovieId: number;
+type MediaService = 'radarr' | 'sonarr';
+
+type ArrConfig = {
+  apiKey: string;
+  baseUrl: string;
+  rootFolderPath: string;
+};
+
+type ReleaseSourceFile = {
+  path: string;
+  size: number;
+  relativePath: string;
+  sceneName: string;
+  releaseGroup: string;
+};
+
+type ResolvedReleaseSource = {
+  service: MediaService;
+  sourceId: number;
+  seasonNumber: number | null;
+  originalPath: string;
+  originalName: string;
+  primaryFilePath: string;
+  primaryFileRelativePath: string;
+  releaseGroup: string;
+  tmdbId: number;
+  imdbId: string;
+  tmdbType: 'movie' | 'tv';
+  hardlinkBase: string;
+  qbittorrentCategory: 'radarr' | 'sonarr';
+  files: ReleaseSourceFile[];
+  totalSize: number;
+};
+
+type PreparedReleaseArtifacts = {
+  c411Name: string;
+  hardlinkPath: string;
+  torrentS3Key: string;
+  nfoContent: string;
+  bbcode: string;
+  media: MediaInfoData;
+  tmdb: TmdbDetails;
+  languageTag: LanguageTag;
+  totalSize: number;
+  options: Record<string, number[]>;
+  metadata: Prisma.InputJsonObject;
+};
+
+export interface PrepareReleaseOptions {
+  service?: MediaService;
+  sourceId?: number;
+  seasonNumber?: number | null;
+  radarrMovieId?: number;
+  radarrSourceId?: number;
 }
 
 interface PrepareReleaseResult {
   releaseId: number;
 }
 
-/**
- * Load Radarr plugin config from DB.
- */
-async function loadRadarrConfig() {
-  const plugin = await prisma.plugin.findFirst({
-    where: { type: { startsWith: 'radarr' }, enabled: true },
-  });
-  if (!plugin?.config) throw new Error('Radarr plugin not configured');
-  const config = plugin.config as Record<string, any>;
-  return { apiKey: config.api_key as string, baseUrl: (config.website_url as string).replace(/\/$/, '') };
+type RadarrMovie = {
+  id: number;
+  tmdbId: number;
+  imdbId?: string | null;
+  hasFile: boolean;
+  movieFile?: {
+    path: string;
+    size?: number;
+    sceneName?: string | null;
+    relativePath?: string | null;
+    releaseGroup?: string | null;
+  } | null;
+};
+
+type SonarrSeries = {
+  id: number;
+  title?: string | null;
+  path?: string | null;
+  tmdbId: number;
+  imdbId?: string | null;
+};
+
+type SonarrEpisode = {
+  seasonNumber?: number | null;
+  episodeFileId?: number | null;
+  episodeFile?: {
+    path?: string | null;
+    size?: number | null;
+    relativePath?: string | null;
+    sceneName?: string | null;
+    releaseGroup?: string | null;
+  } | null;
+};
+
+function normalizePrepareOptions(options: PrepareReleaseOptions): {
+  service: MediaService;
+  sourceId: number;
+  seasonNumber: number | null;
+} {
+  const service = options.service ?? 'radarr';
+  const sourceId = options.sourceId ?? options.radarrSourceId ?? options.radarrMovieId ?? null;
+  const seasonNumber = options.seasonNumber == null ? null : Math.trunc(options.seasonNumber);
+
+  if (service !== 'radarr' && service !== 'sonarr') {
+    throw new Error('Unsupported release source');
+  }
+  if (!sourceId || !Number.isFinite(sourceId) || sourceId <= 0) {
+    throw new Error('Invalid source ID');
+  }
+  if (service === 'sonarr' && (!Number.isFinite(seasonNumber ?? Number.NaN) || (seasonNumber ?? 0) <= 0)) {
+    throw new Error('seasonNumber is required for Sonarr releases');
+  }
+
+  return { service, sourceId, seasonNumber };
 }
 
-/**
- * Load TMDB API key from plugin config.
- */
+async function loadArrConfig(service: MediaService): Promise<ArrConfig> {
+  const plugin = await prisma.plugin.findFirst({
+    where: { type: service, enabled: true },
+    select: { config: true },
+  });
+
+  if (!plugin?.config) {
+    throw new Error(`${service === 'radarr' ? 'Radarr' : 'Sonarr'} plugin not configured`);
+  }
+
+  const normalized =
+    service === 'radarr'
+      ? normalizeRadarrConfig(plugin.config)
+      : normalizeSonarrConfig(plugin.config);
+
+  if (!normalized) {
+    throw new Error(`${service === 'radarr' ? 'Radarr' : 'Sonarr'} plugin not configured`);
+  }
+
+  return {
+    apiKey: normalized.api_key,
+    baseUrl: normalized.website_url.replace(/\/$/, ''),
+    rootFolderPath: normalized.root_folder_path,
+  };
+}
+
 async function loadTmdbApiKey(): Promise<string> {
   const plugin = await prisma.plugin.findFirst({
     where: { type: { startsWith: 'tmdb' }, enabled: true },
+    select: { config: true },
   });
   if (!plugin?.config) throw new Error('TMDB plugin not configured');
-  return (plugin.config as Record<string, any>).api_key as string;
+  return (plugin.config as Record<string, unknown>).api_key as string;
 }
 
-/**
- * Fetch movie details from Radarr API.
- */
-async function fetchRadarrMovie(baseUrl: string, apiKey: string, movieId: number) {
-  const res = await fetch(`${baseUrl}/api/v3/movie/${movieId}`, {
-    headers: { 'X-Api-Key': apiKey },
+async function fetchArrJson<T>(config: ArrConfig, path: string, params?: Record<string, string>): Promise<T> {
+  const url = new URL(path, config.baseUrl);
+  for (const [key, value] of Object.entries(params ?? {})) {
+    url.searchParams.set(key, value);
+  }
+
+  const res = await fetch(url.toString(), {
+    headers: { 'X-Api-Key': config.apiKey, Accept: 'application/json' },
   });
-  if (!res.ok) throw new Error(`Radarr API error: ${res.status}`);
-  return res.json() as Promise<any>;
+
+  if (!res.ok) {
+    throw new Error(`Arr API error (${res.status}) for ${url.pathname}`);
+  }
+
+  return res.json() as Promise<T>;
 }
 
-/**
- * Fetch release group from Radarr grab history when movieFile.releaseGroup is null.
- */
-async function fetchReleaseGroupFromHistory(baseUrl: string, apiKey: string, movieId: number): Promise<string> {
+async function fetchRadarrMovie(config: ArrConfig, movieId: number): Promise<RadarrMovie> {
+  return fetchArrJson<RadarrMovie>(config, `/api/v3/movie/${movieId}`);
+}
+
+async function fetchReleaseGroupFromHistory(config: ArrConfig, movieId: number): Promise<string> {
   try {
-    const res = await fetch(`${baseUrl}/api/v3/history/movie?movieId=${movieId}`, {
-      headers: { 'X-Api-Key': apiKey },
+    const history = await fetchArrJson<any[]>(config, '/api/v3/history/movie', {
+      movieId: String(movieId),
     });
-    if (!res.ok) return '';
-    const history = await res.json() as any[];
-    const grabbed = history.find((h: any) => h.eventType === 'grabbed' && h.data?.releaseGroup);
+    const grabbed = history.find((entry) => entry?.eventType === 'grabbed' && entry?.data?.releaseGroup);
     return grabbed?.data?.releaseGroup || '';
   } catch {
     return '';
   }
 }
 
-/**
- * Fetch the release group for a movie from Radarr by its tmdbId.
- * Tries movieFile.releaseGroup first, then grab history.
- */
-async function fetchReleaseGroupFromRadarr(tmdbId: number): Promise<string> {
-  try {
-    const radarrConfig = await loadRadarrConfig();
-    // Look up movie by tmdbId
-    const res = await fetch(`${radarrConfig.baseUrl}/api/v3/movie?tmdbId=${tmdbId}`, {
-      headers: { 'X-Api-Key': radarrConfig.apiKey },
-    });
-    if (!res.ok) return '';
-    const movies = await res.json() as any[];
-    const movie = movies[0];
-    if (!movie) return '';
-
-    // Try movieFile.releaseGroup first
-    if (movie.movieFile?.releaseGroup) return movie.movieFile.releaseGroup;
-
-    // Fallback to grab history
-    return fetchReleaseGroupFromHistory(radarrConfig.baseUrl, radarrConfig.apiKey, movie.id);
-  } catch {
-    return '';
-  }
+async function fetchSonarrSeries(config: ArrConfig, seriesId: number): Promise<SonarrSeries> {
+  return fetchArrJson<SonarrSeries>(config, `/api/v3/series/${seriesId}`);
 }
 
-/**
- * Prepare a full C411 release from a Radarr movie.
- */
-export async function prepareRelease(options: PrepareReleaseOptions): Promise<PrepareReleaseResult> {
-  const { radarrMovieId } = options;
+async function fetchSonarrSeasonEpisodes(
+  config: ArrConfig,
+  seriesId: number,
+  seasonNumber: number,
+): Promise<SonarrEpisode[]> {
+  return fetchArrJson<SonarrEpisode[]>(config, '/api/v3/episode', {
+    seriesId: String(seriesId),
+    seasonNumber: String(seasonNumber),
+    includeEpisodeFile: 'true',
+  });
+}
 
-  // Load configs
-  const [radarrConfig, c411Config, tmdbApiKey] = await Promise.all([
-    loadRadarrConfig(),
-    loadC411Config(),
-    loadTmdbApiKey(),
-  ]);
+function remapArrPath(contentPath: string): string {
+  return contentPath.replace(/^\/data\//, '/mnt/storage/');
+}
 
-  if (!c411Config.announceUrl) throw new Error('C411 announce_url not configured');
+function commonParentDirectory(paths: string[]): string {
+  if (paths.length === 0) throw new Error('No paths to normalize');
+  if (paths.length === 1) return dirname(paths[0]);
 
-  // 1. Get movie info from Radarr
-  const movie = await fetchRadarrMovie(radarrConfig.baseUrl, radarrConfig.apiKey, radarrMovieId);
-  if (!movie.hasFile || !movie.movieFile) throw new Error('Movie has no file in Radarr');
+  const split = paths.map((candidate) => dirname(candidate).split('/').filter(Boolean));
+  const common: string[] = [];
 
-  // Radarr returns container paths (/data/...), remap to host mount (/mnt/storage/...)
-  const radarrPath = movie.movieFile.path as string;
-  const originalPath = radarrPath.replace(/^\/data\//, '/mnt/storage/');
+  for (let index = 0; index < split[0].length; index++) {
+    const value = split[0][index];
+    if (split.every((parts) => parts[index] === value)) {
+      common.push(value);
+    } else {
+      break;
+    }
+  }
+
+  return common.length > 0 ? `/${common.join('/')}` : '/';
+}
+
+function sanitizeRelativePath(filePath: string, sourceRoot: string): string {
+  const rel = relative(sourceRoot, filePath);
+  if (!rel || rel.startsWith('..')) return filePath.split('/').pop() ?? filePath;
+  return rel;
+}
+
+async function resolveMovieSource(sourceId: number): Promise<ResolvedReleaseSource> {
+  const radarrConfig = await loadArrConfig('radarr');
+  const movie = await fetchRadarrMovie(radarrConfig, sourceId);
+  if (!movie.hasFile || !movie.movieFile?.path) {
+    throw new Error('Movie has no file in Radarr');
+  }
+
+  const originalPath = remapArrPath(movie.movieFile.path);
   const originalName = movie.movieFile.sceneName || movie.movieFile.relativePath || '';
   let releaseGroup = movie.movieFile.releaseGroup || '';
 
-  // Radarr sometimes loses the releaseGroup on import — check grab history as fallback
   if (!releaseGroup) {
-    releaseGroup = await fetchReleaseGroupFromHistory(radarrConfig.baseUrl, radarrConfig.apiKey, radarrMovieId);
-    if (releaseGroup) console.log(`[c411:prepare] Found release group from history: ${releaseGroup}`);
+    releaseGroup = await fetchReleaseGroupFromHistory(radarrConfig, sourceId);
+    if (releaseGroup) {
+      console.log(`[c411:prepare] Found release group from history: ${releaseGroup}`);
+    }
   }
-  const tmdbId = movie.tmdbId as number;
-  const imdbId = (movie.imdbId || '') as string;
 
-  // 2. Run mediainfo
-  console.log(`[c411:prepare] Running mediainfo on ${originalPath}`);
-  const media = await getMediaInfo(originalPath, originalName);
-  if (!media) throw new Error(`MediaInfo failed for ${originalPath}`);
+  const fileSize = movie.movieFile.size != null ? Number(movie.movieFile.size) : Number((await stat(originalPath)).size);
+  const primaryRelativePath = originalPath.split('/').pop() ?? originalPath;
 
-  // 3. Detect languages via ffprobe, with fallback heuristics
-  console.log('[c411:prepare] Detecting languages...');
-  let langTag: LanguageTag = await detectLanguages(originalPath);
+  return {
+    service: 'radarr',
+    sourceId,
+    seasonNumber: null,
+    originalPath,
+    originalName,
+    primaryFilePath: originalPath,
+    primaryFileRelativePath: primaryRelativePath,
+    releaseGroup,
+    tmdbId: movie.tmdbId,
+    imdbId: movie.imdbId || '',
+    tmdbType: 'movie',
+    hardlinkBase: MOVIE_HARDLINK_BASE,
+    qbittorrentCategory: 'radarr',
+    files: [{
+      path: originalPath,
+      size: fileSize,
+      relativePath: primaryRelativePath,
+      sceneName: originalName,
+      releaseGroup,
+    }],
+    totalSize: fileSize,
+  };
+}
 
-  // If ffprobe found nothing, infer from release name only.
-  // Subtitles are NOT reliable — a single English audio track can have 40 subtitle
-  // languages (including French), that doesn't make it MULTI.
-  if (langTag === 'UNKNOWN') {
-    const name = originalName.toUpperCase();
+async function resolveSeasonSource(sourceId: number, seasonNumber: number): Promise<ResolvedReleaseSource> {
+  const sonarrConfig = await loadArrConfig('sonarr');
+  const [series, episodes] = await Promise.all([
+    fetchSonarrSeries(sonarrConfig, sourceId),
+    fetchSonarrSeasonEpisodes(sonarrConfig, sourceId, seasonNumber),
+  ]);
 
-    if (name.includes('MULTI') && name.includes('VF2')) langTag = 'MULTI.VF2';
-    else if (name.includes('MULTI') && name.includes('VFQ')) langTag = 'MULTI.VFQ';
-    else if (name.includes('MULTI') && name.includes('VFI')) langTag = 'MULTI.VFI';
-    else if (name.includes('MULTI')) langTag = 'MULTI.VFF';
-    else if (name.includes('VFQ')) langTag = 'VFQ';
-    else if (name.includes('VFF') || name.includes('TRUEFRENCH')) langTag = 'VFF';
-    else if (name.includes('FRENCH')) langTag = 'VFF'; // C411 requires VFF/VFQ/VFI, not FRENCH
-    // If no language markers in the name and only 1 audio track, assume VO (English)
-    else if (media.audioStreams.length <= 1) langTag = 'EN';
+  const fileMap = new Map<string, ReleaseSourceFile>();
+  for (const episode of episodes) {
+    const episodeFile = episode.episodeFile;
+    if (!episodeFile?.path) continue;
+
+    const mappedPath = remapArrPath(episodeFile.path);
+    if (fileMap.has(mappedPath)) continue;
+
+    fileMap.set(mappedPath, {
+      path: mappedPath,
+      size: Number(episodeFile.size ?? 0),
+      relativePath: episodeFile.relativePath || mappedPath.split('/').pop() || mappedPath,
+      sceneName: episodeFile.sceneName || episodeFile.relativePath || mappedPath.split('/').pop() || '',
+      releaseGroup: episodeFile.releaseGroup || '',
+    });
   }
-  console.log(`[c411:prepare] Language: ${langTag}`);
 
-  // 4. Fetch TMDB details
-  console.log(`[c411:prepare] Fetching TMDB details for ${tmdbId}...`);
-  let tmdb = await fetchTmdbDetails(tmdbApiKey, 'movie', tmdbId).catch(() => null);
-  if (!tmdb) tmdb = buildFallbackTmdbDetails(originalName);
+  const files = Array.from(fileMap.values()).sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+  if (files.length === 0) {
+    throw new Error(`No downloaded files found in Sonarr for season ${seasonNumber}`);
+  }
 
-  // 5. Build C411 release name
-  // Radarr releaseGroup is the authoritative source, fallback to parsing from filename
-  const releaseInfo = buildReleaseInfo(tmdb, media, originalName, langTag !== 'UNKNOWN' ? langTag : undefined);
-  const c411Name = buildC411ReleaseName(releaseInfo, originalName, releaseGroup || undefined);
-  console.log(`[c411:prepare] Release name: ${c411Name}`);
+  const originalPath = commonParentDirectory(files.map((file) => file.path));
+  const primaryFile = [...files].sort((left, right) => right.size - left.size)[0];
+  const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+  const releaseGroup = files.find((file) => file.releaseGroup)?.releaseGroup || '';
+  const fallbackName = `${series.title || 'Series'}.S${String(seasonNumber).padStart(2, '0')}`;
 
-  // 6. Create hardlink
-  const ext = extname(originalPath);
-  const hardlinkPath = join(HARDLINK_BASE, `${c411Name}${ext}`);
+  return {
+    service: 'sonarr',
+    sourceId,
+    seasonNumber,
+    originalPath,
+    originalName: primaryFile.sceneName || fallbackName,
+    primaryFilePath: primaryFile.path,
+    primaryFileRelativePath: sanitizeRelativePath(primaryFile.path, originalPath),
+    releaseGroup,
+    tmdbId: series.tmdbId,
+    imdbId: series.imdbId || '',
+    tmdbType: 'tv',
+    hardlinkBase: TV_HARDLINK_BASE,
+    qbittorrentCategory: 'sonarr',
+    files: files.map((file) => ({
+      ...file,
+      relativePath: sanitizeRelativePath(file.path, originalPath),
+    })),
+    totalSize,
+  };
+}
+
+async function resolveReleaseSource(options: PrepareReleaseOptions): Promise<ResolvedReleaseSource> {
+  const normalized = normalizePrepareOptions(options);
+  return normalized.service === 'radarr'
+    ? resolveMovieSource(normalized.sourceId)
+    : resolveSeasonSource(normalized.sourceId, normalized.seasonNumber!);
+}
+
+function inferLanguageTag(originalName: string, media: MediaInfoData, languageTag: LanguageTag): LanguageTag {
+  if (languageTag !== 'UNKNOWN') return languageTag;
+
+  const name = originalName.toUpperCase();
+  if (name.includes('MULTI') && name.includes('VF2')) return 'MULTI.VF2';
+  if (name.includes('MULTI') && name.includes('VFQ')) return 'MULTI.VFQ';
+  if (name.includes('MULTI') && name.includes('VFI')) return 'MULTI.VFI';
+  if (name.includes('MULTI')) return 'MULTI.VFF';
+  if (name.includes('VFQ')) return 'VFQ';
+  if (name.includes('VFF') || name.includes('TRUEFRENCH')) return 'VFF';
+  if (name.includes('FRENCH')) return 'VFF';
+  if (media.audioStreams.length <= 1) return 'EN';
+  return 'UNKNOWN';
+}
+
+async function ensureHardlink(sourcePath: string, targetPath: string): Promise<void> {
   try {
-    await stat(hardlinkPath);
-    console.log(`[c411:prepare] Hardlink already exists: ${hardlinkPath}`);
+    await stat(targetPath);
+    return;
   } catch {
-    await mkdir(HARDLINK_BASE, { recursive: true });
-    await link(originalPath, hardlinkPath);
-    console.log(`[c411:prepare] Created hardlink: ${hardlinkPath}`);
+    await mkdir(dirname(targetPath), { recursive: true });
+    await link(sourcePath, targetPath);
+  }
+}
+
+async function ensureHardlinkContent(source: ResolvedReleaseSource, releaseName: string): Promise<string> {
+  if (source.files.length === 1 && source.service === 'radarr') {
+    const hardlinkPath = join(source.hardlinkBase, `${releaseName}${extname(source.primaryFilePath)}`);
+    await mkdir(source.hardlinkBase, { recursive: true });
+    await ensureHardlink(source.primaryFilePath, hardlinkPath);
+    return hardlinkPath;
   }
 
-  // 7. Create .torrent file
+  const hardlinkPath = join(source.hardlinkBase, releaseName);
+  await mkdir(hardlinkPath, { recursive: true });
+
+  for (const file of source.files) {
+    const relativePath = file.relativePath || sanitizeRelativePath(file.path, source.originalPath);
+    const targetPath = join(hardlinkPath, relativePath);
+    await ensureHardlink(file.path, targetPath);
+  }
+
+  return hardlinkPath;
+}
+
+function buildNfoCompleteName(source: ResolvedReleaseSource, releaseName: string): string {
+  if (source.files.length === 1 && source.service === 'radarr') {
+    return `${releaseName}${extname(source.primaryFilePath)}`;
+  }
+
+  return join(releaseName, source.primaryFileRelativePath).replace(/\\/g, '/');
+}
+
+async function createTorrentArtifact(
+  announceUrl: string,
+  source: ResolvedReleaseSource,
+  releaseName: string,
+  hardlinkPath: string,
+): Promise<{ torrentPath: string; cleanup: () => Promise<void> }> {
   const tmpDir = `/tmp/c411-${Date.now()}`;
   await mkdir(tmpDir, { recursive: true });
-  const torrentPath = join(tmpDir, `${c411Name}.torrent`);
-  const fileStat = await stat(originalPath);
-  const pieceLength = calcPieceLength(Number(fileStat.size));
+
+  const torrentPath = join(tmpDir, `${releaseName}.torrent`);
+  const pieceLength = calcPieceLength(source.totalSize);
 
   console.log('[c411:prepare] Creating torrent...');
   await createTorrent({
-    announceUrl: c411Config.announceUrl,
+    announceUrl,
     pieceLength,
     outputPath: torrentPath,
     contentPath: hardlinkPath,
   });
 
-  // 8. Upload .torrent to S3
-  const torrentBuffer = await Bun.file(torrentPath).arrayBuffer();
-  const s3Key = `c411/torrents/${c411Name}.torrent`;
-  const uploaded = await uploadToS3(Buffer.from(torrentBuffer), s3Key, 'application/x-bittorrent');
-  if (!uploaded) throw new Error('Failed to upload .torrent to S3');
-  console.log(`[c411:prepare] Uploaded torrent to S3: ${s3Key}`);
+  return {
+    torrentPath,
+    cleanup: async () => {
+      await rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+    },
+  };
+}
 
-  // 9. Generate NFO + BBCode
-  // Strip the full path from the NFO "Complete name" line — show only the release filename
-  const nfoContent = media.fullOutput.replace(
-    /^(Complete name\s*:\s*).*$/m,
-    `$1${c411Name}${ext}`,
-  );
-  const bbcode = generateBBCode({
+async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<PreparedReleaseArtifacts> {
+  const [c411Config, tmdbApiKey] = await Promise.all([
+    loadC411Config(),
+    loadTmdbApiKey(),
+  ]);
+
+  if (!c411Config.announceUrl) {
+    throw new Error('C411 announce_url not configured');
+  }
+
+  console.log(`[c411:prepare] Running mediainfo on ${source.originalPath}`);
+  const media = await getMediaInfo(source.originalPath, source.originalName);
+  if (!media) {
+    throw new Error(`MediaInfo failed for ${source.originalPath}`);
+  }
+
+  console.log('[c411:prepare] Detecting languages...');
+  const rawLanguageTag = await detectLanguages(source.originalPath);
+  const languageTag = inferLanguageTag(source.originalName, media, rawLanguageTag);
+  console.log(`[c411:prepare] Language: ${languageTag}`);
+
+  console.log(`[c411:prepare] Fetching TMDB details for ${source.tmdbId}...`);
+  let tmdb = await fetchTmdbDetails(tmdbApiKey, source.tmdbType, source.tmdbId).catch(() => null);
+  if (!tmdb) {
+    tmdb = buildFallbackTmdbDetails(source.originalName);
+  }
+
+  const releaseInfo = buildReleaseInfo(
     tmdb,
     media,
-    releaseName: c411Name,
-    fileCount: 1,
-    totalSize: formatSize(Number(fileStat.size)),
-    languages: langTag !== 'UNKNOWN' ? langTag : undefined,
-    teamOverride: releaseGroup || undefined,
-  });
+    source.originalName,
+    languageTag !== 'UNKNOWN' ? languageTag : undefined,
+  );
+  const c411Name = buildC411ReleaseName(
+    releaseInfo,
+    source.originalName,
+    source.releaseGroup || undefined,
+  );
+  console.log(`[c411:prepare] Release name: ${c411Name}`);
 
-  // 10. Resolve C411 options
-  const { categoryId, subcategoryId } = resolveCategory(undefined, tmdb.type);
-  const languageOptionIds = resolveLanguage(c411Name);
-  const genreOptionIds = resolveGenres(bbcode);
+  const hardlinkPath = await ensureHardlinkContent(source, c411Name);
+  const { torrentPath, cleanup } = await createTorrentArtifact(
+    c411Config.announceUrl,
+    source,
+    c411Name,
+    hardlinkPath,
+  );
 
-  // 11. Save to DB
+  try {
+    const torrentBuffer = await Bun.file(torrentPath).arrayBuffer();
+    const torrentS3Key = `c411/torrents/${c411Name}.torrent`;
+    const uploaded = await uploadToS3(Buffer.from(torrentBuffer), torrentS3Key, 'application/x-bittorrent');
+    if (!uploaded) {
+      throw new Error('Failed to upload .torrent to S3');
+    }
+
+    const nfoContent = media.fullOutput.replace(
+      /^(Complete name\s*:\s*).*$/m,
+      `$1${buildNfoCompleteName(source, c411Name)}`,
+    );
+    const bbcode = generateBBCode({
+      tmdb,
+      media,
+      releaseName: c411Name,
+      fileCount: source.files.length,
+      totalSize: formatSize(source.totalSize),
+      languages: languageTag !== 'UNKNOWN' ? languageTag : undefined,
+      teamOverride: source.releaseGroup || undefined,
+    });
+
+    const { categoryId, subcategoryId } = resolveCategory(undefined, tmdb.type);
+    const languageOptionIds = resolveLanguage(c411Name);
+    const genreOptionIds = resolveGenres(bbcode);
+
+    return {
+      c411Name,
+      hardlinkPath,
+      torrentS3Key,
+      nfoContent,
+      bbcode,
+      media,
+      tmdb,
+      languageTag,
+      totalSize: source.totalSize,
+      options: { '1': languageOptionIds, '5': genreOptionIds },
+      metadata: {
+        sizeHuman: formatSize(source.totalSize),
+        platform: tmdb.network || null,
+        originalName: source.originalName,
+        releaseGroup: source.releaseGroup || null,
+        service: source.service,
+        sourceId: source.sourceId,
+        seasonNumber: source.seasonNumber,
+        fileCount: source.files.length,
+        qbittorrentCategory: source.qbittorrentCategory,
+      } satisfies Prisma.InputJsonObject,
+    };
+  } finally {
+    await cleanup();
+  }
+}
+
+function mapReleaseRecord(
+  source: ResolvedReleaseSource,
+  artifacts: PreparedReleaseArtifacts,
+) {
+  return {
+    name: artifacts.c411Name,
+    title: artifacts.tmdb.title,
+    tmdbId: source.tmdbId,
+    imdbId: source.imdbId || null,
+    tmdbType: artifacts.tmdb.type,
+    categoryId: resolveCategory(undefined, artifacts.tmdb.type).categoryId,
+    subcategoryId: resolveCategory(undefined, artifacts.tmdb.type).subcategoryId,
+    categoryName: artifacts.tmdb.type === 'movie' ? 'Films' : 'Séries',
+    language: artifacts.languageTag !== 'UNKNOWN' ? artifacts.languageTag : null,
+    resolution: artifacts.media.resolution !== 'N/A' ? artifacts.media.resolution : null,
+    source: artifacts.media.source !== 'N/A' ? artifacts.media.source : null,
+    videoCodec: artifacts.media.videoCodec !== 'N/A' ? artifacts.media.videoCodec : null,
+    audioCodec: artifacts.media.audioStreams[0]?.codec || null,
+    size: BigInt(artifacts.totalSize),
+    status: 'local',
+    torrentS3Key: artifacts.torrentS3Key,
+    nfoContent: artifacts.nfoContent,
+    hardlinkPath: artifacts.hardlinkPath,
+    originalPath: source.originalPath,
+    options: artifacts.options,
+    tmdbData: {
+      id: artifacts.tmdb.id,
+      type: artifacts.tmdb.type,
+      title: artifacts.tmdb.title,
+      originalTitle: artifacts.tmdb.originalTitle,
+      year: parseInt(artifacts.tmdb.year) || 0,
+      overview: artifacts.tmdb.overview,
+      posterUrl: artifacts.tmdb.posterUrl,
+      genres: artifacts.tmdb.genres,
+      rating: parseFloat(artifacts.tmdb.rating) || 0,
+      directors: [artifacts.tmdb.director],
+      cast: artifacts.tmdb.cast.map((name) => ({ name, character: '' })),
+      releaseDate: artifacts.tmdb.releaseDate,
+      countries: artifacts.tmdb.productionCountries,
+      imdbId: artifacts.tmdb.imdbId,
+    },
+    metadata: artifacts.metadata,
+  };
+}
+
+function getStoredPrepareOptions(existing: {
+  originalPath: string | null;
+  metadata: unknown;
+}) {
+  const metadata =
+    existing.metadata && typeof existing.metadata === 'object' && !Array.isArray(existing.metadata)
+      ? existing.metadata as Record<string, unknown>
+      : null;
+
+  const service = metadata?.service;
+  const sourceId = metadata?.sourceId;
+  const seasonNumber = metadata?.seasonNumber;
+
+  if ((service === 'radarr' || service === 'sonarr') && typeof sourceId === 'number') {
+    return {
+      service,
+      sourceId,
+      seasonNumber: typeof seasonNumber === 'number' ? seasonNumber : null,
+    } satisfies PrepareReleaseOptions;
+  }
+
+  return null;
+}
+
+async function removeHardlinkPath(hardlinkPath: string | null): Promise<void> {
+  if (!hardlinkPath) return;
+
+  try {
+    const current = await stat(hardlinkPath);
+    if (current.isDirectory()) {
+      await rm(hardlinkPath, { recursive: true, force: true });
+    } else {
+      await rm(hardlinkPath, { force: true });
+    }
+  } catch (error: any) {
+    if (error?.code !== 'ENOENT') {
+      console.warn(`[c411] Failed to remove hardlink path ${hardlinkPath}: ${error.message}`);
+    }
+  }
+}
+
+/**
+ * Prepare a full C411 release from a Radarr movie or a Sonarr season.
+ */
+export async function prepareRelease(options: PrepareReleaseOptions): Promise<PrepareReleaseResult> {
+  const source = await resolveReleaseSource(options);
+  const artifacts = await buildPreparedArtifacts(source);
   const release = await prisma.c411Release.create({
     data: {
-      name: c411Name,
-      title: tmdb.title,
-      tmdbId,
-      imdbId: imdbId || null,
-      tmdbType: tmdb.type,
-      categoryId,
-      subcategoryId,
-      categoryName: tmdb.type === 'movie' ? 'Films' : 'Séries',
-      language: langTag !== 'UNKNOWN' ? langTag : null,
-      resolution: media.resolution !== 'N/A' ? media.resolution : null,
-      source: media.source !== 'N/A' ? media.source : null,
-      videoCodec: media.videoCodec !== 'N/A' ? media.videoCodec : null,
-      audioCodec: media.audioStreams[0]?.codec || null,
-      size: BigInt(fileStat.size),
-      status: 'local',
-      torrentS3Key: s3Key,
-      nfoContent,
-      hardlinkPath,
-      originalPath,
-      options: { '1': languageOptionIds, '5': genreOptionIds },
-      tmdbData: {
-        id: tmdb.id,
-        type: tmdb.type,
-        title: tmdb.title,
-        originalTitle: tmdb.originalTitle,
-        year: parseInt(tmdb.year) || 0,
-        overview: tmdb.overview,
-        posterUrl: tmdb.posterUrl,
-        genres: tmdb.genres,
-        rating: parseFloat(tmdb.rating) || 0,
-        directors: [tmdb.director],
-        cast: tmdb.cast.map(name => ({ name, character: '' })),
-        releaseDate: tmdb.releaseDate,
-        countries: tmdb.productionCountries,
-        imdbId: tmdb.imdbId,
-      },
-      metadata: {
-        sizeHuman: formatSize(Number(fileStat.size)),
-        platform: tmdb.network || null,
-        originalName,
-        releaseGroup: releaseGroup || null,
-      },
+      ...mapReleaseRecord(source, artifacts),
       presentation: {
-        create: { bbcode },
+        create: { bbcode: artifacts.bbcode },
       },
     },
     include: { presentation: true },
   });
 
-  // Cleanup tmp
-  await Bun.file(torrentPath).exists() && await import('node:fs/promises').then(fs => fs.rm(tmpDir, { recursive: true }).catch(() => {}));
-
-  console.log(`[c411:prepare] Release saved: id=${release.id} name=${c411Name}`);
+  console.log(`[c411:prepare] Release saved: id=${release.id} name=${artifacts.c411Name}`);
   return { releaseId: release.id };
 }
 
+export async function fetchReleaseMediaInfoPreview(options: PrepareReleaseOptions) {
+  const source = await resolveReleaseSource(options);
+  const media = await getMediaInfo(source.originalPath, source.originalName);
+  const languageTag = media ? inferLanguageTag(source.originalName, media, await detectLanguages(source.originalPath)) : 'UNKNOWN';
+
+  return {
+    file_path: source.originalPath,
+    file_size: source.totalSize,
+    file_count: source.files.length,
+    scene_name: source.originalName,
+    release_group: source.releaseGroup,
+    language_tag: languageTag,
+    media_info: media ? {
+      container: media.container,
+      resolution: media.resolution,
+      video_codec: media.videoCodec,
+      video_bitrate: media.videoBitrate,
+      video_bit_depth: media.videoBitDepth,
+      framerate: media.framerate,
+      source: media.source,
+      duration: media.duration,
+      audio_streams: media.audioStreams.map((audio) => ({
+        codec: audio.codec,
+        channels: audio.channels,
+        bitrate: audio.bitrate,
+        language: audio.language,
+        title: audio.title,
+      })),
+      subtitles: media.subtitles.map((subtitle) => ({
+        language: subtitle.language,
+        title: subtitle.title,
+        format: subtitle.format,
+        forced: subtitle.forced,
+      })),
+    } : null,
+  };
+}
+
 /**
- * Refresh an existing C411 release: re-run mediainfo, lang detection,
- * TMDB fetch, torrent creation, BBCode generation — then update the record in-place.
+ * Refresh an existing C411 release in-place.
  */
 export async function refreshRelease(releaseId: number): Promise<void> {
   const existing = await prisma.c411Release.findUnique({
     where: { id: releaseId },
     include: { presentation: true },
   });
+
   if (!existing) throw new Error('Release not found');
-  if (!existing.originalPath) throw new Error('Release has no original path');
 
-  const originalPath = existing.originalPath;
-  const metadata = existing.metadata as Record<string, any> | null;
-  const originalName = metadata?.originalName || '';
-  const tmdbId = existing.tmdbId;
-  const imdbId = existing.imdbId || '';
-
-  // Load configs
-  const [c411Config, tmdbApiKey] = await Promise.all([
-    loadC411Config(),
-    loadTmdbApiKey(),
-  ]);
-  if (!c411Config.announceUrl) throw new Error('C411 announce_url not configured');
-
-  // 1. Run mediainfo
-  console.log(`[c411:refresh] Running mediainfo on ${originalPath}`);
-  const media = await getMediaInfo(originalPath, originalName);
-  if (!media) throw new Error(`MediaInfo failed for ${originalPath}`);
-
-  // 2. Detect languages
-  console.log('[c411:refresh] Detecting languages...');
-  let langTag: LanguageTag = await detectLanguages(originalPath);
-
-  if (langTag === 'UNKNOWN') {
-    const name = originalName.toUpperCase();
-    if (name.includes('MULTI') && name.includes('VF2')) langTag = 'MULTI.VF2';
-    else if (name.includes('MULTI') && name.includes('VFQ')) langTag = 'MULTI.VFQ';
-    else if (name.includes('MULTI') && name.includes('VFI')) langTag = 'MULTI.VFI';
-    else if (name.includes('MULTI')) langTag = 'MULTI.VFF';
-    else if (name.includes('VFQ')) langTag = 'VFQ';
-    else if (name.includes('VFF') || name.includes('TRUEFRENCH')) langTag = 'VFF';
-    else if (name.includes('FRENCH')) langTag = 'VFF';
-    else if (media.audioStreams.length <= 1) langTag = 'EN';
-  }
-  console.log(`[c411:refresh] Language: ${langTag}`);
-
-  // 3. Fetch TMDB details
-  let tmdb = tmdbId
-    ? await fetchTmdbDetails(tmdbApiKey, existing.tmdbType || 'movie', tmdbId).catch(() => null)
-    : null;
-  if (!tmdb) tmdb = buildFallbackTmdbDetails(originalName);
-
-  // 4. Build release name
-  // Use stored releaseGroup from metadata, fallback to fetching from Radarr
-  let releaseGroup = metadata?.releaseGroup || '';
-  if (!releaseGroup && tmdbId) {
-    releaseGroup = await fetchReleaseGroupFromRadarr(tmdbId);
-    if (releaseGroup) console.log(`[c411:refresh] Found release group from Radarr: ${releaseGroup}`);
-  }
-  const releaseInfo = buildReleaseInfo(tmdb, media, originalName, langTag !== 'UNKNOWN' ? langTag : undefined);
-  const c411Name = buildC411ReleaseName(releaseInfo, originalName, releaseGroup || undefined);
-  console.log(`[c411:refresh] Release name: ${c411Name}`);
-
-  // 5. Create hardlink
-  const ext = extname(originalPath);
-  const hardlinkPath = join(HARDLINK_BASE, `${c411Name}${ext}`);
-  try {
-    await stat(hardlinkPath);
-  } catch {
-    await mkdir(HARDLINK_BASE, { recursive: true });
-    await link(originalPath, hardlinkPath);
+  const storedOptions = getStoredPrepareOptions(existing);
+  if (!storedOptions) {
+    throw new Error('Release cannot be refreshed because its source metadata is missing');
   }
 
-  // 6. Create .torrent
-  const tmpDir = `/tmp/c411-${Date.now()}`;
-  await mkdir(tmpDir, { recursive: true });
-  const torrentPath = join(tmpDir, `${c411Name}.torrent`);
-  const fileStat = await stat(originalPath);
-  const pieceLength = calcPieceLength(Number(fileStat.size));
+  const source = await resolveReleaseSource(storedOptions);
+  const artifacts = await buildPreparedArtifacts(source);
+  const previousTorrentS3Key = existing.torrentS3Key;
+  const previousHardlinkPath = existing.hardlinkPath;
 
-  console.log('[c411:refresh] Creating torrent...');
-  await createTorrent({
-    announceUrl: c411Config.announceUrl,
-    pieceLength,
-    outputPath: torrentPath,
-    contentPath: hardlinkPath,
-  });
-
-  // 7. Upload .torrent to S3 (delete old one first)
-  if (existing.torrentS3Key) {
-    await deleteFromS3(existing.torrentS3Key);
-  }
-  const torrentBuffer = await Bun.file(torrentPath).arrayBuffer();
-  const s3Key = `c411/torrents/${c411Name}.torrent`;
-  const uploaded = await uploadToS3(Buffer.from(torrentBuffer), s3Key, 'application/x-bittorrent');
-  if (!uploaded) throw new Error('Failed to upload .torrent to S3');
-
-  // 8. Generate NFO + BBCode
-  const nfoContent = media.fullOutput.replace(
-    /^(Complete name\s*:\s*).*$/m,
-    `$1${c411Name}${ext}`,
-  );
-  const bbcode = generateBBCode({
-    tmdb,
-    media,
-    releaseName: c411Name,
-    fileCount: 1,
-    totalSize: formatSize(Number(fileStat.size)),
-    languages: langTag !== 'UNKNOWN' ? langTag : undefined,
-    teamOverride: releaseGroup || undefined,
-  });
-
-  // 9. Resolve C411 options
-  const { categoryId, subcategoryId } = resolveCategory(undefined, tmdb.type);
-  const languageOptionIds = resolveLanguage(c411Name);
-  const genreOptionIds = resolveGenres(bbcode);
-
-  // 10. Update DB record in-place
   await prisma.c411Release.update({
     where: { id: releaseId },
-    data: {
-      name: c411Name,
-      title: tmdb.title,
-      tmdbId: tmdbId ?? undefined,
-      imdbId: imdbId || null,
-      tmdbType: tmdb.type,
-      categoryId,
-      subcategoryId,
-      categoryName: tmdb.type === 'movie' ? 'Films' : 'Séries',
-      language: langTag !== 'UNKNOWN' ? langTag : null,
-      resolution: media.resolution !== 'N/A' ? media.resolution : null,
-      source: media.source !== 'N/A' ? media.source : null,
-      videoCodec: media.videoCodec !== 'N/A' ? media.videoCodec : null,
-      audioCodec: media.audioStreams[0]?.codec || null,
-      size: BigInt(fileStat.size),
-      torrentS3Key: s3Key,
-      nfoContent,
-      hardlinkPath,
-      options: { '1': languageOptionIds, '5': genreOptionIds },
-      tmdbData: {
-        id: tmdb.id,
-        type: tmdb.type,
-        title: tmdb.title,
-        originalTitle: tmdb.originalTitle,
-        year: parseInt(tmdb.year) || 0,
-        overview: tmdb.overview,
-        posterUrl: tmdb.posterUrl,
-        genres: tmdb.genres,
-        rating: parseFloat(tmdb.rating) || 0,
-        directors: [tmdb.director],
-        cast: tmdb.cast.map(name => ({ name, character: '' })),
-        releaseDate: tmdb.releaseDate,
-        countries: tmdb.productionCountries,
-        imdbId: tmdb.imdbId,
-      },
-      metadata: {
-        sizeHuman: formatSize(Number(fileStat.size)),
-        platform: tmdb.network || null,
-        originalName,
-        releaseGroup: releaseGroup || null,
-      },
-    },
+    data: mapReleaseRecord(source, artifacts),
   });
 
-  // Update presentation
   if (existing.presentation) {
     await prisma.c411Presentation.update({
       where: { id: existing.presentation.id },
-      data: { bbcode },
+      data: { bbcode: artifacts.bbcode },
     });
   } else {
     await prisma.c411Presentation.create({
-      data: { releaseId, bbcode },
+      data: { releaseId, bbcode: artifacts.bbcode },
     });
   }
 
-  // Cleanup tmp
-  await Bun.file(torrentPath).exists() && await import('node:fs/promises').then(fs => fs.rm(tmpDir, { recursive: true }).catch(() => {}));
+  if (previousTorrentS3Key && previousTorrentS3Key !== artifacts.torrentS3Key) {
+    await deleteFromS3(previousTorrentS3Key);
+  }
+  if (previousHardlinkPath && previousHardlinkPath !== artifacts.hardlinkPath) {
+    await removeHardlinkPath(previousHardlinkPath);
+  }
 
-  console.log(`[c411:refresh] Release refreshed: id=${releaseId} name=${c411Name}`);
+  console.log(`[c411:refresh] Release refreshed: id=${releaseId} name=${artifacts.c411Name}`);
 }

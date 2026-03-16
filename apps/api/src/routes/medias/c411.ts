@@ -30,7 +30,7 @@ import {
 } from '../../services/c411';
 import { getQbittorrentPluginConfig } from '../../services/qbittorrent/config';
 import { addQbittorrentTorrentFile } from '../../services/qbittorrent/torrents';
-import { prepareRelease, refreshRelease } from '../../services/c411/prepare-release';
+import { prepareRelease, refreshRelease, fetchReleaseMediaInfoPreview } from '../../services/c411/prepare-release';
 import { syncC411Releases } from '../../services/c411/sync';
 
 export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
@@ -57,16 +57,17 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     const title = query.title as string;
     const year = parseInt(query.year as string);
     const imdbId = (query.imdbId as string) || '';
+    const tmdbType = query.tmdbType === 'tv' ? 'tv' : 'movie';
 
     if (!tmdbId || !title) return badRequest(set, 'tmdbId and title are required');
 
-    const cacheKey = `c411:release-status:${tmdbId}`;
+    const cacheKey = `c411:release-status:${tmdbType}:${tmdbId}`;
     try {
       const cached = await getJsonCache(cacheKey);
       if (cached) return cached;
 
       const result = await withC411Session((session) =>
-        fetchReleaseStatus(session, { tmdbId, tmdbType: 'movie', imdbId, title, year: year || 0 }),
+        fetchReleaseStatus(session, { tmdbId, tmdbType, imdbId, title, year: year || 0 }),
       );
       await setJsonCache(cacheKey, result, 1800); // 30 min cache
       return result;
@@ -133,6 +134,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     const id = parseInt(params.id);
     if (!id) return badRequest(set, 'Invalid draft ID');
     try {
+      const draft = await withC411Session((session) => fetchDraft(session, id));
       const result = await withC411Session((session) => publishDraft(session, id));
 
       if (!result.success) {
@@ -152,7 +154,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
           const torrentFile = new File([buffer], filename, { type: 'application/x-bittorrent' });
           const qbResult = await addQbittorrentTorrentFile(config, true, {
             torrent: torrentFile,
-            category: 'radarr',
+            category: draft.subcategory?.name?.toLowerCase().includes('série') ? 'sonarr' : 'radarr',
             tags: ['c411'],
           });
           if (!qbResult.success) {
@@ -198,6 +200,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
           seeders: r.seeders,
           leechers: r.leechers,
           completions: r.completions,
+          metadata: r.metadata,
           has_presentation: !!r.presentation,
           has_torrent: !!r.torrentS3Key,
           synced_at: r.syncedAt?.toISOString() ?? null,
@@ -306,7 +309,14 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
       // Delete hardlink file
       if (release.hardlinkPath) {
         try {
-          await import('node:fs/promises').then((fs) => fs.unlink(release.hardlinkPath!));
+          await import('node:fs/promises').then(async (fs) => {
+            const current = await fs.stat(release.hardlinkPath!);
+            if (current.isDirectory()) {
+              await fs.rm(release.hardlinkPath!, { recursive: true, force: true });
+              return;
+            }
+            await fs.unlink(release.hardlinkPath!);
+          });
           console.log(`[c411:delete] Removed hardlink: ${release.hardlinkPath}`);
         } catch (err: any) {
           if (err.code !== 'ENOENT') console.warn(`[c411:delete] Failed to remove hardlink: ${err.message}`);
@@ -408,7 +418,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
           const torrentFile = new File([dlBuffer], filename, { type: 'application/x-bittorrent' });
           const qbResult = await addQbittorrentTorrentFile(config, true, {
             torrent: torrentFile,
-            category: 'radarr',
+            category: release.tmdbType === 'tv' ? 'sonarr' : 'radarr',
             tags: ['c411'],
           });
           if (!qbResult.success) {
@@ -430,84 +440,17 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
 
   // ─── Media Info Preview ──────────────────────────────────
   .get('/media-info', async ({ query, set }) => {
-    const radarrSourceId = parseInt(query.radarrSourceId as string);
-    if (!radarrSourceId) return badRequest(set, 'radarrSourceId is required');
+    const service = query.service === 'sonarr' ? 'sonarr' : 'radarr';
+    const sourceId = parseInt((query.sourceId as string) || (query.radarrSourceId as string));
+    const seasonNumber = query.seasonNumber ? parseInt(query.seasonNumber as string) : null;
+    if (!sourceId) return badRequest(set, 'sourceId is required');
 
     try {
-      const radarrPlugin = await prisma.plugin.findFirst({
-        where: { type: 'radarr', enabled: true },
-        select: { config: true },
+      return await fetchReleaseMediaInfoPreview({
+        service,
+        sourceId,
+        seasonNumber,
       });
-      if (!radarrPlugin?.config) return badRequest(set, 'Radarr plugin not configured');
-      const cfg = radarrPlugin.config as any;
-      const baseUrl = (cfg.website_url as string).replace(/\/$/, '');
-      const apiKey = cfg.api_key as string;
-
-      const res = await fetch(`${baseUrl}/api/v3/movie/${radarrSourceId}`, {
-        headers: { 'X-Api-Key': apiKey },
-      });
-      if (!res.ok) return serverError(set, `Radarr API error: ${res.status}`);
-      const movie = await res.json() as any;
-      if (!movie.hasFile || !movie.movieFile) return badRequest(set, 'Movie has no file');
-
-      const radarrPath = movie.movieFile.path as string;
-      const filePath = radarrPath.replace(/^\/data\//, '/mnt/storage/');
-      const sceneName = movie.movieFile.sceneName || movie.movieFile.relativePath || '';
-      let releaseGroup = movie.movieFile.releaseGroup || '';
-
-      // Fallback: check Radarr grab history for release group
-      if (!releaseGroup) {
-        try {
-          const histRes = await fetch(`${baseUrl}/api/v3/history/movie?movieId=${radarrSourceId}`, {
-            headers: { 'X-Api-Key': apiKey },
-          });
-          if (histRes.ok) {
-            const history = await histRes.json() as any[];
-            const grabbed = history.find((h: any) => h.eventType === 'grabbed' && h.data?.releaseGroup);
-            releaseGroup = grabbed?.data?.releaseGroup || '';
-          }
-        } catch { /* ignore */ }
-      }
-
-      // Run mediainfo + ffprobe
-      const { getMediaInfo } = await import('../../services/c411/mediainfo');
-      const { detectLanguages } = await import('../../services/c411/lang-detect');
-
-      const [media, langTag] = await Promise.all([
-        getMediaInfo(filePath, sceneName),
-        detectLanguages(filePath),
-      ]);
-
-      return {
-        file_path: radarrPath,
-        file_size: movie.movieFile.size ?? null,
-        scene_name: sceneName,
-        release_group: releaseGroup,
-        language_tag: langTag,
-        media_info: media ? {
-          container: media.container,
-          resolution: media.resolution,
-          video_codec: media.videoCodec,
-          video_bitrate: media.videoBitrate,
-          video_bit_depth: media.videoBitDepth,
-          framerate: media.framerate,
-          source: media.source,
-          duration: media.duration,
-          audio_streams: media.audioStreams.map((a) => ({
-            codec: a.codec,
-            channels: a.channels,
-            bitrate: a.bitrate,
-            language: a.language,
-            title: a.title,
-          })),
-          subtitles: media.subtitles.map((s) => ({
-            language: s.language,
-            title: s.title,
-            format: s.format,
-            forced: s.forced,
-          })),
-        } : null,
-      };
     } catch (error: any) {
       console.error('[c411:media-info]', error);
       return serverError(set, error.message || 'Failed to get media info');
@@ -517,11 +460,13 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
   // ─── Prepare Release ────────────────────────────────────
   .post('/prepare-release', async ({ body, set }) => {
     const data = body as any;
-    const radarrSourceId = parseInt(data.radarrSourceId);
-    if (!radarrSourceId) return badRequest(set, 'radarrSourceId is required');
+    const service = data.service === 'sonarr' ? 'sonarr' : 'radarr';
+    const sourceId = parseInt(data.sourceId ?? data.radarrSourceId);
+    const seasonNumber = data.seasonNumber == null ? null : parseInt(data.seasonNumber);
+    if (!sourceId) return badRequest(set, 'sourceId is required');
 
     try {
-      const result = await prepareRelease({ radarrMovieId: radarrSourceId });
+      const result = await prepareRelease({ service, sourceId, seasonNumber });
       return { id: result.releaseId };
     } catch (error: any) {
       console.error('[c411:prepare-release]', error);

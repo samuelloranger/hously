@@ -115,6 +115,44 @@ export interface C411PublishResponse {
   message?: string;
 }
 
+export interface C411PrepareReleaseRequest {
+  service: 'radarr' | 'sonarr';
+  sourceId: number;
+  seasonNumber?: number | null;
+}
+
+export interface C411MediaInfoResponse {
+  file_path: string;
+  file_size: number | null;
+  file_count: number;
+  scene_name: string;
+  release_group: string;
+  language_tag: string;
+  media_info: {
+    container: string;
+    resolution: string;
+    video_codec: string;
+    video_bitrate: string;
+    video_bit_depth: string;
+    framerate: string;
+    source: string;
+    duration: string;
+    audio_streams: Array<{
+      codec: string;
+      channels: string;
+      bitrate: string;
+      language: string;
+      title: string;
+    }>;
+    subtitles: Array<{
+      language: string;
+      title: string;
+      format: string;
+      forced: boolean;
+    }>;
+  } | null;
+}
+
 // ─── C411 Categories ──────────────────────────────────────
 export interface C411CategoryListItem {
   id: number;
@@ -154,6 +192,7 @@ export interface C411LocalRelease {
   seeders: number | null;
   leechers: number | null;
   completions: number | null;
+  metadata: any;
   has_presentation: boolean;
   has_torrent: boolean;
   synced_at: string | null;
