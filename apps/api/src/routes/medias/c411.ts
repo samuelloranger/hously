@@ -178,7 +178,7 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
   .get('/releases', async ({ set }) => {
     try {
       const releases = await prisma.c411Release.findMany({
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: 'desc' },
         include: { presentation: { select: { id: true } } },
       });
       return {
