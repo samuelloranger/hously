@@ -49,6 +49,15 @@ function SeedBar({ seeders, leechers }: { seeders: number; leechers: number }) {
 export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, emptyMessage }: Props) {
   const deleteRelease = useC411DeleteRelease();
 
+  const handleDelete = (release: C411LocalRelease) => {
+    const confirmation = release.c411_torrent_id
+      ? 'Delete this local release copy? If it still exists on C411, a future sync will import it again.'
+      : 'Delete this release? This will also remove the hardlink and .torrent file.';
+
+    if (!confirm(confirmation)) return;
+    deleteRelease.mutate(release.id);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -122,12 +131,12 @@ export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, e
             >
               <Pencil className="h-3.5 w-3.5" />
             </button>
-            {(r.status === 'local' || r.status === 'prepare_failed') && (
+            {r.status !== 'preparing' && (
               <button
-                onClick={() => { if (confirm('Delete this release? This will also remove the hardlink and .torrent file.')) deleteRelease.mutate(r.id); }}
+                onClick={() => handleDelete(r)}
                 disabled={deleteRelease.isPending}
                 className="rounded-lg p-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
-                title="Delete release"
+                title="Delete local release"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>

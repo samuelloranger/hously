@@ -166,8 +166,9 @@ export function useC411DeleteRelease() {
   return useMutation({
     mutationFn: (id: number) =>
       fetcher(C411_ENDPOINTS.RELEASE(id), { method: 'DELETE' }),
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.refetchQueries({ queryKey: queryKeys.c411.releases() });
+      queryClient.removeQueries({ queryKey: queryKeys.c411.release(id) });
     },
   });
 }

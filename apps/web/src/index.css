@@ -371,6 +371,23 @@ body {
   }
 }
 
+@keyframes torrentUploadSweep {
+  0% {
+    transform: translateX(-140%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateX(240%);
+    opacity: 0;
+  }
+}
+
 .checkbox-celebrate {
   animation: checkboxCelebrate 0.5s ease-out;
 }
@@ -386,4 +403,46 @@ body {
 
 .row-complete-flash {
   animation: rowCompleteFlash 0.8s ease-out;
+}
+
+.torrent-progress-bar-active {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.torrent-progress-bar-active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: max(36%, 2.5rem);
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.65) 50%,
+    rgba(255, 255, 255, 0.2) 80%,
+    transparent 100%
+  );
+  animation: torrentUploadSweep 1.2s linear infinite;
+  mix-blend-mode: screen;
+}
+
+.dark .torrent-progress-bar-active::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 20%,
+    rgba(255, 255, 255, 0.38) 50%,
+    rgba(255, 255, 255, 0.12) 80%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .torrent-progress-bar-active::after {
+    animation: none;
+    opacity: 0;
+  }
 }

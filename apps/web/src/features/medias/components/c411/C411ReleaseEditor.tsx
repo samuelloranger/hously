@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Save, Loader2, Upload, Eye, Code, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Upload, Eye, Code, RefreshCw, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useC411Release,
@@ -7,6 +7,7 @@ import {
   useC411CreateDraft,
   useC411PublishRelease,
   useC411RefreshRelease,
+  useC411DeleteRelease,
   useC411Categories,
   useC411CategoryOptions,
   bbcodeToHtml,
@@ -25,6 +26,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
   const createDraft = useC411CreateDraft();
   const publishRelease = useC411PublishRelease();
   const refreshRelease = useC411RefreshRelease();
+  const deleteRelease = useC411DeleteRelease();
   const categories = useC411Categories();
   useC411CategoryOptions(release?.category_id ?? null, {
     enabled: release?.category_id != null,
@@ -94,6 +96,17 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
     refreshRelease.mutate(releaseId);
   };
 
+  const handleDelete = () => {
+    if (!release) return;
+
+    const confirmation = release.c411_torrent_id
+      ? 'Delete this local release copy? If it still exists on C411, a future sync will import it again.'
+      : 'Delete this release? This will also remove the hardlink and .torrent file.';
+
+    if (!confirm(confirmation)) return;
+    deleteRelease.mutate(releaseId, { onSuccess: () => onBack() });
+  };
+
   const handlePublish = () => {
     if (!release) return;
     if (!confirm(`Publish "${name}" directly on C411?`)) return;
@@ -130,7 +143,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleRefresh}
-            disabled={refreshRelease.isPending}
+            disabled={refreshRelease.isPending || deleteRelease.isPending}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-neutral-100 dark:bg-neutral-700/50 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all duration-150 disabled:opacity-50"
           >
             {refreshRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
@@ -138,7 +151,7 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
           </button>
           <button
             onClick={handleCreateDraft}
-            disabled={createDraft.isPending || !canPublishArtifacts}
+            disabled={createDraft.isPending || deleteRelease.isPending || !canPublishArtifacts}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-neutral-100 dark:bg-neutral-700/50 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all duration-150 disabled:opacity-50"
           >
             {createDraft.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
@@ -146,15 +159,25 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
           </button>
           <button
             onClick={handlePublish}
-            disabled={publishRelease.isPending || updateRelease.isPending || !canPublishArtifacts}
+            disabled={publishRelease.isPending || updateRelease.isPending || deleteRelease.isPending || !canPublishArtifacts}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-emerald-600 text-white shadow-sm hover:bg-emerald-500 transition-all duration-150 disabled:opacity-50"
           >
             {publishRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
             Publish
           </button>
+          {release.status !== 'preparing' && (
+            <button
+              onClick={handleDelete}
+              disabled={deleteRelease.isPending}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/50 transition-all duration-150 disabled:opacity-50"
+            >
+              {deleteRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+              Delete Local
+            </button>
+          )}
           <button
             onClick={handleSave}
-            disabled={updateRelease.isPending}
+            disabled={updateRelease.isPending || deleteRelease.isPending}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-indigo-600 text-white shadow-sm hover:bg-indigo-500 transition-all duration-150 disabled:opacity-50"
           >
             {updateRelease.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
@@ -201,6 +224,11 @@ export function C411ReleaseEditor({ releaseId, onBack }: Props) {
       {refreshRelease.isError && (
         <div className="rounded-xl border border-red-200/60 dark:border-red-800/30 bg-red-50/30 dark:bg-red-950/10 p-3 text-xs text-red-700 dark:text-red-300">
           Failed to refresh: {(refreshRelease.error as Error)?.message ?? 'Unknown error'}
+        </div>
+      )}
+      {deleteRelease.isError && (
+        <div className="rounded-xl border border-red-200/60 dark:border-red-800/30 bg-red-50/30 dark:bg-red-950/10 p-3 text-xs text-red-700 dark:text-red-300">
+          Failed to delete: {(deleteRelease.error as Error)?.message ?? 'Unknown error'}
         </div>
       )}
       {updateRelease.isSuccess && !publishRelease.isPending && (

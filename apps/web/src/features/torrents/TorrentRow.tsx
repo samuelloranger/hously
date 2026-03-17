@@ -22,6 +22,7 @@ export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem })
   const { dot, pulse } = getQbittorrentStatusDot(torrent.state);
   const progress = Math.round(torrent.progress * 100);
   const isActive = hasQbittorrentTransferActivity(torrent);
+  const isUploading = torrent.upload_speed > 0 && /^(uploading|forcedup)$/i.test(torrent.state);
   const eta = formatQbittorrentEta(torrent.eta_seconds);
   const relDate = formatRelativeTime(torrent.added_on, { addSuffix: true, locale }) ?? '';
   const barGradient = getQbittorrentProgressBarGradient(torrent.state);
@@ -128,7 +129,7 @@ export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem })
           {/* Progress bar — color coded by state */}
           <div className="mt-2 h-1 w-full rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${barGradient}`}
+              className={`h-full rounded-full transition-all duration-500 ${barGradient} ${isUploading ? 'torrent-progress-bar-active' : ''}`}
               style={{ width: `${progress}%` }}
             />
           </div>

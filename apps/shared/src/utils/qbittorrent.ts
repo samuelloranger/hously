@@ -194,8 +194,8 @@ const QBITTORRENT_PROGRESS_GRADIENTS: Record<string, string> = {
   metadl: QBITTORRENT_PROGRESS_GRADIENT_DEFAULT,
   downloading: QBITTORRENT_PROGRESS_GRADIENT_DEFAULT,
   forceddl: QBITTORRENT_PROGRESS_GRADIENT_DEFAULT,
-  uploading: 'bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-400 dark:to-red-400',
-  forcedup: 'bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-400 dark:to-red-400',
+  uploading: 'bg-gradient-to-r from-violet-500 to-fuchsia-500 dark:from-violet-400 dark:to-fuchsia-400',
+  forcedup: 'bg-gradient-to-r from-violet-500 to-fuchsia-500 dark:from-violet-400 dark:to-fuchsia-400',
   stalledup:
     'bg-gradient-to-r from-rose-500 to-pink-500 dark:from-rose-400 dark:to-pink-400 opacity-70',
   stalleddl:

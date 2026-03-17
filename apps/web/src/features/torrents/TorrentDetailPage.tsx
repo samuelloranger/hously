@@ -23,6 +23,7 @@ import {
   formatBytes,
   formatQbittorrentEta,
   formatSpeed,
+  getQbittorrentProgressBarGradient,
   hasQbittorrentTransferActivity,
   getQbittorrentStatusConfig,
   getQbittorrentStreamSnapshot,
@@ -211,6 +212,8 @@ export function TorrentDetailPage() {
   const progress = selectedTorrent ? Math.round(selectedTorrent.progress * 100) : 0;
   const statusConfig = getQbittorrentStatusConfig(selectedTorrent?.state ?? '');
   const isPaused = isQbittorrentPausedState(selectedTorrent?.state ?? '');
+  const progressBarGradient = getQbittorrentProgressBarGradient(selectedTorrent?.state ?? '');
+  const isUploading = Boolean(selectedTorrent && selectedTorrent.upload_speed > 0 && /^(uploading|forcedup)$/i.test(selectedTorrent.state));
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode; count?: number }[] = [
     { id: 'properties', label: t('torrents.properties', 'Properties'), icon: <Settings2 size={13} /> },
@@ -338,7 +341,7 @@ export function TorrentDetailPage() {
               </div>
               <div className="h-1.5 w-full rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-sky-500 to-blue-600 dark:from-sky-400 dark:to-blue-500 transition-all duration-700 ease-out"
+                  className={`h-full rounded-full transition-all duration-700 ease-out ${progressBarGradient} ${isUploading ? 'torrent-progress-bar-active' : ''}`}
                   style={{ width: `${progress}%` }}
                 />
               </div>
