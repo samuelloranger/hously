@@ -7,6 +7,7 @@ import { LoadingState } from '@/components/LoadingState';
 type JobAction =
   | 'check_reminders'
   | 'check_all_day_events'
+  | 'check_habit_reminders'
   | 'cleanup_notifications'
   | 'fetch_c411_stats'
   | 'fetch_torr9_stats'
@@ -36,6 +37,13 @@ const JOBS: JobConfig[] = [
     icon: '📆',
     labelKey: 'settings.jobs.actions.checkAllDayEvents.label',
     descriptionKey: 'settings.jobs.actions.checkAllDayEvents.description',
+  },
+  {
+    action: 'check_habit_reminders',
+    jobNames: ['check-habit-reminders'],
+    icon: '🧘',
+    labelKey: 'settings.jobs.actions.checkHabitReminders.label',
+    descriptionKey: 'settings.jobs.actions.checkHabitReminders.description',
   },
   {
     action: 'cleanup_notifications',
@@ -142,6 +150,8 @@ export function JobsTab() {
               const title = config ? t(config.labelKey) : job.name;
               const description = config ? t(config.descriptionKey) : formatCronTrigger(job.trigger, i18n.language);
 
+              const isRunning = (action !== null && executing === action) || job.status === 'active';
+
               return (
                 <div
                   key={job.id}
@@ -178,7 +188,7 @@ export function JobsTab() {
                         disabled={!action || executing !== null || job.status === 'active'}
                         className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
                       >
-                        {executing === action || job.status === 'active' ? t('settings.jobs.running') : t('settings.jobs.run')}
+                        {isRunning ? t('settings.jobs.running') : t('settings.jobs.run')}
                       </button>
                     </div>
                   </div>

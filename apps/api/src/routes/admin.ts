@@ -57,10 +57,14 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
     // Map repeatable jobs to their current status if they have an active/waiting instance
     const jobs = await Promise.all(repeatableJobs.map(async (rJob) => {
       // Find the most recent job for this repeatable configuration
-      // We look for jobs with the same name. Repeatable jobs in BullMQ 5.x 
-      // typically have the repeatable ID in their own ID.
-      const jobInstances = await scheduledTasksQueue.getJobs(['active', 'waiting', 'failed', 'completed'], 0, 10, false);
-      const latestInstance = jobInstances.find(j => j.name === rJob.name);
+      // In BullMQ, we can find jobs by their name.
+      const jobInstances = await scheduledTasksQueue.getJobs(['active', 'waiting', 'failed', 'completed'], 0, 50, false);
+      
+      // Filter for jobs with the same name and sort by timestamp/ID descending
+      const latestInstance = jobInstances
+        .filter(j => j.name === rJob.name)
+        .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0))[0];
+        
       const status = latestInstance ? await latestInstance.getState() : 'waiting';
 
       return {

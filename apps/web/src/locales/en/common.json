@@ -1111,6 +1111,10 @@
           "label": "Check All-Day Events",
           "description": "Check for all-day custom events and send notifications."
         },
+        "checkHabitReminders": {
+          "label": "Check Habit Reminders",
+          "description": "Check for habits that need reminders and send notifications."
+        },
         "cleanupNotifications": {
           "label": "Cleanup Old Notifications",
           "description": "Remove old notifications from the database."
@@ -1154,6 +1158,10 @@
         "checkAllDayEvents": {
           "label": "Check All-Day Events",
           "description": "Check for all-day custom events and send notifications."
+        },
+        "checkHabitReminders": {
+          "label": "Check Habit Reminders",
+          "description": "Check for habits that need reminders and send notifications."
         },
         "cleanupNotifications": {
           "label": "Cleanup Old Notifications",
