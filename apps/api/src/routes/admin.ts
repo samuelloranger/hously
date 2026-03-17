@@ -32,7 +32,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   
   // GET /api/admin/scheduled-jobs - List scheduled BullMQ jobs and queue stats
   .get('/scheduled-jobs', async () => {
-    const jobs = await scheduledTasksQueue.getRepeatableJobs();
+    const repeatableJobs = await scheduledTasksQueue.getRepeatableJobs();
     
     const getStats = async (name: string, queue: Queue) => {
       const [waiting, active, completed, failed, delayed] = await Promise.all([
@@ -54,16 +54,29 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
       await getStats('Default', defaultQueue),
     ];
 
+    // Map repeatable jobs to their current status if they have an active/waiting instance
+    const jobs = await Promise.all(repeatableJobs.map(async (rJob) => {
+      // Find the most recent job for this repeatable configuration
+      // We look for jobs with the same name. Repeatable jobs in BullMQ 5.x 
+      // typically have the repeatable ID in their own ID.
+      const jobInstances = await scheduledTasksQueue.getJobs(['active', 'waiting', 'failed', 'completed'], 0, 10, false);
+      const latestInstance = jobInstances.find(j => j.name === rJob.name);
+      const status = latestInstance ? await latestInstance.getState() : 'waiting';
+
+      return {
+        id: rJob.key,
+        name: rJob.name,
+        trigger: rJob.pattern,
+        next_run_time: rJob.next ? new Date(rJob.next).toISOString() : null,
+        tz: rJob.tz,
+        status: status,
+      };
+    }));
+
     return {
       scheduler_running: true,
       queues: queueStats,
-      jobs: jobs.map(job => ({
-        id: job.key,
-        name: job.name,
-        trigger: job.pattern,
-        next_run_time: job.next ? new Date(job.next).toISOString() : null,
-        tz: job.tz,
-      })).sort((a, b) => a.name.localeCompare(b.name)),
+      jobs: jobs.sort((a, b) => a.name.localeCompare(b.name)),
     };
   })
 

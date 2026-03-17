@@ -1170,6 +1170,14 @@
         "fetchLaCaleStats": {
           "label": "Fetch La Cale Stats",
           "description": "Log into La Cale and fetch uploaded/downloaded/ratio."
+        },
+        "refreshUpcoming": {
+          "label": "Refresh Upcoming",
+          "description": "Query TMDB for fresh upcoming movies and TV shows."
+        },
+        "refreshHabitsStreaks": {
+          "label": "Refresh Habits Streaks",
+          "description": "Recalculate daily streaks for all user habits."
         }
       }
     },

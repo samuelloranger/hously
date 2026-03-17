@@ -36,6 +36,7 @@ export interface ScheduledJob {
   name: string;
   next_run_time: string | null;
   trigger: string;
+  status: string | null;
 }
 
 export interface ScheduledJobsResponse {
