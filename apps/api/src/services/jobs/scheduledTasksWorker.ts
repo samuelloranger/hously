@@ -29,10 +29,25 @@ export async function processScheduledJob(job: Job) {
         const { fetchAllTrackerStats, fetchTrackerStats } = await import('../../jobs/fetchTrackerStats');
         const { type } = job.data as { type?: string };
         if (type) {
-          await fetchTrackerStats(type as any, { trigger: 'plugin' });
+          await fetchTrackerStats(type as any, { trigger: 'queue' });
         } else {
           await fetchAllTrackerStats({ trigger: 'queue' });
         }
+        break;
+      }
+      case SCHEDULED_JOB_NAMES.FETCH_C411_STATS: {
+        const { fetchTrackerStats } = await import('../../jobs/fetchTrackerStats');
+        await fetchTrackerStats('c411', { trigger: 'queue' });
+        break;
+      }
+      case SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS: {
+        const { fetchTrackerStats } = await import('../../jobs/fetchTrackerStats');
+        await fetchTrackerStats('torr9', { trigger: 'queue' });
+        break;
+      }
+      case SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS: {
+        const { fetchTrackerStats } = await import('../../jobs/fetchTrackerStats');
+        await fetchTrackerStats('la-cale', { trigger: 'queue' });
         break;
       }
       case SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS: {

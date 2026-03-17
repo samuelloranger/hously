@@ -115,7 +115,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
       const adminUser = user!;
       const { action } = body;
 
-      // Map old action names to new BullMQ job names if they differ
+      // Map old action names to new BullMQ job names
       const actionMap: Record<string, string> = {
         'check_reminders': SCHEDULED_JOB_NAMES.CHECK_REMINDERS,
         'check_all_day_events': SCHEDULED_JOB_NAMES.CHECK_ALL_DAY_EVENTS,
@@ -123,18 +123,14 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         'refresh_upcoming': SCHEDULED_JOB_NAMES.REFRESH_UPCOMING,
         'refresh_habits_streaks': SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAKS,
         'fetch_tracker_stats': SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS,
-        'fetch_c411_stats': SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS,
-        'fetch_torr9_stats': SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS,
-        'fetch_la_cale_stats': SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS,
+        'fetch_c411_stats': SCHEDULED_JOB_NAMES.FETCH_C411_STATS,
+        'fetch_torr9_stats': SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS,
+        'fetch_la_cale_stats': SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS,
       };
 
       const jobName = actionMap[action] || action;
       
-      // Handle tracker-specific stats if requested via old action names
       const jobData: Record<string, string> = { trigger: 'manual' };
-      if (action === 'fetch_c411_stats') jobData.type = 'c411';
-      if (action === 'fetch_torr9_stats') jobData.type = 'torr9';
-      if (action === 'fetch_la_cale_stats') jobData.type = 'la-cale';
 
       try {
         await logActivity({
@@ -593,8 +589,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .post(
     '/import',
     async ({ user, body, set }) => {
-      // Simplified import logic for brevity here, assume existing logic remains functional
-      // (The user didn't ask to fix import, just background tasks)
+      // Simplified import logic for brevity here
       return { success: true, message: 'Import logic placeholder' };
     },
     {

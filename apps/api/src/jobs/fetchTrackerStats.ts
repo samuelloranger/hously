@@ -42,12 +42,8 @@ function validateFlareSolverrResponse(data: unknown, trackerLabel: string): { so
   return { solution: { userAgent: s.userAgent, cookies, response } };
 }
 
-const runningByTracker: Partial<Record<TrackerType, boolean>> = {};
 const TRACKER_ORDER: TrackerType[] = ['torr9', 'c411', 'la-cale'];
-let isFetchingAllTrackers = false;
-
 const trackerName = (type: TrackerType): string => type.toUpperCase();
-
 
 const sendTrackerWidgetRefreshSilentPush = async (): Promise<void> => {
   try {
@@ -86,15 +82,6 @@ export const fetchTrackerStats = async (
   const jobId = `fetch${trackerName(trackerType)}Stats`;
   const jobName = `Fetch ${trackerName(trackerType)} stats`;
   const startedAt = Date.now();
-
-  if (runningByTracker[trackerType]) {
-    await logActivity({
-      type: 'cron_job_skipped',
-      payload: { job_id: jobId, job_name: jobName, reason: 'already_running', trigger },
-    });
-    return;
-  }
-  runningByTracker[trackerType] = true;
 
   const endLog = async (success: boolean, message?: string) => {
     await logActivity({
@@ -138,7 +125,6 @@ export const fetchTrackerStats = async (
       return;
     }
 
-    // Decrypt the password stored encrypted at rest.
     const loginConfig = config.password ? { ...config, password: decrypt(config.password) } : config;
 
     let solution: FlareSolverrSolution | undefined;
@@ -153,7 +139,6 @@ export const fetchTrackerStats = async (
         return;
       }
 
-      // Use FlareSolverr to get CF clearance cookies + a valid User-Agent.
       const fsRes = await fetch(config.flaresolverr_url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -189,8 +174,6 @@ export const fetchTrackerStats = async (
     const message = error instanceof Error ? error.message : 'Unknown error';
     await endLog(false, message);
     throw error;
-  } finally {
-    runningByTracker[trackerType] = false;
   }
 };
 
@@ -200,23 +183,7 @@ export const fetchAllTrackerStats = async (options?: {
   const trigger = options?.trigger ?? 'cron';
   const startedAt = Date.now();
 
-  if (isFetchingAllTrackers) {
-    await logActivity({
-      type: 'cron_job_skipped',
-      payload: {
-        job_id: 'fetchAllTrackerStats',
-        job_name: 'Fetch all tracker stats',
-        reason: 'already_running',
-        trigger,
-      },
-    });
-    return;
-  }
-
-  isFetchingAllTrackers = true;
   try {
-    // Scrapers are run sequentially to avoid hammering FlareSolverr with
-    // concurrent requests, which can trigger rate-limiting or IP blocks.
     for (const trackerType of TRACKER_ORDER) {
       try {
         await fetchTrackerStats(trackerType, { trigger });
@@ -254,7 +221,5 @@ export const fetchAllTrackerStats = async (options?: {
       },
     });
     throw error;
-  } finally {
-    isFetchingAllTrackers = false;
   }
 };

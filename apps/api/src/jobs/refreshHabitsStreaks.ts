@@ -1,16 +1,11 @@
 import { refreshAllHabitsStreaks } from '../utils/dashboard/habitsStreak';
 import { logActivity } from '../utils/activityLogs';
 
-let isRunning = false;
-
 const JOB_ID = 'refreshHabitsStreaks';
 const JOB_NAME = 'Refresh habits streaks';
 
 export const refreshHabitsStreaks = async (options?: { trigger?: 'cron' | 'manual' | 'queue' }): Promise<void> => {
   const trigger = options?.trigger ?? 'cron';
-
-  if (isRunning) return;
-  isRunning = true;
   const startedAt = Date.now();
 
   try {
@@ -24,7 +19,7 @@ export const refreshHabitsStreaks = async (options?: { trigger?: 'cron' | 'manua
         success: true,
         duration_ms: Date.now() - startedAt,
         trigger,
-        message: `Refreshed ${userCount} users`,
+        message: `Refreshed streaks for ${userCount} users`,
       },
     });
   } catch (error) {
@@ -41,7 +36,6 @@ export const refreshHabitsStreaks = async (options?: { trigger?: 'cron' | 'manua
         message,
       },
     });
-  } finally {
-    isRunning = false;
+    throw error;
   }
 };

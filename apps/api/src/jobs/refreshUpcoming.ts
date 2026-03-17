@@ -13,8 +13,6 @@ import { setJsonCache } from '../services/cache';
 import { logActivity } from '../utils/activityLogs';
 import type { DashboardUpcomingItem } from '../types/dashboardUpcoming';
 
-let isRunning = false;
-
 const JOB_ID = 'refreshUpcoming';
 const JOB_NAME = 'Refresh upcoming releases';
 const BATCH_SIZE = 10;
@@ -34,13 +32,6 @@ const processBatch = async <T, R>(items: T[], batchSize: number, fn: (item: T) =
 
 export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' | 'queue' }): Promise<void> => {
   const trigger = options?.trigger ?? 'cron';
-
-  if (isRunning) {
-    console.log(`[cron:upcoming] Already running, skipping (trigger: ${trigger})`);
-    return;
-  }
-
-  isRunning = true;
   const startedAt = Date.now();
 
   try {
@@ -83,17 +74,14 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' | 
       return;
     }
 
-    // Filter by popularity threshold from plugin config
     const popularityThreshold = tmdbConfig?.popularity_threshold ?? 15;
     const filteredMovies = moviesResult.items.filter(item => (item.popularity ?? 0) >= popularityThreshold);
     const filteredTv = tvResult.items.filter(item => (item.popularity ?? 0) >= popularityThreshold);
 
     console.log(
-      `[cron:upcoming] After popularity filter: ${filteredMovies.length} movies, ${filteredTv.length} TV shows ` +
-        `(from ${moviesResult.items.length} / ${tvResult.items.length})`
+      `[cron:upcoming] After popularity filter: ${filteredMovies.length} movies, ${filteredTv.length} TV shows`
     );
 
-    // Enrich movies with accurate digital release dates (batches of 10)
     const enrichedMovies = await processBatch(filteredMovies, BATCH_SIZE, async movie => {
       const numericId = parseTmdbNumericId(movie.id);
       if (!numericId) return movie;
@@ -105,7 +93,6 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' | 
       return movie;
     });
 
-    // Combine and keep only future releases
     const allItems = [...enrichedMovies, ...filteredTv].filter(item => {
       if (!item.release_date) return false;
       const releaseTime = Date.parse(item.release_date);
@@ -118,7 +105,6 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' | 
       return aTime - bTime;
     });
 
-    // Fetch providers (batches of 10)
     const itemsWithProviders = await processBatch(sortedItems, BATCH_SIZE, async item => {
       const tmdbId = parseTmdbNumericId(item.id);
       if (!tmdbId) return item;
@@ -126,7 +112,6 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' | 
       return { ...item, providers };
     });
 
-    // Strip internal-only fields before caching
     const cacheItems: DashboardUpcomingItem[] = itemsWithProviders.map(({ popularity: _, ...rest }) => rest);
 
     const responsePayload = { enabled: true, items: cacheItems };
@@ -158,7 +143,6 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' | 
         message,
       },
     });
-  } finally {
-    isRunning = false;
+    throw error; // Rethrow for BullMQ
   }
 };

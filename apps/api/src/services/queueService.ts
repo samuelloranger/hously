@@ -19,6 +19,9 @@ export const SCHEDULED_JOB_NAMES = {
   CHECK_ALL_DAY_EVENTS: 'check-all-day-events',
   CLEANUP_NOTIFICATIONS: 'cleanup-notifications',
   FETCH_TRACKER_STATS: 'fetch-tracker-stats',
+  FETCH_C411_STATS: 'fetch-c411-stats',
+  FETCH_TORR9_STATS: 'fetch-torr9-stats',
+  FETCH_LA_CALE_STATS: 'fetch-la-cale-stats',
   CHECK_HABIT_REMINDERS: 'check-habit-reminders',
   REFRESH_UPCOMING: 'refresh-upcoming',
   REFRESH_HABITS_STREAKS: 'refresh-habits-streaks',
@@ -120,7 +123,7 @@ export function initWorkers() {
       const { processScheduledJob } = await import('./jobs/scheduledTasksWorker');
       return processScheduledJob(job);
     },
-    { connection: redisConnection }
+    { connection: redisConnection, concurrency: 3 } // Allow a few scheduled tasks at once
   );
 
   // 4. Activity Logs Worker
@@ -163,7 +166,9 @@ export async function setupScheduledJobs() {
     { name: SCHEDULED_JOB_NAMES.CHECK_REMINDERS, pattern: '*/15 * * * *' },
     { name: SCHEDULED_JOB_NAMES.CHECK_ALL_DAY_EVENTS, pattern: '0 20 * * *' },
     { name: SCHEDULED_JOB_NAMES.CLEANUP_NOTIFICATIONS, pattern: '0 0 * * *' },
-    { name: SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS, pattern: '0 * * * *' },
+    { name: SCHEDULED_JOB_NAMES.FETCH_C411_STATS, pattern: '0 * * * *' },
+    { name: SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS, pattern: '5 * * * *' }, // Staggered
+    { name: SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS, pattern: '10 * * * *' }, // Staggered
     { name: SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS, pattern: '* * * * *' },
     { name: SCHEDULED_JOB_NAMES.REFRESH_UPCOMING, pattern: '30 */12 * * *' },
     { name: SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAKS, pattern: '*/15 * * * *' },
