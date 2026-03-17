@@ -47,7 +47,7 @@ export function langBadgeClass(lang: string): string {
 
 export function langLabel(lang: string): string {
   if (/^vfq$/i.test(lang)) return 'ca';
-  if (/^multi\.vfq$/i.test(lang)) return 'MULTI.ca';
+  if (/^multi\.vfq$/i.test(lang)) return 'MULTI.VFQ';
   return lang;
 }
 
