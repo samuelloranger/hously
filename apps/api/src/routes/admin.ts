@@ -80,7 +80,12 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
     return {
       scheduler_running: true,
       queues: queueStats,
-      jobs: jobs.sort((a, b) => a.name.localeCompare(b.name)),
+      jobs: jobs.sort((a, b) => {
+        // Sort by next_run_time ascending (sooner runs first)
+        if (!a.next_run_time) return 1;
+        if (!b.next_run_time) return -1;
+        return new Date(a.next_run_time).getTime() - new Date(b.next_run_time).getTime();
+      }),
     };
   })
 

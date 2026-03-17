@@ -69,7 +69,7 @@ export function useScheduledJobs() {
   return useQuery({
     queryKey: ['admin', 'scheduled-jobs'] as const,
     queryFn: () => fetcher<ScheduledJobsResponse>(ADMIN_ENDPOINTS.SCHEDULED_JOBS),
-    refetchInterval: 30000,
+    refetchInterval: 5000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
