@@ -42,6 +42,7 @@ model User {
   habits                 Habit[]
   liveActivityTokens     LiveActivityToken[]
   invitationsSent        Invitation[]         @relation("InvitationInviter")
+  mediaConversionJobs    MediaConversionJob[]
 
   @@map("users")
 }
@@ -478,4 +479,36 @@ model C411Presentation {
   release C411Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
 
   @@map("c411_presentations")
+}
+
+model MediaConversionJob {
+  id                Int       @id @default(autoincrement())
+  service           String
+  sourceId          Int       @map("source_id")
+  sourceTitle       String?   @map("source_title")
+  preset            String
+  status            String    @default("queued")
+  requestedByUserId Int?      @map("requested_by_user_id")
+  inputPath         String    @map("input_path")
+  outputPath        String    @map("output_path")
+  progress          Float     @default(0)
+  durationSeconds   Float?    @map("duration_seconds")
+  processedSeconds  Float?    @map("processed_seconds")
+  etaSeconds        Int?      @map("eta_seconds")
+  fps               Float?
+  speed             String?
+  errorMessage      String?   @map("error_message")
+  validationSummary Json?     @map("validation_summary")
+  probeData         Json?     @map("probe_data")
+  startedAt         DateTime? @map("started_at")
+  completedAt       DateTime? @map("completed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime? @updatedAt @map("updated_at")
+
+  requestedBy User? @relation(fields: [requestedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([service, sourceId, createdAt], map: "ix_media_conversion_jobs_source")
+  @@index([status, createdAt], map: "ix_media_conversion_jobs_status")
+  @@index([requestedByUserId], map: "ix_media_conversion_jobs_requested_by_user_id")
+  @@map("media_conversion_jobs")
 }

@@ -138,6 +138,12 @@ export const queryKeys = {
       [...queryKeys.medias.all, 'interactive-search', 'prowlarr', query] as const,
     providers: (mediaType: 'movie' | 'tv', tmdbId: number, region?: string) =>
       [...queryKeys.medias.all, 'providers', mediaType, tmdbId, region ?? 'CA'] as const,
+    conversionPreview: (service: 'radarr' | 'sonarr', sourceId: number, preset: string) =>
+      [...queryKeys.medias.all, 'conversion-preview', service, sourceId, preset] as const,
+    conversions: (service: 'radarr' | 'sonarr', sourceId: number) =>
+      [...queryKeys.medias.all, 'conversions', service, sourceId] as const,
+    activeConversions: () => [...queryKeys.medias.all, 'active-conversions'] as const,
+    conversion: (id: number) => [...queryKeys.medias.all, 'conversion', id] as const,
   },
 
   recipes: {

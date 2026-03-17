@@ -299,7 +299,7 @@ export function useC411ReleasePrepareStream(options: { enabled: boolean }) {
 
     const source = new EventSource(C411_ENDPOINTS.RELEASES_STREAM, { withCredentials: true });
 
-    source.onmessage = (event) => {
+    source.onmessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data) as { preparing_ids: number[] };
         const currentIds = new Set(data.preparing_ids);

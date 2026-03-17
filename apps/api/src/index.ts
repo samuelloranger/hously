@@ -38,10 +38,12 @@ import { mediasTmdbRoutes } from './routes/medias/tmdb';
 import { mediasProwlarrRoutes } from './routes/medias/prowlarr';
 import { mediasArrRoutes } from './routes/medias/arr';
 import { mediasC411Routes } from './routes/medias/c411';
+import { mediasConversionRoutes } from './routes/medias/conversions';
 import { habitsRoutes } from './routes/habits';
 import { systemRoutes } from './routes/system';
 import { globalRateLimit } from './middleware/rateLimit';
 import { logActivity } from './utils/activityLogs';
+import { resumePendingMediaConversionJobs } from './services/mediaConversions';
 
 const runCronJobWithActivity = async (job: { id: string; name: string }, fn: () => Promise<unknown>): Promise<void> => {
   const startedAt = Date.now();
@@ -173,6 +175,7 @@ export const app = new Elysia()
   .use(mediasTmdbRoutes)
   .use(mediasProwlarrRoutes)
   .use(mediasArrRoutes)
+  .use(mediasConversionRoutes)
   .use(mediasC411Routes)
   .use(habitsRoutes)
   .use(systemRoutes)
@@ -187,5 +190,9 @@ if (import.meta.main) {
   // Check for version change after the server is up and ready
   checkAndNotifyVersionChange().catch(err => {
     console.error('Failed to check version change after startup:', err);
+  });
+
+  resumePendingMediaConversionJobs().catch(err => {
+    console.error('Failed to resume media conversion jobs after startup:', err);
   });
 }

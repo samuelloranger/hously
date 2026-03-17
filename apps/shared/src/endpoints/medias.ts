@@ -16,4 +16,10 @@ export const MEDIAS_ENDPOINTS = {
   PROWLARR_INTERACTIVE_SEARCH_DOWNLOAD: '/api/medias/prowlarr/interactive-search/download',
   DELETE: (service: 'radarr' | 'sonarr', sourceId: number, deleteFiles: boolean) =>
     `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}?deleteFiles=${deleteFiles}`,
+  CONVERSION_PREVIEW: (service: 'radarr' | 'sonarr', sourceId: number, preset?: string) =>
+    `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}/conversion-preview${preset ? `?preset=${encodeURIComponent(preset)}` : ''}`,
+  CONVERSIONS: (service: 'radarr' | 'sonarr', sourceId: number) =>
+    `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}/conversions`,
+  ACTIVE_CONVERSIONS: '/api/medias/conversions/active',
+  CONVERSION: (id: number) => `/api/medias/conversions/${encodeURIComponent(String(id))}`,
 } as const;

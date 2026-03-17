@@ -5,6 +5,10 @@ import { MEDIAS_ENDPOINTS } from '../endpoints';
 import type {
   ExploreMediasResponse,
   MediaAutoSearchResponse,
+  MediaConversionCreateResponse,
+  MediaConversionJob,
+  MediaConversionJobsResponse,
+  MediaConversionPreviewResponse,
   MediaDeleteResponse,
   MediaInteractiveDownloadResponse,
   MediaInteractiveSearchResponse,
@@ -180,6 +184,93 @@ export function useMediaDelete() {
         method: 'DELETE',
       }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.list() });
+    },
+  });
+}
+
+export function useMediaConversionPreview(
+  params: { service: 'radarr' | 'sonarr'; source_id: number | null; preset: string },
+  options?: { enabled?: boolean }
+) {
+  const fetcher = useFetcher();
+  const isEnabled = Boolean(options?.enabled ?? true) && Boolean(params.source_id && params.source_id > 0);
+
+  return useQuery({
+    queryKey: queryKeys.medias.conversionPreview(params.service, params.source_id ?? 0, params.preset),
+    queryFn: () =>
+      fetcher<MediaConversionPreviewResponse>(
+        MEDIAS_ENDPOINTS.CONVERSION_PREVIEW(params.service, params.source_id ?? 0, params.preset)
+      ),
+    enabled: isEnabled,
+  });
+}
+
+export function useMediaConversions(
+  params: { service: 'radarr' | 'sonarr'; source_id: number | null },
+  options?: { enabled?: boolean; refetchInterval?: number | false }
+) {
+  const fetcher = useFetcher();
+  const isEnabled = Boolean(options?.enabled ?? true) && Boolean(params.source_id && params.source_id > 0);
+
+  return useQuery({
+    queryKey: queryKeys.medias.conversions(params.service, params.source_id ?? 0),
+    queryFn: () =>
+      fetcher<MediaConversionJobsResponse>(
+        MEDIAS_ENDPOINTS.CONVERSIONS(params.service, params.source_id ?? 0)
+      ),
+    enabled: isEnabled,
+    refetchInterval: (query) => {
+      if (options?.refetchInterval === false) return false;
+      const jobs = (query.state.data as MediaConversionJobsResponse | undefined)?.jobs ?? [];
+      if (!jobs.some((job) => job.status === 'queued' || job.status === 'running')) {
+        return false;
+      }
+      return options?.refetchInterval ?? 2000;
+    },
+  });
+}
+
+export function useActiveMediaConversions(options?: { enabled?: boolean; refetchInterval?: number | false }) {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.medias.activeConversions(),
+    queryFn: () => fetcher<MediaConversionJobsResponse>(MEDIAS_ENDPOINTS.ACTIVE_CONVERSIONS),
+    enabled: options?.enabled,
+    refetchInterval: (query) => {
+      if (options?.refetchInterval === false) return false;
+      const jobs = (query.state.data as MediaConversionJobsResponse | undefined)?.jobs ?? [];
+      if (jobs.length === 0) return false;
+      return options?.refetchInterval ?? 2000;
+    },
+  });
+}
+
+export function useMediaConversion(id: number | null, options?: { enabled?: boolean; refetchInterval?: number | false }) {
+  const fetcher = useFetcher();
+  const isEnabled = Boolean(options?.enabled ?? true) && Boolean(id && id > 0);
+
+  return useQuery({
+    queryKey: queryKeys.medias.conversion(id ?? 0),
+    queryFn: () => fetcher<MediaConversionJob>(MEDIAS_ENDPOINTS.CONVERSION(id ?? 0)),
+    enabled: isEnabled,
+    refetchInterval: options?.refetchInterval,
+  });
+}
+
+export function useCreateMediaConversion() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { service: 'radarr' | 'sonarr'; source_id: number; preset: string }) =>
+      fetcher<MediaConversionCreateResponse>(MEDIAS_ENDPOINTS.CONVERSIONS(params.service, params.source_id), {
+        method: 'POST',
+        body: { preset: params.preset },
+      }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.conversions(variables.service, variables.source_id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.list() });
     },
   });

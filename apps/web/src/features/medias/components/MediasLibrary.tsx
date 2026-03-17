@@ -4,7 +4,7 @@ import { useSearch } from '@tanstack/react-router';
 import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaPosterCard } from '@/components/MediaPosterCard';
-import { ArrowDownAZ, ArrowUpZA, ExternalLink, Search, Sparkles, Trash2, User, Upload, EllipsisVertical } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpZA, ExternalLink, RefreshCw, Search, Sparkles, Trash2, User, Upload, EllipsisVertical } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 import { toast } from 'sonner';
@@ -13,6 +13,8 @@ import { InteractiveSearchDialog } from './InteractiveSearchDialog';
 import { SimilarMediasDialog } from './SimilarMediasDialog';
 import { DeleteMediaDialog } from './DeleteMediaDialog';
 import { C411Dialog } from './c411/C411Dialog';
+import { ConvertMediaDialog } from './ConvertMediaDialog';
+import { ConversionStatusBar } from './ConversionStatusBar';
 import type { LibrarySearchParams } from '@/router';
 import type { TabKey } from './c411/C411Dialog';
 
@@ -35,6 +37,7 @@ export function MediasLibrary() {
   const [interactiveItem, setInteractiveItem] = useState<MediaItem | null>(null);
   const [similarItem, setSimilarItem] = useState<MediaItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<MediaItem | null>(null);
+  const [convertItem, setConvertItem] = useState<MediaItem | null>(null);
 
   const searchParams = useSearch({ from: '/library' }) as LibrarySearchParams;
   const { setParams, resetParams } = useModalSearchParams('/library', searchParams);
@@ -104,6 +107,8 @@ export function MediasLibrary() {
 
   return (
     <div className="space-y-3">
+      <ConversionStatusBar />
+
       {/* Toolbar */}
       <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
         <div className="px-4 py-3 flex flex-wrap items-center gap-2">
@@ -219,6 +224,7 @@ export function MediasLibrary() {
                   releaseTags={item.release_tags ?? undefined}
                   onOpenInteractive={() => setInteractiveItem(item)}
                   onFindSimilar={item.tmdb_id ? () => setSimilarItem(item) : undefined}
+                  onConvert={item.service === 'radarr' && item.media_type === 'movie' && item.downloaded ? () => setConvertItem(item) : undefined}
                   onOpenC411={c411Enabled && item.source_id && item.tmdb_id ? () => setParams({ c411: item.tmdb_id! }) : undefined}
                   onDelete={() => setDeleteItem(item)}
                 />
@@ -288,6 +294,12 @@ export function MediasLibrary() {
 
       <DeleteMediaDialog isOpen={Boolean(deleteItem)} media={deleteItem} onClose={() => setDeleteItem(null)} />
 
+      <ConvertMediaDialog
+        isOpen={Boolean(convertItem)}
+        media={convertItem}
+        onClose={() => setConvertItem(null)}
+      />
+
       <C411Dialog
         isOpen={Boolean(c411Item)}
         media={c411Item}
@@ -311,12 +323,14 @@ function CardDropdownMenu({
   item,
   onOpenInteractive,
   onFindSimilar,
+  onConvert,
   onOpenC411,
   onDelete,
 }: {
   item: MediaItem;
   onOpenInteractive: () => void;
   onFindSimilar?: () => void;
+  onConvert?: () => void;
   onOpenC411?: () => void;
   onDelete: () => void;
 }) {
@@ -366,6 +380,16 @@ function CardDropdownMenu({
             <User size={12} />
             {t('medias.interactive.button')}
           </DropdownMenu.Item>
+
+          {onConvert && (
+            <DropdownMenu.Item
+              onSelect={onConvert}
+              className="flex items-center gap-2.5 px-3 py-2 text-[11px] text-white/80 hover:bg-white/10 hover:text-white cursor-pointer outline-none"
+            >
+              <RefreshCw size={12} />
+              {t('medias.convert.button')}
+            </DropdownMenu.Item>
+          )}
 
           {onFindSimilar && (
             <DropdownMenu.Item
@@ -422,6 +446,7 @@ function MediaGridCard({
   releaseTags,
   onOpenInteractive,
   onFindSimilar,
+  onConvert,
   onOpenC411,
   onDelete,
 }: {
@@ -430,6 +455,7 @@ function MediaGridCard({
   releaseTags?: string[];
   onOpenInteractive: () => void;
   onFindSimilar?: () => void;
+  onConvert?: () => void;
   onOpenC411?: () => void;
   onDelete: () => void;
 }) {
@@ -458,6 +484,7 @@ function MediaGridCard({
           item={item}
           onOpenInteractive={onOpenInteractive}
           onFindSimilar={onFindSimilar}
+          onConvert={onConvert}
           onOpenC411={onOpenC411}
           onDelete={onDelete}
         />
