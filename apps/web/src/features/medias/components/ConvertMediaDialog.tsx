@@ -120,7 +120,7 @@ export function ConvertMediaDialog({ isOpen, onClose, media }: ConvertMediaDialo
         if (!createMutation.isPending) onClose();
       }}
       title={t('medias.convert.title')}
-      panelClassName="max-w-2xl rounded-[32px] overflow-hidden"
+      panelClassName="max-w-2xl rounded-[32px]"
     >
       <div className="space-y-6">
         {!isSupportedMedia && (
