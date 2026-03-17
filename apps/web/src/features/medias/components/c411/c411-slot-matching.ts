@@ -10,7 +10,7 @@ import { formatSize } from './c411-utils';
 // Types
 // ---------------------------------------------------------------------------
 
-export type SlotState = 'neutral' | 'occupied' | 'match' | 'candidate';
+export type SlotState = 'neutral' | 'occupied' | 'mine' | 'match' | 'candidate';
 
 export type SourceType =
   | 'REMUX'
@@ -445,7 +445,10 @@ export function buildSlotStates(
     } else if (candidate?.slot.id === slot.id) {
       states.set(slot.id, 'candidate');
     } else {
-      states.set(slot.id, slot.occupants.length > 0 ? 'occupied' : 'neutral');
+      states.set(
+        slot.id,
+        slot.occupants.some((occupant) => occupant.isMine) ? 'mine' : slot.occupants.length > 0 ? 'occupied' : 'neutral',
+      );
     }
   }
 

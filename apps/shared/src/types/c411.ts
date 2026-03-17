@@ -39,6 +39,7 @@ export interface C411SlotOccupant {
   audioCodec: string;
   resolution: string;
   torrentName: string;
+  isMine?: boolean;
 }
 
 export interface C411Slot {

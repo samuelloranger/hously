@@ -15,6 +15,7 @@ import {
   loadC411Config,
   searchTorrents,
   fetchReleaseStatus,
+  fetchAllMyTorrents,
   fetchDrafts,
   fetchDraft,
   createDraft,
@@ -62,14 +63,39 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
 
     if (!tmdbId || !title) return badRequest(set, 'tmdbId and title are required');
 
-    const cacheKey = `c411:release-status:${tmdbType}:${tmdbId}`;
     try {
+      const config = await loadC411Config();
+      const configuredUsername = config.username.trim().toLowerCase();
+      const cacheKey = `c411:release-status:${tmdbType}:${tmdbId}:${configuredUsername}`;
       const cached = await getJsonCache(cacheKey);
       if (cached) return cached;
 
-      const result = await withC411Session((session) =>
-        fetchReleaseStatus(session, { tmdbId, tmdbType, imdbId, title, year: year || 0 }),
-      );
+      const result = await withC411Session(async (session) => {
+        const [releaseStatus, myTorrents] = await Promise.all([
+          fetchReleaseStatus(session, { tmdbId, tmdbType, imdbId, title, year: year || 0 }),
+          fetchAllMyTorrents(session, config.username),
+        ]);
+
+        const myTorrentIds = new Set(myTorrents.map((torrent) => torrent.id));
+        const myInfoHashes = new Set(
+          myTorrents
+            .map((torrent) => torrent.infoHash?.toLowerCase())
+            .filter((infoHash): infoHash is string => Boolean(infoHash)),
+        );
+
+        return {
+          ...releaseStatus,
+          slotGrid: releaseStatus.slotGrid.map((slot) => ({
+            ...slot,
+            occupants: slot.occupants.map((occupant) => ({
+              ...occupant,
+              isMine:
+                myTorrentIds.has(occupant.torrentId) ||
+                (occupant.infoHash ? myInfoHashes.has(occupant.infoHash.toLowerCase()) : false),
+            })),
+          })),
+        };
+      });
       await setJsonCache(cacheKey, result, 1800); // 30 min cache
       return result;
     } catch (error: any) {

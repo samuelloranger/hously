@@ -164,6 +164,7 @@ export type C411SlotOccupant = {
   resolution: string;
   uploaderId: number;
   torrentName: string;
+  isMine?: boolean;
 };
 
 export type C411Slot = {
