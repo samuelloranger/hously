@@ -1,8 +1,9 @@
 import type { Job } from 'bullmq';
+import type { ResolvedReleaseSource } from '../c411/prepare-release';
 
 export interface C411PrepareJobData {
   releaseId: number;
-  source: Record<string, unknown>;
+  source: ResolvedReleaseSource;
   requestedByUserId?: number;
 }
 

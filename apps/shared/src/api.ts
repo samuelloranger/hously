@@ -48,6 +48,7 @@ import type {
   ReorderShoppingItemsRequest,
   QbittorrentPlugin,
   QbittorrentPluginUpdateResponse,
+  QueueJob,
   RadarrPlugin,
   RadarrPluginUpdateResponse,
   RecipeDetailResponse,

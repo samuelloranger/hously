@@ -14,7 +14,7 @@ type JobAction =
 
 type JobConfig = {
   action: JobAction;
-  funcNames: string[];
+  jobNames: string[];
   icon: string;
   labelKey: string;
   descriptionKey: string;
@@ -23,42 +23,42 @@ type JobConfig = {
 const JOBS: JobConfig[] = [
   {
     action: 'check_reminders',
-    funcNames: ['check_and_send_reminders'],
+    jobNames: ['check-reminders'],
     icon: '⏰',
     labelKey: 'settings.jobs.actions.checkReminders.label',
     descriptionKey: 'settings.jobs.actions.checkReminders.description',
   },
   {
     action: 'check_all_day_events',
-    funcNames: ['check_and_send_all_day_custom_event_notifications'],
+    jobNames: ['check-all-day-events'],
     icon: '📆',
     labelKey: 'settings.jobs.actions.checkAllDayEvents.label',
     descriptionKey: 'settings.jobs.actions.checkAllDayEvents.description',
   },
   {
     action: 'cleanup_notifications',
-    funcNames: ['cleanup_old_notifications'],
+    jobNames: ['cleanup-notifications'],
     icon: '🧹',
     labelKey: 'settings.jobs.actions.cleanupNotifications.label',
     descriptionKey: 'settings.jobs.actions.cleanupNotifications.description',
   },
   {
     action: 'fetch_c411_stats',
-    funcNames: ['fetch_c411_stats'],
+    jobNames: ['fetch-tracker-stats'], // Note: API handles specific tracker based on trigger mapping
     icon: '🧾',
     labelKey: 'settings.jobs.actions.fetchC411Stats.label',
     descriptionKey: 'settings.jobs.actions.fetchC411Stats.description',
   },
   {
     action: 'fetch_torr9_stats',
-    funcNames: ['fetch_torr9_stats'],
+    jobNames: ['fetch-tracker-stats'],
     icon: '🧾',
     labelKey: 'settings.jobs.actions.fetchTorr9Stats.label',
     descriptionKey: 'settings.jobs.actions.fetchTorr9Stats.description',
   },
   {
     action: 'fetch_la_cale_stats',
-    funcNames: ['fetch_la_cale_stats'],
+    jobNames: ['fetch-tracker-stats'],
     icon: '🧾',
     labelKey: 'settings.jobs.actions.fetchLaCaleStats.label',
     descriptionKey: 'settings.jobs.actions.fetchLaCaleStats.description',
@@ -72,10 +72,10 @@ export function JobsTab() {
   const { mutateAsync: triggerAction } = useTriggerAction();
   const [executing, setExecuting] = useState<JobAction | null>(null);
 
-  const jobsByFunc = useMemo(() => {
+  const jobsByName = useMemo(() => {
     const map = new Map<string, JobConfig>();
     JOBS.forEach(job => {
-      job.funcNames.forEach(funcName => map.set(funcName, job));
+      job.jobNames.forEach(name => map.set(name, job));
     });
     return map;
   }, []);
@@ -110,7 +110,7 @@ export function JobsTab() {
         ) : scheduledJobsData?.jobs?.length ? (
           <div className="space-y-4">
             {scheduledJobsData.jobs.map(job => {
-              const config = jobsByFunc.get(job.func);
+              const config = jobsByName.get(job.name);
               const action = config?.action ?? null;
               const icon = config?.icon ?? '⏱️';
               const title = config ? t(config.labelKey) : job.name;

@@ -40,7 +40,7 @@ type ReleaseSourceFile = {
   releaseGroup: string;
 };
 
-type ResolvedReleaseSource = {
+export type ResolvedReleaseSource = {
   service: MediaService;
   sourceId: number;
   seasonNumber: number | null;

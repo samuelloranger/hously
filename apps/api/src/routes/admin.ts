@@ -18,7 +18,7 @@ import {
   addJob,
   SCHEDULED_JOB_NAMES
 } from '../services/queueService';
-import type { Job, Queue, JobStatus } from 'bullmq';
+import type { Job, Queue, JobState } from 'bullmq';
 
 // Validate email format
 const validateEmail = (email: string): boolean => {
@@ -82,26 +82,29 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
     if (!queue) throw new Error('Queue not found');
 
     const statusStrings = (query.status as string)?.split(',') || ['active', 'waiting', 'completed', 'failed', 'delayed'];
-    const status = statusStrings as JobStatus[];
+    const states = statusStrings as JobState[];
     const limit = parseInt(query.limit as string) || 50;
     
-    const jobs = await queue.getJobs(status, 0, limit - 1, false);
+    const jobs = await queue.getJobs(states, 0, limit - 1, false);
 
-    return jobs.map((job: Job) => ({
-      id: job.id,
-      name: job.name,
-      data: job.data,
-      opts: job.opts,
-      progress: job.progress,
-      delay: job.delay,
-      timestamp: new Date(job.timestamp).toISOString(),
-      processedOn: job.processedOn ? new Date(job.processedOn).toISOString() : null,
-      finishedOn: job.finishedOn ? new Date(job.finishedOn).toISOString() : null,
-      status: job.status,
-      returnValue: job.returnvalue,
-      failedReason: job.failedReason,
-      stacktrace: job.stacktrace,
-      attemptsMade: job.attemptsMade,
+    return Promise.all(jobs.map(async (job: Job) => {
+      const state = await job.getState();
+      return {
+        id: job.id,
+        name: job.name,
+        data: job.data,
+        opts: job.opts,
+        progress: job.progress,
+        delay: job.delay,
+        timestamp: new Date(job.timestamp).toISOString(),
+        processedOn: job.processedOn ? new Date(job.processedOn).toISOString() : null,
+        finishedOn: job.finishedOn ? new Date(job.finishedOn).toISOString() : null,
+        status: state,
+        returnValue: job.returnvalue,
+        failedReason: job.failedReason,
+        stacktrace: job.stacktrace,
+        attemptsMade: job.attemptsMade,
+      };
     }));
   })
 

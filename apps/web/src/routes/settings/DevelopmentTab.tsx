@@ -6,7 +6,6 @@ import {
   useScheduledJobs,
   useTestEmail,
   useTestEmailTemplates,
-  type EmailTemplate,
   formatCronTrigger,
 } from '@hously/shared';
 import { UnifiedTaskCard, type UnifiedTask } from './components/UnifiedTaskCard';
@@ -18,7 +17,7 @@ interface ActionConfig {
   labelKey: string;
   descriptionKey: string;
   icon: string;
-  funcName?: string; // Function name to match with scheduled jobs
+  jobName?: string; // Job name to match with BullMQ scheduled jobs
 }
 
 const actions: ActionConfig[] = [
@@ -27,21 +26,21 @@ const actions: ActionConfig[] = [
     labelKey: 'settings.development.actions.checkReminders.label',
     descriptionKey: 'settings.development.actions.checkReminders.description',
     icon: '⏰',
-    funcName: 'check_and_send_reminders',
+    jobName: 'check-reminders',
   },
   {
     id: 'check_all_day_events',
     labelKey: 'settings.development.actions.checkAllDayEvents.label',
     descriptionKey: 'settings.development.actions.checkAllDayEvents.description',
     icon: '📆',
-    funcName: 'check_and_send_all_day_custom_event_notifications',
+    jobName: 'check-all-day-events',
   },
   {
     id: 'cleanup_notifications',
     labelKey: 'settings.development.actions.cleanupNotifications.label',
     descriptionKey: 'settings.development.actions.cleanupNotifications.description',
     icon: '🧹',
-    funcName: 'cleanup_old_notifications',
+    jobName: 'cleanup-notifications',
   },
 ];
 
@@ -88,11 +87,11 @@ export function DevelopmentTab() {
     }
   };
 
-  // Create a map of function names to actions for matching scheduled jobs
-  const funcToActionMap = new Map<string, ActionConfig>();
+  // Create a map of job names to actions for matching scheduled jobs
+  const jobToActionMap = new Map<string, ActionConfig>();
   actions.forEach(action => {
-    if (action.funcName) {
-      funcToActionMap.set(action.funcName, action);
+    if (action.jobName) {
+      jobToActionMap.set(action.jobName, action);
     }
   });
 
@@ -101,7 +100,7 @@ export function DevelopmentTab() {
 
   // Add scheduled jobs (matched with actions if possible)
   scheduledJobsData?.jobs.forEach(job => {
-    const matchedAction = funcToActionMap.get(job.func);
+    const matchedAction = jobToActionMap.get(job.name);
     if (matchedAction) {
       // Job matches an action - use action's icon and label
       unifiedTasks.push({
@@ -131,7 +130,7 @@ export function DevelopmentTab() {
 
   // Add actions that don't have scheduled jobs
   actions.forEach(action => {
-    const hasScheduledJob = scheduledJobsData?.jobs.some(job => job.func === action.funcName);
+    const hasScheduledJob = scheduledJobsData?.jobs.some(job => job.name === action.jobName);
     if (!hasScheduledJob) {
       unifiedTasks.push({
         id: action.id,
@@ -148,110 +147,64 @@ export function DevelopmentTab() {
 
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300" key="development-tab">
-      <div className="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">
-          {t('settings.development.title')}
-        </h2>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-6">{t('settings.development.description')}</p>
-
-        {/* Tasks and Actions Section */}
+      <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-neutral-100">
-            {t('settings.development.scheduledJobs.title')}
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">
+            {t('settings.development.actions.title')}
           </h3>
-          {isLoadingJobs ? (
-            <div className="text-neutral-600 dark:text-neutral-400">
-              {t('settings.development.scheduledJobs.loading')}
-            </div>
-          ) : (
-            <>
-              {scheduledJobsData?.scheduler_running === false && (
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
-                  <p className="text-yellow-800 dark:text-yellow-200">
-                    {scheduledJobsData.message || t('settings.development.scheduledJobs.notRunning')}
-                  </p>
-                </div>
-              )}
-              <div className="space-y-4">
-                {unifiedTasks.map(task => (
-                  <UnifiedTaskCard
-                    key={task.id}
-                    task={task}
-                    executingAction={executingAction}
-                    currentTime={currentTime}
-                    onTriggerAction={handleTriggerAction}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Email Testing Section */}
-        <div className="mt-8 pt-8 border-t border-neutral-200 dark:border-neutral-700">
-          <h3 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-neutral-100">
-            {t('settings.development.testEmail.title')}
-          </h3>
-          <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-            {t('settings.development.testEmail.description')}
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+            {t('settings.development.actions.subtitle')}
           </p>
 
-          {/* Template Selector */}
-          {isLoadingTemplates ? (
-            <div className="text-neutral-600 dark:text-neutral-400 mb-4">
-              {t('settings.development.testEmail.loadingTemplates')}
-            </div>
-          ) : (
-            <div className="mb-4">
-              <label
-                htmlFor="email-template-select"
-                className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-              >
-                {t('settings.development.testEmail.selectTemplate')}
-              </label>
-              <select
-                id="email-template-select"
-                value={selectedTemplateId}
-                onChange={e => setSelectedTemplateId(e.target.value)}
-                disabled={isTestingEmail}
-                className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {templatesData?.templates.map((template: EmailTemplate) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name} - {template.description}
-                  </option>
-                ))}
-              </select>
-              {templatesData?.templates.find(t => t.id === selectedTemplateId) && (
-                <div className="mt-2 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg text-sm">
-                  <div className="font-medium text-neutral-900 dark:text-neutral-100 mb-1">
-                    {templatesData.templates.find(t => t.id === selectedTemplateId)?.title}
-                  </div>
-                  <div className="text-neutral-600 dark:text-neutral-400 whitespace-pre-line">
-                    {templatesData.templates.find(t => t.id === selectedTemplateId)?.body}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          <button
-            onClick={handleTestEmail}
-            disabled={isTestingEmail || isLoadingTemplates}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-          >
-            {isTestingEmail ? (
-              <>
-                <span className="animate-spin">⏳</span>
-                {t('settings.development.testEmail.sending')}
-              </>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {isLoadingJobs ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />
+              ))
             ) : (
-              <>
-                <span>📧</span>
-                {t('settings.development.testEmail.button')}
-              </>
+              unifiedTasks.map(task => (
+                <UnifiedTaskCard
+                  key={task.id}
+                  task={task}
+                  currentTime={currentTime}
+                  executingAction={executingAction}
+                  onTriggerAction={handleTriggerAction}
+                />
+              ))
             )}
-          </button>
+          </div>
+        </div>
+
+        <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">
+            {t('settings.development.testEmail.title')}
+          </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+            {t('settings.development.testEmail.subtitle')}
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <select
+              value={selectedTemplateId}
+              onChange={e => setSelectedTemplateId(e.target.value)}
+              className="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              disabled={isLoadingTemplates || isTestingEmail}
+            >
+              <option value="test">{t('settings.development.testEmail.defaultTemplate')}</option>
+              {templatesData?.templates.map(template => (
+                <option key={template.id} value={template.id}>
+                  {template.name} ({template.id})
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleTestEmail}
+              disabled={isTestingEmail}
+              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm whitespace-nowrap"
+            >
+              {isTestingEmail ? t('settings.development.testEmail.sending') : t('settings.development.testEmail.button')}
+            </button>
+          </div>
         </div>
       </div>
     </div>
