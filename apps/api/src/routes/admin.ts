@@ -19,6 +19,7 @@ import {
   SCHEDULED_JOB_NAMES
 } from '../services/queueService';
 import type { Job, Queue, JobState } from 'bullmq';
+import { createJsonSseResponse } from '../utils/sse';
 
 // Validate email format
 const validateEmail = (email: string): boolean => {
@@ -57,10 +58,8 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
     // Map repeatable jobs to their current status if they have an active/waiting instance
     const jobs = await Promise.all(repeatableJobs.map(async (rJob) => {
       // Find the most recent job for this repeatable configuration
-      // In BullMQ, we can find jobs by their name.
       const jobInstances = await scheduledTasksQueue.getJobs(['active', 'waiting', 'failed', 'completed'], 0, 50, false);
       
-      // Filter for jobs with the same name and sort by timestamp/ID descending
       const latestInstance = jobInstances
         .filter(j => j.name === rJob.name)
         .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0))[0];
@@ -87,6 +86,44 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         return new Date(a.next_run_time).getTime() - new Date(b.next_run_time).getTime();
       }),
     };
+  })
+
+  // GET /api/admin/jobs/events - SSE endpoint for real-time job updates
+  .get('/jobs/events', ({ request }) => {
+    return createJsonSseResponse({
+      request,
+      logLabel: 'AdminJobs',
+      intervalMs: 2000, // Poll Redis every 2s on server, only push to client on change
+      poll: async () => {
+        const repeatableJobs = await scheduledTasksQueue.getRepeatableJobs();
+        const jobInstances = await scheduledTasksQueue.getJobs(['active', 'waiting', 'failed', 'completed'], 0, 50, false);
+        
+        const jobs = await Promise.all(repeatableJobs.map(async (rJob) => {
+          const latestInstance = jobInstances
+            .filter(j => j.name === rJob.name)
+            .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0))[0];
+            
+          const status = latestInstance ? await latestInstance.getState() : 'waiting';
+
+          return {
+            id: rJob.key,
+            name: rJob.name,
+            trigger: rJob.pattern,
+            next_run_time: rJob.next ? new Date(rJob.next).toISOString() : null,
+            tz: rJob.tz,
+            status: status,
+          };
+        }));
+
+        return {
+          jobs: jobs.sort((a, b) => {
+            if (!a.next_run_time) return 1;
+            if (!b.next_run_time) return -1;
+            return new Date(a.next_run_time).getTime() - new Date(b.next_run_time).getTime();
+          }),
+        };
+      }
+    });
   })
 
   // GET /api/admin/queues/:name/jobs - Get detailed list of jobs in a specific queue
