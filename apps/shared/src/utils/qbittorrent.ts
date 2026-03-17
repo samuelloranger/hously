@@ -65,15 +65,16 @@ const QBITTORRENT_STATUS_CONFIG: Record<
   },
   uploading: {
     labelKey: 'dashboard.qbittorrent.states.uploading',
-    dot: 'bg-orange-400',
+    dot: 'bg-emerald-400',
     badge:
-      'text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-400/10 border-orange-200 dark:border-orange-500/30',
+      'text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-400/10 border-emerald-200 dark:border-emerald-500/30',
     pulse: true,
   },
   stalledup: {
     labelKey: 'dashboard.qbittorrent.states.stalledUp',
-    dot: 'bg-rose-400',
-    badge: 'text-rose-700 bg-rose-50 dark:text-rose-400 dark:bg-rose-400/10 border-rose-200 dark:border-rose-500/30',
+    dot: 'bg-emerald-400',
+    badge:
+      'text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-400/10 border-emerald-200 dark:border-emerald-500/30',
     pulse: false,
   },
   pauseddl: {
@@ -150,9 +151,9 @@ const QBITTORRENT_STATUS_CONFIG: Record<
   },
   forcedup: {
     labelKey: 'dashboard.qbittorrent.states.forcedUp',
-    dot: 'bg-orange-400',
+    dot: 'bg-emerald-400',
     badge:
-      'text-orange-700 bg-orange-50 dark:text-orange-400 dark:bg-orange-400/10 border-orange-200 dark:border-orange-500/30',
+      'text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-400/10 border-emerald-200 dark:border-emerald-500/30',
     pulse: true,
   },
   queueddl: {
@@ -194,10 +195,10 @@ const QBITTORRENT_PROGRESS_GRADIENTS: Record<string, string> = {
   metadl: QBITTORRENT_PROGRESS_GRADIENT_DEFAULT,
   downloading: QBITTORRENT_PROGRESS_GRADIENT_DEFAULT,
   forceddl: QBITTORRENT_PROGRESS_GRADIENT_DEFAULT,
-  uploading: 'bg-gradient-to-r from-violet-500 to-fuchsia-500 dark:from-violet-400 dark:to-fuchsia-400',
-  forcedup: 'bg-gradient-to-r from-violet-500 to-fuchsia-500 dark:from-violet-400 dark:to-fuchsia-400',
+  uploading: 'bg-gradient-to-r from-emerald-500 to-green-500 dark:from-emerald-400 dark:to-green-400',
+  forcedup: 'bg-gradient-to-r from-emerald-500 to-green-500 dark:from-emerald-400 dark:to-green-400',
   stalledup:
-    'bg-gradient-to-r from-rose-500 to-pink-500 dark:from-rose-400 dark:to-pink-400 opacity-70',
+    'bg-gradient-to-r from-emerald-500 to-green-500 dark:from-emerald-400 dark:to-green-400 opacity-70',
   stalleddl:
     'bg-gradient-to-r from-yellow-400 to-amber-400 dark:from-yellow-300 dark:to-amber-300 opacity-70',
   pauseddl: 'bg-neutral-300 dark:bg-neutral-600',

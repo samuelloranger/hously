@@ -33,7 +33,7 @@ export function TorrentPeersTab({ peersSnapshot }: TorrentPeersTabProps) {
                   <span className="font-mono text-[11px] text-sky-600 dark:text-sky-400 tabular-nums">
                     ↓ {peer.download_speed != null ? formatSpeed(peer.download_speed) : '--'}
                   </span>
-                  <span className="font-mono text-[11px] text-orange-500 dark:text-orange-400 tabular-nums">
+                  <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 tabular-nums">
                     ↑ {peer.upload_speed != null ? formatSpeed(peer.upload_speed) : '--'}
                   </span>
                 </div>

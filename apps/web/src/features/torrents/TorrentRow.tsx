@@ -22,10 +22,15 @@ export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem })
   const { dot, pulse } = getQbittorrentStatusDot(torrent.state);
   const progress = Math.round(torrent.progress * 100);
   const isActive = hasQbittorrentTransferActivity(torrent);
-  const isUploading = torrent.upload_speed > 0 && /^(uploading|forcedup)$/i.test(torrent.state);
+  const isSeedingState = /^(uploading|forcedup|stalledup)$/i.test(torrent.state);
+  const isUploading = torrent.upload_speed > 0 && isSeedingState;
   const eta = formatQbittorrentEta(torrent.eta_seconds);
   const relDate = formatRelativeTime(torrent.added_on, { addSuffix: true, locale }) ?? '';
   const barGradient = getQbittorrentProgressBarGradient(torrent.state);
+  const barFillClass = isSeedingState
+    ? 'bg-gradient-to-r from-emerald-500 to-green-500 dark:from-emerald-400 dark:to-green-400'
+    : barGradient;
+  const barTrackClass = isSeedingState ? 'bg-emerald-100/80 dark:bg-emerald-950/40' : 'bg-neutral-100 dark:bg-neutral-800';
   const isPaused = isQbittorrentPausedState(torrent.state);
 
   const pauseMutation = usePauseQbittorrentTorrent(torrent.id);
@@ -127,9 +132,9 @@ export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem })
           )}
 
           {/* Progress bar — color coded by state */}
-          <div className="mt-2 h-1 w-full rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+          <div className={`mt-2 h-1 w-full rounded-full overflow-hidden ${barTrackClass}`}>
             <div
-              className={`h-full rounded-full transition-all duration-500 ${barGradient} ${isUploading ? 'torrent-progress-bar-active' : ''}`}
+              className={`h-full rounded-full transition-all duration-500 ${barFillClass} ${isUploading ? 'torrent-progress-bar-active' : ''}`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -155,7 +160,7 @@ export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem })
                 <span className="font-mono text-[11px] text-sky-600 dark:text-sky-400 tabular-nums">
                   ↓ {formatSpeed(torrent.download_speed)}
                 </span>
-                <span className="font-mono text-[11px] text-orange-500 dark:text-orange-400 tabular-nums">
+                <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 tabular-nums">
                   ↑ {formatSpeed(torrent.upload_speed)}
                 </span>
               </>

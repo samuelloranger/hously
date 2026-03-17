@@ -116,7 +116,7 @@ export function TorrentsPage() {
                 <TrendingDown size={12} />
                 {formatSpeed(totalDown)}
               </span>
-              <span className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-violet-600 dark:text-violet-400 tabular-nums">
+              <span className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
                 <TrendingUp size={12} />
                 {formatSpeed(totalUp)}
               </span>

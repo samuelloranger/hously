@@ -213,7 +213,14 @@ export function TorrentDetailPage() {
   const statusConfig = getQbittorrentStatusConfig(selectedTorrent?.state ?? '');
   const isPaused = isQbittorrentPausedState(selectedTorrent?.state ?? '');
   const progressBarGradient = getQbittorrentProgressBarGradient(selectedTorrent?.state ?? '');
-  const isUploading = Boolean(selectedTorrent && selectedTorrent.upload_speed > 0 && /^(uploading|forcedup)$/i.test(selectedTorrent.state));
+  const isSeedingState = Boolean(selectedTorrent && /^(uploading|forcedup|stalledup)$/i.test(selectedTorrent.state));
+  const isUploading = Boolean(selectedTorrent && selectedTorrent.upload_speed > 0 && isSeedingState);
+  const progressBarFillClass = isSeedingState
+    ? 'bg-gradient-to-r from-emerald-500 to-green-500 dark:from-emerald-400 dark:to-green-400'
+    : progressBarGradient;
+  const progressBarTrackClass = isSeedingState
+    ? 'bg-emerald-100/80 dark:bg-emerald-950/40'
+    : 'bg-neutral-100 dark:bg-neutral-800';
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode; count?: number }[] = [
     { id: 'properties', label: t('torrents.properties', 'Properties'), icon: <Settings2 size={13} /> },
@@ -339,9 +346,9 @@ export function TorrentDetailPage() {
                   {progress}%
                 </span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+              <div className={`h-1.5 w-full rounded-full overflow-hidden ${progressBarTrackClass}`}>
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ease-out ${progressBarGradient} ${isUploading ? 'torrent-progress-bar-active' : ''}`}
+                  className={`h-full rounded-full transition-all duration-700 ease-out ${progressBarFillClass} ${isUploading ? 'torrent-progress-bar-active' : ''}`}
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -361,7 +368,7 @@ export function TorrentDetailPage() {
                   label: t('torrents.upload', 'Upload'),
                   value: formatSpeed(selectedTorrent.upload_speed),
                   Icon: TrendingUp,
-                  color: 'text-orange-500 dark:text-orange-400',
+                  color: 'text-emerald-600 dark:text-emerald-400',
                 },
                 {
                   label: t('dashboard.qbittorrent.seeds', 'Seeds'),
