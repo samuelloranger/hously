@@ -6,6 +6,7 @@ import { prisma } from '../db';
 import { nowUtc, getTimezone } from '../utils';
 import { addJob, QUEUE_NAMES } from '../services/queueService';
 import type { NotificationJobData } from '../services/jobs/notificationWorker';
+import { normalizeNotificationUrl } from '@hously/shared';
 
 /**
  * Check if current time is in night period (23h-6h) when notifications should not be sent
@@ -48,6 +49,8 @@ export async function createAndQueueNotification(
   metadata?: NotificationMetadata
 ): Promise<boolean> {
   try {
+    const normalizedUrl = normalizeNotificationUrl(url);
+
     // 1. Create notification record in DB immediately
     // This ensures the user sees it in their notification center in the app
     const notification = await prisma.notification.create({
@@ -56,7 +59,7 @@ export async function createAndQueueNotification(
         title,
         body,
         type: notificationType,
-        url: url || null,
+        url: normalizedUrl,
         notificationMetadata: metadata ? JSON.parse(JSON.stringify(metadata)) : undefined,
         read: false,
         createdAt: nowUtc(),
@@ -75,7 +78,7 @@ export async function createAndQueueNotification(
         title,
         body,
         notificationType,
-        url: url || undefined,
+        url: normalizedUrl || undefined,
         metadata,
       }
     );

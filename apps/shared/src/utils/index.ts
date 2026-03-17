@@ -11,3 +11,4 @@ export * from './release-matching';
 export * from './interactive-search';
 export * from './media-library';
 export * from './qbittorrent';
+export * from './notifications';

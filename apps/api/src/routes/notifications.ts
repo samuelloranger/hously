@@ -1,4 +1,5 @@
 import { Elysia, t } from 'elysia';
+import { normalizeNotificationUrl } from '@hously/shared';
 import { auth } from '../auth';
 import { prisma } from '../db';
 import { getVapidPublicKey, sendWebPushNotification, type PushSubscription } from '../utils/webpush';
@@ -86,7 +87,7 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
             type: n.type,
             read: n.read,
             read_at: n.readAt,
-            url: n.url,
+            url: normalizeNotificationUrl(n.url),
             metadata: n.notificationMetadata,
             created_at: n.createdAt,
           })),

@@ -16,6 +16,7 @@ import { cn } from '../lib/utils';
 import { syncBadge } from '../lib/serviceWorker';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
+import { openNotificationTarget } from '../lib/notificationNavigation';
 
 function getRelativeTime(dateStr: string, lang: string): string {
   try {
@@ -96,17 +97,12 @@ export function NotificationsMenu() {
   const unreadCount = unreadData?.unread_count || 0;
   const recentNotifications = notificationsData?.notifications || [];
 
-
   const handleNotificationClick = async (notification: { id: number; read: boolean; url: string | null }) => {
     if (!notification.read) {
       await markAsReadMutation.mutateAsync(notification.id);
     }
     setIsOpen(false);
-    if (notification.url) {
-      navigate({ to: notification.url });
-    } else {
-      navigate({ to: '/notifications' });
-    }
+    openNotificationTarget(notification.url);
   };
 
   const handleMarkAllAsRead = async () => {

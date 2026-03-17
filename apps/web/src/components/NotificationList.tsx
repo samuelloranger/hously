@@ -1,6 +1,5 @@
 import type { MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from '@tanstack/react-router';
 import { Trash2 } from 'lucide-react';
 import {
   formatDate,
@@ -11,6 +10,7 @@ import {
 } from '@hously/shared';
 import { cn } from '../lib/utils';
 import { getTypeStyle } from './NotificationsBell';
+import { openNotificationTarget } from '../lib/notificationNavigation';
 
 interface NotificationListProps {
   notifications: Notification[];
@@ -20,7 +20,6 @@ interface NotificationListProps {
 
 export function NotificationList({ notifications, onLoadMore, hasMore }: NotificationListProps) {
   const { t, i18n } = useTranslation('common');
-  const navigate = useNavigate();
   const markAsReadMutation = useMarkAsReadOptimistic();
   const deleteMutation = useDeleteNotification();
 
@@ -28,9 +27,7 @@ export function NotificationList({ notifications, onLoadMore, hasMore }: Notific
     if (!notification.read) {
       await markAsReadMutation.mutateAsync(notification.id);
     }
-    if (notification.url) {
-      navigate({ to: notification.url });
-    }
+    openNotificationTarget(notification.url);
   };
 
   const handleDelete = async (e: MouseEvent<HTMLButtonElement>, notificationId: number) => {

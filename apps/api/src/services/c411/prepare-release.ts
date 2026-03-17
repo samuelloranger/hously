@@ -5,6 +5,7 @@
 import { dirname, extname, join, relative } from 'node:path';
 import { link, mkdir, rm, stat } from 'node:fs/promises';
 import { Prisma } from '@prisma/client';
+import { buildC411ReleaseNotificationUrl } from '@hously/shared';
 import { prisma } from '../../db';
 import { createAndQueueNotification } from '../../jobs/notificationService';
 import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
@@ -654,8 +655,7 @@ async function sendPrepareNotification(params: {
 }): Promise<void> {
   if (!params.userId) return;
 
-  const url =
-    `/medias?c411=${params.tmdbId}&c411Tab=releases&c411Release=${params.releaseId}`;
+  const url = buildC411ReleaseNotificationUrl(params.tmdbId, params.releaseId);
 
   await createAndQueueNotification(
     params.userId,

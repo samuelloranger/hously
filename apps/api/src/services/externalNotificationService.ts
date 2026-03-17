@@ -1,5 +1,6 @@
 import { prisma } from '../db';
 import { createAndQueueNotification } from '../jobs/notificationService';
+import { getExternalNotificationUrl } from '@hously/shared';
 
 /**
  * Generate a secure random token for webhook authentication
@@ -91,18 +92,6 @@ export async function sendSilentPushToUser(userId: number, type: string): Promis
 }
 
 /**
- * Map external service names to their corresponding frontend URL paths
- */
-const serviceUrlMap: Record<string, string> = {
-  radarr: '/medias',
-  sonarr: '/medias',
-  jellyfin: '/medias',
-  plex: '/medias',
-  prowlarr: '/torrents',
-  'cross-seed': '/torrents',
-};
-
-/**
  * Send external notification to all subscribed users
  */
 export async function sendExternalNotification(
@@ -173,7 +162,7 @@ export async function sendExternalNotification(
       return false;
     }
 
-    const url = serviceUrlMap[serviceName] ?? '/';
+    const url = getExternalNotificationUrl(serviceName);
 
     // Enqueue notifications for all target users
     console.log(`[ExternalNotificationService] Enqueuing ${targetUserIds.length} notifications for ${serviceName}/${eventType}`);

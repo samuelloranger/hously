@@ -1,4 +1,5 @@
 import { sw } from './sw';
+import { normalizeNotificationUrl } from '@hously/shared';
 import { handleAppUpdate } from './app-update';
 import { syncBadgeCount } from './badge';
 import type { PushNotificationData } from './types';
@@ -39,7 +40,7 @@ export function handlePush(event: PushEvent): void {
   const icon = data.icon || '/icon-192.png';
   const badge = data.badge || '/icon-32.png';
   const tag = data.tag || 'notification';
-  const url = data.data?.url || '/';
+  const url = normalizeNotificationUrl(data.data?.url) || '/';
 
   const options: NotificationOptions = {
     body,
