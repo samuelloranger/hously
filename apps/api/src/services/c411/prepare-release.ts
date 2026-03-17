@@ -376,16 +376,29 @@ async function resolveReleaseSource(options: PrepareReleaseOptions): Promise<Res
 }
 
 function inferLanguageTag(originalName: string, media: MediaInfoData, languageTag: LanguageTag): LanguageTag {
-  if (languageTag !== 'UNKNOWN') return languageTag;
-
   const name = originalName.toUpperCase();
+
+  // If we detected a specific French variant (VFF/VFQ/VFI) from media tags, use it
+  if (languageTag === 'VFF' || languageTag === 'VFQ' || languageTag === 'VFI') return languageTag;
+
+  // If detected MULTI variant, use it
+  if (languageTag.startsWith('MULTI.')) return languageTag;
+
+  // Fallback to name-based detection for MULTI
   if (name.includes('MULTI') && name.includes('VF2')) return 'MULTI.VF2';
   if (name.includes('MULTI') && name.includes('VFQ')) return 'MULTI.VFQ';
   if (name.includes('MULTI') && name.includes('VFI')) return 'MULTI.VFI';
   if (name.includes('MULTI')) return 'MULTI.VFF';
+
+  // Specific tag detection in name
   if (name.includes('VFQ')) return 'VFQ';
   if (name.includes('VFF') || name.includes('TRUEFRENCH')) return 'VFF';
   if (name.includes('FRENCH')) return 'VFF';
+
+  // Use the general detection if it found something (like 'EN')
+  if (languageTag !== 'UNKNOWN') return languageTag;
+
+  // Last resort fallbacks
   if (media.audioStreams.length <= 1) return 'EN';
   return 'UNKNOWN';
 }
