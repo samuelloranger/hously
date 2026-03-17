@@ -241,8 +241,9 @@ export function useActiveMediaConversions(options?: { enabled?: boolean; refetch
     refetchInterval: (query) => {
       if (options?.refetchInterval === false) return false;
       const jobs = (query.state.data as MediaConversionJobsResponse | undefined)?.jobs ?? [];
-      if (jobs.length === 0) return false;
-      return options?.refetchInterval ?? 2000;
+      // Poll every 2s if there are active jobs, otherwise every 15s to detect new ones
+      if (jobs.length > 0) return options?.refetchInterval ?? 2000;
+      return 15000;
     },
   });
 }
@@ -271,6 +272,26 @@ export function useCreateMediaConversion() {
       }),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.conversions(variables.service, variables.source_id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.activeConversions() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.list() });
+    },
+  });
+}
+
+export function useCancelMediaConversion() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<MediaConversionJob>(MEDIAS_ENDPOINTS.CANCEL_CONVERSION(id), {
+        method: 'DELETE',
+      }),
+    onSuccess: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.medias.conversions(data.service, data.source_id) });
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.activeConversions() });
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.list() });
     },
   });

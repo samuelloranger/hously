@@ -5,6 +5,7 @@ import { prisma } from '../../db';
 import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
 import { serverError } from '../../utils/errors';
 import { getJsonCache, setJsonCache } from '../../services/cache';
+import { serializeMediaConversionJob } from '../../services/mediaConversions';
 import type { MediaItem } from '@hously/shared';
 import {
   mapRadarrMovie,
@@ -40,7 +41,7 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
     const errors: { radarr?: string; sonarr?: string } = {};
 
     try {
-      const [radarrPlugin, sonarrPlugin, c411Plugin] = await Promise.all([
+      const [radarrPlugin, sonarrPlugin, c411Plugin, activeConversions] = await Promise.all([
         prisma.plugin.findFirst({
           where: { type: 'radarr' },
           select: { enabled: true, config: true },
@@ -53,7 +54,21 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
           where: { type: 'c411' },
           select: { enabled: true },
         }),
+        prisma.mediaConversionJob.findMany({
+          where: {
+            status: { in: ['queued', 'running'] },
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
       ]);
+
+      const conversionMap = new Map<string, any>();
+      for (const job of activeConversions) {
+        const key = `${job.service}:${job.sourceId}`;
+        if (!conversionMap.has(key)) {
+          conversionMap.set(key, serializeMediaConversionJob(job));
+        }
+      }
 
       response.radarr_enabled = Boolean(radarrPlugin?.enabled);
       response.sonarr_enabled = Boolean(sonarrPlugin?.enabled);
@@ -191,6 +206,14 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
 
       if (errors.radarr || errors.sonarr) {
         response.errors = errors;
+      }
+
+      // Attach conversion status
+      for (const item of response.items) {
+        const key = `${item.service}:${item.source_id}`;
+        if (conversionMap.has(key)) {
+          item.latest_conversion = conversionMap.get(key);
+        }
       }
 
       return response;

@@ -2,14 +2,13 @@
  * Version service for checking app version changes and notifying users
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { prisma } from '../db';
-import { sendWebPushNotification, type PushSubscription } from '../utils/webpush';
-import { sendApnNotifications } from '../utils/apnPush';
 import { logActivity } from '../utils/activityLogs';
 import { getJsonCache, setJsonCache } from './cache';
 import { sendExternalNotification } from './externalNotificationService';
+import { createAndQueueNotification } from '../jobs/notificationService';
 
 const PACKAGE_VERSION = '1.0.0';
 const APP_VERSION_KEY = 'hously:app_version';
@@ -24,32 +23,8 @@ function getCurrentAppVersion(): string {
   }
 }
 
-function getGitCommitHash(): string | null {
-  try {
-    const headPath = resolve(process.cwd(), '.git/HEAD');
-    if (!existsSync(headPath)) return null;
-
-    const head = readFileSync(headPath, 'utf-8').trim();
-    if (head.startsWith('ref:')) {
-      const refPath = resolve(process.cwd(), '.git', head.substring(5));
-      if (existsSync(refPath)) {
-        return readFileSync(refPath, 'utf-8').trim().substring(0, 7);
-      }
-    }
-    return head.substring(0, 7);
-  } catch {
-    return null;
-  }
-}
-
 export function getAppVersion(): string {
-  const pkgVersion = getCurrentAppVersion();
-  const gitHash = getGitCommitHash();
-
-  if (gitHash) {
-    return `${pkgVersion}-${gitHash}`;
-  }
-  return pkgVersion;
+  return getCurrentAppVersion();
 }
 
 async function getStoredAppVersion(): Promise<string | null> {
@@ -75,13 +50,13 @@ export async function sendAppUpdateNotifications(newVersion?: string): Promise<v
           template_variables: {
             version,
             message: `Hously has been updated to version ${version}`,
-            environment: process.env.NODE_ENV || 'production'
+            environment: process.env.NODE_ENV || 'production',
           },
           original_payload: {
             version,
             event: 'AppUpdate',
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         },
         'en'
       );
@@ -90,9 +65,15 @@ export async function sendAppUpdateNotifications(newVersion?: string): Promise<v
     }
 
     // 2. Standard internal notifications (Web Push, Expo Push)
-    const userIds = await prisma.userSubscription.findMany({
-      select: { userId: true },
-      distinct: ['userId'],
+    // Get all users who have at least one delivery channel
+    const userIds = await prisma.user.findMany({
+      where: {
+        OR: [
+          { userSubscriptions: { some: {} } },
+          { pushTokens: { some: {} } }
+        ]
+      },
+      select: { id: true },
     });
 
     if (userIds.length === 0) {
@@ -100,84 +81,22 @@ export async function sendAppUpdateNotifications(newVersion?: string): Promise<v
       return;
     }
 
-    console.log(`Sending app update notifications for version ${version} to ${userIds.length} users`);
+    console.log(`[VersionService] Enqueuing app update notifications for version ${version} to ${userIds.length} users`);
 
-    for (const { userId } of userIds) {
-      try {
-        const notification = await prisma.notification.create({
-          data: {
-            userId,
-            title: 'App Updated',
-            body: `Hously has been updated to version ${version}`,
-            type: 'app-update',
-            url: '/',
-            notificationMetadata: { version, silent: true },
-            read: false,
-            createdAt: new Date().toISOString(),
-          },
-        });
-
-        const subscriptions = await prisma.userSubscription.findMany({
-          where: { userId },
-        });
-
-        for (const sub of subscriptions) {
-          try {
-            const subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
-            await sendWebPushNotification(subscriptionInfo, {
-              title: 'App Updated',
-              body: `Hously has been updated to version ${version}`,
-              tag: 'app-update',
-              data: {
-                url: '/',
-                notification_type: 'app-update',
-                notification_id: notification.id,
-                version,
-                silent: true,
-              },
-            });
-          } catch (error) {
-            console.error(`Error sending push to subscription ${sub.id}:`, error);
-          }
-        }
-
-        const pushTokens = await prisma.pushToken.findMany({
-          where: { userId },
-          select: { token: true, platform: true },
-        });
-
-        if (pushTokens.length > 0) {
-          const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
-          const unreadCount = await prisma.notification.count({
-            where: { userId, read: false },
-          });
-
-          if (iosTokens.length > 0) {
-            await sendApnNotifications(iosTokens, {
-              title: 'App Updated',
-              body: `Hously has been updated to version ${version}`,
-              data: {
-                url: '/',
-                notification_type: 'app-update',
-                notification_id: notification.id,
-                version,
-                silent: true,
-              },
-              channelId: 'default',
-              badge: unreadCount,
-            });
-          }
-        }
-
-        console.log(`App update notification sent to user ${userId}`);
-      } catch (error) {
-        console.error(`Failed to send app update notification to user ${userId}:`, error);
-      }
+    for (const { id: userId } of userIds) {
+      await createAndQueueNotification(
+        userId,
+        'App Updated',
+        `Hously has been updated to version ${version}`,
+        'app-update',
+        '/',
+        { version, silent: true }
+      );
     }
 
-    console.log(`App update notifications sent to ${userIds.length} users`);
+    console.log(`[VersionService] App update notifications enqueued for ${userIds.length} users`);
   } catch (error) {
-    console.error('Error sending app update notifications:', error);
+    console.error('[VersionService] Error sending app update notifications:', error);
   }
 }
 

@@ -32,7 +32,7 @@ const processBatch = async <T, R>(items: T[], batchSize: number, fn: (item: T) =
   return results;
 };
 
-export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' }): Promise<void> => {
+export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' | 'queue' }): Promise<void> => {
   const trigger = options?.trigger ?? 'cron';
 
   if (isRunning) {

@@ -22,18 +22,44 @@ export interface TriggerActionResponse {
   message: string;
 }
 
+export interface QueueStat {
+  name: string;
+  waiting: number;
+  active: number;
+  completed: number;
+  failed: number;
+  delayed: number;
+}
+
 export interface ScheduledJob {
   id: string;
   name: string;
   next_run_time: string | null;
   trigger: string;
-  func: string;
 }
 
 export interface ScheduledJobsResponse {
   scheduler_running: boolean;
+  queues: QueueStat[];
   jobs: ScheduledJob[];
   message?: string;
+}
+
+export interface QueueJob {
+  id: string;
+  name: string;
+  data: any;
+  opts: any;
+  progress: number | object;
+  delay: number;
+  timestamp: string;
+  processedOn: string | null;
+  finishedOn: string | null;
+  status: string;
+  returnValue: any;
+  failedReason: string | null;
+  stacktrace: string[];
+  attemptsMade: number;
 }
 
 export interface InviteUserRequest {

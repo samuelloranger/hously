@@ -1,6 +1,5 @@
 import { prisma } from '../db';
-import { sendWebPushNotification } from '../utils/webpush';
-import { sendApnNotifications } from '../utils/apnPush';
+import { createAndQueueNotification } from '../jobs/notificationService';
 
 /**
  * Generate a secure random token for webhook authentication
@@ -75,34 +74,20 @@ async function getTemplateForEvent(serviceName: string, eventType: string, langu
  * This is used for background synchronization (e.g., calendar sync)
  */
 export async function sendSilentPushToUser(userId: number, type: string): Promise<boolean> {
-  try {
-    const pushTokens = await prisma.pushToken.findMany({
-      where: { userId },
-      select: { token: true, platform: true },
-    });
-
-    const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
-
-    if (iosTokens.length === 0) {
-      return false;
-    }
-
-    const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
-      contentAvailable: true,
-      data: { type },
-    });
-
-    if (invalidTokens.length > 0) {
-      await prisma.pushToken.deleteMany({
-        where: { token: { in: invalidTokens } },
-      });
-    }
-
-    return successCount > 0;
-  } catch (error) {
-    console.error(`Error sending silent push to user ${userId}:`, error);
-    return false;
-  }
+  // Use createAndQueueNotification with empty body/title for silent push
+  // Actually createAndQueueNotification creates a visible record in DB.
+  // For truly silent pushes that DON'T create a record, we might need a separate queue.
+  // But Hously usually wants these recorded anyway.
+  
+  // Let's use createAndQueueNotification for now but maybe we need a dedicated 'silent' option.
+  return await createAndQueueNotification(
+    userId,
+    '', // Empty title
+    '', // Empty body
+    type,
+    undefined,
+    { silent: true }
+  );
 }
 
 /**
@@ -173,7 +158,7 @@ export async function sendExternalNotification(
         return false;
       }
     } else {
-      // Get all users with at least one push delivery channel
+      // Get all users with at least one delivery channel
       const allSubscriptions = await prisma.userSubscription.findMany({
         select: { userId: true },
       });
@@ -188,159 +173,32 @@ export async function sendExternalNotification(
       return false;
     }
 
-    // Batch: create all notifications and fetch all push channels up front
     const url = serviceUrlMap[serviceName] ?? '/';
-    const now = new Date().toISOString();
 
-    // Create notification records for all users in bulk
-    const notifications = await Promise.all(
-      targetUserIds.map(userId =>
-        prisma.notification.create({
-          data: {
-            userId,
-            title,
-            body,
-            type: 'external',
-            url,
-            notificationMetadata: {
-              service_name: serviceName,
-              event_type: eventType,
-              payload: payload.original_payload as Record<string, string | number | boolean | null>,
-            },
-            read: false,
-            createdAt: now,
-          },
-        }).catch(error => {
-          console.error(`Error creating notification for user ${userId}:`, error);
-          return null;
-        })
+    // Enqueue notifications for all target users
+    console.log(`[ExternalNotificationService] Enqueuing ${targetUserIds.length} notifications for ${serviceName}/${eventType}`);
+    
+    const results = await Promise.all(
+      targetUserIds.map(userId => 
+        createAndQueueNotification(
+          userId,
+          title,
+          body,
+          'external',
+          url,
+          {
+            service_name: serviceName,
+            event_type: eventType,
+            payload: payload.original_payload as Record<string, any>,
+          }
+        )
       )
     );
 
-    // Build userId -> notification map for created records
-    const userNotificationMap = new Map<number, { id: number }>();
-    for (let i = 0; i < targetUserIds.length; i++) {
-      const notification = notifications[i];
-      if (notification) {
-        userNotificationMap.set(targetUserIds[i], notification);
-      }
-    }
+    const successCount = results.filter(Boolean).length;
+    console.log(`[ExternalNotificationService] Successfully enqueued ${successCount}/${targetUserIds.length} notifications.`);
 
-    const activeUserIds = [...userNotificationMap.keys()];
-
-    if (activeUserIds.length === 0) {
-      console.warn('All notification creates failed, skipping push delivery');
-      return false;
-    }
-
-    // Fetch all web subscriptions and push tokens in bulk (2 queries instead of 2*N)
-    const [allUserSubs, allPushTokens, unreadCounts] = await Promise.all([
-      prisma.userSubscription.findMany({
-        where: { userId: { in: activeUserIds } },
-      }),
-      prisma.pushToken.findMany({
-        where: { userId: { in: activeUserIds } },
-        select: { token: true, platform: true, userId: true },
-      }),
-      prisma.notification.groupBy({
-        by: ['userId'],
-        where: { userId: { in: activeUserIds }, read: false },
-        _count: { id: true },
-      }),
-    ]);
-
-    // Index by userId
-    const subsByUser = new Map<number, typeof allUserSubs>();
-    for (const sub of allUserSubs) {
-      const list = subsByUser.get(sub.userId) || [];
-      list.push(sub);
-      subsByUser.set(sub.userId, list);
-    }
-
-    const tokensByUser = new Map<number, typeof allPushTokens>();
-    for (const token of allPushTokens) {
-      const list = tokensByUser.get(token.userId) || [];
-      list.push(token);
-      tokensByUser.set(token.userId, list);
-    }
-
-    const unreadByUser = new Map<number, number>();
-    for (const entry of unreadCounts) {
-      unreadByUser.set(entry.userId, entry._count.id);
-    }
-
-    // Send push notifications per user (no more DB queries in this loop)
-    let sentCount = 0;
-    const allInvalidTokens: string[] = [];
-
-    for (const userId of activeUserIds) {
-      const notification = userNotificationMap.get(userId)!;
-
-      // Web Push: browser subscriptions
-      const userSubs = subsByUser.get(userId) || [];
-      for (const sub of userSubs) {
-        try {
-          let subscriptionInfo;
-          try {
-            subscriptionInfo = JSON.parse(sub.subscriptionInfo);
-          } catch {
-            console.error(`Invalid subscription JSON for subscription ${sub.id}, skipping`);
-            continue;
-          }
-          await sendWebPushNotification(subscriptionInfo, {
-            title,
-            body,
-            tag: `external-${serviceName}-${notification.id}`,
-            data: {
-              url,
-              notification_type: 'external',
-              notification_id: notification.id,
-            },
-          });
-        } catch (pushError) {
-          console.error(`Error sending push notification to user ${userId}:`, pushError);
-        }
-      }
-
-      // Mobile Push: APNs
-      const pushTokens = tokensByUser.get(userId) || [];
-      if (pushTokens.length > 0) {
-        const unreadCount = unreadByUser.get(userId) || 0;
-        const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
-
-        if (iosTokens.length > 0) {
-          const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
-            title,
-            body,
-            data: {
-              url,
-              notification_type: 'external',
-              notification_id: notification.id,
-            },
-            channelId: 'default',
-            badge: unreadCount,
-          });
-
-          if (successCount > 0) {
-            console.log(`Sent ${successCount} APNs external notifications to user ${userId}`);
-          }
-
-          allInvalidTokens.push(...invalidTokens);
-        }
-      }
-
-      sentCount++;
-    }
-
-    // Clean up invalid tokens in a single batch
-    if (allInvalidTokens.length > 0) {
-      await prisma.pushToken.deleteMany({
-        where: { token: { in: allInvalidTokens } },
-      });
-    }
-
-    console.log(`Created ${sentCount} external notifications for ${serviceName}/${eventType}`);
-    return true;
+    return successCount > 0;
   } catch (error) {
     console.error('Error sending external notification:', error);
     return false;

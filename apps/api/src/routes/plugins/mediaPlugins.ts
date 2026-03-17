@@ -9,7 +9,6 @@ import {
   normalizeRadarrConfig,
   normalizeSonarrConfig,
 } from '../../utils/plugins/normalizers';
-import { enqueueTask } from '../../services/backgroundQueue';
 import { logActivity } from '../../utils/activityLogs';
 import { encrypt } from '../../services/crypto';
 import { requireAdmin } from '../../middleware/auth';
@@ -82,12 +81,10 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
-        enqueueTask('activity:plugin_updated:jellyfin', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'jellyfin' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'jellyfin' },
         });
 
         return {
@@ -176,12 +173,10 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
-        enqueueTask('activity:plugin_updated:prowlarr', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'prowlarr' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'prowlarr' },
         });
 
         return {
@@ -286,12 +281,10 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
-        enqueueTask('activity:plugin_updated:radarr', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'radarr' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'radarr' },
         });
 
         return {
@@ -454,12 +447,10 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
-        enqueueTask('activity:plugin_updated:sonarr', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'sonarr' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'sonarr' },
         });
 
         return {

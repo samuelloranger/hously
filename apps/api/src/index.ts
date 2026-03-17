@@ -1,17 +1,7 @@
 import { Elysia } from 'elysia';
 import { swagger } from '@elysiajs/swagger';
-import { cron } from '@elysiajs/cron';
 
 import { cors } from '@elysiajs/cors';
-import {
-  checkAndSendReminders,
-  checkAndSendAllDayEventNotifications,
-  cleanupOldNotifications,
-  fetchAllTrackerStats,
-  checkHabitReminders,
-  refreshUpcoming,
-  refreshHabitsStreaks,
-} from './jobs';
 import { checkAndNotifyVersionChange } from './services/versionService';
 import { auth } from './auth';
 import { dashboardRoutes } from './routes/dashboard';
@@ -42,34 +32,8 @@ import { mediasConversionRoutes } from './routes/medias/conversions';
 import { habitsRoutes } from './routes/habits';
 import { systemRoutes } from './routes/system';
 import { globalRateLimit } from './middleware/rateLimit';
-import { logActivity } from './utils/activityLogs';
+import { initWorkers, setupScheduledJobs } from './services/queueService';
 import { resumePendingMediaConversionJobs } from './services/mediaConversions';
-
-const runCronJobWithActivity = async (job: { id: string; name: string }, fn: () => Promise<unknown>): Promise<void> => {
-  const startedAt = Date.now();
-  try {
-    await fn();
-    const durationMs = Date.now() - startedAt;
-    await logActivity({
-      type: 'cron_job_ended',
-      payload: { job_id: job.id, job_name: job.name, success: true, duration_ms: durationMs, trigger: 'cron' },
-    });
-  } catch (error) {
-    const durationMs = Date.now() - startedAt;
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    await logActivity({
-      type: 'cron_job_ended',
-      payload: {
-        job_id: job.id,
-        job_name: job.name,
-        success: false,
-        duration_ms: durationMs,
-        trigger: 'cron',
-        message,
-      },
-    });
-  }
-};
 
 export const app = new Elysia()
   .use(
@@ -79,68 +43,6 @@ export const app = new Elysia()
     })
   )
   .use(swagger())
-  // Cron jobs
-  .use(
-    cron({
-      name: 'checkReminders',
-      pattern: '*/15 * * * *', // Every 15 minutes
-      run: () => runCronJobWithActivity({ id: 'checkReminders', name: 'Check reminders' }, checkAndSendReminders),
-    })
-  )
-  .use(
-    cron({
-      name: 'checkAllDayEvents',
-      pattern: '0 20 * * *', // Daily at 8 PM
-      run: () =>
-        runCronJobWithActivity(
-          { id: 'checkAllDayEvents', name: 'Check all-day events' },
-          checkAndSendAllDayEventNotifications
-        ),
-    })
-  )
-  .use(
-    cron({
-      name: 'cleanupNotifications',
-      pattern: '0 0 * * *', // Daily at midnight
-      run: () =>
-        runCronJobWithActivity(
-          { id: 'cleanupNotifications', name: 'Cleanup old notifications' },
-          cleanupOldNotifications
-        ),
-    })
-  )
-  .use(
-    cron({
-      name: 'fetchTrackerStats',
-      pattern: '0 * * * *', // Hourly
-      run: () =>
-        runCronJobWithActivity({ id: 'fetchTrackerStats', name: 'Fetch tracker stats' }, () =>
-          fetchAllTrackerStats({ trigger: 'cron' })
-        ),
-    })
-  )
-  .use(
-    cron({
-      name: 'checkHabitReminders',
-      pattern: '* * * * *', // Every minute
-      run: () =>
-        runCronJobWithActivity({ id: 'checkHabitReminders', name: 'Check habit reminders' }, checkHabitReminders),
-    })
-  )
-  .use(
-    cron({
-      name: 'refreshUpcoming',
-      pattern: '30 */12 * * *', // Every 12 hours at :30
-      run: () => refreshUpcoming({ trigger: 'cron' }),
-    })
-  )
-  .use(
-    cron({
-      name: 'refreshHabitsStreaks',
-      pattern: '*/15 * * * *', // Every 15 minutes
-      run: () => refreshHabitsStreaks({ trigger: 'cron' }),
-    })
-  )
   .use(app => {
     console.log('Elysia app initialized');
     if (Bun.env.LOG_LEVEL === 'debug') {
@@ -184,10 +86,19 @@ export const app = new Elysia()
   .get('/api/health', () => ({ status: 'ok' }));
 
 if (import.meta.main) {
+  // 1. Initialize BullMQ Workers
+  initWorkers();
+
+  // 2. Setup Scheduled Tasks (Crons)
+  setupScheduledJobs().catch(err => {
+    console.error('Failed to setup scheduled jobs:', err);
+  });
+
+  // 3. Start Server
   app.listen(3000);
   console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
 
-  // Check for version change after the server is up and ready
+  // 4. Post-startup tasks
   checkAndNotifyVersionChange().catch(err => {
     console.error('Failed to check version change after startup:', err);
   });

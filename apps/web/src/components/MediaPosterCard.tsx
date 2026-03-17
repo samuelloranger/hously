@@ -11,6 +11,7 @@ const STATUS_BORDER_COLORS: Record<MediaPosterCardStatus, string> = {
 export type MediaPosterCardProps = {
   posterUrl?: string | null;
   title: string;
+  id?: string;
   fallbackEmoji?: string;
 
   status?: MediaPosterCardStatus;
@@ -41,6 +42,7 @@ export type MediaPosterCardProps = {
 export function MediaPosterCard({
   posterUrl,
   title,
+  id,
   fallbackEmoji = '🎞️',
   status,
   statusLabel,
@@ -64,7 +66,7 @@ export function MediaPosterCard({
   const containerClass = [
     'group/card relative shrink-0 overflow-hidden rounded-2xl',
     'border border-white/10 bg-neutral-900 shadow-sm shadow-black/20',
-    'transition-[border-color,box-shadow] duration-300 ease-out',
+    'transition-[border-color,box-shadow,ring] duration-300 ease-out',
     'hover:border-white/20 hover:shadow-md hover:shadow-black/30',
     'focus:outline-none focus:ring-2',
     accentRingClassName,
@@ -155,6 +157,7 @@ export function MediaPosterCard({
   if (href) {
     return (
       <a
+        id={id}
         className={containerClass}
         style={combinedStyle}
         href={href}
@@ -170,6 +173,7 @@ export function MediaPosterCard({
   if (onClick) {
     return (
       <button
+        id={id}
         className={containerClass}
         style={combinedStyle}
         type="button"
@@ -184,6 +188,7 @@ export function MediaPosterCard({
 
   return (
     <article
+      id={id}
       className={containerClass}
       style={combinedStyle}
       role="group"

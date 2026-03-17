@@ -122,7 +122,7 @@ export function ConvertMediaDialog({ isOpen, onClose, media }: ConvertMediaDialo
       title={t('medias.convert.title')}
       panelClassName="max-w-2xl rounded-[32px]"
     >
-      <div className="space-y-6">
+      <div className="space-y-6 pb-8 sm:pb-0">
         {!isSupportedMedia && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-200 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 shrink-0" />

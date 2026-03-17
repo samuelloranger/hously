@@ -5,8 +5,7 @@ import { prisma } from '../../db';
 import { nowUtc } from '../../utils';
 import { isValidHttpUrl } from '../../utils/plugins/utils';
 import { normalizeTrackerConfig } from '../../utils/plugins/normalizers';
-import { fetchTrackerStats } from '../../jobs';
-import { enqueueTask } from '../../services/backgroundQueue';
+import { addJob, QUEUE_NAMES, SCHEDULED_JOB_NAMES } from '../../services/queueService';
 import { logActivity } from '../../utils/activityLogs';
 import { encrypt } from '../../services/crypto';
 import type { TrackerType } from '../../utils/plugins/types';
@@ -111,16 +110,12 @@ async function updateTrackerPluginHandler(
       },
     });
 
-    enqueueTask(`${type}:fetchStats`, async () => {
-      await fetchTrackerStats(type, { trigger: 'plugin' });
-    });
+    await addJob(QUEUE_NAMES.SCHEDULED_TASKS, SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS, { type });
 
-    enqueueTask(`activity:plugin_updated:${type}`, async () => {
-      await logActivity({
-        type: 'plugin_updated',
-        userId: user!.id,
-        payload: { plugin_type: type },
-      });
+    await logActivity({
+      type: 'plugin_updated',
+      userId: user!.id,
+      payload: { plugin_type: type },
     });
 
     return {

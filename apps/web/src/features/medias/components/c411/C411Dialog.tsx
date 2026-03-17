@@ -155,7 +155,7 @@ export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, edi
         )}
 
         {activeTab === 'releases' && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
             <button
               onClick={handleSync}
               disabled={sync.isPending}

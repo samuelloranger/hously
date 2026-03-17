@@ -1,11 +1,11 @@
 /**
- * Notification service for creating and sending push notifications
+ * Notification service for creating and enqueuing push notifications
  */
 
 import { prisma } from '../db';
-import { sendWebPushNotification, type PushSubscription } from '../utils/webpush';
-import { sendApnNotifications } from '../utils/apnPush';
 import { nowUtc, getTimezone } from '../utils';
+import { addJob, QUEUE_NAMES } from '../services/queueService';
+import type { NotificationJobData } from '../services/jobs/notificationWorker';
 
 /**
  * Check if current time is in night period (23h-6h) when notifications should not be sent
@@ -37,7 +37,7 @@ interface NotificationMetadata {
 }
 
 /**
- * Create a notification record and send web push to all user devices
+ * Create a notification record and enqueue a push delivery job
  */
 export async function createAndQueueNotification(
   userId: number,
@@ -48,7 +48,8 @@ export async function createAndQueueNotification(
   metadata?: NotificationMetadata
 ): Promise<boolean> {
   try {
-    // Create notification record
+    // 1. Create notification record in DB immediately
+    // This ensures the user sees it in their notification center in the app
     const notification = await prisma.notification.create({
       data: {
         userId,
@@ -62,95 +63,26 @@ export async function createAndQueueNotification(
       },
     });
 
-    console.log(`Created notification ${notification.id} for user ${userId}: ${title}`);
+    console.log(`[NotificationService] Created notification ${notification.id} for user ${userId}. Enqueuing push job.`);
 
-    // Send Web Push notifications (browser subscriptions)
-    const subscriptions = await prisma.userSubscription.findMany({ where: { userId } });
-    for (const sub of subscriptions) {
-      try {
-        let subscriptionInfo: PushSubscription;
-        try {
-          subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
-        } catch {
-          console.error(`Invalid subscription JSON for subscription ${sub.id}, skipping`);
-          continue;
-        }
-
-        const result = await sendWebPushNotification(subscriptionInfo, {
-          title,
-          body,
-          tag: notificationType,
-          data: {
-            url,
-            notification_type: notificationType,
-            notification_id: notification.id,
-            ...metadata,
-          },
-        });
-
-        if (result.expired) {
-          // Delete expired subscription
-          await prisma.userSubscription.delete({
-            where: { id: sub.id },
-          });
-          console.log(`Deleted expired subscription ${sub.id} for user ${userId}`);
-        }
-      } catch (error) {
-        console.error(`Error sending push to subscription ${sub.id}:`, error);
+    // 2. Enqueue the actual push delivery to BullMQ
+    await addJob<NotificationJobData>(
+      QUEUE_NAMES.NOTIFICATIONS,
+      `send-push:${notification.id}`,
+      {
+        notificationId: notification.id,
+        userId,
+        title,
+        body,
+        notificationType,
+        url: url || undefined,
+        metadata,
       }
-    }
-
-    // Send APNs notifications (mobile push tokens)
-    const pushTokens = await prisma.pushToken.findMany({
-      where: { userId },
-      select: { id: true, token: true, platform: true },
-    });
-
-    if (pushTokens.length > 0) {
-      const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
-
-      const unreadCount = await prisma.notification.count({
-        where: { userId, read: false },
-      });
-
-      // Handle iOS (APNs) Tokens
-      if (iosTokens.length > 0) {
-        const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
-          title,
-          body,
-          data: {
-            url,
-            notification_type: notificationType,
-            notification_id: notification.id,
-            ...metadata,
-          },
-          channelId:
-            notificationType === 'reminder'
-              ? 'chore-reminders'
-              : notificationType === 'custom_event'
-                ? 'calendar-events'
-                : 'default',
-          badge: unreadCount,
-        });
-
-        if (successCount > 0) {
-          console.log(`Sent ${successCount} APNs push notifications for user ${userId}`);
-        }
-
-        if (invalidTokens.length > 0) {
-          await prisma.pushToken.deleteMany({
-            where: { token: { in: invalidTokens } },
-          });
-          console.log(`Deleted ${invalidTokens.length} invalid APNs push tokens for user ${userId}`);
-        }
-      }
-    } else if (subscriptions.length === 0) {
-      console.log(`No web subscriptions or mobile push tokens found for user ${userId}`);
-    }
+    );
 
     return true;
   } catch (error) {
-    console.error(`Error creating notification for user ${userId}:`, error);
+    console.error(`[NotificationService] Error creating/enqueuing notification for user ${userId}:`, error);
     return false;
   }
 }

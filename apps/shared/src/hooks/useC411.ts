@@ -297,9 +297,9 @@ export function useC411ReleasePrepareStream(options: { enabled: boolean }) {
 
     if (typeof EventSource === 'undefined') return;
 
-    const source = new EventSource(C411_ENDPOINTS.RELEASES_STREAM, { withCredentials: true });
+    const source = new (EventSource as any)(C411_ENDPOINTS.RELEASES_STREAM, { withCredentials: true });
 
-    source.onmessage = (event: MessageEvent) => {
+    source.onmessage = (event: any) => {
       try {
         const data = JSON.parse(event.data) as { preparing_ids: number[] };
         const currentIds = new Set(data.preparing_ids);

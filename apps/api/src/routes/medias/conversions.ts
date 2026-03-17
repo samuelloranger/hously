@@ -7,6 +7,8 @@ import {
   getMediaConversionPreview,
   getMediaConversionJob,
   listMediaConversionJobs,
+  listActiveMediaConversionJobs,
+  cancelMediaConversionJob,
 } from '../../services/mediaConversions';
 
 const parseService = (value: string) => (value === 'radarr' || value === 'sonarr' ? value : null);
@@ -154,5 +156,27 @@ export const mediasConversionRoutes = new Elysia({ prefix: '/api/medias' })
       params: t.Object({
         id: t.String(),
       }),
-    },
-  );
+      }
+      )
+      .delete(
+      '/conversions/:id',
+      async ({ params, set }) => {
+      const id = parseInt(params.id, 10);
+      if (!Number.isFinite(id) || id <= 0) return badRequest(set, 'Invalid conversion ID');
+
+      try {
+        return await cancelMediaConversionJob(id);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to cancel conversion job';
+        if (message.toLowerCase().includes('not found')) return notFound(set, message);
+        console.error('[medias:conversions:cancel]', error);
+        return serverError(set, message);
+      }
+      },
+      {
+      params: t.Object({
+        id: t.String(),
+      }),
+      }
+      );
+

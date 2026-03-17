@@ -8,7 +8,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../../db';
 import { createAndQueueNotification } from '../../jobs/notificationService';
 import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
-import { enqueueTask } from '../backgroundQueue';
+import { addJob, QUEUE_NAMES } from '../queueService';
 import { uploadToS3, deleteFromS3 } from '../s3Service';
 import { loadC411Config } from './session';
 import { getMediaInfo, type MediaInfoData } from './mediainfo';
@@ -667,7 +667,8 @@ async function sendPrepareNotification(params: {
   );
 }
 
-async function processQueuedPrepareRelease(
+// Exported for the worker
+export async function processQueuedPrepareRelease(
   releaseId: number,
   source: ResolvedReleaseSource,
   requestedByUserId?: number,
@@ -786,9 +787,16 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
   const source = await resolveReleaseSource(options);
   const releaseId = await createPlaceholderRelease(source);
 
-  enqueueTask(`c411:prepare:${releaseId}`, async () => {
-    await processQueuedPrepareRelease(releaseId, source, options.requestedByUserId);
-  });
+  // Enqueue to BullMQ
+  await addJob(
+    QUEUE_NAMES.C411_PREPARE,
+    `prepare:${releaseId}`,
+    {
+      releaseId,
+      source,
+      requestedByUserId: options.requestedByUserId,
+    }
+  );
 
   console.log(`[c411:prepare] Release queued: id=${releaseId} source=${source.service}:${source.sourceId}`);
   return { releaseId, queued: true };

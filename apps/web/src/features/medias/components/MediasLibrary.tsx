@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearch } from '@tanstack/react-router';
-import { useMediaAutoSearch, useMedias, type MediaItem } from '@hously/shared';
+import { useMediaAutoSearch, useMedias, useActiveMediaConversions, type MediaItem } from '@hously/shared';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaPosterCard } from '@/components/MediaPosterCard';
-import { ArrowDownAZ, ArrowUpZA, ExternalLink, RefreshCw, Search, Sparkles, Trash2, User, Upload, EllipsisVertical } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpZA, ExternalLink, RefreshCw, Search, Sparkles, Trash2, User, Upload, EllipsisVertical, Zap } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { cn } from '@/lib/utils';
 
 import { toast } from 'sonner';
 import { useModalSearchParams } from '@/hooks/useModalSearchParams';
@@ -30,7 +31,9 @@ const getAddedTime = (item: MediaItem): number => {
 
 export function MediasLibrary() {
   const { t } = useTranslation('common');
-  const { data, isLoading, refetch } = useMedias();
+  const { data: libraryData, isLoading, refetch } = useMedias();
+  const { data: activeConversionsData } = useActiveMediaConversions({ enabled: true });
+  
   const [filter, setFilter] = useState<MediaFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>('added_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -46,17 +49,31 @@ export function MediasLibrary() {
   const page = searchParams.page ?? 1;
   const pageSize = searchParams.pageSize ?? 50;
 
-  const items = data?.items ?? [];
-  const c411Enabled = data?.c411_enabled ?? false;
+  const items = useMemo(() => {
+    const baseItems = libraryData?.items ?? [];
+    const activeJobs = activeConversionsData?.jobs ?? [];
+    
+    if (activeJobs.length === 0) return baseItems;
+    
+    return baseItems.map(item => {
+      const job = activeJobs.find(j => j.service === item.service && j.source_id === item.source_id);
+      if (job) {
+        return { ...item, latest_conversion: job };
+      }
+      return item;
+    });
+  }, [libraryData?.items, activeConversionsData?.jobs]);
+
+  const c411Enabled = libraryData?.c411_enabled ?? false;
   const c411TmdbIds = useMemo(
-    () => new Set(data?.c411_tmdb_ids ?? []),
-    [data?.c411_tmdb_ids],
+    () => new Set(libraryData?.c411_tmdb_ids ?? []),
+    [libraryData?.c411_tmdb_ids],
   );
   const c411Item = useMemo(
     () => items.find((i) => i.tmdb_id === searchParams.c411) ?? null,
     [items, searchParams.c411],
   );
-  const isNotConfigured = data && !data.radarr_enabled && !data.sonarr_enabled;
+  const isNotConfigured = libraryData && !libraryData.radarr_enabled && !libraryData.sonarr_enabled;
 
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -98,6 +115,26 @@ export function MediasLibrary() {
   const movieCount = items.filter(i => i.media_type === 'movie').length;
   const seriesCount = items.filter(i => i.media_type === 'series').length;
   const downloadedCount = items.filter(i => i.downloaded).length;
+
+  // Handle scrolling to media from search params
+  useEffect(() => {
+    if (searchParams.scrollToMedia && !isLoading && items.length > 0) {
+      const element = document.getElementById(`media-${searchParams.scrollToMedia}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('ring-4', 'ring-indigo-500/50', 'ring-offset-4', 'dark:ring-offset-neutral-900');
+        
+        const timeout = setTimeout(() => {
+          element.classList.remove('ring-4', 'ring-indigo-500/50', 'ring-offset-4', 'dark:ring-offset-neutral-900');
+          // Clear the param after scrolling
+          setParams({ scrollToMedia: undefined });
+        }, 3000);
+        
+        return () => clearTimeout(timeout);
+      }
+    }
+    return undefined;
+  }, [searchParams.scrollToMedia, isLoading, items.length, setParams]);
 
   if (isNotConfigured) {
     return (
@@ -219,6 +256,7 @@ export function MediasLibrary() {
               {pagedItems.map(item => (
                 <MediaGridCard
                   key={item.id}
+                  id={`media-${item.service}:${item.source_id}`}
                   item={item}
                   isOnC411={c411Enabled && item.tmdb_id !== null && c411TmdbIds.has(item.tmdb_id)}
                   releaseTags={item.release_tags ?? undefined}
@@ -443,6 +481,7 @@ function CardDropdownMenu({
 function MediaGridCard({
   item,
   isOnC411,
+  id,
   releaseTags,
   onOpenInteractive,
   onFindSimilar,
@@ -452,6 +491,7 @@ function MediaGridCard({
 }: {
   item: MediaItem;
   isOnC411: boolean;
+  id?: string;
   releaseTags?: string[];
   onOpenInteractive: () => void;
   onFindSimilar?: () => void;
@@ -461,23 +501,47 @@ function MediaGridCard({
 }) {
   const { t } = useTranslation('common');
 
-  const status = item.downloaded ? 'downloaded' : item.downloading ? 'downloading' : 'missing';
-  const statusLabel = item.downloaded
-    ? t('medias.downloaded')
-    : item.downloading
-      ? t('medias.downloading')
-      : t('medias.missing');
+  const conversion = item.latest_conversion;
+  const isConverting = conversion && (conversion.status === 'running' || conversion.status === 'queued');
+
+  const status = isConverting
+    ? 'downloading'
+    : item.downloaded
+      ? 'downloaded'
+      : item.downloading
+        ? 'downloading'
+        : 'missing';
+
+  const statusLabel = isConverting
+    ? conversion.status === 'running'
+      ? `${t('medias.convert.status.running')} (${Math.round(conversion.progress)}%)`
+      : t('medias.convert.status.queued')
+    : item.downloaded
+      ? t('medias.downloaded')
+      : item.downloading
+        ? t('medias.downloading')
+        : t('medias.missing');
 
   return (
     <MediaPosterCard
       posterUrl={item.poster_url}
       title={item.title}
+      id={id}
       fallbackEmoji="🎬"
       status={status}
       statusLabel={statusLabel}
       accentRingClassName="focus:ring-indigo-400/70"
       className="w-full"
-      topLeftBadge={isOnC411 ? <C411Badge /> : undefined}
+      topLeftBadge={
+        <div className="flex flex-col gap-1">
+          {isOnC411 && <C411Badge />}
+          {isConverting && (
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-600 shadow-lg text-white">
+              <Zap size={12} className={cn(conversion.status === 'running' && "animate-pulse")} />
+            </div>
+          )}
+        </div>
+      }
       hoverTags={releaseTags}
       topRightContent={
         <CardDropdownMenu
@@ -490,12 +554,29 @@ function MediaGridCard({
         />
       }
     >
-      <div className="flex items-center justify-between gap-1">
-        <span className="text-[9.5px] text-white/55 tabular-nums">{item.year ?? '—'}</span>
-        {item.media_type === 'series' && item.season_count !== null && (
-          <span className="text-[9.5px] text-white/45">
-            {t('medias.seriesMeta', { seasons: item.season_count, episodes: item.episode_count ?? 0 })}
-          </span>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-1">
+          <span className="text-[9.5px] text-white/55 tabular-nums">{item.year ?? '—'}</span>
+          {item.media_type === 'series' && item.season_count !== null && (
+            <span className="text-[9.5px] text-white/45">
+              {t('medias.seriesMeta', { seasons: item.season_count, episodes: item.episode_count ?? 0 })}
+            </span>
+          )}
+        </div>
+
+        {isConverting && conversion.status === 'running' && (
+          <div className="space-y-1">
+            <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-indigo-500 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${Math.max(5, conversion.progress)}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-[8px] font-bold text-white/40 uppercase tracking-tighter italic">
+              <span>{Math.round(conversion.progress)}%</span>
+              {conversion.speed && <span>{conversion.speed}</span>}
+            </div>
+          </div>
         )}
       </div>
     </MediaPosterCard>

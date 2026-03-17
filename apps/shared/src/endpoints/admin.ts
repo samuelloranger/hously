@@ -3,6 +3,7 @@ export const ADMIN_ENDPOINTS = {
   IMPORT: '/api/admin/import',
   TRIGGER_ACTION: '/api/admin/trigger-action',
   SCHEDULED_JOBS: '/api/admin/scheduled-jobs',
+  QUEUE_JOBS: (name: string) => `/api/admin/queues/${name}/jobs`,
   USERS: '/api/admin/users',
   DELETE_USER: (userId: number) => `/api/admin/users/${userId}`,
   INVITATIONS: '/api/admin/invitations',

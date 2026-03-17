@@ -22,4 +22,5 @@ export const MEDIAS_ENDPOINTS = {
     `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}/conversions`,
   ACTIVE_CONVERSIONS: '/api/medias/conversions/active',
   CONVERSION: (id: number) => `/api/medias/conversions/${encodeURIComponent(String(id))}`,
+  CANCEL_CONVERSION: (id: number) => `/api/medias/conversions/${encodeURIComponent(String(id))}`,
 } as const;

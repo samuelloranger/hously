@@ -309,6 +309,7 @@ export type LibrarySearchParams = {
   c411?: number;
   c411Tab?: string;
   c411Release?: number;
+  scrollToMedia?: string;
 };
 
 const parseOptionalInt = (val: unknown): number | undefined =>
@@ -325,6 +326,7 @@ const libraryRoute = createRoute({
     c411: parseOptionalInt(search.c411),
     c411Tab: typeof search.c411Tab === 'string' ? search.c411Tab : undefined,
     c411Release: parseOptionalInt(search.c411Release),
+    scrollToMedia: typeof search.scrollToMedia === 'string' ? search.scrollToMedia : undefined,
   }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {

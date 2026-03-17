@@ -532,6 +532,8 @@ export function createAdminApi(fetcher: ApiFetcher) {
         body: { action },
       }),
     getScheduledJobs: () => fetcher<ScheduledJobsResponse>(ADMIN_ENDPOINTS.SCHEDULED_JOBS),
+    getQueueJobs: (name: string, status?: string[], limit?: number) => 
+      fetcher<QueueJob[]>(withParams(ADMIN_ENDPOINTS.QUEUE_JOBS(name), { status: status?.join(','), limit })),
     getUsers: () => fetcher<ListUsersResponse>(ADMIN_ENDPOINTS.USERS),
     inviteUser: (data: { email: string; is_admin?: boolean; locale?: string }) =>
       fetcher<{ success: boolean; invitation: Record<string, unknown> }>(ADMIN_ENDPOINTS.INVITE_USER, {

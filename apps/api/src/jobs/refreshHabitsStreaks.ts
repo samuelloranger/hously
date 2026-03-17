@@ -6,7 +6,7 @@ let isRunning = false;
 const JOB_ID = 'refreshHabitsStreaks';
 const JOB_NAME = 'Refresh habits streaks';
 
-export const refreshHabitsStreaks = async (options?: { trigger?: 'cron' | 'manual' }): Promise<void> => {
+export const refreshHabitsStreaks = async (options?: { trigger?: 'cron' | 'manual' | 'queue' }): Promise<void> => {
   const trigger = options?.trigger ?? 'cron';
 
   if (isRunning) return;

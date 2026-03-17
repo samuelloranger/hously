@@ -12,7 +12,6 @@ import {
   normalizeWeatherConfig,
 } from '../../utils/plugins/normalizers';
 import { searchSubreddits } from '../../utils/dashboard/reddit';
-import { enqueueTask } from '../../services/backgroundQueue';
 import { logActivity } from '../../utils/activityLogs';
 import { encrypt } from '../../services/crypto';
 import { deleteCache } from '../../services/cache';
@@ -77,12 +76,10 @@ export const dashboardPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
-        enqueueTask('activity:plugin_updated:weather', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'weather' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'weather' },
         });
 
         return {
@@ -165,12 +162,10 @@ export const dashboardPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
-        enqueueTask('activity:plugin_updated:tmdb', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'tmdb' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'tmdb' },
         });
 
         return {
@@ -274,12 +269,10 @@ export const dashboardPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
 
         await invalidateQbittorrentPluginConfigCache();
 
-        enqueueTask('activity:plugin_updated:qbittorrent', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'qbittorrent' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'qbittorrent' },
         });
 
         return {
@@ -366,12 +359,10 @@ export const dashboardPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
 
         await deleteCache('dashboard:hackernews');
 
-        enqueueTask('activity:plugin_updated:hackernews', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'hackernews' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'hackernews' },
         });
 
         return {
@@ -449,12 +440,10 @@ export const dashboardPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
 
         await deleteCache('dashboard:reddit');
 
-        enqueueTask('activity:plugin_updated:reddit', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'reddit' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'reddit' },
         });
 
         return {

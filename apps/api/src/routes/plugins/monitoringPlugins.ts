@@ -9,7 +9,6 @@ import {
   normalizeNetdataConfig,
   normalizeScrutinyConfig,
 } from '../../utils/plugins/normalizers';
-import { enqueueTask } from '../../services/backgroundQueue';
 import { logActivity } from '../../utils/activityLogs';
 import { encrypt } from '../../services/crypto';
 import { requireAdmin } from '../../middleware/auth';
@@ -97,12 +96,10 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
-        enqueueTask('activity:plugin_updated:scrutiny', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'scrutiny' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'scrutiny' },
         });
 
         return {
@@ -176,12 +173,10 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
-        enqueueTask('activity:plugin_updated:netdata', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'netdata' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'netdata' },
         });
 
         return {
@@ -280,12 +275,10 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         });
 
-        enqueueTask('activity:plugin_updated:adguard', async () => {
-          await logActivity({
-            type: 'plugin_updated',
-            userId: user!.id,
-            payload: { plugin_type: 'adguard' },
-          });
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'adguard' },
         });
 
         return {

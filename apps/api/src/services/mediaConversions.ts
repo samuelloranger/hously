@@ -1,17 +1,19 @@
 import { access, mkdir, stat } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { basename, dirname, extname, join } from 'node:path';
-import { createInterface } from 'node:readline';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../db';
-import { enqueueTask } from './backgroundQueue';
+import { addJob, QUEUE_NAMES } from './queueService';
 import { normalizeRadarrConfig } from '../utils/plugins/normalizers';
 import { createLocalC411ReleaseFromConversion } from './c411/local-release';
+
+// Exported for the worker
+export { createLocalC411ReleaseFromConversion };
 
 type MediaService = 'radarr' | 'sonarr';
 type MediaConversionStatus = 'queued' | 'running' | 'completed' | 'failed';
 
-type MediaConversionPreset = {
+export type MediaConversionPreset = {
   key: string;
   label: string;
   description: string;
@@ -130,8 +132,6 @@ const MEDIA_CONVERSION_PRESETS: MediaConversionPreset[] = [
   },
 ];
 
-let workerScheduled = false;
-
 const clampProgress = (value: number) => Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
 
 const toFiniteNumber = (value: unknown): number | null => {
@@ -154,7 +154,8 @@ const fileExists = async (candidate: string): Promise<boolean> => {
 
 const remapArrPath = (contentPath: string) => contentPath.replace(/^\/data\//, HOST_STORAGE_PREFIX);
 
-function getPresetOrThrow(key: string): MediaConversionPreset {
+// Exported for the worker
+export function getPresetOrThrow(key: string): MediaConversionPreset {
   const preset = MEDIA_CONVERSION_PRESETS.find((entry) => entry.key === key);
   if (!preset) throw new Error(`Unknown conversion preset: ${key}`);
   return preset;
@@ -383,7 +384,8 @@ async function validateSource(source: ResolvedSource, preset: MediaConversionPre
   };
 }
 
-function buildFfmpegArgs(job: {
+// Exported for the worker
+export function buildFfmpegArgs(job: {
   inputPath: string;
   outputPath: string;
   preset: MediaConversionPreset;
@@ -446,7 +448,7 @@ function parseSpeedMultiplier(value: string | undefined): number | null {
   return match ? toFiniteNumber(match[1]) : null;
 }
 
-function serializeJob(job: NonNullable<MediaConversionJobRecord>) {
+export function serializeMediaConversionJob(job: NonNullable<MediaConversionJobRecord>) {
   return {
     id: job.id,
     service: job.service as MediaService,
@@ -472,7 +474,8 @@ function serializeJob(job: NonNullable<MediaConversionJobRecord>) {
   };
 }
 
-async function updateJobProgress(
+// Exported for the worker
+export async function updateJobProgress(
   jobId: number,
   durationSeconds: number | null,
   progressState: Record<string, string>,
@@ -507,155 +510,11 @@ async function updateJobProgress(
   });
 }
 
-async function runConversionJob(jobId: number) {
-  const job = await prisma.mediaConversionJob.findUnique({ where: { id: jobId } });
-  if (!job || job.status !== 'queued') return;
-
-  const preset = getPresetOrThrow(job.preset);
-  await mkdir(dirname(job.outputPath), { recursive: true });
-  await prisma.mediaConversionJob.update({
-    where: { id: jobId },
-    data: {
-      status: 'running',
-      progress: 0,
-      processedSeconds: 0,
-      etaSeconds: null,
-      fps: null,
-      speed: null,
-      errorMessage: null,
-      startedAt: new Date(),
-      completedAt: null,
-    },
-  });
-
-  const proc = spawn('ffmpeg', buildFfmpegArgs({ inputPath: job.inputPath, outputPath: job.outputPath, preset }), {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-
-  const progressState: Record<string, string> = {};
-  const stderrTail: string[] = [];
-  let lastPersistAt = 0;
-  let progressFlush = Promise.resolve();
-
-  const flushProgress = (force = false) => {
-    const now = Date.now();
-    if (!force && now - lastPersistAt < 1200) return;
-    lastPersistAt = now;
-    progressFlush = progressFlush
-      .then(() => updateJobProgress(jobId, job.durationSeconds, progressState, force))
-      .catch(error => {
-        console.warn(`[media-conversion:${jobId}] Failed to persist progress:`, error);
-      });
-  };
-
-  createInterface({ input: proc.stdout! }).on('line', line => {
-    const separator = line.indexOf('=');
-    if (separator <= 0) return;
-    const key = line.slice(0, separator);
-    const value = line.slice(separator + 1);
-    progressState[key] = value;
-    if (key === 'progress') flushProgress(value === 'end');
-    else flushProgress(false);
-  });
-
-  createInterface({ input: proc.stderr! }).on('line', line => {
-    const trimmed = line.trim();
-    if (!trimmed) return;
-    stderrTail.push(trimmed);
-    if (stderrTail.length > 20) stderrTail.shift();
-  });
-
-  const exitCode = await new Promise<number | null>((resolve, reject) => {
-    proc.on('error', reject);
-    proc.on('close', resolve);
-  }).catch(async error => {
-    await prisma.mediaConversionJob.update({
-      where: { id: jobId },
-      data: {
-        status: 'failed',
-        errorMessage: error instanceof Error ? error.message : 'ffmpeg failed to start',
-        completedAt: new Date(),
-      },
-    });
-    throw error;
-  });
-
-  await progressFlush;
-
-  if (exitCode === 0) {
-    try {
-      if (job.service === 'radarr') {
-        await createLocalC411ReleaseFromConversion({
-          service: 'radarr',
-          sourceId: job.sourceId,
-          preset: job.preset,
-          inputPath: job.inputPath,
-          outputPath: job.outputPath,
-          conversionJobId: jobId,
-        });
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create local C411 release';
-      await prisma.mediaConversionJob.update({
-        where: { id: jobId },
-        data: {
-          status: 'failed',
-          progress: 100,
-          errorMessage: `Conversion finished but local C411 release creation failed: ${message}`,
-          completedAt: new Date(),
-        },
-      });
-      return;
-    }
-
-    await prisma.mediaConversionJob.update({
-      where: { id: jobId },
-      data: {
-        status: 'completed',
-        progress: 100,
-        processedSeconds: job.durationSeconds ?? job.processedSeconds ?? undefined,
-        etaSeconds: 0,
-        completedAt: new Date(),
-      },
-    });
-    return;
-  }
-
-  await prisma.mediaConversionJob.update({
-    where: { id: jobId },
-    data: {
-      status: 'failed',
-      errorMessage: stderrTail.slice(-3).join(' | ') || `ffmpeg exited with code ${exitCode}`,
-      completedAt: new Date(),
-    },
-  });
-}
-
-export function scheduleMediaConversionWorker() {
-  if (workerScheduled) return;
-  workerScheduled = true;
-
-  enqueueTask('media-conversion:worker', async () => {
-    try {
-      while (true) {
-        const nextJob = await prisma.mediaConversionJob.findFirst({
-          where: { status: 'queued' },
-          orderBy: { createdAt: 'asc' },
-        });
-        if (!nextJob) break;
-        await runConversionJob(nextJob.id);
-      }
-    } finally {
-      workerScheduled = false;
-      const remaining = await prisma.mediaConversionJob.count({
-        where: { status: 'queued' },
-      }).catch(() => 0);
-      if (remaining > 0) scheduleMediaConversionWorker();
-    }
-  });
-}
+// Internal runConversionJob and scheduleMediaConversionWorker REMOVED 
+// as they are now handled by BullMQ workers.
 
 export async function resumePendingMediaConversionJobs() {
+  // Re-queue jobs that were running when the server stopped
   await prisma.mediaConversionJob.updateMany({
     where: { status: 'running' },
     data: {
@@ -668,11 +527,17 @@ export async function resumePendingMediaConversionJobs() {
     },
   });
 
-  const queued = await prisma.mediaConversionJob.count({
+  const queuedJobs = await prisma.mediaConversionJob.findMany({
     where: { status: 'queued' },
   });
 
-  if (queued > 0) scheduleMediaConversionWorker();
+  for (const job of queuedJobs) {
+    await addJob(QUEUE_NAMES.MEDIA_CONVERSIONS, `media-conversion:${job.id}`, { jobId: job.id });
+  }
+  
+  if (queuedJobs.length > 0) {
+    console.log(`[MediaConversionService] Re-enqueued ${queuedJobs.length} jobs in BullMQ.`);
+  }
 }
 
 export function getMediaConversionPresets() {
@@ -743,8 +608,10 @@ export async function createMediaConversionJob(params: {
     },
   });
 
-  scheduleMediaConversionWorker();
-  return serializeJob(job);
+  // Enqueue to BullMQ
+  await addJob(QUEUE_NAMES.MEDIA_CONVERSIONS, `media-conversion:${job.id}`, { jobId: job.id });
+  
+  return serializeMediaConversionJob(job);
 }
 
 export async function listMediaConversionJobs(service: MediaService, sourceId: number) {
@@ -754,7 +621,7 @@ export async function listMediaConversionJobs(service: MediaService, sourceId: n
     take: 10,
   });
 
-  return jobs.map(serializeJob);
+  return jobs.map(serializeMediaConversionJob);
 }
 
 export async function listActiveMediaConversionJobs() {
@@ -765,7 +632,7 @@ export async function listActiveMediaConversionJobs() {
     orderBy: { createdAt: 'desc' },
   });
 
-  return jobs.map(serializeJob);
+  return jobs.map(serializeMediaConversionJob);
 }
 
 export async function getMediaConversionJob(jobId: number) {
@@ -777,5 +644,34 @@ export async function getMediaConversionJob(jobId: number) {
     throw new Error('Conversion job not found');
   }
 
-  return serializeJob(job);
+  return serializeMediaConversionJob(job);
+}
+
+export async function cancelMediaConversionJob(jobId: number) {
+  const job = await prisma.mediaConversionJob.findUnique({
+    where: { id: jobId },
+  });
+
+  if (!job) {
+    throw new Error('Conversion job not found');
+  }
+
+  if (job.status === 'completed' || job.status === 'failed') {
+    return serializeMediaConversionJob(job);
+  }
+
+  // BullMQ doesn't easily support killing a running process in another worker
+  // unless we use a custom mechanism (like Redis flags or signals).
+  // For now, we update the status in DB. The worker checks status occasionally.
+  
+  const updatedJob = await prisma.mediaConversionJob.update({
+    where: { id: jobId },
+    data: {
+      status: 'failed',
+      errorMessage: 'Cancelled by user',
+      completedAt: new Date(),
+    },
+  });
+
+  return serializeMediaConversionJob(updatedJob);
 }
