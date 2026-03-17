@@ -39,7 +39,7 @@ interface AudioTrack {
 async function getAudioLanguages(filePath: string): Promise<AudioTrack[]> {
   const proc = Bun.spawn(
     ['ffprobe', '-v', 'quiet', '-show_entries', 'stream=index:stream_tags=language,title', '-select_streams', 'a', '-of', 'json', filePath],
-    { stdout: 'pipe', stderr: 'pipe' },
+    { stdout: 'pipe' as const, stderr: 'pipe' as const, env: { ...process.env, LANG: 'C.UTF-8' } },
   );
   const output = await new Response(proc.stdout).text();
   const exitCode = await proc.exited;

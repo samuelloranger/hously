@@ -10,7 +10,7 @@ export async function createTorrent(opts: {
 }): Promise<void> {
   const proc = Bun.spawn(
     ['mktorrent', '-a', opts.announceUrl, '-l', String(opts.pieceLength), '-o', opts.outputPath, opts.contentPath],
-    { stdout: 'pipe', stderr: 'pipe' },
+    { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, LANG: 'C.UTF-8' } },
   );
   const exitCode = await proc.exited;
   if (exitCode !== 0) {

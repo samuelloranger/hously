@@ -46,11 +46,13 @@ export async function getMediaInfo(contentPath: string, releaseName?: string): P
   const mediaFile = await findMediaFile(contentPath);
   if (!mediaFile) return null;
 
-  const fullProc = Bun.spawn(['mediainfo', mediaFile], { stdout: 'pipe', stderr: 'pipe' });
+  const spawnOptions = { stdout: 'pipe' as const, stderr: 'pipe' as const, env: { ...process.env, LANG: 'C.UTF-8' } };
+
+  const fullProc = Bun.spawn(['mediainfo', mediaFile], spawnOptions);
   let fullOutput = await new Response(fullProc.stdout).text();
   await fullProc.exited;
 
-  const jsonProc = Bun.spawn(['mediainfo', '--Output=JSON', mediaFile], { stdout: 'pipe', stderr: 'pipe' });
+  const jsonProc = Bun.spawn(['mediainfo', '--Output=JSON', mediaFile], spawnOptions);
   const jsonOutput = await new Response(jsonProc.stdout).text();
   await jsonProc.exited;
 
