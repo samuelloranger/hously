@@ -3,8 +3,9 @@
  * Runs every 15 minutes
  */
 
+import { buildNotificationUrl } from '@hously/shared';
 import { prisma } from '../db';
-import { nowUtc, getTimezone } from '../utils';
+import { formatDateInTimezone, nowUtc, getTimezone } from '../utils';
 import { isNightTime, createAndQueueNotification, getAllUsers } from './notificationService';
 
 /**
@@ -151,7 +152,10 @@ async function checkAndSendCustomEventNotifications(): Promise<void> {
         locale === 'fr'
           ? `Votre événement '${event.title}' commence à ${timeStr}`
           : `Your event '${event.title}' starts at ${timeStr}`;
-      const url = '/calendar';
+      const url = buildNotificationUrl('/calendar', {
+        date: formatDateInTimezone(event.startDatetime),
+        eventId: event.id,
+      });
       const metadata = { custom_event_id: event.id };
 
       const success = await createAndQueueNotification(user.id, title, body, 'custom_event', url, metadata);

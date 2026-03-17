@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { PageLayout } from '@/components/PageLayout';
@@ -21,15 +21,40 @@ import { EventCard } from './components/EventCard';
 import { cn } from '@/lib/utils';
 import { startOfDay } from 'date-fns';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { useSearch } from '@tanstack/react-router';
 import { PlusIcon, ChevronLeft, ChevronRight, CalendarDays, X } from 'lucide-react';
 import { HouseLoader } from '@/components/HouseLoader';
+import type { CalendarSearchParams } from '@/router';
+
+function parseCalendarSearchDate(dateStr?: string): Date | null {
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return null;
+  }
+
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const parsed = new Date(year, month - 1, day);
+
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
 
 export function Calendar() {
   const { t, i18n } = useTranslation('common');
+  const searchParams = useSearch({ from: '/calendar' }) as CalendarSearchParams;
   const today = startOfDay(new Date());
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(today);
+  const initialNotificationDate = useMemo(() => parseCalendarSearchDate(searchParams.date), [searchParams.date]);
+  const initialDate = initialNotificationDate ?? today;
+  const [currentMonth, setCurrentMonth] = useState(initialDate.getMonth() + 1);
+  const [currentYear, setCurrentYear] = useState(initialDate.getFullYear());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
   const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<CalendarEvent | undefined>(undefined);
   const [isEditEventOpen, setIsEditEventOpen] = useState(false);
@@ -37,6 +62,15 @@ export function Calendar() {
 
   const { data: events = [], isLoading, refetch } = useCalendarEvents(currentYear, currentMonth);
   const deleteMutation = useDeleteCustomEvent();
+  const notificationDate = initialNotificationDate;
+  const targetedEventId = searchParams.eventId;
+
+  useEffect(() => {
+    if (!notificationDate) return;
+    setCurrentMonth(notificationDate.getMonth() + 1);
+    setCurrentYear(notificationDate.getFullYear());
+    setSelectedDate(notificationDate);
+  }, [notificationDate]);
 
   // Split multi-day events and group by date
   const eventsByDate = useMemo(() => {
@@ -161,6 +195,9 @@ export function Calendar() {
     if (!selectedDate) return [];
     const dayEvents = getDayEvents(selectedDate);
     return sortBy(dayEvents, event => {
+      if (targetedEventId && event.type === 'custom_event' && event.metadata?.custom_event_id === targetedEventId) {
+        return -1;
+      }
       if (event.type === 'custom_event') {
         const start = parseDate(event.metadata.start_datetime);
         if (!start) return 24;
@@ -168,7 +205,7 @@ export function Calendar() {
       }
       return 24;
     });
-  }, [getDayEvents, selectedDate]);
+  }, [getDayEvents, selectedDate, targetedEventId]);
 
   // Check if viewing the current month
   const isViewingCurrentMonth = currentMonth === today.getMonth() + 1 && currentYear === today.getFullYear();
@@ -341,6 +378,11 @@ export function Calendar() {
                       <EventCard
                         key={event.id}
                         event={event}
+                        highlighted={Boolean(
+                          targetedEventId &&
+                            event.type === 'custom_event' &&
+                            event.metadata?.custom_event_id === targetedEventId
+                        )}
                         onEditEvent={() => {
                           setEventToEdit(event);
                           setIsEditEventOpen(true);

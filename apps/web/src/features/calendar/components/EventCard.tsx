@@ -14,9 +14,10 @@ type Props = {
   event: CalendarEvent;
   onEditEvent: (event: CalendarEvent) => void;
   onDeleteEvent?: (event: CalendarEvent) => void;
+  highlighted?: boolean;
 };
 
-export const EventCard = ({ event, onEditEvent, onDeleteEvent }: Props) => {
+export const EventCard = ({ event, onEditEvent, onDeleteEvent, highlighted = false }: Props) => {
   const { t, i18n } = useTranslation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -82,13 +83,11 @@ export const EventCard = ({ event, onEditEvent, onDeleteEvent }: Props) => {
         'group relative rounded-xl overflow-hidden transition-all duration-200',
         'hover:shadow-sm',
         event.type === 'custom_event' ? 'bg-neutral-50/60 dark:bg-neutral-800/40' : getEventBgClass(event.type),
+        highlighted && 'ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900'
       )}
     >
       {/* Accent bar */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
-        style={{ backgroundColor: accentColor }}
-      />
+      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style={{ backgroundColor: accentColor }} />
 
       <div className="pl-4 pr-3 py-3">
         <div className="flex items-start justify-between gap-2">
@@ -104,9 +103,7 @@ export const EventCard = ({ event, onEditEvent, onDeleteEvent }: Props) => {
             <div className="flex-1 min-w-0">
               {/* Title row */}
               <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                <h4 className="font-semibold text-sm text-neutral-900 dark:text-white truncate">
-                  {event.title}
-                </h4>
+                <h4 className="font-semibold text-sm text-neutral-900 dark:text-white truncate">{event.title}</h4>
                 {event.type === 'chore' && (
                   <RecurrenceBadge
                     recurrence_type={event.metadata?.recurrence_type}

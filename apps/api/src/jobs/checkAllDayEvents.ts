@@ -3,9 +3,10 @@
  * Runs daily at 8:00 PM
  */
 
-import { prisma } from "../db";
-import { todayLocal } from "../utils";
-import { isNightTime, createAndQueueNotification } from "./notificationService";
+import { buildNotificationUrl } from '@hously/shared';
+import { prisma } from '../db';
+import { todayLocal, addDaysInTz, formatDateInTimezone } from '../utils';
+import { isNightTime, createAndQueueNotification } from './notificationService';
 
 /**
  * Check for all-day custom events starting tomorrow and send notifications
@@ -15,7 +16,7 @@ import { isNightTime, createAndQueueNotification } from "./notificationService";
  * - Send notifications to the event owner
  */
 export async function checkAndSendAllDayEventNotifications(): Promise<void> {
-  console.log("[CRON] Running checkAndSendAllDayEventNotifications...");
+  console.log('[CRON] Running checkAndSendAllDayEventNotifications...');
 
   // Skip notifications during night time (23h-6h)
   if (isNightTime()) {
@@ -24,17 +25,9 @@ export async function checkAndSendAllDayEventNotifications(): Promise<void> {
 
   const today = todayLocal();
 
-  // Calculate tomorrow's date range
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  // Start of tomorrow (00:00:00)
-  const tomorrowStart = new Date(tomorrow);
-  tomorrowStart.setHours(0, 0, 0, 0);
-
-  // End of tomorrow (23:59:59.999)
-  const tomorrowEnd = new Date(tomorrow);
-  tomorrowEnd.setHours(23, 59, 59, 999);
+  // Calculate tomorrow's date range (midnight-to-midnight in configured timezone)
+  const tomorrowStart = addDaysInTz(today, 1);
+  const tomorrowEnd = new Date(addDaysInTz(today, 2).getTime() - 1);
 
   try {
     // Get all-day custom events that start tomorrow
@@ -55,25 +48,20 @@ export async function checkAndSendAllDayEventNotifications(): Promise<void> {
 
     for (const event of events) {
       const user = event.user;
-      const locale = user.locale || "en";
+      const locale = user.locale || 'en';
 
-      const title = locale === "fr"
-        ? `Événement demain: ${event.title}`
-        : `All-day event tomorrow: ${event.title}`;
-      const body = locale === "fr"
-        ? `Votre événement '${event.title}' est prévu pour demain`
-        : `Your all-day event '${event.title}' is scheduled for tomorrow`;
-      const url = "/calendar";
+      const title = locale === 'fr' ? `Événement demain: ${event.title}` : `All-day event tomorrow: ${event.title}`;
+      const body =
+        locale === 'fr'
+          ? `Votre événement '${event.title}' est prévu pour demain`
+          : `Your all-day event '${event.title}' is scheduled for tomorrow`;
+      const url = buildNotificationUrl('/calendar', {
+        date: formatDateInTimezone(event.startDatetime),
+        eventId: event.id,
+      });
       const metadata = { custom_event_id: event.id };
 
-      const success = await createAndQueueNotification(
-        user.id,
-        title,
-        body,
-        "custom_event",
-        url,
-        metadata
-      );
+      const success = await createAndQueueNotification(user.id, title, body, 'custom_event', url, metadata);
 
       if (success) {
         sentCount++;
@@ -82,6 +70,6 @@ export async function checkAndSendAllDayEventNotifications(): Promise<void> {
 
     console.log(`[CRON] Sent ${sentCount} all-day event notifications for tomorrow`);
   } catch (error) {
-    console.error("[CRON] Error checking all-day events:", error);
+    console.error('[CRON] Error checking all-day events:', error);
   }
 }

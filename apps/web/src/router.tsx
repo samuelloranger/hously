@@ -214,10 +214,22 @@ const habitsRoute = createRoute({
   },
 });
 
+export type CalendarSearchParams = {
+  date?: string;
+  eventId?: number;
+};
+
 const calendarRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/calendar',
   component: Calendar,
+  validateSearch: (search: Record<string, unknown>): CalendarSearchParams => ({
+    date:
+      typeof search.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(search.date)
+        ? search.date
+        : undefined,
+    eventId: parseOptionalInt(search.eventId),
+  }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
     await prefetchRouteData(context.queryClient, '/calendar');
