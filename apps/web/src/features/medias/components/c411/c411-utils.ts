@@ -34,13 +34,21 @@ export const STATUS_BG: Record<string, string> = {
 export const LANG_BADGE: Record<string, string> = {
   fr: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300',
   en: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300',
+  ca: 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300',
   default: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
 };
 
 export function langBadgeClass(lang: string): string {
-  if (/^(fre|fra|fr|vfq|vff|vfi)$/i.test(lang)) return LANG_BADGE.fr;
+  if (/^vfq$/i.test(lang)) return LANG_BADGE.ca;
+  if (/^(fre|fra|fr|vff|vfi)$/i.test(lang)) return LANG_BADGE.fr;
   if (/^(eng|en)$/i.test(lang)) return LANG_BADGE.en;
   return LANG_BADGE.default;
+}
+
+export function langLabel(lang: string): string {
+  if (/^vfq$/i.test(lang)) return 'ca';
+  if (/^multi\.vfq$/i.test(lang)) return 'MULTI.ca';
+  return lang;
 }
 
 export const BADGE_BASE = 'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium';

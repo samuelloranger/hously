@@ -1,7 +1,7 @@
 import { Loader2, AudioLines, Film, HardDrive, Clock, Monitor, Gauge, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatReleaseSize as formatSize } from '@hously/shared';
-import { BADGE_NEUTRAL, CARD, langBadgeClass, BADGE_BASE } from './c411-utils';
+import { BADGE_NEUTRAL, CARD, langBadgeClass, BADGE_BASE, langLabel } from './c411-utils';
 
 interface Props {
   data: any;
@@ -50,7 +50,7 @@ export function C411MediaInfoPanel({ data, isLoading }: Props) {
       {/* Detection badges */}
       <div className="flex flex-wrap gap-2">
         <span className="inline-flex items-center rounded-lg border border-indigo-200/60 dark:border-indigo-500/20 bg-indigo-50/30 dark:bg-indigo-950/10 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
-          {data.language_tag}
+          {langLabel(data.language_tag)}
         </span>
         {mi.resolution && <span className={BADGE_NEUTRAL}>{mi.resolution}</span>}
         {mi.source && mi.source !== 'N/A' && <span className={BADGE_NEUTRAL}>{mi.source}</span>}
@@ -95,7 +95,7 @@ export function C411MediaInfoPanel({ data, isLoading }: Props) {
             <div key={i} className={cn(CARD, 'px-3 py-2 flex items-center gap-3')}>
               <span className="text-xs font-semibold text-neutral-900 dark:text-white w-5">#{i + 1}</span>
               <span className={cn(BADGE_BASE, 'font-semibold', langBadgeClass(a.language))}>
-                {a.language || 'und'}
+                {langLabel(a.language) || 'und'}
               </span>
               {a.title && <span className="text-[11px] text-neutral-500 dark:text-neutral-400">{a.title}</span>}
               <span className="text-[11px] text-neutral-500 dark:text-neutral-400 ml-auto">{a.codec} · {a.channels} · {a.bitrate || 'N/A'}</span>
@@ -117,7 +117,7 @@ export function C411MediaInfoPanel({ data, isLoading }: Props) {
             <div key={i} className={cn(CARD, 'px-3 py-1.5 flex items-center gap-3')}>
               <span className="text-xs font-semibold text-neutral-900 dark:text-white w-5">#{i + 1}</span>
               <span className={cn(BADGE_BASE, 'font-semibold', langBadgeClass(s.language))}>
-                {s.language || 'und'}
+                {langLabel(s.language) || 'und'}
               </span>
               {s.title && <span className="text-[11px] text-neutral-500 dark:text-neutral-400">{s.title}</span>}
               {s.forced && <span className="inline-flex items-center rounded-md bg-amber-100/60 dark:bg-amber-900/20 px-1.5 py-0.5 text-[9px] font-medium text-amber-700 dark:text-amber-400">forced</span>}
