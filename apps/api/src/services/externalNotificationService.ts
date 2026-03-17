@@ -1,6 +1,7 @@
 import { prisma } from '../db';
 import { createAndQueueNotification } from '../jobs/notificationService';
 import { getExternalNotificationUrl } from '@hously/shared';
+import { sendApnNotifications } from '../utils/apnPush';
 
 /**
  * Generate a secure random token for webhook authentication
@@ -75,20 +76,33 @@ async function getTemplateForEvent(serviceName: string, eventType: string, langu
  * This is used for background synchronization (e.g., calendar sync)
  */
 export async function sendSilentPushToUser(userId: number, type: string): Promise<boolean> {
-  // Use createAndQueueNotification with empty body/title for silent push
-  // Actually createAndQueueNotification creates a visible record in DB.
-  // For truly silent pushes that DON'T create a record, we might need a separate queue.
-  // But Hously usually wants these recorded anyway.
-  
-  // Let's use createAndQueueNotification for now but maybe we need a dedicated 'silent' option.
-  return await createAndQueueNotification(
-    userId,
-    '', // Empty title
-    '', // Empty body
-    type,
-    undefined,
-    { silent: true }
-  );
+  const pushTokens = await prisma.pushToken.findMany({
+    where: { userId, platform: 'ios' },
+    select: { token: true },
+  });
+
+  const iosTokens = [...new Set(pushTokens.map(t => t.token).filter(Boolean))];
+  if (iosTokens.length === 0) {
+    return false;
+  }
+
+  const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
+    contentAvailable: true,
+    sound: null,
+    data: {
+      type,
+      notification_type: type,
+      silent: true,
+    },
+  });
+
+  if (invalidTokens.length > 0) {
+    await prisma.pushToken.deleteMany({
+      where: { token: { in: invalidTokens } },
+    });
+  }
+
+  return successCount > 0;
 }
 
 /**
