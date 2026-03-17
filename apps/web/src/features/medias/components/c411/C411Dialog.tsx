@@ -61,7 +61,7 @@ export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, edi
       sourceId: media?.source_id ?? null,
       seasonNumber: isSeries ? selectedSeason : null,
     },
-    { enabled: isOpen && activeTab === 'info' },
+    { enabled: isOpen && (activeTab === 'info' || activeTab === 'slots') },
   );
   const releases = useC411Releases();
   const drafts = useC411Drafts({ enabled: isOpen && activeTab === 'drafts' });
@@ -190,6 +190,7 @@ export function C411Dialog({ isOpen, onClose, media, activeTab, onTabChange, edi
             data={releaseStatus.data ?? null}
             isLoading={releaseStatus.isLoading}
             enabled={tmdbId !== null}
+            mediaInfo={mediaInfo.data ?? null}
           />
         )}
         {activeTab === 'info' && (
