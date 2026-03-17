@@ -378,11 +378,18 @@ async function resolveReleaseSource(options: PrepareReleaseOptions): Promise<Res
 function inferLanguageTag(originalName: string, media: MediaInfoData, languageTag: LanguageTag): LanguageTag {
   const name = originalName.toUpperCase();
 
-  // If we detected a specific French variant (VFF/VFQ/VFI) from media tags, use it
-  if (languageTag === 'VFF' || languageTag === 'VFQ' || languageTag === 'VFI') return languageTag;
+  // If raw detection (ffprobe) gave us a specific variant, use it.
+  // If it gave us a generic VFF, check if mediainfo (already patched) found a better variant in the titles.
+  let resolvedTag = languageTag;
+  if (resolvedTag === 'VFF') {
+    const refined = media.audioStreams.find((s) => s.language === 'VFQ' || s.language === 'VFF' || s.language === 'VFI');
+    if (refined) resolvedTag = refined.language as LanguageTag;
+  }
+
+  if (resolvedTag === 'VFF' || resolvedTag === 'VFQ' || resolvedTag === 'VFI') return resolvedTag;
 
   // If detected MULTI variant, use it
-  if (languageTag.startsWith('MULTI.')) return languageTag;
+  if (resolvedTag.startsWith('MULTI.')) return resolvedTag;
 
   // Fallback to name-based detection for MULTI
   if (name.includes('MULTI') && name.includes('VF2')) return 'MULTI.VF2';
