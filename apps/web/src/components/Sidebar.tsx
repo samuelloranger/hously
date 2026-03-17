@@ -4,37 +4,12 @@ import { clearUser } from '../lib/auth';
 import { formatDisplayName, useLogout, useUpdateProfile } from '@hously/shared';
 import { NotificationsMenu } from './NotificationsBell';
 import { UserMenu } from './UserMenu';
-import {
-  CalendarIcon,
-  Compass,
-  CookingPot,
-  LayoutDashboard,
-  Library,
-  ListChecks,
-  Loader,
-  LogOut,
-  Magnet,
-  Package,
-  Settings,
-  ShoppingCart,
-  Target,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { Loader, LogOut, Settings } from 'lucide-react';
 import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 import { cn } from '../lib/utils';
-
-interface NavItem {
-  path: string;
-  translationKey: string;
-  icon: LucideIcon;
-}
-
-interface NavSection {
-  labelKey: string;
-  items: NavItem[];
-}
+import { navSections } from './navigation';
 
 export function Sidebar() {
   const { user } = useAuth();
@@ -46,29 +21,6 @@ export function Sidebar() {
   const prefetchRoute = usePrefetchRoute();
   const { isDark, toggleTheme } = useTheme();
   const updateProfile = useUpdateProfile();
-
-  const navSections: NavSection[] = [
-    {
-      labelKey: 'nav.section_life',
-      items: [
-        { path: '/', translationKey: 'nav.dashboard', icon: LayoutDashboard },
-        { path: '/chores', translationKey: 'nav.chores', icon: ListChecks },
-        { path: '/habits', translationKey: 'nav.habits', icon: Target },
-        { path: '/shopping', translationKey: 'nav.shopping', icon: ShoppingCart },
-        { path: '/calendar', translationKey: 'nav.calendar', icon: CalendarIcon },
-        { path: '/kitchen', translationKey: 'nav.kitchen', icon: CookingPot },
-      ],
-    },
-    {
-      labelKey: 'nav.section_homelab',
-      items: [
-        { path: '/library', translationKey: 'nav.library', icon: Library },
-        { path: '/torrents', translationKey: 'nav.torrents', icon: Magnet },
-        { path: '/releases', translationKey: 'nav.releases', icon: Package },
-        { path: '/explore', translationKey: 'nav.explore', icon: Compass },
-      ],
-    },
-  ];
 
   const languages = [
     { code: 'en', name: 'EN' },

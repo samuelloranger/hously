@@ -4,20 +4,14 @@ import { useTranslation } from 'react-i18next';
 import * as Popover from '@radix-ui/react-popover';
 import { formatDisplayName, type User, useUpdateProfile } from '@hously/shared';
 import { useTheme } from '../hooks/useTheme';
-import { usePWA } from '../hooks/usePWA';
 import { cn } from '../lib/utils';
 import { ChevronDown } from 'lucide-react';
 import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
+import { navSections } from './navigation';
 
 interface UserMenuProps {
   user: User;
   onLogout: () => void;
-}
-
-interface NavItem {
-  path: string;
-  translationKey: string;
-  icon: string;
 }
 
 export function UserMenu({ user, onLogout }: UserMenuProps) {
@@ -26,7 +20,6 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
   const currentPath = router.location.pathname;
   const [isOpen, setIsOpen] = useState(false);
   const { isDark, toggleTheme } = useTheme();
-  const { isStandalone } = usePWA();
   const updateProfile = useUpdateProfile();
   const prefetchRoute = usePrefetchRoute();
 
@@ -35,15 +28,6 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
     { code: 'fr', name: 'Français' },
   ];
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
-
-  const navItems: NavItem[] = [
-    { path: '/', translationKey: 'nav.dashboard', icon: '📊' },
-    { path: '/shopping', translationKey: 'nav.shopping', icon: '🛒' },
-    { path: '/chores', translationKey: 'nav.chores', icon: '✅' },
-    { path: '/explore', translationKey: 'nav.explore', icon: '🧭' },
-    { path: '/library', translationKey: 'nav.library', icon: '🎞️' },
-    { path: '/torrents', translationKey: 'nav.torrents', icon: '🧲' },
-  ];
 
   const toggleLanguage = () => {
     const nextLanguage = languages.find(lang => lang.code !== i18n.language) || languages[0];
@@ -102,44 +86,45 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
           sideOffset={8}
           collisionPadding={16}
         >
-          {/* Mobile nav items — hidden on desktop and PWA standalone */}
-          <div
-            className={cn(
-              'py-2 px-2 border-b border-neutral-100 dark:border-neutral-700/60',
-              isStandalone ? 'hidden' : 'block lg:hidden'
-            )}
-          >
-            <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
-              Navigation
-            </p>
-            <div className="grid grid-cols-3 gap-1">
-              {navItems.map(item => {
-                const isActive =
-                  currentPath === item.path || (item.path !== '/' && currentPath.startsWith(`${item.path}/`));
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setIsOpen(false)}
-                    onMouseEnter={() => prefetchRoute(item.path)}
-                    style={{ touchAction: 'manipulation' }}
-                    className={`flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl transition-all duration-150 ${
-                      isActive
-                        ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
-                        : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] active:bg-neutral-100 dark:active:bg-white/[0.08]'
-                    }`}
-                  >
-                    <span className={`text-lg leading-none transition-transform ${isActive ? 'scale-110' : ''}`}>
-                      {item.icon}
-                    </span>
-                    <span className="text-[10px] font-medium leading-none text-center w-full truncate">
-                      {t(item.translationKey)}
-                    </span>
-                    {isActive && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-indigo-500 opacity-0" />}
-                  </Link>
-                );
-              })}
-            </div>
+          {/* Mobile nav items */}
+          <div className={cn('py-2 px-2 border-b border-neutral-100 dark:border-neutral-700/60', 'block lg:hidden')}>
+            {navSections.map(section => (
+              <div key={section.labelKey} className="pb-2 last:pb-0">
+                <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+                  {t(section.labelKey)}
+                </p>
+                <div className="grid grid-cols-3 gap-1">
+                  {section.items.map(item => {
+                    const isActive =
+                      currentPath === item.path || (item.path !== '/' && currentPath.startsWith(`${item.path}/`));
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setIsOpen(false)}
+                        onMouseEnter={() => prefetchRoute(item.path)}
+                        style={{ touchAction: 'manipulation' }}
+                        className={`flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl transition-all duration-150 ${
+                          isActive
+                            ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
+                            : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] active:bg-neutral-100 dark:active:bg-white/[0.08]'
+                        }`}
+                      >
+                        <span className={`text-lg leading-none transition-transform ${isActive ? 'scale-110' : ''}`}>
+                          {item.mobileIcon}
+                        </span>
+                        <span className="text-[10px] font-medium leading-none text-center w-full truncate">
+                          {t(item.translationKey)}
+                        </span>
+                        {isActive && (
+                          <span className="absolute bottom-1 w-1 h-1 rounded-full bg-indigo-500 opacity-0" />
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Preferences */}
