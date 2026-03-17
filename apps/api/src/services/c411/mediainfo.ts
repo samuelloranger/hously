@@ -134,9 +134,19 @@ export async function getMediaInfo(contentPath: string, releaseName?: string): P
           const kbps = Math.round(parseInt(track.BitRate) / 1000);
           aBitrate = `${kbps} kbps`;
         }
+        const title = track.Title ?? '';
+        let language = track.Language ?? 'und';
+
+        // Refine French variant from title
+        if (/^(fre|fra|fr|french)$/i.test(language)) {
+          if (/vfq|québ|quebec|qué|canadien|canadian/i.test(title)) language = 'VFQ';
+          else if (/vff|france|truefrench|european/i.test(title)) language = 'VFF';
+          else if (/vfi|international/i.test(title)) language = 'VFI';
+        }
+
         audioStreams.push({
           codec: aCodec, channels, bitrate: aBitrate,
-          language: track.Language ?? 'und', title: track.Title ?? '',
+          language, title,
         });
       }
 

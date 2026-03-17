@@ -38,7 +38,7 @@ export const LANG_BADGE: Record<string, string> = {
 };
 
 export function langBadgeClass(lang: string): string {
-  if (/^(fre|fra|fr)$/i.test(lang)) return LANG_BADGE.fr;
+  if (/^(fre|fra|fr|vfq|vff|vfi)$/i.test(lang)) return LANG_BADGE.fr;
   if (/^(eng|en)$/i.test(lang)) return LANG_BADGE.en;
   return LANG_BADGE.default;
 }
