@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useFetcher } from '../context';
 import { queryKeys } from '../../queryKeys';
 import { DASHBOARD_ENDPOINTS } from '../../endpoints';
+import { buildQbittorrentTorrentSearchParams, createQbittorrentUploadFormData } from '../../utils';
 import type {
   DashboardQbittorrentStatusResponse,
   DashboardQbittorrentTorrentsResponse,
@@ -37,16 +38,7 @@ export function useDashboardQbittorrentTorrents(
   options?: { enabled?: boolean }
 ) {
   const fetcher = useFetcher();
-
-  const search = new URLSearchParams();
-  if (params?.filter) search.set('filter', params.filter);
-  if (params?.category) search.set('category', params.category);
-  if (params?.tag) search.set('tag', params.tag);
-  if (params?.sort) search.set('sort', params.sort);
-  if (typeof params?.reverse === 'boolean') search.set('reverse', params.reverse ? 'true' : 'false');
-  if (typeof params?.limit === 'number') search.set('limit', String(params.limit));
-  if (typeof params?.offset === 'number') search.set('offset', String(params.offset));
-  const suffix = search.toString();
+  const suffix = buildQbittorrentTorrentSearchParams(params);
 
   return useQuery({
     queryKey: queryKeys.dashboard.qbittorrentTorrents(params ?? {}),
@@ -145,13 +137,7 @@ export function useAddQbittorrentTorrentFile() {
 
   return useMutation({
     mutationFn: ({ torrents, category, tags }: { torrents: File | File[]; category?: string; tags?: string[] }) => {
-      const formData = new FormData();
-      const files = Array.isArray(torrents) ? torrents : [torrents];
-      files.forEach(file => {
-        formData.append('torrents', file as any);
-      });
-      if (category) formData.append('category', category);
-      if (tags && tags.length > 0) formData.append('tags', tags.join(','));
+      const formData = createQbittorrentUploadFormData({ torrents, category, tags });
       return fetcher<DashboardQbittorrentAddTorrentResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.ADD_FILE, {
         method: 'POST',
         body: formData,

@@ -20,7 +20,16 @@ import {
 } from 'lucide-react';
 import {
   DASHBOARD_ENDPOINTS,
+  formatBytes,
+  formatQbittorrentEta,
+  formatSpeed,
+  hasQbittorrentTransferActivity,
+  getQbittorrentStatusConfig,
+  getQbittorrentStreamSnapshot,
+  isQbittorrentPausedState,
   queryKeys,
+  toOptionalQbittorrentString,
+  useJsonEventSource,
   useDashboardQbittorrentCategories,
   useDashboardQbittorrentTags,
   useDeleteQbittorrentTorrent,
@@ -41,7 +50,6 @@ import {
 import { PageLayout } from '@/components/PageLayout';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/dialog';
-import { formatBytes, formatSpeed, formatEta, getStatusConfig } from './utils';
 import { TorrentPropertiesTab } from './TorrentPropertiesTab';
 import { TorrentFilesTab } from './TorrentFilesTab';
 import { TorrentTrackersTab } from './TorrentTrackersTab';
@@ -62,12 +70,11 @@ export function TorrentDetailPage() {
   const tagsQuery = useDashboardQbittorrentTags();
 
   const [torrentSnapshot, setTorrentSnapshot] = useState<DashboardQbittorrentTorrentStreamResponse | null>(null);
-  const torrentEventSourceRef = useRef<EventSource | null>(null);
   const initializedForHash = useRef('');
 
   const selectedTorrent = useMemo(() => torrentSnapshot?.torrent ?? null, [torrentSnapshot?.torrent]);
 
-  const isTransferring = (selectedTorrent?.download_speed ?? 0) > 0 || (selectedTorrent?.upload_speed ?? 0) > 0;
+  const isTransferring = selectedTorrent ? hasQbittorrentTransferActivity(selectedTorrent) : false;
 
   const propertiesQuery = useQbittorrentTorrentProperties(torrentHash || null);
   const trackersQuery = useQbittorrentTorrentTrackers(torrentHash || null);
@@ -94,46 +101,21 @@ export function TorrentDetailPage() {
   const [deleteFiles, setDeleteFiles] = useState(false);
 
   const [peersSnapshot, setPeersSnapshot] = useState<DashboardQbittorrentTorrentPeersResponse | null>(null);
-  const peersEventSourceRef = useRef<EventSource | null>(null);
 
-  useEffect(() => {
-    if (torrentEventSourceRef.current) {
-      torrentEventSourceRef.current.close();
-      torrentEventSourceRef.current = null;
-    }
-
-    // Seed immediately from the cached torrent list so the page renders with
-    // known data (name, state, progress, speeds) while the SSE stream connects.
-    const listData = queryClient.getQueryData<DashboardQbittorrentTorrentsResponse>(
-      queryKeys.dashboard.qbittorrentTorrents({})
-    );
-    const cachedTorrent = listData?.torrents.find(t => t.id === torrentHash) ?? null;
-    setTorrentSnapshot(
-      cachedTorrent ? { enabled: listData!.enabled, connected: listData!.connected, torrent: cachedTorrent } : null
-    );
-
-    if (!torrentHash) return;
-    if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
-
-    const source = new EventSource(DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENT_STREAM(torrentHash), {
-      withCredentials: true,
-    });
-    torrentEventSourceRef.current = source;
-
-    source.onmessage = event => {
-      try {
-        const parsed = JSON.parse(event.data) as DashboardQbittorrentTorrentStreamResponse;
-        setTorrentSnapshot(parsed);
-      } catch (error) {
-        console.error('Failed to parse qBittorrent torrent stream payload', error);
-      }
-    };
-
-    return () => {
-      source.close();
-      if (torrentEventSourceRef.current === source) torrentEventSourceRef.current = null;
-    };
-  }, [torrentHash]);
+  useJsonEventSource<DashboardQbittorrentTorrentStreamResponse>({
+    enabled: Boolean(torrentHash),
+    url: torrentHash ? DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENT_STREAM(torrentHash) : null,
+    logLabel: 'qBittorrent torrent stream',
+    onReset: () => {
+      const listData = queryClient.getQueryData<DashboardQbittorrentTorrentsResponse>(
+        queryKeys.dashboard.qbittorrentTorrents({})
+      );
+      setTorrentSnapshot(getQbittorrentStreamSnapshot(listData, torrentHash));
+    },
+    onMessage: parsed => {
+      setTorrentSnapshot(parsed);
+    },
+  });
 
   useEffect(() => {
     if (!selectedTorrent) return;
@@ -143,35 +125,15 @@ export function TorrentDetailPage() {
     setDraftCategory(selectedTorrent.category ?? '');
   }, [selectedTorrent, torrentHash]);
 
-  useEffect(() => {
-    if (peersEventSourceRef.current) {
-      peersEventSourceRef.current.close();
-      peersEventSourceRef.current = null;
-    }
-    setPeersSnapshot(null);
-
-    if (!torrentHash) return;
-    if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
-
-    const source = new EventSource(DASHBOARD_ENDPOINTS.QBITTORRENT.PEERS_STREAM(torrentHash), {
-      withCredentials: true,
-    });
-    peersEventSourceRef.current = source;
-
-    source.onmessage = event => {
-      try {
-        const parsed = JSON.parse(event.data) as DashboardQbittorrentTorrentPeersResponse;
-        setPeersSnapshot(parsed);
-      } catch (error) {
-        console.error('Failed to parse qBittorrent peers stream payload', error);
-      }
-    };
-
-    return () => {
-      source.close();
-      if (peersEventSourceRef.current === source) peersEventSourceRef.current = null;
-    };
-  }, [torrentHash]);
+  useJsonEventSource<DashboardQbittorrentTorrentPeersResponse>({
+    enabled: Boolean(torrentHash),
+    url: torrentHash ? DASHBOARD_ENDPOINTS.QBITTORRENT.PEERS_STREAM(torrentHash) : null,
+    logLabel: 'qBittorrent peers stream',
+    onReset: () => setPeersSnapshot(null),
+    onMessage: parsed => {
+      setPeersSnapshot(parsed);
+    },
+  });
 
   const handleSaveName = () => {
     if (!selectedTorrent) return;
@@ -189,7 +151,7 @@ export function TorrentDetailPage() {
 
   const handleSaveCategory = () => {
     if (!selectedTorrent) return;
-    const category = draftCategory.trim();
+    const category = toOptionalQbittorrentString(draftCategory) ?? '';
     if ((selectedTorrent.category ?? '') === category) return;
     const prev = torrentSnapshot;
     setTorrentSnapshot(snap => (snap?.torrent ? { ...snap, torrent: { ...snap.torrent, category } } : snap));
@@ -247,10 +209,8 @@ export function TorrentDetailPage() {
   };
 
   const progress = selectedTorrent ? Math.round(selectedTorrent.progress * 100) : 0;
-  const statusConfig = getStatusConfig(selectedTorrent?.state ?? '');
-  const isPaused = ['pauseddl', 'pausedup', 'stopped', 'stoppeddl', 'stoppedup'].includes(
-    (selectedTorrent?.state ?? '').toLowerCase()
-  );
+  const statusConfig = getQbittorrentStatusConfig(selectedTorrent?.state ?? '');
+  const isPaused = isQbittorrentPausedState(selectedTorrent?.state ?? '');
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode; count?: number }[] = [
     { id: 'properties', label: t('torrents.properties', 'Properties'), icon: <Settings2 size={13} /> },
@@ -406,7 +366,7 @@ export function TorrentDetailPage() {
                   Icon: Activity,
                 },
                 { label: t('torrents.peers', 'Peers'), value: String(selectedTorrent.peers), Icon: Users },
-                { label: 'ETA', value: formatEta(selectedTorrent.eta_seconds), Icon: Clock },
+                { label: 'ETA', value: formatQbittorrentEta(selectedTorrent.eta_seconds), Icon: Clock },
               ].map(({ label, value, Icon, color }) => (
                 <div key={label} className="bg-neutral-50/60 dark:bg-neutral-800/30 px-3 py-3">
                   <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-neutral-400 dark:text-neutral-400 font-medium mb-1">

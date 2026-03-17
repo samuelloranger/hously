@@ -8,6 +8,7 @@ interface PluginUrlInputProps {
   onChange: (value: string) => void;
   onBlur?: () => void;
   placeholder?: string;
+  description?: string;
   className?: string;
 }
 
@@ -21,7 +22,7 @@ function isValidUrl(value: string): boolean {
   }
 }
 
-export function PluginUrlInput({ label, value, onChange, onBlur, placeholder, className }: PluginUrlInputProps) {
+export function PluginUrlInput({ label, value, onChange, onBlur, placeholder, description, className }: PluginUrlInputProps) {
   const { t } = useTranslation('common');
   const [error, setError] = useState('');
 
@@ -42,6 +43,7 @@ export function PluginUrlInput({ label, value, onChange, onBlur, placeholder, cl
   return (
     <div className={className}>
       <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">{label}</label>
+      {description && <p className="mb-2 text-xs text-neutral-500 dark:text-neutral-400">{description}</p>}
       <input
         type="url"
         value={value}

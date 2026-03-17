@@ -10,3 +10,4 @@ export * from './bbcode';
 export * from './release-matching';
 export * from './interactive-search';
 export * from './media-library';
+export * from './qbittorrent';

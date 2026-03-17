@@ -1,6 +1,10 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  mergeQbittorrentFiles,
+  toOptionalQbittorrentString,
+  toOptionalQbittorrentTags,
+  toggleQbittorrentTagSelection,
   useAddQbittorrentMagnet,
   useAddQbittorrentTorrentFile,
   useDashboardQbittorrentCategories,
@@ -28,18 +32,14 @@ export function AddTorrentPanel() {
 
   const canInteract = !addMagnetMutation.isPending && !addFileMutation.isPending;
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
-  };
-
   const handleAddMagnet = () => {
     const value = magnet.trim();
     if (!value) return;
     addMagnetMutation.mutate(
       {
         magnet: value,
-        category: selectedCategory || undefined,
-        tags: selectedTags.length > 0 ? selectedTags : undefined,
+        category: toOptionalQbittorrentString(selectedCategory),
+        tags: toOptionalQbittorrentTags(selectedTags),
       },
       {
         onSuccess: res => {
@@ -52,11 +52,7 @@ export function AddTorrentPanel() {
   const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    setSelectedFiles(prev => {
-      const existing = new Set(prev.map(f => f.name + f.size));
-      const newFiles = Array.from(files).filter(f => !existing.has(f.name + f.size));
-      return [...prev, ...newFiles];
-    });
+    setSelectedFiles(prev => mergeQbittorrentFiles(prev, files));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -69,8 +65,8 @@ export function AddTorrentPanel() {
     addFileMutation.mutate(
       {
         torrents: selectedFiles,
-        category: selectedCategory || undefined,
-        tags: selectedTags.length > 0 ? selectedTags : undefined,
+        category: toOptionalQbittorrentString(selectedCategory),
+        tags: toOptionalQbittorrentTags(selectedTags),
       },
       {
         onSuccess: res => {
@@ -119,7 +115,9 @@ export function AddTorrentPanel() {
                   >
                     <option value="">{t('dashboard.qbittorrent.noCategory', 'No category')}</option>
                     {categories.map(cat => (
-                      <option key={cat.name} value={cat.name}>{cat.name}</option>
+                      <option key={cat.name} value={cat.name}>
+                        {cat.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -138,7 +136,7 @@ export function AddTorrentPanel() {
                         <button
                           key={tag}
                           type="button"
-                          onClick={() => toggleTag(tag)}
+                          onClick={() => setSelectedTags(prev => toggleQbittorrentTagSelection(prev, tag))}
                           disabled={!canInteract}
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all disabled:opacity-50 ${
                             active

@@ -1,10 +1,20 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DASHBOARD_ENDPOINTS,
+  QBITTORRENT_STATE_FILTERS,
+  countQbittorrentTorrentsByState,
+  filterAndSortQbittorrentTorrents,
+  formatSpeed,
+  getUniqueQbittorrentCategories,
+  getUniqueQbittorrentTags,
   queryKeys,
+  useJsonEventSource,
   useDashboardQbittorrentTorrents,
   type DashboardQbittorrentTorrentsResponse,
+  type QbittorrentSortDir,
+  type QbittorrentSortKey,
+  type QbittorrentStateFilter,
 } from '@hously/shared';
 import { PageLayout } from '@/components/PageLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -12,15 +22,6 @@ import { EmptyState } from '@/components/EmptyState';
 import { Search, TrendingDown, TrendingUp, ArrowUp, ArrowDown, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { AddTorrentPanel } from './AddTorrentPanel';
 import { TorrentRow } from './TorrentRow';
-import {
-  STATE_FILTERS,
-  formatSpeed,
-  getStateFilter,
-  matchesStateFilter,
-  type StateFilter,
-  type SortKey,
-  type SortDir,
-} from './utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -30,60 +31,37 @@ export function TorrentsPage() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useDashboardQbittorrentTorrents();
 
-  const sseRef = useRef<EventSource | null>(null);
   const [sseConnected, setSseConnected] = useState(false);
 
   const [search, setSearch] = useState('');
-  const [stateFilter, setStateFilter] = useState<StateFilter>('all');
+  const [stateFilter, setStateFilter] = useState<QbittorrentStateFilter>('all');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<SortKey>('added_on');
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [sortBy, setSortBy] = useState<QbittorrentSortKey>('added_on');
+  const [sortDir, setSortDir] = useState<QbittorrentSortDir>('desc');
 
   const torrents = data?.torrents ?? [];
 
-  const availableCategories = useMemo(() => {
-    return Array.from(new Set(torrents.map(t => t.category).filter(Boolean))) as string[];
-  }, [torrents]);
+  const availableCategories = useMemo(() => getUniqueQbittorrentCategories(torrents), [torrents]);
 
-  const availableTags = useMemo(() => {
-    return Array.from(new Set(torrents.flatMap(t => t.tags).filter(Boolean))) as string[];
-  }, [torrents]);
+  const availableTags = useMemo(() => getUniqueQbittorrentTags(torrents), [torrents]);
 
-  const filtered = useMemo(() => {
-    let result = torrents;
-    const q = search.trim().toLowerCase();
-    if (q) result = result.filter(row => row.name.toLowerCase().includes(q));
-    if (stateFilter !== 'all') result = result.filter(row => matchesStateFilter(row, stateFilter));
-    if (selectedCategories.length > 0)
-      result = result.filter(row => row.category && selectedCategories.includes(row.category));
-    if (selectedTags.length > 0) result = result.filter(row => selectedTags.some(tag => row.tags.includes(tag)));
+  const filtered = useMemo(
+    () =>
+      filterAndSortQbittorrentTorrents(torrents, {
+        search,
+        stateFilter,
+        selectedCategories,
+        selectedTags,
+        sortBy,
+        sortDir,
+      }),
+    [search, sortBy, sortDir, stateFilter, selectedCategories, selectedTags, torrents]
+  );
 
-    return [...result].sort((a, b) => {
-      let cmp = 0;
-      if (sortBy === 'name') cmp = a.name.localeCompare(b.name);
-      else if (sortBy === 'ratio') cmp = (a.ratio ?? -1) - (b.ratio ?? -1);
-      else if (sortBy === 'added_on') cmp = (a.added_on ?? '').localeCompare(b.added_on ?? '');
-      else if (sortBy === 'size') cmp = a.size_bytes - b.size_bytes;
-      else if (sortBy === 'download_speed') cmp = a.download_speed - b.download_speed;
-      else if (sortBy === 'upload_speed') cmp = a.upload_speed - b.upload_speed;
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-  }, [search, stateFilter, selectedCategories, selectedTags, torrents, sortBy, sortDir]);
+  const counts = useMemo(() => countQbittorrentTorrentsByState(torrents), [torrents]);
 
-  const counts = useMemo(() => {
-    const map: Partial<Record<StateFilter, number>> = {};
-    for (const t of torrents) {
-      const state = getStateFilter(t.state);
-      map[state] = (map[state] ?? 0) + 1;
-      if (matchesStateFilter(t, 'uploading')) {
-        map.uploading = (map.uploading ?? 0) + 1;
-      }
-    }
-    return map;
-  }, [torrents]);
-
-  const handleSort = (key: SortKey) => {
+  const handleSort = (key: QbittorrentSortKey) => {
     if (sortBy === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
     else {
       setSortBy(key);
@@ -91,38 +69,17 @@ export function TorrentsPage() {
     }
   };
 
-  useEffect(() => {
-    if (!data?.enabled) return;
-
-    if (sseRef.current) {
-      sseRef.current.close();
-      sseRef.current = null;
-    }
-
-    if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
-
-    const source = new EventSource(DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS_STREAM, { withCredentials: true });
-    sseRef.current = source;
-
-    source.onopen = () => setSseConnected(true);
-
-    source.onmessage = event => {
-      try {
-        const parsed = JSON.parse(event.data) as DashboardQbittorrentTorrentsResponse;
-        queryClient.setQueryData(queryKeys.dashboard.qbittorrentTorrents({}), parsed);
-      } catch (error) {
-        console.error('Failed to parse qBittorrent torrents stream payload', error);
-      }
-    };
-
-    source.onerror = () => setSseConnected(false);
-
-    return () => {
-      source.close();
-      setSseConnected(false);
-      if (sseRef.current === source) sseRef.current = null;
-    };
-  }, [data?.enabled]);
+  useJsonEventSource<DashboardQbittorrentTorrentsResponse>({
+    enabled: Boolean(data?.enabled),
+    url: data?.enabled ? DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS_STREAM : null,
+    logLabel: 'qBittorrent torrents stream',
+    onOpen: () => setSseConnected(true),
+    onError: () => setSseConnected(false),
+    onReset: () => setSseConnected(false),
+    onMessage: parsed => {
+      queryClient.setQueryData(queryKeys.dashboard.qbittorrentTorrents({}), parsed);
+    },
+  });
 
   const isDisabled = data?.enabled === false;
   const isDisconnected = data?.connected === false;
@@ -284,7 +241,7 @@ export function TorrentsPage() {
 
               {/* State filter chips */}
               <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-                {STATE_FILTERS.map(filter => {
+                {QBITTORRENT_STATE_FILTERS.map(filter => {
                   const count = filter.id === 'all' ? torrents.length : (counts[filter.id] ?? 0);
                   if (filter.id !== 'all' && count === 0 && stateFilter !== filter.id) return null;
                   return (
@@ -319,10 +276,10 @@ export function TorrentsPage() {
                     { key: 'ratio', label: t('torrents.sortRatio', 'Ratio') },
                     { key: 'size', label: t('torrents.sortSize', 'Size') },
                     { key: 'name', label: t('torrents.sortName', 'Name') },
-                  ] as { key: SortKey; label: React.ReactNode }[]
+                  ] as { key: QbittorrentSortKey; label: React.ReactNode }[]
                 ).map(({ key, label }) => {
                   const active = sortBy === key;
-                  const titles: Partial<Record<SortKey, string>> = {
+                  const titles: Partial<Record<QbittorrentSortKey, string>> = {
                     download_speed: t('torrents.sortDownloadSpeed', 'Sort by download speed'),
                     upload_speed: t('torrents.sortUploadSpeed', 'Sort by upload speed'),
                   };

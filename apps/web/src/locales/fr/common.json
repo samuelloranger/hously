@@ -1068,7 +1068,17 @@
         "password": "Mot de passe",
         "passwordPlaceholder": "Laisser vide pour conserver le mot de passe existant",
         "trackerUrl": "URL du tracker",
+        "announceUrl": "URL d'annonce",
         "usernamePlaceholder": "nom d'utilisateur",
+        "providerHelp": {
+          "c411": "C411 utilise vos identifiants du site pour la recherche et la synchronisation, ainsi que votre URL d'annonce privée pour la publication des releases."
+        },
+        "usernameHelp": {
+          "c411": "Utilisé comme nom d'uploader lors de la synchronisation de vos releases depuis C411."
+        },
+        "announceUrlHelp": {
+          "c411": "Requise pour générer les fichiers .torrent pendant le workflow de release C411."
+        },
         "providers": {
           "c411": "C411",
           "torr9": "Torr9",

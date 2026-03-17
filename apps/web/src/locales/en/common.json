@@ -1069,7 +1069,17 @@
         "password": "Password",
         "passwordPlaceholder": "Leave empty to keep existing password",
         "trackerUrl": "Tracker URL",
+        "announceUrl": "Announce URL",
         "usernamePlaceholder": "username",
+        "providerHelp": {
+          "c411": "C411 uses your site credentials for search and sync, plus your private announce URL for release publishing."
+        },
+        "usernameHelp": {
+          "c411": "Used as the uploader name when syncing your releases back from C411."
+        },
+        "announceUrlHelp": {
+          "c411": "Required for generating .torrent files during the C411 release workflow."
+        },
         "providers": {
           "c411": "C411",
           "torr9": "Torr9",

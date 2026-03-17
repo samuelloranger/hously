@@ -14,3 +14,4 @@ export * from './useWeather';
 export * from './useMedias';
 export * from './useHabits';
 export * from './useC411';
+export * from './useEventSource';

@@ -1,5 +1,12 @@
 import { Link } from '@tanstack/react-router';
 import {
+  formatBytes,
+  formatQbittorrentEta,
+  formatSpeed,
+  getQbittorrentProgressBarGradient,
+  getQbittorrentStatusDot,
+  hasQbittorrentTransferActivity,
+  isQbittorrentPausedState,
   usePauseQbittorrentTorrent,
   useReannounceQbittorrentTorrent,
   useResumeQbittorrentTorrent,
@@ -8,18 +15,17 @@ import {
 import { Tag, Clock, Play, Pause, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
-import { formatBytes, formatSpeed, formatEta, getStatusDot, getProgressBarGradient } from './utils';
 
 export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem }) {
   const { i18n } = useTranslation();
   const locale = resolveDateFnsLocale(i18n.language);
-  const { dot, pulse } = getStatusDot(torrent.state);
+  const { dot, pulse } = getQbittorrentStatusDot(torrent.state);
   const progress = Math.round(torrent.progress * 100);
-  const isActive = torrent.download_speed > 0 || torrent.upload_speed > 0;
-  const eta = formatEta(torrent.eta_seconds);
+  const isActive = hasQbittorrentTransferActivity(torrent);
+  const eta = formatQbittorrentEta(torrent.eta_seconds);
   const relDate = formatRelativeTime(torrent.added_on, { addSuffix: true, locale }) ?? '';
-  const barGradient = getProgressBarGradient(torrent.state);
-  const isPaused = ['pauseddl', 'pausedup', 'stopped', 'stoppeddl', 'stoppedup'].includes(torrent.state.toLowerCase());
+  const barGradient = getQbittorrentProgressBarGradient(torrent.state);
+  const isPaused = isQbittorrentPausedState(torrent.state);
 
   const pauseMutation = usePauseQbittorrentTorrent(torrent.id);
   const resumeMutation = useResumeQbittorrentTorrent(torrent.id);
