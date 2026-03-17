@@ -2,9 +2,8 @@ import { Loader2, FolderOpen, Pencil, Trash2, ArrowUpCircle, ArrowDownCircle, Ch
 import { cn } from '@/lib/utils';
 import { useC411DeleteRelease } from '@hously/shared';
 import type { C411LocalRelease } from '@hously/shared';
+import { formatReleaseSize as formatSize, capitalizeStatus } from '@hously/shared';
 import {
-  formatSize,
-  capitalizeStatus,
   STATUS_BADGE,
   STATUS_BORDER,
   STATUS_BG,

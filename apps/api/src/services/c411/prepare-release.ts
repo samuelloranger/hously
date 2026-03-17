@@ -14,11 +14,16 @@ import { loadC411Config } from './session';
 import { getMediaInfo, type MediaInfoData } from './mediainfo';
 import { detectLanguages } from './lang-detect';
 import { fetchTmdbDetails, buildFallbackTmdbDetails, type TmdbDetails } from './tmdb';
-import { buildC411ReleaseName } from './release-name';
+import {
+  buildReleaseName,
+  formatReleaseSize,
+  calcPieceLength,
+  resolveCategory,
+  resolveLanguage,
+  resolveGenres,
+} from '@hously/shared';
 import { generateBBCode, buildReleaseInfo } from './bbcode';
 import { createTorrent } from './mktorrent';
-import { calcPieceLength, formatSize } from './utils';
-import { resolveCategory, resolveLanguage, resolveGenres } from './resolvers';
 import type { LanguageTag } from './types';
 
 const MOVIE_HARDLINK_BASE = '/mnt/storage/Downloads/movies';
@@ -483,7 +488,7 @@ async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<Pr
     source.originalName,
     languageTag !== 'UNKNOWN' ? languageTag : undefined,
   );
-  const c411Name = buildC411ReleaseName(
+  const c411Name = buildReleaseName(
     releaseInfo,
     source.originalName,
     source.releaseGroup || undefined,
@@ -515,7 +520,7 @@ async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<Pr
       media,
       releaseName: c411Name,
       fileCount: source.files.length,
-      totalSize: formatSize(source.totalSize),
+      totalSize: formatReleaseSize(source.totalSize),
       languages: languageTag !== 'UNKNOWN' ? languageTag : undefined,
       teamOverride: source.releaseGroup || undefined,
     });
@@ -536,7 +541,7 @@ async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<Pr
       totalSize: source.totalSize,
       options: { '1': languageOptionIds, '5': genreOptionIds },
       metadata: {
-        sizeHuman: formatSize(source.totalSize),
+        sizeHuman: formatReleaseSize(source.totalSize),
         platform: tmdb.network || null,
         originalName: source.originalName,
         releaseGroup: source.releaseGroup || null,

@@ -1,6 +1,17 @@
 /**
- * C411 release naming utilities.
+ * Shared Release utilities for both frontend and backend (initially designed for C411).
  */
+
+/**
+ * Capitalize first letter of a status string for display.
+ */
+export function capitalizeStatus(status: string): string {
+  if (!status) return '';
+  const normalized = status.replace(/_/g, ' ');
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+// --- Release Naming ---
 
 const VIDEO_EXTENSIONS = /\.(mkv|avi|mp4|m4v|wmv|ts|m2ts)$/i;
 
@@ -34,7 +45,7 @@ export function formatChannels(channels: string): string {
   return `${ch - 1}.1`;
 }
 
-export interface C411ReleaseInfo {
+export interface ReleaseInfo {
   title: string;
   year?: string;
   languages?: string;
@@ -46,11 +57,12 @@ export interface C411ReleaseInfo {
   videoCodec?: string;
 }
 
-export function buildC411ReleaseName(info: C411ReleaseInfo, originalName: string, teamOverride?: string): string {
+export function buildReleaseName(info: ReleaseInfo, originalName: string, teamOverride?: string): string {
   const tokens: string[] = [];
 
   const cleanTitle = info.title
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/['']/g, '.')
     .replace(/[…]+/g, '')
     .replace(/[:!?,;()[\]{}«»"]/g, '')
@@ -94,8 +106,72 @@ export function buildC411ReleaseName(info: C411ReleaseInfo, originalName: string
   const team = rawTeam === 'N/A' ? 'NOTAG' : rawTeam;
   let result = tokens.join('.') + `-${team}`;
 
-  result = result.replace(/\.{2,}/g, '.').replace(/\s+/g, '').replace(/^\.+|\.+$/g, '');
+  result = result
+    .replace(/\.{2,}/g, '.')
+    .replace(/\s+/g, '')
+    .replace(/^\.+|\.+$/g, '');
   return result;
+}
+
+// --- Resolution ---
+
+export function resolveCategory(
+  category?: string,
+  tmdbType?: string,
+): { categoryId: number; subcategoryId: number } {
+  const cat = (category ?? '').toLowerCase();
+  const type = (tmdbType ?? '').toLowerCase();
+
+  if (cat.includes('série') || cat.includes('series') || type === 'tv') {
+    return { categoryId: 1, subcategoryId: 7 };
+  }
+  if (cat.includes('animation') || type === 'animation') {
+    return { categoryId: 1, subcategoryId: 1 };
+  }
+  if (cat.includes('documentaire') || type === 'documentary') {
+    return { categoryId: 1, subcategoryId: 4 };
+  }
+  return { categoryId: 1, subcategoryId: 6 }; // Film
+}
+
+export function resolveLanguage(releaseName: string): number[] {
+  const name = releaseName.toUpperCase();
+  if (name.includes('MULTI') && name.includes('VF2')) return [422];
+  if (name.includes('MULTI') && name.includes('VFQ')) return [5];
+  if (name.includes('MULTI')) return [4];
+  if (name.includes('VFQ')) return [6];
+  if (name.includes('VFF') || name.includes('TRUEFRENCH')) return [2];
+  if (name.includes('VOSTFR')) return [8];
+  if (name.includes('VFSTFR')) return [7];
+  return [4];
+}
+
+const GENRE_MAP: Record<string, number> = {
+  action: 39, animalier: 40, animation: 41, aventure: 44,
+  biopic: 46, 'comédie dramatique': 50, comédie: 49, crime: 81,
+  documentaire: 56, drame: 57, famille: 61, familial: 61,
+  fantastique: 62, fantasy: 62, guerre: 66, histoire: 67,
+  historique: 67, horreur: 59, épouvante: 59, musical: 73,
+  musique: 73, mystère: 92, policier: 81, romance: 84,
+  'science-fiction': 86, 'science fiction': 86, thriller: 92,
+  western: 95, sport: 89,
+};
+
+export function resolveGenres(description: string): number[] {
+  const match = description.match(/Genres\s*:\s*(?:\[\/b\]\s*)?(.+?)(?:\n|\[|<)/i);
+  if (!match) return [];
+
+  const genreStr = match[1].trim();
+  const genres = genreStr.split(/\s*,\s*/);
+  const ids: number[] = [];
+
+  for (const g of genres) {
+    const key = g.trim().toLowerCase();
+    if (GENRE_MAP[key] != null && !ids.includes(GENRE_MAP[key])) {
+      ids.push(GENRE_MAP[key]);
+    }
+  }
+  return ids;
 }
 
 export function extractHdrFromName(name: string): string | null {

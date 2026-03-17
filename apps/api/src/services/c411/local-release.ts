@@ -7,9 +7,13 @@ import { getMediaInfo } from './mediainfo';
 import { detectLanguages } from './lang-detect';
 import { fetchTmdbDetails, buildFallbackTmdbDetails } from './tmdb';
 import { generateBBCode, buildReleaseInfo } from './bbcode';
-import { buildC411ReleaseName } from './release-name';
-import { resolveCategory, resolveGenres, resolveLanguage } from './resolvers';
-import { formatSize } from './utils';
+import {
+  buildReleaseName,
+  formatReleaseSize,
+  resolveCategory,
+  resolveGenres,
+  resolveLanguage,
+} from '@hously/shared';
 
 type RadarrMovie = {
   id: number;
@@ -87,7 +91,7 @@ export async function createLocalC411ReleaseFromConversion(params: {
 
   const releaseStem = basename(params.outputPath, extname(params.outputPath));
   const c411Name = media
-    ? buildC411ReleaseName(
+    ? buildReleaseName(
         buildReleaseInfo(
           tmdb,
           media,
@@ -103,7 +107,7 @@ export async function createLocalC411ReleaseFromConversion(params: {
     media,
     releaseName: c411Name,
     fileCount: 1,
-    totalSize: formatSize(fileStat.size),
+    totalSize: formatReleaseSize(fileStat.size),
     languages: languageTag !== 'UNKNOWN' ? languageTag : undefined,
   });
 
@@ -164,7 +168,7 @@ export async function createLocalC411ReleaseFromConversion(params: {
         sourceId: params.sourceId,
         inputPath: params.inputPath,
         outputPath: params.outputPath,
-        sizeHuman: formatSize(fileStat.size),
+        sizeHuman: formatReleaseSize(fileStat.size),
         prepareError: null,
       } satisfies Prisma.InputJsonObject,
     },

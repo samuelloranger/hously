@@ -1,8 +1,8 @@
 import { Loader2, Grid3X3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { C411MediaInfoResponse, C411ReleaseStatusResponse } from '@hously/shared';
-import { formatSize, BADGE_BASE, CARD, STAT_SEED } from './c411-utils';
-import { buildSlotStates, buildMediaSummary, type SlotState } from './c411-slot-matching';
+import { formatReleaseSize as formatSize, buildSlotStates, buildMediaSummary, type SlotState } from '@hously/shared';
+import { BADGE_BASE, CARD, STAT_SEED } from './c411-utils';
 
 interface Props {
   data: C411ReleaseStatusResponse | null;

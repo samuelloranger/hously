@@ -1,7 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearch } from '@tanstack/react-router';
-import { useMediaAutoSearch, useMedias, useActiveMediaConversions, type MediaItem } from '@hously/shared';
+import {
+  useMediaAutoSearch,
+  useMedias,
+  useActiveMediaConversions,
+  filterAndSortMediaItems,
+  type MediaItem,
+  type MediaFilter,
+  type MediaSortKey as SortKey,
+  type MediaSortDir as SortDir,
+} from '@hously/shared';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaPosterCard } from '@/components/MediaPosterCard';
 import { ArrowDownAZ, ArrowUpZA, ExternalLink, RefreshCw, Search, Sparkles, Trash2, User, Upload, EllipsisVertical, Zap } from 'lucide-react';
@@ -18,16 +27,6 @@ import { ConvertMediaDialog } from './ConvertMediaDialog';
 import { ConversionStatusBar } from './ConversionStatusBar';
 import type { LibrarySearchParams } from '@/router';
 import type { TabKey } from './c411/C411Dialog';
-
-type MediaFilter = 'all' | 'movie' | 'series';
-type SortKey = 'added_at' | 'title' | 'year' | 'service' | 'status' | 'downloaded' | 'monitored';
-type SortDir = 'asc' | 'desc';
-
-const getAddedTime = (item: MediaItem): number => {
-  if (!item.added_at) return 0;
-  const parsed = Date.parse(item.added_at);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
 
 export function MediasLibrary() {
   const { t } = useTranslation('common');
@@ -76,26 +75,12 @@ export function MediasLibrary() {
   const isNotConfigured = libraryData && !libraryData.radarr_enabled && !libraryData.sonarr_enabled;
 
   const filtered = useMemo(() => {
-    const needle = search.trim().toLowerCase();
-    return items
-      .filter(item => (filter === 'all' ? true : item.media_type === filter))
-      .filter(item => {
-        if (!needle) return true;
-        return item.title.toLowerCase().includes(needle);
-      })
-      .sort((a, b) => {
-        let cmp = 0;
-        if (sortBy === 'added_at') cmp = getAddedTime(a) - getAddedTime(b);
-        else if (sortBy === 'title') cmp = a.title.localeCompare(b.title);
-        else if (sortBy === 'year') cmp = (a.year ?? 0) - (b.year ?? 0);
-        else if (sortBy === 'service') cmp = a.service.localeCompare(b.service);
-        else if (sortBy === 'status') cmp = (a.status ?? '').localeCompare(b.status ?? '');
-        else if (sortBy === 'downloaded') cmp = Number(a.downloaded) - Number(b.downloaded);
-        else if (sortBy === 'monitored') cmp = Number(a.monitored) - Number(b.monitored);
-
-        if (cmp === 0) return a.title.localeCompare(b.title);
-        return sortDir === 'asc' ? cmp : -cmp;
-      });
+    return filterAndSortMediaItems(items, {
+      filter,
+      search,
+      sortBy,
+      sortDir,
+    });
   }, [items, filter, search, sortBy, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));

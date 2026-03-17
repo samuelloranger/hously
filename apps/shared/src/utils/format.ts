@@ -112,3 +112,24 @@ export function formatBytes(bytes: number | null | undefined): string {
 export function formatSpeed(bytesPerSecond: number | null | undefined): string {
   return `${formatBytes(bytesPerSecond)}/s`;
 }
+
+/**
+ * Format bytes to Release-style size strings (Go, Mo, Ko).
+ */
+export function formatReleaseSize(bytes: number | null | undefined): string {
+  if (bytes == null || !Number.isFinite(bytes) || bytes <= 0) return '0 Ko';
+  if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(2)} Go`;
+  if (bytes >= 1_048_576) return `${(bytes / 1_048_576).toFixed(2)} Mo`;
+  return `${(bytes / 1024).toFixed(2)} Ko`;
+}
+
+/**
+ * Calculate recommended bittorrent piece length based on file size.
+ */
+export function calcPieceLength(sizeBytes: number): number {
+  if (sizeBytes < 536_870_912) return 20; // 1 MiB
+  if (sizeBytes < 1_073_741_824) return 21; // 2 MiB
+  if (sizeBytes < 4_294_967_296) return 22; // 4 MiB
+  if (sizeBytes < 8_589_934_592) return 23; // 8 MiB
+  return 24; // 16 MiB
+}

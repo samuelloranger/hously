@@ -1,10 +1,17 @@
 /**
- * Pure matching engine that evaluates which C411 upload slots best fit
- * the user's local media file based on resolution, codec, source type,
+ * Pure matching engine that evaluates which upload slots best fit
+ * a media file based on resolution, codec, source type,
  * HDR, quality tier, and file size.
  */
-import type { C411MediaInfoResponse, C411ReleaseStatusResponse, C411Slot } from '@hously/shared';
-import { formatSize } from './c411-utils';
+import type { C411MediaInfoResponse, C411ReleaseStatusResponse, C411Slot } from '../types/c411';
+import {
+  formatReleaseSize as formatSize,
+  normalizeResolution,
+  normalizeVideoCodec,
+  detectSourceType,
+  detectHdr,
+  parseVideoBitrateMbps,
+} from './index';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -26,7 +33,7 @@ export type SourceType =
   | 'DVDRIP';
 
 export type QualityTier = 'pure' | 'high' | 'lossy' | 'unknown';
-type HdrMode = 'required' | 'forbidden' | 'ignore';
+export type HdrMode = 'required' | 'forbidden' | 'ignore';
 
 export type LocalMediaProfile = {
   resolution: string | null;
@@ -39,12 +46,12 @@ export type LocalMediaProfile = {
   tier: QualityTier;
 };
 
-type SizeRange = {
+export type SizeRange = {
   min: number | null;
   max: number | null;
 };
 
-type SlotShape = {
+export type SlotShape = {
   resolution: string | null;
   sourceTypes: SourceType[];
   videoCodec: string | null;
@@ -53,7 +60,7 @@ type SlotShape = {
   sizeRange: SizeRange | null;
 };
 
-type SlotEvaluation = {
+export type SlotEvaluation = {
   score: number;
   confidence: number;
 };
@@ -103,65 +110,10 @@ const WEB_SOURCE_TYPES: SourceType[] = ['WEB-DL', 'WEBRIP', 'WEB'];
 const LOSSY_SOURCE_TYPES: SourceType[] = ['HDLIGHT', 'WEB-DL', 'WEBRIP', 'WEB', 'BDRIP', '4KLIGHT'];
 
 // ---------------------------------------------------------------------------
-// Normalizers — reused by both media-profile and slot-shape parsing
-// ---------------------------------------------------------------------------
-
-export function normalizeResolution(value: string | null | undefined): string | null {
-  if (!value) return null;
-  const upper = value.toUpperCase();
-  if (upper.includes('2160') || upper.includes('4K') || upper.includes('UHD')) return '2160P';
-  if (upper.includes('1080')) return '1080P';
-  if (upper.includes('720')) return '720P';
-  if (upper.includes('480')) return '480P';
-  return null;
-}
-
-export function normalizeVideoCodec(value: string | null | undefined): string | null {
-  if (!value) return null;
-  const upper = value.toUpperCase();
-  if (upper.includes('AV1')) return 'AV1';
-  if (upper.includes('H265') || upper.includes('X265') || upper.includes('HEVC')) return 'H265';
-  if (upper.includes('H264') || upper.includes('X264') || upper.includes('AVC')) return 'H264';
-  if (upper.includes('MPEG-2')) return 'MPEG-2';
-  return null;
-}
-
-export function detectSourceType(value: string | null | undefined): SourceType | null {
-  if (!value) return null;
-  const lower = value.toLowerCase();
-  if (lower.includes('bdmv')) return 'BDMV';
-  if (lower.includes('remux')) return 'REMUX';
-  if (lower.includes('4klight')) return '4KLIGHT';
-  if (lower.includes('hdlight')) return 'HDLIGHT';
-  if (lower.includes('web-dl') || lower.includes('webdl')) return 'WEB-DL';
-  if (lower.includes('webrip')) return 'WEBRIP';
-  if (lower.includes('bdrip') || lower.includes('brrip')) return 'BDRIP';
-  if (lower.includes('bluray') || lower.includes('blu-ray')) return 'BLURAY';
-  if (/\bweb\b/.test(lower)) return 'WEB';
-  if (lower.includes('hdtv')) return 'HDTV';
-  if (lower.includes('dvd')) return 'DVDRIP';
-  return null;
-}
-
-function detectHdr(value: string | null | undefined): boolean {
-  if (!value) return false;
-  return /\b(hdr10|hdr|dolby[ .-]?vision|dv)\b/i.test(value);
-}
-
-function parseVideoBitrateMbps(value: string | null | undefined): number | null {
-  if (!value || value === 'N/A') return null;
-  const mbpsMatch = value.match(/([\d.]+)\s*Mbps/i);
-  if (mbpsMatch) return Number(mbpsMatch[1]);
-  const kbpsMatch = value.match(/([\d.]+)\s*kbps/i);
-  if (kbpsMatch) return Number(kbpsMatch[1]) / 1000;
-  return null;
-}
-
-// ---------------------------------------------------------------------------
 // Size range helpers
 // ---------------------------------------------------------------------------
 
-function parseSizeRange(value: string | null | undefined): SizeRange | null {
+export function parseSizeRange(value: string | null | undefined): SizeRange | null {
   if (!value) return null;
   const text = value.toLowerCase().replace(/,/g, '.');
   const toBytes = (size: string) => Math.round(Number(size) * BYTES_PER_GB);
@@ -180,9 +132,7 @@ function parseSizeRange(value: string | null | undefined): SizeRange | null {
 
 /**
  * When a slot has no explicit size constraint in its label, estimate an
- * acceptable range from existing occupants. A single occupant gets wider
- * tolerance (±12%) because one data point is less reliable; multiple
- * occupants narrow to ±5%.
+ * acceptable range from existing occupants.
  */
 function inferSizeRangeFromOccupants(slot: C411Slot): SizeRange | null {
   const sizes = slot.occupants
@@ -236,7 +186,7 @@ export function buildMediaProfile(mediaInfo: C411MediaInfoResponse | null): Loca
 
   const sceneText = mediaInfo.scene_name || '';
   const sourceLabel = mediaInfo.media_info.source !== 'N/A' ? mediaInfo.media_info.source : null;
-  const sourceType = detectSourceType(sceneText) ?? detectSourceType(sourceLabel);
+  const sourceType = (detectSourceType(sceneText) ?? detectSourceType(sourceLabel)) as SourceType | null;
   const videoCodec = normalizeVideoCodec(mediaInfo.media_info.video_codec);
   const bitrateMbps = parseVideoBitrateMbps(mediaInfo.media_info.video_bitrate);
 
@@ -260,7 +210,6 @@ export function buildMediaProfile(mediaInfo: C411MediaInfoResponse | null): Loca
 function inferSlotSourceTypes(text: string): SourceType[] {
   const lower = text.toLowerCase();
 
-  // Composite labels first (order matters — most specific first)
   if (lower.includes('hdlight/webrip') || lower.includes('bluray.hdlight/webrip')) return ['HDLIGHT', 'WEBRIP', 'WEB-DL', 'WEB'];
   if (lower.includes('bdmv')) return ['BDMV'];
   if (lower.includes('remux')) return ['REMUX'];
@@ -282,7 +231,7 @@ function inferSlotTier(profile: string): QualityTier {
   return 'unknown';
 }
 
-function inferSlotShape(slot: C411Slot): SlotShape {
+export function inferSlotShape(slot: C411Slot): SlotShape {
   const text = `${slot.profile} ${slot.label}`;
   const lower = text.toLowerCase();
 
@@ -304,20 +253,12 @@ function isWebSource(sourceType: SourceType): boolean {
   return WEB_SOURCE_TYPES.includes(sourceType);
 }
 
-/**
- * Evaluate how well `media` fits `slot`. Returns a score/confidence pair.
- * Hard mismatches (wrong resolution, wrong codec when slot specifies one)
- * yield score 0 / confidence 0 rather than null, so partial matches with
- * sparse data still surface at low confidence.
- */
-function evaluateSlot(slot: C411Slot, media: LocalMediaProfile | null): SlotEvaluation {
+export function evaluateSlot(slot: C411Slot, media: LocalMediaProfile | null): SlotEvaluation {
   if (!media) return { score: 0, confidence: 0 };
 
   const shape = inferSlotShape(slot);
   let score = 0;
   let confidence = 0;
-
-  // --- Hard constraints: a mismatch on these means the slot cannot fit ---
 
   if (shape.resolution) {
     if (media.resolution !== shape.resolution) return { score: 0, confidence: 0 };
@@ -344,8 +285,6 @@ function evaluateSlot(slot: C411Slot, media: LocalMediaProfile | null): SlotEval
     confidence += WEIGHT.hdr.confidence;
   }
 
-  // --- Soft constraints: tier preference ---
-
   if (shape.preferredTier === 'pure') {
     if (media.tier !== 'pure') return { score: 0, confidence: 0 };
     score += WEIGHT.tierPure.score;
@@ -360,8 +299,6 @@ function evaluateSlot(slot: C411Slot, media: LocalMediaProfile | null): SlotEval
     score += WEIGHT.tierLossy.score;
     confidence += WEIGHT.tierLossy.confidence;
   }
-
-  // --- Size range ---
 
   if (media.size != null && shape.sizeRange) {
     if (isWithinRange(media.size, shape.sizeRange)) {
@@ -379,8 +316,6 @@ function evaluateSlot(slot: C411Slot, media: LocalMediaProfile | null): SlotEval
       }
     }
   }
-
-  // --- Contextual bonuses for specific slot/source combos ---
 
   if (media.sourceType === 'BLURAY' && (slot.id.includes('COMPAT-01') || /bdrip/i.test(slot.label))) {
     score += WEIGHT.bonusSmall;
@@ -406,14 +341,6 @@ function evaluateSlot(slot: C411Slot, media: LocalMediaProfile | null): SlotEval
   return { score, confidence };
 }
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
-/**
- * Compute the visual state for every slot in the grid based on how well
- * the user's local media file matches each slot.
- */
 export function buildSlotStates(
   data: C411ReleaseStatusResponse,
   mediaInfo: C411MediaInfoResponse | null,
@@ -428,7 +355,6 @@ export function buildSlotStates(
 
   const bestMatch = ranked.find((entry) => entry.evaluation.confidence >= CONFIDENCE_MATCH) ?? null;
 
-  // Show a "candidate" slot only when the best match is occupied (or absent).
   const showCandidate = !bestMatch || bestMatch.slot.occupants.length > 0;
   const candidate = showCandidate
     ? ranked.find(
@@ -455,9 +381,6 @@ export function buildSlotStates(
   return states;
 }
 
-/**
- * Build a human-readable one-liner describing the local media file.
- */
 export function buildMediaSummary(mediaInfo: C411MediaInfoResponse | null): string | null {
   if (!mediaInfo?.media_info) return null;
 

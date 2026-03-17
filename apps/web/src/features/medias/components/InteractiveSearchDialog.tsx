@@ -9,8 +9,14 @@ import {
   useMediaInteractiveSearch,
   useProwlarrInteractiveDownload,
   useProwlarrInteractiveSearch,
+  filterAndSortReleases,
+  normalizeFilterKey,
+  UNKNOWN_TRACKER_KEY,
+  UNKNOWN_LANGUAGE_KEY,
   type InteractiveReleaseItem,
   type MediaItem,
+  type InteractiveSortKey,
+  type InteractiveSortDir,
 } from '@hously/shared';
 
 interface InteractiveSearchDialogProps {
@@ -20,14 +26,7 @@ interface InteractiveSearchDialogProps {
   mode?: 'arr' | 'prowlarr';
 }
 
-type InteractiveSortKey = 'seeders' | 'age' | 'size' | 'title';
-type InteractiveSortDir = 'asc' | 'desc';
 type FilterOption = { key: string; label: string };
-
-const UNKNOWN_TRACKER_KEY = '__unknown_tracker__';
-const UNKNOWN_LANGUAGE_KEY = '__unknown_language__';
-
-const normalizeFilterKey = (value: string): string => value.trim().toLocaleLowerCase();
 
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
@@ -224,45 +223,15 @@ export function InteractiveSearchDialog({ isOpen, onClose, media = null, mode = 
   }, [activeQuery.data?.releases, t]);
 
   const releases = useMemo(() => {
-    const raw = activeQuery.data?.releases ?? [];
-    const includeTrackers = new Set(includedTrackers);
-    const excludeTrackers = new Set(excludedTrackers);
-    const includeLanguages = new Set(includedLanguages);
-    const normalizedQuery = isProwlarrMode ? '' : normalizeFilterKey(filterQuery);
-
-    const filtered = raw.filter(release => {
-      if (hideRejected && release.rejected) return false;
-
-      const trackerKey = release.indexer?.trim() ? normalizeFilterKey(release.indexer) : UNKNOWN_TRACKER_KEY;
-      if (includeTrackers.size > 0 && !includeTrackers.has(trackerKey)) return false;
-      if (excludeTrackers.has(trackerKey)) return false;
-
-      if (includeLanguages.size > 0) {
-        const releaseLanguageKeys =
-          release.languages.length > 0
-            ? release.languages.map(language => normalizeFilterKey(language))
-            : [UNKNOWN_LANGUAGE_KEY];
-
-        if (!releaseLanguageKeys.some(languageKey => includeLanguages.has(languageKey))) return false;
-      }
-
-      if (normalizedQuery) {
-        const searchableValue = `${release.title} ${release.indexer ?? ''}`;
-        if (!normalizeFilterKey(searchableValue).includes(normalizedQuery)) return false;
-      }
-
-      return true;
-    });
-
-    return [...filtered].sort((a, b) => {
-      let cmp = 0;
-      if (sortBy === 'seeders') cmp = (a.seeders ?? -1) - (b.seeders ?? -1);
-      else if (sortBy === 'age') cmp = (a.age ?? Number.MAX_SAFE_INTEGER) - (b.age ?? Number.MAX_SAFE_INTEGER);
-      else if (sortBy === 'size') cmp = (a.size_bytes ?? -1) - (b.size_bytes ?? -1);
-      else cmp = a.title.localeCompare(b.title);
-
-      if (cmp === 0) return a.title.localeCompare(b.title);
-      return sortDir === 'asc' ? cmp : -cmp;
+    return filterAndSortReleases(activeQuery.data?.releases ?? [], {
+      filterQuery,
+      hideRejected,
+      includedTrackers,
+      excludedTrackers,
+      includedLanguages,
+      sortBy,
+      sortDir,
+      isProwlarrMode,
     });
   }, [
     activeQuery.data?.releases,

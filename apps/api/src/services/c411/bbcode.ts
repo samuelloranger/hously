@@ -4,9 +4,20 @@
 
 import type { TmdbDetails } from './tmdb';
 import type { AudioStreamInfo, MediaInfoData, SubtitleStreamInfo } from './mediainfo';
-import { buildC411ReleaseName, formatChannels, parseSeason, parseTeam, extractHdrFromName, type C411ReleaseInfo } from './release-name';
-import { getFlagCode, getShortLangLabel, getFullLangName } from './lang-mapping';
-import { formatSize } from './utils';
+import {
+  buildReleaseName,
+  formatChannels,
+  parseSeason,
+  parseTeam,
+  extractHdrFromName,
+  type ReleaseInfo,
+  getFlagCode,
+  getShortLangLabel,
+  getFullLangName,
+  resolveCategory,
+  resolveLanguage,
+  resolveGenres,
+} from '@hously/shared';
 
 const BBCODE_TEMPLATE = `[h1]{TMDB_TITLE}[/h1]
 
@@ -236,7 +247,7 @@ export function buildReleaseInfo(
   media: MediaInfoData | null,
   releaseName: string,
   languages?: string,
-): C411ReleaseInfo {
+): ReleaseInfo {
   return {
     title: tmdb.title || releaseName,
     year: tmdb.year || undefined,
@@ -305,7 +316,7 @@ export function generateBBCode(ctx: PrezContext): string {
     AUDIO_CODEC: media?.audioStreams?.[0]?.codec ?? 'N/A',
     AUDIO_BITRATE: media?.audioStreams?.[0]?.bitrate ? normalizeBitrate(media.audioStreams[0].bitrate) : 'N/A',
     AUDIO_CHANNELS: media?.audioStreams?.[0]?.channels ? formatChannels(media.audioStreams[0].channels) : 'N/A',
-    RELEASE_NAME: buildC411ReleaseName(info, releaseName, ctx.teamOverride),
+    RELEASE_NAME: buildReleaseName(info, releaseName, ctx.teamOverride),
     RELEASE_TEAM: team === 'N/A' ? 'NOTAG' : team,
     NBR_FICHIERS: ctx.fileCount > 0 ? String(ctx.fileCount) : 'N/A',
     POIDS_TOTAL: ctx.totalSize,

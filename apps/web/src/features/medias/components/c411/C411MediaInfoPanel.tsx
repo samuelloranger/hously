@@ -1,6 +1,7 @@
 import { Loader2, AudioLines, Film, HardDrive, Clock, Monitor, Gauge, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatSize, BADGE_NEUTRAL, CARD, langBadgeClass, BADGE_BASE } from './c411-utils';
+import { formatReleaseSize as formatSize } from '@hously/shared';
+import { BADGE_NEUTRAL, CARD, langBadgeClass, BADGE_BASE } from './c411-utils';
 
 interface Props {
   data: any;

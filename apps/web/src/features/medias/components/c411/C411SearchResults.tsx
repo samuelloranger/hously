@@ -1,7 +1,8 @@
 import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { C411SearchResponse } from '@hously/shared';
-import { formatSize, capitalizeStatus, STATUS_BADGE, BADGE_BASE, BADGE_NEUTRAL, BADGE_INDIGO, CARD, CARD_HIGHLIGHT, STAT_LINE, STAT_SEED, STAT_LEECH } from './c411-utils';
+import { formatReleaseSize as formatSize, capitalizeStatus } from '@hously/shared';
+import { STATUS_BADGE, BADGE_BASE, BADGE_NEUTRAL, BADGE_INDIGO, CARD, CARD_HIGHLIGHT, STAT_LINE, STAT_SEED, STAT_LEECH } from './c411-utils';
 
 interface Props {
   data: C411SearchResponse | null;

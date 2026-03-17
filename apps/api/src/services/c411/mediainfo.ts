@@ -2,6 +2,14 @@
  * MediaInfo extraction from media files.
  */
 
+import {
+  normalizeContainer,
+  normalizeVideoCodec,
+  normalizeAudioCodec,
+  normalizeSubtitleFormat,
+  detectSource,
+  detectLangFromName,
+} from '@hously/shared';
 import { findMediaFile } from './lang-detect';
 
 export interface AudioStreamInfo {
@@ -168,84 +176,6 @@ export async function getMediaInfo(contentPath: string, releaseName?: string): P
   };
 }
 
-function normalizeContainer(format: string): string {
-  const f = format.toLowerCase();
-  if (f === 'matroska') return 'MKV';
-  if (f === 'mpeg-4' || f === 'mp4') return 'MP4';
-  if (f === 'avi') return 'AVI';
-  if (f === 'mpeg-ts' || f === 'mpegts') return 'TS';
-  if (f === 'wmv') return 'WMV';
-  return format.toUpperCase();
-}
-
-function normalizeVideoCodec(format: string, profile: string, codecId: string): string {
-  const f = format.toLowerCase();
-  const cid = codecId.toLowerCase();
-  if (f === 'hevc' || f === 'h.265' || cid.includes('hev1') || cid.includes('hvc1')) return 'H265';
-  if (f === 'avc' || f === 'h.264' || cid.includes('avc1') || cid.includes('v_mpeg4/iso/avc')) return 'H264';
-  if (f === 'av1') return 'AV1';
-  if (f === 'mpeg video') return profile.includes('4') ? 'MPEG-4' : 'MPEG-2';
-  if (f === 'vp9') return 'VP9';
-  return format || 'Unknown';
-}
-
-function normalizeAudioCodec(format: string, commercialName: string, _codecId: string): string {
-  const f = format.toLowerCase();
-  const cn = commercialName.toLowerCase();
-  if (f === 'ac-3' || f === 'ac3') return 'AC3';
-  if (f === 'e-ac-3' || f === 'eac3') return 'EAC3';
-  if (cn.includes('dts-hd ma') || cn.includes('dts-hd master')) return 'DTS-HD MA';
-  if (cn.includes('dts-hd')) return 'DTS-HD';
-  if (f === 'dts') return 'DTS';
-  if (cn.includes('truehd') || f.includes('truehd')) return 'TrueHD';
-  if (f === 'aac') return 'AAC';
-  if (f === 'flac') return 'FLAC';
-  if (f === 'opus') return 'Opus';
-  if (f === 'vorbis') return 'Vorbis';
-  if (f === 'mp3' || f === 'mpeg audio') return 'MP3';
-  if (f === 'pcm') return 'PCM';
-  return format || 'Unknown';
-}
-
-function normalizeSubtitleFormat(format: string, codecId: string): string {
-  const f = format.toLowerCase();
-  const cid = codecId.toLowerCase();
-  if (f === 'utf-8' || f === 'ascii' || cid.includes('s_text/utf8') || cid === 's_utf8') return 'SRT';
-  if (f === 'subrip' || cid.includes('srt')) return 'SRT';
-  if (f === 'ass' || f === 'ssa' || cid.includes('s_text/ass') || cid.includes('s_text/ssa')) return 'ASS';
-  if (f === 'pgs' || cid.includes('s_hdmv/pgs')) return 'PGS';
-  if (f === 'vobsub' || cid.includes('s_vobsub')) return 'VobSub';
-  if (f === 'webvtt' || cid.includes('webvtt')) return 'WebVTT';
-  if (f === 'dvb subtitle' || f === 'dvbsub') return 'DVB';
-  return format || 'N/A';
-}
-
-function detectLangFromName(name: string): { lang: string; label: string }[] {
-  const n = name.toUpperCase();
-  const langs: { lang: string; label: string }[] = [];
-
-  if (/\bMULTI\.VF2\b/.test(n)) {
-    langs.push({ lang: 'French', label: 'VFF' }, { lang: 'French', label: 'VFQ' }, { lang: 'English', label: 'VO' });
-    return langs;
-  }
-  if (/\bMULTI\b/.test(n)) {
-    if (/\bVFF\b/.test(n)) langs.push({ lang: 'French', label: 'VFF' });
-    else if (/\bVFQ\b/.test(n) || /\bVQC\b/.test(n)) langs.push({ lang: 'French', label: 'VFQ' });
-    else if (/\bVFI\b/.test(n)) langs.push({ lang: 'French', label: 'VFI' });
-    else langs.push({ lang: 'French', label: 'French' });
-    langs.push({ lang: 'English', label: 'VO' });
-    return langs;
-  }
-
-  if (/\bVFF\b/.test(n)) return [{ lang: 'French', label: 'VFF' }];
-  if (/\bVFQ\b/.test(n) || /\bVQC\b/.test(n)) return [{ lang: 'French', label: 'VFQ' }];
-  if (/\bVFI\b/.test(n)) return [{ lang: 'French', label: 'VFI' }];
-  if (/\bTRUEFRENCH\b/.test(n)) return [{ lang: 'French', label: 'TRUEFRENCH' }];
-  if (/\bFRENCH\b/.test(n)) return [{ lang: 'French', label: 'French' }];
-  if (/\bVOSTFR\b/.test(n)) return [{ lang: 'French', label: 'VOSTFR (sous-titres)' }];
-  return [];
-}
-
 function patchNfoLanguage(nfo: string, releaseName: string, _audioStreams: AudioStreamInfo[]): string {
   const audioSections = nfo.split(/^Audio/m);
   if (audioSections.length <= 1) return nfo;
@@ -299,28 +229,4 @@ function patchNfoLanguage(nfo: string, releaseName: string, _audioStreams: Audio
   }
 
   return patched.join('\n');
-}
-
-export function detectSource(fileName: string): string {
-  const name = fileName.toLowerCase();
-  let source = '';
-  if (/blu-?ray|bdremux|bdmux/.test(name)) source = 'BluRay';
-  else if (/web-?dl/.test(name)) source = 'WEB-DL';
-  else if (/webrip/.test(name)) source = 'WEBRip';
-  else if (/bdrip/.test(name)) source = 'BDRip';
-  else if (/hdrip/.test(name)) source = 'HDRip';
-  else if (/dvdrip/.test(name)) source = 'DVDRip';
-  else if (/hdtv/.test(name)) source = 'HDTV';
-  else if (/web(?!.*(dl|rip))/.test(name)) source = 'WEB';
-
-  let encoding = '';
-  if (/hdlight/.test(name)) encoding = 'HDLight';
-  else if (/remux/.test(name)) encoding = 'Remux';
-
-  if (encoding === 'HDLight' && !source) source = 'BluRay';
-  if (encoding === 'HDLight') return 'HDLight';
-  if (source && encoding) return `${source} (${encoding})`;
-  if (source) return source;
-  if (encoding) return encoding;
-  return 'N/A';
 }

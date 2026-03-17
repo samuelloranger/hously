@@ -2,6 +2,8 @@
  * TMDB detail fetching for C411 BBCode generation.
  */
 
+import { formatRuntime, parseReleaseName, isTvShow } from '@hously/shared';
+
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
 
@@ -33,15 +35,6 @@ async function tmdbFetch(apiKey: string, path: string, params: Record<string, st
   const p = new URLSearchParams({ api_key: apiKey, language: 'fr-FR', ...params });
   const res = await fetch(`${TMDB_BASE}${path}?${p}`);
   return res.json() as Promise<any>;
-}
-
-function formatRuntime(minutes: number): string {
-  if (minutes >= 60) {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`;
-  }
-  return `${minutes}min`;
 }
 
 export async function fetchTmdbDetails(apiKey: string, type: 'movie' | 'tv', id: number): Promise<TmdbDetails> {
@@ -101,27 +94,6 @@ export async function fetchTmdbDetails(apiKey: string, type: 'movie' | 'tv', id:
     seasons: details.number_of_seasons, episodes: details.number_of_episodes,
     status: statusMap[details.status] ?? details.status ?? 'N/A', network, creators,
   };
-}
-
-export function parseReleaseName(name: string): { title: string; year: string } {
-  let clean = name.replace(/\.[^.]+$/, '');
-  const yearMatch = clean.match(/(19|20)\d{2}/);
-  const year = yearMatch?.[0] ?? '';
-  let title: string;
-  if (year) {
-    title = clean.replace(new RegExp(`[\\s.\\-_]*[\\(\\[]?${year}.*`), '');
-  } else {
-    title = clean.replace(
-      /[.\-_ ](MULTi|FRENCH|VOSTFR|VFF|VFQ|TRUEFRENCH|1080p|720p|2160p|4K|BluRay|WEB|HDRip|BDRip|HDTV|x26[45]|HEVC|S\d{2}|iNTEGRALE|Integrale|Saison|Season).*/i,
-      '',
-    );
-  }
-  title = title.replace(/[._]/g, ' ').replace(/\s*-\s*$/, '').trim().replace(/\s+/g, ' ');
-  return { title, year };
-}
-
-export function isTvShow(name: string): boolean {
-  return /S\d{2}|Saison|Season|Complete|Int[eé]grale/i.test(name);
 }
 
 export async function searchAndFetchTmdbDetails(apiKey: string, releaseName: string): Promise<TmdbDetails | null> {

@@ -1,18 +1,6 @@
 /**
- * Shared utilities and styles for C411 components.
+ * Shared styles and constants for C411 components.
  */
-
-export function formatSize(bytes: number): string {
-  if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(1)} Go`;
-  if (bytes >= 1_048_576) return `${(bytes / 1_048_576).toFixed(0)} Mo`;
-  return `${(bytes / 1024).toFixed(0)} Ko`;
-}
-
-/** Capitalize first letter of a status string for display. */
-export function capitalizeStatus(status: string): string {
-  const normalized = status.replace(/_/g, ' ');
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
-}
 
 export const STATUS_BADGE: Record<string, string> = {
   local: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',

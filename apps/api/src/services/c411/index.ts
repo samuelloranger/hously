@@ -18,10 +18,10 @@ export { generateBBCode } from './bbcode';
 export { fetchTmdbDetails, searchAndFetchTmdbDetails, buildFallbackTmdbDetails } from './tmdb';
 
 // Resolvers
-export { resolveCategory, resolveLanguage, resolveGenres } from './resolvers';
+export { resolveCategory, resolveLanguage, resolveGenres } from '@hously/shared';
 
 // Utilities
-export { formatSize, calcPieceLength } from './utils';
+export { formatReleaseSize as formatSize, calcPieceLength } from '@hously/shared';
 
 // Types
 export type {
@@ -45,5 +45,5 @@ export type {
 } from './types';
 export type { TmdbDetails } from './tmdb';
 export type { MediaInfoData, AudioStreamInfo, SubtitleStreamInfo } from './mediainfo';
-export type { C411ReleaseInfo } from './release-name';
+export type { ReleaseInfo } from '@hously/shared';
 export type { PrezContext } from './bbcode';
