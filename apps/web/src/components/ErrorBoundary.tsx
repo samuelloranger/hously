@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from "react";
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
   render() {
@@ -33,11 +33,9 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
           <div className="max-w-md w-full space-y-4 text-center">
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-              Something went wrong
-            </h1>
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Something went wrong</h1>
             <p className="text-neutral-600 dark:text-neutral-400">
-              {this.state.error?.message || "An unexpected error occurred"}
+              {this.state.error?.message || 'An unexpected error occurred'}
             </p>
             <button
               onClick={() => window.location.reload()}
@@ -46,6 +44,37 @@ export class ErrorBoundary extends Component<Props, State> {
               Reload page
             </button>
           </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+export class CardErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('CardErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
+      return (
+        <div className="relative overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-700/60 bg-neutral-50 dark:bg-neutral-800/60 p-4 shadow-sm flex items-center justify-center min-h-[80px]">
+          <p className="text-xs text-neutral-400 dark:text-neutral-500">Failed to load</p>
         </div>
       );
     }

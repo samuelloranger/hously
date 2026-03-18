@@ -4,6 +4,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FetcherProvider } from '@hously/shared';
 import { router } from './router';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { checkVersionAndReload } from './lib/version';
 import { registerServiceWorker } from './lib/serviceWorker';
 import { useAutoInvalidateNotifications } from './hooks/useAutoInvalidateNotifications';
@@ -43,11 +44,13 @@ registerServiceWorker();
 // Render immediately to avoid blank screens if optional bootstrapping hangs.
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <FetcherProvider fetcher={webFetcher}>
-        <AppWithServiceWorkerIntegration />
-      </FetcherProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <FetcherProvider fetcher={webFetcher}>
+          <AppWithServiceWorkerIntegration />
+        </FetcherProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>
 );
 

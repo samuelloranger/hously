@@ -15,6 +15,7 @@ import { StatCardSkeleton } from '@/components/Skeleton';
 import PendingChoresSection from './components/PendingChoresSection';
 import { UpcomingShelf } from './components/UpcomingShelf';
 import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
+import { CardErrorBoundary } from '@/components/ErrorBoundary';
 
 export function Dashboard() {
   const { t } = useTranslation('common');
@@ -75,44 +76,64 @@ export function Dashboard() {
         </div>
 
         <div className="columns-1 md:columns-2 gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid">
-          <WeatherWidget />
-          <div onMouseEnter={() => prefetchRoute('/torrents')} onTouchStart={() => prefetchRoute('/torrents')}>
-            <QbittorrentLiveCard />
-          </div>
-          <div
-            onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-            onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
-          >
-            <TrackerStatsCard />
-          </div>
-          <div onMouseEnter={() => prefetchRoute('/library')} onTouchStart={() => prefetchRoute('/library')}>
-            <JellyfinLatestShelf />
-          </div>
-          <div onMouseEnter={() => prefetchRoute('/library')} onTouchStart={() => prefetchRoute('/library')}>
-            <UpcomingShelf />
-          </div>
-          <div
-            onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-            onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
-          >
-            <NetdataOverviewCard />
-          </div>
-          <div
-            onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-            onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
-          >
-            <AdguardOverviewCard />
-          </div>
-          <div
-            onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-            onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
-          >
-            <ScrutinyHealthCard />
-          </div>
-          <div onMouseEnter={() => prefetchRoute('/chores')} onTouchStart={() => prefetchRoute('/chores')}>
-            <PendingChoresSection />
-          </div>
-          <RecentActivityCard />
+          <CardErrorBoundary>
+            <WeatherWidget />
+          </CardErrorBoundary>
+          <CardErrorBoundary>
+            <div onMouseEnter={() => prefetchRoute('/torrents')} onTouchStart={() => prefetchRoute('/torrents')}>
+              <QbittorrentLiveCard />
+            </div>
+          </CardErrorBoundary>
+          <CardErrorBoundary>
+            <div
+              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+            >
+              <TrackerStatsCard />
+            </div>
+          </CardErrorBoundary>
+          <CardErrorBoundary>
+            <div onMouseEnter={() => prefetchRoute('/library')} onTouchStart={() => prefetchRoute('/library')}>
+              <JellyfinLatestShelf />
+            </div>
+          </CardErrorBoundary>
+          <CardErrorBoundary>
+            <div onMouseEnter={() => prefetchRoute('/library')} onTouchStart={() => prefetchRoute('/library')}>
+              <UpcomingShelf />
+            </div>
+          </CardErrorBoundary>
+          <CardErrorBoundary>
+            <div
+              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+            >
+              <NetdataOverviewCard />
+            </div>
+          </CardErrorBoundary>
+          <CardErrorBoundary>
+            <div
+              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+            >
+              <AdguardOverviewCard />
+            </div>
+          </CardErrorBoundary>
+          <CardErrorBoundary>
+            <div
+              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
+              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+            >
+              <ScrutinyHealthCard />
+            </div>
+          </CardErrorBoundary>
+          <CardErrorBoundary>
+            <div onMouseEnter={() => prefetchRoute('/chores')} onTouchStart={() => prefetchRoute('/chores')}>
+              <PendingChoresSection />
+            </div>
+          </CardErrorBoundary>
+          <CardErrorBoundary>
+            <RecentActivityCard />
+          </CardErrorBoundary>
         </div>
       </div>
     </PageLayout>

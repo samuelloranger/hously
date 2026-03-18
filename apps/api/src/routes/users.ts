@@ -12,20 +12,7 @@ import {
   getContentType,
 } from '../services/imageService';
 import { badRequest, notFound, serverError, unauthorized } from '../utils/errors';
-
-// Map database user to frontend user (snake_case)
-const mapUser = (user: any) => ({
-  id: user.id,
-  email: user.email,
-  first_name: user.firstName,
-  last_name: user.lastName,
-  is_admin: user.isAdmin || false,
-  locale: user.locale,
-  last_login: user.lastLogin,
-  created_at: user.createdAt || new Date().toISOString(),
-  last_activity: user.lastActivity,
-  avatar_url: user.avatarUrl || null,
-});
+import { mapUser } from '../utils/mappers';
 
 export const usersRoutes = new Elysia({ prefix: '/api/users' })
   .use(auth)
