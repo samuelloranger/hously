@@ -65,6 +65,12 @@ export async function processScheduledJob(job: Job) {
         await refreshHabitsStreaks({ trigger: 'queue' });
         break;
       }
+      case SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAK_FOR_USER: {
+        const { refreshHabitsStreakForUser } = await import('../../utils/dashboard/habitsStreak');
+        const { userId } = job.data as { userId: number };
+        await refreshHabitsStreakForUser(userId);
+        break;
+      }
       default:
         console.warn(`[ScheduledTasksWorker] Unknown job name: ${job.name}`);
         return { success: false, error: 'Unknown job name' };

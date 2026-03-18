@@ -12,7 +12,7 @@ import {
 } from '../services/imageService';
 import { formatIso, nowUtc, sanitizeInput, buildUserMap, validateImageFile } from '../utils';
 import { createNextChoreOccurrence, removeChoreRecurrence } from '../services/choreService';
-import { sendSilentPushToUser } from '../services/externalNotificationService';
+import { addJob, QUEUE_NAMES, NOTIFICATION_JOB_NAMES } from '../services/queueService';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/errors';
 import { hasUpdates } from '../utils/updates';
 
@@ -233,9 +233,7 @@ export const choresRoutes = new Elysia({ prefix: '/api/chores' })
 
         console.log(`User ${user!.id} created chore ${newChore.id}`);
         // Trigger calendar sync on iOS
-        sendSilentPushToUser(user!.id, 'CALENDAR_SYNC').catch(err => 
-          console.error('Error triggering silent push after chore creation:', err)
-        );
+        addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, { userId: user!.id, type: 'CALENDAR_SYNC' }).catch(() => {});
         return {
           success: true,
           id: newChore.id,
@@ -340,9 +338,7 @@ export const choresRoutes = new Elysia({ prefix: '/api/chores' })
 
         console.log(`User ${user!.id} toggled chore ${choreId} to ${newStatus ? 'completed' : 'pending'}`);
         // Trigger calendar sync on iOS
-        sendSilentPushToUser(user!.id, 'CALENDAR_SYNC').catch(err => 
-          console.error('Error triggering silent push after chore toggle:', err)
-        );
+        addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, { userId: user!.id, type: 'CALENDAR_SYNC' }).catch(() => {});
         return { success: true, completed: newStatus };
       } catch (error) {
         console.error('Error toggling chore:', error);
@@ -605,9 +601,7 @@ export const choresRoutes = new Elysia({ prefix: '/api/chores' })
 
       console.log(`User ${user!.id} deleted ${count} completed chores`);
       // Trigger calendar sync on iOS
-      sendSilentPushToUser(user!.id, 'CALENDAR_SYNC').catch(err => 
-        console.error('Error triggering silent push after clearing completed chores:', err)
-      );
+      addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, { userId: user!.id, type: 'CALENDAR_SYNC' }).catch(() => {});
       return {
         success: true,
         message: `Deleted ${count} completed chores`,
@@ -655,9 +649,7 @@ export const choresRoutes = new Elysia({ prefix: '/api/chores' })
 
         console.log(`User ${user!.id} deleted chore ${choreId}`);
         // Trigger calendar sync on iOS
-        sendSilentPushToUser(user!.id, 'CALENDAR_SYNC').catch(err => 
-          console.error('Error triggering silent push after chore deletion:', err)
-        );
+        addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, { userId: user!.id, type: 'CALENDAR_SYNC' }).catch(() => {});
         return { success: true, message: 'Chore deleted successfully' };
       } catch (error) {
         console.error(`Error deleting chore ${choreId}:`, error);

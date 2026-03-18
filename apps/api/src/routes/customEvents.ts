@@ -15,7 +15,7 @@ import {
   isValidColor,
 } from '../utils';
 import { logActivity } from '../utils/activityLogs';
-import { sendSilentPushToUser } from '../services/externalNotificationService';
+import { addJob, QUEUE_NAMES, NOTIFICATION_JOB_NAMES } from '../services/queueService';
 import { badRequest, notFound, serverError, unauthorized } from '../utils/errors';
 import { hasUpdates } from '../utils/updates';
 
@@ -186,9 +186,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         });
 
         // Trigger calendar sync on iOS
-        sendSilentPushToUser(user!.id, 'CALENDAR_SYNC').catch(err => 
-          console.error('Error triggering silent push after event creation:', err)
-        );
+        addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, { userId: user!.id, type: 'CALENDAR_SYNC' }).catch(() => {});
 
         set.status = 201;
         return {
@@ -356,9 +354,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         });
 
         // Trigger calendar sync on iOS
-        sendSilentPushToUser(user!.id, 'CALENDAR_SYNC').catch(err => 
-          console.error('Error triggering silent push after event update:', err)
-        );
+        addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, { userId: user!.id, type: 'CALENDAR_SYNC' }).catch(() => {});
 
         return {
           id: updatedEvent.id,
@@ -430,9 +426,7 @@ export const customEventsRoutes = new Elysia({ prefix: '/api/custom-events' })
         });
 
         // Trigger calendar sync on iOS
-        sendSilentPushToUser(user!.id, 'CALENDAR_SYNC').catch(err => 
-          console.error('Error triggering silent push after event deletion:', err)
-        );
+        addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, { userId: user!.id, type: 'CALENDAR_SYNC' }).catch(() => {});
 
         return { success: true };
       } catch (error) {

@@ -25,6 +25,13 @@ export const SCHEDULED_JOB_NAMES = {
   CHECK_HABIT_REMINDERS: 'check-habit-reminders',
   REFRESH_UPCOMING: 'refresh-upcoming',
   REFRESH_HABITS_STREAKS: 'refresh-habits-streaks',
+  REFRESH_HABITS_STREAK_FOR_USER: 'refresh-habits-streak-for-user',
+} as const;
+
+// Job names for Notifications queue
+export const NOTIFICATION_JOB_NAMES = {
+  SEND_NOTIFICATION: 'send-notification',
+  SILENT_PUSH: 'silent-push',
 } as const;
 
 const defaultQueueOptions: QueueOptions = {

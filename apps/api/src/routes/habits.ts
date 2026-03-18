@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
-import { refreshHabitsStreakForUser } from '../utils/dashboard/habitsStreak';
+import { addJob, QUEUE_NAMES, SCHEDULED_JOB_NAMES } from '../services/queueService';
 import { addDaysInTz, formatDateInTimezone, getTimezone, midnightOf, todayLocal } from '../utils/date';
 import { requireUser } from '../middleware/auth';
 import { notFound, unauthorized, unprocessable } from '../utils/errors';
@@ -393,7 +393,7 @@ export const habitsRoutes = new Elysia()
             }
           });
 
-          refreshHabitsStreakForUser(userId).catch(() => {});
+          addJob(QUEUE_NAMES.SCHEDULED_TASKS, SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAK_FOR_USER, { userId }).catch(() => {});
           return buildHabitStatusResponse(existingHabit.timesPerDay, dayCompletions + 1, daySkipped);
         },
         {
@@ -460,7 +460,7 @@ export const habitsRoutes = new Elysia()
             },
           });
 
-          refreshHabitsStreakForUser(userId).catch(() => {});
+          addJob(QUEUE_NAMES.SCHEDULED_TASKS, SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAK_FOR_USER, { userId }).catch(() => {});
           return buildHabitStatusResponse(existingHabit.timesPerDay, newCount, skippedCount);
         }
       )
@@ -520,7 +520,7 @@ export const habitsRoutes = new Elysia()
             }
           });
 
-          refreshHabitsStreakForUser(userId).catch(() => {});
+          addJob(QUEUE_NAMES.SCHEDULED_TASKS, SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAK_FOR_USER, { userId }).catch(() => {});
           return buildHabitStatusResponse(existingHabit.timesPerDay, dayCompletions, daySkipped + 1);
         },
         {
@@ -587,7 +587,7 @@ export const habitsRoutes = new Elysia()
             },
           });
 
-          refreshHabitsStreakForUser(userId).catch(() => {});
+          addJob(QUEUE_NAMES.SCHEDULED_TASKS, SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAK_FOR_USER, { userId }).catch(() => {});
           return buildHabitStatusResponse(existingHabit.timesPerDay, completionCount, newSkippedCount);
         }
       )

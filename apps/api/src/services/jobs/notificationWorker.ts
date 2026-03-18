@@ -2,6 +2,12 @@ import type { Job } from 'bullmq';
 import { prisma } from '../../db';
 import { sendWebPushNotification, type PushSubscription } from '../../utils/webpush';
 import { sendApnNotifications } from '../../utils/apnPush';
+import { NOTIFICATION_JOB_NAMES } from '../queueService';
+
+export interface SilentPushJobData {
+  userId: number;
+  type: string;
+}
 
 export interface NotificationJobData {
   notificationId: number;
@@ -13,7 +19,21 @@ export interface NotificationJobData {
   metadata?: Record<string, unknown>;
 }
 
-export async function processNotificationJob(job: Job<NotificationJobData>) {
+export async function processNotificationJob(job: Job) {
+  if (job.name === NOTIFICATION_JOB_NAMES.SILENT_PUSH) {
+    return processSilentPushJob(job as Job<SilentPushJobData>);
+  }
+  return processRegularNotificationJob(job as Job<NotificationJobData>);
+}
+
+async function processSilentPushJob(job: Job<SilentPushJobData>) {
+  const { userId, type } = job.data;
+  const { sendSilentPushToUser } = await import('../externalNotificationService');
+  await sendSilentPushToUser(userId, type);
+  return { success: true };
+}
+
+async function processRegularNotificationJob(job: Job<NotificationJobData>) {
   const { notificationId, userId, title, body, notificationType, url, metadata } = job.data;
 
   console.log(`[NotificationWorker] Processing notification ${notificationId} for user ${userId}`);
