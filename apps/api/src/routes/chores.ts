@@ -11,7 +11,7 @@ import {
   getContentType,
 } from '../services/imageService';
 import { formatIso, nowUtc, sanitizeInput } from '../utils';
-import { computeNextRecurrenceDate } from '../utils/recurrence';
+import { createNextChoreOccurrence, removeChoreRecurrence } from '../services/choreService';
 import { sendSilentPushToUser } from '../services/externalNotificationService';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/errors';
 import { hasUpdates } from '../utils/updates';
@@ -58,53 +58,6 @@ const deactivateRemindersForChore = async (choreId: number) => {
   });
 };
 
-// Helper to create next chore occurrence for recurring chores
-const createNextChoreOccurrence = async (chore: any, completedAt: Date) => {
-  const nextDate = computeNextRecurrenceDate(chore, completedAt);
-  if (!nextDate) return null;
-
-  // Get max position for new chore
-  const maxPositionResult = await prisma.chore.aggregate({
-    _max: { position: true },
-    where: { OR: [{ completed: false }, { completed: null }] },
-  });
-
-  const newPosition = (maxPositionResult._max.position ?? -1) + 1;
-
-  // Create new chore
-  const newChore = await prisma.chore.create({
-    data: {
-      choreName: chore.choreName,
-      description: chore.description,
-      assignedTo: chore.assignedTo,
-      addedBy: chore.addedBy,
-      reminderEnabled: chore.reminderEnabled,
-      imagePath: chore.imagePath,
-      position: newPosition,
-      recurrenceType: chore.recurrenceType,
-      recurrenceIntervalDays: chore.recurrenceIntervalDays,
-      recurrenceWeekday: chore.recurrenceWeekday,
-      recurrenceOriginalCreatedAt: chore.recurrenceOriginalCreatedAt,
-      recurrenceParentId: chore.id,
-      completed: false,
-      createdAt: nowUtc(),
-    },
-  });
-
-  return newChore;
-};
-
-// Helper to remove recurrence from a chore
-const removeRecurrence = async (choreId: number) => {
-  await prisma.chore.update({
-    where: { id: choreId },
-    data: {
-      recurrenceType: null,
-      recurrenceIntervalDays: null,
-      recurrenceWeekday: null,
-    },
-  });
-};
 
 export const choresRoutes = new Elysia({ prefix: '/api/chores' })
   .use(auth)
@@ -624,7 +577,7 @@ export const choresRoutes = new Elysia({ prefix: '/api/chores' })
           return forbidden(set, 'Unauthorized');
         }
 
-        await removeRecurrence(choreId);
+        await removeChoreRecurrence(choreId);
 
         console.log(`User ${user!.id} removed recurrence from chore ${choreId}`);
         return { success: true, message: 'Recurrence removed successfully' };
