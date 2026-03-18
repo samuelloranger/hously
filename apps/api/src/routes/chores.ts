@@ -1,4 +1,5 @@
 import { Elysia, t } from 'elysia';
+import type { Chore, Reminder } from '@prisma/client';
 import { prisma } from '../db';
 import { auth } from '../auth';
 import { requireUser } from '../middleware/auth';
@@ -10,17 +11,20 @@ import {
   getContentType,
 } from '../services/imageService';
 import { formatIso, nowUtc, sanitizeInput } from '../utils';
+import { computeNextRecurrenceDate } from '../utils/recurrence';
 import { sendSilentPushToUser } from '../services/externalNotificationService';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/errors';
 import { hasUpdates } from '../utils/updates';
 
+type ChoreUser = { firstName: string | null; email: string } | null;
+
 // Map database chore to frontend format (snake_case)
 const mapChore = (
-  chore: any,
-  activeReminder?: any | null,
-  addedByUser?: { firstName: string | null; email: string } | null,
-  assignedToUser?: { firstName: string | null; email: string } | null,
-  completedByUser?: { firstName: string | null; email: string } | null
+  chore: Chore,
+  activeReminder?: Pick<Reminder, 'reminderDatetime' | 'active'> | null,
+  addedByUser?: ChoreUser,
+  assignedToUser?: ChoreUser,
+  completedByUser?: ChoreUser
 ) => ({
   id: chore.id,
   position: chore.position,
@@ -56,24 +60,8 @@ const deactivateRemindersForChore = async (choreId: number) => {
 
 // Helper to create next chore occurrence for recurring chores
 const createNextChoreOccurrence = async (chore: any, completedAt: Date) => {
-  if (!chore.recurrenceType) return null;
-
-  let nextDate: Date;
-
-  if (chore.recurrenceType === 'daily_interval' && chore.recurrenceIntervalDays) {
-    nextDate = new Date(completedAt);
-    nextDate.setDate(nextDate.getDate() + chore.recurrenceIntervalDays);
-  } else if (chore.recurrenceType === 'weekly' && chore.recurrenceWeekday !== null) {
-    nextDate = new Date(completedAt);
-    const currentDay = nextDate.getDay();
-    // Convert from Sunday=0 to Monday=0 format
-    const currentDayMondayBased = currentDay === 0 ? 6 : currentDay - 1;
-    let daysUntilNext = chore.recurrenceWeekday - currentDayMondayBased;
-    if (daysUntilNext <= 0) daysUntilNext += 7;
-    nextDate.setDate(nextDate.getDate() + daysUntilNext);
-  } else {
-    return null;
-  }
+  const nextDate = computeNextRecurrenceDate(chore, completedAt);
+  if (!nextDate) return null;
 
   // Get max position for new chore
   const maxPositionResult = await prisma.chore.aggregate({
