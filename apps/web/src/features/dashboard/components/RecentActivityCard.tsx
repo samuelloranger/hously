@@ -1,8 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDashboardActivities } from '@hously/shared';
-import { resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
+import { useDashboardActivities, resolveDateFnsLocale } from '@hously/shared';
 import { ListItemSkeleton } from '@/components/Skeleton';
 import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 import { getActivityPresentation } from '../activityPresentation';

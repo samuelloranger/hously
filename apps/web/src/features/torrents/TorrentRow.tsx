@@ -14,7 +14,7 @@ import {
 } from '@hously/shared';
 import { Tag, Clock, Play, Pause, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
+import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared';
 
 export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem }) {
   const { i18n } = useTranslation();

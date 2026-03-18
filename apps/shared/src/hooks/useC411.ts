@@ -24,7 +24,7 @@ import type {
 export function useC411FrenchTitle(tmdbId: number | null, type: string, options?: { enabled?: boolean }) {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: ['c411', 'tmdb-title', tmdbId],
+    queryKey: queryKeys.c411.tmdbTitle(tmdbId),
     queryFn: () => fetcher<{ title: string }>(`${C411_ENDPOINTS.TMDB_TITLE}?tmdbId=${tmdbId}&type=${encodeURIComponent(type)}`),
     enabled: (options?.enabled ?? true) && tmdbId !== null,
     staleTime: Infinity,
@@ -192,7 +192,7 @@ export function useC411MediaInfo(
 ) {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: ['c411', 'media-info', params.service, params.sourceId, params.seasonNumber ?? null],
+    queryKey: queryKeys.c411.mediaInfo(params.service, params.sourceId, params.seasonNumber ?? null),
     queryFn: () => {
       const search = new URLSearchParams({
         service: params.service,

@@ -2,145 +2,145 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Coding Rules
+
+Detailed coding conventions live in `.claude/rules/` and are loaded automatically based on file globs:
+
+- **`imports.md`** — Import path aliases (`@/` for web, relative for API, `@hously/shared` for cross-app)
+- **`dry-and-shared-code.md`** — Shared code organization and DRY principles
+- **`naming-conventions.md`** — File, code, and API response naming (PascalCase, camelCase, snake_case)
+- **`feature-structure.md`** — Frontend feature folders and API route plugin patterns
+- **`tanstack-query.md`** — Query/mutation hooks, query key factory, cross-feature invalidation
+
 ## Project Overview
 
-Hously is a self-hosted command center for homelab enthusiasts. It provides a unified dashboard for monitoring infrastructure, managing media pipelines, and organizing daily life — replacing the need to juggle dozens of separate service UIs.
+Hously is a self-hosted command center for homelab enthusiasts. It provides a unified dashboard for monitoring infrastructure, managing media pipelines, and organizing daily life.
 
 This monorepo contains:
-- **API** (`apps/api`): Backend API built with Elysia (Bun runtime) and Prisma ORM
-- **Web** (`apps/web`): React frontend with Vite, TanStack Router, and TanStack Query
+- **API** (`apps/api`): Elysia (Bun runtime) + Prisma ORM
+- **Web** (`apps/web`): React 19 + Vite + TanStack Router/Query + Tailwind CSS 4
+- **Shared** (`apps/shared`): Types, hooks, utilities, endpoints shared across apps
 
-A native companion app is located in a separate repository:
-- **iOS App** (`../hously-ios`): Native Swift/SwiftUI app
+A native companion app lives in a separate repository:
+- **iOS App** (`../hously-ios`): Swift/SwiftUI
 
 ## Development Setup
 
-This project uses **Bun** as the package manager and runtime. Use the Makefile commands for all common operations:
+**Bun** is the package manager and runtime. Use the Makefile for all common operations:
 
 ```bash
-# Install all dependencies
-make install
+make install           # Install all dependencies
 
-# Local development (recommended - faster iteration)
-make dev-services  # Start PostgreSQL + MinIO + Redis (Terminal 1)
-make dev-api       # Start Bun API with hot reload (Terminal 2)
-make dev-web       # Start React frontend with Vite (Terminal 3)
+# Local development (recommended)
+make dev-services      # Start PostgreSQL + MinIO + Redis (Terminal 1)
+make dev-api           # Start Bun API with hot reload (Terminal 2)
+make dev-web           # Start React frontend with Vite (Terminal 3)
 
 # Docker development (production-like)
-docker compose up  # Start everything in containers
+docker compose up      # Start everything in containers
 ```
 
 ### Environment Configuration
 
 Copy `.env.example` to `.env` and configure at minimum:
-- `ALLOWED_EMAILS`: Comma-separated list of allowed user emails
-- `ADMIN_EMAILS`: Comma-separated list of admin emails
+- `ALLOWED_EMAILS` / `ADMIN_EMAILS`: Comma-separated email lists
 - `SECRET_KEY`: Change from default for security
 - `DATABASE_URL`: Connection string (adjust hostname based on Docker/local)
 
 ## Architecture
 
-### Backend (apps/api)
+### Backend (`apps/api`)
 
-**Stack**: Elysia (Bun), Prisma, PostgreSQL, Redis, MinIO (S3-compatible storage)
+**Stack**: Elysia, Prisma, PostgreSQL, Redis, MinIO
 
-**Key directories**:
-- `src/auth.ts`: JWT-based authentication with cookie handling
-- `src/routes/`: Feature-specific route modules (e.g., `chores.ts`, `shopping.ts`, `calendar.ts`)
-- `src/services/`: Business logic services (S3, images, external notifications, webhooks)
-- `src/jobs/`: Cron job implementations (reminders, tracker stats, notifications cleanup)
-- `src/middleware/`: Rate limiting and other middleware
-- `src/db/`: Prisma client initialization
-- `prisma/schema.prisma`: Database schema
+| Directory | Purpose |
+|-----------|---------|
+| `src/routes/` | Feature-specific Elysia route plugins |
+| `src/services/` | Business logic (S3, images, notifications, webhooks) |
+| `src/jobs/` | Cron jobs (`@elysiajs/cron`) |
+| `src/middleware/` | Rate limiting, etc. |
+| `src/db/` | Prisma client |
+| `src/auth.ts` | JWT auth with HTTP-only cookies |
+| `prisma/schema.prisma` | Database schema |
 
-**Architecture patterns**:
-- Route modules export Elysia plugins that are composed in `src/index.ts`
-- Authentication uses JWT tokens stored in HTTP-only cookies
-- Cron jobs run in-process using `@elysiajs/cron`
-- Webhook handlers for external services (Radarr, Sonarr, Jellyfin, Plex, etc.)
-- Push notifications via Web Push (VAPID) and Apple Push Notifications (APNs)
+Route modules export Elysia plugins composed in `src/index.ts`. Webhook handlers integrate Radarr, Sonarr, Jellyfin, Plex, and others. Push notifications support Web Push (VAPID) and APNs.
 
-### Frontend (apps/web)
+### Frontend (`apps/web`)
 
 **Stack**: React 19, Vite, TanStack Router, TanStack Query, Tailwind CSS 4
 
-**Key directories**:
-- `src/features/`: Feature-based organization (auth, chores, shopping, calendar, dashboard, torrents, medias, etc.)
-- `src/components/`: Shared UI components
-- `src/routes/`: File-based routing with TanStack Router
-- `src/hooks/`: Custom React hooks
-- `src/lib/`: Utility libraries (API client, query client, etc.)
+| Directory | Purpose |
+|-----------|---------|
+| `src/features/` | Feature-based modules (auth, chores, shopping, calendar, dashboard, torrents, medias, etc.) |
+| `src/components/` | Shared components (+ `ui/` for Radix/CVA primitives) |
+| `src/routes/` | File-based routing (TanStack Router) |
+| `src/hooks/` | App-specific React hooks |
+| `src/lib/` | API client, query client, utilities |
+| `src/locales/` | i18next translations |
+| `src/sw/` | Service Worker (PWA) |
 
-**Architecture patterns**:
-- Feature-based folder structure (each feature contains its components, hooks, and API logic)
-- TanStack Query for server state management with optimistic updates
-- TanStack Router for type-safe routing
-- Internationalization with i18next (locales in `src/locales/`)
-- Service Worker for PWA support (`src/sw/`)
+### Shared (`apps/shared`)
+
+| Directory | Purpose |
+|-----------|---------|
+| `src/types/` | TypeScript interfaces (shared between API and Web) |
+| `src/endpoints/` | API endpoint constants (`CHORES_ENDPOINTS`, etc.) |
+| `src/hooks/` | TanStack Query hooks (`useChores`, `useCreateChore`, etc.) |
+| `src/utils/` | Shared utilities (date, sanitize, media URLs, etc.) |
+| `src/queryKeys.ts` | Centralized query key factory |
+| `src/api.ts` | API client factories |
 
 ## Common Commands
 
-### Testing
 ```bash
-make test              # Run all tests
-cd apps/web && bun run test       # Web tests only
-cd apps/api && bun test           # API tests only
+# Testing
+make test                          # Run all tests
+cd apps/web && bun run test        # Web tests only
+cd apps/api && bun test            # API tests only
+
+# Linting & Types
+make lint                          # Lint all code
+make typecheck                     # Type check frontend
+
+# Database (ALWAYS use Makefile)
+make migrate-dev                   # Create new migration
+make migrate-deploy                # Apply pending migrations (prod)
+make migrate-push                  # Push schema changes (dev only)
+make migrate-studio                # Open Prisma Studio
+
+# Build & Docker
+make build                         # Build web app for production
+docker compose up -d               # Start all services
+docker compose down                # Stop all services
+make rebuild                       # Rebuild containers
 ```
 
-### Linting & Type Checking
-```bash
-make lint              # Lint all code
-make typecheck         # Type check frontend
-```
-
-### Database Migrations (Prisma)
-```bash
-# ALWAYS use Makefile commands for database operations
-make migrate-dev       # Create new migration (development)
-make migrate-deploy    # Apply pending migrations (production)
-make migrate-push      # Push schema changes (dev only, bypasses migrations)
-make migrate-studio    # Open Prisma Studio for DB exploration
-```
-
-When creating migrations, navigate to `apps/api` context and edit `prisma/schema.prisma`, then run the appropriate make command from the root.
-
-### Building
-```bash
-make build             # Build web app for production
-```
+Edit `apps/api/prisma/schema.prisma` for schema changes, then run the appropriate `make migrate-*` from root.
 
 ### iOS App (External)
 
-The iOS application is maintained in a separate repository at `../hously-ios`. It connects to the API in this monorepo and supports native features like push notifications via APNs.
-
-### Docker
-```bash
-docker compose up -d            # Start all services
-docker compose down             # Stop all services
-make rebuild                    # Rebuild containers (fixes dependency issues)
-```
+Maintained in `../hously-ios`. Connects to this API with native push notifications via APNs.
 
 ## Key Features
 
 ### Homelab Integrations
-- **Dashboard** - Unified overview with server health (Netdata), disk diagnostics (Scrutiny), torrent activity, and media releases
-- **Torrent Management** - Full qBittorrent integration with real-time SSE streaming
-- **Media Pipeline** - Radarr & Sonarr integration with TMDB discovery and interactive release search
-- **Tracker Statistics** - Monitor ratio and stats across private trackers (C411, Torr9, La Cale)
-- **Jellyfin Integration** - Latest media additions on the dashboard
-- **External Notifications** - Webhook integrations for Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma
+- **Dashboard** — Server health (Netdata), disk diagnostics (Scrutiny), torrent activity, media releases
+- **Torrent Management** — qBittorrent integration with real-time SSE streaming
+- **Media Pipeline** — Radarr/Sonarr + TMDB discovery + interactive release search
+- **Tracker Statistics** — Private tracker stats (C411, Torr9, La Cale)
+- **Jellyfin/Plex** — Latest media additions + webhook notifications
+- **External Notifications** — Webhooks for Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma
 
 ### Life Management
-- **Shopping List** - Collaborative shopping with real-time updates
-- **Chores** - Task assignment and tracking with recurring schedules
-- **Calendar** - Shared calendar with reminders and iCal feed export
-- **Meal Plans** - Weekly meal planning with recipe management
+- **Shopping List** — Collaborative with real-time updates
+- **Chores** — Assignment, tracking, recurring schedules
+- **Calendar** — Shared calendar with reminders and iCal export
+- **Meal Plans** — Weekly planning with recipe management
 
 ## Important Notes
 
-- **Unstable Project**: This is an early-stage project subject to breaking changes
-- **Access Control**: Users must be on the `ALLOWED_EMAILS` list to register
-- **Admin Functions**: Admin-only features require `ADMIN_EMAILS` configuration
-- **Image Storage**: Uses MinIO (S3-compatible) for image uploads (avatars, chores, recipes)
-- **Push Notifications**: Supports Web Push (VAPID) and APNs (iOS)
-- **Rate Limiting**: Global rate limit of 1000 requests/hour per IP
+- **Unstable Project**: Early-stage, subject to breaking changes
+- **Access Control**: Users must be on `ALLOWED_EMAILS` to register; admins need `ADMIN_EMAILS`
+- **Image Storage**: MinIO (S3-compatible) for avatars, chores, recipes
+- **Push Notifications**: Web Push (VAPID) + APNs (iOS)
+- **Rate Limiting**: 1000 requests/hour per IP

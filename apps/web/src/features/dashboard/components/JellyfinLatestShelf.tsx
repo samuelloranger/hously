@@ -1,7 +1,6 @@
 import { useMemo, type UIEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDashboardJellyfinLatestInfinite } from '@hously/shared';
-import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
+import { useDashboardJellyfinLatestInfinite, formatRelativeTime, resolveDateFnsLocale } from '@hously/shared';
 import { ListItemSkeleton } from '@/components/Skeleton';
 import { MovieCard } from './MovieCard';
 

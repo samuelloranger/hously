@@ -115,21 +115,21 @@ export const fetchAddressWeather = async (
   }
 
   const locationName = formatLocationName(firstResult);
-  const temperatureF = parseWeatherNumber(current.temperature_2m);
-  const feelsLikeF = parseWeatherNumber(current.apparent_temperature);
-  const weatherCode = parseWeatherNumber(current.weather_code);
-  const conditionLabel = getWeatherLabel(weatherCode);
+  const temperature_f = parseWeatherNumber(current.temperature_2m);
+  const feels_like_f = parseWeatherNumber(current.apparent_temperature);
+  const weather_code = parseWeatherNumber(current.weather_code);
+  const condition_label = getWeatherLabel(weather_code);
 
   return {
     address,
-    locationName: locationName || 'Current location',
+    location_name: locationName || 'Current location',
     latitude,
     longitude,
-    temperatureF,
-    feelsLikeF,
-    weatherCode,
-    isDay: parseIsDay(current.is_day),
-    conditionLabel,
-    temperatureUnit,
+    temperature_f,
+    feels_like_f,
+    weather_code,
+    is_day: parseIsDay(current.is_day),
+    condition_label,
+    temperature_unit: temperatureUnit,
   };
 };

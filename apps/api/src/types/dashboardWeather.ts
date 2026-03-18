@@ -1,12 +1,12 @@
 export interface DashboardWeatherResponse {
   address: string;
-  locationName: string;
+  location_name: string;
   latitude: number;
   longitude: number;
-  temperatureF: number;
-  feelsLikeF: number;
-  weatherCode: number;
-  isDay: boolean;
-  conditionLabel: string;
-  temperatureUnit: 'fahrenheit' | 'celsius';
+  temperature_f: number;
+  feels_like_f: number;
+  weather_code: number;
+  is_day: boolean;
+  condition_label: string;
+  temperature_unit: 'fahrenheit' | 'celsius';
 }

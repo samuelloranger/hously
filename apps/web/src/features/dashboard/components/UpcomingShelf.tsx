@@ -60,7 +60,7 @@ export function UpcomingShelf() {
     <>
       <section className="relative overflow-hidden rounded-3xl border border-amber-300/70 dark:border-orange-500/30 bg-gradient-to-br from-[#fad0ab] via-[#ffbf7e] to-[#ffe7d1] dark:from-[#2a1c10] dark:via-[#533516] dark:to-[#8b4b1b] shadow-xl">
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-200/45 dark:bg-amber-300/20 blur-3xl" />
-        <div className="pointer-events-none absolute -left-14 -bottom-16 h-64 w-64 rounded-full bg-orange-300/40 dark:bg-orange-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute -left-14 -bottom-16 h-64 w-64 rounded-full bg-amber-300/40 dark:bg-amber-500/25 blur-3xl" />
 
         <div className="relative flex items-center justify-between gap-4 mb-4 px-4 md:px-5 pt-4 md:pt-5">
           <div>

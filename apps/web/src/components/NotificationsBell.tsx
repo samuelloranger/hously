@@ -9,9 +9,10 @@ import {
   useMarkAsReadOptimistic,
   useNotifications,
   useUnreadCount,
+  formatRelativeTime,
+  resolveDateFnsLocale,
   type NotificationType,
 } from '@hously/shared';
-import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
 import { cn } from '../lib/utils';
 import { syncBadge } from '../lib/serviceWorker';
 import { useQueryClient } from '@tanstack/react-query';

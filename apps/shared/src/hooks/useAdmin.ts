@@ -67,7 +67,7 @@ export function useScheduledJobs() {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: ['admin', 'scheduled-jobs'] as const,
+    queryKey: queryKeys.admin.scheduledJobs(),
     queryFn: () => fetcher<ScheduledJobsResponse>(ADMIN_ENDPOINTS.SCHEDULED_JOBS),
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
@@ -252,7 +252,7 @@ export function useTestEmailTemplates() {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: ['admin', 'test-email-templates'] as const,
+    queryKey: queryKeys.admin.testEmailTemplates(),
     queryFn: () => fetcher<TestEmailTemplatesResponse>(ADMIN_ENDPOINTS.TEST_EMAIL_TEMPLATES),
     staleTime: 5 * 60 * 1000,
   });

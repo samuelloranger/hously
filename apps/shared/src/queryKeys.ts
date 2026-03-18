@@ -5,6 +5,7 @@ export const queryKeys = {
     all: ['auth'] as const,
     me: ['auth', 'me'] as const,
     user: ['auth', 'user'] as const,
+    validateInvitation: (token: string) => [...queryKeys.auth.all, 'validate-invitation', token] as const,
   },
 
   shopping: {
@@ -99,6 +100,8 @@ export const queryKeys = {
     sessions: () => [...queryKeys.admin.all, 'sessions'] as const,
     pushTokens: () => [...queryKeys.admin.all, 'push-tokens'] as const,
     webPush: () => [...queryKeys.admin.all, 'web-push'] as const,
+    scheduledJobs: () => [...queryKeys.admin.all, 'scheduled-jobs'] as const,
+    testEmailTemplates: () => [...queryKeys.admin.all, 'test-email-templates'] as const,
   },
 
   calendar: {
@@ -123,6 +126,9 @@ export const queryKeys = {
     generateBBCode: (tmdbId: number) => ['c411', 'generate-bbcode', tmdbId] as const,
     categories: () => ['c411', 'categories'] as const,
     categoryOptions: (id: number) => ['c411', 'category-options', id] as const,
+    tmdbTitle: (tmdbId: number | null) => ['c411', 'tmdb-title', tmdbId] as const,
+    mediaInfo: (service: string, sourceId: number | null, seasonNumber: number | null) =>
+      ['c411', 'media-info', service, sourceId, seasonNumber] as const,
   },
 
   medias: {

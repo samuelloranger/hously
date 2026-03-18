@@ -7,8 +7,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { ListItemSkeleton } from '@/components/Skeleton';
-import { useDashboardActivityFeed } from '@hously/shared';
-import { resolveDateFnsLocale } from '@hously/shared/utils/relativeTime';
+import { useDashboardActivityFeed, resolveDateFnsLocale } from '@hously/shared';
 import { getActivityPresentation, getActivityServiceLabel, getActivityTypeLabel } from './activityPresentation';
 
 const PAGE_SIZE = 25;

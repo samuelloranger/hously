@@ -67,7 +67,7 @@ export function useValidateInvitation(token: string) {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: ['auth', 'validate-invitation', token],
+    queryKey: queryKeys.auth.validateInvitation(token),
     queryFn: () =>
       fetcher<ValidateInvitationResponse>(
         `${AUTH_ENDPOINTS.ACCEPT_INVITATION}?token=${encodeURIComponent(token)}`

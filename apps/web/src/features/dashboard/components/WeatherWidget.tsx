@@ -24,13 +24,13 @@ export function WeatherWidget() {
   }, [weatherQuery.data]);
   if (!weatherQuery.data || weatherQuery.isError) return null;
 
-  const unit = weatherQuery.data.temperatureUnit || 'fahrenheit';
+  const unit = weatherQuery.data.temperature_unit || 'fahrenheit';
   const temperatureValue =
-    unit === 'celsius' ? toCelsius(weatherQuery.data.temperatureF) : weatherQuery.data.temperatureF;
-  const feelsLikeValue = unit === 'celsius' ? toCelsius(weatherQuery.data.feelsLikeF) : weatherQuery.data.feelsLikeF;
+    unit === 'celsius' ? toCelsius(weatherQuery.data.temperature_f) : weatherQuery.data.temperature_f;
+  const feelsLikeValue = unit === 'celsius' ? toCelsius(weatherQuery.data.feels_like_f) : weatherQuery.data.feels_like_f;
   const unitLabel = unit === 'celsius' ? 'C' : 'F';
-  const conditionLabel = t(`dashboard.weather.conditions.${getWeatherConditionKey(weatherQuery.data.weatherCode)}`, {
-    defaultValue: weatherQuery.data.conditionLabel,
+  const conditionLabel = t(`dashboard.weather.conditions.${getWeatherConditionKey(weatherQuery.data.weather_code)}`, {
+    defaultValue: weatherQuery.data.condition_label,
   });
 
   return (
@@ -46,7 +46,7 @@ export function WeatherWidget() {
             {t('dashboard.weather.kicker')}
           </p>
           <h3 className="text-sm font-bold" style={{ color: weatherTheme.textColor }}>
-            {weatherTheme.icon} {weatherQuery.data.locationName}
+            {weatherTheme.icon} {weatherQuery.data.location_name}
           </h3>
         </div>
         {weatherQuery.isFetching ? (

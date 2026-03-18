@@ -217,7 +217,7 @@ const routeQueryDefinitions = {
 
     if (tab === 'jobs') {
       queries.push({
-        queryKey: ['admin', 'scheduled-jobs'],
+        queryKey: queryKeys.admin.scheduledJobs(),
         queryFn: () => webFetcher(ADMIN_ENDPOINTS.SCHEDULED_JOBS),
       });
     }

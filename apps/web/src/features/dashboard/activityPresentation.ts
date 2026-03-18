@@ -1,7 +1,7 @@
 import type { Locale } from 'date-fns';
 import type { TFunction } from 'i18next';
 import type { Activity } from '@hously/shared';
-import { formatRelativeTime } from '@hously/shared/utils/relativeTime';
+import { formatRelativeTime } from '@hously/shared';
 
 export interface ActivityPresentation {
   icon: string;
