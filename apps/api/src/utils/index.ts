@@ -23,3 +23,4 @@ export {
 
 export { sanitizeInput, sanitizeRichText, isValidColor } from './sanitize';
 export { mapUser, buildUserMap, getUserDisplayName, type UserLookup } from './mappers';
+export { validateImageFile, validateImageMimeAndSize, type ImageValidationError } from './imageValidation';

@@ -13,6 +13,7 @@ import {
 } from '../services/imageService';
 import { badRequest, notFound, serverError, unauthorized } from '../utils/errors';
 import { mapUser } from '../utils/mappers';
+import { validateImageMimeAndSize } from '../utils/imageValidation';
 
 export const usersRoutes = new Elysia({ prefix: '/api/users' })
   .use(auth)
@@ -225,18 +226,10 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         `${logPrefix} avatar file received name="${avatar.name}" type="${avatar.type}" size=${avatar.size || 'unknown'} isWebFile=${isWebFile} isReactNativeFile=${isReactNativeFile}`
       );
 
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-      if (!allowedTypes.includes(avatar.type)) {
-        console.warn(`${logPrefix} invalid avatar mime type="${avatar.type}" allowed=${allowedTypes.join(',')}`);
-        return badRequest(set, 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP');
-      }
-
-      // Validate file size (max 5MB) - only for Web File objects that have size property
-      const maxSize = 5 * 1024 * 1024;
-      if (avatar.size && avatar.size > maxSize) {
-        console.warn(`${logPrefix} avatar too large size=${avatar.size} max=${maxSize} bytes`);
-        return badRequest(set, 'File too large. Maximum size is 5MB');
+      const avatarValidationError = validateImageMimeAndSize(avatar, { maxSizeBytes: 5 * 1024 * 1024 });
+      if (avatarValidationError) {
+        console.warn(`${logPrefix} avatar validation failed: ${avatarValidationError.error}`);
+        return badRequest(set, avatarValidationError.error);
       }
 
       try {

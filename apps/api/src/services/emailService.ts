@@ -41,6 +41,10 @@ function getTransporter(): Transporter | null {
   return transporter;
 }
 
+export function _resetTransporter(): void {
+  transporter = null;
+}
+
 export function isEmailConfigured(): boolean {
   return getSmtpConfig() !== null;
 }

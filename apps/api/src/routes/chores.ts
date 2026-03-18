@@ -10,7 +10,7 @@ import {
   getThumbnail,
   getContentType,
 } from '../services/imageService';
-import { formatIso, nowUtc, sanitizeInput, buildUserMap } from '../utils';
+import { formatIso, nowUtc, sanitizeInput, buildUserMap, validateImageFile } from '../utils';
 import { createNextChoreOccurrence, removeChoreRecurrence } from '../services/choreService';
 import { sendSilentPushToUser } from '../services/externalNotificationService';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/errors';
@@ -677,24 +677,9 @@ export const choresRoutes = new Elysia({ prefix: '/api/chores' })
     async ({ user, body, set }) => {
       const { image } = body;
 
-      if (!image || !(image instanceof File)) {
-        return badRequest(set, 'No image file provided');
-      }
-
-      if (image.size === 0) {
-        return badRequest(set, 'No file selected');
-      }
-
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-      if (!allowedTypes.includes(image.type)) {
-        return badRequest(set, 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP');
-      }
-
-      // Validate file size (max 10MB)
-      const maxSize = 10 * 1024 * 1024;
-      if (image.size > maxSize) {
-        return badRequest(set, 'File too large. Maximum size is 10MB');
+      const validationError = validateImageFile(image, { maxSizeBytes: 10 * 1024 * 1024 });
+      if (validationError) {
+        return badRequest(set, validationError.error);
       }
 
       try {

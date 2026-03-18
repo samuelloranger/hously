@@ -2,7 +2,7 @@ import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
 import { saveImageAndCreateThumbnail, deleteImageFiles, getImage, getContentType } from '../services/imageService';
-import { formatIso, nowUtc, sanitizeInput, buildUserMap, getUserDisplayName } from '../utils';
+import { formatIso, nowUtc, sanitizeInput, buildUserMap, getUserDisplayName, validateImageFile } from '../utils';
 import { logActivity } from '../utils/activityLogs';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/errors';
 import { hasUpdates } from '../utils/updates';
@@ -586,14 +586,14 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         return unauthorized(set, 'Unauthorized');
       }
 
-      try {
-        const file = body.image;
-        if (!file) {
-          return badRequest(set, 'No image file provided');
-        }
+      const { image } = body;
+      const validationError = validateImageFile(image, { maxSizeBytes: 10 * 1024 * 1024 });
+      if (validationError) {
+        return badRequest(set, validationError.error);
+      }
 
-        // Save image and create thumbnail
-        const imagePath = await saveImageAndCreateThumbnail(file);
+      try {
+        const imagePath = await saveImageAndCreateThumbnail(image as File);
 
         console.log(`Recipe image upload successful - image_path: ${imagePath}`);
 
@@ -604,9 +604,6 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
           },
         };
       } catch (error) {
-        if (error instanceof Error && error.message.includes('Invalid file type')) {
-          return badRequest(set, error.message);
-        }
         console.error('Error uploading recipe image:', error);
         return serverError(set, 'Failed to upload image');
       }

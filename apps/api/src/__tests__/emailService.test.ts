@@ -27,14 +27,15 @@ mock.module('../emails/PasswordResetEmail', () => ({
 describe('emailService', () => {
   const originalEnv = { ...process.env };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     sendMailMock.mockClear();
     createTransportMock.mockClear();
+    const { _resetTransporter } = await import('../services/emailService');
+    _resetTransporter();
   });
 
   afterEach(() => {
     process.env = { ...originalEnv };
-    mock.restore();
   });
 
   describe('isEmailConfigured', () => {
@@ -100,8 +101,10 @@ describe('emailService', () => {
         throw new Error('SMTP connection refused');
       });
 
+      const consoleSpy = spyOn(console, 'error').mockImplementation(() => {});
       const { sendEmail } = await import('../services/emailService');
       const result = await sendEmail('to@example.com', 'Subject', '<p>body</p>');
+      consoleSpy.mockRestore();
 
       expect(result).toBe(false);
     });
