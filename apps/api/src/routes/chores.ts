@@ -10,7 +10,7 @@ import {
   getThumbnail,
   getContentType,
 } from '../services/imageService';
-import { formatIso, nowUtc, sanitizeInput } from '../utils';
+import { formatIso, nowUtc, sanitizeInput, buildUserMap } from '../utils';
 import { createNextChoreOccurrence, removeChoreRecurrence } from '../services/choreService';
 import { sendSilentPushToUser } from '../services/externalNotificationService';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/errors';
@@ -95,10 +95,7 @@ export const choresRoutes = new Elysia({ prefix: '/api/chores' })
         }
       }
 
-      const usersById = new Map<number, { firstName: string | null; email: string }>();
-      for (const u of allUsers) {
-        usersById.set(u.id, { firstName: u.firstName, email: u.email });
-      }
+      const usersById = buildUserMap(allUsers);
 
       // Build response
       const choresList = allChores.map(chore => {

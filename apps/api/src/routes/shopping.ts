@@ -2,7 +2,7 @@ import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
 import { requireUser } from '../middleware/auth';
-import { formatIso, nowUtc, sanitizeInput } from '../utils';
+import { formatIso, nowUtc, sanitizeInput, buildUserMap, getUserDisplayName } from '../utils';
 import { logActivity } from '../utils/activityLogs';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/errors';
 import { hasUpdates } from '../utils/updates';
@@ -40,16 +40,10 @@ export const shoppingRoutes = new Elysia({ prefix: '/api/shopping' })
         },
       });
 
-      const usersById = new Map<number, { firstName: string | null; email: string }>();
-      for (const u of allUsers) {
-        usersById.set(u.id, { firstName: u.firstName, email: u.email });
-      }
+      const usersById = buildUserMap(allUsers);
 
       // Map items to response format
       const itemsList = items.map(item => {
-        const addedByUser = item.addedBy ? usersById.get(item.addedBy) : null;
-        const completedByUser = item.completedBy ? usersById.get(item.completedBy) : null;
-
         return {
           id: item.id,
           position: item.position,
@@ -60,8 +54,8 @@ export const shoppingRoutes = new Elysia({ prefix: '/api/shopping' })
           completed_by: item.completedBy,
           created_at: formatIso(item.createdAt),
           completed_at: formatIso(item.completedAt),
-          added_by_username: addedByUser?.firstName || addedByUser?.email || null,
-          completed_by_username: completedByUser?.firstName || completedByUser?.email || null,
+          added_by_username: getUserDisplayName(item.addedBy, usersById),
+          completed_by_username: getUserDisplayName(item.completedBy, usersById),
         };
       });
 

@@ -2,7 +2,7 @@ import { Elysia, t } from 'elysia';
 import { prisma } from '../db';
 import { auth } from '../auth';
 import { requireUser } from '../middleware/auth';
-import { formatIso, nowUtc, parseDate, sanitizeInput } from '../utils';
+import { formatIso, nowUtc, parseDate, sanitizeInput, buildUserMap, getUserDisplayName } from '../utils';
 import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/errors';
 import { hasUpdates } from '../utils/updates';
 
@@ -76,15 +76,10 @@ export const mealPlansRoutes = new Elysia({ prefix: '/api/meal-plans' })
           },
         });
 
-        const usersById = new Map<number, { firstName: string | null; email: string }>();
-        for (const u of allUsers) {
-          usersById.set(u.id, { firstName: u.firstName, email: u.email });
-        }
+        const usersById = buildUserMap(allUsers);
 
         // Build response
         const response = mealPlansList.map(mp => {
-          const addedByUser = mp.addedBy ? usersById.get(mp.addedBy) : null;
-
           return {
             id: mp.id,
             recipe_id: mp.recipeId,
@@ -95,7 +90,7 @@ export const mealPlansRoutes = new Elysia({ prefix: '/api/meal-plans' })
             created_at: formatIso(mp.createdAt),
             recipe_name: mp.recipe?.name || null,
             recipe_image_path: mp.recipe?.imagePath || null,
-            added_by_username: addedByUser?.firstName || addedByUser?.email || null,
+            added_by_username: getUserDisplayName(mp.addedBy, usersById),
           };
         });
 

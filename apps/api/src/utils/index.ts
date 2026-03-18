@@ -22,4 +22,4 @@ export {
 } from './date';
 
 export { sanitizeInput, sanitizeRichText, isValidColor } from './sanitize';
-export { mapUser } from './mappers';
+export { mapUser, buildUserMap, getUserDisplayName, type UserLookup } from './mappers';
