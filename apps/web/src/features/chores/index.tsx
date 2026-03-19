@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { Plus } from 'lucide-react';
@@ -11,11 +11,17 @@ import { Button } from '@/components/ui/button';
 import { SortableList } from '@/components/SortableList';
 import { useChores, useClearAllCompletedChores, useReorderChores } from '@hously/shared';
 import { HouseLoader } from '@/components/HouseLoader';
+import { useSearch } from '@tanstack/react-router';
+import { useModalSearchParams } from '@/hooks/useModalSearchParams';
+import type { ChoresSearchParams } from '@/router';
 
 export function ChoresList() {
   const { t } = useTranslation('common');
   const [completedChoresRef] = useAutoAnimate();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  const searchParams = useSearch({ from: '/chores' }) as ChoresSearchParams;
+  const { setParams, resetParams } = useModalSearchParams('/chores', searchParams);
+  const isCreateModalOpen = searchParams.modal === 'create';
 
   const { data, refetch, isFetching } = useChores();
   const clearCompletedMutation = useClearAllCompletedChores();
@@ -39,7 +45,7 @@ export function ChoresList() {
         onRefresh={refetch}
         isRefreshing={isFetching}
         actions={
-          <Button onClick={() => setIsCreateModalOpen(true)} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={() => setParams({ modal: 'create' })} className="bg-green-600 hover:bg-green-700">
             <Plus className="w-4 h-4 mr-2" />
             {t('chores.addNewChore')}
           </Button>
@@ -70,7 +76,15 @@ export function ChoresList() {
             className="divide-y divide-neutral-100 dark:divide-neutral-700/50"
           >
             {(chore, handleProps) => (
-              <ChoreRow key={chore.id} chore={chore} users={users} dragHandleProps={handleProps} />
+              <ChoreRow 
+                key={chore.id} 
+                chore={chore} 
+                users={users} 
+                dragHandleProps={handleProps} 
+                setParams={setParams}
+                resetParams={resetParams}
+                searchParams={searchParams}
+              />
             )}
           </SortableList>
         ) : (
@@ -78,7 +92,7 @@ export function ChoresList() {
         )}
       </div>
 
-      <CreateChoreModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} users={users} />
+      <CreateChoreModal isOpen={isCreateModalOpen} onClose={() => resetParams(['modal'])} users={users} />
 
       {completedChores.length > 0 && (
         <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-800 overflow-hidden mt-6">
@@ -104,7 +118,14 @@ export function ChoresList() {
           </div>
           <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50" ref={completedChoresRef}>
             {completedChores.map(chore => (
-              <ChoreRow key={chore.id} chore={chore} users={users} />
+              <ChoreRow 
+                key={chore.id} 
+                chore={chore} 
+                users={users} 
+                setParams={setParams}
+                resetParams={resetParams}
+                searchParams={searchParams}
+              />
             ))}
           </div>
         </div>

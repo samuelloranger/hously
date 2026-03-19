@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PageLayout } from '@/components/PageLayout';
@@ -12,21 +12,31 @@ import { EditHabitModal } from './components/EditHabitModal';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { formatLocalDate, addDays } from '@/lib/date';
+import { useSearch } from '@tanstack/react-router';
+import { useModalSearchParams } from '@/hooks/useModalSearchParams';
+import type { HabitsSearchParams } from '@/router';
 
 export const HabitsList: React.FC = () => {
   const { t, i18n } = useTranslation('common');
+  
+  const searchParams = useSearch({ from: '/habits' }) as HabitsSearchParams;
+  const { setParams, resetParams } = useModalSearchParams('/habits', searchParams);
+  const isCreateModalOpen = searchParams.modal === 'create';
+  
   const todayStr = formatLocalDate(new Date());
-  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [selectedDate, setSelectedDate] = React.useState(todayStr);
   const isToday = selectedDate === todayStr;
 
   const { data, isLoading, refetch, isRefetching } = useHabits(isToday ? undefined : selectedDate);
   const deleteMutation = useDeleteHabit();
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const lastSeenDateKeyRef = useRef(new Date().toDateString());
 
   const habits = data?.habits || [];
+  const editingHabit = useMemo(
+    () => habits.find(h => h.id === searchParams.habitId) || null,
+    [habits, searchParams.habitId]
+  );
 
   useEffect(() => {
     const refreshIfDateChanged = () => {
@@ -93,7 +103,7 @@ export const HabitsList: React.FC = () => {
         isRefreshing={isRefetching || isLoading}
         actions={
           <button
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => setParams({ modal: 'create' })}
             className="flex items-center gap-2 px-4 h-10 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-md shadow-primary-600/20 transition-all active:scale-95"
           >
             <Plus size={18} />
@@ -156,7 +166,7 @@ export const HabitsList: React.FC = () => {
               icon="🎯"
             />
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => setParams({ modal: 'create' })}
               className="flex items-center gap-2 px-6 h-12 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold shadow-lg shadow-primary-600/20 transition-all active:scale-95"
             >
               <Plus size={20} />
@@ -170,7 +180,7 @@ export const HabitsList: React.FC = () => {
                 key={habit.id}
                 habit={habit}
                 date={isToday ? undefined : selectedDate}
-                onEdit={setEditingHabit}
+                onEdit={(h) => setParams({ modal: 'edit', habitId: h.id })}
                 onDelete={handleDelete}
               />
             ))}
@@ -180,14 +190,14 @@ export const HabitsList: React.FC = () => {
 
       <CreateHabitModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => resetParams(['modal'])}
       />
 
       {editingHabit && (
         <EditHabitModal
           habit={editingHabit}
-          isOpen={!!editingHabit}
-          onClose={() => setEditingHabit(null)}
+          isOpen={searchParams.modal === 'edit'}
+          onClose={() => resetParams(['modal', 'habitId'])}
         />
       )}
     </PageLayout>

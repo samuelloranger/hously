@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { ArrowLeft, Clock, Users, Pencil, Trash2, Star, ChefHat, ListChecks } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
@@ -7,23 +7,23 @@ import { PageLayout } from '@/components/PageLayout';
 import { LoadingState } from '@/components/LoadingState';
 import { Button } from '@/components/ui/button';
 import { getRecipeImageUrl, useDeleteRecipe, useRecipe, useToggleFavorite } from '@hously/shared';
-import { useState } from 'react';
 import { EditRecipeModal } from './EditRecipeModal';
 import { cn } from '@/lib/utils';
+import { useModalSearchParams } from '@/hooks/useModalSearchParams';
+import type { RecipeDetailSearchParams } from '@/router';
 
 export function RecipeDetail() {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { recipeId } = useParams({ strict: false }) as { recipeId: string };
   const id = parseInt(recipeId, 10);
-
-  const [showEditModal, setShowEditModal] = useState(false);
+  
+  const searchParams = useSearch({ from: '/kitchen/$recipeId' }) as RecipeDetailSearchParams;
+  const { setParams, resetParams } = useModalSearchParams('/kitchen/$recipeId', searchParams);
 
   const { data, isLoading } = useRecipe(id);
   const deleteRecipe = useDeleteRecipe();
   const toggleFavorite = useToggleFavorite();
-
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (isLoading) {
     return <LoadingState />;
@@ -92,13 +92,13 @@ export function RecipeDetail() {
             />
           </button>
           <button
-            onClick={() => setShowEditModal(true)}
+            onClick={() => setParams({ modal: 'edit' })}
             className="p-2.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
           >
             <Pencil className="w-4.5 h-4.5 text-neutral-500 dark:text-neutral-400" />
           </button>
           <button
-            onClick={() => setShowDeleteConfirm(true)}
+            onClick={() => setParams({ modal: 'delete' })}
             className="p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 active:scale-95"
           >
             <Trash2 className="w-4.5 h-4.5 text-red-500 dark:text-red-400" />
@@ -226,10 +226,10 @@ export function RecipeDetail() {
         </div>
       </div>
 
-      <EditRecipeModal recipe={recipe} onClose={() => setShowEditModal(false)} isOpen={showEditModal} />
+      <EditRecipeModal recipe={recipe} onClose={() => resetParams(['modal'])} isOpen={searchParams.modal === 'edit'} />
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
+      {searchParams.modal === 'delete' && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[var(--z-modal)] p-4">
           <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 max-w-md w-full shadow-2xl border border-neutral-200/60 dark:border-neutral-700/50">
             <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-2">
@@ -242,7 +242,7 @@ export function RecipeDetail() {
               )}
             </p>
             <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setShowDeleteConfirm(false)} className="rounded-xl">
+              <Button variant="outline" onClick={() => resetParams(['modal'])} className="rounded-xl">
                 {t('common.cancel', 'Cancel')}
               </Button>
               <Button

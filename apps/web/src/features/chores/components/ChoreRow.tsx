@@ -24,6 +24,7 @@ import {
 import { EditChoreModal } from './EditChoreModal';
 import { RecurrenceBadge } from './RecurrenceBadge';
 import { syncBadge } from '@/lib/serviceWorker';
+import type { ChoresSearchParams } from '@/router';
 
 interface ChoreRowProps {
   chore: Chore;
@@ -35,12 +36,23 @@ interface ChoreRowProps {
     style: CSSProperties;
     isDragging: boolean;
   };
+  setParams: (updates: Partial<ChoresSearchParams>) => void;
+  resetParams: (keys: (keyof ChoresSearchParams)[]) => void;
+  searchParams: ChoresSearchParams;
 }
 
-export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
+export function ChoreRow({ 
+  chore, 
+  users, 
+  dragHandleProps,
+  setParams,
+  resetParams,
+  searchParams,
+}: ChoreRowProps) {
   const { t, i18n } = useTranslation('common');
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const isEditModalOpen = searchParams.modal === 'edit' && searchParams.choreId === chore.id;
+  const isImageModalOpen = searchParams.viewImage === chore.image_path;
+  
   const [isEmotionModalOpen, setIsEmotionModalOpen] = useState(false);
   const [pendingToggle, setPendingToggle] = useState(false);
   const queryClient = useQueryClient();
@@ -144,12 +156,12 @@ export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
                   key={`thumbnail-${chore.id}-${chore.image_path}`}
                   src={getChoreThumbnailUrl(chore.image_path) || ''}
                   alt={chore.chore_name}
-                  onClick={() => setIsImageModalOpen(true)}
+                  onClick={() => setParams({ viewImage: chore.image_path! })}
                   className="w-8 h-8 object-cover rounded cursor-pointer hover:opacity-80 transition-all duration-300 border border-neutral-300 dark:border-neutral-600 flex-shrink-0"
                 />
               )}
               <h4
-                onClick={() => !chore.completed && setIsEditModalOpen(true)}
+                onClick={() => !chore.completed && setParams({ modal: 'edit', choreId: chore.id })}
                 className={`mb-1 text-sm font-medium ${
                   chore.completed
                     ? 'line-through text-neutral-500 dark:text-neutral-400'
@@ -215,11 +227,16 @@ export function ChoreRow({ chore, users, dragHandleProps }: ChoreRowProps) {
           <ActionMenu items={actionMenuItems} />
         </div>
       </div>
-      <EditChoreModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} chore={chore} users={users} />
+      <EditChoreModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => resetParams(['modal', 'choreId'])} 
+        chore={chore} 
+        users={users} 
+      />
       {chore.image_path && (
         <ImageModal
           isOpen={isImageModalOpen}
-          onClose={() => setIsImageModalOpen(false)}
+          onClose={() => resetParams(['viewImage'])}
           imageUrl={getChoreImageUrl(chore.image_path) || ''}
           alt={chore.chore_name}
         />

@@ -3,10 +3,13 @@ import { ListItemSkeleton } from '@/components/Skeleton';
 import { ChoreRow } from '@/features/chores/components/ChoreRow';
 import { useChores } from '@hously/shared';
 import { useTranslation } from 'react-i18next';
+import { useModalSearchParams } from '@/hooks/useModalSearchParams';
+import type { ChoresSearchParams } from '@/router';
 
 const PendingChoresSection = () => {
   const { t } = useTranslation('common');
   const { data: choresData, isLoading: choresLoading } = useChores();
+  const { setParams, resetParams } = useModalSearchParams<ChoresSearchParams>('/chores', {});
 
   const users = choresData?.users || [];
   const chores = choresData?.chores || [];
@@ -36,7 +39,16 @@ const PendingChoresSection = () => {
             <ListItemSkeleton />
           </div>
         ) : pendingChores.length > 0 ? (
-          pendingChores.slice(0, 5).map(chore => <ChoreRow key={chore.id} chore={chore} users={users} />)
+          pendingChores.slice(0, 5).map(chore => (
+            <ChoreRow 
+              key={chore.id} 
+              chore={chore} 
+              users={users} 
+              setParams={setParams}
+              resetParams={resetParams}
+              searchParams={{}}
+            />
+          ))
         ) : (
           <div className="p-6">
             <EmptyState icon="✅" title={t('chores.noChores')} description={t('chores.addFirstChore')} />

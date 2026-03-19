@@ -24,6 +24,7 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { useSearch } from '@tanstack/react-router';
 import { PlusIcon, ChevronLeft, ChevronRight, CalendarDays, X } from 'lucide-react';
 import { HouseLoader } from '@/components/HouseLoader';
+import { useModalSearchParams } from '@/hooks/useModalSearchParams';
 import type { CalendarSearchParams } from '@/router';
 
 function parseCalendarSearchDate(dateStr?: string): Date | null {
@@ -49,21 +50,28 @@ function parseCalendarSearchDate(dateStr?: string): Date | null {
 export function Calendar() {
   const { t, i18n } = useTranslation('common');
   const searchParams = useSearch({ from: '/calendar' }) as CalendarSearchParams;
+  const { setParams, resetParams } = useModalSearchParams('/calendar', searchParams);
+  
   const today = startOfDay(new Date());
   const initialNotificationDate = useMemo(() => parseCalendarSearchDate(searchParams.date), [searchParams.date]);
   const initialDate = initialNotificationDate ?? today;
+  
   const [currentMonth, setCurrentMonth] = useState(initialDate.getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(initialDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
-  const [isCreateEventOpen, setIsCreateEventOpen] = useState(false);
-  const [eventToEdit, setEventToEdit] = useState<CalendarEvent | undefined>(undefined);
-  const [isEditEventOpen, setIsEditEventOpen] = useState(false);
   const [selectedDayEventsContainerRef] = useAutoAnimate();
 
   const { data: events = [], isLoading, refetch } = useCalendarEvents(currentYear, currentMonth);
   const deleteMutation = useDeleteCustomEvent();
   const notificationDate = initialNotificationDate;
   const targetedEventId = searchParams.eventId;
+
+  const eventToEdit = useMemo(() => {
+    if (searchParams.modal !== 'edit' || !targetedEventId) return undefined;
+    return events.find(e => e.type === 'custom_event' && e.metadata?.custom_event_id === targetedEventId);
+  }, [events, searchParams.modal, targetedEventId]);
+
+  const isCreateEventOpen = searchParams.modal === 'create';
 
   useEffect(() => {
     if (!notificationDate) return;
@@ -214,7 +222,7 @@ export function Calendar() {
     <PageLayout>
       <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <PageHeader icon="📅" iconColor="text-blue-600" title={t('calendar.title')} subtitle={t('calendar.subtitle')} />
-        <Button onClick={() => setIsCreateEventOpen(true)} className="rounded-xl">
+        <Button onClick={() => setParams({ modal: 'create' })} className="rounded-xl">
           <PlusIcon className="w-4 h-4 mr-2" />
           {t('calendar.addEvent')}
         </Button>
@@ -384,8 +392,9 @@ export function Calendar() {
                             event.metadata?.custom_event_id === targetedEventId
                         )}
                         onEditEvent={() => {
-                          setEventToEdit(event);
-                          setIsEditEventOpen(true);
+                          if (event.type === 'custom_event' && event.metadata?.custom_event_id) {
+                            setParams({ modal: 'edit', eventId: event.metadata.custom_event_id });
+                          }
                         }}
                         onDeleteEvent={eventToDelete => {
                           if (eventToDelete.type === 'custom_event' && eventToDelete.metadata?.custom_event_id) {
@@ -412,7 +421,7 @@ export function Calendar() {
                       {t('calendar.noEvents') || 'No events for this day'}
                     </p>
                     <button
-                      onClick={() => setIsCreateEventOpen(true)}
+                      onClick={() => setParams({ modal: 'create' })}
                       className="mt-3 text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
                     >
                       + {t('calendar.addEvent')}
@@ -436,7 +445,7 @@ export function Calendar() {
       <CreateCustomEventForm
         isOpen={isCreateEventOpen}
         onClose={() => {
-          setIsCreateEventOpen(false);
+          resetParams(['modal']);
           refetch();
         }}
       />
@@ -444,10 +453,9 @@ export function Calendar() {
       {/* Edit Custom Event Dialog */}
       {eventToEdit && (
         <CreateCustomEventForm
-          isOpen={isEditEventOpen}
+          isOpen={searchParams.modal === 'edit'}
           onClose={() => {
-            setIsEditEventOpen(false);
-            setEventToEdit(undefined);
+            resetParams(['modal', 'eventId']);
             refetch();
           }}
           eventToEdit={eventToEdit as CalendarEvent & CalendarEventCustomEventMetadata}

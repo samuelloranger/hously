@@ -35,7 +35,8 @@
       "Bash(do echo \"=== $feat ===\")",
       "Read(//home/samuelloranger/sites/hously/apps/web/src/features/$feat/**)",
       "Bash(done)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(bun test:*)"
     ],
     "deny": [],
     "ask": []

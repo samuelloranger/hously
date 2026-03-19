@@ -194,20 +194,40 @@ const shoppingRoute = createRoute({
   },
 });
 
+export type ChoresSearchParams = {
+  modal?: 'create' | 'edit';
+  choreId?: number;
+  viewImage?: string;
+};
+
 const choresRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/chores',
   component: ChoresList,
+  validateSearch: (search: Record<string, unknown>): ChoresSearchParams => ({
+    modal: (search.modal === 'create' || search.modal === 'edit') ? search.modal as any : undefined,
+    choreId: parseOptionalInt(search.choreId),
+    viewImage: typeof search.viewImage === 'string' ? search.viewImage : undefined,
+  }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
     await prefetchRouteData(context.queryClient, '/chores');
   },
 });
 
+export type HabitsSearchParams = {
+  modal?: 'create' | 'edit';
+  habitId?: number;
+};
+
 const habitsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/habits',
   component: HabitsList,
+  validateSearch: (search: Record<string, unknown>): HabitsSearchParams => ({
+    modal: (search.modal === 'create' || search.modal === 'edit') ? search.modal as any : undefined,
+    habitId: parseOptionalInt(search.habitId),
+  }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
     await prefetchRouteData(context.queryClient, '/habits');
@@ -217,6 +237,7 @@ const habitsRoute = createRoute({
 export type CalendarSearchParams = {
   date?: string;
   eventId?: number;
+  modal?: 'create' | 'edit';
 };
 
 const calendarRoute = createRoute({
@@ -229,6 +250,7 @@ const calendarRoute = createRoute({
         ? search.date
         : undefined,
     eventId: parseOptionalInt(search.eventId),
+    modal: (search.modal === 'create' || search.modal === 'edit') ? search.modal as any : undefined,
   }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
@@ -262,20 +284,34 @@ const notificationsRoute = createRoute({
   },
 });
 
+export type KitchenSearchParams = {
+  modal?: 'create';
+};
+
 const kitchenRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/kitchen',
   component: KitchenPage,
+  validateSearch: (search: Record<string, unknown>): KitchenSearchParams => ({
+    modal: search.modal === 'create' ? search.modal : undefined,
+  }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
     await prefetchRouteData(context.queryClient, '/kitchen');
   },
 });
 
+export type RecipeDetailSearchParams = {
+  modal?: 'edit' | 'delete';
+};
+
 const recipeDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/kitchen/$recipeId',
   component: RecipeDetail,
+  validateSearch: (search: Record<string, unknown>): RecipeDetailSearchParams => ({
+    modal: (search.modal === 'edit' || search.modal === 'delete') ? search.modal as any : undefined,
+  }),
   beforeLoad: requireAuth,
   loader: async ({ context, params }) => {
     await prefetchRouteData(context.queryClient, '/kitchen/$recipeId', params);
@@ -322,6 +358,8 @@ export type LibrarySearchParams = {
   c411Tab?: string;
   c411Release?: number;
   scrollToMedia?: string;
+  modal?: 'interactive' | 'similar' | 'delete' | 'convert';
+  mediaId?: string;
 };
 
 const parseOptionalInt = (val: unknown): number | undefined =>
@@ -339,6 +377,8 @@ const libraryRoute = createRoute({
     c411Tab: typeof search.c411Tab === 'string' ? search.c411Tab : undefined,
     c411Release: parseOptionalInt(search.c411Release),
     scrollToMedia: typeof search.scrollToMedia === 'string' ? search.scrollToMedia : undefined,
+    modal: (search.modal === 'interactive' || search.modal === 'similar' || search.modal === 'delete' || search.modal === 'convert') ? search.modal as any : undefined,
+    mediaId: typeof search.mediaId === 'string' ? search.mediaId : undefined,
   }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {

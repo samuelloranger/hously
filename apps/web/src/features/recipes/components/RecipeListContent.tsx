@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Search, Star, X, UtensilsCrossed } from 'lucide-react';
 import { LoadingState } from '@/components/LoadingState';
 import { RecipeCard } from './RecipeCard';
-import { useRecipes, type Recipe } from '@hously/shared';
+import { useRecipes } from '@hously/shared';
 import { CreateRecipeModal } from './CreateRecipeModal';
 import { EditRecipeModal } from './EditRecipeModal';
 import { cn } from '@/lib/utils';
+import { useSearch } from '@tanstack/react-router';
+import { useModalSearchParams } from '@/hooks/useModalSearchParams';
+import type { KitchenSearchParams } from '@/router';
 
 const CATEGORIES = ['breakfast', 'lunch', 'dinner', 'dessert', 'snack'];
 
@@ -17,24 +20,28 @@ interface RecipeListContentProps {
 export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
   const { t } = useTranslation('common');
   const { data, isLoading, refetch } = useRecipes();
+  
+  const searchParams = useSearch({ from: '/kitchen' }) as KitchenSearchParams;
+  const { setParams, resetParams } = useModalSearchParams('/kitchen', searchParams);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [editRecipe, setEditRecipe] = useState<Recipe | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  const [editingRecipeId, setEditingRecipeId] = useState<number | null>(null);
+
+  const recipes = data?.recipes || [];
+  const isCreateModalOpen = searchParams.modal === 'create';
+  const editRecipe = useMemo(
+    () => editingRecipeId ? recipes.find(r => r.id === editingRecipeId) || null : null,
+    [recipes, editingRecipeId]
+  );
 
   useEffect(() => {
     if (refreshKey) {
       refetch();
     }
   }, [refreshKey, refetch]);
-
-  const closeEditModal = () => {
-    setEditRecipe(null);
-  };
-
-  const recipes = data?.recipes || [];
 
   const filteredRecipes = recipes.filter(recipe => {
     const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -63,7 +70,7 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
               placeholder={t('recipes.searchPlaceholder', 'Search recipes...')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 text-neutral-900 dark:text-white text-sm placeholder:text-neutral-400 focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 dark:focus:border-orange-500 transition-all outline-none"
+              className="w-full pl-9 pr-4 py-2.5 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-neutral-50 dark:bg-neutral-950/50 text-neutral-900 dark:text-white text-sm placeholder:text-neutral-400 focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 dark:focus:border-orange-500 transition-all outline-none"
             />
             {searchQuery && (
               <button
@@ -91,7 +98,7 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
 
           {/* Add recipe */}
           <button
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => setParams({ modal: 'create' })}
             className="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 active:scale-[0.98] text-white rounded-xl flex items-center gap-2 text-sm font-medium transition-all duration-200 shadow-sm shadow-orange-600/20 shrink-0"
           >
             <Plus className="w-4 h-4" />
@@ -153,7 +160,7 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
           </p>
           {!hasActiveFilters && (
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => setParams({ modal: 'create' })}
               className="mt-4 text-sm font-medium text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
             >
               + {t('recipes.addRecipe', 'Add Recipe')}
@@ -162,8 +169,8 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
         </div>
       )}
 
-      <CreateRecipeModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
-      {editRecipe && <EditRecipeModal recipe={editRecipe} isOpen={true} onClose={closeEditModal} />}
+      <CreateRecipeModal isOpen={isCreateModalOpen} onClose={() => resetParams(['modal'])} />
+      {editRecipe && <EditRecipeModal recipe={editRecipe} isOpen={true} onClose={() => setEditingRecipeId(null)} />}
     </>
   );
 }

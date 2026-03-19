@@ -36,10 +36,6 @@ export function MediasLibrary() {
   const [filter, setFilter] = useState<MediaFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>('added_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
-  const [interactiveItem, setInteractiveItem] = useState<MediaItem | null>(null);
-  const [similarItem, setSimilarItem] = useState<MediaItem | null>(null);
-  const [deleteItem, setDeleteItem] = useState<MediaItem | null>(null);
-  const [convertItem, setConvertItem] = useState<MediaItem | null>(null);
 
   const searchParams = useSearch({ from: '/library' }) as LibrarySearchParams;
   const { setParams, resetParams } = useModalSearchParams('/library', searchParams);
@@ -62,6 +58,23 @@ export function MediasLibrary() {
       return item;
     });
   }, [libraryData?.items, activeConversionsData?.jobs]);
+
+  const interactiveItem = useMemo(
+    () => searchParams.modal === 'interactive' ? items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null : null,
+    [items, searchParams.modal, searchParams.mediaId]
+  );
+  const similarItem = useMemo(
+    () => searchParams.modal === 'similar' ? items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null : null,
+    [items, searchParams.modal, searchParams.mediaId]
+  );
+  const deleteItem = useMemo(
+    () => searchParams.modal === 'delete' ? items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null : null,
+    [items, searchParams.modal, searchParams.mediaId]
+  );
+  const convertItem = useMemo(
+    () => searchParams.modal === 'convert' ? items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null : null,
+    [items, searchParams.modal, searchParams.mediaId]
+  );
 
   const c411Enabled = libraryData?.c411_enabled ?? false;
   const c411TmdbIds = useMemo(
@@ -245,11 +258,11 @@ export function MediasLibrary() {
                   item={item}
                   isOnC411={c411Enabled && item.tmdb_id !== null && c411TmdbIds.has(item.tmdb_id)}
                   releaseTags={item.release_tags ?? undefined}
-                  onOpenInteractive={() => setInteractiveItem(item)}
-                  onFindSimilar={item.tmdb_id ? () => setSimilarItem(item) : undefined}
-                  onConvert={item.service === 'radarr' && item.media_type === 'movie' && item.downloaded ? () => setConvertItem(item) : undefined}
+                  onOpenInteractive={() => setParams({ modal: 'interactive', mediaId: `${item.service}:${item.source_id}` })}
+                  onFindSimilar={item.tmdb_id ? () => setParams({ modal: 'similar', mediaId: `${item.service}:${item.source_id}` }) : undefined}
+                  onConvert={item.service === 'radarr' && item.media_type === 'movie' && item.downloaded ? () => setParams({ modal: 'convert', mediaId: `${item.service}:${item.source_id}` }) : undefined}
                   onOpenC411={c411Enabled && item.source_id && item.tmdb_id ? () => setParams({ c411: item.tmdb_id! }) : undefined}
-                  onDelete={() => setDeleteItem(item)}
+                  onDelete={() => setParams({ modal: 'delete', mediaId: `${item.service}:${item.source_id}` })}
                 />
               ))}
             </div>
@@ -303,7 +316,7 @@ export function MediasLibrary() {
       <InteractiveSearchDialog
         isOpen={Boolean(interactiveItem)}
         media={interactiveItem}
-        onClose={() => setInteractiveItem(null)}
+        onClose={() => resetParams(['modal', 'mediaId'])}
       />
 
       <SimilarMediasDialog
@@ -311,16 +324,16 @@ export function MediasLibrary() {
         tmdbId={similarItem?.tmdb_id ?? null}
         mediaType={similarItem ? (similarItem.media_type === 'movie' ? 'movie' : 'tv') : null}
         title={similarItem?.title ?? ''}
-        onClose={() => setSimilarItem(null)}
+        onClose={() => resetParams(['modal', 'mediaId'])}
         onAdded={refetch}
       />
 
-      <DeleteMediaDialog isOpen={Boolean(deleteItem)} media={deleteItem} onClose={() => setDeleteItem(null)} />
+      <DeleteMediaDialog isOpen={Boolean(deleteItem)} media={deleteItem} onClose={() => resetParams(['modal', 'mediaId'])} />
 
       <ConvertMediaDialog
         isOpen={Boolean(convertItem)}
         media={convertItem}
-        onClose={() => setConvertItem(null)}
+        onClose={() => resetParams(['modal', 'mediaId'])}
       />
 
       <C411Dialog
