@@ -127,7 +127,7 @@ export interface C411PrepareReleaseResponse {
   queued: boolean;
 }
 
-export interface C411MediaInfoResponse {
+export interface MediaInfoResponse {
   file_path: string;
   file_size: number | null;
   file_count: number;

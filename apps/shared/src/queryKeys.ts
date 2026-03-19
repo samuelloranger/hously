@@ -117,8 +117,7 @@ export const queryKeys = {
 
   c411: {
     all: ['c411'] as const,
-    search: (query: string) => ['c411', 'search', query] as const,
-    releaseStatus: (tmdbId: number, tmdbType: 'movie' | 'tv') => ['c411', 'release-status', tmdbType, tmdbId] as const,
+    history: (service: string, sourceId: number | null, seasonNumber: number | null) => ['c411', 'history', service, sourceId, seasonNumber] as const,
     drafts: () => ['c411', 'drafts'] as const,
     draft: (id: number) => ['c411', 'draft', id] as const,
     releases: () => ['c411', 'releases'] as const,

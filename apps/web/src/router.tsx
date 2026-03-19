@@ -205,7 +205,7 @@ const choresRoute = createRoute({
   path: '/chores',
   component: ChoresList,
   validateSearch: (search: Record<string, unknown>): ChoresSearchParams => ({
-    modal: (search.modal === 'create' || search.modal === 'edit') ? search.modal as any : undefined,
+    modal: search.modal === 'create' || search.modal === 'edit' ? (search.modal as any) : undefined,
     choreId: parseOptionalInt(search.choreId),
     viewImage: typeof search.viewImage === 'string' ? search.viewImage : undefined,
   }),
@@ -225,7 +225,7 @@ const habitsRoute = createRoute({
   path: '/habits',
   component: HabitsList,
   validateSearch: (search: Record<string, unknown>): HabitsSearchParams => ({
-    modal: (search.modal === 'create' || search.modal === 'edit') ? search.modal as any : undefined,
+    modal: search.modal === 'create' || search.modal === 'edit' ? (search.modal as any) : undefined,
     habitId: parseOptionalInt(search.habitId),
   }),
   beforeLoad: requireAuth,
@@ -245,12 +245,9 @@ const calendarRoute = createRoute({
   path: '/calendar',
   component: Calendar,
   validateSearch: (search: Record<string, unknown>): CalendarSearchParams => ({
-    date:
-      typeof search.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(search.date)
-        ? search.date
-        : undefined,
+    date: typeof search.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(search.date) ? search.date : undefined,
     eventId: parseOptionalInt(search.eventId),
-    modal: (search.modal === 'create' || search.modal === 'edit') ? search.modal as any : undefined,
+    modal: search.modal === 'create' || search.modal === 'edit' ? (search.modal as any) : undefined,
   }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
@@ -310,7 +307,7 @@ const recipeDetailRoute = createRoute({
   path: '/kitchen/$recipeId',
   component: RecipeDetail,
   validateSearch: (search: Record<string, unknown>): RecipeDetailSearchParams => ({
-    modal: (search.modal === 'edit' || search.modal === 'delete') ? search.modal as any : undefined,
+    modal: search.modal === 'edit' || search.modal === 'delete' ? (search.modal as any) : undefined,
   }),
   beforeLoad: requireAuth,
   loader: async ({ context, params }) => {
@@ -354,16 +351,16 @@ export type LibrarySearchParams = {
   page?: number;
   pageSize?: number;
   search?: string;
-  c411?: number;
-  c411Tab?: string;
-  c411Release?: number;
+  current_media?: number;
+  current_media_tab?: string;
+  current_media_release?: number;
   scrollToMedia?: string;
   modal?: 'interactive' | 'similar' | 'delete' | 'convert';
   mediaId?: string;
 };
 
 const parseOptionalInt = (val: unknown): number | undefined =>
-  typeof val === 'number' ? val : (typeof val === 'string' && val ? Number(val) || undefined : undefined);
+  typeof val === 'number' ? val : typeof val === 'string' && val ? Number(val) || undefined : undefined;
 
 const libraryRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -373,11 +370,17 @@ const libraryRoute = createRoute({
     page: parseOptionalInt(search.page),
     pageSize: parseOptionalInt(search.pageSize),
     search: typeof search.search === 'string' && search.search ? search.search : undefined,
-    c411: parseOptionalInt(search.c411),
-    c411Tab: typeof search.c411Tab === 'string' ? search.c411Tab : undefined,
-    c411Release: parseOptionalInt(search.c411Release),
+    current_media: parseOptionalInt(search.current_media),
+    current_media_tab: typeof search.current_media_tab === 'string' ? search.current_media_tab : undefined,
+    current_media_release: parseOptionalInt(search.current_media_release),
     scrollToMedia: typeof search.scrollToMedia === 'string' ? search.scrollToMedia : undefined,
-    modal: (search.modal === 'interactive' || search.modal === 'similar' || search.modal === 'delete' || search.modal === 'convert') ? search.modal as any : undefined,
+    modal:
+      search.modal === 'interactive' ||
+      search.modal === 'similar' ||
+      search.modal === 'delete' ||
+      search.modal === 'convert'
+        ? (search.modal as any)
+        : undefined,
     mediaId: typeof search.mediaId === 'string' ? search.mediaId : undefined,
   }),
   beforeLoad: requireAuth,

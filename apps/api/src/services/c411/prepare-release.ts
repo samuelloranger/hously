@@ -5,7 +5,7 @@
 import { dirname, extname, join, relative } from 'node:path';
 import { link, mkdir, rm, stat } from 'node:fs/promises';
 import { Prisma } from '@prisma/client';
-import { buildC411ReleaseNotificationUrl } from '@hously/shared';
+import { buildCurrentMediaReleaseNotificationUrl } from '@hously/shared';
 import { prisma } from '../../db';
 import { createAndQueueNotification } from '../../jobs/notificationService';
 import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
@@ -546,7 +546,6 @@ async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<Pr
       teamOverride: source.releaseGroup || undefined,
     });
 
-    const { categoryId, subcategoryId } = resolveCategory(undefined, tmdb.type);
     const languageOptionIds = resolveLanguage(c411Name);
     const genreOptionIds = resolveGenres(bbcode);
 
@@ -675,7 +674,7 @@ async function sendPrepareNotification(params: {
 }): Promise<void> {
   if (!params.userId) return;
 
-  const url = buildC411ReleaseNotificationUrl(params.tmdbId, params.releaseId);
+  const url = buildCurrentMediaReleaseNotificationUrl(params.tmdbId, params.releaseId);
 
   await createAndQueueNotification(
     params.userId,

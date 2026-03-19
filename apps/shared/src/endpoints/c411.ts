@@ -1,6 +1,6 @@
 export const C411_ENDPOINTS = {
-  SEARCH: '/api/medias/c411/search',
-  RELEASE_STATUS: '/api/medias/c411/release-status',
+  HISTORY: '/api/medias/c411/media-info/history',
+  REPROCESS: '/api/medias/c411/media-info/release-group/reprocess',
   DRAFTS: '/api/medias/c411/drafts',
   DRAFT: (id: number) => `/api/medias/c411/drafts/${id}`,
   PUBLISH_DRAFT: (id: number) => `/api/medias/c411/drafts/${id}/publish`,

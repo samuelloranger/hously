@@ -1,10 +1,10 @@
 import { Loader2, AudioLines, Film, HardDrive, Clock, Monitor, Gauge, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatReleaseSize as formatSize } from '@hously/shared';
+import { formatReleaseSize as formatSize, type MediaInfoResponse } from '@hously/shared';
 import { BADGE_NEUTRAL, CARD, langBadgeClass, BADGE_BASE, langLabel } from './c411-utils';
 
 interface Props {
-  data: any;
+  data: MediaInfoResponse | undefined;
   isLoading: boolean;
 }
 
@@ -22,7 +22,7 @@ function StatCell({ icon: Icon, label, value }: { icon: typeof Film; label: stri
   );
 }
 
-export function C411MediaInfoPanel({ data, isLoading }: Props) {
+export function MediaInfoPanel({ data, isLoading }: Props) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -64,16 +64,15 @@ export function C411MediaInfoPanel({ data, isLoading }: Props) {
       )}
 
       {/* Stats grid */}
-      <div className={cn(CARD, 'grid grid-cols-2 sm:grid-cols-3 divide-x divide-y divide-neutral-200/80 dark:divide-neutral-700/60 overflow-hidden')}>
-        {data.file_size != null && (
-          <StatCell icon={HardDrive} label="Size" value={formatSize(data.file_size)} />
+      <div
+        className={cn(
+          CARD,
+          'grid grid-cols-2 sm:grid-cols-3 divide-x divide-y divide-neutral-200/80 dark:divide-neutral-700/60 overflow-hidden'
         )}
-        {mi.duration && mi.duration !== 'N/A' && (
-          <StatCell icon={Clock} label="Duration" value={mi.duration} />
-        )}
-        {mi.resolution && (
-          <StatCell icon={Monitor} label="Resolution" value={mi.resolution} />
-        )}
+      >
+        {data.file_size != null && <StatCell icon={HardDrive} label="Size" value={formatSize(data.file_size)} />}
+        {mi.duration && mi.duration !== 'N/A' && <StatCell icon={Clock} label="Duration" value={mi.duration} />}
+        {mi.resolution && <StatCell icon={Monitor} label="Resolution" value={mi.resolution} />}
         {mi.video_bitrate && mi.video_bitrate !== 'N/A' && (
           <StatCell icon={Gauge} label="Video Bitrate" value={mi.video_bitrate} />
         )}
@@ -98,12 +97,12 @@ export function C411MediaInfoPanel({ data, isLoading }: Props) {
                 {langLabel(a.language) || 'und'}
               </span>
               {a.title && <span className="text-[11px] text-neutral-500 dark:text-neutral-400">{a.title}</span>}
-              <span className="text-[11px] text-neutral-500 dark:text-neutral-400 ml-auto">{a.codec} · {a.channels} · {a.bitrate || 'N/A'}</span>
+              <span className="text-[11px] text-neutral-500 dark:text-neutral-400 ml-auto">
+                {a.codec} · {a.channels} · {a.bitrate || 'N/A'}
+              </span>
             </div>
           ))}
-          {mi.audio_streams.length === 0 && (
-            <p className="text-xs text-neutral-400">No audio tracks found</p>
-          )}
+          {mi.audio_streams.length === 0 && <p className="text-xs text-neutral-400">No audio tracks found</p>}
         </div>
       </div>
 
@@ -120,13 +119,15 @@ export function C411MediaInfoPanel({ data, isLoading }: Props) {
                 {langLabel(s.language) || 'und'}
               </span>
               {s.title && <span className="text-[11px] text-neutral-500 dark:text-neutral-400">{s.title}</span>}
-              {s.forced && <span className="inline-flex items-center rounded-md bg-amber-100/60 dark:bg-amber-900/20 px-1.5 py-0.5 text-[9px] font-medium text-amber-700 dark:text-amber-400">forced</span>}
+              {s.forced && (
+                <span className="inline-flex items-center rounded-md bg-amber-100/60 dark:bg-amber-900/20 px-1.5 py-0.5 text-[9px] font-medium text-amber-700 dark:text-amber-400">
+                  forced
+                </span>
+              )}
               <span className="text-[11px] text-neutral-500 dark:text-neutral-400 ml-auto">{s.format}</span>
             </div>
           ))}
-          {mi.subtitles.length === 0 && (
-            <p className="text-xs text-neutral-400">No subtitle tracks found</p>
-          )}
+          {mi.subtitles.length === 0 && <p className="text-xs text-neutral-400">No subtitle tracks found</p>}
         </div>
       </div>
     </div>

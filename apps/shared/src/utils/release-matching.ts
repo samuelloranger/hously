@@ -3,7 +3,7 @@
  * a media file based on resolution, codec, source type,
  * HDR, quality tier, and file size.
  */
-import type { C411MediaInfoResponse, C411ReleaseStatusResponse, C411Slot } from '../types/c411';
+import type { MediaInfoResponse, C411ReleaseStatusResponse, C411Slot } from '../types/c411';
 import {
   formatReleaseSize as formatSize,
   normalizeResolution,
@@ -181,7 +181,7 @@ function inferMediaTier(profile: Omit<LocalMediaProfile, 'tier'>): QualityTier {
   return isHighQuality(profile) ? 'high' : 'lossy';
 }
 
-export function buildMediaProfile(mediaInfo: C411MediaInfoResponse | null): LocalMediaProfile | null {
+export function buildMediaProfile(mediaInfo: MediaInfoResponse | null): LocalMediaProfile | null {
   if (!mediaInfo?.media_info) return null;
 
   const sceneText = mediaInfo.scene_name || '';
@@ -343,7 +343,7 @@ export function evaluateSlot(slot: C411Slot, media: LocalMediaProfile | null): S
 
 export function buildSlotStates(
   data: C411ReleaseStatusResponse,
-  mediaInfo: C411MediaInfoResponse | null,
+  mediaInfo: MediaInfoResponse | null,
 ): Map<string, SlotState> {
   const states = new Map<string, SlotState>();
   const media = buildMediaProfile(mediaInfo);
@@ -381,7 +381,7 @@ export function buildSlotStates(
   return states;
 }
 
-export function buildMediaSummary(mediaInfo: C411MediaInfoResponse | null): string | null {
+export function buildMediaSummary(mediaInfo: MediaInfoResponse | null): string | null {
   if (!mediaInfo?.media_info) return null;
 
   const parts = [

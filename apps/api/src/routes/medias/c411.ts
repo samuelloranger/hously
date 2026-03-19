@@ -13,9 +13,6 @@ import { createJsonSseResponse } from '../../utils/sse';
 import {
   withC411Session,
   loadC411Config,
-  searchTorrents,
-  fetchReleaseStatus,
-  fetchAllMyTorrents,
   fetchDrafts,
   fetchDraft,
   createDraft,
@@ -34,85 +31,11 @@ import { getQbittorrentPluginConfig } from '../../services/qbittorrent/config';
 import { addQbittorrentTorrentFile } from '../../services/qbittorrent/torrents';
 import { prepareRelease, refreshRelease, fetchReleaseMediaInfoPreview } from '../../services/c411/prepare-release';
 import { syncC411Releases } from '../../services/c411/sync';
+import { fetchArrHistory, triggerArrReprocess } from '../../services/c411/history';
 
 export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
   .use(auth)
   .use(requireUser)
-
-  // ─── Search ──────────────────────────────────────────────
-  .get('/search', async ({ query, set }) => {
-    const q = query.q;
-    if (!q || typeof q !== 'string' || q.trim().length < 2) {
-      return badRequest(set, 'Query must be at least 2 characters');
-    }
-    try {
-      return await withC411Session((session) => searchTorrents(session, q.trim()));
-    } catch (error: any) {
-      console.error('[c411:search]', error);
-      return serverError(set, error.message || 'C411 search failed');
-    }
-  })
-
-  // ─── Release Status (Slot Grid) ─────────────────────────
-  .get('/release-status', async ({ query, set }) => {
-    const tmdbId = parseInt(query.tmdbId as string);
-    const title = query.title as string;
-    const year = parseInt(query.year as string);
-    const imdbId = (query.imdbId as string) || '';
-    const tmdbType = query.tmdbType === 'tv' ? 'tv' : 'movie';
-
-    if (!tmdbId || !title) return badRequest(set, 'tmdbId and title are required');
-
-    try {
-      const config = await loadC411Config();
-      const configuredUsername = config.username.trim().toLowerCase();
-      const cacheKey = `c411:release-status:${tmdbType}:${tmdbId}:${configuredUsername}`;
-      const cached = await getJsonCache(cacheKey);
-      if (cached) return cached;
-
-      const result = await withC411Session(async (session) => {
-        const [releaseStatus, myTorrents] = await Promise.all([
-          fetchReleaseStatus(session, { tmdbId, tmdbType, imdbId, title, year: year || 0 }),
-          fetchAllMyTorrents(session, config.username),
-        ]);
-
-        const myTorrentIds = new Set(myTorrents.map((torrent) => torrent.id));
-        const myInfoHashes = new Set(
-          myTorrents
-            .map((torrent) => torrent.infoHash?.toLowerCase())
-            .filter((infoHash): infoHash is string => Boolean(infoHash)),
-        );
-
-        return {
-          ...releaseStatus,
-          slotGrid: releaseStatus.slotGrid.map((slot) => ({
-            ...slot,
-            occupants: slot.occupants.map((occupant) => ({
-              ...occupant,
-              isMine:
-                myTorrentIds.has(occupant.torrentId) ||
-                (occupant.infoHash ? myInfoHashes.has(occupant.infoHash.toLowerCase()) : false),
-            })),
-          })),
-        };
-      });
-      await setJsonCache(cacheKey, result, 1800); // 30 min cache
-      return result;
-    } catch (error: any) {
-      console.error('[c411:release-status]', error);
-      return serverError(set, error.message || 'Failed to fetch release status');
-    }
-  })
-
-  // ─── Drafts (C411 API) ──────────────────────────────────
-  .get('/drafts', async ({ set }) => {
-    try {
-      return await withC411Session((session) => fetchDrafts(session));
-    } catch (error: any) {
-      console.error('[c411:drafts]', error);
-      return serverError(set, error.message || 'Failed to fetch drafts');
-    }
-  })
 
   .get('/drafts/:id', async ({ params, set }) => {
     const id = parseInt(params.id);
@@ -497,6 +420,37 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
     } catch (error: any) {
       console.error('[c411:media-info]', error);
       return serverError(set, error.message || 'Failed to get media info');
+    }
+  })
+
+  // ─── Media Info History ──────────────────────────────────
+  .get('/media-info/history', async ({ query, set }) => {
+    const service = query.service === 'sonarr' ? 'sonarr' : 'radarr';
+    const sourceId = parseInt((query.sourceId as string) || (query.radarrSourceId as string));
+    const seasonNumber = query.seasonNumber ? parseInt(query.seasonNumber as string) : null;
+    if (!sourceId) return badRequest(set, 'sourceId is required');
+
+    try {
+      return await fetchArrHistory(service, sourceId, seasonNumber);
+    } catch (error: any) {
+      console.error('[c411:media-info:history]', error);
+      return serverError(set, error.message || 'Failed to get media history');
+    }
+  })
+
+  // ─── Media Info Reprocess ────────────────────────────────
+  .post('/media-info/release-group/reprocess', async ({ body, set }) => {
+    const data = body as any;
+    const service = data.service === 'sonarr' ? 'sonarr' : 'radarr';
+    const sourceId = parseInt(data.sourceId);
+    if (!sourceId) return badRequest(set, 'sourceId is required');
+
+    try {
+      await triggerArrReprocess(service, sourceId, data.historyEventId);
+      return { success: true };
+    } catch (error: any) {
+      console.error('[c411:media-info:reprocess]', error);
+      return serverError(set, error.message || 'Failed to trigger reprocess');
     }
   })
 

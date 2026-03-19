@@ -55,11 +55,11 @@ export function buildNotificationUrl(
   return query ? `${normalizedPath}?${query}` : normalizedPath;
 }
 
-export function buildC411ReleaseNotificationUrl(tmdbId: number, releaseId: number): string {
+export function buildCurrentMediaReleaseNotificationUrl(tmdbId: number, releaseId: number): string {
   return buildNotificationUrl('/library', {
-    c411: tmdbId,
-    c411Tab: 'releases',
-    c411Release: releaseId,
+    current_media: tmdbId,
+    current_media_tab: 'releases',
+    current_media_release: releaseId,
   });
 }
 

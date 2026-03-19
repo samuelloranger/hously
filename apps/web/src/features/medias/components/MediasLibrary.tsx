@@ -13,7 +13,19 @@ import {
 } from '@hously/shared';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaPosterCard } from '@/components/MediaPosterCard';
-import { ArrowDownAZ, ArrowUpZA, ExternalLink, RefreshCw, Search, Sparkles, Trash2, User, Upload, EllipsisVertical, Zap } from 'lucide-react';
+import {
+  ArrowDownAZ,
+  ArrowUpZA,
+  ExternalLink,
+  RefreshCw,
+  Search,
+  Sparkles,
+  Trash2,
+  User,
+  Info,
+  EllipsisVertical,
+  Zap,
+} from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { cn } from '@/lib/utils';
 
@@ -22,17 +34,17 @@ import { useModalSearchParams } from '@/hooks/useModalSearchParams';
 import { InteractiveSearchDialog } from './InteractiveSearchDialog';
 import { SimilarMediasDialog } from './SimilarMediasDialog';
 import { DeleteMediaDialog } from './DeleteMediaDialog';
-import { C411Dialog } from './c411/C411Dialog';
+import { MediaInfoDialog } from './c411/MediaInfoDialog';
 import { ConvertMediaDialog } from './ConvertMediaDialog';
 import { ConversionStatusBar } from './ConversionStatusBar';
 import type { LibrarySearchParams } from '@/router';
-import type { TabKey } from './c411/C411Dialog';
+import type { TabKey } from './c411/MediaInfoDialog';
 
 export function MediasLibrary() {
   const { t } = useTranslation('common');
   const { data: libraryData, isLoading, refetch } = useMedias();
   const { data: activeConversionsData } = useActiveMediaConversions({ enabled: true });
-  
+
   const [filter, setFilter] = useState<MediaFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>('added_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -47,9 +59,9 @@ export function MediasLibrary() {
   const items = useMemo(() => {
     const baseItems = libraryData?.items ?? [];
     const activeJobs = activeConversionsData?.jobs ?? [];
-    
+
     if (activeJobs.length === 0) return baseItems;
-    
+
     return baseItems.map(item => {
       const job = activeJobs.find(j => j.service === item.service && j.source_id === item.source_id);
       if (job) {
@@ -60,30 +72,39 @@ export function MediasLibrary() {
   }, [libraryData?.items, activeConversionsData?.jobs]);
 
   const interactiveItem = useMemo(
-    () => searchParams.modal === 'interactive' ? items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null : null,
+    () =>
+      searchParams.modal === 'interactive'
+        ? (items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null)
+        : null,
     [items, searchParams.modal, searchParams.mediaId]
   );
   const similarItem = useMemo(
-    () => searchParams.modal === 'similar' ? items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null : null,
+    () =>
+      searchParams.modal === 'similar'
+        ? (items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null)
+        : null,
     [items, searchParams.modal, searchParams.mediaId]
   );
   const deleteItem = useMemo(
-    () => searchParams.modal === 'delete' ? items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null : null,
+    () =>
+      searchParams.modal === 'delete'
+        ? (items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null)
+        : null,
     [items, searchParams.modal, searchParams.mediaId]
   );
   const convertItem = useMemo(
-    () => searchParams.modal === 'convert' ? items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null : null,
+    () =>
+      searchParams.modal === 'convert'
+        ? (items.find(i => `${i.service}:${i.source_id}` === searchParams.mediaId) ?? null)
+        : null,
     [items, searchParams.modal, searchParams.mediaId]
   );
 
   const c411Enabled = libraryData?.c411_enabled ?? false;
-  const c411TmdbIds = useMemo(
-    () => new Set(libraryData?.c411_tmdb_ids ?? []),
-    [libraryData?.c411_tmdb_ids],
-  );
-  const c411Item = useMemo(
-    () => items.find((i) => i.tmdb_id === searchParams.c411) ?? null,
-    [items, searchParams.c411],
+  const c411TmdbIds = useMemo(() => new Set(libraryData?.c411_tmdb_ids ?? []), [libraryData?.c411_tmdb_ids]);
+  const currentMediaItem = useMemo(
+    () => items.find(i => i.tmdb_id === searchParams.current_media) ?? null,
+    [items, searchParams.current_media]
   );
   const isNotConfigured = libraryData && !libraryData.radarr_enabled && !libraryData.sonarr_enabled;
 
@@ -121,13 +142,13 @@ export function MediasLibrary() {
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('ring-4', 'ring-indigo-500/50', 'ring-offset-4', 'dark:ring-offset-neutral-900');
-        
+
         const timeout = setTimeout(() => {
           element.classList.remove('ring-4', 'ring-indigo-500/50', 'ring-offset-4', 'dark:ring-offset-neutral-900');
           // Clear the param after scrolling
           setParams({ scrollToMedia: undefined });
         }, 3000);
-        
+
         return () => clearTimeout(timeout);
       }
     }
@@ -258,10 +279,20 @@ export function MediasLibrary() {
                   item={item}
                   isOnC411={c411Enabled && item.tmdb_id !== null && c411TmdbIds.has(item.tmdb_id)}
                   releaseTags={item.release_tags ?? undefined}
-                  onOpenInteractive={() => setParams({ modal: 'interactive', mediaId: `${item.service}:${item.source_id}` })}
-                  onFindSimilar={item.tmdb_id ? () => setParams({ modal: 'similar', mediaId: `${item.service}:${item.source_id}` }) : undefined}
-                  onConvert={item.service === 'radarr' && item.media_type === 'movie' && item.downloaded ? () => setParams({ modal: 'convert', mediaId: `${item.service}:${item.source_id}` }) : undefined}
-                  onOpenC411={c411Enabled && item.source_id && item.tmdb_id ? () => setParams({ c411: item.tmdb_id! }) : undefined}
+                  onOpenInteractive={() =>
+                    setParams({ modal: 'interactive', mediaId: `${item.service}:${item.source_id}` })
+                  }
+                  onFindSimilar={
+                    item.tmdb_id
+                      ? () => setParams({ modal: 'similar', mediaId: `${item.service}:${item.source_id}` })
+                      : undefined
+                  }
+                  onConvert={
+                    item.service === 'radarr' && item.media_type === 'movie' && item.downloaded
+                      ? () => setParams({ modal: 'convert', mediaId: `${item.service}:${item.source_id}` })
+                      : undefined
+                  }
+                  onOpenMediaInfo={item.tmdb_id ? () => setParams({ current_media: item.tmdb_id! }) : undefined}
                   onDelete={() => setParams({ modal: 'delete', mediaId: `${item.service}:${item.source_id}` })}
                 />
               ))}
@@ -276,7 +307,10 @@ export function MediasLibrary() {
               <div className="flex items-center gap-1.5">
                 <select
                   value={pageSize}
-                  onChange={e => { const v = Number(e.target.value); setParams({ pageSize: v !== 50 ? v : undefined, page: undefined }); }}
+                  onChange={e => {
+                    const v = Number(e.target.value);
+                    setParams({ pageSize: v !== 50 ? v : undefined, page: undefined });
+                  }}
                   className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                 >
                   {[24, 50, 100].map(size => (
@@ -289,7 +323,10 @@ export function MediasLibrary() {
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
-                    onClick={() => { const p = Math.max(1, page - 1); setParams({ page: p > 1 ? p : undefined }); }}
+                    onClick={() => {
+                      const p = Math.max(1, page - 1);
+                      setParams({ page: p > 1 ? p : undefined });
+                    }}
                     disabled={page <= 1}
                     className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
@@ -328,7 +365,11 @@ export function MediasLibrary() {
         onAdded={refetch}
       />
 
-      <DeleteMediaDialog isOpen={Boolean(deleteItem)} media={deleteItem} onClose={() => resetParams(['modal', 'mediaId'])} />
+      <DeleteMediaDialog
+        isOpen={Boolean(deleteItem)}
+        media={deleteItem}
+        onClose={() => resetParams(['modal', 'mediaId'])}
+      />
 
       <ConvertMediaDialog
         isOpen={Boolean(convertItem)}
@@ -336,23 +377,31 @@ export function MediasLibrary() {
         onClose={() => resetParams(['modal', 'mediaId'])}
       />
 
-      <C411Dialog
-        isOpen={Boolean(c411Item)}
-        media={c411Item}
-        onClose={() => resetParams(['c411', 'c411Tab', 'c411Release'])}
-        activeTab={(searchParams.c411Tab as TabKey) || 'search'}
-        onTabChange={(tab) => setParams({ c411Tab: tab, c411Release: undefined })}
-        editingReleaseId={searchParams.c411Release ?? null}
-        onEditingReleaseChange={(id) => setParams({ c411Release: id ?? undefined })}
+      <MediaInfoDialog
+        isOpen={Boolean(currentMediaItem)}
+        media={currentMediaItem}
+        onClose={() => resetParams(['current_media', 'current_media_tab', 'current_media_release'])}
+        onDelete={() => {
+          if (!currentMediaItem) return;
+          setParams({
+            current_media: undefined,
+            current_media_tab: undefined,
+            current_media_release: undefined,
+            modal: 'delete',
+            mediaId: `${currentMediaItem.service}:${currentMediaItem.source_id}`,
+          });
+        }}
+        activeTab={(searchParams.current_media_tab as TabKey) || 'info'}
+        onTabChange={tab => setParams({ current_media_tab: tab, current_media_release: undefined })}
+        editingReleaseId={searchParams.current_media_release ?? null}
+        onEditingReleaseChange={id => setParams({ current_media_release: id ?? undefined })}
       />
     </div>
   );
 }
 
 function C411Badge() {
-  return (
-    <img src="/icons/c411.png" alt="C411" className="h-4 drop-shadow-md" />
-  );
+  return <img src="/icons/c411.png" alt="C411" className="h-4 drop-shadow-md" />;
 }
 
 function CardDropdownMenu({
@@ -360,14 +409,14 @@ function CardDropdownMenu({
   onOpenInteractive,
   onFindSimilar,
   onConvert,
-  onOpenC411,
+  onOpenMediaInfo,
   onDelete,
 }: {
   item: MediaItem;
   onOpenInteractive: () => void;
   onFindSimilar?: () => void;
   onConvert?: () => void;
-  onOpenC411?: () => void;
+  onOpenMediaInfo?: () => void;
   onDelete: () => void;
 }) {
   const { t } = useTranslation('common');
@@ -388,7 +437,7 @@ function CardDropdownMenu({
       <DropdownMenu.Trigger asChild>
         <button
           type="button"
-          onClick={(e) => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
           className="inline-flex items-center justify-center h-6 w-6 rounded-lg bg-black/50 backdrop-blur-sm border border-white/10 text-white/70 transition-colors duration-150 hover:bg-black/70 hover:text-white"
         >
           <EllipsisVertical size={12} />
@@ -437,13 +486,13 @@ function CardDropdownMenu({
             </DropdownMenu.Item>
           )}
 
-          {onOpenC411 && (
+          {onOpenMediaInfo && (
             <DropdownMenu.Item
-              onSelect={onOpenC411}
+              onSelect={onOpenMediaInfo}
               className="flex items-center gap-2.5 px-3 py-2 text-[11px] text-white/80 hover:bg-white/10 hover:text-white cursor-pointer outline-none"
             >
-              <Upload size={12} />
-              C411
+              <Info size={12} />
+              Media infos
             </DropdownMenu.Item>
           )}
 
@@ -484,7 +533,7 @@ function MediaGridCard({
   onOpenInteractive,
   onFindSimilar,
   onConvert,
-  onOpenC411,
+  onOpenMediaInfo,
   onDelete,
 }: {
   item: MediaItem;
@@ -494,7 +543,7 @@ function MediaGridCard({
   onOpenInteractive: () => void;
   onFindSimilar?: () => void;
   onConvert?: () => void;
-  onOpenC411?: () => void;
+  onOpenMediaInfo?: () => void;
   onDelete: () => void;
 }) {
   const { t } = useTranslation('common');
@@ -530,12 +579,13 @@ function MediaGridCard({
       statusLabel={statusLabel}
       accentRingClassName="focus:ring-indigo-400/70"
       className="w-full"
+      onClick={onOpenMediaInfo}
       topLeftBadge={
         <div className="flex flex-col gap-1">
           {isOnC411 && <C411Badge />}
           {isConverting && (
             <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-600 shadow-lg text-white">
-              <Zap size={12} className={cn(conversion.status === 'running' && "animate-pulse")} />
+              <Zap size={12} className={cn(conversion.status === 'running' && 'animate-pulse')} />
             </div>
           )}
         </div>
@@ -547,7 +597,7 @@ function MediaGridCard({
           onOpenInteractive={onOpenInteractive}
           onFindSimilar={onFindSimilar}
           onConvert={onConvert}
-          onOpenC411={onOpenC411}
+          onOpenMediaInfo={onOpenMediaInfo}
           onDelete={onDelete}
         />
       }
@@ -565,7 +615,7 @@ function MediaGridCard({
         {isConverting && conversion.status === 'running' && (
           <div className="space-y-1">
             <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-indigo-500 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${Math.max(5, conversion.progress)}%` }}
               />
