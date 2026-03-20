@@ -12,6 +12,7 @@ import {
 
 interface UsePushSubscriptionReturn {
   subscription: PushSubscriptionData | null;
+  isLoading: boolean;
   subscribe: () => Promise<PushSubscriptionData | null>;
   unsubscribe: () => Promise<boolean>;
 }
@@ -21,6 +22,7 @@ export function usePushSubscription(
   permission: NotificationPermission
 ): UsePushSubscriptionReturn {
   const [subscription, setSubscription] = useState<PushSubscriptionData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { data: vapidData } = useVapidPublicKey();
   const unsubscribeMutation = useUnsubscribeFromPushNotifications();
 
@@ -66,7 +68,10 @@ export function usePushSubscription(
 
   // Check and sync subscription state
   const checkSubscriptionState = useCallback(async () => {
-    if (!('serviceWorker' in navigator)) return;
+    if (!('serviceWorker' in navigator)) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const registration = await navigator.serviceWorker.ready;
@@ -82,6 +87,8 @@ export function usePushSubscription(
       }
     } catch (err) {
       console.error('Error getting subscription:', err);
+    } finally {
+      setIsLoading(false);
     }
   }, [getSubscriptionSafe]);
 
@@ -211,6 +218,7 @@ export function usePushSubscription(
 
   return {
     subscription,
+    isLoading,
     subscribe,
     unsubscribe,
   };

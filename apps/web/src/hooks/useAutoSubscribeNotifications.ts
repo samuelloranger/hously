@@ -17,14 +17,14 @@ import {
 export function useAutoSubscribeNotifications() {
   const { user, isLoading: isUserLoading } = useAuth();
   const queryClient = useQueryClient();
-  const { permission, requestPermission, subscription, subscribe, isSupported } = useNotifications();
+  const { permission, requestPermission, subscription, isSubscriptionLoading, subscribe, isSupported } = useNotifications();
   const { refetch: refetchDevices } = useNotificationDevices({ enabled: false });
   const subscribeMutation = useSubscribeToPushNotifications();
   const unsubscribeMutation = useUnsubscribeFromPushNotifications();
   const [showModal, setShowModal] = useState(false);
 
   const verifySubscription = useCallback(async () => {
-    if (isUserLoading || !user || !isSupported) {
+    if (isUserLoading || !user || !isSupported || isSubscriptionLoading) {
       setShowModal(false);
       return;
     }
@@ -84,6 +84,7 @@ export function useAutoSubscribeNotifications() {
     isUserLoading,
     user,
     isSupported,
+    isSubscriptionLoading,
     permission,
     subscription,
     queryClient,
@@ -95,7 +96,7 @@ export function useAutoSubscribeNotifications() {
   // Check if we should show the modal
   useEffect(() => {
     verifySubscription();
-  }, [isUserLoading, user, isSupported, permission, subscription]);
+  }, [isUserLoading, user, isSupported, isSubscriptionLoading, permission, subscription]);
 
   const handleAllow = useCallback(async () => {
     setShowModal(false);

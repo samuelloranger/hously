@@ -5,6 +5,7 @@ import type { PushSubscriptionData } from './usePushSubscriptionUtils';
 interface UseNotificationsReturn {
   permission: NotificationPermission;
   subscription: PushSubscriptionData | null;
+  isSubscriptionLoading: boolean;
   requestPermission: () => Promise<boolean>;
   subscribe: () => Promise<PushSubscriptionData | null>;
   unsubscribe: () => Promise<boolean>;
@@ -13,11 +14,12 @@ interface UseNotificationsReturn {
 
 export function useNotifications(): UseNotificationsReturn {
   const { permission, isSupported, requestPermission } = useNotificationPermission();
-  const { subscription, subscribe, unsubscribe } = usePushSubscription(isSupported, permission);
+  const { subscription, isLoading, subscribe, unsubscribe } = usePushSubscription(isSupported, permission);
 
   return {
     permission,
     subscription,
+    isSubscriptionLoading: isLoading,
     requestPermission,
     subscribe,
     unsubscribe,
