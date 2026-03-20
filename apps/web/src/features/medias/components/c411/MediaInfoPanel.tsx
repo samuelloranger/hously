@@ -1,7 +1,7 @@
-import { Loader2, AudioLines, Film, HardDrive, Clock, Monitor, Gauge, Layers } from 'lucide-react';
+import { Loader2, AudioLines, Film, HardDrive, Clock, Monitor, Gauge, Layers, Disc3, FileVideo, Tv, Shield, Users, Languages } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatReleaseSize as formatSize, type MediaInfoResponse } from '@hously/shared';
-import { BADGE_NEUTRAL, CARD, langBadgeClass, BADGE_BASE, langLabel } from './c411-utils';
+import { CARD, langBadgeClass, BADGE_BASE, langLabel } from './c411-utils';
 
 interface Props {
   data: MediaInfoResponse | undefined;
@@ -44,21 +44,16 @@ export function MediaInfoPanel({ data, isLoading }: Props) {
   }
 
   const mi = data.media_info;
+  const np = data.name_parsed;
+
+  // Prefer name-parsed values (scene convention), fall back to mediainfo
+  const resolution = np?.resolution ?? mi.resolution;
+  const source = np?.source ?? (mi.source !== 'N/A' ? mi.source : null);
+  const videoCodec = np?.video_codec ?? mi.video_codec;
+  const team = np?.team ?? data.release_group;
 
   return (
     <div className="space-y-4">
-      {/* Detection badges */}
-      <div className="flex flex-wrap gap-2">
-        <span className="inline-flex items-center rounded-lg border border-indigo-200/60 dark:border-indigo-500/20 bg-indigo-50/30 dark:bg-indigo-950/10 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
-          {langLabel(data.language_tag)}
-        </span>
-        {mi.resolution && <span className={BADGE_NEUTRAL}>{mi.resolution}</span>}
-        {mi.source && mi.source !== 'N/A' && <span className={BADGE_NEUTRAL}>{mi.source}</span>}
-        {mi.video_codec && <span className={BADGE_NEUTRAL}>{mi.video_codec}</span>}
-        {mi.container && <span className={BADGE_NEUTRAL}>{mi.container}</span>}
-        {data.release_group && <span className={BADGE_NEUTRAL}>-{data.release_group}</span>}
-      </div>
-
       {data.scene_name && (
         <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono truncate">{data.scene_name}</p>
       )}
@@ -70,17 +65,23 @@ export function MediaInfoPanel({ data, isLoading }: Props) {
           'grid grid-cols-2 sm:grid-cols-3 divide-x divide-y divide-neutral-200/80 dark:divide-neutral-700/60 overflow-hidden'
         )}
       >
+        <StatCell icon={Languages} label="Language" value={langLabel(data.language_tag)} />
+        {resolution && <StatCell icon={Monitor} label="Resolution" value={resolution} />}
+        {source && <StatCell icon={Disc3} label="Source" value={source} />}
+        {videoCodec && <StatCell icon={FileVideo} label="Video Codec" value={videoCodec} />}
+        {mi.container && <StatCell icon={Tv} label="Container" value={mi.container} />}
+        {team && <StatCell icon={Users} label="Group" value={team} />}
+        {np?.hdr && <StatCell icon={Shield} label="HDR" value={np.hdr} />}
         {data.file_size != null && <StatCell icon={HardDrive} label="Size" value={formatSize(data.file_size)} />}
         {mi.duration && mi.duration !== 'N/A' && <StatCell icon={Clock} label="Duration" value={mi.duration} />}
-        {mi.resolution && <StatCell icon={Monitor} label="Resolution" value={mi.resolution} />}
         {mi.video_bitrate && mi.video_bitrate !== 'N/A' && (
           <StatCell icon={Gauge} label="Video Bitrate" value={mi.video_bitrate} />
         )}
         {mi.video_bit_depth && mi.video_bit_depth !== 'N/A' && (
-          <StatCell icon={Layers} label="Bit Depth" value={`${mi.video_bit_depth}-bit`} />
+          <StatCell icon={Layers} label="Bit Depth" value={mi.video_bit_depth} />
         )}
         {mi.framerate && mi.framerate !== 'N/A' && (
-          <StatCell icon={Film} label="Framerate" value={`${mi.framerate} fps`} />
+          <StatCell icon={Film} label="Framerate" value={mi.framerate} />
         )}
       </div>
 
