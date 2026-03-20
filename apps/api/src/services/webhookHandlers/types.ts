@@ -4,6 +4,4 @@ export interface WebhookResult {
   original_payload: Record<string, unknown>;
 }
 
-export type WebhookHandler = (
-  payload: Record<string, unknown>
-) => WebhookResult;
+export type WebhookHandler = (payload: Record<string, unknown>) => WebhookResult | null;

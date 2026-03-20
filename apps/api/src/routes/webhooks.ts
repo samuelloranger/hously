@@ -70,6 +70,12 @@ export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
       // Handle webhook first to get the real event_type
       try {
         const parsed = handler(payload);
+
+        if (!parsed) {
+          console.warn(`${serviceName} webhook payload rejected by handler (insufficient data)`);
+          return badRequest(set, 'Webhook payload missing required fields');
+        }
+
         const eventType = parsed.event_type;
         const templateVariables = parsed.template_variables;
 

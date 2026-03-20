@@ -113,3 +113,37 @@ describe('webhookHandlers.cross-seed', () => {
     expect(result.template_variables.result).toBe('injected');
   });
 });
+
+describe('webhookHandlers.generic', () => {
+  it('maps generic title/body payloads into a generic notification event', () => {
+    const result = webhookHandlers.generic({
+      title: 'Weekly Docker cleanup completed',
+      body: 'Total cleared: 12.34 GB',
+      total_gb_cleared: 12.34,
+    });
+
+    expect(result!.event_type).toBe('GENERIC');
+    expect(result!.template_variables.title).toBe('Weekly Docker cleanup completed');
+    expect(result!.template_variables.body).toBe('Total cleared: 12.34 GB');
+    expect(result!.template_variables.total_gb_cleared).toBe('12.34');
+  });
+
+  it('returns null when payload has no title or body fields', () => {
+    const result = webhookHandlers.generic({ foo: 'bar', count: 42 });
+    expect(result).toBeNull();
+  });
+
+  it('allows notification with only a title', () => {
+    const result = webhookHandlers.generic({ title: 'Backup finished' });
+    expect(result!.event_type).toBe('GENERIC');
+    expect(result!.template_variables.title).toBe('Backup finished');
+    expect(result!.template_variables.body).toBe('No details provided.');
+  });
+
+  it('allows notification with only a body', () => {
+    const result = webhookHandlers.generic({ message: 'All systems operational' });
+    expect(result!.event_type).toBe('GENERIC');
+    expect(result!.template_variables.title).toBe('Generic notification');
+    expect(result!.template_variables.body).toBe('All systems operational');
+  });
+});
