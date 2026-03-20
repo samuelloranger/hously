@@ -1,3 +1,3 @@
 export const SYSTEM_ENDPOINTS = {
-  VERSION: '/api/version',
+  VERSION: '/api/system/version',
 } as const;

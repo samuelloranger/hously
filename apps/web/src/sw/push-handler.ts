@@ -1,5 +1,5 @@
 import { sw } from './sw';
-import { normalizeNotificationUrl } from '@hously/shared';
+import { normalizeNotificationUrl } from '@hously/shared/utils/notifications';
 import { handleAppUpdate } from './app-update';
 import { syncBadgeCount } from './badge';
 import type { PushNotificationData } from './types';

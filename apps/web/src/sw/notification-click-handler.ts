@@ -1,5 +1,5 @@
 import { sw } from './sw';
-import { normalizeNotificationUrl } from '@hously/shared';
+import { normalizeNotificationUrl } from '@hously/shared/utils/notifications';
 import type { NotificationData } from './types';
 
 // Handle notification click events - navigate to URL or handle actions
