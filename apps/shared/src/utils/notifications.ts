@@ -55,9 +55,13 @@ export function buildNotificationUrl(
   return query ? `${normalizedPath}?${query}` : normalizedPath;
 }
 
-export function buildCurrentMediaReleaseNotificationUrl(tmdbId: number, releaseId: number): string {
+export function buildCurrentMediaReleaseNotificationUrl(
+  service: string,
+  sourceId: number,
+  releaseId: number
+): string {
   return buildNotificationUrl('/library', {
-    current_media: tmdbId,
+    current_media_id: `${service}:${sourceId}`,
     current_media_tab: 'releases',
     current_media_release: releaseId,
   });

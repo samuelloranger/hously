@@ -21,9 +21,6 @@ export type MediaPosterCardProps = {
   topLeftBadge?: ReactNode;
   /** Slot for top-right overlay content (e.g. dropdown menu) */
   topRightContent?: ReactNode;
-  /** Tags shown vertically on the left on hover (e.g. release info) */
-  hoverTags?: string[];
-
   /** Extra content revealed below the title (meta, actions, etc.) */
   children?: ReactNode;
 
@@ -48,7 +45,6 @@ export function MediaPosterCard({
   statusLabel,
   topLeftBadge,
   topRightContent,
-  hoverTags,
   children,
   href,
   target,
@@ -118,21 +114,6 @@ export function MediaPosterCard({
       {topRightContent && (
         <div className="absolute top-1.5 right-1.5 z-20">
           {topRightContent}
-        </div>
-      )}
-
-      {/* Hover tags — stacked vertically on the left */}
-      {hoverTags && hoverTags.length > 0 && (
-        <div className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1 pointer-events-none">
-          {hoverTags.map((tag, i) => (
-            <span
-              key={tag}
-              className="opacity-0 -translate-x-2 group-hover/card:opacity-100 group-hover/card:translate-x-0 transition-all duration-300 ease-out inline-flex items-center px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-sm border border-white/10 text-[8.5px] font-semibold text-white/80 uppercase tracking-wide whitespace-nowrap"
-              style={{ transitionDelay: `${i * 50}ms` }}
-            >
-              {tag}
-            </span>
-          ))}
         </div>
       )}
 

@@ -12,7 +12,11 @@ const getUnreadCountForUser = async (userId: number): Promise<number> =>
     where: { userId, read: false },
   });
 
-const syncBadgesForUser = async (userId: number, unreadCount: number): Promise<void> => {
+const syncBadgesForUser = async (
+  userId: number,
+  unreadCount: number,
+  readNotificationIds?: number[]
+): Promise<void> => {
   const pushTokens = await prisma.pushToken.findMany({
     where: { userId },
     select: { token: true, platform: true },
@@ -25,12 +29,18 @@ const syncBadgesForUser = async (userId: number, unreadCount: number): Promise<v
   const iosTokens = pushTokens.filter(t => t.platform === 'ios').map(t => t.token);
 
   if (iosTokens.length > 0) {
+    const data: Record<string, unknown> = {
+      notification_type: 'badge-sync',
+      unread_count: unreadCount,
+      silent: true,
+    };
+
+    if (readNotificationIds && readNotificationIds.length > 0) {
+      data.read_notification_ids = readNotificationIds;
+    }
+
     const { invalidTokens } = await sendApnNotifications(iosTokens, {
-      data: {
-        notification_type: 'badge-sync',
-        unread_count: unreadCount,
-        silent: true,
-      },
+      data,
       sound: null,
       badge: unreadCount,
       contentAvailable: true,
@@ -162,7 +172,7 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
         });
 
         const unreadCount = await getUnreadCountForUser(user.id);
-        await syncBadgesForUser(user.id, unreadCount);
+        await syncBadgesForUser(user.id, unreadCount, [notificationId]);
       }
 
       return { success: true, message: 'Notification marked as read' };
@@ -178,6 +188,13 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
     }
 
     try {
+      // Get IDs of unread notifications before marking them
+      const unreadNotifications = await prisma.notification.findMany({
+        where: { userId: user.id, read: false },
+        select: { id: true },
+      });
+      const readIds = unreadNotifications.map(n => n.id);
+
       const result = await prisma.notification.updateMany({
         where: { userId: user.id, read: false },
         data: {
@@ -188,7 +205,7 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
 
       const count = result.count;
 
-      await syncBadgesForUser(user.id, 0);
+      await syncBadgesForUser(user.id, 0, readIds);
 
       return {
         success: true,
@@ -228,10 +245,9 @@ export const notificationsRoutes = new Elysia({ prefix: '/api/notifications' })
         where: { id: notificationId },
       });
 
-      if (!notification.read) {
-        const unreadCount = await getUnreadCountForUser(user.id);
-        await syncBadgesForUser(user.id, unreadCount);
-      }
+      // Always sync badges and remove from lock screen (even if already read)
+      const unreadCount = await getUnreadCountForUser(user.id);
+      await syncBadgesForUser(user.id, unreadCount, [notificationId]);
 
       return { success: true, message: 'Notification deleted' };
     } catch (error) {

@@ -114,6 +114,8 @@ export async function sendExternalNotification(
   payload: {
     template_variables: Record<string, string>;
     original_payload: Record<string, unknown>;
+    notification_url?: string;
+    notification_metadata?: Record<string, unknown>;
   },
   language: string = 'en'
 ): Promise<boolean> {
@@ -176,7 +178,7 @@ export async function sendExternalNotification(
       return false;
     }
 
-    const url = getExternalNotificationUrl(serviceName);
+    const url = payload.notification_url || getExternalNotificationUrl(serviceName);
 
     // Enqueue notifications for all target users
     console.log(`[ExternalNotificationService] Enqueuing ${targetUserIds.length} notifications for ${serviceName}/${eventType}`);
@@ -193,6 +195,7 @@ export async function sendExternalNotification(
             service_name: serviceName,
             event_type: eventType,
             payload: payload.original_payload as Record<string, any>,
+            ...(payload.notification_metadata ?? {}),
           }
         )
       )

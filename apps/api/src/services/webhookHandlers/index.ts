@@ -114,6 +114,9 @@ const handleRadarrWebhook: WebhookHandler = payload => {
     variables.message = payload.message || '';
   }
 
+  variables.download_client = payload.downloadClient || '';
+  variables.download_id = payload.downloadId || '';
+
   // Release information
   const release = (payload.release as Record<string, unknown>) || {};
   if (release) {
@@ -172,6 +175,13 @@ const handleSonarrWebhook: WebhookHandler = payload => {
     variables.previous_version = payload.previousVersion || '';
     variables.new_version = payload.newVersion || '';
   }
+
+  if (eventType === 'ManualInteractionRequired') {
+    variables.message = payload.message || '';
+  }
+
+  variables.download_client = payload.downloadClient || '';
+  variables.download_id = payload.downloadId || '';
 
   // Release information
   const release = (payload.release as Record<string, unknown>) || {};

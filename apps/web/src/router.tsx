@@ -351,12 +351,10 @@ export type LibrarySearchParams = {
   page?: number;
   pageSize?: number;
   search?: string;
-  current_media?: number;
+  current_media_id?: string;
   current_media_tab?: string;
   current_media_release?: number;
   scrollToMedia?: string;
-  modal?: 'interactive' | 'similar' | 'delete' | 'convert';
-  mediaId?: string;
 };
 
 const parseOptionalInt = (val: unknown): number | undefined =>
@@ -370,18 +368,10 @@ const libraryRoute = createRoute({
     page: parseOptionalInt(search.page),
     pageSize: parseOptionalInt(search.pageSize),
     search: typeof search.search === 'string' && search.search ? search.search : undefined,
-    current_media: parseOptionalInt(search.current_media),
+    current_media_id: typeof search.current_media_id === 'string' ? search.current_media_id : undefined,
     current_media_tab: typeof search.current_media_tab === 'string' ? search.current_media_tab : undefined,
     current_media_release: parseOptionalInt(search.current_media_release),
     scrollToMedia: typeof search.scrollToMedia === 'string' ? search.scrollToMedia : undefined,
-    modal:
-      search.modal === 'interactive' ||
-      search.modal === 'similar' ||
-      search.modal === 'delete' ||
-      search.modal === 'convert'
-        ? (search.modal as any)
-        : undefined,
-    mediaId: typeof search.mediaId === 'string' ? search.mediaId : undefined,
   }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {

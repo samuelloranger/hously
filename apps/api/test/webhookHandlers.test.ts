@@ -114,6 +114,39 @@ describe('webhookHandlers.cross-seed', () => {
   });
 });
 
+describe('webhookHandlers.arr', () => {
+  it('captures Radarr download metadata for later qBittorrent enrichment', () => {
+    const result = webhookHandlers.radarr({
+      eventType: 'Grab',
+      downloadClient: 'qBittorrent',
+      downloadId: 'ABC123DEF456',
+      movie: { title: 'The Matrix', year: 1999, tmdbId: 603 },
+      release: { title: 'The.Matrix.1999.1080p.BluRay.x264', indexer: 'C411' },
+    });
+
+    expect(result.event_type).toBe('Grab');
+    expect(result.template_variables.movie_name).toBe('The Matrix');
+    expect(result.template_variables.download_client).toBe('qBittorrent');
+    expect(result.template_variables.download_id).toBe('ABC123DEF456');
+  });
+
+  it('captures Sonarr download metadata for later qBittorrent enrichment', () => {
+    const result = webhookHandlers.sonarr({
+      eventType: 'Grab',
+      downloadClient: 'qBittorrent',
+      downloadId: 'FED654CBA321',
+      series: { title: 'Severance', year: 2022, tvdbId: 360261 },
+      episodes: [{ seasonNumber: 1, episodeNumber: 5, title: 'The Grim Barbarity of Optics and Design' }],
+      release: { title: 'Severance.S01E05.1080p.WEB.h264', indexer: 'Torr9' },
+    });
+
+    expect(result.event_type).toBe('Grab');
+    expect(result.template_variables.series_title).toBe('Severance');
+    expect(result.template_variables.download_client).toBe('qBittorrent');
+    expect(result.template_variables.download_id).toBe('FED654CBA321');
+  });
+});
+
 describe('webhookHandlers.generic', () => {
   it('maps generic title/body payloads into a generic notification event', () => {
     const result = webhookHandlers.generic({

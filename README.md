@@ -105,6 +105,7 @@ Hously supports webhook-based notifications from external services, allowing you
 - **Media Management**: Radarr, Sonarr, Prowlarr
 - **Backup**: Kopia
 - **Monitoring**: UptimeKuma
+- **Generic**: Any JSON webhook that sends a `title` and `body`
 
 ### Setup
 
@@ -133,6 +134,7 @@ Hously supports webhook-based notifications from external services, allowing you
 - **Jellyfin/Plex**: Playback started/stopped, new items added, user events
 - **Kopia**: Snapshot started, completed, failed
 - **UptimeKuma**: Monitor up/down, certificate expiry
+- **Generic**: A reusable `GENERIC` event that forwards the provided `title` and `body`
 
 Available variables are shown when editing templates in the settings.
 

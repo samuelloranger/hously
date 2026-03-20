@@ -22,6 +22,7 @@ import {
   resolveCategory,
   resolveLanguage,
   resolveGenres,
+  parseSceneTags,
 } from '@hously/shared';
 import { generateBBCode, buildReleaseInfo } from './bbcode';
 import { createTorrent } from './mktorrent';
@@ -668,13 +669,14 @@ async function sendPrepareNotification(params: {
   title: string;
   body: string;
   releaseId: number;
-  tmdbId: number;
+  service: string;
+  sourceId: number;
   success: boolean;
   seasonNumber: number | null;
 }): Promise<void> {
   if (!params.userId) return;
 
-  const url = buildCurrentMediaReleaseNotificationUrl(params.tmdbId, params.releaseId);
+  const url = buildCurrentMediaReleaseNotificationUrl(params.service, params.sourceId, params.releaseId);
 
   await createAndQueueNotification(
     params.userId,
@@ -684,7 +686,8 @@ async function sendPrepareNotification(params: {
     url,
     {
       release_id: params.releaseId,
-      tmdb_id: params.tmdbId,
+      service: params.service,
+      source_id: params.sourceId,
       season_number: params.seasonNumber,
       success: params.success,
     },
@@ -717,7 +720,8 @@ export async function processQueuedPrepareRelease(
       title: 'C411 release ready',
       body: `${artifacts.c411Name} is ready to review and publish.`,
       releaseId,
-      tmdbId: source.tmdbId,
+      service: source.service,
+      sourceId: source.sourceId,
       success: true,
       seasonNumber: source.seasonNumber,
     });
@@ -756,7 +760,8 @@ export async function processQueuedPrepareRelease(
       title: 'C411 release failed',
       body: `${existing?.title || source.sourceTitle}: ${message}`,
       releaseId,
-      tmdbId: source.tmdbId,
+      service: source.service,
+      sourceId: source.sourceId,
       success: false,
       seasonNumber: source.seasonNumber,
     });
@@ -830,14 +835,22 @@ export async function fetchReleaseMediaInfoPreview(options: PrepareReleaseOption
   const source = await resolveReleaseSource(options);
   const media = await getMediaInfo(source.originalPath, source.originalName);
   const languageTag = media ? inferLanguageTag(source.originalName, media, await detectLanguages(source.originalPath)) : 'UNKNOWN';
+  const nameParsed = parseSceneTags(source.originalName);
 
   return {
     file_path: source.originalPath,
     file_size: source.totalSize,
     file_count: source.files.length,
     scene_name: source.originalName,
-    release_group: source.releaseGroup,
+    release_group: nameParsed.team ?? source.releaseGroup,
     language_tag: languageTag,
+    name_parsed: {
+      resolution: nameParsed.resolution,
+      source: nameParsed.source,
+      video_codec: nameParsed.videoCodec,
+      hdr: nameParsed.hdr,
+      team: nameParsed.team,
+    },
     media_info: media ? {
       container: media.container,
       resolution: media.resolution,

@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia';
 import { prisma } from '../db';
 import { webhookHandlers } from '../services/webhookHandlers';
+import { enrichArrWebhookNotification } from '../services/webhookEnrichment';
 import { sendExternalNotification } from '../services/externalNotificationService';
 import { deleteCache } from '../services/cache';
 import { badRequest, forbidden, notFound, serverError } from '../utils/errors';
@@ -77,7 +78,8 @@ export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
         }
 
         const eventType = parsed.event_type;
-        const templateVariables = parsed.template_variables;
+        const enrichment = await enrichArrWebhookNotification(serviceName.toLowerCase(), parsed);
+        const templateVariables = enrichment.template_variables ?? parsed.template_variables;
 
         console.log(`Processing ${serviceName} webhook: event_type=${eventType}`);
 
@@ -98,6 +100,11 @@ export const webhooksRoutes = new Elysia({ prefix: '/api/webhooks' })
         const notificationPayload = {
           template_variables: templateVariables,
           original_payload: parsed.original_payload,
+          notification_url: enrichment.notification_url ?? parsed.notification_url,
+          notification_metadata: {
+            ...(parsed.notification_metadata ?? {}),
+            ...(enrichment.notification_metadata ?? {}),
+          },
         };
 
         // Send notifications
