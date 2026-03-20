@@ -21,6 +21,9 @@ export async function getCurrentUser(): Promise<User | null> {
     try {
       const response = await webFetcher<{ user: User | null }>(AUTH_ENDPOINTS.ME);
       currentUser = response.user;
+      // Seed the React Query cache so useCurrentUser() picks up the data
+      // without needing its own fetch — prevents the "user not loaded" state
+      getQueryClient()?.setQueryData(queryKeys.auth.me, currentUser);
       return currentUser;
     } catch (error: any) {
       // If 401, user is not authenticated - clear cache

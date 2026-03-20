@@ -15,7 +15,7 @@ import {
  * Returns modal state and handlers that should be triggered by user interaction.
  */
 export function useAutoSubscribeNotifications() {
-  const { user } = useAuth();
+  const { user, isLoading: isUserLoading } = useAuth();
   const queryClient = useQueryClient();
   const { permission, requestPermission, subscription, subscribe, isSupported } = useNotifications();
   const { refetch: refetchDevices } = useNotificationDevices({ enabled: false });
@@ -24,7 +24,7 @@ export function useAutoSubscribeNotifications() {
   const [showModal, setShowModal] = useState(false);
 
   const verifySubscription = useCallback(async () => {
-    if (!user || !isSupported) {
+    if (isUserLoading || !user || !isSupported) {
       setShowModal(false);
       return;
     }
@@ -80,12 +80,22 @@ export function useAutoSubscribeNotifications() {
     }
 
     return;
-  }, [user, isSupported, permission, subscription, queryClient, unsubscribeMutation, refetchDevices, subscribeMutation]);
+  }, [
+    isUserLoading,
+    user,
+    isSupported,
+    permission,
+    subscription,
+    queryClient,
+    unsubscribeMutation,
+    refetchDevices,
+    subscribeMutation,
+  ]);
 
   // Check if we should show the modal
   useEffect(() => {
     verifySubscription();
-  }, [user, isSupported, permission, subscription]);
+  }, [isUserLoading, user, isSupported, permission, subscription]);
 
   const handleAllow = useCallback(async () => {
     setShowModal(false);
