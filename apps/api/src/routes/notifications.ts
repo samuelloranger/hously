@@ -39,6 +39,8 @@ const syncBadgesForUser = async (
       data.read_notification_ids = readNotificationIds;
     }
 
+    console.log(`[syncBadges] Sending badge-sync to ${iosTokens.length} iOS device(s) — badge=${unreadCount}, readIds=${readNotificationIds?.join(',') ?? 'none'}`);
+
     const { invalidTokens } = await sendApnNotifications(iosTokens, {
       data,
       sound: null,
