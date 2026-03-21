@@ -358,9 +358,7 @@ async function validateSource(source: ResolvedSource, preset: MediaConversionPre
   if (preset.target_height !== null && sourceInfo.height !== null && sourceInfo.height <= preset.target_height) {
     reasons.push(`The source is already ${sourceInfo.height}p, so the ${preset.target_height}p preset is not appropriate`);
   }
-  if (preset.key === 'h264_to_h265' && sourceInfo.video_codec !== 'h264') {
-    reasons.push('The H.264 to H.265 preset only applies to H.264 source files');
-  }
+
   if (sourceInfo.hdr) {
     warnings.push('HDR metadata detected. This preset does not tone-map HDR to SDR.');
   }
