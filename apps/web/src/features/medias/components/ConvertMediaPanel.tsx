@@ -14,10 +14,13 @@ import {
   Info,
   Sun,
   Music,
+  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useCreateMediaConversion,
+  useCancelMediaConversion,
+  useClearMediaConversions,
   useMediaConversionPreview,
   useMediaConversions,
   type MediaConversionJob,
@@ -43,6 +46,33 @@ function formatFileSize(bytes: number) {
   return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
+// Codec compression ratios relative to source codec (empirical estimates for typical CRF settings)
+const CODEC_COMPRESSION_RATIOS: Record<string, Record<string, number>> = {
+  h264: { h264: 1.0, hevc: 0.55, av1: 0.45 },
+  hevc: { h264: 1.8,  hevc: 1.0,  av1: 0.65 },
+  av1:  { h264: 2.2,  hevc: 1.5,  av1: 1.0  },
+};
+
+function estimateOutputSize(
+  source: { file_size_bytes: number; duration_seconds: number | null; video_codec: string | null; width: number | null; height: number | null },
+  targetCodec: string,
+  targetHeight: number | null,
+): number | null {
+  if (!source.duration_seconds || source.duration_seconds <= 0) return null;
+  if (!source.file_size_bytes || source.file_size_bytes <= 0) return null;
+
+  const srcCodec = source.video_codec ?? 'h264';
+  const codecRatio = CODEC_COMPRESSION_RATIOS[srcCodec]?.[targetCodec] ?? 1.0;
+
+  const srcH = source.height ?? 1;
+  const srcW = source.width ?? 1;
+  const tgtH = targetHeight ?? srcH;
+  const tgtW = Math.round((srcW / srcH) * tgtH / 2) * 2;
+  const resRatio = srcH > 0 && srcW > 0 ? (tgtW * tgtH) / (srcW * srcH) : 1.0;
+
+  return Math.round(source.file_size_bytes * codecRatio * resRatio);
+}
+
 function formatDuration(seconds: number | null) {
   if (!seconds || !Number.isFinite(seconds) || seconds <= 0) return 'N/A';
   const total = Math.round(seconds);
@@ -60,6 +90,19 @@ function formatJobStatus(t: any, job: MediaConversionJob) {
   if (job.status === 'completed') return t('medias.convert.status.completed');
   if (job.status === 'failed') return t('medias.convert.status.failed');
   return job.status;
+}
+
+function formatPresetLabel(preset: string): string {
+  try {
+    const p = JSON.parse(preset) as { codec?: string; height?: number | null; tone_map_hdr?: boolean; audio_tracks?: number[] | null };
+    const codecMap: Record<string, string> = { hevc: 'H.265', h264: 'H.264', av1: 'AV1' };
+    const codec = codecMap[p.codec ?? ''] ?? p.codec?.toUpperCase() ?? '?';
+    const res = p.height ? `${p.height}p` : 'Original';
+    const extras = [p.tone_map_hdr && 'HDR→SDR', p.audio_tracks?.length && `${p.audio_tracks.length} pistes`].filter(Boolean);
+    return [codec, res, ...extras].join(' · ');
+  } catch {
+    return preset;
+  }
 }
 
 const CODEC_OPTIONS = [
@@ -90,6 +133,8 @@ export function ConvertMediaPanel({ isActive, media }: ConvertMediaPanelProps) {
   const [toneMap, setToneMap] = useState(false);
   const [selectedAudioTracks, setSelectedAudioTracks] = useState<number[] | null>(null);
   const createMutation = useCreateMediaConversion();
+  const cancelMutation = useCancelMediaConversion();
+  const clearMutation = useClearMediaConversions();
 
   useEffect(() => {
     if (isActive) { setCodec('hevc'); setHeight(null); setToneMap(false); setSelectedAudioTracks(null); }
@@ -372,6 +417,15 @@ export function ConvertMediaPanel({ isActive, media }: ConvertMediaPanelProps) {
                       return dims ? `${dims.w}×${dims.h}` : height ? `${height}p` : 'Original';
                     })()}
                   </span>
+                  {(() => {
+                    const est = estimateOutputSize(validation.source, codec, height);
+                    return est ? (
+                      <span className="text-[11px] font-bold text-neutral-500 flex items-center gap-1">
+                        <HardDrive size={11} />
+                        ~{formatFileSize(est)}
+                      </span>
+                    ) : null;
+                  })()}
                   {validation.source.video_codec && (() => {
                     const effectKey = CODEC_EFFECT_KEY[validation.source.video_codec]?.[codec];
                     return effectKey ? (
@@ -460,27 +514,50 @@ export function ConvertMediaPanel({ isActive, media }: ConvertMediaPanelProps) {
         <div className="border-t border-neutral-100 dark:border-neutral-800 pt-6 mt-6">
           <div className="flex items-center gap-2 mb-4">
             <Clapperboard size={14} className="text-neutral-400" />
-            <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em]">
+            <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] flex-1">
               {t('medias.convert.queueTitle')}
             </h4>
+            {jobs.some(j => j.status === 'completed' || j.status === 'failed') && media && (
+              <button
+                type="button"
+                onClick={() => clearMutation.mutate({ service: media.service, source_id: media.source_id })}
+                disabled={clearMutation.isPending}
+                className="text-[10px] font-bold text-neutral-400 hover:text-red-500 transition-colors flex items-center gap-1"
+              >
+                <Trash2 size={11} />
+                {t('medias.convert.clearFinished')}
+              </button>
+            )}
           </div>
           <div className="space-y-2">
-            {jobs.slice(0, 3).map(job => (
+            {jobs.slice(0, 5).map(job => (
               <div
                 key={job.id}
-                className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 flex items-center justify-between gap-4"
+                className="p-3 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 flex items-center gap-3"
               >
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-neutral-900 dark:text-white truncate">
-                    {job.preset}
+                    {formatPresetLabel(job.preset)}
                   </p>
                   <p className="text-[10px] font-medium text-neutral-500 mt-0.5">
                     {formatJobStatus(t, job)} • {Math.round(job.progress)}%
                   </p>
                 </div>
-                {job.status === 'running' && <LoaderCircle size={14} className="animate-spin text-indigo-500" />}
-                {job.status === 'completed' && <CheckCircle2 size={14} className="text-emerald-500" />}
-                {job.status === 'failed' && <AlertTriangle size={14} className="text-red-500" />}
+                {job.status === 'running' && <LoaderCircle size={14} className="animate-spin text-indigo-500 shrink-0" />}
+                {job.status === 'queued' && <LoaderCircle size={14} className="text-neutral-300 shrink-0" />}
+                {job.status === 'completed' && <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />}
+                {(job.status === 'completed' || job.status === 'failed') && (
+                  <button
+                    type="button"
+                    onClick={() => cancelMutation.mutate(job.id)}
+                    disabled={cancelMutation.isPending}
+                    className="shrink-0 text-neutral-300 hover:text-red-500 transition-colors"
+                    title={t('common.delete')}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
+                {job.status === 'failed' && <AlertTriangle size={14} className="text-red-500 shrink-0" />}
               </div>
             ))}
           </div>
