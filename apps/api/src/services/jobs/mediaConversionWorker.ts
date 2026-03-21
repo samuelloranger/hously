@@ -4,6 +4,7 @@ import { dirname } from 'node:path';
 import { createInterface } from 'node:readline';
 import type { Job } from 'bullmq';
 import { prisma } from '../../db';
+import { sendConversionLiveActivityUpdatePush } from '../../utils/apnLiveActivity';
 
 export interface MediaConversionJobData {
   jobId: number;
@@ -66,6 +67,7 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
   const progressState: Record<string, string> = {};
   const stderrTail: string[] = [];
   let lastPersistAt = 0;
+  let lastPushAt = 0;
 
   return new Promise((resolve, reject) => {
     createInterface({ input: proc.stdout! }).on('line', async (line) => {
@@ -74,10 +76,10 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
       const key = line.slice(0, separator);
       const value = line.slice(separator + 1);
       progressState[key] = value;
-      
+
       const now = Date.now();
       const isEnd = value === 'end';
-      
+
       // Update DB progress every 2 seconds or at the end
       if (isEnd || now - lastPersistAt > 2000) {
         lastPersistAt = now;
@@ -88,6 +90,24 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
           if (!isNaN(progress)) await job.updateProgress(progress);
         } catch (err) {
           console.warn(`[MediaWorker:${jobId}] Failed to update progress:`, err);
+        }
+
+        // Send Live Activity push update every ~15 seconds (not at the end — handled in close)
+        if (!isEnd && now - lastPushAt > 15000) {
+          lastPushAt = now;
+          prisma.mediaConversionJob.findUnique({
+            where: { id: jobId },
+            select: { activityPushToken: true, etaSeconds: true, speed: true, progress: true },
+          }).then(fresh => {
+            if (fresh?.activityPushToken) {
+              sendConversionLiveActivityUpdatePush(fresh.activityPushToken, {
+                status: 'running',
+                progress: fresh.progress ?? 0,
+                etaSeconds: fresh.etaSeconds ?? null,
+                speed: fresh.speed ?? null,
+              }).catch(() => {});
+            }
+          }).catch(() => {});
         }
       }
     });
@@ -136,6 +156,21 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
               completedAt: new Date(),
             },
           });
+
+          // End the Live Activity on iOS
+          const completedJob = await prisma.mediaConversionJob.findUnique({
+            where: { id: jobId },
+            select: { activityPushToken: true },
+          });
+          if (completedJob?.activityPushToken) {
+            await sendConversionLiveActivityUpdatePush(completedJob.activityPushToken, {
+              status: 'completed',
+              progress: 100,
+              etaSeconds: null,
+              speed: null,
+            }, true).catch(() => {});
+          }
+
           resolve({ success: true });
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'Post-conversion failed';
@@ -160,6 +195,21 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
             completedAt: new Date(),
           },
         });
+
+        // End the Live Activity on iOS with failed status
+        const failedJob = await prisma.mediaConversionJob.findUnique({
+          where: { id: jobId },
+          select: { activityPushToken: true },
+        });
+        if (failedJob?.activityPushToken) {
+          await sendConversionLiveActivityUpdatePush(failedJob.activityPushToken, {
+            status: 'failed',
+            progress: 0,
+            etaSeconds: null,
+            speed: null,
+          }, true).catch(() => {});
+        }
+
         reject(new Error(errorMsg));
       }
     });

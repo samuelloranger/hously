@@ -4,6 +4,7 @@ import { basename, extname, join } from 'node:path';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { addJob, QUEUE_NAMES } from './queueService';
+import { sendConversionLiveActivityStartPush } from '../utils/apnLiveActivity';
 import { normalizeRadarrConfig } from '../utils/plugins/normalizers';
 import { createLocalC411ReleaseFromConversion } from './c411/local-release';
 
@@ -681,7 +682,13 @@ export async function createMediaConversionJob(params: {
 
   // Enqueue to BullMQ
   await addJob(QUEUE_NAMES.MEDIA_CONVERSIONS, `media-conversion:${job.id}`, { jobId: job.id });
-  
+
+  // Send push-to-start to iOS so the Live Activity starts immediately
+  const presetLabel = formatPresetLabelForPush(preset.key);
+  sendConversionLiveActivityStartPushForUser(params.requestedByUserId, job.id, job.sourceTitle ?? '', presetLabel).catch(
+    (err) => console.warn('[ConversionLiveActivity] Failed to send start push:', err)
+  );
+
   return serializeMediaConversionJob(job);
 }
 
@@ -752,4 +759,46 @@ export async function clearFinishedMediaConversionJobs(service: 'radarr' | 'sona
   await prisma.mediaConversionJob.deleteMany({
     where: { service, sourceId, status: { in: ['completed', 'failed'] } },
   });
+}
+
+// Exported for the worker
+export function formatPresetLabelForPush(preset: string): string {
+  if (preset.startsWith('{')) {
+    try {
+      const p = JSON.parse(preset) as { codec?: string; height?: number | null; tone_map_hdr?: boolean; audio_tracks?: number[] | null };
+      const codecMap: Record<string, string> = { hevc: 'H.265', h264: 'H.264', av1: 'AV1' };
+      const codec = codecMap[p.codec ?? ''] ?? (p.codec?.toUpperCase() ?? '?');
+      const res = p.height ? `${p.height}p` : 'Original';
+      const extras = [p.tone_map_hdr && 'HDR→SDR', p.audio_tracks?.length && `${p.audio_tracks.length} pistes`].filter(Boolean);
+      return [codec, res, ...extras].join(' · ');
+    } catch {}
+  }
+  return preset;
+}
+
+// Exported for the worker
+export async function sendConversionLiveActivityStartPushForUser(
+  userId: number | undefined,
+  jobId: number,
+  sourceTitle: string,
+  presetLabel: string,
+): Promise<void> {
+  if (!userId) return;
+  const tokens = await prisma.liveActivityToken.findMany({
+    where: { userId, type: 'conversion_start' },
+    select: { token: true },
+  });
+  if (!tokens.length) return;
+
+  const { invalidTokens } = await sendConversionLiveActivityStartPush(
+    tokens.map((t) => t.token),
+    {
+      attributes: { jobId, sourceTitle, presetLabel },
+      contentState: { status: 'queued', progress: 0, etaSeconds: null, speed: null },
+    },
+  );
+
+  if (invalidTokens.length) {
+    await prisma.liveActivityToken.deleteMany({ where: { token: { in: invalidTokens } } });
+  }
 }

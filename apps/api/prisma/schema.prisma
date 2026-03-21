@@ -369,6 +369,7 @@ model LiveActivityToken {
   id        Int       @id @default(autoincrement())
   userId    Int       @map("user_id")
   token     String    @unique(map: "ix_live_activity_tokens_token")
+  type      String    @default("habit_start") // "habit_start" | "conversion_start"
   platform  String    @default("ios")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @map("updated_at")
@@ -376,6 +377,7 @@ model LiveActivityToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "ix_live_activity_tokens_user_id")
+  @@index([type], map: "ix_live_activity_tokens_type")
   @@map("live_activity_tokens")
 }
 
@@ -498,6 +500,7 @@ model MediaConversionJob {
   fps               Float?
   speed             String?
   errorMessage      String?   @map("error_message")
+  activityPushToken String?   @map("activity_push_token")
   validationSummary Json?     @map("validation_summary")
   probeData         Json?     @map("probe_data")
   startedAt         DateTime? @map("started_at")

@@ -2,6 +2,7 @@ import { Elysia, t } from 'elysia';
 import { auth } from '../../auth';
 import { requireUser } from '../../middleware/auth';
 import { badRequest, notFound, serverError, unprocessable } from '../../utils/errors';
+import { prisma } from '../../db';
 import {
   createMediaConversionJob,
   getMediaConversionPreview,
@@ -9,6 +10,7 @@ import {
   listMediaConversionJobs,
   listActiveMediaConversionJobs,
   cancelMediaConversionJob,
+  clearFinishedMediaConversionJobs,
 } from '../../services/mediaConversions';
 
 
@@ -193,5 +195,71 @@ export const mediasConversionRoutes = new Elysia({ prefix: '/api/medias' })
         id: t.String(),
       }),
       }
-      );
+      )
+  .delete(
+    '/:service/:sourceId/conversions',
+    async ({ params, set }) => {
+      const service = parseService(params.service);
+      const sourceId = parseInt(params.sourceId, 10);
+
+      if (!service) return badRequest(set, 'Invalid service');
+      if (!Number.isFinite(sourceId) || sourceId <= 0) return badRequest(set, 'Invalid source ID');
+
+      try {
+        await clearFinishedMediaConversionJobs(service, sourceId);
+        return { success: true };
+      } catch (error) {
+        console.error('[medias:conversions:clear]', error);
+        return serverError(set, 'Failed to clear conversion jobs');
+      }
+    },
+    {
+      params: t.Object({
+        service: t.String(),
+        sourceId: t.String(),
+      }),
+    }
+  )
+  // Register push-to-start token for conversion live activities
+  .post(
+    '/conversions/live-activity/register',
+    async ({ body, user }) => {
+      if (!user) return { success: false };
+      await prisma.liveActivityToken.upsert({
+        where: { token: body.token },
+        update: { userId: user.id, type: 'conversion_start', updatedAt: new Date() },
+        create: { userId: user.id, token: body.token, type: 'conversion_start', platform: 'ios' },
+      });
+      console.log(`[ConversionLiveActivity] Registered push-to-start token for user ${user.id}`);
+      return { success: true };
+    },
+    {
+      body: t.Object({
+        token: t.String({ minLength: 1 }),
+      }),
+    }
+  )
+  // Store activity push token so the API can send progress updates
+  .post(
+    '/conversions/:id/activity-token',
+    async ({ params, body, set }) => {
+      const id = parseInt(params.id, 10);
+      if (!Number.isFinite(id) || id <= 0) return badRequest(set, 'Invalid conversion ID');
+
+      try {
+        await prisma.mediaConversionJob.update({
+          where: { id },
+          data: { activityPushToken: body.token },
+        });
+        return { success: true };
+      } catch (error) {
+        console.error('[medias:conversions:activity-token]', error);
+        return serverError(set, 'Failed to store activity token');
+      }
+    },
+    {
+      params: t.Object({ id: t.String() }),
+      body: t.Object({ token: t.String({ minLength: 1 }) }),
+    }
+  );
 
