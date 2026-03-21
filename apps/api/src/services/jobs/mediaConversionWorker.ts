@@ -92,20 +92,23 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
           console.warn(`[MediaWorker:${jobId}] Failed to update progress:`, err);
         }
 
-        // Send Live Activity push update every ~15 seconds (not at the end — handled in close)
-        if (!isEnd && now - lastPushAt > 15000) {
+        // Send Live Activity push update every ~60 seconds (not at the end — handled in close)
+        if (!isEnd && now - lastPushAt > 60000) {
           lastPushAt = now;
           prisma.mediaConversionJob.findUnique({
             where: { id: jobId },
             select: { activityPushToken: true, etaSeconds: true, speed: true, progress: true },
           }).then(fresh => {
             if (fresh?.activityPushToken) {
+              console.log(`[MediaWorker:${jobId}] Sending Live Activity push update (progress: ${fresh.progress?.toFixed(1)}%)`);
               sendConversionLiveActivityUpdatePush(fresh.activityPushToken, {
                 status: 'running',
                 progress: fresh.progress ?? 0,
                 etaSeconds: fresh.etaSeconds ?? null,
                 speed: fresh.speed ?? null,
-              }).catch(() => {});
+              }).catch((err) => console.warn(`[MediaWorker:${jobId}] Live Activity push failed:`, err));
+            } else {
+              console.log(`[MediaWorker:${jobId}] No activity push token yet — skipping Live Activity push`);
             }
           }).catch(() => {});
         }
