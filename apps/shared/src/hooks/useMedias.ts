@@ -190,17 +190,17 @@ export function useMediaDelete() {
 }
 
 export function useMediaConversionPreview(
-  params: { service: 'radarr' | 'sonarr'; source_id: number | null; preset: string },
+  params: { service: 'radarr' | 'sonarr'; source_id: number | null; codec: string; height: number | null; tone_map_hdr?: boolean; audio_tracks?: number[] | null },
   options?: { enabled?: boolean }
 ) {
   const fetcher = useFetcher();
   const isEnabled = Boolean(options?.enabled ?? true) && Boolean(params.source_id && params.source_id > 0);
 
   return useQuery({
-    queryKey: queryKeys.medias.conversionPreview(params.service, params.source_id ?? 0, params.preset),
+    queryKey: queryKeys.medias.conversionPreview(params.service, params.source_id ?? 0, params.codec, params.height, params.tone_map_hdr ?? false, params.audio_tracks ?? null),
     queryFn: () =>
       fetcher<MediaConversionPreviewResponse>(
-        MEDIAS_ENDPOINTS.CONVERSION_PREVIEW(params.service, params.source_id ?? 0, params.preset)
+        MEDIAS_ENDPOINTS.CONVERSION_PREVIEW(params.service, params.source_id ?? 0, params.codec, params.height, params.tone_map_hdr, params.audio_tracks)
       ),
     enabled: isEnabled,
   });
@@ -248,6 +248,11 @@ export function useActiveMediaConversions(options?: { enabled?: boolean; refetch
   });
 }
 
+export function useConversionJobs() {
+  const { data } = useActiveMediaConversions({ enabled: true });
+  return data?.jobs ?? [];
+}
+
 export function useMediaConversion(id: number | null, options?: { enabled?: boolean; refetchInterval?: number | false }) {
   const fetcher = useFetcher();
   const isEnabled = Boolean(options?.enabled ?? true) && Boolean(id && id > 0);
@@ -265,10 +270,10 @@ export function useCreateMediaConversion() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (params: { service: 'radarr' | 'sonarr'; source_id: number; preset: string }) =>
+    mutationFn: (params: { service: 'radarr' | 'sonarr'; source_id: number; target_codec: string; target_height: number | null; tone_map_hdr?: boolean; audio_tracks?: number[] | null }) =>
       fetcher<MediaConversionCreateResponse>(MEDIAS_ENDPOINTS.CONVERSIONS(params.service, params.source_id), {
         method: 'POST',
-        body: { preset: params.preset },
+        body: { target_codec: params.target_codec, target_height: params.target_height, tone_map_hdr: params.tone_map_hdr ?? false, audio_tracks: params.audio_tracks ?? null },
       }),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.conversions(variables.service, variables.source_id) });

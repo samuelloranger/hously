@@ -136,17 +136,28 @@ export interface MediaDeleteResponse {
 
 export type MediaConversionStatus = 'queued' | 'running' | 'completed' | 'failed';
 
+export interface AudioStreamDetail {
+  index: number;
+  codec: string;
+  channels: number | null;
+  channel_layout: string | null;
+  language: string | null;
+  title: string | null;
+}
+
 export interface MediaConversionPreset {
   key: string;
   label: string;
   description: string;
   output_extension: 'mkv' | 'mp4';
   target_height: number | null;
-  target_video_codec: 'hevc' | 'h264';
+  target_video_codec: 'hevc' | 'h264' | 'av1';
   crf: number;
   ffmpeg_preset: string;
   copy_audio: boolean;
   copy_subtitles: boolean;
+  tone_map_hdr: boolean;
+  audio_track_indices: number[] | null;
 }
 
 export interface MediaConversionSourceInfo {
@@ -160,6 +171,7 @@ export interface MediaConversionSourceInfo {
   hdr: boolean;
   dolby_vision: boolean;
   audio_streams: number;
+  audio_streams_detail: AudioStreamDetail[];
   subtitle_streams: number;
 }
 
@@ -201,7 +213,6 @@ export interface MediaConversionPreviewResponse {
   source_id: number;
   source_title: string;
   preset: MediaConversionPreset;
-  available_presets: MediaConversionPreset[];
   validation: MediaConversionValidation;
 }
 

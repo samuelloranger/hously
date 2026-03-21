@@ -1478,6 +1478,10 @@
       "duration": "Duree",
       "fileSize": "Taille du fichier",
       "audioTracks": "Pistes audio",
+      "audioSelectAll": "Toutes les pistes",
+      "toneMapLabel": "Conversion HDR → SDR",
+      "toneMapEnabled": "L'image HDR sera convertie en SDR (rendu naturel).",
+      "toneMapDisabled": "Les métadonnées HDR seront préservées (recommandé).",
       "subtitleTracks": "Sous-titres",
       "reasons": "Blocages",
       "warnings": "Avertissements",
@@ -1493,6 +1497,15 @@
       "etaValue": "ETA : {{eta}}",
       "etaSuffix": "restant",
       "estimation": "Réduction de taille significative",
+      "codecEffects": {
+        "same_quality": "Même qualité", 
+        "h264_to_hevc": "~40% plus léger, même qualité",
+        "h264_to_av1": "~50% plus léger, efficacité maximale",
+        "hevc_to_h264": "Meilleure compatibilité, fichier plus lourd",
+        "hevc_to_av1": "~20% plus léger, format nouvelle génération",
+        "av1_to_h264": "Compatibilité maximale, fichier beaucoup plus lourd",
+        "av1_to_hevc": "Meilleure compatibilité, légèrement plus lourd"
+      },
       "status": {
         "queued": "En attente",
         "running": "En cours",

@@ -1,21 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import { Zap, MoreVertical, XCircle, ExternalLink } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { useActiveMediaConversions, useCancelMediaConversion, type MediaConversionJob } from '@hously/shared';
+import { useConversionJobs, useCancelMediaConversion, type MediaConversionJob } from '@hously/shared';
 import { cn } from '@/lib/utils';
-import { useSearch } from '@tanstack/react-router';
-import { useModalSearchParams } from '@/hooks/useModalSearchParams';
-import type { LibrarySearchParams } from '@/router';
+import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 
 export function ConversionStatusBar() {
-  const { data } = useActiveMediaConversions({ enabled: true, refetchInterval: 2000 });
-  const activeJobs = data?.jobs ?? [];
+  const activeJobs = useConversionJobs();
 
   if (activeJobs.length === 0) return null;
 
   return (
-    <div className="space-y-2 mb-4">
+    <div className="space-y-2">
       {activeJobs.map((job) => (
         <JobRow key={job.id} job={job} />
       ))}
@@ -25,8 +22,7 @@ export function ConversionStatusBar() {
 
 function JobRow({ job }: { job: MediaConversionJob }) {
   const { t } = useTranslation('common');
-  const searchParams = useSearch({ from: '/library' }) as LibrarySearchParams;
-  const { setParams } = useModalSearchParams('/library', searchParams);
+  const navigate = useNavigate();
   const cancelMutation = useCancelMediaConversion();
   
   const formatDuration = (seconds: number | null) => {
@@ -42,9 +38,8 @@ function JobRow({ job }: { job: MediaConversionJob }) {
   const isRunning = job.status === 'running';
 
   const handleViewMedia = () => {
-    // We can use tmdb_id if available, otherwise use a composite key
     const mediaKey = `${job.service}:${job.source_id}`;
-    setParams({ scrollToMedia: mediaKey });
+    navigate({ to: '/library', search: { scrollToMedia: mediaKey } });
   };
 
   const handleCancel = async () => {

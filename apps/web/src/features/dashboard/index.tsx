@@ -16,11 +16,14 @@ import PendingChoresSection from './components/PendingChoresSection';
 import { UpcomingShelf } from './components/UpcomingShelf';
 import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 import { CardErrorBoundary } from '@/components/ErrorBoundary';
+import { ConversionStatusBar } from '../medias/components/ConversionStatusBar';
+import { useConversionJobs } from '@hously/shared';
 
 export function Dashboard() {
   const { t } = useTranslation('common');
   const { data: user } = useCurrentUser();
   const prefetchRoute = usePrefetchRoute();
+  const hasActiveConversions = useConversionJobs().length > 0;
 
   const { data: statsData, isLoading: statsLoading } = useDashboardStats();
   const stats = statsData?.stats;
@@ -74,6 +77,16 @@ export function Dashboard() {
             </>
           )}
         </div>
+
+        {hasActiveConversions && (
+          <CardErrorBoundary>
+            <section className="relative overflow-hidden rounded-3xl border border-indigo-300/60 dark:border-indigo-500/30 bg-gradient-to-br from-[#e0e7ff] via-[#a5b4fc] to-[#6366f1] dark:from-indigo-950/70 dark:via-indigo-900/60 dark:to-violet-900/60 p-4 shadow-xl">
+              <p className="text-[9px] uppercase tracking-[0.22em] text-indigo-950/70 dark:text-indigo-200/90 mb-1">Conversions</p>
+              <h3 className="text-base md:text-lg font-bold text-indigo-950 dark:text-indigo-50 mb-3">Active Jobs</h3>
+              <ConversionStatusBar />
+            </section>
+          </CardErrorBoundary>
+        )}
 
         <div className="columns-1 md:columns-2 gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid">
           <CardErrorBoundary>

@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, unlink, access } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { createInterface } from 'node:readline';
 import type { Job } from 'bullmq';
@@ -30,6 +30,15 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
   const preset = getPresetOrThrow(jobRecord.preset);
   await mkdir(dirname(jobRecord.outputPath), { recursive: true });
 
+  // Remove stale output file if it exists (e.g. from a previous failed attempt)
+  try {
+    await access(jobRecord.outputPath);
+    await unlink(jobRecord.outputPath);
+    console.log(`[MediaWorker:${jobId}] Removed stale output file: ${jobRecord.outputPath}`);
+  } catch {
+    // File doesn't exist, nothing to do
+  }
+
   await prisma.mediaConversionJob.update({
     where: { id: jobId },
     data: {
@@ -42,10 +51,12 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
 
   console.log(`[MediaWorker] Starting conversion for job ${jobId}: ${jobRecord.sourceTitle}`);
 
-  const ffmpegArgs = buildFfmpegArgs({ 
-    inputPath: jobRecord.inputPath, 
-    outputPath: jobRecord.outputPath, 
-    preset 
+  const validationSummary = jobRecord.validationSummary as { source?: { hdr?: boolean } } | null;
+  const ffmpegArgs = buildFfmpegArgs({
+    inputPath: jobRecord.inputPath,
+    outputPath: jobRecord.outputPath,
+    preset,
+    sourceHdr: validationSummary?.source?.hdr ?? false,
   });
 
   const proc = spawn('ffmpeg', ffmpegArgs, {

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearch } from '@tanstack/react-router';
 import {
-  useMediaAutoSearch,
   useMedias,
   useActiveMediaConversions,
   filterAndSortMediaItems,
@@ -16,19 +15,11 @@ import { MediaPosterCard } from '@/components/MediaPosterCard';
 import {
   ArrowDownAZ,
   ArrowUpZA,
-  ExternalLink,
-  RefreshCw,
   Search,
-  Sparkles,
-  Trash2,
-  Info,
-  EllipsisVertical,
   Zap,
 } from 'lucide-react';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { cn } from '@/lib/utils';
 
-import { toast } from 'sonner';
 import { useModalSearchParams } from '@/hooks/useModalSearchParams';
 import { MediaInfoDialog } from './c411/MediaInfoDialog';
 import { ConversionStatusBar } from './ConversionStatusBar';
@@ -333,122 +324,6 @@ function C411Badge() {
   return <img src="/icons/c411.png" alt="C411" className="h-4 drop-shadow-md" />;
 }
 
-function CardDropdownMenu({
-  item,
-  onOpen,
-}: {
-  item: MediaItem;
-  onOpen: (tab?: TabKey) => void;
-}) {
-  const { t } = useTranslation('common');
-  const autoSearchMutation = useMediaAutoSearch();
-
-  const runAutoSearch = async () => {
-    if (autoSearchMutation.isPending) return;
-    try {
-      await autoSearchMutation.mutateAsync({ service: item.service, source_id: item.source_id });
-      toast.success(t('medias.autoSearch.success', { service: item.service === 'radarr' ? 'Radarr' : 'Sonarr' }));
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t('medias.autoSearch.failed'));
-    }
-  };
-
-  const canConvert = item.service === 'radarr' && item.media_type === 'movie' && item.downloaded;
-  const hasTmdb = item.tmdb_id !== null;
-
-  return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
-        <button
-          type="button"
-          onClick={e => e.stopPropagation()}
-          className="inline-flex items-center justify-center h-6 w-6 rounded-lg bg-black/50 backdrop-blur-sm border border-white/10 text-white/70 transition-colors duration-150 hover:bg-black/70 hover:text-white"
-        >
-          <EllipsisVertical size={12} />
-        </button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          align="end"
-          sideOffset={4}
-          className="min-w-[160px] rounded-lg bg-neutral-900/95 backdrop-blur-xl border border-white/10 shadow-xl z-[var(--z-popover)] animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
-        >
-          <DropdownMenu.Item
-            onSelect={() => void runAutoSearch()}
-            disabled={autoSearchMutation.isPending}
-            className="flex items-center gap-2.5 px-3 py-2 text-[11px] text-white/80 hover:bg-white/10 hover:text-white cursor-pointer outline-none rounded-t-lg disabled:opacity-40"
-          >
-            <Search size={12} className={autoSearchMutation.isPending ? 'animate-spin' : ''} />
-            {t('medias.autoSearch.button')}
-          </DropdownMenu.Item>
-
-          <DropdownMenu.Item
-            onSelect={() => onOpen('search')}
-            className="flex items-center gap-2.5 px-3 py-2 text-[11px] text-white/80 hover:bg-white/10 hover:text-white cursor-pointer outline-none"
-          >
-            <Search size={12} />
-            {t('medias.interactive.button')}
-          </DropdownMenu.Item>
-
-          {canConvert && (
-            <DropdownMenu.Item
-              onSelect={() => onOpen('convert')}
-              className="flex items-center gap-2.5 px-3 py-2 text-[11px] text-white/80 hover:bg-white/10 hover:text-white cursor-pointer outline-none"
-            >
-              <RefreshCw size={12} />
-              {t('medias.convert.button')}
-            </DropdownMenu.Item>
-          )}
-
-          {hasTmdb && (
-            <DropdownMenu.Item
-              onSelect={() => onOpen('similar')}
-              className="flex items-center gap-2.5 px-3 py-2 text-[11px] text-white/80 hover:bg-white/10 hover:text-white cursor-pointer outline-none"
-            >
-              <Sparkles size={12} />
-              {t('medias.similar.button')}
-            </DropdownMenu.Item>
-          )}
-
-          {item.downloaded && (
-            <DropdownMenu.Item
-              onSelect={() => onOpen('info')}
-              className="flex items-center gap-2.5 px-3 py-2 text-[11px] text-white/80 hover:bg-white/10 hover:text-white cursor-pointer outline-none"
-            >
-              <Info size={12} />
-              Media infos
-            </DropdownMenu.Item>
-          )}
-
-          {item.arr_url && (
-            <DropdownMenu.Item asChild>
-              <a
-                href={item.arr_url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-2.5 px-3 py-2 text-[11px] text-white/80 hover:bg-white/10 hover:text-white cursor-pointer outline-none"
-              >
-                <ExternalLink size={12} />
-                {t('medias.viewInArr')}
-              </a>
-            </DropdownMenu.Item>
-          )}
-
-          <DropdownMenu.Separator className="h-px bg-white/10 my-1" />
-
-          <DropdownMenu.Item
-            onSelect={() => onOpen('history')}
-            className="flex items-center gap-2.5 px-3 py-2 text-[11px] text-red-400 hover:bg-red-500/20 hover:text-red-300 cursor-pointer outline-none rounded-b-lg"
-          >
-            <Trash2 size={12} />
-            {t('medias.delete.button')}
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
-  );
-}
-
 function MediaGridCard({
   item,
   isOnC411,
@@ -503,9 +378,6 @@ function MediaGridCard({
             </div>
           )}
         </div>
-      }
-      topRightContent={
-        <CardDropdownMenu item={item} onOpen={onOpen} />
       }
     >
       <div className="space-y-1.5">

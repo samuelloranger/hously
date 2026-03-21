@@ -19,11 +19,22 @@ export type MediaConversionPreset = {
   description: string;
   output_extension: 'mkv' | 'mp4';
   target_height: number | null;
-  target_video_codec: 'hevc' | 'h264';
+  target_video_codec: 'hevc' | 'h264' | 'av1';
   crf: number;
   ffmpeg_preset: string;
   copy_audio: boolean;
   copy_subtitles: boolean;
+  tone_map_hdr: boolean;
+  audio_track_indices: number[] | null;
+};
+
+type AudioStreamDetail = {
+  index: number;
+  codec: string;
+  channels: number | null;
+  channel_layout: string | null;
+  language: string | null;
+  title: string | null;
 };
 
 type MediaConversionSourceInfo = {
@@ -37,6 +48,7 @@ type MediaConversionSourceInfo = {
   hdr: boolean;
   dolby_vision: boolean;
   audio_streams: number;
+  audio_streams_detail: AudioStreamDetail[];
   subtitle_streams: number;
 };
 
@@ -61,6 +73,7 @@ type RadarrMovie = {
 };
 
 type ProbeStream = {
+  index?: number;
   codec_type?: string;
   codec_name?: string;
   width?: number;
@@ -70,6 +83,9 @@ type ProbeStream = {
   color_space?: string;
   codec_tag_string?: string;
   side_data_list?: Array<{ side_data_type?: string }>;
+  channels?: number;
+  channel_layout?: string;
+  tags?: { language?: string; title?: string };
 };
 
 type ProbeResult = {
@@ -93,44 +109,37 @@ const HOST_STORAGE_PREFIX = '/mnt/storage/';
 const SUPPORTED_INPUT_EXTENSIONS = new Set(['.mkv', '.mp4', '.m4v', '.mov']);
 const ACTIVE_STATUSES: MediaConversionStatus[] = ['queued', 'running'];
 
-const MEDIA_CONVERSION_PRESETS: MediaConversionPreset[] = [
-  {
-    key: 'hevc_1080p',
-    label: 'HEVC 1080p',
-    description: 'Downscale to 1080p H.265 while copying all audio and subtitle streams.',
+
+const CODEC_DEFAULTS: Record<string, { crf: number; ffmpeg_preset: string }> = {
+  h264: { crf: 20, ffmpeg_preset: 'medium' },
+  hevc: { crf: 22, ffmpeg_preset: 'medium' },
+  av1:  { crf: 30, ffmpeg_preset: '6' },
+};
+
+type DynamicPresetOptions = {
+  toneMap?: boolean;
+  audioTracks?: number[] | null;
+};
+
+function buildDynamicPreset(codec: 'h264' | 'hevc' | 'av1', height: number | null, options: DynamicPresetOptions = {}): MediaConversionPreset {
+  const codecLabel = codec === 'hevc' ? 'H.265' : codec === 'av1' ? 'AV1' : 'H.264';
+  const resLabel = height ? `${height}p` : 'Original';
+  const defaults = CODEC_DEFAULTS[codec];
+  return {
+    key: JSON.stringify({ codec, height, tone_map_hdr: options.toneMap ?? false, audio_tracks: options.audioTracks ?? null }),
+    label: `${codecLabel} ${resLabel}`,
+    description: `Re-encode to ${codecLabel}${height ? ` at ${height}p` : ' without changing resolution'}.`,
     output_extension: 'mkv',
-    target_height: 1080,
-    target_video_codec: 'hevc',
-    crf: 22,
-    ffmpeg_preset: 'medium',
+    target_height: height,
+    target_video_codec: codec,
+    crf: defaults.crf,
+    ffmpeg_preset: defaults.ffmpeg_preset,
     copy_audio: true,
     copy_subtitles: true,
-  },
-  {
-    key: 'h264_to_h265',
-    label: 'H.264 to H.265',
-    description: 'Re-encode an H.264 source to H.265 without changing the resolution.',
-    output_extension: 'mkv',
-    target_height: null,
-    target_video_codec: 'hevc',
-    crf: 22,
-    ffmpeg_preset: 'medium',
-    copy_audio: true,
-    copy_subtitles: true,
-  },
-  {
-    key: 'h264_1080p_compat',
-    label: 'H.264 1080p',
-    description: 'Downscale to 1080p H.264 for compatibility while copying audio and subtitles.',
-    output_extension: 'mkv',
-    target_height: 1080,
-    target_video_codec: 'h264',
-    crf: 20,
-    ffmpeg_preset: 'medium',
-    copy_audio: true,
-    copy_subtitles: true,
-  },
-];
+    tone_map_hdr: options.toneMap ?? false,
+    audio_track_indices: options.audioTracks ?? null,
+  };
+}
 
 const clampProgress = (value: number) => Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
 
@@ -156,9 +165,19 @@ const remapArrPath = (contentPath: string) => contentPath.replace(/^\/data\//, H
 
 // Exported for the worker
 export function getPresetOrThrow(key: string): MediaConversionPreset {
-  const preset = MEDIA_CONVERSION_PRESETS.find((entry) => entry.key === key);
-  if (!preset) throw new Error(`Unknown conversion preset: ${key}`);
-  return preset;
+  // New format: JSON string
+  if (key.startsWith('{')) {
+    try {
+      const opts = JSON.parse(key) as { codec: 'h264' | 'hevc' | 'av1'; height: number | null; tone_map_hdr?: boolean; audio_tracks?: number[] | null };
+      return buildDynamicPreset(opts.codec, opts.height, { toneMap: opts.tone_map_hdr, audioTracks: opts.audio_tracks });
+    } catch {}
+  }
+  // Legacy format: "{codec}:{height|orig}"
+  const match = key.match(/^(h264|hevc|av1):(orig|\d+)$/);
+  if (!match) throw new Error(`Unknown conversion preset: ${key}`);
+  const codec = match[1] as 'h264' | 'hevc' | 'av1';
+  const height = match[2] === 'orig' ? null : parseInt(match[2], 10);
+  return buildDynamicPreset(codec, height);
 }
 
 async function loadRadarrMovie(sourceId: number): Promise<RadarrMovie> {
@@ -286,11 +305,16 @@ function buildOutputBaseName(inputPath: string, preset: MediaConversionPreset) {
   })();
 
   if (preset.target_video_codec === 'hevc') {
-    const codecUpdated = withResolution.replace(/\b(H264|x264|AVC)\b/i, 'H265');
+    const codecUpdated = withResolution.replace(/\b(H264|x264|AVC|AV1|av1)\b/i, 'H265');
     return codecUpdated === withResolution ? `${withResolution}.H265` : codecUpdated;
   }
 
-  const codecUpdated = withResolution.replace(/\b(H265|x265|HEVC)\b/i, 'H264');
+  if (preset.target_video_codec === 'av1') {
+    const codecUpdated = withResolution.replace(/\b(H264|x264|AVC|H265|x265|HEVC)\b/i, 'AV1');
+    return codecUpdated === withResolution ? `${withResolution}.AV1` : codecUpdated;
+  }
+
+  const codecUpdated = withResolution.replace(/\b(H265|x265|HEVC|AV1|av1)\b/i, 'H264');
   return codecUpdated === withResolution ? `${withResolution}.H264` : codecUpdated;
 }
 
@@ -298,12 +322,21 @@ function buildOutputPath(inputPath: string, preset: MediaConversionPreset) {
   return join(dirname(inputPath), `${buildOutputBaseName(inputPath, preset)}.${preset.output_extension}`);
 }
 
-function buildSourceInfo(inputPath: string, fileSizeBytes: number, probe: ProbeResult): MediaConversionSourceInfo {
+function buildSourceInfo(_inputPath: string, fileSizeBytes: number, probe: ProbeResult): MediaConversionSourceInfo {
   const streams = Array.isArray(probe.streams) ? probe.streams : [];
   const videoStream = streams.find((stream) => stream.codec_type === 'video');
   const durationSeconds = toFiniteNumber(probe.format?.duration);
-  const audioStreams = streams.filter((stream) => stream.codec_type === 'audio').length;
+  const rawAudioStreams = streams.filter((stream) => stream.codec_type === 'audio');
   const subtitleStreams = streams.filter((stream) => stream.codec_type === 'subtitle').length;
+
+  const audioStreamsDetail: AudioStreamDetail[] = rawAudioStreams.map((s, i) => ({
+    index: i,
+    codec: s.codec_name ?? 'unknown',
+    channels: toFiniteNumber(s.channels),
+    channel_layout: s.channel_layout ?? null,
+    language: s.tags?.language ?? null,
+    title: s.tags?.title ?? null,
+  }));
 
   return {
     file_size_bytes: fileSizeBytes,
@@ -315,7 +348,8 @@ function buildSourceInfo(inputPath: string, fileSizeBytes: number, probe: ProbeR
     pix_fmt: videoStream?.pix_fmt ?? null,
     hdr: detectHdr(videoStream),
     dolby_vision: detectDolbyVision(videoStream),
-    audio_streams: audioStreams,
+    audio_streams: rawAudioStreams.length,
+    audio_streams_detail: audioStreamsDetail,
     subtitle_streams: subtitleStreams,
   };
 }
@@ -355,14 +389,26 @@ async function validateSource(source: ResolvedSource, preset: MediaConversionPre
   if (!sourceInfo.duration_seconds || sourceInfo.duration_seconds <= 0) {
     reasons.push('Could not determine the video duration');
   }
-  if (preset.target_height !== null && sourceInfo.height !== null && sourceInfo.height <= preset.target_height) {
-    reasons.push(`The source is already ${sourceInfo.height}p, so the ${preset.target_height}p preset is not appropriate`);
+  const sameCodec = sourceInfo.video_codec === preset.target_video_codec;
+
+  if (sameCodec && preset.target_height === null) {
+    reasons.push(`The source is already ${preset.target_video_codec.toUpperCase()} — select a different codec or a target resolution`);
+  } else if (preset.target_height !== null && sourceInfo.height !== null) {
+    if (sourceInfo.height === preset.target_height && sameCodec) {
+      reasons.push(`The source is already ${sourceInfo.height}p ${preset.target_video_codec.toUpperCase()}, this conversion would have no effect`);
+    } else if (sourceInfo.height < preset.target_height) {
+      if (sameCodec) {
+        reasons.push(`The source is ${sourceInfo.height}p — upscaling to ${preset.target_height}p with the same codec has no benefit`);
+      } else {
+        warnings.push(`The source is ${sourceInfo.height}p — upscaling to ${preset.target_height}p will not improve quality`);
+      }
+    }
   }
 
-  if (sourceInfo.hdr) {
-    warnings.push('HDR metadata detected. This preset does not tone-map HDR to SDR.');
+  if (sourceInfo.hdr && !preset.tone_map_hdr) {
+    warnings.push('HDR metadata will be preserved. Output may look washed out on SDR displays.');
   }
-  if (sourceInfo.dolby_vision) {
+  if (sourceInfo.dolby_vision && !preset.tone_map_hdr) {
     warnings.push('Dolby Vision metadata detected. The output may lose Dolby Vision compatibility.');
   }
   if (sourceInfo.audio_streams === 0) {
@@ -387,38 +433,60 @@ export function buildFfmpegArgs(job: {
   inputPath: string;
   outputPath: string;
   preset: MediaConversionPreset;
+  sourceHdr?: boolean;
 }) {
   const videoCodecArgs =
     job.preset.target_video_codec === 'hevc'
       ? ['-c:v', 'libx265']
-      : ['-c:v', 'libx264'];
+      : job.preset.target_video_codec === 'av1'
+        ? ['-c:v', 'libsvtav1']
+        : ['-c:v', 'libx264'];
+
+  // Build video filter chain
+  const vfParts: string[] = [];
+  if (job.preset.tone_map_hdr) {
+    vfParts.push(
+      'zscale=t=linear:npl=100',
+      'format=gbrpf32le',
+      'zscale=p=bt709',
+      'tonemap=tonemap=hable:desat=0',
+      'zscale=t=bt709:m=bt709:r=tv',
+      'format=yuv420p',
+    );
+  }
+  if (job.preset.target_height !== null) {
+    vfParts.push(`scale=-2:${job.preset.target_height}:flags=lanczos`);
+  }
+
+  // HDR preservation for HEVC when not tone-mapping
+  const hdrParams =
+    !job.preset.tone_map_hdr && (job.sourceHdr ?? job.preset.tone_map_hdr === false) && job.preset.target_video_codec === 'hevc'
+      ? ['-x265-params', 'hdr-opt=1:repeat-headers=1']
+      : [];
+
+  // Audio track mapping
+  const audioMaps =
+    job.preset.audio_track_indices?.length
+      ? job.preset.audio_track_indices.flatMap(i => ['-map', `0:a:${i}`])
+      : ['-map', '0:a?'];
 
   const args = [
     '-y',
     '-i',
     job.inputPath,
-    '-map',
-    '0:v:0',
-    '-map',
-    '0:a?',
-    '-map',
-    '0:s?',
-    '-map_metadata',
-    '0',
-    '-map_chapters',
-    '0',
-    ...(job.preset.target_height !== null ? ['-vf', `scale=-2:${job.preset.target_height}:flags=lanczos`] : []),
+    '-map', '0:v:0',
+    ...audioMaps,
+    '-map', '0:s?',
+    '-map_metadata', '0',
+    '-map_chapters', '0',
+    ...(vfParts.length > 0 ? ['-vf', vfParts.join(',')] : []),
     ...videoCodecArgs,
-    '-preset',
-    job.preset.ffmpeg_preset,
-    '-crf',
-    String(job.preset.crf),
-    '-c:a',
-    job.preset.copy_audio ? 'copy' : 'aac',
-    '-c:s',
-    job.preset.copy_subtitles ? 'copy' : 'mov_text',
-    '-progress',
-    'pipe:1',
+    '-preset', job.preset.ffmpeg_preset,
+    '-crf', String(job.preset.crf),
+    ...hdrParams,
+    '-c:a', job.preset.copy_audio ? 'copy' : 'aac',
+    '-c:s', job.preset.copy_subtitles ? 'copy' : 'mov_text',
+    '-progress', 'pipe:1',
     '-nostats',
     job.outputPath,
   ];
@@ -538,17 +606,17 @@ export async function resumePendingMediaConversionJobs() {
   }
 }
 
-export function getMediaConversionPresets() {
-  return MEDIA_CONVERSION_PRESETS.map((preset) => ({ ...preset }));
-}
 
 export async function getMediaConversionPreview(params: {
   service: MediaService;
   sourceId: number;
-  preset: string;
+  target_codec: 'h264' | 'hevc' | 'av1';
+  target_height: number | null;
+  tone_map_hdr?: boolean;
+  audio_tracks?: number[] | null;
 }) {
   const source = await resolveSource(params.service, params.sourceId);
-  const preset = getPresetOrThrow(params.preset);
+  const preset = buildDynamicPreset(params.target_codec, params.target_height, { toneMap: params.tone_map_hdr, audioTracks: params.audio_tracks });
   const { validation } = await validateSource(source, preset);
 
   return {
@@ -556,7 +624,6 @@ export async function getMediaConversionPreview(params: {
     source_id: source.sourceId,
     source_title: source.sourceTitle,
     preset,
-    available_presets: getMediaConversionPresets(),
     validation,
   };
 }
@@ -564,11 +631,14 @@ export async function getMediaConversionPreview(params: {
 export async function createMediaConversionJob(params: {
   service: MediaService;
   sourceId: number;
-  preset: string;
+  target_codec: 'h264' | 'hevc' | 'av1';
+  target_height: number | null;
+  tone_map_hdr?: boolean;
+  audio_tracks?: number[] | null;
   requestedByUserId?: number;
 }) {
   const source = await resolveSource(params.service, params.sourceId);
-  const preset = getPresetOrThrow(params.preset);
+  const preset = buildDynamicPreset(params.target_codec, params.target_height, { toneMap: params.tone_map_hdr, audioTracks: params.audio_tracks });
   const { validation, probeData } = await validateSource(source, preset);
 
   if (!validation.can_convert) {
