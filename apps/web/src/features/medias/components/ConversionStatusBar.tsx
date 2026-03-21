@@ -57,14 +57,22 @@ function JobRow({ job }: { job: MediaConversionJob }) {
         <div className="flex items-center justify-between sm:justify-start gap-3 min-w-0">
           {/* Left: Icon & Info */}
           <div className="flex items-center gap-3 min-w-0">
-            <div className={cn(
-              "flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-colors",
-              isRunning 
-                ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400" 
-                : "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400"
-            )}>
-              <Zap className={cn("w-4.5 h-4.5", isRunning && "animate-pulse")} />
-            </div>
+            {job.poster_url ? (
+              <img
+                src={job.poster_url}
+                alt=""
+                className="flex-shrink-0 w-9 h-[54px] rounded-lg object-cover"
+              />
+            ) : (
+              <div className={cn(
+                "flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-colors",
+                isRunning
+                  ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
+                  : "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400"
+              )}>
+                <Zap className={cn("w-4.5 h-4.5", isRunning && "animate-pulse")} />
+              </div>
+            )}
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-neutral-900 dark:text-white truncate">
