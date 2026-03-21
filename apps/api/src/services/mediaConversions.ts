@@ -71,6 +71,7 @@ type RadarrMovie = {
     relativePath?: string | null;
     size?: number | null;
   } | null;
+  images?: Array<{ coverType: string; remoteUrl?: string | null }> | null;
 };
 
 type ProbeStream = {
@@ -102,6 +103,7 @@ type ResolvedSource = {
   sourceId: number;
   sourceTitle: string;
   inputPath: string;
+  posterUrl: string | null;
 };
 
 type MediaConversionJobRecord = Awaited<ReturnType<typeof prisma.mediaConversionJob.findUnique>>;
@@ -215,6 +217,7 @@ async function resolveMovieSource(sourceId: number): Promise<ResolvedSource> {
     throw new Error('This Radarr movie does not have a local file to convert');
   }
 
+  const posterUrl = movie.images?.find(img => img.coverType === 'poster')?.remoteUrl ?? null;
   const candidates = [movie.movieFile.path, remapArrPath(movie.movieFile.path)];
   for (const candidate of candidates) {
     if (await fileExists(candidate)) {
@@ -223,6 +226,7 @@ async function resolveMovieSource(sourceId: number): Promise<ResolvedSource> {
         sourceId,
         sourceTitle: movie.title,
         inputPath: candidate,
+        posterUrl,
       };
     }
   }
@@ -524,6 +528,7 @@ export function serializeMediaConversionJob(job: NonNullable<MediaConversionJobR
     service: job.service as MediaService,
     source_id: job.sourceId,
     source_title: job.sourceTitle,
+    poster_url: job.posterUrl ?? null,
     preset: job.preset,
     status: job.status as MediaConversionStatus,
     input_path: job.inputPath,
@@ -667,6 +672,7 @@ export async function createMediaConversionJob(params: {
       service: params.service,
       sourceId: params.sourceId,
       sourceTitle: source.sourceTitle,
+      posterUrl: source.posterUrl,
       preset: preset.key,
       status: 'queued',
       requestedByUserId: params.requestedByUserId,
@@ -685,7 +691,7 @@ export async function createMediaConversionJob(params: {
 
   // Send push-to-start to iOS so the Live Activity starts immediately
   const presetLabel = formatPresetLabelForPush(preset.key);
-  sendConversionLiveActivityStartPushForUser(params.requestedByUserId, job.id, job.sourceTitle ?? '', presetLabel).catch(
+  sendConversionLiveActivityStartPushForUser(params.requestedByUserId, job.id, job.sourceTitle ?? '', presetLabel, job.posterUrl ?? null).catch(
     (err) => console.warn('[ConversionLiveActivity] Failed to send start push:', err)
   );
 
@@ -782,6 +788,7 @@ export async function sendConversionLiveActivityStartPushForUser(
   jobId: number,
   sourceTitle: string,
   presetLabel: string,
+  posterUrl: string | null = null,
 ): Promise<void> {
   if (!userId) return;
   const tokens = await prisma.liveActivityToken.findMany({
@@ -793,7 +800,7 @@ export async function sendConversionLiveActivityStartPushForUser(
   const { invalidTokens } = await sendConversionLiveActivityStartPush(
     tokens.map((t) => t.token),
     {
-      attributes: { jobId, sourceTitle, presetLabel },
+      attributes: { jobId, sourceTitle, presetLabel, posterUrl },
       contentState: { status: 'queued', progress: 0, etaSeconds: null, speed: null },
     },
   );

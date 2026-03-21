@@ -501,6 +501,7 @@ model MediaConversionJob {
   speed             String?
   errorMessage      String?   @map("error_message")
   activityPushToken String?   @map("activity_push_token")
+  posterUrl         String?   @map("poster_url")
   validationSummary Json?     @map("validation_summary")
   probeData         Json?     @map("probe_data")
   startedAt         DateTime? @map("started_at")

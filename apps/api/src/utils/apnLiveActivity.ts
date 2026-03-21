@@ -20,6 +20,7 @@ interface ConversionActivityStartPayload {
     jobId: number;
     sourceTitle: string;
     presetLabel: string;
+    posterUrl: string | null;
   };
   contentState: {
     status: string;

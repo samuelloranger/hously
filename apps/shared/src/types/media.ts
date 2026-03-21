@@ -189,6 +189,7 @@ export interface MediaConversionJob {
   service: 'radarr' | 'sonarr';
   source_id: number;
   source_title: string | null;
+  poster_url: string | null;
   preset: string;
   status: MediaConversionStatus;
   input_path: string;
