@@ -27,7 +27,9 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
   const jobRecord = await prisma.mediaConversionJob.findUnique({ where: { id: jobId } });
   if (!jobRecord) throw new Error(`Job ${jobId} not found`);
   
-  if (jobRecord.status === 'completed') return { success: true, message: 'Already completed' };
+  if (jobRecord.status === 'completed' || jobRecord.status === 'failed') {
+    return { success: true, message: `Already ${jobRecord.status}` };
+  }
 
   const preset = getPresetOrThrow(jobRecord.preset);
   await mkdir(dirname(jobRecord.outputPath), { recursive: true });
