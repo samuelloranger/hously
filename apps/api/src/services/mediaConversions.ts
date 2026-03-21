@@ -1,6 +1,6 @@
 import { access, mkdir, stat } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
-import { basename, dirname, extname, join } from 'node:path';
+import { basename, extname, join } from 'node:path';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { addJob, QUEUE_NAMES } from './queueService';
@@ -318,8 +318,10 @@ function buildOutputBaseName(inputPath: string, preset: MediaConversionPreset) {
   return codecUpdated === withResolution ? `${withResolution}.H264` : codecUpdated;
 }
 
+const OUTPUT_DIR = '/mnt/storage/Downloads/conversions';
+
 function buildOutputPath(inputPath: string, preset: MediaConversionPreset) {
-  return join(dirname(inputPath), `${buildOutputBaseName(inputPath, preset)}.${preset.output_extension}`);
+  return join(OUTPUT_DIR, `${buildOutputBaseName(inputPath, preset)}.${preset.output_extension}`);
 }
 
 function buildSourceInfo(_inputPath: string, fileSizeBytes: number, probe: ProbeResult): MediaConversionSourceInfo {
@@ -360,6 +362,7 @@ async function validateSource(source: ResolvedSource, preset: MediaConversionPre
 }> {
   const extension = extname(source.inputPath).toLowerCase();
   const fileStat = await stat(source.inputPath);
+  await mkdir(OUTPUT_DIR, { recursive: true });
   const outputPath = buildOutputPath(source.inputPath, preset);
   const reasons: string[] = [];
   const warnings: string[] = [];
@@ -374,7 +377,7 @@ async function validateSource(source: ResolvedSource, preset: MediaConversionPre
     reasons.push('The output path would overwrite the source file');
   }
   if (await fileExists(outputPath)) {
-    reasons.push(`The target file already exists: ${outputPath}`);
+    warnings.push(`The target file already exists and will be overwritten: ${outputPath}`);
   }
 
   const probe = await runProbe(source.inputPath);
@@ -725,13 +728,14 @@ export async function cancelMediaConversionJob(jobId: number) {
   }
 
   if (job.status === 'completed' || job.status === 'failed') {
+    // Already done — delete the record entirely
+    await prisma.mediaConversionJob.delete({ where: { id: jobId } });
     return serializeMediaConversionJob(job);
   }
 
   // BullMQ doesn't easily support killing a running process in another worker
   // unless we use a custom mechanism (like Redis flags or signals).
   // For now, we update the status in DB. The worker checks status occasionally.
-  
   const updatedJob = await prisma.mediaConversionJob.update({
     where: { id: jobId },
     data: {
@@ -742,4 +746,10 @@ export async function cancelMediaConversionJob(jobId: number) {
   });
 
   return serializeMediaConversionJob(updatedJob);
+}
+
+export async function clearFinishedMediaConversionJobs(service: 'radarr' | 'sonarr', sourceId: number) {
+  await prisma.mediaConversionJob.deleteMany({
+    where: { service, sourceId, status: { in: ['completed', 'failed'] } },
+  });
 }

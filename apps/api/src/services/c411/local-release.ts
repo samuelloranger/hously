@@ -1,14 +1,18 @@
-import { stat } from 'node:fs/promises';
-import { basename, extname } from 'node:path';
+import { mkdir, rm, stat } from 'node:fs/promises';
+import { basename, extname, join } from 'node:path';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../../db';
 import { normalizeRadarrConfig } from '../../utils/plugins/normalizers';
+import { uploadToS3 } from '../s3Service';
 import { getMediaInfo } from './mediainfo';
 import { detectLanguages } from './lang-detect';
 import { fetchTmdbDetails, buildFallbackTmdbDetails } from './tmdb';
 import { generateBBCode, buildReleaseInfo } from './bbcode';
+import { loadC411Config } from './session';
+import { createTorrent } from './mktorrent';
 import {
   buildReleaseName,
+  calcPieceLength,
   formatReleaseSize,
   resolveCategory,
   resolveGenres,
@@ -121,6 +125,33 @@ export async function createLocalC411ReleaseFromConversion(params: {
     ? media.fullOutput.replace(/^(Complete name\s*:\s*).*$/m, `$1${basename(params.outputPath)}`)
     : null;
 
+  // Create torrent directly from the converted file (no hardlink needed)
+  let torrentS3Key: string | null = null;
+  try {
+    const c411Config = await loadC411Config();
+    if (c411Config.announceUrl) {
+      const tmpDir = `/tmp/c411-conversion-${Date.now()}`;
+      await mkdir(tmpDir, { recursive: true });
+      const torrentPath = join(tmpDir, `${c411Name}.torrent`);
+      try {
+        await createTorrent({
+          announceUrl: c411Config.announceUrl,
+          pieceLength: calcPieceLength(fileStat.size),
+          outputPath: torrentPath,
+          contentPath: params.outputPath,
+        });
+        const torrentBuffer = await Bun.file(torrentPath).arrayBuffer();
+        const s3Key = `c411/torrents/${c411Name}.torrent`;
+        const uploaded = await uploadToS3(Buffer.from(torrentBuffer), s3Key, 'application/x-bittorrent');
+        if (uploaded) torrentS3Key = s3Key;
+      } finally {
+        await rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+      }
+    }
+  } catch (err) {
+    console.warn(`[c411:conversion] Failed to create torrent for job ${params.conversionJobId}:`, err);
+  }
+
   const tmdbData: Prisma.InputJsonObject = {
     id: tmdb.id,
     type: tmdb.type,
@@ -157,6 +188,7 @@ export async function createLocalC411ReleaseFromConversion(params: {
       size: BigInt(fileStat.size),
       status: 'local',
       nfoContent,
+      torrentS3Key,
       originalPath: params.outputPath,
       options,
       tmdbData,
