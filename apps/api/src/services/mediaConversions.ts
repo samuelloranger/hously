@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { basename, extname, join } from 'node:path';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../db';
+import { redis } from '../db/redis';
 import { addJob, QUEUE_NAMES } from './queueService';
 import { sendConversionLiveActivityStartPush } from '../utils/apnLiveActivity';
 import { normalizeRadarrConfig } from '../utils/plugins/normalizers';
@@ -217,7 +218,8 @@ async function resolveMovieSource(sourceId: number): Promise<ResolvedSource> {
     throw new Error('This Radarr movie does not have a local file to convert');
   }
 
-  const posterUrl = movie.images?.find(img => img.coverType === 'poster')?.remoteUrl ?? null;
+  const rawPosterUrl = movie.images?.find(img => img.coverType === 'poster')?.remoteUrl ?? null;
+  const posterUrl = rawPosterUrl ? rawPosterUrl.replace('/original/', '/w500/') : null;
   const candidates = [movie.movieFile.path, remapArrPath(movie.movieFile.path)];
   for (const candidate of candidates) {
     if (await fileExists(candidate)) {
@@ -741,14 +743,13 @@ export async function cancelMediaConversionJob(jobId: number) {
   }
 
   if (job.status === 'completed' || job.status === 'failed') {
-    // Already done — delete the record entirely
     await prisma.mediaConversionJob.delete({ where: { id: jobId } });
     return serializeMediaConversionJob(job);
   }
 
-  // BullMQ doesn't easily support killing a running process in another worker
-  // unless we use a custom mechanism (like Redis flags or signals).
-  // For now, we update the status in DB. The worker checks status occasionally.
+  // Set a Redis cancellation flag — the worker polls this and kills ffmpeg
+  await redis.set(`conversion:cancel:${jobId}`, '1', 'EX', 3600);
+
   const updatedJob = await prisma.mediaConversionJob.update({
     where: { id: jobId },
     data: {

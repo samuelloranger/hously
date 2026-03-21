@@ -4,6 +4,7 @@ import { dirname } from 'node:path';
 import { createInterface } from 'node:readline';
 import type { Job } from 'bullmq';
 import { prisma } from '../../db';
+import { redis } from '../../db/redis';
 import { sendConversionLiveActivityUpdatePush } from '../../utils/apnLiveActivity';
 
 export interface MediaConversionJobData {
@@ -68,6 +69,7 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
   const stderrTail: string[] = [];
   let lastPersistAt = 0;
   let lastPushAt = 0;
+  let lastCancelCheckAt = 0;
 
   return new Promise((resolve, reject) => {
     createInterface({ input: proc.stdout! }).on('line', async (line) => {
@@ -79,6 +81,18 @@ export async function processMediaConversionJob(job: Job<MediaConversionJobData>
 
       const now = Date.now();
       const isEnd = value === 'end';
+
+      // Check cancellation flag every 5 seconds
+      if (now - lastCancelCheckAt > 5000) {
+        lastCancelCheckAt = now;
+        const cancelled = await redis.get(`conversion:cancel:${jobId}`);
+        if (cancelled) {
+          console.log(`[MediaWorker:${jobId}] Cancellation detected — killing ffmpeg`);
+          await redis.del(`conversion:cancel:${jobId}`);
+          proc.kill('SIGKILL');
+          return;
+        }
+      }
 
       // Update DB progress every 2 seconds or at the end
       if (isEnd || now - lastPersistAt > 2000) {
