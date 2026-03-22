@@ -459,6 +459,13 @@ const qbRequest = async (config: QbittorrentPluginConfig, path: string, init?: R
   let statusCode: number | null = null;
 
   try {
+    if (!qbSession.sidCookie) {
+      const loggedIn = await login(config);
+      if (!loggedIn) {
+        throw new Error('qBittorrent authentication failed');
+      }
+    }
+
     let response = await request();
     statusCode = response.status;
 
