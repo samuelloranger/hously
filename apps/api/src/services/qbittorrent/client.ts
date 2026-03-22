@@ -222,9 +222,26 @@ interface MaindataState {
 }
 
 let maindataState: MaindataState | null = null;
+let maindataFetchPromise:
+  | Promise<{
+      serverState: Record<string, unknown>;
+      torrents: Map<string, Record<string, unknown>>;
+    }>
+  | null = null;
+let lastMaindataSnapshot:
+  | {
+      fetchedAt: number;
+      serverState: Record<string, unknown>;
+      torrents: Map<string, Record<string, unknown>>;
+    }
+  | null = null;
+
+const MAINDATA_REUSE_WINDOW_MS = 750;
 
 export const resetMaindataState = () => {
   maindataState = null;
+  maindataFetchPromise = null;
+  lastMaindataSnapshot = null;
 };
 
 // --- Shared helpers ---
@@ -574,58 +591,88 @@ export const fetchMaindata = async (
   serverState: Record<string, unknown>;
   torrents: Map<string, Record<string, unknown>>;
 }> => {
-  const rid = maindataState?.rid ?? 0;
-  const raw = await qbFetchJson<MaindataRaw>(config, `/api/v2/sync/maindata?rid=${rid}`);
-
-  if (!raw || typeof raw !== 'object') {
-    throw new Error('Invalid maindata response');
+  const now = Date.now();
+  if (lastMaindataSnapshot && now - lastMaindataSnapshot.fetchedAt <= MAINDATA_REUSE_WINDOW_MS) {
+    return {
+      serverState: lastMaindataSnapshot.serverState,
+      torrents: lastMaindataSnapshot.torrents,
+    };
   }
 
-  if (raw.full_update || !maindataState) {
-    // Full sync - replace everything
-    const torrents = new Map<string, Record<string, unknown>>();
-    if (raw.torrents) {
-      for (const [hash, torrent] of Object.entries(raw.torrents)) {
-        torrents.set(hash, { ...torrent, hash });
+  if (maindataFetchPromise) {
+    return maindataFetchPromise;
+  }
+
+  maindataFetchPromise = (async () => {
+    const rid = maindataState?.rid ?? 0;
+    const raw = await qbFetchJson<MaindataRaw>(config, `/api/v2/sync/maindata?rid=${rid}`);
+
+    if (!raw || typeof raw !== 'object') {
+      throw new Error('Invalid maindata response');
+    }
+
+    if (raw.full_update || !maindataState) {
+      // Full sync - replace everything
+      const torrents = new Map<string, Record<string, unknown>>();
+      if (raw.torrents) {
+        for (const [hash, torrent] of Object.entries(raw.torrents)) {
+          torrents.set(hash, { ...torrent, hash });
+        }
       }
-    }
-    maindataState = {
-      rid: typeof raw.rid === 'number' ? raw.rid : 0,
-      serverState: raw.server_state ?? {},
-      torrents,
-    };
-  } else {
-    // Delta update - merge changes
-    if (typeof raw.rid === 'number') {
-      maindataState.rid = raw.rid;
-    }
+      maindataState = {
+        rid: typeof raw.rid === 'number' ? raw.rid : 0,
+        serverState: raw.server_state ?? {},
+        torrents,
+      };
+    } else {
+      // Delta update - merge changes
+      if (typeof raw.rid === 'number') {
+        maindataState.rid = raw.rid;
+      }
 
-    if (raw.server_state) {
-      Object.assign(maindataState.serverState, raw.server_state);
-    }
+      if (raw.server_state) {
+        Object.assign(maindataState.serverState, raw.server_state);
+      }
 
-    if (raw.torrents) {
-      for (const [hash, delta] of Object.entries(raw.torrents)) {
-        const existing = maindataState.torrents.get(hash);
-        if (existing) {
-          Object.assign(existing, delta);
-        } else {
-          maindataState.torrents.set(hash, { ...delta, hash });
+      if (raw.torrents) {
+        for (const [hash, delta] of Object.entries(raw.torrents)) {
+          const existing = maindataState.torrents.get(hash);
+          if (existing) {
+            Object.assign(existing, delta);
+          } else {
+            maindataState.torrents.set(hash, { ...delta, hash });
+          }
+        }
+      }
+
+      if (raw.torrents_removed) {
+        for (const hash of raw.torrents_removed) {
+          maindataState.torrents.delete(hash);
         }
       }
     }
 
-    if (raw.torrents_removed) {
-      for (const hash of raw.torrents_removed) {
-        maindataState.torrents.delete(hash);
-      }
-    }
-  }
+    const snapshot = {
+      serverState: maindataState.serverState,
+      torrents: maindataState.torrents,
+    };
 
-  return {
-    serverState: maindataState.serverState,
-    torrents: maindataState.torrents,
-  };
+    lastMaindataSnapshot = {
+      fetchedAt: Date.now(),
+      ...snapshot,
+    };
+
+    return snapshot;
+  })().finally(() => {
+    maindataFetchPromise = null;
+  });
+
+  try {
+    return await maindataFetchPromise;
+  } catch (error) {
+    lastMaindataSnapshot = null;
+    throw error;
+  }
 };
 
 // --- Torrent normalization helpers ---
