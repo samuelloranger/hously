@@ -1,10 +1,7 @@
 import { getQbittorrentPluginConfig } from './qbittorrent/config';
-import { resetMaindataState } from './qbittorrent/client';
+import { fetchMaindata, resetMaindataState, toNumberOr, toTorrent, toTorrentListItem } from './qbittorrent/client';
 import {
   buildQbittorrentDisabledSnapshot,
-  fetchQbittorrentSnapshot,
-  fetchQbittorrentTorrents,
-  fetchQbittorrentTorrent,
 } from './qbittorrent/torrents';
 
 type ChannelCallback<T = unknown> = (data: T) => void;
@@ -20,6 +17,38 @@ let running = false;
 
 // Last payloads for change detection (keyed by channel)
 const lastPayloads = new Map<string, string>();
+
+const computeSummary = (
+  torrents: Array<ReturnType<typeof toTorrent> extends infer T ? Exclude<T, null> : never>
+) => {
+  let downloadingCount = 0;
+  let stalledCount = 0;
+  let seedingCount = 0;
+  let pausedCount = 0;
+  let completedCount = 0;
+
+  for (const torrent of torrents) {
+    const state = torrent.state;
+    if (state === 'downloading' || state === 'forcedDL' || state === 'metaDL' || state === 'queuedDL' || state === 'checkingDL') {
+      downloadingCount += 1;
+    }
+    if (state === 'stalledDL' || state === 'stalledUP') stalledCount += 1;
+    if (state === 'uploading' || state === 'forcedUP' || state === 'queuedUP' || state === 'stalledUP') {
+      seedingCount += 1;
+    }
+    if (state.startsWith('paused') || state.startsWith('stopped')) pausedCount += 1;
+    if (torrent.progress >= 0.999) completedCount += 1;
+  }
+
+  return {
+    downloading_count: downloadingCount,
+    stalled_count: stalledCount,
+    seeding_count: seedingCount,
+    paused_count: pausedCount,
+    completed_count: completedCount,
+    total_count: torrents.length,
+  };
+};
 
 const notifySubscribers = <T>(channel: string, data: T) => {
   const payload = JSON.stringify(data);
@@ -56,28 +85,57 @@ const pollOnce = async () => {
       return;
     }
 
-    // Single maindata fetch powers all channels.
-    // fetchQbittorrentSnapshot and fetchQbittorrentTorrents both use fetchMaindata internally,
-    // and since maindata state is module-level, the second call gets the cached delta result.
-    const dashboardSnapshot = await fetchQbittorrentSnapshot(config, true);
+    // One maindata request should fan out all live qBittorrent channels.
+    // The previous implementation fetched maindata again for the torrents list
+    // and each torrent detail channel, which doubled or tripled qBittorrent API
+    // pressure while the page was open.
+    const { serverState, torrents: torrentMap } = await fetchMaindata(config);
+    const rawTorrents = Array.from(torrentMap.values());
+    const dashboardTorrents = rawTorrents.map(toTorrent).filter((row): row is NonNullable<typeof row> => Boolean(row));
+    const summaryCounts = computeSummary(dashboardTorrents);
+    const dashboardSnapshot = {
+      enabled: true,
+      connected: true,
+      updated_at: new Date().toISOString(),
+      poll_interval_seconds: config.poll_interval_seconds,
+      summary: {
+        ...summaryCounts,
+        download_speed: Math.max(0, Math.trunc(toNumberOr(serverState.dl_info_speed, 0))),
+        upload_speed: Math.max(0, Math.trunc(toNumberOr(serverState.up_info_speed, 0))),
+        downloaded_bytes: Math.max(0, Math.trunc(toNumberOr(serverState.dl_info_data, 0))),
+        uploaded_bytes: Math.max(0, Math.trunc(toNumberOr(serverState.up_info_data, 0))),
+      },
+      torrents: [...dashboardTorrents]
+        .sort((a, b) => {
+          const aScore = a.download_speed * 2 + a.upload_speed;
+          const bScore = b.download_speed * 2 + b.upload_speed;
+          return bScore - aScore;
+        })
+        .slice(0, config.max_items),
+    };
 
     // Notify dashboard subscribers
     const hasDashboard = subscribers.some(s => s.channel === 'dashboard');
     if (hasDashboard) {
-      notifySubscribers('dashboard', {
-        ...dashboardSnapshot,
-        updated_at: new Date().toISOString(),
-      });
+      notifySubscribers('dashboard', dashboardSnapshot);
     }
 
     // Notify torrents subscribers
     const hasTorrents = subscribers.some(s => s.channel === 'torrents');
     if (hasTorrents) {
-      const torrentsResult = await fetchQbittorrentTorrents(config, true, {
-        sort: 'added_on',
-        reverse: true,
-        limit: 250,
-      });
+      const torrentsResult = {
+        enabled: true,
+        connected: true,
+        torrents: rawTorrents
+          .map(toTorrentListItem)
+          .filter((row): row is NonNullable<typeof row> => Boolean(row))
+          .sort((a, b) => {
+            const aAdded = a.added_on ? Date.parse(a.added_on) : 0;
+            const bAdded = b.added_on ? Date.parse(b.added_on) : 0;
+            return bAdded - aAdded;
+          })
+          .slice(0, 250),
+      };
       notifySubscribers('torrents', torrentsResult);
     }
 
@@ -85,17 +143,19 @@ const pollOnce = async () => {
     const torrentChannels = new Set(subscribers.filter(s => s.channel.startsWith('torrent:')).map(s => s.channel));
     for (const channel of torrentChannels) {
       const hash = channel.slice('torrent:'.length);
-      const torrentResult = await fetchQbittorrentTorrent(config, true, hash);
+      const rawTorrent = torrentMap.get(hash);
+      const torrentResult = rawTorrent
+        ? { enabled: true, connected: true, torrent: toTorrentListItem(rawTorrent) }
+        : { enabled: true, connected: true, torrent: null, error: 'Torrent not found' };
       notifySubscribers(channel, torrentResult);
     }
 
     // Adaptive interval: poll fast when transfers are active, slow when idle.
     const configuredMs = Math.max(1000, config.poll_interval_seconds * 1000);
     const hasActiveTransfers =
-      dashboardSnapshot.connected &&
-      (dashboardSnapshot.summary.download_speed > 0 ||
-        dashboardSnapshot.summary.upload_speed > 0 ||
-        dashboardSnapshot.summary.downloading_count > 0);
+      dashboardSnapshot.summary.download_speed > 0 ||
+      dashboardSnapshot.summary.upload_speed > 0 ||
+      dashboardSnapshot.summary.downloading_count > 0;
     const intervalMs = hasActiveTransfers ? configuredMs : Math.min(30000, Math.max(10000, configuredMs * 10));
     schedulePoll(intervalMs);
   } catch (error) {

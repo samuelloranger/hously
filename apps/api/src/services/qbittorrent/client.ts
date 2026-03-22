@@ -1,3 +1,5 @@
+import { logQbittorrentRequest } from './requestLogs';
+
 export interface QbittorrentTorrentRaw {
   hash?: string;
   name?: string;
@@ -276,6 +278,76 @@ export const toTags = (value: unknown): string[] => {
     .slice(0, 20);
 };
 
+const textEncoder = new TextEncoder();
+
+const getByteLength = (value: string) => textEncoder.encode(value).length;
+
+const getQbittorrentPayloadMetrics = (url: URL, payload: unknown) => {
+  const record = toRecord(payload);
+  const metrics: {
+    rid?: number;
+    fullUpdate?: boolean;
+    itemCount?: number;
+    removedCount?: number;
+    meta: Record<string, unknown>;
+  } = {
+    meta: {
+      query: Object.fromEntries(url.searchParams.entries()),
+    },
+  };
+
+  if (Array.isArray(payload)) {
+    metrics.itemCount = payload.length;
+    metrics.meta.payloadKind = 'array';
+    return metrics;
+  }
+
+  if (!record) {
+    metrics.meta.payloadKind = typeof payload;
+    return metrics;
+  }
+
+  metrics.meta.payloadKind = 'object';
+
+  if (typeof record.rid === 'number') metrics.rid = record.rid;
+  if (typeof record.full_update === 'boolean') metrics.fullUpdate = record.full_update;
+
+  if (url.pathname === '/api/v2/sync/maindata') {
+    const torrents = toRecord(record.torrents);
+    const removed = Array.isArray(record.torrents_removed) ? record.torrents_removed : [];
+    metrics.itemCount = torrents ? Object.keys(torrents).length : 0;
+    metrics.removedCount = removed.length;
+    metrics.meta.serverStateKeys = toRecord(record.server_state) ? Object.keys(toRecord(record.server_state)!).length : 0;
+    return metrics;
+  }
+
+  if (url.pathname === '/api/v2/sync/torrentPeers') {
+    const peers = toRecord(record.peers);
+    metrics.itemCount = peers ? Object.keys(peers).length : 0;
+    return metrics;
+  }
+
+  if (url.pathname === '/api/v2/torrents/info') {
+    metrics.itemCount = Array.isArray(payload) ? payload.length : undefined;
+    return metrics;
+  }
+
+  if (url.pathname === '/api/v2/torrents/categories') {
+    metrics.itemCount = Object.keys(record).length;
+    return metrics;
+  }
+
+  return metrics;
+};
+
+type QbRequestResult = {
+  url: URL;
+  bodyText: string;
+  statusCode: number;
+  authRetried: boolean;
+  durationMs: number;
+};
+
 // --- HTTP client ---
 
 const buildConfigKey = (config: QbittorrentPluginConfig): string =>
@@ -307,81 +379,191 @@ const login = async (config: QbittorrentPluginConfig): Promise<boolean> => {
     password: config.password,
   });
 
-  const response = await fetch(loginUrl.toString(), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Referer: config.website_url,
-    },
-    body: body.toString(),
-  });
+  const startedAt = Date.now();
 
-  if (!response.ok) return false;
+  try {
+    const response = await fetch(loginUrl.toString(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Referer: config.website_url,
+      },
+      body: body.toString(),
+    });
 
-  const text = (await response.text()).trim();
-  if (!/^ok\.?$/i.test(text)) return false;
+    const text = (await response.text()).trim();
+    const ok = response.ok && /^ok\.?$/i.test(text);
 
-  qbSession.sidCookie = parseSidCookie(response);
-  return Boolean(qbSession.sidCookie);
-};
-
-export const qbFetchJson = async <T>(config: QbittorrentPluginConfig, path: string): Promise<T> => {
-  resetSessionIfConfigChanged(config);
-
-  const request = async (): Promise<Response> => {
-    const url = new URL(path, config.website_url);
-    const headers: Record<string, string> = {
-      Accept: 'application/json',
-    };
-    if (qbSession.sidCookie) headers.Cookie = qbSession.sidCookie;
-    return fetch(url.toString(), { headers });
-  };
-
-  let response = await request();
-  if (response.status === 403 || response.status === 401) {
-    const loggedIn = await login(config);
-    if (!loggedIn) throw new Error('qBittorrent authentication failed');
-    response = await request();
-  }
-
-  if (!response.ok) {
-    throw new Error(`qBittorrent request failed with status ${response.status}`);
-  }
-
-  return (await response.json()) as T;
-};
-
-export const qbFetchText = async (config: QbittorrentPluginConfig, path: string, init?: RequestInit): Promise<string> => {
-  resetSessionIfConfigChanged(config);
-
-  const request = async (): Promise<Response> => {
-    const url = new URL(path, config.website_url);
-    const baseHeaders: Record<string, string> = {
-      Accept: 'text/plain, */*',
-      Referer: config.website_url,
-    };
-    if (qbSession.sidCookie) baseHeaders.Cookie = qbSession.sidCookie;
-
-    const mergedHeaders = new Headers(init?.headers ?? {});
-    for (const [key, value] of Object.entries(baseHeaders)) {
-      if (!mergedHeaders.has(key)) mergedHeaders.set(key, value);
+    if (ok) {
+      qbSession.sidCookie = parseSidCookie(response);
     }
 
+    logQbittorrentRequest({
+      method: 'POST',
+      endpoint: loginUrl.pathname,
+      requestPath: `${loginUrl.pathname}${loginUrl.search}`,
+      statusCode: response.status,
+      ok: ok && Boolean(qbSession.sidCookie),
+      durationMs: Date.now() - startedAt,
+      responseBytes: getByteLength(text),
+      errorMessage: ok && qbSession.sidCookie ? null : 'qBittorrent authentication failed',
+      meta: {
+        hasSidCookie: Boolean(parseSidCookie(response)),
+      },
+    });
+
+    return ok && Boolean(qbSession.sidCookie);
+  } catch (error) {
+    logQbittorrentRequest({
+      method: 'POST',
+      endpoint: loginUrl.pathname,
+      requestPath: `${loginUrl.pathname}${loginUrl.search}`,
+      ok: false,
+      durationMs: Date.now() - startedAt,
+      errorMessage: error instanceof Error ? error.message : 'qBittorrent authentication request failed',
+    });
+    return false;
+  }
+};
+
+const qbRequest = async (config: QbittorrentPluginConfig, path: string, init?: RequestInit): Promise<QbRequestResult> => {
+  resetSessionIfConfigChanged(config);
+
+  const url = new URL(path, config.website_url);
+  const startedAt = Date.now();
+
+  const request = async (): Promise<Response> => {
+    const mergedHeaders = new Headers(init?.headers ?? {});
+    if (qbSession.sidCookie) mergedHeaders.set('Cookie', qbSession.sidCookie);
     return fetch(url.toString(), { ...init, headers: mergedHeaders });
   };
 
-  let response = await request();
-  if (response.status === 403 || response.status === 401) {
-    const loggedIn = await login(config);
-    if (!loggedIn) throw new Error('qBittorrent authentication failed');
-    response = await request();
-  }
+  let authRetried = false;
+  let statusCode: number | null = null;
 
-  if (!response.ok) {
-    throw new Error(`qBittorrent request failed with status ${response.status}`);
-  }
+  try {
+    let response = await request();
+    statusCode = response.status;
 
-  return await response.text();
+    if (response.status === 403 || response.status === 401) {
+      authRetried = true;
+      const loggedIn = await login(config);
+      if (!loggedIn) {
+        throw new Error('qBittorrent authentication failed');
+      }
+      response = await request();
+      statusCode = response.status;
+    }
+
+    const bodyText = await response.text();
+    const durationMs = Date.now() - startedAt;
+
+    if (!response.ok) {
+      logQbittorrentRequest({
+        method: (init?.method ?? 'GET').toUpperCase(),
+        endpoint: url.pathname,
+        requestPath: `${url.pathname}${url.search}`,
+        statusCode: response.status,
+        ok: false,
+        durationMs,
+        responseBytes: getByteLength(bodyText),
+        authRetried,
+        errorMessage: `qBittorrent request failed with status ${response.status}`,
+      });
+      throw new Error(`qBittorrent request failed with status ${response.status}`);
+    }
+
+    return {
+      url,
+      bodyText,
+      statusCode: response.status,
+      authRetried,
+      durationMs,
+    };
+  } catch (error) {
+    if (statusCode == null || error instanceof TypeError) {
+      logQbittorrentRequest({
+        method: (init?.method ?? 'GET').toUpperCase(),
+        endpoint: url.pathname,
+        requestPath: `${url.pathname}${url.search}`,
+        statusCode,
+        ok: false,
+        durationMs: Date.now() - startedAt,
+        authRetried,
+        errorMessage: error instanceof Error ? error.message : 'qBittorrent request failed',
+      });
+    }
+    throw error;
+  }
+};
+
+export const qbFetchJson = async <T>(config: QbittorrentPluginConfig, path: string): Promise<T> => {
+  const result = await qbRequest(config, path, {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  try {
+    const parsed = JSON.parse(result.bodyText) as T;
+    const metrics = getQbittorrentPayloadMetrics(result.url, parsed);
+    logQbittorrentRequest({
+      method: 'GET',
+      endpoint: result.url.pathname,
+      requestPath: `${result.url.pathname}${result.url.search}`,
+      statusCode: result.statusCode,
+      ok: true,
+      durationMs: result.durationMs,
+      responseBytes: getByteLength(result.bodyText),
+      authRetried: result.authRetried,
+      rid: metrics.rid,
+      fullUpdate: metrics.fullUpdate,
+      itemCount: metrics.itemCount,
+      removedCount: metrics.removedCount,
+      meta: metrics.meta,
+    });
+    return parsed;
+  } catch (error) {
+    logQbittorrentRequest({
+      method: 'GET',
+      endpoint: result.url.pathname,
+      requestPath: `${result.url.pathname}${result.url.search}`,
+      statusCode: result.statusCode,
+      ok: false,
+      durationMs: result.durationMs,
+      responseBytes: getByteLength(result.bodyText),
+      authRetried: result.authRetried,
+      errorMessage: error instanceof Error ? error.message : 'Invalid qBittorrent JSON payload',
+    });
+    throw error;
+  }
+};
+
+export const qbFetchText = async (config: QbittorrentPluginConfig, path: string, init?: RequestInit): Promise<string> => {
+  const result = await qbRequest(config, path, {
+    ...init,
+    headers: {
+      Accept: 'text/plain, */*',
+      Referer: config.website_url,
+      ...(init?.headers ?? {}),
+    },
+  });
+
+  logQbittorrentRequest({
+    method: (init?.method ?? 'GET').toUpperCase(),
+    endpoint: result.url.pathname,
+    requestPath: `${result.url.pathname}${result.url.search}`,
+    statusCode: result.statusCode,
+    ok: true,
+    durationMs: result.durationMs,
+    responseBytes: getByteLength(result.bodyText),
+    authRetried: result.authRetried,
+    meta: {
+      payloadKind: 'text',
+    },
+  });
+
+  return result.bodyText;
 };
 
 // --- Maindata fetch & merge ---

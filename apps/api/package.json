@@ -1,6 +1,6 @@
 {
   "name": "@hously/server",
-  "version": "2.1.72",
+  "version": "2.1.73",
   "packageManager": "bun@1.3.3",
   "module": "src/index.ts",
   "type": "module",
@@ -12,6 +12,7 @@
     "db:migrate": "set -a && . ../../.env && set +a && bunx prisma migrate deploy",
     "db:push": "set -a && . ../../.env && set +a && bunx prisma db push",
     "db:studio": "set -a && . ../../.env && set +a && bunx prisma studio",
+    "qbittorrent:request-logs": "bun src/scripts/qbittorrentRequestLogs.ts",
     "postinstall": "prisma generate",
     "format": "prettier --write \"{src,prisma}/**/*.{ts,js,json,md}\" \"*.{ts,js,json,md}\"",
     "typecheck": "tsc --noEmit"

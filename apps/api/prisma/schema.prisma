@@ -516,3 +516,27 @@ model MediaConversionJob {
   @@index([requestedByUserId], map: "ix_media_conversion_jobs_requested_by_user_id")
   @@map("media_conversion_jobs")
 }
+
+model QbittorrentRequestLog {
+  id           Int      @id @default(autoincrement())
+  method       String   @db.VarChar(10)
+  endpoint     String   @db.VarChar(255)
+  requestPath  String   @map("request_path") @db.VarChar(512)
+  statusCode   Int?     @map("status_code")
+  ok           Boolean  @default(false)
+  durationMs   Int      @map("duration_ms")
+  responseBytes Int?    @map("response_bytes")
+  authRetried  Boolean  @default(false) @map("auth_retried")
+  rid          Int?
+  fullUpdate   Boolean? @map("full_update")
+  itemCount    Int?     @map("item_count")
+  removedCount Int?     @map("removed_count")
+  errorMessage String?  @map("error_message") @db.Text
+  meta         Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt], map: "ix_qbittorrent_request_logs_created_at")
+  @@index([endpoint, createdAt], map: "ix_qbittorrent_request_logs_endpoint_created_at")
+  @@index([ok, createdAt], map: "ix_qbittorrent_request_logs_ok_created_at")
+  @@map("qbittorrent_request_logs")
+}

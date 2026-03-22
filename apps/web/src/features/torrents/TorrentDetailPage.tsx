@@ -78,9 +78,9 @@ export function TorrentDetailPage() {
   const isTransferring = selectedTorrent ? hasQbittorrentTransferActivity(selectedTorrent) : false;
 
   const propertiesQuery = useQbittorrentTorrentProperties(torrentHash || null);
-  const trackersQuery = useQbittorrentTorrentTrackers(torrentHash || null);
+  const trackersQuery = useQbittorrentTorrentTrackers(activeTab === 'trackers' ? torrentHash || null : null);
   const filesQuery = useQbittorrentTorrentFiles(
-    torrentHash || null,
+    activeTab === 'files' ? torrentHash || null : null,
     activeTab === 'files' && isTransferring ? 2000 : false
   );
 
@@ -127,8 +127,8 @@ export function TorrentDetailPage() {
   }, [selectedTorrent, torrentHash]);
 
   useJsonEventSource<DashboardQbittorrentTorrentPeersResponse>({
-    enabled: Boolean(torrentHash),
-    url: torrentHash ? DASHBOARD_ENDPOINTS.QBITTORRENT.PEERS_STREAM(torrentHash) : null,
+    enabled: Boolean(torrentHash) && activeTab === 'peers',
+    url: torrentHash && activeTab === 'peers' ? DASHBOARD_ENDPOINTS.QBITTORRENT.PEERS_STREAM(torrentHash) : null,
     logLabel: 'qBittorrent peers stream',
     onReset: () => setPeersSnapshot(null),
     onMessage: parsed => {
@@ -493,7 +493,7 @@ export function TorrentDetailPage() {
 
           {deleteTorrentMutation.error ? (
             <p className="text-sm text-rose-600">
-              {String((deleteTorrentMutation.error as any)?.message ?? deleteTorrentMutation.error)}
+              {deleteTorrentMutation.error.message}
             </p>
           ) : null}
 
