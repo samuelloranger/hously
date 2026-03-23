@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Search, Star, X, UtensilsCrossed } from 'lucide-react';
 import { LoadingState } from '@/components/LoadingState';
@@ -12,6 +12,7 @@ import { useModalSearchParams } from '@/hooks/useModalSearchParams';
 import type { KitchenSearchParams } from '@/router';
 
 const CATEGORIES = ['breakfast', 'lunch', 'dinner', 'dessert', 'snack'];
+type RecipeSortKey = 'updated' | 'title' | 'quickest';
 
 interface RecipeListContentProps {
   refreshKey?: number;
@@ -27,6 +28,8 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<RecipeSortKey>('updated');
+  const searchInputRef = useRef<HTMLInputElement>(null);
   
   const [editingRecipeId, setEditingRecipeId] = useState<number | null>(null);
 
@@ -43,13 +46,52 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
     }
   }, [refreshKey, refetch]);
 
-  const filteredRecipes = recipes.filter(recipe => {
-    const matchesSearch = recipe.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || recipe.category === selectedCategory;
-    const matchesFavorites = !showFavoritesOnly || recipe.is_favorite === 1;
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isTypingField =
+        target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable;
 
-    return matchesSearch && matchesCategory && matchesFavorites;
-  });
+      if (!isTypingField && event.key === '/') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      }
+
+      if (!isTypingField && event.key.toLowerCase() === 'n') {
+        event.preventDefault();
+        setParams({ modal: 'create' });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setParams]);
+
+  const filteredRecipes = useMemo(() => {
+    const nextRecipes = recipes.filter(recipe => {
+      const searchable = [recipe.name, recipe.description ?? '', recipe.category ?? ''].join(' ').toLowerCase();
+      const matchesSearch = searchable.includes(searchQuery.toLowerCase());
+      const matchesCategory = !selectedCategory || recipe.category === selectedCategory;
+      const matchesFavorites = !showFavoritesOnly || recipe.is_favorite === 1;
+
+      return matchesSearch && matchesCategory && matchesFavorites;
+    });
+
+    return nextRecipes.sort((left, right) => {
+      if (sortBy === 'title') {
+        return left.name.localeCompare(right.name);
+      }
+
+      if (sortBy === 'quickest') {
+        const leftTime = (left.prep_time_minutes || 0) + (left.cook_time_minutes || 0);
+        const rightTime = (right.prep_time_minutes || 0) + (right.cook_time_minutes || 0);
+        return leftTime - rightTime;
+      }
+
+      return new Date(right.updated_at || right.created_at).getTime() - new Date(left.updated_at || left.created_at).getTime();
+    });
+  }, [recipes, searchQuery, selectedCategory, showFavoritesOnly, sortBy]);
 
   const hasActiveFilters = !!searchQuery || !!selectedCategory || showFavoritesOnly;
 
@@ -66,6 +108,7 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder={t('recipes.searchPlaceholder', 'Search recipes...')}
               value={searchQuery}
@@ -104,6 +147,49 @@ export function RecipeListContent({ refreshKey }: RecipeListContentProps) {
             <Plus className="w-4 h-4" />
             <span>{t('recipes.addRecipe', 'Add Recipe')}</span>
           </button>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 pt-3 text-sm dark:border-neutral-700/50">
+          <p className="text-neutral-500 dark:text-neutral-400">
+            {t('recipes.results', { count: filteredRecipes.length, total: recipes.length })}
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] text-neutral-400 dark:text-neutral-500">
+              {t('recipes.shortcuts', 'Press / to search, N to add')}
+            </span>
+            {(['updated', 'title', 'quickest'] as const).map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setSortBy(option)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200',
+                  sortBy === option
+                    ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/20'
+                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                )}
+              >
+                {option === 'updated'
+                  ? t('recipes.sortUpdated', 'Recently updated')
+                  : option === 'title'
+                    ? t('recipes.sortTitle', 'A-Z')
+                    : t('recipes.sortQuickest', 'Quickest')}
+              </button>
+            ))}
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory(null);
+                  setShowFavoritesOnly(false);
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all duration-200"
+              >
+                {t('recipes.clearFilters', 'Clear filters')}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Category Filters */}

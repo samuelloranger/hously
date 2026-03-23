@@ -1,88 +1,101 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, screen, waitFor, renderWithProviders } from '@/test-utils/render';
 import { mockShoppingItem } from '@/test-utils/mocks';
 import { ShoppingList } from '@/features/shopping';
 
-const mockGetShoppingItems = vi.fn();
-const mockCreateShoppingItem = vi.fn();
-const mockToggleShoppingItem = vi.fn();
-const mockDeleteShoppingItem = vi.fn();
-
-vi.mock('../../lib/api', () => ({
-  api: {
-    getShoppingItems: () => mockGetShoppingItems(),
-    createShoppingItem: (data: unknown) => mockCreateShoppingItem(data),
-    toggleShoppingItem: (id: number) => mockToggleShoppingItem(id),
-    deleteShoppingItem: (id: number) => mockDeleteShoppingItem(id),
-  },
+// Mock TanStack Router
+vi.mock('@tanstack/react-router', () => ({
+  useSearch: vi.fn().mockReturnValue({}),
+  useNavigate: vi.fn().mockReturnValue(vi.fn()),
+  useParams: vi.fn().mockReturnValue({}),
 }));
 
-describe('ShoppingList', () => {
-  let queryClient: QueryClient;
+// Mock shared hooks
+vi.mock('@hously/shared', async (importOriginal) => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    useShoppingItems: vi.fn(),
+    useCreateShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+    useToggleShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+    useDeleteShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+    useDeleteShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+    useClearAllCompletedShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+    useReorderShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  };
+});
 
+import { useShoppingItems } from '@hously/shared';
+
+describe('ShoppingList', () => {
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-      },
-    });
     vi.clearAllMocks();
   });
 
   it('renders shopping list', async () => {
-    mockGetShoppingItems.mockResolvedValue({
-      items: [mockShoppingItem],
+    (useShoppingItems as any).mockReturnValue({
+      data: {
+        items: [mockShoppingItem],
+      },
+      isLoading: false,
+      refetch: vi.fn(),
     });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <ShoppingList />
-      </QueryClientProvider>
-    );
+    renderWithProviders(<ShoppingList />);
 
     await waitFor(() => {
       expect(screen.getByText(mockShoppingItem.item_name)).toBeInTheDocument();
     });
   });
 
-  it('allows adding new items', async () => {
-    mockGetShoppingItems.mockResolvedValue({
-      items: [],
-    });
-    mockCreateShoppingItem.mockResolvedValue({
-      success: true,
-      data: { id: 1 },
+  it('shows empty state when no items', async () => {
+    (useShoppingItems as any).mockReturnValue({
+      data: {
+        items: [],
+      },
+      isLoading: false,
+      refetch: vi.fn(),
     });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <ShoppingList />
-      </QueryClientProvider>
-    );
-
-    const input = screen.getByPlaceholderText(/what do you need to buy/i);
+    renderWithProviders(<ShoppingList />);
 
     await waitFor(() => {
-      expect(input).toBeInTheDocument();
+      expect(screen.getByText('shopping.noItems')).toBeInTheDocument();
     });
-
-    expect(mockCreateShoppingItem).not.toHaveBeenCalled();
   });
 
-  it('shows empty state when no items', async () => {
-    mockGetShoppingItems.mockResolvedValue({
-      items: [],
+  it('filters shopping items with search and status chips', async () => {
+    (useShoppingItems as any).mockReturnValue({
+      data: {
+        items: [
+          mockShoppingItem,
+          {
+            ...mockShoppingItem,
+            id: 2,
+            item_name: 'Dish soap',
+            notes: 'Kitchen sink',
+            completed: true,
+          },
+        ],
+      },
+      isLoading: false,
+      refetch: vi.fn(),
     });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <ShoppingList />
-      </QueryClientProvider>
-    );
+    renderWithProviders(<ShoppingList />);
+
+    const searchInput = await screen.findByPlaceholderText('shopping.searchPlaceholder');
+    fireEvent.change(searchInput, { target: { value: 'soap' } });
 
     await waitFor(() => {
-      expect(screen.getByText(/no items in your shopping list/i)).toBeInTheDocument();
+      expect(screen.getByText('Dish soap')).toBeInTheDocument();
+      expect(screen.queryByText('Milk')).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'shopping.filters.completed' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Dish soap')).toBeInTheDocument();
     });
   });
 });

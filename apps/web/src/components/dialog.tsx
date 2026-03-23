@@ -55,7 +55,7 @@ export function Dialog({
                   panelClassName
                 )}
               >
-                <div className="mb-4 flex shrink-0 items-start justify-between gap-4">
+                <div className="pt-4 px-4 flex shrink-0 items-start justify-between gap-4">
                   <DialogTitle as="h3" className="text-lg font-medium leading-6 text-neutral-900 dark:text-white">
                     {title}
                   </DialogTitle>

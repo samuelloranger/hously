@@ -4,14 +4,18 @@ import { clearUser } from '../lib/auth';
 import { formatDisplayName, useLogout, useUpdateProfile } from '@hously/shared';
 import { NotificationsMenu } from './NotificationsBell';
 import { UserMenu } from './UserMenu';
-import { Loader, LogOut, Settings } from 'lucide-react';
+import { Loader, LogOut, Search, Settings } from 'lucide-react';
 import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 import { cn } from '../lib/utils';
 import { navSections } from './navigation';
 
-export function Sidebar() {
+interface SidebarProps {
+  onOpenQuickActions?: () => void;
+}
+
+export function Sidebar({ onOpenQuickActions }: SidebarProps) {
   const { user } = useAuth();
   const { t, i18n } = useTranslation('common');
   const router = useRouterState();
@@ -125,6 +129,20 @@ export function Sidebar() {
 
         {/* Bottom section */}
         <div className="shrink-0 border-t border-neutral-950/[0.06] dark:border-white/[0.08] px-3 py-3 space-y-1">
+          {onOpenQuickActions && (
+            <button
+              type="button"
+              onClick={onOpenQuickActions}
+              className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-[13px] font-medium text-neutral-500 transition-all duration-150 hover:bg-neutral-50 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-white/[0.04] dark:hover:text-neutral-200"
+            >
+              <Search size={18} />
+              <span className="flex-1 text-left">{t('common.quickActions')}</span>
+              <span className="rounded-md border border-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-400 dark:border-white/[0.08]">
+                ⌘K
+              </span>
+            </button>
+          )}
+
           {/* Notifications */}
           <div className="flex items-center">
             <NotificationsMenu />
@@ -220,6 +238,20 @@ export function Sidebar() {
 
               {/* Right: Notifications + User */}
               <div className="flex items-center gap-0.5">
+                {onOpenQuickActions && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={onOpenQuickActions}
+                      className="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-500 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/[0.06]"
+                      aria-label={t('common.quickActions')}
+                      title={t('common.quickActions')}
+                    >
+                      <Search className="h-4 w-4" />
+                    </button>
+                    <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-white/[0.08]" />
+                  </>
+                )}
                 <NotificationsMenu />
                 <div className="mx-1.5 h-5 w-px bg-neutral-200 dark:bg-white/[0.08]" />
                 {!user ? (

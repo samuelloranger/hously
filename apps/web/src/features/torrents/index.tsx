@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -22,13 +22,15 @@ import {
 import { PageLayout } from '@/components/PageLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
-import { Search, TrendingDown, TrendingUp, ArrowUp, ArrowDown, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { Search, TrendingDown, TrendingUp, ArrowUp, ArrowDown, ArrowDownToLine, ArrowUpFromLine, X } from 'lucide-react';
 import { AddTorrentPanel } from './AddTorrentPanel';
 import { TorrentRow } from './TorrentRow';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUrlState } from '@/hooks/useUrlState';
 import type { TorrentsSearchParams } from '@/router';
 import { TorrentFilterPopover } from './TorrentFilterPopover';
+import { Button } from '@/components/ui/button';
+import { usePersistentState } from '@/hooks/usePersistentState';
 
 const TORRENTS_URL_STATE_DEFAULTS = {
   search: '',
@@ -61,6 +63,8 @@ export function TorrentsPage() {
 
   const [sseConnected, setSseConnected] = useState(false);
   const [searchInput, setSearchInput] = useState(urlState.search);
+  const [isCompactView, setIsCompactView] = usePersistentState<boolean>('torrents-compact-view', false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const search = urlState.search;
   const stateFilter = urlState.state;
@@ -138,6 +142,28 @@ export function TorrentsPage() {
     return () => window.clearTimeout(timeout);
   }, [searchInput, setUrlState, urlState.search]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isTypingField =
+        target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable;
+
+      if (!isTypingField && event.key === '/') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      }
+
+      if (event.key === 'Escape' && document.activeElement === searchInputRef.current && searchInput) {
+        setSearchInput('');
+        setUrlState({ search: '' });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [searchInput, setUrlState]);
+
   useJsonEventSource<DashboardQbittorrentTorrentsResponse>({
     enabled: Boolean(data?.enabled),
     url: data?.enabled ? DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS_STREAM : null,
@@ -153,6 +179,8 @@ export function TorrentsPage() {
   const isDisabled = data?.enabled === false;
   const isDisconnected = data?.connected === false;
   const pinnedHash = pinnedTorrentData?.pinned_hash ?? null;
+  const hasActiveFilters =
+    search.length > 0 || stateFilter !== 'all' || selectedCategories.length > 0 || selectedTags.length > 0;
 
   const handleTogglePin = (hash: string, nextPinned: boolean) => {
     setPinnedTorrent.mutate({ hash: nextPinned ? hash : null });
@@ -224,11 +252,56 @@ export function TorrentsPage() {
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
                 />
                 <input
+                  ref={searchInputRef}
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
                   placeholder={t('dashboard.qbittorrent.searchPlaceholder', 'Search torrents...')}
                   className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 dark:focus:border-sky-500 transition"
                 />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchInput('');
+                      setUrlState({ search: '' });
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-700 dark:hover:text-neutral-200"
+                    aria-label={t('torrents.clearSearch', 'Clear search')}
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t('torrents.results', { count: filtered.length, total: torrents.length })}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] text-neutral-400 dark:text-neutral-500">
+                    {t('torrents.searchShortcut', 'Press / to search')}
+                  </span>
+                  <Button type="button" size="sm" variant={isCompactView ? 'default' : 'outline'} onClick={() => setIsCompactView(!isCompactView)}>
+                    {isCompactView ? t('torrents.comfortableView', 'Comfortable') : t('torrents.compactView', 'Compact')}
+                  </Button>
+                  {hasActiveFilters && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() =>
+                        setUrlState({
+                          search: '',
+                          state: 'all',
+                          categories: [],
+                          tags: [],
+                        })
+                      }
+                    >
+                      {t('torrents.clearFilters', 'Clear filters')}
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Multi-select filter pickers */}
@@ -336,6 +409,7 @@ export function TorrentsPage() {
                     isPinned={pinnedHash === torrent.id}
                     isPinPending={setPinnedTorrent.isPending}
                     onTogglePin={handleTogglePin}
+                    compact={isCompactView}
                   />
                 ))
               ) : (

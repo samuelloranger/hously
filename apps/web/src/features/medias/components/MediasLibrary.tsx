@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearch } from '@tanstack/react-router';
 import {
@@ -17,6 +17,7 @@ import {
   ArrowUpZA,
   Search,
   Zap,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,10 +26,15 @@ import { MediaInfoDialog } from './c411/MediaInfoDialog';
 import { ConversionStatusBar } from './ConversionStatusBar';
 import type { LibrarySearchParams } from '@/router';
 import type { TabKey } from './c411/MediaInfoDialog';
+import { Button } from '@/components/ui/button';
+import { usePersistentState } from '@/hooks/usePersistentState';
 
 function mediaKey(item: MediaItem) {
   return `${item.service}:${item.source_id}`;
 }
+
+type MediaScopeFilter = 'all' | 'radarr' | 'sonarr' | 'downloaded' | 'missing' | 'converting';
+type MediaDensity = 'comfortable' | 'compact';
 
 export function MediasLibrary() {
   const { t } = useTranslation('common');
@@ -38,6 +44,9 @@ export function MediasLibrary() {
   const [filter, setFilter] = useState<MediaFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>('added_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [scopeFilter, setScopeFilter] = useState<MediaScopeFilter>('all');
+  const [density, setDensity] = usePersistentState<MediaDensity>('media-library-density', 'comfortable');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const searchParams = useSearch({ from: '/library' }) as LibrarySearchParams;
   const { setParams, resetParams } = useModalSearchParams('/library', searchParams);
@@ -72,13 +81,24 @@ export function MediasLibrary() {
   const isNotConfigured = libraryData && !libraryData.radarr_enabled && !libraryData.sonarr_enabled;
 
   const filtered = useMemo(() => {
-    return filterAndSortMediaItems(items, {
+    const scopedItems = items.filter(item => {
+      if (scopeFilter === 'all') return true;
+      if (scopeFilter === 'radarr' || scopeFilter === 'sonarr') return item.service === scopeFilter;
+      if (scopeFilter === 'downloaded') return item.downloaded;
+      if (scopeFilter === 'missing') return !item.downloaded && !item.downloading;
+      if (scopeFilter === 'converting') {
+        return Boolean(item.latest_conversion && ['queued', 'running'].includes(item.latest_conversion.status));
+      }
+      return true;
+    });
+
+    return filterAndSortMediaItems(scopedItems, {
       filter,
       search,
       sortBy,
       sortDir,
     });
-  }, [items, filter, search, sortBy, sortDir]);
+  }, [items, filter, scopeFilter, search, sortBy, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
 
@@ -97,6 +117,9 @@ export function MediasLibrary() {
   const movieCount = items.filter(i => i.media_type === 'movie').length;
   const seriesCount = items.filter(i => i.media_type === 'series').length;
   const downloadedCount = items.filter(i => i.downloaded).length;
+  const convertingCount = items.filter(i => i.latest_conversion && ['queued', 'running'].includes(i.latest_conversion.status)).length;
+  const missingCount = items.filter(i => !i.downloaded && !i.downloading).length;
+  const hasActiveFilters = Boolean(search || filter !== 'all' || scopeFilter !== 'all');
 
   const openMedia = (item: MediaItem, tab?: TabKey) => {
     setParams({
@@ -125,6 +148,27 @@ export function MediasLibrary() {
     return undefined;
   }, [searchParams.scrollToMedia, isLoading, items.length, setParams]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isTypingField =
+        target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable;
+
+      if (!isTypingField && event.key === '/') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      }
+
+      if (event.key === 'Escape' && document.activeElement === searchInputRef.current && search) {
+        setParams({ search: undefined, page: undefined });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [search, setParams]);
+
   if (isNotConfigured) {
     return (
       <EmptyState icon="🎞️" title={t('medias.notConfiguredTitle')} description={t('medias.notConfiguredDescription')} />
@@ -145,11 +189,22 @@ export function MediasLibrary() {
               className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
             />
             <input
+              ref={searchInputRef}
               value={search}
               onChange={e => setParams({ search: e.target.value || undefined, page: undefined })}
               placeholder={t('medias.searchPlaceholder')}
               className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setParams({ search: undefined, page: undefined })}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-700 dark:hover:text-neutral-200"
+                aria-label={t('medias.clearSearch', 'Clear search')}
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
 
           {/* Filter pills */}
@@ -184,6 +239,14 @@ export function MediasLibrary() {
 
           {/* Sort */}
           <div className="flex items-center gap-1 ml-auto">
+            <Button
+              type="button"
+              size="sm"
+              variant={density === 'compact' ? 'default' : 'outline'}
+              onClick={() => setDensity(density === 'compact' ? 'comfortable' : 'compact')}
+            >
+              {density === 'compact' ? t('medias.comfortableView', 'Comfortable') : t('medias.compactView', 'Compact')}
+            </Button>
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as SortKey)}
@@ -208,6 +271,50 @@ export function MediasLibrary() {
           </div>
         </div>
 
+        <div className="px-4 pb-3 flex flex-wrap items-center gap-2 border-t border-neutral-100 dark:border-neutral-800">
+          {([
+            ['all', t('medias.scopeAll', 'Everything'), items.length],
+            ['radarr', 'Radarr', items.filter(i => i.service === 'radarr').length],
+            ['sonarr', 'Sonarr', items.filter(i => i.service === 'sonarr').length],
+            ['downloaded', t('medias.downloaded'), downloadedCount],
+            ['missing', t('medias.missing'), missingCount],
+            ['converting', t('medias.scopeConverting', 'Converting'), convertingCount],
+          ] as const).map(([value, label, count]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setScopeFilter(value as MediaScopeFilter)}
+              className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all duration-150 ${
+                scopeFilter === value
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+              }`}
+            >
+              {label}
+              <span className={`rounded-full px-1 text-[10px] font-semibold ${scopeFilter === value ? 'text-white/70' : 'text-neutral-400 dark:text-neutral-500'}`}>
+                {count}
+              </span>
+            </button>
+          ))}
+          <div className="ml-auto flex flex-wrap items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500">
+            <span>{t('medias.searchShortcut', 'Press / to search')}</span>
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  setFilter('all');
+                  setScopeFilter('all');
+                  setParams({ search: undefined, page: undefined });
+                }}
+              >
+                {t('medias.clearFilters', 'Clear filters')}
+              </Button>
+            )}
+          </div>
+        </div>
+
         {/* Stats strip */}
         {!isLoading && items.length > 0 && (
           <div className="px-4 py-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center gap-4">
@@ -222,6 +329,9 @@ export function MediasLibrary() {
             <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">{downloadedCount}</span>{' '}
               {t('medias.downloaded').toLowerCase()}
+            </span>
+            <span className="ml-auto text-[11px] text-neutral-500 dark:text-neutral-400">
+              {t('medias.results', { count: filtered.length, total: items.length })}
             </span>
           </div>
         )}
@@ -241,7 +351,14 @@ export function MediasLibrary() {
           </div>
         ) : (
           <div className="p-4 sm:p-5">
-            <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            <div
+              className={cn(
+                'grid gap-3',
+                density === 'compact'
+                  ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8'
+                  : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
+              )}
+            >
               {pagedItems.map(item => (
                 <MediaGridCard
                   key={item.id}

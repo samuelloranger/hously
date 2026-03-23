@@ -21,11 +21,13 @@ export function TorrentRow({
   isPinned,
   onTogglePin,
   isPinPending,
+  compact = false,
 }: {
   torrent: QbittorrentTorrentListItem;
   isPinned: boolean;
   onTogglePin: (hash: string, nextPinned: boolean) => void;
   isPinPending: boolean;
+  compact?: boolean;
 }) {
   const { i18n, t } = useTranslation('common');
   const locale = resolveDateFnsLocale(i18n.language);
@@ -70,10 +72,10 @@ export function TorrentRow({
     <Link
       to="/torrents/$hash"
       params={{ hash: torrent.id }}
-      className="block px-5 py-4 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-colors group"
-      style={{ contentVisibility: 'auto', containIntrinsicSize: '132px' }}
+      className="block px-5 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-colors group"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: compact ? '96px' : '132px' }}
     >
-      <div className="flex items-start gap-3">
+      <div className={`flex items-start gap-3 ${compact ? 'py-3' : 'py-4'}`}>
         {/* Status dot */}
         <div className="pt-1 shrink-0">
           <span className={`block w-2 h-2 rounded-full ${dot} ${pulse ? 'animate-pulse' : ''}`} />
@@ -82,7 +84,7 @@ export function TorrentRow({
         {/* Main content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate leading-snug group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+            <p className={`font-medium text-neutral-900 dark:text-neutral-100 truncate leading-snug group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors ${compact ? 'text-[13px]' : 'text-sm'}`}>
               {torrent.name}
             </p>
 
@@ -138,7 +140,7 @@ export function TorrentRow({
           </div>
 
           {/* Category + tags */}
-          {(torrent.category || torrent.tags.length > 0) && (
+          {(torrent.category || torrent.tags.length > 0) && !compact && (
             <div className="mt-1.5 flex flex-wrap gap-1">
               {torrent.category && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800">
@@ -158,7 +160,7 @@ export function TorrentRow({
           )}
 
           {/* Progress bar — color coded by state */}
-          <div className={`mt-2 h-1 w-full rounded-full overflow-hidden ${barTrackClass}`}>
+          <div className={`${compact ? 'mt-1.5' : 'mt-2'} h-1 w-full rounded-full overflow-hidden ${barTrackClass}`}>
             <div
               className={`h-full rounded-full transition-all duration-500 ${barFillClass} ${isUploading ? 'torrent-progress-bar-active' : ''}`}
               style={{ width: `${progress}%` }}
@@ -166,7 +168,7 @@ export function TorrentRow({
           </div>
 
           {/* Meta row */}
-          <div className="mt-1.5 flex items-center gap-3 flex-wrap">
+          <div className={`flex items-center gap-3 flex-wrap ${compact ? 'mt-1' : 'mt-1.5'}`}>
             <span className="font-mono text-[11px] text-neutral-500 dark:text-neutral-400 tabular-nums">
               {progress}%
             </span>
@@ -191,7 +193,7 @@ export function TorrentRow({
                 </span>
               </>
             )}
-            {relDate && (
+            {relDate && !compact && (
               <span className="ml-auto font-mono text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
                 {relDate}
               </span>
