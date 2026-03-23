@@ -14,16 +14,20 @@ import { getUserFirstName, useCurrentUser, useDashboardStats } from '@hously/sha
 import { StatCardSkeleton } from '@/components/Skeleton';
 import PendingChoresSection from './components/PendingChoresSection';
 import { UpcomingShelf } from './components/UpcomingShelf';
-import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 import { CardErrorBoundary } from '@/components/ErrorBoundary';
 import { ConversionStatusBar } from '../medias/components/ConversionStatusBar';
 import { useConversionJobs } from '@hously/shared';
+import { usePrefetchIntent } from '@/hooks/usePrefetchIntent';
+import { PinnedTorrentCard } from './components/PinnedTorrentCard';
 
 export function Dashboard() {
   const { t } = useTranslation('common');
   const { data: user } = useCurrentUser();
-  const prefetchRoute = usePrefetchRoute();
   const hasActiveConversions = useConversionJobs().length > 0;
+  const torrentsPrefetchIntent = usePrefetchIntent('/torrents');
+  const pluginsPrefetchIntent = usePrefetchIntent('/settings', { tab: 'plugins' });
+  const libraryPrefetchIntent = usePrefetchIntent('/library');
+  const choresPrefetchIntent = usePrefetchIntent('/chores');
 
   const { data: statsData, isLoading: statsLoading } = useDashboardStats();
   const stats = statsData?.stats;
@@ -88,59 +92,51 @@ export function Dashboard() {
           </CardErrorBoundary>
         )}
 
+        <CardErrorBoundary>
+          <PinnedTorrentCard />
+        </CardErrorBoundary>
+
         <div className="columns-1 md:columns-2 gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid">
           <CardErrorBoundary>
             <WeatherWidget />
           </CardErrorBoundary>
           <CardErrorBoundary>
-            <div onMouseEnter={() => prefetchRoute('/torrents')} onTouchStart={() => prefetchRoute('/torrents')}>
+            <div {...torrentsPrefetchIntent}>
               <QbittorrentLiveCard />
             </div>
           </CardErrorBoundary>
           <CardErrorBoundary>
-            <div
-              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
-            >
+            <div {...pluginsPrefetchIntent}>
               <TrackerStatsCard />
             </div>
           </CardErrorBoundary>
           <CardErrorBoundary>
-            <div onMouseEnter={() => prefetchRoute('/library')} onTouchStart={() => prefetchRoute('/library')}>
+            <div {...libraryPrefetchIntent}>
               <JellyfinLatestShelf />
             </div>
           </CardErrorBoundary>
           <CardErrorBoundary>
-            <div onMouseEnter={() => prefetchRoute('/library')} onTouchStart={() => prefetchRoute('/library')}>
+            <div {...libraryPrefetchIntent}>
               <UpcomingShelf />
             </div>
           </CardErrorBoundary>
           <CardErrorBoundary>
-            <div
-              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
-            >
+            <div {...pluginsPrefetchIntent}>
               <NetdataOverviewCard />
             </div>
           </CardErrorBoundary>
           <CardErrorBoundary>
-            <div
-              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
-            >
+            <div {...pluginsPrefetchIntent}>
               <AdguardOverviewCard />
             </div>
           </CardErrorBoundary>
           <CardErrorBoundary>
-            <div
-              onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-              onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
-            >
+            <div {...pluginsPrefetchIntent}>
               <ScrutinyHealthCard />
             </div>
           </CardErrorBoundary>
           <CardErrorBoundary>
-            <div onMouseEnter={() => prefetchRoute('/chores')} onTouchStart={() => prefetchRoute('/chores')}>
+            <div {...choresPrefetchIntent}>
               <PendingChoresSection />
             </div>
           </CardErrorBoundary>

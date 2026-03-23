@@ -1,4 +1,5 @@
 import { Elysia, t } from 'elysia';
+import { Prisma } from '@prisma/client';
 import { createJsonSseResponse } from '../../utils/sse';
 import { getQbittorrentSnapshot } from '../../utils/dashboard/qbittorrent';
 import { createPollerSseResponse } from '../../services/qbittorrentPoller';
@@ -8,6 +9,7 @@ import {
   deleteQbittorrentTorrent,
   fetchQbittorrentCategories,
   fetchQbittorrentTorrentFiles,
+  fetchQbittorrentTorrent,
   fetchQbittorrentTorrentPeers,
   fetchQbittorrentTorrentProperties,
   fetchQbittorrentTorrents,
@@ -21,7 +23,7 @@ import {
   setQbittorrentTorrentTags,
 } from '../../services/qbittorrent/torrents';
 import { fetchQbittorrentTorrentTrackers } from '../../services/qbittorrent/trackers';
-import { serverError } from '../../utils/errors';
+import { badRequest, serverError, unauthorized } from '../../utils/errors';
 import {
   applyQbittorrentFetchStatus,
   applyQbittorrentMutationStatus,
@@ -30,6 +32,93 @@ import {
   getQbittorrentRid,
   validateQbittorrentUploadRequest,
 } from './shared/qbittorrent';
+import { prisma } from '../../db';
+
+type UserDashboardConfig = {
+  pinned_qbittorrent_hash?: string | null;
+  [key: string]: unknown;
+};
+
+const getDashboardConfigObject = (value: unknown): UserDashboardConfig => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return { ...(value as Record<string, unknown>) };
+};
+
+const getPinnedTorrentHashFromConfig = (value: unknown): string | null => {
+  const config = getDashboardConfigObject(value);
+  const hash = typeof config.pinned_qbittorrent_hash === 'string' ? config.pinned_qbittorrent_hash.trim() : '';
+  return hash.length > 0 ? hash : null;
+};
+
+const savePinnedTorrentHashForUser = async (userId: number, hash: string | null): Promise<UserDashboardConfig> => {
+  const currentUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { dashboardConfig: true },
+  });
+
+  const nextConfig = getDashboardConfigObject(currentUser?.dashboardConfig);
+  if (hash) {
+    nextConfig.pinned_qbittorrent_hash = hash;
+  } else {
+    delete nextConfig.pinned_qbittorrent_hash;
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      dashboardConfig: Object.keys(nextConfig).length > 0 ? (nextConfig as Prisma.InputJsonValue) : Prisma.DbNull,
+    },
+    select: { dashboardConfig: true },
+  });
+
+  return getDashboardConfigObject(updatedUser.dashboardConfig);
+};
+
+const getPinnedTorrentResponse = async (userId: number) => {
+  const currentUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { dashboardConfig: true },
+  });
+  const pinnedHash = getPinnedTorrentHashFromConfig(currentUser?.dashboardConfig);
+
+  if (!pinnedHash) {
+    return { enabled: false, connected: false, pinned_hash: null, torrent: null };
+  }
+
+  const configStatus: { status?: number } = {};
+  const config = await getQbittorrentConfigOrError(configStatus);
+  if (!config) {
+    return {
+      enabled: false,
+      connected: false,
+      pinned_hash: pinnedHash,
+      torrent: null,
+      error: 'qBittorrent plugin is not configured',
+    };
+  }
+
+  const result = await fetchQbittorrentTorrent(config, true, pinnedHash);
+  const isCompleted = (result.torrent?.progress ?? 0) >= 0.999;
+
+  if (!result.torrent || isCompleted) {
+    await savePinnedTorrentHashForUser(userId, null);
+    return {
+      enabled: result.enabled,
+      connected: result.connected,
+      pinned_hash: null,
+      torrent: null,
+      error: result.torrent ? undefined : result.error,
+    };
+  }
+
+  return {
+    enabled: result.enabled,
+    connected: result.connected,
+    pinned_hash: pinnedHash,
+    torrent: result.torrent,
+    error: result.error,
+  };
+};
 
 export const dashboardQbittorrentRoutes = new Elysia()
   .get('/qbittorrent/status', async (ctx: any) => {
@@ -79,6 +168,65 @@ export const dashboardQbittorrentRoutes = new Elysia()
     const { user, set, request } = ctx;
     return createPollerSseResponse(request, 'torrents');
   })
+  .get('/qbittorrent/pinned', async ({ user, set }: any) => {
+    if (!user) {
+      return unauthorized(set, 'Unauthorized');
+    }
+
+    try {
+      return await getPinnedTorrentResponse(user.id);
+    } catch (error) {
+      console.error('Error fetching pinned qBittorrent torrent:', error);
+      return serverError(set, 'Failed to get pinned qBittorrent torrent');
+    }
+  })
+  .post(
+    '/qbittorrent/pinned',
+    async ({ user, body, set }: any) => {
+      if (!user) {
+        return unauthorized(set, 'Unauthorized');
+      }
+
+      const hash = typeof body.hash === 'string' ? body.hash.trim() : '';
+      const nextHash = hash.length > 0 ? hash : null;
+
+      try {
+        if (nextHash) {
+          const config = await getQbittorrentConfigOrError(set);
+          if (!config) {
+            return getQbittorrentConfigErrorResponse();
+          }
+
+          const result = await fetchQbittorrentTorrent(config, true, nextHash);
+          if (!result.connected) {
+            set.status = 502;
+            return {
+              enabled: result.enabled,
+              connected: result.connected,
+              pinned_hash: null,
+              torrent: null,
+              error: result.error ?? 'Unable to connect to qBittorrent',
+            };
+          }
+
+          if (!result.torrent) {
+            return badRequest(set, 'Torrent not found');
+          }
+        }
+
+        await savePinnedTorrentHashForUser(user.id, nextHash);
+        return await getPinnedTorrentResponse(user.id);
+      } catch (error) {
+        console.error('Error updating pinned qBittorrent torrent:', error);
+        return serverError(set, 'Failed to update pinned qBittorrent torrent');
+      }
+    },
+    {
+      body: t.Object({
+        hash: t.Optional(t.Union([t.String(), t.Null()])),
+      }),
+    }
+  )
   .get('/qbittorrent/torrents/:hash/properties', async (ctx: any) => {
     const { user, set, params } = ctx;
     const config = await getQbittorrentConfigOrError(set);

@@ -33,6 +33,7 @@ export const queryKeys = {
     trackerStats: (type: TrackerType) => [...queryKeys.dashboard.all, 'tracker-stats', type] as const,
     upcoming: () => [...queryKeys.dashboard.all, 'upcoming'] as const,
     qbittorrentStatus: () => [...queryKeys.dashboard.all, 'qbittorrent-status'] as const,
+    qbittorrentPinnedTorrent: () => [...queryKeys.dashboard.all, 'qbittorrent-pinned-torrent'] as const,
     qbittorrentTorrents: (params: Record<string, unknown>) => [...queryKeys.dashboard.all, 'qbittorrent-torrents', params] as const,
     qbittorrentCategories: () => [...queryKeys.dashboard.all, 'qbittorrent-categories'] as const,
     qbittorrentTags: () => [...queryKeys.dashboard.all, 'qbittorrent-tags'] as const,

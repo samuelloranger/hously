@@ -12,12 +12,22 @@ import {
   useResumeQbittorrentTorrent,
   type QbittorrentTorrentListItem,
 } from '@hously/shared';
-import { Tag, Clock, Play, Pause, RefreshCw } from 'lucide-react';
+import { Tag, Clock, Play, Pause, RefreshCw, Pin, PinOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared';
 
-export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem }) {
-  const { i18n } = useTranslation();
+export function TorrentRow({
+  torrent,
+  isPinned,
+  onTogglePin,
+  isPinPending,
+}: {
+  torrent: QbittorrentTorrentListItem;
+  isPinned: boolean;
+  onTogglePin: (hash: string, nextPinned: boolean) => void;
+  isPinPending: boolean;
+}) {
+  const { i18n, t } = useTranslation('common');
   const locale = resolveDateFnsLocale(i18n.language);
   const { dot, pulse } = getQbittorrentStatusDot(torrent.state);
   const progress = Math.round(torrent.progress * 100);
@@ -61,6 +71,7 @@ export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem })
       to="/torrents/$hash"
       params={{ hash: torrent.id }}
       className="block px-5 py-4 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-colors group"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '132px' }}
     >
       <div className="flex items-start gap-3">
         {/* Status dot */}
@@ -79,9 +90,23 @@ export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem })
             <div className="shrink-0 flex items-center gap-2">
               <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
                 <button
+                  onClick={e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onTogglePin(torrent.id, !isPinned);
+                  }}
+                  disabled={isPinPending}
+                  title={isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
+                  aria-label={isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
+                >
+                  {isPinned ? <PinOff size={11} /> : <Pin size={11} />}
+                </button>
+                <button
                   onClick={handleReannounce}
                   disabled={isActionPending}
-                  title="Reannounce"
+                  title={t('torrents.reannounce', 'Reannounce')}
+                  aria-label={t('torrents.reannounce', 'Reannounce')}
                   className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
                 >
                   {reannounceMutation.isPending ? (
@@ -93,7 +118,8 @@ export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem })
                 <button
                   onClick={handleToggle}
                   disabled={isActionPending}
-                  title={isPaused ? 'Resume' : 'Pause'}
+                  title={isPaused ? t('torrents.start', 'Resume') : t('torrents.pause', 'Pause')}
+                  aria-label={isPaused ? t('torrents.start', 'Resume') : t('torrents.pause', 'Pause')}
                   className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
                 >
                   {pauseMutation.isPending || resumeMutation.isPending ? (
@@ -152,7 +178,7 @@ export function TorrentRow({ torrent }: { torrent: QbittorrentTorrentListItem })
             )}
             {torrent.ratio != null && (
               <span className="font-mono text-[11px] text-neutral-400 dark:text-neutral-400 tabular-nums">
-                R: {torrent.ratio.toFixed(2)}
+                {t('torrents.shareRatio', 'Ratio')}: {torrent.ratio.toFixed(2)}
               </span>
             )}
             {isActive && (

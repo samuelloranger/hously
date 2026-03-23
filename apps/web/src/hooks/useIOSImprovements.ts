@@ -5,24 +5,22 @@
  * - Viewport height fix for iOS address bar
  */
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 export function useIOSImprovements(): void {
   useEffect(() => {
-    const isIOS =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 
     if (!isIOS) {
       return;
     }
 
-    // Improve touch responsiveness
-    document.addEventListener("touchstart", () => {}, { passive: true });
+    const touchStartHandler = () => {};
 
     // Prevent zoom on double tap for form elements
     let lastTouchEnd = 0;
     const touchEndHandler = (event: TouchEvent) => {
-      const now = new Date().getTime();
+      const now = Date.now();
       const timeSince = now - lastTouchEnd;
 
       if (timeSince < 300 && timeSince > 40) {
@@ -32,27 +30,29 @@ export function useIOSImprovements(): void {
       lastTouchEnd = now;
     };
 
-    document.addEventListener("touchend", touchEndHandler, false);
+    const orientationChangeHandler = () => {
+      window.setTimeout(setVH, 100);
+    };
 
     // Viewport height fix for iOS address bar
-    function setVH() {
+    const setVH = () => {
       const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty("--vh", `${vh}px`);
-    }
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
 
+    // Improve touch responsiveness
+    document.addEventListener('touchstart', touchStartHandler, { passive: true });
+    document.addEventListener('touchend', touchEndHandler, false);
     setVH();
-    window.addEventListener("resize", setVH);
-    window.addEventListener("orientationchange", () => {
-      setTimeout(setVH, 100);
-    });
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', orientationChangeHandler);
 
     // Cleanup function
     return () => {
-      document.removeEventListener("touchend", touchEndHandler);
-      window.removeEventListener("resize", setVH);
-      window.removeEventListener("orientationchange", () => {
-        setTimeout(setVH, 100);
-      });
+      document.removeEventListener('touchstart', touchStartHandler);
+      document.removeEventListener('touchend', touchEndHandler);
+      window.removeEventListener('resize', setVH);
+      window.removeEventListener('orientationchange', orientationChangeHandler);
     };
   }, []);
 }

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DASHBOARD_ENDPOINTS, type DashboardNetdataSummaryResponse, useDashboardNetdataSummary } from '@hously/shared';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
+import { useEventSourceState } from '@/hooks/useEventSourceState';
+import { usePrefetchIntent } from '@/hooks/usePrefetchIntent';
 
 const formatPercent = (value: number | null): string => {
   if (value == null || Number.isNaN(value)) return '--';
@@ -31,39 +32,15 @@ const formatNetwork = (valueKbps: number | null): string => {
 export function NetdataOverviewCard() {
   const { t } = useTranslation('common');
   const { data: fallbackData, isLoading } = useDashboardNetdataSummary();
-  const prefetchRoute = usePrefetchRoute();
-  const [liveData, setLiveData] = useState<DashboardNetdataSummaryResponse | null>(null);
-  const [streamConnected, setStreamConnected] = useState(false);
+  const prefetchIntent = usePrefetchIntent('/settings', { tab: 'plugins' });
   const [showDisks, setShowDisks] = useState(false);
-
-  useEffect(() => {
-    setLiveData(fallbackData ?? null);
-  }, [fallbackData]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
-
-    const source = new EventSource(DASHBOARD_ENDPOINTS.NETDATA.STREAM, { withCredentials: true });
-    source.onopen = () => setStreamConnected(true);
-    source.onmessage = event => {
-      try {
-        const parsed = JSON.parse(event.data) as DashboardNetdataSummaryResponse;
-        setLiveData(parsed);
-      } catch (error) {
-        console.error('Failed to parse Netdata stream payload', error);
-      }
-    };
-    source.onerror = () => {
-      setStreamConnected(false);
-    };
-
-    return () => {
-      source.close();
-      setStreamConnected(false);
-    };
-  }, []);
-
-  const data = liveData;
+  const { data, streamConnected } = useEventSourceState<DashboardNetdataSummaryResponse>({
+    url: DASHBOARD_ENDPOINTS.NETDATA.STREAM,
+    initialData: fallbackData,
+    onParseError: error => {
+      console.error('Failed to parse Netdata stream payload', error);
+    },
+  });
 
   const showNotConnected = !isLoading && (!data || !data.enabled || !data.connected);
   const disks = useMemo(
@@ -74,8 +51,7 @@ export function NetdataOverviewCard() {
   return (
     <section
       className="relative overflow-hidden rounded-3xl border border-indigo-300/60 dark:border-indigo-200/40 bg-gradient-to-br from-[#e0e7ff] via-[#a5b4fc] to-[#818cf8] dark:from-indigo-950/70 dark:via-indigo-900/60 dark:to-violet-900/60 p-4 shadow-xl"
-      onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-      onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+      {...prefetchIntent}
     >
       <div className="flex items-start justify-between gap-4">
         <div>

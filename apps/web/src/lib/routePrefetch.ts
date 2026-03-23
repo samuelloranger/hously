@@ -39,6 +39,10 @@ const routeQueryDefinitions = {
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.STATUS),
     },
     {
+      queryKey: queryKeys.dashboard.qbittorrentPinnedTorrent(),
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.PINNED),
+    },
+    {
       queryKey: queryKeys.dashboard.scrutinySummary(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
     },

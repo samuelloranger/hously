@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   type DashboardQbittorrentStatusResponse,
@@ -7,43 +7,20 @@ import {
   formatSpeed,
   useDashboardQbittorrentStatus,
 } from '@hously/shared';
-import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
+import { useEventSourceState } from '@/hooks/useEventSourceState';
+import { usePrefetchIntent } from '@/hooks/usePrefetchIntent';
 
 export function QbittorrentLiveCard() {
   const { t } = useTranslation('common');
   const { data: fallbackData, isLoading } = useDashboardQbittorrentStatus();
-  const prefetchRoute = usePrefetchRoute();
-  const [liveData, setLiveData] = useState<DashboardQbittorrentStatusResponse | null>(null);
-  const [streamConnected, setStreamConnected] = useState(false);
-
-  useEffect(() => {
-    setLiveData(fallbackData ?? null);
-  }, [fallbackData]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
-
-    const source = new EventSource(DASHBOARD_ENDPOINTS.QBITTORRENT.STREAM, { withCredentials: true });
-    source.onopen = () => setStreamConnected(true);
-    source.onmessage = event => {
-      try {
-        const parsed = JSON.parse(event.data) as DashboardQbittorrentStatusResponse;
-        setLiveData(parsed);
-      } catch (error) {
-        console.error('Failed to parse qBittorrent stream payload', error);
-      }
-    };
-    source.onerror = () => {
-      setStreamConnected(false);
-    };
-
-    return () => {
-      source.close();
-      setStreamConnected(false);
-    };
-  }, []);
-
-  const data = liveData;
+  const prefetchIntent = usePrefetchIntent('/torrents');
+  const { data, streamConnected } = useEventSourceState<DashboardQbittorrentStatusResponse>({
+    url: DASHBOARD_ENDPOINTS.QBITTORRENT.STREAM,
+    initialData: fallbackData,
+    onParseError: error => {
+      console.error('Failed to parse qBittorrent stream payload', error);
+    },
+  });
   const shouldShowEmpty = !isLoading && (!data || !data.enabled);
   const statusLabel = useMemo(() => {
     if (!data?.enabled) return t('dashboard.qbittorrent.notConnectedTitle');
@@ -54,8 +31,7 @@ export function QbittorrentLiveCard() {
   return (
     <Link
       to="/torrents"
-      onMouseEnter={() => prefetchRoute('/torrents')}
-      onTouchStart={() => prefetchRoute('/torrents')}
+      {...prefetchIntent}
       className="block rounded-3xl overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
     >
       <section className="relative border border-teal-300/60 dark:border-teal-500/30 bg-gradient-to-br from-[#ccfbf1] via-[#5eead4] to-[#0d9488] dark:from-[#042f2e] dark:via-[#0f4e4b] dark:to-[#115e59] p-4 shadow-xl">

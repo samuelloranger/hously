@@ -181,7 +181,7 @@ export function AddTorrentPanel() {
               </div>
               {addMagnetMutation.error && (
                 <p className="mt-1.5 text-xs text-rose-600">
-                  {String((addMagnetMutation.error as any)?.message ?? addMagnetMutation.error)}
+                  {addMagnetMutation.error.message}
                 </p>
               )}
             </div>
@@ -222,7 +222,7 @@ export function AddTorrentPanel() {
                           onClick={() => removeFile(index)}
                           disabled={!canInteract}
                           className="shrink-0 rounded p-0.5 text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors disabled:opacity-40"
-                          aria-label={`Remove ${file.name}`}
+                          aria-label={t('torrents.removeFile', 'Remove {{name}}', { name: file.name })}
                         >
                           <X size={12} />
                         </button>
@@ -245,7 +245,7 @@ export function AddTorrentPanel() {
               </div>
               {addFileMutation.error && (
                 <p className="mt-1.5 text-xs text-rose-600">
-                  {String((addFileMutation.error as any)?.message ?? addFileMutation.error)}
+                  {addFileMutation.error.message}
                 </p>
               )}
             </div>

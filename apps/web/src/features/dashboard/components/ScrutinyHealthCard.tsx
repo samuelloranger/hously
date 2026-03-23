@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatBytes, useDashboardScrutinySummary } from '@hously/shared';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
+import { usePrefetchIntent } from '@/hooks/usePrefetchIntent';
 
 const formatTemp = (value: number | null): string => (value == null ? '--' : `${Math.round(value)}C`);
 
@@ -17,7 +17,7 @@ const getStatusLabel = (status: number | null, t: (key: string) => string): stri
 export function ScrutinyHealthCard() {
   const { t } = useTranslation('common');
   const { data, isLoading } = useDashboardScrutinySummary();
-  const prefetchRoute = usePrefetchRoute();
+  const prefetchIntent = usePrefetchIntent('/settings', { tab: 'plugins' });
   const [showDrives, setShowDrives] = useState(false);
 
   const topDrives = useMemo(() => (data?.drives ?? []).slice(0, 5), [data?.drives]);
@@ -26,8 +26,7 @@ export function ScrutinyHealthCard() {
   return (
     <section
       className="relative overflow-hidden rounded-3xl border border-rose-300/60 dark:border-rose-200/40 bg-gradient-to-br from-[#f9d2dd] via-[#f6b6c8] to-[#ffe0cd] dark:from-rose-700 dark:via-rose-700 dark:to-orange-700 p-4 shadow-xl"
-      onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-      onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+      {...prefetchIntent}
     >
       <div className="flex items-start justify-between gap-4">
         <div>

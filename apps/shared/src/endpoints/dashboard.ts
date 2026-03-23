@@ -26,6 +26,7 @@ export const DASHBOARD_ENDPOINTS = {
   QBITTORRENT: {
     STATUS: '/api/dashboard/qbittorrent/status',
     STREAM: '/api/dashboard/qbittorrent/stream',
+    PINNED: '/api/dashboard/qbittorrent/pinned',
     TORRENTS: '/api/dashboard/qbittorrent/torrents',
     TORRENTS_STREAM: '/api/dashboard/qbittorrent/torrents/stream',
     OPTIONS: '/api/dashboard/qbittorrent/options',

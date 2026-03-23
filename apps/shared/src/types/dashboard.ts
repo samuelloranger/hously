@@ -197,6 +197,14 @@ export interface DashboardQbittorrentTorrentStreamResponse {
   error?: string;
 }
 
+export interface DashboardPinnedQbittorrentTorrentResponse {
+  enabled: boolean;
+  connected: boolean;
+  pinned_hash: string | null;
+  torrent: QbittorrentTorrentListItem | null;
+  error?: string;
+}
+
 export interface QbittorrentCategory {
   name: string;
   save_path: string | null;

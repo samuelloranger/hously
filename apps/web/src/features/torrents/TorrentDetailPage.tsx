@@ -6,6 +6,8 @@ import {
   ArrowLeft,
   Play,
   Pause,
+  Pin,
+  PinOff,
   Trash2,
   Settings2,
   FileText,
@@ -35,12 +37,14 @@ import {
   useDashboardQbittorrentTags,
   useDeleteQbittorrentTorrent,
   usePauseQbittorrentTorrent,
+  usePinnedQbittorrentTorrent,
   useQbittorrentTorrentFiles,
   useQbittorrentTorrentProperties,
   useQbittorrentTorrentTrackers,
   useRenameQbittorrentTorrent,
   useRenameQbittorrentTorrentFile,
   useResumeQbittorrentTorrent,
+  useSetPinnedQbittorrentTorrent,
   useSetQbittorrentTorrentCategory,
   useSetQbittorrentTorrentTags,
   type DashboardQbittorrentTorrentsResponse,
@@ -69,6 +73,8 @@ export function TorrentDetailPage() {
 
   const categoriesQuery = useDashboardQbittorrentCategories();
   const tagsQuery = useDashboardQbittorrentTags();
+  const { data: pinnedTorrentData } = usePinnedQbittorrentTorrent();
+  const setPinnedTorrent = useSetPinnedQbittorrentTorrent();
 
   const [torrentSnapshot, setTorrentSnapshot] = useState<DashboardQbittorrentTorrentStreamResponse | null>(null);
   const initializedForHash = useRef('');
@@ -221,6 +227,7 @@ export function TorrentDetailPage() {
   const progressBarTrackClass = isSeedingState
     ? 'bg-emerald-100/80 dark:bg-emerald-950/40'
     : 'bg-neutral-100 dark:bg-neutral-800';
+  const isPinned = pinnedTorrentData?.pinned_hash === torrentHash;
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode; count?: number }[] = [
     { id: 'properties', label: t('torrents.properties', 'Properties'), icon: <Settings2 size={13} /> },
@@ -257,6 +264,16 @@ export function TorrentDetailPage() {
         </Link>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant={isPinned ? 'secondary' : 'outline'}
+            size="sm"
+            onClick={() => setPinnedTorrent.mutate({ hash: isPinned ? null : torrentHash })}
+            disabled={setPinnedTorrent.isPending || !torrentHash}
+            className="inline-flex items-center gap-1.5"
+          >
+            {isPinned ? <PinOff size={13} /> : <Pin size={13} />}
+            {isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
+          </Button>
           {isPaused ? (
             <Button
               size="sm"
@@ -376,7 +393,7 @@ export function TorrentDetailPage() {
                   Icon: Activity,
                 },
                 { label: t('torrents.peers', 'Peers'), value: String(selectedTorrent.peers), Icon: Users },
-                { label: 'ETA', value: formatQbittorrentEta(selectedTorrent.eta_seconds), Icon: Clock },
+                { label: t('torrents.eta', 'ETA'), value: formatQbittorrentEta(selectedTorrent.eta_seconds), Icon: Clock },
               ].map(({ label, value, Icon, color }) => (
                 <div key={label} className="bg-neutral-50/60 dark:bg-neutral-800/30 px-3 py-3">
                   <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-neutral-400 dark:text-neutral-400 font-medium mb-1">

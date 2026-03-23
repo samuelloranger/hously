@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardWeather, getWeatherVisualTheme, getWeatherConditionKey } from '@hously/shared';
-import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
+import { usePrefetchIntent } from '@/hooks/usePrefetchIntent';
 
 const toCelsius = (fahrenheit: number): number => (fahrenheit - 32) * (5 / 9);
 
 export function WeatherWidget() {
   const { t } = useTranslation('common');
   const weatherQuery = useDashboardWeather();
-  const prefetchRoute = usePrefetchRoute();
+  const prefetchIntent = usePrefetchIntent('/settings', { tab: 'plugins' });
   const weatherTheme = useMemo(() => {
     if (!weatherQuery.data) {
       return {
@@ -37,8 +37,7 @@ export function WeatherWidget() {
     <div
       className="rounded-xl shadow p-4"
       style={{ background: `linear-gradient(135deg, ${weatherTheme.startColor}, ${weatherTheme.endColor})` }}
-      onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-      onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+      {...prefetchIntent}
     >
       <div className="mb-2 flex items-start justify-between gap-3">
         <div>

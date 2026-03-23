@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useDashboardAdguardSummary, useSetAdguardProtection } from '@hously/shared';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
+import { usePrefetchIntent } from '@/hooks/usePrefetchIntent';
 
 const formatPercent = (value: number | null): string => {
   if (value == null || Number.isNaN(value)) return '--';
@@ -19,7 +19,7 @@ export function AdguardOverviewCard() {
   const { data, isLoading } = useDashboardAdguardSummary();
   const setAdguardProtection = useSetAdguardProtection();
   const { user } = useAuth();
-  const prefetchRoute = usePrefetchRoute();
+  const prefetchIntent = usePrefetchIntent('/settings', { tab: 'plugins' });
 
   const showNotConnected = !isLoading && (!data || !data.enabled || !data.connected);
   const canToggleProtection = Boolean(user?.is_admin) && !showNotConnected && data;
@@ -33,8 +33,7 @@ export function AdguardOverviewCard() {
   return (
     <section
       className="relative overflow-hidden rounded-3xl border border-orange-300/60 dark:border-orange-200/40 bg-gradient-to-br from-[#fff0d6] via-[#fcd097] to-[#f59e0b] dark:from-orange-950/70 dark:via-orange-900/60 dark:to-amber-900/60 p-4 shadow-xl"
-      onMouseEnter={() => prefetchRoute('/settings', { tab: 'plugins' })}
-      onTouchStart={() => prefetchRoute('/settings', { tab: 'plugins' })}
+      {...prefetchIntent}
     >
       <div className="flex items-start justify-between gap-4">
         <div>

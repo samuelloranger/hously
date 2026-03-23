@@ -1,9 +1,10 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFetcher } from '../context';
 import { queryKeys } from '../../queryKeys';
 import { DASHBOARD_ENDPOINTS } from '../../endpoints';
 import { buildQbittorrentTorrentSearchParams, createQbittorrentUploadFormData } from '../../utils';
 import type {
+  DashboardPinnedQbittorrentTorrentResponse,
   DashboardQbittorrentStatusResponse,
   DashboardQbittorrentTorrentsResponse,
   DashboardQbittorrentCategoriesResponse,
@@ -22,6 +23,18 @@ export function useDashboardQbittorrentStatus() {
   return useQuery({
     queryKey: queryKeys.dashboard.qbittorrentStatus(),
     queryFn: () => fetcher<DashboardQbittorrentStatusResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.STATUS),
+  });
+}
+
+export function usePinnedQbittorrentTorrent(options?: { enabled?: boolean; refetchInterval?: number | false }) {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.dashboard.qbittorrentPinnedTorrent(),
+    queryFn: () => fetcher<DashboardPinnedQbittorrentTorrentResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.PINNED),
+    enabled: options?.enabled ?? true,
+    staleTime: 30_000,
+    refetchInterval: options?.refetchInterval,
   });
 }
 
@@ -129,6 +142,23 @@ export function useAddQbittorrentMagnet() {
         method: 'POST',
         body: data,
       }),
+  });
+}
+
+export function useSetPinnedQbittorrentTorrent() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { hash?: string | null }) =>
+      fetcher<DashboardPinnedQbittorrentTorrentResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.PINNED, {
+        method: 'POST',
+        body: data,
+      }),
+    onSuccess: response => {
+      queryClient.setQueryData(queryKeys.dashboard.qbittorrentPinnedTorrent(), response);
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+    },
   });
 }
 

@@ -1,9 +1,10 @@
 import { Elysia, t } from 'elysia';
+import type { Reminder } from '@prisma/client';
 import { prisma } from '../db';
 import { auth } from '../auth';
 import { requireUser } from '../middleware/auth';
 import { formatIso, todayLocal, toLocalDate, getDaysInMonth } from '../utils';
-import { badRequest, serverError, unauthorized } from '../utils/errors';
+import { badRequest, serverError } from '../utils/errors';
 
 // Calculate recurring chore dates within a date range
 export interface ChoreData {
@@ -439,7 +440,7 @@ export const calendarRoutes = new Elysia({ prefix: '/api/calendar' })
             : [];
 
         // Build choresWithReminders by joining in JS
-        const remindersByChoreIdForJoin = new Map<number, any[]>();
+        const remindersByChoreIdForJoin = new Map<number, Reminder[]>();
         for (const r of activeRemindersForChores) {
           if (!remindersByChoreIdForJoin.has(r.choreId)) {
             remindersByChoreIdForJoin.set(r.choreId, []);

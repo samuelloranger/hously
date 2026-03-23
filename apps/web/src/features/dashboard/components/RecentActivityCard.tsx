@@ -3,13 +3,13 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDashboardActivities, resolveDateFnsLocale } from '@hously/shared';
 import { ListItemSkeleton } from '@/components/Skeleton';
-import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
+import { usePrefetchIntent } from '@/hooks/usePrefetchIntent';
 import { getActivityPresentation } from '../activityPresentation';
 
 export function RecentActivityCard() {
   const { t, i18n } = useTranslation('common');
   const { data: activitiesData, isLoading } = useDashboardActivities(10);
-  const prefetchRoute = usePrefetchRoute();
+  const prefetchIntent = usePrefetchIntent('/activity');
 
   const rawActivities = activitiesData?.activities || [];
   const locale = resolveDateFnsLocale(i18n.language);
@@ -33,8 +33,7 @@ export function RecentActivityCard() {
         <Link
           to="/activity"
           search={{ service: '', type: '' }}
-          onMouseEnter={() => prefetchRoute('/activity')}
-          onTouchStart={() => prefetchRoute('/activity')}
+          {...prefetchIntent}
           className="text-[11px] font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
           {t('dashboard.activityPage.viewAll')}
@@ -51,7 +50,7 @@ export function RecentActivityCard() {
           ) : activities.length > 0 ? (
             activities.map((activity, index) => (
               <div
-                key={index}
+                key={`${activity.type}-${activity.service}-${activity.time}-${index}`}
                 className="flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-blue-100/60 dark:hover:bg-blue-900/20"
               >
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/40 text-[10px]">

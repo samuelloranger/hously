@@ -74,10 +74,10 @@ export function TorrentPropertiesTab({
                 value: props.share_ratio != null ? props.share_ratio.toFixed(3) : null,
                 mono: true,
               },
-              { label: 'Comment', value: props.comment, mono: false },
-              { label: 'Created', value: props.creation_date, mono: false },
-              { label: 'Added', value: props.addition_date, mono: false },
-              { label: 'Completed', value: props.completion_date, mono: false },
+              { label: t('torrents.comment', 'Comment'), value: props.comment, mono: false },
+              { label: t('torrents.createdAt', 'Created'), value: props.creation_date, mono: false },
+              { label: t('torrents.addedAt', 'Added'), value: props.addition_date, mono: false },
+              { label: t('torrents.completedAt', 'Completed'), value: props.completion_date, mono: false },
             ]
               .filter(row => row.value)
               .map(row => (
@@ -105,7 +105,7 @@ export function TorrentPropertiesTab({
         <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800 flex items-center gap-2">
           <Settings2 size={13} className="text-neutral-400" />
           <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
-            Edit
+            {t('common.edit', 'Edit')}
           </h2>
         </div>
         <div className="p-5 space-y-6">
