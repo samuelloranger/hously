@@ -72,7 +72,7 @@ export function TorrentRow({
     <Link
       to="/torrents/$hash"
       params={{ hash: torrent.id }}
-      className="block px-5 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-colors group"
+      className="block px-4 sm:px-5 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-colors group"
       style={{ contentVisibility: 'auto', containIntrinsicSize: compact ? '96px' : '132px' }}
     >
       <div className={`flex items-start gap-3 ${compact ? 'py-3' : 'py-4'}`}>
@@ -90,7 +90,7 @@ export function TorrentRow({
 
             {/* Right: size + quick action */}
             <div className="shrink-0 flex items-center gap-2">
-              <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+              <div className="sm:opacity-0 sm:group-hover:opacity-100 flex items-center gap-1 transition-opacity">
                 <button
                   onClick={e => {
                     e.preventDefault();

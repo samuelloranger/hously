@@ -22,14 +22,14 @@ import {
 import { PageLayout } from '@/components/PageLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
-import { Search, TrendingDown, TrendingUp, ArrowUp, ArrowDown, ArrowDownToLine, ArrowUpFromLine, X } from 'lucide-react';
+import { Search, TrendingDown, TrendingUp, ArrowUp, ArrowDown, ArrowDownToLine, ArrowUpFromLine, X, LayoutGrid, Grid3X3 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { AddTorrentPanel } from './AddTorrentPanel';
 import { TorrentRow } from './TorrentRow';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUrlState } from '@/hooks/useUrlState';
 import type { TorrentsSearchParams } from '@/router';
 import { TorrentFilterPopover } from './TorrentFilterPopover';
-import { Button } from '@/components/ui/button';
 import { usePersistentState } from '@/hooks/usePersistentState';
 
 const TORRENTS_URL_STATE_DEFAULTS = {
@@ -211,7 +211,7 @@ export function TorrentsPage() {
         <div className="space-y-4">
           {/* Speed strip */}
           {torrents.length > 0 && (
-            <div className="flex items-center gap-4 px-1">
+            <div className="flex items-center gap-3 px-1">
               <span className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-sky-600 dark:text-sky-400 tabular-nums">
                 <TrendingDown size={12} />
                 {formatSpeed(torrentMeta.totalDown)}
@@ -223,17 +223,18 @@ export function TorrentsPage() {
               <span className="ml-auto flex items-center gap-2">
                 {data?.enabled && (
                   <span
-                    className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${sseConnected ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}
+                    className={cn(
+                      'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full',
+                      sseConnected
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                    )}
                   >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${sseConnected ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`}
-                    />
-                    {sseConnected
-                      ? t('dashboard.qbittorrent.live', 'Live')
-                      : t('dashboard.qbittorrent.reconnecting', 'Reconnecting…')}
+                    <span className={cn('w-1.5 h-1.5 rounded-full', sseConnected ? 'bg-green-500' : 'bg-yellow-500 animate-pulse')} />
+                    {sseConnected ? t('dashboard.qbittorrent.live', 'Live') : t('dashboard.qbittorrent.reconnecting', 'Reconnecting…')}
                   </span>
                 )}
-                <span className="text-xs text-neutral-400 dark:text-neutral-400 tabular-nums">
+                <span className="text-xs text-neutral-400 tabular-nums">
                   {torrents.length.toLocaleString()} {t('dashboard.qbittorrent.torrents', 'torrents')}
                 </span>
               </span>
@@ -244,163 +245,195 @@ export function TorrentsPage() {
 
           {/* List card */}
           <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
-            {/* Search + filters + sort */}
-            <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800 space-y-3">
-              <div className="relative">
-                <Search
-                  size={13}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
-                />
+
+            {/* Row 1: Search + density + category/tag filters */}
+            <div className="px-3 pt-3 pb-2.5 flex items-center gap-2">
+              <div className="relative flex-1 min-w-0">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
                 <input
                   ref={searchInputRef}
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
                   placeholder={t('dashboard.qbittorrent.searchPlaceholder', 'Search torrents...')}
-                  className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 dark:focus:border-sky-500 transition"
+                  className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-8 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 transition-all"
                 />
                 {searchInput && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setSearchInput('');
-                      setUrlState({ search: '' });
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-700 dark:hover:text-neutral-200"
+                    onClick={() => { setSearchInput(''); setUrlState({ search: '' }); }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
                     aria-label={t('torrents.clearSearch', 'Clear search')}
                   >
-                    <X size={14} />
+                    <X size={11} />
                   </button>
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t('torrents.results', { count: filtered.length, total: torrents.length })}
-                </p>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] text-neutral-400 dark:text-neutral-500">
-                    {t('torrents.searchShortcut', 'Press / to search')}
-                  </span>
-                  <Button type="button" size="sm" variant={isCompactView ? 'default' : 'outline'} onClick={() => setIsCompactView(!isCompactView)}>
-                    {isCompactView ? t('torrents.comfortableView', 'Comfortable') : t('torrents.compactView', 'Compact')}
-                  </Button>
+              {/* Density toggle */}
+              <div className="flex items-center rounded-xl border border-neutral-200 dark:border-neutral-700 p-0.5 gap-0.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsCompactView(false)}
+                  title={t('torrents.comfortableView', 'Comfortable')}
+                  className={cn(
+                    'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150',
+                    !isCompactView
+                      ? 'bg-sky-600 text-white shadow-sm'
+                      : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                  )}
+                >
+                  <LayoutGrid size={13} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsCompactView(true)}
+                  title={t('torrents.compactView', 'Compact')}
+                  className={cn(
+                    'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150',
+                    isCompactView
+                      ? 'bg-sky-600 text-white shadow-sm'
+                      : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                  )}
+                >
+                  <Grid3X3 size={13} />
+                </button>
+              </div>
+
+              {/* Category/tag filter popovers */}
+              {torrentMeta.availableCategories.length > 0 && (
+                <TorrentFilterPopover
+                  label={t('dashboard.qbittorrent.categories', 'Categories')}
+                  selectedCount={selectedCategories.length}
+                  options={torrentMeta.availableCategories}
+                  selectedValues={selectedCategories}
+                  onToggle={handleCategoryToggle}
+                />
+              )}
+              {torrentMeta.availableTags.length > 0 && (
+                <TorrentFilterPopover
+                  label={t('dashboard.qbittorrent.tags', 'Tags')}
+                  selectedCount={selectedTags.length}
+                  options={torrentMeta.availableTags}
+                  selectedValues={selectedTags}
+                  onToggle={handleTagToggle}
+                />
+              )}
+            </div>
+
+            {/* Row 2: State filter chips — horizontal scroll */}
+            <div className="border-t border-neutral-100 dark:border-neutral-800">
+              <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex items-center gap-1.5 px-3 py-2.5 w-max min-w-full">
+                  {QBITTORRENT_STATE_FILTERS.map(filter => {
+                    const count = filter.id === 'all' ? torrents.length : (torrentMeta.counts[filter.id] ?? 0);
+                    if (filter.id !== 'all' && count === 0 && stateFilter !== filter.id) return null;
+                    return (
+                      <button
+                        key={filter.id}
+                        type="button"
+                        onClick={() => setUrlState({ state: filter.id })}
+                        className={cn(
+                          'shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150',
+                          stateFilter === filter.id
+                            ? 'bg-sky-600 text-white shadow-sm'
+                            : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                        )}
+                      >
+                        {t(filter.labelKey)}
+                        <span
+                          className={cn(
+                            'rounded-full px-1.5 py-px text-[10px] font-bold min-w-[20px] text-center',
+                            stateFilter === filter.id
+                              ? 'bg-white/20 text-white'
+                              : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400'
+                          )}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
                   {hasActiveFilters && (
-                    <Button
+                    <button
                       type="button"
-                      size="sm"
-                      variant="secondary"
-                      onClick={() =>
-                        setUrlState({
-                          search: '',
-                          state: 'all',
-                          categories: [],
-                          tags: [],
-                        })
-                      }
+                      onClick={() => setUrlState({ search: '', state: 'all', categories: [], tags: [] })}
+                      className="ml-auto shrink-0 text-xs text-neutral-400 dark:text-neutral-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors pl-2"
                     >
                       {t('torrents.clearFilters', 'Clear filters')}
-                    </Button>
+                    </button>
                   )}
                 </div>
               </div>
+            </div>
 
-              {/* Multi-select filter pickers */}
-              {(torrentMeta.availableCategories.length > 0 || torrentMeta.availableTags.length > 0) && (
-                <div className="flex gap-2 items-center flex-wrap">
-                  <TorrentFilterPopover
-                    label={t('dashboard.qbittorrent.categories', 'Categories')}
-                    selectedCount={selectedCategories.length}
-                    options={torrentMeta.availableCategories}
-                    selectedValues={selectedCategories}
-                    onToggle={handleCategoryToggle}
-                  />
-                  <TorrentFilterPopover
-                    label={t('dashboard.qbittorrent.tags', 'Tags')}
-                    selectedCount={selectedTags.length}
-                    options={torrentMeta.availableTags}
-                    selectedValues={selectedTags}
-                    onToggle={handleTagToggle}
-                  />
-                </div>
-              )}
-
-              {/* State filter chips */}
-              <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-                {QBITTORRENT_STATE_FILTERS.map(filter => {
-                  const count = filter.id === 'all' ? torrents.length : (torrentMeta.counts[filter.id] ?? 0);
-                  if (filter.id !== 'all' && count === 0 && stateFilter !== filter.id) return null;
-                  return (
-                    <button
-                      key={filter.id}
-                      onClick={() => setUrlState({ state: filter.id })}
-                      className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                        stateFilter === filter.id
-                          ? 'bg-sky-500 text-white'
-                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                      }`}
-                    >
-                      {t(filter.labelKey)}
-                      <span
-                        className={`tabular-nums ${stateFilter === filter.id ? 'text-sky-100' : 'text-neutral-400 dark:text-neutral-500'}`}
+            {/* Row 3: Sort chips — horizontal scroll */}
+            <div className="border-t border-neutral-100 dark:border-neutral-800">
+              <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex items-center gap-1.5 px-3 py-2.5 w-max min-w-full">
+                  {TORRENT_SORT_OPTIONS.map(({ key, label }) => {
+                    const active = sortBy === key;
+                    const titles: Partial<Record<QbittorrentSortKey, string>> = {
+                      download_speed: t('torrents.sortDownloadSpeed', 'Sort by download speed'),
+                      upload_speed: t('torrents.sortUploadSpeed', 'Sort by upload speed'),
+                    };
+                    const resolvedLabel =
+                      typeof label === 'string'
+                        ? key === 'added_on'
+                          ? t('torrents.sortAdded', label)
+                          : key === 'ratio'
+                            ? t('torrents.sortRatio', label)
+                            : key === 'size'
+                              ? t('torrents.sortSize', label)
+                              : key === 'name'
+                                ? t('torrents.sortName', label)
+                                : label
+                        : label;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => handleSort(key)}
+                        title={titles[key]}
+                        className={cn(
+                          'shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150',
+                          active
+                            ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-900 shadow-sm'
+                            : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                        )}
                       >
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Sort controls */}
-              <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
-                <span className="shrink-0 text-[11px] text-neutral-400 dark:text-neutral-400 mr-1">Sort:</span>
-                {TORRENT_SORT_OPTIONS.map(({ key, label }) => {
-                  const active = sortBy === key;
-                  const titles: Partial<Record<QbittorrentSortKey, string>> = {
-                    download_speed: t('torrents.sortDownloadSpeed', 'Sort by download speed'),
-                    upload_speed: t('torrents.sortUploadSpeed', 'Sort by upload speed'),
-                  };
-                  const resolvedLabel =
-                    typeof label === 'string'
-                      ? key === 'added_on'
-                        ? t('torrents.sortAdded', label)
-                        : key === 'ratio'
-                          ? t('torrents.sortRatio', label)
-                          : key === 'size'
-                            ? t('torrents.sortSize', label)
-                            : key === 'name'
-                              ? t('torrents.sortName', label)
-                              : label
-                      : label;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => handleSort(key)}
-                      title={titles[key]}
-                      className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 min-h-[26px] rounded-full text-xs font-medium transition-colors ${
-                        active
-                          ? 'bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-900'
-                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                      }`}
-                    >
-                      {resolvedLabel}
-                      {active &&
-                        (sortDir === 'asc' ? (
-                          <ArrowUp size={10} className="shrink-0" />
-                        ) : (
-                          <ArrowDown size={10} className="shrink-0" />
-                        ))}
-                    </button>
-                  );
-                })}
+                        {resolvedLabel}
+                        {active && (sortDir === 'asc' ? <ArrowUp size={10} className="shrink-0" /> : <ArrowDown size={10} className="shrink-0" />)}
+                      </button>
+                    );
+                  })}
+                  <span className="ml-auto shrink-0 pl-3 text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+                    {t('torrents.results', { count: filtered.length, total: torrents.length })}
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Rows */}
             <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
               {isLoading ? (
-                <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-                  {t('common.loading', 'Loading...')}
-                </div>
+                Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className={cn('px-4 sm:px-5', isCompactView ? 'py-3' : 'py-4')} style={{ animationDelay: `${i * 40}ms` }}>
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 w-2 h-2 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse shrink-0" />
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex justify-between gap-4">
+                          <div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse flex-1 max-w-[60%]" />
+                          <div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse w-16 shrink-0" />
+                        </div>
+                        {!isCompactView && (
+                          <div className="h-2.5 bg-neutral-100 dark:bg-neutral-800 rounded animate-pulse w-24" />
+                        )}
+                        <div className="h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full animate-pulse" />
+                        <div className="h-2.5 bg-neutral-100 dark:bg-neutral-800 rounded animate-pulse w-40" />
+                      </div>
+                    </div>
+                  </div>
+                ))
               ) : filtered.length > 0 ? (
                 filtered.map(torrent => (
                   <TorrentRow
@@ -413,10 +446,13 @@ export function TorrentsPage() {
                   />
                 ))
               ) : (
-                <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-                  {search || stateFilter !== 'all'
-                    ? t('torrents.noResults')
-                    : (data?.error ?? t('dashboard.qbittorrent.emptyTitle'))}
+                <div className="py-16 flex flex-col items-center justify-center gap-3">
+                  <span className="text-3xl opacity-20 select-none">🧲</span>
+                  <p className="text-sm text-neutral-400 dark:text-neutral-500">
+                    {search || stateFilter !== 'all'
+                      ? t('torrents.noResults')
+                      : (data?.error ?? t('dashboard.qbittorrent.emptyTitle'))}
+                  </p>
                 </div>
               )}
             </div>
