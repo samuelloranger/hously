@@ -10,8 +10,11 @@ export async function createTorrentFile(opts: {
   pieceLength: number;
   outputPath: string;
   contentPath: string;
-  onProgress?: (pct: number) => void;
+  /** Called with percentage (0-100) and remaining seconds estimate (null when unknown). */
+  onProgress?: (pct: number, etaSecs: number | null) => void;
 }): Promise<void> {
+  const startedAt = Date.now();
+
   const torrentBuffer = await new Promise<Buffer>((resolve, reject) => {
     createTorrent(
       opts.contentPath,
@@ -20,7 +23,14 @@ export async function createTorrentFile(opts: {
         pieceLength: opts.pieceLength,
         onProgress: opts.onProgress
           ? (current: number, total: number) => {
-              opts.onProgress!(total > 0 ? Math.round((current / total) * 100) : 0);
+              const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+              let eta: number | null = null;
+              if (pct > 0 && pct < 100) {
+                const elapsed = (Date.now() - startedAt) / 1000;
+                const rate = current / elapsed; // bytes/sec
+                eta = rate > 0 ? Math.round((total - current) / rate) : null;
+              }
+              opts.onProgress!(pct, eta);
             }
           : undefined,
       },

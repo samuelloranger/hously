@@ -30,9 +30,10 @@ function parseHardlinkStep(step: string): { done: number; total: number; eta: nu
   return { done: Number(m[1]), total: Number(m[2]), eta: m[3] != null ? Number(m[3]) : null };
 }
 
-function parseTorrentStep(step: string): number | null {
-  const m = step.match(/^torrent:(\d+)$/);
-  return m ? Number(m[1]) : null;
+function parseTorrentStep(step: string): { pct: number; eta: number | null } | null {
+  const m = step.match(/^torrent:(\d+)(?::(\d+))?$/);
+  if (!m) return null;
+  return { pct: Number(m[1]), eta: m[2] != null ? Number(m[2]) : null };
 }
 
 function formatEta(seconds: number): string {
@@ -45,7 +46,7 @@ function PrepareStepTimeline({ step }: { step: string }) {
   const activeKey = step.startsWith('hardlinking') ? 'hardlinking' : step.startsWith('torrent') ? 'torrent' : step;
   const activeIndex = PREPARE_STEPS.findIndex(s => s.key === activeKey);
   const hlInfo = step.startsWith('hardlinking') ? parseHardlinkStep(step) : null;
-  const torrentPct = step.startsWith('torrent') ? parseTorrentStep(step) : null;
+  const torrentInfo = step.startsWith('torrent') ? parseTorrentStep(step) : null;
 
   return (
     <div className="mt-2.5 space-y-1">
@@ -67,8 +68,11 @@ function PrepareStepTimeline({ step }: { step: string }) {
                   {hlInfo.eta !== null && hlInfo.eta > 0 && ` · ${formatEta(hlInfo.eta)}`})
                 </span>
               )}
-              {active && s.key === 'torrent' && torrentPct !== null && (
-                <span className="ml-1 tabular-nums opacity-80">{torrentPct}%</span>
+              {active && s.key === 'torrent' && torrentInfo !== null && torrentInfo.pct > 0 && (
+                <span className="ml-1 tabular-nums opacity-80">
+                  {torrentInfo.pct}%
+                  {torrentInfo.eta !== null && torrentInfo.eta > 0 && ` · ${formatEta(torrentInfo.eta)}`}
+                </span>
               )}
             </span>
           </div>
@@ -210,6 +214,15 @@ export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, p
                 ) : (
                   <X className="h-3.5 w-3.5" />
                 )}
+              </button>
+            ) : r.status === 'cancelled' ? (
+              <button
+                onClick={() => handleDelete(r)}
+                disabled={deleteRelease.isPending}
+                className="rounded-lg p-1.5 text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                title="Dismiss"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
               </button>
             ) : (
               <>

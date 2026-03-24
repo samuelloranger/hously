@@ -547,10 +547,11 @@ async function createTorrentArtifact(
     outputPath: torrentPath,
     contentPath: hardlinkPath,
     onProgress: onStep
-      ? (pct) => {
-          if (pct !== lastReportedPct && (pct % 5 === 0 || pct === 100)) {
+      ? (pct, etaSecs) => {
+          if (pct !== lastReportedPct) {
             lastReportedPct = pct;
-            onStep(`torrent:${pct}`);
+            const step = etaSecs !== null ? `torrent:${pct}:${etaSecs}` : `torrent:${pct}`;
+            onStep(step);
           }
         }
       : undefined,
@@ -842,6 +843,7 @@ export async function processQueuedPrepareRelease(
       await updateReleaseStep(releaseId, step);
     };
 
+    cancelledReleases.delete(releaseId); // ensure clean slate on success path
     const artifacts = await buildPreparedArtifacts(source, onStep);
     await prisma.c411Release.update({
       where: { id: releaseId },
@@ -875,7 +877,10 @@ export async function processQueuedPrepareRelease(
       });
       if (existing?.torrentS3Key) await deleteFromS3(existing.torrentS3Key).catch(() => {});
       if (existing?.hardlinkPath) await removeHardlinkPath(existing.hardlinkPath).catch(() => {});
-      await prisma.c411Release.delete({ where: { id: releaseId } }).catch(() => {});
+      await prisma.c411Release.update({
+        where: { id: releaseId },
+        data: { status: 'cancelled', hardlinkPath: null, torrentS3Key: null },
+      }).catch(() => {});
       return;
     }
 
