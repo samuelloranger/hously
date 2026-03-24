@@ -248,9 +248,10 @@ export function TorrentsPage() {
           {/* List card */}
           <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
 
-            {/* Row 1: Search + density + category/tag filters */}
-            <div className="px-3 pt-3 pb-2.5 flex items-center gap-2">
-              <div className="relative flex-1 min-w-0">
+            {/* Row 1: Search (full-width on mobile) + controls */}
+            <div className="px-3 pt-3 pb-2.5 flex flex-col sm:flex-row sm:items-center gap-2">
+              {/* Search — always full width on mobile */}
+              <div className="relative w-full sm:flex-1 sm:min-w-0">
                 <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
                 <input
                   ref={searchInputRef}
@@ -271,52 +272,55 @@ export function TorrentsPage() {
                 )}
               </div>
 
-              {/* View mode toggle */}
-              <div className="flex items-center rounded-xl border border-neutral-200 dark:border-neutral-700 p-0.5 gap-0.5 shrink-0">
-                {(
-                  [
-                    { mode: 'list', icon: <List size={13} />, title: t('torrents.listView', 'List') },
-                    { mode: 'compact', icon: <AlignJustify size={13} />, title: t('torrents.compactView', 'Compact') },
-                    { mode: 'grid', icon: <LayoutGrid size={13} />, title: t('torrents.gridView', 'Grid') },
-                    { mode: 'kanban', icon: <Columns3 size={13} />, title: t('torrents.kanbanView', 'Board') },
-                  ] as const
-                ).map(({ mode, icon, title }) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setViewMode(mode)}
-                    title={title}
-                    className={cn(
-                      'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150',
-                      viewMode === mode
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                    )}
-                  >
-                    {icon}
-                  </button>
-                ))}
-              </div>
+              {/* Controls row — below search on mobile, inline on desktop */}
+              <div className="flex items-center gap-2 shrink-0">
+                {/* View mode toggle */}
+                <div className="flex items-center rounded-xl border border-neutral-200 dark:border-neutral-700 p-0.5 gap-0.5">
+                  {(
+                    [
+                      { mode: 'list', icon: <List size={13} />, title: t('torrents.listView', 'List') },
+                      { mode: 'compact', icon: <AlignJustify size={13} />, title: t('torrents.compactView', 'Compact') },
+                      { mode: 'grid', icon: <LayoutGrid size={13} />, title: t('torrents.gridView', 'Grid') },
+                      { mode: 'kanban', icon: <Columns3 size={13} />, title: t('torrents.kanbanView', 'Board') },
+                    ] as const
+                  ).map(({ mode, icon, title }) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setViewMode(mode)}
+                      title={title}
+                      className={cn(
+                        'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150',
+                        viewMode === mode
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                      )}
+                    >
+                      {icon}
+                    </button>
+                  ))}
+                </div>
 
-              {/* Category/tag filter popovers */}
-              {torrentMeta.availableCategories.length > 0 && (
-                <TorrentFilterPopover
-                  label={t('dashboard.qbittorrent.categories', 'Categories')}
-                  selectedCount={selectedCategories.length}
-                  options={torrentMeta.availableCategories}
-                  selectedValues={selectedCategories}
-                  onToggle={handleCategoryToggle}
-                />
-              )}
-              {torrentMeta.availableTags.length > 0 && (
-                <TorrentFilterPopover
-                  label={t('dashboard.qbittorrent.tags', 'Tags')}
-                  selectedCount={selectedTags.length}
-                  options={torrentMeta.availableTags}
-                  selectedValues={selectedTags}
-                  onToggle={handleTagToggle}
-                />
-              )}
+                {/* Category/tag filter popovers */}
+                {torrentMeta.availableCategories.length > 0 && (
+                  <TorrentFilterPopover
+                    label={t('dashboard.qbittorrent.categories', 'Categories')}
+                    selectedCount={selectedCategories.length}
+                    options={torrentMeta.availableCategories}
+                    selectedValues={selectedCategories}
+                    onToggle={handleCategoryToggle}
+                  />
+                )}
+                {torrentMeta.availableTags.length > 0 && (
+                  <TorrentFilterPopover
+                    label={t('dashboard.qbittorrent.tags', 'Tags')}
+                    selectedCount={selectedTags.length}
+                    options={torrentMeta.availableTags}
+                    selectedValues={selectedTags}
+                    onToggle={handleTagToggle}
+                  />
+                )}
+              </div>
             </div>
 
             {/* Row 2: State filter chips — horizontal scroll */}
