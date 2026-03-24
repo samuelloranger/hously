@@ -172,7 +172,12 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
           where: { status: 'preparing' },
           select: { id: true, tmdbId: true, metadata: true },
         });
-        return { preparing_ids: preparing.map((r) => r.id) };
+        const prepare_steps: Record<number, string> = {};
+        for (const r of preparing) {
+          const step = (r.metadata as any)?.prepareStep;
+          if (typeof step === 'string') prepare_steps[r.id] = step;
+        }
+        return { preparing_ids: preparing.map((r) => r.id), prepare_steps };
       },
       intervalMs: 2000,
       logLabel: '[c411:releases:stream]',

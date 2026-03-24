@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFetcher } from './context';
 import { queryKeys } from '../queryKeys';
@@ -288,10 +288,12 @@ export function useC411CategoryOptions(categoryId: number | null, options?: { en
 export function useC411ReleasePrepareStream(options: { enabled: boolean }) {
   const queryClient = useQueryClient();
   const previousIdsRef = useRef<Set<number> | null>(null);
+  const [prepareSteps, setPrepareSteps] = useState<Record<number, string>>({});
 
   useEffect(() => {
     if (!options.enabled) {
       previousIdsRef.current = null;
+      setPrepareSteps({});
       return;
     }
 
@@ -301,12 +303,11 @@ export function useC411ReleasePrepareStream(options: { enabled: boolean }) {
 
     source.onmessage = (event: any) => {
       try {
-        const data = JSON.parse(event.data) as { preparing_ids: number[] };
+        const data = JSON.parse(event.data) as { preparing_ids: number[]; prepare_steps?: Record<number, string> };
         const currentIds = new Set(data.preparing_ids);
         const prevIds = previousIdsRef.current;
 
         if (prevIds !== null) {
-          // Check if any previously-preparing release is no longer preparing
           const finished = [...prevIds].some((id) => !currentIds.has(id));
           if (finished) {
             queryClient.invalidateQueries({ queryKey: queryKeys.c411.releases() });
@@ -314,14 +315,13 @@ export function useC411ReleasePrepareStream(options: { enabled: boolean }) {
         }
 
         previousIdsRef.current = currentIds;
+        if (data.prepare_steps) setPrepareSteps(data.prepare_steps);
       } catch {
         // ignore parse errors
       }
     };
 
     source.onerror = () => {
-      // EventSource auto-reconnects; reset tracking so next message
-      // does a fresh comparison rather than a stale diff.
       previousIdsRef.current = null;
     };
 
@@ -330,4 +330,6 @@ export function useC411ReleasePrepareStream(options: { enabled: boolean }) {
       previousIdsRef.current = null;
     };
   }, [options.enabled, queryClient]);
+
+  return { prepareSteps };
 }

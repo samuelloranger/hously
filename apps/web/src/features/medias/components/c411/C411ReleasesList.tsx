@@ -1,4 +1,4 @@
-import { Loader2, FolderOpen, Pencil, Trash2, ArrowUpCircle, ArrowDownCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, FolderOpen, Pencil, Trash2, ArrowUpCircle, ArrowDownCircle, CheckCircle2, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useC411DeleteRelease } from '@hously/shared';
 import type { C411LocalRelease } from '@hously/shared';
@@ -15,11 +15,66 @@ import {
   STAT_LINE,
 } from './c411-utils';
 
+const PREPARE_STEPS = [
+  { key: 'mediainfo',   label: 'Analyzing media' },
+  { key: 'languages',   label: 'Detecting languages' },
+  { key: 'tmdb',        label: 'Fetching metadata' },
+  { key: 'hardlinking', label: 'Creating hardlinks' },
+  { key: 'torrent',     label: 'Creating torrent' },
+  { key: 'uploading',   label: 'Uploading' },
+] as const;
+
+function parseHardlinkStep(step: string): { done: number; total: number; eta: number | null } | null {
+  const m = step.match(/^hardlinking:(\d+)\/(\d+)(?::(\d+))?$/);
+  if (!m) return null;
+  return { done: Number(m[1]), total: Number(m[2]), eta: m[3] != null ? Number(m[3]) : null };
+}
+
+function formatEta(seconds: number): string {
+  if (seconds < 60) return `~${seconds}s`;
+  const m = Math.round(seconds / 60);
+  return `~${m}min`;
+}
+
+function PrepareStepTimeline({ step }: { step: string }) {
+  const activeKey = step.startsWith('hardlinking') ? 'hardlinking' : step;
+  const activeIndex = PREPARE_STEPS.findIndex(s => s.key === activeKey);
+  const hlInfo = step.startsWith('hardlinking') ? parseHardlinkStep(step) : null;
+
+  return (
+    <div className="mt-2.5 space-y-1">
+      {PREPARE_STEPS.map((s, i) => {
+        const done = i < activeIndex;
+        const active = i === activeIndex;
+        return (
+          <div key={s.key} className={cn('flex items-center gap-1.5 text-[11px]', done ? 'text-emerald-600 dark:text-emerald-400' : active ? 'text-indigo-500 dark:text-indigo-400' : 'text-neutral-400 dark:text-neutral-600')}>
+            {done
+              ? <CheckCircle2 className="h-3 w-3 shrink-0" />
+              : active
+                ? <Loader2 className="h-3 w-3 shrink-0 animate-spin" />
+                : <Circle className="h-3 w-3 shrink-0 opacity-40" />}
+            <span>
+              {s.label}
+              {active && s.key === 'hardlinking' && hlInfo && (
+                <span className="ml-1 tabular-nums opacity-80">
+                  ({hlInfo.done}/{hlInfo.total}
+                  {hlInfo.eta !== null && hlInfo.eta > 0 && ` · ${formatEta(hlInfo.eta)}`})
+                </span>
+              )}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 interface Props {
   releases: C411LocalRelease[];
   isLoading: boolean;
   onEdit: (id: number) => void;
   prepareStatus?: 'pending' | 'success' | null;
+  prepareSteps?: Record<number, string>;
   emptyMessage?: string;
 }
 
@@ -46,7 +101,7 @@ function SeedBar({ seeders, leechers }: { seeders: number; leechers: number }) {
   );
 }
 
-export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, emptyMessage }: Props) {
+export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, prepareSteps, emptyMessage }: Props) {
   const deleteRelease = useC411DeleteRelease();
 
   const handleDelete = (release: C411LocalRelease) => {
@@ -103,6 +158,10 @@ export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, e
               {r.has_presentation && <span className={BADGE_SKY}>prez</span>}
               {r.has_torrent && <span className={BADGE_VIOLET}>.torrent</span>}
             </div>
+
+            {r.status === 'preparing' && prepareSteps?.[r.id] && (
+              <PrepareStepTimeline step={prepareSteps[r.id]} />
+            )}
 
             {typeof r.metadata?.prepareError === 'string' && r.metadata.prepareError && (
               <p className="mt-2 text-[11px] text-red-600 dark:text-red-300">{r.metadata.prepareError}</p>

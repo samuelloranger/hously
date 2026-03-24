@@ -489,7 +489,11 @@ async function ensureHardlink(sourcePath: string, targetPath: string): Promise<v
   }
 }
 
-async function ensureHardlinkContent(source: ResolvedReleaseSource, releaseName: string): Promise<string> {
+async function ensureHardlinkContent(
+  source: ResolvedReleaseSource,
+  releaseName: string,
+  onProgress?: (done: number, total: number) => Promise<void>,
+): Promise<string> {
   if (source.files.length === 1 && source.service === 'radarr') {
     const hardlinkPath = join(source.hardlinkBase, `${releaseName}${extname(source.primaryFilePath)}`);
     await mkdir(source.hardlinkBase, { recursive: true });
@@ -500,10 +504,15 @@ async function ensureHardlinkContent(source: ResolvedReleaseSource, releaseName:
   const hardlinkPath = join(source.hardlinkBase, releaseName);
   await mkdir(hardlinkPath, { recursive: true });
 
-  for (const file of source.files) {
+  const total = source.files.length;
+  for (let i = 0; i < total; i++) {
+    const file = source.files[i];
     const relativePath = file.relativePath || sanitizeRelativePath(file.path, source.originalPath);
     const targetPath = join(hardlinkPath, relativePath);
     await ensureHardlink(file.path, targetPath);
+    if (onProgress && (i % 50 === 0 || i === total - 1)) {
+      await onProgress(i + 1, total);
+    }
   }
 
   return hardlinkPath;
@@ -545,7 +554,10 @@ async function createTorrentArtifact(
   };
 }
 
-async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<PreparedReleaseArtifacts> {
+async function buildPreparedArtifacts(
+  source: ResolvedReleaseSource,
+  onStep?: (step: string) => Promise<void>,
+): Promise<PreparedReleaseArtifacts> {
   const [c411Config, tmdbApiKey] = await Promise.all([
     loadC411Config(),
     loadTmdbApiKey(),
@@ -555,17 +567,22 @@ async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<Pr
     throw new Error('C411 announce_url not configured');
   }
 
+  const startedAt = Date.now();
+
+  await onStep?.('mediainfo');
   console.log(`[c411:prepare] Running mediainfo on ${source.originalPath}`);
   const media = await getMediaInfo(source.originalPath, source.originalName);
   if (!media) {
     throw new Error(`MediaInfo failed for ${source.originalPath}`);
   }
 
+  await onStep?.('languages');
   console.log('[c411:prepare] Detecting languages...');
   const rawLanguageTag = await detectLanguages(source.originalPath);
   let languageTag = inferLanguageTag(source.originalName, media, rawLanguageTag);
   console.log(`[c411:prepare] Language: ${languageTag}`);
 
+  await onStep?.('tmdb');
   console.log(`[c411:prepare] Fetching TMDB details for ${source.tmdbId}...`);
   let tmdb = await fetchTmdbDetails(tmdbApiKey, source.tmdbType, source.tmdbId).catch(() => null);
   if (!tmdb) {
@@ -587,7 +604,15 @@ async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<Pr
   );
   console.log(`[c411:prepare] Release name: ${c411Name}`);
 
-  const hardlinkPath = await ensureHardlinkContent(source, c411Name);
+  const hlStart = Date.now();
+  const hardlinkPath = await ensureHardlinkContent(source, c411Name, async (done, total) => {
+    const elapsed = (Date.now() - hlStart) / 1000;
+    const rate = done / elapsed;
+    const remaining = rate > 0 ? Math.round((total - done) / rate) : null;
+    await onStep?.(`hardlinking:${done}/${total}${remaining !== null ? `:${remaining}` : ''}`);
+  });
+
+  await onStep?.('torrent');
   const { torrentPath, cleanup } = await createTorrentArtifact(
     c411Config.announceUrl,
     source,
@@ -596,6 +621,7 @@ async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<Pr
   );
 
   try {
+    await onStep?.('uploading');
     const torrentBuffer = await Bun.file(torrentPath).arrayBuffer();
     const torrentS3Key = `c411/torrents/${c411Name}.torrent`;
     const uploaded = await uploadToS3(Buffer.from(torrentBuffer), torrentS3Key, 'application/x-bittorrent');
@@ -767,6 +793,14 @@ async function sendPrepareNotification(params: {
   );
 }
 
+async function updateReleaseStep(releaseId: number, step: string): Promise<void> {
+  await prisma.$executeRaw`
+    UPDATE c411_releases
+    SET metadata = metadata || jsonb_build_object('prepareStep', ${step}::text)
+    WHERE id = ${releaseId}
+  `.catch(() => {});
+}
+
 // Exported for the worker
 export async function processQueuedPrepareRelease(
   releaseId: number,
@@ -774,7 +808,7 @@ export async function processQueuedPrepareRelease(
   requestedByUserId?: number,
 ): Promise<void> {
   try {
-    const artifacts = await buildPreparedArtifacts(source);
+    const artifacts = await buildPreparedArtifacts(source, (step) => updateReleaseStep(releaseId, step));
     await prisma.c411Release.update({
       where: { id: releaseId },
       data: mapReleaseRecord(source, artifacts),

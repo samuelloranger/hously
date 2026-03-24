@@ -131,7 +131,7 @@ export function MediaInfoDialog({
 
   // SSE stream: auto-refresh releases when a prepare finishes
   const hasPreparing = (releases.data?.releases ?? []).some(r => r.status === 'preparing');
-  useC411ReleasePrepareStream({ enabled: isOpen && hasPreparing });
+  const { prepareSteps } = useC411ReleasePrepareStream({ enabled: isOpen && hasPreparing });
 
   const handlePrepareRelease = () => {
     if (!media?.source_id) return;
@@ -276,6 +276,7 @@ export function MediaInfoDialog({
           )}
           {validTab === 'releases' && (
             <C411ReleasesList
+              prepareSteps={prepareSteps}
               releases={(releases.data?.releases ?? []).filter(release => {
                 if (release.tmdb_id !== tmdbId) return false;
                 if (!isSeries) return true;
