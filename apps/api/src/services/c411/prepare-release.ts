@@ -548,13 +548,9 @@ async function createTorrentArtifact(
       pieceLength,
       outputPath: torrentPath,
       contentPath: hardlinkPath,
-      totalContentBytes: source.totalSize,
       shouldCancel: () => cancelledReleases.has(releaseId),
       onProgress: onStep
-        ? async (pct, hashed, total, etaSecs) => {
-            const eta = etaSecs !== null ? etaSecs : '';
-            await onStep(`torrent:${pct}:${hashed}:${total}:${eta}`);
-          }
+        ? async (pct) => { await onStep(`torrent:${pct}`); }
         : undefined,
     });
   } catch (err) {
@@ -1070,7 +1066,7 @@ export async function refreshRelease(releaseId: number): Promise<void> {
   }
 
   const source = await resolveReleaseSource(storedOptions);
-  const artifacts = await buildPreparedArtifacts(source);
+  const artifacts = await buildPreparedArtifacts(source, releaseId);
   const previousTorrentS3Key = existing.torrentS3Key;
   const previousHardlinkPath = existing.hardlinkPath;
 

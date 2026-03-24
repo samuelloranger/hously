@@ -30,21 +30,9 @@ function parseHardlinkStep(step: string): { done: number; total: number; eta: nu
   return { done: Number(m[1]), total: Number(m[2]), eta: m[3] != null ? Number(m[3]) : null };
 }
 
-function parseTorrentStep(step: string): { pct: number; hashed: number | null; total: number | null; eta: number | null } | null {
-  const m = step.match(/^torrent:(\d+)(?::(\d+):(\d+):(\d*))?$/);
-  if (!m) return null;
-  return {
-    pct: Number(m[1]),
-    hashed: m[2] != null ? Number(m[2]) : null,
-    total: m[3] != null ? Number(m[3]) : null,
-    eta: m[4] ? Number(m[4]) : null,
-  };
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(1)} GB`;
-  if (bytes >= 1_048_576) return `${(bytes / 1_048_576).toFixed(0)} MB`;
-  return `${(bytes / 1024).toFixed(0)} KB`;
+function parseTorrentStep(step: string): number | null {
+  const m = step.match(/^torrent:(\d+)/);
+  return m ? Number(m[1]) : null;
 }
 
 function formatEta(seconds: number): string {
@@ -81,12 +69,9 @@ function PrepareStepTimeline({ step }: { step: string }) {
                   </span>
                 )}
               </span>
-              {active && s.key === 'torrent' && torrentInfo !== null && (torrentInfo.hashed ?? 0) > 0 && (
+              {active && s.key === 'torrent' && torrentInfo !== null && torrentInfo > 0 && (
                 <span className="tabular-nums opacity-70 text-[10px]">
-                  {torrentInfo.hashed !== null && torrentInfo.total !== null
-                    ? `${formatBytes(torrentInfo.hashed)} / ${formatBytes(torrentInfo.total)}`
-                    : `${torrentInfo.pct}%`}
-                  {torrentInfo.eta !== null && torrentInfo.eta > 0 && ` · ${formatEta(torrentInfo.eta)}`}
+                  {torrentInfo}%
                 </span>
               )}
             </span>

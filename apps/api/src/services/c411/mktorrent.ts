@@ -1,10 +1,9 @@
 /**
- * Torrent file creation via mktorrent with real-time progress from stdout.
+ * Torrent file creation via mkbrr (6× faster than mktorrent, 12 concurrent workers).
  *
- * mktorrent writes "Hashed N of M pieces.\r" to stdout as it hashes.
- * We pipe stdout, split on \r, and parse piece counts for live progress.
- * onProgress is a proper async callback — DB writes are awaited.
- * Cancel kills the subprocess within the next stdout flush (~100ms).
+ * mkbrr writes ANSI progress lines to stdout via \r:
+ *   "Hashing pieces... [2.7 GiB/s]  62% [=====>  ]"
+ * Strip ANSI codes, split on \r, extract percentage → async onProgress callback.
  */
 
 export class TorrentCancelledError extends Error {
@@ -14,28 +13,34 @@ export class TorrentCancelledError extends Error {
   }
 }
 
+const ANSI_RE = /\x1b\[[0-9;]*[mGKHF]/g;
+
+function parsePct(line: string): number | null {
+  const clean = line.replace(ANSI_RE, '');
+  const m = clean.match(/Hashing pieces\.\.\.[^%]*?(\d+)%/);
+  return m ? Number(m[1]) : null;
+}
+
 export async function createTorrentFile(opts: {
   announceUrl: string;
-  pieceLength: number; // exponent (e.g. 24 = 16 MiB)
+  pieceLength: number; // exponent (e.g. 24 = 16 MiB) — mkbrr uses same format
   outputPath: string;
   contentPath: string;
-  totalContentBytes: number;
   shouldCancel?: () => boolean;
-  /** Called on each progress update with pct (0-100), hashed bytes proxy, total bytes, ETA seconds. */
-  onProgress?: (pct: number, hashed: number, total: number, etaSecs: number | null) => Promise<void>;
+  /** Called on each percentage update (0-100). */
+  onProgress?: (pct: number) => Promise<void>;
 }): Promise<void> {
   const proc = Bun.spawn(
     [
-      'mktorrent',
-      '-a', opts.announceUrl,
-      '-l', String(opts.pieceLength),
-      '-o', opts.outputPath,
+      'mkbrr', 'create',
       opts.contentPath,
+      '--tracker', opts.announceUrl,
+      '--piece-length', String(opts.pieceLength),
+      '--output', opts.outputPath,
     ],
     { stdout: 'pipe', stderr: 'ignore' },
   );
 
-  const startedAt = Date.now();
   let buffer = '';
   let cancelled = false;
 
@@ -51,26 +56,14 @@ export async function createTorrentFile(opts: {
     buffer = parts.pop() ?? '';
 
     for (const part of parts) {
-      const m = part.match(/Hashed\s+(\d+)\s+of\s+(\d+)\s+pieces/);
-      if (!m || !opts.onProgress) continue;
-
-      const current = Number(m[1]);
-      const total = Number(m[2]);
-      const pct = total > 0 ? Math.round((current / total) * 100) : 0;
-      const elapsed = (Date.now() - startedAt) / 1000;
-      const rate = elapsed > 0 ? current / elapsed : 0; // pieces/sec
-      const hashedBytes = total > 0 ? Math.round((current / total) * opts.totalContentBytes) : 0;
-      const remainingPieces = total - current;
-      const eta = rate > 0 && current < total ? Math.round(remainingPieces / rate) : null;
-
-      await opts.onProgress(pct, hashedBytes, opts.totalContentBytes, eta);
+      const pct = parsePct(part);
+      if (pct !== null) await opts.onProgress?.(pct);
     }
   }
 
   const exitCode = await proc.exited;
-
   if (cancelled) throw new TorrentCancelledError();
-  if (exitCode !== 0) throw new Error(`mktorrent exited with code ${exitCode}`);
+  if (exitCode !== 0) throw new Error(`mkbrr exited with code ${exitCode}`);
 
-  await opts.onProgress?.(100, opts.totalContentBytes, opts.totalContentBytes, 0);
+  await opts.onProgress?.(100);
 }
