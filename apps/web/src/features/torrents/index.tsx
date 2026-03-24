@@ -22,10 +22,12 @@ import {
 import { PageLayout } from '@/components/PageLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
-import { Search, TrendingDown, TrendingUp, ArrowUp, ArrowDown, ArrowDownToLine, ArrowUpFromLine, X, LayoutGrid, Grid3X3 } from 'lucide-react';
+import { Search, TrendingDown, TrendingUp, ArrowUp, ArrowDown, ArrowDownToLine, ArrowUpFromLine, X, List, AlignJustify, LayoutGrid, Columns3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AddTorrentPanel } from './AddTorrentPanel';
 import { TorrentRow } from './TorrentRow';
+import { TorrentGridCard } from './TorrentGridCard';
+import { TorrentKanbanView } from './TorrentKanbanView';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUrlState } from '@/hooks/useUrlState';
 import type { TorrentsSearchParams } from '@/router';
@@ -63,7 +65,7 @@ export function TorrentsPage() {
 
   const [sseConnected, setSseConnected] = useState(false);
   const [searchInput, setSearchInput] = useState(urlState.search);
-  const [isCompactView, setIsCompactView] = usePersistentState<boolean>('torrents-compact-view', false);
+  const [viewMode, setViewMode] = usePersistentState<'list' | 'compact' | 'grid' | 'kanban'>('torrents-view-mode', 'list');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const search = urlState.search;
@@ -269,34 +271,31 @@ export function TorrentsPage() {
                 )}
               </div>
 
-              {/* Density toggle */}
+              {/* View mode toggle */}
               <div className="flex items-center rounded-xl border border-neutral-200 dark:border-neutral-700 p-0.5 gap-0.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsCompactView(false)}
-                  title={t('torrents.comfortableView', 'Comfortable')}
-                  className={cn(
-                    'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150',
-                    !isCompactView
-                      ? 'bg-sky-600 text-white shadow-sm'
-                      : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                  )}
-                >
-                  <LayoutGrid size={13} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsCompactView(true)}
-                  title={t('torrents.compactView', 'Compact')}
-                  className={cn(
-                    'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150',
-                    isCompactView
-                      ? 'bg-sky-600 text-white shadow-sm'
-                      : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                  )}
-                >
-                  <Grid3X3 size={13} />
-                </button>
+                {(
+                  [
+                    { mode: 'list', icon: <List size={13} />, title: t('torrents.listView', 'List') },
+                    { mode: 'compact', icon: <AlignJustify size={13} />, title: t('torrents.compactView', 'Compact') },
+                    { mode: 'grid', icon: <LayoutGrid size={13} />, title: t('torrents.gridView', 'Grid') },
+                    { mode: 'kanban', icon: <Columns3 size={13} />, title: t('torrents.kanbanView', 'Board') },
+                  ] as const
+                ).map(({ mode, icon, title }) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setViewMode(mode)}
+                    title={title}
+                    className={cn(
+                      'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150',
+                      viewMode === mode
+                        ? 'bg-sky-600 text-white shadow-sm'
+                        : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                    )}
+                  >
+                    {icon}
+                  </button>
+                ))}
               </div>
 
               {/* Category/tag filter popovers */}
@@ -413,49 +412,100 @@ export function TorrentsPage() {
               </div>
             </div>
 
-            {/* Rows */}
-            <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
-              {isLoading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className={cn('px-4 sm:px-5', isCompactView ? 'py-3' : 'py-4')} style={{ animationDelay: `${i * 40}ms` }}>
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1 w-2 h-2 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse shrink-0" />
-                      <div className="flex-1 min-w-0 space-y-2">
-                        <div className="flex justify-between gap-4">
-                          <div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse flex-1 max-w-[60%]" />
-                          <div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse w-16 shrink-0" />
-                        </div>
-                        {!isCompactView && (
-                          <div className="h-2.5 bg-neutral-100 dark:bg-neutral-800 rounded animate-pulse w-24" />
-                        )}
-                        <div className="h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full animate-pulse" />
-                        <div className="h-2.5 bg-neutral-100 dark:bg-neutral-800 rounded animate-pulse w-40" />
+            {/* Content — switches between list/compact/grid/kanban */}
+            {isLoading ? (
+              /* Skeleton — adapts to current view mode */
+              viewMode === 'grid' ? (
+                <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <div key={i} className="rounded-2xl border border-neutral-200 dark:border-neutral-700/60 overflow-hidden animate-pulse" style={{ animationDelay: `${i * 30}ms` }}>
+                      <div className="h-1 bg-neutral-200 dark:bg-neutral-700" />
+                      <div className="p-3 space-y-2">
+                        <div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded w-4/5" />
+                        <div className="h-3 bg-neutral-100 dark:bg-neutral-800 rounded w-1/2" />
+                        <div className="h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full mt-3" />
+                        <div className="h-2.5 bg-neutral-100 dark:bg-neutral-800 rounded w-2/3" />
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : filtered.length > 0 ? (
-                filtered.map(torrent => (
+                  ))}
+                </div>
+              ) : viewMode === 'kanban' ? (
+                <div className="p-3 flex gap-3 overflow-x-auto">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="w-64 flex-shrink-0 rounded-2xl border border-neutral-200 dark:border-neutral-700/60 overflow-hidden animate-pulse" style={{ animationDelay: `${i * 60}ms` }}>
+                      <div className="h-9 bg-neutral-100 dark:bg-neutral-800" />
+                      <div className="p-2 space-y-2">
+                        {Array.from({ length: 3 }).map((_, j) => (
+                          <div key={j} className="rounded-xl border border-neutral-200 dark:border-neutral-700/60 p-2.5 space-y-1.5">
+                            <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-4/5" />
+                            <div className="h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className={cn('px-4 sm:px-5', viewMode === 'compact' ? 'py-3' : 'py-4')} style={{ animationDelay: `${i * 40}ms` }}>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1 w-2 h-2 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse shrink-0" />
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <div className="flex justify-between gap-4">
+                            <div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse flex-1 max-w-[60%]" />
+                            <div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse w-16 shrink-0" />
+                          </div>
+                          {viewMode !== 'compact' && (
+                            <div className="h-2.5 bg-neutral-100 dark:bg-neutral-800 rounded animate-pulse w-24" />
+                          )}
+                          <div className="h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full animate-pulse" />
+                          <div className="h-2.5 bg-neutral-100 dark:bg-neutral-800 rounded animate-pulse w-40" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : filtered.length === 0 ? (
+              <div className="py-16 flex flex-col items-center justify-center gap-3">
+                <span className="text-3xl opacity-20 select-none">🧲</span>
+                <p className="text-sm text-neutral-400 dark:text-neutral-500">
+                  {search || stateFilter !== 'all'
+                    ? t('torrents.noResults')
+                    : (data?.error ?? t('dashboard.qbittorrent.emptyTitle'))}
+                </p>
+              </div>
+            ) : viewMode === 'grid' ? (
+              <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {filtered.map(torrent => (
+                  <TorrentGridCard
+                    key={torrent.id}
+                    torrent={torrent}
+                    isPinned={pinnedHash === torrent.id}
+                    isPinPending={setPinnedTorrent.isPending}
+                    onTogglePin={handleTogglePin}
+                  />
+                ))}
+              </div>
+            ) : viewMode === 'kanban' ? (
+              <div className="p-3">
+                <TorrentKanbanView torrents={filtered} />
+              </div>
+            ) : (
+              <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
+                {filtered.map(torrent => (
                   <TorrentRow
                     key={torrent.id}
                     torrent={torrent}
                     isPinned={pinnedHash === torrent.id}
                     isPinPending={setPinnedTorrent.isPending}
                     onTogglePin={handleTogglePin}
-                    compact={isCompactView}
+                    compact={viewMode === 'compact'}
                   />
-                ))
-              ) : (
-                <div className="py-16 flex flex-col items-center justify-center gap-3">
-                  <span className="text-3xl opacity-20 select-none">🧲</span>
-                  <p className="text-sm text-neutral-400 dark:text-neutral-500">
-                    {search || stateFilter !== 'all'
-                      ? t('torrents.noResults')
-                      : (data?.error ?? t('dashboard.qbittorrent.emptyTitle'))}
-                  </p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
