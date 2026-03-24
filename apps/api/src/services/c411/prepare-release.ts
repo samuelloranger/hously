@@ -812,6 +812,21 @@ async function updateReleaseStep(releaseId: number, step: string): Promise<void>
   `.catch(() => {});
 }
 
+/** Release IDs whose prepare job should be aborted at the next checkpoint. */
+const cancelledReleases = new Set<number>();
+
+/** Mark a release as cancelled — the running job will abort at its next step. */
+export function cancelRelease(releaseId: number): void {
+  cancelledReleases.add(releaseId);
+}
+
+class PrepareAbortedError extends Error {
+  constructor(releaseId: number) {
+    super(`Prepare job for release ${releaseId} was cancelled`);
+    this.name = 'PrepareAbortedError';
+  }
+}
+
 // Exported for the worker
 export async function processQueuedPrepareRelease(
   releaseId: number,
@@ -819,7 +834,15 @@ export async function processQueuedPrepareRelease(
   requestedByUserId?: number,
 ): Promise<void> {
   try {
-    const artifacts = await buildPreparedArtifacts(source, (step) => updateReleaseStep(releaseId, step));
+    const onStep = async (step: string) => {
+      if (cancelledReleases.has(releaseId)) {
+        cancelledReleases.delete(releaseId);
+        throw new PrepareAbortedError(releaseId);
+      }
+      await updateReleaseStep(releaseId, step);
+    };
+
+    const artifacts = await buildPreparedArtifacts(source, onStep);
     await prisma.c411Release.update({
       where: { id: releaseId },
       data: mapReleaseRecord(source, artifacts),
@@ -844,6 +867,18 @@ export async function processQueuedPrepareRelease(
       seasonNumber: source.seasonNumber,
     });
   } catch (error: any) {
+    if (error instanceof PrepareAbortedError) {
+      console.log(`[c411:prepare] Job cancelled for release ${releaseId} — cleaning up`);
+      const existing = await prisma.c411Release.findUnique({
+        where: { id: releaseId },
+        select: { hardlinkPath: true, torrentS3Key: true },
+      });
+      if (existing?.torrentS3Key) await deleteFromS3(existing.torrentS3Key).catch(() => {});
+      if (existing?.hardlinkPath) await removeHardlinkPath(existing.hardlinkPath).catch(() => {});
+      await prisma.c411Release.delete({ where: { id: releaseId } }).catch(() => {});
+      return;
+    }
+
     const existing = await prisma.c411Release.findUnique({
       where: { id: releaseId },
       select: { metadata: true, hardlinkPath: true, torrentS3Key: true, title: true },

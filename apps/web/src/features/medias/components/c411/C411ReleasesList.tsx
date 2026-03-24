@@ -1,6 +1,6 @@
-import { Loader2, FolderOpen, Pencil, Trash2, ArrowUpCircle, ArrowDownCircle, CheckCircle2, Circle } from 'lucide-react';
+import { Loader2, FolderOpen, Pencil, Trash2, ArrowUpCircle, ArrowDownCircle, CheckCircle2, Circle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useC411DeleteRelease } from '@hously/shared';
+import { useC411DeleteRelease, useC411CancelRelease } from '@hously/shared';
 import type { C411LocalRelease } from '@hously/shared';
 import { formatReleaseSize as formatSize, capitalizeStatus } from '@hously/shared';
 import {
@@ -112,6 +112,12 @@ function SeedBar({ seeders, leechers }: { seeders: number; leechers: number }) {
 
 export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, prepareSteps, emptyMessage }: Props) {
   const deleteRelease = useC411DeleteRelease();
+  const cancelRelease = useC411CancelRelease();
+
+  const handleCancel = (release: C411LocalRelease) => {
+    if (!confirm('Cancel this release? Hardlinks and partial files will be removed.')) return;
+    cancelRelease.mutate(release.id);
+  };
 
   const handleDelete = (release: C411LocalRelease) => {
     const confirmation = release.c411_torrent_id
@@ -192,22 +198,37 @@ export function C411ReleasesList({ releases, isLoading, onEdit, prepareStatus, p
 
           {/* Actions */}
           <div className="flex shrink-0 items-center gap-0.5">
-            <button
-              onClick={() => onEdit(r.id)}
-              className="rounded-lg p-1.5 text-neutral-400 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
-              title="Edit release"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </button>
-            {r.status !== 'preparing' && (
+            {r.status === 'preparing' ? (
               <button
-                onClick={() => handleDelete(r)}
-                disabled={deleteRelease.isPending}
-                className="rounded-lg p-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
-                title="Delete local release"
+                onClick={() => handleCancel(r)}
+                disabled={cancelRelease.isPending}
+                className="rounded-lg p-1.5 text-neutral-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                title="Cancel preparation"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                {cancelRelease.isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <X className="h-3.5 w-3.5" />
+                )}
               </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => onEdit(r.id)}
+                  className="rounded-lg p-1.5 text-neutral-400 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                  title="Edit release"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => handleDelete(r)}
+                  disabled={deleteRelease.isPending}
+                  className="rounded-lg p-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                  title="Delete local release"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </>
             )}
           </div>
         </div>

@@ -12,6 +12,7 @@ export const C411_ENDPOINTS = {
   RELEASE_TORRENT: (id: number) => `/api/medias/c411/releases/${id}/torrent`,
   PUBLISH_RELEASE: (id: number) => `/api/medias/c411/releases/${id}/publish`,
   REFRESH_RELEASE: (id: number) => `/api/medias/c411/releases/${id}/refresh`,
+  CANCEL_RELEASE: (id: number) => `/api/medias/c411/releases/${id}/cancel`,
   SYNC: '/api/medias/c411/sync',
   TMDB_TITLE: '/api/medias/c411/tmdb-title',
   GENERATE_BBCODE: '/api/medias/c411/generate-bbcode',

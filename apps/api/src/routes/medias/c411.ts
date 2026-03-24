@@ -29,7 +29,7 @@ import {
 } from '../../services/c411';
 import { getQbittorrentPluginConfig } from '../../services/qbittorrent/config';
 import { addQbittorrentTorrentFile } from '../../services/qbittorrent/torrents';
-import { prepareRelease, refreshRelease, fetchReleaseMediaInfoPreview } from '../../services/c411/prepare-release';
+import { prepareRelease, refreshRelease, fetchReleaseMediaInfoPreview, cancelRelease } from '../../services/c411/prepare-release';
 import { syncC411Releases } from '../../services/c411/sync';
 import { fetchArrHistory, triggerArrReprocess } from '../../services/c411/history';
 
@@ -182,6 +182,25 @@ export const mediasC411Routes = new Elysia({ prefix: '/api/medias/c411' })
       intervalMs: 2000,
       logLabel: '[c411:releases:stream]',
     });
+  })
+
+  .post('/releases/:id/cancel', async ({ params, set }) => {
+    const id = parseInt(params.id);
+    if (!id) return badRequest(set, 'Invalid release ID');
+    try {
+      const release = await prisma.c411Release.findUnique({
+        where: { id },
+        select: { status: true },
+      });
+      if (!release) return badRequest(set, 'Release not found');
+      if (release.status !== 'preparing') return badRequest(set, 'Release is not currently preparing');
+
+      cancelRelease(id);
+      return { success: true };
+    } catch (error: any) {
+      console.error('[c411:cancel-release]', error);
+      return serverError(set, error.message || 'Failed to cancel release');
+    }
   })
 
   .get('/releases/:id', async ({ params, set }) => {
