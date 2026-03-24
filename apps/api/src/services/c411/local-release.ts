@@ -140,6 +140,7 @@ export async function createLocalC411ReleaseFromConversion(params: {
           pieceLength: calcPieceLength(fileStat.size),
           outputPath: torrentPath,
           contentPath: params.outputPath,
+          totalContentBytes: fileStat.size,
         });
         const torrentBuffer = await Bun.file(torrentPath).arrayBuffer();
         const s3Key = `c411/torrents/${c411Name}.torrent`;

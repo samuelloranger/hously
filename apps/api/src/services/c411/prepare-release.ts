@@ -25,7 +25,7 @@ import {
   parseSceneTags,
 } from '@hously/shared';
 import { generateBBCode, buildReleaseInfo } from './bbcode';
-import { createTorrentFile } from './mktorrent';
+import { createTorrentFile, TorrentCancelledError } from './mktorrent';
 import type { LanguageTag } from './types';
 
 const MOVIE_HARDLINK_BASE = '/mnt/storage/Downloads/movies';
@@ -541,37 +541,29 @@ async function createTorrentArtifact(
   const pieceLength = calcPieceLength(source.totalSize);
 
   console.log('[c411:prepare] Creating torrent...');
-  let lastReportedHashed = -1;
 
-  // Capture reject so onProgress (sync callback) can abort the promise on cancel.
-  let abortTorrent: ((err: Error) => void) | null = null;
-
-  await new Promise<void>((resolve, reject) => {
-    abortTorrent = reject;
-    createTorrentFile({
+  try {
+    await createTorrentFile({
       announceUrl,
       pieceLength,
       outputPath: torrentPath,
       contentPath: hardlinkPath,
-      onProgress: (pct, hashed, total, etaSecs) => {
-        // Cancellation check on every piece — fast response regardless of size.
-        if (cancelledReleases.has(releaseId)) {
-          cancelledReleases.delete(releaseId);
-          reject(new PrepareAbortedError(releaseId));
-          return;
-        }
-
-        if (!onStep) return;
-        // DB update every 0.5% of total bytes so the UI moves steadily.
-        const threshold = Math.max(Math.round(total * 0.005), pieceLength);
-        if (hashed - lastReportedHashed >= threshold || pct === 100) {
-          lastReportedHashed = hashed;
-          const eta = etaSecs !== null ? etaSecs : '';
-          onStep(`torrent:${pct}:${hashed}:${total}:${eta}`);
-        }
-      },
-    }).then(resolve, reject);
-  });
+      totalContentBytes: source.totalSize,
+      shouldCancel: () => cancelledReleases.has(releaseId),
+      onProgress: onStep
+        ? async (pct, hashed, total, etaSecs) => {
+            const eta = etaSecs !== null ? etaSecs : '';
+            await onStep(`torrent:${pct}:${hashed}:${total}:${eta}`);
+          }
+        : undefined,
+    });
+  } catch (err) {
+    if (err instanceof TorrentCancelledError) {
+      cancelledReleases.delete(releaseId);
+      throw new PrepareAbortedError(releaseId);
+    }
+    throw err;
+  }
 
   return {
     torrentPath,
