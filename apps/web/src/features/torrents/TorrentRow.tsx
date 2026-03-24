@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import {
   formatBytes,
@@ -12,7 +13,7 @@ import {
   useResumeQbittorrentTorrent,
   type QbittorrentTorrentListItem,
 } from '@hously/shared';
-import { Tag, Clock, Play, Pause, RefreshCw, Pin, PinOff } from 'lucide-react';
+import { Tag, Clock, Play, Pause, RefreshCw, Pin, PinOff, MoreHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared';
 
@@ -21,13 +22,11 @@ export function TorrentRow({
   isPinned,
   onTogglePin,
   isPinPending,
-  compact = false,
 }: {
   torrent: QbittorrentTorrentListItem;
   isPinned: boolean;
   onTogglePin: (hash: string, nextPinned: boolean) => void;
   isPinPending: boolean;
-  compact?: boolean;
 }) {
   const { i18n, t } = useTranslation('common');
   const locale = resolveDateFnsLocale(i18n.language);
@@ -50,6 +49,20 @@ export function TorrentRow({
   const reannounceMutation = useReannounceQbittorrentTorrent(torrent.id);
   const isActionPending = pauseMutation.isPending || resumeMutation.isPending || reannounceMutation.isPending;
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [dropdownOpen]);
+
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -59,6 +72,7 @@ export function TorrentRow({
     } else {
       pauseMutation.mutate(undefined);
     }
+    setDropdownOpen(false);
   };
 
   const handleReannounce = (e: React.MouseEvent) => {
@@ -66,16 +80,66 @@ export function TorrentRow({
     e.stopPropagation();
     if (isActionPending) return;
     reannounceMutation.mutate(undefined);
+    setDropdownOpen(false);
   };
+
+  const handleTogglePin = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onTogglePin(torrent.id, !isPinned);
+    setDropdownOpen(false);
+  };
+
+  const actionButtons = (
+    <>
+      <button
+        onClick={handleTogglePin}
+        disabled={isPinPending}
+        title={isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
+        aria-label={isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
+        className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
+      >
+        {isPinned ? <PinOff size={11} /> : <Pin size={11} />}
+      </button>
+      <button
+        onClick={handleReannounce}
+        disabled={isActionPending}
+        title={t('torrents.reannounce', 'Reannounce')}
+        aria-label={t('torrents.reannounce', 'Reannounce')}
+        className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
+      >
+        {reannounceMutation.isPending ? (
+          <span className="block w-3 h-3 rounded-full border-2 border-neutral-400 border-t-transparent animate-spin" />
+        ) : (
+          <RefreshCw size={11} />
+        )}
+      </button>
+      <button
+        onClick={handleToggle}
+        disabled={isActionPending}
+        title={isPaused ? t('torrents.start', 'Resume') : t('torrents.pause', 'Pause')}
+        aria-label={isPaused ? t('torrents.start', 'Resume') : t('torrents.pause', 'Pause')}
+        className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
+      >
+        {pauseMutation.isPending || resumeMutation.isPending ? (
+          <span className="block w-3 h-3 rounded-full border-2 border-neutral-400 border-t-transparent animate-spin" />
+        ) : isPaused ? (
+          <Play size={11} />
+        ) : (
+          <Pause size={11} />
+        )}
+      </button>
+    </>
+  );
 
   return (
     <Link
       to="/torrents/$hash"
       params={{ hash: torrent.id }}
       className="block px-4 sm:px-5 hover:bg-neutral-50 dark:hover:bg-white/[0.06] transition-colors group"
-      style={{ contentVisibility: 'auto', containIntrinsicSize: compact ? '96px' : '132px' }}
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '132px' }}
     >
-      <div className={`flex items-start gap-3 ${compact ? 'py-3' : 'py-4'}`}>
+      <div className="flex items-start gap-3 py-4">
         {/* Status dot */}
         <div className="pt-1 shrink-0">
           <span className={`block w-2 h-2 rounded-full ${dot} ${pulse ? 'animate-pulse' : ''}`} />
@@ -84,55 +148,67 @@ export function TorrentRow({
         {/* Main content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <p className={`font-medium text-neutral-900 dark:text-neutral-100 truncate leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors ${compact ? 'text-[13px]' : 'text-sm'}`}>
+            <p className="font-medium text-sm text-neutral-900 dark:text-neutral-100 truncate leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               {torrent.name}
             </p>
 
             {/* Right: size + quick action */}
             <div className="shrink-0 flex items-center gap-2">
-              <div className="sm:opacity-0 sm:group-hover:opacity-100 flex items-center gap-1 transition-opacity">
-                <button
-                  onClick={e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onTogglePin(torrent.id, !isPinned);
-                  }}
-                  disabled={isPinPending}
-                  title={isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
-                  aria-label={isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
-                  className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
-                >
-                  {isPinned ? <PinOff size={11} /> : <Pin size={11} />}
-                </button>
-                <button
-                  onClick={handleReannounce}
-                  disabled={isActionPending}
-                  title={t('torrents.reannounce', 'Reannounce')}
-                  aria-label={t('torrents.reannounce', 'Reannounce')}
-                  className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
-                >
-                  {reannounceMutation.isPending ? (
-                    <span className="block w-3 h-3 rounded-full border-2 border-neutral-400 border-t-transparent animate-spin" />
-                  ) : (
-                    <RefreshCw size={11} />
-                  )}
-                </button>
-                <button
-                  onClick={handleToggle}
-                  disabled={isActionPending}
-                  title={isPaused ? t('torrents.start', 'Resume') : t('torrents.pause', 'Pause')}
-                  aria-label={isPaused ? t('torrents.start', 'Resume') : t('torrents.pause', 'Pause')}
-                  className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
-                >
-                  {pauseMutation.isPending || resumeMutation.isPending ? (
-                    <span className="block w-3 h-3 rounded-full border-2 border-neutral-400 border-t-transparent animate-spin" />
-                  ) : isPaused ? (
-                    <Play size={11} />
-                  ) : (
-                    <Pause size={11} />
-                  )}
-                </button>
+
+              {/* Desktop: inline buttons on hover */}
+              <div className="hidden sm:flex sm:opacity-0 sm:group-hover:opacity-100 items-center gap-1 transition-opacity">
+                {actionButtons}
               </div>
+
+              {/* Mobile: three-dot dropdown */}
+              <div
+                ref={dropdownRef}
+                className="relative sm:hidden"
+                onClick={e => { e.preventDefault(); e.stopPropagation(); }}
+              >
+                <button
+                  onClick={e => { e.preventDefault(); e.stopPropagation(); setDropdownOpen(v => !v); }}
+                  disabled={isActionPending}
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:opacity-30"
+                  aria-label={t('common.actions', 'Actions')}
+                >
+                  {isActionPending ? (
+                    <span className="block w-3 h-3 rounded-full border-2 border-neutral-400 border-t-transparent animate-spin" />
+                  ) : (
+                    <MoreHorizontal size={12} />
+                  )}
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg py-1 overflow-hidden">
+                    <button
+                      onClick={handleTogglePin}
+                      disabled={isPinPending}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors"
+                    >
+                      {isPinned ? <PinOff size={13} /> : <Pin size={13} />}
+                      {isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
+                    </button>
+                    <button
+                      onClick={handleReannounce}
+                      disabled={isActionPending}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors"
+                    >
+                      <RefreshCw size={13} />
+                      {t('torrents.reannounce', 'Reannounce')}
+                    </button>
+                    <button
+                      onClick={handleToggle}
+                      disabled={isActionPending}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors"
+                    >
+                      {isPaused ? <Play size={13} /> : <Pause size={13} />}
+                      {isPaused ? t('torrents.start', 'Resume') : t('torrents.pause', 'Pause')}
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <span className="font-mono text-xs font-medium text-neutral-500 dark:text-neutral-400 tabular-nums">
                 {formatBytes(torrent.size_bytes)}
               </span>
@@ -140,7 +216,7 @@ export function TorrentRow({
           </div>
 
           {/* Category + tags */}
-          {(torrent.category || torrent.tags.length > 0) && !compact && (
+          {(torrent.category || torrent.tags.length > 0) && (
             <div className="mt-1.5 flex flex-wrap gap-1">
               {torrent.category && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800">
@@ -159,8 +235,8 @@ export function TorrentRow({
             </div>
           )}
 
-          {/* Progress bar — color coded by state */}
-          <div className={`${compact ? 'mt-1.5' : 'mt-2'} h-1 w-full rounded-full overflow-hidden ${barTrackClass}`}>
+          {/* Progress bar */}
+          <div className={`mt-2 h-1 w-full rounded-full overflow-hidden ${barTrackClass}`}>
             <div
               className={`h-full rounded-full transition-all duration-500 ${barFillClass} ${isUploading ? 'torrent-progress-bar-active' : ''}`}
               style={{ width: `${progress}%` }}
@@ -168,7 +244,7 @@ export function TorrentRow({
           </div>
 
           {/* Meta row */}
-          <div className={`flex items-center gap-3 flex-wrap ${compact ? 'mt-1' : 'mt-1.5'}`}>
+          <div className="flex items-center gap-3 flex-wrap mt-1.5">
             <span className="font-mono text-[11px] text-neutral-500 dark:text-neutral-400 tabular-nums">
               {progress}%
             </span>
@@ -193,7 +269,7 @@ export function TorrentRow({
                 </span>
               </>
             )}
-            {relDate && !compact && (
+            {relDate && (
               <span className="ml-auto font-mono text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
                 {relDate}
               </span>

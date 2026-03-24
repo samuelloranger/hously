@@ -1,5 +1,6 @@
 import { createRouter, createRootRouteWithContext, createRoute, redirect } from '@tanstack/react-router';
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
+import type { QbittorrentSortDir, QbittorrentSortKey, QbittorrentStateFilter } from '@hously/shared';
 import { RootLayout } from './components/Layout';
 import { getCurrentUser } from './lib/auth';
 import type { Tab } from './routes/settings';
@@ -69,6 +70,7 @@ const TorrentsPage = cachedLazy('torrents', () =>
 const TorrentDetailPage = cachedLazy('torrent-detail', () =>
   import('./features/torrents/TorrentDetailPage').then(m => ({ default: m.TorrentDetailPage }))
 );
+const V2Page = cachedLazy('v2', () => import('./features/v2').then(m => ({ default: m.V2Page })));
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -327,10 +329,58 @@ const termsRoute = createRoute({
   component: Terms,
 });
 
+export type TorrentsSearchParams = {
+  search?: string;
+  state?: QbittorrentStateFilter;
+  categories?: string[];
+  tags?: string[];
+  sortBy?: QbittorrentSortKey;
+  sortDir?: QbittorrentSortDir;
+};
+
+const QBITTORRENT_STATE_FILTER_VALUES = new Set<QbittorrentStateFilter>([
+  'all',
+  'downloading',
+  'uploading',
+  'seeding',
+  'paused',
+  'complete',
+  'stalled',
+  'error',
+]);
+
+const QBITTORRENT_SORT_KEY_VALUES = new Set<QbittorrentSortKey>([
+  'name',
+  'ratio',
+  'added_on',
+  'size',
+  'download_speed',
+  'upload_speed',
+]);
+
+const QBITTORRENT_SORT_DIR_VALUES = new Set<QbittorrentSortDir>(['asc', 'desc']);
+
 const torrentsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/torrents',
   component: TorrentsPage,
+  validateSearch: (search: Record<string, unknown>): TorrentsSearchParams => ({
+    search: typeof search.search === 'string' && search.search ? search.search : undefined,
+    state:
+      typeof search.state === 'string' && QBITTORRENT_STATE_FILTER_VALUES.has(search.state as QbittorrentStateFilter)
+        ? (search.state as QbittorrentStateFilter)
+        : undefined,
+    categories: parseOptionalStringArray(search.categories),
+    tags: parseOptionalStringArray(search.tags),
+    sortBy:
+      typeof search.sortBy === 'string' && QBITTORRENT_SORT_KEY_VALUES.has(search.sortBy as QbittorrentSortKey)
+        ? (search.sortBy as QbittorrentSortKey)
+        : undefined,
+    sortDir:
+      typeof search.sortDir === 'string' && QBITTORRENT_SORT_DIR_VALUES.has(search.sortDir as QbittorrentSortDir)
+        ? (search.sortDir as QbittorrentSortDir)
+        : undefined,
+  }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
     await prefetchRouteData(context.queryClient, '/torrents');
@@ -359,6 +409,19 @@ export type LibrarySearchParams = {
 
 const parseOptionalInt = (val: unknown): number | undefined =>
   typeof val === 'number' ? val : typeof val === 'string' && val ? Number(val) || undefined : undefined;
+
+const parseOptionalStringArray = (value: unknown): string[] | undefined => {
+  if (Array.isArray(value)) {
+    const parsed = value.filter((entry): entry is string => typeof entry === 'string' && entry.length > 0);
+    return parsed.length > 0 ? parsed : undefined;
+  }
+
+  if (typeof value === 'string' && value.length > 0) {
+    return [value];
+  }
+
+  return undefined;
+};
 
 const libraryRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -396,6 +459,13 @@ const torrentDetailRoute = createRoute({
   },
 });
 
+const v2Route = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/v2',
+  component: V2Page,
+  beforeLoad: requireAuth,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   activityRoute,
@@ -418,6 +488,7 @@ const routeTree = rootRoute.addChildren([
   libraryRoute,
   releasesRoute,
   torrentDetailRoute,
+  v2Route,
 ]);
 
 export const router = createRouter({
