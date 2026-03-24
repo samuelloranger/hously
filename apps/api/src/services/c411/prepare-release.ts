@@ -531,6 +531,7 @@ async function createTorrentArtifact(
   source: ResolvedReleaseSource,
   releaseName: string,
   hardlinkPath: string,
+  releaseId: number,
   onStep?: (step: string) => Promise<void>,
 ): Promise<{ torrentPath: string; cleanup: () => Promise<void> }> {
   const tmpDir = `/tmp/c411-${Date.now()}`;
@@ -541,23 +542,35 @@ async function createTorrentArtifact(
 
   console.log('[c411:prepare] Creating torrent...');
   let lastReportedHashed = -1;
-  await createTorrentFile({
-    announceUrl,
-    pieceLength,
-    outputPath: torrentPath,
-    contentPath: hardlinkPath,
-    onProgress: onStep
-      ? (pct, hashed, total, etaSecs) => {
-          // Update every 0.5% of total bytes (or always on 100%) so that
-          // large torrents where pct stays at 0 for a long time still show movement.
-          const threshold = Math.max(Math.round(total * 0.005), pieceLength);
-          if (hashed - lastReportedHashed >= threshold || pct === 100) {
-            lastReportedHashed = hashed;
-            const eta = etaSecs !== null ? etaSecs : '';
-            onStep(`torrent:${pct}:${hashed}:${total}:${eta}`);
-          }
+
+  // Capture reject so onProgress (sync callback) can abort the promise on cancel.
+  let abortTorrent: ((err: Error) => void) | null = null;
+
+  await new Promise<void>((resolve, reject) => {
+    abortTorrent = reject;
+    createTorrentFile({
+      announceUrl,
+      pieceLength,
+      outputPath: torrentPath,
+      contentPath: hardlinkPath,
+      onProgress: (pct, hashed, total, etaSecs) => {
+        // Cancellation check on every piece — fast response regardless of size.
+        if (cancelledReleases.has(releaseId)) {
+          cancelledReleases.delete(releaseId);
+          reject(new PrepareAbortedError(releaseId));
+          return;
         }
-      : undefined,
+
+        if (!onStep) return;
+        // DB update every 0.5% of total bytes so the UI moves steadily.
+        const threshold = Math.max(Math.round(total * 0.005), pieceLength);
+        if (hashed - lastReportedHashed >= threshold || pct === 100) {
+          lastReportedHashed = hashed;
+          const eta = etaSecs !== null ? etaSecs : '';
+          onStep(`torrent:${pct}:${hashed}:${total}:${eta}`);
+        }
+      },
+    }).then(resolve, reject);
   });
 
   return {
@@ -570,6 +583,7 @@ async function createTorrentArtifact(
 
 async function buildPreparedArtifacts(
   source: ResolvedReleaseSource,
+  releaseId: number,
   onStep?: (step: string) => Promise<void>,
 ): Promise<PreparedReleaseArtifacts> {
   const [c411Config, tmdbApiKey] = await Promise.all([
@@ -632,6 +646,7 @@ async function buildPreparedArtifacts(
     source,
     c411Name,
     hardlinkPath,
+    releaseId,
     onStep,
   );
 
@@ -847,7 +862,7 @@ export async function processQueuedPrepareRelease(
     };
 
     cancelledReleases.delete(releaseId); // ensure clean slate on success path
-    const artifacts = await buildPreparedArtifacts(source, onStep);
+    const artifacts = await buildPreparedArtifacts(source, releaseId, onStep);
     await prisma.c411Release.update({
       where: { id: releaseId },
       data: mapReleaseRecord(source, artifacts),
