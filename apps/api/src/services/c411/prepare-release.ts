@@ -548,9 +548,10 @@ async function createTorrentArtifact(
       pieceLength,
       outputPath: torrentPath,
       contentPath: hardlinkPath,
+      totalBytes: source.totalSize,
       shouldCancel: () => cancelledReleases.has(releaseId),
       onProgress: onStep
-        ? async (pct) => { await onStep(`torrent:${pct}`); }
+        ? async (pct, eta) => { await onStep(`torrent:${pct}:${eta ?? ''}`); }
         : undefined,
     });
   } catch (err) {

@@ -36,7 +36,11 @@
       "Read(//home/samuelloranger/sites/hously/apps/web/src/features/$feat/**)",
       "Bash(done)",
       "Bash(xargs:*)",
-      "Bash(bun test:*)"
+      "Bash(bun test:*)",
+      "Bash(task:*)",
+      "WebSearch",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []

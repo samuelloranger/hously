@@ -30,9 +30,10 @@ function parseHardlinkStep(step: string): { done: number; total: number; eta: nu
   return { done: Number(m[1]), total: Number(m[2]), eta: m[3] != null ? Number(m[3]) : null };
 }
 
-function parseTorrentStep(step: string): number | null {
-  const m = step.match(/^torrent:(\d+)/);
-  return m ? Number(m[1]) : null;
+function parseTorrentStep(step: string): { pct: number; eta: number | null } | null {
+  const m = step.match(/^torrent:(\d+):(\d*)$/);
+  if (!m) return null;
+  return { pct: Number(m[1]), eta: m[2] ? Number(m[2]) : null };
 }
 
 function formatEta(seconds: number): string {
@@ -69,9 +70,9 @@ function PrepareStepTimeline({ step }: { step: string }) {
                   </span>
                 )}
               </span>
-              {active && s.key === 'torrent' && torrentInfo !== null && torrentInfo > 0 && (
+              {active && s.key === 'torrent' && torrentInfo !== null && torrentInfo.pct > 0 && (
                 <span className="tabular-nums opacity-70 text-[10px]">
-                  {torrentInfo}%
+                  {torrentInfo.pct}%{torrentInfo.eta !== null && torrentInfo.eta > 0 && ` · ${formatEta(torrentInfo.eta)}`}
                 </span>
               )}
             </span>
