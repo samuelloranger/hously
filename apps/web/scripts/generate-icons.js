@@ -29,7 +29,7 @@ async function generateIcons() {
     let sharp;
     try {
       sharp = (await import('sharp')).default;
-    } catch (e) {
+    } catch {
       console.error('Error: sharp package not found.');
       console.error('Please install sharp: bun add -D sharp');
       console.error('\nAlternatively, you can convert the SVG manually using:');
@@ -49,11 +49,11 @@ async function generateIcons() {
     // Generate each icon size
     for (const { size, name } of iconSizes) {
       const outputPath = path.join(publicDir, name);
-      
+
       await sharp(svgPath)
         .resize(size, size, {
           fit: 'contain',
-          background: { r: 255, g: 255, b: 255, alpha: 1 }
+          background: { r: 255, g: 255, b: 255, alpha: 1 },
         })
         .png()
         .toFile(outputPath);
@@ -70,4 +70,3 @@ async function generateIcons() {
 }
 
 generateIcons();
-
