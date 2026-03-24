@@ -71,16 +71,18 @@ function PrepareStepTimeline({ step }: { step: string }) {
               : active
                 ? <Loader2 className="h-3 w-3 shrink-0 animate-spin" />
                 : <Circle className="h-3 w-3 shrink-0 opacity-40" />}
-            <span>
-              {s.label}
-              {active && s.key === 'hardlinking' && hlInfo && (
-                <span className="ml-1 tabular-nums opacity-80">
-                  ({hlInfo.done}/{hlInfo.total}
-                  {hlInfo.eta !== null && hlInfo.eta > 0 && ` · ${formatEta(hlInfo.eta)}`})
-                </span>
-              )}
+            <span className="flex flex-col gap-0.5">
+              <span>
+                {s.label}
+                {active && s.key === 'hardlinking' && hlInfo && (
+                  <span className="ml-1 tabular-nums opacity-80">
+                    ({hlInfo.done}/{hlInfo.total}
+                    {hlInfo.eta !== null && hlInfo.eta > 0 && ` · ${formatEta(hlInfo.eta)}`})
+                  </span>
+                )}
+              </span>
               {active && s.key === 'torrent' && torrentInfo !== null && (torrentInfo.hashed ?? 0) > 0 && (
-                <span className="ml-1 tabular-nums opacity-80">
+                <span className="tabular-nums opacity-70 text-[10px]">
                   {torrentInfo.hashed !== null && torrentInfo.total !== null
                     ? `${formatBytes(torrentInfo.hashed)} / ${formatBytes(torrentInfo.total)}`
                     : `${torrentInfo.pct}%`}
