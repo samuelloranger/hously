@@ -563,13 +563,20 @@ async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<Pr
 
   console.log('[c411:prepare] Detecting languages...');
   const rawLanguageTag = await detectLanguages(source.originalPath);
-  const languageTag = inferLanguageTag(source.originalName, media, rawLanguageTag);
+  let languageTag = inferLanguageTag(source.originalName, media, rawLanguageTag);
   console.log(`[c411:prepare] Language: ${languageTag}`);
 
   console.log(`[c411:prepare] Fetching TMDB details for ${source.tmdbId}...`);
   let tmdb = await fetchTmdbDetails(tmdbApiKey, source.tmdbType, source.tmdbId).catch(() => null);
   if (!tmdb) {
     tmdb = buildFallbackTmdbDetails(source.originalName);
+  }
+
+  // Canadian productions use VFQ, not VFF
+  const isCanadian = tmdb.productionCountries.some((c) => /canada/i.test(c));
+  if (isCanadian) {
+    if (languageTag === 'VFF') languageTag = 'VFQ';
+    else if (languageTag === 'MULTI.VFF') languageTag = 'MULTI.VFQ';
   }
 
   const releaseInfo = buildReleaseInfo(
