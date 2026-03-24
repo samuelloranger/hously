@@ -202,9 +202,9 @@ export const dashboardPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         plugin: {
           type: 'clockify',
           enabled: plugin?.enabled || false,
-          api_key: config?.api_key,
-          workspace_id: config?.workspace_id,
-          user_id: config.workspace_id
+          api_key: '',
+          workspace_id: config.workspace_id,
+          user_id: config.user_id
         },
       };
     } catch (error) {

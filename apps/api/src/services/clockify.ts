@@ -1,4 +1,4 @@
-export const CLOCKIFY_API_BASE = 'https://api.clockify.me';
+export const CLOCKIFY_API_BASE = 'https://api.clockify.me/api';
 
 /**
  * Submit a weekly timesheet approval request for the week containing the given start date.

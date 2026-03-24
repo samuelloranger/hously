@@ -69,10 +69,20 @@ export const checkClockifyHours = async (
       );
 
       if (!res.ok) {
-        throw new Error(`Clockify API error: ${res.status} ${res.statusText}`);
+        const body = await res.text().catch(() => '');
+        const msg = `Clockify API error: ${res.status} ${res.statusText}${body ? ` — ${body}` : ''}`;
+        console.error(`[cron:clockify] ${msg}`);
+        throw new Error(msg);
       }
 
-      const entries = (await res.json()) as Array<{ timeInterval?: { duration?: string | null } }>;
+      const rawText = await res.text();
+      let entries: Array<{ timeInterval?: { duration?: string | null } }>;
+      try {
+        entries = JSON.parse(rawText);
+      } catch {
+        console.error(`[cron:clockify] unexpected response (${res.status}): ${rawText.slice(0, 500)}`);
+        throw new Error(`Clockify returned non-JSON response (${res.status}): ${rawText.slice(0, 200)}`);
+      }
 
       for (const entry of entries) {
         const duration = entry.timeInterval?.duration;
@@ -98,7 +108,7 @@ export const checkClockifyHours = async (
       for (const user of users) {
         await createAndQueueNotification(
           user.id,
-          'Hours below target',
+          '[Clockify] Hours below target',
           `You logged ${totalHours.toFixed(1)}h this week (${weekLabel}). You're ${shortBy}h short of the ${TARGET_HOURS}h target.`,
           'clockify_hours_warning',
         );
@@ -117,7 +127,7 @@ export const checkClockifyHours = async (
       for (const user of users) {
         await createAndQueueNotification(
           user.id,
-          submitted ? 'Timesheet submitted' : 'Target reached',
+          submitted ? '[Clockify] Timesheet submitted' : '[Clockify] Target reached',
           submitted
             ? `You logged ${totalHours.toFixed(1)}h this week (${weekLabel}). Your timesheet has been submitted for approval.`
             : `You logged ${totalHours.toFixed(1)}h this week (${weekLabel}). Target reached but timesheet submission failed.`,
