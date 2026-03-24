@@ -13,7 +13,7 @@ import { addJob, QUEUE_NAMES } from '../queueService';
 import { uploadToS3, deleteFromS3 } from '../s3Service';
 import { loadC411Config } from './session';
 import { getMediaInfo, type MediaInfoData } from './mediainfo';
-import { detectLanguages } from './lang-detect';
+import { detectLanguages, applyCanadianLanguageOverride } from './lang-detect';
 import { fetchTmdbDetails, buildFallbackTmdbDetails, type TmdbDetails } from './tmdb';
 import {
   buildReleaseName,
@@ -572,12 +572,7 @@ async function buildPreparedArtifacts(source: ResolvedReleaseSource): Promise<Pr
     tmdb = buildFallbackTmdbDetails(source.originalName);
   }
 
-  // Canadian productions use VFQ, not VFF
-  const isCanadian = tmdb.productionCountries.some((c) => /canada/i.test(c));
-  if (isCanadian) {
-    if (languageTag === 'VFF') languageTag = 'VFQ';
-    else if (languageTag === 'MULTI.VFF') languageTag = 'MULTI.VFQ';
-  }
+  languageTag = applyCanadianLanguageOverride(languageTag, tmdb.productionCountries);
 
   const releaseInfo = buildReleaseInfo(
     tmdb,
@@ -911,8 +906,16 @@ export async function prepareRelease(options: PrepareReleaseOptions): Promise<Pr
 
 export async function fetchReleaseMediaInfoPreview(options: PrepareReleaseOptions) {
   const source = await resolveReleaseSource(options);
-  const media = await getMediaInfo(source.originalPath, source.originalName);
-  const languageTag = media ? inferLanguageTag(source.originalName, media, await detectLanguages(source.originalPath)) : 'UNKNOWN';
+  const [media, rawLanguageTag, tmdbApiKey] = await Promise.all([
+    getMediaInfo(source.originalPath, source.originalName),
+    detectLanguages(source.originalPath),
+    loadTmdbApiKey().catch(() => null),
+  ]);
+  let languageTag = media ? inferLanguageTag(source.originalName, media, rawLanguageTag) : 'UNKNOWN';
+  if (tmdbApiKey) {
+    const tmdb = await fetchTmdbDetails(tmdbApiKey, source.tmdbType, source.tmdbId).catch(() => null);
+    if (tmdb) languageTag = applyCanadianLanguageOverride(languageTag, tmdb.productionCountries);
+  }
   const nameParsed = parseSceneTags(source.originalName);
 
   return {

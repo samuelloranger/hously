@@ -55,6 +55,17 @@ async function getAudioLanguages(filePath: string): Promise<AudioTrack[]> {
   }
 }
 
+/**
+ * If TMDB identifies the production as Canadian and the detected tag is a generic
+ * French variant, upgrade to the Québécois equivalent.
+ */
+export function applyCanadianLanguageOverride(languageTag: LanguageTag, productionCountries: string[]): LanguageTag {
+  if (!productionCountries.some((c) => /canada/i.test(c))) return languageTag;
+  if (languageTag === 'VFF') return 'VFQ';
+  if (languageTag === 'MULTI.VFF') return 'MULTI.VFQ';
+  return languageTag;
+}
+
 export async function detectLanguages(contentPath: string): Promise<LanguageTag> {
   const mediaFile = await findMediaFile(contentPath);
   if (!mediaFile) return 'UNKNOWN';

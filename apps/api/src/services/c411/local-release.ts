@@ -5,7 +5,7 @@ import { prisma } from '../../db';
 import { normalizeRadarrConfig } from '../../utils/plugins/normalizers';
 import { uploadToS3 } from '../s3Service';
 import { getMediaInfo } from './mediainfo';
-import { detectLanguages } from './lang-detect';
+import { detectLanguages, applyCanadianLanguageOverride } from './lang-detect';
 import { fetchTmdbDetails, buildFallbackTmdbDetails } from './tmdb';
 import { generateBBCode, buildReleaseInfo } from './bbcode';
 import { loadC411Config } from './session';
@@ -93,6 +93,7 @@ export async function createLocalC411ReleaseFromConversion(params: {
       ? await fetchTmdbDetails(tmdbApiKey, 'movie', movie.tmdbId).catch(() => buildFallbackTmdbDetails(movie.title || basename(params.outputPath)))
       : buildFallbackTmdbDetails(movie.title || basename(params.outputPath));
 
+  const resolvedLanguageTag = applyCanadianLanguageOverride(languageTag, tmdb.productionCountries);
   const releaseStem = basename(params.outputPath, extname(params.outputPath));
   const c411Name = media
     ? buildReleaseName(
@@ -100,7 +101,7 @@ export async function createLocalC411ReleaseFromConversion(params: {
           tmdb,
           media,
           releaseStem,
-          languageTag !== 'UNKNOWN' ? languageTag : undefined,
+          resolvedLanguageTag !== 'UNKNOWN' ? resolvedLanguageTag : undefined,
         ),
         releaseStem,
       )
@@ -112,7 +113,7 @@ export async function createLocalC411ReleaseFromConversion(params: {
     releaseName: c411Name,
     fileCount: 1,
     totalSize: formatReleaseSize(fileStat.size),
-    languages: languageTag !== 'UNKNOWN' ? languageTag : undefined,
+    languages: resolvedLanguageTag !== 'UNKNOWN' ? resolvedLanguageTag : undefined,
   });
 
   const { categoryId, subcategoryId } = resolveCategory(undefined, 'movie');
@@ -180,7 +181,7 @@ export async function createLocalC411ReleaseFromConversion(params: {
       subcategoryId,
       categoryName: 'Films',
       subcategoryName: 'Film',
-      language: languageTag !== 'UNKNOWN' ? languageTag : null,
+      language: resolvedLanguageTag !== 'UNKNOWN' ? resolvedLanguageTag : null,
       resolution: media?.resolution !== 'N/A' ? media?.resolution ?? null : null,
       source: media?.source !== 'N/A' ? media?.source ?? null : null,
       videoCodec: media?.videoCodec !== 'N/A' ? media?.videoCodec ?? null : null,
