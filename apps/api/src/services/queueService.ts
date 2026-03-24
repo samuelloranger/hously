@@ -26,6 +26,7 @@ export const SCHEDULED_JOB_NAMES = {
   REFRESH_UPCOMING: 'refresh-upcoming',
   REFRESH_HABITS_STREAKS: 'refresh-habits-streaks',
   REFRESH_HABITS_STREAK_FOR_USER: 'refresh-habits-streak-for-user',
+  CHECK_CLOCKIFY_HOURS: 'check-clockify-hours',
 } as const;
 
 // Job names for Notifications queue
@@ -179,6 +180,7 @@ export async function setupScheduledJobs() {
     { name: SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS, pattern: '* * * * *' },
     { name: SCHEDULED_JOB_NAMES.REFRESH_UPCOMING, pattern: '30 */12 * * *' },
     { name: SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAKS, pattern: '*/15 * * * *' },
+    { name: SCHEDULED_JOB_NAMES.CHECK_CLOCKIFY_HOURS, pattern: '0 18 * * 5' }, // Friday 6 PM UTC
   ];
 
   const repeatableJobs = await scheduledTasksQueue.getRepeatableJobs();

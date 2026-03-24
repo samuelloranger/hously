@@ -6,6 +6,7 @@ import { nowUtc } from '../../utils';
 import { normalizeQbittorrentConfig, invalidateQbittorrentPluginConfigCache } from '../../services/qbittorrent/config';
 import { clampInteger, isValidHttpUrl } from '../../utils/plugins/utils';
 import {
+  normalizeClockifyConfig,
   normalizeHackernewsConfig,
   normalizeRedditConfig,
   normalizeTmdbConfig,
@@ -187,6 +188,99 @@ export const dashboardPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         api_key: t.String(),
         enabled: t.Optional(t.Boolean()),
         popularity_threshold: t.Optional(t.Number()),
+      }),
+    }
+  )
+  .get('/clockify', async ({ set }) => {
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: 'clockify' },
+      });
+      const config = normalizeClockifyConfig(plugin?.config);
+
+      return {
+        plugin: {
+          type: 'clockify',
+          enabled: plugin?.enabled || false,
+          api_key: config?.api_key,
+          workspace_id: config?.workspace_id,
+          user_id: config.workspace_id
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching Clockify plugin config:', error);
+      return serverError(set, 'Failed to fetch Clockify plugin config');
+    }
+  })
+  .put(
+    '/clockify',
+    async ({ user, body, set }) => {
+      const existingPlugin = await prisma.plugin.findFirst({
+        where: { type: 'clockify' },
+      });
+      const existingConfig = normalizeClockifyConfig(existingPlugin?.config);
+      const providedApiKey = body.api_key.trim();
+      const providedWorkspaceId = body.workspace_id?.trim();
+      const providedUserId = body.user_id?.trim();
+      const apiKey = providedApiKey || existingConfig?.api_key || '';
+      const workspaceId = providedWorkspaceId || existingConfig?.workspace_id || '';
+      const userId = providedUserId || existingConfig?.user_id || '';
+      const enabled = body.enabled ?? true;
+
+      if (!apiKey) {
+        return badRequest(set, 'api_key is required');
+      }
+
+      try {
+        const now = nowUtc();
+        const configPayload = {
+          api_key: encrypt(apiKey),
+          workspace_id: workspaceId,
+          user_id: userId
+        };
+        const plugin = await prisma.plugin.upsert({
+          where: { type: 'clockify' },
+          update: {
+            enabled,
+            config: configPayload,
+            updatedAt: now,
+          },
+          create: {
+            type: 'clockify',
+            enabled,
+            config: configPayload,
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+
+        await logActivity({
+          type: 'plugin_updated',
+          userId: user!.id,
+          payload: { plugin_type: 'clockify' },
+        });
+
+        return {
+          success: true,
+          plugin: {
+            type: plugin.type,
+            enabled: plugin.enabled,
+            api_key: '',
+            workspace_id: workspaceId,
+            user_id: userId
+          },
+        };
+      } catch (error) {
+        console.error('Error saving Clockify plugin config:', error);
+        return serverError(set, 'Failed to save Clockify plugin config');
+      }
+    },
+    {
+      body: t.Object({
+        enabled: t.Optional(t.Boolean()),
+        api_key: t.String(),
+        workspace_id: t.Optional(t.String()),
+        user_id: t.Optional(t.String()),
       }),
     }
   )

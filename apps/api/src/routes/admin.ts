@@ -185,6 +185,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         'fetch_c411_stats': SCHEDULED_JOB_NAMES.FETCH_C411_STATS,
         'fetch_torr9_stats': SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS,
         'fetch_la_cale_stats': SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS,
+        'check_clockify_hours': SCHEDULED_JOB_NAMES.CHECK_CLOCKIFY_HOURS,
       };
 
       const jobName = actionMap[action] || action;

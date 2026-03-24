@@ -95,7 +95,7 @@ if (import.meta.main) {
   });
 
   // 3. Start Server
-  app.listen(3000);
+  app.listen(process.env.API_PORT || 3000);
   console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
 
   // 4. Post-startup tasks

@@ -13,6 +13,7 @@ export const PLUGIN_ENDPOINTS = {
   ADGUARD_PROTECTION: '/api/plugins/adguard/protection',
   WEATHER: '/api/plugins/weather',
   TMDB: '/api/plugins/tmdb',
+  CLOCKIFY: "/api/plugins/clockify",
   C411: '/api/plugins/c411',
   TORR9: '/api/plugins/torr9',
   LA_CALE: '/api/plugins/la-cale',

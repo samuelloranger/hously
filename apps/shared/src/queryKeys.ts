@@ -91,6 +91,7 @@ export const queryKeys = {
     adguard: () => [...queryKeys.plugins.all, 'adguard'] as const,
     weather: () => [...queryKeys.plugins.all, 'weather'] as const,
     tmdb: () => [...queryKeys.plugins.all, 'tmdb'] as const,
+    clockify: () => [...queryKeys.plugins.all, 'clockify'] as const,
   },
 
   admin: {

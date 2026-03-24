@@ -64,6 +64,8 @@ import type {
   SonarrPluginUpdateResponse,
   TmdbPlugin,
   TmdbPluginUpdateResponse,
+  ClockifyPlugin,
+  ClockifyPluginUpdateResponse,
   TemplateResponse,
   TemplatesResponse,
   TestEmailResponse,
@@ -635,6 +637,12 @@ export function createPluginsApi(fetcher: ApiFetcher) {
     getTmdbPlugin: () => fetcher<{ plugin: TmdbPlugin }>(PLUGIN_ENDPOINTS.TMDB),
     updateTmdbPlugin: (data: { api_key: string; enabled: boolean }) =>
       fetcher<TmdbPluginUpdateResponse>(PLUGIN_ENDPOINTS.TMDB, {
+        method: 'PUT',
+        body: data,
+      }),
+    getClockifyPlugin: () => fetcher<{ plugin: ClockifyPlugin }>(PLUGIN_ENDPOINTS.CLOCKIFY),
+    updateClockifyPlugin: (data: {enabled: boolean, api_key: string; workspace_id: string; user_id: string; }) =>
+      fetcher<ClockifyPluginUpdateResponse>(PLUGIN_ENDPOINTS.CLOCKIFY, {
         method: 'PUT',
         body: data,
       }),

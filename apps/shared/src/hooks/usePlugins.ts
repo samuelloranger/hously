@@ -25,6 +25,8 @@ import type {
   SonarrPluginUpdateResponse,
   TmdbPlugin,
   TmdbPluginUpdateResponse,
+  ClockifyPlugin,
+  ClockifyPluginUpdateResponse,
   TrackerPlugin,
   TrackerPluginUpdateResponse,
   TrackerType,
@@ -186,6 +188,16 @@ export function useTmdbPlugin() {
   return useQuery({
     queryKey: queryKeys.plugins.tmdb(),
     queryFn: () => fetcher<{ plugin: TmdbPlugin }>(PLUGIN_ENDPOINTS.TMDB),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useClockifyPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.clockify(),
+    queryFn: () => fetcher<{ plugin: ClockifyPlugin }>(PLUGIN_ENDPOINTS.CLOCKIFY),
     refetchOnMount: 'always',
     staleTime: 0,
   });
@@ -387,6 +399,21 @@ export function useUpdateTmdbPlugin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.tmdb() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() });
+    },
+  });
+}
+
+export function useUpdateClockifyPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { api_key: string; enabled: boolean; workspace_id: string; user_id: string; }) =>
+      fetcher<ClockifyPluginUpdateResponse>(PLUGIN_ENDPOINTS.CLOCKIFY, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.clockify() });
     },
   });
 }
