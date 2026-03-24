@@ -48,8 +48,7 @@ export function useMediaHistory(
     },
     enabled:
       (options?.enabled ?? false) &&
-      params.sourceId !== null &&
-      (params.service === 'radarr' || params.seasonNumber != null),
+      params.sourceId !== null,
   });
 }
 
@@ -206,8 +205,7 @@ export function useC411MediaInfo(
     },
     enabled:
       (options?.enabled ?? false) &&
-      params.sourceId !== null &&
-      (params.service === 'radarr' || params.seasonNumber != null),
+      params.sourceId !== null,
   });
 }
 
