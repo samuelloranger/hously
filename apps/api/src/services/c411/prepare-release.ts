@@ -144,8 +144,9 @@ function normalizePrepareOptions(options: PrepareReleaseOptions): {
   if (!sourceId || !Number.isFinite(sourceId) || sourceId <= 0) {
     throw new Error('Invalid source ID');
   }
-  if (service === 'sonarr' && (!Number.isFinite(seasonNumber ?? Number.NaN) || (seasonNumber ?? 0) <= 0)) {
-    throw new Error('seasonNumber is required for Sonarr releases');
+  // Allow null (integral release) or a positive season number for Sonarr
+  if (service === 'sonarr' && seasonNumber !== null && (!Number.isFinite(seasonNumber) || seasonNumber <= 0)) {
+    throw new Error('seasonNumber must be a positive integer for Sonarr season releases');
   }
 
   return { service, sourceId, seasonNumber };
@@ -221,6 +222,16 @@ async function fetchReleaseGroupFromHistory(config: ArrConfig, movieId: number):
 
 async function fetchSonarrSeries(config: ArrConfig, seriesId: number): Promise<SonarrSeries> {
   return fetchArrJson<SonarrSeries>(config, `/api/v3/series/${seriesId}`);
+}
+
+async function fetchAllSonarrEpisodes(
+  config: ArrConfig,
+  seriesId: number,
+): Promise<SonarrEpisode[]> {
+  return fetchArrJson<SonarrEpisode[]>(config, '/api/v3/episode', {
+    seriesId: String(seriesId),
+    includeEpisodeFile: 'true',
+  });
 }
 
 async function fetchSonarrSeasonEpisodes(
@@ -369,11 +380,68 @@ async function resolveSeasonSource(sourceId: number, seasonNumber: number): Prom
   };
 }
 
+async function resolveIntegralSource(sourceId: number): Promise<ResolvedReleaseSource> {
+  const sonarrConfig = await loadArrConfig('sonarr');
+  const [series, episodes] = await Promise.all([
+    fetchSonarrSeries(sonarrConfig, sourceId),
+    fetchAllSonarrEpisodes(sonarrConfig, sourceId),
+  ]);
+
+  const fileMap = new Map<string, ReleaseSourceFile>();
+  for (const episode of episodes) {
+    if ((episode.seasonNumber ?? 0) === 0) continue; // Skip specials (season 0)
+    const episodeFile = episode.episodeFile;
+    if (!episodeFile?.path) continue;
+    const mappedPath = remapArrPath(episodeFile.path);
+    if (fileMap.has(mappedPath)) continue;
+    fileMap.set(mappedPath, {
+      path: mappedPath,
+      size: Number(episodeFile.size ?? 0),
+      relativePath: episodeFile.relativePath || mappedPath.split('/').pop() || mappedPath,
+      sceneName: episodeFile.sceneName || episodeFile.relativePath || mappedPath.split('/').pop() || '',
+      releaseGroup: episodeFile.releaseGroup || '',
+    });
+  }
+
+  const files = Array.from(fileMap.values()).sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+  if (files.length === 0) {
+    throw new Error('No downloaded files found in Sonarr for this series');
+  }
+
+  const seriesRootPath = series.path ? remapArrPath(series.path) : commonParentDirectory(files.map((file) => file.path));
+  const primaryFile = [...files].sort((left, right) => right.size - left.size)[0];
+  const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+  const releaseGroup = files.find((file) => file.releaseGroup)?.releaseGroup || '';
+  const originalName = `${series.title || 'Series'} Integrale`;
+
+  return {
+    service: 'sonarr',
+    sourceId,
+    seasonNumber: null,
+    sourceTitle: series.title || originalName,
+    originalPath: seriesRootPath,
+    originalName,
+    primaryFilePath: primaryFile.path,
+    primaryFileRelativePath: sanitizeRelativePath(primaryFile.path, seriesRootPath),
+    releaseGroup,
+    tmdbId: series.tmdbId,
+    imdbId: series.imdbId || '',
+    tmdbType: 'tv',
+    hardlinkBase: TV_HARDLINK_BASE,
+    qbittorrentCategory: 'tv-sonarr',
+    files: files.map((file) => ({
+      ...file,
+      relativePath: sanitizeRelativePath(file.path, seriesRootPath),
+    })),
+    totalSize,
+  };
+}
+
 async function resolveReleaseSource(options: PrepareReleaseOptions): Promise<ResolvedReleaseSource> {
   const normalized = normalizePrepareOptions(options);
-  return normalized.service === 'radarr'
-    ? resolveMovieSource(normalized.sourceId)
-    : resolveSeasonSource(normalized.sourceId, normalized.seasonNumber!);
+  if (normalized.service === 'radarr') return resolveMovieSource(normalized.sourceId);
+  if (normalized.seasonNumber === null) return resolveIntegralSource(normalized.sourceId);
+  return resolveSeasonSource(normalized.sourceId, normalized.seasonNumber);
 }
 
 function inferLanguageTag(originalName: string, media: MediaInfoData, languageTag: LanguageTag): LanguageTag {
@@ -624,8 +692,11 @@ function mapReleaseRecord(
 }
 
 function buildPlaceholderName(source: ResolvedReleaseSource): string {
-  if (source.service === 'sonarr' && source.seasonNumber !== null) {
-    return `${source.sourceTitle} S${String(source.seasonNumber).padStart(2, '0')} (preparing...)`;
+  if (source.service === 'sonarr') {
+    if (source.seasonNumber !== null) {
+      return `${source.sourceTitle} S${String(source.seasonNumber).padStart(2, '0')} (preparing...)`;
+    }
+    return `${source.sourceTitle} Intégral (preparing...)`;
   }
   return `${source.sourceTitle} (preparing...)`;
 }

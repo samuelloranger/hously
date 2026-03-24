@@ -25,7 +25,7 @@ const BBCODE_TEMPLATE = `[h1]{TMDB_TITLE}[/h1]
 {IF MOVIE}
 [h2]({TMDB_RELEASE_YEAR})[/h2]
 {ELSE IF TV SHOW}
-[h2](Saison {TMDB_SEASON_NUMBER})[/h2]
+[h2]({TMDB_SEASON_LABEL})[/h2]
 {/IF}
 
 
@@ -278,7 +278,12 @@ export function generateBBCode(ctx: PrezContext): string {
   const template = BBCODE_TEMPLATE;
   const { tmdb, media, releaseName } = ctx;
   const season = parseSeason(releaseName);
-  const seasonValue = season?.replace(/^Saison\s+/i, '') ?? 'N/A';
+  const isIntegral = /integrale/i.test(season ?? '');
+  const seasonLabel = isIntegral
+    ? 'Intégrale'
+    : season
+      ? `Saison ${season.replace(/^Saison\s+/i, '')}`
+      : 'N/A';
   const originalPlatform = tmdb.network || 'N/A';
 
   const renderedTemplate = buildSubtitleRows(
@@ -296,7 +301,7 @@ export function generateBBCode(ctx: PrezContext): string {
   return replacePlaceholders(renderedTemplate, {
     TMDB_TITLE: tmdb.title || 'N/A',
     TMDB_RELEASE_YEAR: tmdb.year || 'N/A',
-    TMDB_SEASON_NUMBER: seasonValue,
+    TMDB_SEASON_LABEL: seasonLabel,
     TMDB_POSTER_URL: tmdb.posterUrl || '',
     TMDB_ORIGIN_COUNTRY: tmdb.productionCountries.join(', ') || 'N/A',
     TMDB_GENRES: tmdb.genres.join(', ') || 'N/A',

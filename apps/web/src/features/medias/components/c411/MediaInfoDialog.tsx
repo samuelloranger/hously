@@ -135,7 +135,6 @@ export function MediaInfoDialog({
 
   const handlePrepareRelease = () => {
     if (!media?.source_id) return;
-    if (isSeries && selectedSeason == null) return;
 
     prepareRelease.mutate({
       service: media.service,
@@ -210,6 +209,7 @@ export function MediaInfoDialog({
                 onChange={event => setSelectedSeason(event.target.value ? Number(event.target.value) : null)}
                 className="h-8 rounded-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-xs text-neutral-700 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
               >
+                <option value="">Intégral</option>
                 {Array.from({ length: media?.season_count ?? 0 }, (_, index) => index + 1).map(seasonNumber => (
                   <option key={seasonNumber} value={seasonNumber}>
                     Season {seasonNumber}
@@ -235,7 +235,7 @@ export function MediaInfoDialog({
               </button>
               <button
                 onClick={handlePrepareRelease}
-                disabled={prepareRelease.isPending || !media?.source_id || (isSeries && selectedSeason == null)}
+                disabled={prepareRelease.isPending || !media?.source_id}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-indigo-600 text-white shadow-sm hover:bg-indigo-500 transition-all duration-150 disabled:opacity-50"
               >
                 {prepareRelease.isPending ? (
@@ -278,16 +278,19 @@ export function MediaInfoDialog({
             <C411ReleasesList
               releases={(releases.data?.releases ?? []).filter(release => {
                 if (release.tmdb_id !== tmdbId) return false;
-                if (!isSeries || selectedSeason == null) return true;
+                if (!isSeries) return true;
+                if (selectedSeason == null) return release.metadata?.seasonNumber == null;
                 return Number(release.metadata?.seasonNumber ?? -1) === selectedSeason;
               })}
               isLoading={releases.isLoading}
               onEdit={id => onEditingReleaseChange(id)}
               prepareStatus={prepareRelease.isPending ? 'pending' : prepareRelease.isSuccess ? 'success' : null}
               emptyMessage={
-                isSeries
-                  ? 'No releases for this season. Use "Prepare Release" to create one.'
-                  : 'No releases for this movie. Use "Prepare Release" to create one.'
+                !isSeries
+                  ? 'No releases for this movie. Use "Prepare Release" to create one.'
+                  : selectedSeason == null
+                    ? 'No integral release for this series. Use "Prepare Release" to create one.'
+                    : 'No releases for this season. Use "Prepare Release" to create one.'
               }
             />
           )}
