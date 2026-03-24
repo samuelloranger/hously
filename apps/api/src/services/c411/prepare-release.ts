@@ -547,11 +547,11 @@ async function createTorrentArtifact(
     outputPath: torrentPath,
     contentPath: hardlinkPath,
     onProgress: onStep
-      ? (pct, etaSecs) => {
+      ? (pct, hashed, total, etaSecs) => {
           if (pct !== lastReportedPct) {
             lastReportedPct = pct;
-            const step = etaSecs !== null ? `torrent:${pct}:${etaSecs}` : `torrent:${pct}`;
-            onStep(step);
+            const eta = etaSecs !== null ? etaSecs : '';
+            onStep(`torrent:${pct}:${hashed}:${total}:${eta}`);
           }
         }
       : undefined,
