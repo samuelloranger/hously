@@ -171,7 +171,7 @@ function KanbanCard({ torrent }: { torrent: QbittorrentTorrentListItem }) {
     >
       <div className="flex items-start gap-1.5">
         <span className={cn('mt-0.5 block w-1.5 h-1.5 rounded-full shrink-0', dot, pulse && 'animate-pulse')} />
-        <p className="text-[12px] font-medium text-neutral-900 dark:text-neutral-100 line-clamp-2 leading-snug min-w-0 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+        <p className="text-[12px] font-medium text-neutral-900 dark:text-neutral-100 line-clamp-2 leading-snug min-w-0 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
           {torrent.name}
         </p>
       </div>

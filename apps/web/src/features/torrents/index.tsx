@@ -257,7 +257,7 @@ export function TorrentsPage() {
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
                   placeholder={t('dashboard.qbittorrent.searchPlaceholder', 'Search torrents...')}
-                  className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-8 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500 transition-all"
+                  className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-8 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all"
                 />
                 {searchInput && (
                   <button
@@ -289,7 +289,7 @@ export function TorrentsPage() {
                     className={cn(
                       'flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150',
                       viewMode === mode
-                        ? 'bg-sky-600 text-white shadow-sm'
+                        ? 'bg-indigo-600 text-white shadow-sm'
                         : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                     )}
                   >
@@ -334,7 +334,7 @@ export function TorrentsPage() {
                         className={cn(
                           'shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150',
                           stateFilter === filter.id
-                            ? 'bg-sky-600 text-white shadow-sm'
+                            ? 'bg-indigo-600 text-white shadow-sm'
                             : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                         )}
                       >
@@ -356,7 +356,7 @@ export function TorrentsPage() {
                     <button
                       type="button"
                       onClick={() => setUrlState({ search: '', state: 'all', categories: [], tags: [] })}
-                      className="ml-auto shrink-0 text-xs text-neutral-400 dark:text-neutral-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors pl-2"
+                      className="ml-auto shrink-0 text-xs text-neutral-400 dark:text-neutral-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors pl-2"
                     >
                       {t('torrents.clearFilters', 'Clear filters')}
                     </button>
