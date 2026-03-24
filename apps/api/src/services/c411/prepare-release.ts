@@ -540,7 +540,7 @@ async function createTorrentArtifact(
   const pieceLength = calcPieceLength(source.totalSize);
 
   console.log('[c411:prepare] Creating torrent...');
-  let lastReportedPct = -1;
+  let lastReportedHashed = -1;
   await createTorrentFile({
     announceUrl,
     pieceLength,
@@ -548,8 +548,11 @@ async function createTorrentArtifact(
     contentPath: hardlinkPath,
     onProgress: onStep
       ? (pct, hashed, total, etaSecs) => {
-          if (pct !== lastReportedPct) {
-            lastReportedPct = pct;
+          // Update every 0.5% of total bytes (or always on 100%) so that
+          // large torrents where pct stays at 0 for a long time still show movement.
+          const threshold = Math.max(Math.round(total * 0.005), pieceLength);
+          if (hashed - lastReportedHashed >= threshold || pct === 100) {
+            lastReportedHashed = hashed;
             const eta = etaSecs !== null ? etaSecs : '';
             onStep(`torrent:${pct}:${hashed}:${total}:${eta}`);
           }
