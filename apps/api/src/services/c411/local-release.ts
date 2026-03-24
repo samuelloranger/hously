@@ -9,7 +9,7 @@ import { detectLanguages, applyCanadianLanguageOverride } from './lang-detect';
 import { fetchTmdbDetails, buildFallbackTmdbDetails } from './tmdb';
 import { generateBBCode, buildReleaseInfo } from './bbcode';
 import { loadC411Config } from './session';
-import { createTorrent } from './mktorrent';
+import { createTorrentFile } from './mktorrent';
 import {
   buildReleaseName,
   calcPieceLength,
@@ -135,7 +135,7 @@ export async function createLocalC411ReleaseFromConversion(params: {
       await mkdir(tmpDir, { recursive: true });
       const torrentPath = join(tmpDir, `${c411Name}.torrent`);
       try {
-        await createTorrent({
+        await createTorrentFile({
           announceUrl: c411Config.announceUrl,
           pieceLength: calcPieceLength(fileStat.size),
           outputPath: torrentPath,
