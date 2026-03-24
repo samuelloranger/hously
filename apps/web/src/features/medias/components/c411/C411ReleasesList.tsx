@@ -30,6 +30,11 @@ function parseHardlinkStep(step: string): { done: number; total: number; eta: nu
   return { done: Number(m[1]), total: Number(m[2]), eta: m[3] != null ? Number(m[3]) : null };
 }
 
+function parseTorrentStep(step: string): number | null {
+  const m = step.match(/^torrent:(\d+)$/);
+  return m ? Number(m[1]) : null;
+}
+
 function formatEta(seconds: number): string {
   if (seconds < 60) return `~${seconds}s`;
   const m = Math.round(seconds / 60);
@@ -37,9 +42,10 @@ function formatEta(seconds: number): string {
 }
 
 function PrepareStepTimeline({ step }: { step: string }) {
-  const activeKey = step.startsWith('hardlinking') ? 'hardlinking' : step;
+  const activeKey = step.startsWith('hardlinking') ? 'hardlinking' : step.startsWith('torrent') ? 'torrent' : step;
   const activeIndex = PREPARE_STEPS.findIndex(s => s.key === activeKey);
   const hlInfo = step.startsWith('hardlinking') ? parseHardlinkStep(step) : null;
+  const torrentPct = step.startsWith('torrent') ? parseTorrentStep(step) : null;
 
   return (
     <div className="mt-2.5 space-y-1">
@@ -60,6 +66,9 @@ function PrepareStepTimeline({ step }: { step: string }) {
                   ({hlInfo.done}/{hlInfo.total}
                   {hlInfo.eta !== null && hlInfo.eta > 0 && ` · ${formatEta(hlInfo.eta)}`})
                 </span>
+              )}
+              {active && s.key === 'torrent' && torrentPct !== null && (
+                <span className="ml-1 tabular-nums opacity-80">{torrentPct}%</span>
               )}
             </span>
           </div>

@@ -25,7 +25,7 @@ import {
   parseSceneTags,
 } from '@hously/shared';
 import { generateBBCode, buildReleaseInfo } from './bbcode';
-import { createTorrent } from './mktorrent';
+import { createTorrentFile } from './mktorrent';
 import type { LanguageTag } from './types';
 
 const MOVIE_HARDLINK_BASE = '/mnt/storage/Downloads/movies';
@@ -531,6 +531,7 @@ async function createTorrentArtifact(
   source: ResolvedReleaseSource,
   releaseName: string,
   hardlinkPath: string,
+  onStep?: (step: string) => Promise<void>,
 ): Promise<{ torrentPath: string; cleanup: () => Promise<void> }> {
   const tmpDir = `/tmp/c411-${Date.now()}`;
   await mkdir(tmpDir, { recursive: true });
@@ -539,11 +540,20 @@ async function createTorrentArtifact(
   const pieceLength = calcPieceLength(source.totalSize);
 
   console.log('[c411:prepare] Creating torrent...');
-  await createTorrent({
+  let lastReportedPct = -1;
+  await createTorrentFile({
     announceUrl,
     pieceLength,
     outputPath: torrentPath,
     contentPath: hardlinkPath,
+    onProgress: onStep
+      ? (pct) => {
+          if (pct !== lastReportedPct && (pct % 5 === 0 || pct === 100)) {
+            lastReportedPct = pct;
+            onStep(`torrent:${pct}`);
+          }
+        }
+      : undefined,
   });
 
   return {
@@ -612,12 +622,13 @@ async function buildPreparedArtifacts(
     await onStep?.(`hardlinking:${done}/${total}${remaining !== null ? `:${remaining}` : ''}`);
   });
 
-  await onStep?.('torrent');
+  await onStep?.('torrent:0');
   const { torrentPath, cleanup } = await createTorrentArtifact(
     c411Config.announceUrl,
     source,
     c411Name,
     hardlinkPath,
+    onStep,
   );
 
   try {

@@ -1,20 +1,35 @@
 /**
- * Torrent file creation via mktorrent.
+ * Torrent file creation via create-torrent (with progress support).
  */
 
-export async function createTorrent(opts: {
+import { writeFile } from 'node:fs/promises';
+import createTorrent from 'create-torrent';
+
+export async function createTorrentFile(opts: {
   announceUrl: string;
   pieceLength: number;
   outputPath: string;
   contentPath: string;
+  onProgress?: (pct: number) => void;
 }): Promise<void> {
-  const proc = Bun.spawn(
-    ['mktorrent', '-a', opts.announceUrl, '-l', String(opts.pieceLength), '-o', opts.outputPath, opts.contentPath],
-    { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, LANG: 'C.UTF-8' } },
-  );
-  const exitCode = await proc.exited;
-  if (exitCode !== 0) {
-    const stderr = await new Response(proc.stderr).text();
-    throw new Error(`mktorrent failed (exit ${exitCode}): ${stderr}`);
-  }
+  const torrentBuffer = await new Promise<Buffer>((resolve, reject) => {
+    createTorrent(
+      opts.contentPath,
+      {
+        announce: [opts.announceUrl],
+        pieceLength: opts.pieceLength,
+        onProgress: opts.onProgress
+          ? (current: number, total: number) => {
+              opts.onProgress!(total > 0 ? Math.round((current / total) * 100) : 0);
+            }
+          : undefined,
+      },
+      (err: Error | null, torrent: Buffer) => {
+        if (err) reject(err);
+        else resolve(torrent);
+      },
+    );
+  });
+
+  await writeFile(opts.outputPath, torrentBuffer);
 }
