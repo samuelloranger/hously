@@ -2,7 +2,7 @@
 FROM ghcr.io/autobrr/mkbrr:latest AS mkbrr
 
 # Build stage (using Bun)
-FROM oven/bun:latest AS builder
+FROM oven/bun:1.3.11 AS builder
 
 WORKDIR /app
 
@@ -10,6 +10,7 @@ WORKDIR /app
 COPY bun.lock ./
 COPY package.json ./
 COPY apps/api/package.json ./apps/api/
+COPY apps/cli/package.json ./apps/cli/
 COPY apps/shared/package.json ./apps/shared/
 COPY apps/web/package.json ./apps/web/
 
@@ -17,7 +18,7 @@ COPY apps/web/package.json ./apps/web/
 RUN bun install --frozen-lockfile --ignore-scripts
 
 # Final production stage (using a slim Bun image)
-FROM oven/bun:slim
+FROM oven/bun:1.3.11-slim
 
 WORKDIR /app
 

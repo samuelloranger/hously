@@ -9,6 +9,7 @@ import { checkVersionAndReload } from './lib/version';
 import { registerServiceWorker } from './lib/serviceWorker';
 import { useAutoInvalidateNotifications } from './hooks/useAutoInvalidateNotifications';
 import { useIOSImprovements } from './hooks/useIOSImprovements';
+import { NotificationToastContainer } from './components/NotificationToastContainer';
 import { setQueryClient } from './lib/queryClient';
 import { webFetcher } from './lib/fetcher';
 import './lib/i18n';
@@ -35,7 +36,12 @@ function AppWithServiceWorkerIntegration() {
   useAutoInvalidateNotifications();
   useIOSImprovements();
 
-  return <RouterProvider router={router} context={{ queryClient }} />;
+  return (
+    <>
+      <RouterProvider router={router} context={{ queryClient }} />
+      <NotificationToastContainer />
+    </>
+  );
 }
 
 // Register service worker for push notifications

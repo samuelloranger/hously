@@ -9,7 +9,7 @@ import {
   useMarkAsReadOptimistic,
 } from '@hously/shared';
 import { cn } from '../lib/utils';
-import { getTypeStyle } from './NotificationsBell';
+import { getTypeStyle } from './NotificationMenuRow';
 import { openNotificationTarget } from '../lib/notificationNavigation';
 
 interface NotificationListProps {

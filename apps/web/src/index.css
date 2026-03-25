@@ -56,6 +56,11 @@ body {
   transition: all 0.2s ease-in-out;
 }
 
+@keyframes shrink {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
 @keyframes fadeInSlide {
   from {
     opacity: 0;
@@ -188,6 +193,11 @@ body {
     height: 0;
     opacity: 0;
   }
+}
+
+@keyframes sheet-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }
 
 @utility animate-collapsible-down {
