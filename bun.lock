@@ -23,7 +23,7 @@
     },
     "apps/api": {
       "name": "@hously/server",
-      "version": "2.1.89",
+      "version": "2.1.115",
       "dependencies": {
         "@aws-sdk/client-s3": "^3.995.0",
         "@elysiajs/cookie": "^0.8.0",
@@ -60,9 +60,23 @@
         "typescript": "^5.9.3",
       },
     },
+    "apps/cli": {
+      "name": "@hously/cli",
+      "version": "1.0.0",
+      "bin": {
+        "hously": "./src/index.ts",
+      },
+      "dependencies": {
+        "@hously/shared": "workspace:*",
+        "commander": "^13.1.0",
+      },
+      "devDependencies": {
+        "bun-types": "latest",
+      },
+    },
     "apps/shared": {
       "name": "@hously/shared",
-      "version": "2.1.89",
+      "version": "2.1.115",
       "peerDependencies": {
         "@tanstack/react-query": "^5.90.21",
         "date-fns": "^4.1.0",
@@ -71,7 +85,7 @@
     },
     "apps/web": {
       "name": "@hously/web",
-      "version": "2.1.89",
+      "version": "2.1.115",
       "dependencies": {
         "@dnd-kit/core": "^6.3.1",
         "@dnd-kit/sortable": "^10.0.0",
@@ -274,6 +288,8 @@
     "@formkit/auto-animate": ["@formkit/auto-animate@0.9.0", "", {}, "sha512-VhP4zEAacXS3dfTpJpJ88QdLqMTcabMg0jwpOSxZ/VzfQVfl3GkZSCZThhGC5uhq/TxPHPzW0dzr4H9Bb1OgKA=="],
 
     "@headlessui/react": ["@headlessui/react@2.2.9", "", { "dependencies": { "@floating-ui/react": "^0.26.16", "@react-aria/focus": "^3.20.2", "@react-aria/interactions": "^3.25.0", "@tanstack/react-virtual": "^3.13.9", "use-sync-external-store": "^1.5.0" }, "peerDependencies": { "react": "^18 || ^19 || ^19.0.0-rc", "react-dom": "^18 || ^19 || ^19.0.0-rc" } }, "sha512-Mb+Un58gwBn0/yWZfyrCh0TJyurtT+dETj7YHleylHk5od3dv2XqETPGWMyQ5/7sYN7oWdyM1u9MvC0OC8UmzQ=="],
+
+    "@hously/cli": ["@hously/cli@workspace:apps/cli"],
 
     "@hously/server": ["@hously/server@workspace:apps/api"],
 
@@ -1028,6 +1044,8 @@
     "color-string": ["color-string@2.1.4", "", { "dependencies": { "color-name": "^2.0.0" } }, "sha512-Bb6Cq8oq0IjDOe8wJmi4JeNn763Xs9cfrBcaylK1tPypWzyoy2G3l90v9k64kjphl/ZJjPIShFztenRomi8WTg=="],
 
     "comma-separated-tokens": ["comma-separated-tokens@2.0.3", "", {}, "sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg=="],
+
+    "commander": ["commander@13.1.0", "", {}, "sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw=="],
 
     "concat-map": ["concat-map@0.0.1", "", {}, "sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg=="],
 

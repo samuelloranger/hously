@@ -1,0 +1,19 @@
+name: Update CLI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/cli/**'
+
+jobs:
+  update-cli:
+    runs-on: self-hosted
+
+    steps:
+      - name: Install dependencies and re-link CLI
+        run: |
+          cd /home/samuelloranger/sites/hously
+          bun install
+          cd apps/cli
+          bun link

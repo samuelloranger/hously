@@ -33,3 +33,4 @@ jobs:
           -w /project \
           docker:cli \
           docker compose -p hously up -d --force-recreate hously-web hously-api
+
