@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { NotificationType } from '@hously/shared';
@@ -28,9 +28,11 @@ interface IncomingMessageData {
 
 const NOTIFICATION_EVENT_CHANNEL = 'hously-notification-events';
 const TOAST_DURATION = 8000;
+const DEDUP_WINDOW_MS = 2000;
 
 export function NotificationToastContainer() {
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
+  const recentKeys = useRef(new Set<string>());
 
   useEffect(() => {
     const handleMessage = (data: unknown) => {
@@ -39,6 +41,11 @@ export function NotificationToastContainer() {
       if (msg.type !== 'notification-received' || !msg.notificationData) return;
 
       const notifData = msg.notificationData;
+      const dedupKey = `${notifData.title}:${notifData.body}`;
+      if (recentKeys.current.has(dedupKey)) return;
+      recentKeys.current.add(dedupKey);
+      setTimeout(() => recentKeys.current.delete(dedupKey), DEDUP_WINDOW_MS);
+
       const toast: ToastNotification = {
         id: `${Date.now()}-${Math.random()}`,
         title: notifData.title || 'Hously',
@@ -77,7 +84,7 @@ export function NotificationToastContainer() {
   const dismiss = (id: string) => setToasts(prev => prev.filter(t => t.id !== id));
 
   return createPortal(
-    <div className="fixed top-4 left-4 z-[9999] flex flex-col gap-2 w-80 pointer-events-none">
+    <div className="fixed bottom-4 left-4 z-[9999] flex flex-col gap-2 w-80 pointer-events-none">
       {toasts.map(toast => (
         <div
           key={toast.id}
