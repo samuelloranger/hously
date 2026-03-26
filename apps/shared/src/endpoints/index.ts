@@ -13,4 +13,4 @@ export * from './externalNotifications';
 export * from './system';
 export * from './medias';
 export * from './habits';
-export * from './c411';
+export * from './search';

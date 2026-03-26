@@ -23,7 +23,7 @@ async function getTrackerPluginHandler(
 ): Promise<{ plugin?: Record<string, unknown>; error?: string }> {
   try {
     const plugin = await prisma.plugin.findFirst({ where: { type } });
-    const config = normalizeTrackerConfig(type, plugin?.config);
+    const config = normalizeTrackerConfig(plugin?.config);
 
     return {
       plugin: {
@@ -33,7 +33,6 @@ async function getTrackerPluginHandler(
         tracker_url: config?.tracker_url || '',
         username: config?.username || '',
         password_set: Boolean(config?.password),
-        announce_url: config?.announce_url || '',
       },
     };
   } catch (error) {
@@ -51,7 +50,6 @@ async function updateTrackerPluginHandler(
     username: string;
     password?: string;
     enabled?: boolean;
-    announce_url?: string;
   },
   set: { status?: number | string }
 ): Promise<{ success?: boolean; plugin?: Record<string, unknown>; error?: string }> {
@@ -85,13 +83,11 @@ async function updateTrackerPluginHandler(
 
     const now = nowUtc();
     const enabled = body.enabled ?? existingPlugin?.enabled ?? true;
-    const announceUrl = body.announce_url?.trim() || existingConfig?.announce_url || '';
     const config: Prisma.InputJsonValue = {
       flaresolverr_url: flaresolverrUrl || undefined,
       tracker_url: trackerUrl,
       username,
       password: encrypt(password),
-      announce_url: announceUrl || undefined,
     };
 
     const plugin = await prisma.plugin.upsert({
@@ -127,7 +123,6 @@ async function updateTrackerPluginHandler(
         tracker_url: trackerUrl,
         username,
         password_set: true,
-        announce_url: announceUrl,
       },
     };
   } catch (error) {
@@ -142,7 +137,6 @@ const trackerBody = t.Object({
   username: t.String(),
   password: t.Optional(t.String()),
   enabled: t.Optional(t.Boolean()),
-  announce_url: t.Optional(t.String()),
 });
 
 export const trackerPluginsRoutes = new Elysia({ prefix: '/api/plugins' })

@@ -23,10 +23,8 @@ mock.module('../src/services/queueService', () => ({
   QUEUE_NAMES: {
     DEFAULT: 'default',
     NOTIFICATIONS: 'notifications',
-    MEDIA_CONVERSIONS: 'media-conversions',
     SCHEDULED_TASKS: 'scheduled-tasks',
     ACTIVITY_LOGS: 'activity-logs',
-    C411_PREPARE: 'c411-prepare',
   },
   SCHEDULED_JOB_NAMES: {
     CHECK_REMINDERS: 'check-reminders',
@@ -40,10 +38,8 @@ mock.module('../src/services/queueService', () => ({
   },
   defaultQueue: mockQueue,
   notificationsQueue: mockQueue,
-  mediaConversionsQueue: mockQueue,
   scheduledTasksQueue: mockQueue,
   activityLogsQueue: mockQueue,
-  c411PrepareQueue: mockQueue,
   addJob: async () => null,
   initWorkers: () => {},
   setupScheduledJobs: async () => {},
@@ -59,7 +55,7 @@ mock.module('../src/services/cache', () => ({
 // Suppress Prisma connection errors when DATABASE_URL is not set
 mock.module('../src/db', () => ({
   prisma: new Proxy({}, {
-    get(_target, prop) {
+    get(_target, _prop) {
       return new Proxy(() => {}, {
         get(_t, p) {
           return () => Promise.resolve(null);

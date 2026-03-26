@@ -27,13 +27,11 @@ import { mediasLibraryRoutes } from './routes/medias/library';
 import { mediasTmdbRoutes } from './routes/medias/tmdb';
 import { mediasProwlarrRoutes } from './routes/medias/prowlarr';
 import { mediasArrRoutes } from './routes/medias/arr';
-import { mediasC411Routes } from './routes/medias/c411';
-import { mediasConversionRoutes } from './routes/medias/conversions';
 import { habitsRoutes } from './routes/habits';
 import { systemRoutes } from './routes/system';
+import { searchRoutes } from './routes/search';
 import { globalRateLimit } from './middleware/rateLimit';
 import { initWorkers, setupScheduledJobs } from './services/queueService';
-import { resumePendingMediaConversionJobs } from './services/mediaConversions';
 
 export const app = new Elysia()
   .use(
@@ -77,10 +75,9 @@ export const app = new Elysia()
   .use(mediasTmdbRoutes)
   .use(mediasProwlarrRoutes)
   .use(mediasArrRoutes)
-  .use(mediasConversionRoutes)
-  .use(mediasC411Routes)
   .use(habitsRoutes)
   .use(systemRoutes)
+  .use(searchRoutes)
   .get('/', () => 'Hello Elysia')
   .get('/health', () => ({ status: 'ok' }))
   .get('/api/health', () => ({ status: 'ok' }));
@@ -101,9 +98,5 @@ if (import.meta.main) {
   // 4. Post-startup tasks
   checkAndNotifyVersionChange().catch(err => {
     console.error('Failed to check version change after startup:', err);
-  });
-
-  resumePendingMediaConversionJobs().catch(err => {
-    console.error('Failed to resume media conversion jobs after startup:', err);
   });
 }

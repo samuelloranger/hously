@@ -15,28 +15,6 @@ interface LiveActivityStartPayload {
   };
 }
 
-interface ConversionActivityStartPayload {
-  attributes: {
-    jobId: number;
-    sourceTitle: string;
-    presetLabel: string;
-    posterUrl: string | null;
-  };
-  contentState: {
-    status: string;
-    progress: number;
-    etaSeconds: number | null;
-    speed: string | null;
-  };
-}
-
-interface ConversionActivityUpdatePayload {
-  status: string;
-  progress: number;
-  etaSeconds: number | null;
-  speed: string | null;
-}
-
 /**
  * Converts a DER-encoded signature to raw R+S format (Apple requirement)
  */
@@ -137,12 +115,18 @@ export async function sendLiveActivityStartPush(
           '--http2',
           '--silent',
           '--show-error',
-          '--header', `apns-topic: ${liveActivityTopic}`,
-          '--header', 'apns-push-type: liveactivity',
-          '--header', 'apns-priority: 10',
-          '--header', `authorization: bearer ${bearerToken}`,
-          '--header', 'content-type: application/json',
-          '--data-binary', `@${payloadPath}`,
+          '--header',
+          `apns-topic: ${liveActivityTopic}`,
+          '--header',
+          'apns-push-type: liveactivity',
+          '--header',
+          'apns-priority: 10',
+          '--header',
+          `authorization: bearer ${bearerToken}`,
+          '--header',
+          'content-type: application/json',
+          '--data-binary',
+          `@${payloadPath}`,
           `${baseUrl}/3/device/${token}`,
         ]);
 
@@ -153,7 +137,11 @@ export async function sendLiveActivityStartPush(
           successCount++;
         } else {
           console.error(`[LiveActivity] APNs failure for ${token.substring(0, 16)}...:`, stdout || stderr);
-          if (stdout.includes('BadDeviceToken') || stdout.includes('Unregistered') || stdout.includes('InvalidPushType')) {
+          if (
+            stdout.includes('BadDeviceToken') ||
+            stdout.includes('Unregistered') ||
+            stdout.includes('InvalidPushType')
+          ) {
             invalidTokens.push(token);
           }
         }
@@ -171,123 +159,4 @@ export async function sendLiveActivityStartPush(
     console.error('[LiveActivity] APNs Error:', error);
     return { successCount: 0, invalidTokens: [] };
   }
-}
-
-function buildApnsClient(): { baseUrl: string; keyContent: string; bearerToken: string } | null {
-  const { APNS_TEAM_ID, APNS_KEY_ID, APNS_AUTH_KEY, APNS_TOPIC, APNS_PRODUCTION } = process.env;
-  if (!APNS_TEAM_ID || !APNS_KEY_ID || !APNS_AUTH_KEY || !APNS_TOPIC) return null;
-
-  const isProduction = APNS_PRODUCTION === 'true';
-  let keyContent = APNS_AUTH_KEY;
-  if (keyContent.includes('\\n')) keyContent = keyContent.replace(/\\n/g, '\n');
-  if (!keyContent.includes('-----BEGIN') && existsSync(keyContent)) {
-    keyContent = readFileSync(keyContent, 'utf-8');
-  }
-
-  return {
-    baseUrl: isProduction ? 'https://api.push.apple.com' : 'https://api.sandbox.push.apple.com',
-    keyContent,
-    bearerToken: generateApnToken(keyContent, APNS_KEY_ID, APNS_TEAM_ID),
-  };
-}
-
-function sendLiveActivityPush(token: string, payload: object, client: ReturnType<typeof buildApnsClient>): boolean {
-  if (!client) return false;
-  const { APNS_TOPIC } = process.env;
-  const liveActivityTopic = `${APNS_TOPIC}.push-type.liveactivity`;
-
-  const payloadPath = join('/tmp', `apns_conv_${Date.now()}_${Math.random().toString(36).slice(2)}.json`);
-  writeFileSync(payloadPath, JSON.stringify(payload));
-
-  try {
-    const proc = Bun.spawnSync([
-      'curl', '--http2', '--silent', '--show-error',
-      '--header', `apns-topic: ${liveActivityTopic}`,
-      '--header', 'apns-push-type: liveactivity',
-      '--header', 'apns-priority: 10',
-      '--header', `authorization: bearer ${client.bearerToken}`,
-      '--header', 'content-type: application/json',
-      '--data-binary', `@${payloadPath}`,
-      `${client.baseUrl}/3/device/${token}`,
-    ]);
-    const stdout = proc.stdout.toString();
-    return proc.success && !stdout.includes('reason');
-  } finally {
-    try { unlinkSync(payloadPath); } catch {}
-  }
-}
-
-/**
- * Send APNs push-to-start to remotely start a Conversion Live Activity on iOS.
- * Uses the push-to-start tokens registered by the app (type = 'conversion_start').
- */
-export async function sendConversionLiveActivityStartPush(
-  tokens: string[],
-  payload: ConversionActivityStartPayload
-): Promise<{ successCount: number; invalidTokens: string[] }> {
-  const client = buildApnsClient();
-  if (!client) {
-    console.warn('[ConversionLiveActivity] APNs credentials not configured.');
-    return { successCount: 0, invalidTokens: [] };
-  }
-
-  const apnsPayload = {
-    aps: {
-      timestamp: Math.floor(Date.now() / 1000),
-      event: 'start',
-      'content-state': payload.contentState,
-      'attributes-type': 'ConversionActivityAttributes',
-      attributes: payload.attributes,
-      alert: {
-        title: payload.attributes.sourceTitle,
-        body: payload.attributes.presetLabel,
-      },
-    },
-  };
-
-  let successCount = 0;
-  const invalidTokens: string[] = [];
-
-  for (const token of [...new Set(tokens)]) {
-    const ok = sendLiveActivityPush(token, apnsPayload, client);
-    if (ok) {
-      successCount++;
-    } else {
-      invalidTokens.push(token);
-    }
-  }
-
-  if (successCount > 0) {
-    console.log(`[ConversionLiveActivity] Sent ${successCount} push-to-start notifications`);
-  }
-  return { successCount, invalidTokens };
-}
-
-/**
- * Send APNs update push to an active Conversion Live Activity.
- * Uses the activity push token sent back by the iOS device after the activity started.
- */
-export async function sendConversionLiveActivityUpdatePush(
-  activityPushToken: string,
-  payload: ConversionActivityUpdatePayload,
-  end = false
-): Promise<boolean> {
-  const client = buildApnsClient();
-  if (!client) return false;
-
-  const now = Math.floor(Date.now() / 1000);
-  const apnsPayload: Record<string, unknown> = {
-    aps: {
-      timestamp: now,
-      event: end ? 'end' : 'update',
-      'content-state': payload,
-      ...(end ? { 'dismissal-date': now + 30 } : {}),
-    },
-  };
-
-  const ok = sendLiveActivityPush(activityPushToken, apnsPayload, client);
-  if (!ok) {
-    console.warn(`[ConversionLiveActivity] Failed to send ${end ? 'end' : 'update'} push`);
-  }
-  return ok;
 }

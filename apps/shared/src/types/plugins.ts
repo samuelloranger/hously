@@ -97,7 +97,6 @@ export interface TrackerPlugin {
   flaresolverr_url: string;
   username: string;
   password_set: boolean;
-  announce_url?: string;
 }
 
 export type C411Plugin = TrackerPlugin & { type: 'c411' };

@@ -5,10 +5,8 @@ import { redisConnection } from '../db/redis';
 export const QUEUE_NAMES = {
   DEFAULT: 'default',
   NOTIFICATIONS: 'notifications',
-  MEDIA_CONVERSIONS: 'media-conversions',
   SCHEDULED_TASKS: 'scheduled-tasks',
   ACTIVITY_LOGS: 'activity-logs',
-  C411_PREPARE: 'c411-prepare',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -51,13 +49,6 @@ const defaultQueueOptions: QueueOptions = {
 // Initialize Queues
 export const defaultQueue = new Queue(QUEUE_NAMES.DEFAULT, defaultQueueOptions);
 export const notificationsQueue = new Queue(QUEUE_NAMES.NOTIFICATIONS, defaultQueueOptions);
-export const mediaConversionsQueue = new Queue(QUEUE_NAMES.MEDIA_CONVERSIONS, {
-  ...defaultQueueOptions,
-  defaultJobOptions: {
-    ...defaultQueueOptions.defaultJobOptions,
-    attempts: 1,
-  },
-});
 export const scheduledTasksQueue = new Queue(QUEUE_NAMES.SCHEDULED_TASKS, defaultQueueOptions);
 export const activityLogsQueue = new Queue(QUEUE_NAMES.ACTIVITY_LOGS, {
   ...defaultQueueOptions,
@@ -67,30 +58,20 @@ export const activityLogsQueue = new Queue(QUEUE_NAMES.ACTIVITY_LOGS, {
     removeOnComplete: true,
   },
 });
-export const c411PrepareQueue = new Queue(QUEUE_NAMES.C411_PREPARE, {
-  ...defaultQueueOptions,
-  defaultJobOptions: {
-    ...defaultQueueOptions.defaultJobOptions,
-    attempts: 1, // Heavy process
-  }
-});
-
 const queues: Record<QueueName, Queue> = {
   [QUEUE_NAMES.DEFAULT]: defaultQueue,
   [QUEUE_NAMES.NOTIFICATIONS]: notificationsQueue,
-  [QUEUE_NAMES.MEDIA_CONVERSIONS]: mediaConversionsQueue,
   [QUEUE_NAMES.SCHEDULED_TASKS]: scheduledTasksQueue,
   [QUEUE_NAMES.ACTIVITY_LOGS]: activityLogsQueue,
-  [QUEUE_NAMES.C411_PREPARE]: c411PrepareQueue,
 };
 
 /**
  * Utility to add a job to a specific queue
  */
 export async function addJob<T = Record<string, unknown>>(
-  queueName: QueueName, 
-  jobName: string, 
-  data: T, 
+  queueName: QueueName,
+  jobName: string,
+  data: T,
   opts?: JobsOptions
 ) {
   const queue = queues[queueName];
@@ -114,17 +95,7 @@ export function initWorkers() {
     { connection: redisConnection, concurrency: 5 }
   );
 
-  // 2. Media Conversions Worker
-  new Worker(
-    QUEUE_NAMES.MEDIA_CONVERSIONS,
-    async (job: Job) => {
-      const { processMediaConversionJob } = await import('./jobs/mediaConversionWorker');
-      return processMediaConversionJob(job);
-    },
-    { connection: redisConnection, concurrency: 1 }
-  );
-
-  // 3. Scheduled Tasks Worker
+  // 2. Scheduled Tasks Worker
   new Worker(
     QUEUE_NAMES.SCHEDULED_TASKS,
     async (job: Job) => {
@@ -134,7 +105,7 @@ export function initWorkers() {
     { connection: redisConnection, concurrency: 3 } // Allow a few scheduled tasks at once
   );
 
-  // 4. Activity Logs Worker
+  // 3. Activity Logs Worker
   new Worker(
     QUEUE_NAMES.ACTIVITY_LOGS,
     async (job: Job) => {
@@ -144,17 +115,7 @@ export function initWorkers() {
     { connection: redisConnection, concurrency: 10 }
   );
 
-  // 5. C411 Prepare Worker
-  new Worker(
-    QUEUE_NAMES.C411_PREPARE,
-    async (job: Job) => {
-      const { processC411PrepareJob } = await import('./jobs/c411Worker');
-      return processC411PrepareJob(job);
-    },
-    { connection: redisConnection, concurrency: 2 }
-  );
-
-  // 6. Default Worker
+  // 4. Default Worker
   new Worker(
     QUEUE_NAMES.DEFAULT,
     async (job: Job) => {
@@ -189,9 +150,13 @@ export async function setupScheduledJobs() {
   }
 
   for (const job of jobs) {
-    await scheduledTasksQueue.add(job.name, {}, {
-      repeat: { pattern: job.pattern }
-    });
+    await scheduledTasksQueue.add(
+      job.name,
+      {},
+      {
+        repeat: { pattern: job.pattern },
+      }
+    );
     console.log(`   - Scheduled ${job.name} with pattern ${job.pattern}`);
   }
 }

@@ -4,8 +4,6 @@ import { requireUser } from '../../middleware/auth';
 import { prisma } from '../../db';
 import { normalizeRadarrConfig, normalizeSonarrConfig } from '../../utils/plugins/normalizers';
 import { serverError } from '../../utils/errors';
-import { getJsonCache, setJsonCache } from '../../services/cache';
-import { serializeMediaConversionJob } from '../../services/mediaConversions';
 import type { MediaItem } from '@hously/shared';
 import {
   mapRadarrMovie,
@@ -24,8 +22,6 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
       sonarr_enabled: boolean;
       radarr_connected: boolean;
       sonarr_connected: boolean;
-      c411_enabled: boolean;
-      c411_tmdb_ids: number[];
       items: MediaItem[];
       errors?: { radarr?: string; sonarr?: string };
     } = {
@@ -33,15 +29,13 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
       sonarr_enabled: false,
       radarr_connected: false,
       sonarr_connected: false,
-      c411_enabled: false,
-      c411_tmdb_ids: [],
       items: [],
     };
 
     const errors: { radarr?: string; sonarr?: string } = {};
 
     try {
-      const [radarrPlugin, sonarrPlugin, c411Plugin, activeConversions] = await Promise.all([
+      const [radarrPlugin, sonarrPlugin] = await Promise.all([
         prisma.plugin.findFirst({
           where: { type: 'radarr' },
           select: { enabled: true, config: true },
@@ -50,53 +44,10 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
           where: { type: 'sonarr' },
           select: { enabled: true, config: true },
         }),
-        prisma.plugin.findFirst({
-          where: { type: 'c411' },
-          select: { enabled: true },
-        }),
-        prisma.mediaConversionJob.findMany({
-          where: {
-            status: { in: ['queued', 'running'] },
-          },
-          orderBy: { createdAt: 'desc' },
-        }),
       ]);
-
-      const conversionMap = new Map<string, any>();
-      for (const job of activeConversions) {
-        const key = `${job.service}:${job.sourceId}`;
-        if (!conversionMap.has(key)) {
-          conversionMap.set(key, serializeMediaConversionJob(job));
-        }
-      }
 
       response.radarr_enabled = Boolean(radarrPlugin?.enabled);
       response.sonarr_enabled = Boolean(sonarrPlugin?.enabled);
-      response.c411_enabled = Boolean(c411Plugin?.enabled);
-
-      // Fetch TMDB IDs that have releases on C411 (with Redis cache)
-      if (c411Plugin?.enabled) {
-        try {
-          const cacheKey = 'c411:library-release-data';
-          const cached = await getJsonCache<number[]>(cacheKey);
-          if (cached) {
-            response.c411_tmdb_ids = cached;
-          } else {
-            const rows = await prisma.$queryRaw<{ tmdb_id: number }[]>`
-              SELECT DISTINCT COALESCE(tmdb_id, (tmdb_data->>'id')::int) AS tmdb_id
-              FROM c411_releases
-              WHERE c411_torrent_id IS NOT NULL
-                AND (tmdb_id IS NOT NULL OR tmdb_data->>'id' IS NOT NULL)
-            `;
-            const tmdbIds = rows.map((r) => r.tmdb_id);
-            response.c411_tmdb_ids = tmdbIds;
-            await setJsonCache(cacheKey, tmdbIds, 1800);
-          }
-        } catch {
-          // Non-critical, continue without C411 data
-        }
-      }
-
       if (radarrPlugin?.enabled) {
         const radarrConfig = normalizeRadarrConfig(radarrPlugin.config);
         if (!radarrConfig) {
@@ -176,13 +127,11 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
                 .filter((item): item is MediaItem => Boolean(item));
 
               // Fetch release tags from episode files (cached per series)
-              const downloadedIds = sonarrItems
-                .filter((i) => i.downloaded)
-                .map((i) => i.source_id);
+              const downloadedIds = sonarrItems.filter(i => i.downloaded).map(i => i.source_id);
               const tagMap = await fetchSonarrSeriesReleaseTags(
                 sonarrConfig.website_url,
                 sonarrConfig.api_key,
-                downloadedIds,
+                downloadedIds
               ).catch(() => new Map<number, string[]>());
 
               for (const item of sonarrItems) {
@@ -206,14 +155,6 @@ export const mediasLibraryRoutes = new Elysia({ prefix: '/api/medias' })
 
       if (errors.radarr || errors.sonarr) {
         response.errors = errors;
-      }
-
-      // Attach conversion status
-      for (const item of response.items) {
-        const key = `${item.service}:${item.source_id}`;
-        if (conversionMap.has(key)) {
-          item.latest_conversion = conversionMap.get(key);
-        }
       }
 
       return response;

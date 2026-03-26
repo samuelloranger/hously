@@ -42,7 +42,6 @@ model User {
   habits                 Habit[]
   liveActivityTokens     LiveActivityToken[]
   invitationsSent        Invitation[]         @relation("InvitationInviter")
-  mediaConversionJobs    MediaConversionJob[]
 
   @@map("users")
 }
@@ -369,7 +368,7 @@ model LiveActivityToken {
   id        Int       @id @default(autoincrement())
   userId    Int       @map("user_id")
   token     String    @unique(map: "ix_live_activity_tokens_token")
-  type      String    @default("habit_start") // "habit_start" | "conversion_start"
+  type      String    @default("habit_start") // "habit_start"
   platform  String    @default("ios")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @map("updated_at")
@@ -428,93 +427,6 @@ model HabitCompletion {
 
   @@index([habitId, date], map: "ix_habit_completions_habit_date")
   @@map("habit_completions")
-}
-
-model C411Release {
-  id              Int       @id @default(autoincrement())
-  c411TorrentId   Int?      @unique @map("c411_torrent_id")
-  infoHash        String?   @unique @map("info_hash")
-  name            String
-  title           String?
-  tmdbId          Int?      @map("tmdb_id")
-  imdbId          String?   @map("imdb_id")
-  tmdbType        String?   @map("tmdb_type")
-  categoryId      Int?      @map("category_id")
-  subcategoryId   Int?      @map("subcategory_id")
-  categoryName    String?   @map("category_name")
-  subcategoryName String?   @map("subcategory_name")
-  language        String?
-  resolution      String?
-  source          String?
-  videoCodec      String?   @map("video_codec")
-  audioCodec      String?   @map("audio_codec")
-  size            BigInt?
-  status          String    @default("local")
-  seeders         Int?
-  leechers        Int?
-  completions     Int?
-  torrentS3Key    String?   @map("torrent_s3_key")
-  nfoContent      String?   @map("nfo_content") @db.Text
-  hardlinkPath    String?   @map("hardlink_path")
-  originalPath    String?   @map("original_path")
-  options         Json?
-  tmdbData        Json?     @map("tmdb_data")
-  metadata        Json?
-  syncedAt        DateTime? @map("synced_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime? @updatedAt @map("updated_at")
-
-  presentation C411Presentation?
-
-  @@index([tmdbId], map: "ix_c411_releases_tmdb_id")
-  @@index([status], map: "ix_c411_releases_status")
-  @@map("c411_releases")
-}
-
-model C411Presentation {
-  id        Int       @id @default(autoincrement())
-  releaseId Int       @unique @map("release_id")
-  bbcode    String    @db.Text
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-
-  release C411Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
-
-  @@map("c411_presentations")
-}
-
-model MediaConversionJob {
-  id                Int       @id @default(autoincrement())
-  service           String
-  sourceId          Int       @map("source_id")
-  sourceTitle       String?   @map("source_title")
-  preset            String
-  status            String    @default("queued")
-  requestedByUserId Int?      @map("requested_by_user_id")
-  inputPath         String    @map("input_path")
-  outputPath        String    @map("output_path")
-  progress          Float     @default(0)
-  durationSeconds   Float?    @map("duration_seconds")
-  processedSeconds  Float?    @map("processed_seconds")
-  etaSeconds        Int?      @map("eta_seconds")
-  fps               Float?
-  speed             String?
-  errorMessage      String?   @map("error_message")
-  activityPushToken String?   @map("activity_push_token")
-  posterUrl         String?   @map("poster_url")
-  validationSummary Json?     @map("validation_summary")
-  probeData         Json?     @map("probe_data")
-  startedAt         DateTime? @map("started_at")
-  completedAt       DateTime? @map("completed_at")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime? @updatedAt @map("updated_at")
-
-  requestedBy User? @relation(fields: [requestedByUserId], references: [id], onDelete: SetNull)
-
-  @@index([service, sourceId, createdAt], map: "ix_media_conversion_jobs_source")
-  @@index([status, createdAt], map: "ix_media_conversion_jobs_status")
-  @@index([requestedByUserId], map: "ix_media_conversion_jobs_requested_by_user_id")
-  @@map("media_conversion_jobs")
 }
 
 model QbittorrentRequestLog {

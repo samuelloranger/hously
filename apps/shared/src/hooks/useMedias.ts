@@ -5,10 +5,6 @@ import { MEDIAS_ENDPOINTS } from '../endpoints';
 import type {
   ExploreMediasResponse,
   MediaAutoSearchResponse,
-  MediaConversionCreateResponse,
-  MediaConversionJob,
-  MediaConversionJobsResponse,
-  MediaConversionPreviewResponse,
   MediaDeleteResponse,
   MediaInteractiveDownloadResponse,
   MediaInteractiveSearchResponse,
@@ -184,119 +180,6 @@ export function useMediaDelete() {
         method: 'DELETE',
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.medias.list() });
-    },
-  });
-}
-
-export function useMediaConversionPreview(
-  params: { service: 'radarr' | 'sonarr'; source_id: number | null; codec: string; height: number | null; tone_map_hdr?: boolean; audio_tracks?: number[] | null },
-  options?: { enabled?: boolean }
-) {
-  const fetcher = useFetcher();
-  const isEnabled = Boolean(options?.enabled ?? true) && Boolean(params.source_id && params.source_id > 0);
-
-  return useQuery({
-    queryKey: queryKeys.medias.conversionPreview(params.service, params.source_id ?? 0, params.codec, params.height, params.tone_map_hdr ?? false, params.audio_tracks ?? null),
-    queryFn: () =>
-      fetcher<MediaConversionPreviewResponse>(
-        MEDIAS_ENDPOINTS.CONVERSION_PREVIEW(params.service, params.source_id ?? 0, params.codec, params.height, params.tone_map_hdr, params.audio_tracks)
-      ),
-    enabled: isEnabled,
-  });
-}
-
-export function useMediaConversions(
-  params: { service: 'radarr' | 'sonarr'; source_id: number | null },
-  options?: { enabled?: boolean; refetchInterval?: number | false }
-) {
-  const fetcher = useFetcher();
-  const isEnabled = Boolean(options?.enabled ?? true) && Boolean(params.source_id && params.source_id > 0);
-
-  return useQuery({
-    queryKey: queryKeys.medias.conversions(params.service, params.source_id ?? 0),
-    queryFn: () =>
-      fetcher<MediaConversionJobsResponse>(
-        MEDIAS_ENDPOINTS.CONVERSIONS(params.service, params.source_id ?? 0)
-      ),
-    enabled: isEnabled,
-    refetchInterval: (query) => {
-      if (options?.refetchInterval === false) return false;
-      const jobs = (query.state.data as MediaConversionJobsResponse | undefined)?.jobs ?? [];
-      if (!jobs.some((job) => job.status === 'queued' || job.status === 'running')) {
-        return false;
-      }
-      return options?.refetchInterval ?? 2000;
-    },
-  });
-}
-
-export function useActiveMediaConversions(options?: { enabled?: boolean; refetchInterval?: number | false }) {
-  const fetcher = useFetcher();
-
-  return useQuery({
-    queryKey: queryKeys.medias.activeConversions(),
-    queryFn: () => fetcher<MediaConversionJobsResponse>(MEDIAS_ENDPOINTS.ACTIVE_CONVERSIONS),
-    enabled: options?.enabled,
-    refetchInterval: (query) => {
-      if (options?.refetchInterval === false) return false;
-      const jobs = (query.state.data as MediaConversionJobsResponse | undefined)?.jobs ?? [];
-      // Poll every 2s if there are active jobs, otherwise every 15s to detect new ones
-      if (jobs.length > 0) return options?.refetchInterval ?? 2000;
-      return 15000;
-    },
-  });
-}
-
-export function useConversionJobs() {
-  const { data } = useActiveMediaConversions({ enabled: true });
-  return data?.jobs ?? [];
-}
-
-export function useMediaConversion(id: number | null, options?: { enabled?: boolean; refetchInterval?: number | false }) {
-  const fetcher = useFetcher();
-  const isEnabled = Boolean(options?.enabled ?? true) && Boolean(id && id > 0);
-
-  return useQuery({
-    queryKey: queryKeys.medias.conversion(id ?? 0),
-    queryFn: () => fetcher<MediaConversionJob>(MEDIAS_ENDPOINTS.CONVERSION(id ?? 0)),
-    enabled: isEnabled,
-    refetchInterval: options?.refetchInterval,
-  });
-}
-
-export function useCreateMediaConversion() {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (params: { service: 'radarr' | 'sonarr'; source_id: number; target_codec: string; target_height: number | null; tone_map_hdr?: boolean; audio_tracks?: number[] | null }) =>
-      fetcher<MediaConversionCreateResponse>(MEDIAS_ENDPOINTS.CONVERSIONS(params.service, params.source_id), {
-        method: 'POST',
-        body: { target_codec: params.target_codec, target_height: params.target_height, tone_map_hdr: params.tone_map_hdr ?? false, audio_tracks: params.audio_tracks ?? null },
-      }),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.medias.conversions(variables.service, variables.source_id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.medias.activeConversions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.medias.list() });
-    },
-  });
-}
-
-export function useCancelMediaConversion() {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) =>
-      fetcher<MediaConversionJob>(MEDIAS_ENDPOINTS.CANCEL_CONVERSION(id), {
-        method: 'DELETE',
-      }),
-    onSuccess: (data) => {
-      if (data) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.medias.conversions(data.service, data.source_id) });
-      }
-      queryClient.invalidateQueries({ queryKey: queryKeys.medias.activeConversions() });
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.list() });
     },
   });

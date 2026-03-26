@@ -115,7 +115,7 @@ export const fetchTrackerStats = async (
       return;
     }
 
-    const config = normalizeTrackerConfig(trackerType, plugin.config);
+    const config = normalizeTrackerConfig(plugin.config);
     if (!config) {
       console.log(`[warn] ${trackerName(trackerType)} plugin config is invalid, skipping stats fetch`);
       await logActivity({

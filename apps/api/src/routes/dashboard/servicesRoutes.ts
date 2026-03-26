@@ -50,7 +50,7 @@ async function getTrackerStatsHandler(type: TrackerType) {
     };
   }
 
-  const config = normalizeTrackerConfig(type, plugin?.config);
+  const config = normalizeTrackerConfig(plugin?.config);
   if (!config) {
     return {
       enabled: true,

@@ -10,7 +10,6 @@ import type {
   SonarrPluginConfig,
   TmdbPluginConfig,
   TrackerPluginConfig,
-  TrackerType,
   WeatherPluginConfig,
   ClockifyPluginConfig,
 } from './types';
@@ -235,7 +234,7 @@ export const normalizeHackernewsConfig = (config: unknown): HackernewsPluginConf
   };
 };
 
-export const normalizeTrackerConfig = (type: TrackerType, config: unknown): TrackerPluginConfig | null => {
+export const normalizeTrackerConfig = (config: unknown): TrackerPluginConfig | null => {
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
   const cfg = config as Record<string, unknown>;
 
@@ -243,8 +242,6 @@ export const normalizeTrackerConfig = (type: TrackerType, config: unknown): Trac
   const trackerUrlRaw = typeof cfg.tracker_url === 'string' ? cfg.tracker_url.trim() : '';
   const username = typeof cfg.username === 'string' ? cfg.username.trim() : '';
   const password = normalizeSecret(cfg.password);
-  const announceUrl = typeof cfg.announce_url === 'string' ? cfg.announce_url.trim() : '';
-
   if (!trackerUrlRaw || !username) return null;
 
   return {
@@ -252,6 +249,5 @@ export const normalizeTrackerConfig = (type: TrackerType, config: unknown): Trac
     tracker_url: trackerUrlRaw.replace(/\/+$/, ''),
     username,
     password: password || undefined,
-    announce_url: announceUrl || undefined,
   };
 };

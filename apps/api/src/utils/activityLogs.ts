@@ -15,9 +15,7 @@ export type ActivityLogType =
   | 'event_deleted'
   | 'shopping_item_added'
   | 'shopping_item_completed'
-  | 'shopping_list_cleared'
-  | 'media_conversion_started'
-  | 'media_conversion_ended';
+  | 'shopping_list_cleared';
 
 /**
  * Enqueue an activity log to be processed in the background
@@ -30,16 +28,12 @@ export async function logActivity(input: {
 }): Promise<void> {
   try {
     // Add job to BullMQ
-    await addJob(
-      QUEUE_NAMES.ACTIVITY_LOGS,
-      `log:${input.type}`,
-      {
-        type: input.type,
-        userId: input.userId ?? null,
-        payload: input.payload,
-        createdAt: (input.createdAt ?? new Date()).toISOString(),
-      }
-    );
+    await addJob(QUEUE_NAMES.ACTIVITY_LOGS, `log:${input.type}`, {
+      type: input.type,
+      userId: input.userId ?? null,
+      payload: input.payload,
+      createdAt: (input.createdAt ?? new Date()).toISOString(),
+    });
   } catch (error) {
     console.warn('[ActivityLogs] Failed to enqueue activity log:', error);
   }

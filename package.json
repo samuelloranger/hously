@@ -13,7 +13,7 @@
     "docker:down": "docker compose down",
     "docker:rebuild": "docker compose build --no-cache",
     "test": "bun run --filter @hously/web test && bun run --filter @hously/server test",
-    "format": "bun run --workspaces format",
+    "format": "bun run --workspaces --if-present format",
     "formatCheck": "bun run --workspaces format -- --check",
     "typecheck": "bun run --workspaces --if-present typecheck",
     "typecheck:build": "tsc -b tsconfig.build.json --pretty false",
@@ -47,5 +47,5 @@
     "react-i18next": "^14.1.2",
     "sharp": "^0.34.4"
   },
-  "version": "2.1.131"
+  "version": "2.1.137"
 }

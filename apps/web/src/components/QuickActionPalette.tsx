@@ -1,17 +1,15 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { Search, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import {
-  formatBytes,
-  MEDIAS_ENDPOINTS,
-  RECIPES_ENDPOINTS,
-  useDashboardQbittorrentTorrents,
-  useFetcher,
-  type MediasResponse,
-  type RecipesResponse,
-} from '@hously/shared';
+import { formatBytes, useQuickSearch } from '@hously/shared';
 import { navSections } from './navigation';
 import { Dialog } from './dialog';
 import { Input } from './ui/input';
@@ -29,7 +27,7 @@ interface QuickAction {
   title: string;
   description: string;
   icon: string;
-  section: 'actions' | 'torrents' | 'medias' | 'recipes';
+  section: 'actions' | 'torrents' | 'medias' | 'recipes' | 'chores' | 'shopping' | 'users';
   keywords?: string[];
   shortcut?: string;
   action: () => void;
@@ -39,14 +37,14 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
   const { t } = useTranslation('common');
   const navigate = useNavigate();
   const router = useRouterState();
-  const fetcher = useFetcher();
   const { isDark, toggleTheme } = useTheme();
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const deferredQuery = useDeferredValue(query);
   const normalizedQuery = deferredQuery.trim().toLowerCase();
-  const shouldSearchCollections = isOpen && normalizedQuery.length >= 2 && router.location.pathname !== '/login';
+  const isLoggedIn = router.location.pathname !== '/login';
+  const shouldSearch = isOpen && normalizedQuery.length >= 2 && isLoggedIn;
 
   const actions = useMemo<QuickAction[]>(() => {
     const navActions = navSections.flatMap(section =>
@@ -129,136 +127,136 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
     });
   }, [actions, normalizedQuery]);
 
-  const recipesQuery = useQuery({
-    queryKey: ['quick-actions', 'recipes'],
-    queryFn: () => fetcher<RecipesResponse>(RECIPES_ENDPOINTS.LIST),
-    enabled: shouldSearchCollections,
-    staleTime: 60_000,
-  });
+  const searchQuery = useQuickSearch(normalizedQuery, { enabled: shouldSearch, staleTime: 30_000 });
 
-  const mediasQuery = useQuery({
-    queryKey: ['quick-actions', 'medias'],
-    queryFn: () => fetcher<MediasResponse>(MEDIAS_ENDPOINTS.LIST),
-    enabled: shouldSearchCollections,
-    staleTime: 60_000,
-  });
+  const collectionResults = useMemo<QuickAction[]>(() => {
+    if (!shouldSearch || !searchQuery.data) return [];
 
-  const torrentsQuery = useDashboardQbittorrentTorrents(
-    { filter: normalizedQuery, limit: 6, sort: 'added_on', reverse: true },
-    { enabled: shouldSearchCollections }
-  );
+    const { torrents, medias, recipes, chores, shopping, users } = searchQuery.data;
 
-  const recipeResults = useMemo<QuickAction[]>(() => {
-    if (!shouldSearchCollections) {
-      return [];
-    }
-
-    const recipes = recipesQuery.data?.recipes ?? [];
-
-    return recipes
-      .filter(recipe => {
-        const searchable = [recipe.name, recipe.description ?? '', recipe.category ?? ''].join(' ').toLowerCase();
-        return searchable.includes(normalizedQuery);
-      })
-      .slice(0, 6)
-      .map(recipe => ({
-        id: `recipe-${recipe.id}`,
-        title: recipe.name,
-        description: recipe.category
-          ? t(`recipes.category.${recipe.category}`, recipe.category)
-          : t('common.quickActionsOpenRecipe'),
-        icon: recipe.is_favorite ? '⭐' : '🍳',
-        section: 'recipes',
-        action: () => {
-          navigate({ to: '/kitchen/$recipeId', params: { recipeId: String(recipe.id) } });
-          onClose();
-        },
-      }));
-  }, [navigate, normalizedQuery, onClose, recipesQuery.data?.recipes, shouldSearchCollections, t]);
-
-  const mediaResults = useMemo<QuickAction[]>(() => {
-    if (!shouldSearchCollections) {
-      return [];
-    }
-
-    const items = mediasQuery.data?.items ?? [];
-
-    return items
-      .filter(item => {
-        const searchable = [item.title, item.sort_title ?? '', item.year ?? '', item.service, item.media_type]
-          .join(' ')
-          .toLowerCase();
-        return searchable.includes(normalizedQuery);
-      })
-      .slice(0, 6)
-      .map(item => ({
-        id: `media-${item.id}`,
-        title: item.title,
-        description: [item.service.toUpperCase(), item.media_type === 'movie' ? t('medias.filterMovies') : t('medias.filterSeries'), item.year ?? '']
-          .filter(Boolean)
-          .join(' • '),
-        icon: item.media_type === 'movie' ? '🎬' : '📺',
-        section: 'medias',
-        action: () => {
-          navigate({
-            to: '/library',
-            search: {
-              current_media_id: `${item.service}:${item.source_id}`,
-              current_media_tab: item.downloaded ? 'info' : 'search',
-            },
-          });
-          onClose();
-        },
-      }));
-  }, [mediasQuery.data?.items, navigate, normalizedQuery, onClose, shouldSearchCollections, t]);
-
-  const torrentResults = useMemo<QuickAction[]>(() => {
-    if (!shouldSearchCollections) {
-      return [];
-    }
-
-    const torrents = torrentsQuery.data?.torrents ?? [];
-
-    return torrents.slice(0, 6).map(torrent => ({
+    const torrentActions: QuickAction[] = torrents.map(torrent => ({
       id: `torrent-${torrent.id}`,
       title: torrent.name,
       description: [formatBytes(torrent.size_bytes), torrent.category, `${Math.round(torrent.progress * 100)}%`]
         .filter(Boolean)
         .join(' • '),
       icon: '🧲',
-      section: 'torrents',
+      section: 'torrents' as const,
       action: () => {
         navigate({ to: '/torrents/$hash', params: { hash: torrent.id } });
         onClose();
       },
     }));
-  }, [navigate, onClose, shouldSearchCollections, torrentsQuery.data?.torrents]);
+
+    const mediaActions: QuickAction[] = medias.map(item => ({
+      id: `media-${item.id}`,
+      title: item.title,
+      description: [
+        item.service.toUpperCase(),
+        item.media_type === 'movie' ? t('medias.filterMovies') : t('medias.filterSeries'),
+        item.year ?? '',
+      ]
+        .filter(Boolean)
+        .join(' • '),
+      icon: item.media_type === 'movie' ? '🎬' : '📺',
+      section: 'medias' as const,
+      action: () => {
+        navigate({
+          to: '/library',
+          search: {
+            current_media_id: `${item.service}:${item.source_id}`,
+            current_media_tab: 'search',
+          },
+        });
+        onClose();
+      },
+    }));
+
+    const recipeActions: QuickAction[] = recipes.map(recipe => ({
+      id: `recipe-${recipe.id}`,
+      title: recipe.name,
+      description: recipe.category
+        ? t(`recipes.category.${recipe.category}`, recipe.category)
+        : t('common.quickActionsOpenRecipe'),
+      icon: recipe.is_favorite ? '⭐' : '🍳',
+      section: 'recipes' as const,
+      action: () => {
+        navigate({ to: '/kitchen/$recipeId', params: { recipeId: String(recipe.id) } });
+        onClose();
+      },
+    }));
+
+    const choreActions: QuickAction[] = chores.map(chore => ({
+      id: `chore-${chore.id}`,
+      title: chore.chore_name,
+      description: [chore.description, chore.assigned_to_username].filter(Boolean).join(' • ') || t('chores.title'),
+      icon: chore.completed ? '✅' : '🧹',
+      section: 'chores' as const,
+      action: () => {
+        navigate({ to: '/chores' });
+        onClose();
+      },
+    }));
+
+    const shoppingActions: QuickAction[] = shopping.map(item => ({
+      id: `shopping-${item.id}`,
+      title: item.item_name,
+      description: item.notes ?? t('shopping.title'),
+      icon: item.completed ? '✅' : '🛒',
+      section: 'shopping' as const,
+      action: () => {
+        navigate({ to: '/shopping' });
+        onClose();
+      },
+    }));
+
+    const userActions: QuickAction[] = users.map(user => ({
+      id: `user-${user.id}`,
+      title: user.name,
+      description: user.email,
+      icon: '👤',
+      section: 'users' as const,
+      action: () => {
+        navigate({ to: '/settings', search: { tab: 'profile' as const } });
+        onClose();
+      },
+    }));
+
+    return [...torrentActions, ...mediaActions, ...recipeActions, ...choreActions, ...shoppingActions, ...userActions];
+  }, [navigate, normalizedQuery, onClose, searchQuery.data, shouldSearch, t]);
+
+  const sectionLabels: Record<QuickAction['section'], string> = useMemo(
+    () => ({
+      torrents: t('common.quickActionsSectionTorrents'),
+      medias: t('common.quickActionsSectionMedias'),
+      recipes: t('common.quickActionsSectionRecipes'),
+      chores: t('chores.title'),
+      shopping: t('shopping.title'),
+      users: 'Users',
+      actions: t('common.quickActionsSectionActions'),
+    }),
+    [t]
+  );
+
+  const matchScore = (title: string, q: string): number => {
+    const lower = title.toLowerCase();
+    if (lower === q) return 3;
+    if (lower.startsWith(q)) return 2;
+    if (lower.includes(q)) return 1;
+    return 0;
+  };
 
   const results = useMemo<QuickAction[]>(() => {
     if (!normalizedQuery) {
       return filteredActions;
     }
 
-    return [...torrentResults, ...mediaResults, ...recipeResults, ...filteredActions];
-  }, [filteredActions, mediaResults, normalizedQuery, recipeResults, torrentResults]);
+    return [...collectionResults, ...filteredActions].sort(
+      (a, b) => matchScore(b.title, normalizedQuery) - matchScore(a.title, normalizedQuery)
+    );
+  }, [filteredActions, normalizedQuery, collectionResults]);
 
-  const groupedResults = useMemo(() => {
-    const sections: Array<{ id: QuickAction['section']; label: string; items: Array<QuickAction & { index: number }> }> = [
-      { id: 'torrents', label: t('common.quickActionsSectionTorrents'), items: [] },
-      { id: 'medias', label: t('common.quickActionsSectionMedias'), items: [] },
-      { id: 'recipes', label: t('common.quickActionsSectionRecipes'), items: [] },
-      { id: 'actions', label: t('common.quickActionsSectionActions'), items: [] },
-    ];
-
-    results.forEach((result, index) => {
-      const section = sections.find(entry => entry.id === result.section);
-      section?.items.push({ ...result, index });
-    });
-
-    return sections.filter(section => section.items.length > 0);
-  }, [results, t]);
-
-  const isSearchingCollections = shouldSearchCollections && (recipesQuery.isLoading || mediasQuery.isLoading || torrentsQuery.isLoading);
+  const isSearchingCollections = shouldSearch && searchQuery.isLoading;
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -339,14 +337,16 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
             onChange={event => setQuery(event.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('common.quickActionsPlaceholder')}
-            className="border-0 bg-transparent px-0 focus:ring-0 bg-transparent"
+            className="border-0 bg-transparent! px-0 focus:ring-0"
           />
           <span className="hidden items-center rounded-lg border border-neutral-200 px-2 py-1 text-[11px] font-semibold text-neutral-400 dark:border-neutral-700 sm:inline-flex">
             ⌘K
           </span>
         </div>
         <div className="mt-3 flex items-center justify-between gap-3 text-xs text-neutral-500 dark:text-neutral-400">
-          <p>{normalizedQuery.length >= 2 ? t('common.quickActionsSearchCollections') : t('common.quickActionsHint')}</p>
+          <p>
+            {normalizedQuery.length >= 2 ? t('common.quickActionsSearchCollections') : t('common.quickActionsHint')}
+          </p>
           <p>{router.location.pathname}</p>
         </div>
       </div>
@@ -358,41 +358,38 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
           </div>
         )}
 
-        {groupedResults.length > 0 ? (
-          <div className="space-y-2">
-            {groupedResults.map(group => (
-              <div key={group.id} className="space-y-2">
-                <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400 dark:text-neutral-500">
-                  {group.label}
-                </p>
-                {group.items.map(action => (
-                  <button
-                    key={action.id}
-                    type="button"
-                    onClick={action.action}
-                    onMouseEnter={() => setActiveIndex(action.index)}
-                    className={cn(
-                      'flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-colors',
-                      activeIndex === action.index
-                        ? 'bg-neutral-100 dark:bg-neutral-700/70'
-                        : 'hover:bg-neutral-100/80 dark:hover:bg-neutral-700/40'
-                    )}
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-lg dark:bg-neutral-800">
-                      {action.icon}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-neutral-900 dark:text-white">{action.title}</p>
-                      <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{action.description}</p>
-                    </div>
-                    {action.shortcut && (
-                      <span className="rounded-lg border border-neutral-200 px-2 py-1 text-[11px] font-semibold text-neutral-400 dark:border-neutral-700">
-                        {action.shortcut}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
+        {results.length > 0 ? (
+          <div className="space-y-1">
+            {results.map((action, index) => (
+              <button
+                key={action.id}
+                type="button"
+                onClick={action.action}
+                onMouseEnter={() => setActiveIndex(index)}
+                className={cn(
+                  'flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-colors',
+                  activeIndex === index
+                    ? 'bg-neutral-100 dark:bg-neutral-700/70'
+                    : 'hover:bg-neutral-100/80 dark:hover:bg-neutral-700/40'
+                )}
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-lg dark:bg-neutral-800">
+                  {action.icon}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-neutral-900 dark:text-white">{action.title}</p>
+                  <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{action.description}</p>
+                </div>
+                {action.shortcut ? (
+                  <span className="shrink-0 rounded-lg border border-neutral-200 px-2 py-1 text-[11px] font-semibold text-neutral-400 dark:border-neutral-700">
+                    {action.shortcut}
+                  </span>
+                ) : normalizedQuery ? (
+                  <span className="shrink-0 rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500">
+                    {sectionLabels[action.section]}
+                  </span>
+                ) : null}
+              </button>
             ))}
           </div>
         ) : (

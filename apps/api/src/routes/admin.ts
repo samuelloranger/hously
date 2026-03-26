@@ -7,16 +7,14 @@ import { sendInvitationEmail } from '../services/emailService';
 import { generateOpaqueToken, hashOpaqueToken } from '../utils/tokens';
 import { requireAdmin } from '../middleware/auth';
 import { badRequest, notFound, serverError } from '../utils/errors';
-import { 
-  scheduledTasksQueue, 
-  notificationsQueue, 
-  mediaConversionsQueue, 
+import {
+  scheduledTasksQueue,
+  notificationsQueue,
   defaultQueue,
   activityLogsQueue,
-  c411PrepareQueue,
   QUEUE_NAMES,
   addJob,
-  SCHEDULED_JOB_NAMES
+  SCHEDULED_JOB_NAMES,
 } from '../services/queueService';
 import type { Job, Queue, JobState } from 'bullmq';
 import { createJsonSseResponse } from '../utils/sse';
@@ -30,11 +28,11 @@ const validateEmail = (email: string): boolean => {
 export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .use(auth)
   .use(requireAdmin)
-  
+
   // GET /api/admin/scheduled-jobs - List scheduled BullMQ jobs and queue stats
   .get('/scheduled-jobs', async () => {
     const repeatableJobs = await scheduledTasksQueue.getRepeatableJobs();
-    
+
     const getStats = async (name: string, queue: Queue) => {
       const [waiting, active, completed, failed, delayed] = await Promise.all([
         queue.getWaitingCount(),
@@ -49,32 +47,37 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
     const queueStats = [
       await getStats('Scheduled Tasks', scheduledTasksQueue),
       await getStats('Notifications', notificationsQueue),
-      await getStats('Media Conversions', mediaConversionsQueue),
-      await getStats('C411 Prepare', c411PrepareQueue),
       await getStats('Activity Logs', activityLogsQueue),
       await getStats('Default', defaultQueue),
     ];
 
     // Map repeatable jobs to their current status if they have an active/waiting instance
-    const jobs = await Promise.all(repeatableJobs.map(async (rJob) => {
-      // Find the most recent job for this repeatable configuration
-      const jobInstances = await scheduledTasksQueue.getJobs(['active', 'waiting', 'failed', 'completed'], 0, 50, false);
-      
-      const latestInstance = jobInstances
-        .filter(j => j.name === rJob.name)
-        .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0))[0];
-        
-      const status = latestInstance ? await latestInstance.getState() : 'waiting';
+    const jobs = await Promise.all(
+      repeatableJobs.map(async rJob => {
+        // Find the most recent job for this repeatable configuration
+        const jobInstances = await scheduledTasksQueue.getJobs(
+          ['active', 'waiting', 'failed', 'completed'],
+          0,
+          50,
+          false
+        );
 
-      return {
-        id: rJob.key,
-        name: rJob.name,
-        trigger: rJob.pattern,
-        next_run_time: rJob.next ? new Date(rJob.next).toISOString() : null,
-        tz: rJob.tz,
-        status: status,
-      };
-    }));
+        const latestInstance = jobInstances
+          .filter(j => j.name === rJob.name)
+          .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0))[0];
+
+        const status = latestInstance ? await latestInstance.getState() : 'waiting';
+
+        return {
+          id: rJob.key,
+          name: rJob.name,
+          trigger: rJob.pattern,
+          next_run_time: rJob.next ? new Date(rJob.next).toISOString() : null,
+          tz: rJob.tz,
+          status: status,
+        };
+      })
+    );
 
     return {
       scheduler_running: true,
@@ -96,24 +99,31 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
       intervalMs: 2000, // Poll Redis every 2s on server, only push to client on change
       poll: async () => {
         const repeatableJobs = await scheduledTasksQueue.getRepeatableJobs();
-        const jobInstances = await scheduledTasksQueue.getJobs(['active', 'waiting', 'failed', 'completed'], 0, 50, false);
-        
-        const jobs = await Promise.all(repeatableJobs.map(async (rJob) => {
-          const latestInstance = jobInstances
-            .filter(j => j.name === rJob.name)
-            .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0))[0];
-            
-          const status = latestInstance ? await latestInstance.getState() : 'waiting';
+        const jobInstances = await scheduledTasksQueue.getJobs(
+          ['active', 'waiting', 'failed', 'completed'],
+          0,
+          50,
+          false
+        );
 
-          return {
-            id: rJob.key,
-            name: rJob.name,
-            trigger: rJob.pattern,
-            next_run_time: rJob.next ? new Date(rJob.next).toISOString() : null,
-            tz: rJob.tz,
-            status: status,
-          };
-        }));
+        const jobs = await Promise.all(
+          repeatableJobs.map(async rJob => {
+            const latestInstance = jobInstances
+              .filter(j => j.name === rJob.name)
+              .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0))[0];
+
+            const status = latestInstance ? await latestInstance.getState() : 'waiting';
+
+            return {
+              id: rJob.key,
+              name: rJob.name,
+              trigger: rJob.pattern,
+              next_run_time: rJob.next ? new Date(rJob.next).toISOString() : null,
+              tz: rJob.tz,
+              status: status,
+            };
+          })
+        );
 
         return {
           jobs: jobs.sort((a, b) => {
@@ -122,7 +132,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
             return new Date(a.next_run_time).getTime() - new Date(b.next_run_time).getTime();
           }),
         };
-      }
+      },
     });
   })
 
@@ -130,41 +140,47 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
   .get('/queues/:name/jobs', async ({ params, query }) => {
     const queueMap: Record<string, Queue> = {
       'scheduled-tasks': scheduledTasksQueue,
-      'notifications': notificationsQueue,
-      'media-conversions': mediaConversionsQueue,
-      'c411-prepare': c411PrepareQueue,
+      notifications: notificationsQueue,
       'activity-logs': activityLogsQueue,
-      'default': defaultQueue,
+      default: defaultQueue,
     };
 
     const queue = queueMap[params.name];
     if (!queue) throw new Error('Queue not found');
 
-    const statusStrings = (query.status as string)?.split(',') || ['active', 'waiting', 'completed', 'failed', 'delayed'];
+    const statusStrings = (query.status as string)?.split(',') || [
+      'active',
+      'waiting',
+      'completed',
+      'failed',
+      'delayed',
+    ];
     const states = statusStrings as JobState[];
     const limit = parseInt(query.limit as string) || 50;
-    
+
     const jobs = await queue.getJobs(states, 0, limit - 1, false);
 
-    return Promise.all(jobs.map(async (job: Job) => {
-      const state = await job.getState();
-      return {
-        id: job.id,
-        name: job.name,
-        data: job.data,
-        opts: job.opts,
-        progress: job.progress,
-        delay: job.delay,
-        timestamp: new Date(job.timestamp).toISOString(),
-        processedOn: job.processedOn ? new Date(job.processedOn).toISOString() : null,
-        finishedOn: job.finishedOn ? new Date(job.finishedOn).toISOString() : null,
-        status: state,
-        returnValue: job.returnvalue,
-        failedReason: job.failedReason,
-        stacktrace: job.stacktrace,
-        attemptsMade: job.attemptsMade,
-      };
-    }));
+    return Promise.all(
+      jobs.map(async (job: Job) => {
+        const state = await job.getState();
+        return {
+          id: job.id,
+          name: job.name,
+          data: job.data,
+          opts: job.opts,
+          progress: job.progress,
+          delay: job.delay,
+          timestamp: new Date(job.timestamp).toISOString(),
+          processedOn: job.processedOn ? new Date(job.processedOn).toISOString() : null,
+          finishedOn: job.finishedOn ? new Date(job.finishedOn).toISOString() : null,
+          status: state,
+          returnValue: job.returnvalue,
+          failedReason: job.failedReason,
+          stacktrace: job.stacktrace,
+          attemptsMade: job.attemptsMade,
+        };
+      })
+    );
   })
 
   // POST /api/admin/trigger-action - Trigger a cron job manually
@@ -176,20 +192,20 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
       // Map old action names to new BullMQ job names
       const actionMap: Record<string, string> = {
-        'check_reminders': SCHEDULED_JOB_NAMES.CHECK_REMINDERS,
-        'check_all_day_events': SCHEDULED_JOB_NAMES.CHECK_ALL_DAY_EVENTS,
-        'cleanup_notifications': SCHEDULED_JOB_NAMES.CLEANUP_NOTIFICATIONS,
-        'refresh_upcoming': SCHEDULED_JOB_NAMES.REFRESH_UPCOMING,
-        'refresh_habits_streaks': SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAKS,
-        'fetch_tracker_stats': SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS,
-        'fetch_c411_stats': SCHEDULED_JOB_NAMES.FETCH_C411_STATS,
-        'fetch_torr9_stats': SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS,
-        'fetch_la_cale_stats': SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS,
-        'check_clockify_hours': SCHEDULED_JOB_NAMES.CHECK_CLOCKIFY_HOURS,
+        check_reminders: SCHEDULED_JOB_NAMES.CHECK_REMINDERS,
+        check_all_day_events: SCHEDULED_JOB_NAMES.CHECK_ALL_DAY_EVENTS,
+        cleanup_notifications: SCHEDULED_JOB_NAMES.CLEANUP_NOTIFICATIONS,
+        refresh_upcoming: SCHEDULED_JOB_NAMES.REFRESH_UPCOMING,
+        refresh_habits_streaks: SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAKS,
+        fetch_tracker_stats: SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS,
+        fetch_c411_stats: SCHEDULED_JOB_NAMES.FETCH_C411_STATS,
+        fetch_torr9_stats: SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS,
+        fetch_la_cale_stats: SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS,
+        check_clockify_hours: SCHEDULED_JOB_NAMES.CHECK_CLOCKIFY_HOURS,
       };
 
       const jobName = actionMap[action] || action;
-      
+
       const jobData: Record<string, string> = { trigger: 'manual' };
 
       try {
@@ -200,7 +216,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
         });
 
         await addJob(QUEUE_NAMES.SCHEDULED_TASKS, jobName, jobData);
-        
+
         return { success: true, message: `Job ${jobName} enqueued for immediate execution.` };
       } catch (error) {
         console.error('Error triggering action:', error);
@@ -282,7 +298,7 @@ export const adminRoutes = new Elysia({ prefix: '/api/admin' })
 
         const token = generateOpaqueToken();
         const locale = (body.locale || 'en').trim().slice(0, 10);
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
         const invitation = await prisma.invitation.create({
           data: {

@@ -117,21 +117,6 @@ export const queryKeys = {
     list: (year?: number, month?: number) => [...queryKeys.customEvents.all, year, month] as const,
   },
 
-  c411: {
-    all: ['c411'] as const,
-    history: (service: string, sourceId: number | null, seasonNumber: number | null) => ['c411', 'history', service, sourceId, seasonNumber] as const,
-    drafts: () => ['c411', 'drafts'] as const,
-    draft: (id: number) => ['c411', 'draft', id] as const,
-    releases: () => ['c411', 'releases'] as const,
-    release: (id: number) => ['c411', 'release', id] as const,
-    generateBBCode: (tmdbId: number) => ['c411', 'generate-bbcode', tmdbId] as const,
-    categories: () => ['c411', 'categories'] as const,
-    categoryOptions: (id: number) => ['c411', 'category-options', id] as const,
-    tmdbTitle: (tmdbId: number | null) => ['c411', 'tmdb-title', tmdbId] as const,
-    mediaInfo: (service: string, sourceId: number | null, seasonNumber: number | null) =>
-      ['c411', 'media-info', service, sourceId, seasonNumber] as const,
-  },
-
   medias: {
     all: ['medias'] as const,
     list: () => [...queryKeys.medias.all, 'list'] as const,
@@ -145,12 +130,6 @@ export const queryKeys = {
       [...queryKeys.medias.all, 'interactive-search', 'prowlarr', query] as const,
     providers: (mediaType: 'movie' | 'tv', tmdbId: number, region?: string) =>
       [...queryKeys.medias.all, 'providers', mediaType, tmdbId, region ?? 'CA'] as const,
-    conversionPreview: (service: 'radarr' | 'sonarr', sourceId: number, codec: string, height: number | null, toneMap: boolean, audioTracks: number[] | null) =>
-      [...queryKeys.medias.all, 'conversion-preview', service, sourceId, codec, height, toneMap, audioTracks] as const,
-    conversions: (service: 'radarr' | 'sonarr', sourceId: number) =>
-      [...queryKeys.medias.all, 'conversions', service, sourceId] as const,
-    activeConversions: () => [...queryKeys.medias.all, 'active-conversions'] as const,
-    conversion: (id: number) => [...queryKeys.medias.all, 'conversion', id] as const,
   },
 
   recipes: {
@@ -171,6 +150,11 @@ export const queryKeys = {
     all: ['habits'] as const,
     list: () => [...queryKeys.habits.all, 'list'] as const,
     history: (id: number) => [...queryKeys.habits.all, 'history', id] as const,
+  },
+
+  search: {
+    all: ['search'] as const,
+    quick: (query: string) => [...queryKeys.search.all, 'quick', query] as const,
   },
 } as const;
 

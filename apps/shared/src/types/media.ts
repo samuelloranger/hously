@@ -19,7 +19,6 @@ export interface MediaItem {
   poster_url: string | null;
   arr_url: string | null;
   release_tags: string[] | null;
-  latest_conversion?: MediaConversionJob | null;
 }
 
 export interface MediasResponse {
@@ -27,8 +26,6 @@ export interface MediasResponse {
   sonarr_enabled: boolean;
   radarr_connected: boolean;
   sonarr_connected: boolean;
-  c411_enabled: boolean;
-  c411_tmdb_ids: number[];
   items: MediaItem[];
   errors?: {
     radarr?: string;
@@ -132,95 +129,4 @@ export interface MediaInteractiveDownloadResponse {
 export interface MediaDeleteResponse {
   success: boolean;
   service: 'radarr' | 'sonarr';
-}
-
-export type MediaConversionStatus = 'queued' | 'running' | 'completed' | 'failed';
-
-export interface AudioStreamDetail {
-  index: number;
-  codec: string;
-  channels: number | null;
-  channel_layout: string | null;
-  language: string | null;
-  title: string | null;
-}
-
-export interface MediaConversionPreset {
-  key: string;
-  label: string;
-  description: string;
-  output_extension: 'mkv' | 'mp4';
-  target_height: number | null;
-  target_video_codec: 'hevc' | 'h264' | 'av1';
-  crf: number;
-  ffmpeg_preset: string;
-  copy_audio: boolean;
-  copy_subtitles: boolean;
-  tone_map_hdr: boolean;
-  audio_track_indices: number[] | null;
-}
-
-export interface MediaConversionSourceInfo {
-  file_size_bytes: number;
-  duration_seconds: number | null;
-  container: string | null;
-  video_codec: string | null;
-  width: number | null;
-  height: number | null;
-  pix_fmt: string | null;
-  hdr: boolean;
-  dolby_vision: boolean;
-  audio_streams: number;
-  audio_streams_detail: AudioStreamDetail[];
-  subtitle_streams: number;
-}
-
-export interface MediaConversionValidation {
-  can_convert: boolean;
-  reasons: string[];
-  warnings: string[];
-  input_path: string;
-  output_path: string;
-  source: MediaConversionSourceInfo;
-}
-
-export interface MediaConversionJob {
-  id: number;
-  service: 'radarr' | 'sonarr';
-  source_id: number;
-  source_title: string | null;
-  poster_url: string | null;
-  preset: string;
-  status: MediaConversionStatus;
-  input_path: string;
-  output_path: string;
-  progress: number;
-  duration_seconds: number | null;
-  processed_seconds: number | null;
-  eta_seconds: number | null;
-  fps: number | null;
-  speed: string | null;
-  error_message: string | null;
-  validation_summary: MediaConversionValidation | null;
-  created_at: string;
-  updated_at: string | null;
-  started_at: string | null;
-  completed_at: string | null;
-  requested_by_user_id: number | null;
-}
-
-export interface MediaConversionPreviewResponse {
-  service: 'radarr' | 'sonarr';
-  source_id: number;
-  source_title: string;
-  preset: MediaConversionPreset;
-  validation: MediaConversionValidation;
-}
-
-export interface MediaConversionJobsResponse {
-  jobs: MediaConversionJob[];
-}
-
-export interface MediaConversionCreateResponse {
-  job: MediaConversionJob;
 }

@@ -15,8 +15,6 @@ import { StatCardSkeleton } from '@/components/Skeleton';
 import PendingChoresSection from './components/PendingChoresSection';
 import { UpcomingShelf } from './components/UpcomingShelf';
 import { CardErrorBoundary } from '@/components/ErrorBoundary';
-import { ConversionStatusBar } from '../medias/components/ConversionStatusBar';
-import { useConversionJobs } from '@hously/shared';
 import { usePrefetchIntent } from '@/hooks/usePrefetchIntent';
 import { PinnedTorrentCard } from './components/PinnedTorrentCard';
 import { ViewSwitcher } from '../v2/components/ViewSwitcher';
@@ -24,7 +22,6 @@ import { ViewSwitcher } from '../v2/components/ViewSwitcher';
 export function Dashboard() {
   const { t } = useTranslation('common');
   const { data: user } = useCurrentUser();
-  const hasActiveConversions = useConversionJobs().length > 0;
   const torrentsPrefetchIntent = usePrefetchIntent('/torrents');
   const pluginsPrefetchIntent = usePrefetchIntent('/settings', { tab: 'plugins' });
   const libraryPrefetchIntent = usePrefetchIntent('/library');
@@ -35,23 +32,6 @@ export function Dashboard() {
 
   const dashboardCards = useMemo(() => {
     const cards: Array<{ id: string; content: ReactNode }> = [];
-
-    if (hasActiveConversions) {
-      cards.push({
-        id: 'conversions',
-        content: (
-          <CardErrorBoundary>
-            <section className="relative overflow-hidden rounded-3xl border border-indigo-300/60 bg-gradient-to-br from-[#e0e7ff] via-[#a5b4fc] to-[#6366f1] p-4 shadow-xl dark:border-indigo-500/30 dark:from-indigo-950/70 dark:via-indigo-900/60 dark:to-violet-900/60">
-              <p className="mb-1 text-[9px] uppercase tracking-[0.22em] text-indigo-950/70 dark:text-indigo-200/90">
-                Conversions
-              </p>
-              <h3 className="mb-3 text-base font-bold text-indigo-950 dark:text-indigo-50 md:text-lg">Active Jobs</h3>
-              <ConversionStatusBar />
-            </section>
-          </CardErrorBoundary>
-        ),
-      });
-    }
 
     cards.push(
       {
@@ -157,13 +137,7 @@ export function Dashboard() {
     );
 
     return cards.filter((card): card is { id: string; content: ReactNode } => card.content !== null);
-  }, [
-    choresPrefetchIntent,
-    hasActiveConversions,
-    libraryPrefetchIntent,
-    pluginsPrefetchIntent,
-    torrentsPrefetchIntent,
-  ]);
+  }, [choresPrefetchIntent, libraryPrefetchIntent, pluginsPrefetchIntent, torrentsPrefetchIntent]);
 
   return (
     <PageLayout fullWidth>

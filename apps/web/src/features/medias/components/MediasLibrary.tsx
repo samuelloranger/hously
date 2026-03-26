@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useSearch } from '@tanstack/react-router';
 import {
   useMedias,
-  useActiveMediaConversions,
   filterAndSortMediaItems,
   type MediaItem,
   type MediaFilter,
@@ -12,22 +11,11 @@ import {
 } from '@hously/shared';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaPosterCard } from '@/components/MediaPosterCard';
-import {
-  ArrowDownAZ,
-  ArrowUpZA,
-  Search,
-  Zap,
-  X,
-  LayoutGrid,
-  Grid3X3,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
+import { ArrowDownAZ, ArrowUpZA, Search, X, LayoutGrid, Grid3X3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import { useModalSearchParams } from '@/hooks/useModalSearchParams';
 import { MediaInfoDialog } from './c411/MediaInfoDialog';
-import { ConversionStatusBar } from './ConversionStatusBar';
 import type { LibrarySearchParams } from '@/router';
 import type { TabKey } from './c411/MediaInfoDialog';
 import { usePersistentState } from '@/hooks/usePersistentState';
@@ -36,13 +24,12 @@ function mediaKey(item: MediaItem) {
   return `${item.service}:${item.source_id}`;
 }
 
-type MediaScopeFilter = 'all' | 'radarr' | 'sonarr' | 'downloaded' | 'missing' | 'converting';
+type MediaScopeFilter = 'all' | 'radarr' | 'sonarr' | 'downloaded' | 'missing';
 type MediaDensity = 'comfortable' | 'compact';
 
 export function MediasLibrary() {
   const { t } = useTranslation('common');
   const { data: libraryData, isLoading, refetch } = useMedias();
-  const { data: activeConversionsData } = useActiveMediaConversions({ enabled: true });
 
   const [filter, setFilter] = useState<MediaFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>('added_at');
@@ -58,23 +45,7 @@ export function MediasLibrary() {
   const page = searchParams.page ?? 1;
   const pageSize = searchParams.pageSize ?? 50;
 
-  const items = useMemo(() => {
-    const baseItems = libraryData?.items ?? [];
-    const activeJobs = activeConversionsData?.jobs ?? [];
-
-    if (activeJobs.length === 0) return baseItems;
-
-    return baseItems.map(item => {
-      const job = activeJobs.find(j => j.service === item.service && j.source_id === item.source_id);
-      if (job) {
-        return { ...item, latest_conversion: job };
-      }
-      return item;
-    });
-  }, [libraryData?.items, activeConversionsData?.jobs]);
-
-  const c411Enabled = libraryData?.c411_enabled ?? false;
-  const c411TmdbIds = useMemo(() => new Set(libraryData?.c411_tmdb_ids ?? []), [libraryData?.c411_tmdb_ids]);
+  const items = useMemo(() => libraryData?.items ?? [], [libraryData?.items]);
 
   const currentMediaItem = useMemo(
     () => items.find(i => mediaKey(i) === searchParams.current_media_id) ?? null,
@@ -89,9 +60,6 @@ export function MediasLibrary() {
       if (scopeFilter === 'radarr' || scopeFilter === 'sonarr') return item.service === scopeFilter;
       if (scopeFilter === 'downloaded') return item.downloaded;
       if (scopeFilter === 'missing') return !item.downloaded && !item.downloading;
-      if (scopeFilter === 'converting') {
-        return Boolean(item.latest_conversion && ['queued', 'running'].includes(item.latest_conversion.status));
-      }
       return true;
     });
 
@@ -120,14 +88,13 @@ export function MediasLibrary() {
   const movieCount = items.filter(i => i.media_type === 'movie').length;
   const seriesCount = items.filter(i => i.media_type === 'series').length;
   const downloadedCount = items.filter(i => i.downloaded).length;
-  const convertingCount = items.filter(i => i.latest_conversion && ['queued', 'running'].includes(i.latest_conversion.status)).length;
   const missingCount = items.filter(i => !i.downloaded && !i.downloading).length;
   const hasActiveFilters = Boolean(search || filter !== 'all' || scopeFilter !== 'all');
 
   const openMedia = (item: MediaItem, tab?: TabKey) => {
     setParams({
       current_media_id: mediaKey(item),
-      current_media_tab: tab ?? (item.downloaded ? 'info' : 'search'),
+      current_media_tab: tab ?? 'search',
     });
   };
 
@@ -190,21 +157,20 @@ export function MediasLibrary() {
     { value: 'sonarr' as const, label: 'Sonarr', count: items.filter(i => i.service === 'sonarr').length },
     { value: 'downloaded' as const, label: t('medias.downloaded'), count: downloadedCount },
     { value: 'missing' as const, label: t('medias.missing'), count: missingCount },
-    { value: 'converting' as const, label: t('medias.scopeConverting', 'Converting'), count: convertingCount },
   ];
 
   return (
     <div className="space-y-3">
-      <ConversionStatusBar />
-
       {/* Toolbar */}
       <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
-
         {/* Row 1: Search + controls */}
         <div className="px-3 pt-3 pb-2.5 flex items-center gap-2">
           {/* Search */}
           <div className="relative flex-1 min-w-0">
-            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+            <Search
+              size={13}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
+            />
             <input
               ref={searchInputRef}
               value={search}
@@ -436,7 +402,6 @@ export function MediasLibrary() {
                   key={item.id}
                   id={`media-${mediaKey(item)}`}
                   item={item}
-                  isOnC411={c411Enabled && item.tmdb_id !== null && c411TmdbIds.has(item.tmdb_id)}
                   onOpen={(tab?: TabKey) => openMedia(item, tab)}
                 />
               ))}
@@ -501,55 +466,37 @@ export function MediasLibrary() {
       <MediaInfoDialog
         isOpen={Boolean(currentMediaItem)}
         media={currentMediaItem}
-        c411Enabled={c411Enabled}
-        onClose={() => resetParams(['current_media_id', 'current_media_tab', 'current_media_release'])}
-        activeTab={(searchParams.current_media_tab as TabKey) || (currentMediaItem?.downloaded ? 'info' : 'search')}
-        onTabChange={tab => setParams({ current_media_tab: tab, current_media_release: undefined })}
-        editingReleaseId={searchParams.current_media_release ?? null}
-        onEditingReleaseChange={id => setParams({ current_media_release: id ?? undefined })}
+        onClose={() => resetParams(['current_media_id', 'current_media_tab'])}
+        activeTab={(searchParams.current_media_tab as TabKey) || 'search'}
+        onTabChange={tab => setParams({ current_media_tab: tab })}
         onRefetchLibrary={refetch}
       />
     </div>
   );
 }
 
-function C411Badge() {
-  return <img src="/icons/c411.png" alt="C411" className="h-4 drop-shadow-md" />;
-}
-
 function MediaGridCard({
   item,
-  isOnC411,
   id,
   onOpen,
 }: {
   item: MediaItem;
-  isOnC411: boolean;
   id?: string;
   onOpen: (tab?: TabKey) => void;
 }) {
   const { t } = useTranslation('common');
 
-  const conversion = item.latest_conversion;
-  const isConverting = conversion && (conversion.status === 'running' || conversion.status === 'queued');
+  const status = item.downloaded
+    ? 'downloaded'
+    : item.downloading
+      ? 'downloading'
+      : 'missing';
 
-  const status = isConverting
-    ? 'downloading'
-    : item.downloaded
-      ? 'downloaded'
-      : item.downloading
-        ? 'downloading'
-        : 'missing';
-
-  const statusLabel = isConverting
-    ? conversion.status === 'running'
-      ? `${t('medias.convert.status.running')} (${Math.round(conversion.progress)}%)`
-      : t('medias.convert.status.queued')
-    : item.downloaded
-      ? t('medias.downloaded')
-      : item.downloading
-        ? t('medias.downloading')
-        : t('medias.missing');
+  const statusLabel = item.downloaded
+    ? t('medias.downloaded')
+    : item.downloading
+      ? t('medias.downloading')
+      : t('medias.missing');
 
   return (
     <MediaPosterCard
@@ -562,16 +509,6 @@ function MediaGridCard({
       accentRingClassName="focus:ring-indigo-400/70"
       className="w-full"
       onClick={() => onOpen()}
-      topLeftBadge={
-        <div className="flex flex-col gap-1">
-          {isOnC411 && <C411Badge />}
-          {isConverting && (
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-600 shadow-lg text-white">
-              <Zap size={12} className={cn(conversion.status === 'running' && 'animate-pulse')} />
-            </div>
-          )}
-        </div>
-      }
     >
       <div className="space-y-1.5">
         <div className="flex items-center justify-between gap-1">
@@ -582,21 +519,6 @@ function MediaGridCard({
             </span>
           )}
         </div>
-
-        {isConverting && conversion.status === 'running' && (
-          <div className="space-y-1">
-            <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-indigo-500 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${Math.max(5, conversion.progress)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[8px] font-bold text-white/40 uppercase tracking-tighter italic">
-              <span>{Math.round(conversion.progress)}%</span>
-              {conversion.speed && <span>{conversion.speed}</span>}
-            </div>
-          </div>
-        )}
       </div>
     </MediaPosterCard>
   );

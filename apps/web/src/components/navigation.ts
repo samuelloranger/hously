@@ -6,7 +6,6 @@ import {
   Library,
   ListChecks,
   Magnet,
-  Package,
   ShoppingCart,
   Target,
 } from 'lucide-react';
@@ -41,7 +40,6 @@ export const navSections: NavSection[] = [
     items: [
       { path: '/library', translationKey: 'nav.library', icon: Library, mobileIcon: '🎞️' },
       { path: '/torrents', translationKey: 'nav.torrents', icon: Magnet, mobileIcon: '🧲' },
-      { path: '/releases', translationKey: 'nav.releases', icon: Package, mobileIcon: '📦' },
       { path: '/explore', translationKey: 'nav.explore', icon: Compass, mobileIcon: '🧭' },
     ],
   },

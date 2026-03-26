@@ -177,7 +177,6 @@
         "opsScan": "Ops Scan"
       },
       "cardLabels": {
-        "conversions": "Conversions",
         "pinnedTorrent": "Pinned Torrent",
         "weather": "Weather",
         "qbittorrent": "qBittorrent Live",
@@ -1522,43 +1521,6 @@
       "running": "Searching...",
       "success": "Auto search started in {{service}}.",
       "failed": "Failed to start auto search."
-    },
-    "convert": {
-      "button": "Convert",
-      "title": "Convert Media",
-      "unsupported": "Conversion is currently available for downloaded Radarr movies only.",
-      "validationTitle": "Validation",
-      "presetLabel": "Preset",
-      "canConvert": "This file can be converted.",
-      "cannotConvert": "This file cannot be converted.",
-      "inputPath": "Input Path",
-      "outputPath": "Output Path",
-      "videoCodec": "Video Codec",
-      "resolution": "Resolution",
-      "duration": "Duration",
-      "fileSize": "File Size",
-      "audioTracks": "Audio Tracks",
-      "subtitleTracks": "Subtitle Tracks",
-      "reasons": "Blocking Issues",
-      "warnings": "Warnings",
-      "create": "Queue Conversion",
-      "creating": "Queueing...",
-      "success": "Conversion queued for {{title}}.",
-      "failed": "Failed to queue conversion.",
-      "queueTitle": "Recent Jobs",
-      "empty": "No conversion jobs yet.",
-      "progressValue": "{{progress}}%",
-      "speedValue": "Speed: {{speed}}",
-      "fpsValue": "FPS: {{fps}}",
-      "etaValue": "ETA: {{eta}}",
-      "etaSuffix": "left",
-      "estimation": "Significant size reduction",
-      "status": {
-        "queued": "Queued",
-        "running": "Running",
-        "completed": "Completed",
-        "failed": "Failed"
-      }
     },
     "delete": {
       "button": "Delete",

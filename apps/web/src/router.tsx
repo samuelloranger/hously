@@ -58,7 +58,6 @@ const Notifications = cachedLazy('notifications', () =>
 const KitchenPage = cachedLazy('kitchen', () => import('./features/recipes').then(m => ({ default: m.KitchenPage })));
 const ExplorePage = cachedLazy('explore', () => import('./features/medias').then(m => ({ default: m.ExplorePage })));
 const LibraryPage = cachedLazy('library', () => import('./features/medias').then(m => ({ default: m.LibraryPage })));
-const ReleasesPage = cachedLazy('releases', () => import('./features/medias').then(m => ({ default: m.ReleasesPage })));
 const RecipeDetail = cachedLazy('recipeDetail', () =>
   import('./features/recipes').then(m => ({ default: m.RecipeDetail }))
 );
@@ -403,7 +402,6 @@ export type LibrarySearchParams = {
   search?: string;
   current_media_id?: string;
   current_media_tab?: string;
-  current_media_release?: number;
   scrollToMedia?: string;
 };
 
@@ -433,20 +431,12 @@ const libraryRoute = createRoute({
     search: typeof search.search === 'string' && search.search ? search.search : undefined,
     current_media_id: typeof search.current_media_id === 'string' ? search.current_media_id : undefined,
     current_media_tab: typeof search.current_media_tab === 'string' ? search.current_media_tab : undefined,
-    current_media_release: parseOptionalInt(search.current_media_release),
     scrollToMedia: typeof search.scrollToMedia === 'string' ? search.scrollToMedia : undefined,
   }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
     await prefetchRouteData(context.queryClient, '/library');
   },
-});
-
-const releasesRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/releases',
-  component: ReleasesPage,
-  beforeLoad: requireAuth,
 });
 
 const torrentDetailRoute = createRoute({
@@ -486,7 +476,6 @@ const routeTree = rootRoute.addChildren([
   torrentsRoute,
   exploreRoute,
   libraryRoute,
-  releasesRoute,
   torrentDetailRoute,
   v2Route,
 ]);

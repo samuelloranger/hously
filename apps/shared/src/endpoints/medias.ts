@@ -16,16 +16,4 @@ export const MEDIAS_ENDPOINTS = {
   PROWLARR_INTERACTIVE_SEARCH_DOWNLOAD: '/api/medias/prowlarr/interactive-search/download',
   DELETE: (service: 'radarr' | 'sonarr', sourceId: number, deleteFiles: boolean) =>
     `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}?deleteFiles=${deleteFiles}`,
-  CONVERSION_PREVIEW: (service: 'radarr' | 'sonarr', sourceId: number, codec: string, height: number | null, toneMap?: boolean, audioTracks?: number[] | null) => {
-    const params = new URLSearchParams({ codec });
-    if (height !== null) params.set('height', String(height));
-    if (toneMap) params.set('tone_map', 'true');
-    if (audioTracks?.length) params.set('audio_tracks', audioTracks.join(','));
-    return `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}/conversion-preview?${params}`;
-  },
-  CONVERSIONS: (service: 'radarr' | 'sonarr', sourceId: number) =>
-    `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}/conversions`,
-  ACTIVE_CONVERSIONS: '/api/medias/conversions/active',
-  CONVERSION: (id: number) => `/api/medias/conversions/${encodeURIComponent(String(id))}`,
-  CANCEL_CONVERSION: (id: number) => `/api/medias/conversions/${encodeURIComponent(String(id))}`,
 } as const;

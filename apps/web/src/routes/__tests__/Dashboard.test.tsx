@@ -1,100 +1,103 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { mockDashboardStats, mockActivity } from '@/test-utils/mocks';
+import { screen, waitFor, renderWithProviders } from '@/test-utils/render';
+import { mockDashboardStats, mockActivity, mockUser } from '@/test-utils/mocks';
 import { Dashboard } from '@/features/dashboard';
 
-const mockGetDashboardStats = vi.fn();
-const mockGetDashboardActivities = vi.fn();
-
-vi.mock('../../lib/api', () => ({
-  api: {
-    getDashboardStats: () => mockGetDashboardStats(),
-    getDashboardActivities: (limit?: number) => mockGetDashboardActivities(limit),
-    getDashboardJellyfinLatest: vi.fn(),
-  },
+// Mock TanStack Router
+vi.mock('@tanstack/react-router', () => ({
+  useSearch: vi.fn().mockReturnValue({}),
+  useNavigate: vi.fn().mockReturnValue(vi.fn()),
+  Link: ({ children, to }: any) => <a href={to}>{children}</a>,
 }));
 
-vi.mock('../../hooks/useAuth', () => ({
-  useAuth: () => ({
-    user: {
-      id: 1,
-      email: 'test@test.com',
-      first_name: null,
-      last_name: null,
-      is_admin: false,
-      last_login: null,
-      created_at: '2024-01-01',
-      last_activity: null,
-    },
-    isLoading: false,
-    isAuthenticated: true,
-  }),
+// Mock hooks
+vi.mock('@/hooks/usePrefetchRoute', () => ({
+  usePrefetchRoute: () => vi.fn(),
 }));
+
+// Mock shared hooks
+vi.mock('@hously/shared', async importOriginal => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    useDashboardStats: vi.fn(),
+    useDashboardActivityFeed: vi.fn(),
+    useDashboardActivities: vi.fn(),
+    useDashboardQbittorrent: vi.fn().mockReturnValue({ data: { torrents: [] }, isLoading: false }),
+    useDashboardScrutiny: vi.fn().mockReturnValue({ data: { hosts: [] }, isLoading: false }),
+    useDashboardNetdata: vi.fn().mockReturnValue({ data: { nodes: [] }, isLoading: false }),
+    useDashboardAdguard: vi.fn().mockReturnValue({ data: { stats: {} }, isLoading: false }),
+    useDashboardKopia: vi.fn().mockReturnValue({ data: { status: {} }, isLoading: false }),
+    useDashboardUnraid: vi.fn().mockReturnValue({ data: { status: {} }, isLoading: false }),
+    useCurrentUser: vi.fn(),
+    useChores: vi.fn().mockReturnValue({ data: { chores: [], users: [] }, isLoading: false }),
+    useWeather: vi.fn().mockReturnValue({ data: { current: {} }, isLoading: false }),
+    useJellyfinLatest: vi.fn().mockReturnValue({ data: { items: [] }, isLoading: false }),
+    useCalendarEvents: vi.fn().mockReturnValue({ data: [], isLoading: false }),
+    useMediaAutoSearch: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+    useTrackerStats: vi.fn().mockReturnValue({ data: { stats: [] }, isLoading: false }),
+    useDashboardActivityPage: vi.fn().mockReturnValue({ data: { activities: [] }, isLoading: false }),
+  };
+});
+
+import { useDashboardStats, useDashboardActivities, useCurrentUser } from '@hously/shared';
 
 describe('Dashboard', () => {
-  let queryClient: QueryClient;
-
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-      },
-    });
     vi.clearAllMocks();
+    (useCurrentUser as any).mockReturnValue({ data: mockUser, isLoading: false });
   });
 
   it('renders dashboard stats', async () => {
-    mockGetDashboardStats.mockResolvedValue({
-      stats: mockDashboardStats,
-      activities: [mockActivity],
+    (useDashboardStats as any).mockReturnValue({
+      data: { stats: mockDashboardStats },
+      isLoading: false,
     });
-    mockGetDashboardActivities.mockResolvedValue({
-      activities: [mockActivity],
+    (useDashboardActivities as any).mockReturnValue({
+      data: { activities: [mockActivity] },
+      isLoading: false,
     });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <Dashboard />
-      </QueryClientProvider>
-    );
+    renderWithProviders(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText(/shopping items/i)).toBeInTheDocument();
+      expect(screen.getByText('dashboard.shoppingItems')).toBeInTheDocument();
       expect(screen.getByText(String(mockDashboardStats.shopping_count))).toBeInTheDocument();
     });
   });
 
   it('shows loading state initially', () => {
-    mockGetDashboardStats.mockImplementation(() => new Promise(() => {}));
-    mockGetDashboardActivities.mockImplementation(() => new Promise(() => {}));
+    (useDashboardStats as any).mockReturnValue({
+      data: null,
+      isLoading: true,
+    });
+    (useDashboardActivities as any).mockReturnValue({
+      data: null,
+      isLoading: true,
+    });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <Dashboard />
-      </QueryClientProvider>
-    );
+    renderWithProviders(<Dashboard />);
 
-    expect(screen.getByText(/loading dashboard/i)).toBeInTheDocument();
+    const skeletons = document.querySelectorAll('.animate-pulse');
+    expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it('displays activities when available', async () => {
-    mockGetDashboardStats.mockResolvedValue({
-      stats: mockDashboardStats,
-      activities: [mockActivity],
+    (useDashboardStats as any).mockReturnValue({
+      data: { stats: mockDashboardStats },
+      isLoading: false,
     });
-    mockGetDashboardActivities.mockResolvedValue({
-      activities: [mockActivity],
+    (useDashboardActivities as any).mockReturnValue({
+      data: { activities: [mockActivity] },
+      isLoading: false,
     });
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <Dashboard />
-      </QueryClientProvider>
-    );
+    renderWithProviders(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText(mockActivity.description!)).toBeInTheDocument();
+      // Check for the translation key or parts of the description
+      expect(screen.getByText(/dashboard.activity.shoppingItemAdded/i)).toBeInTheDocument();
+      expect(screen.getByText(/Milk/i)).toBeInTheDocument();
     });
   });
 });

@@ -12,4 +12,4 @@ export * from './externalNotifications';
 export * from './weather';
 export * from './media';
 export * from './habits';
-export * from './c411';
+export * from './search';

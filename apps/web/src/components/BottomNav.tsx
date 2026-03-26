@@ -26,7 +26,6 @@ export function BottomNav() {
     { path: '/explore', translationKey: 'nav.explore', icon: '🧭' },
     { path: '/library', translationKey: 'nav.library', icon: '🎞️' },
     { path: '/torrents', translationKey: 'nav.torrents', icon: '🧲' },
-    { path: '/releases', translationKey: 'nav.releases', icon: '📦' },
   ];
 
   // Only show bottom nav when app is installed AND on mobile device

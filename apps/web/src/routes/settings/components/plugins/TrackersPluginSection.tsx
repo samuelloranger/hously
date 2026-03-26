@@ -18,7 +18,6 @@ type TrackerFormState = {
   tracker_url: string;
   username: string;
   password: string;
-  announce_url: string;
 };
 
 type TrackerEditorProps = {
@@ -33,10 +32,6 @@ type TrackerEditorProps = {
   loading: boolean;
   saving: boolean;
   showFlaresolverr?: boolean;
-  showAnnounceUrl?: boolean;
-  announceUrlLabel?: string;
-  announceUrlPlaceholder?: string;
-  announceUrlHelp?: string;
   initial: Omit<TrackerFormState, 'password'>;
   onSave: (payload: Omit<TrackerFormState, 'password'> & { password?: string }) => Promise<unknown>;
 };
@@ -53,10 +48,6 @@ function TrackerEditor({
   loading,
   saving,
   showFlaresolverr = true,
-  showAnnounceUrl = false,
-  announceUrlLabel,
-  announceUrlPlaceholder,
-  announceUrlHelp,
   initial,
   onSave,
 }: TrackerEditorProps) {
@@ -74,7 +65,6 @@ function TrackerEditor({
     flaresolverr_url: initialFsUrl,
     tracker_url: initialTrackerUrl,
     username: initialUsername,
-    announce_url: initialAnnounceUrl,
   } = initial;
   useEffect(() => {
     setState({
@@ -82,10 +72,9 @@ function TrackerEditor({
       flaresolverr_url: initialFsUrl,
       tracker_url: initialTrackerUrl,
       username: initialUsername,
-      announce_url: initialAnnounceUrl,
       password: '',
     });
-  }, [initialEnabled, initialFsUrl, initialTrackerUrl, initialUsername, initialAnnounceUrl]);
+  }, [initialEnabled, initialFsUrl, initialTrackerUrl, initialUsername]);
 
   const isDirty = useMemo(
     () =>
@@ -93,7 +82,6 @@ function TrackerEditor({
       state.flaresolverr_url !== initial.flaresolverr_url ||
       state.tracker_url !== initial.tracker_url ||
       state.username !== initial.username ||
-      state.announce_url !== initial.announce_url ||
       state.password !== '',
     [initial, state]
   );
@@ -111,7 +99,6 @@ function TrackerEditor({
       flaresolverr_url: state.flaresolverr_url,
       tracker_url: state.tracker_url,
       username: state.username,
-      announce_url: state.announce_url,
       password: state.password.trim() ? state.password : undefined,
     })
       .then(() => {
@@ -201,18 +188,8 @@ function TrackerEditor({
         />
       </div>
 
-      {showAnnounceUrl && (
-        <PluginUrlInput
-          label={announceUrlLabel || t('settings.plugins.trackers.announceUrl')}
-          value={state.announce_url}
-          onChange={value => setState(prev => ({ ...prev, announce_url: value }))}
-          placeholder={announceUrlPlaceholder || 'https://c411.org/announce/your-passkey'}
-          description={announceUrlHelp}
-          className="font-mono text-xs"
-        />
-      )}
 
-      <div className="flex items-center gap-3">
+<div className="flex items-center gap-3">
         {isDirty && (
           <span className="text-xs text-amber-600 dark:text-amber-400 font-medium mr-auto">
             {t('settings.plugins.unsavedChanges')}
@@ -246,7 +223,6 @@ type TrackerPluginConfig = {
   flaresolverr_url?: string;
   tracker_url?: string;
   username?: string;
-  announce_url?: string;
 };
 
 type TrackerSection = {
@@ -262,21 +238,16 @@ type TrackerSection = {
   loading: boolean;
   saving: boolean;
   showFlaresolverr?: boolean;
-  showAnnounceUrl?: boolean;
-  announceUrlLabel?: string;
-  announceUrlPlaceholder?: string;
-  announceUrlHelp?: string;
   initial: Omit<TrackerFormState, 'password'>;
   onSave: (payload: Omit<TrackerFormState, 'password'> & { password?: string }) => Promise<unknown>;
 };
 
-function toInitialState(plugin: TrackerPluginConfig | undefined, options?: { includeAnnounceUrl?: boolean }) {
+function toInitialState(plugin: TrackerPluginConfig | undefined) {
   return {
     enabled: Boolean(plugin?.enabled),
     flaresolverr_url: plugin?.flaresolverr_url || '',
     tracker_url: plugin?.tracker_url || '',
     username: plugin?.username || '',
-    announce_url: options?.includeAnnounceUrl ? plugin?.announce_url || '' : '',
   };
 }
 
@@ -302,12 +273,9 @@ export function TrackersPluginSection() {
       websitePlaceholder: 'https://c411.org',
       loading: c411Query.isLoading,
       saving: c411Mutation.isPending,
-      showAnnounceUrl: true,
-      announceUrlLabel: t('settings.plugins.trackers.announceUrl'),
-      announceUrlHelp: t('settings.plugins.trackers.announceUrlHelp.c411'),
-      announceUrlPlaceholder: 'https://c411.org/announce/your-passkey',
-      initial: toInitialState(c411Query.data?.plugin, { includeAnnounceUrl: true }),
-      onSave: (payload: Omit<TrackerFormState, 'password'> & { password?: string }) => c411Mutation.mutateAsync(payload),
+      initial: toInitialState(c411Query.data?.plugin),
+      onSave: (payload: Omit<TrackerFormState, 'password'> & { password?: string }) =>
+        c411Mutation.mutateAsync(payload),
     },
     {
       key: 'torr9',
@@ -319,7 +287,8 @@ export function TrackersPluginSection() {
       loading: torr9Query.isLoading,
       saving: torr9Mutation.isPending,
       initial: toInitialState(torr9Query.data?.plugin),
-      onSave: (payload: Omit<TrackerFormState, 'password'> & { password?: string }) => torr9Mutation.mutateAsync(payload),
+      onSave: (payload: Omit<TrackerFormState, 'password'> & { password?: string }) =>
+        torr9Mutation.mutateAsync(payload),
     },
     {
       key: 'la-cale',
@@ -332,7 +301,8 @@ export function TrackersPluginSection() {
       saving: laCaleMutation.isPending,
       showFlaresolverr: false,
       initial: toInitialState(laCaleQuery.data?.plugin),
-      onSave: (payload: Omit<TrackerFormState, 'password'> & { password?: string }) => laCaleMutation.mutateAsync(payload),
+      onSave: (payload: Omit<TrackerFormState, 'password'> & { password?: string }) =>
+        laCaleMutation.mutateAsync(payload),
     },
   ] as const;
 
@@ -361,10 +331,6 @@ export function TrackersPluginSection() {
           loading={tracker.loading}
           saving={tracker.saving}
           showFlaresolverr={tracker.showFlaresolverr}
-          showAnnounceUrl={tracker.showAnnounceUrl}
-          announceUrlLabel={tracker.announceUrlLabel}
-          announceUrlPlaceholder={tracker.announceUrlPlaceholder}
-          announceUrlHelp={tracker.announceUrlHelp}
           initial={tracker.initial}
           onSave={tracker.onSave}
         />
