@@ -1,7 +1,7 @@
 {
   "name": "@hously/server",
-  "version": "2.1.137",
-  "packageManager": "bun@1.3.3",
+  "version": "2.1.138",
+  "packageManager": "bun@1.3.11",
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
@@ -23,8 +23,8 @@
     "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/cors": "^1.4.1",
     "@elysiajs/cron": "^1.4.1",
-    "@elysiajs/jwt": "^1.4.0",
-    "@elysiajs/swagger": "latest",
+    "@elysiajs/jwt": "^1.4.1",
+    "@elysiajs/swagger": "^1.3.1",
     "@hously/shared": "workspace:*",
     "@parse/node-apn": "^7.1.0",
     "@prisma/client": "6.19.0",
@@ -33,8 +33,8 @@
     "@react-email/tailwind": "^2.0.5",
     "bullmq": "^5.71.0",
     "create-torrent": "^6.1.0",
-    "elysia": "latest",
-    "elysia-rate-limit": "^4.5.0",
+    "elysia": "^1.4.28",
+    "elysia-rate-limit": "^4.5.1",
     "ioredis": "^5.10.0",
     "node-html-parser": "^7.0.2",
     "nodemailer": "^8.0.1",
@@ -47,7 +47,7 @@
     "@types/nodemailer": "^7.0.11",
     "@types/uuid": "^10.0.0",
     "@types/web-push": "^3.6.4",
-    "bun-types": "latest",
+    "bun-types": "^1.3.11",
     "prisma": "6.19.0"
   },
   "peerDependencies": {
