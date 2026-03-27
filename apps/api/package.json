@@ -1,6 +1,6 @@
 {
   "name": "@hously/server",
-  "version": "2.1.145",
+  "version": "2.1.146",
   "packageManager": "bun@1.3.11",
   "module": "src/index.ts",
   "type": "module",
@@ -22,7 +22,6 @@
     "@aws-sdk/client-s3": "^3.995.0",
     "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/cors": "^1.4.1",
-    "@elysiajs/cron": "^1.4.1",
     "@elysiajs/jwt": "^1.4.1",
     "@elysiajs/static": "^1.4.7",
     "@elysiajs/swagger": "^1.3.1",
@@ -33,7 +32,6 @@
     "@react-email/render": "^2.0.4",
     "@react-email/tailwind": "^2.0.5",
     "bullmq": "^5.71.0",
-    "create-torrent": "^6.1.0",
     "elysia": "^1.4.28",
     "elysia-rate-limit": "^4.5.1",
     "ioredis": "^5.10.0",
@@ -43,8 +41,6 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
-    "@types/apn": "^2.1.6",
-    "@types/create-torrent": "^6.1.1",
     "@types/nodemailer": "^7.0.11",
     "@types/uuid": "^10.0.0",
     "@types/web-push": "^3.6.4",
