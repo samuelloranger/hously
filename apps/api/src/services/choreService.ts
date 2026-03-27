@@ -1,11 +1,11 @@
 import type { Chore } from '@prisma/client';
 import { prisma } from '../db';
 import { nowUtc } from '../utils';
-import { computeNextRecurrenceDate, type RecurrenceType } from '../utils/recurrence';
+import { computeNextRecurrenceDate, type ChoreRecurrenceType } from '@hously/shared';
 
 export async function createNextChoreOccurrence(chore: Chore, completedAt: Date): Promise<Chore | null> {
   const nextDate = computeNextRecurrenceDate(
-    { ...chore, recurrenceType: chore.recurrenceType as RecurrenceType | null },
+    { ...chore, recurrenceType: chore.recurrenceType as ChoreRecurrenceType | null },
     completedAt
   );
   if (!nextDate) return null;

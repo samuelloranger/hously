@@ -10,7 +10,7 @@ import {
 import { prisma } from '../../db';
 import { getJsonCache, setJsonCache, deleteCache } from '../../services/cache';
 import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../../utils/plugins/normalizers';
-import { toRecord, toStringOrNull } from '../../utils/coerce';
+import { toRecord, toStringOrNull } from '@hously/shared';
 import type { DashboardUpcomingItem } from '../../types/dashboardUpcoming';
 import { badGateway, badRequest, notFound, serverError, unauthorized } from '../../utils/errors';
 

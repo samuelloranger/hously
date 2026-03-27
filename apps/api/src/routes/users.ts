@@ -13,7 +13,7 @@ import {
 } from '../services/imageService';
 import { badRequest, notFound, serverError, unauthorized } from '../utils/errors';
 import { mapUser } from '../utils/mappers';
-import { validateImageMimeAndSize } from '../utils/imageValidation';
+import { validateImageMimeAndSize } from '@hously/shared';
 
 export const usersRoutes = new Elysia({ prefix: '/api/users' })
   .use(auth)

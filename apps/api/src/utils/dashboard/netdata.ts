@@ -1,6 +1,6 @@
 import { prisma } from '../../db';
 import { normalizeNetdataConfig } from '../plugins/normalizers';
-import { toNumberOrNull, toRecord } from '../coerce';
+import { toNumberOrNull, toRecord } from '@hously/shared';
 import type { DashboardNetdataDiskUsage, DashboardNetdataSummaryResponse } from '../../types/dashboardServices';
 
 export const buildNetdataDisabledSummary = (error?: string): DashboardNetdataSummaryResponse => ({

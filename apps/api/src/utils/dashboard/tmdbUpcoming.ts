@@ -1,5 +1,5 @@
 import { prisma } from '../../db';
-import { toRecord, toStringOrNull } from '../coerce';
+import { toRecord, toStringOrNull } from '@hously/shared';
 import type { ArrPluginStatus, DashboardUpcomingItem, DashboardUpcomingProvider } from '../../types/dashboardUpcoming';
 import { normalizeJellyfinConfig } from '../plugins/normalizers';
 import { getJsonCache, setJsonCache } from '../../services/cache';
@@ -272,10 +272,7 @@ export const fetchTmdbProviders = async (
  * in the US region from TMDB's /movie/{id}/release_dates endpoint.
  * Returns the ISO date string (YYYY-MM-DD) or null if not found.
  */
-export const fetchMovieReleaseDates = async (
-  tmdbId: number,
-  tmdbApiKey: string
-): Promise<string | null> => {
+export const fetchMovieReleaseDates = async (tmdbId: number, tmdbApiKey: string): Promise<string | null> => {
   try {
     const url = new URL(`https://api.themoviedb.org/3/movie/${tmdbId}/release_dates`);
     url.searchParams.set('api_key', tmdbApiKey);

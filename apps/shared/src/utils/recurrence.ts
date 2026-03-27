@@ -1,7 +1,7 @@
-export type RecurrenceType = 'daily_interval' | 'weekly';
+export type ChoreRecurrenceType = 'daily_interval' | 'weekly';
 
 export interface ChoreRecurrenceInput {
-  recurrenceType: RecurrenceType | null;
+  recurrenceType: ChoreRecurrenceType | null;
   recurrenceIntervalDays: number | null;
   recurrenceWeekday: number | null;
 }

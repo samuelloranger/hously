@@ -1,6 +1,6 @@
 import { prisma } from '../../db';
 import { normalizeScrutinyConfig } from '../plugins/normalizers';
-import { toNumberOrNull, toRecord, toStringOrNull } from '../coerce';
+import { toNumberOrNull, toRecord, toStringOrNull } from '@hously/shared';
 import type { DashboardScrutinyDrive, DashboardScrutinySummaryResponse } from '../../types/dashboardServices';
 
 const buildScrutinyDisabledSummary = (error?: string): DashboardScrutinySummaryResponse => ({

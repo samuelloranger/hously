@@ -2,7 +2,7 @@ import { Elysia, t } from 'elysia';
 import { auth } from '../../auth';
 import { requireUser } from '../../middleware/auth';
 import { prisma } from '../../db';
-import { toPositiveInt } from '../../utils/coerce';
+import { toPositiveInt } from '@hously/shared';
 import { mapJellyfinApiItem } from '../../utils/dashboard/jellyfin';
 import { normalizeJellyfinConfig } from '../../utils/plugins/normalizers';
 import { badGateway, notFound, serverError, unauthorized } from '../../utils/errors';
