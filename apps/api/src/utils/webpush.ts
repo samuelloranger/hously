@@ -35,7 +35,7 @@ function loadVapidKeys(): VapidKeys {
       vapidKeys = { publicKey, privateKey };
 
       // Set VAPID details
-      webpush.setVapidDetails('mailto:samuelloranger@gmail.com', publicKey, privateKey);
+      webpush.setVapidDetails(Bun.env.VAPID_CONTACT_EMAIL || 'mailto:admin@localhost', publicKey, privateKey);
 
       return vapidKeys;
     } catch (e) {
@@ -57,7 +57,7 @@ function loadVapidKeys(): VapidKeys {
   vapidKeys = { publicKey, privateKey };
 
   // Set VAPID details
-  webpush.setVapidDetails('mailto:samuelloranger@gmail.com', publicKey, privateKey);
+  webpush.setVapidDetails(Bun.env.VAPID_CONTACT_EMAIL || 'mailto:admin@localhost', publicKey, privateKey);
 
   return vapidKeys;
 }
