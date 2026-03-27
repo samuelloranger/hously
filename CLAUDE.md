@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Task Tracking
+
+This project uses **Taskwarrior** to track tech debt and improvements. At the start of a work session, check open tasks:
+
+```bash
+task project:hously list
+```
+
+When a task is completed during a session, mark it done:
+
+```bash
+task <id> done
+```
+
 ## Coding Rules
 
 Detailed coding conventions live in `.claude/rules/` and are loaded automatically based on file globs:
@@ -20,6 +34,8 @@ This monorepo contains:
 - **API** (`apps/api`): Elysia (Bun runtime) + Prisma ORM
 - **Web** (`apps/web`): React 19 + Vite + TanStack Router/Query + Tailwind CSS 4
 - **Shared** (`apps/shared`): Types, hooks, utilities, endpoints shared across apps
+
+In production, the frontend is built into `apps/api/public/` and served by the API via `@elysiajs/static` (enabled with `SERVE_STATIC=true`). A single `Dockerfile` builds both.
 
 A native companion app lives in a separate repository:
 - **iOS App** (`../hously-ios`): Swift/SwiftUI
@@ -110,6 +126,7 @@ make migrate-studio                # Open Prisma Studio
 
 # Build & Docker
 make build                         # Build web app for production
+docker build -t hously:latest .    # Build unified image (API + frontend)
 docker compose up -d               # Start all services
 docker compose down                # Stop all services
 make rebuild                       # Rebuild containers
