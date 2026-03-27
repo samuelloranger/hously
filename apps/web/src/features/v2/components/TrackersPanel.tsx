@@ -29,6 +29,7 @@ function TrackerCol({
   tracker: TrackerInfo;
   locale: Parameters<typeof formatRelativeTime>[1]['locale'];
 }) {
+  const { t } = useTranslation('common');
   const ratioNum = tracker.ratio ?? 0;
   const ratioColor =
     ratioNum >= 1.5
@@ -49,7 +50,9 @@ function TrackerCol({
       </div>
 
       {!tracker.enabled || !tracker.connected ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">{tracker.error ?? 'Not connected'}</p>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
+          {tracker.error ?? t('dashboard.home.trackerNotConnected')}
+        </p>
       ) : (
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5 font-mono text-xs font-semibold tabular-nums text-sky-600 dark:text-sky-400">
@@ -73,7 +76,7 @@ function TrackerCol({
 }
 
 export function TrackersPanel() {
-  const { i18n } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
   const locale = resolveDateFnsLocale(i18n.language);
 
   const c411 = useDashboardC411Stats();
@@ -83,7 +86,7 @@ export function TrackersPanel() {
   const trackers: TrackerInfo[] = [
     {
       key: 'c411',
-      label: 'C411',
+      label: t('dashboard.trackers.providers.c411'),
       enabled: Boolean(c411.data?.enabled),
       connected: Boolean(c411.data?.connected),
       uploaded_go: c411.data?.uploaded_go ?? null,
@@ -94,7 +97,7 @@ export function TrackersPanel() {
     },
     {
       key: 'torr9',
-      label: 'Torr9',
+      label: t('dashboard.trackers.providers.torr9'),
       enabled: Boolean(torr9.data?.enabled),
       connected: Boolean(torr9.data?.connected),
       uploaded_go: torr9.data?.uploaded_go ?? null,
@@ -105,7 +108,7 @@ export function TrackersPanel() {
     },
     {
       key: 'la-cale',
-      label: 'La-Cale',
+      label: t('dashboard.trackers.providers.la-cale'),
       enabled: Boolean(laCale.data?.enabled),
       connected: Boolean(laCale.data?.connected),
       uploaded_go: laCale.data?.uploaded_go ?? null,
@@ -123,12 +126,14 @@ export function TrackersPanel() {
     <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
       <div className="flex items-center gap-2.5 mb-4">
         <span className="w-1 h-4 rounded-full bg-purple-500 shrink-0" />
-        <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Private Trackers</h3>
+        <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+          {t('dashboard.home.privateTrackersTitle')}
+        </h3>
       </div>
       <div className="grid grid-cols-3 gap-4 divide-x divide-zinc-100 dark:divide-zinc-800">
-        {trackers.map((t, i) => (
-          <div key={t.key} className={i > 0 ? 'pl-4' : ''}>
-            <TrackerCol tracker={t} locale={locale} />
+        {trackers.map((tr, i) => (
+          <div key={tr.key} className={i > 0 ? 'pl-4' : ''}>
+            <TrackerCol tracker={tr} locale={locale} />
           </div>
         ))}
       </div>

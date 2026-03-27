@@ -29,10 +29,10 @@ export function ChoresPanel() {
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-emerald-500 shrink-0" />
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-            Chores
+            {t('nav.chores')}
             {pendingChores.length > 0 && (
               <span className="ml-2 text-xs font-normal text-zinc-500 dark:text-zinc-400">
-                {pendingChores.length} pending
+                {t('dashboard.home.choresPending', { count: pendingChores.length })}
               </span>
             )}
           </h3>
@@ -41,7 +41,7 @@ export function ChoresPanel() {
           to="/chores"
           className="flex items-center gap-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
         >
-          View all
+          {t('dashboard.view')}
           <ChevronRight size={12} />
         </Link>
       </div>
@@ -55,7 +55,9 @@ export function ChoresPanel() {
           </div>
         ) : pendingChores.length === 0 ? (
           <div className="py-6 text-center">
-            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">✅ All caught up!</p>
+            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              ✅ {t('dashboard.home.choresAllCaughtUp')}
+            </p>
           </div>
         ) : (
           <>
@@ -67,7 +69,10 @@ export function ChoresPanel() {
                 to="/chores"
                 className="block py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
               >
-                +{pendingChores.length - 7} more {t('dashboard.pendingChores').toLowerCase()}
+                {t('dashboard.home.choresMore', {
+                  count: pendingChores.length - 7,
+                  label: t('dashboard.pendingChores').toLowerCase(),
+                })}
               </Link>
             )}
           </>
@@ -80,6 +85,7 @@ export function ChoresPanel() {
 // ─── Habits panel ─────────────────────────────────────────────────────────────
 
 export function HabitsPanel() {
+  const { t } = useTranslation('common');
   const today = useMemo(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -98,7 +104,7 @@ export function HabitsPanel() {
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-orange-500 shrink-0" />
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-            Habits today
+            {t('dashboard.home.habitsToday')}
             {habits.length > 0 && (
               <span className="ml-2 text-xs font-normal text-zinc-500 dark:text-zinc-400">
                 {doneCount}/{habits.length}
@@ -151,7 +157,7 @@ export function HabitsPanel() {
                 </div>
                 {habit.current_streak > 1 && (
                   <span className="text-xs font-mono font-semibold tabular-nums text-orange-500">
-                    {habit.current_streak}d
+                    {t('dashboard.home.streakDays', { count: habit.current_streak })}
                   </span>
                 )}
               </div>

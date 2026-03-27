@@ -14,11 +14,14 @@ vi.mock('@tanstack/react-router', () => ({
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallbackOrOptions?: string | Record<string, unknown>) => {
-      if (typeof fallbackOrOptions === 'object' && fallbackOrOptions !== null && 'count' in fallbackOrOptions) {
-        const o = fallbackOrOptions as { count: number; total: number };
-        return `${o.count} / ${o.total}`;
+      if (typeof fallbackOrOptions === 'object' && fallbackOrOptions !== null) {
+        const o = fallbackOrOptions as Record<string, unknown>;
+        if ('count' in o && 'total' in o) {
+          return `${key}:${String(o.count)}:${String(o.total)}`;
+        }
       }
-      return typeof fallbackOrOptions === 'string' ? fallbackOrOptions : key;
+      if (typeof fallbackOrOptions === 'string') return fallbackOrOptions;
+      return key;
     },
   }),
 }));
@@ -269,8 +272,8 @@ describe('TorrentsPage', () => {
 
     renderWithProviders(<TorrentsPage />);
 
-    expect(screen.getByLabelText('Previous page')).toBeDisabled();
-    expect(screen.getByLabelText('Next page')).toBeDisabled();
+    expect(screen.getByLabelText('torrents.prevPage')).toBeDisabled();
+    expect(screen.getByLabelText('torrents.nextPage')).toBeDisabled();
   });
 
   it('keeps default array filters when router search includes undefined values', () => {
@@ -292,7 +295,9 @@ describe('TorrentsPage', () => {
 
     renderWithProviders(<TorrentsPage />);
 
-    fireEvent.change(screen.getByPlaceholderText('Search torrents...'), { target: { value: 'weekly' } });
+    fireEvent.change(screen.getByPlaceholderText('dashboard.qbittorrent.searchPlaceholder'), {
+      target: { value: 'weekly' },
+    });
 
     expect(mockNavigate).not.toHaveBeenCalled();
 
@@ -344,7 +349,7 @@ describe('TorrentsPage', () => {
   it('pushes sort key and direction changes to router history', () => {
     const firstRender = renderWithProviders(<TorrentsPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Name' }));
+    fireEvent.click(screen.getByRole('button', { name: 'torrents.sortName' }));
 
     expect(mockNavigate).toHaveBeenCalledWith({
       to: '/torrents',
@@ -358,7 +363,7 @@ describe('TorrentsPage', () => {
     firstRender.unmount();
     renderWithProviders(<TorrentsPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Name' }));
+    fireEvent.click(screen.getByRole('button', { name: 'torrents.sortName' }));
 
     expect(mockNavigate).toHaveBeenCalledWith({
       to: '/torrents',

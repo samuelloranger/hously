@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { Pin, PinOff, ArrowDown, ArrowUp, Clock } from 'lucide-react';
 import {
   type DashboardQbittorrentStatusResponse,
@@ -37,6 +38,7 @@ function BarTrack({ pct, stateClass }: { pct: number; stateClass: string }) {
 }
 
 export function DownloadsPanel() {
+  const { t } = useTranslation('common');
   const { data: fallbackData, isLoading } = useQbittorrentStatus();
   const { data, streamConnected } = useEventSourceState<DashboardQbittorrentStatusResponse>({
     url: DASHBOARD_ENDPOINTS.QBITTORRENT.STREAM,
@@ -58,7 +60,7 @@ export function DownloadsPanel() {
       <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
-          <SectionTitle>Downloads</SectionTitle>
+          <SectionTitle>{t('dashboard.home.downloadsTitle')}</SectionTitle>
         </div>
         {enabled && connected && (
           <span
@@ -68,7 +70,7 @@ export function DownloadsPanel() {
                 : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
             }`}
           >
-            {streamConnected ? '● Live' : 'Polling'}
+            {streamConnected ? t('dashboard.home.liveBadge') : t('dashboard.qbittorrent.polling')}
           </span>
         )}
       </div>
@@ -76,13 +78,15 @@ export function DownloadsPanel() {
       <div className="px-4 py-3 space-y-4">
         {/* Not connected */}
         {!enabled && !isLoading && (
-          <p className="py-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">qBittorrent not configured</p>
+          <p className="py-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">
+            {t('dashboard.home.qbittorrentNotConfigured')}
+          </p>
         )}
 
         {/* Speed + summary stats */}
         {enabled && (
           <div>
-            <Kicker>Transfer</Kicker>
+            <Kicker>{t('dashboard.home.transfer')}</Kicker>
             <div className="mt-2 flex items-center gap-6">
               <div className="flex items-center gap-1.5 font-mono text-sm font-semibold tabular-nums text-sky-600 dark:text-sky-400">
                 <ArrowDown size={13} />
@@ -96,24 +100,23 @@ export function DownloadsPanel() {
             {summary && (
               <div className="mt-2 flex flex-wrap gap-3">
                 {summary.downloading_count > 0 && (
-                  <span className="text-xs text-zinc-600 dark:text-zinc-300">
-                    <span className="font-mono font-semibold tabular-nums">{summary.downloading_count}</span>{' '}
-                    downloading
+                  <span className="text-xs text-zinc-600 dark:text-zinc-300 font-mono font-semibold tabular-nums">
+                    {t('dashboard.home.countDownloading', { count: summary.downloading_count })}
                   </span>
                 )}
                 {summary.seeding_count > 0 && (
-                  <span className="text-xs text-zinc-600 dark:text-zinc-300">
-                    <span className="font-mono font-semibold tabular-nums">{summary.seeding_count}</span> seeding
+                  <span className="text-xs text-zinc-600 dark:text-zinc-300 font-mono font-semibold tabular-nums">
+                    {t('dashboard.home.countSeeding', { count: summary.seeding_count })}
                   </span>
                 )}
                 {summary.stalled_count > 0 && (
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    <span className="font-mono font-semibold tabular-nums">{summary.stalled_count}</span> stalled
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono font-semibold tabular-nums">
+                    {t('dashboard.home.countStalled', { count: summary.stalled_count })}
                   </span>
                 )}
                 {summary.paused_count > 0 && (
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    <span className="font-mono font-semibold tabular-nums">{summary.paused_count}</span> paused
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono font-semibold tabular-nums">
+                    {t('dashboard.home.countPaused', { count: summary.paused_count })}
                   </span>
                 )}
               </div>
@@ -124,7 +127,7 @@ export function DownloadsPanel() {
         {/* Pinned torrent */}
         {torrent && (
           <div>
-            <Kicker>Pinned</Kicker>
+            <Kicker>{t('dashboard.home.pinnedKicker')}</Kicker>
             <div className="mt-2">
               <div className="flex items-center justify-between gap-3 mb-1.5">
                 <div className="flex items-center gap-2 min-w-0">
@@ -146,7 +149,7 @@ export function DownloadsPanel() {
                     onClick={() => setPinned.mutate({ hash: null })}
                     disabled={setPinned.isPending}
                     className="text-zinc-400 hover:text-rose-400 transition-colors disabled:opacity-40"
-                    title="Unpin"
+                    title={t('dashboard.home.unpinTorrent')}
                   >
                     <PinOff size={12} />
                   </button>
@@ -178,7 +181,7 @@ export function DownloadsPanel() {
           to="/torrents"
           className="block px-4 py-2.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-sky-500 dark:hover:text-sky-400 transition-colors border-t border-zinc-100 dark:border-zinc-800 text-center"
         >
-          Open Torrents →
+          {t('dashboard.home.openTorrentsLink')}
         </Link>
       )}
     </section>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -66,17 +66,21 @@ const TORRENTS_URL_STATE_DEFAULTS = {
 };
 
 const TORRENTS_SEARCH_DEBOUNCE_MS = 300;
-const TORRENT_SORT_OPTIONS: { key: QbittorrentSortKey; label: React.ReactNode }[] = [
-  { key: 'added_on', label: 'Date' },
-  { key: 'download_speed', label: <ArrowDownToLine size={11} /> },
-  { key: 'upload_speed', label: <ArrowUpFromLine size={11} /> },
-  { key: 'ratio', label: 'Ratio' },
-  { key: 'size', label: 'Size' },
-  { key: 'name', label: 'Name' },
-];
-
 export function TorrentsPage() {
   const { t } = useTranslation('common');
+
+  const torrentSortOptions = useMemo(
+    () =>
+      [
+        { key: 'added_on' as const, label: t('torrents.sortAdded') },
+        { key: 'download_speed' as const, label: <ArrowDownToLine size={11} /> },
+        { key: 'upload_speed' as const, label: <ArrowUpFromLine size={11} /> },
+        { key: 'ratio' as const, label: t('torrents.sortRatio') },
+        { key: 'size' as const, label: t('torrents.sortSize') },
+        { key: 'name' as const, label: t('torrents.sortName') },
+      ] as const,
+    [t]
+  );
 
   const queryClient = useQueryClient();
   const { data: pinnedTorrentData } = usePinnedQbittorrentTorrent();
@@ -247,8 +251,8 @@ export function TorrentsPage() {
       <PageHeader
         icon="🧲"
         iconColor="text-blue-600"
-        title={t('torrents.title', 'Torrents')}
-        subtitle={t('torrents.subtitle', 'Manage qBittorrent downloads')}
+        title={t('torrents.title')}
+        subtitle={t('torrents.subtitle')}
       />
 
       {isDisabled ? (
@@ -261,7 +265,7 @@ export function TorrentsPage() {
         <EmptyState
           icon="🧲"
           title={t('dashboard.qbittorrent.disconnected')}
-          description={data.error ?? t('torrents.disconnectedDescription', 'qBittorrent is unreachable.')}
+          description={data.error ?? t('torrents.disconnectedDescription')}
         />
       ) : (
         <div className="space-y-4">
@@ -308,9 +312,9 @@ export function TorrentsPage() {
                   {speedsPending ? (
                     <span className="inline-block h-2.5 w-14 rounded bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
                   ) : qbStatusStreamConnected ? (
-                    t('dashboard.qbittorrent.live', 'Live')
+                    t('dashboard.qbittorrent.live')
                   ) : (
-                    t('dashboard.qbittorrent.reconnecting', 'Reconnecting…')
+                    t('dashboard.qbittorrent.reconnecting')
                   )}
                 </span>
               )}
@@ -319,7 +323,7 @@ export function TorrentsPage() {
                   <span className="inline-block h-3.5 w-24 rounded bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
                 ) : (
                   <>
-                    {totalCount.toLocaleString()} {t('dashboard.qbittorrent.torrents', 'torrents')}
+                    {totalCount.toLocaleString()} {t('dashboard.home.torrentsLower')}
                   </>
                 )}
               </span>
@@ -334,7 +338,7 @@ export function TorrentsPage() {
                     'disabled:opacity-40 disabled:pointer-events-none',
                     'hover:bg-neutral-100 dark:hover:bg-neutral-800'
                   )}
-                  aria-label={t('torrents.prevPage', 'Previous page')}
+                  aria-label={t('torrents.prevPage')}
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -357,7 +361,7 @@ export function TorrentsPage() {
                     'disabled:opacity-40 disabled:pointer-events-none',
                     'hover:bg-neutral-100 dark:hover:bg-neutral-800'
                   )}
-                  aria-label={t('torrents.nextPage', 'Next page')}
+                  aria-label={t('torrents.nextPage')}
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -386,7 +390,7 @@ export function TorrentsPage() {
                   ref={searchInputRef}
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
-                  placeholder={t('dashboard.qbittorrent.searchPlaceholder', 'Search torrents...')}
+                  placeholder={t('dashboard.qbittorrent.searchPlaceholder')}
                   className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-8 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all"
                 />
                 {searchInput && (
@@ -397,7 +401,7 @@ export function TorrentsPage() {
                       setUrlState({ search: '' });
                     }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-                    aria-label={t('torrents.clearSearch', 'Clear search')}
+                    aria-label={t('torrents.clearSearch')}
                   >
                     <X size={11} />
                   </button>
@@ -418,7 +422,7 @@ export function TorrentsPage() {
                   )}
                 >
                   <SlidersHorizontal size={13} />
-                  {t('torrents.filters', 'Filters')}
+                  {t('torrents.filters')}
                   {hasActiveFilters && (
                     <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] font-bold">
                       {(stateFilter !== 'all' ? 1 : 0) + selectedCategories.length + selectedTags.length}
@@ -430,9 +434,9 @@ export function TorrentsPage() {
                 <div className="flex items-center rounded-xl border border-neutral-200 dark:border-neutral-700 p-0.5 gap-0.5">
                   {(
                     [
-                      { mode: 'list', icon: <List size={13} />, title: t('torrents.listView', 'List') },
-                      { mode: 'grid', icon: <LayoutGrid size={13} />, title: t('torrents.gridView', 'Grid') },
-                      { mode: 'kanban', icon: <Columns3 size={13} />, title: t('torrents.kanbanView', 'Board') },
+                      { mode: 'list', icon: <List size={13} />, title: t('torrents.listView') },
+                      { mode: 'grid', icon: <LayoutGrid size={13} />, title: t('torrents.gridView') },
+                      { mode: 'kanban', icon: <Columns3 size={13} />, title: t('torrents.kanbanView') },
                     ] as const
                   ).map(({ mode, icon, title }) => (
                     <button
@@ -456,7 +460,7 @@ export function TorrentsPage() {
                 {torrentMeta.availableCategories.length > 0 && (
                   <div className="hidden sm:block">
                     <TorrentFilterPopover
-                      label={t('dashboard.qbittorrent.categories', 'Categories')}
+                      label={t('dashboard.qbittorrent.categories')}
                       selectedCount={selectedCategories.length}
                       options={torrentMeta.availableCategories}
                       selectedValues={selectedCategories}
@@ -467,7 +471,7 @@ export function TorrentsPage() {
                 {torrentMeta.availableTags.length > 0 && (
                   <div className="hidden sm:block">
                     <TorrentFilterPopover
-                      label={t('dashboard.qbittorrent.tags', 'Tags')}
+                      label={t('dashboard.qbittorrent.tags')}
                       selectedCount={selectedTags.length}
                       options={torrentMeta.availableTags}
                       selectedValues={selectedTags}
@@ -517,7 +521,7 @@ export function TorrentsPage() {
                       onClick={() => setUrlState({ search: '', state: 'all', categories: [], tags: [] })}
                       className="ml-auto shrink-0 text-xs text-neutral-400 dark:text-neutral-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors pl-2"
                     >
-                      {t('torrents.clearFilters', 'Clear filters')}
+                      {t('torrents.clearFilters')}
                     </button>
                   )}
                 </div>
@@ -528,24 +532,12 @@ export function TorrentsPage() {
             <div className="hidden sm:block border-t border-neutral-100 dark:border-neutral-800">
               <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <div className="flex items-center gap-1.5 px-3 py-2.5 w-max min-w-full">
-                  {TORRENT_SORT_OPTIONS.map(({ key, label }) => {
+                  {torrentSortOptions.map(({ key, label }) => {
                     const active = sortBy === key;
                     const titles: Partial<Record<QbittorrentSortKey, string>> = {
-                      download_speed: t('torrents.sortDownloadSpeed', 'Sort by download speed'),
-                      upload_speed: t('torrents.sortUploadSpeed', 'Sort by upload speed'),
+                      download_speed: t('torrents.sortDownloadSpeed'),
+                      upload_speed: t('torrents.sortUploadSpeed'),
                     };
-                    const resolvedLabel =
-                      typeof label === 'string'
-                        ? key === 'added_on'
-                          ? t('torrents.sortAdded', label)
-                          : key === 'ratio'
-                            ? t('torrents.sortRatio', label)
-                            : key === 'size'
-                              ? t('torrents.sortSize', label)
-                              : key === 'name'
-                                ? t('torrents.sortName', label)
-                                : label
-                        : label;
                     return (
                       <button
                         key={key}
@@ -559,7 +551,7 @@ export function TorrentsPage() {
                             : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                         )}
                       >
-                        {resolvedLabel}
+                        {label}
                         {active &&
                           (sortDir === 'asc' ? (
                             <ArrowUp size={10} className="shrink-0" />
@@ -580,7 +572,7 @@ export function TorrentsPage() {
             {isPending ? (
               /* Skeleton — adapts to current view mode */
               viewMode === 'grid' ? (
-                <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {Array.from({ length: 10 }).map((_, i) => (
                     <div
                       key={i}
@@ -650,7 +642,7 @@ export function TorrentsPage() {
                 </p>
               </div>
             ) : viewMode === 'grid' ? (
-              <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {filtered.map(torrent => (
                   <TorrentGridCard
                     key={torrent.id}

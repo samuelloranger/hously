@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   type DashboardNetdataSummaryResponse,
   DASHBOARD_ENDPOINTS,
@@ -76,6 +77,7 @@ function MiniBar({ pct, accent = 'bg-violet-500' }: { pct: number; accent?: stri
 // ─── Netdata section ──────────────────────────────────────────────────────────
 
 function NetdataSection() {
+  const { t } = useTranslation('common');
   const { data: fallback } = useDashboardNetdataSummary();
   const [showDisks, setShowDisks] = useState(false);
   const { data } = useEventSourceState<DashboardNetdataSummaryResponse>({
@@ -92,15 +94,15 @@ function NetdataSection() {
     <div>
       <div className="flex items-center gap-2.5 mb-3">
         <span className="w-1 h-4 rounded-full bg-violet-500 shrink-0" />
-        <SectionTitle>System</SectionTitle>
+        <SectionTitle>{t('dashboard.home.systemHeading')}</SectionTitle>
       </div>
 
       {s.cpu_percent != null && (
         <>
           <MetricRow
-            label="CPU"
+            label={t('dashboard.netdata.cpu')}
             value={pctFmt(s.cpu_percent)}
-            sub={s.load_1 != null ? `load ${s.load_1.toFixed(2)}` : undefined}
+            sub={s.load_1 != null ? t('dashboard.home.loadAvg', { value: s.load_1.toFixed(2) }) : undefined}
             status={s.cpu_percent > 85 ? 'warn' : 'ok'}
           />
           <MiniBar pct={s.cpu_percent} accent="bg-violet-500" />
@@ -110,7 +112,7 @@ function NetdataSection() {
       {s.ram_used_percent != null && (
         <>
           <MetricRow
-            label="RAM"
+            label={t('dashboard.netdata.ram')}
             value={pctFmt(s.ram_used_percent)}
             sub={
               s.ram_used_mib != null && s.ram_total_mib != null
@@ -124,7 +126,11 @@ function NetdataSection() {
       )}
 
       {(s.network_in_kbps != null || s.network_out_kbps != null) && (
-        <MetricRow label="Network" value={`↓ ${mbps(s.network_in_kbps)}`} sub={`↑ ${mbps(s.network_out_kbps)}`} />
+        <MetricRow
+          label={t('dashboard.netdata.network')}
+          value={`↓ ${mbps(s.network_in_kbps)}`}
+          sub={`↑ ${mbps(s.network_out_kbps)}`}
+        />
       )}
 
       {disks.length > 0 && (
@@ -135,7 +141,7 @@ function NetdataSection() {
             className="mt-2 flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400 hover:text-violet-500 dark:hover:text-violet-400 transition-colors font-medium"
           >
             {showDisks ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            {showDisks ? 'Hide disks' : `${disks.length} disks`}
+            {showDisks ? t('dashboard.netdata.hideDisks') : t('dashboard.home.disksCount', { count: disks.length })}
           </button>
           {showDisks && (
             <div className="mt-2 space-y-2">
@@ -167,6 +173,7 @@ function NetdataSection() {
 // ─── Scrutiny section ─────────────────────────────────────────────────────────
 
 function ScrutinySection() {
+  const { t } = useTranslation('common');
   const { data } = useDashboardScrutinySummary();
   if (!data?.enabled || !data?.connected) return null;
   const s = data.summary;
@@ -175,19 +182,23 @@ function ScrutinySection() {
     <div>
       <div className="flex items-center gap-2.5 mb-3">
         <span className="w-1 h-4 rounded-full bg-rose-500 shrink-0" />
-        <SectionTitle>Drive Health</SectionTitle>
+        <SectionTitle>{t('dashboard.scrutiny.title')}</SectionTitle>
       </div>
       <MetricRow
-        label="Drives"
-        value={`${s.healthy_drives} / ${s.total_drives} OK`}
-        sub={s.warning_drives > 0 ? `${s.warning_drives} warnings` : undefined}
+        label={t('dashboard.home.scrutinyDrivesLabel')}
+        value={t('dashboard.home.scrutinyDrivesOk', { healthy: s.healthy_drives, total: s.total_drives })}
+        sub={s.warning_drives > 0 ? t('dashboard.home.scrutinyWarnings', { count: s.warning_drives }) : undefined}
         status={s.warning_drives > 0 ? 'warn' : 'ok'}
       />
       {s.avg_temp_c != null && (
         <MetricRow
-          label="Avg temp"
+          label={t('dashboard.home.avgTemp')}
           value={`${s.avg_temp_c.toFixed(0)}°C`}
-          sub={s.hottest_temp_c != null ? `max ${s.hottest_temp_c.toFixed(0)}°C` : undefined}
+          sub={
+            s.hottest_temp_c != null
+              ? t('dashboard.home.maxTemp', { value: s.hottest_temp_c.toFixed(0) })
+              : undefined
+          }
           status={s.hottest_temp_c != null && s.hottest_temp_c > 55 ? 'warn' : 'ok'}
         />
       )}
@@ -198,6 +209,7 @@ function ScrutinySection() {
 // ─── Adguard section ──────────────────────────────────────────────────────────
 
 function AdguardSection() {
+  const { t } = useTranslation('common');
   const { data } = useDashboardAdguardSummary();
   const setProtection = useSetAdguardProtection();
   const { user } = useAuth();
@@ -212,7 +224,7 @@ function AdguardSection() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
-          <SectionTitle>DNS / Adguard</SectionTitle>
+          <SectionTitle>{t('dashboard.home.adguardHeading')}</SectionTitle>
         </div>
         {isAdmin && (
           <button
@@ -225,18 +237,25 @@ function AdguardSection() {
                 : 'border-rose-200 dark:border-rose-700 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30'
             } disabled:opacity-50`}
           >
-            {setProtection.isPending ? '…' : protOn ? 'Protected' : 'Disabled'}
+            {setProtection.isPending
+              ? t('dashboard.home.protectionPending')
+              : protOn
+                ? t('dashboard.home.protectionOn')
+                : t('dashboard.home.protectionOff')}
           </button>
         )}
       </div>
       <MetricRow
-        label="Blocked"
+        label={t('dashboard.adguard.blocked')}
         value={s.blocked_ratio != null ? `${(s.blocked_ratio * 100).toFixed(1)}%` : '–'}
-        sub={`${s.blocked_queries.toLocaleString()} of ${s.dns_queries.toLocaleString()}`}
+        sub={t('dashboard.home.queriesOf', {
+          blocked: s.blocked_queries.toLocaleString(),
+          total: s.dns_queries.toLocaleString(),
+        })}
         status={protOn ? 'ok' : 'warn'}
       />
       {s.avg_processing_time_ms != null && (
-        <MetricRow label="Avg latency" value={`${s.avg_processing_time_ms.toFixed(1)} ms`} />
+        <MetricRow label={t('dashboard.adguard.avgTime')} value={`${s.avg_processing_time_ms.toFixed(1)} ms`} />
       )}
     </div>
   );

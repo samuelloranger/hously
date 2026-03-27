@@ -30,6 +30,7 @@ const STYLES = `
 // ─── Stats row ────────────────────────────────────────────────────────────────
 
 function StatsRow({ stats }: { stats?: DashboardStats }) {
+  const { t } = useTranslation('common');
   if (!stats) return null;
 
   const chips = [
@@ -37,21 +38,21 @@ function StatsRow({ stats }: { stats?: DashboardStats }) {
       href: '/calendar' as const,
       icon: <CalendarDays size={11} />,
       value: stats.events_today,
-      label: stats.events_today === 1 ? 'event today' : 'events today',
+      label: t('dashboard.home.statsEventsToday', { count: stats.events_today }),
       color: 'hover:text-amber-600 dark:hover:text-amber-400',
     },
     {
       href: '/chores' as const,
       icon: <CheckSquare2 size={11} />,
       value: stats.chores_count,
-      label: stats.chores_count === 1 ? 'chore' : 'chores',
+      label: t('dashboard.home.statsChores', { count: stats.chores_count }),
       color: 'hover:text-emerald-600 dark:hover:text-emerald-400',
     },
     {
       href: '/shopping' as const,
       icon: <ShoppingCart size={11} />,
       value: stats.shopping_count,
-      label: stats.shopping_count === 1 ? 'item to buy' : 'items to buy',
+      label: t('dashboard.home.statsShopping', { count: stats.shopping_count }),
       color: 'hover:text-blue-600 dark:hover:text-blue-400',
     },
   ].filter(c => c.value > 0);
@@ -76,8 +77,10 @@ function StatsRow({ stats }: { stats?: DashboardStats }) {
       {streak > 0 && (
         <span className="flex items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400">
           <Flame size={11} className="text-orange-400" />
-          <span className="font-mono font-semibold tabular-nums text-orange-500">{streak}d</span>
-          <span>streak</span>
+          <span className="font-mono font-semibold tabular-nums text-orange-500">
+            {t('dashboard.home.streakDays', { count: streak })}
+          </span>
+          <span>{t('dashboard.home.streakLabel')}</span>
         </span>
       )}
     </div>
@@ -97,20 +100,20 @@ export function HomePage() {
       <style>{STYLES}</style>
 
       <div className="space-y-6">
-        <div className="v2-enter space-y-3" style={{ animationDelay: '0ms' }}>
-          <GreetingCard
-            userName={getUserFirstName(user, t('dashboard.user'))}
-            pendingChores={stats?.chores_count || 0}
-            shoppingItems={stats?.shopping_count || 0}
-            eventsToday={stats?.events_today || 0}
-          />
-          <StatsRow stats={stats} />
-        </div>
-
         {/* Main layout: left stacked widgets / right tall column */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 items-start">
           {/* Left: stacked widgets */}
           <div className="min-w-0 space-y-4">
+            <div className="v2-enter space-y-3" style={{ animationDelay: '0ms' }}>
+              <GreetingCard
+                userName={getUserFirstName(user, t('dashboard.user'))}
+                pendingChores={stats?.chores_count || 0}
+                shoppingItems={stats?.shopping_count || 0}
+                eventsToday={stats?.events_today || 0}
+              />
+              <StatsRow stats={stats} />
+            </div>
+
             <div className="v2-enter" style={{ animationDelay: '60ms' }}>
               <CardErrorBoundary>
                 <JellyfinShelf />

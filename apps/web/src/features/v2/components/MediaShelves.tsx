@@ -104,8 +104,13 @@ export function JellyfinShelf() {
   };
 
   const mediaTypeLabel = (type: string | null) => {
-    const map: Record<string, string> = { movie: 'Movie', episode: 'TV', musicalbum: 'Album', audio: 'Audio' };
-    return (type && map[type.toLowerCase()]) ?? 'Media';
+    if (!type) return t('dashboard.home.mediaTypeGeneric');
+    const key = type.toLowerCase();
+    if (key === 'movie') return t('dashboard.home.mediaTypeMovie');
+    if (key === 'episode') return t('dashboard.home.mediaTypeTv');
+    if (key === 'musicalbum') return t('dashboard.home.mediaTypeAlbum');
+    if (key === 'audio') return t('dashboard.home.mediaTypeAudio');
+    return t('dashboard.home.mediaTypeGeneric');
   };
 
   const mediaFallback = (type: string | null) => {
@@ -118,7 +123,9 @@ export function JellyfinShelf() {
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-blue-500 shrink-0" />
-          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Recently Added</h3>
+          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+            {t('dashboard.home.jellyfinRecentlyAdded')}
+          </h3>
         </div>
         <button
           type="button"
@@ -132,7 +139,7 @@ export function JellyfinShelf() {
       </div>
 
       {isError ? (
-        <p className="px-4 py-6 text-sm text-rose-500 text-center">Failed to load Jellyfin</p>
+        <p className="px-4 py-6 text-sm text-rose-500 text-center">{t('dashboard.home.jellyfinLoadError')}</p>
       ) : isLoading ? (
         <div className="flex gap-3 px-4 py-3 overflow-hidden">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -143,9 +150,13 @@ export function JellyfinShelf() {
           ))}
         </div>
       ) : !isEnabled ? (
-        <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">Jellyfin not configured</p>
+        <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
+          {t('dashboard.home.jellyfinNotConfigured')}
+        </p>
       ) : items.length === 0 ? (
-        <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">No recent media</p>
+        <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
+          {t('dashboard.home.jellyfinEmpty')}
+        </p>
       ) : (
         <div className="no-scrollbar overflow-x-auto px-4 py-3" onScroll={handleScroll}>
           <div className="flex gap-3">
@@ -215,7 +226,9 @@ export function UpcomingShelf() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
             <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
-            <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Upcoming</h3>
+            <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+              {t('dashboard.home.upcomingShelfTitle')}
+            </h3>
           </div>
           <button
             type="button"
@@ -239,10 +252,12 @@ export function UpcomingShelf() {
           </div>
         ) : !data?.enabled ? (
           <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
-            Radarr / Sonarr not configured
+            {t('dashboard.home.upcomingArrNotConfigured')}
           </p>
         ) : data.items.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">Nothing upcoming</p>
+          <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
+            {t('dashboard.home.upcomingEmpty')}
+          </p>
         ) : (
           <div className="no-scrollbar overflow-x-auto px-4 py-3">
             <div className="flex gap-3">
@@ -253,7 +268,11 @@ export function UpcomingShelf() {
                   subtitle={formatDate(item.release_date) ?? t('dashboard.upcoming.unknownDate')}
                   posterUrl={item.poster_url}
                   fallback={item.media_type === 'movie' ? '🎬' : '📺'}
-                  type={item.media_type === 'movie' ? 'Movie' : 'TV'}
+                  type={
+                    item.media_type === 'movie'
+                      ? t('dashboard.upcoming.movie')
+                      : t('dashboard.upcoming.tv')
+                  }
                   onClick={() =>
                     setSelected(
                       toTmdbItem(item, {
