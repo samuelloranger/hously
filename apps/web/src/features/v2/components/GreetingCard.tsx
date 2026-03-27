@@ -1,18 +1,5 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { LucideIcon } from 'lucide-react';
-import {
-  CalendarDays,
-  Coffee,
-  Flower2,
-  Leaf,
-  ListTodo,
-  Moon,
-  Snowflake,
-  Sparkles,
-  Sun,
-  Sunrise,
-} from 'lucide-react';
 
 interface GreetingCardProps {
   userName: string;
@@ -21,15 +8,10 @@ interface GreetingCardProps {
   eventsToday: number;
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{children}</h3>;
-}
-
 type GreetingContext = {
   timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
   dayOfWeek: number;
   isWeekend: boolean;
-  season: 'spring' | 'summer' | 'fall' | 'winter';
   pendingChores: number;
   shoppingItems: number;
   eventsToday: number;
@@ -42,61 +24,22 @@ function getTimeOfDay(hour: number): GreetingContext['timeOfDay'] {
   return 'night';
 }
 
-function getSeason(month: number): GreetingContext['season'] {
-  if (month >= 2 && month <= 4) return 'spring';
-  if (month >= 5 && month <= 7) return 'summer';
-  if (month >= 8 && month <= 10) return 'fall';
-  return 'winter';
-}
-
-function greetingStatusIcon(context: GreetingContext): LucideIcon {
-  const { timeOfDay, season, isWeekend, eventsToday, pendingChores } = context;
-
-  if (eventsToday > 2) return CalendarDays;
-  if (pendingChores > 5) return ListTodo;
-
-  if (isWeekend) {
-    return timeOfDay === 'morning' ? Coffee : Sparkles;
-  }
-
-  if (timeOfDay === 'morning') {
-    if (season === 'winter') return Snowflake;
-    if (season === 'summer') return Sun;
-    if (season === 'spring') return Flower2;
-    return Leaf;
-  }
-
-  if (timeOfDay === 'afternoon') {
-    return season === 'summer' ? Sun : Sparkles;
-  }
-
-  if (timeOfDay === 'evening') {
-    return season === 'winter' ? Moon : Sunrise;
-  }
-
-  return Moon;
-}
-
 export function GreetingCard({ userName, pendingChores, shoppingItems, eventsToday }: GreetingCardProps) {
   const { t } = useTranslation('common');
 
-  const { greeting, subtext, Icon } = useMemo(() => {
+  const { greeting, subtext } = useMemo(() => {
     const now = new Date();
     const hour = now.getHours();
     const dayOfWeek = now.getDay();
-    const month = now.getMonth();
 
     const context: GreetingContext = {
       timeOfDay: getTimeOfDay(hour),
       dayOfWeek,
       isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-      season: getSeason(month),
       pendingChores,
       shoppingItems,
       eventsToday,
     };
-
-    const Icon = greetingStatusIcon(context);
 
     let baseGreeting: string;
     switch (context.timeOfDay) {
@@ -183,28 +126,15 @@ export function GreetingCard({ userName, pendingChores, shoppingItems, eventsTod
       }
     }
 
-    return { greeting: baseGreeting, subtext, Icon };
+    return { greeting: baseGreeting, subtext };
   }, [pendingChores, shoppingItems, eventsToday, t]);
 
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-        <span className="w-1 h-4 rounded-full bg-indigo-500 shrink-0" />
-        <SectionTitle>{t('nav.dashboard')}</SectionTitle>
-      </div>
-      <div className="px-4 py-4 flex items-start gap-3">
-        <Icon
-          className="size-9 shrink-0 text-indigo-500 dark:text-indigo-400"
-          strokeWidth={1.75}
-          aria-hidden
-        />
-        <div className="min-w-0">
-          <h1 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            {greeting}, {userName}
-          </h1>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{subtext}</p>
-        </div>
-      </div>
-    </section>
+    <div>
+      <h1 className="text-lg md:text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+        {greeting}, {userName}
+      </h1>
+      <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{subtext}</p>
+    </div>
   );
 }

@@ -98,14 +98,12 @@ export function HomePage() {
 
       <div className="space-y-6">
         <div className="v2-enter space-y-3" style={{ animationDelay: '0ms' }}>
-          <CardErrorBoundary>
-            <GreetingCard
-              userName={getUserFirstName(user, t('dashboard.user'))}
-              pendingChores={stats?.chores_count || 0}
-              shoppingItems={stats?.shopping_count || 0}
-              eventsToday={stats?.events_today || 0}
-            />
-          </CardErrorBoundary>
+          <GreetingCard
+            userName={getUserFirstName(user, t('dashboard.user'))}
+            pendingChores={stats?.chores_count || 0}
+            shoppingItems={stats?.shopping_count || 0}
+            eventsToday={stats?.events_today || 0}
+          />
           <StatsRow stats={stats} />
         </div>
 
