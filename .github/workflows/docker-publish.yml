@@ -21,7 +21,7 @@ jobs:
 
     - name: Build image
       run: |
-        docker build -t hously:latest -f Dockerfile.api .
+        docker build -t hously:latest .
 
     - name: Restart containers
       if: github.ref == 'refs/heads/main'
