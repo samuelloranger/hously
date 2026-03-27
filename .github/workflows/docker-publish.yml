@@ -19,9 +19,8 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Build images
+    - name: Build image
       run: |
-        docker build -t hously-web:latest -f Dockerfile.web .
         docker build -t hously-api:latest -f Dockerfile.api .
 
     - name: Restart containers
@@ -32,5 +31,5 @@ jobs:
           -v /home/samuelloranger/servers/hously:/project:ro \
           -w /project \
           docker:cli \
-          docker compose -p hously up -d --force-recreate hously-web hously-api
+          docker compose -p hously up -d --force-recreate hously
 
