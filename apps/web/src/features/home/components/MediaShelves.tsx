@@ -34,7 +34,7 @@ function PosterCard({
 }) {
   const inner = (
     <div
-      className="v2-poster-card relative w-[120px] md:w-[140px] shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800 cursor-pointer group"
+      className="home-poster-card relative w-[120px] md:w-[140px] shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800 cursor-pointer group"
       style={{ animationDelay: `${delayMs}ms` }}
       onClick={onClick}
     >

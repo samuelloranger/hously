@@ -68,7 +68,7 @@ const TorrentsPage = cachedLazy('torrents', () =>
 const TorrentDetailPage = cachedLazy('torrent-detail', () =>
   import('./features/torrents/TorrentDetailPage').then(m => ({ default: m.TorrentDetailPage }))
 );
-const HomePage = cachedLazy('home', () => import('./features/v2').then(m => ({ default: m.HomePage })));
+const HomePage = cachedLazy('home', () => import('./features/home').then(m => ({ default: m.HomePage })));
 
 interface RouterContext {
   queryClient: QueryClient;

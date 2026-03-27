@@ -95,11 +95,7 @@ export function WeatherPanel() {
 
       <div className="px-4 py-3">
         <div className="flex items-start gap-3">
-          <StatusIcon
-            className="size-9 shrink-0 text-sky-600 dark:text-sky-400"
-            strokeWidth={1.75}
-            aria-hidden
-          />
+          <StatusIcon className="size-9 shrink-0 text-sky-600 dark:text-sky-400" strokeWidth={1.75} aria-hidden />
           <div className="min-w-0 flex-1">
             <Kicker>{weatherQuery.data.location_name}</Kicker>
             <p className="mt-2 text-xl font-bold leading-none tabular-nums text-zinc-900 dark:text-zinc-50">

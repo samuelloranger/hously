@@ -15,15 +15,15 @@ import { ChoresPanel, HabitsPanel } from './components/HomePanel';
 // ─── Styles injected once ─────────────────────────────────────────────────────
 
 const STYLES = `
-  @keyframes v2SlideUp {
+  @keyframes homeSlideUp {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .v2-enter {
-    animation: v2SlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+  .home-enter {
+    animation: homeSlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
   }
-  .v2-poster-card {
-    animation: v2SlideUp 0.35s cubic-bezier(0.16,1,0.3,1) both;
+  .home-poster-card {
+    animation: homeSlideUp 0.35s cubic-bezier(0.16,1,0.3,1) both;
   }
 `;
 
@@ -104,7 +104,7 @@ export function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 items-start">
           {/* Left: stacked widgets */}
           <div className="min-w-0 space-y-4">
-            <div className="v2-enter space-y-3" style={{ animationDelay: '0ms' }}>
+            <div className="home-enter space-y-3" style={{ animationDelay: '0ms' }}>
               <GreetingCard
                 userName={getUserFirstName(user, t('dashboard.user'))}
                 pendingChores={stats?.chores_count || 0}
@@ -114,25 +114,25 @@ export function HomePage() {
               <StatsRow stats={stats} />
             </div>
 
-            <div className="v2-enter" style={{ animationDelay: '60ms' }}>
+            <div className="home-enter" style={{ animationDelay: '60ms' }}>
               <CardErrorBoundary>
                 <JellyfinShelf />
               </CardErrorBoundary>
             </div>
 
-            <div className="v2-enter" style={{ animationDelay: '100ms' }}>
+            <div className="home-enter" style={{ animationDelay: '100ms' }}>
               <CardErrorBoundary>
                 <UpcomingShelf />
               </CardErrorBoundary>
             </div>
 
-            <div className="v2-enter" style={{ animationDelay: '140ms' }}>
+            <div className="home-enter" style={{ animationDelay: '140ms' }}>
               <CardErrorBoundary>
                 <HabitsPanel />
               </CardErrorBoundary>
             </div>
 
-            <div className="v2-enter" style={{ animationDelay: '180ms' }}>
+            <div className="home-enter" style={{ animationDelay: '180ms' }}>
               <CardErrorBoundary>
                 <ChoresPanel />
               </CardErrorBoundary>
@@ -141,25 +141,25 @@ export function HomePage() {
 
           {/* Right: weather + system + downloads + trackers */}
           <div className="space-y-4">
-            <div className="v2-enter" style={{ animationDelay: '60ms' }}>
+            <div className="home-enter" style={{ animationDelay: '60ms' }}>
               <CardErrorBoundary>
                 <WeatherPanel />
               </CardErrorBoundary>
             </div>
 
-            <div className="v2-enter" style={{ animationDelay: '100ms' }}>
+            <div className="home-enter" style={{ animationDelay: '100ms' }}>
               <CardErrorBoundary>
                 <SystemPanel />
               </CardErrorBoundary>
             </div>
 
-            <div className="v2-enter" style={{ animationDelay: '140ms' }}>
+            <div className="home-enter" style={{ animationDelay: '140ms' }}>
               <CardErrorBoundary>
                 <DownloadsPanel />
               </CardErrorBoundary>
             </div>
 
-            <div className="v2-enter" style={{ animationDelay: '180ms' }}>
+            <div className="home-enter" style={{ animationDelay: '180ms' }}>
               <CardErrorBoundary>
                 <TrackersPanel />
               </CardErrorBoundary>
