@@ -11,17 +11,11 @@ import { useEventSourceState } from '@/hooks/useEventSourceState';
 import { useAuth } from '@/hooks/useAuth';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
-      {children}
-    </span>
-  );
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{children}</h3>;
 }
 
-function pct(v: number | null | undefined) {
+function pctFmt(v: number | null | undefined) {
   return v != null ? `${v.toFixed(0)}%` : '–';
 }
 
@@ -40,7 +34,7 @@ function gb(mib: number | null | undefined) {
 function StatusDot({ status }: { status: 'ok' | 'warn' | 'err' }) {
   return (
     <span
-      className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
+      className={`inline-block w-2 h-2 rounded-full shrink-0 ${
         status === 'ok' ? 'bg-emerald-500' : status === 'warn' ? 'bg-amber-500' : 'bg-rose-500'
       }`}
     />
@@ -51,35 +45,29 @@ function MetricRow({
   label,
   value,
   sub,
-  accent,
   status = 'ok',
 }: {
   label: string;
   value: string;
   sub?: string | null;
-  accent?: string;
   status?: 'ok' | 'warn' | 'err';
 }) {
   return (
-    <div className="flex items-center gap-2 py-1.5 border-b border-zinc-50 dark:border-zinc-800/60 last:border-0">
+    <div className="flex items-center gap-2.5 py-1.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
       <StatusDot status={status} />
-      <span className="w-16 shrink-0 text-xs text-zinc-500 dark:text-zinc-400">{label}</span>
-      <span className={`font-mono text-xs font-semibold tabular-nums ${accent ?? 'text-zinc-900 dark:text-zinc-100'}`}>
-        {value}
-      </span>
+      <span className="w-16 shrink-0 text-xs font-medium text-zinc-600 dark:text-zinc-300">{label}</span>
+      <span className="font-mono text-xs font-semibold tabular-nums text-zinc-800 dark:text-zinc-100">{value}</span>
       {sub && (
-        <span className="ml-auto font-mono text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">
-          {sub}
-        </span>
+        <span className="ml-auto font-mono text-[11px] text-zinc-500 dark:text-zinc-400 tabular-nums">{sub}</span>
       )}
     </div>
   );
 }
 
-function MiniBar({ pct: value, accent = 'bg-violet-500' }: { pct: number; accent?: string }) {
-  const safe = Math.max(0, Math.min(100, value));
+function MiniBar({ pct, accent = 'bg-violet-500' }: { pct: number; accent?: string }) {
+  const safe = Math.max(0, Math.min(100, pct));
   return (
-    <div className="h-[3px] w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden mt-0.5">
+    <div className="h-[3px] w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden mt-0.5 mb-1">
       <div className={`h-full rounded-full transition-all duration-700 ${accent}`} style={{ width: `${safe}%` }} />
     </div>
   );
@@ -98,21 +86,20 @@ function NetdataSection() {
 
   if (!data?.enabled || !data?.connected) return null;
   const s = data.summary;
-
   const disks = [...(data.disks ?? [])].sort((a, b) => b.used_percent - a.used_percent).slice(0, 6);
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-2">
-        <span className="w-1 h-3 rounded-full bg-violet-500 shrink-0" />
-        <Label>System</Label>
+      <div className="flex items-center gap-2.5 mb-3">
+        <span className="w-1 h-4 rounded-full bg-violet-500 shrink-0" />
+        <SectionTitle>System</SectionTitle>
       </div>
 
       {s.cpu_percent != null && (
         <>
           <MetricRow
             label="CPU"
-            value={pct(s.cpu_percent)}
+            value={pctFmt(s.cpu_percent)}
             sub={s.load_1 != null ? `load ${s.load_1.toFixed(2)}` : undefined}
             status={s.cpu_percent > 85 ? 'warn' : 'ok'}
           />
@@ -124,7 +111,7 @@ function NetdataSection() {
         <>
           <MetricRow
             label="RAM"
-            value={pct(s.ram_used_percent)}
+            value={pctFmt(s.ram_used_percent)}
             sub={
               s.ram_used_mib != null && s.ram_total_mib != null
                 ? `${gb(s.ram_used_mib)} / ${gb(s.ram_total_mib)}`
@@ -137,22 +124,17 @@ function NetdataSection() {
       )}
 
       {(s.network_in_kbps != null || s.network_out_kbps != null) && (
-        <MetricRow
-          label="Network"
-          value={`↓ ${mbps(s.network_in_kbps)}`}
-          sub={`↑ ${mbps(s.network_out_kbps)}`}
-        />
+        <MetricRow label="Network" value={`↓ ${mbps(s.network_in_kbps)}`} sub={`↑ ${mbps(s.network_out_kbps)}`} />
       )}
 
-      {/* Disks toggle */}
       {disks.length > 0 && (
         <>
           <button
             type="button"
             onClick={() => setShowDisks(v => !v)}
-            className="mt-2 flex items-center gap-1 text-[10px] text-zinc-400 dark:text-zinc-500 hover:text-violet-500 transition-colors"
+            className="mt-2 flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400 hover:text-violet-500 dark:hover:text-violet-400 transition-colors font-medium"
           >
-            {showDisks ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+            {showDisks ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             {showDisks ? 'Hide disks' : `${disks.length} disks`}
           </button>
           {showDisks && (
@@ -163,11 +145,11 @@ function NetdataSection() {
                 return (
                   <div key={disk.mount_point}>
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate max-w-[160px]">
+                      <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300 truncate max-w-[160px]">
                         {disk.mount_point}
                       </span>
-                      <span className="font-mono text-[10px] text-zinc-600 dark:text-zinc-300 tabular-nums">
-                        {pct(safe)} · {disk.used_gib.toFixed(0)}/{total.toFixed(0)} GiB
+                      <span className="font-mono text-xs text-zinc-600 dark:text-zinc-300 tabular-nums">
+                        {pctFmt(safe)} · {disk.used_gib.toFixed(0)}/{total.toFixed(0)} GiB
                       </span>
                     </div>
                     <MiniBar pct={safe} accent={safe > 85 ? 'bg-rose-500' : 'bg-violet-400'} />
@@ -188,19 +170,18 @@ function ScrutinySection() {
   const { data } = useDashboardScrutinySummary();
   if (!data?.enabled || !data?.connected) return null;
   const s = data.summary;
-  const status = s.warning_drives > 0 ? 'warn' : 'ok';
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-2">
-        <span className="w-1 h-3 rounded-full bg-rose-500 shrink-0" />
-        <Label>Drive Health</Label>
+      <div className="flex items-center gap-2.5 mb-3">
+        <span className="w-1 h-4 rounded-full bg-rose-500 shrink-0" />
+        <SectionTitle>Drive Health</SectionTitle>
       </div>
       <MetricRow
         label="Drives"
-        value={`${s.healthy_drives}/${s.total_drives} OK`}
+        value={`${s.healthy_drives} / ${s.total_drives} OK`}
         sub={s.warning_drives > 0 ? `${s.warning_drives} warnings` : undefined}
-        status={status}
+        status={s.warning_drives > 0 ? 'warn' : 'ok'}
       />
       {s.avg_temp_c != null && (
         <MetricRow
@@ -228,20 +209,20 @@ function AdguardSection() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="w-1 h-3 rounded-full bg-amber-500 shrink-0" />
-          <Label>DNS / Adguard</Label>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2.5">
+          <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
+          <SectionTitle>DNS / Adguard</SectionTitle>
         </div>
         {isAdmin && (
           <button
             type="button"
             onClick={() => setProtection.mutate({ enabled: !protOn })}
             disabled={setProtection.isPending}
-            className={`text-[10px] font-semibold rounded-full px-2.5 py-1 transition-colors border ${
+            className={`text-xs font-semibold rounded-full px-3 py-1 transition-colors border ${
               protOn
-                ? 'border-emerald-200 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30'
-                : 'border-rose-200 dark:border-rose-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30'
+                ? 'border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30'
+                : 'border-rose-200 dark:border-rose-700 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30'
             } disabled:opacity-50`}
           >
             {setProtection.isPending ? '…' : protOn ? 'Protected' : 'Disabled'}
@@ -255,10 +236,7 @@ function AdguardSection() {
         status={protOn ? 'ok' : 'warn'}
       />
       {s.avg_processing_time_ms != null && (
-        <MetricRow
-          label="Avg latency"
-          value={`${s.avg_processing_time_ms.toFixed(1)} ms`}
-        />
+        <MetricRow label="Avg latency" value={`${s.avg_processing_time_ms.toFixed(1)} ms`} />
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import {
   AUTH_ENDPOINTS,
   CHORES_ENDPOINTS,
   DASHBOARD_ENDPOINTS,
+  QBITTORRENT_ENDPOINTS,
   EXTERNAL_NOTIFICATION_ENDPOINTS,
   NOTIFICATION_ENDPOINTS,
   PLUGIN_ENDPOINTS,
@@ -409,7 +410,7 @@ export function createDashboardApi(fetcher: ApiFetcher) {
         body: data,
       }),
     getDashboardQbittorrentStatus: () =>
-      fetcher<DashboardQbittorrentStatusResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.STATUS),
+      fetcher<DashboardQbittorrentStatusResponse>(QBITTORRENT_ENDPOINTS.STATUS),
     getDashboardScrutinySummary: () => fetcher<DashboardScrutinySummaryResponse>(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
     getDashboardNetdataSummary: () => fetcher<DashboardNetdataSummaryResponse>(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
   };

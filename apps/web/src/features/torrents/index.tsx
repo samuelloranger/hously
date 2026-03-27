@@ -16,6 +16,8 @@ import {
   useSetPinnedQbittorrentTorrent,
   useJsonEventSource,
   useDashboardQbittorrentTorrents,
+  useQbittorrentStatus,
+  type DashboardQbittorrentStatusResponse,
   type DashboardQbittorrentTorrentsResponse,
   type QbittorrentSortDir,
   type QbittorrentSortKey,
@@ -51,6 +53,7 @@ import { useUrlState } from '@/hooks/useUrlState';
 import type { TorrentsSearchParams } from '@/router';
 import { TorrentFilterPopover } from './TorrentFilterPopover';
 import { usePersistentState } from '@/hooks/usePersistentState';
+import { useEventSourceState } from '@/hooks/useEventSourceState';
 
 const TORRENTS_URL_STATE_DEFAULTS = {
   search: '',
@@ -85,7 +88,6 @@ export function TorrentsPage() {
     TORRENTS_URL_STATE_DEFAULTS
   );
 
-  const [sseConnected, setSseConnected] = useState(false);
   const [searchInput, setSearchInput] = useState(urlState.search);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [viewMode, setViewMode] = usePersistentState<'list' | 'grid' | 'kanban'>('torrents-view-mode', 'list');
@@ -110,7 +112,20 @@ export function TorrentsPage() {
     [offset, sortBy, sortDir]
   );
 
-  const { data, isLoading } = useDashboardQbittorrentTorrents(listQueryParams);
+  const { data: qbStatusFallback, isPending: isQbStatusPending } = useQbittorrentStatus();
+  const { data: qbStatusLive, streamConnected: qbStatusStreamConnected } =
+    useEventSourceState<DashboardQbittorrentStatusResponse>({
+      url: DASHBOARD_ENDPOINTS.QBITTORRENT.STREAM,
+      initialData: qbStatusFallback,
+      enabled: qbStatusFallback?.enabled !== false,
+      treatInitialDataAsConnected: Boolean(qbStatusFallback?.connected),
+      onParseError: error => {
+        console.error('Failed to parse qBittorrent status stream payload', error);
+      },
+    });
+  const globalQbStatus = qbStatusLive ?? qbStatusFallback;
+
+  const { data, isPending } = useDashboardQbittorrentTorrents(listQueryParams);
 
   const torrents = data?.torrents ?? [];
 
@@ -129,30 +144,21 @@ export function TorrentsPage() {
 
   const torrentMeta = useMemo(() => {
     const counts = countQbittorrentTorrentsByState(torrents);
-    let totalDown = 0;
-    let totalUp = 0;
-
-    for (const torrent of torrents) {
-      totalDown += torrent.download_speed;
-      totalUp += torrent.upload_speed;
-    }
 
     return {
       availableCategories: getUniqueQbittorrentCategories(torrents),
       availableTags: getUniqueQbittorrentTags(torrents),
       counts,
-      totalDown,
-      totalUp,
     };
   }, [torrents]);
 
   const totalCount = data?.total_count ?? 0;
   const pageSize = data?.limit ?? QBITTORRENT_TORRENTS_PAGE_SIZE;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const displayDownloadSpeed =
-    data?.connected && typeof data?.download_speed === 'number' ? data.download_speed : torrentMeta.totalDown;
-  const displayUploadSpeed =
-    data?.connected && typeof data?.upload_speed === 'number' ? data.upload_speed : torrentMeta.totalUp;
+  const paginationLocked = isPending;
+  const speedsPending = isQbStatusPending && !globalQbStatus;
+  const displayDownloadSpeed = globalQbStatus?.summary?.download_speed ?? 0;
+  const displayUploadSpeed = globalQbStatus?.summary?.upload_speed ?? 0;
 
   const handleSort = (key: QbittorrentSortKey) => {
     if (sortBy === key) {
@@ -221,9 +227,6 @@ export function TorrentsPage() {
     enabled: Boolean(data?.enabled),
     url: torrentsStreamUrl,
     logLabel: 'qBittorrent torrents stream',
-    onOpen: () => setSseConnected(true),
-    onError: () => setSseConnected(false),
-    onReset: () => setSseConnected(false),
     onMessage: parsed => {
       queryClient.setQueryData(queryKeys.dashboard.qbittorrentTorrents(listQueryParams), parsed);
     },
@@ -262,77 +265,105 @@ export function TorrentsPage() {
         />
       ) : (
         <div className="space-y-4">
-          {/* Speed strip */}
-          {(totalCount > 0 || torrents.length > 0) && (
-            <div className="flex flex-wrap items-center gap-3 px-1">
-              <span className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-sky-600 dark:text-sky-400 tabular-nums">
-                <TrendingDown size={12} />
-                {formatSpeed(displayDownloadSpeed)}
-              </span>
-              <span className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                <TrendingUp size={12} />
-                {formatSpeed(displayUploadSpeed)}
-              </span>
-              <span className="ml-auto flex flex-wrap items-center justify-end gap-2">
-                {data?.enabled && (
-                  <span
-                    className={cn(
-                      'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full',
-                      sseConnected
+          {/* Speed strip — session speeds from global status (same source as dashboard) */}
+          <div className="flex min-h-7 flex-wrap items-center gap-3 px-1">
+            <span className="inline-flex min-h-[1.125rem] items-center gap-1.5 font-mono text-xs font-semibold text-sky-600 dark:text-sky-400 tabular-nums">
+              <TrendingDown size={12} className="shrink-0" />
+              {speedsPending ? (
+                <span className="inline-block h-3.5 w-[4.25rem] rounded bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
+              ) : (
+                formatSpeed(displayDownloadSpeed)
+              )}
+            </span>
+            <span className="inline-flex min-h-[1.125rem] items-center gap-1.5 font-mono text-xs font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+              <TrendingUp size={12} className="shrink-0" />
+              {speedsPending ? (
+                <span className="inline-block h-3.5 w-[4.25rem] rounded bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
+              ) : (
+                formatSpeed(displayUploadSpeed)
+              )}
+            </span>
+            <span className="ml-auto flex min-h-7 flex-wrap items-center justify-end gap-2">
+              {(speedsPending || globalQbStatus?.enabled) && (
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full',
+                    speedsPending
+                      ? 'bg-neutral-100 text-transparent dark:bg-neutral-800 dark:text-transparent'
+                      : qbStatusStreamConnected
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                         : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'w-1.5 h-1.5 rounded-full shrink-0',
+                      speedsPending
+                        ? 'bg-neutral-300 dark:bg-neutral-600 animate-pulse'
+                        : qbStatusStreamConnected
+                          ? 'bg-green-500'
+                          : 'bg-yellow-500 animate-pulse'
                     )}
-                  >
-                    <span
-                      className={cn(
-                        'w-1.5 h-1.5 rounded-full',
-                        sseConnected ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'
-                      )}
-                    />
-                    {sseConnected
-                      ? t('dashboard.qbittorrent.live', 'Live')
-                      : t('dashboard.qbittorrent.reconnecting', 'Reconnecting…')}
-                  </span>
-                )}
-                <span className="text-xs text-neutral-400 tabular-nums">
-                  {totalCount.toLocaleString()} {t('dashboard.qbittorrent.torrents', 'torrents')}
+                  />
+                  {speedsPending ? (
+                    <span className="inline-block h-2.5 w-14 rounded bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
+                  ) : qbStatusStreamConnected ? (
+                    t('dashboard.qbittorrent.live', 'Live')
+                  ) : (
+                    t('dashboard.qbittorrent.reconnecting', 'Reconnecting…')
+                  )}
                 </span>
-                <div className="flex items-center gap-0.5">
-                  <button
-                    type="button"
-                    disabled={page <= 1}
-                    onClick={() => setUrlState({ page: Math.max(1, page - 1) })}
-                    className={cn(
-                      'inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 dark:border-neutral-600',
-                      'text-neutral-600 dark:text-neutral-300',
-                      'disabled:opacity-40 disabled:pointer-events-none',
-                      'hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                    )}
-                    aria-label={t('torrents.prevPage', 'Previous page')}
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <span className="min-w-[4.5rem] text-center text-xs text-neutral-500 dark:text-neutral-400 tabular-nums">
-                    {page} / {totalPages}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={page >= totalPages}
-                    onClick={() => setUrlState({ page: Math.min(totalPages, page + 1) })}
-                    className={cn(
-                      'inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 dark:border-neutral-600',
-                      'text-neutral-600 dark:text-neutral-300',
-                      'disabled:opacity-40 disabled:pointer-events-none',
-                      'hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                    )}
-                    aria-label={t('torrents.nextPage', 'Next page')}
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
+              )}
+              <span className="inline-flex min-h-[1.125rem] items-center text-xs text-neutral-400 tabular-nums">
+                {isPending ? (
+                  <span className="inline-block h-3.5 w-24 rounded bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
+                ) : (
+                  <>
+                    {totalCount.toLocaleString()} {t('dashboard.qbittorrent.torrents', 'torrents')}
+                  </>
+                )}
               </span>
-            </div>
-          )}
+              <div className="flex items-center gap-0.5">
+                <button
+                  type="button"
+                  disabled={paginationLocked || page <= 1}
+                  onClick={() => setUrlState({ page: Math.max(1, page - 1) })}
+                  className={cn(
+                    'inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 dark:border-neutral-600',
+                    'text-neutral-600 dark:text-neutral-300',
+                    'disabled:opacity-40 disabled:pointer-events-none',
+                    'hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                  )}
+                  aria-label={t('torrents.prevPage', 'Previous page')}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="flex min-h-7 min-w-[4.5rem] items-center justify-center gap-1 text-center text-xs text-neutral-500 dark:text-neutral-400 tabular-nums">
+                  {page}
+                  <span className="text-neutral-400 dark:text-neutral-500">/</span>
+                  {isPending ? (
+                    <span className="inline-block h-3.5 w-6 rounded bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
+                  ) : (
+                    totalPages
+                  )}
+                </span>
+                <button
+                  type="button"
+                  disabled={paginationLocked || page >= totalPages}
+                  onClick={() => setUrlState({ page: Math.min(totalPages, page + 1) })}
+                  className={cn(
+                    'inline-flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 dark:border-neutral-600',
+                    'text-neutral-600 dark:text-neutral-300',
+                    'disabled:opacity-40 disabled:pointer-events-none',
+                    'hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                  )}
+                  aria-label={t('torrents.nextPage', 'Next page')}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </span>
+          </div>
 
           <AddTorrentPanel />
 
@@ -546,7 +577,7 @@ export function TorrentsPage() {
             </div>
 
             {/* Content — switches between list/compact/grid/kanban */}
-            {isLoading ? (
+            {isPending ? (
               /* Skeleton — adapts to current view mode */
               viewMode === 'grid' ? (
                 <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">

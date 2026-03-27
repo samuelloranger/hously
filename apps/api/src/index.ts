@@ -85,9 +85,7 @@ export const app = new Elysia()
   .get('/api/health', () => ({ status: 'ok' }))
   .use(app => {
     if (serveStatic) {
-      app
-        .use(staticPlugin({ assets: './public', prefix: '/' }))
-        .get('*', () => Bun.file('./public/index.html'));
+      app.use(staticPlugin({ assets: './public', prefix: '/' })).get('*', () => Bun.file('./public/index.html'));
     }
     return app;
   });

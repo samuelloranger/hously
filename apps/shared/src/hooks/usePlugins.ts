@@ -300,7 +300,7 @@ export function useUpdateQbittorrentPlugin() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.qbittorrent() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.qbittorrentStatus() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.qbittorrent.status() });
     },
   });
 }

@@ -188,8 +188,7 @@ function TrackerEditor({
         />
       </div>
 
-
-<div className="flex items-center gap-3">
+      <div className="flex items-center gap-3">
         {isDirty && (
           <span className="text-xs text-amber-600 dark:text-amber-400 font-medium mr-auto">
             {t('settings.plugins.unsavedChanges')}

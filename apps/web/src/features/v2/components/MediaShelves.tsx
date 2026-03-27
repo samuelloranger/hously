@@ -11,16 +11,6 @@ import {
 import { ExploreCardDetailDialog } from '@/features/medias/components/ExploreCardDetailDialog';
 import { RefreshCw } from 'lucide-react';
 
-// ─── Label ────────────────────────────────────────────────────────────────────
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
-      {children}
-    </span>
-  );
-}
-
 // ─── Poster card ──────────────────────────────────────────────────────────────
 
 function PosterCard({
@@ -48,7 +38,6 @@ function PosterCard({
       style={{ animationDelay: `${delayMs}ms` }}
       onClick={onClick}
     >
-      {/* Poster image */}
       <div className="aspect-[2/3] overflow-hidden">
         {posterUrl ? (
           <img
@@ -62,18 +51,12 @@ function PosterCard({
           </div>
         )}
       </div>
-
-      {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-      {/* Type badge */}
       <div className="absolute top-2 left-2">
         <span className="text-[9px] font-bold uppercase tracking-wide bg-black/60 text-white/90 rounded px-1.5 py-0.5">
           {type}
         </span>
       </div>
-
-      {/* Bottom info */}
       <div className="absolute bottom-0 left-0 right-0 p-2">
         <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2">{title}</p>
         <p className="text-[9px] text-white/60 mt-0.5">{subtitle}</p>
@@ -121,9 +104,8 @@ export function JellyfinShelf() {
   };
 
   const mediaTypeLabel = (type: string | null) => {
-    if (!type) return 'Media';
     const map: Record<string, string> = { movie: 'Movie', episode: 'TV', musicalbum: 'Album', audio: 'Audio' };
-    return map[type.toLowerCase()] ?? type;
+    return (type && map[type.toLowerCase()]) ?? 'Media';
   };
 
   const mediaFallback = (type: string | null) => {
@@ -134,9 +116,9 @@ export function JellyfinShelf() {
   return (
     <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-blue-500 shrink-0" />
-          <Label>Recently Added</Label>
+          <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Recently Added</h3>
         </div>
         <button
           type="button"
@@ -145,22 +127,25 @@ export function JellyfinShelf() {
           className="text-zinc-400 hover:text-blue-500 transition-colors disabled:opacity-40"
           title={t('dashboard.jellyfin.refresh')}
         >
-          <RefreshCw size={12} className={isFetching ? 'animate-spin' : ''} />
+          <RefreshCw size={13} className={isFetching ? 'animate-spin' : ''} />
         </button>
       </div>
 
       {isError ? (
-        <p className="px-4 py-6 text-xs text-rose-500 text-center">Failed to load Jellyfin</p>
+        <p className="px-4 py-6 text-sm text-rose-500 text-center">Failed to load Jellyfin</p>
       ) : isLoading ? (
         <div className="flex gap-3 px-4 py-3 overflow-hidden">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse aspect-[2/3]" />
+            <div
+              key={i}
+              className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse aspect-[2/3]"
+            />
           ))}
         </div>
       ) : !isEnabled ? (
-        <p className="px-4 py-6 text-xs text-zinc-400 dark:text-zinc-500 text-center">Jellyfin not configured</p>
+        <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">Jellyfin not configured</p>
       ) : items.length === 0 ? (
-        <p className="px-4 py-6 text-xs text-zinc-400 dark:text-zinc-500 text-center">No recent media</p>
+        <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">No recent media</p>
       ) : (
         <div className="no-scrollbar overflow-x-auto px-4 py-3" onScroll={handleScroll}>
           <div className="flex gap-3">
@@ -228,9 +213,9 @@ export function UpcomingShelf() {
     <>
       <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
-            <Label>Upcoming</Label>
+            <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Upcoming</h3>
           </div>
           <button
             type="button"
@@ -239,24 +224,25 @@ export function UpcomingShelf() {
             className="text-zinc-400 hover:text-amber-500 transition-colors disabled:opacity-40"
             title={t('dashboard.upcoming.refresh')}
           >
-            <RefreshCw size={12} className={isFetching ? 'animate-spin' : ''} />
+            <RefreshCw size={13} className={isFetching ? 'animate-spin' : ''} />
           </button>
         </div>
 
         {isLoading ? (
           <div className="flex gap-3 px-4 py-3 overflow-hidden">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse aspect-[2/3]" />
+              <div
+                key={i}
+                className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse aspect-[2/3]"
+              />
             ))}
           </div>
         ) : !data?.enabled ? (
-          <p className="px-4 py-6 text-xs text-zinc-400 dark:text-zinc-500 text-center">
+          <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
             Radarr / Sonarr not configured
           </p>
         ) : data.items.length === 0 ? (
-          <p className="px-4 py-6 text-xs text-zinc-400 dark:text-zinc-500 text-center">
-            Nothing upcoming
-          </p>
+          <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">Nothing upcoming</p>
         ) : (
           <div className="no-scrollbar overflow-x-auto px-4 py-3">
             <div className="flex gap-3">
@@ -289,7 +275,10 @@ export function UpcomingShelf() {
           item={selected}
           isOpen
           onClose={() => setSelected(null)}
-          onAdded={() => { setSelected(null); refetch(); }}
+          onAdded={() => {
+            setSelected(null);
+            refetch();
+          }}
         />
       )}
     </>

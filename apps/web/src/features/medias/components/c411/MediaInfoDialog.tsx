@@ -52,12 +52,7 @@ export function MediaInfoDialog({
 
   return (
     <>
-      <Dialog
-        isOpen={isOpen}
-        onClose={onClose}
-        title={media?.title ?? ''}
-        panelClassName="max-w-5xl"
-      >
+      <Dialog isOpen={isOpen} onClose={onClose} title={media?.title ?? ''} panelClassName="max-w-5xl">
         {/* Tab bar */}
         <div className="mb-4 space-y-3">
           <div className="border-b border-neutral-200/80 dark:border-neutral-700/60">
@@ -82,7 +77,6 @@ export function MediaInfoDialog({
               ))}
             </nav>
           </div>
-
         </div>
 
         {/* Tab content */}

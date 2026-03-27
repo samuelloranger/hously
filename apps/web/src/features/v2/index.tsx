@@ -1,20 +1,17 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import { CalendarDays, ShoppingCart, CheckSquare2, Flame } from 'lucide-react';
 import { PageLayout } from '@/components/PageLayout';
-import {
-  getUserFirstName,
-  useCurrentUser,
-  useDashboardStats,
-} from '@hously/shared';
+import { SmartGreeting } from '@/features/dashboard/components/SmartGreeting';
+import { type DashboardStats, getUserFirstName, useCurrentUser, useDashboardStats } from '@hously/shared';
 import { CardErrorBoundary } from '@/components/ErrorBoundary';
 import { ViewSwitcher } from './components/ViewSwitcher';
 import { DownloadsPanel } from './components/DownloadsPanel';
+import { WeatherPanel } from './components/WeatherPanel';
 import { SystemPanel } from './components/SystemPanel';
 import { JellyfinShelf, UpcomingShelf } from './components/MediaShelves';
 import { TrackersPanel } from './components/TrackersPanel';
-import { ChoresPanel, HabitsPanel, ActivityPanel } from './components/HomePanel';
+import { ChoresPanel, HabitsPanel } from './components/HomePanel';
 
 // ─── Styles injected once ─────────────────────────────────────────────────────
 
@@ -31,56 +28,9 @@ const STYLES = `
   }
 `;
 
-// ─── Header ───────────────────────────────────────────────────────────────────
-
-function V2Header() {
-  const { i18n } = useTranslation('common');
-  const { data: user } = useCurrentUser();
-
-  const { greeting, dateLabel } = useMemo(() => {
-    const now = new Date();
-    const h = now.getHours();
-    const greeting =
-      h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-
-    const dateLabel = new Intl.DateTimeFormat(i18n.language, {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    }).format(now);
-
-    return { greeting, dateLabel };
-  }, [i18n.language]);
-
-  const firstName = getUserFirstName(user, '');
-
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500 mb-1">
-          {dateLabel}
-        </p>
-        <h1 className="text-2xl md:text-3xl font-light tracking-tight text-zinc-900 dark:text-zinc-50 leading-none">
-          {greeting}
-          {firstName ? (
-            <>
-              ,{' '}
-              <span className="font-semibold">{firstName}</span>
-            </>
-          ) : null}
-        </h1>
-      </div>
-      <ViewSwitcher className="mt-1 shrink-0" />
-    </div>
-  );
-}
-
 // ─── Stats row ────────────────────────────────────────────────────────────────
 
-function StatsRow() {
-  const { data: statsData } = useDashboardStats();
-  const stats = statsData?.stats;
-
+function StatsRow({ stats }: { stats?: DashboardStats }) {
   if (!stats) return null;
 
   const chips = [
@@ -138,6 +88,11 @@ function StatsRow() {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export function V2Page() {
+  const { t } = useTranslation('common');
+  const { data: user } = useCurrentUser();
+  const { data: statsData } = useDashboardStats();
+  const stats = statsData?.stats;
+
   return (
     <PageLayout fullWidth>
       <style>{STYLES}</style>
@@ -145,70 +100,74 @@ export function V2Page() {
       <div className="space-y-6">
         {/* Header */}
         <div className="v2-enter" style={{ animationDelay: '0ms' }}>
-          <V2Header />
+          <div className="flex items-start justify-between gap-4">
+            <SmartGreeting
+              userName={getUserFirstName(user, t('dashboard.user'))}
+              pendingChores={stats?.chores_count || 0}
+              shoppingItems={stats?.shopping_count || 0}
+              eventsToday={stats?.events_today || 0}
+            />
+            <ViewSwitcher className="mt-1 shrink-0" />
+          </div>
           <div className="mt-3">
-            <StatsRow />
+            <StatsRow stats={stats} />
           </div>
         </div>
 
-        {/* Main 2-column bento: downloads + system */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 items-start">
-          <div
-            className="v2-enter space-y-4"
-            style={{ animationDelay: '60ms' }}
-          >
-            <CardErrorBoundary>
-              <DownloadsPanel />
-            </CardErrorBoundary>
+        {/* Main layout: left stacked widgets / right tall column */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 items-start">
+          {/* Left: stacked widgets */}
+          <div className="min-w-0 space-y-4">
+            <div className="v2-enter" style={{ animationDelay: '60ms' }}>
+              <CardErrorBoundary>
+                <JellyfinShelf />
+              </CardErrorBoundary>
+            </div>
+
+            <div className="v2-enter" style={{ animationDelay: '100ms' }}>
+              <CardErrorBoundary>
+                <UpcomingShelf />
+              </CardErrorBoundary>
+            </div>
+
+            <div className="v2-enter" style={{ animationDelay: '140ms' }}>
+              <CardErrorBoundary>
+                <HabitsPanel />
+              </CardErrorBoundary>
+            </div>
+
+            <div className="v2-enter" style={{ animationDelay: '180ms' }}>
+              <CardErrorBoundary>
+                <ChoresPanel />
+              </CardErrorBoundary>
+            </div>
           </div>
 
-          <div
-            className="v2-enter"
-            style={{ animationDelay: '100ms' }}
-          >
-            <CardErrorBoundary>
-              <SystemPanel />
-            </CardErrorBoundary>
-          </div>
-        </div>
-
-        {/* Media shelves */}
-        <div
-          className="v2-enter space-y-4"
-          style={{ animationDelay: '150ms' }}
-        >
-          <CardErrorBoundary>
-            <JellyfinShelf />
-          </CardErrorBoundary>
-
-          <CardErrorBoundary>
-            <UpcomingShelf />
-          </CardErrorBoundary>
-        </div>
-
-        {/* Trackers — full width */}
-        <div className="v2-enter" style={{ animationDelay: '200ms' }}>
-          <CardErrorBoundary>
-            <TrackersPanel />
-          </CardErrorBoundary>
-        </div>
-
-        {/* Home section: chores (2/3) + habits + activity (1/3) */}
-        <div
-          className="v2-enter grid grid-cols-1 md:grid-cols-[1fr_300px] gap-4 items-start"
-          style={{ animationDelay: '240ms' }}
-        >
-          <CardErrorBoundary>
-            <ChoresPanel />
-          </CardErrorBoundary>
-
+          {/* Right: weather + system + downloads + trackers */}
           <div className="space-y-4">
-            <CardErrorBoundary>
-              <HabitsPanel />
-            </CardErrorBoundary>
-            <CardErrorBoundary>
-              <ActivityPanel />
-            </CardErrorBoundary>
+            <div className="v2-enter" style={{ animationDelay: '60ms' }}>
+              <CardErrorBoundary>
+                <WeatherPanel />
+              </CardErrorBoundary>
+            </div>
+
+            <div className="v2-enter" style={{ animationDelay: '100ms' }}>
+              <CardErrorBoundary>
+                <SystemPanel />
+              </CardErrorBoundary>
+            </div>
+
+            <div className="v2-enter" style={{ animationDelay: '140ms' }}>
+              <CardErrorBoundary>
+                <DownloadsPanel />
+              </CardErrorBoundary>
+            </div>
+
+            <div className="v2-enter" style={{ animationDelay: '180ms' }}>
+              <CardErrorBoundary>
+                <TrackersPanel />
+              </CardErrorBoundary>
+            </div>
           </div>
         </div>
       </div>

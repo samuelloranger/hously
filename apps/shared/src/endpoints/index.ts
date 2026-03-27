@@ -2,6 +2,7 @@ export * from './auth';
 export * from './shopping';
 export * from './chores';
 export * from './calendar';
+export * from './qbittorrent';
 export * from './dashboard';
 export * from './recipes';
 export * from './mealPlans';

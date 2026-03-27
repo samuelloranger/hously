@@ -475,22 +475,10 @@ export function MediasLibrary() {
   );
 }
 
-function MediaGridCard({
-  item,
-  id,
-  onOpen,
-}: {
-  item: MediaItem;
-  id?: string;
-  onOpen: (tab?: TabKey) => void;
-}) {
+function MediaGridCard({ item, id, onOpen }: { item: MediaItem; id?: string; onOpen: (tab?: TabKey) => void }) {
   const { t } = useTranslation('common');
 
-  const status = item.downloaded
-    ? 'downloaded'
-    : item.downloading
-      ? 'downloading'
-      : 'missing';
+  const status = item.downloaded ? 'downloaded' : item.downloading ? 'downloading' : 'missing';
 
   const statusLabel = item.downloaded
     ? t('medias.downloaded')

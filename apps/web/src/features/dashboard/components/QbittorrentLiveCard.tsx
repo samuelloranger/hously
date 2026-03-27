@@ -5,18 +5,19 @@ import {
   type DashboardQbittorrentStatusResponse,
   DASHBOARD_ENDPOINTS,
   formatSpeed,
-  useDashboardQbittorrentStatus,
+  useQbittorrentStatus,
 } from '@hously/shared';
 import { useEventSourceState } from '@/hooks/useEventSourceState';
 import { usePrefetchIntent } from '@/hooks/usePrefetchIntent';
 
 export function QbittorrentLiveCard() {
   const { t } = useTranslation('common');
-  const { data: fallbackData, isLoading } = useDashboardQbittorrentStatus();
+  const { data: fallbackData, isLoading } = useQbittorrentStatus();
   const prefetchIntent = usePrefetchIntent('/torrents');
   const { data, streamConnected } = useEventSourceState<DashboardQbittorrentStatusResponse>({
     url: DASHBOARD_ENDPOINTS.QBITTORRENT.STREAM,
     initialData: fallbackData,
+    treatInitialDataAsConnected: Boolean(fallbackData?.connected),
     onParseError: error => {
       console.error('Failed to parse qBittorrent stream payload', error);
     },

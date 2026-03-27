@@ -7,7 +7,7 @@ import {
   formatBytes,
   formatQbittorrentEta,
   getQbittorrentProgressBarGradient,
-  useDashboardQbittorrentStatus,
+  useQbittorrentStatus,
   usePinnedQbittorrentTorrent,
   useSetPinnedQbittorrentTorrent,
 } from '@hously/shared';
@@ -37,7 +37,7 @@ function BarTrack({ pct, stateClass }: { pct: number; stateClass: string }) {
 }
 
 export function DownloadsPanel() {
-  const { data: fallbackData, isLoading } = useDashboardQbittorrentStatus();
+  const { data: fallbackData, isLoading } = useQbittorrentStatus();
   const { data, streamConnected } = useEventSourceState<DashboardQbittorrentStatusResponse>({
     url: DASHBOARD_ENDPOINTS.QBITTORRENT.STREAM,
     initialData: fallbackData,
@@ -76,9 +76,7 @@ export function DownloadsPanel() {
       <div className="px-4 py-3 space-y-4">
         {/* Not connected */}
         {!enabled && !isLoading && (
-          <p className="py-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">
-            qBittorrent not configured
-          </p>
+          <p className="py-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">qBittorrent not configured</p>
         )}
 
         {/* Speed + summary stats */}
@@ -99,26 +97,23 @@ export function DownloadsPanel() {
               <div className="mt-2 flex flex-wrap gap-3">
                 {summary.downloading_count > 0 && (
                   <span className="text-xs text-zinc-600 dark:text-zinc-300">
-                    <span className="font-mono font-semibold tabular-nums">{summary.downloading_count}</span>
-                    {' '}downloading
+                    <span className="font-mono font-semibold tabular-nums">{summary.downloading_count}</span>{' '}
+                    downloading
                   </span>
                 )}
                 {summary.seeding_count > 0 && (
                   <span className="text-xs text-zinc-600 dark:text-zinc-300">
-                    <span className="font-mono font-semibold tabular-nums">{summary.seeding_count}</span>
-                    {' '}seeding
+                    <span className="font-mono font-semibold tabular-nums">{summary.seeding_count}</span> seeding
                   </span>
                 )}
                 {summary.stalled_count > 0 && (
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    <span className="font-mono font-semibold tabular-nums">{summary.stalled_count}</span>
-                    {' '}stalled
+                    <span className="font-mono font-semibold tabular-nums">{summary.stalled_count}</span> stalled
                   </span>
                 )}
                 {summary.paused_count > 0 && (
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    <span className="font-mono font-semibold tabular-nums">{summary.paused_count}</span>
-                    {' '}paused
+                    <span className="font-mono font-semibold tabular-nums">{summary.paused_count}</span> paused
                   </span>
                 )}
               </div>
@@ -166,9 +161,7 @@ export function DownloadsPanel() {
                   <Clock size={10} />
                   {formatQbittorrentEta(torrent.eta_seconds)}
                 </span>
-                <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {formatBytes(torrent.size_bytes)}
-                </span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">{formatBytes(torrent.size_bytes)}</span>
                 <span className="flex items-center gap-1 text-xs font-mono text-sky-600 dark:text-sky-400 tabular-nums">
                   <ArrowDown size={10} />
                   {formatSpeed(torrent.download_speed)}

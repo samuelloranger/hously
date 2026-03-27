@@ -15,3 +15,4 @@ export * from './useMedias';
 export * from './useHabits';
 export * from './useEventSource';
 export * from './useSearch';
+export * from './useQbittorrentStatus';

@@ -59,10 +59,22 @@ vi.mock('@/features/torrents/TorrentRow', () => ({
   TorrentRow: ({ torrent }: { torrent: { name: string } }) => <div>{torrent.name}</div>,
 }));
 
+vi.mock('@/hooks/useEventSourceState', () => ({
+  useEventSourceState: ({
+    initialData,
+  }: {
+    initialData?: { summary?: { download_speed: number; upload_speed: number } };
+  }) => ({
+    data: initialData ?? null,
+    streamConnected: true,
+  }),
+}));
+
 vi.mock('@hously/shared', async () => {
   return {
     DASHBOARD_ENDPOINTS: {
       QBITTORRENT: {
+        STREAM: '/api/dashboard/qbittorrent/stream',
         TORRENTS_STREAM: '/api/qbittorrent/torrents/stream',
       },
     },
@@ -125,6 +137,28 @@ vi.mock('@hously/shared', async () => {
       },
     },
     useDashboardQbittorrentTorrents: vi.fn(),
+    useQbittorrentStatus: vi.fn(() => ({
+      data: {
+        enabled: true,
+        connected: true,
+        updated_at: '',
+        poll_interval_seconds: 30,
+        summary: {
+          downloading_count: 0,
+          stalled_count: 0,
+          seeding_count: 0,
+          paused_count: 0,
+          completed_count: 0,
+          total_count: 3,
+          download_speed: 15,
+          upload_speed: 2,
+          downloaded_bytes: 0,
+          uploaded_bytes: 0,
+        },
+        torrents: [],
+      },
+      isPending: false,
+    })),
     usePinnedQbittorrentTorrent: vi.fn(() => ({ data: { pinned_hash: null, torrent: null } })),
     useSetPinnedQbittorrentTorrent: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
     useJsonEventSource: vi.fn(),
@@ -190,7 +224,7 @@ describe('TorrentsPage', () => {
         download_speed: 15,
         upload_speed: 2,
       },
-      isLoading: false,
+      isPending: false,
     });
   });
 
@@ -224,6 +258,19 @@ describe('TorrentsPage', () => {
     expect(screen.getByText('Series Weekly')).toBeInTheDocument();
     expect(screen.queryByText('Movie 4K')).not.toBeInTheDocument();
     expect(screen.queryByText('Movie 1080p')).not.toBeInTheDocument();
+  });
+
+  it('keeps the speed strip mounted and locks pagination while the torrent list is pending', () => {
+    (useDashboardQbittorrentTorrents as any).mockReturnValue({
+      data: undefined,
+      isPending: true,
+    });
+    mockSearch = { page: 2 };
+
+    renderWithProviders(<TorrentsPage />);
+
+    expect(screen.getByLabelText('Previous page')).toBeDisabled();
+    expect(screen.getByLabelText('Next page')).toBeDisabled();
   });
 
   it('keeps default array filters when router search includes undefined values', () => {

@@ -5,7 +5,6 @@ import { DASHBOARD_ENDPOINTS } from '../../endpoints';
 import { buildQbittorrentTorrentSearchParams, createQbittorrentUploadFormData } from '../../utils';
 import type {
   DashboardPinnedQbittorrentTorrentResponse,
-  DashboardQbittorrentStatusResponse,
   DashboardQbittorrentTorrentsResponse,
   DashboardQbittorrentCategoriesResponse,
   DashboardQbittorrentTagsResponse,
@@ -16,15 +15,6 @@ import type {
   DashboardQbittorrentTorrentPeersResponse,
   DashboardQbittorrentMutationResponse,
 } from '../../types';
-
-export function useDashboardQbittorrentStatus() {
-  const fetcher = useFetcher();
-
-  return useQuery({
-    queryKey: queryKeys.dashboard.qbittorrentStatus(),
-    queryFn: () => fetcher<DashboardQbittorrentStatusResponse>(DASHBOARD_ENDPOINTS.QBITTORRENT.STATUS),
-  });
-}
 
 export function usePinnedQbittorrentTorrent(options?: { enabled?: boolean; refetchInterval?: number | false }) {
   const fetcher = useFetcher();
@@ -45,7 +35,9 @@ export function useDashboardQbittorrentTorrents(
     tag?: string;
     sort?: string;
     reverse?: boolean;
+    /** Page size (server caps at 200). */
     limit?: number;
+    /** Zero-based offset into the sorted/filtered list. */
     offset?: number;
   },
   options?: { enabled?: boolean }
@@ -158,6 +150,7 @@ export function useSetPinnedQbittorrentTorrent() {
     onSuccess: response => {
       queryClient.setQueryData(queryKeys.dashboard.qbittorrentPinnedTorrent(), response);
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.qbittorrent.all });
     },
   });
 }
