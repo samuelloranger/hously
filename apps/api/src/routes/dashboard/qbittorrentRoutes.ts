@@ -1,3 +1,4 @@
+import { QBITTORRENT_TORRENTS_PAGE_SIZE } from '@hously/shared';
 import { Elysia, t } from 'elysia';
 import { Prisma } from '@prisma/client';
 import { createJsonSseResponse } from '../../utils/sse';
@@ -136,8 +137,17 @@ export const dashboardQbittorrentRoutes = new Elysia()
     async (ctx: any) => {
       const { user, set, query } = ctx;
       const config = await getQbittorrentConfigOrError(set);
+      const parsedOffset = query.offset ? parseInt(query.offset, 10) : 0;
+      const safeOffset = Number.isFinite(parsedOffset) && parsedOffset >= 0 ? Math.trunc(parsedOffset) : 0;
       if (!config) {
-        return { enabled: false, connected: false, torrents: [] };
+        return {
+          enabled: false,
+          connected: false,
+          torrents: [],
+          total_count: 0,
+          offset: safeOffset,
+          limit: QBITTORRENT_TORRENTS_PAGE_SIZE,
+        };
       }
 
       const result = await fetchQbittorrentTorrents(config, true, {
@@ -165,8 +175,11 @@ export const dashboardQbittorrentRoutes = new Elysia()
     }
   )
   .get('/qbittorrent/torrents/stream', async (ctx: any) => {
-    const { user, set, request } = ctx;
-    return createPollerSseResponse(request, 'torrents');
+    const { request } = ctx;
+    const url = new URL(request.url);
+    const rawOffset = parseInt(url.searchParams.get('offset') ?? '0', 10);
+    const offset = Number.isFinite(rawOffset) && rawOffset >= 0 ? Math.trunc(rawOffset) : 0;
+    return createPollerSseResponse(request, `torrents:${offset}`);
   })
   .get('/qbittorrent/pinned', async ({ user, set }: any) => {
     if (!user) {

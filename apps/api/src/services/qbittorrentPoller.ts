@@ -1,8 +1,21 @@
+import { QBITTORRENT_TORRENTS_PAGE_SIZE } from '@hously/shared';
 import { getQbittorrentPluginConfig } from './qbittorrent/config';
 import { fetchMaindata, resetMaindataState, toNumberOr, toTorrent, toTorrentListItem } from './qbittorrent/client';
-import {
-  buildQbittorrentDisabledSnapshot,
-} from './qbittorrent/torrents';
+import { buildQbittorrentDisabledSnapshot } from './qbittorrent/torrents';
+
+const TORRENTS_SSE_CHANNEL = /^torrents:(\d+)$/;
+
+function getSubscribedTorrentsListChannels(): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const s of subscribers) {
+    if (TORRENTS_SSE_CHANNEL.test(s.channel) && !seen.has(s.channel)) {
+      seen.add(s.channel);
+      out.push(s.channel);
+    }
+  }
+  return out;
+}
 
 type ChannelCallback<T = unknown> = (data: T) => void;
 
@@ -18,9 +31,7 @@ let running = false;
 // Last payloads for change detection (keyed by channel)
 const lastPayloads = new Map<string, string>();
 
-const computeSummary = (
-  torrents: Array<ReturnType<typeof toTorrent> extends infer T ? Exclude<T, null> : never>
-) => {
+const computeSummary = (torrents: Array<ReturnType<typeof toTorrent> extends infer T ? Exclude<T, null> : never>) => {
   let downloadingCount = 0;
   let stalledCount = 0;
   let seedingCount = 0;
@@ -29,7 +40,13 @@ const computeSummary = (
 
   for (const torrent of torrents) {
     const state = torrent.state;
-    if (state === 'downloading' || state === 'forcedDL' || state === 'metaDL' || state === 'queuedDL' || state === 'checkingDL') {
+    if (
+      state === 'downloading' ||
+      state === 'forcedDL' ||
+      state === 'metaDL' ||
+      state === 'queuedDL' ||
+      state === 'checkingDL'
+    ) {
       downloadingCount += 1;
     }
     if (state === 'stalledDL' || state === 'stalledUP') stalledCount += 1;
@@ -81,6 +98,20 @@ const pollOnce = async () => {
           updated_at: new Date().toISOString(),
         });
       }
+      for (const channel of getSubscribedTorrentsListChannels()) {
+        const match = channel.match(TORRENTS_SSE_CHANNEL);
+        const offset = match ? parseInt(match[1], 10) : 0;
+        notifySubscribers(channel, {
+          enabled: false,
+          connected: false,
+          total_count: 0,
+          offset,
+          limit: QBITTORRENT_TORRENTS_PAGE_SIZE,
+          torrents: [],
+          download_speed: 0,
+          upload_speed: 0,
+        });
+      }
       schedulePoll(5000);
       return;
     }
@@ -120,23 +151,36 @@ const pollOnce = async () => {
       notifySubscribers('dashboard', dashboardSnapshot);
     }
 
-    // Notify torrents subscribers
-    const hasTorrents = subscribers.some(s => s.channel === 'torrents');
-    if (hasTorrents) {
-      const torrentsResult = {
-        enabled: true,
-        connected: true,
-        torrents: rawTorrents
-          .map(toTorrentListItem)
-          .filter((row): row is NonNullable<typeof row> => Boolean(row))
-          .sort((a, b) => {
-            const aAdded = a.added_on ? Date.parse(a.added_on) : 0;
-            const bAdded = b.added_on ? Date.parse(b.added_on) : 0;
-            return bAdded - aAdded;
-          })
-          .slice(0, 250),
-      };
-      notifySubscribers('torrents', torrentsResult);
+    // Notify torrents list subscribers (paginated SSE: one channel per offset)
+    const torrentsListChannels = getSubscribedTorrentsListChannels();
+    if (torrentsListChannels.length > 0) {
+      const sortedList = rawTorrents
+        .map(toTorrentListItem)
+        .filter((row): row is NonNullable<typeof row> => Boolean(row))
+        .sort((a, b) => {
+          const aAdded = a.added_on ? Date.parse(a.added_on) : 0;
+          const bAdded = b.added_on ? Date.parse(b.added_on) : 0;
+          return bAdded - aAdded;
+        });
+      const total_count = sortedList.length;
+      const download_speed = Math.max(0, Math.trunc(toNumberOr(serverState.dl_info_speed, 0)));
+      const upload_speed = Math.max(0, Math.trunc(toNumberOr(serverState.up_info_speed, 0)));
+
+      for (const channel of torrentsListChannels) {
+        const match = channel.match(TORRENTS_SSE_CHANNEL);
+        const offset = match ? parseInt(match[1], 10) : 0;
+        const torrents = sortedList.slice(offset, offset + QBITTORRENT_TORRENTS_PAGE_SIZE);
+        notifySubscribers(channel, {
+          enabled: true,
+          connected: true,
+          total_count,
+          offset,
+          limit: QBITTORRENT_TORRENTS_PAGE_SIZE,
+          torrents,
+          download_speed,
+          upload_speed,
+        });
+      }
     }
 
     // Notify individual torrent subscribers

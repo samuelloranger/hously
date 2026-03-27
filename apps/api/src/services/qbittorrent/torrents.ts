@@ -1,3 +1,4 @@
+import { QBITTORRENT_TORRENTS_PAGE_SIZE } from '@hously/shared';
 import {
   type QbittorrentPluginConfig,
   type QbittorrentDashboardTorrent,
@@ -203,11 +204,37 @@ export const fetchQbittorrentTorrents = async (
   config: QbittorrentPluginConfig,
   enabled: boolean,
   params: QbittorrentListTorrentsParams = {}
-): Promise<{ enabled: boolean; connected: boolean; torrents: QbittorrentTorrentListItem[]; error?: string }> => {
-  if (!enabled) return { enabled: false, connected: false, torrents: [] };
+): Promise<{
+  enabled: boolean;
+  connected: boolean;
+  torrents: QbittorrentTorrentListItem[];
+  total_count: number;
+  offset: number;
+  limit: number;
+  download_speed?: number;
+  upload_speed?: number;
+  error?: string;
+}> => {
+  const offset =
+    typeof params.offset === 'number' && Number.isFinite(params.offset) ? Math.max(0, Math.trunc(params.offset)) : 0;
+  const limit =
+    typeof params.limit === 'number' && Number.isFinite(params.limit)
+      ? Math.max(1, Math.min(200, Math.trunc(params.limit)))
+      : QBITTORRENT_TORRENTS_PAGE_SIZE;
+
+  if (!enabled) {
+    return {
+      enabled: false,
+      connected: false,
+      torrents: [],
+      total_count: 0,
+      offset,
+      limit,
+    };
+  }
 
   try {
-    const { torrents: torrentMap } = await fetchMaindata(config);
+    const { serverState, torrents: torrentMap } = await fetchMaindata(config);
     let rawList = Array.from(torrentMap.values());
 
     // Apply filters locally since maindata doesn't support filter params
@@ -216,23 +243,35 @@ export const fetchQbittorrentTorrents = async (
     rawList = applyTagFilter(rawList, params.tag);
     rawList = applySorting(rawList, params.sort, params.reverse);
 
+    const total_count = rawList.length;
+
     // Apply pagination
-    const offset =
-      typeof params.offset === 'number' && Number.isFinite(params.offset) ? Math.max(0, Math.trunc(params.offset)) : 0;
-    const limit =
+    const pageLimit =
       typeof params.limit === 'number' && Number.isFinite(params.limit)
         ? Math.max(1, Math.min(200, Math.trunc(params.limit)))
         : rawList.length;
-    rawList = rawList.slice(offset, offset + limit);
+    rawList = rawList.slice(offset, offset + pageLimit);
 
     const torrents = rawList.map(toTorrentListItem).filter((row): row is QbittorrentTorrentListItem => Boolean(row));
 
-    return { enabled: true, connected: true, torrents };
+    return {
+      enabled: true,
+      connected: true,
+      torrents,
+      total_count,
+      offset,
+      limit: pageLimit,
+      download_speed: Math.max(0, Math.trunc(toNumberOr(serverState.dl_info_speed, 0))),
+      upload_speed: Math.max(0, Math.trunc(toNumberOr(serverState.up_info_speed, 0))),
+    };
   } catch (error) {
     return {
       enabled: true,
       connected: false,
       torrents: [],
+      total_count: 0,
+      offset,
+      limit,
       error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
     };
   }
@@ -248,13 +287,20 @@ export const fetchQbittorrentTorrent = async (
   if (!safeHash) return { enabled: true, connected: false, torrent: null, error: 'Missing torrent hash' };
 
   try {
-    const { torrents: torrentMap } = await fetchMaindata(config);
-    const raw = torrentMap.get(safeHash);
-    if (!raw) {
+    const path = `/api/v2/torrents/info?hashes=${encodeURIComponent(safeHash)}`;
+    const payload = await qbFetchJson<unknown>(config, path);
+    const rawTorrent = Array.isArray(payload) ? payload[0] : null;
+    const rawRecord = toRecord(rawTorrent);
+
+    if (!rawRecord) {
       return { enabled: true, connected: true, torrent: null, error: 'Torrent not found' };
     }
 
-    const torrent = toTorrentListItem(raw);
+    const torrent = toTorrentListItem(rawRecord);
+    if (!torrent) {
+      return { enabled: true, connected: false, torrent: null, error: 'Invalid torrent payload' };
+    }
+
     return { enabled: true, connected: true, torrent };
   } catch (error) {
     return {
@@ -771,10 +817,7 @@ export const addQbittorrentTorrentFile = async (
     console.log(`${logPrefix} qBittorrent accepted torrent name="${payload.torrent.name}"`);
     return { enabled: true, connected: true, success: true };
   } catch (error) {
-    console.error(
-      `${logPrefix} qBittorrent rejected torrent name="${payload.torrent.name}" error=`,
-      error
-    );
+    console.error(`${logPrefix} qBittorrent rejected torrent name="${payload.torrent.name}" error=`, error);
     return {
       enabled: true,
       connected: false,

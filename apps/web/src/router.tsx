@@ -328,6 +328,15 @@ const termsRoute = createRoute({
   component: Terms,
 });
 
+const parseTorrentsPage = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value) && value >= 1) return Math.floor(value);
+  if (typeof value === 'string' && value.length > 0) {
+    const n = parseInt(value, 10);
+    if (Number.isFinite(n) && n >= 1) return n;
+  }
+  return undefined;
+};
+
 export type TorrentsSearchParams = {
   search?: string;
   state?: QbittorrentStateFilter;
@@ -335,6 +344,8 @@ export type TorrentsSearchParams = {
   tags?: string[];
   sortBy?: QbittorrentSortKey;
   sortDir?: QbittorrentSortDir;
+  /** 1-based page index for the torrent list (page size: QBITTORRENT_TORRENTS_PAGE_SIZE). */
+  page?: number;
 };
 
 const QBITTORRENT_STATE_FILTER_VALUES = new Set<QbittorrentStateFilter>([
@@ -379,6 +390,7 @@ const torrentsRoute = createRoute({
       typeof search.sortDir === 'string' && QBITTORRENT_SORT_DIR_VALUES.has(search.sortDir as QbittorrentSortDir)
         ? (search.sortDir as QbittorrentSortDir)
         : undefined,
+    page: parseTorrentsPage(search.page),
   }),
   beforeLoad: requireAuth,
   loader: async ({ context }) => {

@@ -13,7 +13,13 @@ vi.mock('@tanstack/react-router', () => ({
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, fallback?: string) => fallback ?? key,
+    t: (key: string, fallbackOrOptions?: string | Record<string, unknown>) => {
+      if (typeof fallbackOrOptions === 'object' && fallbackOrOptions !== null && 'count' in fallbackOrOptions) {
+        const o = fallbackOrOptions as { count: number; total: number };
+        return `${o.count} / ${o.total}`;
+      }
+      return typeof fallbackOrOptions === 'string' ? fallbackOrOptions : key;
+    },
   }),
 }));
 
@@ -60,6 +66,9 @@ vi.mock('@hously/shared', async () => {
         TORRENTS_STREAM: '/api/qbittorrent/torrents/stream',
       },
     },
+    QBITTORRENT_TORRENTS_PAGE_SIZE: 50,
+    buildQbittorrentTorrentsStreamUrl: (base: string, offset: number) =>
+      `${base}${base.includes('?') ? '&' : '?'}offset=${offset}`,
     QBITTORRENT_STATE_FILTERS: [
       { id: 'all', labelKey: 'torrents.filterAll' },
       { id: 'downloading', labelKey: 'torrents.filterDownloading' },
@@ -111,7 +120,7 @@ vi.mock('@hously/shared', async () => {
     getUniqueQbittorrentTags: (items: typeof torrents) => [...new Set(items.flatMap(torrent => torrent.tags))],
     queryKeys: {
       dashboard: {
-        qbittorrentTorrents: () => ['qbittorrent-torrents'],
+        qbittorrentTorrents: (params: Record<string, unknown>) => ['qbittorrent-torrents', params],
         qbittorrentPinnedTorrent: () => ['qbittorrent-pinned-torrent'],
       },
     },
@@ -175,6 +184,11 @@ describe('TorrentsPage', () => {
         enabled: true,
         connected: true,
         torrents,
+        total_count: torrents.length,
+        offset: 0,
+        limit: 50,
+        download_speed: 15,
+        upload_speed: 2,
       },
       isLoading: false,
     });

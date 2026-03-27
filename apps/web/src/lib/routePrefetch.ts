@@ -4,6 +4,7 @@ import {
   CALENDAR_ENDPOINTS,
   CHORES_ENDPOINTS,
   DASHBOARD_ENDPOINTS,
+  QBITTORRENT_TORRENTS_PAGE_SIZE,
   EXTERNAL_NOTIFICATION_ENDPOINTS,
   MEAL_PLAN_ENDPOINTS,
   MEDIAS_ENDPOINTS,
@@ -119,8 +120,16 @@ const routeQueryDefinitions = {
 
   '/torrents': () => [
     {
-      queryKey: queryKeys.dashboard.qbittorrentTorrents({}),
-      queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?sort=added_on&reverse=true&limit=250`),
+      queryKey: queryKeys.dashboard.qbittorrentTorrents({
+        offset: 0,
+        limit: QBITTORRENT_TORRENTS_PAGE_SIZE,
+        sort: 'added_on',
+        reverse: true,
+      }),
+      queryFn: () =>
+        webFetcher(
+          `${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?sort=added_on&reverse=true&limit=${QBITTORRENT_TORRENTS_PAGE_SIZE}&offset=0`
+        ),
     },
   ],
 
