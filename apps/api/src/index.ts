@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia';
 import { swagger } from '@elysiajs/swagger';
+import { staticPlugin } from '@elysiajs/static';
 
 import { cors } from '@elysiajs/cors';
 import { checkAndNotifyVersionChange } from './services/versionService';
@@ -32,6 +33,8 @@ import { systemRoutes } from './routes/system';
 import { searchRoutes } from './routes/search';
 import { globalRateLimit } from './middleware/rateLimit';
 import { initWorkers, setupScheduledJobs } from './services/queueService';
+
+const serveStatic = Bun.env.SERVE_STATIC === 'true';
 
 export const app = new Elysia()
   .use(
@@ -78,9 +81,16 @@ export const app = new Elysia()
   .use(habitsRoutes)
   .use(systemRoutes)
   .use(searchRoutes)
-  .get('/', () => 'Hello Elysia')
   .get('/health', () => ({ status: 'ok' }))
-  .get('/api/health', () => ({ status: 'ok' }));
+  .get('/api/health', () => ({ status: 'ok' }))
+  .use(app => {
+    if (serveStatic) {
+      app
+        .use(staticPlugin({ assets: './public', prefix: '/' }))
+        .get('*', () => Bun.file('./public/index.html'));
+    }
+    return app;
+  });
 
 if (import.meta.main) {
   // 1. Initialize BullMQ Workers
