@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -13,10 +12,22 @@ import {
   Moon,
   Sun,
 } from 'lucide-react';
-import { type WeatherData, useDashboardWeather, getWeatherVisualTheme, getWeatherConditionKey } from '@hously/shared';
+import { type WeatherData, useDashboardWeather, getWeatherConditionKey } from '@hously/shared';
 import { usePrefetchIntent } from '@/hooks/usePrefetchIntent';
 
 const toCelsius = (fahrenheit: number): number => (fahrenheit - 32) * (5 / 9);
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{children}</h3>;
+}
+
+function Kicker({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">
+      {children}
+    </span>
+  );
+}
 
 function weatherStatusIcon(weather: WeatherData): LucideIcon {
   const key = getWeatherConditionKey(weather.weather_code);
@@ -51,24 +62,6 @@ export function WeatherPanel() {
   const weatherQuery = useDashboardWeather();
   const prefetchIntent = usePrefetchIntent('/settings', { tab: 'plugins' });
 
-  const weatherTheme = useMemo(() => {
-    if (!weatherQuery.data) {
-      return {
-        startColor: '#94A3B8',
-        endColor: '#64748B',
-        textColor: '#F8FAFC',
-        subtextColor: '#E2E8F0',
-      };
-    }
-    const full = getWeatherVisualTheme(weatherQuery.data);
-    return {
-      startColor: full.startColor,
-      endColor: full.endColor,
-      textColor: full.textColor,
-      subtextColor: full.subtextColor,
-    };
-  }, [weatherQuery.data]);
-
   if (!weatherQuery.data || weatherQuery.isError) return null;
 
   const unit = weatherQuery.data.temperature_unit || 'fahrenheit';
@@ -84,50 +77,44 @@ export function WeatherPanel() {
   const StatusIcon = weatherStatusIcon(weatherQuery.data);
 
   return (
-    <div
-      className="rounded-xl border border-white/20 shadow-md p-4"
-      style={{ background: `linear-gradient(135deg, ${weatherTheme.startColor}, ${weatherTheme.endColor})` }}
+    <section
+      className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden"
       {...prefetchIntent}
     >
-      <div className="mb-2 flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <StatusIcon
-            className="size-9 shrink-0"
-            style={{ color: weatherTheme.textColor }}
-            strokeWidth={1.75}
-            aria-hidden
-          />
-          <div className="min-w-0">
-            <p
-              className="text-[9px] font-semibold uppercase tracking-wide"
-              style={{ color: weatherTheme.subtextColor }}
-            >
-              {t('dashboard.weather.kicker')}
-            </p>
-            <h3 className="truncate text-sm font-bold" style={{ color: weatherTheme.textColor }}>
-              {weatherQuery.data.location_name}
-            </h3>
-          </div>
+      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
+          <SectionTitle>{t('dashboard.weather.kicker')}</SectionTitle>
         </div>
         {weatherQuery.isFetching ? (
-          <span className="shrink-0 text-xs" style={{ color: weatherTheme.subtextColor }}>
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             {t('dashboard.weather.updating')}
           </span>
         ) : null}
       </div>
 
-      <div className="mb-1">
-        <p className="text-xl font-bold leading-none" style={{ color: weatherTheme.textColor }}>
-          {t('dashboard.weather.temperature', { temp: Math.round(temperatureValue), unit: unitLabel })}
-        </p>
-        <p className="mt-1 text-xs" style={{ color: weatherTheme.subtextColor }}>
-          {t('dashboard.weather.feelsLikeLine', {
-            condition: conditionLabel,
-            feelsLike: Math.round(feelsLikeValue),
-            unit: unitLabel,
-          })}
-        </p>
+      <div className="px-4 py-3">
+        <div className="flex items-start gap-3">
+          <StatusIcon
+            className="size-9 shrink-0 text-sky-600 dark:text-sky-400"
+            strokeWidth={1.75}
+            aria-hidden
+          />
+          <div className="min-w-0 flex-1">
+            <Kicker>{weatherQuery.data.location_name}</Kicker>
+            <p className="mt-2 text-xl font-bold leading-none tabular-nums text-zinc-900 dark:text-zinc-50">
+              {t('dashboard.weather.temperature', { temp: Math.round(temperatureValue), unit: unitLabel })}
+            </p>
+            <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              {t('dashboard.weather.feelsLikeLine', {
+                condition: conditionLabel,
+                feelsLike: Math.round(feelsLikeValue),
+                unit: unitLabel,
+              })}
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

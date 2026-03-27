@@ -28,16 +28,3 @@ export function ListItemSkeleton() {
   );
 }
 
-/**
- * Skeleton for stat cards (used in dashboard)
- */
-export function StatCardSkeleton() {
-  return (
-    <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 p-4">
-      <Skeleton className="h-3 w-20 mb-3" />
-      <Skeleton className="h-8 w-16 mb-2" />
-      <Skeleton className="h-3 w-24" />
-    </div>
-  );
-}
-

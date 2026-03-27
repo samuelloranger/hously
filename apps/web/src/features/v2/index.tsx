@@ -2,10 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import { CalendarDays, ShoppingCart, CheckSquare2, Flame } from 'lucide-react';
 import { PageLayout } from '@/components/PageLayout';
-import { SmartGreeting } from '@/features/dashboard/components/SmartGreeting';
 import { type DashboardStats, getUserFirstName, useCurrentUser, useDashboardStats } from '@hously/shared';
 import { CardErrorBoundary } from '@/components/ErrorBoundary';
-import { ViewSwitcher } from './components/ViewSwitcher';
+import { GreetingCard } from './components/GreetingCard';
 import { DownloadsPanel } from './components/DownloadsPanel';
 import { WeatherPanel } from './components/WeatherPanel';
 import { SystemPanel } from './components/SystemPanel';
@@ -87,7 +86,7 @@ function StatsRow({ stats }: { stats?: DashboardStats }) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-export function V2Page() {
+export function HomePage() {
   const { t } = useTranslation('common');
   const { data: user } = useCurrentUser();
   const { data: statsData } = useDashboardStats();
@@ -98,20 +97,16 @@ export function V2Page() {
       <style>{STYLES}</style>
 
       <div className="space-y-6">
-        {/* Header */}
-        <div className="v2-enter" style={{ animationDelay: '0ms' }}>
-          <div className="flex items-start justify-between gap-4">
-            <SmartGreeting
+        <div className="v2-enter space-y-3" style={{ animationDelay: '0ms' }}>
+          <CardErrorBoundary>
+            <GreetingCard
               userName={getUserFirstName(user, t('dashboard.user'))}
               pendingChores={stats?.chores_count || 0}
               shoppingItems={stats?.shopping_count || 0}
               eventsToday={stats?.events_today || 0}
             />
-            <ViewSwitcher className="mt-1 shrink-0" />
-          </div>
-          <div className="mt-3">
-            <StatsRow stats={stats} />
-          </div>
+          </CardErrorBoundary>
+          <StatsRow stats={stats} />
         </div>
 
         {/* Main layout: left stacked widgets / right tall column */}

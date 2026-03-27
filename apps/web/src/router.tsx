@@ -31,7 +31,6 @@ function cachedLazy<T extends ComponentType<any>>(
 }
 
 // Lazy load route components for code splitting with caching
-const Dashboard = cachedLazy('dashboard', () => import('./features/dashboard').then(m => ({ default: m.Dashboard })));
 const RecentActivityPage = cachedLazy('recent-activity', () =>
   import('./features/dashboard/RecentActivityPage').then(m => ({ default: m.RecentActivityPage }))
 );
@@ -69,7 +68,7 @@ const TorrentsPage = cachedLazy('torrents', () =>
 const TorrentDetailPage = cachedLazy('torrent-detail', () =>
   import('./features/torrents/TorrentDetailPage').then(m => ({ default: m.TorrentDetailPage }))
 );
-const V2Page = cachedLazy('v2', () => import('./features/v2').then(m => ({ default: m.V2Page })));
+const HomePage = cachedLazy('home', () => import('./features/v2').then(m => ({ default: m.HomePage })));
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -103,7 +102,7 @@ const requireAuth = async () => {
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: Dashboard,
+  component: HomePage,
   beforeLoad: requireAuth,
   loader: async ({ context }) => {
     await prefetchRouteData(context.queryClient, '/');
@@ -461,13 +460,6 @@ const torrentDetailRoute = createRoute({
   },
 });
 
-const v2Route = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/v2',
-  component: V2Page,
-  beforeLoad: requireAuth,
-});
-
 const routeTree = rootRoute.addChildren([
   indexRoute,
   activityRoute,
@@ -489,7 +481,6 @@ const routeTree = rootRoute.addChildren([
   exploreRoute,
   libraryRoute,
   torrentDetailRoute,
-  v2Route,
 ]);
 
 export const router = createRouter({

@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import {
   ADMIN_ENDPOINTS,
+  AUTH_ENDPOINTS,
   CALENDAR_ENDPOINTS,
   CHORES_ENDPOINTS,
   DASHBOARD_ENDPOINTS,
@@ -15,26 +16,51 @@ import {
   RECIPES_ENDPOINTS,
   SHOPPING_ENDPOINTS,
   HABIT_ENDPOINTS,
+  type DashboardJellyfinLatestResponse,
+  type UserResponse,
 } from '@hously/shared';
 import { webFetcher } from './fetcher';
 
+/** Jellyfin shelf page size — must match `useDashboardJellyfinLatestInfinite` on the home page. */
+const HOME_JELLYFIN_LIMIT = 10;
+
+/** Local calendar date `YYYY-MM-DD`, aligned with `HabitsPanel` / `useHabits(today)`. */
+function localIsoDateToday(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 /**
- * Query definitions for each route
- * Returns array of {queryKey, queryFn} objects
+ * Eager cache fill for `/` (home): every TanStack Query used by the home UI.
+ * Runs in the route loader before paint (SPA analogue of a server prefetch / “server action” bootstrap).
  */
-const routeQueryDefinitions = {
-  '/': () => [
+export async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
+  const today = localIsoDateToday();
+
+  const standard = [
+    {
+      queryKey: queryKeys.auth.me,
+      queryFn: async () => {
+        const response = await webFetcher<UserResponse>(AUTH_ENDPOINTS.ME);
+        return response.user;
+      },
+    },
     {
       queryKey: queryKeys.dashboard.stats(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.STATS),
     },
+    { queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) },
     {
-      queryKey: queryKeys.dashboard.activities(10),
-      queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.ACTIVITIES}?limit=10`),
+      queryKey: [...queryKeys.habits.list(), today] as const,
+      queryFn: () => webFetcher(`${HABIT_ENDPOINTS.LIST}?date=${today}`),
     },
     {
-      queryKey: queryKeys.dashboard.jellyfinLatest(),
-      queryFn: () => webFetcher(`${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=10`),
+      queryKey: queryKeys.weather.current(),
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.WEATHER),
+    },
+    {
+      queryKey: queryKeys.dashboard.upcoming(),
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
     },
     {
       queryKey: queryKeys.qbittorrent.status(),
@@ -52,33 +78,103 @@ const routeQueryDefinitions = {
       queryKey: queryKeys.dashboard.netdataSummary(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
     },
-    { queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) },
     {
-      queryKey: queryKeys.weather.current(),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.WEATHER),
-    },
-    {
-      queryKey: queryKeys.dashboard.upcoming(),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
-    },
-    {
-      queryKey: queryKeys.plugins.radarr(),
-      queryFn: () => webFetcher(PLUGIN_ENDPOINTS.RADARR),
-    },
-    {
-      queryKey: queryKeys.plugins.sonarr(),
-      queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SONARR),
-    },
-    {
-      queryKey: queryKeys.plugins.tmdb(),
-      queryFn: () => webFetcher(PLUGIN_ENDPOINTS.TMDB),
+      queryKey: queryKeys.dashboard.adguardSummary(),
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.ADGUARD.SUMMARY),
     },
     {
       queryKey: queryKeys.dashboard.trackersStats(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.TRACKERS.STATS),
     },
-  ],
+  ];
 
+  await Promise.allSettled([
+    ...standard.map(q => queryClient.ensureQueryData(q as any)),
+    queryClient.prefetchInfiniteQuery({
+      queryKey: queryKeys.dashboard.jellyfinLatestInfinite(HOME_JELLYFIN_LIMIT),
+      initialPageParam: 1,
+      queryFn: ({ pageParam }) => {
+        const page = typeof pageParam === 'number' && Number.isFinite(pageParam) ? pageParam : 1;
+        return webFetcher<DashboardJellyfinLatestResponse>(
+          `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${HOME_JELLYFIN_LIMIT}&page=${page}`
+        );
+      },
+    }),
+  ]);
+}
+
+/** Non-blocking home prefetch (e.g. nav hover). */
+export function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
+  const today = localIsoDateToday();
+
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.auth.me,
+    queryFn: async () => {
+      const response = await webFetcher<UserResponse>(AUTH_ENDPOINTS.ME);
+      return response.user;
+    },
+  });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.dashboard.stats(),
+    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.STATS),
+  });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.chores.list(),
+    queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST),
+  });
+  void queryClient.prefetchQuery({
+    queryKey: [...queryKeys.habits.list(), today] as const,
+    queryFn: () => webFetcher(`${HABIT_ENDPOINTS.LIST}?date=${today}`),
+  });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.weather.current(),
+    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.WEATHER),
+  });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.dashboard.upcoming(),
+    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
+  });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.qbittorrent.status(),
+    queryFn: () => webFetcher(QBITTORRENT_ENDPOINTS.STATUS),
+  });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.dashboard.qbittorrentPinnedTorrent(),
+    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.PINNED),
+  });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.dashboard.scrutinySummary(),
+    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
+  });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.dashboard.netdataSummary(),
+    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
+  });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.dashboard.adguardSummary(),
+    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.ADGUARD.SUMMARY),
+  });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.dashboard.trackersStats(),
+    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.TRACKERS.STATS),
+  });
+  void queryClient.prefetchInfiniteQuery({
+    queryKey: queryKeys.dashboard.jellyfinLatestInfinite(HOME_JELLYFIN_LIMIT),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => {
+      const page = typeof pageParam === 'number' && Number.isFinite(pageParam) ? pageParam : 1;
+      return webFetcher<DashboardJellyfinLatestResponse>(
+        `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${HOME_JELLYFIN_LIMIT}&page=${page}`
+      );
+    },
+  });
+}
+
+/**
+ * Query definitions for each route
+ * Returns array of {queryKey, queryFn} objects
+ */
+const routeQueryDefinitions = {
   '/shopping': () => [
     {
       queryKey: queryKeys.shopping.items(),
@@ -260,6 +356,11 @@ async function prefetchQueriesForRoute(queryClient: QueryClient, routeId: string
  * Used by router loaders - uses ensureQueryData (waits for data)
  */
 export async function prefetchRouteData(queryClient: QueryClient, routeId: string, params: any = {}): Promise<void> {
+  const normalizedRouteId = routeId === '/dashboard' ? '/' : routeId;
+  if (normalizedRouteId === '/') {
+    await prefetchHomePageData(queryClient);
+    return;
+  }
   await prefetchQueriesForRoute(queryClient, routeId, params);
 }
 
@@ -268,13 +369,15 @@ export async function prefetchRouteData(queryClient: QueryClient, routeId: strin
  * Used by hover prefetching - uses prefetchQuery (non-blocking)
  */
 export function prefetchRouteDataOptimistic(queryClient: QueryClient, routeId: string, params: any = {}): void {
-  // Normalize routeId
   const normalizedRouteId = routeId === '/dashboard' ? '/' : routeId;
+  if (normalizedRouteId === '/') {
+    prefetchHomePageDataOptimistic(queryClient);
+    return;
+  }
 
   const queryDef = (routeQueryDefinitions as any)[normalizedRouteId];
   if (!queryDef) return;
 
-  // Use non-blocking prefetch for hover/touch
   const queries = queryDef(params);
   queries.forEach((q: any) => {
     queryClient.prefetchQuery(q);

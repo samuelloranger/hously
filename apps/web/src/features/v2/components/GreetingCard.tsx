@@ -1,16 +1,33 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { LucideIcon } from 'lucide-react';
+import {
+  CalendarDays,
+  Coffee,
+  Flower2,
+  Leaf,
+  ListTodo,
+  Moon,
+  Snowflake,
+  Sparkles,
+  Sun,
+  Sunrise,
+} from 'lucide-react';
 
-interface SmartGreetingProps {
+interface GreetingCardProps {
   userName: string;
   pendingChores: number;
   shoppingItems: number;
   eventsToday: number;
 }
 
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{children}</h3>;
+}
+
 type GreetingContext = {
   timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
-  dayOfWeek: number; // 0 = Sunday
+  dayOfWeek: number;
   isWeekend: boolean;
   season: 'spring' | 'summer' | 'fall' | 'winter';
   pendingChores: number;
@@ -32,47 +49,38 @@ function getSeason(month: number): GreetingContext['season'] {
   return 'winter';
 }
 
-function getGreetingIcon(context: GreetingContext): string {
+function greetingStatusIcon(context: GreetingContext): LucideIcon {
   const { timeOfDay, season, isWeekend, eventsToday, pendingChores } = context;
 
-  // Priority: Events today
-  if (eventsToday > 2) return '📅';
+  if (eventsToday > 2) return CalendarDays;
+  if (pendingChores > 5) return ListTodo;
 
-  // Busy day with chores
-  if (pendingChores > 5) return '💪';
-
-  // Weekend vibes
   if (isWeekend) {
-    if (timeOfDay === 'morning') return '☕';
-    return '🌟';
+    return timeOfDay === 'morning' ? Coffee : Sparkles;
   }
 
-  // Time-based with seasonal touches
   if (timeOfDay === 'morning') {
-    if (season === 'winter') return '❄️';
-    if (season === 'summer') return '☀️';
-    if (season === 'spring') return '🌸';
-    return '🍂';
+    if (season === 'winter') return Snowflake;
+    if (season === 'summer') return Sun;
+    if (season === 'spring') return Flower2;
+    return Leaf;
   }
 
   if (timeOfDay === 'afternoon') {
-    if (season === 'summer') return '🌞';
-    return '✨';
+    return season === 'summer' ? Sun : Sparkles;
   }
 
   if (timeOfDay === 'evening') {
-    if (season === 'winter') return '🌙';
-    return '🌅';
+    return season === 'winter' ? Moon : Sunrise;
   }
 
-  // Night
-  return '🌙';
+  return Moon;
 }
 
-export function SmartGreeting({ userName, pendingChores, shoppingItems, eventsToday }: SmartGreetingProps) {
+export function GreetingCard({ userName, pendingChores, shoppingItems, eventsToday }: GreetingCardProps) {
   const { t } = useTranslation('common');
 
-  const { greeting, subtext, icon } = useMemo(() => {
+  const { greeting, subtext, Icon } = useMemo(() => {
     const now = new Date();
     const hour = now.getHours();
     const dayOfWeek = now.getDay();
@@ -88,9 +96,8 @@ export function SmartGreeting({ userName, pendingChores, shoppingItems, eventsTo
       eventsToday,
     };
 
-    const icon = getGreetingIcon(context);
+    const Icon = greetingStatusIcon(context);
 
-    // Build the greeting based on time of day
     let baseGreeting: string;
     switch (context.timeOfDay) {
       case 'morning':
@@ -100,25 +107,22 @@ export function SmartGreeting({ userName, pendingChores, shoppingItems, eventsTo
         baseGreeting = t('dashboard.goodAfternoon');
         break;
       case 'evening':
+      case 'night':
         baseGreeting = t('dashboard.goodEvening');
         break;
-      case 'night':
-        baseGreeting = t('dashboard.goodEvening'); // Use evening for late night too
+      default:
+        baseGreeting = t('dashboard.goodEvening');
         break;
     }
 
-    // Build contextual subtext
     let subtext: string;
 
-    // High priority: Busy day
     if (eventsToday > 2) {
       subtext = t('dashboard.subtexts.busyDay', {
         count: eventsToday,
         defaultValue: `You have ${eventsToday} events today. Stay organized!`,
       });
-    }
-    // Weekend messages
-    else if (context.isWeekend) {
+    } else if (context.isWeekend) {
       if (pendingChores > 3) {
         subtext = t('dashboard.subtexts.weekendChores', {
           count: pendingChores,
@@ -133,21 +137,15 @@ export function SmartGreeting({ userName, pendingChores, shoppingItems, eventsTo
           defaultValue: 'Time to relax and recharge.',
         });
       }
-    }
-    // Monday motivation
-    else if (context.dayOfWeek === 1) {
+    } else if (context.dayOfWeek === 1) {
       subtext = t('dashboard.subtexts.monday', {
         defaultValue: 'Fresh week, fresh start. You got this!',
       });
-    }
-    // Friday celebration
-    else if (context.dayOfWeek === 5) {
+    } else if (context.dayOfWeek === 5) {
       subtext = t('dashboard.subtexts.friday', {
         defaultValue: 'Almost there! Finish strong.',
       });
-    }
-    // Task-based messages
-    else if (pendingChores === 0 && shoppingItems === 0) {
+    } else if (pendingChores === 0 && shoppingItems === 0) {
       subtext = t('dashboard.subtexts.allClear', {
         defaultValue: "Everything's in order. Nice work!",
       });
@@ -160,9 +158,7 @@ export function SmartGreeting({ userName, pendingChores, shoppingItems, eventsTo
       subtext = t('dashboard.subtexts.shoppingNeeded', {
         defaultValue: 'Shopping list is growing. Time to plan a trip?',
       });
-    }
-    // Time-based defaults
-    else {
+    } else {
       switch (context.timeOfDay) {
         case 'morning':
           subtext = t('dashboard.subtexts.morning', {
@@ -187,22 +183,28 @@ export function SmartGreeting({ userName, pendingChores, shoppingItems, eventsTo
       }
     }
 
-    return { greeting: baseGreeting, subtext, icon };
+    return { greeting: baseGreeting, subtext, Icon };
   }, [pendingChores, shoppingItems, eventsToday, t]);
 
   return (
-    <div className="mb-2">
-      <div className="flex items-center gap-3">
-        <span className="text-xl md:text-2xl greeting-icon">{icon}</span>
-        <div>
-          <h1 className="text-lg md:text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
+    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+        <span className="w-1 h-4 rounded-full bg-indigo-500 shrink-0" />
+        <SectionTitle>{t('nav.dashboard')}</SectionTitle>
+      </div>
+      <div className="px-4 py-4 flex items-start gap-3">
+        <Icon
+          className="size-9 shrink-0 text-indigo-500 dark:text-indigo-400"
+          strokeWidth={1.75}
+          aria-hidden
+        />
+        <div className="min-w-0">
+          <h1 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
             {greeting}, {userName}
           </h1>
-          <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-            <span className="inline-block greeting-subtext">{subtext}</span>
-          </p>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">{subtext}</p>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
