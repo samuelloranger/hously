@@ -247,7 +247,7 @@ function AdguardSection() {
       </div>
       <MetricRow
         label={t('dashboard.adguard.blocked')}
-        value={s.blocked_ratio != null ? `${(s.blocked_ratio * 100).toFixed(1)}%` : '–'}
+        value={s.blocked_ratio != null ? `${s.blocked_ratio.toFixed(1)}%` : '–'}
         sub={t('dashboard.home.queriesOf', {
           blocked: s.blocked_queries.toLocaleString(),
           total: s.dns_queries.toLocaleString(),
