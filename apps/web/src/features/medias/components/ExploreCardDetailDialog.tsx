@@ -246,10 +246,10 @@ export function ExploreCardDetailDialog({
           onClick={handleWatchlistToggle}
           disabled={addToWatchlist.isPending || removeFromWatchlist.isPending}
           className={cn(
-            'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-[background-color,color] disabled:opacity-50',
+            'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-[background-color,color,border-color] disabled:opacity-50 border',
             isInWatchlist
-              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'
-              : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700'
+              ? 'bg-amber-400 border-amber-400 text-neutral-900 hover:bg-amber-300 hover:border-amber-300'
+              : 'bg-transparent border-amber-400 text-amber-500 hover:bg-amber-400/10 dark:text-amber-400'
           )}
         >
           {isInWatchlist ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
