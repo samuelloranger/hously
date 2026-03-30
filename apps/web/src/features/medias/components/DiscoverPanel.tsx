@@ -68,14 +68,6 @@ function hex2rgba(hex: string, alpha: number): string {
 const LANGUAGE_FILTERS: { code: string; flag: string; label: string }[] = [
   { code: 'en', flag: '🇺🇸', label: 'EN' },
   { code: 'fr', flag: '🇫🇷', label: 'FR' },
-  { code: 'es', flag: '🇪🇸', label: 'ES' },
-  { code: 'ko', flag: '🇰🇷', label: 'KO' },
-  { code: 'ja', flag: '🇯🇵', label: 'JA' },
-  { code: 'de', flag: '🇩🇪', label: 'DE' },
-  { code: 'it', flag: '🇮🇹', label: 'IT' },
-  { code: 'pt', flag: '🇵🇹', label: 'PT' },
-  { code: 'zh', flag: '🇨🇳', label: 'ZH' },
-  { code: 'hi', flag: '🇮🇳', label: 'HI' },
 ];
 
 // ─── DiscoverPanel ────────────────────────────────────────────────────────────
@@ -153,8 +145,9 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
       {/* Ambient provider glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 h-72 w-[60%] rounded-full blur-3xl transition-all duration-700"
+        className="pointer-events-none absolute left-1/2 -translate-x-1/2 h-72 w-[80%] rounded-full blur-3xl transition-all duration-700"
         style={{
+          top: "15dvh",
           backgroundColor: activeProviderColor
             ? hex2rgba(activeProviderColor, 0.08)
             : 'transparent',
