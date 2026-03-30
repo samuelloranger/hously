@@ -247,7 +247,7 @@ export function ExploreCardDetailDialog({
 
       {/* ── Info tab ─────────────────────────────────────────────── */}
       {validTab === 'info' && (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 pb-6">
 
           {/* Trailer */}
           {trailerData?.key && (
@@ -400,7 +400,7 @@ export function ExploreCardDetailDialog({
 
       {/* ── Similar tab ──────────────────────────────────────────── */}
       {validTab === 'similar' && (
-        <div className="min-h-[300px]">
+        <div className="min-h-[300px] pb-6">
           <SimilarMediasPanel
             isActive={isOpen && validTab === 'similar'}
             tmdbId={item.tmdb_id}
@@ -412,7 +412,7 @@ export function ExploreCardDetailDialog({
 
       {/* ── Search tab ───────────────────────────────────────────── */}
       {validTab === 'search' && canSearch && (
-        <div className="min-h-[300px]">
+        <div className="min-h-[300px] pb-6">
           <InteractiveSearchPanel
             isActive={isOpen && validTab === 'search'}
             media={toMediaItem(item)}
