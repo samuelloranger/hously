@@ -163,6 +163,7 @@ export interface DiscoverMediasParams {
   page?: number;
   language?: string;
   region?: string;
+  original_language?: string | null;
 }
 
 export interface DiscoverMediasResponse {

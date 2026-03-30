@@ -627,6 +627,7 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
     const page = parseInt(q.page || '1', 10);
     const language = q.language || 'en-US';
     const region = (q.region || 'CA').toUpperCase();
+    const originalLanguage = q.original_language || null;
 
     const validSorts = [
       'popularity.desc',
@@ -676,6 +677,7 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
           url.searchParams.set('watch_region', region);
         }
         if (genreId) url.searchParams.set('with_genres', String(genreId));
+        if (originalLanguage) url.searchParams.set('with_original_language', originalLanguage);
         if (sortBy.startsWith('vote_average')) url.searchParams.set('vote_count.gte', '100');
         return url.toString();
       };

@@ -147,6 +147,7 @@ export const queryKeys = {
       page?: number;
       language?: string;
       region?: string;
+      original_language?: string | null;
     }) =>
       [
         ...queryKeys.medias.all,
@@ -158,6 +159,7 @@ export const queryKeys = {
         params.page ?? 1,
         params.language ?? 'en-US',
         params.region ?? 'CA',
+        params.original_language ?? null,
       ] as const,
   },
 

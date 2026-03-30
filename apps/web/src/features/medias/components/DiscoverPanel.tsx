@@ -64,6 +64,20 @@ function hex2rgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+// ─── Language filter options ──────────────────────────────────────────────────
+const LANGUAGE_FILTERS: { code: string; flag: string; label: string }[] = [
+  { code: 'en', flag: '🇺🇸', label: 'EN' },
+  { code: 'fr', flag: '🇫🇷', label: 'FR' },
+  { code: 'es', flag: '🇪🇸', label: 'ES' },
+  { code: 'ko', flag: '🇰🇷', label: 'KO' },
+  { code: 'ja', flag: '🇯🇵', label: 'JA' },
+  { code: 'de', flag: '🇩🇪', label: 'DE' },
+  { code: 'it', flag: '🇮🇹', label: 'IT' },
+  { code: 'pt', flag: '🇵🇹', label: 'PT' },
+  { code: 'zh', flag: '🇨🇳', label: 'ZH' },
+  { code: 'hi', flag: '🇮🇳', label: 'HI' },
+];
+
 // ─── DiscoverPanel ────────────────────────────────────────────────────────────
 export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
   const { t, i18n } = useTranslation('common');
@@ -74,6 +88,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
   const [genreId, setGenreId] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState('popularity.desc');
   const [page, setPage] = useState(1);
+  const [originalLanguage, setOriginalLanguage] = useState<string | null>(null);
 
   const activeProviderColor = providerId ? (PROVIDER_COLORS[providerId] ?? '#6366f1') : null;
 
@@ -88,6 +103,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
     page,
     language: lang,
     region: 'CA',
+    original_language: originalLanguage,
   });
 
   const visibleSorts = SORTS.filter(s => {
@@ -123,9 +139,14 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
     setPage(1);
   }
 
+  function toggleLanguage(code: string) {
+    setOriginalLanguage(prev => (prev === code ? null : code));
+    setPage(1);
+  }
+
   const totalPages = data?.total_pages ?? 1;
   const totalResults = data?.total_results;
-  const gridKey = `${mediaType}-${providerId}-${genreId}-${sortBy}-${page}`;
+  const gridKey = `${mediaType}-${providerId}-${genreId}-${sortBy}-${originalLanguage}-${page}`;
 
   return (
     <section className="relative space-y-6">
@@ -172,7 +193,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
       </div>
 
       {/* ── Streaming providers ─────────────────────────────── */}
-      <div className="flex gap-2 overflow-x-auto overflow-visible pb-1" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', margin: '0 -12px', padding: '12px' }}>
         {(providersData?.providers ?? []).slice(0, 10).map(provider => {
           const color = PROVIDER_COLORS[provider.id] ?? '#6366f1';
           const active = providerId === provider.id;
@@ -262,6 +283,32 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* ── Language filters ─────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 text-[10px] font-medium uppercase tracking-widest text-neutral-600">
+          Lang
+        </span>
+        {LANGUAGE_FILTERS.map(lf => {
+          const active = originalLanguage === lf.code;
+          return (
+            <button
+              key={lf.code}
+              type="button"
+              onClick={() => toggleLanguage(lf.code)}
+              className={[
+                'flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-all duration-150',
+                active
+                  ? 'border-indigo-500/60 bg-indigo-500/15 text-indigo-300'
+                  : 'border-white/[0.07] bg-white/[0.03] text-neutral-500 hover:border-white/[0.14] hover:text-neutral-300',
+              ].join(' ')}
+            >
+              <span>{lf.flag}</span>
+              <span>{lf.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Results grid ────────────────────────────────────── */}

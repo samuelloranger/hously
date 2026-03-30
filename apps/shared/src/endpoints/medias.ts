@@ -29,6 +29,7 @@ export const MEDIAS_ENDPOINTS = {
     page?: number;
     language?: string;
     region?: string;
+    original_language?: string | null;
   }) => {
     const p = new URLSearchParams();
     p.set('type', params.type);
@@ -38,6 +39,7 @@ export const MEDIAS_ENDPOINTS = {
     if (params.page) p.set('page', String(params.page));
     if (params.language) p.set('language', params.language);
     if (params.region) p.set('region', params.region);
+    if (params.original_language) p.set('original_language', params.original_language);
     return `/api/medias/discover?${p.toString()}`;
   },
 } as const;
