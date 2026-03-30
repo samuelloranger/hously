@@ -276,8 +276,8 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
 
         {/* Skeleton */}
         {isLoading && (
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8">
-            {Array.from({ length: 20 }).map((_, i) => (
+          <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-7 2xl:grid-cols-7">
+            {Array.from({ length: 42 }).map((_, i) => (
               <div
                 key={i}
                 className="aspect-[2/3] animate-pulse rounded-2xl bg-white/[0.05]"
@@ -298,7 +298,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         {!isLoading && (data?.items.length ?? 0) > 0 && (
           <div
             key={gridKey}
-            className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8"
+            className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-7 2xl:grid-cols-7"
           >
             {data!.items.map((item, index) => (
               <div

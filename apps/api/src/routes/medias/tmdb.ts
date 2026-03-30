@@ -599,6 +599,16 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
       return badRequest(set, 'Invalid sort_by value');
     }
 
+    // We serve PAGE_SIZE items per logical page. TMDB returns 20 per page, so we
+    // fetch the 2–3 TMDB pages that span our logical page window concurrently.
+    const PAGE_SIZE = 42;
+    const TMDB_PAGE_SIZE = 20;
+
+    const startIdx = (page - 1) * PAGE_SIZE; // 0-indexed first item
+    const endIdx = startIdx + PAGE_SIZE - 1;  // 0-indexed last item
+    const tmdbStartPage = Math.floor(startIdx / TMDB_PAGE_SIZE) + 1;
+    const tmdbEndPage = Math.floor(endIdx / TMDB_PAGE_SIZE) + 1;
+
     try {
       const [tmdbPlugin, radarrPlugin, sonarrPlugin] = await Promise.all([
         prisma.plugin.findFirst({ where: { type: 'tmdb' }, select: { enabled: true, config: true } }),
@@ -612,32 +622,51 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
       const radarrConfig = radarrPlugin?.enabled ? normalizeRadarrConfig(radarrPlugin.config) : null;
       const sonarrConfig = sonarrPlugin?.enabled ? normalizeSonarrConfig(sonarrPlugin.config) : null;
 
-      const url = new URL(`https://api.themoviedb.org/3/discover/${type}`);
-      url.searchParams.set('api_key', tmdbConfig.api_key);
-      url.searchParams.set('language', language);
-      url.searchParams.set('sort_by', sortBy);
-      url.searchParams.set('page', String(page));
-      url.searchParams.set('include_adult', 'false');
+      const buildUrl = (tmdbPage: number) => {
+        const url = new URL(`https://api.themoviedb.org/3/discover/${type}`);
+        url.searchParams.set('api_key', tmdbConfig.api_key);
+        url.searchParams.set('language', language);
+        url.searchParams.set('sort_by', sortBy);
+        url.searchParams.set('page', String(tmdbPage));
+        url.searchParams.set('include_adult', 'false');
+        if (providerId) {
+          url.searchParams.set('with_watch_providers', String(providerId));
+          url.searchParams.set('watch_region', region);
+        }
+        if (genreId) url.searchParams.set('with_genres', String(genreId));
+        if (sortBy.startsWith('vote_average')) url.searchParams.set('vote_count.gte', '100');
+        return url.toString();
+      };
 
-      if (providerId) {
-        url.searchParams.set('with_watch_providers', String(providerId));
-        url.searchParams.set('watch_region', region);
-      }
-      if (genreId) {
-        url.searchParams.set('with_genres', String(genreId));
-      }
-      // Require a minimum vote count when sorting by rating to reduce noise
-      if (sortBy.startsWith('vote_average')) {
-        url.searchParams.set('vote_count.gte', '100');
-      }
-
-      const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-      if (!res.ok) return badGateway(set, 'TMDB discover request failed');
-
-      const data = (await res.json()) as Record<string, unknown>;
-      const rawItems = (Array.isArray(data.results) ? data.results : []).map(item =>
-        typeof item === 'object' && item !== null ? { ...item, media_type: type } : item
+      // Fetch all needed TMDB pages concurrently
+      const tmdbPageNums = Array.from(
+        { length: tmdbEndPage - tmdbStartPage + 1 },
+        (_, i) => tmdbStartPage + i
       );
+      const tmdbResponses = await Promise.all(
+        tmdbPageNums.map(n => fetch(buildUrl(n), { headers: { Accept: 'application/json' } }))
+      );
+
+      if (tmdbResponses.some(r => !r.ok)) return badGateway(set, 'TMDB discover request failed');
+
+      const tmdbDatas = await Promise.all(
+        tmdbResponses.map(r => r.json() as Promise<Record<string, unknown>>)
+      );
+
+      // Combine results and slice to our logical page window
+      const allRaw = tmdbDatas.flatMap(d =>
+        (Array.isArray(d.results) ? d.results : []).map(item =>
+          typeof item === 'object' && item !== null ? { ...item, media_type: type } : item
+        )
+      );
+      const offsetWithinBatch = startIdx - (tmdbStartPage - 1) * TMDB_PAGE_SIZE;
+      const rawItems = allRaw.slice(offsetWithinBatch, offsetWithinBatch + PAGE_SIZE);
+
+      // total_results from the first TMDB page (they're all the same)
+      const totalResults = typeof tmdbDatas[0].total_results === 'number' ? tmdbDatas[0].total_results : 0;
+      // TMDB caps at 500 pages of 20 = 10 000 items; our logical total_pages is based on that
+      const maxItems = Math.min(totalResults, 500 * TMDB_PAGE_SIZE);
+      const totalPages = Math.ceil(maxItems / PAGE_SIZE);
 
       const [radarrIds, sonarrIds] = await Promise.all([
         radarrConfig
@@ -675,12 +704,7 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
           };
         });
 
-      return {
-        items,
-        page: typeof data.page === 'number' ? data.page : page,
-        total_pages: typeof data.total_pages === 'number' ? Math.min(data.total_pages as number, 500) : 1,
-        total_results: typeof data.total_results === 'number' ? data.total_results : 0,
-      };
+      return { items, page, total_pages: totalPages, total_results: totalResults };
     } catch (error) {
       console.error('Error fetching TMDB discover:', error);
       return serverError(set, 'Failed to fetch discover results');
