@@ -131,6 +131,21 @@ export interface MediaDeleteResponse {
   service: 'radarr' | 'sonarr';
 }
 
+export interface TmdbStreamingProvider {
+  id: number;
+  name: string;
+  logo_url: string;
+}
+
+export interface TmdbStreamingProvidersResponse {
+  providers: TmdbStreamingProvider[];
+}
+
+export interface TmdbTrailerResponse {
+  key: string | null;
+  name: string | null;
+}
+
 export interface TmdbGenre {
   id: number;
   name: string;

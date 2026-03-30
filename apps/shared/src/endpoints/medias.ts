@@ -16,6 +16,10 @@ export const MEDIAS_ENDPOINTS = {
   PROWLARR_INTERACTIVE_SEARCH_DOWNLOAD: '/api/medias/prowlarr/interactive-search/download',
   DELETE: (service: 'radarr' | 'sonarr', sourceId: number, deleteFiles: boolean) =>
     `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}?deleteFiles=${deleteFiles}`,
+  STREAMING_PROVIDERS: (region?: string, type?: 'movie' | 'tv') =>
+    `/api/medias/streaming-providers?region=${encodeURIComponent(region ?? 'CA')}&type=${encodeURIComponent(type ?? 'movie')}`,
+  TRAILER: (mediaType: 'movie' | 'tv', tmdbId: number) =>
+    `/api/medias/trailer/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
   GENRES: (type: 'movie' | 'tv') => `/api/medias/genres?type=${encodeURIComponent(type)}`,
   DISCOVER: (params: {
     type: 'movie' | 'tv';

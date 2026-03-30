@@ -1,20 +1,21 @@
 import { useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDiscoverMedias, useMediaGenres } from '@hously/shared';
+import { useDiscoverMedias, useMediaGenres, useStreamingProviders } from '@hously/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ExploreCard } from './ExploreCard';
 
-// ─── Provider config ─────────────────────────────────────────────────────────
-const PROVIDERS = [
-  { id: 8,    name: 'Netflix',    color: '#E50914' },
-  { id: 9,    name: 'Prime',      color: '#00A8E1' },
-  { id: 337,  name: 'Disney+',    color: '#4B7FFF' },
-  { id: 230,  name: 'Crave',      color: '#00C1F3' },
-  { id: 350,  name: 'Apple TV+',  color: '#c0c0c0' },
-  { id: 531,  name: 'Paramount+', color: '#2B6EFF' },
-  { id: 1899, name: 'Max',        color: '#8B9EFF' },
-  { id: 73,   name: 'Tubi',       color: '#FF5C5C' },
-] as const;
+// ─── Featured provider IDs (in display order) ────────────────────────────────
+// We keep the brand colors for the glow/ambient effect; logos come from TMDB.
+const FEATURED_PROVIDERS: { id: number; color: string }[] = [
+  { id: 8,    color: '#E50914' }, // Netflix
+  { id: 9,    color: '#00A8E1' }, // Prime
+  { id: 337,  color: '#4B7FFF' }, // Disney+
+  { id: 230,  color: '#00C1F3' }, // Crave
+  { id: 350,  color: '#c0c0c0' }, // Apple TV+
+  { id: 531,  color: '#2B6EFF' }, // Paramount+
+  { id: 1899, color: '#8B9EFF' }, // Max
+  { id: 73,   color: '#FF5C5C' }, // Tubi
+];
 
 // ─── Sort options ─────────────────────────────────────────────────────────────
 type SortOpt = { value: string; labelKey: string; movieOnly?: true; tvOnly?: true };
@@ -74,8 +75,9 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
   const [sortBy, setSortBy] = useState('popularity.desc');
   const [page, setPage] = useState(1);
 
-  const activeProvider = PROVIDERS.find(p => p.id === providerId) ?? null;
+  const activeProviderConfig = FEATURED_PROVIDERS.find(p => p.id === providerId) ?? null;
 
+  const { data: providersData } = useStreamingProviders('CA', mediaType);
   const { data: genresData } = useMediaGenres(mediaType);
 
   const { data, isLoading, isFetching } = useDiscoverMedias({
@@ -132,8 +134,8 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         aria-hidden
         className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 h-72 w-[60%] rounded-full blur-3xl transition-all duration-700"
         style={{
-          backgroundColor: activeProvider
-            ? hex2rgba(activeProvider.color, 0.08)
+          backgroundColor: activeProviderConfig
+            ? hex2rgba(activeProviderConfig.color, 0.08)
             : 'transparent',
         }}
       />
@@ -171,38 +173,47 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
 
       {/* ── Streaming providers ─────────────────────────────── */}
       <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-        {PROVIDERS.map(p => {
-          const active = providerId === p.id;
+        {FEATURED_PROVIDERS.map(cfg => {
+          const provider = providersData?.providers.find(p => p.id === cfg.id);
+          const active = providerId === cfg.id;
           return (
             <button
-              key={p.id}
+              key={cfg.id}
               type="button"
-              onClick={() => toggleProvider(p.id)}
+              onClick={() => toggleProvider(cfg.id)}
+              title={provider?.name ?? String(cfg.id)}
+              aria-label={provider?.name ?? String(cfg.id)}
               style={
                 active
                   ? ({
-                      '--pc': p.color,
-                      backgroundColor: hex2rgba(p.color, 0.14),
-                      borderColor: p.color,
-                      color: p.color,
-                      boxShadow: `0 0 16px ${hex2rgba(p.color, 0.25)}, inset 0 0 12px ${hex2rgba(p.color, 0.06)}`,
+                      backgroundColor: hex2rgba(cfg.color, 0.18),
+                      borderColor: cfg.color,
+                      boxShadow: `0 0 16px ${hex2rgba(cfg.color, 0.30)}, inset 0 0 12px ${hex2rgba(cfg.color, 0.08)}`,
                     } as CSSProperties)
                   : undefined
               }
               className={[
-                'flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-semibold',
-                'whitespace-nowrap transition-all duration-200 select-none',
+                'flex shrink-0 items-center justify-center rounded-xl border transition-all duration-200 select-none',
+                'h-11 w-11 p-0',
                 active
-                  ? 'scale-[1.03]'
-                  : 'border-white/[0.08] bg-white/[0.03] text-neutral-400 hover:border-white/[0.16] hover:text-neutral-200',
+                  ? 'scale-[1.08]'
+                  : 'border-white/[0.08] bg-white/[0.03] hover:border-white/[0.18] hover:scale-[1.04]',
               ].join(' ')}
             >
-              {/* Color dot */}
-              <span
-                className="h-2 w-2 shrink-0 rounded-full"
-                style={{ backgroundColor: active ? p.color : hex2rgba(p.color, 0.5) }}
-              />
-              {p.name}
+              {provider?.logo_url ? (
+                <img
+                  src={provider.logo_url}
+                  alt={provider.name}
+                  className="h-8 w-8 rounded-lg object-contain"
+                />
+              ) : (
+                <span
+                  className="h-8 w-8 rounded-lg flex items-center justify-center text-[10px] font-bold text-white"
+                  style={{ backgroundColor: hex2rgba(cfg.color, 0.5) }}
+                >
+                  ?
+                </span>
+              )}
             </button>
           );
         })}

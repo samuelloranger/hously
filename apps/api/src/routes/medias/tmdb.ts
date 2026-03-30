@@ -534,6 +534,48 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
       params: t.Object({ tmdbId: t.String() }),
     }
   )
+  .get('/streaming-providers', async ({ user, set, query }) => {
+    const q = query as Record<string, string | undefined>;
+    const region = (q.region || 'CA').toUpperCase();
+    const type = q.type === 'tv' ? 'tv' : 'movie';
+    const cacheKey = `medias:streaming-providers:${region}:${type}`;
+
+    const cached = await getJsonCache<{ id: number; name: string; logo_url: string }[]>(cacheKey);
+    if (cached) return { providers: cached };
+
+    const tmdbPlugin = await prisma.plugin.findFirst({
+      where: { type: 'tmdb' },
+      select: { enabled: true, config: true },
+    });
+    const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+    if (!tmdbConfig) return { providers: [] };
+
+    try {
+      const url = new URL(`https://api.themoviedb.org/3/watch/providers/${type}`);
+      url.searchParams.set('api_key', tmdbConfig.api_key);
+      url.searchParams.set('watch_region', region);
+      const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+      if (!res.ok) return { providers: [] };
+
+      const data = (await res.json()) as Record<string, unknown>;
+      const LOGO_BASE = 'https://image.tmdb.org/t/p/w92';
+
+      const providers = (Array.isArray(data.results) ? data.results as Record<string, unknown>[] : [])
+        .map(p => {
+          const id = typeof p.provider_id === 'number' ? p.provider_id : null;
+          const name = toStringOrNull(p.provider_name);
+          const logo = toStringOrNull(p.logo_path);
+          if (!id || !name || !logo) return null;
+          return { id, name, logo_url: `${LOGO_BASE}${logo}` };
+        })
+        .filter((p): p is { id: number; name: string; logo_url: string } => p !== null);
+
+      await setJsonCache(cacheKey, providers, 24 * 60 * 60);
+      return { providers };
+    } catch {
+      return { providers: [] };
+    }
+  })
   .get('/genres', async ({ user, set, query }) => {
     const q = query as Record<string, string | undefined>;
     const type = q.type;
@@ -710,6 +752,62 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
       return serverError(set, 'Failed to fetch discover results');
     }
   })
+  .get(
+    '/trailer/:mediaType/:tmdbId',
+    async ({ user, set, params }) => {
+      const { mediaType, tmdbId: tmdbIdStr } = params;
+      if (mediaType !== 'movie' && mediaType !== 'tv') {
+        return badRequest(set, 'Invalid media type');
+      }
+      const tmdbId = parseInt(tmdbIdStr, 10);
+      if (!Number.isFinite(tmdbId) || tmdbId <= 0) {
+        return badRequest(set, 'Invalid TMDB ID');
+      }
+
+      const cacheKey = `medias:trailer:${mediaType}:${tmdbId}`;
+      const cached = await getJsonCache<{ key: string | null; name: string | null }>(cacheKey);
+      if (cached) return cached;
+
+      const tmdbPlugin = await prisma.plugin.findFirst({
+        where: { type: 'tmdb' },
+        select: { enabled: true, config: true },
+      });
+      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      if (!tmdbConfig) return { key: null, name: null };
+
+      try {
+        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/videos`);
+        url.searchParams.set('api_key', tmdbConfig.api_key);
+        url.searchParams.set('language', 'en-US');
+        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+        if (!res.ok) return { key: null, name: null };
+
+        const data = (await res.json()) as Record<string, unknown>;
+        const results = Array.isArray(data.results) ? (data.results as Record<string, unknown>[]) : [];
+
+        // Pick best YouTube video: official trailer > official teaser > any trailer > any teaser
+        const youtube = results.filter(v => v.site === 'YouTube');
+        const pick =
+          youtube.find(v => v.official && v.type === 'Trailer') ??
+          youtube.find(v => v.official && v.type === 'Teaser') ??
+          youtube.find(v => v.type === 'Trailer') ??
+          youtube.find(v => v.type === 'Teaser') ??
+          youtube[0] ??
+          null;
+
+        const result = {
+          key: pick ? toStringOrNull(pick.key) : null,
+          name: pick ? toStringOrNull(pick.name) : null,
+        };
+
+        await setJsonCache(cacheKey, result, 24 * 60 * 60);
+        return result;
+      } catch {
+        return { key: null, name: null };
+      }
+    },
+    { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }
+  )
   .get(
     '/providers/:mediaType/:tmdbId',
     async ({ user, set, params, query: queryParams }) => {

@@ -1562,7 +1562,8 @@
       "rent": "Location",
       "buy": "Achat",
       "free": "Gratuit",
-      "noProviders": "Non disponible sur une plateforme de streaming dans votre région."
+      "noProviders": "Non disponible sur une plateforme de streaming dans votre région.",
+      "watchTrailer": "Voir la bande-annonce"
     },
     "addSuccess": "{{title}} ajouté à la bibliothèque.",
     "addFailed": "Échec de l'ajout du média à la bibliothèque.",

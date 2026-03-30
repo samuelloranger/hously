@@ -14,6 +14,8 @@ import type {
   SimilarMediasResponse,
   TmdbGenresResponse,
   TmdbMediaSearchResponse,
+  TmdbStreamingProvidersResponse,
+  TmdbTrailerResponse,
   TmdbWatchProvidersResponse,
 } from '../types';
 
@@ -170,6 +172,31 @@ export function useProwlarrInteractiveDownload() {
           token: params.token,
         },
       }),
+  });
+}
+
+export function useStreamingProviders(region?: string, type?: 'movie' | 'tv') {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.medias.streamingProviders(region, type),
+    queryFn: () => fetcher<TmdbStreamingProvidersResponse>(MEDIAS_ENDPOINTS.STREAMING_PROVIDERS(region, type)),
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+}
+
+export function useTmdbTrailer(
+  mediaType: 'movie' | 'tv' | null,
+  tmdbId: number | null,
+  options?: { enabled?: boolean }
+) {
+  const fetcher = useFetcher();
+  const isEnabled = (options?.enabled ?? true) && mediaType !== null && tmdbId !== null && tmdbId > 0;
+
+  return useQuery({
+    queryKey: queryKeys.medias.trailer(mediaType ?? 'movie', tmdbId ?? 0),
+    queryFn: () => fetcher<TmdbTrailerResponse>(MEDIAS_ENDPOINTS.TRAILER(mediaType!, tmdbId!)),
+    enabled: isEnabled,
+    staleTime: 24 * 60 * 60 * 1000,
   });
 }
 

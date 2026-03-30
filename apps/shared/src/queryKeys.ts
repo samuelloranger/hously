@@ -134,6 +134,10 @@ export const queryKeys = {
       [...queryKeys.medias.all, 'interactive-search', 'prowlarr', query] as const,
     providers: (mediaType: 'movie' | 'tv', tmdbId: number, region?: string) =>
       [...queryKeys.medias.all, 'providers', mediaType, tmdbId, region ?? 'CA'] as const,
+    streamingProviders: (region?: string, type?: 'movie' | 'tv') =>
+      [...queryKeys.medias.all, 'streaming-providers', region ?? 'CA', type ?? 'movie'] as const,
+    trailer: (mediaType: 'movie' | 'tv', tmdbId: number) =>
+      [...queryKeys.medias.all, 'trailer', mediaType, tmdbId] as const,
     genres: (type: 'movie' | 'tv') => [...queryKeys.medias.all, 'genres', type] as const,
     discover: (params: {
       type: 'movie' | 'tv';

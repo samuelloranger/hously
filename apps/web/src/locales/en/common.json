@@ -1547,7 +1547,8 @@
       "rent": "Rent",
       "buy": "Buy",
       "free": "Free",
-      "noProviders": "Not available on any streaming platform in your region."
+      "noProviders": "Not available on any streaming platform in your region.",
+      "watchTrailer": "Watch Trailer"
     },
     "addSuccess": "Added {{title}} to library.",
     "addFailed": "Failed to add media to library.",
