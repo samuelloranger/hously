@@ -172,7 +172,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
       </div>
 
       {/* ── Streaming providers ─────────────────────────────── */}
-      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-2 overflow-x-auto overflow-visible pb-1" style={{ scrollbarWidth: 'none' }}>
         {FEATURED_PROVIDERS.map(cfg => {
           const provider = providersData?.providers.find(p => p.id === cfg.id);
           const active = providerId === cfg.id;
