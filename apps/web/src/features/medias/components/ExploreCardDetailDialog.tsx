@@ -118,9 +118,16 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
                       </svg>
                     ) : (
                       <svg viewBox="0 0 32 32" className="h-5 w-5" aria-label="Rotten">
-                        {/* Splat shape */}
-                        <path d="M16 4 L18 10 L24 8 L20 14 L27 15 L21 18 L25 24 L18 21 L17 28 L14 21 L7 24 L11 18 L5 15 L12 14 L8 8 L14 10 Z" fill="#8B4513"/>
-                        <circle cx="16" cy="16" r="5" fill="#6B8E23" opacity="0.7"/>
+                        {/* Grey-green rotten tomato */}
+                        <circle cx="16" cy="18" r="11" fill="#6B7A5E"/>
+                        <ellipse cx="16" cy="18" rx="11" ry="10" fill="#6B7A5E"/>
+                        {/* Mold spots */}
+                        <circle cx="12" cy="17" r="2.5" fill="#4A5740" opacity="0.7"/>
+                        <circle cx="19" cy="20" r="2" fill="#4A5740" opacity="0.7"/>
+                        <circle cx="15" cy="22" r="1.5" fill="#3D4A35" opacity="0.6"/>
+                        {/* Stem (wilted) */}
+                        <path d="M16 8 C15 6 13 5 11 6 C13 7 14 8 16 8Z" fill="#4A5740"/>
+                        <rect x="15" y="6" width="2" height="5" rx="1" fill="#4A5740"/>
                       </svg>
                     )}
                     <span className={isFresh ? 'text-red-500 dark:text-red-400' : 'text-neutral-400'}>
