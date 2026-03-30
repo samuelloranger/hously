@@ -1531,8 +1531,19 @@
       "onTheAir": "En cours de diffusion",
       "topRatedMovies": "Films les mieux notés",
       "topRatedShows": "Séries les mieux notées",
-      "recommended": "Recommandé pour vous"
+      "recommended": "Recommandé pour vous",
+      "browseTab": "Parcourir"
     },
+    "discover": {
+      "title": "Découvrir",
+      "sortPopularity": "Populaire",
+      "sortTopRated": "Les mieux notés",
+      "sortNewest": "Plus récent",
+      "sortRevenue": "Box Office",
+      "noResults": "Aucun résultat. Essayez d'ajuster vos filtres."
+    },
+    "movie_plural": "Films",
+    "series_plural": "Séries TV",
     "similar": {
       "title": "Similaire à {{title}}",
       "empty": "Aucun titre similaire trouvé.",

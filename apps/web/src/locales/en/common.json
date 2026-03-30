@@ -1516,8 +1516,19 @@
       "onTheAir": "On The Air",
       "topRatedMovies": "Top Rated Movies",
       "topRatedShows": "Top Rated Shows",
-      "recommended": "Recommended For You"
+      "recommended": "Recommended For You",
+      "browseTab": "Browse"
     },
+    "discover": {
+      "title": "Discover",
+      "sortPopularity": "Popular",
+      "sortTopRated": "Top Rated",
+      "sortNewest": "Newest",
+      "sortRevenue": "Box Office",
+      "noResults": "No results found. Try adjusting your filters."
+    },
+    "movie_plural": "Movies",
+    "series_plural": "TV Shows",
     "similar": {
       "title": "Similar to {{title}}",
       "empty": "No similar titles found.",

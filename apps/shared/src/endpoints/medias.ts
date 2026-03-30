@@ -16,4 +16,24 @@ export const MEDIAS_ENDPOINTS = {
   PROWLARR_INTERACTIVE_SEARCH_DOWNLOAD: '/api/medias/prowlarr/interactive-search/download',
   DELETE: (service: 'radarr' | 'sonarr', sourceId: number, deleteFiles: boolean) =>
     `/api/medias/${encodeURIComponent(service)}/${encodeURIComponent(String(sourceId))}?deleteFiles=${deleteFiles}`,
+  GENRES: (type: 'movie' | 'tv') => `/api/medias/genres?type=${encodeURIComponent(type)}`,
+  DISCOVER: (params: {
+    type: 'movie' | 'tv';
+    provider_id?: number | null;
+    genre_id?: number | null;
+    sort_by?: string;
+    page?: number;
+    language?: string;
+    region?: string;
+  }) => {
+    const p = new URLSearchParams();
+    p.set('type', params.type);
+    if (params.provider_id) p.set('provider_id', String(params.provider_id));
+    if (params.genre_id) p.set('genre_id', String(params.genre_id));
+    if (params.sort_by) p.set('sort_by', params.sort_by);
+    if (params.page) p.set('page', String(params.page));
+    if (params.language) p.set('language', params.language);
+    if (params.region) p.set('region', params.region);
+    return `/api/medias/discover?${p.toString()}`;
+  },
 } as const;

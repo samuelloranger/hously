@@ -2,11 +2,7 @@ import { Elysia, t } from 'elysia';
 import { auth } from '../../auth';
 import { requireUser } from '../../middleware/auth';
 import { prisma } from '../../db';
-import {
-  normalizeRadarrConfig,
-  normalizeSonarrConfig,
-  normalizeTmdbConfig,
-} from '../../utils/plugins/normalizers';
+import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../../utils/plugins/normalizers';
 import { getJsonCache, setJsonCache } from '../../services/cache';
 import { badGateway, badRequest, serverError } from '../../utils/errors';
 import {
@@ -538,6 +534,158 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
       params: t.Object({ tmdbId: t.String() }),
     }
   )
+  .get('/genres', async ({ user, set, query }) => {
+    const q = query as Record<string, string | undefined>;
+    const type = q.type;
+    if (type !== 'movie' && type !== 'tv') {
+      return badRequest(set, 'Invalid type, must be movie or tv');
+    }
+
+    try {
+      const cacheKey = `medias:genres:${type}`;
+      const cached = await getJsonCache<{ id: number; name: string }[]>(cacheKey);
+      if (cached) return { genres: cached };
+
+      const tmdbPlugin = await prisma.plugin.findFirst({
+        where: { type: 'tmdb' },
+        select: { enabled: true, config: true },
+      });
+      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      if (!tmdbConfig) return badRequest(set, 'TMDB is not configured');
+
+      const url = new URL(`https://api.themoviedb.org/3/genre/${type}/list`);
+      url.searchParams.set('api_key', tmdbConfig.api_key);
+      const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+      if (!res.ok) return badGateway(set, 'TMDB genres request failed');
+
+      const data = (await res.json()) as Record<string, unknown>;
+      const genres = Array.isArray(data.genres)
+        ? (data.genres as Record<string, unknown>[])
+            .map(g => ({ id: typeof g.id === 'number' ? g.id : 0, name: typeof g.name === 'string' ? g.name : '' }))
+            .filter(g => g.id > 0 && g.name)
+        : [];
+
+      await setJsonCache(cacheKey, genres, 24 * 60 * 60); // 24 hours
+      return { genres };
+    } catch (error) {
+      console.error('Error fetching TMDB genres:', error);
+      return serverError(set, 'Failed to fetch genres');
+    }
+  })
+  .get('/discover', async ({ user, set, query }) => {
+    const q = query as Record<string, string | undefined>;
+    const type = q.type;
+    if (type !== 'movie' && type !== 'tv') {
+      return badRequest(set, 'Invalid type, must be movie or tv');
+    }
+
+    const providerId = q.provider_id ? parseInt(q.provider_id, 10) : null;
+    const genreId = q.genre_id ? parseInt(q.genre_id, 10) : null;
+    const sortBy = q.sort_by || 'popularity.desc';
+    const page = parseInt(q.page || '1', 10);
+    const language = q.language || 'en-US';
+    const region = (q.region || 'CA').toUpperCase();
+
+    const validSorts = [
+      'popularity.desc',
+      'popularity.asc',
+      'vote_average.desc',
+      'vote_average.asc',
+      'primary_release_date.desc',
+      'first_air_date.desc',
+      'revenue.desc',
+    ];
+    if (!validSorts.includes(sortBy)) {
+      return badRequest(set, 'Invalid sort_by value');
+    }
+
+    try {
+      const [tmdbPlugin, radarrPlugin, sonarrPlugin] = await Promise.all([
+        prisma.plugin.findFirst({ where: { type: 'tmdb' }, select: { enabled: true, config: true } }),
+        prisma.plugin.findFirst({ where: { type: 'radarr' }, select: { enabled: true, config: true } }),
+        prisma.plugin.findFirst({ where: { type: 'sonarr' }, select: { enabled: true, config: true } }),
+      ]);
+
+      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      if (!tmdbConfig) return badRequest(set, 'TMDB is not configured');
+
+      const radarrConfig = radarrPlugin?.enabled ? normalizeRadarrConfig(radarrPlugin.config) : null;
+      const sonarrConfig = sonarrPlugin?.enabled ? normalizeSonarrConfig(sonarrPlugin.config) : null;
+
+      const url = new URL(`https://api.themoviedb.org/3/discover/${type}`);
+      url.searchParams.set('api_key', tmdbConfig.api_key);
+      url.searchParams.set('language', language);
+      url.searchParams.set('sort_by', sortBy);
+      url.searchParams.set('page', String(page));
+      url.searchParams.set('include_adult', 'false');
+
+      if (providerId) {
+        url.searchParams.set('with_watch_providers', String(providerId));
+        url.searchParams.set('watch_region', region);
+      }
+      if (genreId) {
+        url.searchParams.set('with_genres', String(genreId));
+      }
+      // Require a minimum vote count when sorting by rating to reduce noise
+      if (sortBy.startsWith('vote_average')) {
+        url.searchParams.set('vote_count.gte', '100');
+      }
+
+      const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+      if (!res.ok) return badGateway(set, 'TMDB discover request failed');
+
+      const data = (await res.json()) as Record<string, unknown>;
+      const rawItems = (Array.isArray(data.results) ? data.results : []).map(item =>
+        typeof item === 'object' && item !== null ? { ...item, media_type: type } : item
+      );
+
+      const [radarrIds, sonarrIds] = await Promise.all([
+        radarrConfig
+          ? fetchRadarrTmdbIds(radarrConfig.website_url, radarrConfig.api_key).catch(() => new Map<number, ArrEntry>())
+          : Promise.resolve(new Map<number, ArrEntry>()),
+        sonarrConfig
+          ? fetchSonarrTmdbIds(sonarrConfig.website_url, sonarrConfig.api_key).catch(() => new Map<number, ArrEntry>())
+          : Promise.resolve(new Map<number, ArrEntry>()),
+      ]);
+
+      const items = rawItems
+        .map(mapTmdbSearchItem)
+        .filter((item): item is TmdbSearchItem => Boolean(item))
+        .map(item => {
+          const isMovie = item.media_type === 'movie';
+          const entry = isMovie ? radarrIds.get(item.tmdb_id) : sonarrIds.get(item.tmdb_id);
+          const sourceId = entry?.sourceId ?? null;
+          const sourceBaseUrl = isMovie ? radarrConfig?.website_url : sonarrConfig?.website_url;
+
+          let arr_url: string | null = null;
+          if (sourceBaseUrl && entry) {
+            if (isMovie) {
+              arr_url = buildArrItemUrl(sourceBaseUrl, 'radarr', String(item.tmdb_id));
+            } else if (entry.titleSlug) {
+              arr_url = buildArrItemUrl(sourceBaseUrl, 'sonarr', entry.titleSlug);
+            }
+          }
+
+          return {
+            ...item,
+            already_exists: isMovie ? radarrIds.has(item.tmdb_id) : sonarrIds.has(item.tmdb_id),
+            can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
+            source_id: sourceId,
+            arr_url,
+          };
+        });
+
+      return {
+        items,
+        page: typeof data.page === 'number' ? data.page : page,
+        total_pages: typeof data.total_pages === 'number' ? Math.min(data.total_pages as number, 500) : 1,
+        total_results: typeof data.total_results === 'number' ? data.total_results : 0,
+      };
+    } catch (error) {
+      console.error('Error fetching TMDB discover:', error);
+      return serverError(set, 'Failed to fetch discover results');
+    }
+  })
   .get(
     '/providers/:mediaType/:tmdbId',
     async ({ user, set, params, query: queryParams }) => {

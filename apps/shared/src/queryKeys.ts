@@ -134,6 +134,27 @@ export const queryKeys = {
       [...queryKeys.medias.all, 'interactive-search', 'prowlarr', query] as const,
     providers: (mediaType: 'movie' | 'tv', tmdbId: number, region?: string) =>
       [...queryKeys.medias.all, 'providers', mediaType, tmdbId, region ?? 'CA'] as const,
+    genres: (type: 'movie' | 'tv') => [...queryKeys.medias.all, 'genres', type] as const,
+    discover: (params: {
+      type: 'movie' | 'tv';
+      provider_id?: number | null;
+      genre_id?: number | null;
+      sort_by?: string;
+      page?: number;
+      language?: string;
+      region?: string;
+    }) =>
+      [
+        ...queryKeys.medias.all,
+        'discover',
+        params.type,
+        params.provider_id ?? null,
+        params.genre_id ?? null,
+        params.sort_by ?? 'popularity.desc',
+        params.page ?? 1,
+        params.language ?? 'en-US',
+        params.region ?? 'CA',
+      ] as const,
   },
 
   recipes: {

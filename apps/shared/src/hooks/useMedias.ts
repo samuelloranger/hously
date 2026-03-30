@@ -3,6 +3,8 @@ import { useFetcher } from './context';
 import { queryKeys } from '../queryKeys';
 import { MEDIAS_ENDPOINTS } from '../endpoints';
 import type {
+  DiscoverMediasParams,
+  DiscoverMediasResponse,
   ExploreMediasResponse,
   MediaAutoSearchResponse,
   MediaDeleteResponse,
@@ -10,6 +12,7 @@ import type {
   MediaInteractiveSearchResponse,
   MediasResponse,
   SimilarMediasResponse,
+  TmdbGenresResponse,
   TmdbMediaSearchResponse,
   TmdbWatchProvidersResponse,
 } from '../types';
@@ -167,6 +170,25 @@ export function useProwlarrInteractiveDownload() {
           token: params.token,
         },
       }),
+  });
+}
+
+export function useMediaGenres(type: 'movie' | 'tv') {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.medias.genres(type),
+    queryFn: () => fetcher<TmdbGenresResponse>(MEDIAS_ENDPOINTS.GENRES(type)),
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+}
+
+export function useDiscoverMedias(params: DiscoverMediasParams) {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.medias.discover(params),
+    queryFn: () => fetcher<DiscoverMediasResponse>(MEDIAS_ENDPOINTS.DISCOVER(params)),
   });
 }
 

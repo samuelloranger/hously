@@ -130,3 +130,29 @@ export interface MediaDeleteResponse {
   success: boolean;
   service: 'radarr' | 'sonarr';
 }
+
+export interface TmdbGenre {
+  id: number;
+  name: string;
+}
+
+export interface TmdbGenresResponse {
+  genres: TmdbGenre[];
+}
+
+export interface DiscoverMediasParams {
+  type: 'movie' | 'tv';
+  provider_id?: number | null;
+  genre_id?: number | null;
+  sort_by?: string;
+  page?: number;
+  language?: string;
+  region?: string;
+}
+
+export interface DiscoverMediasResponse {
+  items: TmdbMediaSearchItem[];
+  page: number;
+  total_pages: number;
+  total_results: number;
+}
