@@ -794,8 +794,10 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
         if (data.Response === 'False') return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
 
         const ratings = Array.isArray(data.Ratings) ? (data.Ratings as { Source: string; Value: string }[]) : [];
-        const rtRating = ratings.find(r => r.Source === 'Rotten Tomatoes')?.Value ?? null;
-        const mcRating = ratings.find(r => r.Source === 'Metacritic')?.Value?.replace('/100', '') ?? null;
+        const rtRaw = ratings.find(r => r.Source === 'Rotten Tomatoes')?.Value ?? null;
+        const rtRating = rtRaw && rtRaw !== 'N/A' && rtRaw !== '0%' ? rtRaw : null;
+        const mcRaw = ratings.find(r => r.Source === 'Metacritic')?.Value?.replace('/100', '') ?? null;
+        const mcRating = mcRaw && mcRaw !== 'N/A' && mcRaw !== '0' ? mcRaw : null;
         const imdbRating = typeof data.imdbRating === 'string' && data.imdbRating !== 'N/A' ? data.imdbRating : null;
 
         const result = { imdb_rating: imdbRating, rotten_tomatoes: rtRating, metacritic: mcRating };
