@@ -231,3 +231,35 @@ export interface MediaModalDataResponse {
   details: TmdbMediaDetailsResponse;
   providers: TmdbWatchProvidersResponse;
 }
+
+export interface CollectionMovieItem {
+  id: string;
+  tmdb_id: number;
+  media_type: 'movie';
+  title: string;
+  release_year: number | null;
+  poster_url: string | null;
+  overview: string | null;
+  vote_average: number | null;
+  service: 'radarr';
+  already_exists: boolean;
+  can_add: boolean;
+  source_id: number | null;
+  arr_url: string | null;
+}
+
+export interface MediaCollection {
+  id: number;
+  name: string;
+  overview: string | null;
+  poster_url: string | null;
+  backdrop_url: string | null;
+  movies: CollectionMovieItem[];
+  owned_count: number;
+  total_count: number;
+  missing_count: number;
+}
+
+export interface MissingCollectionsResponse {
+  collections: MediaCollection[];
+}

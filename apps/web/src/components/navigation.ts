@@ -1,8 +1,11 @@
 import {
+  Bookmark,
   CalendarIcon,
+  CalendarRange,
   Compass,
   CookingPot,
   LayoutDashboard,
+  Layers2,
   Library,
   ListChecks,
   Magnet,
@@ -38,9 +41,12 @@ export const navSections: NavSection[] = [
   {
     labelKey: 'nav.section_homelab',
     items: [
-      { path: '/library', translationKey: 'nav.library', icon: Library, mobileIcon: '🎞️' },
       { path: '/torrents', translationKey: 'nav.torrents', icon: Magnet, mobileIcon: '🧲' },
+      { path: '/library', translationKey: 'nav.library', icon: Library, mobileIcon: '🎞️' },
+      { path: '/collections', translationKey: 'nav.collections', icon: Layers2, mobileIcon: '🎬' },
       { path: '/explore', translationKey: 'nav.explore', icon: Compass, mobileIcon: '🧭' },
+      { path: '/releases', translationKey: 'nav.releases', icon: CalendarRange, mobileIcon: '🎬' },
+      { path: '/watchlist', translationKey: 'nav.watchlist', icon: Bookmark, mobileIcon: '🔖' },
     ],
   },
 ];

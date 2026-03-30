@@ -57,6 +57,9 @@ const Notifications = cachedLazy('notifications', () =>
 const KitchenPage = cachedLazy('kitchen', () => import('./features/recipes').then(m => ({ default: m.KitchenPage })));
 const ExplorePage = cachedLazy('explore', () => import('./features/medias').then(m => ({ default: m.ExplorePage })));
 const LibraryPage = cachedLazy('library', () => import('./features/medias').then(m => ({ default: m.LibraryPage })));
+const ReleasesPage = cachedLazy('releases', () => import('./features/medias').then(m => ({ default: m.ReleasesPage })));
+const WatchlistPage = cachedLazy('watchlist', () => import('./features/medias').then(m => ({ default: m.WatchlistPage })));
+const CollectionsPage = cachedLazy('collections', () => import('./features/medias').then(m => ({ default: m.CollectionsPage })));
 const RecipeDetail = cachedLazy('recipeDetail', () =>
   import('./features/recipes').then(m => ({ default: m.RecipeDetail }))
 );
@@ -407,6 +410,36 @@ const exploreRoute = createRoute({
   },
 });
 
+const releasesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/releases',
+  component: ReleasesPage,
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/releases');
+  },
+});
+
+const watchlistRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/watchlist',
+  component: WatchlistPage,
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/watchlist');
+  },
+});
+
+const collectionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/collections',
+  component: CollectionsPage,
+  beforeLoad: requireAuth,
+  loader: async ({ context }) => {
+    await prefetchRouteData(context.queryClient, '/collections');
+  },
+});
+
 export type LibrarySearchParams = {
   page?: number;
   pageSize?: number;
@@ -480,6 +513,9 @@ const routeTree = rootRoute.addChildren([
   torrentsRoute,
   exploreRoute,
   libraryRoute,
+  releasesRoute,
+  watchlistRoute,
+  collectionsRoute,
   torrentDetailRoute,
 ]);
 

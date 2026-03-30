@@ -30,6 +30,7 @@ export const MEDIAS_ENDPOINTS = {
   WATCHLIST: '/api/medias/watchlist',
   WATCHLIST_REMOVE: (tmdbId: number, type: 'movie' | 'tv') =>
     `/api/medias/watchlist/${encodeURIComponent(String(tmdbId))}?type=${encodeURIComponent(type)}`,
+  MISSING_COLLECTIONS: '/api/medias/collections/missing',
   MODAL_DATA: (mediaType: 'movie' | 'tv', tmdbId: number, region?: string) =>
     `/api/medias/modal/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${region ? `?region=${encodeURIComponent(region)}` : ''}`,
   DISCOVER: (params: {

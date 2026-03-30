@@ -224,6 +224,76 @@ export async function fetchMediaDetails(
   }
 }
 
+export type CollectionPart = {
+  tmdb_id: number;
+  title: string;
+  release_year: number | null;
+  poster_url: string | null;
+  overview: string | null;
+  vote_average: number | null;
+};
+
+export type TmdbCollectionData = {
+  id: number;
+  name: string;
+  overview: string | null;
+  poster_url: string | null;
+  backdrop_url: string | null;
+  parts: CollectionPart[];
+};
+
+export async function fetchCollectionDetails(
+  apiKey: string,
+  collectionId: number,
+): Promise<TmdbCollectionData | null> {
+  const cacheKey = `medias:collection:${collectionId}`;
+  const cached = await getJsonCache<TmdbCollectionData>(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const url = new URL(`https://api.themoviedb.org/3/collection/${collectionId}`);
+    url.searchParams.set('api_key', apiKey);
+    url.searchParams.set('language', 'en-US');
+    const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+    if (!res.ok) return null;
+
+    const data = (await res.json()) as Record<string, unknown>;
+    const POSTER_BASE = 'https://image.tmdb.org/t/p/w342';
+    const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w780';
+
+    const parts = Array.isArray(data.parts) ? (data.parts as Record<string, unknown>[]) : [];
+    const result: TmdbCollectionData = {
+      id: typeof data.id === 'number' ? data.id : collectionId,
+      name: typeof data.name === 'string' ? data.name : '',
+      overview: typeof data.overview === 'string' ? data.overview || null : null,
+      poster_url: typeof data.poster_path === 'string' && data.poster_path ? `${POSTER_BASE}${data.poster_path}` : null,
+      backdrop_url: typeof data.backdrop_path === 'string' && data.backdrop_path ? `${BACKDROP_BASE}${data.backdrop_path}` : null,
+      parts: parts
+        .map(p => {
+          const tmdb_id = typeof p.id === 'number' ? p.id : null;
+          if (!tmdb_id) return null;
+          const dateStr = typeof p.release_date === 'string' ? p.release_date : '';
+          const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) : null;
+          return {
+            tmdb_id,
+            title: typeof p.title === 'string' ? p.title : '',
+            release_year: year && !isNaN(year) ? year : null,
+            poster_url: typeof p.poster_path === 'string' && p.poster_path ? `${POSTER_BASE}${p.poster_path}` : null,
+            overview: typeof p.overview === 'string' ? p.overview || null : null,
+            vote_average: typeof p.vote_average === 'number' ? p.vote_average : null,
+          } satisfies CollectionPart;
+        })
+        .filter((p): p is CollectionPart => p !== null)
+        .sort((a, b) => (a.release_year ?? 9999) - (b.release_year ?? 9999)),
+    };
+
+    await setJsonCache(cacheKey, result, 24 * 60 * 60);
+    return result;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchWatchProviders(
   apiKey: string,
   mediaType: 'movie' | 'tv',

@@ -13,6 +13,7 @@ import type {
   MediaModalDataResponse,
   MediaRatingsResponse,
   MediasResponse,
+  MissingCollectionsResponse,
   SimilarMediasResponse,
   TmdbCreditsResponse,
   TmdbGenresResponse,
@@ -350,5 +351,15 @@ export function useRemoveFromWatchlist() {
         queryKey: queryKeys.medias.modalData(variables.media_type, variables.tmdb_id),
       });
     },
+  });
+}
+
+export function useMissingCollections(options?: { enabled?: boolean }) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.medias.missingCollections(),
+    queryFn: () => fetcher<MissingCollectionsResponse>(MEDIAS_ENDPOINTS.MISSING_COLLECTIONS),
+    enabled: options?.enabled ?? true,
+    staleTime: 5 * 60 * 1000,
   });
 }
