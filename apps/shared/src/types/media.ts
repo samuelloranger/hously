@@ -205,3 +205,19 @@ export interface TmdbMediaDetailsResponse {
   number_of_seasons: number | null;
   number_of_episodes: number | null;
 }
+
+export interface WatchlistItem {
+  id: number;
+  tmdb_id: number;
+  media_type: 'movie' | 'tv';
+  title: string;
+  poster_url: string | null;
+  overview: string | null;
+  release_year: number | null;
+  vote_average: number | null;
+  added_at: string;
+}
+
+export interface WatchlistResponse {
+  items: WatchlistItem[];
+}

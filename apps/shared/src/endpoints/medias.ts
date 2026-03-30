@@ -27,6 +27,9 @@ export const MEDIAS_ENDPOINTS = {
     `/api/medias/credits/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
   TMDB_DETAILS: (mediaType: 'movie' | 'tv', tmdbId: number) =>
     `/api/medias/tmdb-details/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
+  WATCHLIST: '/api/medias/watchlist',
+  WATCHLIST_REMOVE: (tmdbId: number, type: 'movie' | 'tv') =>
+    `/api/medias/watchlist/${encodeURIComponent(String(tmdbId))}?type=${encodeURIComponent(type)}`,
   DISCOVER: (params: {
     type: 'movie' | 'tv';
     provider_id?: number | null;

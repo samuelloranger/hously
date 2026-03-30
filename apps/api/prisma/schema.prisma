@@ -42,6 +42,7 @@ model User {
   habits                 Habit[]
   liveActivityTokens     LiveActivityToken[]
   invitationsSent        Invitation[]         @relation("InvitationInviter")
+  watchlistItems         WatchlistItem[]
 
   @@map("users")
 }
@@ -451,4 +452,23 @@ model QbittorrentRequestLog {
   @@index([endpoint, createdAt], map: "ix_qbittorrent_request_logs_endpoint_created_at")
   @@index([ok, createdAt], map: "ix_qbittorrent_request_logs_ok_created_at")
   @@map("qbittorrent_request_logs")
+}
+
+model WatchlistItem {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  tmdbId      Int      @map("tmdb_id")
+  mediaType   String   @map("media_type")
+  title       String
+  posterUrl   String?  @map("poster_url")
+  overview    String?
+  releaseYear Int?     @map("release_year")
+  voteAverage Float?   @map("vote_average")
+  addedAt     DateTime @default(now()) @map("added_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, tmdbId, mediaType], map: "uq_watchlist_user_tmdb_type")
+  @@index([userId, addedAt], map: "ix_watchlist_user_added_at")
+  @@map("watchlist_items")
 }

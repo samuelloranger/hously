@@ -28,6 +28,7 @@ import { mediasLibraryRoutes } from './routes/medias/library';
 import { mediasTmdbRoutes } from './routes/medias/tmdb';
 import { mediasProwlarrRoutes } from './routes/medias/prowlarr';
 import { mediasArrRoutes } from './routes/medias/arr';
+import { mediasWatchlistRoutes } from './routes/medias/watchlist';
 import { habitsRoutes } from './routes/habits';
 import { systemRoutes } from './routes/system';
 import { searchRoutes } from './routes/search';
@@ -78,6 +79,7 @@ export const app = new Elysia()
   .use(mediasTmdbRoutes)
   .use(mediasProwlarrRoutes)
   .use(mediasArrRoutes)
+  .use(mediasWatchlistRoutes)
   .use(habitsRoutes)
   .use(systemRoutes)
   .use(searchRoutes)

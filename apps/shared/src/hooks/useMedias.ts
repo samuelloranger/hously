@@ -20,6 +20,7 @@ import type {
   TmdbStreamingProvidersResponse,
   TmdbTrailerResponse,
   TmdbWatchProvidersResponse,
+  WatchlistResponse,
 } from '../types';
 
 export function useMedias() {
@@ -279,6 +280,52 @@ export function useMediaDelete() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.list() });
+    },
+  });
+}
+
+export function useWatchlist(options?: { enabled?: boolean }) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.medias.watchlist(),
+    queryFn: () => fetcher<WatchlistResponse>(MEDIAS_ENDPOINTS.WATCHLIST),
+    enabled: options?.enabled ?? true,
+  });
+}
+
+export function useAddToWatchlist() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      tmdb_id: number;
+      media_type: 'movie' | 'tv';
+      title: string;
+      poster_url?: string | null;
+      overview?: string | null;
+      release_year?: number | null;
+      vote_average?: number | null;
+    }) =>
+      fetcher<{ id: number; added: boolean }>(MEDIAS_ENDPOINTS.WATCHLIST, {
+        method: 'POST',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.watchlist() });
+    },
+  });
+}
+
+export function useRemoveFromWatchlist() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ tmdb_id, media_type }: { tmdb_id: number; media_type: 'movie' | 'tv' }) =>
+      fetcher<{ success: boolean }>(MEDIAS_ENDPOINTS.WATCHLIST_REMOVE(tmdb_id, media_type), {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.watchlist() });
     },
   });
 }
