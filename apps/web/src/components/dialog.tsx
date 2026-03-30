@@ -61,7 +61,7 @@ export function Dialog({ isOpen, onClose, title, children, showCloseButton = tru
                       type="button"
                       onClick={onClose}
                       aria-label="Close dialog"
-                      className="rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors"
+                      className="ml-auto shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors"
                     >
                       <X className="h-5 w-5" />
                     </button>
