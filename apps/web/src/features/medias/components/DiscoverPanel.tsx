@@ -4,18 +4,18 @@ import { useDiscoverMedias, useMediaGenres, useStreamingProviders } from '@housl
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ExploreCard } from './ExploreCard';
 
-// ─── Featured provider IDs (in display order) ────────────────────────────────
-// We keep the brand colors for the glow/ambient effect; logos come from TMDB.
-const FEATURED_PROVIDERS: { id: number; color: string }[] = [
-  { id: 8,    color: '#E50914' }, // Netflix
-  { id: 9,    color: '#00A8E1' }, // Prime
-  { id: 337,  color: '#4B7FFF' }, // Disney+
-  { id: 230,  color: '#00C1F3' }, // Crave
-  { id: 350,  color: '#c0c0c0' }, // Apple TV+
-  { id: 531,  color: '#2B6EFF' }, // Paramount+
-  { id: 1899, color: '#8B9EFF' }, // Max
-  { id: 73,   color: '#FF5C5C' }, // Tubi
-];
+// ─── Brand colors for known providers (used for glow/ambient only) ───────────
+const PROVIDER_COLORS: Record<number, string> = {
+  8:    '#E50914', // Netflix
+  9:    '#00A8E1', // Prime Video
+  337:  '#4B7FFF', // Disney+
+  230:  '#00C1F3', // Crave
+  350:  '#c0c0c0', // Apple TV+
+  531:  '#2B6EFF', // Paramount+
+  1899: '#8B9EFF', // Max
+  73:   '#FF5C5C', // Tubi
+  384:  '#5A1EBE', // HBO
+};
 
 // ─── Sort options ─────────────────────────────────────────────────────────────
 type SortOpt = { value: string; labelKey: string; movieOnly?: true; tvOnly?: true };
@@ -75,7 +75,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
   const [sortBy, setSortBy] = useState('popularity.desc');
   const [page, setPage] = useState(1);
 
-  const activeProviderConfig = FEATURED_PROVIDERS.find(p => p.id === providerId) ?? null;
+  const activeProviderColor = providerId ? (PROVIDER_COLORS[providerId] ?? '#6366f1') : null;
 
   const { data: providersData } = useStreamingProviders('CA', mediaType);
   const { data: genresData } = useMediaGenres(mediaType);
@@ -134,8 +134,8 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         aria-hidden
         className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 h-72 w-[60%] rounded-full blur-3xl transition-all duration-700"
         style={{
-          backgroundColor: activeProviderConfig
-            ? hex2rgba(activeProviderConfig.color, 0.08)
+          backgroundColor: activeProviderColor
+            ? hex2rgba(activeProviderColor, 0.08)
             : 'transparent',
         }}
       />
@@ -173,22 +173,22 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
 
       {/* ── Streaming providers ─────────────────────────────── */}
       <div className="flex gap-2 overflow-x-auto overflow-visible pb-1" style={{ scrollbarWidth: 'none' }}>
-        {FEATURED_PROVIDERS.map(cfg => {
-          const provider = providersData?.providers.find(p => p.id === cfg.id);
-          const active = providerId === cfg.id;
+        {(providersData?.providers ?? []).slice(0, 10).map(provider => {
+          const color = PROVIDER_COLORS[provider.id] ?? '#6366f1';
+          const active = providerId === provider.id;
           return (
             <button
-              key={cfg.id}
+              key={provider.id}
               type="button"
-              onClick={() => toggleProvider(cfg.id)}
-              title={provider?.name ?? String(cfg.id)}
-              aria-label={provider?.name ?? String(cfg.id)}
+              onClick={() => toggleProvider(provider.id)}
+              title={provider.name}
+              aria-label={provider.name}
               style={
                 active
                   ? ({
-                      backgroundColor: hex2rgba(cfg.color, 0.18),
-                      borderColor: cfg.color,
-                      boxShadow: `0 0 16px ${hex2rgba(cfg.color, 0.30)}, inset 0 0 12px ${hex2rgba(cfg.color, 0.08)}`,
+                      backgroundColor: hex2rgba(color, 0.18),
+                      borderColor: color,
+                      boxShadow: `0 0 16px ${hex2rgba(color, 0.30)}, inset 0 0 12px ${hex2rgba(color, 0.08)}`,
                     } as CSSProperties)
                   : undefined
               }
@@ -200,20 +200,11 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
                   : 'border-white/[0.08] bg-white/[0.03] hover:border-white/[0.18] hover:scale-[1.04]',
               ].join(' ')}
             >
-              {provider?.logo_url ? (
-                <img
-                  src={provider.logo_url}
-                  alt={provider.name}
-                  className="h-8 w-8 rounded-lg object-contain"
-                />
-              ) : (
-                <span
-                  className="h-8 w-8 rounded-lg flex items-center justify-center text-[10px] font-bold text-white"
-                  style={{ backgroundColor: hex2rgba(cfg.color, 0.5) }}
-                >
-                  ?
-                </span>
-              )}
+              <img
+                src={provider.logo_url}
+                alt={provider.name}
+                className="h-8 w-8 rounded-lg object-contain"
+              />
             </button>
           );
         })}
@@ -287,8 +278,8 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
 
         {/* Skeleton */}
         {isLoading && (
-          <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-7 2xl:grid-cols-7">
-            {Array.from({ length: 42 }).map((_, i) => (
+          <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6">
+            {Array.from({ length: 36 }).map((_, i) => (
               <div
                 key={i}
                 className="aspect-[2/3] animate-pulse rounded-2xl bg-white/[0.05]"
@@ -309,7 +300,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         {!isLoading && (data?.items.length ?? 0) > 0 && (
           <div
             key={gridKey}
-            className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-7 2xl:grid-cols-7"
+            className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6"
           >
             {data!.items.map((item, index) => (
               <div

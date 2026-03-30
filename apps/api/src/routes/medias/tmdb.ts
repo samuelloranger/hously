@@ -643,7 +643,7 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
 
     // We serve PAGE_SIZE items per logical page. TMDB returns 20 per page, so we
     // fetch the 2–3 TMDB pages that span our logical page window concurrently.
-    const PAGE_SIZE = 42;
+    const PAGE_SIZE = 36;
     const TMDB_PAGE_SIZE = 20;
 
     const startIdx = (page - 1) * PAGE_SIZE; // 0-indexed first item
