@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAddUpcomingToArr, useTmdbTrailer, useTmdbWatchProviders, type TmdbMediaSearchItem } from '@hously/shared';
+import { useAddUpcomingToArr, useMediaRatings, useTmdbTrailer, useTmdbWatchProviders, type TmdbMediaSearchItem } from '@hously/shared';
 import { Check, ExternalLink, Play, Plus, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog } from '@/components/dialog';
@@ -19,6 +19,7 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
   const addMutation = useAddUpcomingToArr();
   const { data: providers } = useTmdbWatchProviders(item.media_type, item.tmdb_id, undefined, { enabled: isOpen });
   const { data: trailerData } = useTmdbTrailer(item.media_type, item.tmdb_id, { enabled: isOpen });
+  const { data: ratingsData } = useMediaRatings(item.media_type, item.tmdb_id, { enabled: isOpen });
 
   const handleAdd = async () => {
     if (addMutation.isPending || item.already_exists || !item.can_add) return;
@@ -87,16 +88,57 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
               )}
             </div>
 
-            {/* Rating */}
-            {item.vote_average != null && (
-              <div className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 font-medium">
-                <Star size={14} className="fill-amber-500 text-amber-500" />
-                {item.vote_average.toFixed(1)}
-                <span className="text-neutral-400 dark:text-neutral-500 font-normal">
-                  /10 · {t('medias.detail.tmdbRating')}
-                </span>
-              </div>
-            )}
+            {/* Ratings row */}
+            <div className="flex flex-wrap items-center gap-3">
+              {item.vote_average != null && (
+                <div className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 font-medium">
+                  <Star size={14} className="fill-amber-500 text-amber-500" />
+                  {item.vote_average.toFixed(1)}
+                  <span className="text-neutral-400 dark:text-neutral-500 font-normal text-xs">
+                    TMDB
+                  </span>
+                </div>
+              )}
+              {ratingsData?.rotten_tomatoes && (() => {
+                const score = parseInt(ratingsData.rotten_tomatoes);
+                const isFresh = score >= 60;
+                return (
+                  <div className="flex items-center gap-1.5 text-sm font-medium">
+                    {isFresh ? (
+                      <svg viewBox="0 0 32 32" className="h-5 w-5" aria-label="Fresh">
+                        {/* Tomato body */}
+                        <circle cx="16" cy="18" r="11" fill="#FA320A"/>
+                        <ellipse cx="16" cy="18" rx="11" ry="10" fill="#FA320A"/>
+                        {/* Shine */}
+                        <ellipse cx="12" cy="14" rx="3" ry="2" fill="rgba(255,255,255,0.25)" transform="rotate(-20 12 14)"/>
+                        {/* Stem */}
+                        <path d="M16 8 C16 8 14 4 10 5 C12 6 13 8 16 8Z" fill="#5B9E1E"/>
+                        <path d="M16 8 C16 8 18 4 22 5 C20 6 19 8 16 8Z" fill="#5B9E1E"/>
+                        <rect x="15" y="6" width="2" height="5" rx="1" fill="#5B9E1E"/>
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 32 32" className="h-5 w-5" aria-label="Rotten">
+                        {/* Splat shape */}
+                        <path d="M16 4 L18 10 L24 8 L20 14 L27 15 L21 18 L25 24 L18 21 L17 28 L14 21 L7 24 L11 18 L5 15 L12 14 L8 8 L14 10 Z" fill="#8B4513"/>
+                        <circle cx="16" cy="16" r="5" fill="#6B8E23" opacity="0.7"/>
+                      </svg>
+                    )}
+                    <span className={isFresh ? 'text-red-500 dark:text-red-400' : 'text-neutral-400'}>
+                      {ratingsData.rotten_tomatoes}
+                    </span>
+                  </div>
+                );
+              })()}
+              {ratingsData?.metacritic && (
+                <div className="flex items-center gap-1.5 text-sm font-medium">
+                  <span className="flex h-5 w-5 items-center justify-center rounded bg-yellow-400 text-[10px] font-black text-black leading-none">
+                    M
+                  </span>
+                  <span className="text-neutral-700 dark:text-neutral-300">{ratingsData.metacritic}</span>
+                  <span className="text-neutral-400 dark:text-neutral-500 font-normal text-xs">MC</span>
+                </div>
+              )}
+            </div>
 
             {/* Overview */}
             <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed line-clamp-4">
@@ -105,7 +147,7 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
 
             {/* Where to watch */}
             {providers && (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 mt-8">
                 <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                   {t('medias.detail.whereToWatch')}
                 </span>
@@ -118,7 +160,7 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
                   <div className="flex flex-col gap-1.5">
                     {providers.streaming.length > 0 && (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-neutral-500 dark:text-neutral-400 w-12 shrink-0">
+                        <span className="text-xs text-neutral-500 dark:text-neutral-400 w-16 shrink-0">
                           {t('medias.detail.stream')}
                         </span>
                         <div className="flex flex-wrap gap-1.5">
@@ -130,7 +172,7 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
                     )}
                     {providers.free.length > 0 && (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-neutral-500 dark:text-neutral-400 w-12 shrink-0">
+                        <span className="text-xs text-neutral-500 dark:text-neutral-400 w-16 shrink-0">
                           {t('medias.detail.free')}
                         </span>
                         <div className="flex flex-wrap gap-1.5">
@@ -142,7 +184,7 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
                     )}
                     {providers.rent.length > 0 && (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-neutral-500 dark:text-neutral-400 w-12 shrink-0">
+                        <span className="text-xs text-neutral-500 dark:text-neutral-400 w-16 shrink-0">
                           {t('medias.detail.rent')}
                         </span>
                         <div className="flex flex-wrap gap-1.5">
@@ -154,7 +196,7 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
                     )}
                     {providers.buy.length > 0 && (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-neutral-500 dark:text-neutral-400 w-12 shrink-0">
+                        <span className="text-xs text-neutral-500 dark:text-neutral-400 w-16 shrink-0">
                           {t('medias.detail.buy')}
                         </span>
                         <div className="flex flex-wrap gap-1.5">

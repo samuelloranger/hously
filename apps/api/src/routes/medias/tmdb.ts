@@ -755,6 +755,59 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
     }
   })
   .get(
+    '/ratings/:mediaType/:tmdbId',
+    async ({ set, params }) => {
+      const { mediaType, tmdbId: tmdbIdStr } = params;
+      if (mediaType !== 'movie' && mediaType !== 'tv') return badRequest(set, 'Invalid media type');
+      const tmdbId = parseInt(tmdbIdStr, 10);
+      if (!Number.isFinite(tmdbId) || tmdbId <= 0) return badRequest(set, 'Invalid TMDB ID');
+
+      const omdbKey = Bun.env.OMDB_API_KEY;
+      if (!omdbKey) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+
+      const cacheKey = `medias:ratings:${mediaType}:${tmdbId}`;
+      const cached = await getJsonCache<{ imdb_rating: string | null; rotten_tomatoes: string | null; metacritic: string | null }>(cacheKey);
+      if (cached) return cached;
+
+      try {
+        const tmdbPlugin = await prisma.plugin.findFirst({ where: { type: 'tmdb' }, select: { enabled: true, config: true } });
+        const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+        if (!tmdbConfig) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+
+        // Fetch IMDB ID from TMDB external IDs
+        const extUrl = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/external_ids`);
+        extUrl.searchParams.set('api_key', tmdbConfig.api_key);
+        const extRes = await fetch(extUrl.toString(), { headers: { Accept: 'application/json' } });
+        if (!extRes.ok) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+        const extData = (await extRes.json()) as Record<string, unknown>;
+        const imdbId = typeof extData.imdb_id === 'string' ? extData.imdb_id : null;
+        if (!imdbId) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+
+        // Fetch from OMDB
+        const omdbUrl = new URL('https://www.omdbapi.com/');
+        omdbUrl.searchParams.set('i', imdbId);
+        omdbUrl.searchParams.set('apikey', omdbKey);
+        const omdbRes = await fetch(omdbUrl.toString(), { headers: { Accept: 'application/json' } });
+        if (!omdbRes.ok) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+
+        const data = (await omdbRes.json()) as Record<string, unknown>;
+        if (data.Response === 'False') return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+
+        const ratings = Array.isArray(data.Ratings) ? (data.Ratings as { Source: string; Value: string }[]) : [];
+        const rtRating = ratings.find(r => r.Source === 'Rotten Tomatoes')?.Value ?? null;
+        const mcRating = ratings.find(r => r.Source === 'Metacritic')?.Value?.replace('/100', '') ?? null;
+        const imdbRating = typeof data.imdbRating === 'string' && data.imdbRating !== 'N/A' ? data.imdbRating : null;
+
+        const result = { imdb_rating: imdbRating, rotten_tomatoes: rtRating, metacritic: mcRating };
+        await setJsonCache(cacheKey, result, 24 * 60 * 60);
+        return result;
+      } catch {
+        return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+      }
+    },
+    { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }
+  )
+  .get(
     '/trailer/:mediaType/:tmdbId',
     async ({ user, set, params }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;

@@ -21,6 +21,8 @@ export const MEDIAS_ENDPOINTS = {
   TRAILER: (mediaType: 'movie' | 'tv', tmdbId: number) =>
     `/api/medias/trailer/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
   GENRES: (type: 'movie' | 'tv') => `/api/medias/genres?type=${encodeURIComponent(type)}`,
+  RATINGS: (mediaType: 'movie' | 'tv', tmdbId: number) =>
+    `/api/medias/ratings/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
   DISCOVER: (params: {
     type: 'movie' | 'tv';
     provider_id?: number | null;

@@ -10,6 +10,7 @@ import type {
   MediaDeleteResponse,
   MediaInteractiveDownloadResponse,
   MediaInteractiveSearchResponse,
+  MediaRatingsResponse,
   MediasResponse,
   SimilarMediasResponse,
   TmdbGenresResponse,
@@ -216,6 +217,22 @@ export function useDiscoverMedias(params: DiscoverMediasParams) {
   return useQuery({
     queryKey: queryKeys.medias.discover(params),
     queryFn: () => fetcher<DiscoverMediasResponse>(MEDIAS_ENDPOINTS.DISCOVER(params)),
+  });
+}
+
+export function useMediaRatings(
+  mediaType: 'movie' | 'tv' | null,
+  tmdbId: number | null,
+  options?: { enabled?: boolean }
+) {
+  const fetcher = useFetcher();
+  const isEnabled = (options?.enabled ?? true) && mediaType !== null && tmdbId !== null && tmdbId > 0;
+
+  return useQuery({
+    queryKey: queryKeys.medias.ratings(mediaType ?? 'movie', tmdbId ?? 0),
+    queryFn: () => fetcher<MediaRatingsResponse>(MEDIAS_ENDPOINTS.RATINGS(mediaType!, tmdbId!)),
+    enabled: isEnabled,
+    staleTime: 24 * 60 * 60 * 1000,
   });
 }
 

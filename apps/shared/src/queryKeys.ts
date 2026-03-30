@@ -139,6 +139,8 @@ export const queryKeys = {
     trailer: (mediaType: 'movie' | 'tv', tmdbId: number) =>
       [...queryKeys.medias.all, 'trailer', mediaType, tmdbId] as const,
     genres: (type: 'movie' | 'tv') => [...queryKeys.medias.all, 'genres', type] as const,
+    ratings: (mediaType: 'movie' | 'tv', tmdbId: number) =>
+      [...queryKeys.medias.all, 'ratings', mediaType, tmdbId] as const,
     discover: (params: {
       type: 'movie' | 'tv';
       provider_id?: number | null;

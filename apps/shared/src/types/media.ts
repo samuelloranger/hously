@@ -172,3 +172,9 @@ export interface DiscoverMediasResponse {
   total_pages: number;
   total_results: number;
 }
+
+export interface MediaRatingsResponse {
+  imdb_rating: string | null;
+  rotten_tomatoes: string | null;
+  metacritic: string | null;
+}
