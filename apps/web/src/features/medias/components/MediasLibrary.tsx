@@ -43,7 +43,7 @@ export function MediasLibrary() {
 
   const search = searchParams.search ?? '';
   const page = searchParams.page ?? 1;
-  const pageSize = searchParams.pageSize ?? 50;
+  const pageSize = searchParams.pageSize ?? 48;
 
   const items = useMemo(() => libraryData?.items ?? [], [libraryData?.items]);
 
@@ -438,11 +438,11 @@ export function MediasLibrary() {
                     value={pageSize}
                     onChange={e => {
                       const v = Number(e.target.value);
-                      setParams({ pageSize: v !== 50 ? v : undefined, page: undefined });
+                      setParams({ pageSize: v !== 48 ? v : undefined, page: undefined });
                     }}
                     className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-colors"
                   >
-                    {[24, 50, 100].map(size => (
+                    {[24, 48, 96].map(size => (
                       <option key={size} value={size}>
                         {size} / {t('medias.pagination.perPage')}
                       </option>
