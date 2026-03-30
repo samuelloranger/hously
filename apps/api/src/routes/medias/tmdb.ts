@@ -7,8 +7,6 @@ import { getJsonCache, setJsonCache } from '../../services/cache';
 import { badGateway, badRequest, serverError } from '../../utils/errors';
 import {
   type TmdbSearchItem,
-  type TmdbProvider,
-  type TmdbWatchProvidersResult,
   type ArrEntry,
   mapTmdbSearchItem,
   fetchRadarrTmdbIds,
@@ -18,6 +16,14 @@ import {
   toStringOrNull,
   toNumberOrNull,
 } from './mappers';
+import {
+  loadTmdbConfig,
+  fetchTrailer,
+  fetchRatings,
+  fetchCredits,
+  fetchMediaDetails,
+  fetchWatchProviders,
+} from './tmdbFetchers';
 
 export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
   .use(auth)
@@ -761,241 +767,48 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
       if (mediaType !== 'movie' && mediaType !== 'tv') return badRequest(set, 'Invalid media type');
       const tmdbId = parseInt(tmdbIdStr, 10);
       if (!Number.isFinite(tmdbId) || tmdbId <= 0) return badRequest(set, 'Invalid TMDB ID');
-
-      const omdbKey = Bun.env.OMDB_API_KEY;
-      if (!omdbKey) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
-
-      const cacheKey = `medias:ratings:${mediaType}:${tmdbId}`;
-      const cached = await getJsonCache<{ imdb_rating: string | null; rotten_tomatoes: string | null; metacritic: string | null }>(cacheKey);
-      if (cached) return cached;
-
-      try {
-        const tmdbPlugin = await prisma.plugin.findFirst({ where: { type: 'tmdb' }, select: { enabled: true, config: true } });
-        const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
-        if (!tmdbConfig) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
-
-        // Fetch IMDB ID from TMDB external IDs
-        const extUrl = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/external_ids`);
-        extUrl.searchParams.set('api_key', tmdbConfig.api_key);
-        const extRes = await fetch(extUrl.toString(), { headers: { Accept: 'application/json' } });
-        if (!extRes.ok) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
-        const extData = (await extRes.json()) as Record<string, unknown>;
-        const imdbId = typeof extData.imdb_id === 'string' ? extData.imdb_id : null;
-        if (!imdbId) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
-
-        // Fetch from OMDB
-        const omdbUrl = new URL('https://www.omdbapi.com/');
-        omdbUrl.searchParams.set('i', imdbId);
-        omdbUrl.searchParams.set('apikey', omdbKey);
-        const omdbRes = await fetch(omdbUrl.toString(), { headers: { Accept: 'application/json' } });
-        if (!omdbRes.ok) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
-
-        const data = (await omdbRes.json()) as Record<string, unknown>;
-        if (data.Response === 'False') return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
-
-        const ratings = Array.isArray(data.Ratings) ? (data.Ratings as { Source: string; Value: string }[]) : [];
-        const rtRaw = ratings.find(r => r.Source === 'Rotten Tomatoes')?.Value ?? null;
-        const rtRating = rtRaw && rtRaw !== 'N/A' && rtRaw !== '0%' ? rtRaw : null;
-        const mcRaw = ratings.find(r => r.Source === 'Metacritic')?.Value?.replace('/100', '') ?? null;
-        const mcRating = mcRaw && mcRaw !== 'N/A' && mcRaw !== '0' ? mcRaw : null;
-        const imdbRating = typeof data.imdbRating === 'string' && data.imdbRating !== 'N/A' ? data.imdbRating : null;
-
-        const result = { imdb_rating: imdbRating, rotten_tomatoes: rtRating, metacritic: mcRating };
-        await setJsonCache(cacheKey, result, 24 * 60 * 60);
-        return result;
-      } catch {
-        return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
-      }
+      const tmdbConfig = await loadTmdbConfig();
+      if (!tmdbConfig) return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+      return fetchRatings(tmdbConfig.api_key, mediaType, tmdbId);
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }
   )
   .get(
     '/trailer/:mediaType/:tmdbId',
-    async ({ user, set, params }) => {
+    async ({ set, params }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;
-      if (mediaType !== 'movie' && mediaType !== 'tv') {
-        return badRequest(set, 'Invalid media type');
-      }
+      if (mediaType !== 'movie' && mediaType !== 'tv') return badRequest(set, 'Invalid media type');
       const tmdbId = parseInt(tmdbIdStr, 10);
-      if (!Number.isFinite(tmdbId) || tmdbId <= 0) {
-        return badRequest(set, 'Invalid TMDB ID');
-      }
-
-      const cacheKey = `medias:trailer:${mediaType}:${tmdbId}`;
-      const cached = await getJsonCache<{ key: string | null; name: string | null }>(cacheKey);
-      if (cached) return cached;
-
-      const tmdbPlugin = await prisma.plugin.findFirst({
-        where: { type: 'tmdb' },
-        select: { enabled: true, config: true },
-      });
-      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      if (!Number.isFinite(tmdbId) || tmdbId <= 0) return badRequest(set, 'Invalid TMDB ID');
+      const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig) return { key: null, name: null };
-
-      try {
-        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/videos`);
-        url.searchParams.set('api_key', tmdbConfig.api_key);
-        url.searchParams.set('language', 'en-US');
-        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-        if (!res.ok) return { key: null, name: null };
-
-        const data = (await res.json()) as Record<string, unknown>;
-        const results = Array.isArray(data.results) ? (data.results as Record<string, unknown>[]) : [];
-
-        // Pick best YouTube video: official trailer > official teaser > any trailer > any teaser
-        const youtube = results.filter(v => v.site === 'YouTube');
-        const pick =
-          youtube.find(v => v.official && v.type === 'Trailer') ??
-          youtube.find(v => v.official && v.type === 'Teaser') ??
-          youtube.find(v => v.type === 'Trailer') ??
-          youtube.find(v => v.type === 'Teaser') ??
-          youtube[0] ??
-          null;
-
-        const result = {
-          key: pick ? toStringOrNull(pick.key) : null,
-          name: pick ? toStringOrNull(pick.name) : null,
-        };
-
-        await setJsonCache(cacheKey, result, 24 * 60 * 60);
-        return result;
-      } catch {
-        return { key: null, name: null };
-      }
+      return fetchTrailer(tmdbConfig.api_key, mediaType, tmdbId);
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }
   )
   .get(
     '/credits/:mediaType/:tmdbId',
-    async ({ user, set, params }) => {
+    async ({ set, params }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;
-      if (mediaType !== 'movie' && mediaType !== 'tv') {
-        return badRequest(set, 'Invalid media type');
-      }
+      if (mediaType !== 'movie' && mediaType !== 'tv') return badRequest(set, 'Invalid media type');
       const tmdbId = parseInt(tmdbIdStr, 10);
-      if (!Number.isFinite(tmdbId) || tmdbId <= 0) {
-        return badRequest(set, 'Invalid TMDB ID');
-      }
-
-      const cacheKey = `medias:credits:${mediaType}:${tmdbId}`;
-      const cached = await getJsonCache<{ cast: unknown[]; directors: string[] }>(cacheKey);
-      if (cached) return cached;
-
-      const tmdbPlugin = await prisma.plugin.findFirst({
-        where: { type: 'tmdb' },
-        select: { enabled: true, config: true },
-      });
-      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      if (!Number.isFinite(tmdbId) || tmdbId <= 0) return badRequest(set, 'Invalid TMDB ID');
+      const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig) return { cast: [], directors: [] };
-
-      try {
-        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/credits`);
-        url.searchParams.set('api_key', tmdbConfig.api_key);
-        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-        if (!res.ok) return { cast: [], directors: [] };
-
-        const data = (await res.json()) as Record<string, unknown>;
-        const castArr = Array.isArray(data.cast) ? (data.cast as Record<string, unknown>[]) : [];
-        const crewArr = Array.isArray(data.crew) ? (data.crew as Record<string, unknown>[]) : [];
-
-        const cast = castArr.slice(0, 10).map(member => ({
-          id: typeof member.id === 'number' ? member.id : 0,
-          name: typeof member.name === 'string' ? member.name : '',
-          character: typeof member.character === 'string' ? member.character : null,
-          profile_url: typeof member.profile_path === 'string' && member.profile_path
-            ? `https://image.tmdb.org/t/p/w185${member.profile_path}`
-            : null,
-        }));
-
-        const directors = crewArr
-          .filter(member => member.job === 'Director')
-          .map(member => (typeof member.name === 'string' ? member.name : ''))
-          .filter(Boolean);
-
-        const result = { cast, directors };
-        await setJsonCache(cacheKey, result, 24 * 60 * 60);
-        return result;
-      } catch {
-        return { cast: [], directors: [] };
-      }
+      return fetchCredits(tmdbConfig.api_key, mediaType, tmdbId);
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }
   )
   .get(
     '/tmdb-details/:mediaType/:tmdbId',
-    async ({ user, set, params }) => {
+    async ({ set, params }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;
-      if (mediaType !== 'movie' && mediaType !== 'tv') {
-        return badRequest(set, 'Invalid media type');
-      }
+      if (mediaType !== 'movie' && mediaType !== 'tv') return badRequest(set, 'Invalid media type');
       const tmdbId = parseInt(tmdbIdStr, 10);
-      if (!Number.isFinite(tmdbId) || tmdbId <= 0) {
-        return badRequest(set, 'Invalid TMDB ID');
-      }
-
-      const cacheKey = `medias:tmdb-details:${mediaType}:${tmdbId}`;
-      const cached = await getJsonCache<{
-        runtime: number | null;
-        belongs_to_collection: { id: number; name: string; poster_url: string | null } | null;
-        overview: string | null;
-        vote_average: number | null;
-        number_of_seasons: number | null;
-        number_of_episodes: number | null;
-      }>(cacheKey);
-      if (cached) return cached;
-
-      const tmdbPlugin = await prisma.plugin.findFirst({
-        where: { type: 'tmdb' },
-        select: { enabled: true, config: true },
-      });
-      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
-      if (!tmdbConfig) {
-        return { runtime: null, belongs_to_collection: null, overview: null, vote_average: null, number_of_seasons: null, number_of_episodes: null };
-      }
-
-      try {
-        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}`);
-        url.searchParams.set('api_key', tmdbConfig.api_key);
-        url.searchParams.set('language', 'en-US');
-        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-        if (!res.ok) {
-          return { runtime: null, belongs_to_collection: null, overview: null, vote_average: null, number_of_seasons: null, number_of_episodes: null };
-        }
-
-        const data = (await res.json()) as Record<string, unknown>;
-        const overview = typeof data.overview === 'string' ? data.overview || null : null;
-        const vote_average = typeof data.vote_average === 'number' ? data.vote_average : null;
-
-        let runtime: number | null = null;
-        let belongs_to_collection: { id: number; name: string; poster_url: string | null } | null = null;
-        let number_of_seasons: number | null = null;
-        let number_of_episodes: number | null = null;
-
-        if (mediaType === 'movie') {
-          runtime = typeof data.runtime === 'number' ? data.runtime : null;
-          const col = data.belongs_to_collection as Record<string, unknown> | null;
-          if (col && typeof col === 'object') {
-            belongs_to_collection = {
-              id: typeof col.id === 'number' ? col.id : 0,
-              name: typeof col.name === 'string' ? col.name : '',
-              poster_url: typeof col.poster_path === 'string' && col.poster_path
-                ? `https://image.tmdb.org/t/p/w185${col.poster_path}`
-                : null,
-            };
-          }
-        } else {
-          const episodeRunTime = Array.isArray(data.episode_run_time) ? (data.episode_run_time as number[]) : [];
-          runtime = episodeRunTime.length > 0 ? episodeRunTime[0] : null;
-          number_of_seasons = typeof data.number_of_seasons === 'number' ? data.number_of_seasons : null;
-          number_of_episodes = typeof data.number_of_episodes === 'number' ? data.number_of_episodes : null;
-        }
-
-        const result = { runtime, belongs_to_collection, overview, vote_average, number_of_seasons, number_of_episodes };
-        await setJsonCache(cacheKey, result, 24 * 60 * 60);
-        return result;
-      } catch {
-        return { runtime: null, belongs_to_collection: null, overview: null, vote_average: null, number_of_seasons: null, number_of_episodes: null };
-      }
+      if (!Number.isFinite(tmdbId) || tmdbId <= 0) return badRequest(set, 'Invalid TMDB ID');
+      const tmdbConfig = await loadTmdbConfig();
+      if (!tmdbConfig) return { runtime: null, belongs_to_collection: null, overview: null, vote_average: null, number_of_seasons: null, number_of_episodes: null };
+      return fetchMediaDetails(tmdbConfig.api_key, mediaType, tmdbId);
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }
   )
@@ -1007,183 +820,28 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
       const tmdbId = parseInt(tmdbIdStr, 10);
       if (!Number.isFinite(tmdbId) || tmdbId <= 0) return badRequest(set, 'Invalid TMDB ID');
 
-      const typedQuery = queryParams as Record<string, string | undefined>;
-      const region = (typedQuery.region?.toUpperCase()) || 'CA';
+      const region = ((queryParams as Record<string, string | undefined>).region?.toUpperCase()) || 'CA';
 
-      const LOGO_BASE = 'https://image.tmdb.org/t/p/w92';
-
-      // Check all caches + watchlist in parallel
-      const [cachedTrailer, cachedRatings, cachedCredits, cachedDetails, cachedProviders, watchlistItem] =
-        await Promise.all([
-          getJsonCache<{ key: string | null; name: string | null }>(`medias:trailer:${mediaType}:${tmdbId}`),
-          getJsonCache<{ imdb_rating: string | null; rotten_tomatoes: string | null; metacritic: string | null }>(`medias:ratings:${mediaType}:${tmdbId}`),
-          getJsonCache<{ cast: unknown[]; directors: string[] }>(`medias:credits:${mediaType}:${tmdbId}`),
-          getJsonCache<{ runtime: number | null; belongs_to_collection: unknown; overview: string | null; vote_average: number | null; number_of_seasons: number | null; number_of_episodes: number | null }>(`medias:tmdb-details:${mediaType}:${tmdbId}`),
-          getJsonCache<TmdbWatchProvidersResult>(`medias:providers:${mediaType}:${tmdbId}:${region}`),
-          prisma.watchlistItem.findUnique({
-            where: { userId_tmdbId_mediaType: { userId: user!.id, tmdbId, mediaType } },
-            select: { id: true },
-          }),
-        ]);
-
-      const watchlistStatus = watchlistItem !== null;
-      const watchlistId = watchlistItem?.id ?? null;
-
-      const allCached = cachedTrailer && cachedRatings && cachedCredits && cachedDetails && cachedProviders;
-
-      if (allCached) {
-        return {
-          watchlist_status: watchlistStatus,
-          watchlist_id: watchlistId,
-          trailer: cachedTrailer,
-          ratings: cachedRatings,
-          credits: cachedCredits,
-          details: cachedDetails,
-          providers: cachedProviders,
-        };
-      }
-
-      const tmdbPlugin = await prisma.plugin.findFirst({
-        where: { type: 'tmdb' },
-        select: { enabled: true, config: true },
-      });
-      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      const [tmdbConfig, watchlistItem] = await Promise.all([
+        loadTmdbConfig(),
+        prisma.watchlistItem.findUnique({
+          where: { userId_tmdbId_mediaType: { userId: user!.id, tmdbId, mediaType } },
+          select: { id: true },
+        }),
+      ]);
       if (!tmdbConfig) return badRequest(set, 'TMDB is not configured');
 
-      const fetchTmdb = async (path: string) => {
-        const url = new URL(`https://api.themoviedb.org/3/${path}`);
-        url.searchParams.set('api_key', tmdbConfig.api_key);
-        url.searchParams.set('language', 'en-US');
-        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-        if (!res.ok) return null;
-        return res.json() as Promise<Record<string, unknown>>;
-      };
-
-      const [trailerData, ratingsData, creditsData, detailsData, providersData] = await Promise.all([
-        cachedTrailer ? Promise.resolve(null) : fetchTmdb(`${mediaType}/${tmdbId}/videos`),
-        cachedRatings ? Promise.resolve(null) : (async () => {
-          // Ratings need IMDB ID first, then OMDB
-          const omdbKey = Bun.env.OMDB_API_KEY;
-          if (!omdbKey) return null;
-          const extData = await fetchTmdb(`${mediaType}/${tmdbId}/external_ids`);
-          const imdbId = typeof extData?.imdb_id === 'string' ? extData.imdb_id : null;
-          if (!imdbId) return null;
-          const omdbUrl = new URL('https://www.omdbapi.com/');
-          omdbUrl.searchParams.set('i', imdbId);
-          omdbUrl.searchParams.set('apikey', omdbKey);
-          const res = await fetch(omdbUrl.toString(), { headers: { Accept: 'application/json' } });
-          if (!res.ok) return null;
-          return res.json() as Promise<Record<string, unknown>>;
-        })(),
-        cachedCredits ? Promise.resolve(null) : fetchTmdb(`${mediaType}/${tmdbId}/credits`),
-        cachedDetails ? Promise.resolve(null) : fetchTmdb(`${mediaType}/${tmdbId}`),
-        cachedProviders ? Promise.resolve(null) : fetchTmdb(`${mediaType}/${tmdbId}/watch/providers`),
+      const [trailer, ratings, credits, details, providers] = await Promise.all([
+        fetchTrailer(tmdbConfig.api_key, mediaType, tmdbId),
+        fetchRatings(tmdbConfig.api_key, mediaType, tmdbId),
+        fetchCredits(tmdbConfig.api_key, mediaType, tmdbId),
+        fetchMediaDetails(tmdbConfig.api_key, mediaType, tmdbId),
+        fetchWatchProviders(tmdbConfig.api_key, mediaType, tmdbId, region),
       ]);
 
-      // Build trailer
-      let trailer = cachedTrailer;
-      if (!trailer) {
-        const results = Array.isArray(trailerData?.results) ? (trailerData!.results as Record<string, unknown>[]) : [];
-        const youtube = results.filter(v => v.site === 'YouTube');
-        const pick = youtube.find(v => v.official && v.type === 'Trailer') ?? youtube.find(v => v.official && v.type === 'Teaser') ?? youtube.find(v => v.type === 'Trailer') ?? youtube[0] ?? null;
-        trailer = { key: pick ? toStringOrNull(pick.key) : null, name: pick ? toStringOrNull(pick.name) : null };
-        await setJsonCache(`medias:trailer:${mediaType}:${tmdbId}`, trailer, 24 * 60 * 60);
-      }
-
-      // Build ratings
-      let ratings = cachedRatings;
-      if (!ratings) {
-        const d = ratingsData as Record<string, unknown> | null;
-        if (!d || d.Response === 'False') {
-          ratings = { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
-        } else {
-          const rArr = Array.isArray(d.Ratings) ? (d.Ratings as { Source: string; Value: string }[]) : [];
-          const rtRaw = rArr.find(r => r.Source === 'Rotten Tomatoes')?.Value ?? null;
-          const mcRaw = rArr.find(r => r.Source === 'Metacritic')?.Value?.replace('/100', '') ?? null;
-          ratings = {
-            imdb_rating: typeof d.imdbRating === 'string' && d.imdbRating !== 'N/A' ? d.imdbRating : null,
-            rotten_tomatoes: rtRaw && rtRaw !== 'N/A' && rtRaw !== '0%' ? rtRaw : null,
-            metacritic: mcRaw && mcRaw !== 'N/A' && mcRaw !== '0' ? mcRaw : null,
-          };
-        }
-        await setJsonCache(`medias:ratings:${mediaType}:${tmdbId}`, ratings, 24 * 60 * 60);
-      }
-
-      // Build credits
-      let credits = cachedCredits;
-      if (!credits) {
-        const castArr = Array.isArray(creditsData?.cast) ? (creditsData!.cast as Record<string, unknown>[]) : [];
-        const crewArr = Array.isArray(creditsData?.crew) ? (creditsData!.crew as Record<string, unknown>[]) : [];
-        credits = {
-          cast: castArr.slice(0, 10).map(m => ({
-            id: typeof m.id === 'number' ? m.id : 0,
-            name: typeof m.name === 'string' ? m.name : '',
-            character: typeof m.character === 'string' ? m.character : null,
-            profile_url: typeof m.profile_path === 'string' && m.profile_path ? `https://image.tmdb.org/t/p/w185${m.profile_path}` : null,
-          })),
-          directors: crewArr.filter(m => m.job === 'Director').map(m => typeof m.name === 'string' ? m.name : '').filter(Boolean),
-        };
-        await setJsonCache(`medias:credits:${mediaType}:${tmdbId}`, credits, 24 * 60 * 60);
-      }
-
-      // Build details
-      let details = cachedDetails;
-      if (!details) {
-        const d = detailsData ?? {};
-        const overview = typeof d.overview === 'string' ? d.overview || null : null;
-        const vote_average = typeof d.vote_average === 'number' ? d.vote_average : null;
-        let runtime: number | null = null;
-        let belongs_to_collection = null;
-        let number_of_seasons: number | null = null;
-        let number_of_episodes: number | null = null;
-        if (mediaType === 'movie') {
-          runtime = typeof d.runtime === 'number' ? d.runtime : null;
-          const col = d.belongs_to_collection as Record<string, unknown> | null;
-          if (col && typeof col === 'object') {
-            belongs_to_collection = { id: typeof col.id === 'number' ? col.id : 0, name: typeof col.name === 'string' ? col.name : '', poster_url: typeof col.poster_path === 'string' && col.poster_path ? `https://image.tmdb.org/t/p/w185${col.poster_path}` : null };
-          }
-        } else {
-          const episodeRunTime = Array.isArray(d.episode_run_time) ? (d.episode_run_time as number[]) : [];
-          runtime = episodeRunTime.length > 0 ? episodeRunTime[0] : null;
-          number_of_seasons = typeof d.number_of_seasons === 'number' ? d.number_of_seasons : null;
-          number_of_episodes = typeof d.number_of_episodes === 'number' ? d.number_of_episodes : null;
-        }
-        details = { runtime, belongs_to_collection, overview, vote_average, number_of_seasons, number_of_episodes };
-        await setJsonCache(`medias:tmdb-details:${mediaType}:${tmdbId}`, details, 24 * 60 * 60);
-      }
-
-      // Build providers
-      let providers = cachedProviders;
-      if (!providers) {
-        const results = toRecord(providersData?.results);
-        const regionData = toRecord(results?.[region]);
-        const mapProviders = (raw: unknown[]): TmdbProvider[] => {
-          const seen = new Set<number>();
-          return raw.map(item => {
-            const p = toRecord(item);
-            if (!p) return null;
-            const id = typeof p.provider_id === 'number' ? Math.trunc(p.provider_id) : null;
-            const name = toStringOrNull(p.provider_name);
-            const logoPath = toStringOrNull(p.logo_path);
-            if (!id || !name || !logoPath || seen.has(id)) return null;
-            seen.add(id);
-            return { id, name, logo_url: `${LOGO_BASE}${logoPath}` };
-          }).filter((p): p is TmdbProvider => p !== null);
-        };
-        providers = {
-          region,
-          streaming: regionData ? mapProviders(Array.isArray(regionData.flatrate) ? (regionData.flatrate as unknown[]) : []) : [],
-          free: regionData ? mapProviders(Array.isArray(regionData.free) ? (regionData.free as unknown[]) : []) : [],
-          rent: regionData ? mapProviders(Array.isArray(regionData.rent) ? (regionData.rent as unknown[]) : []) : [],
-          buy: regionData ? mapProviders(Array.isArray(regionData.buy) ? (regionData.buy as unknown[]) : []) : [],
-          link: regionData ? toStringOrNull(regionData.link) : null,
-        };
-        await setJsonCache(`medias:providers:${mediaType}:${tmdbId}:${region}`, providers, 6 * 60 * 60);
-      }
-
       return {
-        watchlist_status: watchlistStatus,
-        watchlist_id: watchlistId,
+        watchlist_status: watchlistItem !== null,
+        watchlist_id: watchlistItem?.id ?? null,
         trailer,
         ratings,
         credits,
@@ -1195,82 +853,15 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
   )
   .get(
     '/providers/:mediaType/:tmdbId',
-    async ({ user, set, params, query: queryParams }) => {
+    async ({ set, params, query: queryParams }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;
-      if (mediaType !== 'movie' && mediaType !== 'tv') {
-        return badRequest(set, 'Invalid media type');
-      }
-
+      if (mediaType !== 'movie' && mediaType !== 'tv') return badRequest(set, 'Invalid media type');
       const tmdbId = parseInt(tmdbIdStr, 10);
-      if (!Number.isFinite(tmdbId) || tmdbId <= 0) {
-        return badRequest(set, 'Invalid TMDB ID');
-      }
-
-      const typedQuery = queryParams as Record<string, string | undefined>;
-      const region = typedQuery.region?.toUpperCase() || 'CA';
-      const cacheKey = `medias:providers:${mediaType}:${tmdbId}:${region}`;
-
-      const cached = await getJsonCache<TmdbWatchProvidersResult>(cacheKey);
-      if (cached) return cached;
-
-      const tmdbPlugin = await prisma.plugin.findFirst({
-        where: { type: 'tmdb' },
-        select: { enabled: true, config: true },
-      });
-
-      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
-      if (!tmdbConfig) {
-        return { region, streaming: [], free: [], rent: [], buy: [], link: null };
-      }
-
-      try {
-        const LOGO_BASE = 'https://image.tmdb.org/t/p/w92';
-
-        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/watch/providers`);
-        url.searchParams.set('api_key', tmdbConfig.api_key);
-        const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-        if (!response.ok) {
-          return { region, streaming: [], free: [], rent: [], buy: [], link: null };
-        }
-
-        const data = (await response.json()) as Record<string, unknown>;
-        const results = toRecord(data.results);
-        const regionData = toRecord(results?.[region]);
-
-        const mapProviders = (raw: unknown[]): TmdbProvider[] => {
-          const seen = new Set<number>();
-          return raw
-            .map(item => {
-              const p = toRecord(item);
-              if (!p) return null;
-              const id = typeof p.provider_id === 'number' ? Math.trunc(p.provider_id) : null;
-              const name = toStringOrNull(p.provider_name);
-              const logoPath = toStringOrNull(p.logo_path);
-              if (!id || !name || !logoPath || seen.has(id)) return null;
-              seen.add(id);
-              return { id, name, logo_url: `${LOGO_BASE}${logoPath}` };
-            })
-            .filter((p): p is TmdbProvider => p !== null);
-        };
-
-        const result: TmdbWatchProvidersResult = {
-          region,
-          streaming: regionData
-            ? mapProviders(Array.isArray(regionData.flatrate) ? (regionData.flatrate as unknown[]) : [])
-            : [],
-          free: regionData ? mapProviders(Array.isArray(regionData.free) ? (regionData.free as unknown[]) : []) : [],
-          rent: regionData ? mapProviders(Array.isArray(regionData.rent) ? (regionData.rent as unknown[]) : []) : [],
-          buy: regionData ? mapProviders(Array.isArray(regionData.buy) ? (regionData.buy as unknown[]) : []) : [],
-          link: regionData ? toStringOrNull(regionData.link) : null,
-        };
-
-        await setJsonCache(cacheKey, result, 6 * 60 * 60);
-        return result;
-      } catch {
-        return { region, streaming: [], free: [], rent: [], buy: [], link: null };
-      }
+      if (!Number.isFinite(tmdbId) || tmdbId <= 0) return badRequest(set, 'Invalid TMDB ID');
+      const region = ((queryParams as Record<string, string | undefined>).region?.toUpperCase()) || 'CA';
+      const tmdbConfig = await loadTmdbConfig();
+      if (!tmdbConfig) return { region, streaming: [], free: [], rent: [], buy: [], link: null };
+      return fetchWatchProviders(tmdbConfig.api_key, mediaType, tmdbId, region);
     },
-    {
-      params: t.Object({ mediaType: t.String(), tmdbId: t.String() }),
-    }
+    { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }
   );
