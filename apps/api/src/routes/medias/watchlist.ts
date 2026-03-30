@@ -40,8 +40,8 @@ export const mediasWatchlistRoutes = new Elysia({ prefix: '/api/medias/watchlist
       try {
         const item = await prisma.watchlistItem.upsert({
           where: {
-            uq_watchlist_user_tmdb_type: {
-              userId: user.id,
+            userId_tmdbId_mediaType: {
+              userId: user!.id,
               tmdbId: body.tmdb_id,
               mediaType: body.media_type,
             },
