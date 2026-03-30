@@ -10,12 +10,13 @@ interface DialogProps {
   title: string;
   children: ReactNode;
   showCloseButton?: boolean;
+  hideTitle?: boolean;
   panelClassName?: string;
 }
 
 const PORTAL_ID = 'hously-dialog-root';
 
-export function Dialog({ isOpen, onClose, title, children, showCloseButton = true, panelClassName }: DialogProps) {
+export function Dialog({ isOpen, onClose, title, children, showCloseButton = true, hideTitle = false, panelClassName }: DialogProps) {
   return createPortal(
     <Transition appear show={isOpen} as={Fragment}>
       <HeadlessDialog as="div" className="fixed inset-0 z-[var(--z-modal)]" onClose={onClose}>
@@ -48,10 +49,10 @@ export function Dialog({ isOpen, onClose, title, children, showCloseButton = tru
                   panelClassName
                 )}
               >
-                <div className={cn("py-4 flex shrink-0 items-start justify-between gap-4", panelClassName?.includes('p-0') ? 'px-6' : '')}>
+                <div className={cn("pb-2 flex shrink-0 items-start justify-between gap-4", panelClassName?.includes('p-0') ? 'py-4 px-6' : '')}>
                   <DialogTitle
                     as="h3"
-                    className="text-lg font-medium leading-6 text-neutral-900 dark:text-white"
+                    className={cn("text-lg font-medium leading-6 text-neutral-900 dark:text-white", hideTitle && "sr-only")}
                   >
                     {title}
                   </DialogTitle>

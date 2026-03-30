@@ -136,7 +136,7 @@ export function ExploreCardDetailDialog({
   );
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={item.title} panelClassName="max-w-3xl">
+    <Dialog isOpen={isOpen} onClose={onClose} title={item.title} hideTitle panelClassName="max-w-3xl">
 
       {/* ── Hero: poster + compact meta ───────────────────────────── */}
       <div className="flex gap-4 py-1 pb-4">
@@ -158,6 +158,11 @@ export function ExploreCardDetailDialog({
 
         {/* Meta column */}
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
+
+          {/* Title */}
+          <h2 className="text-xl font-semibold leading-snug text-neutral-900 dark:text-white">
+            {item.title}
+          </h2>
 
           {/* Type + year + runtime */}
           <div className="flex flex-wrap items-center gap-1.5">
