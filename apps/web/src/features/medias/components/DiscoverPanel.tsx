@@ -311,38 +311,28 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
 
       {/* ── Results grid ────────────────────────────────────── */}
       <div className="relative min-h-48">
-        {/* Fetching overlay */}
-        {isFetching && !isLoading && (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-end justify-center pb-6">
-            <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-neutral-900/80 px-3 py-1.5 text-xs text-neutral-400 backdrop-blur-sm">
-              <div className="h-3 w-3 animate-spin rounded-full border border-indigo-400 border-t-transparent" />
-              Loading
-            </div>
-          </div>
-        )}
-
-        {/* Skeleton */}
-        {isLoading && (
-          <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6">
+        {/* Skeleton — shown on initial load AND page navigation */}
+        {isFetching && (
+          <div className="grid grid-cols-6 gap-3">
             {Array.from({ length: 36 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[2/3] animate-pulse rounded-2xl bg-white/[0.05]"
-                style={{ animationDelay: `${i * 30}ms` }}
+                className="aspect-[2/3] animate-pulse rounded-2xl bg-white/[0.06]"
+                style={{ animationDelay: `${i * 20}ms` }}
               />
             ))}
           </div>
         )}
 
         {/* Empty */}
-        {!isLoading && data?.items.length === 0 && (
+        {!isFetching && data?.items.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-2 py-16">
             <p className="text-sm text-neutral-500">{t('medias.discover.noResults')}</p>
           </div>
         )}
 
         {/* Cards */}
-        {!isLoading && (data?.items.length ?? 0) > 0 && (
+        {!isFetching && (data?.items.length ?? 0) > 0 && (
           <div
             key={gridKey}
             className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6"
