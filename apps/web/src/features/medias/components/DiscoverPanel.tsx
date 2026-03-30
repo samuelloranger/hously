@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDiscoverMedias, useMediaGenres, useStreamingProviders } from '@hously/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -81,6 +81,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
   const [sortBy, setSortBy] = useState('popularity.desc');
   const [page, setPage] = useState(1);
   const [originalLanguage, setOriginalLanguage] = useState<string | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const activeProviderColor = providerId ? (PROVIDER_COLORS[providerId] ?? '#6366f1') : null;
 
@@ -136,12 +137,16 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
     setPage(1);
   }
 
+  function scrollToSection() {
+    sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   const totalPages = data?.total_pages ?? 1;
   const totalResults = data?.total_results;
   const gridKey = `${mediaType}-${providerId}-${genreId}-${sortBy}-${originalLanguage}-${page}`;
 
   return (
-    <section className="relative space-y-6">
+    <section ref={sectionRef} className="relative space-y-6">
       {/* Ambient provider glow */}
       <div
         aria-hidden
@@ -360,7 +365,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         <div className="flex items-center justify-center gap-2">
           <button
             type="button"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
+            onClick={() => { setPage(p => Math.max(1, p - 1)); scrollToSection(); }}
             disabled={page === 1 || isFetching}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
           >
@@ -371,7 +376,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
             {/* First page shortcut */}
             {page > 3 && (
               <>
-                <PageDot n={1} current={page} onClick={() => setPage(1)} />
+                <PageDot n={1} current={page} onClick={() => { setPage(1); scrollToSection(); }} />
                 {page > 4 && <span className="px-0.5 text-xs text-neutral-600">…</span>}
               </>
             )}
@@ -380,20 +385,20 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
               const start = Math.max(1, Math.min(page - 2, totalPages - 4));
               return start + i;
             }).map(n => (
-              <PageDot key={n} n={n} current={page} onClick={() => setPage(n)} />
+              <PageDot key={n} n={n} current={page} onClick={() => { setPage(n); scrollToSection(); }} />
             ))}
             {/* Last page shortcut */}
             {page < totalPages - 2 && (
               <>
                 {page < totalPages - 3 && <span className="px-0.5 text-xs text-neutral-600">…</span>}
-                <PageDot n={totalPages} current={page} onClick={() => setPage(totalPages)} />
+                <PageDot n={totalPages} current={page} onClick={() => { setPage(totalPages); scrollToSection(); }} />
               </>
             )}
           </div>
 
           <button
             type="button"
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            onClick={() => { setPage(p => Math.min(totalPages, p + 1)); scrollToSection(); }}
             disabled={page === totalPages || isFetching}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
           >
