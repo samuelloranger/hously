@@ -2,15 +2,13 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useAddUpcomingToArr,
-  useMediaRatings,
-  useTmdbCredits,
-  useTmdbMediaDetails,
-  useTmdbTrailer,
-  useTmdbWatchProviders,
+  useAddToWatchlist,
+  useMediaModalData,
+  useRemoveFromWatchlist,
   type MediaItem,
   type TmdbMediaSearchItem,
 } from '@hously/shared';
-import { Check, Clock, ExternalLink, Film, Info, Play, Plus, Search, Sparkles, Star } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Check, Clock, ExternalLink, Film, Info, Play, Plus, Search, Sparkles, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog } from '@/components/dialog';
 import { cn } from '@/lib/utils';
@@ -66,12 +64,18 @@ export function ExploreCardDetailDialog({
   const [searchOnAdd, setSearchOnAdd] = useState(true);
   const [imageError, setImageError] = useState(false);
 
-  const addMutation = useAddUpcomingToArr();
-  const { data: providers }    = useTmdbWatchProviders(item.media_type, item.tmdb_id, undefined, { enabled: isOpen });
-  const { data: trailerData }  = useTmdbTrailer(item.media_type, item.tmdb_id, { enabled: isOpen });
-  const { data: ratingsData }  = useMediaRatings(item.media_type, item.tmdb_id, { enabled: isOpen });
-  const { data: creditsData }  = useTmdbCredits(item.media_type, item.tmdb_id, { enabled: isOpen && activeTab === 'info' });
-  const { data: detailsData }  = useTmdbMediaDetails(item.media_type, item.tmdb_id, { enabled: isOpen && activeTab === 'info' });
+  const addMutation         = useAddUpcomingToArr();
+  const addToWatchlist      = useAddToWatchlist();
+  const removeFromWatchlist = useRemoveFromWatchlist();
+
+  const { data: modalData } = useMediaModalData(item.media_type, item.tmdb_id, undefined, { enabled: isOpen });
+
+  const isInWatchlist = modalData?.watchlist_status ?? false;
+  const providers     = modalData?.providers ?? null;
+  const trailerData   = modalData?.trailer ?? null;
+  const ratingsData   = modalData?.ratings ?? null;
+  const creditsData   = modalData?.credits ?? null;
+  const detailsData   = modalData?.details ?? null;
 
   const canSearch = item.already_exists && item.source_id !== null;
   const hasTmdbId = item.tmdb_id > 0;
@@ -95,6 +99,22 @@ export function ExploreCardDetailDialog({
       onAdded();
     } catch {
       toast.error(t('medias.addFailed'));
+    }
+  };
+
+  const handleWatchlistToggle = async () => {
+    if (isInWatchlist) {
+      await removeFromWatchlist.mutateAsync({ tmdb_id: item.tmdb_id, media_type: item.media_type });
+    } else {
+      await addToWatchlist.mutateAsync({
+        tmdb_id: item.tmdb_id,
+        media_type: item.media_type,
+        title: item.title,
+        poster_url: item.poster_url,
+        overview: item.overview,
+        release_year: item.release_year,
+        vote_average: item.vote_average,
+      });
     }
   };
 
@@ -206,33 +226,118 @@ export function ExploreCardDetailDialog({
             </p>
           )}
 
-          {/* Library status + collection */}
-          <div className="flex flex-wrap items-center gap-2">
-            {item.already_exists && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                <Check size={9} /> {t('medias.detail.inLibrary')}
-              </span>
-            )}
-            {collection && (
+          {/* Collection */}
+          {collection && (
+            <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex min-w-0 items-center gap-1 rounded-full border border-indigo-500/25 bg-indigo-500/8 px-2 py-0.5 text-[10px] font-medium text-indigo-600 dark:text-indigo-400">
                 <span className="shrink-0">{t('medias.detail.partOfCollection', 'Part of')}</span>
                 <span className="truncate">{collection.name}</span>
               </span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── Tab pills (no border-bottom trick, no overflow-x-auto) ── */}
+      {/* ── Actions bar (above tabs) ──────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-2 border-y border-neutral-200 dark:border-neutral-700/60 py-2.5 mb-4">
+        {/* Watchlist toggle */}
+        <button
+          type="button"
+          onClick={handleWatchlistToggle}
+          disabled={addToWatchlist.isPending || removeFromWatchlist.isPending}
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-[background-color,color] disabled:opacity-50',
+            isInWatchlist
+              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'
+              : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700'
+          )}
+        >
+          {isInWatchlist ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
+          {isInWatchlist ? t('medias.detail.inWatchlist', 'Watchlist ✓') : t('medias.detail.addToWatchlist', 'Watchlist')}
+        </button>
+
+        {/* TMDB link */}
+        <a
+          href={tmdbUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600/10 px-3 py-1.5 text-xs font-medium text-sky-700 transition-[background-color] hover:bg-sky-600/20 dark:text-sky-400"
+        >
+          <ExternalLink size={12} />
+          TMDB
+        </a>
+
+        {/* Trailer link */}
+        {trailerData?.key && (
+          <a
+            href={`https://www.youtube.com/watch?v=${trailerData.key}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/10 px-3 py-1.5 text-xs font-medium text-red-700 transition-[background-color] hover:bg-red-600/20 dark:text-red-400"
+          >
+            <Play size={12} />
+            {t('medias.detail.watchTrailer')}
+          </a>
+        )}
+
+        {/* Arr link */}
+        {item.arr_url && (
+          <a
+            href={item.arr_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600/10 px-3 py-1.5 text-xs font-medium text-amber-700 transition-[background-color] hover:bg-amber-600/20 dark:text-amber-400"
+          >
+            <ExternalLink size={12} />
+            {serviceName}
+          </a>
+        )}
+
+        <div className="flex-1" />
+
+        {/* Add to library — primary CTA */}
+        {!item.already_exists && item.can_add && (
+          <div className="flex items-center gap-2">
+            <label className="flex cursor-pointer select-none items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+              <input
+                type="checkbox"
+                checked={searchOnAdd}
+                onChange={e => setSearchOnAdd(e.target.checked)}
+                className="rounded border-neutral-300 text-indigo-600 focus:ring-indigo-500 dark:border-neutral-600"
+              />
+              {t('medias.detail.searchOnAdd')}
+            </label>
+            <button
+              onClick={handleAdd}
+              disabled={addMutation.isPending}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color] hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50"
+            >
+              {addMutation.isPending
+                ? <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                : <Plus size={12} />}
+              {t('medias.detail.addToLibrary')}
+            </button>
+          </div>
+        )}
+
+        {/* Already in library */}
+        {item.already_exists && (
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <Check size={12} /> {t('medias.detail.inLibrary')}
+          </span>
+        )}
+      </div>
+
+      {/* ── Tab pills ─────────────────────────────────────────────── */}
       {tabs.length > 1 && (
-        <div className="flex gap-1 border-y border-neutral-200 dark:border-neutral-700/60 py-2 mb-4">
+        <div className="flex gap-1 mb-4">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               type="button"
               onClick={() => setActiveTab(key)}
               className={cn(
-                'flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-150',
+                'flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-[background-color,color] duration-150',
                 validTab === key
                   ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
                   : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-300'
@@ -334,67 +439,6 @@ export function ExploreCardDetailDialog({
             </div>
           )}
 
-          {/* Links + action */}
-          <div className="flex flex-col gap-3 border-t border-neutral-200 dark:border-neutral-700/60 pt-4">
-            <div className="flex flex-wrap gap-2">
-              <a
-                href={tmdbUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600/10 px-3 py-1.5 text-xs font-medium text-sky-700 transition-colors hover:bg-sky-600/20 dark:text-sky-400"
-              >
-                <ExternalLink size={12} />
-                {t('medias.detail.viewOnTmdb')}
-              </a>
-              {trailerData?.key && (
-                <a
-                  href={`https://www.youtube.com/watch?v=${trailerData.key}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/10 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-600/20 dark:text-red-400"
-                >
-                  <Play size={12} />
-                  {t('medias.detail.watchTrailer')}
-                </a>
-              )}
-              {item.arr_url && (
-                <a
-                  href={item.arr_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600/10 px-3 py-1.5 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-600/20 dark:text-amber-400"
-                >
-                  <ExternalLink size={12} />
-                  {t('medias.detail.viewInArr', { service: serviceName })}
-                </a>
-              )}
-            </div>
-
-            {/* Add to library */}
-            {!item.already_exists && item.can_add && (
-              <div className="flex flex-col gap-2">
-                <label className="flex cursor-pointer select-none items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-                  <input
-                    type="checkbox"
-                    checked={searchOnAdd}
-                    onChange={e => setSearchOnAdd(e.target.checked)}
-                    className="rounded border-neutral-300 text-indigo-600 focus:ring-indigo-500 dark:border-neutral-600"
-                  />
-                  {t('medias.detail.searchOnAdd')}
-                </label>
-                <button
-                  onClick={handleAdd}
-                  disabled={addMutation.isPending}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50"
-                >
-                  {addMutation.isPending
-                    ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    : <Plus size={15} />}
-                  {t('medias.detail.addToLibrary')}
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       )}
 

@@ -146,6 +146,8 @@ export const queryKeys = {
     tmdbDetails: (mediaType: 'movie' | 'tv', tmdbId: number) =>
       [...queryKeys.medias.all, 'tmdb-details', mediaType, tmdbId] as const,
     watchlist: () => [...queryKeys.medias.all, 'watchlist'] as const,
+    modalData: (mediaType: 'movie' | 'tv', tmdbId: number, region?: string) =>
+      [...queryKeys.medias.all, 'modal', mediaType, tmdbId, region ?? 'CA'] as const,
     discover: (params: {
       type: 'movie' | 'tv';
       provider_id?: number | null;

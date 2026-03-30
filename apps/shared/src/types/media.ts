@@ -221,3 +221,13 @@ export interface WatchlistItem {
 export interface WatchlistResponse {
   items: WatchlistItem[];
 }
+
+export interface MediaModalDataResponse {
+  watchlist_status: boolean;
+  watchlist_id: number | null;
+  trailer: TmdbTrailerResponse;
+  ratings: MediaRatingsResponse;
+  credits: TmdbCreditsResponse;
+  details: TmdbMediaDetailsResponse;
+  providers: TmdbWatchProvidersResponse;
+}

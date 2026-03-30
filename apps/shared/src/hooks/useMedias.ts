@@ -10,6 +10,7 @@ import type {
   MediaDeleteResponse,
   MediaInteractiveDownloadResponse,
   MediaInteractiveSearchResponse,
+  MediaModalDataResponse,
   MediaRatingsResponse,
   MediasResponse,
   SimilarMediasResponse,
@@ -284,6 +285,22 @@ export function useMediaDelete() {
   });
 }
 
+export function useMediaModalData(
+  mediaType: 'movie' | 'tv' | null,
+  tmdbId: number | null,
+  region?: string,
+  options?: { enabled?: boolean }
+) {
+  const fetcher = useFetcher();
+  const isEnabled = (options?.enabled ?? true) && mediaType !== null && tmdbId !== null && tmdbId > 0;
+  return useQuery({
+    queryKey: queryKeys.medias.modalData(mediaType ?? 'movie', tmdbId ?? 0, region),
+    queryFn: () => fetcher<MediaModalDataResponse>(MEDIAS_ENDPOINTS.MODAL_DATA(mediaType!, tmdbId!, region)),
+    enabled: isEnabled,
+    staleTime: 60 * 1000, // 1 min — watchlist status is user-specific
+  });
+}
+
 export function useWatchlist(options?: { enabled?: boolean }) {
   const fetcher = useFetcher();
   return useQuery({
@@ -310,8 +327,11 @@ export function useAddToWatchlist() {
         method: 'POST',
         body: data,
       }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.watchlist() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.medias.modalData(variables.media_type, variables.tmdb_id),
+      });
     },
   });
 }
@@ -324,8 +344,11 @@ export function useRemoveFromWatchlist() {
       fetcher<{ success: boolean }>(MEDIAS_ENDPOINTS.WATCHLIST_REMOVE(tmdb_id, media_type), {
         method: 'DELETE',
       }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.watchlist() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.medias.modalData(variables.media_type, variables.tmdb_id),
+      });
     },
   });
 }
