@@ -8,6 +8,7 @@ import {
   type MediaFilter,
   type MediaSortKey as SortKey,
   type MediaSortDir as SortDir,
+  type TmdbMediaSearchItem,
 } from '@hously/shared';
 import { EmptyState } from '@/components/EmptyState';
 import { MediaPosterCard } from '@/components/MediaPosterCard';
@@ -15,9 +16,8 @@ import { ArrowDownAZ, ArrowUpZA, Search, X, LayoutGrid, Grid3X3, ChevronLeft, Ch
 import { cn } from '@/lib/utils';
 
 import { useModalSearchParams } from '@/hooks/useModalSearchParams';
-import { MediaInfoDialog } from './c411/MediaInfoDialog';
+import { ExploreCardDetailDialog, type TabKey } from './ExploreCardDetailDialog';
 import type { LibrarySearchParams } from '@/router';
-import type { TabKey } from './c411/MediaInfoDialog';
 import { usePersistentState } from '@/hooks/usePersistentState';
 
 function mediaKey(item: MediaItem) {
@@ -94,9 +94,28 @@ export function MediasLibrary() {
   const openMedia = (item: MediaItem, tab?: TabKey) => {
     setParams({
       current_media_id: mediaKey(item),
-      current_media_tab: tab ?? 'search',
+      current_media_tab: tab ?? 'info',
     });
   };
+
+  const currentMediaAsSearchItem = useMemo((): TmdbMediaSearchItem | null => {
+    if (!currentMediaItem) return null;
+    return {
+      id: currentMediaItem.id,
+      tmdb_id: currentMediaItem.tmdb_id ?? 0,
+      media_type: currentMediaItem.media_type === 'series' ? 'tv' : 'movie',
+      title: currentMediaItem.title,
+      release_year: currentMediaItem.year,
+      poster_url: currentMediaItem.poster_url,
+      overview: null,
+      vote_average: null,
+      service: currentMediaItem.service,
+      already_exists: true,
+      can_add: false,
+      source_id: currentMediaItem.source_id,
+      arr_url: currentMediaItem.arr_url,
+    };
+  }, [currentMediaItem]);
 
   // Handle scrolling to media from search params
   useEffect(() => {
@@ -463,14 +482,16 @@ export function MediasLibrary() {
         )}
       </div>
 
-      <MediaInfoDialog
-        isOpen={Boolean(currentMediaItem)}
-        media={currentMediaItem}
-        onClose={() => resetParams(['current_media_id', 'current_media_tab'])}
-        activeTab={(searchParams.current_media_tab as TabKey) || 'search'}
-        onTabChange={tab => setParams({ current_media_tab: tab })}
-        onRefetchLibrary={refetch}
-      />
+      {currentMediaAsSearchItem && (
+        <ExploreCardDetailDialog
+          isOpen={Boolean(currentMediaItem)}
+          item={currentMediaAsSearchItem}
+          onClose={() => resetParams(['current_media_id', 'current_media_tab'])}
+          onAdded={refetch}
+          defaultTab={((searchParams.current_media_tab as TabKey) || 'info')}
+          onRefetchLibrary={refetch}
+        />
+      )}
     </div>
   );
 }

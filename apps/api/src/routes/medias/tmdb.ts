@@ -866,6 +866,140 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }
   )
   .get(
+    '/credits/:mediaType/:tmdbId',
+    async ({ user, set, params }) => {
+      const { mediaType, tmdbId: tmdbIdStr } = params;
+      if (mediaType !== 'movie' && mediaType !== 'tv') {
+        return badRequest(set, 'Invalid media type');
+      }
+      const tmdbId = parseInt(tmdbIdStr, 10);
+      if (!Number.isFinite(tmdbId) || tmdbId <= 0) {
+        return badRequest(set, 'Invalid TMDB ID');
+      }
+
+      const cacheKey = `medias:credits:${mediaType}:${tmdbId}`;
+      const cached = await getJsonCache<{ cast: unknown[]; directors: string[] }>(cacheKey);
+      if (cached) return cached;
+
+      const tmdbPlugin = await prisma.plugin.findFirst({
+        where: { type: 'tmdb' },
+        select: { enabled: true, config: true },
+      });
+      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      if (!tmdbConfig) return { cast: [], directors: [] };
+
+      try {
+        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/credits`);
+        url.searchParams.set('api_key', tmdbConfig.api_key);
+        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+        if (!res.ok) return { cast: [], directors: [] };
+
+        const data = (await res.json()) as Record<string, unknown>;
+        const castArr = Array.isArray(data.cast) ? (data.cast as Record<string, unknown>[]) : [];
+        const crewArr = Array.isArray(data.crew) ? (data.crew as Record<string, unknown>[]) : [];
+
+        const cast = castArr.slice(0, 10).map(member => ({
+          id: typeof member.id === 'number' ? member.id : 0,
+          name: typeof member.name === 'string' ? member.name : '',
+          character: typeof member.character === 'string' ? member.character : null,
+          profile_url: typeof member.profile_path === 'string' && member.profile_path
+            ? `https://image.tmdb.org/t/p/w185${member.profile_path}`
+            : null,
+        }));
+
+        const directors = crewArr
+          .filter(member => member.job === 'Director')
+          .map(member => (typeof member.name === 'string' ? member.name : ''))
+          .filter(Boolean);
+
+        const result = { cast, directors };
+        await setJsonCache(cacheKey, result, 24 * 60 * 60);
+        return result;
+      } catch {
+        return { cast: [], directors: [] };
+      }
+    },
+    { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }
+  )
+  .get(
+    '/tmdb-details/:mediaType/:tmdbId',
+    async ({ user, set, params }) => {
+      const { mediaType, tmdbId: tmdbIdStr } = params;
+      if (mediaType !== 'movie' && mediaType !== 'tv') {
+        return badRequest(set, 'Invalid media type');
+      }
+      const tmdbId = parseInt(tmdbIdStr, 10);
+      if (!Number.isFinite(tmdbId) || tmdbId <= 0) {
+        return badRequest(set, 'Invalid TMDB ID');
+      }
+
+      const cacheKey = `medias:tmdb-details:${mediaType}:${tmdbId}`;
+      const cached = await getJsonCache<{
+        runtime: number | null;
+        belongs_to_collection: { id: number; name: string; poster_url: string | null } | null;
+        overview: string | null;
+        vote_average: number | null;
+        number_of_seasons: number | null;
+        number_of_episodes: number | null;
+      }>(cacheKey);
+      if (cached) return cached;
+
+      const tmdbPlugin = await prisma.plugin.findFirst({
+        where: { type: 'tmdb' },
+        select: { enabled: true, config: true },
+      });
+      const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+      if (!tmdbConfig) {
+        return { runtime: null, belongs_to_collection: null, overview: null, vote_average: null, number_of_seasons: null, number_of_episodes: null };
+      }
+
+      try {
+        const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}`);
+        url.searchParams.set('api_key', tmdbConfig.api_key);
+        url.searchParams.set('language', 'en-US');
+        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+        if (!res.ok) {
+          return { runtime: null, belongs_to_collection: null, overview: null, vote_average: null, number_of_seasons: null, number_of_episodes: null };
+        }
+
+        const data = (await res.json()) as Record<string, unknown>;
+        const overview = typeof data.overview === 'string' ? data.overview || null : null;
+        const vote_average = typeof data.vote_average === 'number' ? data.vote_average : null;
+
+        let runtime: number | null = null;
+        let belongs_to_collection: { id: number; name: string; poster_url: string | null } | null = null;
+        let number_of_seasons: number | null = null;
+        let number_of_episodes: number | null = null;
+
+        if (mediaType === 'movie') {
+          runtime = typeof data.runtime === 'number' ? data.runtime : null;
+          const col = data.belongs_to_collection as Record<string, unknown> | null;
+          if (col && typeof col === 'object') {
+            belongs_to_collection = {
+              id: typeof col.id === 'number' ? col.id : 0,
+              name: typeof col.name === 'string' ? col.name : '',
+              poster_url: typeof col.poster_path === 'string' && col.poster_path
+                ? `https://image.tmdb.org/t/p/w185${col.poster_path}`
+                : null,
+            };
+          }
+        } else {
+          const episodeRunTime = Array.isArray(data.episode_run_time) ? (data.episode_run_time as number[]) : [];
+          runtime = episodeRunTime.length > 0 ? episodeRunTime[0] : null;
+          number_of_seasons = typeof data.number_of_seasons === 'number' ? data.number_of_seasons : null;
+          number_of_episodes = typeof data.number_of_episodes === 'number' ? data.number_of_episodes : null;
+        }
+
+        const result = { runtime, belongs_to_collection, overview, vote_average, number_of_seasons, number_of_episodes };
+        await setJsonCache(cacheKey, result, 24 * 60 * 60);
+        return result;
+      } catch {
+        return { runtime: null, belongs_to_collection: null, overview: null, vote_average: null, number_of_seasons: null, number_of_episodes: null };
+      }
+    },
+    { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }
+  )
+  .get(
     '/providers/:mediaType/:tmdbId',
     async ({ user, set, params, query: queryParams }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;

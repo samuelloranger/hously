@@ -178,3 +178,30 @@ export interface MediaRatingsResponse {
   rotten_tomatoes: string | null;
   metacritic: string | null;
 }
+
+export interface TmdbCastMember {
+  id: number;
+  name: string;
+  character: string | null;
+  profile_url: string | null;
+}
+
+export interface TmdbCreditsResponse {
+  cast: TmdbCastMember[];
+  directors: string[];
+}
+
+export interface TmdbCollection {
+  id: number;
+  name: string;
+  poster_url: string | null;
+}
+
+export interface TmdbMediaDetailsResponse {
+  runtime: number | null;
+  belongs_to_collection: TmdbCollection | null;
+  overview: string | null;
+  vote_average: number | null;
+  number_of_seasons: number | null;
+  number_of_episodes: number | null;
+}

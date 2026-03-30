@@ -13,7 +13,9 @@ import type {
   MediaRatingsResponse,
   MediasResponse,
   SimilarMediasResponse,
+  TmdbCreditsResponse,
   TmdbGenresResponse,
+  TmdbMediaDetailsResponse,
   TmdbMediaSearchResponse,
   TmdbStreamingProvidersResponse,
   TmdbTrailerResponse,
@@ -231,6 +233,36 @@ export function useMediaRatings(
   return useQuery({
     queryKey: queryKeys.medias.ratings(mediaType ?? 'movie', tmdbId ?? 0),
     queryFn: () => fetcher<MediaRatingsResponse>(MEDIAS_ENDPOINTS.RATINGS(mediaType!, tmdbId!)),
+    enabled: isEnabled,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+}
+
+export function useTmdbCredits(
+  mediaType: 'movie' | 'tv' | null,
+  tmdbId: number | null,
+  options?: { enabled?: boolean }
+) {
+  const fetcher = useFetcher();
+  const isEnabled = (options?.enabled ?? true) && mediaType !== null && tmdbId !== null && tmdbId > 0;
+  return useQuery({
+    queryKey: queryKeys.medias.credits(mediaType ?? 'movie', tmdbId ?? 0),
+    queryFn: () => fetcher<TmdbCreditsResponse>(MEDIAS_ENDPOINTS.CREDITS(mediaType!, tmdbId!)),
+    enabled: isEnabled,
+    staleTime: 24 * 60 * 60 * 1000,
+  });
+}
+
+export function useTmdbMediaDetails(
+  mediaType: 'movie' | 'tv' | null,
+  tmdbId: number | null,
+  options?: { enabled?: boolean }
+) {
+  const fetcher = useFetcher();
+  const isEnabled = (options?.enabled ?? true) && mediaType !== null && tmdbId !== null && tmdbId > 0;
+  return useQuery({
+    queryKey: queryKeys.medias.tmdbDetails(mediaType ?? 'movie', tmdbId ?? 0),
+    queryFn: () => fetcher<TmdbMediaDetailsResponse>(MEDIAS_ENDPOINTS.TMDB_DETAILS(mediaType!, tmdbId!)),
     enabled: isEnabled,
     staleTime: 24 * 60 * 60 * 1000,
   });

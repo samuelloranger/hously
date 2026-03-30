@@ -23,6 +23,10 @@ export const MEDIAS_ENDPOINTS = {
   GENRES: (type: 'movie' | 'tv') => `/api/medias/genres?type=${encodeURIComponent(type)}`,
   RATINGS: (mediaType: 'movie' | 'tv', tmdbId: number) =>
     `/api/medias/ratings/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
+  CREDITS: (mediaType: 'movie' | 'tv', tmdbId: number) =>
+    `/api/medias/credits/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
+  TMDB_DETAILS: (mediaType: 'movie' | 'tv', tmdbId: number) =>
+    `/api/medias/tmdb-details/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
   DISCOVER: (params: {
     type: 'movie' | 'tv';
     provider_id?: number | null;
