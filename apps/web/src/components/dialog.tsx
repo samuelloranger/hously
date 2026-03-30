@@ -46,27 +46,34 @@ export function Dialog({ isOpen, onClose, title, children, showCloseButton = tru
               <DialogPanel
                 className={cn(
                   'pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col transform overflow-y-auto rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl transition-all dark:border-neutral-700 dark:bg-neutral-800',
+                  hideTitle && 'relative',
                   panelClassName
                 )}
               >
-                <div className={cn("pb-2 flex shrink-0 items-start justify-between gap-4", panelClassName?.includes('p-0') ? 'py-4 px-6' : '')}>
-                  <DialogTitle
-                    as="h3"
-                    className={cn("text-lg font-medium leading-6 text-neutral-900 dark:text-white", hideTitle && "sr-only")}
-                  >
-                    {title}
-                  </DialogTitle>
-                  {showCloseButton && (
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      aria-label="Close dialog"
-                      className="ml-auto shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
+                <DialogTitle
+                  as="h3"
+                  className={cn(
+                    hideTitle
+                      ? 'sr-only'
+                      : cn('pb-2 shrink-0 text-lg font-medium leading-6 text-neutral-900 dark:text-white', panelClassName?.includes('p-0') ? 'pt-4 px-6' : ''),
                   )}
-                </div>
+                >
+                  {title}
+                </DialogTitle>
+
+                {showCloseButton && (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Close dialog"
+                    className={cn(
+                      'absolute shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors',
+                      hideTitle ? 'top-4 right-4 z-10' : 'top-5 right-5'
+                    )}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                )}
 
                 <div className="min-h-0 flex-1">{children}</div>
               </DialogPanel>
