@@ -104,32 +104,13 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
                 const isFresh = score >= 60;
                 return (
                   <div className="flex items-center gap-1.5 text-sm font-medium">
-                    {isFresh ? (
-                      <svg viewBox="0 0 32 32" className="h-5 w-5" aria-label="Fresh">
-                        {/* Tomato body */}
-                        <circle cx="16" cy="18" r="11" fill="#FA320A"/>
-                        <ellipse cx="16" cy="18" rx="11" ry="10" fill="#FA320A"/>
-                        {/* Shine */}
-                        <ellipse cx="12" cy="14" rx="3" ry="2" fill="rgba(255,255,255,0.25)" transform="rotate(-20 12 14)"/>
-                        {/* Stem */}
-                        <path d="M16 8 C16 8 14 4 10 5 C12 6 13 8 16 8Z" fill="#5B9E1E"/>
-                        <path d="M16 8 C16 8 18 4 22 5 C20 6 19 8 16 8Z" fill="#5B9E1E"/>
-                        <rect x="15" y="6" width="2" height="5" rx="1" fill="#5B9E1E"/>
-                      </svg>
-                    ) : (
-                      <svg viewBox="0 0 32 32" className="h-5 w-5" aria-label="Rotten">
-                        {/* Grey-green rotten tomato */}
-                        <circle cx="16" cy="18" r="11" fill="#6B7A5E"/>
-                        <ellipse cx="16" cy="18" rx="11" ry="10" fill="#6B7A5E"/>
-                        {/* Mold spots */}
-                        <circle cx="12" cy="17" r="2.5" fill="#4A5740" opacity="0.7"/>
-                        <circle cx="19" cy="20" r="2" fill="#4A5740" opacity="0.7"/>
-                        <circle cx="15" cy="22" r="1.5" fill="#3D4A35" opacity="0.6"/>
-                        {/* Stem (wilted) */}
-                        <path d="M16 8 C15 6 13 5 11 6 C13 7 14 8 16 8Z" fill="#4A5740"/>
-                        <rect x="15" y="6" width="2" height="5" rx="1" fill="#4A5740"/>
-                      </svg>
-                    )}
+                    <img
+                      src={isFresh
+                        ? 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-fresh.149b5e8adc3.svg'
+                        : 'https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-rotten.f1ef4f02ce3.svg'}
+                      alt={isFresh ? 'Fresh' : 'Rotten'}
+                      className="h-5 w-5"
+                    />
                     <span className={isFresh ? 'text-red-500 dark:text-red-400' : 'text-neutral-400'}>
                       {ratingsData.rotten_tomatoes}
                     </span>
