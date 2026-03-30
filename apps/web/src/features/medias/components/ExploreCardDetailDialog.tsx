@@ -131,11 +131,11 @@ export function ExploreCardDetailDialog({ item, isOpen, onClose, onAdded }: Expl
               })()}
               {ratingsData?.metacritic && (
                 <div className="flex items-center gap-1.5 text-sm font-medium">
-                  <span className="flex h-5 w-5 items-center justify-center rounded bg-yellow-400 text-[10px] font-black text-black leading-none">
-                    M
-                  </span>
+                  <svg viewBox="0 0 32 32" className="h-5 w-5" aria-label="Metacritic">
+                    <circle cx="16" cy="16" r="16" fill="#FFCC34"/>
+                    <text x="16" y="22" textAnchor="middle" fontSize="18" fontWeight="900" fontFamily="Arial, sans-serif" fill="#000">M</text>
+                  </svg>
                   <span className="text-neutral-700 dark:text-neutral-300">{ratingsData.metacritic}</span>
-                  <span className="text-neutral-400 dark:text-neutral-500 font-normal text-xs">MC</span>
                 </div>
               )}
             </div>
