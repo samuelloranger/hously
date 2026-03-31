@@ -134,9 +134,15 @@ export function ServiceList({ services, templatesByService, isLoading, onEditTem
     return groupTemplatesByEventType(templates);
   };
 
+  const sortedServices = [...services].sort((a, b) => {
+    if (a.service_name === 'generic') return -1;
+    if (b.service_name === 'generic') return 1;
+    return 0;
+  });
+
   return (
     <div className="space-y-4">
-      {services.map(service => {
+      {sortedServices.map(service => {
         const isLoading = loadingServiceId === service.id;
         const serviceTemplates = getTemplatesForService(service.id, currentLanguage);
         const templatesByEvent = groupTemplatesByEventType(serviceTemplates);
