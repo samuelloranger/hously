@@ -154,10 +154,17 @@ function BeszelSection() {
                 return (
                   <div key={disk.mount_point}>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300 truncate max-w-[160px]">
-                        {disk.mount_point}
-                      </span>
-                      <span className="font-mono text-xs text-zinc-600 dark:text-zinc-300 tabular-nums">
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300 truncate max-w-[160px]">
+                          {disk.mount_point}
+                        </span>
+                        {disk.model && (
+                          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate max-w-[160px]">
+                            {disk.model}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono text-xs text-zinc-600 dark:text-zinc-300 tabular-nums shrink-0 ml-2">
                         {pctFmt(safe)} · {disk.used_gib.toFixed(0)}/{total.toFixed(0)} GiB
                       </span>
                     </div>

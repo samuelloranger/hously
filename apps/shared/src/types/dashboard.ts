@@ -394,6 +394,7 @@ export interface DashboardScrutinySummaryResponse {
 
 export interface BeszelDashboardDiskUsage {
   mount_point: string;
+  model: string | null;
   used_gib: number;
   avail_gib: number;
   reserved_gib: number;
