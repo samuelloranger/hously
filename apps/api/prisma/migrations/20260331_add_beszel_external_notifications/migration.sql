@@ -98,3 +98,22 @@ WHERE ens.service_name = 'beszel'
     SELECT 1 FROM "notification_templates" nt
     WHERE nt.service_id = ens.id AND nt.event_type = 'SmartAlert' AND nt.language = 'fr'
   );
+
+-- Alert (fallback for test notifications and unrecognized event types)
+INSERT INTO "notification_templates" ("service_id", "event_type", "language", "title_template", "body_template", "enabled", "created_at", "updated_at")
+SELECT ens.id, 'Alert', 'en', '{{title}}', '{{message}}', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM "external_notification_services" ens
+WHERE ens.service_name = 'beszel'
+  AND NOT EXISTS (
+    SELECT 1 FROM "notification_templates" nt
+    WHERE nt.service_id = ens.id AND nt.event_type = 'Alert' AND nt.language = 'en'
+  );
+
+INSERT INTO "notification_templates" ("service_id", "event_type", "language", "title_template", "body_template", "enabled", "created_at", "updated_at")
+SELECT ens.id, 'Alert', 'fr', '{{title}}', '{{message}}', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+FROM "external_notification_services" ens
+WHERE ens.service_name = 'beszel'
+  AND NOT EXISTS (
+    SELECT 1 FROM "notification_templates" nt
+    WHERE nt.service_id = ens.id AND nt.event_type = 'Alert' AND nt.language = 'fr'
+  );

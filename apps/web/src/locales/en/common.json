@@ -1089,6 +1089,7 @@
         "ItemDeleted": "On Item Deleted",
         "ItemRemoved": "On Item Removed",
         "ItemUpdated": "On Item Updated",
+        "Alert": "On Alert",
         "AlertTriggered": "On Alert Triggered",
         "AlertResolved": "On Alert Resolved",
         "StatusDown": "On Status Down",

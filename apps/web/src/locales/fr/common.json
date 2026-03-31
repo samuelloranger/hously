@@ -1088,6 +1088,7 @@
         "ItemDeleted": "Lors de la suppression d'élément",
         "ItemRemoved": "Lors de la suppression d'élément",
         "ItemUpdated": "Lors de la mise à jour d'élément",
+        "Alert": "Lors d'une alerte",
         "AlertTriggered": "Lors d'une alerte déclenchée",
         "AlertResolved": "Lors d'une alerte résolue",
         "StatusDown": "Lors d'une mise hors ligne",
