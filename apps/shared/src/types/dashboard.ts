@@ -402,6 +402,7 @@ export interface BeszelDashboardDiskUsage {
 
 export interface BeszelDashboardSummary {
   cpu_percent: number | null;
+  cpu_name: string | null;
   ram_used_mib: number | null;
   ram_total_mib: number | null;
   ram_used_percent: number | null;

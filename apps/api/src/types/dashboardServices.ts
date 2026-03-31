@@ -38,6 +38,7 @@ export interface DashboardBeszelDiskUsage {
 
 export interface DashboardBeszelSummary {
   cpu_percent: number | null;
+  cpu_name: string | null;
   ram_used_mib: number | null;
   ram_total_mib: number | null;
   ram_used_percent: number | null;

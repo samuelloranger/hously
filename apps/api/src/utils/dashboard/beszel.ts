@@ -8,6 +8,7 @@ export const buildBeszelDisabledSummary = (error?: string): DashboardBeszelSumma
   updated_at: new Date().toISOString(),
   summary: {
     cpu_percent: null,
+    cpu_name: null,
     ram_used_mib: null,
     ram_total_mib: null,
     ram_used_percent: null,
@@ -137,6 +138,21 @@ export const fetchBeszelSummary = async (): Promise<DashboardBeszelSummaryRespon
     const record = statsData.items[0];
     const s: BeszelStatsPayload = typeof record.stats === 'string' ? JSON.parse(record.stats) : record.stats;
 
+    // Fetch system details for CPU name (best-effort, don't fail if unavailable)
+    let cpuName: string | null = null;
+    try {
+      const detailsUrl = new URL('/api/collections/system_details/records', config.website_url);
+      detailsUrl.searchParams.set('filter', `system="${system.id}"`);
+      detailsUrl.searchParams.set('perPage', '1');
+      const detailsRes = await fetch(detailsUrl.toString(), { headers });
+      if (detailsRes.ok) {
+        const detailsData = (await detailsRes.json()) as { items: { cpu?: string }[] };
+        cpuName = detailsData.items[0]?.cpu ?? null;
+      }
+    } catch {
+      // ignore
+    }
+
     // RAM: stored in GiB, convert to MiB
     const ramUsedMib = s.mu != null ? Math.round(s.mu * 1024 * 10) / 10 : null;
     const ramTotalMib = s.m != null ? Math.round(s.m * 1024 * 10) / 10 : null;
@@ -176,6 +192,7 @@ export const fetchBeszelSummary = async (): Promise<DashboardBeszelSummaryRespon
       updated_at: record.created,
       summary: {
         cpu_percent: s.cpu != null ? Math.round(s.cpu * 10) / 10 : null,
+        cpu_name: cpuName,
         ram_used_mib: ramUsedMib,
         ram_total_mib: ramTotalMib,
         ram_used_percent: s.mp != null ? Math.round(s.mp * 10) / 10 : null,
