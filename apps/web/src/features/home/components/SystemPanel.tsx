@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  type DashboardNetdataSummaryResponse,
+  type DashboardBeszelSummaryResponse,
   DASHBOARD_ENDPOINTS,
-  useDashboardNetdataSummary,
+  useDashboardBeszelSummary,
   useDashboardScrutinySummary,
   useDashboardAdguardSummary,
   useSetAdguardProtection,
@@ -74,16 +74,16 @@ function MiniBar({ pct, accent = 'bg-violet-500' }: { pct: number; accent?: stri
   );
 }
 
-// ─── Netdata section ──────────────────────────────────────────────────────────
+// ─── Beszel section ───────────────────────────────────────────────────────────
 
-function NetdataSection() {
+function BeszelSection() {
   const { t } = useTranslation('common');
-  const { data: fallback } = useDashboardNetdataSummary();
+  const { data: fallback } = useDashboardBeszelSummary();
   const [showDisks, setShowDisks] = useState(false);
-  const { data } = useEventSourceState<DashboardNetdataSummaryResponse>({
-    url: DASHBOARD_ENDPOINTS.NETDATA.STREAM,
+  const { data } = useEventSourceState<DashboardBeszelSummaryResponse>({
+    url: DASHBOARD_ENDPOINTS.BESZEL.STREAM,
     initialData: fallback,
-    onParseError: err => console.error('netdata stream', err),
+    onParseError: err => console.error('beszel stream', err),
   });
 
   if (!data?.enabled || !data?.connected) return null;
@@ -100,7 +100,7 @@ function NetdataSection() {
       {s.cpu_percent != null && (
         <>
           <MetricRow
-            label={t('dashboard.netdata.cpu')}
+            label={t('dashboard.beszel.cpu')}
             value={pctFmt(s.cpu_percent)}
             sub={s.load_1 != null ? t('dashboard.home.loadAvg', { value: s.load_1.toFixed(2) }) : undefined}
             status={s.cpu_percent > 85 ? 'warn' : 'ok'}
@@ -112,7 +112,7 @@ function NetdataSection() {
       {s.ram_used_percent != null && (
         <>
           <MetricRow
-            label={t('dashboard.netdata.ram')}
+            label={t('dashboard.beszel.ram')}
             value={pctFmt(s.ram_used_percent)}
             sub={
               s.ram_used_mib != null && s.ram_total_mib != null
@@ -127,7 +127,7 @@ function NetdataSection() {
 
       {(s.network_in_kbps != null || s.network_out_kbps != null) && (
         <MetricRow
-          label={t('dashboard.netdata.network')}
+          label={t('dashboard.beszel.network')}
           value={`↓ ${mbps(s.network_in_kbps)}`}
           sub={`↑ ${mbps(s.network_out_kbps)}`}
         />
@@ -141,7 +141,7 @@ function NetdataSection() {
             className="mt-2 flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400 hover:text-violet-500 dark:hover:text-violet-400 transition-colors font-medium"
           >
             {showDisks ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            {showDisks ? t('dashboard.netdata.hideDisks') : t('dashboard.home.disksCount', { count: disks.length })}
+            {showDisks ? t('dashboard.beszel.hideDisks') : t('dashboard.home.disksCount', { count: disks.length })}
           </button>
           {showDisks && (
             <div className="mt-2 space-y-2">
@@ -266,7 +266,7 @@ function AdguardSection() {
 export function SystemPanel() {
   return (
     <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 space-y-5">
-      <NetdataSection />
+      <BeszelSection />
       <ScrutinySection />
       <AdguardSection />
     </section>

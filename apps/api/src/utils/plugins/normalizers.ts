@@ -3,7 +3,7 @@ import type {
   RedditPluginConfig,
   HackernewsPluginConfig,
   JellyfinPluginConfig,
-  NetdataPluginConfig,
+  BeszelPluginConfig,
   ProwlarrPluginConfig,
   RadarrPluginConfig,
   ScrutinyPluginConfig,
@@ -132,13 +132,15 @@ export const normalizeScrutinyConfig = (config: unknown): ScrutinyPluginConfig |
   };
 };
 
-export const normalizeNetdataConfig = (config: unknown): NetdataPluginConfig | null => {
+export const normalizeBeszelConfig = (config: unknown): BeszelPluginConfig | null => {
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
   const cfg = config as Record<string, unknown>;
   const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-  if (!websiteUrl) return null;
+  const apiToken = typeof cfg.api_token === 'string' ? normalizeSecret(cfg.api_token) : '';
+  if (!websiteUrl || !apiToken) return null;
   return {
     website_url: websiteUrl.replace(/\/+$/, ''),
+    api_token: apiToken,
   };
 };
 

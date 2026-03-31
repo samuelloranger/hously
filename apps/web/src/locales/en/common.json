@@ -10,6 +10,8 @@
     "library": "Library",
     "torrents": "Torrents",
     "releases": "Releases",
+    "watchlist": "Watchlist",
+    "collections": "Collections",
     "tracker": "Tracker",
     "calendar": "Calendar",
     "services": "Services",
@@ -116,7 +118,7 @@
         "jellyfin": "Jellyfin",
         "qbittorrent": "qBittorrent",
         "scrutiny": "Scrutiny",
-        "netdata": "Netdata",
+        "beszel": "Beszel",
         "adguard": "AdGuard",
         "prowlarr": "Prowlarr",
         "radarr": "Radarr",
@@ -183,7 +185,7 @@
         "trackers": "Tracker Stats",
         "jellyfin": "Fresh from Jellyfin",
         "upcoming": "Upcoming Watchlist",
-        "netdata": "System Overview",
+        "beszel": "System Overview",
         "adguard": "AdGuard Home",
         "scrutiny": "Drive Health",
         "pendingChores": "Pending Chores",
@@ -370,16 +372,16 @@
       "hideDrives": "Hide drives",
       "emptyTitle": "No drive data available yet."
     },
-    "netdata": {
+    "beszel": {
       "kicker": "From your infrastructure monitor",
       "title": "System Overview",
-      "subtitle": "Live CPU, RAM, network, and disk usage from Netdata.",
+      "subtitle": "Live CPU, RAM, network, and disk usage from Beszel.",
       "connected": "Connected",
       "disconnected": "Disconnected",
       "live": "Live",
       "polling": "Polling",
-      "notConnectedTitle": "Netdata is not connected yet",
-      "notConnectedDescription": "Open Settings > Plugins and connect Netdata to display system telemetry here.",
+      "notConnectedTitle": "Beszel is not connected yet",
+      "notConnectedDescription": "Open Settings > Plugins and connect Beszel to display system telemetry here.",
       "cpu": "CPU",
       "ram": "RAM",
       "load": "Load (1/5/15)",
@@ -1086,7 +1088,12 @@
         "ItemAdded": "On Item Added",
         "ItemDeleted": "On Item Deleted",
         "ItemRemoved": "On Item Removed",
-        "ItemUpdated": "On Item Updated"
+        "ItemUpdated": "On Item Updated",
+        "AlertTriggered": "On Alert Triggered",
+        "AlertResolved": "On Alert Resolved",
+        "StatusDown": "On Status Down",
+        "StatusUp": "On Status Up",
+        "SmartAlert": "On SMART Alert"
       },
       "serviceNames": {
         "radarr": "Radarr",
@@ -1096,7 +1103,8 @@
         "kopia": "Kopia",
         "uptimekuma": "UptimeKuma",
         "jellyfin": "Jellyfin",
-        "plex": "Plex"
+        "plex": "Plex",
+        "beszel": "Beszel"
       },
       "logs": {
         "title": "Service Logs",
@@ -1186,9 +1194,11 @@
         "help": "Connect Scrutiny to show disk health and SMART temperatures on the dashboard.",
         "websiteUrl": "Scrutiny URL"
       },
-      "netdata": {
-        "help": "Connect Netdata to show live system metrics and per-disk usage on the dashboard.",
-        "websiteUrl": "Netdata URL"
+      "beszel": {
+        "help": "Connect Beszel to show live system metrics and per-disk usage on the dashboard.",
+        "websiteUrl": "Beszel URL",
+        "apiToken": "API Token",
+        "apiTokenSet": "Token already set — leave blank to keep"
       },
       "adguard": {
         "help": "Connect AdGuard Home to show DNS filtering and turn AdGuard on or off from Hously.",
@@ -1503,6 +1513,23 @@
     "library": {
       "pageTitle": "Library",
       "pageSubtitle": "Merged Radarr and Sonarr library"
+    },
+    "releases": {
+      "pageTitle": "Release Calendar",
+      "pageSubtitle": "Upcoming movies & shows releasing this month"
+    },
+    "watchlist": {
+      "pageTitle": "Watchlist",
+      "pageSubtitle": "Movies and shows you want to watch",
+      "empty": "Your watchlist is empty",
+      "emptyHint": "Add movies and shows by clicking the Watchlist button in any title"
+    },
+    "collections": {
+      "pageTitle": "Collections",
+      "pageSubtitle": "Franchises with missing entries in your library",
+      "empty": "Your franchises are complete!",
+      "emptyHint": "All collections in your library are fully collected.",
+      "ownedOf": "{{owned}}/{{total}}"
     },
     "explore": {
       "pageTitle": "Explore",

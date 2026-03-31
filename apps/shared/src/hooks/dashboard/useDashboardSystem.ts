@@ -5,7 +5,7 @@ import { DASHBOARD_ENDPOINTS } from '../../endpoints';
 import type {
   DashboardAdguardSummaryResponse,
   DashboardScrutinySummaryResponse,
-  DashboardNetdataSummaryResponse,
+  DashboardBeszelSummaryResponse,
 } from '../../types';
 
 export function useDashboardScrutinySummary() {
@@ -17,12 +17,12 @@ export function useDashboardScrutinySummary() {
   });
 }
 
-export function useDashboardNetdataSummary() {
+export function useDashboardBeszelSummary() {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: queryKeys.dashboard.netdataSummary(),
-    queryFn: () => fetcher<DashboardNetdataSummaryResponse>(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
+    queryKey: queryKeys.dashboard.beszelSummary(),
+    queryFn: () => fetcher<DashboardBeszelSummaryResponse>(DASHBOARD_ENDPOINTS.BESZEL.SUMMARY),
   });
 }
 

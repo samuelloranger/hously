@@ -27,8 +27,9 @@ export interface ScrutinyPluginConfig {
   website_url: string;
 }
 
-export interface NetdataPluginConfig {
+export interface BeszelPluginConfig {
   website_url: string;
+  api_token: string;
 }
 
 export interface AdguardPluginConfig {

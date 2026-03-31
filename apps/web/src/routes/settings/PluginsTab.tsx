@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import {
   AdguardPluginSection,
   JellyfinPluginSection,
-  NetdataPluginSection,
+  BeszelPluginSection,
   ProwlarrPluginSection,
   QbittorrentPluginSection,
   RadarrPluginSection,
@@ -67,7 +67,7 @@ export function PluginsTab() {
           <SonarrPluginSection />
           <QbittorrentPluginSection />
           <ScrutinyPluginSection />
-          <NetdataPluginSection />
+          <BeszelPluginSection />
           <AdguardPluginSection />
         </div>
       ) : (

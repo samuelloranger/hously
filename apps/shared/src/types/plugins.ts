@@ -54,10 +54,11 @@ export interface ScrutinyPlugin {
   website_url: string;
 }
 
-export interface NetdataPlugin {
-  type: 'netdata';
+export interface BeszelPlugin {
+  type: 'beszel';
   enabled: boolean;
   website_url: string;
+  api_token_set: boolean;
 }
 
 export interface AdguardPlugin {
@@ -135,9 +136,9 @@ export interface ScrutinyPluginUpdateResponse {
   plugin: ScrutinyPlugin;
 }
 
-export interface NetdataPluginUpdateResponse {
+export interface BeszelPluginUpdateResponse {
   success: boolean;
-  plugin: NetdataPlugin;
+  plugin: BeszelPlugin;
 }
 
 export interface AdguardPluginUpdateResponse {

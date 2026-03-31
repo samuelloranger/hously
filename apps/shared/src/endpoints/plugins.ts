@@ -8,7 +8,7 @@ export const PLUGIN_ENDPOINTS = {
   PROWLARR: '/api/plugins/prowlarr',
   QBITTORRENT: '/api/plugins/qbittorrent',
   SCRUTINY: '/api/plugins/scrutiny',
-  NETDATA: '/api/plugins/netdata',
+  BESZEL: '/api/plugins/beszel',
   ADGUARD: '/api/plugins/adguard',
   ADGUARD_PROTECTION: '/api/plugins/adguard/protection',
   WEATHER: '/api/plugins/weather',

@@ -112,7 +112,7 @@ export interface DashboardUpcomingItem {
   poster_url: string | null;
   backdrop_url: string | null;
   overview: string | null;
-  tmdb_url: string;
+  tmdb_url: string | null;
   providers: DashboardUpcomingProvider[];
   vote_average?: number | null;
   popularity?: number;
@@ -187,6 +187,15 @@ export interface DashboardQbittorrentTorrentsResponse {
   enabled: boolean;
   connected: boolean;
   torrents: QbittorrentTorrentListItem[];
+  /** Total torrents matching the request (before pagination). */
+  total_count: number;
+  /** Zero-based offset of this page. */
+  offset: number;
+  /** Page size (max items returned). */
+  limit: number;
+  /** Session-wide speeds from qBittorrent (all torrents), bytes/sec. */
+  download_speed?: number;
+  upload_speed?: number;
   error?: string;
 }
 
@@ -383,7 +392,7 @@ export interface DashboardScrutinySummaryResponse {
   error?: string;
 }
 
-export interface NetdataDashboardDiskUsage {
+export interface BeszelDashboardDiskUsage {
   mount_point: string;
   used_gib: number;
   avail_gib: number;
@@ -391,7 +400,7 @@ export interface NetdataDashboardDiskUsage {
   used_percent: number;
 }
 
-export interface NetdataDashboardSummary {
+export interface BeszelDashboardSummary {
   cpu_percent: number | null;
   ram_used_mib: number | null;
   ram_total_mib: number | null;
@@ -403,12 +412,12 @@ export interface NetdataDashboardSummary {
   network_out_kbps: number | null;
 }
 
-export interface DashboardNetdataSummaryResponse {
+export interface DashboardBeszelSummaryResponse {
   enabled: boolean;
   connected: boolean;
   updated_at: string;
-  summary: NetdataDashboardSummary;
-  disks: NetdataDashboardDiskUsage[];
+  summary: BeszelDashboardSummary;
+  disks: BeszelDashboardDiskUsage[];
   error?: string;
 }
 

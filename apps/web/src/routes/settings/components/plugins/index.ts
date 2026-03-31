@@ -1,7 +1,7 @@
 export { AdguardPluginSection } from './AdguardPluginSection';
 export { JellyfinPluginSection } from './JellyfinPluginSection';
 export { PluginUrlInput } from './PluginUrlInput';
-export { NetdataPluginSection } from './NetdataPluginSection';
+export { BeszelPluginSection } from './NetdataPluginSection';
 export { PluginSectionCard } from './PluginSectionCard';
 export { ProwlarrPluginSection } from './ProwlarrPluginSection';
 export { QbittorrentPluginSection } from './QbittorrentPluginSection';

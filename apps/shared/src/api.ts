@@ -26,7 +26,7 @@ import type {
   CreateShoppingItemRequest,
   DashboardJellyfinLatestResponse,
   DashboardActivityFeedResponse,
-  DashboardNetdataSummaryResponse,
+  DashboardBeszelSummaryResponse,
   DashboardScrutinySummaryResponse,
   DashboardQbittorrentStatusResponse,
   DashboardStatsResponse,
@@ -39,8 +39,8 @@ import type {
   JellyfinPluginUpdateResponse,
   ListUsersResponse,
   LogsResponse,
-  NetdataPlugin,
-  NetdataPluginUpdateResponse,
+  BeszelPlugin,
+  BeszelPluginUpdateResponse,
   Notification,
   NotificationDevice,
   NotificationDevicesResponse,
@@ -412,7 +412,7 @@ export function createDashboardApi(fetcher: ApiFetcher) {
     getDashboardQbittorrentStatus: () =>
       fetcher<DashboardQbittorrentStatusResponse>(QBITTORRENT_ENDPOINTS.STATUS),
     getDashboardScrutinySummary: () => fetcher<DashboardScrutinySummaryResponse>(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
-    getDashboardNetdataSummary: () => fetcher<DashboardNetdataSummaryResponse>(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
+    getDashboardBeszelSummary: () => fetcher<DashboardBeszelSummaryResponse>(DASHBOARD_ENDPOINTS.BESZEL.SUMMARY),
   };
 }
 
@@ -629,9 +629,9 @@ export function createPluginsApi(fetcher: ApiFetcher) {
         method: 'PUT',
         body: data,
       }),
-    getNetdataPlugin: () => fetcher<{ plugin: NetdataPlugin }>(PLUGIN_ENDPOINTS.NETDATA),
-    updateNetdataPlugin: (data: { website_url: string; enabled: boolean }) =>
-      fetcher<NetdataPluginUpdateResponse>(PLUGIN_ENDPOINTS.NETDATA, {
+    getBeszelPlugin: () => fetcher<{ plugin: BeszelPlugin }>(PLUGIN_ENDPOINTS.BESZEL),
+    updateBeszelPlugin: (data: { website_url: string; api_token?: string; enabled: boolean }) =>
+      fetcher<BeszelPluginUpdateResponse>(PLUGIN_ENDPOINTS.BESZEL, {
         method: 'PUT',
         body: data,
       }),

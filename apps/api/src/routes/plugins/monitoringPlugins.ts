@@ -6,7 +6,7 @@ import { nowUtc } from '../../utils';
 import { isValidHttpUrl } from '../../utils/plugins/utils';
 import {
   normalizeAdguardConfig,
-  normalizeNetdataConfig,
+  normalizeBeszelConfig,
   normalizeScrutinyConfig,
 } from '../../utils/plugins/normalizers';
 import { logActivity } from '../../utils/activityLogs';
@@ -22,9 +22,9 @@ type AdguardApiConfig = {
   password: string;
 };
 
-async function getAdguardApiConfig(
-  set: { status?: number | string }
-): Promise<{ config?: AdguardApiConfig; error?: string }> {
+async function getAdguardApiConfig(set: {
+  status?: number | string;
+}): Promise<{ config?: AdguardApiConfig; error?: string }> {
   const plugin = await prisma.plugin.findFirst({
     where: { type: 'adguard' },
     select: { enabled: true, config: true },
@@ -122,27 +122,28 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       }),
     }
   )
-  .get('/netdata', async ({ user, set }) => {
+  .get('/beszel', async ({ user, set }) => {
     try {
       const plugin = await prisma.plugin.findFirst({
-        where: { type: 'netdata' },
+        where: { type: 'beszel' },
       });
 
-      const config = normalizeNetdataConfig(plugin?.config);
+      const config = normalizeBeszelConfig(plugin?.config);
       return {
         plugin: {
-          type: 'netdata',
+          type: 'beszel',
           enabled: plugin?.enabled || false,
           website_url: config?.website_url || '',
+          api_token_set: Boolean(config?.api_token),
         },
       };
     } catch (error) {
-      console.error('Error fetching Netdata plugin config:', error);
-      return serverError(set, 'Failed to fetch Netdata plugin config');
+      console.error('Error fetching Beszel plugin config:', error);
+      return serverError(set, 'Failed to fetch Beszel plugin config');
     }
   })
   .put(
-    '/netdata',
+    '/beszel',
     async ({ user, body, set }) => {
       const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
       const enabled = body.enabled ?? true;
@@ -152,31 +153,33 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       }
 
       try {
+        const existingPlugin = await prisma.plugin.findFirst({
+          where: { type: 'beszel' },
+        });
+        const existingConfig = normalizeBeszelConfig(existingPlugin?.config);
+        const providedToken = body.api_token?.trim() || '';
+        const apiToken = providedToken || existingConfig?.api_token || '';
+
+        if (!apiToken) {
+          return badRequest(set, 'api_token is required');
+        }
+
         const now = nowUtc();
+        const config = {
+          website_url: websiteUrl,
+          api_token: encrypt(apiToken),
+        };
+
         const plugin = await prisma.plugin.upsert({
-          where: { type: 'netdata' },
-          update: {
-            enabled,
-            config: {
-              website_url: websiteUrl,
-            },
-            updatedAt: now,
-          },
-          create: {
-            type: 'netdata',
-            enabled,
-            config: {
-              website_url: websiteUrl,
-            },
-            createdAt: now,
-            updatedAt: now,
-          },
+          where: { type: 'beszel' },
+          update: { enabled, config, updatedAt: now },
+          create: { type: 'beszel', enabled, config, createdAt: now, updatedAt: now },
         });
 
         await logActivity({
           type: 'plugin_updated',
           userId: user!.id,
-          payload: { plugin_type: 'netdata' },
+          payload: { plugin_type: 'beszel' },
         });
 
         return {
@@ -185,16 +188,18 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             type: plugin.type,
             enabled: plugin.enabled,
             website_url: websiteUrl,
+            api_token_set: true,
           },
         };
       } catch (error) {
-        console.error('Error saving Netdata plugin config:', error);
-        return serverError(set, 'Failed to save Netdata plugin config');
+        console.error('Error saving Beszel plugin config:', error);
+        return serverError(set, 'Failed to save Beszel plugin config');
       }
     },
     {
       body: t.Object({
         website_url: t.String(),
+        api_token: t.Optional(t.String()),
         enabled: t.Optional(t.Boolean()),
       }),
     }

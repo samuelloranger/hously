@@ -26,7 +26,7 @@ const SERVICE_LABEL_KEYS: Record<string, string> = {
   jellyfin: 'dashboard.activityPage.services.jellyfin',
   qbittorrent: 'dashboard.activityPage.services.qbittorrent',
   scrutiny: 'dashboard.activityPage.services.scrutiny',
-  netdata: 'dashboard.activityPage.services.netdata',
+  beszel: 'dashboard.activityPage.services.beszel',
   adguard: 'dashboard.activityPage.services.adguard',
   prowlarr: 'dashboard.activityPage.services.prowlarr',
   radarr: 'dashboard.activityPage.services.radarr',

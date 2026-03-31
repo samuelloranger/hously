@@ -28,7 +28,7 @@ export interface DashboardScrutinySummaryResponse {
   error?: string;
 }
 
-export interface DashboardNetdataDiskUsage {
+export interface DashboardBeszelDiskUsage {
   mount_point: string;
   used_gib: number;
   avail_gib: number;
@@ -36,7 +36,7 @@ export interface DashboardNetdataDiskUsage {
   used_percent: number;
 }
 
-export interface DashboardNetdataSummary {
+export interface DashboardBeszelSummary {
   cpu_percent: number | null;
   ram_used_mib: number | null;
   ram_total_mib: number | null;
@@ -48,12 +48,12 @@ export interface DashboardNetdataSummary {
   network_out_kbps: number | null;
 }
 
-export interface DashboardNetdataSummaryResponse {
+export interface DashboardBeszelSummaryResponse {
   enabled: boolean;
   connected: boolean;
   updated_at: string;
-  summary: DashboardNetdataSummary;
-  disks: DashboardNetdataDiskUsage[];
+  summary: DashboardBeszelSummary;
+  disks: DashboardBeszelDiskUsage[];
   error?: string;
 }
 

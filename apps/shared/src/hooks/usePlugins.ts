@@ -11,8 +11,8 @@ import type {
   DashboardTrackersStatsResponse,
   JellyfinPlugin,
   JellyfinPluginUpdateResponse,
-  NetdataPlugin,
-  NetdataPluginUpdateResponse,
+  BeszelPlugin,
+  BeszelPluginUpdateResponse,
   ProwlarrPlugin,
   ProwlarrPluginUpdateResponse,
   QbittorrentPlugin,
@@ -152,11 +152,11 @@ export function useScrutinyPlugin() {
   });
 }
 
-export function useNetdataPlugin() {
+export function useBeszelPlugin() {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: queryKeys.plugins.netdata(),
-    queryFn: () => fetcher<{ plugin: NetdataPlugin }>(PLUGIN_ENDPOINTS.NETDATA),
+    queryKey: queryKeys.plugins.beszel(),
+    queryFn: () => fetcher<{ plugin: BeszelPlugin }>(PLUGIN_ENDPOINTS.BESZEL),
     refetchOnMount: 'always',
     staleTime: 0,
   });
@@ -321,18 +321,18 @@ export function useUpdateScrutinyPlugin() {
   });
 }
 
-export function useUpdateNetdataPlugin() {
+export function useUpdateBeszelPlugin() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { website_url: string; enabled: boolean }) =>
-      fetcher<NetdataPluginUpdateResponse>(PLUGIN_ENDPOINTS.NETDATA, {
+    mutationFn: (data: { website_url: string; api_token?: string; enabled: boolean }) =>
+      fetcher<BeszelPluginUpdateResponse>(PLUGIN_ENDPOINTS.BESZEL, {
         method: 'PUT',
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.netdata() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.netdataSummary() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.beszel() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.beszelSummary() });
     },
   });
 }

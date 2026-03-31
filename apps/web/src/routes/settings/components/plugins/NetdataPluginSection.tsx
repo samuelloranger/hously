@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNetdataPlugin, useUpdateNetdataPlugin } from '@hously/shared';
+import { useBeszelPlugin, useUpdateBeszelPlugin } from '@hously/shared';
 import { toast } from 'sonner';
 import { PluginSectionCard } from './PluginSectionCard';
 import { PluginUrlInput } from './PluginUrlInput';
 
-export function NetdataPluginSection() {
+export function BeszelPluginSection() {
   const { t } = useTranslation('common');
-  const { data, isLoading } = useNetdataPlugin();
-  const saveMutation = useUpdateNetdataPlugin();
+  const { data, isLoading } = useBeszelPlugin();
+  const saveMutation = useUpdateBeszelPlugin();
 
   const [websiteUrl, setWebsiteUrl] = useState('');
+  const [apiToken, setApiToken] = useState('');
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
@@ -21,25 +22,39 @@ export function NetdataPluginSection() {
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;
-    return websiteUrl !== (data.plugin.website_url || '') || enabled !== Boolean(data.plugin.enabled);
-  }, [data, websiteUrl, enabled]);
+    return (
+      websiteUrl !== (data.plugin.website_url || '') ||
+      enabled !== Boolean(data.plugin.enabled) ||
+      apiToken.trim().length > 0
+    );
+  }, [data, websiteUrl, enabled, apiToken]);
 
   const handleCancel = () => {
     setWebsiteUrl(data?.plugin.website_url || '');
+    setApiToken('');
     setEnabled(Boolean(data?.plugin.enabled));
   };
 
   const handleSave = () => {
+    const payload: { website_url: string; enabled: boolean; api_token?: string } = {
+      website_url: websiteUrl,
+      enabled,
+    };
+    if (apiToken.trim()) payload.api_token = apiToken.trim();
+
     saveMutation
-      .mutateAsync({ website_url: websiteUrl, enabled })
-      .then(() => toast.success(t('settings.plugins.saveSuccess')))
+      .mutateAsync(payload)
+      .then(() => {
+        setApiToken('');
+        toast.success(t('settings.plugins.saveSuccess'));
+      })
       .catch(() => toast.error(t('settings.plugins.saveError')));
   };
 
   return (
     <PluginSectionCard
-      title="Netdata"
-      description={t('settings.plugins.netdata.help')}
+      title="Beszel"
+      description={t('settings.plugins.beszel.help')}
       enabled={enabled}
       onEnabledChange={setEnabled}
       onCancel={handleCancel}
@@ -47,13 +62,19 @@ export function NetdataPluginSection() {
       loading={isLoading}
       saving={saveMutation.isPending}
       isDirty={isDirty}
-      logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/netdata.png"
+      logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/beszel.png"
     >
       <PluginUrlInput
-        label={t('settings.plugins.netdata.websiteUrl')}
+        label={t('settings.plugins.beszel.websiteUrl')}
         value={websiteUrl}
         onChange={setWebsiteUrl}
-        placeholder="http://netdata:19999"
+        placeholder="http://beszel:8090"
+      />
+      <PluginUrlInput
+        label={t('settings.plugins.beszel.apiToken')}
+        value={apiToken}
+        onChange={setApiToken}
+        placeholder={data?.plugin?.api_token_set ? t('settings.plugins.beszel.apiTokenSet') : ''}
       />
     </PluginSectionCard>
   );

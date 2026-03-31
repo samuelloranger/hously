@@ -2,7 +2,7 @@ import { Elysia } from 'elysia';
 import { auth } from '../../auth';
 import { requireUser } from '../../middleware/auth';
 import { fetchAdguardSummary } from '../../utils/dashboard/adguard';
-import { buildNetdataDisabledSummary, fetchNetdataSummary } from '../../utils/dashboard/netdata';
+import { buildBeszelDisabledSummary, fetchBeszelSummary } from '../../utils/dashboard/beszel';
 import { fetchScrutinySummary } from '../../utils/dashboard/scrutiny';
 import { fetchHackerNewsStories, HN_CACHE_TTL_SECONDS } from '../../utils/dashboard/hackernews';
 import type { DashboardHackerNewsResponse } from '../../utils/dashboard/hackernews';
@@ -146,26 +146,26 @@ export const dashboardServiceRoutes = new Elysia()
       return serverError(set, 'Failed to get Scrutiny summary');
     }
   })
-  .get('/netdata/summary', async ({ user, set }) => {
+  .get('/beszel/summary', async ({ user, set }) => {
     try {
-      return await fetchNetdataSummary();
+      return await fetchBeszelSummary();
     } catch (error) {
-      console.error('Error fetching Netdata summary:', error);
-      return serverError(set, 'Failed to get Netdata summary');
+      console.error('Error fetching Beszel summary:', error);
+      return serverError(set, 'Failed to get Beszel summary');
     }
   })
-  .get('/netdata/stream', async ({ user, set, request }) => {
+  .get('/beszel/stream', async ({ user, set, request }) => {
     return createJsonSseResponse({
       request,
-      poll: fetchNetdataSummary,
+      poll: fetchBeszelSummary,
       intervalMs: 2000,
       retryMs: 5000,
       onError: () => ({
-        ...buildNetdataDisabledSummary('Failed to refresh Netdata summary'),
+        ...buildBeszelDisabledSummary('Failed to refresh Beszel summary'),
         enabled: true,
         connected: false,
       }),
-      logLabel: 'Netdata stream',
+      logLabel: 'Beszel stream',
     });
   })
   .get('/adguard/summary', async ({ user, set }) => {

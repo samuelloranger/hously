@@ -9,7 +9,9 @@
     "habits": "Habitudes",
     "library": "Bibliothèque",
     "torrents": "Torrents",
-    "releases": "Releases",
+    "releases": "Sorties",
+    "watchlist": "À regarder",
+    "collections": "Collections",
     "tracker": "Péremption",
     "calendar": "Calendrier",
     "gifts": "Cadeaux",
@@ -115,7 +117,7 @@
         "jellyfin": "Jellyfin",
         "qbittorrent": "qBittorrent",
         "scrutiny": "Scrutiny",
-        "netdata": "Netdata",
+        "beszel": "Beszel",
         "adguard": "AdGuard",
         "prowlarr": "Prowlarr",
         "radarr": "Radarr",
@@ -182,7 +184,7 @@
         "trackers": "Stats trackers",
         "jellyfin": "Nouveautés Jellyfin",
         "upcoming": "Sorties à venir",
-        "netdata": "Vue système",
+        "beszel": "Vue système",
         "adguard": "AdGuard Home",
         "scrutiny": "Santé des disques",
         "pendingChores": "Tâches en attente",
@@ -369,16 +371,16 @@
       "hideDrives": "Masquer les disques",
       "emptyTitle": "Aucune donnée disque disponible pour le moment."
     },
-    "netdata": {
+    "beszel": {
       "kicker": "Depuis votre monitoring système",
       "title": "Vue système",
-      "subtitle": "CPU, RAM, réseau et usage disque en direct depuis Netdata.",
+      "subtitle": "CPU, RAM, réseau et usage disque en direct depuis Beszel.",
       "connected": "Connecté",
       "disconnected": "Déconnecté",
       "live": "En direct",
       "polling": "Actualisation",
-      "notConnectedTitle": "Netdata n'est pas encore connecté",
-      "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez Netdata pour afficher la télémétrie système ici.",
+      "notConnectedTitle": "Beszel n'est pas encore connecté",
+      "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez Beszel pour afficher la télémétrie système ici.",
       "cpu": "CPU",
       "ram": "RAM",
       "load": "Charge (1/5/15)",
@@ -1085,7 +1087,12 @@
         "ItemAdded": "Lors de l'ajout d'élément",
         "ItemDeleted": "Lors de la suppression d'élément",
         "ItemRemoved": "Lors de la suppression d'élément",
-        "ItemUpdated": "Lors de la mise à jour d'élément"
+        "ItemUpdated": "Lors de la mise à jour d'élément",
+        "AlertTriggered": "Lors d'une alerte déclenchée",
+        "AlertResolved": "Lors d'une alerte résolue",
+        "StatusDown": "Lors d'une mise hors ligne",
+        "StatusUp": "Lors d'un retour en ligne",
+        "SmartAlert": "Lors d'une alerte SMART"
       },
       "serviceNames": {
         "radarr": "Radarr",
@@ -1095,7 +1102,8 @@
         "kopia": "Kopia",
         "uptimekuma": "UptimeKuma",
         "jellyfin": "Jellyfin",
-        "plex": "Plex"
+        "plex": "Plex",
+        "beszel": "Beszel"
       },
       "logs": {
         "title": "Journaux des services",
@@ -1176,9 +1184,11 @@
         "help": "Connectez Scrutiny pour afficher la santé des disques et les températures SMART sur l'accueil.",
         "websiteUrl": "URL Scrutiny"
       },
-      "netdata": {
-        "help": "Connectez Netdata pour afficher les métriques système en direct et l'usage par disque sur l'accueil.",
-        "websiteUrl": "URL Netdata"
+      "beszel": {
+        "help": "Connectez Beszel pour afficher les métriques système en direct et l'usage par disque sur l'accueil.",
+        "websiteUrl": "URL Beszel",
+        "apiToken": "Jeton API",
+        "apiTokenSet": "Jeton déjà configuré — laissez vide pour conserver"
       },
       "adguard": {
         "help": "Connectez AdGuard Home pour afficher le filtrage DNS et activer ou désactiver AdGuard depuis Hously.",
@@ -1518,6 +1528,23 @@
     "library": {
       "pageTitle": "Bibliothèque",
       "pageSubtitle": "Bibliothèque fusionnée Radarr et Sonarr"
+    },
+    "releases": {
+      "pageTitle": "Calendrier des sorties",
+      "pageSubtitle": "Films et séries à venir ce mois-ci"
+    },
+    "watchlist": {
+      "pageTitle": "Liste de visionnage",
+      "pageSubtitle": "Films et séries que vous souhaitez regarder",
+      "empty": "Votre liste est vide",
+      "emptyHint": "Ajoutez des titres en cliquant sur le bouton Liste dans n'importe quel film"
+    },
+    "collections": {
+      "pageTitle": "Collections",
+      "pageSubtitle": "Franchises avec des entrées manquantes dans votre bibliothèque",
+      "empty": "Vos franchises sont complètes !",
+      "emptyHint": "Toutes les collections de votre bibliothèque sont entièrement rassemblées.",
+      "ownedOf": "{{owned}}/{{total}}"
     },
     "explore": {
       "pageTitle": "Découvrir",

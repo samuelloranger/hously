@@ -75,8 +75,8 @@ export async function prefetchHomePageData(queryClient: QueryClient): Promise<vo
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
     },
     {
-      queryKey: queryKeys.dashboard.netdataSummary(),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
+      queryKey: queryKeys.dashboard.beszelSummary(),
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.BESZEL.SUMMARY),
     },
     {
       queryKey: queryKeys.dashboard.adguardSummary(),
@@ -147,8 +147,8 @@ export function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
     queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
   });
   void queryClient.prefetchQuery({
-    queryKey: queryKeys.dashboard.netdataSummary(),
-    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.NETDATA.SUMMARY),
+    queryKey: queryKeys.dashboard.beszelSummary(),
+    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.BESZEL.SUMMARY),
   });
   void queryClient.prefetchQuery({
     queryKey: queryKeys.dashboard.adguardSummary(),
@@ -326,7 +326,7 @@ const routeQueryDefinitions = {
         queryFn: () => webFetcher(PLUGIN_ENDPOINTS.QBITTORRENT),
       });
       queries.push({ queryKey: queryKeys.plugins.scrutiny(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SCRUTINY) });
-      queries.push({ queryKey: queryKeys.plugins.netdata(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.NETDATA) });
+      queries.push({ queryKey: queryKeys.plugins.beszel(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.BESZEL) });
     }
 
     if (tab === 'jobs') {
