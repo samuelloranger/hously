@@ -1,21 +1,8 @@
-import { useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDiscoverMedias, useMediaGenres, useStreamingProviders } from '@hously/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ExploreCard } from './ExploreCard';
-
-// ─── Brand colors for known providers (used for glow/ambient only) ───────────
-const PROVIDER_COLORS: Record<number, string> = {
-  8:    '#E50914', // Netflix
-  9:    '#00A8E1', // Prime Video
-  337:  '#4B7FFF', // Disney+
-  230:  '#00C1F3', // Crave
-  350:  '#c0c0c0', // Apple TV+
-  531:  '#2B6EFF', // Paramount+
-  1899: '#8B9EFF', // Max
-  73:   '#FF5C5C', // Tubi
-  384:  '#5A1EBE', // HBO
-};
 
 // ─── Sort options ─────────────────────────────────────────────────────────────
 type SortOpt = { value: string; labelKey: string; movieOnly?: true; tvOnly?: true };
@@ -57,13 +44,6 @@ const GENRE_COLORS: Record<string, { text: string; bg: string }> = {
   News:               { text: '#2dd4bf', bg: 'rgba(45,212,191,0.10)'  },
 };
 
-function hex2rgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
 // ─── Language filter options ──────────────────────────────────────────────────
 const LANGUAGE_FILTERS: { code: string; flag: string; label: string }[] = [
   { code: 'en', flag: '🇺🇸', label: 'EN' },
@@ -81,9 +61,16 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
   const [sortBy, setSortBy] = useState('popularity.desc');
   const [page, setPage] = useState(1);
   const [originalLanguage, setOriginalLanguage] = useState<string | null>(null);
-  const sectionRef = useRef<HTMLElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
+  const isFirstRender = useRef(true);
 
-  const activeProviderColor = providerId ? (PROVIDER_COLORS[providerId] ?? '#6366f1') : null;
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [page]);
 
   const { data: providersData } = useStreamingProviders('CA', mediaType);
   const { data: genresData } = useMediaGenres(mediaType);
@@ -137,27 +124,13 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
     setPage(1);
   }
 
-  function scrollToSection() {
-    sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
   const totalPages = data?.total_pages ?? 1;
   const totalResults = data?.total_results;
   const gridKey = `${mediaType}-${providerId}-${genreId}-${sortBy}-${originalLanguage}-${page}`;
 
   return (
-    <section ref={sectionRef} className="relative space-y-6">
-      {/* Ambient provider glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 -translate-x-1/2 h-72 w-[80%] rounded-full blur-3xl transition-all duration-700"
-        style={{
-          top: "15dvh",
-          backgroundColor: activeProviderColor
-            ? hex2rgba(activeProviderColor, 0.08)
-            : 'transparent',
-        }}
-      />
+    <section className="relative space-y-6">
+      <div ref={topRef} />
 
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="relative flex items-baseline gap-2.5 px-0.5">
@@ -171,15 +144,19 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         )}
       </div>
 
+      <p className="px-0.5 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-2xl">
+        {t('medias.discover.subtitle')}
+      </p>
+
       {/* ── Media-type toggle ───────────────────────────────── */}
-      <div className="relative flex w-fit rounded-xl border border-white/[0.07] bg-neutral-900/60 p-0.5 backdrop-blur-sm dark:border-white/[0.06]">
+      <div className="relative flex w-fit rounded-xl border border-neutral-800 bg-neutral-900 p-0.5">
         {(['movie', 'tv'] as const).map(type => (
           <button
             key={type}
             type="button"
             onClick={() => switchType(type)}
             className={[
-              'relative z-10 rounded-lg px-4 py-1.5 text-sm font-medium transition-all duration-200',
+              'relative z-10 rounded-lg px-4 py-1.5 text-sm font-medium transition-[background-color,color,box-shadow] duration-200',
               mediaType === type
                 ? 'bg-white/10 text-white shadow-sm'
                 : 'text-neutral-500 hover:text-neutral-300',
@@ -193,7 +170,6 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
       {/* ── Streaming providers ─────────────────────────────── */}
       <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', margin: '0 -12px', padding: '12px' }}>
         {(providersData?.providers ?? []).slice(0, 10).map(provider => {
-          const color = PROVIDER_COLORS[provider.id] ?? '#6366f1';
           const active = providerId === provider.id;
           return (
             <button
@@ -202,21 +178,12 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
               onClick={() => toggleProvider(provider.id)}
               title={provider.name}
               aria-label={provider.name}
-              style={
-                active
-                  ? ({
-                      backgroundColor: hex2rgba(color, 0.18),
-                      borderColor: color,
-                      boxShadow: `0 0 16px ${hex2rgba(color, 0.30)}, inset 0 0 12px ${hex2rgba(color, 0.08)}`,
-                    } as CSSProperties)
-                  : undefined
-              }
               className={[
-                'flex shrink-0 items-center justify-center rounded-xl border transition-all duration-200 select-none',
+                'flex shrink-0 items-center justify-center rounded-xl border transition-[border-color,background-color,transform] duration-200 select-none',
                 'h-11 w-11 p-0',
                 active
-                  ? 'scale-[1.08]'
-                  : 'border-white/[0.08] bg-white/[0.03] hover:border-white/[0.18] hover:scale-[1.04]',
+                  ? 'scale-[1.08] border-white/40 bg-white/10'
+                  : 'border-neutral-800 bg-neutral-900 hover:border-neutral-600 hover:scale-[1.04]',
               ].join(' ')}
             >
               <img
@@ -251,7 +218,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
                     : undefined
                 }
                 className={[
-                  'rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-all duration-150',
+                  'rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-[border-color,background-color,color] duration-150',
                   active
                     ? ''
                     : 'border-white/[0.07] bg-white/[0.03] text-neutral-500 hover:border-white/[0.14] hover:text-neutral-300',
@@ -264,14 +231,14 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         </div>
 
         {/* Sort segmented control */}
-        <div className="flex shrink-0 gap-0.5 rounded-xl border border-white/[0.07] bg-neutral-900/60 p-0.5 backdrop-blur-sm">
+        <div className="flex shrink-0 gap-0.5 rounded-xl border border-neutral-800 bg-neutral-900 p-0.5">
           {visibleSorts.map(s => (
             <button
               key={s.value}
               type="button"
               onClick={() => changeSort(s.value)}
               className={[
-                'rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all duration-150',
+                'rounded-lg px-2.5 py-1 text-[11px] font-medium transition-[background-color,color] duration-150',
                 sortBy === s.value
                   ? 'bg-white/10 text-white'
                   : 'text-neutral-500 hover:text-neutral-300',
@@ -296,7 +263,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
               type="button"
               onClick={() => toggleLanguage(lf.code)}
               className={[
-                'flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-all duration-150',
+                'flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-[border-color,background-color,color] duration-150',
                 active
                   ? 'border-indigo-500/60 bg-indigo-500/15 text-indigo-300'
                   : 'border-white/[0.07] bg-white/[0.03] text-neutral-500 hover:border-white/[0.14] hover:text-neutral-300',
@@ -313,7 +280,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
       <div className="relative min-h-48">
         {/* Skeleton — shown on initial load AND page navigation */}
         {isFetching && (
-          <div className="grid grid-cols-6 gap-3">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6">
             {Array.from({ length: 36 }).map((_, i) => (
               <div
                 key={i}
@@ -335,16 +302,10 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         {!isFetching && (data?.items.length ?? 0) > 0 && (
           <div
             key={gridKey}
-            className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6"
+            className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6"
           >
-            {data!.items.map((item, index) => (
-              <div
-                key={item.id}
-                className="animate-[discover-in_0.38s_ease-out_both]"
-                style={{ animationDelay: `${Math.min(index * 35, 420)}ms` }}
-              >
-                <ExploreCard item={item} onAdded={onAdded} />
-              </div>
+            {data!.items.map((item) => (
+              <ExploreCard key={item.id} item={item} onAdded={onAdded} />
             ))}
           </div>
         )}
@@ -355,7 +316,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         <div className="flex items-center justify-center gap-2">
           <button
             type="button"
-            onClick={() => { setPage(p => Math.max(1, p - 1)); scrollToSection(); }}
+            onClick={() => { setPage(p => Math.max(1, p - 1)); }}
             disabled={page === 1 || isFetching}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
           >
@@ -366,7 +327,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
             {/* First page shortcut */}
             {page > 3 && (
               <>
-                <PageDot n={1} current={page} onClick={() => { setPage(1); scrollToSection(); }} />
+                <PageDot n={1} current={page} onClick={() => { setPage(1); }} />
                 {page > 4 && <span className="px-0.5 text-xs text-neutral-600">…</span>}
               </>
             )}
@@ -375,20 +336,20 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
               const start = Math.max(1, Math.min(page - 2, totalPages - 4));
               return start + i;
             }).map(n => (
-              <PageDot key={n} n={n} current={page} onClick={() => { setPage(n); scrollToSection(); }} />
+              <PageDot key={n} n={n} current={page} onClick={() => { setPage(n); }} />
             ))}
             {/* Last page shortcut */}
             {page < totalPages - 2 && (
               <>
                 {page < totalPages - 3 && <span className="px-0.5 text-xs text-neutral-600">…</span>}
-                <PageDot n={totalPages} current={page} onClick={() => { setPage(totalPages); scrollToSection(); }} />
+                <PageDot n={totalPages} current={page} onClick={() => { setPage(totalPages); }} />
               </>
             )}
           </div>
 
           <button
             type="button"
-            onClick={() => { setPage(p => Math.min(totalPages, p + 1)); scrollToSection(); }}
+            onClick={() => { setPage(p => Math.min(totalPages, p + 1)); }}
             disabled={page === totalPages || isFetching}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
           >
@@ -407,7 +368,7 @@ function PageDot({ n, current, onClick }: { n: number; current: number; onClick:
       type="button"
       onClick={onClick}
       className={[
-        'flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-medium transition-all duration-150',
+        'flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-medium transition-[background-color,border-color,color] duration-150',
         active
           ? 'bg-indigo-600/80 text-white'
           : 'border border-white/[0.08] bg-white/[0.03] text-neutral-400 hover:border-white/20 hover:text-neutral-200',

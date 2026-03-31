@@ -1535,7 +1535,7 @@
     },
     "explore": {
       "pageTitle": "Explore",
-      "pageSubtitle": "Discover new movies and TV shows",
+      "pageSubtitle": "TMDB search and Discover browsing—filter by streaming providers, genres, sorts, and original language (EN/FR). Open a poster for trailers, Rotten Tomatoes & Metacritic scores, cast, similar titles, and watchlist; hover prefetches details.",
       "trending": "Trending",
       "popularMovies": "Popular Movies",
       "popularShows": "Popular TV Shows",
@@ -1550,6 +1550,7 @@
     },
     "discover": {
       "title": "Discover",
+      "subtitle": "Filter by streaming service, genre, sort, and original language. Paginated grid (48 titles per page); hover a poster to preload the detail panel.",
       "sortPopularity": "Popular",
       "sortTopRated": "Top Rated",
       "sortNewest": "Newest",

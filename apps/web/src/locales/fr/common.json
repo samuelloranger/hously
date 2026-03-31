@@ -1550,7 +1550,7 @@
     },
     "explore": {
       "pageTitle": "Découvrir",
-      "pageSubtitle": "Découvrez de nouveaux films et séries TV",
+      "pageSubtitle": "Recherche TMDB et parcours Découvrir : filtres par plateformes de streaming, genres, tris et langue originale (EN/FR). Ouvrez une fiche pour la bande-annonce, les scores Rotten Tomatoes et Metacritic, le casting, les titres similaires et la liste de visionnage ; le survol précharge la fiche.",
       "trending": "Tendances",
       "popularMovies": "Films populaires",
       "popularShows": "Séries populaires",
@@ -1565,6 +1565,7 @@
     },
     "discover": {
       "title": "Découvrir",
+      "subtitle": "Filtrez par plateforme, genre, tri et langue originale. Grille paginée (48 titres par page) ; survolez une affiche pour précharger la fiche détail.",
       "sortPopularity": "Populaire",
       "sortTopRated": "Les mieux notés",
       "sortNewest": "Plus récent",

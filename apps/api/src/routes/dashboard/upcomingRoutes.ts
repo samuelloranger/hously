@@ -4,7 +4,9 @@ import { requireUser } from '../../middleware/auth';
 import {
   TMDB_UPCOMING_CACHE_KEY,
   collectTmdbUpcoming,
+  fetchSonarrUpcoming,
   getArrPluginStatus,
+  mergeTmdbTvWithSonarrCalendar,
   toIsoDate,
 } from '../../utils/dashboard/tmdbUpcoming';
 import { prisma } from '../../db';
@@ -63,17 +65,24 @@ export const dashboardUpcomingRoutes = new Elysia()
       const oneYearOutIso = toIsoDate(oneYearOut);
 
       const POOL_SIZE_PER_TYPE = 40;
-      const [moviesResult, tvResult] = await Promise.all([
+      const [moviesResult, tvResult, sonarrItems] = await Promise.all([
         collectTmdbUpcoming('movie', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
         collectTmdbUpcoming('tv', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
+        fetchSonarrUpcoming(todayIso, oneYearOutIso),
       ]);
 
       if (!moviesResult || !tvResult) {
         return badGateway(set, 'TMDB request failed');
       }
 
-      const sortedItems = [...moviesResult.items, ...tvResult.items]
-        .filter(item => (item.popularity ?? 0) >= (tmdbConfig?.popularity_threshold ?? 15))
+      const popularityThreshold = tmdbConfig?.popularity_threshold ?? 15;
+      const filteredTv = tvResult.items.filter(item => (item.popularity ?? 0) >= popularityThreshold);
+      const mergedTv = mergeTmdbTvWithSonarrCalendar(filteredTv, sonarrItems);
+
+      const sortedItems = [
+        ...moviesResult.items.filter(item => (item.popularity ?? 0) >= popularityThreshold),
+        ...mergedTv,
+      ]
         .filter(item => {
           if (!item.release_date) return false;
           const releaseTime = Date.parse(item.release_date);

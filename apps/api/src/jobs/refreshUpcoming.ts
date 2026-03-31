@@ -3,7 +3,9 @@ import { normalizeTmdbConfig } from '../utils/plugins/normalizers';
 import {
   collectTmdbUpcoming,
   fetchMovieReleaseDates,
+  fetchSonarrUpcoming,
   fetchTmdbProviders,
+  mergeTmdbTvWithSonarrCalendar,
   parseTmdbNumericId,
   toIsoDate,
   TMDB_UPCOMING_CACHE_KEY,
@@ -53,9 +55,10 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' | 
     const oneYearOutIso = toIsoDate(oneYearOut);
 
     const POOL_SIZE_PER_TYPE = 60;
-    const [moviesResult, tvResult] = await Promise.all([
+    const [moviesResult, tvResult, sonarrItems] = await Promise.all([
       collectTmdbUpcoming('movie', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
       collectTmdbUpcoming('tv', POOL_SIZE_PER_TYPE, tmdbApiKey, todayIso, oneYearOutIso),
+      fetchSonarrUpcoming(todayIso, oneYearOutIso),
     ]);
 
     if (!moviesResult || !tvResult) {
@@ -78,8 +81,10 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' | 
     const filteredMovies = moviesResult.items.filter(item => (item.popularity ?? 0) >= popularityThreshold);
     const filteredTv = tvResult.items.filter(item => (item.popularity ?? 0) >= popularityThreshold);
 
+    const mergedTv = mergeTmdbTvWithSonarrCalendar(filteredTv, sonarrItems);
+
     console.log(
-      `[cron:upcoming] After popularity filter: ${filteredMovies.length} movies, ${filteredTv.length} TV shows`
+      `[cron:upcoming] After popularity filter: ${filteredMovies.length} movies, ${filteredTv.length} TMDB TV, ${sonarrItems.length} Sonarr calendar → ${mergedTv.length} TV rows after merge`
     );
 
     const enrichedMovies = await processBatch(filteredMovies, BATCH_SIZE, async movie => {
@@ -93,7 +98,7 @@ export const refreshUpcoming = async (options?: { trigger?: 'cron' | 'manual' | 
       return movie;
     });
 
-    const allItems = [...enrichedMovies, ...filteredTv].filter(item => {
+    const allItems = [...enrichedMovies, ...mergedTv].filter(item => {
       if (!item.release_date) return false;
       const releaseTime = Date.parse(item.release_date);
       return Number.isFinite(releaseTime) && releaseTime >= Date.parse(todayIso);
