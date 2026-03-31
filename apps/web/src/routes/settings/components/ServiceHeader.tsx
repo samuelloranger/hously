@@ -8,7 +8,8 @@ const SERVICE_ICON_SLUGS: Record<string, string> = {
   jellyfin: 'jellyfin',
   plex: 'plex',
   kopia: 'kopia',
-  uptimekuma: 'uptimekuma',
+  uptimekuma: 'uptime-kuma',
+  beszel: 'beszel',
   prowlarr: 'prowlarr',
   'cross-seed': 'qbittorrent',
 };
