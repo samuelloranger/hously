@@ -154,15 +154,22 @@ export function ExploreCardDetailDialog({
   );
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={item.title} hideTitle panelClassName="max-w-3xl">
-
-      {/* ── Hero: optional backdrop (50% darken) + poster + meta ─────── */}
-      <div
-        className={cn(
-          'relative -mx-6 -mt-6 overflow-hidden rounded-t-2xl',
-          !heroBackdropUrl && 'pt-1'
-        )}
-      >
+    <Dialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={item.title}
+      hideTitle
+      bodyScroll
+      panelClassName="max-w-3xl"
+    >
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {/* ── Hero: optional backdrop + poster + meta (fixed, does not scroll) ─ */}
+        <div
+          className={cn(
+            'relative shrink-0 -mx-6 -mt-6 overflow-hidden rounded-t-2xl',
+            !heroBackdropUrl && 'pt-1'
+          )}
+        >
         {heroBackdropUrl ? (
           <>
             <div
@@ -417,6 +424,8 @@ export function ExploreCardDetailDialog({
         </div>
       </div>
 
+        {/* ── Scrollable body (actions, tabs, panels) ───────────────── */}
+        <div className="ios-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
       {/* ── Actions bar (above tabs) ──────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2 border-y border-neutral-200 dark:border-neutral-700/60 py-2.5 mb-4">
         {/* Watchlist toggle */}
@@ -666,6 +675,8 @@ export function ExploreCardDetailDialog({
           }}
         />
       )}
+        </div>
+      </div>
     </Dialog>
   );
 }

@@ -12,11 +12,22 @@ interface DialogProps {
   showCloseButton?: boolean;
   hideTitle?: boolean;
   panelClassName?: string;
+  /** Panel shell does not scroll; children should use a fixed top block + overflow-y-auto region */
+  bodyScroll?: boolean;
 }
 
 const PORTAL_ID = 'hously-dialog-root';
 
-export function Dialog({ isOpen, onClose, title, children, showCloseButton = true, hideTitle = false, panelClassName }: DialogProps) {
+export function Dialog({
+  isOpen,
+  onClose,
+  title,
+  children,
+  showCloseButton = true,
+  hideTitle = false,
+  panelClassName,
+  bodyScroll = false,
+}: DialogProps) {
   /** Preserve window scroll when the dialog mounts — Headless UI scroll-lock + focus can jump the page */
   const scrollYRef = useRef(0);
   useLayoutEffect(() => {
@@ -62,7 +73,8 @@ export function Dialog({ isOpen, onClose, title, children, showCloseButton = tru
             >
               <DialogPanel
                 className={cn(
-                  'pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col transform overflow-y-auto rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl transition-all dark:border-neutral-700 dark:bg-neutral-800',
+                  'pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col transform rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl transition-all dark:border-neutral-700 dark:bg-neutral-800',
+                  bodyScroll ? 'min-h-0 overflow-hidden' : 'overflow-y-auto',
                   hideTitle && 'relative',
                   panelClassName
                 )}
@@ -93,7 +105,14 @@ export function Dialog({ isOpen, onClose, title, children, showCloseButton = tru
                   </button>
                 )}
 
-                <div className="min-h-0 flex-1">{children}</div>
+                <div
+                  className={cn(
+                    'min-h-0 flex-1',
+                    bodyScroll && 'flex min-h-0 flex-col overflow-hidden'
+                  )}
+                >
+                  {children}
+                </div>
               </DialogPanel>
             </TransitionChild>
           </div>
