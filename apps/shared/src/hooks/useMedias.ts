@@ -21,6 +21,8 @@ import type {
   TmdbGenresResponse,
   TmdbMediaDetailsResponse,
   TmdbMediaSearchResponse,
+  AiMediaSuggestionsResponse,
+  AiMediaSuggestionsConfigResponse,
   TmdbStreamingProvidersResponse,
   TmdbTrailerResponse,
   TmdbWatchProvidersResponse,
@@ -59,6 +61,27 @@ export function useRefreshRecommendations(language?: string) {
     onSuccess: (data) => {
       queryClient.setQueryData([...queryKeys.medias.explore(), lang], data);
     },
+  });
+}
+
+export function useAiMediaSuggestions() {
+  const fetcher = useFetcher();
+
+  return useMutation({
+    mutationFn: (body: { prompt?: string; media_type: 'movie' | 'tv' | 'both'; language?: string }) =>
+      fetcher<AiMediaSuggestionsResponse>(MEDIAS_ENDPOINTS.AI_SUGGESTIONS, {
+        method: 'POST',
+        body,
+      }),
+  });
+}
+
+export function useAiMediaSuggestionsConfig() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.medias.aiSuggestionsConfig(),
+    queryFn: () => fetcher<AiMediaSuggestionsConfigResponse>(MEDIAS_ENDPOINTS.AI_SUGGESTIONS_CONFIG),
   });
 }
 

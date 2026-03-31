@@ -65,6 +65,8 @@ import type {
   SonarrPluginUpdateResponse,
   TmdbPlugin,
   TmdbPluginUpdateResponse,
+  OllamaPlugin,
+  OllamaPluginUpdateResponse,
   ClockifyPlugin,
   ClockifyPluginUpdateResponse,
   TemplateResponse,
@@ -638,6 +640,12 @@ export function createPluginsApi(fetcher: ApiFetcher) {
     getTmdbPlugin: () => fetcher<{ plugin: TmdbPlugin }>(PLUGIN_ENDPOINTS.TMDB),
     updateTmdbPlugin: (data: { api_key: string; enabled: boolean }) =>
       fetcher<TmdbPluginUpdateResponse>(PLUGIN_ENDPOINTS.TMDB, {
+        method: 'PUT',
+        body: data,
+      }),
+    getOllamaPlugin: () => fetcher<{ plugin: OllamaPlugin }>(PLUGIN_ENDPOINTS.OLLAMA),
+    updateOllamaPlugin: (data: { base_url: string; model?: string; enabled: boolean }) =>
+      fetcher<OllamaPluginUpdateResponse>(PLUGIN_ENDPOINTS.OLLAMA, {
         method: 'PUT',
         body: data,
       }),

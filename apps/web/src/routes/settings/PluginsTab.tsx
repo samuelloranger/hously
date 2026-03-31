@@ -11,6 +11,7 @@ import {
   ScrutinyPluginSection,
   SonarrPluginSection,
   TmdbPluginSection,
+  OllamaPluginSection,
   ClockifyPluginSection,
   TrackersPluginSection,
   WeatherPluginSection,
@@ -60,6 +61,7 @@ export function PluginsTab() {
         <div className="space-y-4 animate-in fade-in duration-200">
           <WeatherPluginSection />
           <TmdbPluginSection />
+          <OllamaPluginSection />
           <ClockifyPluginSection />
           <JellyfinPluginSection />
           <ProwlarrPluginSection />

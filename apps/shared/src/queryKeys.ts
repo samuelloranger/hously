@@ -95,6 +95,7 @@ export const queryKeys = {
     adguard: () => [...queryKeys.plugins.all, 'adguard'] as const,
     weather: () => [...queryKeys.plugins.all, 'weather'] as const,
     tmdb: () => [...queryKeys.plugins.all, 'tmdb'] as const,
+    ollama: () => [...queryKeys.plugins.all, 'ollama'] as const,
     clockify: () => [...queryKeys.plugins.all, 'clockify'] as const,
   },
 
@@ -125,6 +126,7 @@ export const queryKeys = {
     all: ['medias'] as const,
     list: () => [...queryKeys.medias.all, 'list'] as const,
     explore: () => [...queryKeys.medias.all, 'explore'] as const,
+    aiSuggestionsConfig: () => [...queryKeys.medias.all, 'ai-suggestions-config'] as const,
     similar: (tmdbId: number, type: 'movie' | 'tv') =>
       [...queryKeys.medias.all, 'similar', tmdbId, type] as const,
     tmdbSearch: (query: string) => [...queryKeys.medias.all, 'tmdb-search', query] as const,

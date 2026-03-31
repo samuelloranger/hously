@@ -84,6 +84,13 @@ export interface TmdbPlugin {
   popularity_threshold: number;
 }
 
+export interface OllamaPlugin {
+  type: 'ollama';
+  enabled: boolean;
+  base_url: string;
+  model: string;
+}
+
 export interface ClockifyPlugin {
   type: "clockify",
   enabled: boolean;
@@ -165,6 +172,11 @@ export interface ClockifyPluginUpdateResponse {
 export interface TmdbPluginUpdateResponse {
   success: boolean;
   plugin: TmdbPlugin;
+}
+
+export interface OllamaPluginUpdateResponse {
+  success: boolean;
+  plugin: OllamaPlugin;
 }
 
 export interface TrackerPluginUpdateResponse {

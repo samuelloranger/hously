@@ -49,6 +49,11 @@ export interface TmdbPluginConfig {
   popularity_threshold: number;
 }
 
+export interface OllamaPluginConfig {
+  base_url: string;
+  model: string;
+}
+
 export interface RedditPluginConfig {
   subreddits: string[];
 }

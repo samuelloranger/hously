@@ -114,6 +114,7 @@
         "admin": "Admin",
         "weather": "Météo",
         "tmdb": "TMDB",
+        "ollama": "Ollama",
         "jellyfin": "Jellyfin",
         "qbittorrent": "qBittorrent",
         "scrutiny": "Scrutiny",
@@ -1149,6 +1150,15 @@
         "popularityThreshold": "Seuil de popularité",
         "popularityThresholdHelp": "Score de popularité TMDB minimum (0–100) pour les sorties à venir. Les valeurs élevées n'affichent que les titres populaires."
       },
+      "ollama": {
+        "title": "Ollama",
+        "help": "LLM local pour les suggestions IA sur Découvrir (choix ancrés TMDB). Indiquez l’URL de base que le serveur Hously peut joindre.",
+        "baseUrl": "URL de base Ollama",
+        "baseUrlPlaceholder": "http://127.0.0.1:11434",
+        "model": "Nom du modèle",
+        "modelPlaceholder": "llama3.2",
+        "modelHelp": "Le modèle doit être téléchargé sur l’hôte Ollama (ex. ollama pull llama3.2)."
+      },
       "prowlarr": {
         "help": "Connectez Prowlarr pour lancer des recherches globales de releases et envoyer les résultats à votre client de téléchargement configuré.",
         "websiteUrl": "URL Prowlarr",
@@ -1561,7 +1571,20 @@
       "topRatedMovies": "Films les mieux notés",
       "topRatedShows": "Séries les mieux notées",
       "recommended": "Recommandé pour vous",
-      "browseTab": "Parcourir"
+      "browseTab": "Parcourir",
+      "aiTitle": "Suggestions IA (Ollama)",
+      "aiSubtitle": "Choix parmi les titres populaires TMDB du moment—décrivez une humeur ou un style ; le modèle classe ce qui figure déjà dans la liste.",
+      "aiPromptPlaceholder": "Optionnel : ex. science-fiction douillette, feel-good, rôles féminins fortes, hors anglais…",
+      "aiTypeLabel": "Périmètre",
+      "aiTypeMovie": "Films",
+      "aiTypeTv": "Séries",
+      "aiTypeBoth": "Les deux",
+      "aiGenerate": "Suggérer",
+      "aiModelLabel": "Modèle : {{model}}",
+      "aiError": "Impossible de charger les suggestions.",
+      "aiPluginDisabled": "Les suggestions IA nécessitent le plugin Ollama activé avec une URL de base valide.",
+      "aiPluginSettingsLink": "Ouvrir Plugins",
+      "aiPluginAskAdmin": "Les suggestions IA ne sont pas configurées. Demandez à un administrateur d’activer le plugin Ollama dans les paramètres."
     },
     "discover": {
       "title": "Découvrir",

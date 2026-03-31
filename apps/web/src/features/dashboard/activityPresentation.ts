@@ -23,6 +23,7 @@ const SERVICE_LABEL_KEYS: Record<string, string> = {
   admin: 'dashboard.activityPage.services.admin',
   weather: 'dashboard.activityPage.services.weather',
   tmdb: 'dashboard.activityPage.services.tmdb',
+  ollama: 'dashboard.activityPage.services.ollama',
   jellyfin: 'dashboard.activityPage.services.jellyfin',
   qbittorrent: 'dashboard.activityPage.services.qbittorrent',
   scrutiny: 'dashboard.activityPage.services.scrutiny',

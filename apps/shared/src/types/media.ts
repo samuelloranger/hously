@@ -47,6 +47,18 @@ export interface TmdbMediaSearchItem {
   can_add: boolean;
   source_id: number | null;
   arr_url: string | null;
+  /** Short rationale from local LLM (Explore AI suggestions). */
+  ai_reason?: string | null;
+}
+
+export interface AiMediaSuggestionsResponse {
+  items: TmdbMediaSearchItem[];
+  model: string;
+}
+
+export interface AiMediaSuggestionsConfigResponse {
+  enabled: boolean;
+  ready: boolean;
 }
 
 export interface TmdbMediaSearchResponse {

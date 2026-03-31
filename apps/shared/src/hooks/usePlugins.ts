@@ -25,6 +25,8 @@ import type {
   SonarrPluginUpdateResponse,
   TmdbPlugin,
   TmdbPluginUpdateResponse,
+  OllamaPlugin,
+  OllamaPluginUpdateResponse,
   ClockifyPlugin,
   ClockifyPluginUpdateResponse,
   TrackerPlugin,
@@ -187,6 +189,16 @@ export function useTmdbPlugin() {
   return useQuery({
     queryKey: queryKeys.plugins.tmdb(),
     queryFn: () => fetcher<{ plugin: TmdbPlugin }>(PLUGIN_ENDPOINTS.TMDB),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useOllamaPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.ollama(),
+    queryFn: () => fetcher<{ plugin: OllamaPlugin }>(PLUGIN_ENDPOINTS.OLLAMA),
     refetchOnMount: 'always',
     staleTime: 0,
   });
@@ -398,6 +410,22 @@ export function useUpdateTmdbPlugin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.tmdb() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.upcoming() });
+    },
+  });
+}
+
+export function useUpdateOllamaPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { base_url: string; model?: string; enabled: boolean }) =>
+      fetcher<OllamaPluginUpdateResponse>(PLUGIN_ENDPOINTS.OLLAMA, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.ollama() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.aiSuggestionsConfig() });
     },
   });
 }

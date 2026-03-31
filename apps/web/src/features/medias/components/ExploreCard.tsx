@@ -111,6 +111,10 @@ export function ExploreCard({ item, onAdded }: { item: TmdbMediaSearchItem; onAd
           {/* Title — always shown */}
           <p className="text-[10.5px] font-semibold leading-tight text-white line-clamp-2">{item.title}</p>
 
+          {item.ai_reason ? (
+            <p className="mt-0.5 text-[9px] leading-snug text-indigo-200/85 line-clamp-3">{item.ai_reason}</p>
+          ) : null}
+
           {/* Meta row — fades in on hover */}
           <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity duration-250 group-hover:opacity-100">
             {item.release_year && (

@@ -9,6 +9,7 @@ export { RadarrPluginSection } from './RadarrPluginSection';
 export { ScrutinyPluginSection } from './ScrutinyPluginSection';
 export { SonarrPluginSection } from './SonarrPluginSection';
 export { TmdbPluginSection } from './TmdbPluginSection';
+export { OllamaPluginSection } from './OllamaPluginSection';
 export { ClockifyPluginSection } from './ClockifyPluginSection';
 export { TrackersPluginSection } from './TrackersPluginSection';
 export { WeatherPluginSection } from './WeatherPluginSection';

@@ -10,11 +10,13 @@ import type {
   ScrutinyPluginConfig,
   SonarrPluginConfig,
   TmdbPluginConfig,
+  OllamaPluginConfig,
   TrackerPluginConfig,
   WeatherPluginConfig,
   ClockifyPluginConfig,
 } from './types';
 import { decrypt } from '../../services/crypto';
+import { isValidHttpUrl } from './utils';
 
 const normalizeSecret = (value: unknown): string => {
   if (typeof value !== 'string') return '';
@@ -188,6 +190,18 @@ export const normalizeTmdbConfig = (config: unknown): TmdbPluginConfig | null =>
     api_key: apiKey,
     popularity_threshold: popularityThreshold,
   };
+};
+
+const DEFAULT_OLLAMA_MODEL = 'llama3.2';
+
+export const normalizeOllamaConfig = (config: unknown): OllamaPluginConfig | null => {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+  const cfg = config as Record<string, unknown>;
+  const baseUrl = typeof cfg.base_url === 'string' ? cfg.base_url.trim().replace(/\/+$/, '') : '';
+  const modelRaw = typeof cfg.model === 'string' ? cfg.model.trim() : '';
+  const model = modelRaw || DEFAULT_OLLAMA_MODEL;
+  if (!baseUrl || !isValidHttpUrl(baseUrl)) return null;
+  return { base_url: baseUrl, model };
 };
 
 export const normalizeRedditConfig = (config: unknown): RedditPluginConfig => {
