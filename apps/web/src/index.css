@@ -33,6 +33,11 @@
 /* Dark mode variant */
 @variant dark (&:where(.dark, .dark *));
 
+/* Reserve space for the scrollbar so Headless UI scroll-lock (overflow: hidden) does not shift layout */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Prevent double-tap zoom on iOS PWA */
 html,
 body {

@@ -170,7 +170,7 @@ export function ExploreCardDetailDialog({
               style={{ backgroundImage: `url(${heroBackdropUrl})` }}
               aria-hidden
             />
-            <div className="absolute inset-0 bg-black/50" aria-hidden />
+            <div className="absolute inset-0 bg-black/75" aria-hidden />
           </>
         ) : null}
 

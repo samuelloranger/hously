@@ -1,5 +1,5 @@
 import { Dialog as HeadlessDialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
-import { Fragment, ReactNode } from 'react';
+import { Fragment, ReactNode, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -17,9 +17,26 @@ interface DialogProps {
 const PORTAL_ID = 'hously-dialog-root';
 
 export function Dialog({ isOpen, onClose, title, children, showCloseButton = true, hideTitle = false, panelClassName }: DialogProps) {
+  /** Preserve window scroll when the dialog mounts — Headless UI scroll-lock + focus can jump the page */
+  const scrollYRef = useRef(0);
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    scrollYRef.current = window.scrollY;
+    const id = requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollYRef.current, left: 0, behavior: 'instant' });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isOpen]);
+
   return createPortal(
     <Transition appear show={isOpen} as={Fragment}>
-      <HeadlessDialog as="div" className="fixed inset-0 z-[var(--z-modal)]" onClose={onClose}>
+      <HeadlessDialog
+        open={isOpen}
+        autoFocus={false}
+        as="div"
+        className="fixed inset-0 z-[var(--z-modal)]"
+        onClose={() => onClose()}
+      >
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
@@ -32,7 +49,7 @@ export function Dialog({ isOpen, onClose, title, children, showCloseButton = tru
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
         </TransitionChild>
 
-        <div className="fixed inset-0 overflow-y-auto pointer-events-none">
+        <div className="fixed inset-0 overflow-y-auto overscroll-contain pointer-events-none">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
             <TransitionChild
               as={Fragment}
@@ -67,8 +84,9 @@ export function Dialog({ isOpen, onClose, title, children, showCloseButton = tru
                     onClick={onClose}
                     aria-label="Close dialog"
                     className={cn(
-                      'absolute shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors',
-                      hideTitle ? 'top-4 right-4 z-10' : 'top-5 right-5'
+                      'pointer-events-auto absolute shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors',
+                      /* z-20: above modal content (e.g. media hero z-10) that uses negative margin into this corner */
+                      hideTitle ? 'top-4 right-4 z-20' : 'top-5 right-5 z-20'
                     )}
                   >
                     <X className="h-5 w-5" />
