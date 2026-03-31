@@ -204,14 +204,30 @@ ${JSON.stringify(candidates)}`;
             }),
           });
           if (!ollamaRes.ok) {
-            const err = await ollamaRes.text().catch(() => '');
-            console.error('Ollama error:', ollamaRes.status, err);
+            const errText = await ollamaRes.text().catch(() => '');
+            console.error('Ollama error:', ollamaRes.status, errText);
+            let detail = errText;
+            try {
+              const parsed = JSON.parse(errText) as { error?: string };
+              if (typeof parsed.error === 'string') {
+                detail = parsed.error;
+              }
+            } catch {
+              /* plain text */
+            }
+            const hint =
+              ollamaRes.status === 404 && /not found/i.test(detail)
+                ? ' Set the model name in Settings → Plugins → Ollama to one you have (`ollama list` on the Ollama host).'
+                : ' Check the base URL and plugin settings.';
+            return badGateway(set, `Ollama (${ollamaRes.status}): ${detail}.${hint}`);
+          }
+          const ollamaJson = (await ollamaRes.json()) as { message?: { content?: string }; error?: string };
+          if (ollamaJson.error && !ollamaJson.message?.content) {
             return badGateway(
               set,
-              `Ollama request failed (${ollamaRes.status}). Check the base URL in Settings → Plugins → Ollama.`
+              `Ollama: ${ollamaJson.error}. Set the model in Settings → Plugins → Ollama.`
             );
           }
-          const ollamaJson = (await ollamaRes.json()) as { message?: { content?: string } };
           replyText = ollamaJson.message?.content ?? '';
         } finally {
           clearTimeout(abortTimer);

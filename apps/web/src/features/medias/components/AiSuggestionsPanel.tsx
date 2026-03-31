@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@tanstack/react-router';
 import {
   HttpError,
   useAiMediaSuggestions,
   useAiMediaSuggestionsConfig,
-  useCurrentUser,
   type TmdbMediaSearchItem,
 } from '@hously/shared';
 import { Loader2, Sparkles } from 'lucide-react';
@@ -21,8 +19,9 @@ export function AiSuggestionsPanel({ onAdded }: { onAdded: () => void }) {
 
   const mutation = useAiMediaSuggestions();
   const { data: aiConfig, isLoading: aiConfigLoading } = useAiMediaSuggestionsConfig();
-  const { data: currentUser } = useCurrentUser();
   const ready = Boolean(aiConfig?.ready);
+
+  if (!aiConfigLoading && !ready) return null;
 
   const handleGenerate = async () => {
     if (!ready) return;
@@ -56,25 +55,6 @@ export function AiSuggestionsPanel({ onAdded }: { onAdded: () => void }) {
       </div>
 
       <div className="space-y-3 px-4 py-4 md:px-5 md:py-5">
-        {!aiConfigLoading && !ready && (
-          <div className="rounded-xl border border-amber-500/25 bg-amber-950/35 px-3 py-2.5 text-[12px] leading-relaxed text-amber-100/90">
-            {currentUser?.is_admin ? (
-              <>
-                {t('medias.explore.aiPluginDisabled')}{' '}
-                <Link
-                  to="/settings"
-                  search={{ tab: 'plugins' }}
-                  className="font-medium text-indigo-300 underline underline-offset-2 hover:text-indigo-200"
-                >
-                  {t('medias.explore.aiPluginSettingsLink')}
-                </Link>
-              </>
-            ) : (
-              t('medias.explore.aiPluginAskAdmin')
-            )}
-          </div>
-        )}
-
         <textarea
           value={prompt}
           onChange={e => setPrompt(e.target.value)}

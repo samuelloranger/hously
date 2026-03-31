@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useAddUpcomingToArr,
@@ -79,7 +79,15 @@ export function ExploreCardDetailDialog({
   const addToWatchlist      = useAddToWatchlist();
   const removeFromWatchlist = useRemoveFromWatchlist();
 
-  const { data: modalData } = useMediaModalData(item.media_type, item.tmdb_id, undefined, { enabled: isOpen });
+  const { data: modalData, isPending: modalDataPending } = useMediaModalData(
+    item.media_type,
+    item.tmdb_id,
+    undefined,
+    { enabled: isOpen }
+  );
+
+  const [heroBackdropLoaded, setHeroBackdropLoaded] = useState(false);
+  const [posterLoaded, setPosterLoaded] = useState(false);
 
   const isInWatchlist = modalData?.watchlist_status ?? false;
   const providers     = modalData?.providers ?? null;
@@ -148,6 +156,22 @@ export function ExploreCardDetailDialog({
   const heroBackdropUrl =
     detailsData?.primary_backdrop_url ?? detailsData?.media_stills?.backdrops?.[0]?.url ?? null;
 
+  useEffect(() => {
+    setHeroBackdropLoaded(false);
+  }, [heroBackdropUrl]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPosterLoaded(false);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    setPosterLoaded(false);
+  }, [item.tmdb_id, item.media_type]);
+
+  const heroVisualReady = !heroBackdropUrl || heroBackdropLoaded;
+
   const hasProviders = providers && (
     providers.streaming.length > 0 || providers.free.length > 0 ||
     providers.rent.length > 0 || providers.buy.length > 0
@@ -166,25 +190,43 @@ export function ExploreCardDetailDialog({
         {/* ── Hero: backdrop edge-to-edge; padding on inner row (or outer when no image) ─ */}
         <div
           className={cn(
-            'relative shrink-0 overflow-hidden rounded-t-2xl',
+            'relative shrink-0 overflow-hidden rounded-t-2xl transition-[min-height] duration-500 ease-out',
+            heroBackdropUrl ? 'min-h-[200px]' : 'min-h-0',
             !heroBackdropUrl && 'px-6 pt-6 pb-4'
           )}
         >
         {heroBackdropUrl ? (
           <>
             <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${heroBackdropUrl})` }}
+              className="absolute inset-0 bg-neutral-900 dark:bg-neutral-950"
               aria-hidden
             />
-            <div className="absolute inset-0 bg-black/75" aria-hidden />
+            <img
+              src={heroBackdropUrl}
+              alt=""
+              loading="eager"
+              decoding="async"
+              className={cn(
+                'absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-700 ease-out motion-reduce:transition-none',
+                heroBackdropLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'
+              )}
+              onLoad={() => setHeroBackdropLoaded(true)}
+            />
+            <div
+              className={cn(
+                'absolute inset-0 bg-black/75 transition-opacity duration-500 ease-out motion-reduce:transition-none',
+                heroBackdropLoaded ? 'opacity-100' : 'opacity-90'
+              )}
+              aria-hidden
+            />
           </>
         ) : null}
 
         <div
           className={cn(
-            'relative z-10 flex gap-4',
-            heroBackdropUrl ? 'px-6 pb-5 pt-6 text-white' : 'px-0 py-1 pt-0'
+            'relative z-10 flex gap-4 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none',
+            heroBackdropUrl ? 'px-6 pb-5 pt-6 text-white' : 'px-0 py-1 pt-0',
+            heroVisualReady ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-[0.92]'
           )}
         >
           {/* Poster thumbnail */}
@@ -194,15 +236,18 @@ export function ExploreCardDetailDialog({
                 src={item.poster_url}
                 alt={item.title}
                 className={cn(
-                  'w-[88px] rounded-xl object-cover shadow-md ring-1',
-                  heroBackdropUrl ? 'ring-white/25' : 'ring-black/10 dark:ring-white/10'
+                  'w-[88px] rounded-xl object-cover shadow-md ring-1 transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none',
+                  heroBackdropUrl ? 'ring-white/25' : 'ring-black/10 dark:ring-white/10',
+                  posterLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
                 )}
+                onLoad={() => setPosterLoaded(true)}
                 onError={() => setImageError(true)}
               />
             ) : (
               <div
                 className={cn(
-                  'flex h-32 w-[88px] items-center justify-center rounded-xl text-2xl',
+                  'flex h-32 w-[88px] items-center justify-center rounded-xl text-2xl transition-opacity duration-500 motion-reduce:transition-none',
+                  heroVisualReady ? 'opacity-100' : 'opacity-80',
                   heroBackdropUrl ? 'bg-white/15 ring-1 ring-white/20' : 'bg-neutral-200 dark:bg-neutral-700'
                 )}
               >
@@ -426,6 +471,15 @@ export function ExploreCardDetailDialog({
 
         {/* ── Scrollable body (actions, tabs, panels) ───────────────── */}
         <div className="ios-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-6 pb-6">
+      {modalDataPending && !modalData ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-16" aria-busy="true" aria-label={t('common.loading')}>
+          <div className="h-9 w-9 animate-spin rounded-full border-2 border-neutral-200 border-t-indigo-600 dark:border-neutral-600 dark:border-t-indigo-400" />
+        </div>
+      ) : (
+        <div
+          className="animate-in fade-in slide-in-from-bottom-3 duration-500 ease-out motion-reduce:animate-none"
+          key={modalData ? `detail-${item.tmdb_id}` : `item-${item.tmdb_id}`}
+        >
       {/* ── Actions bar (above tabs) ──────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2 border-y border-neutral-200 dark:border-neutral-700/60 py-2.5 mb-4">
         {/* Watchlist toggle */}
@@ -540,7 +594,7 @@ export function ExploreCardDetailDialog({
 
       {/* ── Info tab ─────────────────────────────────────────────── */}
       {validTab === 'info' && (
-        <div className="flex flex-col gap-5 pb-6">
+        <div className="flex flex-col gap-5 pb-6 animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
 
           {/* Trailer */}
           {trailerData?.key && (
@@ -641,7 +695,7 @@ export function ExploreCardDetailDialog({
 
       {/* ── Similar tab ──────────────────────────────────────────── */}
       {validTab === 'similar' && (
-        <div className="min-h-[300px] pb-6">
+        <div className="min-h-[300px] pb-6 animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
           <SimilarMediasPanel
             isActive={isOpen && validTab === 'similar'}
             tmdbId={item.tmdb_id}
@@ -653,7 +707,7 @@ export function ExploreCardDetailDialog({
 
       {/* ── Search tab ───────────────────────────────────────────── */}
       {validTab === 'search' && canSearch && (
-        <div className="min-h-[300px] pb-6">
+        <div className="min-h-[300px] pb-6 animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
           <InteractiveSearchPanel
             isActive={isOpen && validTab === 'search'}
             media={toMediaItem(item)}
@@ -663,17 +717,21 @@ export function ExploreCardDetailDialog({
       )}
 
       {validTab === 'management' && canManage && item.source_id != null && (
-        <ArrManagementPanel
-          service={item.service}
-          sourceId={item.source_id}
-          title={item.title}
-          isActive={isOpen && validTab === 'management'}
-          onDeleted={() => {
-            onClose();
-            onAdded();
-            onRefetchLibrary?.();
-          }}
-        />
+        <div className="animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
+          <ArrManagementPanel
+            service={item.service}
+            sourceId={item.source_id}
+            title={item.title}
+            isActive={isOpen && validTab === 'management'}
+            onDeleted={() => {
+              onClose();
+              onAdded();
+              onRefetchLibrary?.();
+            }}
+          />
+        </div>
+      )}
+        </div>
       )}
         </div>
       </div>
