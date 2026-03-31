@@ -58,32 +58,12 @@ function OutLink({ href, label }: { href: string; label: string }) {
   );
 }
 
-function ImageStrip({ label, items }: { label: string; items: { url: string }[] }) {
-  if (items.length === 0) return null;
-  return (
-    <div>
-      <p className="mb-1.5 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">{label}</p>
-      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
-        {items.map((img, i) => (
-          <img
-            key={`${img.url}-${i}`}
-            src={img.url}
-            alt=""
-            className="h-24 shrink-0 rounded-lg object-cover ring-1 ring-black/10 dark:ring-white/10"
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function MediaDetailInfoSections({ details, displayTitle, mediaType, tmdbId }: MediaDetailInfoSectionsProps) {
   const { t } = useTranslation('common');
 
   const countries = details.production_countries ?? [];
   const companies = details.production_companies ?? [];
   const spoken = details.spoken_languages ?? [];
-  const stills = details.media_stills ?? { backdrops: [], logos: [], posters: [] };
   const nets = details.networks ?? [];
   const creators = details.created_by ?? [];
   const runtimes = details.episode_run_times ?? [];
@@ -109,12 +89,6 @@ export function MediaDetailInfoSections({ details, displayTitle, mediaType, tmdb
     (mediaType === 'tv' && details.tv_type);
 
   const hasMoney = mediaType === 'movie' && (details.budget != null || details.revenue != null);
-
-  const hasMedia =
-    details.primary_backdrop_url ||
-    stills.backdrops.length > 0 ||
-    stills.logos.length > 0 ||
-    stills.posters.length > 0;
 
   const hasTv =
     mediaType === 'tv' &&
@@ -195,23 +169,6 @@ export function MediaDetailInfoSections({ details, displayTitle, mediaType, tmdb
             {wikiUrl ? <OutLink href={wikiUrl} label="Wikidata" /> : null}
           </div>
         </Section>
-
-      {hasMedia && (
-        <Section title={t('medias.detail.sections.media')}>
-          {details.primary_backdrop_url && (
-            <div className="overflow-hidden rounded-xl ring-1 ring-black/10 dark:ring-white/10">
-              <img
-                src={details.primary_backdrop_url}
-                alt=""
-                className="max-h-56 w-full object-cover"
-              />
-            </div>
-          )}
-          <ImageStrip label={t('medias.detail.backdrops')} items={stills.backdrops} />
-          <ImageStrip label={t('medias.detail.logos')} items={stills.logos} />
-          <ImageStrip label={t('medias.detail.posters')} items={stills.posters} />
-        </Section>
-      )}
 
       {hasTv && (
         <Section title={t('medias.detail.sections.tv')}>
