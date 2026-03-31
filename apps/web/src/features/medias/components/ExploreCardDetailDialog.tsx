@@ -160,14 +160,14 @@ export function ExploreCardDetailDialog({
       title={item.title}
       hideTitle
       bodyScroll
-      panelClassName="max-w-3xl"
+      panelClassName="max-w-3xl p-0"
     >
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        {/* ── Hero: optional backdrop + poster + meta (fixed, does not scroll) ─ */}
+        {/* ── Hero: backdrop edge-to-edge; padding on inner row (or outer when no image) ─ */}
         <div
           className={cn(
-            'relative shrink-0 -mx-6 -mt-6 overflow-hidden rounded-t-2xl',
-            !heroBackdropUrl && 'pt-1'
+            'relative shrink-0 overflow-hidden rounded-t-2xl',
+            !heroBackdropUrl && 'px-6 pt-6 pb-4'
           )}
         >
         {heroBackdropUrl ? (
@@ -183,8 +183,8 @@ export function ExploreCardDetailDialog({
 
         <div
           className={cn(
-            'relative z-10 flex gap-4 px-6 pb-4',
-            heroBackdropUrl ? 'pb-5 pt-6 text-white' : 'py-1 pt-0'
+            'relative z-10 flex gap-4',
+            heroBackdropUrl ? 'px-6 pb-5 pt-6 text-white' : 'px-0 py-1 pt-0'
           )}
         >
           {/* Poster thumbnail */}
@@ -425,7 +425,7 @@ export function ExploreCardDetailDialog({
       </div>
 
         {/* ── Scrollable body (actions, tabs, panels) ───────────────── */}
-        <div className="ios-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
+        <div className="ios-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-6 pb-6">
       {/* ── Actions bar (above tabs) ──────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2 border-y border-neutral-200 dark:border-neutral-700/60 py-2.5 mb-4">
         {/* Watchlist toggle */}
