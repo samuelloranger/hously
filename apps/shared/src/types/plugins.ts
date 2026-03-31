@@ -58,7 +58,8 @@ export interface BeszelPlugin {
   type: 'beszel';
   enabled: boolean;
   website_url: string;
-  api_token_set: boolean;
+  email: string;
+  password_set: boolean;
 }
 
 export interface AdguardPlugin {

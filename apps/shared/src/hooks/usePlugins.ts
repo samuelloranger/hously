@@ -325,7 +325,7 @@ export function useUpdateBeszelPlugin() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { website_url: string; api_token?: string; enabled: boolean }) =>
+    mutationFn: (data: { website_url: string; email: string; password?: string; enabled: boolean }) =>
       fetcher<BeszelPluginUpdateResponse>(PLUGIN_ENDPOINTS.BESZEL, {
         method: 'PUT',
         body: data,

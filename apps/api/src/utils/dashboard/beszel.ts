@@ -67,7 +67,27 @@ export const fetchBeszelSummary = async (): Promise<DashboardBeszelSummaryRespon
   }
 
   try {
-    const headers = { Accept: 'application/json', Authorization: config.api_token };
+    const authUrl = new URL('/api/collections/users/auth-with-password', config.website_url);
+    const authRes = await fetch(authUrl.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ identity: config.email, password: config.password }),
+    });
+    if (!authRes.ok) {
+      return {
+        ...buildBeszelDisabledSummary(`Beszel authentication failed with status ${authRes.status}`),
+        enabled: true,
+      };
+    }
+    const authData = (await authRes.json()) as { token?: string };
+    if (!authData.token) {
+      return {
+        ...buildBeszelDisabledSummary('Beszel authentication response missing token'),
+        enabled: true,
+      };
+    }
+
+    const headers = { Accept: 'application/json', Authorization: authData.token };
 
     const systemsUrl = new URL('/api/collections/systems/records?perPage=1&sort=created', config.website_url);
     const systemsRes = await fetch(systemsUrl.toString(), { headers });

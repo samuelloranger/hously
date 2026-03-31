@@ -1198,8 +1198,9 @@
       "beszel": {
         "help": "Connect Beszel to show live system metrics and per-disk usage on the dashboard.",
         "websiteUrl": "Beszel URL",
-        "apiToken": "API Token",
-        "apiTokenSet": "Token already set — leave blank to keep"
+        "email": "Beszel Email",
+        "password": "Beszel Password",
+        "passwordSet": "Password already set — leave blank to keep"
       },
       "adguard": {
         "help": "Connect AdGuard Home to show DNS filtering and turn AdGuard on or off from Hously.",

@@ -136,11 +136,13 @@ export const normalizeBeszelConfig = (config: unknown): BeszelPluginConfig | nul
   if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
   const cfg = config as Record<string, unknown>;
   const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-  const apiToken = typeof cfg.api_token === 'string' ? normalizeSecret(cfg.api_token) : '';
-  if (!websiteUrl || !apiToken) return null;
+  const email = typeof cfg.email === 'string' ? cfg.email.trim() : '';
+  const password = typeof cfg.password === 'string' ? normalizeSecret(cfg.password) : '';
+  if (!websiteUrl || !email || !password) return null;
   return {
     website_url: websiteUrl.replace(/\/+$/, ''),
-    api_token: apiToken,
+    email,
+    password,
   };
 };
 

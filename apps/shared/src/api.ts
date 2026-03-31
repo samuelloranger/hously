@@ -630,7 +630,7 @@ export function createPluginsApi(fetcher: ApiFetcher) {
         body: data,
       }),
     getBeszelPlugin: () => fetcher<{ plugin: BeszelPlugin }>(PLUGIN_ENDPOINTS.BESZEL),
-    updateBeszelPlugin: (data: { website_url: string; api_token?: string; enabled: boolean }) =>
+    updateBeszelPlugin: (data: { website_url: string; email: string; password?: string; enabled: boolean }) =>
       fetcher<BeszelPluginUpdateResponse>(PLUGIN_ENDPOINTS.BESZEL, {
         method: 'PUT',
         body: data,

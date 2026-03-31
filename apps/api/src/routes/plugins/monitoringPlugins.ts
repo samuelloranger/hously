@@ -129,12 +129,18 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
       });
 
       const config = normalizeBeszelConfig(plugin?.config);
+      const rawConfig =
+        plugin?.config && typeof plugin.config === 'object' && !Array.isArray(plugin.config)
+          ? (plugin.config as Record<string, unknown>)
+          : null;
+
       return {
         plugin: {
           type: 'beszel',
           enabled: plugin?.enabled || false,
           website_url: config?.website_url || '',
-          api_token_set: Boolean(config?.api_token),
+          email: config?.email || (typeof rawConfig?.email === 'string' ? rawConfig.email : ''),
+          password_set: Boolean(config?.password),
         },
       };
     } catch (error) {
@@ -146,10 +152,15 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
     '/beszel',
     async ({ user, body, set }) => {
       const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const email = body.email.trim();
       const enabled = body.enabled ?? true;
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
         return badRequest(set, 'Invalid website_url. Must be a valid http(s) URL.');
+      }
+
+      if (!email) {
+        return badRequest(set, 'email is required');
       }
 
       try {
@@ -157,17 +168,18 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           where: { type: 'beszel' },
         });
         const existingConfig = normalizeBeszelConfig(existingPlugin?.config);
-        const providedToken = body.api_token?.trim() || '';
-        const apiToken = providedToken || existingConfig?.api_token || '';
+        const providedPassword = body.password?.trim() || '';
+        const password = providedPassword || existingConfig?.password || '';
 
-        if (!apiToken) {
-          return badRequest(set, 'api_token is required');
+        if (!password) {
+          return badRequest(set, 'password is required');
         }
 
         const now = nowUtc();
         const config = {
           website_url: websiteUrl,
-          api_token: encrypt(apiToken),
+          email,
+          password: encrypt(password),
         };
 
         const plugin = await prisma.plugin.upsert({
@@ -188,7 +200,8 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             type: plugin.type,
             enabled: plugin.enabled,
             website_url: websiteUrl,
-            api_token_set: true,
+            email,
+            password_set: true,
           },
         };
       } catch (error) {
@@ -199,7 +212,8 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
     {
       body: t.Object({
         website_url: t.String(),
-        api_token: t.Optional(t.String()),
+        email: t.String(),
+        password: t.Optional(t.String()),
         enabled: t.Optional(t.Boolean()),
       }),
     }
