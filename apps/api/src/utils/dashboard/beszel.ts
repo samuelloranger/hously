@@ -200,11 +200,13 @@ export const fetchBeszelSummary = async (): Promise<DashboardBeszelSummaryRespon
 
     // Extra filesystems
     const efs = s.efs ?? {};
-    for (const [mountPoint, fsData] of Object.entries(efs)) {
+    for (const [mountKey, fsData] of Object.entries(efs)) {
       if (!fsData || typeof fsData.d !== 'number' || fsData.d === 0) continue;
+      // mergerfs pools report as "source1:source2:source3" — normalize to a friendly label
+      const isMergerfs = mountKey.includes(':');
       disks.push({
-        mount_point: mountPoint,
-        model: resolveModel(mountPoint),
+        mount_point: isMergerfs ? 'mergerfs' : mountKey,
+        model: isMergerfs ? 'MergerFS Pool' : resolveModel(mountKey),
         used_gib: Math.round(fsData.du * 10) / 10,
         avail_gib: Math.round((fsData.d - fsData.du) * 10) / 10,
         reserved_gib: 0,
