@@ -150,7 +150,7 @@ export const queryKeys = {
     watchlist: () => [...queryKeys.medias.all, 'watchlist'] as const,
     missingCollections: () => [...queryKeys.medias.all, 'missing-collections'] as const,
     modalData: (mediaType: 'movie' | 'tv', tmdbId: number, region?: string) =>
-      [...queryKeys.medias.all, 'modal', mediaType, tmdbId, region ?? 'CA'] as const,
+      [...queryKeys.medias.all, 'modal', 'v2', mediaType, tmdbId, region ?? 'CA'] as const,
     discover: (params: {
       type: 'movie' | 'tv';
       provider_id?: number | null;

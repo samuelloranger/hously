@@ -89,7 +89,17 @@ export const app = new Elysia()
   .get('/api/health', () => ({ status: 'ok' }))
   .use(app => {
     if (serveStatic) {
-      app.use(staticPlugin({ assets: './public', prefix: '/' })).get('*', () => Bun.file('./public/index.html'));
+      // On Bun, @elysiajs/static imports .html as modules; Vite's index.html is plain HTML, so those routes
+      // return empty bodies. Ignore *.html here and serve the SPA shell via Bun.file below.
+      app
+        .use(
+          staticPlugin({
+            assets: './public',
+            prefix: '/',
+            ignorePatterns: [/\.html$/],
+          })
+        )
+        .get('*', () => Bun.file('./public/index.html'));
     }
     return app;
   });

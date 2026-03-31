@@ -80,6 +80,14 @@ function ImageStrip({ label, items }: { label: string; items: { url: string }[] 
 export function MediaDetailInfoSections({ details, displayTitle, mediaType, tmdbId }: MediaDetailInfoSectionsProps) {
   const { t } = useTranslation('common');
 
+  const countries = details.production_countries ?? [];
+  const companies = details.production_companies ?? [];
+  const spoken = details.spoken_languages ?? [];
+  const stills = details.media_stills ?? { backdrops: [], logos: [], posters: [] };
+  const nets = details.networks ?? [];
+  const creators = details.created_by ?? [];
+  const runtimes = details.episode_run_times ?? [];
+
   const tmdbPageUrl = `https://www.themoviedb.org/${mediaType}/${tmdbId}`;
   const ext = details.external_ids;
 
@@ -95,24 +103,24 @@ export function MediaDetailInfoSections({ details, displayTitle, mediaType, tmdb
   const hasFacts =
     showOriginalTitle ||
     details.original_language_label ||
-    details.production_countries.length > 0 ||
-    details.production_companies.length > 0 ||
-    details.spoken_languages.length > 0 ||
+    countries.length > 0 ||
+    companies.length > 0 ||
+    spoken.length > 0 ||
     (mediaType === 'tv' && details.tv_type);
 
   const hasMoney = mediaType === 'movie' && (details.budget != null || details.revenue != null);
 
   const hasMedia =
     details.primary_backdrop_url ||
-    details.media_stills.backdrops.length > 0 ||
-    details.media_stills.logos.length > 0 ||
-    details.media_stills.posters.length > 0;
+    stills.backdrops.length > 0 ||
+    stills.logos.length > 0 ||
+    stills.posters.length > 0;
 
   const hasTv =
     mediaType === 'tv' &&
-    (details.networks.length > 0 ||
-      details.created_by.length > 0 ||
-      details.episode_run_times.length > 0 ||
+    (nets.length > 0 ||
+      creators.length > 0 ||
+      runtimes.length > 0 ||
       details.next_episode_to_air ||
       details.last_episode_to_air);
 
@@ -129,26 +137,26 @@ export function MediaDetailInfoSections({ details, displayTitle, mediaType, tmdb
               value={`${details.original_language_label}${details.original_language ? ` (${details.original_language})` : ''}`}
             />
           )}
-          {details.production_countries.length > 0 && (
+          {countries.length > 0 && (
             <FactLine
               label={t('medias.detail.countries')}
-              value={details.production_countries.map(c => c.name).join(', ')}
+              value={countries.map(c => c.name).join(', ')}
             />
           )}
-          {details.spoken_languages.length > 0 && (
+          {spoken.length > 0 && (
             <FactLine
               label={t('medias.detail.spokenLanguages')}
-              value={details.spoken_languages.map(s => s.english_name || s.name).join(', ')}
+              value={spoken.map(s => s.english_name || s.name).join(', ')}
             />
           )}
           {mediaType === 'tv' && details.tv_type && (
             <FactLine label={t('medias.detail.showType')} value={details.tv_type} />
           )}
-          {details.production_companies.length > 0 && (
+          {companies.length > 0 && (
             <div>
               <p className="mb-1.5 text-xs text-neutral-500 dark:text-neutral-500">{t('medias.detail.companies')}</p>
               <div className="flex flex-wrap gap-2">
-                {details.production_companies.map(c => (
+                {companies.map(c => (
                   <span
                     key={c.id}
                     className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-neutral-200/80 bg-white/80 px-2 py-1 text-xs text-neutral-800 dark:border-neutral-700/60 dark:bg-neutral-900/50 dark:text-neutral-200"
@@ -199,19 +207,19 @@ export function MediaDetailInfoSections({ details, displayTitle, mediaType, tmdb
               />
             </div>
           )}
-          <ImageStrip label={t('medias.detail.backdrops')} items={details.media_stills.backdrops} />
-          <ImageStrip label={t('medias.detail.logos')} items={details.media_stills.logos} />
-          <ImageStrip label={t('medias.detail.posters')} items={details.media_stills.posters} />
+          <ImageStrip label={t('medias.detail.backdrops')} items={stills.backdrops} />
+          <ImageStrip label={t('medias.detail.logos')} items={stills.logos} />
+          <ImageStrip label={t('medias.detail.posters')} items={stills.posters} />
         </Section>
       )}
 
       {hasTv && (
         <Section title={t('medias.detail.sections.tv')}>
-          {details.networks.length > 0 && (
+          {nets.length > 0 && (
             <div>
               <p className="mb-1.5 text-xs text-neutral-500 dark:text-neutral-500">{t('medias.detail.networks')}</p>
               <div className="flex flex-wrap gap-2">
-                {details.networks.map(n => (
+                {nets.map(n => (
                   <span
                     key={n.id}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200/80 bg-white/80 px-2 py-1 text-xs dark:border-neutral-700/60 dark:bg-neutral-900/50"
@@ -223,11 +231,11 @@ export function MediaDetailInfoSections({ details, displayTitle, mediaType, tmdb
               </div>
             </div>
           )}
-          {details.created_by.length > 0 && (
+          {creators.length > 0 && (
             <div>
               <p className="mb-1.5 text-xs text-neutral-500 dark:text-neutral-500">{t('medias.detail.createdBy')}</p>
               <div className="flex flex-wrap gap-3">
-                {details.created_by.map(c => (
+                {creators.map(c => (
                   <div key={c.id} className="flex items-center gap-2 text-sm">
                     {c.profile_url ? (
                       <img src={c.profile_url} alt="" className="h-9 w-9 rounded-full object-cover" />
@@ -242,10 +250,10 @@ export function MediaDetailInfoSections({ details, displayTitle, mediaType, tmdb
               </div>
             </div>
           )}
-          {details.episode_run_times.length > 0 && (
+          {runtimes.length > 0 && (
             <FactLine
               label={t('medias.detail.episodeRuntimes')}
-              value={details.episode_run_times.map(m => `${m} min`).join(', ')}
+              value={runtimes.map(m => `${m} min`).join(', ')}
             />
           )}
           {details.next_episode_to_air && (
