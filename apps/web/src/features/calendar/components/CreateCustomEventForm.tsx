@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import {
   useCreateCustomEvent,
@@ -13,12 +13,7 @@ import { Dialog } from '@/components/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
-import {
-  ColorPicker,
-  ColorPickerSelection,
-  ColorPickerHue,
-  ColorPickerFormat,
-} from '@/components/ui/color-picker';
+import { ColorPicker, ColorPickerSelection, ColorPickerHue, ColorPickerFormat } from '@/components/ui/color-picker';
 import { DateRangePicker } from '@/components/DateRangePicker';
 
 interface CreateCustomEventFormProps {
@@ -45,7 +40,7 @@ export function CreateCustomEventForm({ isOpen, onClose, eventToEdit }: CreateCu
     formState: { errors },
     getValues,
     reset,
-    watch,
+    control,
     setValue,
   } = useForm<CreateCustomEventRequest>({
     defaultValues: {
@@ -60,9 +55,12 @@ export function CreateCustomEventForm({ isOpen, onClose, eventToEdit }: CreateCu
     },
   });
 
-  const startDatetime = watch('start_datetime');
-  const endDatetime = watch('end_datetime');
-  const recurrenceType = watch('recurrence_type');
+  const startDatetime = useWatch({ control, name: 'start_datetime' });
+  const endDatetime = useWatch({ control, name: 'end_datetime' });
+  const recurrenceType = useWatch({ control, name: 'recurrence_type' });
+  const description = useWatch({ control, name: 'description' });
+  const allDay = useWatch({ control, name: 'all_day' });
+  const color = useWatch({ control, name: 'color' });
 
   const createMutation = useCreateCustomEvent();
   const updateMutation = useUpdateCustomEvent();
@@ -176,9 +174,9 @@ export function CreateCustomEventForm({ isOpen, onClose, eventToEdit }: CreateCu
             {t('calendar.description')}
           </label>
           <MinimalTiptap
-            content={watch('description') || ''}
+            content={description || ''}
             onChange={value => {
-              if (value !== watch('description')) {
+              if (value !== description) {
                 setValue('description', value);
               }
             }}
@@ -190,7 +188,7 @@ export function CreateCustomEventForm({ isOpen, onClose, eventToEdit }: CreateCu
           <input
             type="checkbox"
             id="all_day"
-            checked={watch('all_day') || false}
+            checked={allDay || false}
             onChange={e => {
               setValue('all_day', e.target.checked);
               if (e.target.checked) {
@@ -219,7 +217,7 @@ export function CreateCustomEventForm({ isOpen, onClose, eventToEdit }: CreateCu
             startValue={startDatetime}
             endValue={endDatetime}
             onChange={handleRangeChange}
-            allDay={watch('all_day') || false}
+            allDay={allDay || false}
             placeholder={t('calendar.selectDateRange') || 'Select date range'}
           />
           {(errors.start_datetime || errors.end_datetime) && (
@@ -236,13 +234,13 @@ export function CreateCustomEventForm({ isOpen, onClose, eventToEdit }: CreateCu
           <div className="flex items-center gap-4">
             <div
               className="w-12 h-12 rounded border-2 border-neutral-300 dark:border-neutral-600"
-              style={{ backgroundColor: watch('color') || '#3b82f6' }}
+              style={{ backgroundColor: color || '#3b82f6' }}
             />
             <div className="flex-1">
               <ColorPicker
-                value={watch('color') || '#3b82f6'}
+                value={color || '#3b82f6'}
                 onChange={(value: string) => {
-                  if (value !== watch('color')) {
+                  if (value !== color) {
                     setValue('color', value);
                   }
                 }}

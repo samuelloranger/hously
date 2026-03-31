@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { useTranslation } from "react-i18next";
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
 
 interface NotificationPermissionModalProps {
   isOpen: boolean;
@@ -8,26 +9,27 @@ interface NotificationPermissionModalProps {
   onDismiss: () => void;
 }
 
-export function NotificationPermissionModal({
-  isOpen,
-  onAllow,
-  onDismiss,
-}: NotificationPermissionModalProps) {
-  const { t } = useTranslation("common");
-  const [isVisible, setIsVisible] = useState(false);
+export function NotificationPermissionModal({ isOpen, onAllow, onDismiss }: NotificationPermissionModalProps) {
+  const { t } = useTranslation('common');
+  const [shouldRender, setShouldRender] = useState(isOpen);
+
+  if (isOpen && !shouldRender) {
+    setShouldRender(true);
+  }
 
   useEffect(() => {
-    if (isOpen) {
-      // Small delay for animation
-      setTimeout(() => setIsVisible(true), 50);
-    } else {
-      setIsVisible(false);
+    if (!isOpen && shouldRender) {
+      const timer = setTimeout(() => setShouldRender(false), 300);
+      return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+    return undefined;
+  }, [isOpen, shouldRender]);
 
-  if (!isOpen) {
+  if (!shouldRender) {
     return null;
   }
+
+  const isClosing = !isOpen;
 
   return createPortal(
     <div
@@ -38,30 +40,27 @@ export function NotificationPermissionModal({
     >
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black transition-opacity duration-300 ${
-          isVisible ? "opacity-50" : "opacity-0"
-        }`}
+        className={cn(
+          'absolute inset-0 bg-black opacity-50 duration-300',
+          isClosing ? 'animate-out fade-out' : 'animate-in fade-in'
+        )}
         onClick={onDismiss}
       />
 
       {/* Modal */}
       <div
-        className={`relative bg-neutral-50 dark:bg-neutral-800 rounded-lg shadow-xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-6 transform transition-all duration-300 border border-neutral-200 dark:border-neutral-700 ${
-          isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"
-        }`}
+        className={cn(
+          'relative bg-neutral-50 dark:bg-neutral-800 rounded-lg shadow-xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-6 border border-neutral-200 dark:border-neutral-700 duration-300',
+          isClosing ? 'animate-out fade-out zoom-out-95' : 'animate-in fade-in zoom-in-95'
+        )}
       >
         <div className="flex items-start mb-4">
           <div className="flex-shrink-0 text-3xl">🔔</div>
           <div className="ml-4 flex-1">
-            <h3
-              id="notification-modal-title"
-              className="text-lg font-semibold text-neutral-900 dark:text-white mb-2"
-            >
-              {t("notifications.modal.title")}
+            <h3 id="notification-modal-title" className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
+              {t('notifications.modal.title')}
             </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-300">
-              {t("notifications.modal.description")}
-            </p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('notifications.modal.description')}</p>
           </div>
         </div>
 
@@ -70,13 +69,13 @@ export function NotificationPermissionModal({
             onClick={onAllow}
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium"
           >
-            {t("notifications.modal.allow")}
+            {t('notifications.modal.allow')}
           </button>
           <button
             onClick={onDismiss}
             className="flex-1 px-4 py-2 bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-md hover:bg-neutral-300 dark:hover:bg-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 transition-colors font-medium"
           >
-            {t("notifications.modal.dismiss")}
+            {t('notifications.modal.dismiss')}
           </button>
         </div>
       </div>

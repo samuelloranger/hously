@@ -59,7 +59,11 @@ export function ShoppingList() {
     [filteredItems]
   );
   const completedItems = useMemo(() => filteredItems.filter(item => item.completed), [filteredItems]);
-  const selectedCount = selectedIds.size;
+  const validSelectedIds = useMemo(() => {
+    const validIds = new Set(items.map(item => item.id));
+    return new Set([...selectedIds].filter(id => validIds.has(id)));
+  }, [items, selectedIds]);
+  const selectedCount = validSelectedIds.size;
   const totalMatches = activeItems.length + completedItems.length;
   const hasFilters = query.trim().length > 0 || statusFilter !== 'all';
 
@@ -69,22 +73,6 @@ export function ShoppingList() {
     { id: 'completed' as const, label: t('shopping.filters.completed') },
     { id: 'notes' as const, label: t('shopping.filters.notes') },
   ];
-
-  useEffect(() => {
-    if (!isSelectionMode) {
-      return;
-    }
-    setSelectedIds(prev => {
-      const validIds = new Set(items.map(item => item.id));
-      const next = new Set<number>();
-      prev.forEach(id => {
-        if (validIds.has(id)) {
-          next.add(id);
-        }
-      });
-      return next;
-    });
-  }, [items, isSelectionMode]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -130,7 +118,7 @@ export function ShoppingList() {
     if (!confirm(t('shopping.deleteSelectedConfirm', { count: selectedCount }))) {
       return;
     }
-    deleteItemsMutation.mutate(Array.from(selectedIds), {
+    deleteItemsMutation.mutate(Array.from(validSelectedIds), {
       onSuccess: () => {
         setSelectedIds(new Set());
       },
@@ -210,7 +198,9 @@ export function ShoppingList() {
       ) : totalMatches === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-200/80 bg-white px-6 py-12 text-center dark:border-neutral-700/60 dark:bg-neutral-800">
           <p className="text-base font-semibold text-neutral-900 dark:text-white">{t('shopping.emptyFilteredTitle')}</p>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">{t('shopping.emptyFilteredDescription')}</p>
+          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+            {t('shopping.emptyFilteredDescription')}
+          </p>
           <Button
             className="mt-4"
             variant="outline"
@@ -229,7 +219,9 @@ export function ShoppingList() {
               <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-700/50">
                 <div className="flex flex-wrap justify-between items-center gap-3">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">{t('shopping.currentList')}</h3>
+                    <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                      {t('shopping.currentList')}
+                    </h3>
                     <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">
                       {activeItems.length} {activeItems.length !== 1 ? t('shopping.itemsPlural') : t('shopping.items')}
                     </span>
@@ -266,7 +258,7 @@ export function ShoppingList() {
                     item={item}
                     dragHandleProps={handleProps}
                     isSelectionMode={isSelectionMode}
-                    isSelected={selectedIds.has(item.id)}
+                    isSelected={validSelectedIds.has(item.id)}
                     onSelectToggle={handleSelectToggle}
                   />
                 )}
@@ -302,7 +294,7 @@ export function ShoppingList() {
                     key={item.id}
                     item={item}
                     isSelectionMode={isSelectionMode}
-                    isSelected={selectedIds.has(item.id)}
+                    isSelected={validSelectedIds.has(item.id)}
                     onSelectToggle={handleSelectToggle}
                   />
                 ))}

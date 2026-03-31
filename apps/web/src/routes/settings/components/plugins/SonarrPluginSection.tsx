@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSonarrPlugin, useSonarrProfiles, useUpdateSonarrPlugin } from '@hously/shared';
 import { toast } from 'sonner';
@@ -9,29 +9,29 @@ const filterDeprecatedProfiles = (profiles: Array<{ id: number; name: string }>)
   profiles.filter(profile => !/\bdeprecated\b/i.test(profile.name));
 
 export function SonarrPluginSection() {
-  const { t } = useTranslation('common');
   const { data, isLoading } = useSonarrPlugin();
+  return <SonarrPluginSectionImpl key={data?.plugin?.type ?? 'pending'} data={data} isLoading={isLoading} />;
+}
+
+function SonarrPluginSectionImpl({
+  data,
+  isLoading,
+}: {
+  data: ReturnType<typeof useSonarrPlugin>['data'];
+  isLoading: boolean;
+}) {
+  const { t } = useTranslation('common');
   const saveMutation = useUpdateSonarrPlugin();
   const fetchProfilesMutation = useSonarrProfiles();
 
-  const [websiteUrl, setWebsiteUrl] = useState('');
-  const [apiKey, setApiKey] = useState('');
-  const [rootFolderPath, setRootFolderPath] = useState('');
-  const [qualityProfileId, setQualityProfileId] = useState('1');
-  const [languageProfileId, setLanguageProfileId] = useState('1');
-  const [enabled, setEnabled] = useState(false);
+  const [websiteUrl, setWebsiteUrl] = useState(data?.plugin?.website_url || '');
+  const [apiKey, setApiKey] = useState(data?.plugin?.api_key || '');
+  const [rootFolderPath, setRootFolderPath] = useState(data?.plugin?.root_folder_path || '');
+  const [qualityProfileId, setQualityProfileId] = useState(String(data?.plugin?.quality_profile_id || 1));
+  const [languageProfileId, setLanguageProfileId] = useState(String(data?.plugin?.language_profile_id || 1));
+  const [enabled, setEnabled] = useState(Boolean(data?.plugin?.enabled));
   const [qualityProfiles, setQualityProfiles] = useState<Array<{ id: number; name: string }>>([]);
   const [languageProfiles, setLanguageProfiles] = useState<Array<{ id: number; name: string }>>([]);
-
-  useEffect(() => {
-    if (!data?.plugin) return;
-    setWebsiteUrl(data.plugin.website_url || '');
-    setApiKey(data.plugin.api_key || '');
-    setRootFolderPath(data.plugin.root_folder_path || '');
-    setQualityProfileId(String(data.plugin.quality_profile_id || 1));
-    setLanguageProfileId(String(data.plugin.language_profile_id || 1));
-    setEnabled(Boolean(data.plugin.enabled));
-  }, [data]);
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;

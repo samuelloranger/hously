@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { TimePicker } from './ui/time-picker';
 import { toDateTimeLocal } from '@hously/shared';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface DateTimePickerProps {
   id?: string;
@@ -27,25 +27,14 @@ export function DateTimePicker({
   className = '',
   allDay,
 }: DateTimePickerProps) {
-  const [date, setDate] = useState<Date | undefined>(value ? new Date(value) : undefined);
-  const [time, setTime] = useState({
+  const [date, setDate] = useState<Date | undefined>(() => (value ? new Date(value) : undefined));
+  const [time, setTime] = useState(() => ({
     hours: value ? new Date(value).getHours() : new Date().getHours(),
     minutes: value ? new Date(value).getMinutes() : 0,
-  });
+  }));
   const [isOpen, setIsOpen] = useState(false);
 
   const minDateTime = minDate || new Date();
-
-  useEffect(() => {
-    if (value) {
-      const dateValue = new Date(value);
-      setDate(dateValue);
-      setTime({
-        hours: dateValue.getHours(),
-        minutes: dateValue.getMinutes(),
-      });
-    }
-  }, [value]);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (!selectedDate) {

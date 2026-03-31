@@ -1,24 +1,27 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTmdbPlugin, useUpdateTmdbPlugin } from '@hously/shared';
 import { toast } from 'sonner';
 import { PluginSectionCard } from './PluginSectionCard';
 
 export function TmdbPluginSection() {
-  const { t } = useTranslation('common');
   const { data, isLoading } = useTmdbPlugin();
+  return <TmdbPluginSectionImpl key={data?.plugin?.type ?? 'pending'} data={data} isLoading={isLoading} />;
+}
+
+function TmdbPluginSectionImpl({
+  data,
+  isLoading,
+}: {
+  data: ReturnType<typeof useTmdbPlugin>['data'];
+  isLoading: boolean;
+}) {
+  const { t } = useTranslation('common');
   const saveMutation = useUpdateTmdbPlugin();
 
-  const [apiKey, setApiKey] = useState('');
-  const [enabled, setEnabled] = useState(false);
-  const [popularityThreshold, setPopularityThreshold] = useState(15);
-
-  useEffect(() => {
-    if (!data?.plugin) return;
-    setApiKey(data.plugin.api_key || '');
-    setEnabled(Boolean(data.plugin.enabled));
-    setPopularityThreshold(data.plugin.popularity_threshold ?? 15);
-  }, [data]);
+  const [apiKey, setApiKey] = useState(data?.plugin?.api_key || '');
+  const [enabled, setEnabled] = useState(Boolean(data?.plugin?.enabled));
+  const [popularityThreshold, setPopularityThreshold] = useState(data?.plugin?.popularity_threshold ?? 15);
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useJellyfinPlugin, useUpdateJellyfinPlugin } from '@hously/shared';
 import { toast } from 'sonner';
@@ -6,20 +6,23 @@ import { PluginSectionCard } from './PluginSectionCard';
 import { PluginUrlInput } from './PluginUrlInput';
 
 export function JellyfinPluginSection() {
-  const { t } = useTranslation('common');
   const { data, isLoading } = useJellyfinPlugin();
+  return <JellyfinPluginSectionImpl key={data?.plugin?.type ?? 'pending'} data={data} isLoading={isLoading} />;
+}
+
+function JellyfinPluginSectionImpl({
+  data,
+  isLoading,
+}: {
+  data: ReturnType<typeof useJellyfinPlugin>['data'];
+  isLoading: boolean;
+}) {
+  const { t } = useTranslation('common');
   const saveMutation = useUpdateJellyfinPlugin();
 
-  const [websiteUrl, setWebsiteUrl] = useState('');
-  const [apiKey, setApiKey] = useState('');
-  const [enabled, setEnabled] = useState(false);
-
-  useEffect(() => {
-    if (!data?.plugin) return;
-    setWebsiteUrl(data.plugin.website_url || '');
-    setApiKey(data.plugin.api_key || '');
-    setEnabled(Boolean(data.plugin.enabled));
-  }, [data]);
+  const [websiteUrl, setWebsiteUrl] = useState(data?.plugin?.website_url || '');
+  const [apiKey, setApiKey] = useState(data?.plugin?.api_key || '');
+  const [enabled, setEnabled] = useState(Boolean(data?.plugin?.enabled));
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;

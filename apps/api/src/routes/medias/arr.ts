@@ -8,6 +8,8 @@ import { badGateway, badRequest, serverError } from '../../utils/errors';
 import {
   type InteractiveReleaseItem,
   mapInteractiveRelease,
+  mapRadarrManagementDetails,
+  mapSonarrManagementDetails,
   isSonarrFullSeasonRelease,
 } from './mappers';
 
@@ -192,9 +194,7 @@ export const mediasArrRoutes = new Elysia({ prefix: '/api/medias' })
         return {
           success: true,
           service: 'sonarr' as const,
-          releases: filtered
-            .map(mapInteractiveRelease)
-            .filter((r): r is InteractiveReleaseItem => Boolean(r)),
+          releases: filtered.map(mapInteractiveRelease).filter((r): r is InteractiveReleaseItem => Boolean(r)),
         };
       } catch (error) {
         console.error('Error loading interactive search releases:', error);
@@ -313,6 +313,188 @@ export const mediasArrRoutes = new Elysia({ prefix: '/api/medias' })
       body: t.Object({
         guid: t.String(),
         indexer_id: t.Numeric(),
+      }),
+    }
+  )
+  .post(
+    '/:service/:sourceId/refresh',
+    async ({ set, params }) => {
+      const service = params.service === 'radarr' || params.service === 'sonarr' ? params.service : null;
+      const sourceId = parseInt(params.sourceId, 10);
+
+      if (!service) {
+        return badRequest(set, 'Invalid service');
+      }
+      if (!Number.isFinite(sourceId) || sourceId <= 0) {
+        return badRequest(set, 'Invalid source ID');
+      }
+
+      try {
+        if (service === 'radarr') {
+          const plugin = await prisma.plugin.findFirst({
+            where: { type: 'radarr' },
+            select: { enabled: true, config: true },
+          });
+          if (!plugin?.enabled) {
+            return badRequest(set, 'Radarr plugin is not enabled');
+          }
+
+          const config = normalizeRadarrConfig(plugin.config);
+          if (!config) {
+            return badRequest(set, 'Radarr plugin is not configured');
+          }
+
+          const commandUrl = new URL('/api/v3/command', config.website_url);
+          const commandRes = await fetch(commandUrl.toString(), {
+            method: 'POST',
+            headers: {
+              'X-Api-Key': config.api_key,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            body: JSON.stringify({
+              name: 'RefreshMovie',
+              movieIds: [sourceId],
+            }),
+          });
+
+          if (!commandRes.ok) {
+            return badGateway(set, `Radarr refresh failed with status ${commandRes.status}`);
+          }
+
+          await deleteCache('medias:radarr:ids').catch(() => {});
+
+          return { success: true, service: 'radarr' as const };
+        }
+
+        const plugin = await prisma.plugin.findFirst({
+          where: { type: 'sonarr' },
+          select: { enabled: true, config: true },
+        });
+        if (!plugin?.enabled) {
+          return badRequest(set, 'Sonarr plugin is not enabled');
+        }
+
+        const config = normalizeSonarrConfig(plugin.config);
+        if (!config) {
+          return badRequest(set, 'Sonarr plugin is not configured');
+        }
+
+        const commandUrl = new URL('/api/v3/command', config.website_url);
+        const commandRes = await fetch(commandUrl.toString(), {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': config.api_key,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            name: 'RefreshSeries',
+            seriesId: sourceId,
+          }),
+        });
+
+        if (!commandRes.ok) {
+          return badGateway(set, `Sonarr refresh failed with status ${commandRes.status}`);
+        }
+
+        await deleteCache('medias:sonarr:ids').catch(() => {});
+
+        return { success: true, service: 'sonarr' as const };
+      } catch (error) {
+        console.error('Error refreshing media:', error);
+        return serverError(set, 'Failed to refresh media');
+      }
+    },
+    {
+      params: t.Object({
+        service: t.String(),
+        sourceId: t.String(),
+      }),
+    }
+  )
+  .get(
+    '/:service/:sourceId/management-info',
+    async ({ set, params }) => {
+      const service = params.service === 'radarr' || params.service === 'sonarr' ? params.service : null;
+      const sourceId = parseInt(params.sourceId, 10);
+
+      if (!service) {
+        return badRequest(set, 'Invalid service');
+      }
+      if (!Number.isFinite(sourceId) || sourceId <= 0) {
+        return badRequest(set, 'Invalid source ID');
+      }
+
+      try {
+        if (service === 'radarr') {
+          const plugin = await prisma.plugin.findFirst({
+            where: { type: 'radarr' },
+            select: { enabled: true, config: true },
+          });
+          if (!plugin?.enabled) {
+            return badRequest(set, 'Radarr plugin is not enabled');
+          }
+          const config = normalizeRadarrConfig(plugin.config);
+          if (!config) {
+            return badRequest(set, 'Radarr plugin is not configured');
+          }
+
+          const url = new URL(`/api/v3/movie/${sourceId}`, config.website_url);
+          const res = await fetch(url.toString(), {
+            headers: {
+              'X-Api-Key': config.api_key,
+              Accept: 'application/json',
+            },
+          });
+          if (!res.ok) {
+            return badGateway(set, `Radarr movie fetch failed with status ${res.status}`);
+          }
+          const json = (await res.json()) as unknown;
+          const mapped = mapRadarrManagementDetails(json);
+          if (!mapped) {
+            return badGateway(set, 'Could not parse Radarr movie');
+          }
+          return mapped;
+        }
+
+        const plugin = await prisma.plugin.findFirst({
+          where: { type: 'sonarr' },
+          select: { enabled: true, config: true },
+        });
+        if (!plugin?.enabled) {
+          return badRequest(set, 'Sonarr plugin is not enabled');
+        }
+        const config = normalizeSonarrConfig(plugin.config);
+        if (!config) {
+          return badRequest(set, 'Sonarr plugin is not configured');
+        }
+
+        const url = new URL(`/api/v3/series/${sourceId}`, config.website_url);
+        const res = await fetch(url.toString(), {
+          headers: {
+            'X-Api-Key': config.api_key,
+            Accept: 'application/json',
+          },
+        });
+        if (!res.ok) {
+          return badGateway(set, `Sonarr series fetch failed with status ${res.status}`);
+        }
+        const json = (await res.json()) as unknown;
+        const mapped = mapSonarrManagementDetails(json);
+        if (!mapped) {
+          return badGateway(set, 'Could not parse Sonarr series');
+        }
+        return mapped;
+      } catch (error) {
+        console.error('Error loading Arr management info:', error);
+        return serverError(set, 'Failed to load management info');
+      }
+    },
+    {
+      params: t.Object({
+        service: t.String(),
+        sourceId: t.String(),
       }),
     }
   )

@@ -1,5 +1,10 @@
 import { randomUUID } from 'crypto';
-import type { MediaItem } from '@hously/shared';
+import type {
+  ArrManagementDetailsResponse,
+  ArrManagementFileInfo,
+  ArrManagementStatistics,
+  MediaItem,
+} from '@hously/shared';
 import { getJsonCache, setJsonCache } from '../../services/cache';
 
 export type TmdbProvider = {
@@ -228,8 +233,8 @@ function extractReleaseTags(row: Record<string, unknown>): string[] | null {
     const langNames = languages
       .map((l: unknown) => toStringOrNull(toRecord(l)?.name)?.toLowerCase())
       .filter(Boolean) as string[];
-    const hasFrench = langNames.some((n) => n === 'french');
-    const hasEnglish = langNames.some((n) => n === 'english');
+    const hasFrench = langNames.some(n => n === 'french');
+    const hasEnglish = langNames.some(n => n === 'english');
     if (hasFrench && hasEnglish) tags.push('MULTI');
     else if (hasFrench) tags.push('VF');
     else if (hasEnglish && langNames.length === 1) tags.push('EN');
@@ -292,7 +297,7 @@ function extractSeriesReleaseTags(_row: Record<string, unknown>): string[] | nul
 export async function fetchSonarrSeriesReleaseTags(
   websiteUrl: string,
   apiKey: string,
-  seriesIds: number[],
+  seriesIds: number[]
 ): Promise<Map<number, string[]>> {
   const result = new Map<number, string[]>();
   if (seriesIds.length === 0) return result;
@@ -300,14 +305,14 @@ export async function fetchSonarrSeriesReleaseTags(
   // Check Redis cache for each series
   const uncachedIds: number[] = [];
   await Promise.all(
-    seriesIds.map(async (id) => {
+    seriesIds.map(async id => {
       const cached = await getJsonCache<string[]>(`sonarr:release-tags:${id}`);
       if (cached) {
         result.set(id, cached);
       } else {
         uncachedIds.push(id);
       }
-    }),
+    })
   );
 
   if (uncachedIds.length === 0) return result;
@@ -317,7 +322,7 @@ export async function fetchSonarrSeriesReleaseTags(
   for (let i = 0; i < uncachedIds.length; i += CONCURRENCY) {
     const batch = uncachedIds.slice(i, i + CONCURRENCY);
     const results = await Promise.allSettled(
-      batch.map(async (seriesId) => {
+      batch.map(async seriesId => {
         const url = new URL('/api/v3/episodefile', websiteUrl);
         url.searchParams.set('seriesId', String(seriesId));
         const res = await fetch(url.toString(), {
@@ -342,7 +347,7 @@ export async function fetchSonarrSeriesReleaseTags(
           }
         }
         return { seriesId, tags: null as string[] | null };
-      }),
+      })
     );
 
     for (const r of results) {
@@ -680,3 +685,119 @@ export const isSonarrFullSeasonRelease = (raw: unknown): boolean => {
   if (!row) return false;
   return toBoolean(row.fullSeason);
 };
+
+function extractGenreNames(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const out: string[] = [];
+  for (const g of value) {
+    const n = toStringOrNull(toRecord(g)?.name);
+    if (n) out.push(n);
+  }
+  return out;
+}
+
+function seriesTypeToString(value: unknown): string | null {
+  if (typeof value === 'string') return value.trim() || null;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return null;
+}
+
+export function mapRadarrManagementDetails(raw: unknown): ArrManagementDetailsResponse | null {
+  const row = toRecord(raw);
+  if (!row) return null;
+  const title = toStringOrNull(row.title);
+  if (!title) return null;
+
+  const movieFile = toRecord(row.movieFile);
+  let file: ArrManagementFileInfo | null = null;
+  if (movieFile) {
+    const quality = toRecord(movieFile.quality);
+    const qualityInner = quality ? toRecord(quality.quality) : null;
+    const qualityLabel = qualityInner ? toStringOrNull(qualityInner.name) : null;
+    const mediaInfo = toRecord(movieFile.mediaInfo);
+    const languages = Array.isArray(movieFile.languages)
+      ? movieFile.languages
+          .map((l: unknown) => toStringOrNull(toRecord(l)?.name))
+          .filter((x): x is string => Boolean(x))
+      : [];
+    file = {
+      relative_path: toStringOrNull(movieFile.relativePath),
+      size_bytes: toNumberOrNull(movieFile.size),
+      quality_label: qualityLabel,
+      custom_format_score: toNumberOrNull(movieFile.customFormatScore),
+      date_added: toIsoOrNull(movieFile.dateAdded),
+      languages,
+      scene_name: toStringOrNull(movieFile.sceneName),
+      media_resolution: mediaInfo ? toStringOrNull(mediaInfo.resolution) : null,
+      video_codec: mediaInfo ? toStringOrNull(mediaInfo.videoCodec) : null,
+      audio_codec: mediaInfo ? toStringOrNull(mediaInfo.audioCodec) : null,
+      audio_channels: mediaInfo ? toStringOrNull(mediaInfo.audioChannels) : null,
+      edition: toStringOrNull(movieFile.edition),
+      release_group: toStringOrNull(movieFile.releaseGroup),
+    };
+  }
+
+  return {
+    service: 'radarr',
+    title,
+    sort_title: toStringOrNull(row.sortTitle),
+    path: toStringOrNull(row.path),
+    root_folder_path: toStringOrNull(row.rootFolderPath),
+    monitored: toBoolean(row.monitored),
+    arr_status: toStringOrNull(row.status),
+    added: toIsoOrNull(row.added),
+    genres: extractGenreNames(row.genres),
+    studio: toStringOrNull(row.studio),
+    has_file: toBoolean(row.hasFile),
+    file,
+    series_type: null,
+    season_folder: false,
+    statistics: null,
+    network: null,
+  };
+}
+
+export function mapSonarrManagementDetails(raw: unknown): ArrManagementDetailsResponse | null {
+  const row = toRecord(raw);
+  if (!row) return null;
+  const title = toStringOrNull(row.title);
+  if (!title) return null;
+
+  const statistics = toRecord(row.statistics);
+  let stats: ArrManagementStatistics | null = null;
+  if (statistics) {
+    const epFile = toNumberOrNull(statistics.episodeFileCount) ?? 0;
+    const epCount = toNumberOrNull(statistics.episodeCount) ?? 0;
+    const totalEp = toNumberOrNull(statistics.totalEpisodeCount) ?? 0;
+    const size = toNumberOrNull(statistics.sizeOnDisk) ?? 0;
+    const pct = toNumberOrNull(statistics.percentOfEpisodes) ?? 0;
+    stats = {
+      episode_file_count: epFile,
+      episode_count: epCount,
+      total_episode_count: totalEp,
+      size_on_disk_bytes: size,
+      percent_of_episodes: pct,
+    };
+  }
+
+  const epCount = stats?.episode_file_count ?? 0;
+
+  return {
+    service: 'sonarr',
+    title,
+    sort_title: toStringOrNull(row.sortTitle),
+    path: toStringOrNull(row.path),
+    root_folder_path: toStringOrNull(row.rootFolderPath),
+    monitored: toBoolean(row.monitored),
+    arr_status: toStringOrNull(row.status),
+    added: toIsoOrNull(row.added),
+    genres: extractGenreNames(row.genres),
+    studio: null,
+    has_file: epCount > 0,
+    file: null,
+    series_type: seriesTypeToString(row.seriesType),
+    season_folder: toBoolean(row.seasonFolder),
+    statistics: stats,
+    network: toStringOrNull(row.network),
+  };
+}

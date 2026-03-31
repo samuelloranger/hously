@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useDeferredValue,
   useEffect,
   useMemo,
@@ -40,6 +41,12 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
   const { isDark, toggleTheme } = useTheme();
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleClose = useCallback(() => {
+    setQuery('');
+    setActiveIndex(0);
+    onClose();
+  }, [onClose]);
   const inputRef = useRef<HTMLInputElement>(null);
   const deferredQuery = useDeferredValue(query);
   const normalizedQuery = deferredQuery.trim().toLowerCase();
@@ -57,7 +64,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
         keywords: [item.path, item.translationKey, section.labelKey],
         action: () => {
           navigate({ to: item.path });
-          onClose();
+          handleClose();
         },
       }))
     );
@@ -73,7 +80,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
         keywords: ['notifications', 'alerts'],
         action: () => {
           navigate({ to: '/notifications' });
-          onClose();
+          handleClose();
         },
       },
       {
@@ -85,7 +92,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
         keywords: ['settings', 'profile', 'plugins'],
         action: () => {
           navigate({ to: '/settings', search: { tab: 'profile' as const } });
-          onClose();
+          handleClose();
         },
       },
       {
@@ -98,7 +105,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
         shortcut: 'T',
         action: () => {
           toggleTheme();
-          onClose();
+          handleClose();
         },
       },
       {
@@ -114,7 +121,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
         },
       },
     ];
-  }, [isDark, navigate, onClose, t, toggleTheme]);
+  }, [handleClose, isDark, navigate, t, toggleTheme]);
 
   const filteredActions = useMemo<QuickAction[]>(() => {
     if (!normalizedQuery) {
@@ -144,7 +151,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
       section: 'torrents' as const,
       action: () => {
         navigate({ to: '/torrents/$hash', params: { hash: torrent.id } });
-        onClose();
+        handleClose();
       },
     }));
 
@@ -168,7 +175,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
             current_media_tab: 'search',
           },
         });
-        onClose();
+        handleClose();
       },
     }));
 
@@ -182,7 +189,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
       section: 'recipes' as const,
       action: () => {
         navigate({ to: '/kitchen/$recipeId', params: { recipeId: String(recipe.id) } });
-        onClose();
+        handleClose();
       },
     }));
 
@@ -194,7 +201,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
       section: 'chores' as const,
       action: () => {
         navigate({ to: '/chores' });
-        onClose();
+        handleClose();
       },
     }));
 
@@ -206,7 +213,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
       section: 'shopping' as const,
       action: () => {
         navigate({ to: '/shopping' });
-        onClose();
+        handleClose();
       },
     }));
 
@@ -218,12 +225,12 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
       section: 'users' as const,
       action: () => {
         navigate({ to: '/settings', search: { tab: 'profile' as const } });
-        onClose();
+        handleClose();
       },
     }));
 
     return [...torrentActions, ...mediaActions, ...recipeActions, ...choreActions, ...shoppingActions, ...userActions];
-  }, [navigate, normalizedQuery, onClose, searchQuery.data, shouldSearch, t]);
+  }, [handleClose, navigate, normalizedQuery, searchQuery.data, shouldSearch, t]);
 
   const sectionLabels: Record<QuickAction['section'], string> = useMemo(
     () => ({
@@ -264,7 +271,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
       if (isCommandPaletteShortcut) {
         event.preventDefault();
         if (isOpen) {
-          onClose();
+          handleClose();
         } else {
           onOpen();
         }
@@ -273,12 +280,10 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, onOpen]);
+  }, [handleClose, isOpen, onOpen]);
 
   useEffect(() => {
     if (!isOpen) {
-      setQuery('');
-      setActiveIndex(0);
       return;
     }
 
@@ -290,41 +295,36 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
     return () => window.clearTimeout(timer);
   }, [isOpen]);
 
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [query]);
-
-  useEffect(() => {
-    if (activeIndex > results.length - 1) {
-      setActiveIndex(Math.max(results.length - 1, 0));
-    }
-  }, [activeIndex, results.length]);
+  const safeActiveIndex = results.length > 0 ? Math.min(activeIndex, results.length - 1) : 0;
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
     if (!results.length) {
       return;
     }
 
+    const len = results.length;
+    const idx = Math.min(activeIndex, len - 1);
+
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setActiveIndex(currentIndex => (currentIndex + 1) % results.length);
+      setActiveIndex((idx + 1) % len);
     }
 
     if (event.key === 'ArrowUp') {
       event.preventDefault();
-      setActiveIndex(currentIndex => (currentIndex - 1 + results.length) % results.length);
+      setActiveIndex((idx - 1 + len) % len);
     }
 
     if (event.key === 'Enter') {
       event.preventDefault();
-      results[activeIndex]?.action();
+      results[safeActiveIndex]?.action();
     }
   };
 
   return (
     <Dialog
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title={t('common.quickActions')}
       panelClassName="max-w-3xl overflow-hidden p-0"
     >
@@ -334,7 +334,10 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
           <Input
             ref={inputRef}
             value={query}
-            onChange={event => setQuery(event.target.value)}
+            onChange={event => {
+              setQuery(event.target.value);
+              setActiveIndex(0);
+            }}
             onKeyDown={handleKeyDown}
             placeholder={t('common.quickActionsPlaceholder')}
             className="border-0 bg-transparent! px-0 focus:ring-0"
@@ -368,7 +371,7 @@ export function QuickActionPalette({ isOpen, onClose, onOpen }: QuickActionPalet
                 onMouseEnter={() => setActiveIndex(index)}
                 className={cn(
                   'flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-colors',
-                  activeIndex === index
+                  safeActiveIndex === index
                     ? 'bg-neutral-100 dark:bg-neutral-700/70'
                     : 'hover:bg-neutral-100/80 dark:hover:bg-neutral-700/40'
                 )}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAdguardPlugin, useUpdateAdguardPlugin } from '@hously/shared';
 import { toast } from 'sonner';
@@ -6,22 +6,24 @@ import { PluginSectionCard } from './PluginSectionCard';
 import { PluginUrlInput } from './PluginUrlInput';
 
 export function AdguardPluginSection() {
-  const { t } = useTranslation('common');
   const { data, isLoading } = useAdguardPlugin();
+  return <AdguardPluginSectionImpl key={data?.plugin?.type ?? 'pending'} data={data} isLoading={isLoading} />;
+}
+
+function AdguardPluginSectionImpl({
+  data,
+  isLoading,
+}: {
+  data: ReturnType<typeof useAdguardPlugin>['data'];
+  isLoading: boolean;
+}) {
+  const { t } = useTranslation('common');
   const saveMutation = useUpdateAdguardPlugin();
 
-  const [websiteUrl, setWebsiteUrl] = useState('');
-  const [username, setUsername] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState(data?.plugin?.website_url || '');
+  const [username, setUsername] = useState(data?.plugin?.username || '');
   const [password, setPassword] = useState('');
-  const [enabled, setEnabled] = useState(false);
-
-  useEffect(() => {
-    if (!data?.plugin) return;
-    setWebsiteUrl(data.plugin.website_url || '');
-    setUsername(data.plugin.username || '');
-    setPassword('');
-    setEnabled(Boolean(data.plugin.enabled));
-  }, [data]);
+  const [enabled, setEnabled] = useState(Boolean(data?.plugin?.enabled));
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;

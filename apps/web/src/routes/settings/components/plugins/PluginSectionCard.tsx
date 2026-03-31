@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useEffect, useRef } from 'react';
+import { type ReactNode, useState, useEffect, useRef, startTransition } from 'react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, Check } from 'lucide-react';
@@ -40,7 +40,7 @@ export function PluginSectionCard({
 
   // Auto-expand when plugin gets enabled
   useEffect(() => {
-    if (enabled) setIsOpen(true);
+    if (enabled) startTransition(() => setIsOpen(true));
   }, [enabled]);
 
   // Detect save completion and briefly show success state
@@ -48,7 +48,7 @@ export function PluginSectionCard({
     const wasSaving = prevSaving.current;
     prevSaving.current = saving;
     if (wasSaving && !saving) {
-      setSaveSuccess(true);
+      startTransition(() => setSaveSuccess(true));
       const timer = setTimeout(() => setSaveSuccess(false), 1500);
       return () => clearTimeout(timer);
     }

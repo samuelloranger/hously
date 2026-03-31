@@ -3,11 +3,13 @@ import { useFetcher } from './context';
 import { queryKeys } from '../queryKeys';
 import { MEDIAS_ENDPOINTS } from '../endpoints';
 import type {
+  ArrManagementDetailsResponse,
   DiscoverMediasParams,
   DiscoverMediasResponse,
   ExploreMediasResponse,
   MediaAutoSearchResponse,
   MediaDeleteResponse,
+  MediaRefreshResponse,
   MediaInteractiveDownloadResponse,
   MediaInteractiveSearchResponse,
   MediaModalDataResponse,
@@ -271,6 +273,38 @@ export function useTmdbMediaDetails(
   });
 }
 
+export function useArrManagementDetails(
+  params: { service: 'radarr' | 'sonarr'; source_id: number | null },
+  options?: { enabled?: boolean }
+) {
+  const fetcher = useFetcher();
+  const enabled = (options?.enabled ?? true) && params.source_id != null && params.source_id > 0;
+
+  return useQuery({
+    queryKey: queryKeys.medias.managementInfo(params.service, params.source_id ?? 0),
+    queryFn: () =>
+      fetcher<ArrManagementDetailsResponse>(MEDIAS_ENDPOINTS.MANAGEMENT_INFO(params.service, params.source_id!)),
+    enabled,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useMediaRefresh() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { service: 'radarr' | 'sonarr'; source_id: number }) =>
+      fetcher<MediaRefreshResponse>(MEDIAS_ENDPOINTS.REFRESH(params.service, params.source_id), {
+        method: 'POST',
+        body: {},
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.all });
+    },
+  });
+}
+
 export function useMediaDelete() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
@@ -281,7 +315,7 @@ export function useMediaDelete() {
         method: 'DELETE',
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.medias.list() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.all });
     },
   });
 }
@@ -323,6 +357,8 @@ export function useAddToWatchlist() {
       overview?: string | null;
       release_year?: number | null;
       vote_average?: number | null;
+      /** YYYY-MM-DD (movies); enables day-before release reminder */
+      release_date?: string | null;
     }) =>
       fetcher<{ id: number; added: boolean }>(MEDIAS_ENDPOINTS.WATCHLIST, {
         method: 'POST',

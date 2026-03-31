@@ -7,30 +7,30 @@ interface UseNotificationPermissionReturn {
 }
 
 export function useNotificationPermission(): UseNotificationPermissionReturn {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
-  const [isSupported, setIsSupported] = useState(false);
+  const [isSupported] = useState(
+    () => 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
+  );
+  const [permission, setPermission] = useState<NotificationPermission>(() =>
+    'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
+      ? Notification.permission
+      : 'default'
+  );
 
   useEffect(() => {
-    const supported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
-    setIsSupported(supported);
+    if (!isSupported) return;
 
-    if (supported) {
-      setPermission(Notification.permission);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setPermission(Notification.permission);
+      }
+    };
 
-      const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible') {
-          setPermission(Notification.permission);
-        }
-      };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-
-      return () => {
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-      };
-    }
-    return;
-  }, []);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isSupported]);
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (!isSupported) {

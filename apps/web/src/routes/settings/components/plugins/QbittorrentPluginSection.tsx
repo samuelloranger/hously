@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQbittorrentPlugin, useUpdateQbittorrentPlugin } from '@hously/shared';
 import { toast } from 'sonner';
@@ -6,26 +6,26 @@ import { PluginSectionCard } from './PluginSectionCard';
 import { PluginUrlInput } from './PluginUrlInput';
 
 export function QbittorrentPluginSection() {
-  const { t } = useTranslation('common');
   const { data, isLoading } = useQbittorrentPlugin();
+  return <QbittorrentPluginSectionImpl key={data?.plugin?.type ?? 'pending'} data={data} isLoading={isLoading} />;
+}
+
+function QbittorrentPluginSectionImpl({
+  data,
+  isLoading,
+}: {
+  data: ReturnType<typeof useQbittorrentPlugin>['data'];
+  isLoading: boolean;
+}) {
+  const { t } = useTranslation('common');
   const saveMutation = useUpdateQbittorrentPlugin();
 
-  const [websiteUrl, setWebsiteUrl] = useState('');
-  const [username, setUsername] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState(data?.plugin?.website_url || '');
+  const [username, setUsername] = useState(data?.plugin?.username || '');
   const [password, setPassword] = useState('');
-  const [pollInterval, setPollInterval] = useState('1');
-  const [maxItems, setMaxItems] = useState('8');
-  const [enabled, setEnabled] = useState(false);
-
-  useEffect(() => {
-    if (!data?.plugin) return;
-    setWebsiteUrl(data.plugin.website_url || '');
-    setUsername(data.plugin.username || '');
-    setPassword('');
-    setPollInterval(String(data.plugin.poll_interval_seconds || 1));
-    setMaxItems(String(data.plugin.max_items || 8));
-    setEnabled(Boolean(data.plugin.enabled));
-  }, [data]);
+  const [pollInterval, setPollInterval] = useState(String(data?.plugin?.poll_interval_seconds || 1));
+  const [maxItems, setMaxItems] = useState(String(data?.plugin?.max_items || 8));
+  const [enabled, setEnabled] = useState(Boolean(data?.plugin?.enabled));
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;

@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { toast } from 'sonner';
@@ -45,11 +45,11 @@ export function AcceptInvitation() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm<AcceptInvitationFormData>();
 
-  const password = watch('password');
+  const password = useWatch({ control, name: 'password' });
 
   const onSubmit = async (data: AcceptInvitationFormData) => {
     try {
@@ -79,9 +79,7 @@ export function AcceptInvitation() {
           <h2 className="text-3xl font-extrabold text-neutral-900 dark:text-white">
             {t('acceptInvitation.invalidTokenTitle')}
           </h2>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            {t('acceptInvitation.invalidTokenMessage')}
-          </p>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">{t('acceptInvitation.invalidTokenMessage')}</p>
         </div>
       </div>
     );
@@ -107,9 +105,7 @@ export function AcceptInvitation() {
           <h2 className="text-3xl font-extrabold text-neutral-900 dark:text-white">
             {t('acceptInvitation.invalidTokenTitle')}
           </h2>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            {t('acceptInvitation.invalidTokenMessage')}
-          </p>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">{t('acceptInvitation.invalidTokenMessage')}</p>
         </div>
       </div>
     );
@@ -214,8 +210,7 @@ export function AcceptInvitation() {
                 autoComplete="new-password"
                 {...register('confirmPassword', {
                   required: true,
-                  validate: value =>
-                    value === password || t('acceptInvitation.passwordsDoNotMatch'),
+                  validate: value => value === password || t('acceptInvitation.passwordsDoNotMatch'),
                 })}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
                 placeholder={t('acceptInvitation.confirmPassword')}

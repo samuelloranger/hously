@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearch } from '@tanstack/react-router';
 import { toast } from 'sonner';
@@ -45,11 +45,11 @@ export function ResetPassword() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm<ResetPasswordFormData>();
 
-  const password = watch('password');
+  const password = useWatch({ control, name: 'password' });
 
   // Check if token is present
   const hasToken = Boolean(token);

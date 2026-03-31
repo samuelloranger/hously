@@ -76,6 +76,11 @@ export async function processScheduledJob(job: Job) {
         await checkClockifyHours({ trigger: 'queue' });
         break;
       }
+      case SCHEDULED_JOB_NAMES.CHECK_MOVIE_RELEASE_REMINDERS: {
+        const { checkMovieReleaseReminders } = await import('../../jobs/checkMovieReleaseReminders');
+        await checkMovieReleaseReminders();
+        break;
+      }
       default:
         console.warn(`[ScheduledTasksWorker] Unknown job name: ${job.name}`);
         return { success: false, error: 'Unknown job name' };

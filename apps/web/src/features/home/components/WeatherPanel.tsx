@@ -29,6 +29,10 @@ function Kicker({ children }: { children: React.ReactNode }) {
   );
 }
 
+function WeatherIcon({ icon: Icon }: { icon: LucideIcon }) {
+  return <Icon className="size-9 shrink-0 text-sky-600 dark:text-sky-400" strokeWidth={1.75} aria-hidden />;
+}
+
 function weatherStatusIcon(weather: WeatherData): LucideIcon {
   const key = getWeatherConditionKey(weather.weather_code);
   const day = weather.is_day;
@@ -64,6 +68,8 @@ export function WeatherPanel() {
 
   if (!weatherQuery.data || weatherQuery.isError) return null;
 
+  const statusIcon = weatherStatusIcon(weatherQuery.data);
+
   const unit = weatherQuery.data.temperature_unit || 'fahrenheit';
   const temperatureValue =
     unit === 'celsius' ? toCelsius(weatherQuery.data.temperature_f) : weatherQuery.data.temperature_f;
@@ -73,8 +79,6 @@ export function WeatherPanel() {
   const conditionLabel = t(`dashboard.weather.conditions.${getWeatherConditionKey(weatherQuery.data.weather_code)}`, {
     defaultValue: weatherQuery.data.condition_label,
   });
-
-  const StatusIcon = weatherStatusIcon(weatherQuery.data);
 
   return (
     <section
@@ -95,7 +99,7 @@ export function WeatherPanel() {
 
       <div className="px-4 py-3">
         <div className="flex items-start gap-3">
-          <StatusIcon className="size-9 shrink-0 text-sky-600 dark:text-sky-400" strokeWidth={1.75} aria-hidden />
+          <WeatherIcon icon={statusIcon} />
           <div className="min-w-0 flex-1">
             <Kicker>{weatherQuery.data.location_name}</Kicker>
             <p className="mt-2 text-xl font-bold leading-none tabular-nums text-zinc-900 dark:text-zinc-50">

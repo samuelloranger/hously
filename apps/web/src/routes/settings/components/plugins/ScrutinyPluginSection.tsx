@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScrutinyPlugin, useUpdateScrutinyPlugin } from '@hously/shared';
 import { toast } from 'sonner';
@@ -6,18 +6,22 @@ import { PluginSectionCard } from './PluginSectionCard';
 import { PluginUrlInput } from './PluginUrlInput';
 
 export function ScrutinyPluginSection() {
-  const { t } = useTranslation('common');
   const { data, isLoading } = useScrutinyPlugin();
+  return <ScrutinyPluginSectionImpl key={data?.plugin?.type ?? 'pending'} data={data} isLoading={isLoading} />;
+}
+
+function ScrutinyPluginSectionImpl({
+  data,
+  isLoading,
+}: {
+  data: ReturnType<typeof useScrutinyPlugin>['data'];
+  isLoading: boolean;
+}) {
+  const { t } = useTranslation('common');
   const saveMutation = useUpdateScrutinyPlugin();
 
-  const [websiteUrl, setWebsiteUrl] = useState('');
-  const [enabled, setEnabled] = useState(false);
-
-  useEffect(() => {
-    if (!data?.plugin) return;
-    setWebsiteUrl(data.plugin.website_url || '');
-    setEnabled(Boolean(data.plugin.enabled));
-  }, [data]);
+  const [websiteUrl, setWebsiteUrl] = useState(data?.plugin?.website_url || '');
+  const [enabled, setEnabled] = useState(Boolean(data?.plugin?.enabled));
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;

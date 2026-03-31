@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type CSSProperties, type KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, startTransition, type CSSProperties, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CompleteCheckbox } from '@/components/CompleteCheckbox';
 import { ActionMenu } from '@/components/ActionMenu';
@@ -46,19 +46,18 @@ export function ShoppingItemRow({
   const updateMutation = useUpdateShoppingItem();
 
   const [isCompletingAnimation, setIsCompletingAnimation] = useState(false);
-  const [wasCompleted, setWasCompleted] = useState(item.completed);
+  const prevCompleted = useRef(item.completed);
 
-  // Track completion state changes for animation
   useEffect(() => {
-    if (item.completed && !wasCompleted) {
-      setIsCompletingAnimation(true);
+    if (item.completed && !prevCompleted.current) {
+      startTransition(() => setIsCompletingAnimation(true));
       const timer = setTimeout(() => setIsCompletingAnimation(false), 800);
-      setWasCompleted(item.completed);
+      prevCompleted.current = item.completed;
       return () => clearTimeout(timer);
     }
-    setWasCompleted(item.completed);
+    prevCompleted.current = item.completed;
     return undefined;
-  }, [item.completed, wasCompleted]);
+  }, [item.completed]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -74,14 +73,12 @@ export function ShoppingItemRow({
     }
   }, [isEditingNotes]);
 
-  useEffect(() => {
-    if (!isEditing) {
-      setEditValue(item.item_name);
-    }
-    if (!isEditingNotes) {
-      setEditNotes(item.notes || '');
-    }
-  }, [item.item_name, item.notes, isEditing, isEditingNotes]);
+  if (!isEditing && editValue !== item.item_name) {
+    setEditValue(item.item_name);
+  }
+  if (!isEditingNotes && editNotes !== (item.notes || '')) {
+    setEditNotes(item.notes || '');
+  }
 
   const handleEdit = () => {
     setIsEditing(true);

@@ -1,23 +1,21 @@
-import { useState, useRef, useEffect, type ChangeEvent } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useExportData, useImportData } from '@hously/shared';
 
 export function DataExportTab() {
   const { t } = useTranslation('common');
-  const [shouldExport, setShouldExport] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: exportData, isPending: isExporting, mutateAsync: triggerExport } = useExportData();
+  const { isPending: isExporting, mutateAsync: triggerExport } = useExportData();
 
   const { mutateAsync: triggerImport, isPending: isImporting } = useImportData();
 
-  // Handle export data download when available
-  useEffect(() => {
-    if (exportData && shouldExport) {
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-        type: 'application/json',
-      });
+  const handleExport = async () => {
+    try {
+      const exportData = await triggerExport();
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -27,26 +25,16 @@ export function DataExportTab() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toast.success(t('settings.dataExport.exportSuccess'));
-      setShouldExport(false);
-    }
-  }, [exportData, shouldExport, t]);
-
-  const handleExport = async () => {
-    setShouldExport(true);
-    try {
-      await triggerExport();
     } catch (error) {
       console.error('Export error:', error);
       toast.error(t('settings.dataExport.exportError'));
     }
   };
 
-  const handleImport = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const handleImportSubmit = useCallback(async () => {
+    if (!importFile) return;
     try {
-      const text = await file.text();
+      const text = await importFile.text();
       const data = JSON.parse(text);
       const response = await triggerImport(data);
       if (response.success) {
@@ -67,33 +55,23 @@ export function DataExportTab() {
         } else {
           toast.success(summary);
         }
+
+        setImportFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       } else {
         toast.error(t('settings.dataExport.importError'));
       }
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    } catch (error: any) {
+    } catch (error) {
       console.error('File parse error:', error);
-      toast.error(t('settings.dataExport.importError'));
-      toast.error((error as any)?.message || t('settings.dataExport.importError'));
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      toast.error((error instanceof Error ? error.message : null) || t('settings.dataExport.importError'));
     }
-  };
+  }, [importFile, t, triggerImport]);
 
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300" key="data-export-tab">
       <div className="space-y-6">
-        <div className="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-neutral-100">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
             {t('settings.dataExport.title')}
           </h2>
           <p className="text-neutral-600 dark:text-neutral-400 mb-6">{t('settings.dataExport.description')}</p>
@@ -124,23 +102,24 @@ export function DataExportTab() {
               <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
                 {t('settings.dataExport.importDescription')}
               </p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleImport}
-                disabled={isImporting}
-                className="hidden"
-                id="import-file-input"
-              />
-              <label
-                htmlFor="import-file-input"
-                className={`inline-block px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer ${
-                  isImporting ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {isImporting ? t('settings.dataExport.importing') : t('settings.dataExport.importButton')}
-              </label>
+              <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  onChange={event => setImportFile(event.currentTarget.files?.[0] ?? null)}
+                  disabled={isImporting}
+                  className="w-full text-sm text-neutral-700 dark:text-neutral-200 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-100 dark:file:bg-neutral-700/50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-neutral-800 dark:file:text-neutral-100"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleImportSubmit()}
+                  disabled={isImporting || !importFile}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isImporting ? t('settings.dataExport.importing') : t('settings.dataExport.importButton')}
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, startTransition } from 'react';
 import { useAuth } from './useAuth';
 import { useNotifications } from './useNotifications';
 import { getDeviceInfo } from '../lib/deviceInfo';
@@ -17,7 +17,8 @@ import {
 export function useAutoSubscribeNotifications() {
   const { user, isLoading: isUserLoading } = useAuth();
   const queryClient = useQueryClient();
-  const { permission, requestPermission, subscription, isSubscriptionLoading, subscribe, isSupported } = useNotifications();
+  const { permission, requestPermission, subscription, isSubscriptionLoading, subscribe, isSupported } =
+    useNotifications();
   const { refetch: refetchDevices } = useNotificationDevices({ enabled: false });
   const subscribeMutation = useSubscribeToPushNotifications();
   const unsubscribeMutation = useUnsubscribeFromPushNotifications();
@@ -95,8 +96,8 @@ export function useAutoSubscribeNotifications() {
 
   // Check if we should show the modal
   useEffect(() => {
-    verifySubscription();
-  }, [isUserLoading, user, isSupported, isSubscriptionLoading, permission, subscription]);
+    startTransition(() => { void verifySubscription(); });
+  }, [isUserLoading, user, isSupported, isSubscriptionLoading, permission, subscription, verifySubscription]);
 
   const handleAllow = useCallback(async () => {
     setShowModal(false);

@@ -4,6 +4,12 @@ import { requireUser } from '../../middleware/auth';
 import { prisma } from '../../db';
 import { badRequest, serverError } from '../../utils/errors';
 
+function parseYmdToDbDate(ymd: string | null | undefined): Date | null {
+  if (ymd == null || ymd === '') return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return null;
+  return new Date(`${ymd}T00:00:00.000Z`);
+}
+
 export const mediasWatchlistRoutes = new Elysia({ prefix: '/api/medias/watchlist' })
   .use(auth)
   .use(requireUser)
@@ -26,6 +32,7 @@ export const mediasWatchlistRoutes = new Elysia({ prefix: '/api/medias/watchlist
           release_year: item.releaseYear,
           vote_average: item.voteAverage,
           added_at: item.addedAt.toISOString(),
+          movie_release_date: item.movieReleaseDate ? item.movieReleaseDate.toISOString().slice(0, 10) : null,
         })),
       };
     } catch (error) {
@@ -38,6 +45,8 @@ export const mediasWatchlistRoutes = new Elysia({ prefix: '/api/medias/watchlist
     '/',
     async ({ user, body, set }) => {
       try {
+        const isMovie = body.media_type === 'movie';
+        const movieDate = isMovie ? parseYmdToDbDate(body.release_date ?? undefined) : null;
         const item = await prisma.watchlistItem.upsert({
           where: {
             userId_tmdbId_mediaType: {
@@ -55,8 +64,14 @@ export const mediasWatchlistRoutes = new Elysia({ prefix: '/api/medias/watchlist
             overview: body.overview ?? null,
             releaseYear: body.release_year ?? null,
             voteAverage: body.vote_average ?? null,
+            movieReleaseDate: isMovie ? movieDate : null,
+            releaseReminderSentFor: null,
           },
-          update: {},
+          update: {
+            ...(isMovie && body.release_date !== undefined
+              ? { movieReleaseDate: movieDate, releaseReminderSentFor: null }
+              : {}),
+          },
         });
         return { id: item.id, added: true };
       } catch (error) {
@@ -72,6 +87,7 @@ export const mediasWatchlistRoutes = new Elysia({ prefix: '/api/medias/watchlist
         overview: t.Optional(t.Union([t.String(), t.Null()])),
         release_year: t.Optional(t.Union([t.Number(), t.Null()])),
         vote_average: t.Optional(t.Union([t.Number(), t.Null()])),
+        release_date: t.Optional(t.Union([t.String(), t.Null()])),
       }),
     }
   )

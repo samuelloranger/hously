@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, startTransition } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -186,7 +186,7 @@ export function TorrentsPage() {
   };
 
   useEffect(() => {
-    setSearchInput(urlState.search);
+    startTransition(() => setSearchInput(urlState.search));
   }, [urlState.search]);
 
   useEffect(() => {

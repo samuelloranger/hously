@@ -1,5 +1,5 @@
-import { useState, useEffect, type ChangeEvent } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useState, type ChangeEvent } from 'react';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
@@ -36,7 +36,11 @@ interface FormData {
   recurrence_weekday: number;
 }
 
-export function EditChoreForm({ chore, users, onClose, onImageClick }: EditChoreFormProps) {
+export function EditChoreForm(props: EditChoreFormProps) {
+  return <EditChoreFormInner key={props.chore.id} {...props} />;
+}
+
+function EditChoreFormInner({ chore, users, onClose, onImageClick }: EditChoreFormProps) {
   const { t } = useTranslation('common');
   const { subscription } = useNotifications();
   const updateMutation = useUpdateChore();
@@ -49,9 +53,7 @@ export function EditChoreForm({ chore, users, onClose, onImageClick }: EditChore
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
-    reset,
     control,
     formState: { errors },
   } = useForm<FormData>({
@@ -68,26 +70,9 @@ export function EditChoreForm({ chore, users, onClose, onImageClick }: EditChore
     },
   });
 
-  const reminderEnabled = watch('reminder_enabled');
-  const recurrenceEnabled = watch('recurrence_enabled');
-  const recurrenceType = watch('recurrence_type');
-
-  // Update form when chore changes
-  useEffect(() => {
-    reset({
-      chore_name: chore.chore_name,
-      description: chore.description || '',
-      assigned_to: chore.assigned_to || null,
-      reminder_enabled: chore.reminder_enabled || false,
-      reminder_datetime: chore.reminder_datetime ? toDateTimeLocal(new Date(chore.reminder_datetime)) : '',
-      recurrence_enabled: !!chore.recurrence_type,
-      recurrence_type: chore.recurrence_type || null,
-      recurrence_interval_days: chore.recurrence_interval_days || 1,
-      recurrence_weekday: chore.recurrence_weekday || 0,
-    });
-    setSelectedImage(null);
-    setImagePreview(null);
-  }, [chore, reset]);
+  const reminderEnabled = useWatch({ control, name: 'reminder_enabled' });
+  const recurrenceEnabled = useWatch({ control, name: 'recurrence_enabled' });
+  const recurrenceType = useWatch({ control, name: 'recurrence_type' });
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -329,6 +314,7 @@ export function EditChoreForm({ chore, users, onClose, onImageClick }: EditChore
               control={control}
               render={({ field }) => (
                 <DateTimePicker
+                  key={chore.id}
                   id="edit_reminder_datetime"
                   value={field.value}
                   onChange={field.onChange}

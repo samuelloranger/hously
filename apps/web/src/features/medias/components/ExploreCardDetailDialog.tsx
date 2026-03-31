@@ -8,14 +8,25 @@ import {
   type MediaItem,
   type TmdbMediaSearchItem,
 } from '@hously/shared';
-import { Bookmark, BookmarkCheck, Check, Clock, ExternalLink, Film, Info, Play, Plus, Search, Sparkles, Star } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Check, Clock, ExternalLink, Film, Info, Play, Plus, Search, Settings2, Sparkles, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog } from '@/components/dialog';
 import { cn } from '@/lib/utils';
+import { ArrManagementPanel } from './ArrManagementPanel';
+import { MediaDetailInfoSections } from './MediaDetailInfoSections';
 import { InteractiveSearchPanel } from './InteractiveSearchPanel';
 import { SimilarMediasPanel } from './SimilarMediasPanel';
 
-export type TabKey = 'info' | 'similar' | 'search';
+export type TabKey = 'info' | 'similar' | 'search' | 'management';
+
+function formatTmdbDateYmd(iso: string | null | undefined): string | null {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  try {
+    return new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, { dateStyle: 'medium' });
+  } catch {
+    return iso;
+  }
+}
 
 function toMediaItem(item: TmdbMediaSearchItem): MediaItem {
   return {
@@ -78,6 +89,7 @@ export function ExploreCardDetailDialog({
   const detailsData   = modalData?.details ?? null;
 
   const canSearch = item.already_exists && item.source_id !== null;
+  const canManage = item.already_exists && item.source_id !== null;
   const hasTmdbId = item.tmdb_id > 0;
 
   const tabs = useMemo(() => {
@@ -86,8 +98,9 @@ export function ExploreCardDetailDialog({
     ];
     if (hasTmdbId)  result.push({ key: 'similar', label: t('medias.detail.tabSimilar', 'Similar'), icon: Sparkles });
     if (canSearch)  result.push({ key: 'search',  label: t('medias.detail.tabSearch',  'Search'),  icon: Search });
+    if (canManage)  result.push({ key: 'management', label: t('medias.detail.tabManagement', 'Management'), icon: Settings2 });
     return result;
-  }, [hasTmdbId, canSearch, t]);
+  }, [hasTmdbId, canSearch, canManage, t]);
 
   const validTab = tabs.some(tab => tab.key === activeTab) ? activeTab : 'info';
 
@@ -114,6 +127,7 @@ export function ExploreCardDetailDialog({
         overview: item.overview,
         release_year: item.release_year,
         vote_average: item.vote_average,
+        release_date: item.media_type === 'movie' ? (detailsData?.release_date ?? null) : null,
       });
     }
   };
@@ -163,6 +177,12 @@ export function ExploreCardDetailDialog({
           <h2 className="text-xl font-semibold leading-snug text-neutral-900 dark:text-white">
             {item.title}
           </h2>
+
+          {detailsData?.tagline && (
+            <p className="text-sm italic leading-snug text-neutral-600 dark:text-neutral-400">
+              {detailsData.tagline}
+            </p>
+          )}
 
           {/* Type + year + runtime */}
           <div className="flex flex-wrap items-center gap-1.5">
@@ -222,6 +242,43 @@ export function ExploreCardDetailDialog({
               </span>
             )}
           </div>
+
+          {(detailsData?.genres?.length ?? 0) > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {(detailsData?.genres ?? []).map(g => (
+                <span
+                  key={g.id}
+                  className="rounded-md bg-neutral-200/90 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700 dark:bg-neutral-700/70 dark:text-neutral-300"
+                >
+                  {g.name}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {item.media_type === 'movie' && formatTmdbDateYmd(detailsData?.release_date) && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              <span className="text-neutral-400 dark:text-neutral-500">{t('medias.detail.releaseDate')} </span>
+              {formatTmdbDateYmd(detailsData?.release_date)}
+            </p>
+          )}
+
+          {item.media_type === 'tv' &&
+            (formatTmdbDateYmd(detailsData?.first_air_date) ||
+              formatTmdbDateYmd(detailsData?.last_air_date) ||
+              detailsData?.status) && (
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                {[
+                  formatTmdbDateYmd(detailsData?.first_air_date) &&
+                    `${t('medias.detail.firstAir')} ${formatTmdbDateYmd(detailsData?.first_air_date)}`,
+                  formatTmdbDateYmd(detailsData?.last_air_date) &&
+                    `${t('medias.detail.lastAir')} ${formatTmdbDateYmd(detailsData?.last_air_date)}`,
+                  detailsData?.status && `${t('medias.detail.showStatus')} ${detailsData.status}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            )}
 
           {/* Director */}
           {creditsData?.directors && creditsData.directors.length > 0 && (
@@ -384,6 +441,15 @@ export function ExploreCardDetailDialog({
             </p>
           )}
 
+          {detailsData && (
+            <MediaDetailInfoSections
+              details={detailsData}
+              displayTitle={item.title}
+              mediaType={item.media_type}
+              tmdbId={item.tmdb_id}
+            />
+          )}
+
           {/* Cast */}
           {creditsData && creditsData.cast.length > 0 && (
             <div>
@@ -468,6 +534,20 @@ export function ExploreCardDetailDialog({
             onDownloadSuccess={onRefetchLibrary}
           />
         </div>
+      )}
+
+      {validTab === 'management' && canManage && item.source_id != null && (
+        <ArrManagementPanel
+          service={item.service}
+          sourceId={item.source_id}
+          title={item.title}
+          isActive={isOpen && validTab === 'management'}
+          onDeleted={() => {
+            onClose();
+            onAdded();
+            onRefetchLibrary?.();
+          }}
+        />
       )}
     </Dialog>
   );

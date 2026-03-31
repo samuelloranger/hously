@@ -2,13 +2,12 @@
  * Image service for handling image uploads and thumbnail generation
  */
 
-import sharp from "sharp";
-import { v4 as uuidv4 } from "uuid";
-import { uploadToS3, deleteFromS3, getFileFromS3, isS3Configured, getS3DirectUrl } from "./s3Service";
-import { getBaseUrl } from "../utils/config";
+import sharp from 'sharp';
+import { uploadToS3, deleteFromS3, getFileFromS3, isS3Configured, getS3DirectUrl } from './s3Service';
+import { getBaseUrl } from '../utils/config';
 
 // Allowed image extensions
-const ALLOWED_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp"]);
+const ALLOWED_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp']);
 
 // Thumbnail size
 const THUMBNAIL_SIZE = 48;
@@ -17,8 +16,8 @@ const THUMBNAIL_SIZE = 48;
  * Check if file extension is allowed
  */
 export function isAllowedFile(filename: string): boolean {
-  if (!filename.includes(".")) return false;
-  const ext = filename.split(".").pop()?.toLowerCase();
+  if (!filename.includes('.')) return false;
+  const ext = filename.split('.').pop()?.toLowerCase();
   return ext ? ALLOWED_EXTENSIONS.has(ext) : false;
 }
 
@@ -26,19 +25,19 @@ export function isAllowedFile(filename: string): boolean {
  * Get content type from filename
  */
 export function getContentType(filename: string): string {
-  const ext = filename.split(".").pop()?.toLowerCase();
+  const ext = filename.split('.').pop()?.toLowerCase();
   switch (ext) {
-    case "png":
-      return "image/png";
-    case "jpg":
-    case "jpeg":
-      return "image/jpeg";
-    case "gif":
-      return "image/gif";
-    case "webp":
-      return "image/webp";
+    case 'png':
+      return 'image/png';
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'gif':
+      return 'image/gif';
+    case 'webp':
+      return 'image/webp';
     default:
-      return "application/octet-stream";
+      return 'application/octet-stream';
   }
 }
 
@@ -48,16 +47,16 @@ export function getContentType(filename: string): string {
  */
 export async function saveImageAndCreateThumbnail(file: File): Promise<string> {
   if (!file || !isAllowedFile(file.name)) {
-    throw new Error("Invalid file type. Only images are allowed.");
+    throw new Error('Invalid file type. Only images are allowed.');
   }
 
   if (!isS3Configured()) {
-    throw new Error("S3 storage is not configured");
+    throw new Error('S3 storage is not configured');
   }
 
   // Generate unique filename
-  const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const uniqueFilename = `${uuidv4().replace(/-/g, "")}.${fileExt}`;
+  const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const uniqueFilename = `${crypto.randomUUID().replace(/-/g, '')}.${fileExt}`;
 
   try {
     // Read file content
@@ -70,7 +69,7 @@ export async function saveImageAndCreateThumbnail(file: File): Promise<string> {
     // Upload original image to S3
     const uploadSuccess = await uploadToS3(imageBuffer, uniqueFilename, contentType);
     if (!uploadSuccess) {
-      throw new Error("Failed to upload image to S3");
+      throw new Error('Failed to upload image to S3');
     }
 
     // Create thumbnail using sharp
@@ -78,30 +77,26 @@ export async function saveImageAndCreateThumbnail(file: File): Promise<string> {
     const thumbnailBuffer = await sharp(imageBuffer)
       .rotate() // Auto-rotate based on EXIF orientation
       .resize(THUMBNAIL_SIZE, THUMBNAIL_SIZE, {
-        fit: "cover",
-        position: "center",
+        fit: 'cover',
+        position: 'center',
       })
       .flatten({ background: { r: 255, g: 255, b: 255 } }) // Convert transparency to white
       .jpeg({ quality: 85 })
       .toBuffer();
 
     // Upload thumbnail to S3
-    const thumbnailSuccess = await uploadToS3(
-      thumbnailBuffer,
-      `thumbnail-${uniqueFilename}`,
-      "image/jpeg"
-    );
+    const thumbnailSuccess = await uploadToS3(thumbnailBuffer, `thumbnail-${uniqueFilename}`, 'image/jpeg');
 
     if (!thumbnailSuccess) {
       // If thumbnail upload fails, try to delete the original image
       await deleteFromS3(uniqueFilename);
-      throw new Error("Failed to upload thumbnail to S3");
+      throw new Error('Failed to upload thumbnail to S3');
     }
 
     console.log(`Uploaded image and thumbnail to S3: ${uniqueFilename}`);
     return uniqueFilename;
   } catch (error) {
-    console.error("Error uploading image:", error);
+    console.error('Error uploading image:', error);
     throw new Error(`Error uploading image: ${error}`);
   }
 }

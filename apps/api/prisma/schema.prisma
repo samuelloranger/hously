@@ -465,6 +465,11 @@ model WatchlistItem {
   voteAverage Float?   @map("vote_average")
   addedAt     DateTime @default(now()) @map("added_at")
 
+  /// Cached TMDB theatrical release date (movies only). Used for day-before reminders.
+  movieReleaseDate DateTime? @map("movie_release_date") @db.Date
+  /// YYYY-MM-DD release date we already sent a day-before reminder for (movies only).
+  releaseReminderSentFor String? @map("release_reminder_sent_for") @db.VarChar(10)
+
   user User @relation(fields: [userId], references: [id])
 
   @@unique([userId, tmdbId, mediaType], map: "uq_watchlist_user_tmdb_type")

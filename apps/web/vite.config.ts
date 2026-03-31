@@ -41,7 +41,45 @@ const isServerResponse = (value: unknown): value is ServerResponse => {
 export default defineConfig(({ mode }) => {
   // Load env from root directory (parent of apps/web)
   const env = loadEnv(mode, path.resolve(__dirname, '../..'), '');
-  const plugins = [react(), excludeTestFiles(), serviceWorkerPlugin()];
+
+  // Use the config() hook so manualChunks merges through mergeConfig's rollupOptions path,
+  // which correctly propagates to each environment in Vite 8. Direct rolldownOptions.output
+  // assignment is lost during environment config resolution (Vite 8.0.x bug).
+  const chunkSplittingPlugin: Plugin = {
+    name: 'chunk-splitting',
+    config(_config, { command }) {
+      if (command !== 'build') return;
+      return {
+        build: {
+          rollupOptions: {
+            output: {
+              manualChunks(id: string) {
+                if (/node_modules\/(react|react-dom|scheduler)(\/|$)/.test(id)) return 'react';
+                if (/node_modules\/@tanstack\/react-router(\/|$)/.test(id)) return 'router';
+                if (/node_modules\/@tanstack\/react-query(\/|$)/.test(id)) return 'query';
+                if (/node_modules\/lucide-react(\/|$)/.test(id)) return 'icons';
+                if (/node_modules\/date-fns(\/|$)/.test(id)) return 'date-fns';
+                if (/node_modules\/@tiptap(\/|$)/.test(id)) return 'tiptap';
+                if (/node_modules\/(@headlessui|@radix-ui)(\/|$)/.test(id)) return 'ui';
+                if (/node_modules\/@dnd-kit(\/|$)/.test(id)) return 'dnd';
+                if (/node_modules\/react-hook-form(\/|$)/.test(id)) return 'forms';
+                if (/node_modules\/(i18next|react-i18next)(\/|$)/.test(id)) return 'i18n';
+                if (/node_modules\/lodash-es(\/|$)/.test(id)) return 'lodash';
+                if (/node_modules\/(react-markdown|rehype-sanitize|remark|unified|hast|mdast|micromark|vfile)(\/|$)/.test(id)) return 'markdown';
+              },
+            },
+          },
+        },
+      };
+    },
+  };
+
+  const plugins = [
+    react({ babel: { plugins: ['babel-plugin-react-compiler'] } }),
+    chunkSplittingPlugin,
+    excludeTestFiles(),
+    serviceWorkerPlugin(),
+  ];
   const apiPort = env.API_PORT || '5001';
   const apiHost = env.API_HOST || `http://localhost:${apiPort}`;
   console.log(`Using API host: ${apiHost}`);
@@ -51,35 +89,6 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
-      },
-    },
-    build: {
-      rolldownOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
-              return 'react';
-            }
-            if (id.includes('node_modules/@tanstack/react-router')) {
-              return 'router';
-            }
-            if (id.includes('node_modules/@tanstack/react-query')) {
-              return 'query';
-            }
-            if (id.includes('node_modules/@dnd-kit/')) {
-              return 'dnd';
-            }
-            if (id.includes('node_modules/@tiptap/')) {
-              return 'tiptap';
-            }
-            if (
-              id.includes('node_modules/@headlessui/') ||
-              id.includes('node_modules/@radix-ui/')
-            ) {
-              return 'ui';
-            }
-          },
-        },
       },
     },
     server: {

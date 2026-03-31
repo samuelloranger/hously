@@ -67,12 +67,11 @@ export default [
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       "react-hooks/exhaustive-deps": "off",
-      // New rules in react-hooks v7 — disabled pending a dedicated refactor
-      "react-hooks/set-state-in-effect": "off",
-      "react-hooks/incompatible-library": "off",
-      "react-hooks/purity": "off",
-      "react-hooks/static-components": "off",
-      "react-hooks/preserve-manual-memoization": "off",
+      "react-hooks/set-state-in-effect": "error",
+      "react-hooks/incompatible-library": "error",
+      "react-hooks/purity": "error",
+      "react-hooks/static-components": "error",
+      "react-hooks/preserve-manual-memoization": "error",
     },
   },
   ...compat

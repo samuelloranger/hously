@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type UseEventSourceStateOptions<T> = {
   url: string;
   initialData: T | null | undefined;
   enabled?: boolean;
+  treatInitialDataAsConnected?: boolean;
   onParseError?: (error: unknown) => void;
 };
 
@@ -16,14 +17,17 @@ export function useEventSourceState<T>({
   url,
   initialData,
   enabled = true,
+  treatInitialDataAsConnected = false,
   onParseError,
 }: UseEventSourceStateOptions<T>): UseEventSourceStateResult<T> {
-  const [data, setData] = useState<T | null>(initialData ?? null);
-  const [streamConnected, setStreamConnected] = useState(false);
+  const [sseData, setSseData] = useState<T | null>(null);
+  const data = sseData ?? initialData ?? null;
+  const [streamConnected, setStreamConnected] = useState(() => treatInitialDataAsConnected && initialData != null);
+  const parseErrorHandlerRef = useRef<typeof onParseError>(onParseError);
 
   useEffect(() => {
-    setData(initialData ?? null);
-  }, [initialData]);
+    parseErrorHandlerRef.current = onParseError;
+  }, [onParseError]);
 
   useEffect(() => {
     if (!enabled || typeof window === 'undefined' || typeof EventSource === 'undefined') {
@@ -35,9 +39,9 @@ export function useEventSourceState<T>({
     source.onopen = () => setStreamConnected(true);
     source.onmessage = event => {
       try {
-        setData(JSON.parse(event.data) as T);
+        setSseData(JSON.parse(event.data) as T);
       } catch (error) {
-        onParseError?.(error);
+        parseErrorHandlerRef.current?.(error);
       }
     };
     source.onerror = () => {
@@ -47,8 +51,9 @@ export function useEventSourceState<T>({
     return () => {
       source.close();
       setStreamConnected(false);
+      setSseData(null);
     };
-  }, [enabled, onParseError, url]);
+  }, [enabled, url]);
 
   return { data, streamConnected };
 }

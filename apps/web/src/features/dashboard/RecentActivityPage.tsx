@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { PageLayout } from '@/components/PageLayout';
@@ -22,10 +22,6 @@ export function RecentActivityPage() {
   const service = search.service?.trim() || undefined;
   const type = search.type?.trim() || undefined;
 
-  useEffect(() => {
-    setLimit(PAGE_SIZE);
-  }, [service, type]);
-
   const { data, isLoading, isFetching } = useDashboardActivityFeed({ limit, service, type });
 
   const activities = useMemo(() => {
@@ -37,6 +33,7 @@ export function RecentActivityPage() {
   const hasFilters = Boolean(service || type);
 
   const updateFilters = (next: { service?: string; type?: string }) => {
+    setLimit(PAGE_SIZE);
     navigate({
       to: '/activity',
       search: {
@@ -153,7 +150,9 @@ export function RecentActivityPage() {
                 icon="⏰"
                 title={t('dashboard.activityPage.emptyTitle')}
                 description={
-                  hasFilters ? t('dashboard.activityPage.emptyFilteredDescription') : t('dashboard.activityPage.emptyDescription')
+                  hasFilters
+                    ? t('dashboard.activityPage.emptyFilteredDescription')
+                    : t('dashboard.activityPage.emptyDescription')
                 }
               />
             </div>

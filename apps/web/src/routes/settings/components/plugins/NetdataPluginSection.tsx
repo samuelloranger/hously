@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBeszelPlugin, useUpdateBeszelPlugin } from '@hously/shared';
 import { toast } from 'sonner';
@@ -6,21 +6,24 @@ import { PluginSectionCard } from './PluginSectionCard';
 import { PluginUrlInput } from './PluginUrlInput';
 
 export function BeszelPluginSection() {
-  const { t } = useTranslation('common');
   const { data, isLoading } = useBeszelPlugin();
+  return <BeszelPluginSectionImpl key={data?.plugin?.type ?? 'pending'} data={data} isLoading={isLoading} />;
+}
+
+function BeszelPluginSectionImpl({
+  data,
+  isLoading,
+}: {
+  data: ReturnType<typeof useBeszelPlugin>['data'];
+  isLoading: boolean;
+}) {
+  const { t } = useTranslation('common');
   const saveMutation = useUpdateBeszelPlugin();
 
-  const [websiteUrl, setWebsiteUrl] = useState('');
-  const [email, setEmail] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState(data?.plugin?.website_url || '');
+  const [email, setEmail] = useState(data?.plugin?.email || '');
   const [password, setPassword] = useState('');
-  const [enabled, setEnabled] = useState(false);
-
-  useEffect(() => {
-    if (!data?.plugin) return;
-    setWebsiteUrl(data.plugin.website_url || '');
-    setEmail(data.plugin.email || '');
-    setEnabled(Boolean(data.plugin.enabled));
-  }, [data]);
+  const [enabled, setEnabled] = useState(Boolean(data?.plugin?.enabled));
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;

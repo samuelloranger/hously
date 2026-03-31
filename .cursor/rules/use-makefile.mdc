@@ -1,4 +1,0 @@
----
-description: When you run commands for database migrations, use the Makefile commands. If the command does not exist, create it. Use it intelligently.
-alwaysApply: false
----

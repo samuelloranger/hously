@@ -13,6 +13,7 @@ export function KitchenPage() {
   const { t } = useTranslation('common');
   const [activeTab, setActiveTab] = useState<TabType>('recipes');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -20,6 +21,7 @@ export function KitchenPage() {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
+    setRefreshKey(Date.now());
     setTimeout(() => setIsRefreshing(false), 100);
   };
 
@@ -60,9 +62,9 @@ export function KitchenPage() {
 
       {/* Tab Content */}
       {activeTab === 'recipes' ? (
-        <RecipeListContent refreshKey={isRefreshing ? Date.now() : 0} />
+        <RecipeListContent refreshKey={refreshKey} />
       ) : (
-        <MealPlanView refreshKey={isRefreshing ? Date.now() : 0} />
+        <MealPlanView refreshKey={refreshKey} />
       )}
     </PageLayout>
   );

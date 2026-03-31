@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   useC411Plugin,
   useLaCalePlugin,
@@ -52,29 +52,10 @@ function TrackerEditor({
   onSave,
 }: TrackerEditorProps) {
   const { t } = useTranslation('common');
-  const [state, setState] = useState<TrackerFormState>({
+  const [state, setState] = useState<TrackerFormState>(() => ({
     ...initial,
     password: '',
-  });
-
-  // Destructure to primitive deps so this only fires when the server data
-  // actually changes, not on every parent render that recreates the `initial`
-  // object reference.
-  const {
-    enabled: initialEnabled,
-    flaresolverr_url: initialFsUrl,
-    tracker_url: initialTrackerUrl,
-    username: initialUsername,
-  } = initial;
-  useEffect(() => {
-    setState({
-      enabled: initialEnabled,
-      flaresolverr_url: initialFsUrl,
-      tracker_url: initialTrackerUrl,
-      username: initialUsername,
-      password: '',
-    });
-  }, [initialEnabled, initialFsUrl, initialTrackerUrl, initialUsername]);
+  }));
 
   const isDirty = useMemo(
     () =>
@@ -226,6 +207,7 @@ type TrackerPluginConfig = {
 
 type TrackerSection = {
   key: string;
+  pluginId: string | number;
   title: string;
   logoUrl: string;
   description?: string;
@@ -262,6 +244,7 @@ export function TrackersPluginSection() {
   const trackers: TrackerSection[] = [
     {
       key: 'c411',
+      pluginId: c411Query.data?.plugin?.type ?? 'pending',
       title: t('settings.plugins.trackers.providers.c411'),
       logoUrl: '/icons/c411.png',
       description: t('settings.plugins.trackers.providerHelp.c411'),
@@ -278,6 +261,7 @@ export function TrackersPluginSection() {
     },
     {
       key: 'torr9',
+      pluginId: torr9Query.data?.plugin?.type ?? 'pending',
       title: t('settings.plugins.trackers.providers.torr9'),
       logoUrl: '/icons/torr9.png',
       usernamePlaceholder: t('settings.plugins.trackers.usernamePlaceholder'),
@@ -291,6 +275,7 @@ export function TrackersPluginSection() {
     },
     {
       key: 'la-cale',
+      pluginId: laCaleQuery.data?.plugin?.type ?? 'pending',
       title: t('settings.plugins.trackers.providers.la-cale'),
       logoUrl: '/icons/la-cale.png',
       usernamePlaceholder: t('settings.plugins.trackers.usernamePlaceholder'),
@@ -318,7 +303,7 @@ export function TrackersPluginSection() {
 
       {trackers.map(tracker => (
         <TrackerEditor
-          key={tracker.key}
+          key={`${tracker.key}-${tracker.pluginId}`}
           title={tracker.title}
           logoUrl={tracker.logoUrl}
           description={tracker.description}

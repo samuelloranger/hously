@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useWeatherPlugin, useUpdateWeatherPlugin } from '@hously/shared';
 import { toast } from 'sonner';
@@ -7,20 +7,25 @@ import { PluginSectionCard } from './PluginSectionCard';
 type TemperatureUnit = 'fahrenheit' | 'celsius';
 
 export function WeatherPluginSection() {
-  const { t } = useTranslation('common');
   const { data, isLoading } = useWeatherPlugin();
+  return <WeatherPluginSectionImpl key={data?.plugin?.type ?? 'pending'} data={data} isLoading={isLoading} />;
+}
+
+function WeatherPluginSectionImpl({
+  data,
+  isLoading,
+}: {
+  data: ReturnType<typeof useWeatherPlugin>['data'];
+  isLoading: boolean;
+}) {
+  const { t } = useTranslation('common');
   const saveMutation = useUpdateWeatherPlugin();
 
-  const [address, setAddress] = useState('');
-  const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>('fahrenheit');
-  const [enabled, setEnabled] = useState(false);
-
-  useEffect(() => {
-    if (!data?.plugin) return;
-    setAddress(data.plugin.address || '');
-    setTemperatureUnit(data.plugin.temperature_unit || 'fahrenheit');
-    setEnabled(Boolean(data.plugin.enabled));
-  }, [data]);
+  const [address, setAddress] = useState(data?.plugin?.address || '');
+  const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>(
+    (data?.plugin?.temperature_unit as TemperatureUnit) || 'fahrenheit'
+  );
+  const [enabled, setEnabled] = useState(Boolean(data?.plugin?.enabled));
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;

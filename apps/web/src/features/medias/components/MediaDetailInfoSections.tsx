@@ -1,0 +1,297 @@
+import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TmdbMediaDetailsResponse } from '@hously/shared';
+import { ExternalLink } from 'lucide-react';
+
+interface MediaDetailInfoSectionsProps {
+  details: TmdbMediaDetailsResponse;
+  displayTitle: string;
+  mediaType: 'movie' | 'tv';
+  tmdbId: number;
+}
+
+function formatUsd(n: number): string {
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+}
+
+function formatYmd(iso: string | null | undefined): string | null {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  try {
+    return new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, { dateStyle: 'medium' });
+  } catch {
+    return iso;
+  }
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+        {title}
+      </p>
+      <div className="flex flex-col gap-2">{children}</div>
+    </div>
+  );
+}
+
+function FactLine({ label, value }: { label: string; value: ReactNode }) {
+  if (value == null || value === '') return null;
+  return (
+    <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-sm">
+      <span className="text-neutral-500 dark:text-neutral-500">{label}</span>
+      <span className="min-w-0 text-neutral-800 dark:text-neutral-200">{value}</span>
+    </div>
+  );
+}
+
+function OutLink({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center gap-1 text-sm font-medium text-sky-600 hover:underline dark:text-sky-400"
+    >
+      {label}
+      <ExternalLink size={12} className="shrink-0 opacity-70" />
+    </a>
+  );
+}
+
+function ImageStrip({ label, items }: { label: string; items: { url: string }[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div>
+      <p className="mb-1.5 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">{label}</p>
+      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
+        {items.map((img, i) => (
+          <img
+            key={`${img.url}-${i}`}
+            src={img.url}
+            alt=""
+            className="h-24 shrink-0 rounded-lg object-cover ring-1 ring-black/10 dark:ring-white/10"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function MediaDetailInfoSections({ details, displayTitle, mediaType, tmdbId }: MediaDetailInfoSectionsProps) {
+  const { t } = useTranslation('common');
+
+  const tmdbPageUrl = `https://www.themoviedb.org/${mediaType}/${tmdbId}`;
+  const ext = details.external_ids;
+
+  const imdbUrl = ext?.imdb_id ? `https://www.imdb.com/title/${ext.imdb_id}/` : null;
+  const fbUrl = ext?.facebook_id ? `https://www.facebook.com/${ext.facebook_id}` : null;
+  const igUrl = ext?.instagram_id ? `https://www.instagram.com/${ext.instagram_id}` : null;
+  const twUrl = ext?.twitter_id ? `https://twitter.com/${ext.twitter_id}` : null;
+  const wikiUrl = ext?.wikidata_id ? `https://www.wikidata.org/wiki/${ext.wikidata_id}` : null;
+
+  const showOriginalTitle =
+    details.original_title && details.original_title.trim() && details.original_title.trim() !== displayTitle.trim();
+
+  const hasFacts =
+    showOriginalTitle ||
+    details.original_language_label ||
+    details.production_countries.length > 0 ||
+    details.production_companies.length > 0 ||
+    details.spoken_languages.length > 0 ||
+    (mediaType === 'tv' && details.tv_type);
+
+  const hasMoney = mediaType === 'movie' && (details.budget != null || details.revenue != null);
+
+  const hasMedia =
+    details.primary_backdrop_url ||
+    details.media_stills.backdrops.length > 0 ||
+    details.media_stills.logos.length > 0 ||
+    details.media_stills.posters.length > 0;
+
+  const hasTv =
+    mediaType === 'tv' &&
+    (details.networks.length > 0 ||
+      details.created_by.length > 0 ||
+      details.episode_run_times.length > 0 ||
+      details.next_episode_to_air ||
+      details.last_episode_to_air);
+
+  return (
+    <div className="flex flex-col gap-5">
+      {hasFacts && (
+        <Section title={t('medias.detail.sections.facts')}>
+          {showOriginalTitle && (
+            <FactLine label={t('medias.detail.originalTitle')} value={details.original_title} />
+          )}
+          {details.original_language_label && (
+            <FactLine
+              label={t('medias.detail.originalLanguage')}
+              value={`${details.original_language_label}${details.original_language ? ` (${details.original_language})` : ''}`}
+            />
+          )}
+          {details.production_countries.length > 0 && (
+            <FactLine
+              label={t('medias.detail.countries')}
+              value={details.production_countries.map(c => c.name).join(', ')}
+            />
+          )}
+          {details.spoken_languages.length > 0 && (
+            <FactLine
+              label={t('medias.detail.spokenLanguages')}
+              value={details.spoken_languages.map(s => s.english_name || s.name).join(', ')}
+            />
+          )}
+          {mediaType === 'tv' && details.tv_type && (
+            <FactLine label={t('medias.detail.showType')} value={details.tv_type} />
+          )}
+          {details.production_companies.length > 0 && (
+            <div>
+              <p className="mb-1.5 text-xs text-neutral-500 dark:text-neutral-500">{t('medias.detail.companies')}</p>
+              <div className="flex flex-wrap gap-2">
+                {details.production_companies.map(c => (
+                  <span
+                    key={c.id}
+                    className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-neutral-200/80 bg-white/80 px-2 py-1 text-xs text-neutral-800 dark:border-neutral-700/60 dark:bg-neutral-900/50 dark:text-neutral-200"
+                  >
+                    {c.logo_url ? (
+                      <img src={c.logo_url} alt="" className="h-5 w-5 shrink-0 object-contain" />
+                    ) : null}
+                    <span className="truncate">{c.name}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </Section>
+      )}
+
+      {hasMoney && (
+        <Section title={t('medias.detail.sections.money')}>
+          {details.budget != null && details.budget > 0 && (
+            <FactLine label={t('medias.detail.budget')} value={formatUsd(details.budget)} />
+          )}
+          {details.revenue != null && details.revenue > 0 && (
+            <FactLine label={t('medias.detail.revenue')} value={formatUsd(details.revenue)} />
+          )}
+        </Section>
+      )}
+
+      <Section title={t('medias.detail.sections.links')}>
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            <OutLink href={tmdbPageUrl} label="TMDB" />
+            {details.homepage ? <OutLink href={details.homepage} label={t('medias.detail.officialSite')} /> : null}
+            {imdbUrl ? <OutLink href={imdbUrl} label="IMDb" /> : null}
+            {fbUrl ? <OutLink href={fbUrl} label="Facebook" /> : null}
+            {igUrl ? <OutLink href={igUrl} label="Instagram" /> : null}
+            {twUrl ? <OutLink href={twUrl} label="X / Twitter" /> : null}
+            {wikiUrl ? <OutLink href={wikiUrl} label="Wikidata" /> : null}
+          </div>
+        </Section>
+
+      {hasMedia && (
+        <Section title={t('medias.detail.sections.media')}>
+          {details.primary_backdrop_url && (
+            <div className="overflow-hidden rounded-xl ring-1 ring-black/10 dark:ring-white/10">
+              <img
+                src={details.primary_backdrop_url}
+                alt=""
+                className="max-h-56 w-full object-cover"
+              />
+            </div>
+          )}
+          <ImageStrip label={t('medias.detail.backdrops')} items={details.media_stills.backdrops} />
+          <ImageStrip label={t('medias.detail.logos')} items={details.media_stills.logos} />
+          <ImageStrip label={t('medias.detail.posters')} items={details.media_stills.posters} />
+        </Section>
+      )}
+
+      {hasTv && (
+        <Section title={t('medias.detail.sections.tv')}>
+          {details.networks.length > 0 && (
+            <div>
+              <p className="mb-1.5 text-xs text-neutral-500 dark:text-neutral-500">{t('medias.detail.networks')}</p>
+              <div className="flex flex-wrap gap-2">
+                {details.networks.map(n => (
+                  <span
+                    key={n.id}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200/80 bg-white/80 px-2 py-1 text-xs dark:border-neutral-700/60 dark:bg-neutral-900/50"
+                  >
+                    {n.logo_url ? <img src={n.logo_url} alt="" className="h-4 w-8 object-contain" /> : null}
+                    {n.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {details.created_by.length > 0 && (
+            <div>
+              <p className="mb-1.5 text-xs text-neutral-500 dark:text-neutral-500">{t('medias.detail.createdBy')}</p>
+              <div className="flex flex-wrap gap-3">
+                {details.created_by.map(c => (
+                  <div key={c.id} className="flex items-center gap-2 text-sm">
+                    {c.profile_url ? (
+                      <img src={c.profile_url} alt="" className="h-9 w-9 rounded-full object-cover" />
+                    ) : (
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-xs dark:bg-neutral-700">
+                        👤
+                      </div>
+                    )}
+                    <span className="font-medium text-neutral-800 dark:text-neutral-200">{c.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {details.episode_run_times.length > 0 && (
+            <FactLine
+              label={t('medias.detail.episodeRuntimes')}
+              value={details.episode_run_times.map(m => `${m} min`).join(', ')}
+            />
+          )}
+          {details.next_episode_to_air && (
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm dark:bg-emerald-500/10">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                {t('medias.detail.nextEpisode')}
+              </p>
+              <p className="font-medium text-neutral-900 dark:text-neutral-100">
+                {details.next_episode_to_air.name ?? '—'}
+              </p>
+              <p className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
+                {[
+                  details.next_episode_to_air.season_number != null && details.next_episode_to_air.episode_number != null
+                    ? `S${details.next_episode_to_air.season_number}E${details.next_episode_to_air.episode_number}`
+                    : null,
+                  formatYmd(details.next_episode_to_air.air_date),
+                  details.next_episode_to_air.runtime != null ? `${details.next_episode_to_air.runtime} min` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            </div>
+          )}
+          {details.last_episode_to_air && (
+            <div className="rounded-lg border border-neutral-200/80 bg-neutral-50/80 px-3 py-2 text-sm dark:border-neutral-700/60 dark:bg-neutral-900/40">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                {t('medias.detail.lastEpisode')}
+              </p>
+              <p className="font-medium text-neutral-900 dark:text-neutral-100">
+                {details.last_episode_to_air.name ?? '—'}
+              </p>
+              <p className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
+                {[
+                  details.last_episode_to_air.season_number != null && details.last_episode_to_air.episode_number != null
+                    ? `S${details.last_episode_to_air.season_number}E${details.last_episode_to_air.episode_number}`
+                    : null,
+                  formatYmd(details.last_episode_to_air.air_date),
+                  details.last_episode_to_air.runtime != null ? `${details.last_episode_to_air.runtime} min` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            </div>
+          )}
+        </Section>
+      )}
+    </div>
+  );
+}

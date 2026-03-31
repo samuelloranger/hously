@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
@@ -44,7 +44,6 @@ export function CreateChoreForm({ users, onSuccess }: CreateChoreFormProps) {
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
     reset,
     control,
@@ -63,9 +62,9 @@ export function CreateChoreForm({ users, onSuccess }: CreateChoreFormProps) {
     },
   });
 
-  const reminderEnabled = watch('reminder_enabled');
-  const recurrenceEnabled = watch('recurrence_enabled');
-  const recurrenceType = watch('recurrence_type');
+  const reminderEnabled = useWatch({ control, name: 'reminder_enabled' });
+  const recurrenceEnabled = useWatch({ control, name: 'recurrence_enabled' });
+  const recurrenceType = useWatch({ control, name: 'recurrence_type' });
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

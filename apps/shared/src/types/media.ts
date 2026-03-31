@@ -131,6 +131,56 @@ export interface MediaDeleteResponse {
   service: 'radarr' | 'sonarr';
 }
 
+export interface MediaRefreshResponse {
+  success: boolean;
+  service: 'radarr' | 'sonarr';
+}
+
+/** Single movie file row from Radarr (when downloaded) */
+export interface ArrManagementFileInfo {
+  relative_path: string | null;
+  size_bytes: number | null;
+  quality_label: string | null;
+  custom_format_score: number | null;
+  date_added: string | null;
+  languages: string[];
+  scene_name: string | null;
+  media_resolution: string | null;
+  video_codec: string | null;
+  audio_codec: string | null;
+  audio_channels: string | null;
+  edition: string | null;
+  release_group: string | null;
+}
+
+export interface ArrManagementStatistics {
+  episode_file_count: number;
+  episode_count: number;
+  total_episode_count: number;
+  size_on_disk_bytes: number;
+  percent_of_episodes: number;
+}
+
+/** Normalized Radarr movie / Sonarr series payload for the Management tab */
+export interface ArrManagementDetailsResponse {
+  service: 'radarr' | 'sonarr';
+  title: string;
+  sort_title: string | null;
+  path: string | null;
+  root_folder_path: string | null;
+  monitored: boolean;
+  arr_status: string | null;
+  added: string | null;
+  genres: string[];
+  studio: string | null;
+  has_file: boolean;
+  file: ArrManagementFileInfo | null;
+  series_type: string | null;
+  season_folder: boolean;
+  statistics: ArrManagementStatistics | null;
+  network: string | null;
+}
+
 export interface TmdbStreamingProvider {
   id: number;
   name: string;
@@ -197,6 +247,65 @@ export interface TmdbCollection {
   poster_url: string | null;
 }
 
+export interface TmdbProductionCountry {
+  iso_3166_1: string;
+  name: string;
+}
+
+export interface TmdbProductionCompany {
+  id: number;
+  name: string;
+  logo_url: string | null;
+  origin_country: string | null;
+}
+
+export interface TmdbSpokenLanguage {
+  english_name: string;
+  iso_639_1: string;
+  name: string;
+}
+
+export interface TmdbExternalIds {
+  imdb_id: string | null;
+  facebook_id: string | null;
+  instagram_id: string | null;
+  twitter_id: string | null;
+  wikidata_id: string | null;
+}
+
+export interface TmdbImageStill {
+  url: string;
+  width: number | null;
+  height: number | null;
+  vote_average: number | null;
+}
+
+export interface TmdbMediaStills {
+  backdrops: TmdbImageStill[];
+  logos: TmdbImageStill[];
+  posters: TmdbImageStill[];
+}
+
+export interface TmdbNextEpisode {
+  name: string | null;
+  air_date: string | null;
+  episode_number: number | null;
+  season_number: number | null;
+  runtime: number | null;
+}
+
+export interface TmdbNetwork {
+  id: number;
+  name: string;
+  logo_url: string | null;
+}
+
+export interface TmdbCreator {
+  id: number;
+  name: string;
+  profile_url: string | null;
+}
+
 export interface TmdbMediaDetailsResponse {
   runtime: number | null;
   belongs_to_collection: TmdbCollection | null;
@@ -204,6 +313,43 @@ export interface TmdbMediaDetailsResponse {
   vote_average: number | null;
   number_of_seasons: number | null;
   number_of_episodes: number | null;
+  /** YYYY-MM-DD from TMDB (movies only) */
+  release_date: string | null;
+  tagline: string | null;
+  genres: TmdbGenre[];
+  /** TV: YYYY-MM-DD */
+  first_air_date: string | null;
+  last_air_date: string | null;
+  /** Movie or TV status string from TMDB */
+  status: string | null;
+
+  original_title: string | null;
+  /** ISO 639-1 code */
+  original_language: string | null;
+  /** Best-effort display name for original language */
+  original_language_label: string | null;
+  production_countries: TmdbProductionCountry[];
+  production_companies: TmdbProductionCompany[];
+  spoken_languages: TmdbSpokenLanguage[];
+
+  /** Movies: USD from TMDB */
+  budget: number | null;
+  revenue: number | null;
+
+  homepage: string | null;
+  external_ids: TmdbExternalIds | null;
+
+  /** Primary backdrop (from main `backdrop_path`) */
+  primary_backdrop_url: string | null;
+  media_stills: TmdbMediaStills;
+
+  /** TV: Scripted, Documentary, etc. */
+  tv_type: string | null;
+  networks: TmdbNetwork[];
+  created_by: TmdbCreator[];
+  episode_run_times: number[];
+  next_episode_to_air: TmdbNextEpisode | null;
+  last_episode_to_air: TmdbNextEpisode | null;
 }
 
 export interface WatchlistItem {
@@ -216,6 +362,8 @@ export interface WatchlistItem {
   release_year: number | null;
   vote_average: number | null;
   added_at: string;
+  /** Cached TMDB release date for movies (YYYY-MM-DD); used for day-before reminders */
+  movie_release_date: string | null;
 }
 
 export interface WatchlistResponse {
@@ -238,6 +386,7 @@ export interface CollectionMovieItem {
   media_type: 'movie';
   title: string;
   release_year: number | null;
+  release_date: string | null;
   poster_url: string | null;
   overview: string | null;
   vote_average: number | null;

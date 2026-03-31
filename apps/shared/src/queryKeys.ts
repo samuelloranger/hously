@@ -130,6 +130,8 @@ export const queryKeys = {
     tmdbSearch: (query: string) => [...queryKeys.medias.all, 'tmdb-search', query] as const,
     interactiveSearch: (service: 'radarr' | 'sonarr', sourceId: number) =>
       [...queryKeys.medias.all, 'interactive-search', service, sourceId] as const,
+    managementInfo: (service: 'radarr' | 'sonarr', sourceId: number) =>
+      [...queryKeys.medias.all, 'management-info', service, sourceId] as const,
     prowlarrInteractiveSearch: (query: string) =>
       [...queryKeys.medias.all, 'interactive-search', 'prowlarr', query] as const,
     providers: (mediaType: 'movie' | 'tv', tmdbId: number, region?: string) =>

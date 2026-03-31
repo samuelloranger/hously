@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useClockifyPlugin, useUpdateClockifyPlugin } from '@hously/shared';
 import { toast } from 'sonner';
@@ -6,24 +6,26 @@ import { PluginSectionCard } from './PluginSectionCard';
 import { useTheme } from '@/hooks/useTheme';
 
 export function ClockifyPluginSection() {
+  const { data, isLoading } = useClockifyPlugin();
+  return <ClockifyPluginSectionImpl key={data?.plugin?.type ?? 'pending'} data={data} isLoading={isLoading} />;
+}
+
+function ClockifyPluginSectionImpl({
+  data,
+  isLoading,
+}: {
+  data: ReturnType<typeof useClockifyPlugin>['data'];
+  isLoading: boolean;
+}) {
   const { isDark } = useTheme();
 
   const { t } = useTranslation('common');
-  const { data, isLoading } = useClockifyPlugin();
   const saveMutation = useUpdateClockifyPlugin();
 
-  const [apiKey, setApiKey] = useState('');
-  const [enabled, setEnabled] = useState(false);
-  const [workspaceId, setWorkspaceId] = useState('');
-  const [userId, setUserId] = useState('');
-
-  useEffect(() => {
-    if (!data?.plugin) return;
-    setApiKey(data.plugin.api_key || '');
-    setEnabled(Boolean(data.plugin.enabled));
-    setWorkspaceId(data.plugin.workspace_id || '');
-    setUserId(data.plugin.user_id || '')
-  }, [data]);
+  const [apiKey, setApiKey] = useState(data?.plugin?.api_key || '');
+  const [enabled, setEnabled] = useState(Boolean(data?.plugin?.enabled));
+  const [workspaceId, setWorkspaceId] = useState(data?.plugin?.workspace_id || '');
+  const [userId, setUserId] = useState(data?.plugin?.user_id || '');
 
   const isDirty = useMemo(() => {
     if (!data?.plugin) return false;
@@ -39,7 +41,7 @@ export function ClockifyPluginSection() {
     setApiKey(data?.plugin.api_key || '');
     setEnabled(Boolean(data?.plugin.enabled));
     setWorkspaceId(data?.plugin.workspace_id || '');
-    setUserId(data?.plugin.user_id || '')
+    setUserId(data?.plugin.user_id || '');
   };
 
   const handleSave = () => {
@@ -60,7 +62,11 @@ export function ClockifyPluginSection() {
       loading={isLoading}
       saving={saveMutation.isPending}
       isDirty={isDirty}
-      logoUrl={isDark ? "https://app.clockify.me/assets/clockify-logo-dark.svg" : "https://app.clockify.me/assets/clockify-logo.svg"}
+      logoUrl={
+        isDark
+          ? 'https://app.clockify.me/assets/clockify-logo-dark.svg'
+          : 'https://app.clockify.me/assets/clockify-logo.svg'
+      }
     >
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">

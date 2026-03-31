@@ -21,6 +21,7 @@ import {
   fetchTrailer,
   fetchRatings,
   fetchCredits,
+  emptyMediaDetails,
   fetchMediaDetails,
   fetchWatchProviders,
 } from './tmdbFetchers';
@@ -807,7 +808,7 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
       const tmdbId = parseInt(tmdbIdStr, 10);
       if (!Number.isFinite(tmdbId) || tmdbId <= 0) return badRequest(set, 'Invalid TMDB ID');
       const tmdbConfig = await loadTmdbConfig();
-      if (!tmdbConfig) return { runtime: null, belongs_to_collection: null, overview: null, vote_average: null, number_of_seasons: null, number_of_episodes: null };
+      if (!tmdbConfig) return emptyMediaDetails();
       return fetchMediaDetails(tmdbConfig.api_key, mediaType, tmdbId);
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }

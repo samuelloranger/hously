@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar, type CalendarRange } from './ui/calendar';
 import { TimePicker } from './ui/time-picker';
 import { toDateTimeLocal, parseDate } from '@hously/shared';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface DateRangePickerProps {
   startValue?: string; // ISO datetime string
@@ -49,33 +49,6 @@ export function DateRangePicker({
   const [isOpen, setIsOpen] = useState(false);
 
   const minDateTime = minDate || new Date();
-
-  // Update internal state when props change
-  useEffect(() => {
-    if (startValue) {
-      const start = parseDate(startValue);
-      if (start) {
-        setDateRange(prev => ({ ...prev, from: start }));
-        setStartTime({
-          hours: start.getHours(),
-          minutes: start.getMinutes(),
-        });
-      }
-    }
-  }, [startValue]);
-
-  useEffect(() => {
-    if (endValue) {
-      const end = parseDate(endValue);
-      if (end) {
-        setDateRange(prev => ({ ...prev, to: end }));
-        setEndTime({
-          hours: end.getHours(),
-          minutes: end.getMinutes(),
-        });
-      }
-    }
-  }, [endValue]);
 
   const updateDateTimeRange = (
     newStartDate?: Date,

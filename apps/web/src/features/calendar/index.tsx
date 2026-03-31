@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { PageLayout } from '@/components/PageLayout';
@@ -48,14 +48,18 @@ function parseCalendarSearchDate(dateStr?: string): Date | null {
 }
 
 export function Calendar() {
-  const { t, i18n } = useTranslation('common');
   const searchParams = useSearch({ from: '/calendar' }) as CalendarSearchParams;
+  return <CalendarBody key={searchParams.date ?? 'none'} searchParams={searchParams} />;
+}
+
+function CalendarBody({ searchParams }: { searchParams: CalendarSearchParams }) {
+  const { t, i18n } = useTranslation('common');
   const { setParams, resetParams } = useModalSearchParams('/calendar', searchParams);
-  
+
   const today = startOfDay(new Date());
   const initialNotificationDate = useMemo(() => parseCalendarSearchDate(searchParams.date), [searchParams.date]);
   const initialDate = initialNotificationDate ?? today;
-  
+
   const [currentMonth, setCurrentMonth] = useState(initialDate.getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(initialDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate);
@@ -63,7 +67,6 @@ export function Calendar() {
 
   const { data: events = [], isLoading, refetch } = useCalendarEvents(currentYear, currentMonth);
   const deleteMutation = useDeleteCustomEvent();
-  const notificationDate = initialNotificationDate;
   const targetedEventId = searchParams.eventId;
 
   const eventToEdit = useMemo(() => {
@@ -72,13 +75,6 @@ export function Calendar() {
   }, [events, searchParams.modal, targetedEventId]);
 
   const isCreateEventOpen = searchParams.modal === 'create';
-
-  useEffect(() => {
-    if (!notificationDate) return;
-    setCurrentMonth(notificationDate.getMonth() + 1);
-    setCurrentYear(notificationDate.getFullYear());
-    setSelectedDate(notificationDate);
-  }, [notificationDate]);
 
   // Split multi-day events and group by date
   const eventsByDate = useMemo(() => {
@@ -388,8 +384,8 @@ export function Calendar() {
                         event={event}
                         highlighted={Boolean(
                           targetedEventId &&
-                            event.type === 'custom_event' &&
-                            event.metadata?.custom_event_id === targetedEventId
+                          event.type === 'custom_event' &&
+                          event.metadata?.custom_event_id === targetedEventId
                         )}
                         onEditEvent={() => {
                           if (event.type === 'custom_event' && event.metadata?.custom_event_id) {
@@ -443,6 +439,7 @@ export function Calendar() {
 
       {/* Create Custom Event Dialog */}
       <CreateCustomEventForm
+        key="calendar-create-event"
         isOpen={isCreateEventOpen}
         onClose={() => {
           resetParams(['modal']);
@@ -453,6 +450,11 @@ export function Calendar() {
       {/* Edit Custom Event Dialog */}
       {eventToEdit && (
         <CreateCustomEventForm
+          key={
+            eventToEdit.type === 'custom_event' && eventToEdit.metadata && 'custom_event_id' in eventToEdit.metadata
+              ? String((eventToEdit.metadata as { custom_event_id: number }).custom_event_id)
+              : 'edit'
+          }
           isOpen={searchParams.modal === 'edit'}
           onClose={() => {
             resetParams(['modal', 'eventId']);

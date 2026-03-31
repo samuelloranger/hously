@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, startTransition } from 'react';
+import { Check } from 'lucide-react';
 
 interface CompleteCheckboxProps {
   completed: boolean;
@@ -7,50 +8,37 @@ interface CompleteCheckboxProps {
   className?: string;
 }
 
-export function CompleteCheckbox({
-  completed,
-  onToggle,
-  disabled = false,
-  className = "",
-}: CompleteCheckboxProps) {
+export function CompleteCheckbox({ completed, onToggle, disabled = false, className = '' }: CompleteCheckboxProps) {
   const [isAnimating, setIsAnimating] = useState(false);
-  const [wasCompleted, setWasCompleted] = useState(completed);
+  const prevCompleted = useRef(completed);
 
   useEffect(() => {
-    // Trigger animation when transitioning from incomplete to complete
-    if (completed && !wasCompleted) {
-      setIsAnimating(true);
+    if (completed && !prevCompleted.current) {
+      startTransition(() => setIsAnimating(true));
       const timer = setTimeout(() => setIsAnimating(false), 600);
-      setWasCompleted(completed);
+      prevCompleted.current = completed;
       return () => clearTimeout(timer);
     }
-    setWasCompleted(completed);
+    prevCompleted.current = completed;
     return undefined;
-  }, [completed, wasCompleted]);
+  }, [completed]);
 
   return (
     <button
+      type="button"
       onClick={onToggle}
       disabled={disabled}
+      style={{ touchAction: 'manipulation' }}
       className={`checkbox relative flex justify-center items-center border-2 min-w-7 min-h-7 w-7 h-7 rounded ${
         completed
-          ? "bg-green-500 border-green-500"
-          : "border-neutral-300 dark:border-neutral-600 hover:border-green-400 dark:hover:border-green-500"
+          ? 'bg-green-500 border-green-500'
+          : 'border-neutral-300 dark:border-neutral-600 hover:border-green-400 dark:hover:border-green-500'
       } focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 ${
-        isAnimating ? "checkbox-celebrate" : ""
+        isAnimating ? 'checkbox-celebrate' : ''
       } ${className}`}
     >
-      {completed && (
-        <span
-          className={`text-white text-xl ${isAnimating ? "checkmark-pop" : ""}`}
-        >
-          ✓
-        </span>
-      )}
-      {/* Ripple effect on complete */}
-      {isAnimating && (
-        <span className="absolute inset-0 rounded checkbox-ripple" />
-      )}
+      {completed && <Check size={14} strokeWidth={3} className={`text-white ${isAnimating ? 'checkmark-pop' : ''}`} />}
+      {isAnimating && <span className="absolute inset-0 rounded checkbox-ripple" />}
     </button>
   );
 }
