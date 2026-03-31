@@ -127,7 +127,12 @@ function FilterSection({ title, children, badge }: { title: string; children: Re
   );
 }
 
-export function InteractiveSearchPanel({ isActive, media = null, mode = 'arr', onDownloadSuccess }: InteractiveSearchPanelProps) {
+export function InteractiveSearchPanel({
+  isActive,
+  media = null,
+  mode = 'arr',
+  onDownloadSuccess,
+}: InteractiveSearchPanelProps) {
   const { t } = useTranslation('common');
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const isProwlarrMode = mode === 'prowlarr';
@@ -358,11 +363,7 @@ export function InteractiveSearchPanel({ isActive, media = null, mode = 'arr', o
                 )}
               </button>
 
-              <Toggle
-                checked={hideRejected}
-                onChange={setHideRejected}
-                label={t('medias.interactive.hideRejected')}
-              />
+              <Toggle checked={hideRejected} onChange={setHideRejected} label={t('medias.interactive.hideRejected')} />
 
               <button
                 type="button"
@@ -493,7 +494,7 @@ export function InteractiveSearchPanel({ isActive, media = null, mode = 'arr', o
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-scroll overflow-x-hidden pt-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pt-4">
         {needsProwlarrQuery ? (
           <div className="flex h-full items-center justify-center py-8">
             <div className="max-w-md text-center text-sm text-neutral-500 dark:text-neutral-400">
