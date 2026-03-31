@@ -33,7 +33,7 @@ export function SimilarMediasPanel({ isActive, tmdbId, mediaType, onAdded }: Sim
   }
 
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[60dvh] overflow-y-auto py-1">
+    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 py-1">
       {items.map(item => (
         <ExploreCard key={item.id} item={item} onAdded={onAdded} />
       ))}
