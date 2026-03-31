@@ -106,6 +106,9 @@ function BeszelSection() {
             status={s.cpu_percent > 85 ? 'warn' : 'ok'}
           />
           <MiniBar pct={s.cpu_percent} accent="bg-violet-500" />
+          {s.cpu_name && (
+            <p className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate -mt-0.5 mb-1">{s.cpu_name}</p>
+          )}
         </>
       )}
 
