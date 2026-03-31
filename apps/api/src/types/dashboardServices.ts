@@ -59,6 +59,35 @@ export interface DashboardBeszelSummaryResponse {
   error?: string;
 }
 
+export interface DashboardNetdataDiskUsage {
+  mount_point: string;
+  used_gib: number;
+  avail_gib: number;
+  reserved_gib: number;
+  used_percent: number;
+}
+
+export interface DashboardNetdataSummary {
+  cpu_percent: number | null;
+  ram_used_mib: number | null;
+  ram_total_mib: number | null;
+  ram_used_percent: number | null;
+  load_1: number | null;
+  load_5: number | null;
+  load_15: number | null;
+  network_in_kbps: number | null;
+  network_out_kbps: number | null;
+}
+
+export interface DashboardNetdataSummaryResponse {
+  enabled: boolean;
+  connected: boolean;
+  updated_at: string;
+  summary: DashboardNetdataSummary;
+  disks: DashboardNetdataDiskUsage[];
+  error?: string;
+}
+
 export interface DashboardAdguardTopEntry {
   name: string;
   hits: number;

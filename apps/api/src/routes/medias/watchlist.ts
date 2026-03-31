@@ -12,7 +12,7 @@ export const mediasWatchlistRoutes = new Elysia({ prefix: '/api/medias/watchlist
   .get('/', async ({ user, set }) => {
     try {
       const items = await prisma.watchlistItem.findMany({
-        where: { userId: user.id },
+        where: { userId: user!.id },
         orderBy: { addedAt: 'desc' },
       });
       return {
@@ -47,7 +47,7 @@ export const mediasWatchlistRoutes = new Elysia({ prefix: '/api/medias/watchlist
             },
           },
           create: {
-            userId: user.id,
+            userId: user!.id,
             tmdbId: body.tmdb_id,
             mediaType: body.media_type,
             title: body.title,
@@ -84,7 +84,7 @@ export const mediasWatchlistRoutes = new Elysia({ prefix: '/api/medias/watchlist
 
     try {
       await prisma.watchlistItem.deleteMany({
-        where: { userId: user.id, tmdbId, mediaType: query.type },
+        where: { userId: user!.id, tmdbId, mediaType: query.type },
       });
       return { success: true };
     } catch (error) {

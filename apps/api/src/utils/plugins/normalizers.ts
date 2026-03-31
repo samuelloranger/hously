@@ -4,6 +4,7 @@ import type {
   HackernewsPluginConfig,
   JellyfinPluginConfig,
   BeszelPluginConfig,
+  NetdataPluginConfig,
   ProwlarrPluginConfig,
   RadarrPluginConfig,
   ScrutinyPluginConfig,
@@ -236,6 +237,14 @@ export const normalizeHackernewsConfig = (config: unknown): HackernewsPluginConf
     feed_type: feedType,
     story_count: Math.max(1, Math.min(storyCount, 50)),
   };
+};
+
+export const normalizeNetdataConfig = (config: unknown): NetdataPluginConfig | null => {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+  const cfg = config as Record<string, unknown>;
+  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
+  if (!websiteUrl) return null;
+  return { website_url: websiteUrl.replace(/\/+$/, '') };
 };
 
 export const normalizeTrackerConfig = (config: unknown): TrackerPluginConfig | null => {

@@ -15,7 +15,7 @@ MAX_RETRIES=60
 RETRY_COUNT=0
 
 check_db() {
-  OUTPUT=$(bunx prisma db execute --schema=./prisma/schema.prisma --stdin 2>&1 <<EOF
+  OUTPUT=$(bunx prisma db execute --stdin 2>&1 <<EOF
 SELECT 1;
 EOF
 )

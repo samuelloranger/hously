@@ -73,7 +73,7 @@ async function updateTrackerPluginHandler(
     const existingPlugin = await prisma.plugin.findFirst({
       where: { type },
     });
-    const existingConfig = normalizeTrackerConfig(type, existingPlugin?.config);
+    const existingConfig = normalizeTrackerConfig(existingPlugin?.config);
     const providedPassword = body.password?.trim() || '';
     const password = providedPassword || existingConfig?.password || '';
 

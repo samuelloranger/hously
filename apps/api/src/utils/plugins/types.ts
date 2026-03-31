@@ -64,6 +64,10 @@ export interface HackernewsPluginConfig {
   story_count: number;
 }
 
+export interface NetdataPluginConfig {
+  website_url: string;
+}
+
 export type TrackerType = 'c411' | 'torr9' | 'la-cale';
 
 export interface TrackerPluginConfig {
