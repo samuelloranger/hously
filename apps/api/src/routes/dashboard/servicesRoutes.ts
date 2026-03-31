@@ -158,8 +158,8 @@ export const dashboardServiceRoutes = new Elysia()
     return createJsonSseResponse({
       request,
       poll: fetchBeszelSummary,
-      intervalMs: 2000,
-      retryMs: 5000,
+      intervalMs: 60000,
+      retryMs: 10000,
       onError: () => ({
         ...buildBeszelDisabledSummary('Failed to refresh Beszel summary'),
         enabled: true,
