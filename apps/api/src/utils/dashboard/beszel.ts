@@ -27,19 +27,24 @@ type BeszelSystemRecord = {
   status: string;
 };
 
-type BeszelExtraFsEntry = { t: number; u: number };
+// Stats are stored as a JSON string inside the `stats` field
+type BeszelStatsPayload = {
+  cpu: number;       // CPU percent
+  m: number;         // RAM total GiB
+  mu: number;        // RAM used GiB
+  mp: number;        // RAM used percent
+  d: number;         // root disk total GiB
+  du: number;        // root disk used GiB
+  dp: number;        // root disk used percent
+  b?: [number, number]; // [rx bytes/s, tx bytes/s]
+  la?: [number, number, number]; // load averages [1m, 5m, 15m]
+  efs?: Record<string, { d: number; du: number }>; // extra filesystems: total/used GiB
+};
 
 type BeszelStatsRecord = {
   id: string;
   system: string;
-  cpu: number;
-  mem: number;
-  mt: number;
-  d: number;
-  dt: number;
-  ns: number;
-  nr: number;
-  efs: Record<string, BeszelExtraFsEntry> | null;
+  stats: string; // JSON string
   created: string;
 };
 
@@ -109,7 +114,7 @@ export const fetchBeszelSummary = async (): Promise<DashboardBeszelSummaryRespon
     const system = systemsData.items[0];
 
     const statsUrl = new URL('/api/collections/system_stats/records', config.website_url);
-    statsUrl.searchParams.set('filter', `system="${system.id}"`);
+    statsUrl.searchParams.set('filter', `system="${system.id}" && type="1m"`);
     statsUrl.searchParams.set('sort', '-created');
     statsUrl.searchParams.set('perPage', '1');
 
@@ -129,46 +134,56 @@ export const fetchBeszelSummary = async (): Promise<DashboardBeszelSummaryRespon
       };
     }
 
-    const s = statsData.items[0];
-    const ramUsedPercent = s.mt > 0 ? Math.round((s.mem / s.mt) * 1000) / 10 : null;
-    const mainDiskPct = s.dt > 0 ? Math.round((s.d / s.dt) * 1000) / 10 : 0;
+    const record = statsData.items[0];
+    const s: BeszelStatsPayload = typeof record.stats === 'string' ? JSON.parse(record.stats) : record.stats;
 
+    // RAM: stored in GiB, convert to MiB
+    const ramUsedMib = s.mu != null ? Math.round(s.mu * 1024 * 10) / 10 : null;
+    const ramTotalMib = s.m != null ? Math.round(s.m * 1024 * 10) / 10 : null;
+
+    // Root disk
+    const mainDiskPct = s.dp ?? (s.d > 0 ? Math.round((s.du / s.d) * 1000) / 10 : 0);
     const disks: DashboardBeszelDiskUsage[] = [
       {
         mount_point: '/',
-        used_gib: Math.round(s.d * 10) / 10,
-        avail_gib: Math.round((s.dt - s.d) * 10) / 10,
+        used_gib: Math.round(s.du * 10) / 10,
+        avail_gib: Math.round((s.d - s.du) * 10) / 10,
         reserved_gib: 0,
-        used_percent: mainDiskPct,
+        used_percent: Math.round(mainDiskPct * 10) / 10,
       },
     ];
 
+    // Extra filesystems
     const efs = s.efs ?? {};
     for (const [mountPoint, fsData] of Object.entries(efs)) {
-      if (!fsData || typeof fsData.t !== 'number' || fsData.t === 0) continue;
+      if (!fsData || typeof fsData.d !== 'number' || fsData.d === 0) continue;
       disks.push({
         mount_point: mountPoint,
-        used_gib: Math.round(fsData.u * 10) / 10,
-        avail_gib: Math.round((fsData.t - fsData.u) * 10) / 10,
+        used_gib: Math.round(fsData.du * 10) / 10,
+        avail_gib: Math.round((fsData.d - fsData.du) * 10) / 10,
         reserved_gib: 0,
-        used_percent: Math.round((fsData.u / fsData.t) * 1000) / 10,
+        used_percent: Math.round((fsData.du / fsData.d) * 1000) / 10,
       });
     }
+
+    // Network: b = [rx bytes/s, tx bytes/s] → Kbps = bytes/s * 8 / 1000
+    const networkIn = s.b?.[0] != null ? Math.round((s.b[0] * 8) / 1000 * 10) / 10 : null;
+    const networkOut = s.b?.[1] != null ? Math.round((s.b[1] * 8) / 1000 * 10) / 10 : null;
 
     return {
       enabled: true,
       connected: true,
-      updated_at: s.created,
+      updated_at: record.created,
       summary: {
-        cpu_percent: Math.round(s.cpu * 10) / 10,
-        ram_used_mib: Math.round(s.mem * 10) / 10,
-        ram_total_mib: Math.round(s.mt * 10) / 10,
-        ram_used_percent: ramUsedPercent,
-        load_1: null,
-        load_5: null,
-        load_15: null,
-        network_in_kbps: s.nr != null ? Math.round(s.nr * 8000 * 10) / 10 : null,
-        network_out_kbps: s.ns != null ? Math.round(s.ns * 8000 * 10) / 10 : null,
+        cpu_percent: s.cpu != null ? Math.round(s.cpu * 10) / 10 : null,
+        ram_used_mib: ramUsedMib,
+        ram_total_mib: ramTotalMib,
+        ram_used_percent: s.mp != null ? Math.round(s.mp * 10) / 10 : null,
+        load_1: s.la?.[0] ?? null,
+        load_5: s.la?.[1] ?? null,
+        load_15: s.la?.[2] ?? null,
+        network_in_kbps: networkIn,
+        network_out_kbps: networkOut,
       },
       disks,
     };

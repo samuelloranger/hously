@@ -1,6 +1,6 @@
 {
   "name": "@hously/web",
-  "version": "2.1.205",
+  "version": "2.1.206",
   "packageManager": "bun@1.3.3",
   "private": true,
   "type": "module",
