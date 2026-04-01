@@ -28,25 +28,6 @@ function formatTmdbDateYmd(iso: string | null | undefined): string | null {
   }
 }
 
-/** Compact E1, E2–E5 for on-disk episode lists */
-function formatEpisodeRanges(episodeNumbers: number[]): string {
-  const s = [...new Set(episodeNumbers)].sort((a, b) => a - b);
-  if (s.length === 0) return '';
-  const parts: string[] = [];
-  let start = s[0]!;
-  let end = start;
-  for (let i = 1; i < s.length; i++) {
-    const n = s[i]!;
-    if (n === end + 1) {
-      end = n;
-      continue;
-    }
-    parts.push(start === end ? `E${start}` : `E${start}–E${end}`);
-    start = end = n;
-  }
-  parts.push(start === end ? `E${start}` : `E${start}–E${end}`);
-  return parts.join(', ');
-}
 
 function toMediaItem(item: TmdbMediaSearchItem): MediaItem {
   return {
@@ -117,15 +98,15 @@ export function ExploreCardDetailDialog({
   const detailsData   = modalData?.details ?? null;
   const libraryEpisodes = modalData?.library_episodes ?? null;
 
-  const downloadedBySeason = useMemo(() => {
-    const m = new Map<number, number[]>();
-    for (const e of libraryEpisodes?.downloaded ?? []) {
+  const episodesBySeason = useMemo(() => {
+    const m = new Map<number, { episode_number: number; title: string | null; has_file: boolean }[]>();
+    for (const e of libraryEpisodes?.episodes ?? []) {
       const arr = m.get(e.season_number) ?? [];
-      arr.push(e.episode_number);
+      arr.push({ episode_number: e.episode_number, title: e.title, has_file: e.has_file });
       m.set(e.season_number, arr);
     }
     return m;
-  }, [libraryEpisodes?.downloaded]);
+  }, [libraryEpisodes?.episodes]);
 
   const canSearch = item.already_exists && item.source_id !== null;
   const canManage = item.already_exists && item.source_id !== null;
@@ -728,69 +709,71 @@ export function ExploreCardDetailDialog({
                 <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
                   {t('medias.detail.seasons', 'Seasons')}
                 </p>
-                {libraryEpisodes?.in_library && (
-                  <p className="mb-2 text-[11px] text-neutral-500 dark:text-neutral-400">
-                    {t('medias.detail.seasonsOnDiskHint', 'Files from your Sonarr library')}
-                  </p>
-                )}
-                <ul className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4">
                   {detailsData.seasons.map(s => {
-                    const onDisk = libraryEpisodes?.in_library
-                      ? (downloadedBySeason.get(s.season_number)?.length ?? 0)
-                      : null;
-                    const epsOnDisk = libraryEpisodes?.in_library
-                      ? (downloadedBySeason.get(s.season_number) ?? [])
-                      : [];
+                    const seasonEps = episodesBySeason.get(s.season_number) ?? [];
+                    const onDisk = libraryEpisodes?.in_library ? seasonEps.filter(e => e.has_file).length : null;
                     const total = s.episode_count;
-                    const complete =
-                      onDisk != null &&
-                      total != null &&
-                      total > 0 &&
-                      onDisk === total;
-                    const showRange =
-                      libraryEpisodes?.in_library &&
-                      onDisk != null &&
-                      onDisk > 0 &&
-                      epsOnDisk.length > 0;
+                    const complete = onDisk != null && total != null && total > 0 && onDisk === total;
+                    const hasEpisodeData = libraryEpisodes?.in_library && seasonEps.length > 0;
 
                     return (
-                      <li
-                        key={s.season_number}
-                        className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-x-2 gap-y-0.5 text-sm text-neutral-700 dark:text-neutral-300"
-                      >
-                        <span className="shrink-0 tabular-nums text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">
-                          {s.season_number === 0 ? t('medias.detail.seasonSpecials', 'S0') : `S${s.season_number}`}
-                        </span>
-                        <span className="min-w-0 leading-snug">{s.name}</span>
-                        {libraryEpisodes?.in_library && onDisk != null ? (
-                          <span
-                            className={cn(
-                              'inline-flex shrink-0 items-center justify-end gap-0.5 text-[11px] tabular-nums',
-                              complete ? 'font-medium text-emerald-600 dark:text-emerald-400' : 'text-neutral-500 dark:text-neutral-400'
-                            )}
-                            title={t('medias.detail.seasonOnDiskTitle', 'Downloaded on disk')}
-                          >
-                            {total != null
-                              ? t('medias.detail.seasonOnDiskRatio', { onDisk, total })
-                              : t('medias.detail.seasonOnDiskCount', { count: onDisk })}
-                            {complete ? <Check size={11} className="shrink-0" aria-hidden /> : null}
-                          </span>
-                        ) : !libraryEpisodes?.in_library && s.episode_count != null ? (
-                          <span className="shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500">
-                            {t('medias.detail.seasonEpisodes', { count: s.episode_count })}
-                          </span>
-                        ) : (
-                          <span />
+                      <div key={s.season_number}>
+                        {/* Season header */}
+                        <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-neutral-200 pb-1.5 dark:border-neutral-800">
+                          <span className="text-[13px] font-medium text-neutral-800 dark:text-neutral-200">{s.name}</span>
+                          {libraryEpisodes?.in_library && onDisk != null ? (
+                            <span
+                              className={cn(
+                                'inline-flex shrink-0 items-center gap-1 text-[11px] tabular-nums',
+                                complete ? 'font-semibold text-emerald-600 dark:text-emerald-400' : 'text-neutral-500 dark:text-neutral-400'
+                              )}
+                              title={t('medias.detail.seasonOnDiskTitle', 'Downloaded on disk')}
+                            >
+                              {total != null
+                                ? t('medias.detail.seasonOnDiskRatio', { onDisk, total })
+                                : t('medias.detail.seasonOnDiskCount', { count: onDisk })}
+                              {complete && <Check size={11} className="shrink-0" aria-hidden />}
+                            </span>
+                          ) : !libraryEpisodes?.in_library && s.episode_count != null ? (
+                            <span className="shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500">
+                              {t('medias.detail.seasonEpisodes', { count: s.episode_count })}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {/* Episode rows */}
+                        {hasEpisodeData && (
+                          <div className="flex flex-col">
+                            {seasonEps.map(ep => (
+                              <div
+                                key={ep.episode_number}
+                                className={cn(
+                                  'grid grid-cols-[2rem_minmax(0,1fr)_1rem] items-center gap-x-2 rounded px-1 py-1 text-[12px] transition-colors',
+                                  ep.has_file
+                                    ? 'text-neutral-700 dark:text-neutral-300'
+                                    : 'text-neutral-400 dark:text-neutral-600'
+                                )}
+                              >
+                                <span className="shrink-0 tabular-nums text-right font-mono text-[11px] text-neutral-400 dark:text-neutral-600">
+                                  {`E${String(ep.episode_number).padStart(2, '0')}`}
+                                </span>
+                                <span className="min-w-0 truncate leading-snug">
+                                  {ep.title ?? `Episode ${ep.episode_number}`}
+                                </span>
+                                {ep.has_file ? (
+                                  <Check size={11} className="shrink-0 text-emerald-500 dark:text-emerald-400" aria-hidden />
+                                ) : (
+                                  <span />
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         )}
-                        {showRange ? (
-                          <p className="col-span-2 col-start-2 text-[10px] leading-snug text-neutral-500 dark:text-neutral-500">
-                            {formatEpisodeRanges(epsOnDisk)}
-                          </p>
-                        ) : null}
-                      </li>
+                      </div>
                     );
                   })}
-                </ul>
+                </div>
               </div>
             )}
 
