@@ -1,5 +1,5 @@
 import { Dialog as HeadlessDialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
-import { Fragment, ReactNode, useLayoutEffect, useRef } from 'react';
+import { Fragment, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -28,19 +28,8 @@ export function Dialog({
   panelClassName,
   bodyScroll = false,
 }: DialogProps) {
-  /** Preserve window scroll across open/close — Headless UI scroll-lock can jump the page */
-  const scrollYRef = useRef(0);
-  useLayoutEffect(() => {
-    if (!isOpen) return;
-    scrollYRef.current = window.scrollY;
-    const id = requestAnimationFrame(() => {
-      window.scrollTo({ top: scrollYRef.current, left: 0, behavior: 'instant' });
-    });
-    return () => cancelAnimationFrame(id);
-  }, [isOpen]);
-
   return createPortal(
-    <Transition appear show={isOpen} as={Fragment} afterLeave={() => window.scrollTo({ top: scrollYRef.current, left: 0, behavior: 'instant' })}>
+    <Transition appear show={isOpen} as={Fragment}>
       <HeadlessDialog
         open={isOpen}
         autoFocus={false}
