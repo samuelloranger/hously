@@ -28,15 +28,22 @@ export function Dialog({
   panelClassName,
   bodyScroll = false,
 }: DialogProps) {
-  /** Preserve window scroll when the dialog mounts — Headless UI scroll-lock + focus can jump the page */
+  /** Preserve window scroll across open/close — Headless UI scroll-lock can jump the page */
   const scrollYRef = useRef(0);
   useLayoutEffect(() => {
-    if (!isOpen) return;
-    scrollYRef.current = window.scrollY;
-    const id = requestAnimationFrame(() => {
-      window.scrollTo({ top: scrollYRef.current, left: 0, behavior: 'instant' });
-    });
-    return () => cancelAnimationFrame(id);
+    if (isOpen) {
+      scrollYRef.current = window.scrollY;
+      const id = requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollYRef.current, left: 0, behavior: 'instant' });
+      });
+      return () => cancelAnimationFrame(id);
+    } else {
+      const saved = scrollYRef.current;
+      const id = requestAnimationFrame(() => {
+        window.scrollTo({ top: saved, left: 0, behavior: 'instant' });
+      });
+      return () => cancelAnimationFrame(id);
+    }
   }, [isOpen]);
 
   return createPortal(
