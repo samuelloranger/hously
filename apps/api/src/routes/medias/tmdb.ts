@@ -2,7 +2,11 @@ import { Elysia, t } from 'elysia';
 import { auth } from '../../auth';
 import { requireUser } from '../../middleware/auth';
 import { prisma } from '../../db';
-import { normalizeRadarrConfig, normalizeSonarrConfig, normalizeTmdbConfig } from '../../utils/plugins/normalizers';
+import {
+  normalizeRadarrConfig,
+  normalizeSonarrConfig,
+  normalizeTmdbConfig,
+} from '../../utils/plugins/normalizers';
 import { getJsonCache, setJsonCache } from '../../services/cache';
 import { badGateway, badRequest, serverError } from '../../utils/errors';
 import {
@@ -11,6 +15,7 @@ import {
   mapTmdbSearchItem,
   fetchRadarrTmdbIds,
   fetchSonarrTmdbIds,
+  fetchSonarrDownloadedEpisodes,
   buildArrItemUrl,
   toRecord,
   toStringOrNull,
@@ -823,21 +828,43 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
 
       const region = ((queryParams as Record<string, string | undefined>).region?.toUpperCase()) || 'CA';
 
-      const [tmdbConfig, watchlistItem] = await Promise.all([
+      const [tmdbConfig, watchlistItem, sonarrPlugin] = await Promise.all([
         loadTmdbConfig(),
         prisma.watchlistItem.findUnique({
           where: { userId_tmdbId_mediaType: { userId: user!.id, tmdbId, mediaType } },
           select: { id: true },
         }),
+        prisma.plugin.findFirst({
+          where: { type: 'sonarr', enabled: true },
+          select: { config: true },
+        }),
       ]);
       if (!tmdbConfig) return badRequest(set, 'TMDB is not configured');
 
-      const [trailer, ratings, credits, details, providers] = await Promise.all([
+      const [trailer, ratings, credits, details, providers, library_episodes] = await Promise.all([
         fetchTrailer(tmdbConfig.api_key, mediaType, tmdbId),
         fetchRatings(tmdbConfig.api_key, mediaType, tmdbId),
         fetchCredits(tmdbConfig.api_key, mediaType, tmdbId),
         fetchMediaDetails(tmdbConfig.api_key, mediaType, tmdbId),
         fetchWatchProviders(tmdbConfig.api_key, mediaType, tmdbId, region),
+        (async () => {
+          if (mediaType !== 'tv') return null;
+          const sonarrConfig = sonarrPlugin?.config ? normalizeSonarrConfig(sonarrPlugin.config) : null;
+          if (!sonarrConfig) return { in_library: false, downloaded: [] };
+          try {
+            const map = await fetchSonarrTmdbIds(sonarrConfig.website_url, sonarrConfig.api_key);
+            const entry = map.get(tmdbId);
+            if (!entry) return { in_library: false, downloaded: [] };
+            const downloaded = await fetchSonarrDownloadedEpisodes(
+              sonarrConfig.website_url,
+              sonarrConfig.api_key,
+              entry.sourceId,
+            );
+            return { in_library: true, downloaded };
+          } catch {
+            return { in_library: false, downloaded: [] };
+          }
+        })(),
       ]);
 
       return {
@@ -848,6 +875,7 @@ export const mediasTmdbRoutes = new Elysia({ prefix: '/api/medias' })
         credits,
         details,
         providers,
+        library_episodes,
       };
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) }

@@ -12,6 +12,7 @@ import type {
   TmdbNextEpisode,
   TmdbProductionCompany,
   TmdbProductionCountry,
+  TmdbSeasonSummary,
   TmdbSpokenLanguage,
 } from '@hously/shared';
 import { toNumberOrNull, toRecord, toStringOrNull, type TmdbProvider, type TmdbWatchProvidersResult } from './mappers';
@@ -75,6 +76,7 @@ export function emptyMediaDetails(): TmdbMediaDetailsResponse {
     episode_run_times: [],
     next_episode_to_air: null,
     last_episode_to_air: null,
+    seasons: [],
   };
 }
 
@@ -301,7 +303,7 @@ export async function fetchMediaDetails(
   mediaType: 'movie' | 'tv',
   tmdbId: number,
 ): Promise<DetailsResult> {
-  const cacheKey = `medias:tmdb-details-v3:${mediaType}:${tmdbId}`;
+  const cacheKey = `medias:tmdb-details-v4:${mediaType}:${tmdbId}`;
   const cached = await getJsonCache<DetailsResult>(cacheKey);
   if (cached) return cached;
 
@@ -436,6 +438,7 @@ export async function fetchMediaDetails(
     let episode_run_times: number[] = [];
     let next_episode_to_air: TmdbNextEpisode | null = null;
     let last_episode_to_air: TmdbNextEpisode | null = null;
+    let seasons: TmdbSeasonSummary[] = [];
 
     if (mediaType === 'movie') {
       const rd = typeof data.release_date === 'string' ? data.release_date.trim() : '';
@@ -499,6 +502,26 @@ export async function fetchMediaDetails(
 
       next_episode_to_air = parseNextEpisode(data.next_episode_to_air);
       last_episode_to_air = parseNextEpisode(data.last_episode_to_air);
+
+      if (Array.isArray(data.seasons)) {
+        for (const raw of data.seasons as unknown[]) {
+          const r = toRecord(raw);
+          if (!r) continue;
+          const season_number = typeof r.season_number === 'number' ? r.season_number : null;
+          if (season_number === null) continue;
+          const rawName = toStringOrNull(r.name);
+          const name =
+            rawName && rawName.trim()
+              ? rawName.trim()
+              : season_number === 0
+                ? 'Specials'
+                : `Season ${season_number}`;
+          const ep = r.episode_count;
+          const episode_count = typeof ep === 'number' && ep >= 0 ? ep : null;
+          seasons.push({ season_number, name, episode_count });
+        }
+        seasons.sort((a, b) => a.season_number - b.season_number);
+      }
     }
 
     const result: TmdbMediaDetailsResponse = {
@@ -532,6 +555,7 @@ export async function fetchMediaDetails(
       episode_run_times: mediaType === 'tv' ? episode_run_times : [],
       next_episode_to_air: mediaType === 'tv' ? next_episode_to_air : null,
       last_episode_to_air: mediaType === 'tv' ? last_episode_to_air : null,
+      seasons: mediaType === 'tv' ? seasons : [],
     };
     await setJsonCache(cacheKey, result, 24 * 60 * 60);
     return result;

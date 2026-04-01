@@ -571,6 +571,38 @@ export const fetchRadarrTmdbIds = async (websiteUrl: string, apiKey: string): Pr
   return ids;
 };
 
+/**
+ * Episodes that have a file on disk (Sonarr `hasFile`).
+ * Sorted by season, then episode.
+ */
+export async function fetchSonarrDownloadedEpisodes(
+  websiteUrl: string,
+  apiKey: string,
+  seriesId: number,
+): Promise<{ season_number: number; episode_number: number }[]> {
+  const url = new URL('/api/v3/episode', websiteUrl);
+  url.searchParams.set('seriesId', String(seriesId));
+  const res = await fetch(url.toString(), {
+    headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
+  });
+  if (!res.ok) return [];
+
+  const data = (await res.json()) as unknown[];
+  if (!Array.isArray(data)) return [];
+
+  const out: { season_number: number; episode_number: number }[] = [];
+  for (const raw of data) {
+    const row = toRecord(raw);
+    if (!row || !toBoolean(row.hasFile)) continue;
+    const sn = toNumberOrNull(row.seasonNumber);
+    const en = toNumberOrNull(row.episodeNumber);
+    if (sn === null || en === null) continue;
+    out.push({ season_number: sn, episode_number: en });
+  }
+  out.sort((a, b) => (a.season_number - b.season_number) || (a.episode_number - b.episode_number));
+  return out;
+}
+
 export const fetchSonarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Map<number, ArrEntry>> => {
   const cacheKey = 'medias:sonarr:ids';
   const cached = await getJsonCache<[number, ArrEntry][]>(cacheKey);

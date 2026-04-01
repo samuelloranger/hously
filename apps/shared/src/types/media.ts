@@ -318,6 +318,14 @@ export interface TmdbCreator {
   profile_url: string | null;
 }
 
+/** TV show only: season rows from TMDB details `seasons` (incl. specials as season 0). */
+export interface TmdbSeasonSummary {
+  season_number: number;
+  /** Display name from TMDB (e.g. "Season 1", "Specials"). */
+  name: string;
+  episode_count: number | null;
+}
+
 export interface TmdbMediaDetailsResponse {
   runtime: number | null;
   belongs_to_collection: TmdbCollection | null;
@@ -362,6 +370,9 @@ export interface TmdbMediaDetailsResponse {
   episode_run_times: number[];
   next_episode_to_air: TmdbNextEpisode | null;
   last_episode_to_air: TmdbNextEpisode | null;
+
+  /** TV: ordered by `season_number` (movies: empty). */
+  seasons: TmdbSeasonSummary[];
 }
 
 export interface WatchlistItem {
@@ -382,6 +393,19 @@ export interface WatchlistResponse {
   items: WatchlistItem[];
 }
 
+/** Sonarr episode on disk (hasFile), for TV modal when the series is in the library. */
+export interface MediaLibraryEpisodeRef {
+  season_number: number;
+  episode_number: number;
+}
+
+export interface MediaModalLibraryEpisodes {
+  /** True when Sonarr is configured and this TMDB show exists in Sonarr. */
+  in_library: boolean;
+  /** Episodes with a file on disk; empty when none or not in library. */
+  downloaded: MediaLibraryEpisodeRef[];
+}
+
 export interface MediaModalDataResponse {
   watchlist_status: boolean;
   watchlist_id: number | null;
@@ -390,6 +414,8 @@ export interface MediaModalDataResponse {
   credits: TmdbCreditsResponse;
   details: TmdbMediaDetailsResponse;
   providers: TmdbWatchProvidersResponse;
+  /** TV: Sonarr download state; null for movies. */
+  library_episodes: MediaModalLibraryEpisodes | null;
 }
 
 export interface CollectionMovieItem {
