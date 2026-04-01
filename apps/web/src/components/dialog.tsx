@@ -31,23 +31,16 @@ export function Dialog({
   /** Preserve window scroll across open/close — Headless UI scroll-lock can jump the page */
   const scrollYRef = useRef(0);
   useLayoutEffect(() => {
-    if (isOpen) {
-      scrollYRef.current = window.scrollY;
-      const id = requestAnimationFrame(() => {
-        window.scrollTo({ top: scrollYRef.current, left: 0, behavior: 'instant' });
-      });
-      return () => cancelAnimationFrame(id);
-    } else {
-      const saved = scrollYRef.current;
-      const id = requestAnimationFrame(() => {
-        window.scrollTo({ top: saved, left: 0, behavior: 'instant' });
-      });
-      return () => cancelAnimationFrame(id);
-    }
+    if (!isOpen) return;
+    scrollYRef.current = window.scrollY;
+    const id = requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollYRef.current, left: 0, behavior: 'instant' });
+    });
+    return () => cancelAnimationFrame(id);
   }, [isOpen]);
 
   return createPortal(
-    <Transition appear show={isOpen} as={Fragment}>
+    <Transition appear show={isOpen} as={Fragment} afterLeave={() => window.scrollTo({ top: scrollYRef.current, left: 0, behavior: 'instant' })}>
       <HeadlessDialog
         open={isOpen}
         autoFocus={false}
