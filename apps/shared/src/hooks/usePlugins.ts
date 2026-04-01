@@ -34,6 +34,9 @@ import type {
   TrackerType,
   WeatherPlugin,
   WeatherPluginUpdateResponse,
+  HomeAssistantPlugin,
+  HomeAssistantPluginUpdateResponse,
+  HomeAssistantDiscoverResponse,
 } from '../types';
 
 const TRACKER_PLUGIN_ENDPOINTS: Record<TrackerType, string> = {
@@ -181,6 +184,45 @@ export function useWeatherPlugin() {
     queryFn: () => fetcher<{ plugin: WeatherPlugin }>(PLUGIN_ENDPOINTS.WEATHER),
     refetchOnMount: 'always',
     staleTime: 0,
+  });
+}
+
+export function useHomeAssistantPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.homeAssistant(),
+    queryFn: () => fetcher<{ plugin: HomeAssistantPlugin }>(PLUGIN_ENDPOINTS.HOME_ASSISTANT),
+    refetchOnMount: 'always',
+    staleTime: 0,
+  });
+}
+
+export function useUpdateHomeAssistantPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      base_url: string;
+      access_token: string;
+      enabled_entity_ids: string[];
+      enabled: boolean;
+    }) =>
+      fetcher<HomeAssistantPluginUpdateResponse>(PLUGIN_ENDPOINTS.HOME_ASSISTANT, {
+        method: 'PUT',
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.homeAssistant() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.homeAssistantWidget() });
+    },
+  });
+}
+
+export function useHomeAssistantDiscoverEntities() {
+  const fetcher = useFetcher();
+  return useMutation({
+    mutationFn: () =>
+      fetcher<HomeAssistantDiscoverResponse>(PLUGIN_ENDPOINTS.HOME_ASSISTANT_ENTITIES),
   });
 }
 

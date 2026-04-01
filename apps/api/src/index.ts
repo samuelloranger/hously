@@ -24,6 +24,7 @@ import { trackerPluginsRoutes } from './routes/plugins/trackerPlugins';
 import { mediaPluginsRoutes } from './routes/plugins/mediaPlugins';
 import { monitoringPluginsRoutes } from './routes/plugins/monitoringPlugins';
 import { dashboardPluginsRoutes } from './routes/plugins/dashboardPlugins';
+import { homeAssistantRoutes } from './routes/homeAssistant';
 import { mediasLibraryRoutes } from './routes/medias/library';
 import { mediasTmdbRoutes } from './routes/medias/tmdb';
 import { mediasProwlarrRoutes } from './routes/medias/prowlarr';
@@ -77,6 +78,7 @@ export const app = new Elysia()
   .use(mediaPluginsRoutes)
   .use(monitoringPluginsRoutes)
   .use(dashboardPluginsRoutes)
+  .use(homeAssistantRoutes)
   .use(mediasLibraryRoutes)
   .use(mediasTmdbRoutes)
   .use(mediasProwlarrRoutes)

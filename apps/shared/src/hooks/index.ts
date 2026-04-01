@@ -11,6 +11,7 @@ export * from './useAdmin';
 export * from './usePlugins';
 export * from './useExternalNotifications';
 export * from './useWeather';
+export * from './useHomeAssistant';
 export * from './useMedias';
 export * from './useHabits';
 export * from './useEventSource';

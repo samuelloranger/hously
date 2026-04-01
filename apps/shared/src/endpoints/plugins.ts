@@ -18,4 +18,6 @@ export const PLUGIN_ENDPOINTS = {
   C411: '/api/plugins/c411',
   TORR9: '/api/plugins/torr9',
   LA_CALE: '/api/plugins/la-cale',
+  HOME_ASSISTANT: '/api/plugins/home-assistant',
+  HOME_ASSISTANT_ENTITIES: '/api/plugins/home-assistant/entities',
 } as const;

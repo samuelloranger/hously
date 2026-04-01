@@ -37,4 +37,8 @@ export const DASHBOARD_ENDPOINTS = {
     SUMMARY: '/api/dashboard/adguard/summary',
   },
   WEATHER: '/api/dashboard/weather',
+  HOME_ASSISTANT: {
+    WIDGET: '/api/home-assistant/widget',
+    CONTROL: '/api/home-assistant/control',
+  },
 } as const;

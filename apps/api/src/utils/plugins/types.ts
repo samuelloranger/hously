@@ -81,3 +81,10 @@ export interface TrackerPluginConfig {
   username: string;
   password?: string;
 }
+
+export interface HomeAssistantPluginConfig {
+  base_url: string;
+  access_token: string;
+  /** Entity IDs allowed on the home dashboard widget (subset of `light.*` and `switch.*`). */
+  enabled_entity_ids: string[];
+}

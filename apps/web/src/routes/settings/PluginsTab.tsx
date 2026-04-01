@@ -15,6 +15,7 @@ import {
   ClockifyPluginSection,
   TrackersPluginSection,
   WeatherPluginSection,
+  HomeAssistantPluginSection,
 } from './components/plugins';
 
 type SubTab = 'plugins' | 'trackers';
@@ -60,6 +61,7 @@ export function PluginsTab() {
       {subTab === 'plugins' ? (
         <div className="space-y-4 animate-in fade-in duration-200">
           <WeatherPluginSection />
+          <HomeAssistantPluginSection />
           <TmdbPluginSection />
           <OllamaPluginSection />
           <ClockifyPluginSection />

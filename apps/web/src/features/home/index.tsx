@@ -7,6 +7,7 @@ import { CardErrorBoundary } from '@/components/ErrorBoundary';
 import { GreetingCard } from './components/GreetingCard';
 import { DownloadsPanel } from './components/DownloadsPanel';
 import { WeatherPanel } from './components/WeatherPanel';
+import { HomeAssistantPanel } from './components/HomeAssistantPanel';
 import { SystemPanel } from './components/SystemPanel';
 import { JellyfinShelf, UpcomingShelf } from './components/MediaShelves';
 import { TrackersPanel } from './components/TrackersPanel';
@@ -144,6 +145,12 @@ export function HomePage() {
             <div className="home-enter" style={{ animationDelay: '60ms' }}>
               <CardErrorBoundary>
                 <WeatherPanel />
+              </CardErrorBoundary>
+            </div>
+
+            <div className="home-enter" style={{ animationDelay: '80ms' }}>
+              <CardErrorBoundary>
+                <HomeAssistantPanel />
               </CardErrorBoundary>
             </div>
 

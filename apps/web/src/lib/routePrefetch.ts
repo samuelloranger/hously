@@ -17,6 +17,7 @@ import {
   SHOPPING_ENDPOINTS,
   HABIT_ENDPOINTS,
   type DashboardJellyfinLatestResponse,
+  type HomeAssistantWidgetResponse,
   type UserResponse,
 } from '@hously/shared';
 import { webFetcher } from './fetcher';
@@ -85,6 +86,10 @@ export async function prefetchHomePageData(queryClient: QueryClient): Promise<vo
     {
       queryKey: queryKeys.dashboard.trackersStats(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.TRACKERS.STATS),
+    },
+    {
+      queryKey: queryKeys.dashboard.homeAssistantWidget(),
+      queryFn: () => webFetcher<HomeAssistantWidgetResponse>(DASHBOARD_ENDPOINTS.HOME_ASSISTANT.WIDGET),
     },
   ];
 
@@ -158,6 +163,10 @@ export function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
     queryKey: queryKeys.dashboard.trackersStats(),
     queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.TRACKERS.STATS),
   });
+  void queryClient.prefetchQuery({
+    queryKey: queryKeys.dashboard.homeAssistantWidget(),
+    queryFn: () => webFetcher<HomeAssistantWidgetResponse>(DASHBOARD_ENDPOINTS.HOME_ASSISTANT.WIDGET),
+  });
   void queryClient.prefetchInfiniteQuery({
     queryKey: queryKeys.dashboard.jellyfinLatestInfinite(HOME_JELLYFIN_LIMIT),
     initialPageParam: 1,
@@ -194,6 +203,10 @@ const routeQueryDefinitions = {
     {
       queryKey: queryKeys.customEvents.list(),
       queryFn: () => webFetcher(CALENDAR_ENDPOINTS.CUSTOM_EVENTS.LIST),
+    },
+    {
+      queryKey: queryKeys.dashboard.upcoming(),
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
     },
   ],
 

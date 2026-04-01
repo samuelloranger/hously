@@ -50,6 +50,7 @@ export const queryKeys = {
     scrutinySummary: () => [...queryKeys.dashboard.all, 'scrutiny-summary'] as const,
     beszelSummary: () => [...queryKeys.dashboard.all, 'beszel-summary'] as const,
     adguardSummary: () => [...queryKeys.dashboard.all, 'adguard-summary'] as const,
+    homeAssistantWidget: () => [...queryKeys.dashboard.all, 'home-assistant-widget'] as const,
   },
 
   weather: {
@@ -97,6 +98,7 @@ export const queryKeys = {
     tmdb: () => [...queryKeys.plugins.all, 'tmdb'] as const,
     ollama: () => [...queryKeys.plugins.all, 'ollama'] as const,
     clockify: () => [...queryKeys.plugins.all, 'clockify'] as const,
+    homeAssistant: () => [...queryKeys.plugins.all, 'home-assistant'] as const,
   },
 
   admin: {

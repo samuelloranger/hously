@@ -14,9 +14,11 @@ import type {
   TrackerPluginConfig,
   WeatherPluginConfig,
   ClockifyPluginConfig,
+  HomeAssistantPluginConfig,
 } from './types';
 import { decrypt } from '../../services/crypto';
 import { isValidHttpUrl } from './utils';
+import { haDomainFromEntityId, normalizeHaBaseUrl } from './homeAssistantUtils';
 
 const normalizeSecret = (value: unknown): string => {
   if (typeof value !== 'string') return '';
@@ -276,5 +278,26 @@ export const normalizeTrackerConfig = (config: unknown): TrackerPluginConfig | n
     tracker_url: trackerUrlRaw.replace(/\/+$/, ''),
     username,
     password: password || undefined,
+  };
+};
+
+export const normalizeHomeAssistantConfig = (config: unknown): HomeAssistantPluginConfig | null => {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+  const cfg = config as Record<string, unknown>;
+
+  const baseUrlRaw = typeof cfg.base_url === 'string' ? cfg.base_url.trim() : '';
+  const baseUrl = normalizeHaBaseUrl(baseUrlRaw);
+  const accessToken = normalizeSecret(cfg.access_token);
+  if (!baseUrl || !isValidHttpUrl(baseUrl) || !accessToken) return null;
+
+  const rawIds = Array.isArray(cfg.enabled_entity_ids) ? cfg.enabled_entity_ids : [];
+  const enabledEntityIds = [...new Set(rawIds.map(id => (typeof id === 'string' ? id.trim() : '')).filter(Boolean))].filter(
+    id => haDomainFromEntityId(id) !== null
+  );
+
+  return {
+    base_url: baseUrl,
+    access_token: accessToken,
+    enabled_entity_ids: enabledEntityIds,
   };
 };

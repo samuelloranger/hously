@@ -21,7 +21,7 @@
   },
   "calendar": {
     "title": "Calendrier",
-    "subtitle": "Voir tous vos événements à un seul endroit",
+    "subtitle": "Événements du foyer et sorties média à venir au même endroit",
     "loading": "Chargement du calendrier...",
     "noEventsForThisDay": "Aucun événement pour ce jour",
     "sunday": "Dim",
@@ -76,7 +76,22 @@
     "customEventDeleted": "Événement supprimé",
     "customEventDeleteError": "Erreur lors de la suppression",
     "customEventDeleteConfirm": "Êtes-vous sûr de vouloir supprimer cet événement ?",
-    "chores": "Tâches"
+    "chores": "Tâches",
+    "mealPlans": "Repas",
+    "event": "événement",
+    "events": "événements",
+    "selectDay": "Sélectionnez un jour pour voir les événements",
+    "noEvents": "Aucun événement ce jour",
+    "today": "Aujourd'hui",
+    "legendReleases": "Sorties",
+    "releaseSingular": "sortie",
+    "releasePlural": "sorties",
+    "releasesSection": "Sorties média",
+    "loadingReleases": "Chargement des sorties…",
+    "nothingScheduled": "Rien de prévu ce jour",
+    "noReleasesThisDay": "Aucune sortie média ce jour",
+    "film": "Film",
+    "tv": "Série"
   },
   "dashboard": {
     "goodMorning": "Bonjour",
@@ -237,6 +252,17 @@
         "thunderstorm": "Orage",
         "currentConditions": "Conditions actuelles"
       }
+    },
+    "homeAssistant": {
+      "kicker": "Home Assistant",
+      "on": "Allumé",
+      "off": "Éteint",
+      "toggle": "Basculer",
+      "emptyTitle": "Aucun appareil sur le widget",
+      "emptyDescription": "Choisissez les lumières et prises dans Paramètres → Plugins → Home Assistant.",
+      "errorTitle": "Impossible d'atteindre Home Assistant",
+      "domainLight": "Lumière",
+      "domainSwitch": "Prise / interrupteur"
     },
     "jellyfin": {
       "kicker": "Librairie Médias",
@@ -1208,6 +1234,17 @@
         "username": "Nom d'utilisateur AdGuard Home",
         "password": "Mot de passe AdGuard Home",
         "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel"
+      },
+      "homeAssistant": {
+        "help": "Contrôlez les lumières et prises connectées depuis l'accueil. Utilisez un jeton d'accès à longue durée depuis votre profil Home Assistant.",
+        "baseUrl": "URL Home Assistant",
+        "baseUrlPlaceholder": "https://homeassistant.local:8123",
+        "accessToken": "Jeton d'accès à longue durée",
+        "accessTokenPlaceholder": "Collez le jeton — laissez vide pour conserver le jeton enregistré",
+        "loadDevices": "Charger lumières et prises",
+        "loadingDevices": "Chargement…",
+        "devicesHint": "Choisissez les entités affichées sur le widget d'accueil (lumières et interrupteurs uniquement).",
+        "noDevicesFound": "Aucune lumière ou interrupteur trouvé. Vérifiez le jeton et que HA est joignable depuis le serveur Hously."
       },
       "trackers": {
         "title": "Trackers",

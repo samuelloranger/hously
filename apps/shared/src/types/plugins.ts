@@ -108,6 +108,38 @@ export interface TrackerPlugin {
   password_set: boolean;
 }
 
+export interface HomeAssistantPlugin {
+  type: 'home-assistant';
+  enabled: boolean;
+  base_url: string;
+  /** Always empty in API responses; token is server-only. */
+  access_token: string;
+  enabled_entity_ids: string[];
+}
+
+export interface HomeAssistantDiscoverEntity {
+  entity_id: string;
+  friendly_name: string;
+  domain: 'light' | 'switch';
+}
+
+export interface HomeAssistantWidgetEntity {
+  entity_id: string;
+  state: string;
+  friendly_name: string;
+  domain: 'light' | 'switch';
+}
+
+export interface HomeAssistantWidgetResponse {
+  plugin_enabled: boolean;
+  entities: HomeAssistantWidgetEntity[];
+}
+
+export interface HomeAssistantPluginUpdateResponse {
+  success: boolean;
+  plugin: HomeAssistantPlugin;
+}
+
 export type C411Plugin = TrackerPlugin & { type: 'c411' };
 export type Torr9Plugin = TrackerPlugin & { type: 'torr9' };
 export type LaCalePlugin = TrackerPlugin & { type: 'la-cale' };
@@ -182,4 +214,8 @@ export interface OllamaPluginUpdateResponse {
 export interface TrackerPluginUpdateResponse {
   success: boolean;
   plugin: TrackerPlugin;
+}
+
+export interface HomeAssistantDiscoverResponse {
+  entities: HomeAssistantDiscoverEntity[];
 }
