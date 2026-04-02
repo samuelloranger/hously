@@ -22,6 +22,10 @@ const makeTask = (overrides: Partial<BoardTask> = {}): BoardTask => ({
   created_by_username: 'Alice',
   created_at: '2025-01-15T00:00:00Z',
   updated_at: '2025-01-15T00:00:00Z',
+  estimated_minutes: null,
+  logged_minutes: 0,
+  blocks: [],
+  blocked_by: [],
   ...overrides,
 });
 
@@ -79,7 +83,7 @@ describe('BacklogView', () => {
   });
 
   it('shows tag pills on the row', async () => {
-    const task = makeTask({ tags: ['backend', 'p0'] });
+    const task = makeTask({ tags: [{ id: 1, name: 'backend', color: null }, { id: 2, name: 'p0', color: null }] });
     renderWithProviders(<BacklogView tasks={[task]} onTaskClick={onTaskClick} />);
     await waitFor(() => {
       expect(screen.getByText('backend')).toBeInTheDocument();
@@ -88,7 +92,12 @@ describe('BacklogView', () => {
   });
 
   it('shows overflow tag count when more than 2 tags', async () => {
-    const task = makeTask({ tags: ['a', 'b', 'c', 'd'] });
+    const task = makeTask({ tags: [
+      { id: 1, name: 'a', color: null },
+      { id: 2, name: 'b', color: null },
+      { id: 3, name: 'c', color: null },
+      { id: 4, name: 'd', color: null },
+    ] });
     renderWithProviders(<BacklogView tasks={[task]} onTaskClick={onTaskClick} />);
     await waitFor(() => {
       expect(screen.getByText('+2')).toBeInTheDocument();

@@ -44,6 +44,8 @@ model User {
   watchlistItems         WatchlistItem[]
   createdBoardTasks      BoardTask[]          @relation("BoardTaskCreatedBy")
   assignedBoardTasks     BoardTask[]          @relation("BoardTaskAssignee")
+  boardTaskActivities    BoardTaskActivity[]
+  boardTimeLogs          BoardTimeLog[]
 
   @@map("users")
 }
@@ -64,25 +66,96 @@ enum BoardTaskPriority {
 }
 
 model BoardTask {
-  id          Int               @id @default(autoincrement())
-  title       String
-  description String?
-  status      BoardTaskStatus
-  position    Int
-  priority    BoardTaskPriority @default(MEDIUM)
-  startDate   DateTime?         @map("start_date") @db.Date
-  dueDate     DateTime?         @map("due_date") @db.Date
-  assigneeId  Int?              @map("assignee_id")
-  tags        String[]
-  createdBy   Int               @map("created_by")
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
+  id               Int               @id @default(autoincrement())
+  title            String
+  description      String?
+  status           BoardTaskStatus
+  position         Int
+  priority         BoardTaskPriority @default(MEDIUM)
+  startDate        DateTime?         @map("start_date") @db.Date
+  dueDate          DateTime?         @map("due_date") @db.Date
+  assigneeId       Int?              @map("assignee_id")
+  tags             String[]
+  createdBy        Int               @map("created_by")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  estimatedMinutes Int?              @map("estimated_minutes")
+  loggedMinutes    Int               @default(0) @map("logged_minutes")
 
-  createdByUser User  @relation("BoardTaskCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
-  assignee      User? @relation("BoardTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdByUser        User              @relation("BoardTaskCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+  assignee             User?             @relation("BoardTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  boardTags            BoardTag[]        @relation("BoardTaskTags")
+  activities           BoardTaskActivity[]
+  blockingDependencies BoardTaskDependency[] @relation("BlockingTask")
+  blockedDependencies  BoardTaskDependency[] @relation("BlockedTask")
+  timeLogs             BoardTimeLog[]
 
   @@index([status, position], map: "ix_board_tasks_status_position")
   @@map("board_tasks")
+}
+
+model BoardTimeLog {
+  id       Int      @id @default(autoincrement())
+  taskId   Int      @map("task_id")
+  userId   Int      @map("user_id")
+  minutes  Int
+  note     String?
+  loggedAt DateTime @default(now()) @map("logged_at")
+
+  task BoardTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId], map: "ix_board_time_logs_task_id")
+  @@map("board_time_logs")
+}
+
+model BoardTaskDependency {
+  id             Int      @id @default(autoincrement())
+  blockingTaskId Int      @map("blocking_task_id")
+  blockedTaskId  Int      @map("blocked_task_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  blockingTask BoardTask @relation("BlockingTask", fields: [blockingTaskId], references: [id], onDelete: Cascade)
+  blockedTask  BoardTask @relation("BlockedTask", fields: [blockedTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([blockingTaskId, blockedTaskId], map: "uq_board_task_dependency")
+  @@index([blockedTaskId], map: "ix_board_task_dependency_blocked")
+  @@map("board_task_dependencies")
+}
+
+model BoardTag {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  color     String?
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  tasks BoardTask[] @relation("BoardTaskTags")
+
+  @@map("board_tags")
+}
+
+enum BoardTaskActivityType {
+  created
+  comment
+  status_change
+  priority_change
+  assignee_change
+}
+
+model BoardTaskActivity {
+  id        Int                   @id @default(autoincrement())
+  taskId    Int                   @map("task_id")
+  userId    Int                   @map("user_id")
+  type      BoardTaskActivityType
+  body      String?
+  metadata  Json?
+  createdAt DateTime              @default(now()) @map("created_at")
+
+  task BoardTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt], map: "ix_board_task_activities_task_created")
+  @@map("board_task_activities")
 }
 
 model Notification {

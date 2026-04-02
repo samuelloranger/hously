@@ -1,7 +1,8 @@
 import { useSortable } from '@dnd-kit/react/sortable';
 import type { BoardTask, BoardTaskPriorityApi, BoardTaskStatusApi } from '@hously/shared';
 import { cn } from '@/lib/utils';
-import { AlertCircle, Clock } from 'lucide-react';
+import { AlertCircle, Clock, Lock } from 'lucide-react';
+import { formatMinutes } from '../utils/time';
 
 interface BoardTaskCardProps {
   task: BoardTask;
@@ -86,10 +87,13 @@ export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardP
         <div className="mt-2 flex flex-wrap gap-1">
           {task.tags.slice(0, 3).map(tag => (
             <span
-              key={tag}
-              className="rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+              key={tag.id}
+              className="flex items-center gap-1 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
             >
-              {tag}
+              {tag.color && (
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: tag.color }} />
+              )}
+              {tag.name}
             </span>
           ))}
           {task.tags.length > 3 && (
@@ -97,6 +101,37 @@ export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardP
               +{task.tags.length - 3}
             </span>
           )}
+        </div>
+      )}
+
+      {/* Blocked indicator */}
+      {task.blocked_by.some(d => !d.is_resolved) && (
+        <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-orange-500 dark:text-orange-400">
+          <Lock className="h-3 w-3" />
+          Blocked
+        </div>
+      )}
+
+      {/* Time progress */}
+      {task.estimated_minutes != null && (
+        <div className="mt-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-neutral-400">
+              {formatMinutes(task.logged_minutes)} / {formatMinutes(task.estimated_minutes)}
+            </span>
+          </div>
+          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-700">
+            <div
+              className={`h-full rounded-full transition-all ${
+                task.logged_minutes >= task.estimated_minutes
+                  ? 'bg-red-500'
+                  : task.logged_minutes >= task.estimated_minutes * 0.8
+                    ? 'bg-amber-500'
+                    : 'bg-emerald-500'
+              }`}
+              style={{ width: `${Math.min(100, (task.logged_minutes / task.estimated_minutes) * 100)}%` }}
+            />
+          </div>
         </div>
       )}
 

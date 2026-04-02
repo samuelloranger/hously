@@ -1,4 +1,4 @@
-import { AlertCircle, Clock } from 'lucide-react';
+import { AlertCircle, Clock, Inbox } from 'lucide-react';
 import type { BoardTask, BoardTaskPriorityApi } from '@hously/shared';
 import { cn } from '@/lib/utils';
 
@@ -27,7 +27,9 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
   if (tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <span className="mb-3 text-4xl">📋</span>
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 dark:bg-neutral-800">
+          <Inbox className="h-6 w-6 text-neutral-400 dark:text-neutral-500" />
+        </div>
         <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">Backlog is empty</p>
         <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
           Add tasks to the backlog to plan future work
@@ -83,10 +85,13 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
               <div className="hidden items-center gap-1 lg:flex">
                 {task.tags.slice(0, 2).map(tag => (
                   <span
-                    key={tag}
-                    className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
+                    key={tag.id}
+                    className="flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
                   >
-                    {tag}
+                    {tag.color && (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: tag.color }} />
+                    )}
+                    {tag.name}
                   </span>
                 ))}
                 {task.tags.length > 2 && (

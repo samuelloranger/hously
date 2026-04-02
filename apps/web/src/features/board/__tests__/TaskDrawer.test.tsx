@@ -23,6 +23,27 @@ vi.mock('@/hooks/useUsers', () => ({
   }),
 }));
 
+// ── Board tags hook mock ──────────────────────────────────────────────────────
+const { mockCreateBoardTag } = vi.hoisted(() => ({
+  mockCreateBoardTag: vi.fn(),
+}));
+vi.mock('@/hooks/useBoardTags', () => ({
+  useBoardTags: vi.fn().mockReturnValue({ data: { tags: [] } }),
+  useCreateBoardTag: vi.fn().mockReturnValue({ mutateAsync: mockCreateBoardTag }),
+  useUpdateBoardTag: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useDeleteBoardTag: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+}));
+
+// ── Board tasks hook mock (for DependencySection, ActivityLog, TimeTracking) ──
+vi.mock('@/hooks/useBoardTasks', () => ({
+  useAddDependency: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useRemoveDependency: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useBoardTaskActivity: vi.fn().mockReturnValue({ data: { activities: [] } }),
+  useCreateComment: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useBoardTimeLogs: vi.fn().mockReturnValue({ data: { time_logs: [] } }),
+  useLogTime: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+}));
+
 const baseTask: BoardTask = {
   id: 5,
   slug: 'HSLY-005',
@@ -36,11 +57,15 @@ const baseTask: BoardTask = {
   assignee_id: 1,
   assignee_name: 'Alice Smith',
   assignee_avatar: null,
-  tags: ['design', 'ux'],
+  tags: [{ id: 1, name: 'design', color: null }, { id: 2, name: 'ux', color: null }],
   created_by: 1,
   created_by_username: 'Alice',
   created_at: '2025-01-15T00:00:00Z',
   updated_at: '2025-01-20T00:00:00Z',
+  estimated_minutes: null,
+  logged_minutes: 0,
+  blocks: [],
+  blocked_by: [],
 };
 
 describe('TaskDrawer', () => {
@@ -54,7 +79,7 @@ describe('TaskDrawer', () => {
 
   it('is not visible (translated off-screen) when task is null', () => {
     const { container } = renderWithProviders(
-      <TaskDrawer task={null} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={null} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     const panel = container.querySelector('[role="dialog"]');
     expect(panel).toBeInTheDocument();
@@ -63,7 +88,7 @@ describe('TaskDrawer', () => {
 
   it('is visible (not translated) when a task is provided', async () => {
     const { container } = renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       const panel = container.querySelector('[role="dialog"]');
@@ -73,7 +98,7 @@ describe('TaskDrawer', () => {
 
   it('renders the task slug in the header', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       expect(screen.getByText('HSLY-005')).toBeInTheDocument();
@@ -82,7 +107,7 @@ describe('TaskDrawer', () => {
 
   it('renders the task title in an editable input', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       const input = screen.getByDisplayValue('Redesign onboarding flow');
@@ -93,7 +118,7 @@ describe('TaskDrawer', () => {
 
   it('shows Status, Priority, Assignee, Start date, Due date, Tags fields', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       expect(screen.getByText('Status')).toBeInTheDocument();
@@ -107,7 +132,7 @@ describe('TaskDrawer', () => {
 
   it('shows the current priority value', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       const prioritySelect = screen.getByDisplayValue('High');
@@ -117,7 +142,7 @@ describe('TaskDrawer', () => {
 
   it('shows the TipTap editor for the description', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       expect(screen.getByTestId('tiptap-editor')).toBeInTheDocument();
@@ -126,7 +151,7 @@ describe('TaskDrawer', () => {
 
   it('renders tag chips with remove buttons', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       expect(screen.getByText('design')).toBeInTheDocument();
@@ -136,7 +161,7 @@ describe('TaskDrawer', () => {
 
   it('calls onClose when the X button is clicked', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       const closeBtn = screen.getByRole('button', { name: 'Close' });
@@ -147,7 +172,7 @@ describe('TaskDrawer', () => {
 
   it('calls onUpdate when status select changes', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     const statusSelect = await screen.findByDisplayValue('In Progress');
     fireEvent.change(statusSelect, { target: { value: 'done' } });
@@ -158,7 +183,7 @@ describe('TaskDrawer', () => {
 
   it('calls onUpdate when priority select changes', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     const prioritySelect = await screen.findByDisplayValue('High');
     fireEvent.change(prioritySelect, { target: { value: 'urgent' } });
@@ -169,7 +194,7 @@ describe('TaskDrawer', () => {
 
   it('lists available users in the assignee select', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       expect(screen.getByText('Alice Smith')).toBeInTheDocument();
@@ -179,29 +204,30 @@ describe('TaskDrawer', () => {
 
   it('shows created-by metadata in the footer', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       expect(screen.getByText('Alice')).toBeInTheDocument();
     });
   });
 
-  it('adds a tag when tag input is submitted with Enter', async () => {
+  it('creates a tag via the tag picker and calls onUpdate with tag_ids', async () => {
+    mockCreateBoardTag.mockResolvedValueOnce({ tag: { id: 42, name: 'newtag', color: null } });
     const task = { ...baseTask, tags: [] };
     renderWithProviders(
-      <TaskDrawer task={task} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={task} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     const tagInput = await screen.findByPlaceholderText('Add tag…');
     fireEvent.change(tagInput, { target: { value: 'newtag' } });
     fireEvent.keyDown(tagInput, { key: 'Enter' });
     await waitFor(() => {
-      expect(onUpdate).toHaveBeenCalledWith(5, { tags: ['newtag'] });
+      expect(mockCreateBoardTag).toHaveBeenCalledWith({ name: 'newtag' });
     });
   });
 
   it('calls onClose when backdrop is clicked', async () => {
     renderWithProviders(
-      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} />
+      <TaskDrawer task={baseTask} onClose={onClose} onUpdate={onUpdate} onDelete={onDelete} allTasks={[]} />
     );
     await waitFor(() => {
       // The backdrop overlay is the div with aria-hidden

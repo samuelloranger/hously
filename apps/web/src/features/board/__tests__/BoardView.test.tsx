@@ -39,9 +39,21 @@ vi.mock('@/hooks/useBoardTasks', () => ({
   useUpdateBoardTask: vi.fn().mockReturnValue({ mutate: vi.fn() }),
   useDeleteBoardTask: vi.fn().mockReturnValue({ mutate: vi.fn() }),
   useSyncBoardTasks: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useAddDependency: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useRemoveDependency: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useBoardTimeLogs: vi.fn().mockReturnValue({ data: { time_logs: [] } }),
+  useLogTime: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useBoardTaskActivity: vi.fn().mockReturnValue({ data: { activities: [] } }),
+  useCreateComment: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
 }));
 vi.mock('@/hooks/useUsers', () => ({
   useUsers: vi.fn().mockReturnValue({ data: { users: [] } }),
+}));
+vi.mock('@/hooks/useBoardTags', () => ({
+  useBoardTags: vi.fn().mockReturnValue({ data: { tags: [] } }),
+  useCreateBoardTag: vi.fn().mockReturnValue({ mutateAsync: vi.fn() }),
+  useUpdateBoardTag: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useDeleteBoardTag: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
 }));
 
 import { useBoardTasks } from '@/hooks/useBoardTasks';
@@ -66,6 +78,10 @@ const makeMockTask = (overrides: Partial<BoardTask> = {}): BoardTask => ({
   created_by_username: 'Alice',
   created_at: '2025-01-15T00:00:00Z',
   updated_at: '2025-01-15T00:00:00Z',
+  estimated_minutes: null,
+  logged_minutes: 0,
+  blocks: [],
+  blocked_by: [],
   ...overrides,
 });
 
@@ -118,7 +134,7 @@ describe('BoardView', () => {
     (useBoardTasks as any).mockReturnValue({ data: { tasks }, isLoading: false });
     renderWithProviders(<BoardView />);
     await waitFor(() => {
-      expect(screen.getByText('2')).toBeInTheDocument(); // backlog count badge
+      expect(screen.getByText('3')).toBeInTheDocument(); // badge shows all tasks count
     });
   });
 
@@ -216,7 +232,7 @@ describe('BoardView', () => {
   });
 
   it('displays tag pills on task cards', async () => {
-    const task = makeMockTask({ tags: ['backend', 'api'], status: 'in_progress' });
+    const task = makeMockTask({ tags: [{ id: 1, name: 'backend', color: null }, { id: 2, name: 'api', color: null }], status: 'in_progress' });
     (useBoardTasks as any).mockReturnValue({ data: { tasks: [task] }, isLoading: false });
     renderWithProviders(<BoardView />);
 

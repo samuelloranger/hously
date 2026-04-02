@@ -18,14 +18,19 @@ import {
 } from '@/hooks/useBoardTasks';
 import { useUsers } from '@/hooks/useUsers';
 import {
+  BACKLOG_SORT_OPTIONS,
   BOARD_KANBAN_STATUSES,
   BOARD_TASK_STATUSES,
+  type BacklogSortOption,
   type BoardKanbanStatusApi,
+  type BoardTag,
   type BoardTask,
   type BoardTaskPriorityApi,
   type BoardTaskStatusApi,
   type UpdateBoardTaskRequest,
 } from '@hously/shared';
+import { useBoardTags } from '@/hooks/useBoardTags';
+import { TagManagerModal } from './components/TagManagerModal';
 import { cn } from '@/lib/utils';
 import { BoardColumn } from './components/BoardColumn';
 import { BoardTaskCard } from './components/BoardTaskCard';
@@ -38,7 +43,7 @@ type DragOverPayload = Parameters<DragOverEvent>[0];
 type ViewMode = 'board' | 'backlog';
 
 interface BoardFilters {
-  tags: string[];
+  tags: number[];  // tag IDs
   assigneeId: number | null;
   priority: BoardTaskPriorityApi | null;
   dueDateFilter: 'overdue' | 'this_week' | null;
@@ -89,7 +94,7 @@ function applyFilters(tasks: BoardTask[], filters: BoardFilters): BoardTask[] {
   return tasks.filter(task => {
     if (filters.priority && task.priority !== filters.priority) return false;
     if (filters.assigneeId !== null && task.assignee_id !== filters.assigneeId) return false;
-    if (filters.tags.length > 0 && !filters.tags.every(t => task.tags.includes(t))) return false;
+    if (filters.tags.length > 0 && !filters.tags.every(id => task.tags.some(t => t.id === id))) return false;
     if (filters.dueDateFilter) {
       const today = new Date(new Date().toDateString());
       const dueDate = task.due_date ? new Date(task.due_date) : null;
@@ -104,6 +109,53 @@ function applyFilters(tasks: BoardTask[], filters: BoardFilters): BoardTask[] {
     return true;
   });
 }
+
+const PRIORITY_RANK: Record<BoardTaskPriorityApi, number> = {
+  urgent: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+};
+
+function sortBacklog(tasks: BoardTask[], sortBy: BacklogSortOption, sortDir: 'asc' | 'desc'): BoardTask[] {
+  const dir = sortDir === 'asc' ? 1 : -1;
+  return [...tasks].sort((a, b) => {
+    switch (sortBy) {
+      case 'priority':
+        return (PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]) * dir;
+      case 'due_date': {
+        if (!a.due_date && !b.due_date) return 0;
+        if (!a.due_date) return 1;
+        if (!b.due_date) return -1;
+        return a.due_date.localeCompare(b.due_date) * dir;
+      }
+      case 'created_at': {
+        if (!a.created_at && !b.created_at) return 0;
+        if (!a.created_at) return 1;
+        if (!b.created_at) return -1;
+        return a.created_at.localeCompare(b.created_at) * dir;
+      }
+      case 'assignee': {
+        const nameA = a.assignee_name ?? '';
+        const nameB = b.assignee_name ?? '';
+        if (!nameA && !nameB) return 0;
+        if (!nameA) return 1;
+        if (!nameB) return -1;
+        return nameA.localeCompare(nameB) * dir;
+      }
+      default:
+        return (a.position - b.position) * dir;
+    }
+  });
+}
+
+const SORT_LABELS: Record<BacklogSortOption, string> = {
+  position: 'Manual order',
+  priority: 'Priority',
+  due_date: 'Due date',
+  created_at: 'Created date',
+  assignee: 'Assignee',
+};
 
 export function BoardView() {
   const { t } = useTranslation('common');
@@ -202,10 +254,19 @@ export function BoardView() {
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('board');
 
+  // Backlog sort
+  const [backlogSort, setBacklogSort] = useState<BacklogSortOption>('position');
+  const [backlogSortDir, setBacklogSortDir] = useState<'asc' | 'desc'>('asc');
+
   // Create form
   const [showCreate, setShowCreate] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [createStatus, setCreateStatus] = useState<BoardTaskStatusApi>('todo');
+
+  // Sync default create-status with current view
+  useEffect(() => {
+    setCreateStatus(viewMode === 'backlog' ? 'backlog' : 'todo');
+  }, [viewMode]);
 
   const handleCreate = () => {
     const title = newTitle.trim();
@@ -230,14 +291,10 @@ export function BoardView() {
     filters.priority !== null ||
     filters.dueDateFilter !== null;
 
-  // All unique tags across tasks
-  const allTags = useMemo(() => {
-    const tags = new Set<string>();
-    for (const task of allTasks) {
-      for (const tag of task.tags) tags.add(tag);
-    }
-    return Array.from(tags).sort();
-  }, [allTasks]);
+  // All tags from the tags registry
+  const { data: tagsData } = useBoardTags();
+  const allTags: BoardTag[] = tagsData?.tags ?? [];
+  const [showTagManager, setShowTagManager] = useState(false);
 
   const filteredKanbanColumns = useMemo(() => {
     if (!hasActiveFilters) return columns;
@@ -248,10 +305,10 @@ export function BoardView() {
     return result;
   }, [columns, filters, hasActiveFilters]);
 
-  const filteredBacklogTasks = useMemo(
-    () => (hasActiveFilters ? applyFilters(backlogTasks, filters) : backlogTasks),
-    [backlogTasks, filters, hasActiveFilters]
-  );
+  const filteredBacklogTasks = useMemo(() => {
+    const filtered = hasActiveFilters ? applyFilters(backlogTasks, filters) : backlogTasks;
+    return sortBacklog(filtered, backlogSort, backlogSortDir);
+  }, [backlogTasks, filters, hasActiveFilters, backlogSort, backlogSortDir]);
 
   const statusLabel = (s: BoardTaskStatusApi) => t(`board.status.${s}`);
 
@@ -308,6 +365,31 @@ export function BoardView() {
         </div>
 
         <div className="flex-1" />
+
+        {/* Backlog sort */}
+        {viewMode === 'backlog' && (
+          <div className="flex items-center gap-1 rounded-lg border border-neutral-200/80 bg-neutral-50 px-2.5 py-1.5 dark:border-neutral-700/60 dark:bg-neutral-900/40">
+            <span className="text-[11px] font-medium text-neutral-400">Sort:</span>
+            <select
+              value={backlogSort}
+              onChange={e => setBacklogSort(e.target.value as BacklogSortOption)}
+              className="bg-transparent text-[12px] font-medium text-neutral-700 outline-none dark:text-neutral-200"
+            >
+              {BACKLOG_SORT_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>
+                  {SORT_LABELS[opt]}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => setBacklogSortDir(d => (d === 'asc' ? 'desc' : 'asc'))}
+              className="ml-1 text-[11px] font-medium text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+              title={backlogSortDir === 'asc' ? 'Ascending' : 'Descending'}
+            >
+              {backlogSortDir === 'asc' ? '↑' : '↓'}
+            </button>
+          </div>
+        )}
 
         {/* Filter toggle */}
         <button
@@ -443,32 +525,46 @@ export function BoardView() {
             <div className="flex flex-wrap items-center gap-1">
               {allTags.map(tag => (
                 <button
-                  key={tag}
+                  key={tag.id}
                   onClick={() =>
                     setFilters(f =>
-                      f.tags.includes(tag)
-                        ? { ...f, tags: f.tags.filter(t => t !== tag) }
-                        : { ...f, tags: [...f.tags, tag] }
+                      f.tags.includes(tag.id)
+                        ? { ...f, tags: f.tags.filter(id => id !== tag.id) }
+                        : { ...f, tags: [...f.tags, tag.id] }
                     )
                   }
                   className={cn(
-                    'rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
-                    filters.tags.includes(tag)
+                    'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
+                    filters.tags.includes(tag.id)
                       ? 'bg-indigo-600 text-white'
                       : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600'
                   )}
                 >
-                  {tag}
+                  {tag.color && (
+                    <span
+                      className="h-1.5 w-1.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: filters.tags.includes(tag.id) ? 'white' : tag.color }}
+                    />
+                  )}
+                  {tag.name}
                 </button>
               ))}
             </div>
           )}
 
+          {/* Manage tags link */}
+          <button
+            onClick={() => setShowTagManager(true)}
+            className="ml-auto text-[11px] text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            Manage tags
+          </button>
+
           {/* Clear */}
           {hasActiveFilters && (
             <button
               onClick={() => setFilters(EMPTY_FILTERS)}
-              className="ml-auto flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
             >
               <X className="h-3.5 w-3.5" />
               Clear
@@ -538,7 +634,11 @@ export function BoardView() {
         onClose={() => setSelectedTask(null)}
         onUpdate={handleDrawerUpdate}
         onDelete={handleDelete}
+        allTasks={allTasks}
       />
+
+      {/* Tag manager */}
+      <TagManagerModal isOpen={showTagManager} onClose={() => setShowTagManager(false)} />
     </PageLayout>
   );
 }

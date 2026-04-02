@@ -6,7 +6,10 @@ import type {
   ApiResult,
   BoardTask,
   BoardTasksResponse,
+  BoardTaskActivityResponse,
+  BoardTimeLogsResponse,
   CreateBoardTaskRequest,
+  CreateTimeLogRequest,
   SyncBoardTasksRequest,
   UpdateBoardTaskRequest,
 } from '@hously/shared';
@@ -79,6 +82,75 @@ export function useSyncBoardTasks() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.all });
+    },
+  });
+}
+
+export function useBoardTaskActivity(taskId: number | null) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.boardTasks.activity(taskId ?? 0),
+    queryFn: () => fetcher<BoardTaskActivityResponse>(BOARD_TASKS_ENDPOINTS.ACTIVITY(taskId!)),
+    enabled: taskId !== null,
+  });
+}
+
+export function useCreateComment() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, body }: { taskId: number; body: string }) =>
+      fetcher(BOARD_TASKS_ENDPOINTS.COMMENT(taskId), { method: 'POST', body: { body } }),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.activity(taskId) });
+    },
+  });
+}
+
+export function useAddDependency() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { blocking_task_id?: number; blocked_task_id?: number } }) =>
+      fetcher(BOARD_TASKS_ENDPOINTS.ADD_DEPENDENCY(id), { method: 'POST', body: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.all });
+    },
+  });
+}
+
+export function useRemoveDependency() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, depId }: { id: number; depId: number }) =>
+      fetcher(BOARD_TASKS_ENDPOINTS.REMOVE_DEPENDENCY(id, depId), { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.all });
+    },
+  });
+}
+
+export function useBoardTimeLogs(taskId: number | null) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.boardTasks.timeLogs(taskId ?? 0),
+    queryFn: () => fetcher<BoardTimeLogsResponse>(BOARD_TASKS_ENDPOINTS.TIME_LOGS(taskId!)),
+    enabled: taskId !== null,
+  });
+}
+
+export function useLogTime() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskId, data }: { taskId: number; data: CreateTimeLogRequest }) =>
+      fetcher(BOARD_TASKS_ENDPOINTS.TIME_LOGS(taskId), { method: 'POST', body: data }),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.timeLogs(taskId) });
     },
   });
 }

@@ -9,7 +9,7 @@ import {
   Tag,
   Flag,
   Hash,
-  Plus,
+  Clock,
 } from 'lucide-react';
 import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
 import { Dialog } from '@/components/dialog';
@@ -17,6 +17,15 @@ import { Button } from '@/components/ui/button';
 import { useUsers } from '@/hooks/useUsers';
 import type { BoardTask, BoardTaskStatusApi, BoardTaskPriorityApi } from '@hously/shared';
 import { BOARD_TASK_STATUSES, BOARD_TASK_PRIORITIES } from '@hously/shared';
+import { useBoardTags } from '@/hooks/useBoardTags';
+import { TagPicker } from './TagPicker';
+import { ActivityLog } from './ActivityLog';
+import { CommentInput } from './CommentInput';
+import { DependencySection } from './DependencySection';
+import { TimeEstimateField } from './TimeEstimateField';
+import { LogTimeForm } from './LogTimeForm';
+import { TimeLogHistory } from './TimeLogHistory';
+import { formatMinutes } from '../utils/time';
 import { cn } from '@/lib/utils';
 
 interface TaskDrawerProps {
@@ -24,6 +33,7 @@ interface TaskDrawerProps {
   onClose: () => void;
   onUpdate: (id: number, data: Partial<BoardTask>) => void;
   onDelete: (id: number) => void;
+  allTasks: BoardTask[];
 }
 
 const STATUS_COLORS: Record<BoardTaskStatusApi, string> = {
@@ -56,14 +66,15 @@ const PRIORITY_LABELS: Record<BoardTaskPriorityApi, string> = {
   urgent: 'Urgent',
 };
 
-export function TaskDrawer({ task, onClose, onUpdate, onDelete }: TaskDrawerProps) {
+export function TaskDrawer({ task, onClose, onUpdate, onDelete, allTasks }: TaskDrawerProps) {
   const { t } = useTranslation('common');
   const { data: usersData } = useUsers();
   const users = usersData?.users ?? [];
 
   const [titleDraft, setTitleDraft] = useState('');
-  const [tagInput, setTagInput] = useState('');
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const { data: tagsData } = useBoardTags();
+  const availableTags = tagsData?.tags ?? [];
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -92,21 +103,10 @@ export function TaskDrawer({ task, onClose, onUpdate, onDelete }: TaskDrawerProp
     [task, onUpdate]
   );
 
-  const addTag = useCallback(() => {
-    if (!task) return;
-    const tag = tagInput.trim().toLowerCase();
-    if (!tag || task.tags.includes(tag)) {
-      setTagInput('');
-      return;
-    }
-    onUpdate(task.id, { tags: [...task.tags, tag] });
-    setTagInput('');
-  }, [task, tagInput, onUpdate]);
-
-  const removeTag = useCallback(
-    (tag: string) => {
+  const handleTagsChange = useCallback(
+    (tagIds: number[]) => {
       if (!task) return;
-      onUpdate(task.id, { tags: task.tags.filter(t => t !== tag) });
+      onUpdate(task.id, { tag_ids: tagIds } as unknown as Partial<BoardTask>);
     },
     [task, onUpdate]
   );
@@ -300,44 +300,26 @@ export function TaskDrawer({ task, onClose, onUpdate, onDelete }: TaskDrawerProp
                   />
                 </DrawerField>
 
+                {/* Time estimate */}
+                <DrawerField icon={<Clock className="h-3.5 w-3.5" />} label="Estimate">
+                  <TimeEstimateField
+                    estimatedMinutes={task.estimated_minutes}
+                    onUpdate={mins => onUpdate(task.id, { estimated_minutes: mins })}
+                  />
+                  {task.logged_minutes > 0 && (
+                    <span className="ml-auto shrink-0 text-[11px] text-neutral-400">
+                      {formatMinutes(task.logged_minutes)} logged
+                    </span>
+                  )}
+                </DrawerField>
+
                 {/* Tags */}
                 <DrawerField icon={<Tag className="h-3.5 w-3.5" />} label="Tags">
-                  <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-                    {task.tags.map(tag => (
-                      <span
-                        key={tag}
-                        className="flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
-                      >
-                        {tag}
-                        <button
-                          onClick={() => removeTag(tag)}
-                          className="ml-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-100"
-                        >
-                          <X className="h-2.5 w-2.5" />
-                        </button>
-                      </span>
-                    ))}
-                    <div className="flex items-center gap-1">
-                      <input
-                        value={tagInput}
-                        onChange={e => setTagInput(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') { e.preventDefault(); addTag(); }
-                          if (e.key === ',') { e.preventDefault(); addTag(); }
-                        }}
-                        placeholder="Add tag…"
-                        className="w-20 bg-transparent text-[12px] text-neutral-600 placeholder-neutral-300 outline-none dark:text-neutral-300 dark:placeholder-neutral-600"
-                      />
-                      {tagInput.trim() && (
-                        <button
-                          onClick={addTag}
-                          className="flex h-4 w-4 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
-                        >
-                          <Plus className="h-2.5 w-2.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                  <TagPicker
+                    selectedTags={task.tags}
+                    availableTags={availableTags}
+                    onChange={handleTagsChange}
+                  />
                 </DrawerField>
               </div>
 
@@ -359,6 +341,34 @@ export function TaskDrawer({ task, onClose, onUpdate, onDelete }: TaskDrawerProp
                   compact
                   className="min-h-[160px] rounded-xl border-neutral-200/80 dark:border-neutral-700/60"
                 />
+              </div>
+
+              {/* Time tracking */}
+              <div className="border-t border-neutral-100 px-5 py-5 dark:border-neutral-800">
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+                  Log Time
+                </p>
+                <LogTimeForm taskId={task.id} />
+                <TimeLogHistory taskId={task.id} />
+              </div>
+
+              {/* Dependencies */}
+              <div className="border-t border-neutral-100 px-5 py-5 dark:border-neutral-800">
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+                  Dependencies
+                </p>
+                <DependencySection task={task} allTasks={allTasks} />
+              </div>
+
+              {/* Activity */}
+              <div className="border-t border-neutral-100 px-5 py-5 dark:border-neutral-800">
+                <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+                  Activity
+                </p>
+                <ActivityLog taskId={task.id} />
+                <div className="mt-4">
+                  <CommentInput taskId={task.id} />
+                </div>
               </div>
 
               {/* Footer meta */}
