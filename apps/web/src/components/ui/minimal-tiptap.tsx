@@ -83,47 +83,47 @@ export function MinimalTiptap({
   return (
     <div className={cn('border rounded-lg overflow-hidden', className)}>
       {editable && (
-        <div className="border-b p-2 flex flex-wrap items-center gap-1 bg-neutral-50 dark:bg-neutral-900">
+        <div className={cn('border-b flex flex-wrap items-center bg-neutral-50 dark:bg-neutral-900', compact ? 'p-1 gap-0.5' : 'p-2 gap-1')}>
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('bold')}
             onPressedChange={() => editor.chain().focus().toggleBold().run()}
             disabled={!editor.can().chain().focus().toggleBold().run()}
           >
-            <Bold className="h-4 w-4" />
+            <Bold className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('italic')}
             onPressedChange={() => editor.chain().focus().toggleItalic().run()}
             disabled={!editor.can().chain().focus().toggleItalic().run()}
           >
-            <Italic className="h-4 w-4" />
+            <Italic className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('strike')}
             onPressedChange={() => editor.chain().focus().toggleStrike().run()}
             disabled={!editor.can().chain().focus().toggleStrike().run()}
           >
-            <Strikethrough className="h-4 w-4" />
+            <Strikethrough className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('code')}
             onPressedChange={() => editor.chain().focus().toggleCode().run()}
             disabled={!editor.can().chain().focus().toggleCode().run()}
           >
-            <Code className="h-4 w-4" />
+            <Code className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
-          <Separator orientation="vertical" className="h-6" />
+          <Separator orientation="vertical" className={compact ? 'h-4' : 'h-6'} />
 
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('link')}
             onPressedChange={() => {
               const url = editor.getAttributes('link').href;
@@ -141,92 +141,92 @@ export function MinimalTiptap({
               }
             }}
           >
-            <LinkIcon className="h-4 w-4" />
+            <LinkIcon className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
-          <Separator orientation="vertical" className="h-6" />
+          <Separator orientation="vertical" className={compact ? 'h-4' : 'h-6'} />
 
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('heading', { level: 1 })}
             onPressedChange={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           >
-            <Heading1 className="h-4 w-4" />
+            <Heading1 className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('heading', { level: 2 })}
             onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           >
-            <Heading2 className="h-4 w-4" />
+            <Heading2 className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('heading', { level: 3 })}
             onPressedChange={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           >
-            <Heading3 className="h-4 w-4" />
+            <Heading3 className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
-          <Separator orientation="vertical" className="h-6" />
+          <Separator orientation="vertical" className={compact ? 'h-4' : 'h-6'} />
 
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('bulletList')}
             onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
           >
-            <List className="h-4 w-4" />
+            <List className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('orderedList')}
             onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
           >
-            <ListOrdered className="h-4 w-4" />
+            <ListOrdered className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
           <Toggle
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             pressed={editor.isActive('blockquote')}
             onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
           >
-            <Quote className="h-4 w-4" />
+            <Quote className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Toggle>
 
-          <Separator orientation="vertical" className="h-6" />
+          <Separator orientation="vertical" className={compact ? 'h-4' : 'h-6'} />
 
           <Button
             variant="ghost"
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             type="button"
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
           >
-            <Minus className="h-4 w-4" />
+            <Minus className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Button>
 
-          <Separator orientation="vertical" className="h-6" />
+          <Separator orientation="vertical" className={compact ? 'h-4' : 'h-6'} />
 
           <Button
             variant="ghost"
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             type="button"
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().chain().focus().undo().run()}
           >
-            <Undo className="h-4 w-4" />
+            <Undo className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Button>
 
           <Button
             variant="ghost"
-            size="sm"
+            size={compact ? 'xs' : 'sm'}
             type="button"
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().chain().focus().redo().run()}
           >
-            <Redo className="h-4 w-4" />
+            <Redo className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
           </Button>
         </div>
       )}

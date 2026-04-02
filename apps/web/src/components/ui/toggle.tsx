@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 export interface ToggleProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   pressed?: boolean;
   onPressedChange?: (pressed: boolean) => void;
-  size?: 'default' | 'sm' | 'lg';
+  size?: 'default' | 'sm' | 'lg' | 'xs';
 }
 
 const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
@@ -13,6 +13,7 @@ const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
       default: 'h-10 px-3',
       sm: 'h-9 px-2',
       lg: 'h-11 px-4',
+      xs: 'h-6 px-1.5',
     };
 
     return (
