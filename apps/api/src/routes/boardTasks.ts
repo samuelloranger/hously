@@ -5,6 +5,7 @@ import { auth } from '../auth';
 import { requireUser } from '../middleware/auth';
 import { formatIso, sanitizeInput, sanitizeRichText } from '../utils';
 import { badRequest, notFound, serverError } from '../utils/errors';
+import { createJsonSseResponse } from '../utils/sse';
 
 const STATUS_VALUES = ['backlog', 'on_hold', 'todo', 'in_progress', 'done'] as const;
 type StatusApi = (typeof STATUS_VALUES)[number];
@@ -255,6 +256,22 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
         tag_ids: t.Optional(t.Array(t.Number())),
       }),
     }
+  )
+
+  .get('/stream', ({ request }) =>
+    createJsonSseResponse({
+      request,
+      poll: async () => {
+        const tasks = await prisma.boardTask.findMany({
+          orderBy: [{ status: 'asc' }, { position: 'asc' }],
+          include: taskInclude,
+        });
+        return { tasks: tasks.map(row => mapTask(row as unknown as TaskRow)) };
+      },
+      intervalMs: 4000,
+      retryMs: 8000,
+      logLabel: 'Board tasks stream',
+    })
   )
 
   .patch(

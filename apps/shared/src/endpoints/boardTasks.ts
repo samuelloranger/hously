@@ -1,5 +1,6 @@
 export const BOARD_TASKS_ENDPOINTS = {
   LIST: '/api/board-tasks',
+  STREAM: '/api/board-tasks/stream',
   CREATE: '/api/board-tasks',
   UPDATE: (id: number) => `/api/board-tasks/${id}`,
   DELETE: (id: number) => `/api/board-tasks/${id}`,

@@ -5,6 +5,7 @@ import { isSortable } from '@dnd-kit/react/sortable';
 import { move } from '@dnd-kit/helpers';
 import { PointerActivationConstraints, type DragEndEvent, type DragOverEvent } from '@dnd-kit/dom';
 import { Filter, LayoutGrid, List, Plus, X } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { PageLayout } from '@/components/PageLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -16,20 +17,24 @@ import {
   useSyncBoardTasks,
   useUpdateBoardTask,
 } from '@/hooks/useBoardTasks';
+import { useJsonEventSource } from '@/hooks/useEventSource';
 import { useUsers } from '@/hooks/useUsers';
 import {
   BACKLOG_SORT_OPTIONS,
   BOARD_KANBAN_STATUSES,
   BOARD_TASK_STATUSES,
+  BOARD_TASKS_ENDPOINTS,
   type BacklogSortOption,
   type BoardKanbanStatusApi,
   type BoardTag,
   type BoardTask,
   type BoardTaskPriorityApi,
   type BoardTaskStatusApi,
+  type BoardTasksResponse,
   type UpdateBoardTaskRequest,
 } from '@hously/shared';
 import { useBoardTags } from '@/hooks/useBoardTags';
+import { queryKeys } from '@/lib/queryKeys';
 import { TagManagerModal } from './components/TagManagerModal';
 import { cn } from '@/lib/utils';
 import { BoardColumn } from './components/BoardColumn';
@@ -159,6 +164,7 @@ const SORT_LABELS: Record<BacklogSortOption, string> = {
 
 export function BoardView() {
   const { t } = useTranslation('common');
+  const queryClient = useQueryClient();
   const { data, isLoading } = useBoardTasks();
   const { data: usersData } = useUsers();
   const users = usersData?.users ?? [];
@@ -166,6 +172,14 @@ export function BoardView() {
   const createMutation = useCreateBoardTask();
   const updateMutation = useUpdateBoardTask();
   const deleteMutation = useDeleteBoardTask();
+
+  useJsonEventSource<BoardTasksResponse>({
+    url: BOARD_TASKS_ENDPOINTS.STREAM,
+    logLabel: 'Board tasks stream',
+    onMessage: payload => {
+      queryClient.setQueryData(queryKeys.boardTasks.list(), payload);
+    },
+  });
 
   const allTasks = data?.tasks ?? [];
   const kanbanTasks = useMemo(
