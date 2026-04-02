@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@hously/shared';
+import { queryKeys } from '@/lib/queryKeys';
 
 /**
  * Component that refetches data when navigating between pages

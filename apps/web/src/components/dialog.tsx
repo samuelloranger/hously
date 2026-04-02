@@ -2,7 +2,7 @@ import { Dialog as HeadlessDialog, DialogPanel, DialogTitle, Transition, Transit
 import { Fragment, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface DialogProps {
   isOpen: boolean;
@@ -73,7 +73,10 @@ export function Dialog({
                   className={cn(
                     hideTitle
                       ? 'sr-only'
-                      : cn('pb-2 shrink-0 text-lg font-medium leading-6 text-neutral-900 dark:text-white', panelClassName?.includes('p-0') ? 'pt-4 px-6' : ''),
+                      : cn(
+                          'pb-2 shrink-0 text-lg font-medium leading-6 text-neutral-900 dark:text-white',
+                          panelClassName?.includes('p-0') ? 'pt-4 px-6' : ''
+                        )
                   )}
                 >
                   {title}
@@ -94,12 +97,7 @@ export function Dialog({
                   </button>
                 )}
 
-                <div
-                  className={cn(
-                    'min-h-0 flex-1',
-                    bodyScroll && 'flex min-h-0 flex-col overflow-hidden'
-                  )}
-                >
+                <div className={cn('min-h-0 flex-1', bodyScroll && 'flex min-h-0 flex-col overflow-hidden')}>
                   {children}
                 </div>
               </DialogPanel>

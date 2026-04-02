@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import { loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import path from 'path';
 import type { ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
@@ -75,6 +76,14 @@ export default defineConfig(({ mode }) => {
   };
 
   const plugins = [
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+      routesDirectory: './src/pages',
+      generatedRouteTree: './src/routeTree.gen.ts',
+      routeFileIgnorePattern: '^_[^_]',
+    }) as any,
     react({ babel: { plugins: ['babel-plugin-react-compiler'] } }),
     chunkSplittingPlugin,
     excludeTestFiles(),

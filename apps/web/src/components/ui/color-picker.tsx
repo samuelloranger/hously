@@ -1,5 +1,3 @@
-'use client';
-
 import {
   createContext,
   HTMLAttributes,
@@ -13,7 +11,7 @@ import {
   ComponentProps,
 } from 'react';
 import Color from 'color';
-import { Input } from './input';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import * as Slider from '@radix-ui/react-slider';
 

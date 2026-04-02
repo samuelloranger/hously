@@ -10,10 +10,11 @@ import {
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { Search, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { formatBytes, useQuickSearch } from '@hously/shared';
-import { navSections } from './navigation';
-import { Dialog } from './dialog';
-import { Input } from './ui/input';
+import { useQuickSearch } from '@/hooks/useSearch';
+import { formatBytes } from '@hously/shared';
+import { navSections } from '@/lib/routing/navigation';
+import { Dialog } from '@/components/dialog';
+import { Input } from '@/components/ui/input';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
 

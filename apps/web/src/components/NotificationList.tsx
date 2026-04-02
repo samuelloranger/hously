@@ -1,16 +1,11 @@
 import type { MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2 } from 'lucide-react';
-import {
-  formatDate,
-  formatTime,
-  type Notification,
-  useDeleteNotification,
-  useMarkAsReadOptimistic,
-} from '@hously/shared';
-import { cn } from '../lib/utils';
-import { getTypeStyle } from './NotificationMenuRow';
-import { openNotificationTarget } from '../lib/notificationNavigation';
+import { useDeleteNotification, useMarkAsReadOptimistic } from '@/hooks/useNotifications';
+import { formatDate, formatTime, type Notification } from '@hously/shared';
+import { cn } from '@/lib/utils';
+import { getTypeStyle } from '@/components/NotificationMenuRow';
+import { openNotificationTarget } from '@/lib/notifications/navigation';
 
 interface NotificationListProps {
   notifications: Notification[];

@@ -1,5 +1,5 @@
-import { PageLayout } from "./PageLayout";
-import { HouseLoader } from "./HouseLoader";
+import { PageLayout } from '@/components/PageLayout';
+import { HouseLoader } from '@/components/HouseLoader';
 
 export function LoadingState() {
   return (

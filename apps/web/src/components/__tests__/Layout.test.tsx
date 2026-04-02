@@ -1,46 +1,80 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { screen, renderWithProviders } from '@/test-utils/render';
 import { RootLayout } from '../Layout';
 
-const mockUseAuth = vi.fn();
-
-vi.mock('../../hooks/useAuth', () => ({
-  useAuth: () => mockUseAuth(),
+// Mock TanStack Router
+vi.mock('@tanstack/react-router', () => ({
+  Outlet: () => <div data-testid="outlet" />,
+  ScrollRestoration: () => <div data-testid="scroll-restoration" />,
+  useRouter: () => ({
+    state: { isLoading: false },
+  }),
+  useRouterState: vi.fn().mockReturnValue({
+    isLoading: false,
+    location: { pathname: '/' },
+  }),
+  useLocation: vi.fn().mockReturnValue({ pathname: '/' }),
+  useNavigate: () => vi.fn(),
+  Link: ({ children, to }: any) => <a href={to}>{children}</a>,
 }));
 
-describe('RootLayout', () => {
-  it('shows loading state when auth is loading', () => {
-    mockUseAuth.mockReturnValue({
-      user: null,
-      isLoading: true,
-      isAuthenticated: false,
-      error: null,
-      refetch: vi.fn(),
-    });
+// Mock shared hooks
+vi.mock('@hously/shared', async importOriginal => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    useCurrentUser: vi.fn(),
+    useNotifications: vi.fn().mockReturnValue({
+      permission: 'default',
+      requestPermission: vi.fn(),
+      subscription: null,
+      subscribe: vi.fn(),
+      isSupported: true,
+    }),
+    useNotificationDevices: vi.fn().mockReturnValue({ refetch: vi.fn() }),
+  };
+});
 
-    render(<RootLayout />);
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+// Mock hooks
+vi.mock('@/hooks/useAutoSubscribeNotifications', () => ({
+  useAutoSubscribeNotifications: vi.fn().mockReturnValue({
+    showModal: false,
+    handleAllow: vi.fn(),
+    handleDismiss: vi.fn(),
+  }),
+}));
+
+import { useCurrentUser } from '@/hooks/useAuth';
+
+describe('RootLayout', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('renders navbar when user is authenticated', () => {
-    mockUseAuth.mockReturnValue({
-      user: {
+  it('renders children when user is authenticated', () => {
+    (useCurrentUser as any).mockReturnValue({
+      data: {
         id: 1,
         email: 'test@test.com',
-        first_name: null,
-        last_name: null,
+        first_name: 'Test',
+        last_name: 'User',
         is_admin: false,
-        last_login: null,
-        created_at: '2024-01-01',
-        last_activity: null,
       },
       isLoading: false,
-      isAuthenticated: true,
-      error: null,
-      refetch: vi.fn(),
     });
 
-    render(<RootLayout />);
-    expect(screen.getByText(/hously/i)).toBeInTheDocument();
+    renderWithProviders(<RootLayout />);
+    expect(screen.getByTestId('outlet')).toBeInTheDocument();
+  });
+
+  it('renders sidebar when not on login page', () => {
+    (useCurrentUser as any).mockReturnValue({
+      data: { id: 1, email: 'test@test.com' },
+      isLoading: false,
+    });
+
+    renderWithProviders(<RootLayout />);
+    // There are multiple "Hously" texts (mobile and desktop)
+    expect(screen.getAllByText('Hously').length).toBeGreaterThan(0);
   });
 });

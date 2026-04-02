@@ -1,6 +1,6 @@
 {
   "name": "@hously/web",
-  "version": "2.1.237",
+  "version": "2.1.238",
   "packageManager": "bun@1.3.11",
   "private": true,
   "type": "module",
@@ -30,6 +30,7 @@
     "@radix-ui/react-slider": "^1.3.6",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-router": "^1.168.10",
+    "@tanstack/router-plugin": "^1.167.12",
     "@tiptap/core": "^3.21.0",
     "@tiptap/extension-link": "^3.21.0",
     "@tiptap/pm": "^3.21.0",

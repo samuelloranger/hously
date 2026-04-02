@@ -1,15 +1,17 @@
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { clearUser } from '../lib/auth';
-import { formatDisplayName, useLogout, useUpdateProfile } from '@hously/shared';
-import { NotificationsMenu } from './NotificationsBell';
-import { UserMenu } from './UserMenu';
+import { clearUser } from '@/lib/auth';
+import { useLogout } from '@/hooks/useAuth';
+import { useUpdateProfile } from '@/hooks/useUsers';
+import { formatDisplayName } from '@hously/shared';
+import { NotificationsMenu } from '@/components/NotificationsBell';
+import { UserMenu } from '@/components/UserMenu';
 import { Loader, LogOut, Search, Settings } from 'lucide-react';
-import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
-import { useAuth } from '@/hooks/useAuth';
-import { useTheme } from '../hooks/useTheme';
-import { cn } from '../lib/utils';
-import { navSections } from './navigation';
+import { usePrefetchRoute } from '@/lib/routing/usePrefetchRoute';
+import { useAuth } from '@/lib/auth/useAuth';
+import { useTheme } from '@/hooks/useTheme';
+import { cn } from '@/lib/utils';
+import { navSections } from '@/lib/routing/navigation';
 
 interface SidebarProps {
   onOpenQuickActions?: () => void;

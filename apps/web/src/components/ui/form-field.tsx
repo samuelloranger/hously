@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { Input } from './input';
-import { Textarea } from './textarea';
-import { Select } from './select';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select';
 
 interface FormFieldProps {
   label?: string;

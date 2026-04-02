@@ -4,19 +4,18 @@ import { useNavigate } from '@tanstack/react-router';
 import { Bell, ArrowRight, CheckCheck, BellOff } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
 import {
-  queryKeys,
   useMarkAllAsReadOptimistic,
   useMarkAsReadOptimistic,
   useNotifications,
   useUnreadCount,
-  formatRelativeTime,
-  resolveDateFnsLocale,
-} from '@hously/shared';
-import { syncBadge } from '../lib/serviceWorker';
+} from '@/hooks/useNotifications';
+import { queryKeys } from '@/lib/queryKeys';
+import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared';
+import { syncBadge } from '@/lib/sw/registration';
 import { useQueryClient } from '@tanstack/react-query';
-import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
-import { openNotificationTarget } from '../lib/notificationNavigation';
-import { NotificationMenuRow } from './NotificationMenuRow';
+import { usePrefetchRoute } from '@/lib/routing/usePrefetchRoute';
+import { openNotificationTarget } from '@/lib/notifications/navigation';
+import { NotificationMenuRow } from '@/components/NotificationMenuRow';
 
 function getRelativeTime(dateStr: string, lang: string): string {
   try {

@@ -1,4 +1,4 @@
-import { cn } from '../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface SkeletonProps {
   className?: string;
@@ -27,4 +27,3 @@ export function ListItemSkeleton() {
     </div>
   );
 }
-

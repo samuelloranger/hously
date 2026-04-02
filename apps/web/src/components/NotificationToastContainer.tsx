@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { NotificationType } from '@hously/shared';
-import { NotificationMenuRow } from './NotificationMenuRow';
-import { openNotificationTarget } from '../lib/notificationNavigation';
+import { NotificationMenuRow } from '@/components/NotificationMenuRow';
+import { openNotificationTarget } from '@/lib/notifications/navigation';
 
 interface ToastNotification {
   id: string;
@@ -12,6 +12,7 @@ interface ToastNotification {
   type: NotificationType;
   metadata?: Record<string, unknown> | null;
   url?: string | null;
+  leaving?: boolean;
 }
 
 interface IncomingMessageData {
@@ -22,17 +23,26 @@ interface IncomingMessageData {
     data?: {
       notification_type?: string | null;
       url?: string;
+      service_name?: string;
     };
   };
 }
 
 const NOTIFICATION_EVENT_CHANNEL = 'hously-notification-events';
 const TOAST_DURATION = 8000;
+const EXIT_DURATION = 300;
 const DEDUP_WINDOW_MS = 2000;
 
 export function NotificationToastContainer() {
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
   const recentKeys = useRef(new Set<string>());
+
+  const dismiss = useCallback((id: string) => {
+    setToasts(prev => prev.map(t => (t.id === id ? { ...t, leaving: true } : t)));
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, EXIT_DURATION);
+  }, []);
 
   useEffect(() => {
     const handleMessage = (data: unknown) => {
@@ -52,12 +62,11 @@ export function NotificationToastContainer() {
         body: notifData.body,
         type: (notifData.data?.notification_type as NotificationType) || 'system',
         url: notifData.data?.url || null,
+        metadata: notifData.data?.service_name ? { service_name: notifData.data.service_name } : null,
       };
 
       setToasts(prev => [...prev, toast]);
-      setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== toast.id));
-      }, TOAST_DURATION);
+      setTimeout(() => dismiss(toast.id), TOAST_DURATION);
     };
 
     const handleSWMessage = (event: MessageEvent) => handleMessage(event.data);
@@ -77,18 +86,21 @@ export function NotificationToastContainer() {
         channel.close();
       }
     };
-  }, []);
+  }, [dismiss]);
 
   if (toasts.length === 0) return null;
-
-  const dismiss = (id: string) => setToasts(prev => prev.filter(t => t.id !== id));
 
   return createPortal(
     <div className="fixed bottom-4 left-4 z-[9999] flex flex-col gap-2 w-80 pointer-events-none">
       {toasts.map(toast => (
         <div
           key={toast.id}
-          className="pointer-events-auto bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200/80 dark:border-neutral-700/60 overflow-hidden animate-in slide-in-from-left-4 fade-in duration-200"
+          className="pointer-events-auto bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200/80 dark:border-neutral-700/60 overflow-hidden"
+          style={{
+            animation: toast.leaving
+              ? `slideOutToLeft ${EXIT_DURATION}ms ease-in forwards`
+              : `slideInFromLeft 250ms ease-out forwards`,
+          }}
         >
           <div className="flex items-center justify-between px-3 pt-2 pb-0.5">
             <span className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider">
@@ -121,6 +133,6 @@ export function NotificationToastContainer() {
         </div>
       ))}
     </div>,
-    document.body,
+    document.body
   );
 }

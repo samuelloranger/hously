@@ -5,7 +5,6 @@
     "incremental": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
       "@hously/shared": ["./src/index.ts"],
       "@hously/shared/*": ["./src/*"]

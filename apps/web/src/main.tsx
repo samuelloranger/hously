@@ -2,17 +2,17 @@ import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { FetcherProvider } from '@hously/shared';
-import { router } from './router';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { checkVersionAndReload } from './lib/version';
-import { registerServiceWorker } from './lib/serviceWorker';
-import { useAutoInvalidateNotifications } from './hooks/useAutoInvalidateNotifications';
-import { useIOSImprovements } from './hooks/useIOSImprovements';
-import { NotificationToastContainer } from './components/NotificationToastContainer';
-import { setQueryClient } from './lib/queryClient';
-import { webFetcher } from './lib/fetcher';
-import './lib/i18n';
+import { FetcherProvider } from '@/lib/api/context';
+import { router } from '@/router';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { checkVersionAndReload } from '@/lib/version';
+import { registerServiceWorker } from '@/lib/sw/registration';
+import { useAutoInvalidateNotifications } from '@/lib/notifications/useAutoInvalidateNotifications';
+import { useIOSImprovements } from '@/hooks/useIOSImprovements';
+import { NotificationToastContainer } from '@/components/NotificationToastContainer';
+import { setQueryClient } from '@/lib/api/queryClient';
+import { webFetcher } from '@/lib/api/fetcher';
+import './lib/i18n/index';
 import './index.css';
 
 const queryClient = new QueryClient({

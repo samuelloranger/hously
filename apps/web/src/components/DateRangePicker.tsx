@@ -1,10 +1,10 @@
 import { format, startOfDay, isSameDay, isAfter } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '../lib/utils';
-import { Button } from './ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { Calendar, type CalendarRange } from './ui/calendar';
-import { TimePicker } from './ui/time-picker';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar, type CalendarRange } from '@/components/ui/calendar';
+import { TimePicker } from '@/components/ui/time-picker';
 import { toDateTimeLocal, parseDate } from '@hously/shared';
 import { useState } from 'react';
 

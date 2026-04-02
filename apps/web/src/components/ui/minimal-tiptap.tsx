@@ -1,11 +1,9 @@
-'use client';
-
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import { Button } from './button';
-import { Separator } from './separator';
-import { Toggle } from './toggle';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Toggle } from '@/components/ui/toggle';
 import {
   Bold,
   Italic,

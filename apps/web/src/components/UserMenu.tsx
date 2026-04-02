@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import * as Popover from '@radix-ui/react-popover';
-import { formatDisplayName, type User, useUpdateProfile } from '@hously/shared';
-import { useTheme } from '../hooks/useTheme';
-import { cn } from '../lib/utils';
+import { useUpdateProfile } from '@/hooks/useUsers';
+import { formatDisplayName, type User } from '@hously/shared';
+import { useTheme } from '@/hooks/useTheme';
+import { cn } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react';
-import { usePrefetchRoute } from '../hooks/usePrefetchRoute';
-import { navSections } from './navigation';
+import { usePrefetchRoute } from '@/lib/routing/usePrefetchRoute';
+import { navSections } from '@/lib/routing/navigation';
 
 interface UserMenuProps {
   user: User;
