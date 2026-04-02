@@ -678,6 +678,9 @@
     "dragHandle": "Drag to reorder",
     "deleteTask": "Delete task",
     "deleteConfirm": "Delete this task?",
+    "clickToEdit": "Click to edit",
+    "addDescription": "Add a description…",
+    "descriptionPlaceholder": "Description…",
     "status": {
       "on_hold": "On hold",
       "todo": "To do",

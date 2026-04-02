@@ -14,6 +14,7 @@ import {
   useCreateBoardTask,
   useDeleteBoardTask,
   useSyncBoardTasks,
+  useUpdateBoardTask,
 } from '@/hooks/useBoardTasks';
 import { BOARD_TASK_STATUSES, type BoardTask, type BoardTaskStatusApi } from '@hously/shared';
 import { BoardColumn } from './components/BoardColumn';
@@ -59,6 +60,7 @@ export function BoardView() {
   const { data, isLoading } = useBoardTasks();
   const syncMutation = useSyncBoardTasks();
   const createMutation = useCreateBoardTask();
+  const updateMutation = useUpdateBoardTask();
   const deleteMutation = useDeleteBoardTask();
 
   const groupedFromServer = useMemo(() => groupTasks(data?.tasks ?? []), [data?.tasks]);
@@ -114,6 +116,13 @@ export function BoardView() {
       }
     },
     [syncMutation]
+  );
+
+  const handleUpdate = useCallback(
+    (id: number, title: string, description: string | null) => {
+      updateMutation.mutate({ id, data: { title, description } });
+    },
+    [updateMutation]
   );
 
   const handleDelete = useCallback(
@@ -218,6 +227,7 @@ export function BoardView() {
                     columnId={status}
                     index={index}
                     onDelete={handleDelete}
+                    onUpdate={handleUpdate}
                   />
                 ))}
                 {columns[status].length === 0 ? (

@@ -677,6 +677,9 @@
     "dragHandle": "Glisser pour réorganiser",
     "deleteTask": "Supprimer la tâche",
     "deleteConfirm": "Supprimer cette tâche ?",
+    "clickToEdit": "Cliquer pour modifier",
+    "addDescription": "Ajouter une description…",
+    "descriptionPlaceholder": "Description…",
     "status": {
       "on_hold": "En attente",
       "todo": "À faire",
