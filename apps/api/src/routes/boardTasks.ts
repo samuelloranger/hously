@@ -1,40 +1,87 @@
 import { Elysia, t } from 'elysia';
-import { BoardTaskStatus } from '@prisma/client';
+import { BoardTaskStatus, BoardTaskPriority } from '@prisma/client';
 import { prisma } from '../db';
 import { auth } from '../auth';
 import { requireUser } from '../middleware/auth';
 import { formatIso, sanitizeInput } from '../utils';
 import { badRequest, notFound, serverError } from '../utils/errors';
 
-const STATUS_VALUES = ['on_hold', 'todo', 'in_progress', 'done'] as const;
+const STATUS_VALUES = ['backlog', 'on_hold', 'todo', 'in_progress', 'done'] as const;
 type StatusApi = (typeof STATUS_VALUES)[number];
 
-const API_TO_PRISMA: Record<StatusApi, BoardTaskStatus> = {
+const PRIORITY_VALUES = ['low', 'medium', 'high', 'urgent'] as const;
+type PriorityApi = (typeof PRIORITY_VALUES)[number];
+
+const API_TO_PRISMA_STATUS: Record<StatusApi, BoardTaskStatus> = {
+  backlog: BoardTaskStatus.BACKLOG,
   on_hold: BoardTaskStatus.ON_HOLD,
   todo: BoardTaskStatus.TODO,
   in_progress: BoardTaskStatus.IN_PROGRESS,
   done: BoardTaskStatus.DONE,
 };
 
-const PRISMA_TO_API: Record<BoardTaskStatus, StatusApi> = {
+const PRISMA_TO_API_STATUS: Record<BoardTaskStatus, StatusApi> = {
+  [BoardTaskStatus.BACKLOG]: 'backlog',
   [BoardTaskStatus.ON_HOLD]: 'on_hold',
   [BoardTaskStatus.TODO]: 'todo',
   [BoardTaskStatus.IN_PROGRESS]: 'in_progress',
   [BoardTaskStatus.DONE]: 'done',
 };
 
+const API_TO_PRISMA_PRIORITY: Record<PriorityApi, BoardTaskPriority> = {
+  low: BoardTaskPriority.LOW,
+  medium: BoardTaskPriority.MEDIUM,
+  high: BoardTaskPriority.HIGH,
+  urgent: BoardTaskPriority.URGENT,
+};
+
+const PRISMA_TO_API_PRIORITY: Record<BoardTaskPriority, PriorityApi> = {
+  [BoardTaskPriority.LOW]: 'low',
+  [BoardTaskPriority.MEDIUM]: 'medium',
+  [BoardTaskPriority.HIGH]: 'high',
+  [BoardTaskPriority.URGENT]: 'urgent',
+};
+
 function parseStatus(s: string | undefined, fallback: BoardTaskStatus): BoardTaskStatus {
   if (!s) return fallback;
   const api = s as StatusApi;
-  return API_TO_PRISMA[api] ?? fallback;
+  return API_TO_PRISMA_STATUS[api] ?? fallback;
+}
+
+function parsePriority(s: string | undefined, fallback: BoardTaskPriority): BoardTaskPriority {
+  if (!s) return fallback;
+  const api = s as PriorityApi;
+  return API_TO_PRISMA_PRIORITY[api] ?? fallback;
 }
 
 function isValidStatus(s: string): s is StatusApi {
   return (STATUS_VALUES as readonly string[]).includes(s);
 }
 
+function isValidPriority(s: string): s is PriorityApi {
+  return (PRIORITY_VALUES as readonly string[]).includes(s);
+}
+
+function toDateOnly(d: Date | null | undefined): string | null {
+  if (!d) return null;
+  return d.toISOString().split('T')[0];
+}
+
+function computeSlug(id: number): string {
+  return `HSLY-${String(id).padStart(3, '0')}`;
+}
+
 const taskInclude = {
   createdByUser: { select: { email: true as const, firstName: true as const } },
+  assignee: {
+    select: {
+      id: true as const,
+      firstName: true as const,
+      lastName: true as const,
+      email: true as const,
+      avatarUrl: true as const,
+    },
+  },
 };
 
 type TaskRow = {
@@ -43,19 +90,39 @@ type TaskRow = {
   description: string | null;
   status: BoardTaskStatus;
   position: number;
+  priority: BoardTaskPriority;
+  startDate: Date | null;
+  dueDate: Date | null;
+  assigneeId: number | null;
+  tags: string[];
   createdBy: number;
   createdAt: Date | null;
   updatedAt: Date | null;
   createdByUser: { email: string; firstName: string | null };
+  assignee: { id: number; firstName: string | null; lastName: string | null; email: string; avatarUrl: string | null } | null;
 };
 
 function mapTask(row: TaskRow) {
+  const assigneeName = row.assignee
+    ? (row.assignee.firstName
+        ? `${row.assignee.firstName}${row.assignee.lastName ? ' ' + row.assignee.lastName : ''}`
+        : row.assignee.email)
+    : null;
+
   return {
     id: row.id,
+    slug: computeSlug(row.id),
     title: row.title,
     description: row.description,
-    status: PRISMA_TO_API[row.status],
+    status: PRISMA_TO_API_STATUS[row.status],
     position: row.position,
+    priority: PRISMA_TO_API_PRIORITY[row.priority],
+    start_date: toDateOnly(row.startDate),
+    due_date: toDateOnly(row.dueDate),
+    assignee_id: row.assigneeId,
+    assignee_name: assigneeName,
+    assignee_avatar: row.assignee?.avatarUrl ?? null,
+    tags: row.tags,
     created_by: row.createdBy,
     created_at: formatIso(row.createdAt),
     updated_at: formatIso(row.updatedAt),
@@ -73,7 +140,7 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
         include: taskInclude,
       });
 
-      return { tasks: tasks.map(row => mapTask(row)) };
+      return { tasks: tasks.map(row => mapTask(row as unknown as TaskRow)) };
     } catch (error) {
       console.error('Error listing board tasks:', error);
       return serverError(set, 'Failed to list board tasks');
@@ -90,6 +157,10 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
 
       const description = body.description ? sanitizeInput(body.description.trim()) || null : null;
       const status = parseStatus(body.status, BoardTaskStatus.TODO);
+      const priority = parsePriority(body.priority, BoardTaskPriority.MEDIUM);
+      const tags = Array.isArray(body.tags)
+        ? body.tags.map((t: string) => sanitizeInput(t.trim())).filter(Boolean)
+        : [];
 
       try {
         const maxPos = await prisma.boardTask.aggregate({
@@ -104,12 +175,17 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
             description,
             status,
             position,
+            priority,
+            startDate: body.start_date ? new Date(body.start_date) : null,
+            dueDate: body.due_date ? new Date(body.due_date) : null,
+            assigneeId: body.assignee_id ?? null,
+            tags,
             createdBy: user!.id,
           },
           include: taskInclude,
         });
 
-        return { task: mapTask(created) };
+        return { task: mapTask(created as unknown as TaskRow) };
       } catch (error) {
         console.error('Error creating board task:', error);
         return serverError(set, 'Failed to create task');
@@ -120,6 +196,11 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
         title: t.String(),
         description: t.Optional(t.String()),
         status: t.Optional(t.String()),
+        priority: t.Optional(t.String()),
+        start_date: t.Optional(t.Nullable(t.String())),
+        due_date: t.Optional(t.Nullable(t.String())),
+        assignee_id: t.Optional(t.Nullable(t.Number())),
+        tags: t.Optional(t.Array(t.String())),
       }),
     }
   )
@@ -138,13 +219,18 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
           return notFound(set, 'Task not found');
         }
 
-        const { title, description, status: statusRaw } = body;
+        const { title, description, status: statusRaw, priority: priorityRaw } = body;
 
         const data: {
           title?: string;
           description?: string | null;
           status?: BoardTaskStatus;
           position?: number;
+          priority?: BoardTaskPriority;
+          startDate?: Date | null;
+          dueDate?: Date | null;
+          assigneeId?: number | null;
+          tags?: string[];
         } = {};
 
         if (title !== undefined) {
@@ -163,7 +249,7 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
           if (!isValidStatus(statusRaw)) {
             return badRequest(set, 'Invalid status');
           }
-          const nextStatus = API_TO_PRISMA[statusRaw];
+          const nextStatus = API_TO_PRISMA_STATUS[statusRaw];
           if (nextStatus !== existing.status) {
             const maxPos = await prisma.boardTask.aggregate({
               _max: { position: true },
@@ -174,13 +260,38 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
           }
         }
 
+        if (priorityRaw !== undefined) {
+          if (!isValidPriority(priorityRaw)) {
+            return badRequest(set, 'Invalid priority');
+          }
+          data.priority = API_TO_PRISMA_PRIORITY[priorityRaw];
+        }
+
+        if ('start_date' in body) {
+          data.startDate = body.start_date ? new Date(body.start_date) : null;
+        }
+
+        if ('due_date' in body) {
+          data.dueDate = body.due_date ? new Date(body.due_date) : null;
+        }
+
+        if ('assignee_id' in body) {
+          data.assigneeId = body.assignee_id ?? null;
+        }
+
+        if (body.tags !== undefined) {
+          data.tags = Array.isArray(body.tags)
+            ? body.tags.map((t: string) => sanitizeInput(t.trim())).filter(Boolean)
+            : [];
+        }
+
         const updated = await prisma.boardTask.update({
           where: { id },
           data,
           include: taskInclude,
         });
 
-        return { task: mapTask(updated) };
+        return { task: mapTask(updated as TaskRow) };
       } catch (error) {
         console.error('Error updating board task:', error);
         return serverError(set, 'Failed to update task');
@@ -192,6 +303,11 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
         title: t.Optional(t.String()),
         description: t.Optional(t.Nullable(t.String())),
         status: t.Optional(t.String()),
+        priority: t.Optional(t.String()),
+        start_date: t.Optional(t.Nullable(t.String())),
+        due_date: t.Optional(t.Nullable(t.String())),
+        assignee_id: t.Optional(t.Nullable(t.Number())),
+        tags: t.Optional(t.Array(t.String())),
       }),
     }
   )
@@ -258,7 +374,7 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
             return prisma.boardTask.update({
               where: { id: u.id },
               data: {
-                status: API_TO_PRISMA[statusApi],
+                status: API_TO_PRISMA_STATUS[statusApi],
                 position: u.position,
               },
             });

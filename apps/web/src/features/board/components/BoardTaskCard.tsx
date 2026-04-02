@@ -1,20 +1,23 @@
-import { useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/react/sortable';
-import { Trash2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import type { BoardTask, BoardTaskStatusApi } from '@hously/shared';
+import type { BoardTask, BoardTaskPriorityApi, BoardTaskStatusApi } from '@hously/shared';
+import { cn } from '@/lib/utils';
+import { AlertCircle, Clock } from 'lucide-react';
 
 interface BoardTaskCardProps {
   task: BoardTask;
   columnId: BoardTaskStatusApi;
   index: number;
-  onDelete: (id: number) => void;
-  onUpdate: (id: number, title: string, description: string | null) => void;
+  onClick: (task: BoardTask) => void;
 }
 
-export function BoardTaskCard({ task, columnId, index, onDelete, onUpdate }: BoardTaskCardProps) {
-  const { t } = useTranslation('common');
+const PRIORITY_DOT: Record<BoardTaskPriorityApi, string> = {
+  low: 'bg-sky-400',
+  medium: 'bg-amber-400',
+  high: 'bg-orange-500',
+  urgent: 'bg-red-500',
+};
+
+export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardProps) {
   const { ref, handleRef, isDragging } = useSortable({
     id: task.id,
     index,
@@ -23,124 +26,122 @@ export function BoardTaskCard({ task, columnId, index, onDelete, onUpdate }: Boa
     accept: 'item',
   });
 
-  const [editingField, setEditingField] = useState<'title' | 'description' | null>(null);
-  const [titleDraft, setTitleDraft] = useState(task.title);
-  const [descriptionDraft, setDescriptionDraft] = useState(task.description ?? '');
-  const titleRef = useRef<HTMLInputElement>(null);
-  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const today = new Date(new Date().toDateString());
+  const dueDate = task.due_date ? new Date(task.due_date) : null;
+  const isOverdue = dueDate ? dueDate < today : false;
+  const isDueToday = dueDate ? dueDate.getTime() === today.getTime() : false;
+  const isDueSoon =
+    dueDate && !isOverdue && !isDueToday
+      ? (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) <= 3
+      : false;
 
-  const commitTitle = () => {
-    const trimmed = titleDraft.trim();
-    if (!trimmed) {
-      setTitleDraft(task.title);
-    } else if (trimmed !== task.title) {
-      onUpdate(task.id, trimmed, task.description ?? null);
-    }
-    setEditingField(null);
-  };
+  const dueDateLabel = dueDate
+    ? isOverdue
+      ? `Overdue · ${dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+      : isDueToday
+        ? 'Due today'
+        : dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    : null;
 
-  const commitDescription = () => {
-    const trimmed = descriptionDraft.trim() || null;
-    if (trimmed !== (task.description ?? null)) {
-      onUpdate(task.id, task.title, trimmed);
-    }
-    setEditingField(null);
-  };
-
-  const startEdit = (field: 'title' | 'description') => {
-    if (field === 'title') setTitleDraft(task.title);
-    if (field === 'description') setDescriptionDraft(task.description ?? '');
-    setEditingField(field);
-    requestAnimationFrame(() => {
-      if (field === 'title') titleRef.current?.select();
-      if (field === 'description') descriptionRef.current?.focus();
-    });
-  };
+  const initials = task.assignee_name
+    ? task.assignee_name
+        .split(' ')
+        .map(w => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : null;
 
   return (
     <div
-      ref={(node: HTMLDivElement | null) => { (ref as React.RefCallback<HTMLDivElement>)(node); (handleRef as React.RefCallback<HTMLDivElement>)(node); }}
-      style={{ opacity: isDragging ? 0.85 : 1, zIndex: isDragging ? 20 : undefined }}
-      className="group cursor-grab rounded-lg border border-neutral-200/90 bg-white p-3 shadow-sm active:cursor-grabbing dark:border-neutral-600/60 dark:bg-neutral-800"
+      ref={(node: HTMLDivElement | null) => {
+        (ref as React.RefCallback<HTMLDivElement>)(node);
+        (handleRef as React.RefCallback<HTMLDivElement>)(node);
+      }}
+      style={{ opacity: isDragging ? 0.75 : 1, zIndex: isDragging ? 20 : undefined }}
+      onClick={() => onClick(task)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => e.key === 'Enter' && onClick(task)}
+      className="group cursor-pointer rounded-lg border border-neutral-200/90 bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:border-neutral-600/60 dark:bg-neutral-800 dark:hover:border-neutral-500/60"
     >
-      <div className="flex gap-2">
-        <div className="min-w-0 flex-1">
-          {editingField === 'title' ? (
-            <input
-              ref={titleRef}
-              value={titleDraft}
-              onChange={e => setTitleDraft(e.target.value)}
-              onPointerDown={e => e.stopPropagation()}
-              onBlur={commitTitle}
-              onKeyDown={e => {
-                if (e.key === 'Enter') { e.preventDefault(); commitTitle(); }
-                if (e.key === 'Escape') { setTitleDraft(task.title); setEditingField(null); }
-              }}
-              className="w-full rounded border border-indigo-400 bg-white px-1.5 py-0.5 text-sm font-medium text-neutral-900 outline-none ring-1 ring-indigo-400 dark:bg-neutral-700 dark:text-white"
-            />
-          ) : (
-            <p
-              role="button"
-              tabIndex={0}
-              onClick={() => startEdit('title')}
-              onKeyDown={e => e.key === 'Enter' && startEdit('title')}
-              className="cursor-text text-sm font-medium text-neutral-900 hover:text-indigo-600 dark:text-white dark:hover:text-indigo-400"
-              title={t('board.clickToEdit')}
-            >
-              {task.title}
-            </p>
-          )}
+      {/* Top row: slug + priority dot */}
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-mono text-[10px] font-semibold text-neutral-400 dark:text-neutral-500">
+          {task.slug}
+        </span>
+        <span
+          className={cn('h-2 w-2 rounded-full', PRIORITY_DOT[task.priority])}
+          title={task.priority}
+        />
+      </div>
 
-          {editingField === 'description' ? (
-            <textarea
-              ref={descriptionRef}
-              value={descriptionDraft}
-              onChange={e => setDescriptionDraft(e.target.value)}
-              onPointerDown={e => e.stopPropagation()}
-              onBlur={commitDescription}
-              onKeyDown={e => {
-                if (e.key === 'Escape') { setDescriptionDraft(task.description ?? ''); setEditingField(null); }
-              }}
-              rows={3}
-              placeholder={t('board.descriptionPlaceholder')}
-              className="mt-1 w-full resize-none rounded border border-indigo-400 bg-white px-1.5 py-0.5 text-xs text-neutral-600 outline-none ring-1 ring-indigo-400 dark:bg-neutral-700 dark:text-neutral-300"
-            />
-          ) : (
-            <p
-              role="button"
-              tabIndex={0}
-              onClick={() => startEdit('description')}
-              onKeyDown={e => e.key === 'Enter' && startEdit('description')}
-              className={`mt-1 cursor-text text-xs ${
-                task.description
-                  ? 'line-clamp-3 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
-                  : 'text-neutral-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-neutral-600'
-              }`}
-              title={t('board.clickToEdit')}
-            >
-              {task.description || t('board.addDescription')}
-            </p>
-          )}
+      {/* Title */}
+      <p className="text-sm font-medium leading-snug text-neutral-900 dark:text-white">
+        {task.title}
+      </p>
 
-          {task.created_by_username ? (
-            <p className="mt-2 text-[11px] text-neutral-400 dark:text-neutral-500">
-              {task.created_by_username}
-            </p>
+      {/* Tags */}
+      {task.tags.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {task.tags.slice(0, 3).map(tag => (
+            <span
+              key={tag}
+              className="rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
+            >
+              {tag}
+            </span>
+          ))}
+          {task.tags.length > 3 && (
+            <span className="rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-400 dark:bg-neutral-700 dark:text-neutral-500">
+              +{task.tags.length - 3}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Bottom row: due date + assignee */}
+      {(dueDateLabel || initials) && (
+        <div className="mt-2.5 flex items-center gap-2">
+          {dueDateLabel && (
+            <span
+              className={cn(
+                'flex items-center gap-1 text-[11px] font-medium',
+                isOverdue
+                  ? 'text-red-500 dark:text-red-400'
+                  : isDueToday
+                    ? 'text-orange-500 dark:text-orange-400'
+                    : isDueSoon
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-neutral-400 dark:text-neutral-500'
+              )}
+            >
+              {isOverdue ? (
+                <AlertCircle className="h-3 w-3" />
+              ) : (
+                <Clock className="h-3 w-3" />
+              )}
+              {dueDateLabel}
+            </span>
+          )}
+          <div className="flex-1" />
+          {task.assignee_avatar ? (
+            <img
+              src={task.assignee_avatar}
+              alt={task.assignee_name ?? ''}
+              title={task.assignee_name ?? ''}
+              className="h-5 w-5 rounded-full object-cover ring-1 ring-white dark:ring-neutral-800"
+            />
+          ) : initials ? (
+            <span
+              title={task.assignee_name ?? ''}
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-[9px] font-bold text-indigo-600 ring-1 ring-white dark:bg-indigo-900/40 dark:text-indigo-400 dark:ring-neutral-800"
+            >
+              {initials}
+            </span>
           ) : null}
         </div>
-
-        <Button
-          onPointerDown={e => e.stopPropagation()}
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
-          onClick={() => onDelete(task.id)}
-          aria-label={t('board.deleteTask')}
-        >
-          <Trash2 className="h-4 w-4 text-neutral-400 hover:text-red-600" />
-        </Button>
-      </div>
+      )}
     </div>
   );
 }
