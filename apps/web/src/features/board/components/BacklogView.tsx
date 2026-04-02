@@ -1,6 +1,14 @@
 import { AlertCircle, Clock, Inbox } from 'lucide-react';
-import type { BoardTask, BoardTaskPriorityApi } from '@hously/shared';
+import { useTranslation } from 'react-i18next';
+import type { BoardTask, BoardTaskPriorityApi, BoardTaskStatusApi } from '@hously/shared';
 import { cn } from '@/lib/utils';
+
+const STATUS_STYLE: Partial<Record<BoardTaskStatusApi, string>> = {
+  on_hold: 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400',
+  todo: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+  in_progress: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400',
+  done: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+};
 
 interface BacklogViewProps {
   tasks: BoardTask[];
@@ -22,6 +30,7 @@ const PRIORITY_LABEL: Record<BoardTaskPriorityApi, string> = {
 };
 
 export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
+  const { t } = useTranslation('common');
   const today = new Date(new Date().toDateString());
 
   if (tasks.length === 0) {
@@ -98,6 +107,18 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
                   <span className="text-[10px] text-neutral-400">+{task.tags.length - 2}</span>
                 )}
               </div>
+            )}
+
+            {/* Status badge — hidden for backlog items */}
+            {task.status !== 'backlog' && STATUS_STYLE[task.status as BoardTaskStatusApi] && (
+              <span
+                className={cn(
+                  'hidden shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium sm:block',
+                  STATUS_STYLE[task.status as BoardTaskStatusApi]
+                )}
+              >
+                {t(`board.status.${task.status}`, { defaultValue: task.status })}
+              </span>
             )}
 
             {/* Due date */}
