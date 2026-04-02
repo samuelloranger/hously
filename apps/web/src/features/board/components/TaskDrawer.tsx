@@ -12,6 +12,8 @@ import {
   Plus,
 } from 'lucide-react';
 import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
+import { Dialog } from '@/components/dialog';
+import { Button } from '@/components/ui/button';
 import { useUsers } from '@/hooks/useUsers';
 import type { BoardTask, BoardTaskStatusApi, BoardTaskPriorityApi } from '@hously/shared';
 import { BOARD_TASK_STATUSES, BOARD_TASK_PRIORITIES } from '@hously/shared';
@@ -61,6 +63,7 @@ export function TaskDrawer({ task, onClose, onUpdate, onDelete }: TaskDrawerProp
 
   const [titleDraft, setTitleDraft] = useState('');
   const [tagInput, setTagInput] = useState('');
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -131,6 +134,35 @@ export function TaskDrawer({ task, onClose, onUpdate, onDelete }: TaskDrawerProp
         aria-hidden="true"
       />
 
+      {/* Delete confirm dialog */}
+      {task && (
+        <Dialog
+          isOpen={confirmDeleteOpen}
+          onClose={() => setConfirmDeleteOpen(false)}
+          title={t('board.deleteTask')}
+          panelClassName="max-w-sm"
+          showCloseButton={false}
+        >
+          <p className="mb-6 text-sm text-neutral-600 dark:text-neutral-300">
+            {t('board.deleteConfirm')}
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setConfirmDeleteOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setConfirmDeleteOpen(false);
+                onDelete(task.id);
+              }}
+            >
+              Delete
+            </Button>
+          </div>
+        </Dialog>
+      )}
+
       {/* Drawer panel */}
       <div
         role="dialog"
@@ -152,9 +184,7 @@ export function TaskDrawer({ task, onClose, onUpdate, onDelete }: TaskDrawerProp
               </span>
               <div className="flex-1" />
               <button
-                onClick={() => {
-                  if (confirm(t('board.deleteConfirm'))) onDelete(task.id);
-                }}
+                onClick={() => setConfirmDeleteOpen(true)}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                 aria-label={t('board.deleteTask')}
               >
@@ -326,6 +356,7 @@ export function TaskDrawer({ task, onClose, onUpdate, onDelete }: TaskDrawerProp
                     }
                   }}
                   placeholder="Add a description…"
+                  compact
                   className="min-h-[160px] rounded-xl border-neutral-200/80 dark:border-neutral-700/60"
                 />
               </div>

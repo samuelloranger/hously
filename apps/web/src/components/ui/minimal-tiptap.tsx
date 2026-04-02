@@ -28,6 +28,8 @@ interface MinimalTiptapProps {
   placeholder?: string;
   editable?: boolean;
   className?: string;
+  /** Use smaller prose size — for drawers and tight spaces */
+  compact?: boolean;
 }
 
 export function MinimalTiptap({
@@ -36,6 +38,7 @@ export function MinimalTiptap({
   placeholder = 'Start typing...',
   editable = true,
   className,
+  compact = false,
 }: MinimalTiptapProps) {
   const editor = useEditor({
     extensions: [
@@ -64,8 +67,10 @@ export function MinimalTiptap({
     editorProps: {
       attributes: {
         class: cn(
-          'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
-          'min-h-[200px] p-4 border-0 dark:prose-invert'
+          compact
+            ? 'prose prose-sm max-w-none focus:outline-none'
+            : 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
+          'min-h-[120px] p-4 border-0 dark:prose-invert'
         ),
       },
     },

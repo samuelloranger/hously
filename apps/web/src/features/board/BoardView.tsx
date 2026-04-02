@@ -120,10 +120,7 @@ export function BoardView() {
     () => allTasks.filter(t => (BOARD_KANBAN_STATUSES as readonly string[]).includes(t.status)),
     [allTasks]
   );
-  const backlogTasks = useMemo(
-    () => allTasks.filter(t => t.status === 'backlog'),
-    [allTasks]
-  );
+  const backlogTasks = allTasks;
 
   const groupedFromServer = useMemo(() => groupTasks(kanbanTasks), [kanbanTasks]);
   const [columns, setColumns] = useState<Record<BoardKanbanStatusApi, BoardTask[]>>(groupedFromServer);

@@ -3,7 +3,7 @@ import { BoardTaskStatus, BoardTaskPriority } from '@prisma/client';
 import { prisma } from '../db';
 import { auth } from '../auth';
 import { requireUser } from '../middleware/auth';
-import { formatIso, sanitizeInput } from '../utils';
+import { formatIso, sanitizeInput, sanitizeRichText } from '../utils';
 import { badRequest, notFound, serverError } from '../utils/errors';
 
 const STATUS_VALUES = ['backlog', 'on_hold', 'todo', 'in_progress', 'done'] as const;
@@ -155,7 +155,7 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
         return badRequest(set, 'Title is required');
       }
 
-      const description = body.description ? sanitizeInput(body.description.trim()) || null : null;
+      const description = body.description ? sanitizeRichText(body.description.trim()) || null : null;
       const status = parseStatus(body.status, BoardTaskStatus.TODO);
       const priority = parsePriority(body.priority, BoardTaskPriority.MEDIUM);
       const tags = Array.isArray(body.tags)
@@ -242,7 +242,7 @@ export const boardTasksRoutes = new Elysia({ prefix: '/api/board-tasks' })
         }
 
         if (description !== undefined) {
-          data.description = description ? sanitizeInput(description.trim()) || null : null;
+          data.description = description ? sanitizeRichText(description.trim()) || null : null;
         }
 
         if (statusRaw !== undefined) {

@@ -17,6 +17,21 @@ import { validateImageMimeAndSize } from '@hously/shared';
 
 export const usersRoutes = new Elysia({ prefix: '/api/users' })
   .use(auth)
+  // GET /api/users - List all users (for assignee pickers, etc.)
+  .get('/', async ({ user, set }) => {
+    if (!user) {
+      return unauthorized(set, 'Unauthorized');
+    }
+    try {
+      const users = await prisma.user.findMany({
+        orderBy: [{ firstName: 'asc' }, { email: 'asc' }],
+      });
+      return { users: users.map(mapUser) };
+    } catch (error) {
+      console.error('Error listing users:', error);
+      return serverError(set, 'Failed to list users');
+    }
+  })
   // GET /api/users/me - Get current user profile
   .get('/me', async ({ user, set }) => {
     if (!user) {
