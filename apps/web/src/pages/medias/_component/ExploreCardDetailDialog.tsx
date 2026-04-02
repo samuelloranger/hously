@@ -607,13 +607,13 @@ export function ExploreCardDetailDialog({
                       type="button"
                       onClick={() => setActiveTab(key)}
                       className={cn(
-                        'flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-[background-color,color] duration-150',
+                        'flex items-center gap-1.5 rounded-full px-3 py-2 md:px-3.5 md:py-1.5 text-xs font-medium transition-[background-color,color] duration-150',
                         validTab === key
                           ? 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
                           : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-300'
                       )}
                     >
-                      <Icon size={11} />
+                      <Icon size={14} />
                       {label}
                     </button>
                   ))}

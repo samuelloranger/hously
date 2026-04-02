@@ -1577,8 +1577,9 @@
     "title": "Medias",
     "subtitle": "Merged Radarr and Sonarr library",
     "tabs": {
-      "explore": "Explore",
-      "library": "Library"
+      "discover": "Discover",
+      "search": "Search",
+      "ai": "AI"
     },
     "library": {
       "pageTitle": "Library",
