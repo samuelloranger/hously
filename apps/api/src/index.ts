@@ -33,6 +33,7 @@ import { mediasWatchlistRoutes } from './routes/medias/watchlist';
 import { mediasCollectionsRoutes } from './routes/medias/collections';
 import { mediasAiSuggestionsRoutes } from './routes/medias/aiSuggestions';
 import { habitsRoutes } from './routes/habits';
+import { boardTasksRoutes } from './routes/boardTasks';
 import { systemRoutes } from './routes/system';
 import { searchRoutes } from './routes/search';
 import { globalRateLimit } from './middleware/rateLimit';
@@ -87,6 +88,7 @@ export const app = new Elysia()
   .use(mediasCollectionsRoutes)
   .use(mediasAiSuggestionsRoutes)
   .use(habitsRoutes)
+  .use(boardTasksRoutes)
   .use(systemRoutes)
   .use(searchRoutes)
   .get('/health', () => ({ status: 'ok' }))

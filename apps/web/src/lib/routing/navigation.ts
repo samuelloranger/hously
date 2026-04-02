@@ -4,6 +4,7 @@ import {
   Compass,
   CookingPot,
   LayoutDashboard,
+  LayoutGrid,
   Layers2,
   Library,
   ListChecks,
@@ -31,6 +32,7 @@ export const navSections: NavSection[] = [
     items: [
       { path: '/', translationKey: 'nav.dashboard', icon: LayoutDashboard, mobileIcon: '📊' },
       { path: '/chores', translationKey: 'nav.chores', icon: ListChecks, mobileIcon: '✅' },
+      { path: '/board', translationKey: 'nav.board', icon: LayoutGrid, mobileIcon: '📋' },
       { path: '/habits', translationKey: 'nav.habits', icon: Target, mobileIcon: '🎯' },
       { path: '/shopping', translationKey: 'nav.shopping', icon: ShoppingCart, mobileIcon: '🛒' },
       { path: '/calendar', translationKey: 'nav.calendar', icon: CalendarIcon, mobileIcon: '📅' },

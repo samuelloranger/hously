@@ -42,8 +42,32 @@ model User {
   liveActivityTokens     LiveActivityToken[]
   invitationsSent        Invitation[]         @relation("InvitationInviter")
   watchlistItems         WatchlistItem[]
+  boardTasks             BoardTask[]
 
   @@map("users")
+}
+
+enum BoardTaskStatus {
+  ON_HOLD
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+model BoardTask {
+  id          Int             @id @default(autoincrement())
+  title       String
+  description String?
+  status      BoardTaskStatus
+  position    Int
+  createdBy   Int             @map("created_by")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  createdByUser User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([status, position], map: "ix_board_tasks_status_position")
+  @@map("board_tasks")
 }
 
 model Notification {

@@ -199,6 +199,11 @@ export const queryKeys = {
     history: (id: number) => [...queryKeys.habits.all, 'history', id] as const,
   },
 
+  boardTasks: {
+    all: ['board-tasks'] as const,
+    list: () => [...queryKeys.boardTasks.all, 'list'] as const,
+  },
+
   search: {
     all: ['search'] as const,
     quick: (query: string) => [...queryKeys.search.all, 'quick', query] as const,

@@ -16,6 +16,7 @@ import {
   RECIPES_ENDPOINTS,
   SHOPPING_ENDPOINTS,
   HABIT_ENDPOINTS,
+  BOARD_TASKS_ENDPOINTS,
   type DashboardJellyfinLatestResponse,
   type HomeAssistantWidgetResponse,
   type UserResponse,
@@ -192,6 +193,8 @@ const routeQueryDefinitions = {
   ],
 
   '/chores': () => [{ queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) }],
+
+  '/board': () => [{ queryKey: queryKeys.boardTasks.list(), queryFn: () => webFetcher(BOARD_TASKS_ENDPOINTS.LIST) }],
 
   '/habits': () => [{ queryKey: queryKeys.habits.list(), queryFn: () => webFetcher(HABIT_ENDPOINTS.LIST) }],
 

@@ -3,6 +3,7 @@
     "dashboard": "Home",
     "shopping": "Shopping",
     "chores": "Chores",
+    "board": "Board",
     "recipes": "Recipes",
     "kitchen": "Kitchen",
     "explore": "Explore",
@@ -664,6 +665,25 @@
     "notesPlaceholder": "Notes (optional)...",
     "addNotes": "Add notes",
     "unknown": "Unknown"
+  },
+  "board": {
+    "title": "Board",
+    "subtitle": "Kanban tasks for your household — drag cards between columns.",
+    "newTaskTitle": "New task",
+    "newTaskPlaceholder": "What needs to happen?",
+    "column": "Column",
+    "addTask": "Add task",
+    "emptyColumn": "Drop tasks here",
+    "saving": "Saving…",
+    "dragHandle": "Drag to reorder",
+    "deleteTask": "Delete task",
+    "deleteConfirm": "Delete this task?",
+    "status": {
+      "on_hold": "On hold",
+      "todo": "To do",
+      "in_progress": "In progress",
+      "done": "Done"
+    }
   },
   "chores": {
     "title": "Chores",

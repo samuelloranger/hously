@@ -13,3 +13,4 @@ export * from './weather';
 export * from './media';
 export * from './habits';
 export * from './search';
+export * from './boardTasks';

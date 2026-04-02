@@ -1,51 +1,39 @@
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { ReactNode, useState, useRef, type CSSProperties } from 'react';
+import { DragDropProvider, KeyboardSensor, PointerSensor } from '@dnd-kit/react';
+import { isSortable, useSortable } from '@dnd-kit/react/sortable';
+import { PointerActivationConstraints, type DragEndEvent } from '@dnd-kit/dom';
+import { ReactNode, useState, type CSSProperties, type Ref } from 'react';
 import { GripVertical } from 'lucide-react';
+
+type DragEndPayload = Parameters<DragEndEvent>[0];
 
 interface SortableItemProps {
   id: string | number;
+  index: number;
   children: (handleProps: {
     setNodeRef: (node: HTMLElement | null) => void;
-    attributes: any;
-    listeners: any;
+    handleRef: (node: Element | null) => void;
     style: CSSProperties;
     isDragging: boolean;
   }) => ReactNode;
 }
 
-function SortableItem({ id, children }: SortableItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+function SortableItem({ id, index, children }: SortableItemProps) {
+  const { ref, handleRef, isDragging } = useSortable({ id, index });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : transition, // Désactiver la transition pendant le drag
+  const style: CSSProperties = {
     opacity: isDragging ? 0.8 : 1,
     zIndex: isDragging ? 50 : 'auto',
+  };
+
+  const setNodeRef = (node: HTMLElement | null) => {
+    ref(node);
   };
 
   return (
     <>
       {children({
         setNodeRef,
-        attributes,
-        listeners,
+        handleRef,
         style,
         isDragging,
       })}
@@ -53,11 +41,10 @@ function SortableItem({ id, children }: SortableItemProps) {
   );
 }
 
-export function DragHandle({ listeners, attributes }: { listeners: any; attributes: any }) {
+export function DragHandle({ handleRef }: { handleRef: (element: Element | null) => void }) {
   return (
     <div
-      {...listeners}
-      {...attributes}
+      ref={handleRef as Ref<HTMLDivElement>}
       className="cursor-grab active:cursor-grabbing text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 p-1 -ml-1"
       aria-label="Drag to reorder"
     >
@@ -73,8 +60,7 @@ interface SortableListProps<T extends { id: number | string }> {
     item: T,
     handleProps: {
       setNodeRef: (node: HTMLElement | null) => void;
-      attributes: any;
-      listeners: any;
+      handleRef: (node: Element | null) => void;
       style: CSSProperties;
       isDragging: boolean;
     }
@@ -92,57 +78,51 @@ export function SortableList<T extends { id: number | string }>({
   disabled = false,
   isPending = false,
 }: SortableListProps<T>) {
-  // État local uniquement pendant un drag actif pour éviter la duplication de mémoire
   const [localItems, setLocalItems] = useState<T[] | null>(null);
-  // Ref pour tracker si on est en train de drag (évite les re-renders)
-  const isDraggingRef = useRef(false);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Délai avant activation pour éviter les drags accidentels
-      },
+  const sensors = [
+    PointerSensor.configure({
+      activationConstraints: [new PointerActivationConstraints.Distance({ value: 8 })],
     }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+    KeyboardSensor,
+  ];
 
-  const handleDragStart = (_event: DragStartEvent) => {
-    isDraggingRef.current = true;
-    // Initialiser l'état local seulement au début du drag
+  const handleDragStart = () => {
     setLocalItems(items);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    isDraggingRef.current = false;
+  const handleDragEnd = (event: DragEndPayload) => {
+    const { canceled, operation } = event;
 
-    if (over && active.id !== over.id && localItems) {
-      const oldIndex = localItems.findIndex(item => item.id === active.id);
-      const newIndex = localItems.findIndex(item => item.id === over.id);
-
-      const newOrder = arrayMove(localItems, oldIndex, newIndex);
-
-      // Mettre à jour l'état local immédiatement pour éviter le flash
-      setLocalItems(newOrder);
-
-      // Appeler la mutation de manière asynchrone
-      setTimeout(() => {
-        onReorder(newOrder);
-        // Réinitialiser l'état local après un court délai pour libérer la mémoire
-        setTimeout(() => {
-          setLocalItems(null);
-        }, 100);
-      }, 0);
-    } else {
-      // Si pas de changement, réinitialiser immédiatement
+    if (canceled) {
       setLocalItems(null);
+      return;
     }
+
+    const source = operation.source;
+    if (!isSortable(source) || localItems == null) {
+      setLocalItems(null);
+      return;
+    }
+
+    const { initialIndex, index } = source.sortable;
+    if (initialIndex === index) {
+      setLocalItems(null);
+      return;
+    }
+
+    const next = [...localItems];
+    const [removed] = next.splice(initialIndex, 1);
+    next.splice(index, 0, removed);
+
+    setLocalItems(next);
+    onReorder(next);
+    setTimeout(() => {
+      setLocalItems(null);
+    }, 100);
   };
 
   const isDisabled = disabled || isPending;
-  // Utiliser localItems seulement s'il existe (pendant/après drag), sinon items
   const displayItems = isDisabled || !localItems ? items : localItems;
 
   if (isDisabled) {
@@ -151,8 +131,7 @@ export function SortableList<T extends { id: number | string }>({
         {displayItems.map(item =>
           children(item, {
             setNodeRef: () => {},
-            attributes: {},
-            listeners: {},
+            handleRef: () => {},
             style: {},
             isDragging: false,
           })
@@ -162,21 +141,14 @@ export function SortableList<T extends { id: number | string }>({
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext items={displayItems} strategy={verticalListSortingStrategy}>
-        <div className={className}>
-          {displayItems.map(item => (
-            <SortableItem key={item.id} id={item.id}>
-              {handleProps => children(item, handleProps)}
-            </SortableItem>
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
+    <DragDropProvider sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className={className}>
+        {displayItems.map((item, index) => (
+          <SortableItem key={item.id} id={item.id} index={index}>
+            {handleProps => children(item, handleProps)}
+          </SortableItem>
+        ))}
+      </div>
+    </DragDropProvider>
   );
 }

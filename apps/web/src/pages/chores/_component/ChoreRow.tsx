@@ -29,8 +29,7 @@ interface ChoreRowProps {
   users: ChoreUser[];
   dragHandleProps?: {
     setNodeRef: (node: HTMLElement | null) => void;
-    attributes: any;
-    listeners: any;
+    handleRef: (node: Element | null) => void;
     style: CSSProperties;
     isDragging: boolean;
   };
@@ -121,7 +120,7 @@ export function ChoreRow({ chore, users, dragHandleProps, setParams, resetParams
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-2 min-w-0 flex-1">
           {dragHandleProps && !chore.completed && (
-            <DragHandle listeners={dragHandleProps.listeners} attributes={dragHandleProps.attributes} />
+            <DragHandle handleRef={dragHandleProps.handleRef} />
           )}
           <div className="flex items-start space-x-4">
             <CompleteCheckbox

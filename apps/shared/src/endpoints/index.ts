@@ -15,3 +15,4 @@ export * from './system';
 export * from './medias';
 export * from './habits';
 export * from './search';
+export * from './boardTasks';

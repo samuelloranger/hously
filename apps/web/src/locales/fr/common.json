@@ -3,6 +3,7 @@
     "dashboard": "Accueil",
     "shopping": "Courses",
     "chores": "Tâches",
+    "board": "Tableau",
     "recipes": "Recettes",
     "kitchen": "Cuisine",
     "explore": "Découvrir",
@@ -663,6 +664,25 @@
     "notesPlaceholder": "Notes (optionnel)...",
     "addNotes": "Ajouter des notes",
     "unknown": "Inconnu"
+  },
+  "board": {
+    "title": "Tableau",
+    "subtitle": "Tâches Kanban pour le foyer — glissez les cartes entre les colonnes.",
+    "newTaskTitle": "Nouvelle tâche",
+    "newTaskPlaceholder": "Qu'est-ce qu'il faut faire ?",
+    "column": "Colonne",
+    "addTask": "Ajouter",
+    "emptyColumn": "Déposez des tâches ici",
+    "saving": "Enregistrement…",
+    "dragHandle": "Glisser pour réorganiser",
+    "deleteTask": "Supprimer la tâche",
+    "deleteConfirm": "Supprimer cette tâche ?",
+    "status": {
+      "on_hold": "En attente",
+      "todo": "À faire",
+      "in_progress": "En cours",
+      "done": "Terminé"
+    }
   },
   "chores": {
     "title": "Tâches",
