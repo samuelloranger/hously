@@ -13,7 +13,6 @@ import type {
   OllamaPluginConfig,
   TrackerPluginConfig,
   WeatherPluginConfig,
-  ClockifyPluginConfig,
   HomeAssistantPluginConfig,
 } from "./types";
 import { decrypt } from "../../services/crypto";
@@ -280,26 +279,7 @@ export const normalizeRedditConfig = (config: unknown): RedditPluginConfig => {
   return { subreddits: valid.length > 0 ? valid : defaults.subreddits };
 };
 
-export const normalizeClockifyConfig = (
-  config: unknown,
-): ClockifyPluginConfig => {
-  const defaults: ClockifyPluginConfig = {
-    api_key: "",
-    workspace_id: "",
-    user_id: "",
-  };
-  if (!config || typeof config !== "object" || Array.isArray(config))
-    return defaults;
-  const cfg = config as Record<string, unknown>;
 
-  const apiKey = normalizeSecret(cfg["api_key"]);
-  const workspaceId =
-    typeof cfg["workspace_id"] === "string" ? cfg["workspace_id"].trim() : "";
-  const userId =
-    typeof cfg["user_id"] === "string" ? cfg["user_id"].trim() : "";
-
-  return { api_key: apiKey, workspace_id: workspaceId, user_id: userId };
-};
 
 export const normalizeHackernewsConfig = (
   config: unknown,

@@ -12,7 +12,6 @@ import {
   SonarrPluginSection,
   TmdbPluginSection,
   OllamaPluginSection,
-  ClockifyPluginSection,
   TrackersPluginSection,
   WeatherPluginSection,
   HomeAssistantPluginSection,
@@ -71,7 +70,6 @@ export function PluginsTab() {
           <HomeAssistantPluginSection />
           <TmdbPluginSection />
           <OllamaPluginSection />
-          <ClockifyPluginSection />
           <JellyfinPluginSection />
           <ProwlarrPluginSection />
           <RadarrPluginSection />

@@ -15,8 +15,7 @@ type JobAction =
   | "fetch_torr9_stats"
   | "fetch_la_cale_stats"
   | "refresh_upcoming"
-  | "refresh_habits_streaks"
-  | "check_clockify_hours";
+  | "refresh_habits_streaks";
 
 type JobConfig = {
   action: JobAction;
@@ -89,13 +88,6 @@ const JOBS: JobConfig[] = [
     icon: "🔥",
     labelKey: "settings.jobs.actions.refreshHabitsStreaks.label",
     descriptionKey: "settings.jobs.actions.refreshHabitsStreaks.description",
-  },
-  {
-    action: "check_clockify_hours",
-    jobNames: ["check-clockify-hours"],
-    icon: "⏱️",
-    labelKey: "settings.jobs.actions.checkClockifyHours.label",
-    descriptionKey: "settings.jobs.actions.checkClockifyHours.description",
   },
 ];
 

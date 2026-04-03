@@ -91,14 +91,6 @@ export interface OllamaPlugin {
   model: string;
 }
 
-export interface ClockifyPlugin {
-  type: "clockify",
-  enabled: boolean;
-  api_key: string;
-  workspace_id: string;
-  user_id: string;
-}
-
 export interface TrackerPlugin {
   type: TrackerType;
   enabled: boolean;
@@ -196,10 +188,7 @@ export interface WeatherPluginUpdateResponse {
   plugin: WeatherPlugin;
 }
 
-export interface ClockifyPluginUpdateResponse {
-  success: boolean;
-  plugin: ClockifyPlugin;
-}
+
 
 export interface TmdbPluginUpdateResponse {
   success: boolean;

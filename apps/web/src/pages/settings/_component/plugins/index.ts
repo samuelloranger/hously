@@ -8,7 +8,6 @@ export { ScrutinyPluginSection } from "@/pages/settings/_component/plugins/Scrut
 export { SonarrPluginSection } from "@/pages/settings/_component/plugins/SonarrPluginSection";
 export { TmdbPluginSection } from "@/pages/settings/_component/plugins/TmdbPluginSection";
 export { OllamaPluginSection } from "@/pages/settings/_component/plugins/OllamaPluginSection";
-export { ClockifyPluginSection } from "@/pages/settings/_component/plugins/ClockifyPluginSection";
 export { TrackersPluginSection } from "@/pages/settings/_component/plugins/TrackersPluginSection";
 export { WeatherPluginSection } from "@/pages/settings/_component/plugins/WeatherPluginSection";
 export { HomeAssistantPluginSection } from "@/pages/settings/_component/plugins/HomeAssistantPluginSection";

@@ -81,12 +81,6 @@ export async function processScheduledJob(job: Job) {
         await refreshHabitsStreakForUser(userId);
         break;
       }
-      case SCHEDULED_JOB_NAMES.CHECK_CLOCKIFY_HOURS: {
-        const { checkClockifyHours } =
-          await import("../../jobs/checkClockifyHours");
-        await checkClockifyHours({ trigger: "queue" });
-        break;
-      }
       case SCHEDULED_JOB_NAMES.CHECK_MOVIE_RELEASE_REMINDERS: {
         const { checkMovieReleaseReminders } =
           await import("../../jobs/checkMovieReleaseReminders");

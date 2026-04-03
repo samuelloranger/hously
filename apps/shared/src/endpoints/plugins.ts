@@ -14,7 +14,6 @@ export const PLUGIN_ENDPOINTS = {
   WEATHER: '/api/plugins/weather',
   TMDB: '/api/plugins/tmdb',
   OLLAMA: '/api/plugins/ollama',
-  CLOCKIFY: "/api/plugins/clockify",
   C411: '/api/plugins/c411',
   TORR9: '/api/plugins/torr9',
   LA_CALE: '/api/plugins/la-cale',

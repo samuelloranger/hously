@@ -27,8 +27,6 @@ import type {
   TmdbPluginUpdateResponse,
   OllamaPlugin,
   OllamaPluginUpdateResponse,
-  ClockifyPlugin,
-  ClockifyPluginUpdateResponse,
   TrackerPlugin,
   TrackerPluginUpdateResponse,
   TrackerType,
@@ -264,17 +262,6 @@ export function useOllamaPlugin() {
   return useQuery({
     queryKey: queryKeys.plugins.ollama(),
     queryFn: () => fetcher<{ plugin: OllamaPlugin }>(PLUGIN_ENDPOINTS.OLLAMA),
-    refetchOnMount: "always",
-    staleTime: 0,
-  });
-}
-
-export function useClockifyPlugin() {
-  const fetcher = useFetcher();
-  return useQuery({
-    queryKey: queryKeys.plugins.clockify(),
-    queryFn: () =>
-      fetcher<{ plugin: ClockifyPlugin }>(PLUGIN_ENDPOINTS.CLOCKIFY),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -547,26 +534,6 @@ export function useUpdateOllamaPlugin() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.medias.aiSuggestionsConfig(),
       });
-    },
-  });
-}
-
-export function useUpdateClockifyPlugin() {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: {
-      api_key: string;
-      enabled: boolean;
-      workspace_id: string;
-      user_id: string;
-    }) =>
-      fetcher<ClockifyPluginUpdateResponse>(PLUGIN_ENDPOINTS.CLOCKIFY, {
-        method: "PUT",
-        body: data,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.clockify() });
     },
   });
 }

@@ -1207,15 +1207,6 @@
         "modelPlaceholder": "llama3.2",
         "modelHelp": "Must be pulled on the Ollama host (e.g. ollama pull llama3.2)."
       },
-      "clockify": {
-        "help": "Configure Clockify so timesheets are submitted automatically.",
-        "apiKey": "Clockify API Key",
-        "apiKeyPlaceholder": "Paste your Clockify API key",
-        "workspaceId": "Clockify Workspace ID",
-        "workspaceIdPlaceholder": "Paste your Workspace ID",
-        "userId": "Clockify User ID",
-        "userIdPlaceholder": "Paste your User ID"
-      },
       "prowlarr": {
         "help": "Connect Prowlarr to run global release searches and send results to your configured download client.",
         "websiteUrl": "Prowlarr URL",
@@ -1412,10 +1403,6 @@
         "refreshHabitsStreaks": {
           "label": "Refresh Habits Streaks",
           "description": "Recalculate daily streaks for all user habits."
-        },
-        "checkClockifyHours": {
-          "label": "Check Clockify Hours",
-          "description": "Fetch this week's time entries from Clockify and check against the 37.5h target."
         }
       }
     },

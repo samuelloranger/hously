@@ -58,12 +58,6 @@ export interface RedditPluginConfig {
   subreddits: string[];
 }
 
-export interface ClockifyPluginConfig {
-  api_key: string;
-  workspace_id: string;
-  user_id: string;
-}
-
 export interface HackernewsPluginConfig {
   feed_type: "top" | "best" | "new" | "ask" | "show" | "job";
   story_count: number;

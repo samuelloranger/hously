@@ -133,7 +133,6 @@ export const queryKeys = {
     weather: () => [...queryKeys.plugins.all, "weather"] as const,
     tmdb: () => [...queryKeys.plugins.all, "tmdb"] as const,
     ollama: () => [...queryKeys.plugins.all, "ollama"] as const,
-    clockify: () => [...queryKeys.plugins.all, "clockify"] as const,
     homeAssistant: () => [...queryKeys.plugins.all, "home-assistant"] as const,
   },
 
