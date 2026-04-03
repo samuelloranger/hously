@@ -1,0 +1,7 @@
+echo "Pre-commit: Bumping version..."
+make bump-version
+
+# Stage all modified package.json files
+find . -name "package.json" -not -path "*/node_modules/*" | xargs git add
+
+echo "Pre-commit: Version bumped and staged."
