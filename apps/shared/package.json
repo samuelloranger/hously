@@ -1,6 +1,6 @@
 {
   "name": "@hously/shared",
-  "version": "2.2.22",
+  "version": "2.2.23",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
@@ -11,7 +11,8 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,json,md}\" \"*.{ts,js,json,md}\""
   },
   "peerDependencies": {
     "react": "^19.1.0",
