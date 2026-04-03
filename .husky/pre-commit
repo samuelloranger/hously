@@ -1,7 +1,11 @@
 echo "Pre-commit: Bumping version..."
 make bump-version
 
-# Stage all modified package.json files
+# Regenerate lockfile to match bumped versions
+bun install --silent
+
+# Stage all modified package.json files and lockfile
 find . -name "package.json" -not -path "*/node_modules/*" | xargs git add
+git add bun.lock
 
 echo "Pre-commit: Version bumped and staged."
