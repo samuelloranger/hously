@@ -114,7 +114,7 @@ async function getAllTrackerStatsHandler() {
   return Object.fromEntries(results);
 }
 
-export const dashboardServiceRoutes = new Elysia()
+export const dashboardServiceRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(auth)
   .use(requireUser)
   .use(dashboardQbittorrentRoutes)
