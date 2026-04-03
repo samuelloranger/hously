@@ -1,43 +1,47 @@
-import { Elysia, t } from 'elysia';
-import { prisma } from '../db';
-import { auth } from '../auth';
-import { toLocalDate } from '../utils';
-import { getBaseUrl } from '../utils/config';
+import { Elysia, t } from "elysia";
+import { prisma } from "../db";
+import { auth } from "../auth";
+import { toLocalDate } from "../utils";
+import { getBaseUrl } from "../utils/config";
 import {
   calculateRecurringChoreDates,
   calculateRecurringCustomEventDates,
   type ChoreData,
   type CustomEventData,
-} from './calendar';
-import { requireUser } from '../middleware/auth';
-import { unauthorized } from '../utils/errors';
+} from "./calendar";
+import { requireUser } from "../middleware/auth";
+import { unauthorized } from "../utils/errors";
 
 const generateCalendarToken = (): string => {
   const tokenBytes = new Uint8Array(32);
   crypto.getRandomValues(tokenBytes);
   return btoa(String.fromCharCode(...tokenBytes))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
 };
 
 const escapeICalText = (text: string): string =>
-  text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  text
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\n/g, "\\n");
 
 const formatICalDate = (date: Date): string => {
   const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
   return `${y}${m}${d}`;
 };
 
 const formatICalDateTime = (date: Date): string => {
   const y = date.getFullYear();
-  const mo = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  const h = String(date.getHours()).padStart(2, '0');
-  const mi = String(date.getMinutes()).padStart(2, '0');
-  const s = String(date.getSeconds()).padStart(2, '0');
+  const mo = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  const h = String(date.getHours()).padStart(2, "0");
+  const mi = String(date.getMinutes()).padStart(2, "0");
+  const s = String(date.getSeconds()).padStart(2, "0");
   return `${y}${mo}${d}T${h}${mi}${s}`;
 };
 
@@ -49,15 +53,15 @@ const buildFeedUrl = (token: string): string => {
 const buildWebcalUrl = (token: string): string => {
   const base = getBaseUrl();
   const httpUrl = `${base}/api/calendar/feed/${token}.ics`;
-  return httpUrl.replace(/^https?:\/\//, 'webcal://');
+  return httpUrl.replace(/^https?:\/\//, "webcal://");
 };
 
-export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
+export const icalFeedRoutes = new Elysia({ prefix: "/api/calendar" })
   // Public feed endpoint — no auth, token in URL
   .get(
-    '/feed/:token',
+    "/feed/:token",
     async ({ params, set }) => {
-      const rawToken = params.token.replace(/\.ics$/, '');
+      const rawToken = params.token.replace(/\.ics$/, "");
 
       const user = await prisma.user.findFirst({
         where: { calendarToken: rawToken },
@@ -65,7 +69,7 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
 
       if (!user) {
         set.status = 403;
-        return 'Invalid feed token';
+        return "Invalid feed token";
       }
 
       // Window: 30 days past → 90 days future
@@ -76,11 +80,11 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
       endDate.setDate(endDate.getDate() + 90);
 
       const lines: string[] = [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//Hously//Calendar Feed//EN',
-        'CALSCALE:GREGORIAN',
-        'METHOD:PUBLISH',
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//Hously//Calendar Feed//EN",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
         `X-WR-CALNAME:Hously`,
       ];
 
@@ -102,16 +106,21 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
       for (const chore of incompleteChores) {
         for (const reminder of chore.reminders) {
           const reminderDate = toLocalDate(reminder.reminderDatetime);
-          if (!reminderDate || reminderDate < startDate || reminderDate > endDate) continue;
+          if (
+            !reminderDate ||
+            reminderDate < startDate ||
+            reminderDate > endDate
+          )
+            continue;
 
-          lines.push('BEGIN:VEVENT');
+          lines.push("BEGIN:VEVENT");
           lines.push(`UID:hously-chore-${chore.id}-reminder@hously`);
           lines.push(`DTSTART;VALUE=DATE:${formatICalDate(reminderDate)}`);
           lines.push(`SUMMARY:${escapeICalText(chore.choreName)}`);
           if (chore.description) {
             lines.push(`DESCRIPTION:${escapeICalText(chore.description)}`);
           }
-          lines.push('END:VEVENT');
+          lines.push("END:VEVENT");
         }
       }
 
@@ -137,17 +146,21 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
       });
 
       for (const chore of recurringChores) {
-        const dates = calculateRecurringChoreDates(chore as unknown as ChoreData, startDate, endDate);
+        const dates = calculateRecurringChoreDates(
+          chore as unknown as ChoreData,
+          startDate,
+          endDate,
+        );
         for (const date of dates) {
           const dateStr = formatICalDate(date);
-          lines.push('BEGIN:VEVENT');
+          lines.push("BEGIN:VEVENT");
           lines.push(`UID:hously-chore-${chore.id}-${dateStr}@hously`);
           lines.push(`DTSTART;VALUE=DATE:${dateStr}`);
           lines.push(`SUMMARY:${escapeICalText(chore.choreName)}`);
           if (chore.description) {
             lines.push(`DESCRIPTION:${escapeICalText(chore.description)}`);
           }
-          lines.push('END:VEVENT');
+          lines.push("END:VEVENT");
         }
       }
 
@@ -161,14 +174,16 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
           const occurrences = calculateRecurringCustomEventDates(
             event as unknown as CustomEventData,
             startDate,
-            endDate
+            endDate,
           );
           for (const occ of occurrences) {
             const dateStr = formatICalDate(occ.date);
-            lines.push('BEGIN:VEVENT');
+            lines.push("BEGIN:VEVENT");
             lines.push(`UID:hously-event-${event.id}-${dateStr}@hously`);
             if (event.allDay) {
-              lines.push(`DTSTART;VALUE=DATE:${formatICalDate(occ.startDatetime)}`);
+              lines.push(
+                `DTSTART;VALUE=DATE:${formatICalDate(occ.startDatetime)}`,
+              );
               lines.push(`DTEND;VALUE=DATE:${formatICalDate(occ.endDatetime)}`);
             } else {
               lines.push(`DTSTART:${formatICalDateTime(occ.startDatetime)}`);
@@ -178,14 +193,20 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
             if (event.description) {
               lines.push(`DESCRIPTION:${escapeICalText(event.description)}`);
             }
-            lines.push('END:VEVENT');
+            lines.push("END:VEVENT");
           }
         } else {
           const eventStart = toLocalDate(event.startDatetime.toISOString());
           const eventEnd = toLocalDate(event.endDatetime.toISOString());
-          if (!eventStart || !eventEnd || eventEnd < startDate || eventStart > endDate) continue;
+          if (
+            !eventStart ||
+            !eventEnd ||
+            eventEnd < startDate ||
+            eventStart > endDate
+          )
+            continue;
 
-          lines.push('BEGIN:VEVENT');
+          lines.push("BEGIN:VEVENT");
           lines.push(`UID:hously-event-${event.id}@hously`);
           if (event.allDay) {
             lines.push(`DTSTART;VALUE=DATE:${formatICalDate(eventStart)}`);
@@ -198,27 +219,26 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
           if (event.description) {
             lines.push(`DESCRIPTION:${escapeICalText(event.description)}`);
           }
-          lines.push('END:VEVENT');
+          lines.push("END:VEVENT");
         }
       }
 
-      lines.push('END:VCALENDAR');
+      lines.push("END:VCALENDAR");
 
-      set.headers['content-type'] = 'text/calendar; charset=utf-8';
-      set.headers['content-disposition'] = 'inline; filename="hously.ics"';
-      return lines.join('\r\n');
+      set.headers["content-type"] = "text/calendar; charset=utf-8";
+      set.headers["content-disposition"] = 'inline; filename="hously.ics"';
+      return lines.join("\r\n");
     },
     {
       params: t.Object({
         token: t.String(),
       }),
-    }
+    },
   )
   // Authenticated endpoints for token management
   .use(auth)
   .use(requireUser)
-  .get('/ical-token', async ({ user, set }) => {
-
+  .get("/ical-token", async ({ user, set }) => {
     const dbUser = await prisma.user.findFirst({
       where: { id: user!.id },
       select: { calendarToken: true },
@@ -234,7 +254,7 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
       webcalUrl: buildWebcalUrl(dbUser.calendarToken),
     };
   })
-  .post('/ical-token', async ({ user, set }) => {
+  .post("/ical-token", async ({ user, set }) => {
     const token = generateCalendarToken();
 
     await prisma.user.update({
@@ -247,7 +267,7 @@ export const icalFeedRoutes = new Elysia({ prefix: '/api/calendar' })
       webcalUrl: buildWebcalUrl(token),
     };
   })
-  .delete('/ical-token', async ({ user, set }) => {
+  .delete("/ical-token", async ({ user, set }) => {
     await prisma.user.update({
       where: { id: user!.id },
       data: { calendarToken: null },

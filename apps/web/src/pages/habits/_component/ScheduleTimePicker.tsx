@@ -1,17 +1,20 @@
-import React from 'react';
-import { Plus, X } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import React from "react";
+import { Plus, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ScheduleTimePickerProps {
   times: string[];
   onChange: (times: string[]) => void;
 }
 
-export const ScheduleTimePicker: React.FC<ScheduleTimePickerProps> = ({ times, onChange }) => {
-  const { t } = useTranslation('common');
+export const ScheduleTimePicker: React.FC<ScheduleTimePickerProps> = ({
+  times,
+  onChange,
+}) => {
+  const { t } = useTranslation("common");
 
   const addTime = () => {
-    onChange([...times, '08:00']);
+    onChange([...times, "08:00"]);
   };
 
   const removeTime = (index: number) => {
@@ -30,7 +33,7 @@ export const ScheduleTimePicker: React.FC<ScheduleTimePickerProps> = ({ times, o
   return (
     <div className="space-y-3">
       <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-        {t('habits.scheduleTimes')}
+        {t("habits.scheduleTimes")}
       </label>
 
       <div className="flex flex-wrap gap-2">
@@ -42,7 +45,7 @@ export const ScheduleTimePicker: React.FC<ScheduleTimePickerProps> = ({ times, o
             <input
               type="time"
               value={time}
-              onChange={e => updateTime(index, e.target.value)}
+              onChange={(e) => updateTime(index, e.target.value)}
               className="bg-transparent border-none text-sm focus:ring-0 focus:outline-none dark:text-white"
             />
             {times.length > 1 && (
@@ -63,7 +66,7 @@ export const ScheduleTimePicker: React.FC<ScheduleTimePickerProps> = ({ times, o
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-neutral-300 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 hover:border-neutral-400 dark:hover:border-neutral-600 hover:text-neutral-600 dark:hover:text-neutral-300 transition-all text-sm font-medium"
         >
           <Plus size={14} />
-          {t('habits.addTime')}
+          {t("habits.addTime")}
         </button>
       </div>
     </div>

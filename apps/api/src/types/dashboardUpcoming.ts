@@ -12,7 +12,7 @@ export interface DashboardUpcomingProvider {
 export interface DashboardUpcomingItem {
   id: string;
   title: string;
-  media_type: 'movie' | 'tv';
+  media_type: "movie" | "tv";
   release_date: string | null;
   poster_url: string | null;
   backdrop_url: string | null;

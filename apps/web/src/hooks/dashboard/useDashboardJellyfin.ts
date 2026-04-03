@@ -1,8 +1,8 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useFetcher } from '@/lib/api/context';
-import { queryKeys } from '@/lib/queryKeys';
-import { DASHBOARD_ENDPOINTS } from '@hously/shared';
-import type { DashboardJellyfinLatestResponse } from '@hously/shared';
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useFetcher } from "@/lib/api/context";
+import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_ENDPOINTS } from "@hously/shared";
+import type { DashboardJellyfinLatestResponse } from "@hously/shared";
 
 function useDashboardJellyfinLatest(limit: number = 10, page: number = 1) {
   const fetcher = useFetcher();
@@ -10,7 +10,9 @@ function useDashboardJellyfinLatest(limit: number = 10, page: number = 1) {
   return useQuery({
     queryKey: queryKeys.dashboard.jellyfinLatest(limit, page),
     queryFn: () =>
-      fetcher<DashboardJellyfinLatestResponse>(`${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`),
+      fetcher<DashboardJellyfinLatestResponse>(
+        `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`,
+      ),
   });
 }
 
@@ -21,11 +23,15 @@ export function useDashboardJellyfinLatestInfinite(limit: number = 10) {
     queryKey: queryKeys.dashboard.jellyfinLatestInfinite(limit),
     initialPageParam: 1,
     queryFn: ({ pageParam }) => {
-      const page = typeof pageParam === 'number' && Number.isFinite(pageParam) ? pageParam : 1;
+      const page =
+        typeof pageParam === "number" && Number.isFinite(pageParam)
+          ? pageParam
+          : 1;
       return fetcher<DashboardJellyfinLatestResponse>(
-        `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`
+        `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`,
       );
     },
-    getNextPageParam: lastPage => (lastPage.has_more ? lastPage.page + 1 : undefined),
+    getNextPageParam: (lastPage) =>
+      lastPage.has_more ? lastPage.page + 1 : undefined,
   });
 }

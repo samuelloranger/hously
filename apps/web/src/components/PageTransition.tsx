@@ -1,8 +1,8 @@
-import { Suspense } from 'react';
-import { useLocation } from '@tanstack/react-router';
-import { Outlet } from '@tanstack/react-router';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { HouseLoader } from '@/components/HouseLoader';
+import { Suspense } from "react";
+import { useLocation } from "@tanstack/react-router";
+import { Outlet } from "@tanstack/react-router";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { HouseLoader } from "@/components/HouseLoader";
 
 export function PageTransition() {
   const location = useLocation();
@@ -17,7 +17,10 @@ export function PageTransition() {
         </div>
       }
     >
-      <div className="h-full flex flex-col flex-1 page-transition page-enter" key={location.pathname}>
+      <div
+        className="h-full flex flex-col flex-1 page-transition page-enter"
+        key={location.pathname}
+      >
         <ErrorBoundary>
           <Outlet />
         </ErrorBoundary>

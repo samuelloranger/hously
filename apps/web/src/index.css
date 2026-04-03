@@ -1,8 +1,8 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 @plugin '@tailwindcss/typography';
 
 @layer utilities {
-  .prose :where(p):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+  .prose :where(p):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
     margin-bottom: 0;
   }
 
@@ -76,10 +76,18 @@ body {
 }
 
 @keyframes provider-select {
-  0% { transform: scale(1); }
-  40% { transform: scale(0.94); }
-  70% { transform: scale(1.03); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.94);
+  }
+  70% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .theme-transition {
@@ -301,7 +309,7 @@ body {
 
   button:not(.checkbox),
   .btn,
-  a[role='button'] {
+  a[role="button"] {
     min-height: 44px;
     min-width: 44px;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
@@ -482,7 +490,7 @@ body {
 }
 
 .torrent-progress-bar-active::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   width: max(36%, 2.5rem);

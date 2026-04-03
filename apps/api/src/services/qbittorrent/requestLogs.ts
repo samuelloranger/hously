@@ -1,4 +1,4 @@
-import { prisma } from '../../db';
+import { prisma } from "../../db";
 
 type QbittorrentRequestLogInput = {
   method: string;
@@ -17,19 +17,25 @@ type QbittorrentRequestLogInput = {
   meta?: unknown;
 };
 
-const LOGGING_ENABLED = (process.env.QBITTORRENT_REQUEST_LOGGING_ENABLED ?? 'true').toLowerCase() !== 'false';
+const LOGGING_ENABLED =
+  (process.env.QBITTORRENT_REQUEST_LOGGING_ENABLED ?? "true").toLowerCase() !==
+  "false";
 const SAMPLE_RATE = Math.min(
   1,
-  Math.max(0, Number.parseFloat(process.env.QBITTORRENT_REQUEST_LOG_SAMPLE_RATE ?? '1') || 1)
+  Math.max(
+    0,
+    Number.parseFloat(process.env.QBITTORRENT_REQUEST_LOG_SAMPLE_RATE ?? "1") ||
+      1,
+  ),
 );
 
-const shouldSample = () => LOGGING_ENABLED && SAMPLE_RATE > 0 && Math.random() <= SAMPLE_RATE;
+const shouldSample = () =>
+  LOGGING_ENABLED && SAMPLE_RATE > 0 && Math.random() <= SAMPLE_RATE;
 
 export function logQbittorrentRequest(input: QbittorrentRequestLogInput) {
   if (!shouldSample()) return;
 
-  void prisma
-    .$executeRaw`
+  void prisma.$executeRaw`
       INSERT INTO "qbittorrent_request_logs" (
         "method",
         "endpoint",
@@ -61,8 +67,10 @@ export function logQbittorrentRequest(input: QbittorrentRequestLogInput) {
         ${input.errorMessage ?? null},
         CAST(${input.meta == null ? null : JSON.stringify(input.meta)} AS jsonb)
       )
-    `
-    .catch((error: unknown) => {
-      console.warn('[qBittorrentRequestLog] Failed to persist request log:', error);
-    });
+    `.catch((error: unknown) => {
+    console.warn(
+      "[qBittorrentRequestLog] Failed to persist request log:",
+      error,
+    );
+  });
 }

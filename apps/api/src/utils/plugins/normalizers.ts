@@ -15,15 +15,15 @@ import type {
   WeatherPluginConfig,
   ClockifyPluginConfig,
   HomeAssistantPluginConfig,
-} from './types';
-import { decrypt } from '../../services/crypto';
-import { isValidHttpUrl } from './utils';
-import { haDomainFromEntityId, normalizeHaBaseUrl } from './homeAssistantUtils';
+} from "./types";
+import { decrypt } from "../../services/crypto";
+import { isValidHttpUrl } from "./utils";
+import { haDomainFromEntityId, normalizeHaBaseUrl } from "./homeAssistantUtils";
 
 const normalizeSecret = (value: unknown): string => {
-  if (typeof value !== 'string') return '';
+  if (typeof value !== "string") return "";
   const trimmed = value.trim();
-  if (!trimmed) return '';
+  if (!trimmed) return "";
 
   try {
     return decrypt(trimmed).trim();
@@ -32,63 +32,83 @@ const normalizeSecret = (value: unknown): string => {
   }
 };
 
-export const normalizeJellyfinConfig = (config: unknown): JellyfinPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeJellyfinConfig = (
+  config: unknown,
+): JellyfinPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
 
   const apiKey = normalizeSecret(cfg.api_key);
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
+  const websiteUrl =
+    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
 
   if (!apiKey || !websiteUrl) return null;
   return {
     api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
   };
 };
 
-export const normalizeRadarrConfig = (config: unknown): RadarrPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeRadarrConfig = (
+  config: unknown,
+): RadarrPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
 
   const apiKey = normalizeSecret(cfg.api_key);
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-  const rootFolderPath = typeof cfg.root_folder_path === 'string' ? cfg.root_folder_path.trim() : '';
+  const websiteUrl =
+    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
+  const rootFolderPath =
+    typeof cfg.root_folder_path === "string" ? cfg.root_folder_path.trim() : "";
   const qualityProfileId =
-    typeof cfg.quality_profile_id === 'number'
+    typeof cfg.quality_profile_id === "number"
       ? Math.trunc(cfg.quality_profile_id)
-      : typeof cfg.quality_profile_id === 'string'
+      : typeof cfg.quality_profile_id === "string"
         ? parseInt(cfg.quality_profile_id, 10)
         : Number.NaN;
 
-  if (!apiKey || !websiteUrl || !rootFolderPath || !Number.isFinite(qualityProfileId) || qualityProfileId <= 0) {
+  if (
+    !apiKey ||
+    !websiteUrl ||
+    !rootFolderPath ||
+    !Number.isFinite(qualityProfileId) ||
+    qualityProfileId <= 0
+  ) {
     return null;
   }
 
   return {
     api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
     root_folder_path: rootFolderPath,
     quality_profile_id: qualityProfileId,
   };
 };
 
-export const normalizeSonarrConfig = (config: unknown): SonarrPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeSonarrConfig = (
+  config: unknown,
+): SonarrPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
 
   const apiKey = normalizeSecret(cfg.api_key);
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-  const rootFolderPath = typeof cfg.root_folder_path === 'string' ? cfg.root_folder_path.trim() : '';
+  const websiteUrl =
+    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
+  const rootFolderPath =
+    typeof cfg.root_folder_path === "string" ? cfg.root_folder_path.trim() : "";
   const qualityProfileId =
-    typeof cfg.quality_profile_id === 'number'
+    typeof cfg.quality_profile_id === "number"
       ? Math.trunc(cfg.quality_profile_id)
-      : typeof cfg.quality_profile_id === 'string'
+      : typeof cfg.quality_profile_id === "string"
         ? parseInt(cfg.quality_profile_id, 10)
         : Number.NaN;
   const languageProfileId =
-    typeof cfg.language_profile_id === 'number'
+    typeof cfg.language_profile_id === "number"
       ? Math.trunc(cfg.language_profile_id)
-      : typeof cfg.language_profile_id === 'string'
+      : typeof cfg.language_profile_id === "string"
         ? parseInt(cfg.language_profile_id, 10)
         : Number.NaN;
 
@@ -106,70 +126,91 @@ export const normalizeSonarrConfig = (config: unknown): SonarrPluginConfig | nul
 
   return {
     api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
     root_folder_path: rootFolderPath,
     quality_profile_id: qualityProfileId,
     language_profile_id: languageProfileId,
   };
 };
 
-export const normalizeProwlarrConfig = (config: unknown): ProwlarrPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeProwlarrConfig = (
+  config: unknown,
+): ProwlarrPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
 
   const apiKey = normalizeSecret(cfg.api_key);
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
+  const websiteUrl =
+    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
 
   if (!apiKey || !websiteUrl) return null;
   return {
     api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
   };
 };
 
-export const normalizeScrutinyConfig = (config: unknown): ScrutinyPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeScrutinyConfig = (
+  config: unknown,
+): ScrutinyPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
+  const websiteUrl =
+    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
   if (!websiteUrl) return null;
   return {
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
   };
 };
 
-export const normalizeBeszelConfig = (config: unknown): BeszelPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeBeszelConfig = (
+  config: unknown,
+): BeszelPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-  const email = typeof cfg.email === 'string' ? cfg.email.trim() : '';
-  const password = typeof cfg.password === 'string' ? normalizeSecret(cfg.password) : '';
+  const websiteUrl =
+    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
+  const email = typeof cfg.email === "string" ? cfg.email.trim() : "";
+  const password =
+    typeof cfg.password === "string" ? normalizeSecret(cfg.password) : "";
   if (!websiteUrl || !email || !password) return null;
   return {
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
     email,
     password,
   };
 };
 
-export const normalizeAdguardConfig = (config: unknown): AdguardPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeAdguardConfig = (
+  config: unknown,
+): AdguardPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
-  const username = typeof cfg.username === 'string' ? cfg.username.trim() : '';
+  const websiteUrl =
+    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
+  const username = typeof cfg.username === "string" ? cfg.username.trim() : "";
   const password = normalizeSecret(cfg.password);
   if (!websiteUrl || !username || !password) return null;
   return {
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
     username,
     password,
   };
 };
 
-export const normalizeWeatherConfig = (config: unknown): WeatherPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeWeatherConfig = (
+  config: unknown,
+): WeatherPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
-  const address = typeof cfg.address === 'string' ? cfg.address.trim() : '';
-  const temperatureUnit = cfg.temperature_unit === 'celsius' ? 'celsius' : 'fahrenheit';
+  const address = typeof cfg.address === "string" ? cfg.address.trim() : "";
+  const temperatureUnit =
+    cfg.temperature_unit === "celsius" ? "celsius" : "fahrenheit";
 
   if (!address) return null;
   return {
@@ -180,72 +221,104 @@ export const normalizeWeatherConfig = (config: unknown): WeatherPluginConfig | n
 
 const DEFAULT_TMDB_POPULARITY_THRESHOLD = 15;
 
-export const normalizeTmdbConfig = (config: unknown): TmdbPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeTmdbConfig = (
+  config: unknown,
+): TmdbPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
   const apiKey = normalizeSecret(cfg.api_key);
   if (!apiKey) return null;
   const rawThreshold =
-    typeof cfg.popularity_threshold === 'number' ? cfg.popularity_threshold : DEFAULT_TMDB_POPULARITY_THRESHOLD;
-  const popularityThreshold = Math.max(0, Math.min(100, Math.round(rawThreshold)));
+    typeof cfg.popularity_threshold === "number"
+      ? cfg.popularity_threshold
+      : DEFAULT_TMDB_POPULARITY_THRESHOLD;
+  const popularityThreshold = Math.max(
+    0,
+    Math.min(100, Math.round(rawThreshold)),
+  );
   return {
     api_key: apiKey,
     popularity_threshold: popularityThreshold,
   };
 };
 
-const DEFAULT_OLLAMA_MODEL = 'llama3.2';
+const DEFAULT_OLLAMA_MODEL = "llama3.2";
 
-export const normalizeOllamaConfig = (config: unknown): OllamaPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeOllamaConfig = (
+  config: unknown,
+): OllamaPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
-  const baseUrl = typeof cfg.base_url === 'string' ? cfg.base_url.trim().replace(/\/+$/, '') : '';
-  const modelRaw = typeof cfg.model === 'string' ? cfg.model.trim() : '';
+  const baseUrl =
+    typeof cfg.base_url === "string"
+      ? cfg.base_url.trim().replace(/\/+$/, "")
+      : "";
+  const modelRaw = typeof cfg.model === "string" ? cfg.model.trim() : "";
   const model = modelRaw || DEFAULT_OLLAMA_MODEL;
   if (!baseUrl || !isValidHttpUrl(baseUrl)) return null;
   return { base_url: baseUrl, model };
 };
 
 export const normalizeRedditConfig = (config: unknown): RedditPluginConfig => {
-  const defaults: RedditPluginConfig = { subreddits: ['selfhosted', 'homelab'] };
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return defaults;
+  const defaults: RedditPluginConfig = {
+    subreddits: ["selfhosted", "homelab"],
+  };
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return defaults;
   const cfg = config as Record<string, unknown>;
 
-  if (!Array.isArray(cfg.subreddits) || cfg.subreddits.length === 0) return defaults;
+  if (!Array.isArray(cfg.subreddits) || cfg.subreddits.length === 0)
+    return defaults;
 
   const valid = (cfg.subreddits as unknown[])
-    .filter((s): s is string => typeof s === 'string')
-    .map(s => s.replace(/^r\//, '').trim())
-    .filter(s => /^[a-zA-Z0-9_]+$/.test(s));
+    .filter((s): s is string => typeof s === "string")
+    .map((s) => s.replace(/^r\//, "").trim())
+    .filter((s) => /^[a-zA-Z0-9_]+$/.test(s));
 
   return { subreddits: valid.length > 0 ? valid : defaults.subreddits };
 };
 
-export const normalizeClockifyConfig = (config: unknown): ClockifyPluginConfig => {
-  const defaults: ClockifyPluginConfig = { api_key: '', workspace_id: '', user_id: '' };
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return defaults;
+export const normalizeClockifyConfig = (
+  config: unknown,
+): ClockifyPluginConfig => {
+  const defaults: ClockifyPluginConfig = {
+    api_key: "",
+    workspace_id: "",
+    user_id: "",
+  };
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return defaults;
   const cfg = config as Record<string, unknown>;
 
-  const apiKey = normalizeSecret(cfg['api_key']);
-  const workspaceId = typeof cfg['workspace_id'] === 'string' ? cfg['workspace_id'].trim() : '';
-  const userId = typeof cfg['user_id'] === 'string' ? cfg['user_id'].trim() : '';
+  const apiKey = normalizeSecret(cfg["api_key"]);
+  const workspaceId =
+    typeof cfg["workspace_id"] === "string" ? cfg["workspace_id"].trim() : "";
+  const userId =
+    typeof cfg["user_id"] === "string" ? cfg["user_id"].trim() : "";
 
   return { api_key: apiKey, workspace_id: workspaceId, user_id: userId };
 };
 
-export const normalizeHackernewsConfig = (config: unknown): HackernewsPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeHackernewsConfig = (
+  config: unknown,
+): HackernewsPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
 
-  const validFeedTypes = ['top', 'best', 'new', 'ask', 'show', 'job'] as const;
-  const feedType = validFeedTypes.includes(cfg.feed_type as (typeof validFeedTypes)[number])
-    ? (cfg.feed_type as HackernewsPluginConfig['feed_type'])
-    : 'top';
+  const validFeedTypes = ["top", "best", "new", "ask", "show", "job"] as const;
+  const feedType = validFeedTypes.includes(
+    cfg.feed_type as (typeof validFeedTypes)[number],
+  )
+    ? (cfg.feed_type as HackernewsPluginConfig["feed_type"])
+    : "top";
 
   const storyCount =
-    typeof cfg.story_count === 'number'
+    typeof cfg.story_count === "number"
       ? Math.trunc(cfg.story_count)
-      : typeof cfg.story_count === 'string'
+      : typeof cfg.story_count === "string"
         ? parseInt(cfg.story_count, 10)
         : 10;
 
@@ -255,45 +328,66 @@ export const normalizeHackernewsConfig = (config: unknown): HackernewsPluginConf
   };
 };
 
-export const normalizeNetdataConfig = (config: unknown): NetdataPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeNetdataConfig = (
+  config: unknown,
+): NetdataPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
-  const websiteUrl = typeof cfg.website_url === 'string' ? cfg.website_url.trim() : '';
+  const websiteUrl =
+    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
   if (!websiteUrl) return null;
-  return { website_url: websiteUrl.replace(/\/+$/, '') };
+  return { website_url: websiteUrl.replace(/\/+$/, "") };
 };
 
-export const normalizeTrackerConfig = (config: unknown): TrackerPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeTrackerConfig = (
+  config: unknown,
+): TrackerPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
 
-  const flaresolverrUrl = typeof cfg.flaresolverr_url === 'string' ? cfg.flaresolverr_url.trim() : '';
-  const trackerUrlRaw = typeof cfg.tracker_url === 'string' ? cfg.tracker_url.trim() : '';
-  const username = typeof cfg.username === 'string' ? cfg.username.trim() : '';
+  const flaresolverrUrl =
+    typeof cfg.flaresolverr_url === "string" ? cfg.flaresolverr_url.trim() : "";
+  const trackerUrlRaw =
+    typeof cfg.tracker_url === "string" ? cfg.tracker_url.trim() : "";
+  const username = typeof cfg.username === "string" ? cfg.username.trim() : "";
   const password = normalizeSecret(cfg.password);
   if (!trackerUrlRaw || !username) return null;
 
   return {
-    flaresolverr_url: flaresolverrUrl ? flaresolverrUrl.replace(/\/+$/, '') : undefined,
-    tracker_url: trackerUrlRaw.replace(/\/+$/, ''),
+    flaresolverr_url: flaresolverrUrl
+      ? flaresolverrUrl.replace(/\/+$/, "")
+      : undefined,
+    tracker_url: trackerUrlRaw.replace(/\/+$/, ""),
     username,
     password: password || undefined,
   };
 };
 
-export const normalizeHomeAssistantConfig = (config: unknown): HomeAssistantPluginConfig | null => {
-  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+export const normalizeHomeAssistantConfig = (
+  config: unknown,
+): HomeAssistantPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
   const cfg = config as Record<string, unknown>;
 
-  const baseUrlRaw = typeof cfg.base_url === 'string' ? cfg.base_url.trim() : '';
+  const baseUrlRaw =
+    typeof cfg.base_url === "string" ? cfg.base_url.trim() : "";
   const baseUrl = normalizeHaBaseUrl(baseUrlRaw);
   const accessToken = normalizeSecret(cfg.access_token);
   if (!baseUrl || !isValidHttpUrl(baseUrl) || !accessToken) return null;
 
-  const rawIds = Array.isArray(cfg.enabled_entity_ids) ? cfg.enabled_entity_ids : [];
-  const enabledEntityIds = [...new Set(rawIds.map(id => (typeof id === 'string' ? id.trim() : '')).filter(Boolean))].filter(
-    id => haDomainFromEntityId(id) !== null
-  );
+  const rawIds = Array.isArray(cfg.enabled_entity_ids)
+    ? cfg.enabled_entity_ids
+    : [];
+  const enabledEntityIds = [
+    ...new Set(
+      rawIds
+        .map((id) => (typeof id === "string" ? id.trim() : ""))
+        .filter(Boolean),
+    ),
+  ].filter((id) => haDomainFromEntityId(id) !== null);
 
   return {
     base_url: baseUrl,

@@ -1,11 +1,11 @@
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from "react";
 
-export type MediaPosterCardStatus = 'downloaded' | 'downloading' | 'missing';
+export type MediaPosterCardStatus = "downloaded" | "downloading" | "missing";
 
 const STATUS_BORDER_COLORS: Record<MediaPosterCardStatus, string> = {
-  downloaded: 'bg-emerald-400',
-  downloading: 'bg-sky-400',
-  missing: 'bg-amber-400',
+  downloaded: "bg-emerald-400",
+  downloading: "bg-sky-400",
+  missing: "bg-amber-400",
 };
 
 export type MediaPosterCardProps = {
@@ -40,7 +40,7 @@ export function MediaPosterCard({
   posterUrl,
   title,
   id,
-  fallbackEmoji = '🎞️',
+  fallbackEmoji = "🎞️",
   status,
   statusLabel,
   topLeftBadge,
@@ -51,7 +51,7 @@ export function MediaPosterCard({
   rel,
   onClick,
   disabled,
-  accentRingClassName = 'focus:ring-indigo-400/60',
+  accentRingClassName = "focus:ring-indigo-400/60",
   className,
   style,
   animationDelayMs,
@@ -60,22 +60,24 @@ export function MediaPosterCard({
   const showImage = Boolean(posterUrl) && !imageError;
 
   const containerClass = [
-    'group/card relative shrink-0 overflow-hidden rounded-2xl',
-    'border border-white/10 bg-neutral-900 shadow-sm shadow-black/20',
-    'transition-[border-color,box-shadow,ring] duration-300 ease-out',
-    'hover:border-white/20 hover:shadow-md hover:shadow-black/30',
-    'focus:outline-none focus:ring-2',
+    "group/card relative shrink-0 overflow-hidden rounded-2xl",
+    "border border-white/10 bg-neutral-900 shadow-sm shadow-black/20",
+    "transition-[border-color,box-shadow,ring] duration-300 ease-out",
+    "hover:border-white/20 hover:shadow-md hover:shadow-black/30",
+    "focus:outline-none focus:ring-2",
     accentRingClassName,
-    disabled ? 'opacity-60 cursor-not-allowed' : '',
-    'aspect-[2/3]',
-    href || onClick ? 'cursor-pointer text-left' : '',
-    className ?? '',
+    disabled ? "opacity-60 cursor-not-allowed" : "",
+    "aspect-[2/3]",
+    href || onClick ? "cursor-pointer text-left" : "",
+    className ?? "",
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 
   const combinedStyle: CSSProperties | undefined =
-    animationDelayMs !== undefined ? { ...style, animationDelay: `${animationDelayMs}ms` } : style;
+    animationDelayMs !== undefined
+      ? { ...style, animationDelay: `${animationDelayMs}ms` }
+      : style;
 
   const content = (
     <>
@@ -93,7 +95,9 @@ export function MediaPosterCard({
 
       {/* Fallback */}
       {!showImage && (
-        <div className="absolute inset-0 flex items-center justify-center text-4xl text-white/40">{fallbackEmoji}</div>
+        <div className="absolute inset-0 flex items-center justify-center text-4xl text-white/40">
+          {fallbackEmoji}
+        </div>
       )}
 
       {/* Gradient + hover brighten overlay */}
@@ -105,22 +109,20 @@ export function MediaPosterCard({
 
       {/* Top-left badge */}
       {topLeftBadge && (
-        <div className="absolute top-2 left-2 z-20">
-          {topLeftBadge}
-        </div>
+        <div className="absolute top-2 left-2 z-20">{topLeftBadge}</div>
       )}
 
       {/* Top-right content (dropdown, etc.) */}
       {topRightContent && (
-        <div className="absolute top-1.5 right-1.5 z-20">
-          {topRightContent}
-        </div>
+        <div className="absolute top-1.5 right-1.5 z-20">{topRightContent}</div>
       )}
 
       {/* Glass panel — always visible at bottom */}
       <div className="absolute inset-x-0 bottom-0 z-20">
         <div className="bg-black/30 px-2.5 pt-2 pb-2.5 backdrop-blur-xl">
-          <p className="text-[11px] font-semibold text-white truncate leading-snug">{title}</p>
+          <p className="text-[11px] font-semibold text-white truncate leading-snug">
+            {title}
+          </p>
           {children && <div className="pt-1">{children}</div>}
         </div>
       </div>
@@ -142,8 +144,8 @@ export function MediaPosterCard({
         className={containerClass}
         style={combinedStyle}
         href={href}
-        target={target ?? '_blank'}
-        rel={rel ?? 'noreferrer'}
+        target={target ?? "_blank"}
+        rel={rel ?? "noreferrer"}
         aria-label={title}
       >
         {content}

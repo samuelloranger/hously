@@ -1,9 +1,9 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
-import { getCurrentUser } from '@/lib/auth';
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { getCurrentUser } from "@/lib/auth";
 
-export const Route = createFileRoute('/releases')({
+export const Route = createFileRoute("/releases")({
   beforeLoad: async () => {
     await getCurrentUser();
-    throw redirect({ to: '/calendar' });
+    throw redirect({ to: "/calendar" });
   },
 });

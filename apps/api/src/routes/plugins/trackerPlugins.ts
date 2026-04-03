@@ -1,16 +1,20 @@
-import { Elysia, t } from 'elysia';
-import { Prisma } from '@prisma/client';
-import { auth } from '../../auth';
-import { prisma } from '../../db';
-import { nowUtc } from '../../utils';
-import { isValidHttpUrl } from '../../utils/plugins/utils';
-import { normalizeTrackerConfig } from '../../utils/plugins/normalizers';
-import { addJob, QUEUE_NAMES, SCHEDULED_JOB_NAMES } from '../../services/queueService';
-import { logActivity } from '../../utils/activityLogs';
-import { encrypt } from '../../services/crypto';
-import type { TrackerType } from '../../utils/plugins/types';
-import { requireAdmin } from '../../middleware/auth';
-import { badRequest, serverError } from '../../utils/errors';
+import { Elysia, t } from "elysia";
+import { Prisma } from "@prisma/client";
+import { auth } from "../../auth";
+import { prisma } from "../../db";
+import { nowUtc } from "../../utils";
+import { isValidHttpUrl } from "../../utils/plugins/utils";
+import { normalizeTrackerConfig } from "../../utils/plugins/normalizers";
+import {
+  addJob,
+  QUEUE_NAMES,
+  SCHEDULED_JOB_NAMES,
+} from "../../services/queueService";
+import { logActivity } from "../../utils/activityLogs";
+import { encrypt } from "../../services/crypto";
+import type { TrackerType } from "../../utils/plugins/types";
+import { requireAdmin } from "../../middleware/auth";
+import { badRequest, serverError } from "../../utils/errors";
 
 type AdminUser = { id: number; is_admin: boolean };
 
@@ -19,7 +23,7 @@ const trackerLabel = (type: TrackerType): string => type.toUpperCase();
 async function getTrackerPluginHandler(
   type: TrackerType,
   user: AdminUser | null,
-  set: { status?: number | string }
+  set: { status?: number | string },
 ): Promise<{ plugin?: Record<string, unknown>; error?: string }> {
   try {
     const plugin = await prisma.plugin.findFirst({ where: { type } });
@@ -29,15 +33,18 @@ async function getTrackerPluginHandler(
       plugin: {
         type,
         enabled: plugin?.enabled || false,
-        flaresolverr_url: config?.flaresolverr_url || '',
-        tracker_url: config?.tracker_url || '',
-        username: config?.username || '',
+        flaresolverr_url: config?.flaresolverr_url || "",
+        tracker_url: config?.tracker_url || "",
+        username: config?.username || "",
         password_set: Boolean(config?.password),
       },
     };
   } catch (error) {
     console.error(`Error fetching ${trackerLabel(type)} plugin config:`, error);
-    return serverError(set, `Failed to fetch ${trackerLabel(type)} plugin config`);
+    return serverError(
+      set,
+      `Failed to fetch ${trackerLabel(type)} plugin config`,
+    );
   }
 }
 
@@ -51,22 +58,29 @@ async function updateTrackerPluginHandler(
     password?: string;
     enabled?: boolean;
   },
-  set: { status?: number | string }
-): Promise<{ success?: boolean; plugin?: Record<string, unknown>; error?: string }> {
-  const flaresolverrUrl = body.flaresolverr_url.trim().replace(/\/+$/, '');
-  const trackerUrl = body.tracker_url?.trim().replace(/\/+$/, '') || '';
+  set: { status?: number | string },
+): Promise<{
+  success?: boolean;
+  plugin?: Record<string, unknown>;
+  error?: string;
+}> {
+  const flaresolverrUrl = body.flaresolverr_url.trim().replace(/\/+$/, "");
+  const trackerUrl = body.tracker_url?.trim().replace(/\/+$/, "") || "";
   const username = body.username.trim();
 
   if (flaresolverrUrl && !isValidHttpUrl(flaresolverrUrl)) {
-    return badRequest(set, 'Invalid flaresolverr_url. Must be a valid http(s) URL.');
+    return badRequest(
+      set,
+      "Invalid flaresolverr_url. Must be a valid http(s) URL.",
+    );
   }
 
   if (!trackerUrl || !isValidHttpUrl(trackerUrl)) {
-    return badRequest(set, 'Invalid tracker_url. Must be a valid http(s) URL.');
+    return badRequest(set, "Invalid tracker_url. Must be a valid http(s) URL.");
   }
 
   if (!username) {
-    return badRequest(set, 'username is required');
+    return badRequest(set, "username is required");
   }
 
   try {
@@ -74,11 +88,11 @@ async function updateTrackerPluginHandler(
       where: { type },
     });
     const existingConfig = normalizeTrackerConfig(existingPlugin?.config);
-    const providedPassword = body.password?.trim() || '';
-    const password = providedPassword || existingConfig?.password || '';
+    const providedPassword = body.password?.trim() || "";
+    const password = providedPassword || existingConfig?.password || "";
 
     if (!password) {
-      return badRequest(set, 'password is required');
+      return badRequest(set, "password is required");
     }
 
     const now = nowUtc();
@@ -106,10 +120,14 @@ async function updateTrackerPluginHandler(
       },
     });
 
-    await addJob(QUEUE_NAMES.SCHEDULED_TASKS, SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS, { type });
+    await addJob(
+      QUEUE_NAMES.SCHEDULED_TASKS,
+      SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS,
+      { type },
+    );
 
     await logActivity({
-      type: 'plugin_updated',
+      type: "plugin_updated",
       userId: user!.id,
       payload: { plugin_type: type },
     });
@@ -127,7 +145,10 @@ async function updateTrackerPluginHandler(
     };
   } catch (error) {
     console.error(`Error saving ${trackerLabel(type)} plugin config:`, error);
-    return serverError(set, `Failed to save ${trackerLabel(type)} plugin config`);
+    return serverError(
+      set,
+      `Failed to save ${trackerLabel(type)} plugin config`,
+    );
   }
 }
 
@@ -139,18 +160,35 @@ const trackerBody = t.Object({
   enabled: t.Optional(t.Boolean()),
 });
 
-export const trackerPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
+export const trackerPluginsRoutes = new Elysia({ prefix: "/api/plugins" })
   .use(auth)
   .use(requireAdmin)
-  .get('/c411', ({ user, set }) => getTrackerPluginHandler('c411', user, set))
-  .put('/c411', ({ user, body, set }) => updateTrackerPluginHandler('c411', user, body, set), {
-    body: trackerBody,
-  })
-  .get('/torr9', ({ user, set }) => getTrackerPluginHandler('torr9', user, set))
-  .put('/torr9', ({ user, body, set }) => updateTrackerPluginHandler('torr9', user, body, set), {
-    body: trackerBody,
-  })
-  .get('/la-cale', ({ user, set }) => getTrackerPluginHandler('la-cale', user, set))
-  .put('/la-cale', ({ user, body, set }) => updateTrackerPluginHandler('la-cale', user, body, set), {
-    body: trackerBody,
-  });
+  .get("/c411", ({ user, set }) => getTrackerPluginHandler("c411", user, set))
+  .put(
+    "/c411",
+    ({ user, body, set }) =>
+      updateTrackerPluginHandler("c411", user, body, set),
+    {
+      body: trackerBody,
+    },
+  )
+  .get("/torr9", ({ user, set }) => getTrackerPluginHandler("torr9", user, set))
+  .put(
+    "/torr9",
+    ({ user, body, set }) =>
+      updateTrackerPluginHandler("torr9", user, body, set),
+    {
+      body: trackerBody,
+    },
+  )
+  .get("/la-cale", ({ user, set }) =>
+    getTrackerPluginHandler("la-cale", user, set),
+  )
+  .put(
+    "/la-cale",
+    ({ user, body, set }) =>
+      updateTrackerPluginHandler("la-cale", user, body, set),
+    {
+      body: trackerBody,
+    },
+  );

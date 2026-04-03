@@ -1,5 +1,5 @@
-import { prisma } from '../../db';
-import { getJsonCache, setJsonCache } from '../../services/cache';
+import { prisma } from "../../db";
+import { getJsonCache, setJsonCache } from "../../services/cache";
 
 const CACHE_TTL_SECONDS = 15 * 60; // 15 minutes
 
@@ -16,17 +16,19 @@ const calculateHabitsStreak = async (userId: number): Promise<number> => {
 
   if (activeHabits.length === 0) return 0;
 
-  const habitIds = activeHabits.map(h => h.id);
-  const timesPerDayMap = new Map(activeHabits.map(h => [h.id, h.timesPerDay]));
+  const habitIds = activeHabits.map((h) => h.id);
+  const timesPerDayMap = new Map(
+    activeHabits.map((h) => [h.id, h.timesPerDay]),
+  );
 
   const oneYearAgo = new Date(today);
   oneYearAgo.setDate(oneYearAgo.getDate() - 365);
 
   const completions = await prisma.habitCompletion.groupBy({
-    by: ['habitId', 'date'],
+    by: ["habitId", "date"],
     where: {
       habitId: { in: habitIds },
-      status: 'done',
+      status: "done",
       date: { gte: oneYearAgo },
     },
     _count: { id: true },
@@ -74,12 +76,16 @@ const calculateHabitsStreak = async (userId: number): Promise<number> => {
   return streak;
 };
 
-export const getCachedHabitsStreak = async (userId: number): Promise<number> => {
+export const getCachedHabitsStreak = async (
+  userId: number,
+): Promise<number> => {
   const cached = await getJsonCache<{ streak: number }>(cacheKey(userId));
   return cached?.streak ?? 0;
 };
 
-export const refreshHabitsStreakForUser = async (userId: number): Promise<number> => {
+export const refreshHabitsStreakForUser = async (
+  userId: number,
+): Promise<number> => {
   const streak = await calculateHabitsStreak(userId);
   await setJsonCache(cacheKey(userId), { streak }, CACHE_TTL_SECONDS);
   return streak;
@@ -90,7 +96,7 @@ export const refreshAllHabitsStreaks = async (): Promise<number> => {
   const users = await prisma.habit.findMany({
     where: { active: true },
     select: { userId: true },
-    distinct: ['userId'],
+    distinct: ["userId"],
   });
 
   for (const { userId } of users) {

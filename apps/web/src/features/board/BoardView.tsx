@@ -1,24 +1,39 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { DragDropProvider, KeyboardSensor, PointerSensor } from '@dnd-kit/react';
-import { isSortable } from '@dnd-kit/react/sortable';
-import { move } from '@dnd-kit/helpers';
-import { PointerActivationConstraints, type DragEndEvent, type DragOverEvent } from '@dnd-kit/dom';
-import { Filter, LayoutGrid, List, Plus, X } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
-import { PageLayout } from '@/components/PageLayout';
-import { PageHeader } from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
-import { HouseLoader } from '@/components/HouseLoader';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useTranslation } from "react-i18next";
+import {
+  DragDropProvider,
+  KeyboardSensor,
+  PointerSensor,
+} from "@dnd-kit/react";
+import { isSortable } from "@dnd-kit/react/sortable";
+import { move } from "@dnd-kit/helpers";
+import {
+  PointerActivationConstraints,
+  type DragEndEvent,
+  type DragOverEvent,
+} from "@dnd-kit/dom";
+import { Filter, LayoutGrid, List, Plus, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { PageLayout } from "@/components/PageLayout";
+import { PageHeader } from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
+import { HouseLoader } from "@/components/HouseLoader";
 import {
   useBoardTasks,
   useCreateBoardTask,
   useDeleteBoardTask,
   useSyncBoardTasks,
   useUpdateBoardTask,
-} from '@/hooks/useBoardTasks';
-import { useJsonEventSource } from '@/hooks/useEventSource';
-import { useUsers } from '@/hooks/useUsers';
+} from "@/hooks/useBoardTasks";
+import { useJsonEventSource } from "@/hooks/useEventSource";
+import { useUsers } from "@/hooks/useUsers";
 import {
   BACKLOG_SORT_OPTIONS,
   BOARD_KANBAN_STATUSES,
@@ -32,26 +47,26 @@ import {
   type BoardTaskStatusApi,
   type BoardTasksResponse,
   type UpdateBoardTaskRequest,
-} from '@hously/shared';
-import { useBoardTags } from '@/hooks/useBoardTags';
-import { queryKeys } from '@/lib/queryKeys';
-import { TagManagerModal } from './components/TagManagerModal';
-import { cn } from '@/lib/utils';
-import { BoardColumn } from './components/BoardColumn';
-import { BoardTaskCard } from './components/BoardTaskCard';
-import { TaskDrawer } from './components/TaskDrawer';
-import { BacklogView } from './components/BacklogView';
+} from "@hously/shared";
+import { useBoardTags } from "@/hooks/useBoardTags";
+import { queryKeys } from "@/lib/queryKeys";
+import { TagManagerModal } from "./components/TagManagerModal";
+import { cn } from "@/lib/utils";
+import { BoardColumn } from "./components/BoardColumn";
+import { BoardTaskCard } from "./components/BoardTaskCard";
+import { TaskDrawer } from "./components/TaskDrawer";
+import { BacklogView } from "./components/BacklogView";
 
 type DragEndPayload = Parameters<DragEndEvent>[0];
 type DragOverPayload = Parameters<DragOverEvent>[0];
 
-type ViewMode = 'board' | 'backlog';
+type ViewMode = "board" | "backlog";
 
 interface BoardFilters {
-  tags: number[];  // tag IDs
+  tags: number[]; // tag IDs
   assigneeId: number | null;
   priority: BoardTaskPriorityApi | null;
-  dueDateFilter: 'overdue' | 'this_week' | null;
+  dueDateFilter: "overdue" | "this_week" | null;
 }
 
 const EMPTY_FILTERS: BoardFilters = {
@@ -61,7 +76,9 @@ const EMPTY_FILTERS: BoardFilters = {
   dueDateFilter: null,
 };
 
-function groupTasks(tasks: BoardTask[]): Record<BoardKanbanStatusApi, BoardTask[]> {
+function groupTasks(
+  tasks: BoardTask[],
+): Record<BoardKanbanStatusApi, BoardTask[]> {
   const empty: Record<BoardKanbanStatusApi, BoardTask[]> = {
     on_hold: [],
     todo: [],
@@ -80,32 +97,45 @@ function groupTasks(tasks: BoardTask[]): Record<BoardKanbanStatusApi, BoardTask[
 }
 
 function normalizeColumns(
-  cols: Record<BoardKanbanStatusApi, BoardTask[]>
+  cols: Record<BoardKanbanStatusApi, BoardTask[]>,
 ): Record<BoardKanbanStatusApi, BoardTask[]> {
   const out = {} as Record<BoardKanbanStatusApi, BoardTask[]>;
   for (const s of BOARD_KANBAN_STATUSES) {
-    out[s] = cols[s].map((task, i) => ({ ...task, status: s as BoardTaskStatusApi, position: i }));
+    out[s] = cols[s].map((task, i) => ({
+      ...task,
+      status: s as BoardTaskStatusApi,
+      position: i,
+    }));
   }
   return out;
 }
 
 function toSyncPayload(cols: Record<BoardKanbanStatusApi, BoardTask[]>) {
-  return BOARD_KANBAN_STATUSES.flatMap(s =>
-    cols[s].map(task => ({ id: task.id, status: task.status, position: task.position }))
+  return BOARD_KANBAN_STATUSES.flatMap((s) =>
+    cols[s].map((task) => ({
+      id: task.id,
+      status: task.status,
+      position: task.position,
+    })),
   );
 }
 
 function applyFilters(tasks: BoardTask[], filters: BoardFilters): BoardTask[] {
-  return tasks.filter(task => {
+  return tasks.filter((task) => {
     if (filters.priority && task.priority !== filters.priority) return false;
-    if (filters.assigneeId !== null && task.assignee_id !== filters.assigneeId) return false;
-    if (filters.tags.length > 0 && !filters.tags.every(id => task.tags.some(t => t.id === id))) return false;
+    if (filters.assigneeId !== null && task.assignee_id !== filters.assigneeId)
+      return false;
+    if (
+      filters.tags.length > 0 &&
+      !filters.tags.every((id) => task.tags.some((t) => t.id === id))
+    )
+      return false;
     if (filters.dueDateFilter) {
       const today = new Date(new Date().toDateString());
       const dueDate = task.due_date ? new Date(task.due_date) : null;
-      if (filters.dueDateFilter === 'overdue') {
+      if (filters.dueDateFilter === "overdue") {
         if (!dueDate || dueDate >= today) return false;
-      } else if (filters.dueDateFilter === 'this_week') {
+      } else if (filters.dueDateFilter === "this_week") {
         const nextWeek = new Date(today);
         nextWeek.setDate(nextWeek.getDate() + 7);
         if (!dueDate || dueDate < today || dueDate > nextWeek) return false;
@@ -122,27 +152,31 @@ const PRIORITY_RANK: Record<BoardTaskPriorityApi, number> = {
   low: 3,
 };
 
-function sortBacklog(tasks: BoardTask[], sortBy: BacklogSortOption, sortDir: 'asc' | 'desc'): BoardTask[] {
-  const dir = sortDir === 'asc' ? 1 : -1;
+function sortBacklog(
+  tasks: BoardTask[],
+  sortBy: BacklogSortOption,
+  sortDir: "asc" | "desc",
+): BoardTask[] {
+  const dir = sortDir === "asc" ? 1 : -1;
   return [...tasks].sort((a, b) => {
     switch (sortBy) {
-      case 'priority':
+      case "priority":
         return (PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]) * dir;
-      case 'due_date': {
+      case "due_date": {
         if (!a.due_date && !b.due_date) return 0;
         if (!a.due_date) return 1;
         if (!b.due_date) return -1;
         return a.due_date.localeCompare(b.due_date) * dir;
       }
-      case 'created_at': {
+      case "created_at": {
         if (!a.created_at && !b.created_at) return 0;
         if (!a.created_at) return 1;
         if (!b.created_at) return -1;
         return a.created_at.localeCompare(b.created_at) * dir;
       }
-      case 'assignee': {
-        const nameA = a.assignee_name ?? '';
-        const nameB = b.assignee_name ?? '';
+      case "assignee": {
+        const nameA = a.assignee_name ?? "";
+        const nameB = b.assignee_name ?? "";
         if (!nameA && !nameB) return 0;
         if (!nameA) return 1;
         if (!nameB) return -1;
@@ -155,15 +189,15 @@ function sortBacklog(tasks: BoardTask[], sortBy: BacklogSortOption, sortDir: 'as
 }
 
 const SORT_LABELS: Record<BacklogSortOption, string> = {
-  position: 'Manual order',
-  priority: 'Priority',
-  due_date: 'Due date',
-  created_at: 'Created date',
-  assignee: 'Assignee',
+  position: "Manual order",
+  priority: "Priority",
+  due_date: "Due date",
+  created_at: "Created date",
+  assignee: "Assignee",
 };
 
 export function BoardView() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const queryClient = useQueryClient();
   const { data, isLoading } = useBoardTasks();
   const { data: usersData } = useUsers();
@@ -175,35 +209,50 @@ export function BoardView() {
 
   useJsonEventSource<BoardTasksResponse>({
     url: BOARD_TASKS_ENDPOINTS.STREAM,
-    logLabel: 'Board tasks stream',
-    onMessage: payload => {
+    logLabel: "Board tasks stream",
+    onMessage: (payload) => {
       queryClient.setQueryData(queryKeys.boardTasks.list(), payload);
     },
   });
 
   const allTasks = data?.tasks ?? [];
   const kanbanTasks = useMemo(
-    () => allTasks.filter(t => (BOARD_KANBAN_STATUSES as readonly string[]).includes(t.status)),
-    [allTasks]
+    () =>
+      allTasks.filter((t) =>
+        (BOARD_KANBAN_STATUSES as readonly string[]).includes(t.status),
+      ),
+    [allTasks],
   );
   const backlogTasks = allTasks;
 
-  const groupedFromServer = useMemo(() => groupTasks(kanbanTasks), [kanbanTasks]);
-  const [columns, setColumns] = useState<Record<BoardKanbanStatusApi, BoardTask[]>>(groupedFromServer);
+  const groupedFromServer = useMemo(
+    () => groupTasks(kanbanTasks),
+    [kanbanTasks],
+  );
+  const [columns, setColumns] =
+    useState<Record<BoardKanbanStatusApi, BoardTask[]>>(groupedFromServer);
   const columnsRef = useRef(columns);
-  useLayoutEffect(() => { columnsRef.current = columns; }, [columns]);
-  useEffect(() => { setColumns(groupedFromServer); }, [groupedFromServer]);
+  useLayoutEffect(() => {
+    columnsRef.current = columns;
+  }, [columns]);
+  useEffect(() => {
+    setColumns(groupedFromServer);
+  }, [groupedFromServer]);
 
-  const snapshotRef = useRef<Record<BoardKanbanStatusApi, BoardTask[]> | null>(null);
+  const snapshotRef = useRef<Record<BoardKanbanStatusApi, BoardTask[]> | null>(
+    null,
+  );
 
   const sensors = useMemo(
     () => [
       PointerSensor.configure({
-        activationConstraints: [new PointerActivationConstraints.Distance({ value: 8 })],
+        activationConstraints: [
+          new PointerActivationConstraints.Distance({ value: 8 }),
+        ],
       }),
       KeyboardSensor,
     ],
-    []
+    [],
   );
 
   const handleDragStart = useCallback(() => {
@@ -211,7 +260,9 @@ export function BoardView() {
   }, []);
 
   const handleDragOver = useCallback((event: DragOverPayload) => {
-    setColumns(prev => move(prev, event) as Record<BoardKanbanStatusApi, BoardTask[]>);
+    setColumns(
+      (prev) => move(prev, event) as Record<BoardKanbanStatusApi, BoardTask[]>,
+    );
   }, []);
 
   const handleDragEnd = useCallback(
@@ -229,7 +280,7 @@ export function BoardView() {
         syncMutation.mutate({ tasks: toSyncPayload(normalized) });
       }
     },
-    [syncMutation]
+    [syncMutation],
   );
 
   // Drawer
@@ -242,7 +293,7 @@ export function BoardView() {
   // Keep drawer in sync with server data
   useEffect(() => {
     if (selectedTask) {
-      const updated = allTasks.find(t => t.id === selectedTask.id);
+      const updated = allTasks.find((t) => t.id === selectedTask.id);
       if (updated) setSelectedTask(updated);
     }
   }, [allTasks]);
@@ -254,7 +305,7 @@ export function BoardView() {
         data: partialData as UpdateBoardTaskRequest,
       });
     },
-    [updateMutation]
+    [updateMutation],
   );
 
   const handleDelete = useCallback(
@@ -262,24 +313,24 @@ export function BoardView() {
       deleteMutation.mutate(id);
       setSelectedTask(null);
     },
-    [deleteMutation]
+    [deleteMutation],
   );
 
   // View mode
-  const [viewMode, setViewMode] = useState<ViewMode>('board');
+  const [viewMode, setViewMode] = useState<ViewMode>("board");
 
   // Backlog sort
-  const [backlogSort, setBacklogSort] = useState<BacklogSortOption>('position');
-  const [backlogSortDir, setBacklogSortDir] = useState<'asc' | 'desc'>('asc');
+  const [backlogSort, setBacklogSort] = useState<BacklogSortOption>("position");
+  const [backlogSortDir, setBacklogSortDir] = useState<"asc" | "desc">("asc");
 
   // Create form
   const [showCreate, setShowCreate] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [createStatus, setCreateStatus] = useState<BoardTaskStatusApi>('todo');
+  const [newTitle, setNewTitle] = useState("");
+  const [createStatus, setCreateStatus] = useState<BoardTaskStatusApi>("todo");
 
   // Sync default create-status with current view
   useEffect(() => {
-    setCreateStatus(viewMode === 'backlog' ? 'backlog' : 'todo');
+    setCreateStatus(viewMode === "backlog" ? "backlog" : "todo");
   }, [viewMode]);
 
   const handleCreate = () => {
@@ -289,10 +340,10 @@ export function BoardView() {
       { title, status: createStatus },
       {
         onSuccess: () => {
-          setNewTitle('');
+          setNewTitle("");
           setShowCreate(false);
         },
-      }
+      },
     );
   };
 
@@ -320,7 +371,9 @@ export function BoardView() {
   }, [columns, filters, hasActiveFilters]);
 
   const filteredBacklogTasks = useMemo(() => {
-    const filtered = hasActiveFilters ? applyFilters(backlogTasks, filters) : backlogTasks;
+    const filtered = hasActiveFilters
+      ? applyFilters(backlogTasks, filters)
+      : backlogTasks;
     return sortBacklog(filtered, backlogSort, backlogSortDir);
   }, [backlogTasks, filters, hasActiveFilters, backlogSort, backlogSortDir]);
 
@@ -339,8 +392,8 @@ export function BoardView() {
       <PageHeader
         icon="📋"
         iconColor="text-indigo-600"
-        title={t('board.title')}
-        subtitle={t('board.subtitle')}
+        title={t("board.title")}
+        subtitle={t("board.subtitle")}
       />
 
       {/* Toolbar */}
@@ -348,24 +401,24 @@ export function BoardView() {
         {/* View toggle */}
         <div className="flex rounded-lg border border-neutral-200/80 bg-neutral-100/60 p-0.5 dark:border-neutral-700/60 dark:bg-neutral-800/60">
           <button
-            onClick={() => setViewMode('board')}
+            onClick={() => setViewMode("board")}
             className={cn(
-              'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-              viewMode === 'board'
-                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white'
-                : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+              viewMode === "board"
+                ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white"
+                : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200",
             )}
           >
             <LayoutGrid className="h-3.5 w-3.5" />
             Board
           </button>
           <button
-            onClick={() => setViewMode('backlog')}
+            onClick={() => setViewMode("backlog")}
             className={cn(
-              'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-              viewMode === 'backlog'
-                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white'
-                : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+              viewMode === "backlog"
+                ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white"
+                : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200",
             )}
           >
             <List className="h-3.5 w-3.5" />
@@ -381,52 +434,65 @@ export function BoardView() {
         <div className="flex-1" />
 
         {/* Backlog sort */}
-        {viewMode === 'backlog' && (
+        {viewMode === "backlog" && (
           <div className="flex items-center gap-1 rounded-lg border border-neutral-200/80 bg-neutral-50 px-2.5 py-1.5 dark:border-neutral-700/60 dark:bg-neutral-900/40">
-            <span className="text-[11px] font-medium text-neutral-400">Sort:</span>
+            <span className="text-[11px] font-medium text-neutral-400">
+              Sort:
+            </span>
             <select
               value={backlogSort}
-              onChange={e => setBacklogSort(e.target.value as BacklogSortOption)}
+              onChange={(e) =>
+                setBacklogSort(e.target.value as BacklogSortOption)
+              }
               className="bg-transparent text-[12px] font-medium text-neutral-700 outline-none dark:text-neutral-200"
             >
-              {BACKLOG_SORT_OPTIONS.map(opt => (
+              {BACKLOG_SORT_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
                   {SORT_LABELS[opt]}
                 </option>
               ))}
             </select>
             <button
-              onClick={() => setBacklogSortDir(d => (d === 'asc' ? 'desc' : 'asc'))}
+              onClick={() =>
+                setBacklogSortDir((d) => (d === "asc" ? "desc" : "asc"))
+              }
               className="ml-1 text-[11px] font-medium text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
-              title={backlogSortDir === 'asc' ? 'Ascending' : 'Descending'}
+              title={backlogSortDir === "asc" ? "Ascending" : "Descending"}
             >
-              {backlogSortDir === 'asc' ? '↑' : '↓'}
+              {backlogSortDir === "asc" ? "↑" : "↓"}
             </button>
           </div>
         )}
 
         {/* Filter toggle */}
         <button
-          onClick={() => setShowFilters(v => !v)}
+          onClick={() => setShowFilters((v) => !v)}
           className={cn(
-            'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
+            "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
             hasActiveFilters
-              ? 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-700/60 dark:bg-indigo-900/20 dark:text-indigo-300'
-              : 'border-neutral-200/80 bg-white text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700/60 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700/60'
+              ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-700/60 dark:bg-indigo-900/20 dark:text-indigo-300"
+              : "border-neutral-200/80 bg-white text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700/60 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700/60",
           )}
         >
           <Filter className="h-3.5 w-3.5" />
           Filters
           {hasActiveFilters && (
             <span className="rounded-full bg-indigo-600 px-1.5 py-px text-[10px] text-white">
-              {[filters.tags.length > 0, filters.assigneeId !== null, filters.priority !== null, filters.dueDateFilter !== null].filter(Boolean).length}
+              {
+                [
+                  filters.tags.length > 0,
+                  filters.assigneeId !== null,
+                  filters.priority !== null,
+                  filters.dueDateFilter !== null,
+                ].filter(Boolean).length
+              }
             </span>
           )}
         </button>
 
         {/* Add task */}
         <Button
-          onClick={() => setShowCreate(v => !v)}
+          onClick={() => setShowCreate((v) => !v)}
           className="h-8 gap-1.5 bg-indigo-600 px-3 text-xs hover:bg-indigo-700"
         >
           <Plus className="h-3.5 w-3.5" />
@@ -439,30 +505,32 @@ export function BoardView() {
         <div className="mb-4 flex flex-col gap-3 rounded-xl border border-neutral-200/80 bg-white p-4 dark:border-neutral-700/60 dark:bg-neutral-800 sm:flex-row sm:items-end">
           <div className="flex-1">
             <label className="mb-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
-              {t('board.newTaskTitle')}
+              {t("board.newTaskTitle")}
             </label>
             <input
               autoFocus
               value={newTitle}
-              onChange={e => setNewTitle(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') handleCreate();
-                if (e.key === 'Escape') setShowCreate(false);
+              onChange={(e) => setNewTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCreate();
+                if (e.key === "Escape") setShowCreate(false);
               }}
-              placeholder={t('board.newTaskPlaceholder')}
+              placeholder={t("board.newTaskPlaceholder")}
               className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
             />
           </div>
           <div className="w-full sm:w-44">
             <label className="mb-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
-              {t('board.column')}
+              {t("board.column")}
             </label>
             <select
               value={createStatus}
-              onChange={e => setCreateStatus(e.target.value as BoardTaskStatusApi)}
+              onChange={(e) =>
+                setCreateStatus(e.target.value as BoardTaskStatusApi)
+              }
               className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
             >
-              {BOARD_TASK_STATUSES.map(s => (
+              {BOARD_TASK_STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {statusLabel(s)}
                 </option>
@@ -476,7 +544,7 @@ export function BoardView() {
               className="shrink-0 bg-indigo-600 hover:bg-indigo-700"
             >
               <Plus className="mr-1.5 h-4 w-4" />
-              {t('board.addTask')}
+              {t("board.addTask")}
             </Button>
             <Button
               variant="ghost"
@@ -495,8 +563,13 @@ export function BoardView() {
           {/* Priority */}
           <FilterSelect
             label="Priority"
-            value={filters.priority ?? ''}
-            onChange={v => setFilters(f => ({ ...f, priority: (v || null) as BoardTaskPriorityApi | null }))}
+            value={filters.priority ?? ""}
+            onChange={(v) =>
+              setFilters((f) => ({
+                ...f,
+                priority: (v || null) as BoardTaskPriorityApi | null,
+              }))
+            }
           >
             <option value="">Any priority</option>
             <option value="low">Low</option>
@@ -509,13 +582,17 @@ export function BoardView() {
           {users.length > 0 && (
             <FilterSelect
               label="Assignee"
-              value={filters.assigneeId?.toString() ?? ''}
-              onChange={v => setFilters(f => ({ ...f, assigneeId: v ? Number(v) : null }))}
+              value={filters.assigneeId?.toString() ?? ""}
+              onChange={(v) =>
+                setFilters((f) => ({ ...f, assigneeId: v ? Number(v) : null }))
+              }
             >
               <option value="">Any assignee</option>
-              {users.map(u => (
+              {users.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {u.first_name ? `${u.first_name}${u.last_name ? ' ' + u.last_name : ''}` : u.email}
+                  {u.first_name
+                    ? `${u.first_name}${u.last_name ? " " + u.last_name : ""}`
+                    : u.email}
                 </option>
               ))}
             </FilterSelect>
@@ -524,9 +601,12 @@ export function BoardView() {
           {/* Due date filter */}
           <FilterSelect
             label="Due date"
-            value={filters.dueDateFilter ?? ''}
-            onChange={v =>
-              setFilters(f => ({ ...f, dueDateFilter: (v || null) as BoardFilters['dueDateFilter'] }))
+            value={filters.dueDateFilter ?? ""}
+            onChange={(v) =>
+              setFilters((f) => ({
+                ...f,
+                dueDateFilter: (v || null) as BoardFilters["dueDateFilter"],
+              }))
             }
           >
             <option value="">Any date</option>
@@ -537,27 +617,31 @@ export function BoardView() {
           {/* Tags */}
           {allTags.length > 0 && (
             <div className="flex flex-wrap items-center gap-1">
-              {allTags.map(tag => (
+              {allTags.map((tag) => (
                 <button
                   key={tag.id}
                   onClick={() =>
-                    setFilters(f =>
+                    setFilters((f) =>
                       f.tags.includes(tag.id)
-                        ? { ...f, tags: f.tags.filter(id => id !== tag.id) }
-                        : { ...f, tags: [...f.tags, tag.id] }
+                        ? { ...f, tags: f.tags.filter((id) => id !== tag.id) }
+                        : { ...f, tags: [...f.tags, tag.id] },
                     )
                   }
                   className={cn(
-                    'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
+                    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
                     filters.tags.includes(tag.id)
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600'
+                      ? "bg-indigo-600 text-white"
+                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600",
                   )}
                 >
                   {tag.color && (
                     <span
                       className="h-1.5 w-1.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: filters.tags.includes(tag.id) ? 'white' : tag.color }}
+                      style={{
+                        backgroundColor: filters.tags.includes(tag.id)
+                          ? "white"
+                          : tag.color,
+                      }}
                     />
                   )}
                   {tag.name}
@@ -588,7 +672,7 @@ export function BoardView() {
       )}
 
       {/* Board view */}
-      {viewMode === 'board' && (
+      {viewMode === "board" && (
         <DragDropProvider
           sensors={sensors}
           onDragStart={handleDragStart}
@@ -596,7 +680,7 @@ export function BoardView() {
           onDragEnd={handleDragEnd}
         >
           <div className="flex gap-4 overflow-x-auto pb-4 [-webkit-overflow-scrolling:touch]">
-            {BOARD_KANBAN_STATUSES.map(status => (
+            {BOARD_KANBAN_STATUSES.map((status) => (
               <BoardColumn key={status} status={status}>
                 <div className="border-b border-neutral-200/80 px-3 py-2.5 dark:border-neutral-700/50">
                   <div className="flex items-center gap-2">
@@ -605,9 +689,13 @@ export function BoardView() {
                     </h3>
                     <span className="rounded-full bg-neutral-200/60 px-1.5 py-px text-[10px] font-medium text-neutral-500 dark:bg-neutral-700/60 dark:text-neutral-400">
                       {filteredKanbanColumns[status].length}
-                      {hasActiveFilters && columns[status].length !== filteredKanbanColumns[status].length && (
-                        <span className="text-neutral-400">/{columns[status].length}</span>
-                      )}
+                      {hasActiveFilters &&
+                        columns[status].length !==
+                          filteredKanbanColumns[status].length && (
+                          <span className="text-neutral-400">
+                            /{columns[status].length}
+                          </span>
+                        )}
                     </span>
                   </div>
                 </div>
@@ -623,7 +711,9 @@ export function BoardView() {
                   ))}
                   {filteredKanbanColumns[status].length === 0 && (
                     <p className="py-8 text-center text-xs text-neutral-400 dark:text-neutral-500">
-                      {hasActiveFilters ? 'No matching tasks' : t('board.emptyColumn')}
+                      {hasActiveFilters
+                        ? "No matching tasks"
+                        : t("board.emptyColumn")}
                     </p>
                   )}
                 </div>
@@ -634,12 +724,17 @@ export function BoardView() {
       )}
 
       {/* Backlog view */}
-      {viewMode === 'backlog' && (
-        <BacklogView tasks={filteredBacklogTasks} onTaskClick={handleTaskClick} />
+      {viewMode === "backlog" && (
+        <BacklogView
+          tasks={filteredBacklogTasks}
+          onTaskClick={handleTaskClick}
+        />
       )}
 
       {syncMutation.isPending && (
-        <p className="mt-2 text-center text-xs text-neutral-400">{t('board.saving')}</p>
+        <p className="mt-2 text-center text-xs text-neutral-400">
+          {t("board.saving")}
+        </p>
       )}
 
       {/* Task drawer */}
@@ -652,7 +747,10 @@ export function BoardView() {
       />
 
       {/* Tag manager */}
-      <TagManagerModal isOpen={showTagManager} onClose={() => setShowTagManager(false)} />
+      <TagManagerModal
+        isOpen={showTagManager}
+        onClose={() => setShowTagManager(false)}
+      />
     </PageLayout>
   );
 }
@@ -673,7 +771,7 @@ function FilterSelect({
       <span className="text-[11px] font-medium text-neutral-400">{label}:</span>
       <select
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         className="bg-transparent text-[12px] font-medium text-neutral-700 outline-none dark:text-neutral-200"
       >
         {children}

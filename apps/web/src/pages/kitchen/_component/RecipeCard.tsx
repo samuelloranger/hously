@@ -1,16 +1,16 @@
-import { Star, Clock, Users } from 'lucide-react';
-import { useToggleFavorite } from '@/hooks/useRecipes';
-import { getRecipeImageUrl, type Recipe } from '@hously/shared';
-import { useNavigate } from '@tanstack/react-router';
-import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
+import { Star, Clock, Users } from "lucide-react";
+import { useToggleFavorite } from "@/hooks/useRecipes";
+import { getRecipeImageUrl, type Recipe } from "@hously/shared";
+import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 interface RecipeCardProps {
   recipe: Recipe;
 }
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const toggleFavorite = useToggleFavorite();
 
@@ -21,7 +21,8 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
     toggleFavorite.mutate(recipe.id);
   };
 
-  const totalTime = (recipe.prep_time_minutes || 0) + (recipe.cook_time_minutes || 0);
+  const totalTime =
+    (recipe.prep_time_minutes || 0) + (recipe.cook_time_minutes || 0);
 
   return (
     <div
@@ -46,14 +47,18 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
         <button
           onClick={handleToggleFavorite}
           className={cn(
-            'absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all duration-200',
-            recipe.is_favorite ? 'bg-yellow-400/20 shadow-sm' : 'bg-black/20 opacity-0 group-hover:opacity-100'
+            "absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all duration-200",
+            recipe.is_favorite
+              ? "bg-yellow-400/20 shadow-sm"
+              : "bg-black/20 opacity-0 group-hover:opacity-100",
           )}
         >
           <Star
             className={cn(
-              'w-4 h-4 transition-colors',
-              recipe.is_favorite ? 'fill-yellow-400 text-yellow-400' : 'text-white hover:text-yellow-300'
+              "w-4 h-4 transition-colors",
+              recipe.is_favorite
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-white hover:text-yellow-300",
             )}
           />
         </button>
@@ -68,7 +73,9 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-white line-clamp-1 mb-2">{recipe.name}</h3>
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-white line-clamp-1 mb-2">
+          {recipe.name}
+        </h3>
 
         <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
           {totalTime > 0 && (

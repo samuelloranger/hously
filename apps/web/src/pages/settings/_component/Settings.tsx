@@ -1,17 +1,17 @@
-import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearch } from '@tanstack/react-router';
-import { ProfileTab } from '@/pages/settings/_component/ProfileTab';
-import { NotificationsTab } from '@/pages/settings/_component/NotificationsTab';
-import { CalendarTab } from '@/pages/settings/_component/CalendarTab';
-import { ExternalNotificationsTab } from '@/pages/settings/_component/ExternalNotificationsTab';
-import { PluginsTab } from '@/pages/settings/_component/PluginsTab';
-import { DataExportTab } from '@/pages/settings/_component/DataExportTab';
-import { UsersTab } from '@/pages/settings/_component/UsersTab';
-import { JobsTab } from '@/pages/settings/_component/JobsTab';
-import { SessionsTab } from '@/pages/settings/_component/SessionsTab';
-import { RecentActivityTab } from '@/pages/settings/_component/RecentActivityTab';
-import { useCurrentUser } from '@/hooks/useAuth';
-import { cn } from '@/lib/utils';
+import { useTranslation } from "react-i18next";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+import { ProfileTab } from "@/pages/settings/_component/ProfileTab";
+import { NotificationsTab } from "@/pages/settings/_component/NotificationsTab";
+import { CalendarTab } from "@/pages/settings/_component/CalendarTab";
+import { ExternalNotificationsTab } from "@/pages/settings/_component/ExternalNotificationsTab";
+import { PluginsTab } from "@/pages/settings/_component/PluginsTab";
+import { DataExportTab } from "@/pages/settings/_component/DataExportTab";
+import { UsersTab } from "@/pages/settings/_component/UsersTab";
+import { JobsTab } from "@/pages/settings/_component/JobsTab";
+import { SessionsTab } from "@/pages/settings/_component/SessionsTab";
+import { RecentActivityTab } from "@/pages/settings/_component/RecentActivityTab";
+import { useCurrentUser } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 import {
   User,
   Bell,
@@ -24,20 +24,20 @@ import {
   ShieldCheck,
   History,
   type LucideIcon,
-} from 'lucide-react';
-import { usePrefetchRoute } from '@/lib/routing/usePrefetchRoute';
+} from "lucide-react";
+import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
 
 export type Tab =
-  | 'activity'
-  | 'notifications'
-  | 'profile'
-  | 'calendar'
-  | 'external-notifications'
-  | 'plugins'
-  | 'data-export'
-  | 'jobs'
-  | 'users'
-  | 'sessions';
+  | "activity"
+  | "notifications"
+  | "profile"
+  | "calendar"
+  | "external-notifications"
+  | "plugins"
+  | "data-export"
+  | "jobs"
+  | "users"
+  | "sessions";
 
 interface TabItem {
   id: Tab;
@@ -46,32 +46,48 @@ interface TabItem {
 }
 
 export function Settings() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
-  const search = useSearch({ from: '/settings/' });
+  const search = useSearch({ from: "/settings/" });
   const { data: currentUser } = useCurrentUser();
   const prefetchRoute = usePrefetchRoute();
-  const activeTab = (search.tab as Tab) || 'profile';
+  const activeTab = (search.tab as Tab) || "profile";
 
   const setActiveTab = (tab: Tab) => {
-    navigate({ to: '/settings', search: { tab } });
+    navigate({ to: "/settings", search: { tab } });
   };
 
   const userTabs: TabItem[] = [
-    { id: 'profile', label: t('settings.profile.title'), icon: User },
-    { id: 'activity', label: t('settings.activity.title'), icon: History },
-    { id: 'notifications', label: t('settings.notifications.title'), icon: Bell },
-    { id: 'calendar', label: t('settings.calendar.title'), icon: Calendar },
+    { id: "profile", label: t("settings.profile.title"), icon: User },
+    { id: "activity", label: t("settings.activity.title"), icon: History },
+    {
+      id: "notifications",
+      label: t("settings.notifications.title"),
+      icon: Bell,
+    },
+    { id: "calendar", label: t("settings.calendar.title"), icon: Calendar },
   ];
 
   const adminTabs: TabItem[] = currentUser?.is_admin
     ? [
-        { id: 'plugins', label: t('settings.plugins.title'), icon: Puzzle },
-        { id: 'external-notifications', label: t('settings.externalNotifications.title'), icon: Link2 },
-        { id: 'users', label: t('settings.users.title'), icon: Users },
-        { id: 'sessions', label: t('settings.sessions.title'), icon: ShieldCheck },
-        { id: 'jobs', label: t('settings.jobs.title'), icon: Clock },
-        { id: 'data-export', label: t('settings.dataExport.title'), icon: Database },
+        { id: "plugins", label: t("settings.plugins.title"), icon: Puzzle },
+        {
+          id: "external-notifications",
+          label: t("settings.externalNotifications.title"),
+          icon: Link2,
+        },
+        { id: "users", label: t("settings.users.title"), icon: Users },
+        {
+          id: "sessions",
+          label: t("settings.sessions.title"),
+          icon: ShieldCheck,
+        },
+        { id: "jobs", label: t("settings.jobs.title"), icon: Clock },
+        {
+          id: "data-export",
+          label: t("settings.dataExport.title"),
+          icon: Database,
+        },
       ]
     : [];
 
@@ -82,12 +98,12 @@ export function Settings() {
       )}
       <button
         onClick={() => setActiveTab(tab.id)}
-        onMouseEnter={() => prefetchRoute('/settings', { tab: tab.id })}
+        onMouseEnter={() => prefetchRoute("/settings", { tab: tab.id })}
         className={cn(
-          'w-full flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
+          "w-full flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
           activeTab === tab.id
-            ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-400'
-            : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200'
+            ? "bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-400"
+            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200",
         )}
       >
         <tab.icon className="w-4 h-4 flex-shrink-0" />
@@ -102,19 +118,19 @@ export function Settings() {
       <div className="md:hidden border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3">
         <select
           value={activeTab}
-          onChange={e => setActiveTab(e.target.value as Tab)}
+          onChange={(e) => setActiveTab(e.target.value as Tab)}
           className="w-full px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
-          <optgroup label={t('settings.sections.account')}>
-            {userTabs.map(tab => (
+          <optgroup label={t("settings.sections.account")}>
+            {userTabs.map((tab) => (
               <option key={tab.id} value={tab.id}>
                 {tab.label}
               </option>
             ))}
           </optgroup>
           {adminTabs.length > 0 && (
-            <optgroup label={t('settings.sections.admin')}>
-              {adminTabs.map(tab => (
+            <optgroup label={t("settings.sections.admin")}>
+              {adminTabs.map((tab) => (
                 <option key={tab.id} value={tab.id}>
                   {tab.label}
                 </option>
@@ -128,19 +144,21 @@ export function Settings() {
       <aside className="hidden md:block w-64 flex-shrink-0 relative border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
         <div className="sticky top-[64px] h-[calc(100vh-64px)] overflow-y-auto">
           <div className="px-6 py-5 border-b border-neutral-100 dark:border-neutral-800">
-            <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{t('settings.title')}</h1>
+            <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+              {t("settings.title")}
+            </h1>
           </div>
           <nav className="p-3">
             <div className="mb-4">
               <p className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1.5 px-3">
-                {t('settings.sections.account')}
+                {t("settings.sections.account")}
               </p>
               <div className="space-y-0.5">{userTabs.map(renderTab)}</div>
             </div>
             {adminTabs.length > 0 && (
               <div>
                 <p className="text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-1.5 px-3">
-                  {t('settings.sections.admin')}
+                  {t("settings.sections.admin")}
                 </p>
                 <div className="space-y-0.5">{adminTabs.map(renderTab)}</div>
               </div>
@@ -152,16 +170,20 @@ export function Settings() {
       {/* Content */}
       <div className="flex-1 min-w-0 p-4 md:p-8 overflow-x-hidden">
         <div className="max-w-4xl mx-auto">
-          {activeTab === 'profile' && <ProfileTab />}
-          {activeTab === 'activity' && <RecentActivityTab />}
-          {activeTab === 'notifications' && <NotificationsTab />}
-          {activeTab === 'calendar' && <CalendarTab />}
-          {activeTab === 'external-notifications' && currentUser?.is_admin && <ExternalNotificationsTab />}
-          {activeTab === 'plugins' && currentUser?.is_admin && <PluginsTab />}
-          {activeTab === 'data-export' && currentUser?.is_admin && <DataExportTab />}
-          {activeTab === 'users' && currentUser?.is_admin && <UsersTab />}
-          {activeTab === 'sessions' && currentUser?.is_admin && <SessionsTab />}
-          {activeTab === 'jobs' && currentUser?.is_admin && <JobsTab />}
+          {activeTab === "profile" && <ProfileTab />}
+          {activeTab === "activity" && <RecentActivityTab />}
+          {activeTab === "notifications" && <NotificationsTab />}
+          {activeTab === "calendar" && <CalendarTab />}
+          {activeTab === "external-notifications" && currentUser?.is_admin && (
+            <ExternalNotificationsTab />
+          )}
+          {activeTab === "plugins" && currentUser?.is_admin && <PluginsTab />}
+          {activeTab === "data-export" && currentUser?.is_admin && (
+            <DataExportTab />
+          )}
+          {activeTab === "users" && currentUser?.is_admin && <UsersTab />}
+          {activeTab === "sessions" && currentUser?.is_admin && <SessionsTab />}
+          {activeTab === "jobs" && currentUser?.is_admin && <JobsTab />}
         </div>
       </div>
     </div>

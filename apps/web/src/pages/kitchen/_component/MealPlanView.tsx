@@ -1,21 +1,39 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Plus, ShoppingCart, Trash2, CalendarRange } from 'lucide-react';
-import { toast } from 'sonner';
-import { LoadingState } from '@/components/LoadingState';
-import { useAddToShopping, useDeleteMealPlan, useMealPlans, useRecipes } from '@/hooks/useRecipes';
-import { formatDateOnly, getRecipeImageUrl, getWeekDates, isToday, type MealPlan } from '@hously/shared';
-import { AddMealModal } from '@/pages/kitchen/_component/AddMealModal';
-import { cn } from '@/lib/utils';
+import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  CalendarRange,
+} from "lucide-react";
+import { toast } from "sonner";
+import { LoadingState } from "@/components/LoadingState";
+import {
+  useAddToShopping,
+  useDeleteMealPlan,
+  useMealPlans,
+  useRecipes,
+} from "@/hooks/useRecipes";
+import {
+  formatDateOnly,
+  getRecipeImageUrl,
+  getWeekDates,
+  isToday,
+  type MealPlan,
+} from "@hously/shared";
+import { AddMealModal } from "@/pages/kitchen/_component/AddMealModal";
+import { cn } from "@/lib/utils";
 
-const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
+const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack"] as const;
 type MealType = (typeof MEAL_TYPES)[number];
 
 const MEAL_TYPE_ICONS: Record<MealType, string> = {
-  breakfast: '🌅',
-  lunch: '☀️',
-  dinner: '🌙',
-  snack: '🍿',
+  breakfast: "🌅",
+  lunch: "☀️",
+  dinner: "🌙",
+  snack: "🍿",
 };
 
 interface MealPlanViewProps {
@@ -23,17 +41,23 @@ interface MealPlanViewProps {
 }
 
 export function MealPlanView({ refreshKey }: MealPlanViewProps) {
-  const { t, i18n } = useTranslation('common');
+  const { t, i18n } = useTranslation("common");
   const [weekOffset, setWeekOffset] = useState(0);
   const [addMealModalOpen, setAddMealModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedMealType, setSelectedMealType] = useState<MealType | null>(null);
+  const [selectedMealType, setSelectedMealType] = useState<MealType | null>(
+    null,
+  );
 
   const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
   const startDate = formatDateOnly(weekDates[0]);
   const endDate = formatDateOnly(weekDates[6]);
 
-  const { data: mealPlansData, isLoading: loadingMealPlans, refetch } = useMealPlans(startDate, endDate);
+  const {
+    data: mealPlansData,
+    isLoading: loadingMealPlans,
+    refetch,
+  } = useMealPlans(startDate, endDate);
   const { data: recipesData, isLoading: loadingRecipes } = useRecipes();
   const deleteMealPlan = useDeleteMealPlan();
   const addToShopping = useAddToShopping();
@@ -50,7 +74,7 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
   const mealPlansByDateAndType = useMemo(() => {
     const grouped: Record<string, Record<MealType, MealPlan[]>> = {};
 
-    weekDates.forEach(date => {
+    weekDates.forEach((date) => {
       const dateStr = formatDateOnly(date);
       grouped[dateStr] = {
         breakfast: [],
@@ -60,8 +84,11 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
       };
     });
 
-    mealPlans.forEach(plan => {
-      if (grouped[plan.planned_date] && grouped[plan.planned_date][plan.meal_type as MealType]) {
+    mealPlans.forEach((plan) => {
+      if (
+        grouped[plan.planned_date] &&
+        grouped[plan.planned_date][plan.meal_type as MealType]
+      ) {
         grouped[plan.planned_date][plan.meal_type as MealType].push(plan);
       }
     });
@@ -78,31 +105,39 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
   const handleDeleteMeal = async (mealPlanId: number) => {
     try {
       await deleteMealPlan.mutateAsync(mealPlanId);
-      toast.success(t('kitchen.mealPlan.mealRemoved', 'Meal removed'));
+      toast.success(t("kitchen.mealPlan.mealRemoved", "Meal removed"));
     } catch {
-      toast.error(t('kitchen.mealPlan.removeError', 'Failed to remove meal'));
+      toast.error(t("kitchen.mealPlan.removeError", "Failed to remove meal"));
     }
   };
 
   const handleAddToShopping = async (mealPlanId: number) => {
     try {
       const result = await addToShopping.mutateAsync(mealPlanId);
-      if ('data' in result && result.data) {
+      if ("data" in result && result.data) {
         toast.success(
-          t('kitchen.mealPlan.addedToShopping', 'Added {{count}} items to shopping list', {
-            count: result.data.count,
-          })
+          t(
+            "kitchen.mealPlan.addedToShopping",
+            "Added {{count}} items to shopping list",
+            {
+              count: result.data.count,
+            },
+          ),
         );
       }
     } catch {
-      toast.error(t('kitchen.mealPlan.addToShoppingError', 'Failed to add ingredients'));
+      toast.error(
+        t("kitchen.mealPlan.addToShoppingError", "Failed to add ingredients"),
+      );
     }
   };
 
   const handleAddAllToShopping = async () => {
-    const allMealPlans = mealPlans.filter(plan => plan.id);
+    const allMealPlans = mealPlans.filter((plan) => plan.id);
     if (allMealPlans.length === 0) {
-      toast.info(t('kitchen.mealPlan.noMealsToAdd', 'No meals planned for this week'));
+      toast.info(
+        t("kitchen.mealPlan.noMealsToAdd", "No meals planned for this week"),
+      );
       return;
     }
 
@@ -110,7 +145,7 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
     for (const plan of allMealPlans) {
       try {
         const result = await addToShopping.mutateAsync(plan.id);
-        if ('data' in result && result.data) {
+        if ("data" in result && result.data) {
           totalAdded += result.data.count;
         }
       } catch {
@@ -120,15 +155,19 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
 
     if (totalAdded > 0) {
       toast.success(
-        t('kitchen.mealPlan.addedAllToShopping', 'Added {{count}} items to shopping list', {
-          count: totalAdded,
-        })
+        t(
+          "kitchen.mealPlan.addedAllToShopping",
+          "Added {{count}} items to shopping list",
+          {
+            count: totalAdded,
+          },
+        ),
       );
     }
   };
 
   const formatDayName = (date: Date) => {
-    return date.toLocaleDateString(i18n.language, { weekday: 'short' });
+    return date.toLocaleDateString(i18n.language, { weekday: "short" });
   };
 
   const formatDayNumber = (date: Date) => {
@@ -141,12 +180,12 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
 
     if (firstDate.getMonth() === lastDate.getMonth()) {
       return firstDate.toLocaleDateString(i18n.language, {
-        month: 'long',
-        year: 'numeric',
+        month: "long",
+        year: "numeric",
       });
     }
 
-    return `${firstDate.toLocaleDateString(i18n.language, { month: 'short' })} - ${lastDate.toLocaleDateString(i18n.language, { month: 'short', year: 'numeric' })}`;
+    return `${firstDate.toLocaleDateString(i18n.language, { month: "short" })} - ${lastDate.toLocaleDateString(i18n.language, { month: "short", year: "numeric" })}`;
   };
 
   if (loadingMealPlans || loadingRecipes) {
@@ -160,7 +199,7 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setWeekOffset(prev => prev - 1)}
+              onClick={() => setWeekOffset((prev) => prev - 1)}
               className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
             >
               <ChevronLeft className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
@@ -168,21 +207,23 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
             <button
               onClick={() => setWeekOffset(0)}
               className={cn(
-                'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200',
+                "px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
                 weekOffset === 0
-                  ? 'bg-orange-600 text-white shadow-sm shadow-orange-600/20'
-                  : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                  ? "bg-orange-600 text-white shadow-sm shadow-orange-600/20"
+                  : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700",
               )}
             >
-              {t('kitchen.mealPlan.thisWeek', 'This Week')}
+              {t("kitchen.mealPlan.thisWeek", "This Week")}
             </button>
             <button
-              onClick={() => setWeekOffset(prev => prev + 1)}
+              onClick={() => setWeekOffset((prev) => prev + 1)}
               className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-all duration-200 active:scale-95"
             >
               <ChevronRight className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
             </button>
-            <span className="ml-2 text-sm font-semibold text-neutral-900 dark:text-white">{formatMonthYear()}</span>
+            <span className="ml-2 text-sm font-semibold text-neutral-900 dark:text-white">
+              {formatMonthYear()}
+            </span>
           </div>
 
           <button
@@ -191,7 +232,9 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-neutral-300 dark:disabled:bg-neutral-700 disabled:text-neutral-500 text-white rounded-xl transition-all duration-200 text-sm font-medium shadow-sm shadow-emerald-600/20 active:scale-[0.98]"
           >
             <ShoppingCart className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('kitchen.mealPlan.addWeekToShopping', 'Add Week to Shopping')}</span>
+            <span className="hidden sm:inline">
+              {t("kitchen.mealPlan.addWeekToShopping", "Add Week to Shopping")}
+            </span>
           </button>
         </div>
       </div>
@@ -201,30 +244,34 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
         <div className="min-w-[800px]">
           {/* Days Header */}
           <div className="grid grid-cols-7 gap-2 mb-3">
-            {weekDates.map(date => {
+            {weekDates.map((date) => {
               const todayDate = isToday(date);
               return (
                 <div
                   key={formatDateOnly(date)}
                   className={cn(
-                    'text-center py-3 rounded-xl border transition-colors',
+                    "text-center py-3 rounded-xl border transition-colors",
                     todayDate
-                      ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800/40'
-                      : 'bg-white dark:bg-neutral-800/80 border-neutral-200/60 dark:border-neutral-700/50'
+                      ? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800/40"
+                      : "bg-white dark:bg-neutral-800/80 border-neutral-200/60 dark:border-neutral-700/50",
                   )}
                 >
                   <div
                     className={cn(
-                      'text-xs font-medium uppercase tracking-wider',
-                      todayDate ? 'text-orange-600 dark:text-orange-400' : 'text-neutral-400 dark:text-neutral-500'
+                      "text-xs font-medium uppercase tracking-wider",
+                      todayDate
+                        ? "text-orange-600 dark:text-orange-400"
+                        : "text-neutral-400 dark:text-neutral-500",
                     )}
                   >
                     {formatDayName(date)}
                   </div>
                   <div
                     className={cn(
-                      'text-lg font-bold mt-0.5',
-                      todayDate ? 'text-orange-600 dark:text-orange-400' : 'text-neutral-900 dark:text-white'
+                      "text-lg font-bold mt-0.5",
+                      todayDate
+                        ? "text-orange-600 dark:text-orange-400"
+                        : "text-neutral-900 dark:text-white",
                     )}
                   >
                     {formatDayNumber(date)}
@@ -235,7 +282,7 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
           </div>
 
           {/* Meal Type Rows */}
-          {MEAL_TYPES.map(mealType => (
+          {MEAL_TYPES.map((mealType) => (
             <div key={mealType} className="mb-3">
               <div className="flex items-center gap-2 mb-2 pl-1">
                 <span className="text-base">{MEAL_TYPE_ICONS[mealType]}</span>
@@ -245,9 +292,10 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
               </div>
 
               <div className="grid grid-cols-7 gap-2">
-                {weekDates.map(date => {
+                {weekDates.map((date) => {
                   const dateStr = formatDateOnly(date);
-                  const meals = mealPlansByDateAndType[dateStr]?.[mealType] || [];
+                  const meals =
+                    mealPlansByDateAndType[dateStr]?.[mealType] || [];
 
                   return (
                     <div
@@ -256,12 +304,14 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
                     >
                       {meals.length > 0 ? (
                         <div className="space-y-2">
-                          {meals.map(meal => (
+                          {meals.map((meal) => (
                             <MealCard
                               key={meal.id}
                               meal={meal}
                               onDelete={() => handleDeleteMeal(meal.id)}
-                              onAddToShopping={() => handleAddToShopping(meal.id)}
+                              onAddToShopping={() =>
+                                handleAddToShopping(meal.id)
+                              }
                             />
                           ))}
                           <button
@@ -277,7 +327,9 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
                           className="w-full h-full flex flex-col items-center justify-center text-neutral-300 dark:text-neutral-600 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 rounded-lg transition-all duration-200"
                         >
                           <Plus className="w-5 h-5" />
-                          <span className="text-[10px] font-medium mt-0.5">{t('kitchen.mealPlan.addMeal', 'Add')}</span>
+                          <span className="text-[10px] font-medium mt-0.5">
+                            {t("kitchen.mealPlan.addMeal", "Add")}
+                          </span>
                         </button>
                       )}
                     </div>
@@ -296,10 +348,13 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
             <CalendarRange className="w-6 h-6 text-neutral-300 dark:text-neutral-600" />
           </div>
           <h3 className="text-base font-semibold text-neutral-900 dark:text-white mb-1.5">
-            {t('kitchen.mealPlan.noMeals', 'No meals planned')}
+            {t("kitchen.mealPlan.noMeals", "No meals planned")}
           </h3>
           <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">
-            {t('kitchen.mealPlan.startPlanning', 'Click on any slot to start planning your meals for the week')}
+            {t(
+              "kitchen.mealPlan.startPlanning",
+              "Click on any slot to start planning your meals for the week",
+            )}
           </p>
         </div>
       )}
@@ -312,8 +367,8 @@ export function MealPlanView({ refreshKey }: MealPlanViewProps) {
           setSelectedDate(null);
           setSelectedMealType(null);
         }}
-        date={selectedDate || ''}
-        mealType={selectedMealType || 'dinner'}
+        date={selectedDate || ""}
+        mealType={selectedMealType || "dinner"}
         recipes={recipes}
       />
     </>
@@ -331,7 +386,13 @@ function MealCard({ meal, onDelete, onAddToShopping }: MealCardProps) {
 
   return (
     <div className="group relative bg-neutral-50 dark:bg-neutral-700/60 rounded-lg overflow-hidden">
-      {imageUrl && <img src={imageUrl} alt={meal.recipe_name || ''} className="w-full h-12 object-cover" />}
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt={meal.recipe_name || ""}
+          className="w-full h-12 object-cover"
+        />
+      )}
       <div className="p-1.5">
         <p className="text-[11px] font-medium text-neutral-900 dark:text-white truncate leading-tight">
           {meal.recipe_name}

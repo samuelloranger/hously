@@ -1,23 +1,32 @@
-import { Elysia, t } from 'elysia';
-import { auth } from '../../auth';
-import { requireUser } from '../../middleware/auth';
-import { prisma } from '../../db';
-import { formatIso, todayLocal } from '../../utils';
-import { getJsonCache, setJsonCache } from '../../services/cache';
-import { fetchAddressWeather, normalizeWeatherAddress, WEATHER_CACHE_TTL_SECONDS } from '../../utils/dashboard/weather';
-import { getCachedHabitsStreak } from '../../utils/dashboard/habitsStreak';
-import type { DashboardWeatherResponse } from '../../types/dashboardWeather';
-import { badGateway, notFound, serverError, unauthorized } from '../../utils/errors';
+import { Elysia, t } from "elysia";
+import { auth } from "../../auth";
+import { requireUser } from "../../middleware/auth";
+import { prisma } from "../../db";
+import { formatIso, todayLocal } from "../../utils";
+import { getJsonCache, setJsonCache } from "../../services/cache";
+import {
+  fetchAddressWeather,
+  normalizeWeatherAddress,
+  WEATHER_CACHE_TTL_SECONDS,
+} from "../../utils/dashboard/weather";
+import { getCachedHabitsStreak } from "../../utils/dashboard/habitsStreak";
+import type { DashboardWeatherResponse } from "../../types/dashboardWeather";
+import {
+  badGateway,
+  notFound,
+  serverError,
+  unauthorized,
+} from "../../utils/errors";
 
 interface WeatherPluginConfig {
   address?: string;
-  temperature_unit?: 'fahrenheit' | 'celsius';
+  temperature_unit?: "fahrenheit" | "celsius";
 }
 
 type ActivityRecord = {
   id: number;
   user_id?: number;
-  task_type?: 'chore' | 'shopping' | 'recipe';
+  task_type?: "chore" | "shopping" | "recipe";
   task_id?: number;
   completed_at?: string;
   task_name?: string;
@@ -47,13 +56,16 @@ type ActivityRecord = {
 
 const ACTIVITY_FEED_SOURCE_LIMIT = 500;
 
-const parseString = (value: unknown): string | undefined => (typeof value === 'string' && value.trim() ? value : undefined);
-const parseBoolean = (value: unknown): boolean | undefined => (typeof value === 'boolean' ? value : undefined);
+const parseString = (value: unknown): string | undefined =>
+  typeof value === "string" && value.trim() ? value : undefined;
+const parseBoolean = (value: unknown): boolean | undefined =>
+  typeof value === "boolean" ? value : undefined;
 const parseNumber = (value: unknown): number | undefined =>
-  typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+  typeof value === "number" && Number.isFinite(value) ? value : undefined;
 const parseIntNumber = (value: unknown): number | undefined => {
-  if (typeof value === 'number' && Number.isFinite(value)) return Math.trunc(value);
-  if (typeof value === 'string' && value.trim()) {
+  if (typeof value === "number" && Number.isFinite(value))
+    return Math.trunc(value);
+  if (typeof value === "string" && value.trim()) {
     const parsed = parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : undefined;
   }
@@ -62,45 +74,48 @@ const parseIntNumber = (value: unknown): number | undefined => {
 
 function getTaskCompletionType(taskType: string): string {
   switch (taskType) {
-    case 'chore':
-      return 'chore_completed';
-    case 'shopping':
-      return 'shopping_completed';
-    case 'recipe':
-      return 'recipe_completed';
-    case 'habit':
-      return 'habit_completed';
+    case "chore":
+      return "chore_completed";
+    case "shopping":
+      return "shopping_completed";
+    case "recipe":
+      return "recipe_completed";
+    case "habit":
+      return "habit_completed";
     default:
-      return 'task_completed';
+      return "task_completed";
   }
 }
 
 function getTaskCompletionService(taskType: string): string {
   switch (taskType) {
-    case 'chore':
-      return 'chores';
-    case 'shopping':
-      return 'shopping';
-    case 'recipe':
-      return 'recipes';
-    case 'habit':
-      return 'habits';
+    case "chore":
+      return "chores";
+    case "shopping":
+      return "shopping";
+    case "recipe":
+      return "recipes";
+    case "habit":
+      return "habits";
     default:
-      return 'system';
+      return "system";
   }
 }
 
-function getLogService(type: string, payload: Record<string, unknown> | null): string {
-  if (type === 'plugin_updated') {
-    return parseString(payload?.plugin_type)?.trim().toLowerCase() || 'system';
+function getLogService(
+  type: string,
+  payload: Record<string, unknown> | null,
+): string {
+  if (type === "plugin_updated") {
+    return parseString(payload?.plugin_type)?.trim().toLowerCase() || "system";
   }
 
-  if (type === 'admin_triggered_job') return 'admin';
-  if (type.startsWith('recipe_')) return 'recipes';
-  if (type.startsWith('event_')) return 'calendar';
-  if (type.startsWith('shopping_')) return 'shopping';
+  if (type === "admin_triggered_job") return "admin";
+  if (type.startsWith("recipe_")) return "recipes";
+  if (type.startsWith("event_")) return "calendar";
+  if (type.startsWith("shopping_")) return "shopping";
 
-  return 'system';
+  return "system";
 }
 
 function mapTaskCompletionToActivity(completion: {
@@ -116,12 +131,12 @@ function mapTaskCompletionToActivity(completion: {
   return {
     id: completion.id,
     user_id: completion.userId,
-    task_type: completion.taskType as 'chore' | 'shopping' | 'recipe',
+    task_type: completion.taskType as "chore" | "shopping" | "recipe",
     task_id: completion.taskId,
     completed_at: formatIso(completion.completedAt) ?? undefined,
     task_name: completion.taskName,
     emotion: completion.emotion,
-    username: completion.user?.firstName || completion.user?.email || 'Unknown',
+    username: completion.user?.firstName || completion.user?.email || "Unknown",
     type: getTaskCompletionType(completion.taskType),
     service: getTaskCompletionService(completion.taskType),
   };
@@ -136,7 +151,9 @@ function mapActivityLogToActivity(log: {
   user?: { firstName: string | null; email: string | null } | null;
 }): ActivityRecord {
   const payload =
-    log.payload && typeof log.payload === 'object' && !Array.isArray(log.payload)
+    log.payload &&
+    typeof log.payload === "object" &&
+    !Array.isArray(log.payload)
       ? (log.payload as Record<string, unknown>)
       : null;
 
@@ -168,19 +185,32 @@ function mapActivityLogToActivity(log: {
   };
 }
 
-function sortActivitiesDescending(activities: ActivityRecord[]): ActivityRecord[] {
+function sortActivitiesDescending(
+  activities: ActivityRecord[],
+): ActivityRecord[] {
   return [...activities].sort((a, b) => {
-    const at = typeof a.completed_at === 'string' ? new Date(a.completed_at).getTime() : 0;
-    const bt = typeof b.completed_at === 'string' ? new Date(b.completed_at).getTime() : 0;
+    const at =
+      typeof a.completed_at === "string"
+        ? new Date(a.completed_at).getTime()
+        : 0;
+    const bt =
+      typeof b.completed_at === "string"
+        ? new Date(b.completed_at).getTime()
+        : 0;
     return bt - at;
   });
 }
 
 function uniqueSorted(values: Array<string | undefined>): string[] {
-  return Array.from(new Set(values.filter((value): value is string => Boolean(value)))).sort((a, b) => a.localeCompare(b));
+  return Array.from(
+    new Set(values.filter((value): value is string => Boolean(value))),
+  ).sort((a, b) => a.localeCompare(b));
 }
 
-function matchesActivityFilters(activity: ActivityRecord, filters: { service?: string; type?: string }): boolean {
+function matchesActivityFilters(
+  activity: ActivityRecord,
+  filters: { service?: string; type?: string },
+): boolean {
   if (filters.service && activity.service !== filters.service) return false;
   if (filters.type && activity.type !== filters.type) return false;
   return true;
@@ -189,7 +219,7 @@ function matchesActivityFilters(activity: ActivityRecord, filters: { service?: s
 export const dashboardOverviewRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
-  .get('/stats', async ({ user, set }) => {
+  .get("/stats", async ({ user, set }) => {
     try {
       const today = todayLocal();
       const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
@@ -229,20 +259,21 @@ export const dashboardOverviewRoutes = new Elysia()
         activities: [],
       };
     } catch (err) {
-      console.error('Error getting dashboard stats:', err);
-      return serverError(set, 'Failed to get dashboard stats');
+      console.error("Error getting dashboard stats:", err);
+      return serverError(set, "Failed to get dashboard stats");
     }
   })
   .get(
-    '/activities',
+    "/activities",
     async ({ user, query, set }) => {
       try {
         const limit = query.limit ? parseInt(query.limit, 10) : 10;
-        const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.min(limit, 50) : 10;
+        const safeLimit =
+          Number.isFinite(limit) && limit > 0 ? Math.min(limit, 50) : 10;
 
         const [recentCompletions, recentLogs] = await Promise.all([
           prisma.taskCompletion.findMany({
-            orderBy: { completedAt: 'desc' },
+            orderBy: { completedAt: "desc" },
             take: safeLimit,
             include: {
               user: {
@@ -254,7 +285,7 @@ export const dashboardOverviewRoutes = new Elysia()
             },
           }),
           prisma.activityLog.findMany({
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             take: safeLimit,
             include: {
               user: {
@@ -268,28 +299,31 @@ export const dashboardOverviewRoutes = new Elysia()
         ]);
 
         const merged = sortActivitiesDescending([
-          ...recentLogs.map(mapActivityLogToActivity).filter(entry => entry.completed_at),
+          ...recentLogs
+            .map(mapActivityLogToActivity)
+            .filter((entry) => entry.completed_at),
           ...recentCompletions.map(mapTaskCompletionToActivity),
         ]);
 
         return { activities: merged.slice(0, safeLimit) };
       } catch (err) {
-        console.error('Error getting dashboard activities:', err);
-        return serverError(set, 'Failed to get dashboard activities');
+        console.error("Error getting dashboard activities:", err);
+        return serverError(set, "Failed to get dashboard activities");
       }
     },
     {
       query: t.Object({
         limit: t.Optional(t.String()),
       }),
-    }
+    },
   )
   .get(
-    '/activities/feed',
+    "/activities/feed",
     async ({ query, set }) => {
       try {
         const limit = query.limit ? parseInt(query.limit, 10) : 25;
-        const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.min(limit, 250) : 25;
+        const safeLimit =
+          Number.isFinite(limit) && limit > 0 ? Math.min(limit, 250) : 25;
         const filters = {
           service: query.service?.trim().toLowerCase() || undefined,
           type: query.type?.trim() || undefined,
@@ -297,7 +331,7 @@ export const dashboardOverviewRoutes = new Elysia()
 
         const [recentCompletions, recentLogs] = await Promise.all([
           prisma.taskCompletion.findMany({
-            orderBy: { completedAt: 'desc' },
+            orderBy: { completedAt: "desc" },
             take: ACTIVITY_FEED_SOURCE_LIMIT,
             include: {
               user: {
@@ -309,7 +343,7 @@ export const dashboardOverviewRoutes = new Elysia()
             },
           }),
           prisma.activityLog.findMany({
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
             take: ACTIVITY_FEED_SOURCE_LIMIT,
             include: {
               user: {
@@ -323,23 +357,31 @@ export const dashboardOverviewRoutes = new Elysia()
         ]);
 
         const allActivities = sortActivitiesDescending([
-          ...recentLogs.map(mapActivityLogToActivity).filter(entry => entry.completed_at),
+          ...recentLogs
+            .map(mapActivityLogToActivity)
+            .filter((entry) => entry.completed_at),
           ...recentCompletions.map(mapTaskCompletionToActivity),
         ]);
 
-        const filteredActivities = allActivities.filter(activity => matchesActivityFilters(activity, filters));
+        const filteredActivities = allActivities.filter((activity) =>
+          matchesActivityFilters(activity, filters),
+        );
 
         return {
           activities: filteredActivities.slice(0, safeLimit),
-          available_services: uniqueSorted(allActivities.map(activity => activity.service)),
-          available_types: uniqueSorted(allActivities.map(activity => activity.type)),
+          available_services: uniqueSorted(
+            allActivities.map((activity) => activity.service),
+          ),
+          available_types: uniqueSorted(
+            allActivities.map((activity) => activity.type),
+          ),
           total: filteredActivities.length,
           limit: safeLimit,
           has_more: filteredActivities.length > safeLimit,
         };
       } catch (err) {
-        console.error('Error getting dashboard activity feed:', err);
-        return serverError(set, 'Failed to get dashboard activity feed');
+        console.error("Error getting dashboard activity feed:", err);
+        return serverError(set, "Failed to get dashboard activity feed");
       }
     },
     {
@@ -348,19 +390,21 @@ export const dashboardOverviewRoutes = new Elysia()
         service: t.Optional(t.String()),
         type: t.Optional(t.String()),
       }),
-    }
+    },
   )
-  .get('/weather', async ({ user, set }) => {
+  .get("/weather", async ({ user, set }) => {
     try {
       const weatherPlugin = await prisma.plugin.findFirst({
-        where: { type: 'weather' },
+        where: { type: "weather" },
       });
-      const config = (weatherPlugin?.config as WeatherPluginConfig | null) || null;
-      const address = (config?.address || '').trim();
-      const temperatureUnit = config?.temperature_unit === 'celsius' ? 'celsius' : 'fahrenheit';
+      const config =
+        (weatherPlugin?.config as WeatherPluginConfig | null) || null;
+      const address = (config?.address || "").trim();
+      const temperatureUnit =
+        config?.temperature_unit === "celsius" ? "celsius" : "fahrenheit";
 
       if (!address) {
-        return notFound(set, 'Weather plugin is not configured.');
+        return notFound(set, "Weather plugin is not configured.");
       }
 
       const normalizedAddress = normalizeWeatherAddress(address);
@@ -374,7 +418,8 @@ export const dashboardOverviewRoutes = new Elysia()
       await setJsonCache(cacheKey, weather, WEATHER_CACHE_TTL_SECONDS);
       return weather;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to get weather';
+      const message =
+        err instanceof Error ? err.message : "Failed to get weather";
       return badGateway(set, message);
     }
   });

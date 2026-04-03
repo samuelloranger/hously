@@ -1,14 +1,17 @@
-import { useMemo, useState, type UIEvent } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useDashboardJellyfinLatestInfinite, useDashboardUpcoming } from '@/hooks/useDashboard';
+import { useMemo, useState, type UIEvent } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  useDashboardJellyfinLatestInfinite,
+  useDashboardUpcoming,
+} from "@/hooks/useDashboard";
 import {
   formatRelativeTime,
   resolveDateFnsLocale,
   type DashboardUpcomingItem,
   type TmdbMediaSearchItem,
-} from '@hously/shared';
-import { ExploreCardDetailDialog } from '@/pages/medias/_component/ExploreCardDetailDialog';
-import { RefreshCw } from 'lucide-react';
+} from "@hously/shared";
+import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
+import { RefreshCw } from "lucide-react";
 
 // ─── Poster card ──────────────────────────────────────────────────────────────
 
@@ -57,7 +60,9 @@ function PosterCard({
         </span>
       </div>
       <div className="absolute bottom-0 left-0 right-0 p-2">
-        <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2">{title}</p>
+        <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2">
+          {title}
+        </p>
         <p className="text-[9px] text-white/60 mt-0.5">{subtitle}</p>
       </div>
     </div>
@@ -65,7 +70,12 @@ function PosterCard({
 
   if (href) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className="block">
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block"
+      >
         {inner}
       </a>
     );
@@ -76,10 +86,18 @@ function PosterCard({
 // ─── Jellyfin shelf ───────────────────────────────────────────────────────────
 
 export function JellyfinShelf() {
-  const { t, i18n } = useTranslation('common');
+  const { t, i18n } = useTranslation("common");
   const locale = resolveDateFnsLocale(i18n.language);
-  const { data, isLoading, isError, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage, refetch } =
-    useDashboardJellyfinLatestInfinite(10);
+  const {
+    data,
+    isLoading,
+    isError,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = useDashboardJellyfinLatestInfinite(10);
 
   const isEnabled = data?.pages[0]?.enabled ?? false;
 
@@ -87,8 +105,8 @@ export function JellyfinShelf() {
     const seen = new Set<string>();
     return (
       data?.pages
-        .flatMap(p => p.items)
-        .filter(item => {
+        .flatMap((p) => p.items)
+        .filter((item) => {
           if (seen.has(item.id)) return false;
           seen.add(item.id);
           return true;
@@ -103,18 +121,23 @@ export function JellyfinShelf() {
   };
 
   const mediaTypeLabel = (type: string | null) => {
-    if (!type) return t('dashboard.home.mediaTypeGeneric');
+    if (!type) return t("dashboard.home.mediaTypeGeneric");
     const key = type.toLowerCase();
-    if (key === 'movie') return t('dashboard.home.mediaTypeMovie');
-    if (key === 'episode') return t('dashboard.home.mediaTypeTv');
-    if (key === 'musicalbum') return t('dashboard.home.mediaTypeAlbum');
-    if (key === 'audio') return t('dashboard.home.mediaTypeAudio');
-    return t('dashboard.home.mediaTypeGeneric');
+    if (key === "movie") return t("dashboard.home.mediaTypeMovie");
+    if (key === "episode") return t("dashboard.home.mediaTypeTv");
+    if (key === "musicalbum") return t("dashboard.home.mediaTypeAlbum");
+    if (key === "audio") return t("dashboard.home.mediaTypeAudio");
+    return t("dashboard.home.mediaTypeGeneric");
   };
 
   const mediaFallback = (type: string | null) => {
-    const map: Record<string, string> = { movie: '🎬', episode: '📺', musicalbum: '💿', audio: '🎧' };
-    return (type && map[type.toLowerCase()]) ?? '🎞️';
+    const map: Record<string, string> = {
+      movie: "🎬",
+      episode: "📺",
+      musicalbum: "💿",
+      audio: "🎧",
+    };
+    return (type && map[type.toLowerCase()]) ?? "🎞️";
   };
 
   return (
@@ -123,7 +146,7 @@ export function JellyfinShelf() {
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-blue-500 shrink-0" />
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-            {t('dashboard.home.jellyfinRecentlyAdded')}
+            {t("dashboard.home.jellyfinRecentlyAdded")}
           </h3>
         </div>
         <button
@@ -131,14 +154,16 @@ export function JellyfinShelf() {
           onClick={() => refetch()}
           disabled={isFetching}
           className="text-zinc-400 hover:text-blue-500 transition-colors disabled:opacity-40"
-          title={t('dashboard.jellyfin.refresh')}
+          title={t("dashboard.jellyfin.refresh")}
         >
-          <RefreshCw size={13} className={isFetching ? 'animate-spin' : ''} />
+          <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />
         </button>
       </div>
 
       {isError ? (
-        <p className="px-4 py-6 text-sm text-rose-500 text-center">{t('dashboard.home.jellyfinLoadError')}</p>
+        <p className="px-4 py-6 text-sm text-rose-500 text-center">
+          {t("dashboard.home.jellyfinLoadError")}
+        </p>
       ) : isLoading ? (
         <div className="flex gap-3 px-4 py-3 overflow-hidden">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -150,20 +175,23 @@ export function JellyfinShelf() {
         </div>
       ) : !isEnabled ? (
         <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
-          {t('dashboard.home.jellyfinNotConfigured')}
+          {t("dashboard.home.jellyfinNotConfigured")}
         </p>
       ) : items.length === 0 ? (
         <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
-          {t('dashboard.home.jellyfinEmpty')}
+          {t("dashboard.home.jellyfinEmpty")}
         </p>
       ) : (
-        <div className="no-scrollbar overflow-x-auto px-4 py-3" onScroll={handleScroll}>
+        <div
+          className="no-scrollbar overflow-x-auto px-4 py-3"
+          onScroll={handleScroll}
+        >
           <div className="flex gap-3">
             {items.map((item, i) => (
               <PosterCard
                 key={`${item.id}-${i}`}
                 title={item.title}
-                subtitle={formatRelativeTime(item.added_at, { locale }) ?? ''}
+                subtitle={formatRelativeTime(item.added_at, { locale }) ?? ""}
                 posterUrl={item.poster_url}
                 fallback={mediaFallback(item.item_type)}
                 type={mediaTypeLabel(item.item_type)}
@@ -185,11 +213,14 @@ export function JellyfinShelf() {
 
 function toTmdbItem(
   item: DashboardUpcomingItem,
-  opts: { radarrEnabled: boolean; sonarrEnabled: boolean }
+  opts: { radarrEnabled: boolean; sonarrEnabled: boolean },
 ): TmdbMediaSearchItem {
-  const tmdbId = parseInt(item.id.split('-')[1] || '', 10);
-  const releaseYear = item.release_date ? new Date(item.release_date).getFullYear() : null;
-  const canAdd = item.media_type === 'movie' ? opts.radarrEnabled : opts.sonarrEnabled;
+  const tmdbId = parseInt(item.id.split("-")[1] || "", 10);
+  const releaseYear = item.release_date
+    ? new Date(item.release_date).getFullYear()
+    : null;
+  const canAdd =
+    item.media_type === "movie" ? opts.radarrEnabled : opts.sonarrEnabled;
   return {
     id: item.id,
     tmdb_id: tmdbId,
@@ -199,7 +230,7 @@ function toTmdbItem(
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: item.vote_average ?? null,
-    service: item.media_type === 'movie' ? 'radarr' : 'sonarr',
+    service: item.media_type === "movie" ? "radarr" : "sonarr",
     already_exists: false,
     can_add: canAdd,
     source_id: null,
@@ -208,7 +239,7 @@ function toTmdbItem(
 }
 
 export function UpcomingShelf() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const { data, isLoading, isFetching, refetch } = useDashboardUpcoming();
   const [selected, setSelected] = useState<TmdbMediaSearchItem | null>(null);
 
@@ -216,7 +247,11 @@ export function UpcomingShelf() {
     if (!value) return null;
     const d = new Date(value);
     if (isNaN(d.getTime())) return null;
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return d.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   return (
@@ -226,7 +261,7 @@ export function UpcomingShelf() {
           <div className="flex items-center gap-2.5">
             <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
             <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-              {t('dashboard.home.upcomingShelfTitle')}
+              {t("dashboard.home.upcomingShelfTitle")}
             </h3>
           </div>
           <button
@@ -234,9 +269,9 @@ export function UpcomingShelf() {
             onClick={() => refetch()}
             disabled={!data?.enabled || isFetching}
             className="text-zinc-400 hover:text-amber-500 transition-colors disabled:opacity-40"
-            title={t('dashboard.upcoming.refresh')}
+            title={t("dashboard.upcoming.refresh")}
           >
-            <RefreshCw size={13} className={isFetching ? 'animate-spin' : ''} />
+            <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />
           </button>
         </div>
 
@@ -251,11 +286,11 @@ export function UpcomingShelf() {
           </div>
         ) : !data?.enabled ? (
           <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
-            {t('dashboard.home.upcomingArrNotConfigured')}
+            {t("dashboard.home.upcomingArrNotConfigured")}
           </p>
         ) : data.items.length === 0 ? (
           <p className="px-4 py-6 text-sm text-zinc-500 dark:text-zinc-400 text-center">
-            {t('dashboard.home.upcomingEmpty')}
+            {t("dashboard.home.upcomingEmpty")}
           </p>
         ) : (
           <div className="no-scrollbar overflow-x-auto px-4 py-3">
@@ -264,16 +299,23 @@ export function UpcomingShelf() {
                 <PosterCard
                   key={item.id}
                   title={item.title}
-                  subtitle={formatDate(item.release_date) ?? t('dashboard.upcoming.unknownDate')}
+                  subtitle={
+                    formatDate(item.release_date) ??
+                    t("dashboard.upcoming.unknownDate")
+                  }
                   posterUrl={item.poster_url}
-                  fallback={item.media_type === 'movie' ? '🎬' : '📺'}
-                  type={item.media_type === 'movie' ? t('dashboard.upcoming.movie') : t('dashboard.upcoming.tv')}
+                  fallback={item.media_type === "movie" ? "🎬" : "📺"}
+                  type={
+                    item.media_type === "movie"
+                      ? t("dashboard.upcoming.movie")
+                      : t("dashboard.upcoming.tv")
+                  }
                   onClick={() =>
                     setSelected(
                       toTmdbItem(item, {
                         radarrEnabled: Boolean(data.radarr_enabled),
                         sonarrEnabled: Boolean(data.sonarr_enabled),
-                      })
+                      }),
                     )
                   }
                   delayMs={i * 40}

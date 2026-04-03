@@ -1,11 +1,18 @@
-import { prisma } from '../../db';
-import { normalizeRedditConfig } from '../plugins/normalizers';
+import { prisma } from "../../db";
+import { normalizeRedditConfig } from "../plugins/normalizers";
 
 export const REDDIT_CACHE_TTL_SECONDS = 5 * 60;
 
-const REDDIT_USER_AGENT = 'Hously/1.0 (self-hosted dashboard)';
+const REDDIT_USER_AGENT = "Hously/1.0 (self-hosted dashboard)";
 
-const THUMBNAIL_SENTINELS = new Set(['self', 'default', 'nsfw', 'spoiler', 'image', '']);
+const THUMBNAIL_SENTINELS = new Set([
+  "self",
+  "default",
+  "nsfw",
+  "spoiler",
+  "image",
+  "",
+]);
 
 export interface RedditPost {
   id: string;
@@ -39,9 +46,11 @@ const buildDisabledResponse = (error?: string): DashboardRedditResponse => ({
   ...(error ? { error } : {}),
 });
 
-export const fetchRedditPosts = async (afterCursor?: string): Promise<DashboardRedditResponse> => {
+export const fetchRedditPosts = async (
+  afterCursor?: string,
+): Promise<DashboardRedditResponse> => {
   const plugin = await prisma.plugin.findFirst({
-    where: { type: 'reddit' },
+    where: { type: "reddit" },
     select: { enabled: true, config: true },
   });
 
@@ -53,25 +62,27 @@ export const fetchRedditPosts = async (afterCursor?: string): Promise<DashboardR
   const subreddits = config.subreddits;
 
   try {
-    const joined = subreddits.join('+');
+    const joined = subreddits.join("+");
     const params = new URLSearchParams({
-      limit: '25',
-      raw_json: '1',
+      limit: "25",
+      raw_json: "1",
     });
     if (afterCursor) {
-      params.set('after', afterCursor);
+      params.set("after", afterCursor);
     }
 
     const response = await fetch(
       `https://www.reddit.com/r/${joined}/hot.json?${params.toString()}`,
       {
-        headers: { 'User-Agent': REDDIT_USER_AGENT },
-      }
+        headers: { "User-Agent": REDDIT_USER_AGENT },
+      },
     );
 
     if (!response.ok) {
       return {
-        ...buildDisabledResponse(`Reddit API returned status ${response.status}`),
+        ...buildDisabledResponse(
+          `Reddit API returned status ${response.status}`,
+        ),
         enabled: true,
         subreddits,
       };
@@ -103,22 +114,22 @@ export const fetchRedditPosts = async (afterCursor?: string): Promise<DashboardR
         const d = child.data;
         if (!d.id || !d.title) return null;
 
-        const rawThumb = d.thumbnail ?? '';
+        const rawThumb = d.thumbnail ?? "";
         const thumbnail =
-          !THUMBNAIL_SENTINELS.has(rawThumb) && rawThumb.startsWith('http')
+          !THUMBNAIL_SENTINELS.has(rawThumb) && rawThumb.startsWith("http")
             ? rawThumb
             : null;
 
         return {
           id: d.id,
           title: d.title,
-          author: d.author || '[deleted]',
+          author: d.author || "[deleted]",
           score: d.score || 0,
-          url: d.url || '',
-          permalink: d.permalink ? `https://www.reddit.com${d.permalink}` : '',
+          url: d.url || "",
+          permalink: d.permalink ? `https://www.reddit.com${d.permalink}` : "",
           created_utc: d.created_utc || 0,
           num_comments: d.num_comments || 0,
-          subreddit: d.subreddit || '',
+          subreddit: d.subreddit || "",
           thumbnail,
           is_self: Boolean(d.is_self),
         } satisfies RedditPost;
@@ -133,9 +144,9 @@ export const fetchRedditPosts = async (afterCursor?: string): Promise<DashboardR
       updated_at: new Date().toISOString(),
     };
   } catch (error) {
-    console.error('Error fetching Reddit posts:', error);
+    console.error("Error fetching Reddit posts:", error);
     return {
-      ...buildDisabledResponse('Failed to fetch Reddit posts'),
+      ...buildDisabledResponse("Failed to fetch Reddit posts"),
       enabled: true,
       subreddits,
     };
@@ -149,18 +160,20 @@ export interface RedditSubredditSearchResult {
   subscribers: number;
 }
 
-export const searchSubreddits = async (query: string): Promise<RedditSubredditSearchResult[]> => {
+export const searchSubreddits = async (
+  query: string,
+): Promise<RedditSubredditSearchResult[]> => {
   const params = new URLSearchParams({
     q: query,
-    limit: '10',
-    raw_json: '1',
+    limit: "10",
+    raw_json: "1",
   });
 
   const response = await fetch(
     `https://www.reddit.com/subreddits/search.json?${params.toString()}`,
     {
-      headers: { 'User-Agent': REDDIT_USER_AGENT },
-    }
+      headers: { "User-Agent": REDDIT_USER_AGENT },
+    },
   );
 
   if (!response.ok) {
@@ -188,9 +201,9 @@ export const searchSubreddits = async (query: string): Promise<RedditSubredditSe
 
       // Prefer community_icon, fall back to icon_img. Strip URL-encoded query params from community_icon.
       const communityIcon = d.community_icon
-        ? d.community_icon.split('?')[0].replace(/&amp;/g, '&')
-        : '';
-      const iconImg = d.icon_img || '';
+        ? d.community_icon.split("?")[0].replace(/&amp;/g, "&")
+        : "";
+      const iconImg = d.icon_img || "";
       const icon = communityIcon || iconImg || null;
 
       return {

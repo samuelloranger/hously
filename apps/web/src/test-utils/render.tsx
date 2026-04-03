@@ -1,10 +1,10 @@
-import type { ReactElement, ReactNode } from 'react';
-import { render, type RenderOptions } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { FetcherProvider } from '@/lib/api/context';
-import { vi } from 'vitest';
+import type { ReactElement, ReactNode } from "react";
+import { render, type RenderOptions } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { FetcherProvider } from "@/lib/api/context";
+import { vi } from "vitest";
 
-interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
+interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
   queryClient?: QueryClient;
   fetcher?: any;
 }
@@ -19,12 +19,14 @@ export function renderWithProviders(
     }),
     fetcher = defaultFetcher,
     ...renderOptions
-  }: CustomRenderOptions = {}
+  }: CustomRenderOptions = {},
 ) {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
       <FetcherProvider fetcher={fetcher}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       </FetcherProvider>
     );
   }
@@ -36,4 +38,4 @@ export function renderWithProviders(
   };
 }
 
-export * from '@testing-library/react';
+export * from "@testing-library/react";

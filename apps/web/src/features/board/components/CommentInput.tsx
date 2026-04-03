@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { useCreateComment } from '@/hooks/useBoardTasks';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useCreateComment } from "@/hooks/useBoardTasks";
 
 export function CommentInput({ taskId }: { taskId: number }) {
-  const [body, setBody] = useState('');
+  const [body, setBody] = useState("");
   const { mutate, isPending } = useCreateComment();
 
   const submit = () => {
     const text = body.trim();
     if (!text) return;
-    mutate({ taskId, body: text }, { onSuccess: () => setBody('') });
+    mutate({ taskId, body: text }, { onSuccess: () => setBody("") });
   };
 
   return (
     <div className="flex flex-col gap-2">
       <textarea
         value={body}
-        onChange={e => setBody(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit();
+        onChange={(e) => setBody(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
         }}
         placeholder="Write a comment… (⌘↵ to submit)"
         rows={3}

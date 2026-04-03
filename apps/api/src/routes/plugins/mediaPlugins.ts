@@ -1,66 +1,69 @@
-import { Elysia, t } from 'elysia';
-import { auth } from '../../auth';
-import { prisma } from '../../db';
-import { nowUtc } from '../../utils';
-import { isValidHttpUrl, toProfiles } from '../../utils/plugins/utils';
+import { Elysia, t } from "elysia";
+import { auth } from "../../auth";
+import { prisma } from "../../db";
+import { nowUtc } from "../../utils";
+import { isValidHttpUrl, toProfiles } from "../../utils/plugins/utils";
 import {
   normalizeJellyfinConfig,
   normalizeProwlarrConfig,
   normalizeRadarrConfig,
   normalizeSonarrConfig,
-} from '../../utils/plugins/normalizers';
-import { logActivity } from '../../utils/activityLogs';
-import { encrypt } from '../../services/crypto';
-import { requireAdmin } from '../../middleware/auth';
-import { badGateway, badRequest, serverError } from '../../utils/errors';
+} from "../../utils/plugins/normalizers";
+import { logActivity } from "../../utils/activityLogs";
+import { encrypt } from "../../services/crypto";
+import { requireAdmin } from "../../middleware/auth";
+import { badGateway, badRequest, serverError } from "../../utils/errors";
 
-export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
+export const mediaPluginsRoutes = new Elysia({ prefix: "/api/plugins" })
   .use(auth)
   .use(requireAdmin)
-  .get('/jellyfin', async ({ user, set }) => {
+  .get("/jellyfin", async ({ user, set }) => {
     try {
       const plugin = await prisma.plugin.findFirst({
-        where: { type: 'jellyfin' },
+        where: { type: "jellyfin" },
       });
 
       const config = normalizeJellyfinConfig(plugin?.config);
       return {
         plugin: {
-          type: 'jellyfin',
+          type: "jellyfin",
           enabled: plugin?.enabled || false,
-          website_url: config?.website_url || '',
-          api_key: '',
+          website_url: config?.website_url || "",
+          api_key: "",
         },
       };
     } catch (error) {
-      console.error('Error fetching Jellyfin plugin config:', error);
-      return serverError(set, 'Failed to fetch Jellyfin plugin config');
+      console.error("Error fetching Jellyfin plugin config:", error);
+      return serverError(set, "Failed to fetch Jellyfin plugin config");
     }
   })
   .put(
-    '/jellyfin',
+    "/jellyfin",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
       const existingPlugin = await prisma.plugin.findFirst({
-        where: { type: 'jellyfin' },
+        where: { type: "jellyfin" },
       });
       const existingConfig = normalizeJellyfinConfig(existingPlugin?.config);
       const providedApiKey = body.api_key.trim();
-      const apiKey = providedApiKey || existingConfig?.api_key || '';
+      const apiKey = providedApiKey || existingConfig?.api_key || "";
       const enabled = body.enabled ?? true;
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
-        return badRequest(set, 'Invalid website_url. Must be a valid http(s) URL.');
+        return badRequest(
+          set,
+          "Invalid website_url. Must be a valid http(s) URL.",
+        );
       }
 
       if (!apiKey) {
-        return badRequest(set, 'api_key is required');
+        return badRequest(set, "api_key is required");
       }
 
       try {
         const now = nowUtc();
         const plugin = await prisma.plugin.upsert({
-          where: { type: 'jellyfin' },
+          where: { type: "jellyfin" },
           update: {
             enabled,
             config: {
@@ -70,7 +73,7 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             updatedAt: now,
           },
           create: {
-            type: 'jellyfin',
+            type: "jellyfin",
             enabled,
             config: {
               website_url: websiteUrl,
@@ -82,9 +85,9 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         });
 
         await logActivity({
-          type: 'plugin_updated',
+          type: "plugin_updated",
           userId: user!.id,
-          payload: { plugin_type: 'jellyfin' },
+          payload: { plugin_type: "jellyfin" },
         });
 
         return {
@@ -93,12 +96,12 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             type: plugin.type,
             enabled: plugin.enabled,
             website_url: websiteUrl,
-            api_key: '',
+            api_key: "",
           },
         };
       } catch (error) {
-        console.error('Error saving Jellyfin plugin config:', error);
-        return serverError(set, 'Failed to save Jellyfin plugin config');
+        console.error("Error saving Jellyfin plugin config:", error);
+        return serverError(set, "Failed to save Jellyfin plugin config");
       }
     },
     {
@@ -107,52 +110,55 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         api_key: t.String(),
         enabled: t.Optional(t.Boolean()),
       }),
-    }
+    },
   )
-  .get('/prowlarr', async ({ user, set }) => {
+  .get("/prowlarr", async ({ user, set }) => {
     try {
       const plugin = await prisma.plugin.findFirst({
-        where: { type: 'prowlarr' },
+        where: { type: "prowlarr" },
       });
 
       const config = normalizeProwlarrConfig(plugin?.config);
       return {
         plugin: {
-          type: 'prowlarr',
+          type: "prowlarr",
           enabled: plugin?.enabled || false,
-          website_url: config?.website_url || '',
-          api_key: '',
+          website_url: config?.website_url || "",
+          api_key: "",
         },
       };
     } catch (error) {
-      console.error('Error fetching Prowlarr plugin config:', error);
-      return serverError(set, 'Failed to fetch Prowlarr plugin config');
+      console.error("Error fetching Prowlarr plugin config:", error);
+      return serverError(set, "Failed to fetch Prowlarr plugin config");
     }
   })
   .put(
-    '/prowlarr',
+    "/prowlarr",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
       const existingPlugin = await prisma.plugin.findFirst({
-        where: { type: 'prowlarr' },
+        where: { type: "prowlarr" },
       });
       const existingConfig = normalizeProwlarrConfig(existingPlugin?.config);
       const providedApiKey = body.api_key.trim();
-      const apiKey = providedApiKey || existingConfig?.api_key || '';
+      const apiKey = providedApiKey || existingConfig?.api_key || "";
       const enabled = body.enabled ?? true;
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
-        return badRequest(set, 'Invalid website_url. Must be a valid http(s) URL.');
+        return badRequest(
+          set,
+          "Invalid website_url. Must be a valid http(s) URL.",
+        );
       }
 
       if (!apiKey) {
-        return badRequest(set, 'api_key is required');
+        return badRequest(set, "api_key is required");
       }
 
       try {
         const now = nowUtc();
         const plugin = await prisma.plugin.upsert({
-          where: { type: 'prowlarr' },
+          where: { type: "prowlarr" },
           update: {
             enabled,
             config: {
@@ -162,7 +168,7 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             updatedAt: now,
           },
           create: {
-            type: 'prowlarr',
+            type: "prowlarr",
             enabled,
             config: {
               website_url: websiteUrl,
@@ -174,9 +180,9 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         });
 
         await logActivity({
-          type: 'plugin_updated',
+          type: "plugin_updated",
           userId: user!.id,
-          payload: { plugin_type: 'prowlarr' },
+          payload: { plugin_type: "prowlarr" },
         });
 
         return {
@@ -185,12 +191,12 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             type: plugin.type,
             enabled: plugin.enabled,
             website_url: websiteUrl,
-            api_key: '',
+            api_key: "",
           },
         };
       } catch (error) {
-        console.error('Error saving Prowlarr plugin config:', error);
-        return serverError(set, 'Failed to save Prowlarr plugin config');
+        console.error("Error saving Prowlarr plugin config:", error);
+        return serverError(set, "Failed to save Prowlarr plugin config");
       }
     },
     {
@@ -199,64 +205,67 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         api_key: t.String(),
         enabled: t.Optional(t.Boolean()),
       }),
-    }
+    },
   )
-  .get('/radarr', async ({ user, set }) => {
+  .get("/radarr", async ({ user, set }) => {
     try {
       const plugin = await prisma.plugin.findFirst({
-        where: { type: 'radarr' },
+        where: { type: "radarr" },
       });
 
       const config = normalizeRadarrConfig(plugin?.config);
       return {
         plugin: {
-          type: 'radarr',
+          type: "radarr",
           enabled: plugin?.enabled || false,
-          website_url: config?.website_url || '',
-          api_key: '',
-          root_folder_path: config?.root_folder_path || '',
+          website_url: config?.website_url || "",
+          api_key: "",
+          root_folder_path: config?.root_folder_path || "",
           quality_profile_id: config?.quality_profile_id || 1,
         },
       };
     } catch (error) {
-      console.error('Error fetching Radarr plugin config:', error);
-      return serverError(set, 'Failed to fetch Radarr plugin config');
+      console.error("Error fetching Radarr plugin config:", error);
+      return serverError(set, "Failed to fetch Radarr plugin config");
     }
   })
   .put(
-    '/radarr',
+    "/radarr",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
       const existingPlugin = await prisma.plugin.findFirst({
-        where: { type: 'radarr' },
+        where: { type: "radarr" },
       });
       const existingConfig = normalizeRadarrConfig(existingPlugin?.config);
       const providedApiKey = body.api_key.trim();
-      const apiKey = providedApiKey || existingConfig?.api_key || '';
+      const apiKey = providedApiKey || existingConfig?.api_key || "";
       const rootFolderPath = body.root_folder_path.trim();
       const qualityProfileId = Math.trunc(body.quality_profile_id);
       const enabled = body.enabled ?? true;
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
-        return badRequest(set, 'Invalid website_url. Must be a valid http(s) URL.');
+        return badRequest(
+          set,
+          "Invalid website_url. Must be a valid http(s) URL.",
+        );
       }
 
       if (!apiKey) {
-        return badRequest(set, 'api_key is required');
+        return badRequest(set, "api_key is required");
       }
 
       if (!rootFolderPath) {
-        return badRequest(set, 'root_folder_path is required');
+        return badRequest(set, "root_folder_path is required");
       }
 
       if (!Number.isFinite(qualityProfileId) || qualityProfileId <= 0) {
-        return badRequest(set, 'quality_profile_id must be a positive integer');
+        return badRequest(set, "quality_profile_id must be a positive integer");
       }
 
       try {
         const now = nowUtc();
         const plugin = await prisma.plugin.upsert({
-          where: { type: 'radarr' },
+          where: { type: "radarr" },
           update: {
             enabled,
             config: {
@@ -268,7 +277,7 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             updatedAt: now,
           },
           create: {
-            type: 'radarr',
+            type: "radarr",
             enabled,
             config: {
               website_url: websiteUrl,
@@ -282,9 +291,9 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         });
 
         await logActivity({
-          type: 'plugin_updated',
+          type: "plugin_updated",
           userId: user!.id,
-          payload: { plugin_type: 'radarr' },
+          payload: { plugin_type: "radarr" },
         });
 
         return {
@@ -293,14 +302,14 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             type: plugin.type,
             enabled: plugin.enabled,
             website_url: websiteUrl,
-            api_key: '',
+            api_key: "",
             root_folder_path: rootFolderPath,
             quality_profile_id: qualityProfileId,
           },
         };
       } catch (error) {
-        console.error('Error saving Radarr plugin config:', error);
-        return serverError(set, 'Failed to save Radarr plugin config');
+        console.error("Error saving Radarr plugin config:", error);
+        return serverError(set, "Failed to save Radarr plugin config");
       }
     },
     {
@@ -311,36 +320,39 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         quality_profile_id: t.Numeric(),
         enabled: t.Optional(t.Boolean()),
       }),
-    }
+    },
   )
   .post(
-    '/radarr/profiles',
+    "/radarr/profiles",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
       const apiKey = body.api_key.trim();
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
-        return badRequest(set, 'Invalid website_url. Must be a valid http(s) URL.');
+        return badRequest(
+          set,
+          "Invalid website_url. Must be a valid http(s) URL.",
+        );
       }
 
       const existingPlugin = await prisma.plugin.findFirst({
-        where: { type: 'radarr' },
+        where: { type: "radarr" },
       });
       const existingConfig = normalizeRadarrConfig(existingPlugin?.config);
-      const resolvedApiKey = apiKey || existingConfig?.api_key || '';
+      const resolvedApiKey = apiKey || existingConfig?.api_key || "";
 
       if (!resolvedApiKey) {
-        return badRequest(set, 'api_key is required');
+        return badRequest(set, "api_key is required");
       }
 
       try {
-        const qualityUrl = new URL('/api/v3/qualityprofile', websiteUrl);
+        const qualityUrl = new URL("/api/v3/qualityprofile", websiteUrl);
         const qualityResponse = await fetch(qualityUrl.toString(), {
-          headers: { 'X-Api-Key': resolvedApiKey, Accept: 'application/json' },
+          headers: { "X-Api-Key": resolvedApiKey, Accept: "application/json" },
         });
 
         if (!qualityResponse.ok) {
-          return badGateway(set, 'Failed to fetch Radarr quality profiles');
+          return badGateway(set, "Failed to fetch Radarr quality profiles");
         }
 
         const qualityPayload = (await qualityResponse.json()) as unknown;
@@ -348,8 +360,8 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           quality_profiles: toProfiles(qualityPayload),
         };
       } catch (error) {
-        console.error('Error fetching Radarr profiles:', error);
-        return serverError(set, 'Failed to fetch Radarr profiles');
+        console.error("Error fetching Radarr profiles:", error);
+        return serverError(set, "Failed to fetch Radarr profiles");
       }
     },
     {
@@ -357,70 +369,76 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         website_url: t.String(),
         api_key: t.String(),
       }),
-    }
+    },
   )
-  .get('/sonarr', async ({ user, set }) => {
+  .get("/sonarr", async ({ user, set }) => {
     try {
       const plugin = await prisma.plugin.findFirst({
-        where: { type: 'sonarr' },
+        where: { type: "sonarr" },
       });
 
       const config = normalizeSonarrConfig(plugin?.config);
       return {
         plugin: {
-          type: 'sonarr',
+          type: "sonarr",
           enabled: plugin?.enabled || false,
-          website_url: config?.website_url || '',
-          api_key: '',
-          root_folder_path: config?.root_folder_path || '',
+          website_url: config?.website_url || "",
+          api_key: "",
+          root_folder_path: config?.root_folder_path || "",
           quality_profile_id: config?.quality_profile_id || 1,
           language_profile_id: config?.language_profile_id || 1,
         },
       };
     } catch (error) {
-      console.error('Error fetching Sonarr plugin config:', error);
-      return serverError(set, 'Failed to fetch Sonarr plugin config');
+      console.error("Error fetching Sonarr plugin config:", error);
+      return serverError(set, "Failed to fetch Sonarr plugin config");
     }
   })
   .put(
-    '/sonarr',
+    "/sonarr",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
       const existingPlugin = await prisma.plugin.findFirst({
-        where: { type: 'sonarr' },
+        where: { type: "sonarr" },
       });
       const existingConfig = normalizeSonarrConfig(existingPlugin?.config);
       const providedApiKey = body.api_key.trim();
-      const apiKey = providedApiKey || existingConfig?.api_key || '';
+      const apiKey = providedApiKey || existingConfig?.api_key || "";
       const rootFolderPath = body.root_folder_path.trim();
       const qualityProfileId = Math.trunc(body.quality_profile_id);
       const languageProfileId = Math.trunc(body.language_profile_id);
       const enabled = body.enabled ?? true;
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
-        return badRequest(set, 'Invalid website_url. Must be a valid http(s) URL.');
+        return badRequest(
+          set,
+          "Invalid website_url. Must be a valid http(s) URL.",
+        );
       }
 
       if (!apiKey) {
-        return badRequest(set, 'api_key is required');
+        return badRequest(set, "api_key is required");
       }
 
       if (!rootFolderPath) {
-        return badRequest(set, 'root_folder_path is required');
+        return badRequest(set, "root_folder_path is required");
       }
 
       if (!Number.isFinite(qualityProfileId) || qualityProfileId <= 0) {
-        return badRequest(set, 'quality_profile_id must be a positive integer');
+        return badRequest(set, "quality_profile_id must be a positive integer");
       }
 
       if (!Number.isFinite(languageProfileId) || languageProfileId <= 0) {
-        return badRequest(set, 'language_profile_id must be a positive integer');
+        return badRequest(
+          set,
+          "language_profile_id must be a positive integer",
+        );
       }
 
       try {
         const now = nowUtc();
         const plugin = await prisma.plugin.upsert({
-          where: { type: 'sonarr' },
+          where: { type: "sonarr" },
           update: {
             enabled,
             config: {
@@ -433,7 +451,7 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             updatedAt: now,
           },
           create: {
-            type: 'sonarr',
+            type: "sonarr",
             enabled,
             config: {
               website_url: websiteUrl,
@@ -448,9 +466,9 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         });
 
         await logActivity({
-          type: 'plugin_updated',
+          type: "plugin_updated",
           userId: user!.id,
-          payload: { plugin_type: 'sonarr' },
+          payload: { plugin_type: "sonarr" },
         });
 
         return {
@@ -459,15 +477,15 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             type: plugin.type,
             enabled: plugin.enabled,
             website_url: websiteUrl,
-            api_key: '',
+            api_key: "",
             root_folder_path: rootFolderPath,
             quality_profile_id: qualityProfileId,
             language_profile_id: languageProfileId,
           },
         };
       } catch (error) {
-        console.error('Error saving Sonarr plugin config:', error);
-        return serverError(set, 'Failed to save Sonarr plugin config');
+        console.error("Error saving Sonarr plugin config:", error);
+        return serverError(set, "Failed to save Sonarr plugin config");
       }
     },
     {
@@ -479,43 +497,52 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         language_profile_id: t.Numeric(),
         enabled: t.Optional(t.Boolean()),
       }),
-    }
+    },
   )
   .post(
-    '/sonarr/profiles',
+    "/sonarr/profiles",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
       const apiKey = body.api_key.trim();
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
-        return badRequest(set, 'Invalid website_url. Must be a valid http(s) URL.');
+        return badRequest(
+          set,
+          "Invalid website_url. Must be a valid http(s) URL.",
+        );
       }
 
       const existingPlugin = await prisma.plugin.findFirst({
-        where: { type: 'sonarr' },
+        where: { type: "sonarr" },
       });
       const existingConfig = normalizeSonarrConfig(existingPlugin?.config);
-      const resolvedApiKey = apiKey || existingConfig?.api_key || '';
+      const resolvedApiKey = apiKey || existingConfig?.api_key || "";
 
       if (!resolvedApiKey) {
-        return badRequest(set, 'api_key is required');
+        return badRequest(set, "api_key is required");
       }
 
       try {
-        const qualityUrl = new URL('/api/v3/qualityprofile', websiteUrl);
-        const languageUrl = new URL('/api/v3/languageprofile', websiteUrl);
+        const qualityUrl = new URL("/api/v3/qualityprofile", websiteUrl);
+        const languageUrl = new URL("/api/v3/languageprofile", websiteUrl);
 
         const [qualityResponse, languageResponse] = await Promise.all([
           fetch(qualityUrl.toString(), {
-            headers: { 'X-Api-Key': resolvedApiKey, Accept: 'application/json' },
+            headers: {
+              "X-Api-Key": resolvedApiKey,
+              Accept: "application/json",
+            },
           }),
           fetch(languageUrl.toString(), {
-            headers: { 'X-Api-Key': resolvedApiKey, Accept: 'application/json' },
+            headers: {
+              "X-Api-Key": resolvedApiKey,
+              Accept: "application/json",
+            },
           }),
         ]);
 
         if (!qualityResponse.ok || !languageResponse.ok) {
-          return badGateway(set, 'Failed to fetch Sonarr profiles');
+          return badGateway(set, "Failed to fetch Sonarr profiles");
         }
 
         const [qualityPayload, languagePayload] = (await Promise.all([
@@ -528,8 +555,8 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           language_profiles: toProfiles(languagePayload),
         };
       } catch (error) {
-        console.error('Error fetching Sonarr profiles:', error);
-        return serverError(set, 'Failed to fetch Sonarr profiles');
+        console.error("Error fetching Sonarr profiles:", error);
+        return serverError(set, "Failed to fetch Sonarr profiles");
       }
     },
     {
@@ -537,5 +564,5 @@ export const mediaPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         website_url: t.String(),
         api_key: t.String(),
       }),
-    }
+    },
   );

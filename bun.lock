@@ -25,7 +25,7 @@
     },
     "apps/api": {
       "name": "@hously/server",
-      "version": "2.2.21",
+      "version": "2.2.22",
       "dependencies": {
         "@aws-sdk/client-s3": "^3.1020.0",
         "@elysiajs/cookie": "^0.8.0",
@@ -60,7 +60,7 @@
     },
     "apps/shared": {
       "name": "@hously/shared",
-      "version": "2.2.21",
+      "version": "2.2.22",
       "peerDependencies": {
         "@tanstack/react-query": "^5.90.21",
         "date-fns": "^4.1.0",
@@ -69,7 +69,7 @@
     },
     "apps/web": {
       "name": "@hously/web",
-      "version": "2.2.21",
+      "version": "2.2.22",
       "dependencies": {
         "@dnd-kit/abstract": "^0.3.2",
         "@dnd-kit/dom": "^0.3.2",

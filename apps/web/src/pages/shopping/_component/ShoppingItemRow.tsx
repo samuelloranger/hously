@@ -1,10 +1,21 @@
-import { useState, useRef, useEffect, startTransition, type CSSProperties, type KeyboardEvent } from 'react';
-import { useTranslation } from 'react-i18next';
-import { CompleteCheckbox } from '@/components/CompleteCheckbox';
-import { ActionMenu } from '@/components/ActionMenu';
-import { DragHandle } from '@/components/SortableList';
-import { useToggleShoppingItem, useDeleteShoppingItem, useUpdateShoppingItem } from '@/hooks/useShopping';
-import { formatUsername, formatDate, type ShoppingItem } from '@hously/shared';
+import {
+  useState,
+  useRef,
+  useEffect,
+  startTransition,
+  type CSSProperties,
+  type KeyboardEvent,
+} from "react";
+import { useTranslation } from "react-i18next";
+import { CompleteCheckbox } from "@/components/CompleteCheckbox";
+import { ActionMenu } from "@/components/ActionMenu";
+import { DragHandle } from "@/components/SortableList";
+import {
+  useToggleShoppingItem,
+  useDeleteShoppingItem,
+  useUpdateShoppingItem,
+} from "@/hooks/useShopping";
+import { formatUsername, formatDate, type ShoppingItem } from "@hously/shared";
 
 interface ShoppingItemRowProps {
   item: ShoppingItem;
@@ -26,11 +37,11 @@ export function ShoppingItemRow({
   isSelected = false,
   onSelectToggle,
 }: ShoppingItemRowProps) {
-  const { t, i18n } = useTranslation('common');
+  const { t, i18n } = useTranslation("common");
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [editValue, setEditValue] = useState(item.item_name);
-  const [editNotes, setEditNotes] = useState(item.notes || '');
+  const [editNotes, setEditNotes] = useState(item.notes || "");
   const inputRef = useRef<HTMLInputElement>(null);
   const notesInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -69,8 +80,8 @@ export function ShoppingItemRow({
   if (!isEditing && editValue !== item.item_name) {
     setEditValue(item.item_name);
   }
-  if (!isEditingNotes && editNotes !== (item.notes || '')) {
-    setEditNotes(item.notes || '');
+  if (!isEditingNotes && editNotes !== (item.notes || "")) {
+    setEditNotes(item.notes || "");
   }
 
   const handleEdit = () => {
@@ -92,7 +103,7 @@ export function ShoppingItemRow({
           onSuccess: () => {
             setIsEditing(false);
           },
-        }
+        },
       );
     } else {
       handleCancel();
@@ -108,17 +119,17 @@ export function ShoppingItemRow({
           onSuccess: () => {
             setIsEditingNotes(false);
           },
-        }
+        },
       );
     } else {
       setIsEditingNotes(false);
-      setEditNotes(item.notes || '');
+      setEditNotes(item.notes || "");
     }
   };
 
   const handleNotesCancel = () => {
     setIsEditingNotes(false);
-    setEditNotes(item.notes || '');
+    setEditNotes(item.notes || "");
   };
 
   const handleBlur = () => {
@@ -126,10 +137,10 @@ export function ShoppingItemRow({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleSubmit();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       e.preventDefault();
       handleCancel();
     }
@@ -137,20 +148,20 @@ export function ShoppingItemRow({
 
   const actionMenuItems = [
     {
-      label: item.completed ? t('shopping.undo') : t('shopping.markDone'),
-      icon: '✓',
+      label: item.completed ? t("shopping.undo") : t("shopping.markDone"),
+      icon: "✓",
       onClick: () => toggleMutation.mutate(item.id),
-      variant: 'success' as const,
+      variant: "success" as const,
     },
     {
-      label: t('shopping.delete'),
-      icon: '🗑️',
+      label: t("shopping.delete"),
+      icon: "🗑️",
       onClick: () => {
-        if (confirm(t('shopping.deleteConfirm'))) {
+        if (confirm(t("shopping.deleteConfirm"))) {
           deleteMutation.mutate(item.id);
         }
       },
-      variant: 'danger' as const,
+      variant: "danger" as const,
     },
   ];
 
@@ -159,7 +170,7 @@ export function ShoppingItemRow({
       ref={dragHandleProps?.setNodeRef}
       style={dragHandleProps?.style}
       className={`item-row p-3 pl-6 pr-6 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors ${
-        isCompletingAnimation ? 'row-complete-flash' : ''
+        isCompletingAnimation ? "row-complete-flash" : ""
       }`}
     >
       <div className="flex items-center justify-between">
@@ -175,7 +186,7 @@ export function ShoppingItemRow({
                   className="h-7 w-7 rounded border-2 border-neutral-300 text-primary-600 focus:ring-2 focus:ring-primary-500 dark:border-neutral-600 dark:bg-neutral-700"
                   checked={isSelected}
                   onChange={() => onSelectToggle?.(item.id)}
-                  aria-label={t('shopping.selectItem')}
+                  aria-label={t("shopping.selectItem")}
                 />
               </div>
             ) : (
@@ -195,19 +206,21 @@ export function ShoppingItemRow({
                   ref={inputRef}
                   type="text"
                   value={editValue}
-                  onChange={e => setEditValue(e.target.value)}
+                  onChange={(e) => setEditValue(e.target.value)}
                   onBlur={handleBlur}
                   onKeyDown={handleKeyDown}
                   disabled={updateMutation.isPending}
                   className={`flex-grow px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded-md text-lg font-medium text-neutral-900 dark:text-white bg-white dark:bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500 ${
-                    item.completed ? 'line-through text-neutral-500 dark:text-neutral-400' : ''
+                    item.completed
+                      ? "line-through text-neutral-500 dark:text-neutral-400"
+                      : ""
                   }`}
                 />
                 <button
                   onClick={handleSubmit}
                   disabled={updateMutation.isPending}
                   className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 transition-colors disabled:opacity-50"
-                  title={t('shopping.save') || 'Save'}
+                  title={t("shopping.save") || "Save"}
                 >
                   ✓
                 </button>
@@ -217,8 +230,8 @@ export function ShoppingItemRow({
                 onClick={handleEdit}
                 className={`text-base font-medium cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
                   item.completed
-                    ? 'line-through text-neutral-500 dark:text-neutral-400'
-                    : 'text-neutral-900 dark:text-white'
+                    ? "line-through text-neutral-500 dark:text-neutral-400"
+                    : "text-neutral-900 dark:text-white"
                 }`}
               >
                 {item.item_name}
@@ -229,13 +242,13 @@ export function ShoppingItemRow({
                 <textarea
                   ref={notesInputRef}
                   value={editNotes}
-                  onChange={e => setEditNotes(e.target.value)}
+                  onChange={(e) => setEditNotes(e.target.value)}
                   onBlur={handleNotesSubmit}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                       e.preventDefault();
                       handleNotesSubmit();
-                    } else if (e.key === 'Escape') {
+                    } else if (e.key === "Escape") {
                       e.preventDefault();
                       handleNotesCancel();
                     }
@@ -243,13 +256,13 @@ export function ShoppingItemRow({
                   disabled={updateMutation.isPending}
                   rows={2}
                   className="flex-grow px-3 py-1 text-sm border border-neutral-300 dark:border-neutral-600 rounded-md text-neutral-900 dark:text-white bg-white dark:bg-neutral-700 focus:outline-none focus:ring-primary-500 focus:border-primary-500 resize-none"
-                  placeholder={t('shopping.notesPlaceholder') || 'Notes...'}
+                  placeholder={t("shopping.notesPlaceholder") || "Notes..."}
                 />
                 <button
                   onClick={handleNotesSubmit}
                   disabled={updateMutation.isPending}
                   className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 transition-colors disabled:opacity-50"
-                  title={t('shopping.save') || 'Save'}
+                  title={t("shopping.save") || "Save"}
                 >
                   ✓
                 </button>
@@ -269,18 +282,23 @@ export function ShoppingItemRow({
                 onClick={() => setIsEditingNotes(true)}
                 className="mt-2 text-xs text-neutral-400 dark:text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                {t('shopping.addNotes') || '+ Add notes'}
+                {t("shopping.addNotes") || "+ Add notes"}
               </button>
             )}
             <div className="flex flex-col items-start space-y-2 mt-1">
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                {t('shopping.addedBy')} {formatUsername(item.added_by_username, t('shopping.unknown'))}{' '}
-                {t('shopping.on')} {formatDate(item.created_at, i18n.language)}
+                {t("shopping.addedBy")}{" "}
+                {formatUsername(item.added_by_username, t("shopping.unknown"))}{" "}
+                {t("shopping.on")} {formatDate(item.created_at, i18n.language)}
               </p>
               {!!item.completed && !!item.completed_by_username && (
                 <p className="ml-0 text-xs text-green-600 dark:text-green-400">
                   <span className="mr-1">✅</span>
-                  {t('shopping.completedBy')} {formatUsername(item.completed_by_username, t('shopping.unknown'))}
+                  {t("shopping.completedBy")}{" "}
+                  {formatUsername(
+                    item.completed_by_username,
+                    t("shopping.unknown"),
+                  )}
                 </p>
               )}
             </div>

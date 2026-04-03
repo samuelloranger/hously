@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
 
 interface FormFieldProps {
   label?: string;
@@ -12,9 +12,15 @@ interface FormFieldProps {
   children: React.ReactNode;
 }
 
-function FormField({ label, error, required, className, children }: FormFieldProps) {
+function FormField({
+  label,
+  error,
+  required,
+  className,
+  children,
+}: FormFieldProps) {
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn("space-y-2", className)}>
       {label && (
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
           {label}
@@ -22,7 +28,9 @@ function FormField({ label, error, required, className, children }: FormFieldPro
         </label>
       )}
       {children}
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {error && (
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      )}
     </div>
   );
 }
@@ -37,12 +45,19 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
   ({ label, error, required, className, ...props }, ref) => {
     return (
       <FormField label={label} error={error} required={required}>
-        <Input ref={ref} className={cn(error && 'border-red-500 focus:ring-red-500', className)} {...props} />
+        <Input
+          ref={ref}
+          className={cn(
+            error && "border-red-500 focus:ring-red-500",
+            className,
+          )}
+          {...props}
+        />
       </FormField>
     );
-  }
+  },
 );
-FormInput.displayName = 'FormInput';
+FormInput.displayName = "FormInput";
 
 interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -50,16 +65,21 @@ interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaEle
   required?: boolean;
 }
 
-export const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaProps>(
-  ({ label, error, required, className, ...props }, ref) => {
-    return (
-      <FormField label={label} error={error} required={required}>
-        <Textarea ref={ref} className={cn(error && 'border-red-500 focus:ring-red-500', className)} {...props} />
-      </FormField>
-    );
-  }
-);
-FormTextarea.displayName = 'FormTextarea';
+export const FormTextarea = React.forwardRef<
+  HTMLTextAreaElement,
+  FormTextareaProps
+>(({ label, error, required, className, ...props }, ref) => {
+  return (
+    <FormField label={label} error={error} required={required}>
+      <Textarea
+        ref={ref}
+        className={cn(error && "border-red-500 focus:ring-red-500", className)}
+        {...props}
+      />
+    </FormField>
+  );
+});
+FormTextarea.displayName = "FormTextarea";
 
 interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -71,11 +91,18 @@ const FormSelect = React.forwardRef<HTMLSelectElement, FormSelectProps>(
   ({ label, error, required, className, children, ...props }, ref) => {
     return (
       <FormField label={label} error={error} required={required}>
-        <Select ref={ref} className={cn(error && 'border-red-500 focus:ring-red-500', className)} {...props}>
+        <Select
+          ref={ref}
+          className={cn(
+            error && "border-red-500 focus:ring-red-500",
+            className,
+          )}
+          {...props}
+        >
           {children}
         </Select>
       </FormField>
     );
-  }
+  },
 );
-FormSelect.displayName = 'FormSelect';
+FormSelect.displayName = "FormSelect";

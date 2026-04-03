@@ -1,11 +1,18 @@
-import { prisma } from '../db';
-import { getQbittorrentPluginConfig, invalidateQbittorrentPluginConfigCache } from '../services/qbittorrent/config';
-import { fetchMaindata, qbFetchJson, resetMaindataState } from '../services/qbittorrent/client';
+import { prisma } from "../db";
+import {
+  getQbittorrentPluginConfig,
+  invalidateQbittorrentPluginConfigCache,
+} from "../services/qbittorrent/config";
+import {
+  fetchMaindata,
+  qbFetchJson,
+  resetMaindataState,
+} from "../services/qbittorrent/client";
 
 type Options = {
   iterations: number;
   delayMs: number;
-  mode: 'client' | 'raw' | 'both';
+  mode: "client" | "raw" | "both";
 };
 
 type MaindataRaw = {
@@ -30,33 +37,43 @@ type LogRow = {
   errorMessage: string | null;
 };
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const parseArgs = (): Options => {
   const args = process.argv.slice(2);
   const options: Options = {
     iterations: 4,
     delayMs: 1000,
-    mode: 'both',
+    mode: "both",
   };
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     const next = args[index + 1];
 
-    if (arg === '--iterations' && next) {
-      options.iterations = Math.max(1, Math.min(20, Math.trunc(Number(next) || 4)));
+    if (arg === "--iterations" && next) {
+      options.iterations = Math.max(
+        1,
+        Math.min(20, Math.trunc(Number(next) || 4)),
+      );
       index += 1;
       continue;
     }
 
-    if (arg === '--delay-ms' && next) {
-      options.delayMs = Math.max(0, Math.min(30_000, Math.trunc(Number(next) || 1000)));
+    if (arg === "--delay-ms" && next) {
+      options.delayMs = Math.max(
+        0,
+        Math.min(30_000, Math.trunc(Number(next) || 1000)),
+      );
       index += 1;
       continue;
     }
 
-    if (arg === '--mode' && next && (next === 'client' || next === 'raw' || next === 'both')) {
+    if (
+      arg === "--mode" &&
+      next &&
+      (next === "client" || next === "raw" || next === "both")
+    ) {
       options.mode = next;
       index += 1;
     }
@@ -65,12 +82,12 @@ const parseArgs = (): Options => {
   return options;
 };
 
-const formatValue = (value: unknown) => (value == null ? '-' : String(value));
+const formatValue = (value: unknown) => (value == null ? "-" : String(value));
 
 const printRows = (label: string, rows: LogRow[]) => {
   console.log(`\n${label}`);
   if (rows.length === 0) {
-    console.log('  no rows');
+    console.log("  no rows");
     return;
   }
 
@@ -90,7 +107,7 @@ const printRows = (label: string, rows: LogRow[]) => {
         row.errorMessage ? `error=${row.errorMessage}` : null,
       ]
         .filter(Boolean)
-        .join('  ')
+        .join("  "),
     );
   }
 };
@@ -118,9 +135,11 @@ const fetchRecentLogs = async (since: Date) =>
 const runClientMode = async (
   iterations: number,
   delayMs: number,
-  config: NonNullable<Awaited<ReturnType<typeof getQbittorrentPluginConfig>>['config']>
+  config: NonNullable<
+    Awaited<ReturnType<typeof getQbittorrentPluginConfig>>["config"]
+  >,
 ) => {
-  console.log('\nClient mode: fetchMaindata()');
+  console.log("\nClient mode: fetchMaindata()");
   resetMaindataState();
 
   for (let index = 0; index < iterations; index += 1) {
@@ -128,10 +147,10 @@ const runClientMode = async (
     console.log(
       JSON.stringify({
         step: index + 1,
-        mode: 'client',
+        mode: "client",
         torrents: snapshot.torrents.size,
         serverStateKeys: Object.keys(snapshot.serverState).length,
-      })
+      }),
     );
 
     if (index < iterations - 1 && delayMs > 0) {
@@ -143,28 +162,33 @@ const runClientMode = async (
 const runRawMode = async (
   iterations: number,
   delayMs: number,
-  config: NonNullable<Awaited<ReturnType<typeof getQbittorrentPluginConfig>>['config']>
+  config: NonNullable<
+    Awaited<ReturnType<typeof getQbittorrentPluginConfig>>["config"]
+  >,
 ) => {
-  console.log('\nRaw mode: qbFetchJson(/api/v2/sync/maindata?rid=...)');
+  console.log("\nRaw mode: qbFetchJson(/api/v2/sync/maindata?rid=...)");
   resetMaindataState();
   let rid = 0;
 
   for (let index = 0; index < iterations; index += 1) {
-    const payload = await qbFetchJson<MaindataRaw>(config, `/api/v2/sync/maindata?rid=${rid}`);
+    const payload = await qbFetchJson<MaindataRaw>(
+      config,
+      `/api/v2/sync/maindata?rid=${rid}`,
+    );
     console.log(
       JSON.stringify({
         step: index + 1,
-        mode: 'raw',
+        mode: "raw",
         reqRid: rid,
         respRid: payload.rid ?? null,
         fullUpdate: payload.full_update ?? null,
         torrents: Object.keys(payload.torrents ?? {}).length,
         removed: (payload.torrents_removed ?? []).length,
         serverStateKeys: Object.keys(payload.server_state ?? {}).length,
-      })
+      }),
     );
 
-    rid = typeof payload.rid === 'number' ? payload.rid : rid;
+    rid = typeof payload.rid === "number" ? payload.rid : rid;
 
     if (index < iterations - 1 && delayMs > 0) {
       await sleep(delayMs);
@@ -179,7 +203,7 @@ await invalidateQbittorrentPluginConfigCache();
 const { enabled, config } = await getQbittorrentPluginConfig();
 
 if (!enabled || !config) {
-  console.error('qBittorrent plugin is disabled or not configured');
+  console.error("qBittorrent plugin is disabled or not configured");
   process.exitCode = 1;
 } else {
   console.log(
@@ -190,20 +214,20 @@ if (!enabled || !config) {
       iterations: options.iterations,
       delayMs: options.delayMs,
       mode: options.mode,
-    })
+    }),
   );
 
-  if (options.mode === 'client' || options.mode === 'both') {
+  if (options.mode === "client" || options.mode === "both") {
     await runClientMode(options.iterations, options.delayMs, config);
   }
 
-  if (options.mode === 'raw' || options.mode === 'both') {
+  if (options.mode === "raw" || options.mode === "both") {
     await runRawMode(options.iterations, options.delayMs, config);
   }
 
   await sleep(250);
   const rows = await fetchRecentLogs(startedAt);
-  printRows('Generated maindata request logs', rows);
+  printRows("Generated maindata request logs", rows);
 }
 
 await prisma.$disconnect();

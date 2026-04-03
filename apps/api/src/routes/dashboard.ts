@@ -1,14 +1,14 @@
-import { Elysia, t } from 'elysia';
-import { prisma } from '../db';
-import { auth } from '../auth';
-import { formatIso } from '../utils';
-import { getJsonCache, setJsonCache } from '../services/cache';
+import { Elysia, t } from "elysia";
+import { prisma } from "../db";
+import { auth } from "../auth";
+import { formatIso } from "../utils";
+import { getJsonCache, setJsonCache } from "../services/cache";
 import {
   buildQbittorrentDisabledSnapshot,
   fetchQbittorrentSnapshot,
   normalizeQbittorrentConfig,
   type QbittorrentDashboardSnapshot,
-} from '../services/qbittorrentService';
+} from "../services/qbittorrentService";
 
 export interface JellyfinLatestItem {
   id: string;
@@ -25,7 +25,7 @@ export interface JellyfinLatestItem {
 export interface DashboardUpcomingItem {
   id: string;
   title: string;
-  media_type: 'movie' | 'tv';
+  media_type: "movie" | "tv";
   release_date: string | null;
   poster_url: string | null;
   tmdb_url: string;
@@ -131,20 +131,23 @@ interface DashboardNetdataSummaryResponse {
 }
 
 const toRecord = (value: unknown): Record<string, unknown> | null =>
-  value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+  value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 
 const toStringOrNull = (value: unknown): string | null => {
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     const trimmed = value.trim();
     return trimmed.length ? trimmed : null;
   }
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
   return null;
 };
 
 const toYearOrNull = (value: unknown): number | null => {
-  if (typeof value === 'number' && Number.isFinite(value)) return Math.trunc(value);
-  if (typeof value === 'string') {
+  if (typeof value === "number" && Number.isFinite(value))
+    return Math.trunc(value);
+  if (typeof value === "string") {
     const parsed = parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : null;
   }
@@ -153,19 +156,23 @@ const toYearOrNull = (value: unknown): number | null => {
 
 const toStringArray = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
-  return value.map(entry => toStringOrNull(entry)).filter((entry): entry is string => Boolean(entry));
+  return value
+    .map((entry) => toStringOrNull(entry))
+    .filter((entry): entry is string => Boolean(entry));
 };
 
 const toNumberOrNull = (value: unknown): number | null => {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string') {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
     const parsed = Number(value);
     if (Number.isFinite(parsed)) return parsed;
   }
   return null;
 };
 
-const normalizeJellyfinConfig = (config: unknown): JellyfinPluginConfig | null => {
+const normalizeJellyfinConfig = (
+  config: unknown,
+): JellyfinPluginConfig | null => {
   const cfg = toRecord(config);
   if (!cfg) return null;
 
@@ -175,13 +182,14 @@ const normalizeJellyfinConfig = (config: unknown): JellyfinPluginConfig | null =
 
   return {
     api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
   };
 };
 
 const toPositiveIntOrNull = (value: unknown): number | null => {
-  if (typeof value === 'number' && Number.isFinite(value) && value > 0) return Math.trunc(value);
-  if (typeof value === 'string') {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0)
+    return Math.trunc(value);
+  if (typeof value === "string") {
     const parsed = parseInt(value, 10);
     if (Number.isFinite(parsed) && parsed > 0) return parsed;
   }
@@ -196,11 +204,12 @@ const normalizeRadarrConfig = (config: unknown): RadarrPluginConfig | null => {
   const websiteUrl = toStringOrNull(cfg.website_url);
   const rootFolderPath = toStringOrNull(cfg.root_folder_path);
   const qualityProfileId = toPositiveIntOrNull(cfg.quality_profile_id);
-  if (!apiKey || !websiteUrl || !rootFolderPath || !qualityProfileId) return null;
+  if (!apiKey || !websiteUrl || !rootFolderPath || !qualityProfileId)
+    return null;
 
   return {
     api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
     root_folder_path: rootFolderPath,
     quality_profile_id: qualityProfileId,
   };
@@ -215,18 +224,27 @@ const normalizeSonarrConfig = (config: unknown): SonarrPluginConfig | null => {
   const rootFolderPath = toStringOrNull(cfg.root_folder_path);
   const qualityProfileId = toPositiveIntOrNull(cfg.quality_profile_id);
   const languageProfileId = toPositiveIntOrNull(cfg.language_profile_id);
-  if (!apiKey || !websiteUrl || !rootFolderPath || !qualityProfileId || !languageProfileId) return null;
+  if (
+    !apiKey ||
+    !websiteUrl ||
+    !rootFolderPath ||
+    !qualityProfileId ||
+    !languageProfileId
+  )
+    return null;
 
   return {
     api_key: apiKey,
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
     root_folder_path: rootFolderPath,
     quality_profile_id: qualityProfileId,
     language_profile_id: languageProfileId,
   };
 };
 
-const normalizeScrutinyConfig = (config: unknown): ScrutinyPluginConfig | null => {
+const normalizeScrutinyConfig = (
+  config: unknown,
+): ScrutinyPluginConfig | null => {
   const cfg = toRecord(config);
   if (!cfg) return null;
 
@@ -234,11 +252,13 @@ const normalizeScrutinyConfig = (config: unknown): ScrutinyPluginConfig | null =
   if (!websiteUrl) return null;
 
   return {
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
   };
 };
 
-const normalizeNetdataConfig = (config: unknown): NetdataPluginConfig | null => {
+const normalizeNetdataConfig = (
+  config: unknown,
+): NetdataPluginConfig | null => {
   const cfg = toRecord(config);
   if (!cfg) return null;
 
@@ -246,17 +266,18 @@ const normalizeNetdataConfig = (config: unknown): NetdataPluginConfig | null => 
   if (!websiteUrl) return null;
 
   return {
-    website_url: websiteUrl.replace(/\/+$/, ''),
+    website_url: websiteUrl.replace(/\/+$/, ""),
   };
 };
 
-const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w342';
-const TMDB_PROVIDER_LOGO_BASE_URL = 'https://image.tmdb.org/t/p/w92';
-const TMDB_WEB_BASE_URL = 'https://www.themoviedb.org';
+const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w342";
+const TMDB_PROVIDER_LOGO_BASE_URL = "https://image.tmdb.org/t/p/w92";
+const TMDB_WEB_BASE_URL = "https://www.themoviedb.org";
 const TMDB_UPCOMING_CACHE_TTL_SECONDS = 24 * 60 * 60;
 const WEATHER_CACHE_TTL_SECONDS = 30 * 60;
-const OPEN_METEO_GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
-const OPEN_METEO_FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
+const OPEN_METEO_GEOCODING_URL =
+  "https://geocoding-api.open-meteo.com/v1/search";
+const OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 
 interface OpenMeteoGeocodeResult {
   name: string;
@@ -291,58 +312,64 @@ interface DashboardWeatherResponse {
   conditionLabel: string;
 }
 
-const normalizeWeatherAddress = (address: string): string => address.trim().replace(/\s+/g, ' ').toLowerCase();
+const normalizeWeatherAddress = (address: string): string =>
+  address.trim().replace(/\s+/g, " ").toLowerCase();
 
 const getWeatherLabel = (weatherCode: number): string => {
-  if (weatherCode === 0) return 'Clear sky';
-  if (weatherCode === 1) return 'Mostly clear';
-  if (weatherCode === 2) return 'Partly cloudy';
-  if (weatherCode === 3) return 'Overcast';
-  if (weatherCode === 45 || weatherCode === 48) return 'Foggy';
-  if ([51, 53, 55, 56, 57].includes(weatherCode)) return 'Drizzle';
-  if ([61, 63, 65, 66, 67].includes(weatherCode)) return 'Rain';
-  if ([71, 73, 75, 77].includes(weatherCode)) return 'Snow';
-  if ([80, 81, 82].includes(weatherCode)) return 'Rain showers';
-  if ([85, 86].includes(weatherCode)) return 'Snow showers';
-  if (weatherCode === 95) return 'Thunderstorm';
-  if ([96, 99].includes(weatherCode)) return 'Thunderstorm with hail';
-  return 'Current conditions';
+  if (weatherCode === 0) return "Clear sky";
+  if (weatherCode === 1) return "Mostly clear";
+  if (weatherCode === 2) return "Partly cloudy";
+  if (weatherCode === 3) return "Overcast";
+  if (weatherCode === 45 || weatherCode === 48) return "Foggy";
+  if ([51, 53, 55, 56, 57].includes(weatherCode)) return "Drizzle";
+  if ([61, 63, 65, 66, 67].includes(weatherCode)) return "Rain";
+  if ([71, 73, 75, 77].includes(weatherCode)) return "Snow";
+  if ([80, 81, 82].includes(weatherCode)) return "Rain showers";
+  if ([85, 86].includes(weatherCode)) return "Snow showers";
+  if (weatherCode === 95) return "Thunderstorm";
+  if ([96, 99].includes(weatherCode)) return "Thunderstorm with hail";
+  return "Current conditions";
 };
 
 const formatWeatherLocationName = (result: OpenMeteoGeocodeResult): string =>
-  [result.name, result.admin1, result.country].filter(Boolean).join(', ');
+  [result.name, result.admin1, result.country].filter(Boolean).join(", ");
 
-const fetchAddressWeather = async (address: string): Promise<DashboardWeatherResponse> => {
+const fetchAddressWeather = async (
+  address: string,
+): Promise<DashboardWeatherResponse> => {
   const geocodeUrl = new URL(OPEN_METEO_GEOCODING_URL);
-  geocodeUrl.searchParams.set('name', address);
-  geocodeUrl.searchParams.set('count', '1');
-  geocodeUrl.searchParams.set('language', 'en');
-  geocodeUrl.searchParams.set('format', 'json');
+  geocodeUrl.searchParams.set("name", address);
+  geocodeUrl.searchParams.set("count", "1");
+  geocodeUrl.searchParams.set("language", "en");
+  geocodeUrl.searchParams.set("format", "json");
 
   const geocodeRes = await fetch(geocodeUrl.toString());
   if (!geocodeRes.ok) {
-    throw new Error('Unable to search for this address right now.');
+    throw new Error("Unable to search for this address right now.");
   }
   const geocodeData = (await geocodeRes.json()) as OpenMeteoGeocodeResponse;
   const location = geocodeData.results?.[0];
   if (!location) {
-    throw new Error('No weather location found for that address.');
+    throw new Error("No weather location found for that address.");
   }
 
   const forecastUrl = new URL(OPEN_METEO_FORECAST_URL);
-  forecastUrl.searchParams.set('latitude', String(location.latitude));
-  forecastUrl.searchParams.set('longitude', String(location.longitude));
-  forecastUrl.searchParams.set('current', 'temperature_2m,apparent_temperature,weather_code,is_day');
-  forecastUrl.searchParams.set('temperature_unit', 'fahrenheit');
-  forecastUrl.searchParams.set('timezone', 'auto');
+  forecastUrl.searchParams.set("latitude", String(location.latitude));
+  forecastUrl.searchParams.set("longitude", String(location.longitude));
+  forecastUrl.searchParams.set(
+    "current",
+    "temperature_2m,apparent_temperature,weather_code,is_day",
+  );
+  forecastUrl.searchParams.set("temperature_unit", "fahrenheit");
+  forecastUrl.searchParams.set("timezone", "auto");
 
   const forecastRes = await fetch(forecastUrl.toString());
   if (!forecastRes.ok) {
-    throw new Error('Unable to load weather for this address right now.');
+    throw new Error("Unable to load weather for this address right now.");
   }
   const forecastData = (await forecastRes.json()) as OpenMeteoForecastResponse;
   if (!forecastData.current) {
-    throw new Error('Weather data is currently unavailable for this address.');
+    throw new Error("Weather data is currently unavailable for this address.");
   }
 
   return {
@@ -361,11 +388,11 @@ const fetchAddressWeather = async (address: string): Promise<DashboardWeatherRes
 const getArrPluginStatus = async (): Promise<ArrPluginStatus> => {
   const [radarrPlugin, sonarrPlugin] = await Promise.all([
     prisma.plugin.findFirst({
-      where: { type: 'radarr' },
+      where: { type: "radarr" },
       select: { enabled: true },
     }),
     prisma.plugin.findFirst({
-      where: { type: 'sonarr' },
+      where: { type: "sonarr" },
       select: { enabled: true },
     }),
   ]);
@@ -378,8 +405,8 @@ const getArrPluginStatus = async (): Promise<ArrPluginStatus> => {
 
 const toIsoDate = (date: Date): string => {
   const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 
@@ -390,18 +417,26 @@ const toPositiveInt = (value: string | undefined, fallback: number): number => {
   return parsed;
 };
 
-const mapTmdbItem = (rawItem: unknown, mediaType: 'movie' | 'tv'): DashboardUpcomingItem | null => {
+const mapTmdbItem = (
+  rawItem: unknown,
+  mediaType: "movie" | "tv",
+): DashboardUpcomingItem | null => {
   const item = toRecord(rawItem);
   if (!item) return null;
 
-  const numericId = typeof item.id === 'number' && Number.isFinite(item.id) ? Math.trunc(item.id) : null;
+  const numericId =
+    typeof item.id === "number" && Number.isFinite(item.id)
+      ? Math.trunc(item.id)
+      : null;
   if (!numericId) return null;
 
   const title = toStringOrNull(item.title) || toStringOrNull(item.name);
   if (!title) return null;
 
   const releaseDate =
-    toStringOrNull(item.release_date) || toStringOrNull(item.first_air_date) || toStringOrNull(item.air_date);
+    toStringOrNull(item.release_date) ||
+    toStringOrNull(item.first_air_date) ||
+    toStringOrNull(item.air_date);
   const posterPath = toStringOrNull(item.poster_path);
 
   return {
@@ -416,70 +451,82 @@ const mapTmdbItem = (rawItem: unknown, mediaType: 'movie' | 'tv'): DashboardUpco
 };
 
 const parseTmdbNumericId = (itemId: string): number | null => {
-  const [, numericPart] = itemId.split('-', 2);
+  const [, numericPart] = itemId.split("-", 2);
   const numericId = numericPart ? parseInt(numericPart, 10) : Number.NaN;
   return Number.isFinite(numericId) ? numericId : null;
 };
 
 const fetchTmdbDiscoverPage = async (
-  mediaType: 'movie' | 'tv',
+  mediaType: "movie" | "tv",
   page: number,
   tmdbApiKey: string,
   todayIso: string,
-  oneYearOutIso: string
+  oneYearOutIso: string,
 ): Promise<{ items: DashboardUpcomingItem[]; totalPages: number } | null> => {
-  const endpoint = mediaType === 'movie' ? 'discover/movie' : 'discover/tv';
+  const endpoint = mediaType === "movie" ? "discover/movie" : "discover/tv";
   const url = new URL(`https://api.themoviedb.org/3/${endpoint}`);
-  url.searchParams.set('api_key', tmdbApiKey);
-  url.searchParams.set('language', 'en-US');
-  url.searchParams.set('page', String(page));
+  url.searchParams.set("api_key", tmdbApiKey);
+  url.searchParams.set("language", "en-US");
+  url.searchParams.set("page", String(page));
 
-  if (mediaType === 'movie') {
-    url.searchParams.set('sort_by', 'primary_release_date.asc');
-    url.searchParams.set('region', 'US');
-    url.searchParams.set('release_date.gte', todayIso);
-    url.searchParams.set('release_date.lte', oneYearOutIso);
-    url.searchParams.set('with_release_type', '4');
-    url.searchParams.set('with_original_language', 'en');
-    url.searchParams.set('include_adult', 'false');
-    url.searchParams.set('include_video', 'false');
+  if (mediaType === "movie") {
+    url.searchParams.set("sort_by", "primary_release_date.asc");
+    url.searchParams.set("region", "US");
+    url.searchParams.set("release_date.gte", todayIso);
+    url.searchParams.set("release_date.lte", oneYearOutIso);
+    url.searchParams.set("with_release_type", "4");
+    url.searchParams.set("with_original_language", "en");
+    url.searchParams.set("include_adult", "false");
+    url.searchParams.set("include_video", "false");
   } else {
-    url.searchParams.set('sort_by', 'first_air_date.asc');
-    url.searchParams.set('first_air_date.gte', todayIso);
-    url.searchParams.set('first_air_date.lte', oneYearOutIso);
-    url.searchParams.set('include_null_first_air_dates', 'false');
-    url.searchParams.set('with_origin_country', 'US');
-    url.searchParams.set('with_original_language', 'en');
+    url.searchParams.set("sort_by", "first_air_date.asc");
+    url.searchParams.set("first_air_date.gte", todayIso);
+    url.searchParams.set("first_air_date.lte", oneYearOutIso);
+    url.searchParams.set("include_null_first_air_dates", "false");
+    url.searchParams.set("with_origin_country", "US");
+    url.searchParams.set("with_original_language", "en");
   }
 
-  const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+  const response = await fetch(url.toString(), {
+    headers: { Accept: "application/json" },
+  });
   if (!response.ok) return null;
 
   const data = (await response.json()) as Record<string, unknown>;
   const results = Array.isArray(data.results) ? data.results : [];
-  const totalPagesRaw = typeof data.total_pages === 'number' ? Math.trunc(data.total_pages) : 1;
-  const totalPages = Math.max(1, Number.isFinite(totalPagesRaw) ? totalPagesRaw : 1);
+  const totalPagesRaw =
+    typeof data.total_pages === "number" ? Math.trunc(data.total_pages) : 1;
+  const totalPages = Math.max(
+    1,
+    Number.isFinite(totalPagesRaw) ? totalPagesRaw : 1,
+  );
 
   const items = results
-    .map(item => mapTmdbItem(item, mediaType))
+    .map((item) => mapTmdbItem(item, mediaType))
     .filter((item): item is DashboardUpcomingItem => !!item);
 
   return { items, totalPages };
 };
 
 const collectTmdbUpcoming = async (
-  mediaType: 'movie' | 'tv',
+  mediaType: "movie" | "tv",
   requiredCount: number,
   tmdbApiKey: string,
   todayIso: string,
-  oneYearOutIso: string
+  oneYearOutIso: string,
 ): Promise<{ items: DashboardUpcomingItem[]; hasMore: boolean } | null> => {
   const items: DashboardUpcomingItem[] = [];
   let page = 1;
   let totalPages = 1;
 
   while (items.length < requiredCount && page <= totalPages) {
-    const response = await fetchTmdbDiscoverPage(mediaType, page, tmdbApiKey, todayIso, oneYearOutIso);
+    const response = await fetchTmdbDiscoverPage(
+      mediaType,
+      page,
+      tmdbApiKey,
+      todayIso,
+      oneYearOutIso,
+    );
     if (!response) return null;
     items.push(...response.items);
     totalPages = response.totalPages;
@@ -489,26 +536,31 @@ const collectTmdbUpcoming = async (
   return { items, hasMore: page <= totalPages };
 };
 
-const getQbittorrentSnapshot = async (): Promise<QbittorrentDashboardSnapshot> => {
-  const plugin = await prisma.plugin.findFirst({
-    where: { type: 'qbittorrent' },
-    select: { enabled: true, config: true },
-  });
+const getQbittorrentSnapshot =
+  async (): Promise<QbittorrentDashboardSnapshot> => {
+    const plugin = await prisma.plugin.findFirst({
+      where: { type: "qbittorrent" },
+      select: { enabled: true, config: true },
+    });
 
-  if (!plugin?.enabled) {
-    return buildQbittorrentDisabledSnapshot();
-  }
+    if (!plugin?.enabled) {
+      return buildQbittorrentDisabledSnapshot();
+    }
 
-  const config = normalizeQbittorrentConfig(plugin.config);
-  if (!config) {
-    const disabled = buildQbittorrentDisabledSnapshot('qBittorrent plugin is enabled but not configured');
-    return { ...disabled, enabled: true };
-  }
+    const config = normalizeQbittorrentConfig(plugin.config);
+    if (!config) {
+      const disabled = buildQbittorrentDisabledSnapshot(
+        "qBittorrent plugin is enabled but not configured",
+      );
+      return { ...disabled, enabled: true };
+    }
 
-  return fetchQbittorrentSnapshot(config, true);
-};
+    return fetchQbittorrentSnapshot(config, true);
+  };
 
-const buildScrutinyDisabledSummary = (error?: string): DashboardScrutinySummaryResponse => ({
+const buildScrutinyDisabledSummary = (
+  error?: string,
+): DashboardScrutinySummaryResponse => ({
   enabled: false,
   connected: false,
   updated_at: new Date().toISOString(),
@@ -523,121 +575,146 @@ const buildScrutinyDisabledSummary = (error?: string): DashboardScrutinySummaryR
   ...(error ? { error } : {}),
 });
 
-const fetchScrutinySummary = async (): Promise<DashboardScrutinySummaryResponse> => {
-  const plugin = await prisma.plugin.findFirst({
-    where: { type: 'scrutiny' },
-    select: { enabled: true, config: true },
-  });
-
-  if (!plugin?.enabled) {
-    return buildScrutinyDisabledSummary();
-  }
-
-  const config = normalizeScrutinyConfig(plugin.config);
-  if (!config) {
-    return {
-      ...buildScrutinyDisabledSummary('Scrutiny plugin is enabled but not configured'),
-      enabled: true,
-    };
-  }
-
-  try {
-    const summaryUrl = new URL('/api/summary', config.website_url);
-    const response = await fetch(summaryUrl.toString(), {
-      headers: { Accept: 'application/json' },
+const fetchScrutinySummary =
+  async (): Promise<DashboardScrutinySummaryResponse> => {
+    const plugin = await prisma.plugin.findFirst({
+      where: { type: "scrutiny" },
+      select: { enabled: true, config: true },
     });
 
-    if (!response.ok) {
+    if (!plugin?.enabled) {
+      return buildScrutinyDisabledSummary();
+    }
+
+    const config = normalizeScrutinyConfig(plugin.config);
+    if (!config) {
       return {
-        ...buildScrutinyDisabledSummary(`Scrutiny request failed with status ${response.status}`),
+        ...buildScrutinyDisabledSummary(
+          "Scrutiny plugin is enabled but not configured",
+        ),
         enabled: true,
       };
     }
 
-    const payload = (await response.json()) as unknown;
-    const root = toRecord(payload);
-    const data = toRecord(root?.data);
-    const summaryRecord = toRecord(data?.summary);
-
-    if (!summaryRecord) {
-      return {
-        ...buildScrutinyDisabledSummary('Invalid Scrutiny summary payload'),
-        enabled: true,
-      };
-    }
-
-    const drives = Object.entries(summaryRecord)
-      .map(([id, raw]) => {
-        const entry = toRecord(raw);
-        if (!entry) return null;
-        const device = toRecord(entry.device);
-        const smart = toRecord(entry.smart);
-
-        const statusRaw = toNumberOrNull(device?.device_status);
-        const status = statusRaw == null ? null : Math.trunc(statusRaw);
-        const temperatureRaw = toNumberOrNull(smart?.temp);
-        const powerOnHoursRaw = toNumberOrNull(smart?.power_on_hours);
-        const capacityRaw = toNumberOrNull(device?.capacity);
-
-        const drive: DashboardScrutinyDrive = {
-          id,
-          model_name: toStringOrNull(device?.model_name),
-          serial_number: toStringOrNull(device?.serial_number),
-          capacity_bytes: capacityRaw == null ? null : Math.trunc(capacityRaw),
-          device_status: status,
-          temperature_c: temperatureRaw == null ? null : Math.round(temperatureRaw * 10) / 10,
-          power_on_hours: powerOnHoursRaw == null ? null : Math.trunc(powerOnHoursRaw),
-          firmware: toStringOrNull(device?.firmware),
-          form_factor: toStringOrNull(device?.form_factor),
-          updated_at: toStringOrNull(device?.UpdatedAt),
-        };
-
-        return drive;
-      })
-      .filter((drive): drive is DashboardScrutinyDrive => Boolean(drive))
-      .sort((a, b) => {
-        if (a.temperature_c == null && b.temperature_c == null) return 0;
-        if (a.temperature_c == null) return 1;
-        if (b.temperature_c == null) return -1;
-        return b.temperature_c - a.temperature_c;
+    try {
+      const summaryUrl = new URL("/api/summary", config.website_url);
+      const response = await fetch(summaryUrl.toString(), {
+        headers: { Accept: "application/json" },
       });
 
-    const totalDrives = drives.length;
-    const healthyDrives = drives.filter(drive => drive.device_status === 0).length;
-    const warningDrives = drives.filter(drive => drive.device_status != null && drive.device_status !== 0).length;
-    const temperatures = drives.map(drive => drive.temperature_c).filter((temp): temp is number => temp != null);
-    const avgTemp =
-      temperatures.length > 0
-        ? Math.round((temperatures.reduce((sum, temp) => sum + temp, 0) / temperatures.length) * 10) / 10
-        : null;
-    const hottestTemp = temperatures.length > 0 ? Math.max(...temperatures) : null;
-    const updatedAt =
-      drives.map(drive => drive.updated_at).find((value): value is string => Boolean(value)) ??
-      new Date().toISOString();
+      if (!response.ok) {
+        return {
+          ...buildScrutinyDisabledSummary(
+            `Scrutiny request failed with status ${response.status}`,
+          ),
+          enabled: true,
+        };
+      }
 
-    return {
-      enabled: true,
-      connected: true,
-      updated_at: updatedAt,
-      summary: {
-        total_drives: totalDrives,
-        healthy_drives: healthyDrives,
-        warning_drives: warningDrives,
-        avg_temp_c: avgTemp,
-        hottest_temp_c: hottestTemp,
-      },
-      drives,
-    };
-  } catch (error) {
-    console.error('Error fetching Scrutiny summary:', error);
-    return {
-      ...buildScrutinyDisabledSummary('Failed to fetch Scrutiny summary'),
-      enabled: true,
-    };
-  }
-};
+      const payload = (await response.json()) as unknown;
+      const root = toRecord(payload);
+      const data = toRecord(root?.data);
+      const summaryRecord = toRecord(data?.summary);
 
-const buildNetdataDisabledSummary = (error?: string): DashboardNetdataSummaryResponse => ({
+      if (!summaryRecord) {
+        return {
+          ...buildScrutinyDisabledSummary("Invalid Scrutiny summary payload"),
+          enabled: true,
+        };
+      }
+
+      const drives = Object.entries(summaryRecord)
+        .map(([id, raw]) => {
+          const entry = toRecord(raw);
+          if (!entry) return null;
+          const device = toRecord(entry.device);
+          const smart = toRecord(entry.smart);
+
+          const statusRaw = toNumberOrNull(device?.device_status);
+          const status = statusRaw == null ? null : Math.trunc(statusRaw);
+          const temperatureRaw = toNumberOrNull(smart?.temp);
+          const powerOnHoursRaw = toNumberOrNull(smart?.power_on_hours);
+          const capacityRaw = toNumberOrNull(device?.capacity);
+
+          const drive: DashboardScrutinyDrive = {
+            id,
+            model_name: toStringOrNull(device?.model_name),
+            serial_number: toStringOrNull(device?.serial_number),
+            capacity_bytes:
+              capacityRaw == null ? null : Math.trunc(capacityRaw),
+            device_status: status,
+            temperature_c:
+              temperatureRaw == null
+                ? null
+                : Math.round(temperatureRaw * 10) / 10,
+            power_on_hours:
+              powerOnHoursRaw == null ? null : Math.trunc(powerOnHoursRaw),
+            firmware: toStringOrNull(device?.firmware),
+            form_factor: toStringOrNull(device?.form_factor),
+            updated_at: toStringOrNull(device?.UpdatedAt),
+          };
+
+          return drive;
+        })
+        .filter((drive): drive is DashboardScrutinyDrive => Boolean(drive))
+        .sort((a, b) => {
+          if (a.temperature_c == null && b.temperature_c == null) return 0;
+          if (a.temperature_c == null) return 1;
+          if (b.temperature_c == null) return -1;
+          return b.temperature_c - a.temperature_c;
+        });
+
+      const totalDrives = drives.length;
+      const healthyDrives = drives.filter(
+        (drive) => drive.device_status === 0,
+      ).length;
+      const warningDrives = drives.filter(
+        (drive) => drive.device_status != null && drive.device_status !== 0,
+      ).length;
+      const temperatures = drives
+        .map((drive) => drive.temperature_c)
+        .filter((temp): temp is number => temp != null);
+      const avgTemp =
+        temperatures.length > 0
+          ? Math.round(
+              (temperatures.reduce((sum, temp) => sum + temp, 0) /
+                temperatures.length) *
+                10,
+            ) / 10
+          : null;
+      const hottestTemp =
+        temperatures.length > 0 ? Math.max(...temperatures) : null;
+      const updatedAt =
+        drives
+          .map((drive) => drive.updated_at)
+          .find((value): value is string => Boolean(value)) ??
+        new Date().toISOString();
+
+      return {
+        enabled: true,
+        connected: true,
+        updated_at: updatedAt,
+        summary: {
+          total_drives: totalDrives,
+          healthy_drives: healthyDrives,
+          warning_drives: warningDrives,
+          avg_temp_c: avgTemp,
+          hottest_temp_c: hottestTemp,
+        },
+        drives,
+      };
+    } catch (error) {
+      console.error("Error fetching Scrutiny summary:", error);
+      return {
+        ...buildScrutinyDisabledSummary("Failed to fetch Scrutiny summary"),
+        enabled: true,
+      };
+    }
+  };
+
+const buildNetdataDisabledSummary = (
+  error?: string,
+): DashboardNetdataSummaryResponse => ({
   enabled: false,
   connected: false,
   updated_at: new Date().toISOString(),
@@ -656,7 +733,10 @@ const buildNetdataDisabledSummary = (error?: string): DashboardNetdataSummaryRes
   ...(error ? { error } : {}),
 });
 
-const valueByLabels = (labels: string[], row: unknown[]): Record<string, number> => {
+const valueByLabels = (
+  labels: string[],
+  row: unknown[],
+): Record<string, number> => {
   const result: Record<string, number> = {};
   for (let i = 1; i < labels.length; i += 1) {
     const label = labels[i];
@@ -667,9 +747,13 @@ const valueByLabels = (labels: string[], row: unknown[]): Record<string, number>
   return result;
 };
 
-const normalizeMetricKey = (value: string): string => value.toLowerCase().replace(/[^a-z0-9]/g, '');
+const normalizeMetricKey = (value: string): string =>
+  value.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-const findMetricValue = (values: Record<string, number>, aliases: string[]): number | null => {
+const findMetricValue = (
+  values: Record<string, number>,
+  aliases: string[],
+): number | null => {
   const aliasSet = new Set(aliases.map(normalizeMetricKey));
   for (const [key, value] of Object.entries(values)) {
     if (aliasSet.has(normalizeMetricKey(key))) return value;
@@ -678,12 +762,26 @@ const findMetricValue = (values: Record<string, number>, aliases: string[]): num
 };
 
 const resolveNetworkRates = (
-  values: Record<string, number> | null
+  values: Record<string, number> | null,
 ): { inKbps: number | null; outKbps: number | null } => {
   if (!values) return { inKbps: null, outKbps: null };
 
-  const inbound = findMetricValue(values, ['InOctets', 'received', 'in', 'rx', 'download', 'ingress']);
-  const outbound = findMetricValue(values, ['OutOctets', 'sent', 'out', 'tx', 'upload', 'egress']);
+  const inbound = findMetricValue(values, [
+    "InOctets",
+    "received",
+    "in",
+    "rx",
+    "download",
+    "ingress",
+  ]);
+  const outbound = findMetricValue(values, [
+    "OutOctets",
+    "sent",
+    "out",
+    "tx",
+    "upload",
+    "egress",
+  ]);
 
   return {
     inKbps: inbound != null ? Math.round(Math.abs(inbound) * 10) / 10 : null,
@@ -692,31 +790,33 @@ const resolveNetworkRates = (
 };
 
 const isPreferredNetInterfaceChart = (chartId: string): boolean => {
-  if (!chartId.startsWith('net.')) return false;
+  if (!chartId.startsWith("net.")) return false;
   const iface = chartId.slice(4).toLowerCase();
   if (!iface) return false;
 
-  return !/^(lo|docker\d*|br-|veth|virbr|vnet|ifb|tun|tap|cni|flannel|kube|dummy)/.test(iface);
+  return !/^(lo|docker\d*|br-|veth|virbr|vnet|ifb|tun|tap|cni|flannel|kube|dummy)/.test(
+    iface,
+  );
 };
 
 const fetchNetdataChartLatest = async (
   netdataBaseUrl: string,
-  chart: string
+  chart: string,
 ): Promise<Record<string, number> | null> => {
-  const dataUrl = new URL('/api/v1/data', netdataBaseUrl);
-  dataUrl.searchParams.set('chart', chart);
-  dataUrl.searchParams.set('after', '-60');
-  dataUrl.searchParams.set('points', '1');
-  dataUrl.searchParams.set('format', 'json');
+  const dataUrl = new URL("/api/v1/data", netdataBaseUrl);
+  dataUrl.searchParams.set("chart", chart);
+  dataUrl.searchParams.set("after", "-60");
+  dataUrl.searchParams.set("points", "1");
+  dataUrl.searchParams.set("format", "json");
 
   const response = await fetch(dataUrl.toString(), {
-    headers: { Accept: 'application/json' },
+    headers: { Accept: "application/json" },
   });
   if (!response.ok) return null;
 
   const payload = (await response.json()) as Record<string, unknown>;
   const labels = Array.isArray(payload.labels)
-    ? payload.labels.map(label => (typeof label === 'string' ? label : ''))
+    ? payload.labels.map((label) => (typeof label === "string" ? label : ""))
     : [];
   const rows = Array.isArray(payload.data) ? payload.data : [];
   const row = rows[rows.length - 1];
@@ -725,145 +825,182 @@ const fetchNetdataChartLatest = async (
   return valueByLabels(labels, row);
 };
 
-const fetchNetdataSummary = async (): Promise<DashboardNetdataSummaryResponse> => {
-  const plugin = await prisma.plugin.findFirst({
-    where: { type: 'netdata' },
-    select: { enabled: true, config: true },
-  });
-
-  if (!plugin?.enabled) {
-    return buildNetdataDisabledSummary();
-  }
-
-  const config = normalizeNetdataConfig(plugin.config);
-  if (!config) {
-    return {
-      ...buildNetdataDisabledSummary('Netdata plugin is enabled but not configured'),
-      enabled: true,
-    };
-  }
-
-  try {
-    const chartsUrl = new URL('/api/v1/charts', config.website_url);
-    const chartsResponse = await fetch(chartsUrl.toString(), {
-      headers: { Accept: 'application/json' },
+const fetchNetdataSummary =
+  async (): Promise<DashboardNetdataSummaryResponse> => {
+    const plugin = await prisma.plugin.findFirst({
+      where: { type: "netdata" },
+      select: { enabled: true, config: true },
     });
-    if (!chartsResponse.ok) {
+
+    if (!plugin?.enabled) {
+      return buildNetdataDisabledSummary();
+    }
+
+    const config = normalizeNetdataConfig(plugin.config);
+    if (!config) {
       return {
-        ...buildNetdataDisabledSummary(`Netdata charts request failed with status ${chartsResponse.status}`),
+        ...buildNetdataDisabledSummary(
+          "Netdata plugin is enabled but not configured",
+        ),
         enabled: true,
       };
     }
 
-    const chartsPayload = (await chartsResponse.json()) as Record<string, unknown>;
-    const charts = toRecord(chartsPayload.charts) ?? {};
-    const diskCharts = Object.keys(charts)
-      .filter(key => key.startsWith('disk_space.'))
-      .sort((a, b) => a.localeCompare(b));
-    const netInterfaceCharts = Object.keys(charts)
-      .filter(key => key.startsWith('net.'))
-      .sort((a, b) => a.localeCompare(b));
-    const preferredNetCharts = netInterfaceCharts.filter(isPreferredNetInterfaceChart);
-    const selectedNetCharts = (
-      preferredNetCharts.length > 0
-        ? preferredNetCharts
-        : netInterfaceCharts.filter(chartId => !chartId.toLowerCase().startsWith('net.lo'))
-    ).slice(0, 12);
+    try {
+      const chartsUrl = new URL("/api/v1/charts", config.website_url);
+      const chartsResponse = await fetch(chartsUrl.toString(), {
+        headers: { Accept: "application/json" },
+      });
+      if (!chartsResponse.ok) {
+        return {
+          ...buildNetdataDisabledSummary(
+            `Netdata charts request failed with status ${chartsResponse.status}`,
+          ),
+          enabled: true,
+        };
+      }
 
-    const [cpu, ram, load, systemNet, ...restRows] = await Promise.all([
-      fetchNetdataChartLatest(config.website_url, 'system.cpu'),
-      fetchNetdataChartLatest(config.website_url, 'system.ram'),
-      fetchNetdataChartLatest(config.website_url, 'system.load'),
-      fetchNetdataChartLatest(config.website_url, 'system.net'),
-      ...selectedNetCharts.map(chartId => fetchNetdataChartLatest(config.website_url, chartId)),
-      ...diskCharts.map(chartId => fetchNetdataChartLatest(config.website_url, chartId)),
-    ]);
-    const netRows = restRows.slice(0, selectedNetCharts.length);
-    const diskRows = restRows.slice(selectedNetCharts.length);
+      const chartsPayload = (await chartsResponse.json()) as Record<
+        string,
+        unknown
+      >;
+      const charts = toRecord(chartsPayload.charts) ?? {};
+      const diskCharts = Object.keys(charts)
+        .filter((key) => key.startsWith("disk_space."))
+        .sort((a, b) => a.localeCompare(b));
+      const netInterfaceCharts = Object.keys(charts)
+        .filter((key) => key.startsWith("net."))
+        .sort((a, b) => a.localeCompare(b));
+      const preferredNetCharts = netInterfaceCharts.filter(
+        isPreferredNetInterfaceChart,
+      );
+      const selectedNetCharts = (
+        preferredNetCharts.length > 0
+          ? preferredNetCharts
+          : netInterfaceCharts.filter(
+              (chartId) => !chartId.toLowerCase().startsWith("net.lo"),
+            )
+      ).slice(0, 12);
 
-    const systemNetRates = resolveNetworkRates(systemNet);
-    const interfaceNetTotals = netRows.reduce(
-      (acc, values) => {
+      const [cpu, ram, load, systemNet, ...restRows] = await Promise.all([
+        fetchNetdataChartLatest(config.website_url, "system.cpu"),
+        fetchNetdataChartLatest(config.website_url, "system.ram"),
+        fetchNetdataChartLatest(config.website_url, "system.load"),
+        fetchNetdataChartLatest(config.website_url, "system.net"),
+        ...selectedNetCharts.map((chartId) =>
+          fetchNetdataChartLatest(config.website_url, chartId),
+        ),
+        ...diskCharts.map((chartId) =>
+          fetchNetdataChartLatest(config.website_url, chartId),
+        ),
+      ]);
+      const netRows = restRows.slice(0, selectedNetCharts.length);
+      const diskRows = restRows.slice(selectedNetCharts.length);
+
+      const systemNetRates = resolveNetworkRates(systemNet);
+      const interfaceNetTotals = netRows.reduce(
+        (acc, values) => {
+          const rates = resolveNetworkRates(values);
+          return {
+            inKbps: acc.inKbps + (rates.inKbps ?? 0),
+            outKbps: acc.outKbps + (rates.outKbps ?? 0),
+          };
+        },
+        { inKbps: 0, outKbps: 0 },
+      );
+      const hasInterfaceNetData = netRows.some((values) => {
         const rates = resolveNetworkRates(values);
-        return {
-          inKbps: acc.inKbps + (rates.inKbps ?? 0),
-          outKbps: acc.outKbps + (rates.outKbps ?? 0),
-        };
-      },
-      { inKbps: 0, outKbps: 0 }
-    );
-    const hasInterfaceNetData = netRows.some(values => {
-      const rates = resolveNetworkRates(values);
-      return rates.inKbps != null || rates.outKbps != null;
-    });
+        return rates.inKbps != null || rates.outKbps != null;
+      });
 
-    const ramUsed = ram?.used ?? null;
-    const ramFree = ram?.free ?? null;
-    const ramCached = ram?.cached ?? null;
-    const ramBuffers = ram?.buffers ?? null;
-    const ramTotal =
-      ram?.total ??
-      (ramUsed != null && ramFree != null ? ramUsed + ramFree + (ramCached ?? 0) + (ramBuffers ?? 0) : null);
-    const ramUsedPercent =
-      ramUsed != null && ramTotal != null && ramTotal > 0 ? Math.round((ramUsed / ramTotal) * 1000) / 10 : null;
+      const ramUsed = ram?.used ?? null;
+      const ramFree = ram?.free ?? null;
+      const ramCached = ram?.cached ?? null;
+      const ramBuffers = ram?.buffers ?? null;
+      const ramTotal =
+        ram?.total ??
+        (ramUsed != null && ramFree != null
+          ? ramUsed + ramFree + (ramCached ?? 0) + (ramBuffers ?? 0)
+          : null);
+      const ramUsedPercent =
+        ramUsed != null && ramTotal != null && ramTotal > 0
+          ? Math.round((ramUsed / ramTotal) * 1000) / 10
+          : null;
 
-    const disks: DashboardNetdataDiskUsage[] = diskRows
-      .map((values, index) => {
-        if (!values) return null;
-        const used = values.used ?? 0;
-        const avail = values.avail ?? 0;
-        const reserved = values['reserved for root'] ?? values.reserved_for_root ?? 0;
-        const total = used + avail + reserved;
-        const chartName = diskCharts[index] ?? 'disk_space.unknown';
-        const mountPointRaw = chartName.slice('disk_space.'.length);
-        const mountPoint = decodeURIComponent(mountPointRaw);
-        const usedPercent = total > 0 ? Math.round((used / total) * 1000) / 10 : 0;
+      const disks: DashboardNetdataDiskUsage[] = diskRows
+        .map((values, index) => {
+          if (!values) return null;
+          const used = values.used ?? 0;
+          const avail = values.avail ?? 0;
+          const reserved =
+            values["reserved for root"] ?? values.reserved_for_root ?? 0;
+          const total = used + avail + reserved;
+          const chartName = diskCharts[index] ?? "disk_space.unknown";
+          const mountPointRaw = chartName.slice("disk_space.".length);
+          const mountPoint = decodeURIComponent(mountPointRaw);
+          const usedPercent =
+            total > 0 ? Math.round((used / total) * 1000) / 10 : 0;
 
-        return {
-          mount_point: mountPoint || '/',
-          used_gib: Math.round(used * 10) / 10,
-          avail_gib: Math.round(avail * 10) / 10,
-          reserved_gib: Math.round(reserved * 10) / 10,
-          used_percent: usedPercent,
-        };
-      })
-      .filter((entry): entry is DashboardNetdataDiskUsage => Boolean(entry));
+          return {
+            mount_point: mountPoint || "/",
+            used_gib: Math.round(used * 10) / 10,
+            avail_gib: Math.round(avail * 10) / 10,
+            reserved_gib: Math.round(reserved * 10) / 10,
+            used_percent: usedPercent,
+          };
+        })
+        .filter((entry): entry is DashboardNetdataDiskUsage => Boolean(entry));
 
-    return {
-      enabled: true,
-      connected: true,
-      updated_at: new Date().toISOString(),
-      summary: {
-        cpu_percent: cpu?.user != null && cpu?.system != null ? Math.round((cpu.user + cpu.system) * 10) / 10 : null,
-        ram_used_mib: ramUsed != null ? Math.round(ramUsed * 10) / 10 : null,
-        ram_total_mib: ramTotal != null ? Math.round(ramTotal * 10) / 10 : null,
-        ram_used_percent: ramUsedPercent,
-        load_1: load?.load1 != null ? Math.round(load.load1 * 100) / 100 : null,
-        load_5: load?.load5 != null ? Math.round(load.load5 * 100) / 100 : null,
-        load_15: load?.load15 != null ? Math.round(load.load15 * 100) / 100 : null,
-        network_in_kbps: systemNetRates.inKbps ?? (hasInterfaceNetData ? interfaceNetTotals.inKbps : null),
-        network_out_kbps: systemNetRates.outKbps ?? (hasInterfaceNetData ? interfaceNetTotals.outKbps : null),
-      },
-      disks,
-    };
-  } catch (error) {
-    console.error('Error fetching Netdata summary:', error);
-    return {
-      ...buildNetdataDisabledSummary('Failed to fetch Netdata summary'),
-      enabled: true,
-    };
-  }
-};
+      return {
+        enabled: true,
+        connected: true,
+        updated_at: new Date().toISOString(),
+        summary: {
+          cpu_percent:
+            cpu?.user != null && cpu?.system != null
+              ? Math.round((cpu.user + cpu.system) * 10) / 10
+              : null,
+          ram_used_mib: ramUsed != null ? Math.round(ramUsed * 10) / 10 : null,
+          ram_total_mib:
+            ramTotal != null ? Math.round(ramTotal * 10) / 10 : null,
+          ram_used_percent: ramUsedPercent,
+          load_1:
+            load?.load1 != null ? Math.round(load.load1 * 100) / 100 : null,
+          load_5:
+            load?.load5 != null ? Math.round(load.load5 * 100) / 100 : null,
+          load_15:
+            load?.load15 != null ? Math.round(load.load15 * 100) / 100 : null,
+          network_in_kbps:
+            systemNetRates.inKbps ??
+            (hasInterfaceNetData ? interfaceNetTotals.inKbps : null),
+          network_out_kbps:
+            systemNetRates.outKbps ??
+            (hasInterfaceNetData ? interfaceNetTotals.outKbps : null),
+        },
+        disks,
+      };
+    } catch (error) {
+      console.error("Error fetching Netdata summary:", error);
+      return {
+        ...buildNetdataDisabledSummary("Failed to fetch Netdata summary"),
+        enabled: true,
+      };
+    }
+  };
 
 const fetchTmdbProviders = async (
-  mediaType: 'movie' | 'tv',
+  mediaType: "movie" | "tv",
   tmdbId: number,
-  tmdbApiKey: string
+  tmdbApiKey: string,
 ): Promise<DashboardUpcomingProvider[]> => {
   try {
-    const providersUrl = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/watch/providers`);
-    providersUrl.searchParams.set('api_key', tmdbApiKey);
-    const response = await fetch(providersUrl.toString(), { headers: { Accept: 'application/json' } });
+    const providersUrl = new URL(
+      `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/watch/providers`,
+    );
+    providersUrl.searchParams.set("api_key", tmdbApiKey);
+    const response = await fetch(providersUrl.toString(), {
+      headers: { Accept: "application/json" },
+    });
     if (!response.ok) return [];
 
     const data = (await response.json()) as Record<string, unknown>;
@@ -871,7 +1008,7 @@ const fetchTmdbProviders = async (
     const us = toRecord(results?.US);
     if (!us) return [];
 
-    const categoryOrder = ['flatrate', 'free', 'ads', 'rent', 'buy'] as const;
+    const categoryOrder = ["flatrate", "free", "ads", "rent", "buy"] as const;
     const selected: DashboardUpcomingProvider[] = [];
     const seen = new Set<number>();
 
@@ -881,10 +1018,14 @@ const fetchTmdbProviders = async (
         const provider = toRecord(rawProvider);
         if (!provider) continue;
 
-        const providerId = typeof provider.provider_id === 'number' ? Math.trunc(provider.provider_id) : null;
+        const providerId =
+          typeof provider.provider_id === "number"
+            ? Math.trunc(provider.provider_id)
+            : null;
         const providerName = toStringOrNull(provider.provider_name);
         const logoPath = toStringOrNull(provider.logo_path);
-        if (!providerId || !providerName || !logoPath || seen.has(providerId)) continue;
+        if (!providerId || !providerName || !logoPath || seen.has(providerId))
+          continue;
 
         selected.push({
           id: providerId,
@@ -903,7 +1044,10 @@ const fetchTmdbProviders = async (
   }
 };
 
-const mapJellyfinApiItem = (rawItem: unknown, jellyfinWebsiteUrl: string): JellyfinLatestItem | null => {
+const mapJellyfinApiItem = (
+  rawItem: unknown,
+  jellyfinWebsiteUrl: string,
+): JellyfinLatestItem | null => {
   const item = toRecord(rawItem);
   if (!item) return null;
 
@@ -913,18 +1057,22 @@ const mapJellyfinApiItem = (rawItem: unknown, jellyfinWebsiteUrl: string): Jelly
   const albumName = toStringOrNull(item.Album);
 
   // For TV episodes, prioritize series name as main title and episode name as subtitle.
-  const isEpisode = itemType?.toLowerCase() === 'episode';
-  const title = isEpisode ? seriesName || itemName || albumName : itemName || seriesName || albumName;
+  const isEpisode = itemType?.toLowerCase() === "episode";
+  const title = isEpisode
+    ? seriesName || itemName || albumName
+    : itemName || seriesName || albumName;
   const subtitle = isEpisode ? itemName || null : null;
   if (!title) return null;
 
   const sourceItemId = toStringOrNull(item.Id);
-  const id = sourceItemId || `${title}-${itemType || 'item'}`;
-  const year = toYearOrNull(item.ProductionYear) || toYearOrNull(item.Year) || null;
+  const id = sourceItemId || `${title}-${itemType || "item"}`;
+  const year =
+    toYearOrNull(item.ProductionYear) || toYearOrNull(item.Year) || null;
   const addedAt = toStringOrNull(item.DateCreated);
   const parentBackdropItemId = toStringOrNull(item.ParentBackdropItemId);
   const backdropTag = toStringArray(item.BackdropImageTags)[0] || null;
-  const parentBackdropTag = toStringArray(item.ParentBackdropImageTags)[0] || null;
+  const parentBackdropTag =
+    toStringArray(item.ParentBackdropImageTags)[0] || null;
   const imageTags = toRecord(item.ImageTags);
   const primaryTag = toStringOrNull(imageTags?.Primary);
   const itemUrl = sourceItemId
@@ -932,18 +1080,26 @@ const mapJellyfinApiItem = (rawItem: unknown, jellyfinWebsiteUrl: string): Jelly
     : null;
   const bannerUrl = sourceItemId
     ? (() => {
-        const params = new URLSearchParams({ itemId: sourceItemId, preferred: 'backdrop' });
-        if (parentBackdropItemId) params.set('parentBackdropItemId', parentBackdropItemId);
-        if (backdropTag) params.set('backdropTag', backdropTag);
-        if (parentBackdropTag) params.set('parentBackdropTag', parentBackdropTag);
-        if (primaryTag) params.set('primaryTag', primaryTag);
+        const params = new URLSearchParams({
+          itemId: sourceItemId,
+          preferred: "backdrop",
+        });
+        if (parentBackdropItemId)
+          params.set("parentBackdropItemId", parentBackdropItemId);
+        if (backdropTag) params.set("backdropTag", backdropTag);
+        if (parentBackdropTag)
+          params.set("parentBackdropTag", parentBackdropTag);
+        if (primaryTag) params.set("primaryTag", primaryTag);
         return `/api/dashboard/jellyfin/image?${params.toString()}`;
       })()
     : null;
   const posterUrl = sourceItemId
     ? (() => {
-        const params = new URLSearchParams({ itemId: sourceItemId, preferred: 'primary' });
-        if (primaryTag) params.set('primaryTag', primaryTag);
+        const params = new URLSearchParams({
+          itemId: sourceItemId,
+          preferred: "primary",
+        });
+        if (primaryTag) params.set("primaryTag", primaryTag);
         return `/api/dashboard/jellyfin/image?${params.toString()}`;
       })()
     : null;
@@ -961,12 +1117,12 @@ const mapJellyfinApiItem = (rawItem: unknown, jellyfinWebsiteUrl: string): Jelly
   };
 };
 
-export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
+export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(auth)
-  .get('/stats', async ({ user, set }) => {
+  .get("/stats", async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: 'Unauthorized' };
+      return { error: "Unauthorized" };
     }
 
     try {
@@ -1020,17 +1176,17 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         activities: [],
       };
     } catch (error) {
-      console.error('Error getting dashboard stats:', error);
+      console.error("Error getting dashboard stats:", error);
       set.status = 500;
-      return { error: 'Failed to get dashboard stats' };
+      return { error: "Failed to get dashboard stats" };
     }
   })
   .get(
-    '/activities',
+    "/activities",
     async ({ user, query, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: 'Unauthorized' };
+        return { error: "Unauthorized" };
       }
 
       try {
@@ -1038,7 +1194,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
 
         // Get recent task completions with user info
         const recentCompletions = await prisma.taskCompletion.findMany({
-          orderBy: { completedAt: 'desc' },
+          orderBy: { completedAt: "desc" },
           take: limit,
           include: {
             user: {
@@ -1050,7 +1206,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
           },
         });
 
-        const activities = recentCompletions.map(completion => ({
+        const activities = recentCompletions.map((completion) => ({
           id: completion.id,
           user_id: completion.userId,
           task_type: completion.taskType,
@@ -1058,34 +1214,35 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
           completed_at: formatIso(completion.completedAt),
           task_name: completion.taskName,
           emotion: completion.emotion,
-          username: completion.user?.firstName || completion.user?.email || 'Unknown',
+          username:
+            completion.user?.firstName || completion.user?.email || "Unknown",
         }));
 
         return { activities };
       } catch (error) {
-        console.error('Error getting dashboard activities:', error);
+        console.error("Error getting dashboard activities:", error);
         set.status = 500;
-        return { error: 'Failed to get dashboard activities' };
+        return { error: "Failed to get dashboard activities" };
       }
     },
     {
       query: t.Object({
         limit: t.Optional(t.String()),
       }),
-    }
+    },
   )
   .get(
-    '/weather',
+    "/weather",
     async ({ user, query, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: 'Unauthorized' };
+        return { error: "Unauthorized" };
       }
 
       const address = query.address?.trim();
       if (!address) {
         set.status = 400;
-        return { error: 'Address is required' };
+        return { error: "Address is required" };
       }
 
       try {
@@ -1100,7 +1257,8 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         await setJsonCache(cacheKey, weather, WEATHER_CACHE_TTL_SECONDS);
         return weather;
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Failed to get weather';
+        const message =
+          error instanceof Error ? error.message : "Failed to get weather";
         set.status = 502;
         return { error: message };
       }
@@ -1109,14 +1267,14 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
       query: t.Object({
         address: t.String(),
       }),
-    }
+    },
   )
   .get(
-    '/upcoming',
+    "/upcoming",
     async ({ user, query, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: 'Unauthorized' };
+        return { error: "Unauthorized" };
       }
 
       try {
@@ -1128,16 +1286,29 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         const limit = Math.max(1, Math.min(24, requestedLimit));
 
         if (!tmdbApiKey) {
-          return { enabled: false, items: [], page, limit, has_more: false, ...arrPluginStatus };
+          return {
+            enabled: false,
+            items: [],
+            page,
+            limit,
+            has_more: false,
+            ...arrPluginStatus,
+          };
         }
 
         const today = new Date();
         const todayIso = toIsoDate(today);
-        const oneYearOut = new Date(Date.UTC(today.getUTCFullYear() + 1, today.getUTCMonth(), today.getUTCDate()));
+        const oneYearOut = new Date(
+          Date.UTC(
+            today.getUTCFullYear() + 1,
+            today.getUTCMonth(),
+            today.getUTCDate(),
+          ),
+        );
         const oneYearOutIso = toIsoDate(oneYearOut);
         const cacheKey = `dashboard:tmdb:upcoming:v3:page:${page}:limit:${limit}:from:${todayIso}`;
 
-        if (process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV === "production") {
           const cached = await getJsonCache<{
             enabled: boolean;
             items: DashboardUpcomingItem[];
@@ -1152,55 +1323,95 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
 
         const requiredCount = page * limit;
         const [moviesResult, tvResult] = await Promise.all([
-          collectTmdbUpcoming('movie', requiredCount, tmdbApiKey, todayIso, oneYearOutIso),
-          collectTmdbUpcoming('tv', requiredCount, tmdbApiKey, todayIso, oneYearOutIso),
+          collectTmdbUpcoming(
+            "movie",
+            requiredCount,
+            tmdbApiKey,
+            todayIso,
+            oneYearOutIso,
+          ),
+          collectTmdbUpcoming(
+            "tv",
+            requiredCount,
+            tmdbApiKey,
+            todayIso,
+            oneYearOutIso,
+          ),
         ]);
 
         if (!moviesResult || !tvResult) {
           set.status = 502;
-          return { error: 'TMDB request failed' };
+          return { error: "TMDB request failed" };
         }
 
-        const merged = [...moviesResult.items.slice(0, requiredCount), ...tvResult.items.slice(0, requiredCount)]
-          .filter(item => {
+        const merged = [
+          ...moviesResult.items.slice(0, requiredCount),
+          ...tvResult.items.slice(0, requiredCount),
+        ]
+          .filter((item) => {
             if (!item.release_date) return false;
             const releaseTime = Date.parse(item.release_date);
             const todayTime = Date.parse(todayIso);
             const oneYearOutTime = Date.parse(oneYearOutIso);
-            return Number.isFinite(releaseTime) && releaseTime >= todayTime && releaseTime <= oneYearOutTime;
+            return (
+              Number.isFinite(releaseTime) &&
+              releaseTime >= todayTime &&
+              releaseTime <= oneYearOutTime
+            );
           })
           .sort((a, b) => {
-            const aTime = a.release_date ? Date.parse(a.release_date) : Number.POSITIVE_INFINITY;
-            const bTime = b.release_date ? Date.parse(b.release_date) : Number.POSITIVE_INFINITY;
+            const aTime = a.release_date
+              ? Date.parse(a.release_date)
+              : Number.POSITIVE_INFINITY;
+            const bTime = b.release_date
+              ? Date.parse(b.release_date)
+              : Number.POSITIVE_INFINITY;
             return aTime - bTime;
           });
 
         const offset = (page - 1) * limit;
         const pageSlice = merged.slice(offset, offset + limit);
-        const hasMore = merged.length > offset + limit || moviesResult.hasMore || tvResult.hasMore;
+        const hasMore =
+          merged.length > offset + limit ||
+          moviesResult.hasMore ||
+          tvResult.hasMore;
 
         const itemsWithProviders = await Promise.all(
-          pageSlice.map(async item => {
+          pageSlice.map(async (item) => {
             const tmdbId = parseTmdbNumericId(item.id);
             if (!tmdbId) return item;
 
-            const providers = await fetchTmdbProviders(item.media_type, tmdbId, tmdbApiKey);
+            const providers = await fetchTmdbProviders(
+              item.media_type,
+              tmdbId,
+              tmdbApiKey,
+            );
             return {
               ...item,
               providers,
             };
-          })
+          }),
         );
 
-        const responsePayload = { enabled: true, items: itemsWithProviders, page, limit, has_more: hasMore };
-        if (process.env.NODE_ENV === 'production') {
-          await setJsonCache(cacheKey, responsePayload, TMDB_UPCOMING_CACHE_TTL_SECONDS);
+        const responsePayload = {
+          enabled: true,
+          items: itemsWithProviders,
+          page,
+          limit,
+          has_more: hasMore,
+        };
+        if (process.env.NODE_ENV === "production") {
+          await setJsonCache(
+            cacheKey,
+            responsePayload,
+            TMDB_UPCOMING_CACHE_TTL_SECONDS,
+          );
         }
         return { ...responsePayload, ...arrPluginStatus };
       } catch (error) {
-        console.error('Error getting TMDB upcoming items:', error);
+        console.error("Error getting TMDB upcoming items:", error);
         set.status = 500;
-        return { error: 'Failed to get TMDB upcoming items' };
+        return { error: "Failed to get TMDB upcoming items" };
       }
     },
     {
@@ -1208,54 +1419,64 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         limit: t.Optional(t.String()),
         page: t.Optional(t.String()),
       }),
-    }
+    },
   )
   .post(
-    '/upcoming/add',
+    "/upcoming/add",
     async ({ user, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: 'Unauthorized' };
+        return { error: "Unauthorized" };
       }
 
       const { media_type: mediaType, tmdb_id: tmdbId } = body;
       const searchOnAdd = body.search_on_add ?? true;
 
       try {
-        if (mediaType === 'movie') {
+        if (mediaType === "movie") {
           const radarrPlugin = await prisma.plugin.findFirst({
-            where: { type: 'radarr' },
+            where: { type: "radarr" },
             select: { enabled: true, config: true },
           });
 
           if (!radarrPlugin?.enabled) {
             set.status = 400;
-            return { error: 'Radarr plugin is not enabled' };
+            return { error: "Radarr plugin is not enabled" };
           }
 
           const config = normalizeRadarrConfig(radarrPlugin.config);
           if (!config) {
             set.status = 400;
-            return { error: 'Radarr plugin is not configured' };
+            return { error: "Radarr plugin is not configured" };
           }
 
-          const lookupUrl = new URL('/api/v3/movie/lookup/tmdb', config.website_url);
-          lookupUrl.searchParams.set('tmdbId', String(tmdbId));
+          const lookupUrl = new URL(
+            "/api/v3/movie/lookup/tmdb",
+            config.website_url,
+          );
+          lookupUrl.searchParams.set("tmdbId", String(tmdbId));
           const lookupResponse = await fetch(lookupUrl.toString(), {
-            headers: { 'X-Api-Key': config.api_key, Accept: 'application/json' },
+            headers: {
+              "X-Api-Key": config.api_key,
+              Accept: "application/json",
+            },
           });
 
           if (!lookupResponse.ok) {
             set.status = 502;
-            return { error: 'Radarr lookup failed' };
+            return { error: "Radarr lookup failed" };
           }
 
-          const lookupData = (await lookupResponse.json()) as Record<string, unknown> | Record<string, unknown>[];
-          const movieRecord = Array.isArray(lookupData) ? lookupData[0] : lookupData;
+          const lookupData = (await lookupResponse.json()) as
+            | Record<string, unknown>
+            | Record<string, unknown>[];
+          const movieRecord = Array.isArray(lookupData)
+            ? lookupData[0]
+            : lookupData;
           const movie = toRecord(movieRecord);
           if (!movie) {
             set.status = 404;
-            return { error: 'Movie not found in Radarr lookup' };
+            return { error: "Movie not found in Radarr lookup" };
           }
 
           const payload = {
@@ -1268,13 +1489,13 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
             },
           };
 
-          const addUrl = new URL('/api/v3/movie', config.website_url);
+          const addUrl = new URL("/api/v3/movie", config.website_url);
           const addResponse = await fetch(addUrl.toString(), {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'X-Api-Key': config.api_key,
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
+              "X-Api-Key": config.api_key,
+              "Content-Type": "application/json",
+              Accept: "application/json",
             },
             body: JSON.stringify(payload),
           });
@@ -1282,7 +1503,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
           if (addResponse.status === 409) {
             return {
               success: true,
-              service: 'radarr',
+              service: "radarr",
               added: false,
               already_exists: true,
             };
@@ -1290,56 +1511,59 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
 
           if (!addResponse.ok) {
             const debugText = await addResponse.text().catch(() => null);
-            console.error('Failed to add movie to Radarr', {
+            console.error("Failed to add movie to Radarr", {
               status: addResponse.status,
               tmdbId,
-              payload: (payload as any).title || (payload as any).tmdbId || payload,
+              payload:
+                (payload as any).title || (payload as any).tmdbId || payload,
               body: debugText,
             });
             set.status = 502;
-            return { error: 'Failed to add movie to Radarr' };
+            return { error: "Failed to add movie to Radarr" };
           }
 
           return {
             success: true,
-            service: 'radarr',
+            service: "radarr",
             added: true,
             already_exists: false,
           };
         }
 
         const sonarrPlugin = await prisma.plugin.findFirst({
-          where: { type: 'sonarr' },
+          where: { type: "sonarr" },
           select: { enabled: true, config: true },
         });
 
         if (!sonarrPlugin?.enabled) {
           set.status = 400;
-          return { error: 'Sonarr plugin is not enabled' };
+          return { error: "Sonarr plugin is not enabled" };
         }
 
         const config = normalizeSonarrConfig(sonarrPlugin.config);
         if (!config) {
           set.status = 400;
-          return { error: 'Sonarr plugin is not configured' };
+          return { error: "Sonarr plugin is not configured" };
         }
 
-        const lookupUrl = new URL('/api/v3/series/lookup', config.website_url);
-        lookupUrl.searchParams.set('term', `tmdb:${tmdbId}`);
+        const lookupUrl = new URL("/api/v3/series/lookup", config.website_url);
+        lookupUrl.searchParams.set("term", `tmdb:${tmdbId}`);
         const lookupResponse = await fetch(lookupUrl.toString(), {
-          headers: { 'X-Api-Key': config.api_key, Accept: 'application/json' },
+          headers: { "X-Api-Key": config.api_key, Accept: "application/json" },
         });
 
         if (!lookupResponse.ok) {
           set.status = 502;
-          return { error: 'Sonarr lookup failed' };
+          return { error: "Sonarr lookup failed" };
         }
 
         const lookupData = (await lookupResponse.json()) as unknown[];
-        const firstMatch = Array.isArray(lookupData) ? toRecord(lookupData[0]) : null;
+        const firstMatch = Array.isArray(lookupData)
+          ? toRecord(lookupData[0])
+          : null;
         if (!firstMatch) {
           set.status = 404;
-          return { error: 'Series not found in Sonarr lookup' };
+          return { error: "Series not found in Sonarr lookup" };
         }
 
         const payload = {
@@ -1353,13 +1577,13 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
           },
         };
 
-        const addUrl = new URL('/api/v3/series', config.website_url);
+        const addUrl = new URL("/api/v3/series", config.website_url);
         const addResponse = await fetch(addUrl.toString(), {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'X-Api-Key': config.api_key,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
+            "X-Api-Key": config.api_key,
+            "Content-Type": "application/json",
+            Accept: "application/json",
           },
           body: JSON.stringify(payload),
         });
@@ -1367,7 +1591,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         if (addResponse.status === 409) {
           return {
             success: true,
-            service: 'sonarr',
+            service: "sonarr",
             added: false,
             already_exists: true,
           };
@@ -1375,156 +1599,165 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
 
         if (!addResponse.ok) {
           set.status = 502;
-          return { error: 'Failed to add series to Sonarr' };
+          return { error: "Failed to add series to Sonarr" };
         }
 
         return {
           success: true,
-          service: 'sonarr',
+          service: "sonarr",
           added: true,
           already_exists: false,
         };
       } catch (error) {
-        console.error('Error adding upcoming item to *arr:', error);
+        console.error("Error adding upcoming item to *arr:", error);
         set.status = 500;
-        return { error: 'Failed to add upcoming item' };
+        return { error: "Failed to add upcoming item" };
       }
     },
     {
       body: t.Object({
-        media_type: t.Union([t.Literal('movie'), t.Literal('tv')]),
+        media_type: t.Union([t.Literal("movie"), t.Literal("tv")]),
         tmdb_id: t.Numeric(),
         search_on_add: t.Optional(t.Boolean()),
       }),
-    }
+    },
   )
   .post(
-    '/upcoming/status',
+    "/upcoming/status",
     async ({ user, body, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: 'Unauthorized' };
+        return { error: "Unauthorized" };
       }
 
       const { media_type: mediaType, tmdb_id: tmdbId } = body;
 
       try {
-        if (mediaType === 'movie') {
+        if (mediaType === "movie") {
           const radarrPlugin = await prisma.plugin.findFirst({
-            where: { type: 'radarr' },
+            where: { type: "radarr" },
             select: { enabled: true, config: true },
           });
 
           if (!radarrPlugin?.enabled) {
-            return { exists: false, service: 'radarr' };
+            return { exists: false, service: "radarr" };
           }
 
           const config = normalizeRadarrConfig(radarrPlugin.config);
           if (!config) {
-            return { exists: false, service: 'radarr' };
+            return { exists: false, service: "radarr" };
           }
 
-          const movieUrl = new URL('/api/v3/movie', config.website_url);
-          movieUrl.searchParams.set('tmdbId', String(tmdbId));
+          const movieUrl = new URL("/api/v3/movie", config.website_url);
+          movieUrl.searchParams.set("tmdbId", String(tmdbId));
           const movieResponse = await fetch(movieUrl.toString(), {
-            headers: { 'X-Api-Key': config.api_key, Accept: 'application/json' },
+            headers: {
+              "X-Api-Key": config.api_key,
+              Accept: "application/json",
+            },
           });
 
           if (!movieResponse.ok) {
             set.status = 502;
-            return { error: 'Radarr movie lookup failed' };
+            return { error: "Radarr movie lookup failed" };
           }
 
           const movieData = (await movieResponse.json()) as unknown[];
-          return { exists: Array.isArray(movieData) && movieData.length > 0, service: 'radarr' };
+          return {
+            exists: Array.isArray(movieData) && movieData.length > 0,
+            service: "radarr",
+          };
         }
 
         const sonarrPlugin = await prisma.plugin.findFirst({
-          where: { type: 'sonarr' },
+          where: { type: "sonarr" },
           select: { enabled: true, config: true },
         });
 
         if (!sonarrPlugin?.enabled) {
-          return { exists: false, service: 'sonarr' };
+          return { exists: false, service: "sonarr" };
         }
 
         const config = normalizeSonarrConfig(sonarrPlugin.config);
         if (!config) {
-          return { exists: false, service: 'sonarr' };
+          return { exists: false, service: "sonarr" };
         }
 
-        const seriesUrl = new URL('/api/v3/series', config.website_url);
-        seriesUrl.searchParams.set('tmdbId', String(tmdbId));
+        const seriesUrl = new URL("/api/v3/series", config.website_url);
+        seriesUrl.searchParams.set("tmdbId", String(tmdbId));
         const seriesResponse = await fetch(seriesUrl.toString(), {
-          headers: { 'X-Api-Key': config.api_key, Accept: 'application/json' },
+          headers: { "X-Api-Key": config.api_key, Accept: "application/json" },
         });
 
         if (!seriesResponse.ok) {
           set.status = 502;
-          return { error: 'Sonarr series lookup failed' };
+          return { error: "Sonarr series lookup failed" };
         }
 
         const seriesData = (await seriesResponse.json()) as unknown[];
-        return { exists: Array.isArray(seriesData) && seriesData.length > 0, service: 'sonarr' };
+        return {
+          exists: Array.isArray(seriesData) && seriesData.length > 0,
+          service: "sonarr",
+        };
       } catch (error) {
-        console.error('Error checking upcoming item status', error);
+        console.error("Error checking upcoming item status", error);
         set.status = 500;
-        return { error: 'Failed to check upcoming item status' };
+        return { error: "Failed to check upcoming item status" };
       }
     },
     {
       body: t.Object({
-        media_type: t.Union([t.Literal('movie'), t.Literal('tv')]),
+        media_type: t.Union([t.Literal("movie"), t.Literal("tv")]),
         tmdb_id: t.Numeric(),
       }),
-    }
+    },
   )
-  .get('/qbittorrent/status', async ({ user, set }) => {
+  .get("/qbittorrent/status", async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: 'Unauthorized' };
+      return { error: "Unauthorized" };
     }
 
     try {
       return await getQbittorrentSnapshot();
     } catch (error) {
-      console.error('Error fetching qBittorrent status:', error);
+      console.error("Error fetching qBittorrent status:", error);
       set.status = 500;
-      return { error: 'Failed to get qBittorrent status' };
+      return { error: "Failed to get qBittorrent status" };
     }
   })
-  .get('/scrutiny/summary', async ({ user, set }) => {
+  .get("/scrutiny/summary", async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: 'Unauthorized' };
+      return { error: "Unauthorized" };
     }
 
     try {
       return await fetchScrutinySummary();
     } catch (error) {
-      console.error('Error fetching Scrutiny summary:', error);
+      console.error("Error fetching Scrutiny summary:", error);
       set.status = 500;
-      return { error: 'Failed to get Scrutiny summary' };
+      return { error: "Failed to get Scrutiny summary" };
     }
   })
-  .get('/netdata/summary', async ({ user, set }) => {
+  .get("/netdata/summary", async ({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: 'Unauthorized' };
+      return { error: "Unauthorized" };
     }
 
     try {
       return await fetchNetdataSummary();
     } catch (error) {
-      console.error('Error fetching Netdata summary:', error);
+      console.error("Error fetching Netdata summary:", error);
       set.status = 500;
-      return { error: 'Failed to get Netdata summary' };
+      return { error: "Failed to get Netdata summary" };
     }
   })
-  .get('/netdata/stream', async ({ user, set, request }) => {
+  .get("/netdata/stream", async ({ user, set, request }) => {
     if (!user) {
       set.status = 401;
-      return { error: 'Unauthorized' };
+      return { error: "Unauthorized" };
     }
 
     const encoder = new TextEncoder();
@@ -1535,7 +1768,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         let closed = false;
         let pollTimeout: ReturnType<typeof setTimeout> | null = null;
         let heartbeatTimeout: ReturnType<typeof setTimeout> | null = null;
-        let previousPayload = '';
+        let previousPayload = "";
 
         const closeStream = () => {
           if (closed) return;
@@ -1561,7 +1794,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         const scheduleHeartbeat = () => {
           if (closed) return;
           heartbeatTimeout = setTimeout(() => {
-            writeChunk(': ping\n\n');
+            writeChunk(": ping\n\n");
             scheduleHeartbeat();
           }, 15000);
         };
@@ -1582,7 +1815,9 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
             }, 2000);
           } catch (error) {
             const fallbackPayload = JSON.stringify({
-              ...buildNetdataDisabledSummary('Failed to refresh Netdata summary'),
+              ...buildNetdataDisabledSummary(
+                "Failed to refresh Netdata summary",
+              ),
               enabled: true,
               connected: false,
             });
@@ -1590,13 +1825,13 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
             pollTimeout = setTimeout(() => {
               void poll();
             }, 5000);
-            console.error('Netdata stream poll error:', error);
+            console.error("Netdata stream poll error:", error);
           }
         };
 
-        signal.addEventListener('abort', closeStream);
+        signal.addEventListener("abort", closeStream);
 
-        writeChunk('retry: 3000\n\n');
+        writeChunk("retry: 3000\n\n");
         scheduleHeartbeat();
         void poll();
       },
@@ -1607,16 +1842,16 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
 
     return new Response(stream, {
       headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-transform',
-        Connection: 'keep-alive',
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
       },
     });
   })
-  .get('/qbittorrent/stream', async ({ user, set, request }) => {
+  .get("/qbittorrent/stream", async ({ user, set, request }) => {
     if (!user) {
       set.status = 401;
-      return { error: 'Unauthorized' };
+      return { error: "Unauthorized" };
     }
 
     const encoder = new TextEncoder();
@@ -1627,7 +1862,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         let closed = false;
         let pollTimeout: ReturnType<typeof setTimeout> | null = null;
         let heartbeatTimeout: ReturnType<typeof setTimeout> | null = null;
-        let previousPayload = '';
+        let previousPayload = "";
 
         const closeStream = () => {
           if (closed) return;
@@ -1653,7 +1888,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         const scheduleHeartbeat = () => {
           if (closed) return;
           heartbeatTimeout = setTimeout(() => {
-            writeChunk(': ping\n\n');
+            writeChunk(": ping\n\n");
             scheduleHeartbeat();
           }, 15000);
         };
@@ -1669,13 +1904,18 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
               writeChunk(`data: ${payload}\n\n`);
             }
 
-            const nextMs = Math.max(1000, snapshot.poll_interval_seconds * 1000);
+            const nextMs = Math.max(
+              1000,
+              snapshot.poll_interval_seconds * 1000,
+            );
             pollTimeout = setTimeout(() => {
               void poll();
             }, nextMs);
           } catch (error) {
             const fallbackPayload = JSON.stringify({
-              ...buildQbittorrentDisabledSnapshot('Failed to refresh qBittorrent status'),
+              ...buildQbittorrentDisabledSnapshot(
+                "Failed to refresh qBittorrent status",
+              ),
               enabled: true,
               connected: false,
             });
@@ -1683,13 +1923,13 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
             pollTimeout = setTimeout(() => {
               void poll();
             }, 5000);
-            console.error('qBittorrent stream poll error:', error);
+            console.error("qBittorrent stream poll error:", error);
           }
         };
 
-        signal.addEventListener('abort', closeStream);
+        signal.addEventListener("abort", closeStream);
 
-        writeChunk('retry: 3000\n\n');
+        writeChunk("retry: 3000\n\n");
         scheduleHeartbeat();
         void poll();
       },
@@ -1700,48 +1940,72 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
 
     return new Response(stream, {
       headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-transform',
-        Connection: 'keep-alive',
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
       },
     });
   })
   .get(
-    '/jellyfin/image',
+    "/jellyfin/image",
     async ({ user, query, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: 'Unauthorized' };
+        return { error: "Unauthorized" };
       }
 
       try {
         const jellyfinPlugin = await prisma.plugin.findFirst({
-          where: { type: 'jellyfin' },
+          where: { type: "jellyfin" },
           select: { enabled: true, config: true },
         });
 
         if (!jellyfinPlugin?.enabled) {
           set.status = 404;
-          return { error: 'Jellyfin plugin not enabled' };
+          return { error: "Jellyfin plugin not enabled" };
         }
 
         const config = normalizeJellyfinConfig(jellyfinPlugin.config);
         if (!config) {
           set.status = 404;
-          return { error: 'Jellyfin plugin not configured' };
+          return { error: "Jellyfin plugin not configured" };
         }
 
         const candidates =
-          query.preferred === 'primary'
+          query.preferred === "primary"
             ? ([
-                { itemId: query.itemId, imageType: 'Primary', tag: query.primaryTag },
-                { itemId: query.itemId, imageType: 'Backdrop', tag: query.backdropTag },
-                { itemId: query.parentBackdropItemId, imageType: 'Backdrop', tag: query.parentBackdropTag },
+                {
+                  itemId: query.itemId,
+                  imageType: "Primary",
+                  tag: query.primaryTag,
+                },
+                {
+                  itemId: query.itemId,
+                  imageType: "Backdrop",
+                  tag: query.backdropTag,
+                },
+                {
+                  itemId: query.parentBackdropItemId,
+                  imageType: "Backdrop",
+                  tag: query.parentBackdropTag,
+                },
               ] as const)
             : ([
-                { itemId: query.itemId, imageType: 'Backdrop', tag: query.backdropTag },
-                { itemId: query.parentBackdropItemId, imageType: 'Backdrop', tag: query.parentBackdropTag },
-                { itemId: query.itemId, imageType: 'Primary', tag: query.primaryTag },
+                {
+                  itemId: query.itemId,
+                  imageType: "Backdrop",
+                  tag: query.backdropTag,
+                },
+                {
+                  itemId: query.parentBackdropItemId,
+                  imageType: "Backdrop",
+                  tag: query.parentBackdropTag,
+                },
+                {
+                  itemId: query.itemId,
+                  imageType: "Primary",
+                  tag: query.primaryTag,
+                },
               ] as const);
 
         for (const candidate of candidates) {
@@ -1749,39 +2013,43 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
 
           const imageUrl = new URL(
             `/Items/${encodeURIComponent(candidate.itemId)}/Images/${candidate.imageType}`,
-            config.website_url
+            config.website_url,
           );
           if (candidate.tag) {
-            imageUrl.searchParams.set('tag', candidate.tag);
+            imageUrl.searchParams.set("tag", candidate.tag);
           }
 
           const response = await fetch(imageUrl.toString(), {
             headers: {
-              'X-Emby-Token': config.api_key,
-              Accept: 'image/*',
+              "X-Emby-Token": config.api_key,
+              Accept: "image/*",
             },
           });
 
-          const contentType = response.headers.get('content-type');
-          if (!response.ok || !contentType || !contentType.startsWith('image/')) {
+          const contentType = response.headers.get("content-type");
+          if (
+            !response.ok ||
+            !contentType ||
+            !contentType.startsWith("image/")
+          ) {
             continue;
           }
 
           const imageBuffer = await response.arrayBuffer();
           return new Response(imageBuffer, {
             headers: {
-              'Content-Type': contentType,
-              'Cache-Control': 'private, max-age=21600',
+              "Content-Type": contentType,
+              "Cache-Control": "private, max-age=21600",
             },
           });
         }
 
         set.status = 404;
-        return { error: 'Image not found' };
+        return { error: "Image not found" };
       } catch (error) {
-        console.error('Error proxying Jellyfin image:', error);
+        console.error("Error proxying Jellyfin image:", error);
         set.status = 500;
-        return { error: 'Failed to proxy Jellyfin image' };
+        return { error: "Failed to proxy Jellyfin image" };
       }
     },
     {
@@ -1793,14 +2061,14 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         parentBackdropTag: t.Optional(t.String()),
         primaryTag: t.Optional(t.String()),
       }),
-    }
+    },
   )
   .get(
-    '/jellyfin/latest',
+    "/jellyfin/latest",
     async ({ user, query, set }) => {
       if (!user) {
         set.status = 401;
-        return { error: 'Unauthorized' };
+        return { error: "Unauthorized" };
       }
 
       try {
@@ -1811,7 +2079,7 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         const startIndex = (page - 1) * limit;
 
         const jellyfinPlugin = await prisma.plugin.findFirst({
-          where: { type: 'jellyfin' },
+          where: { type: "jellyfin" },
           select: { enabled: true, config: true },
         });
 
@@ -1824,46 +2092,55 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
           return { enabled: false, items: [], page, limit, has_more: false };
         }
 
-        const jellyfinUrl = new URL('/Items', config.website_url);
-        jellyfinUrl.searchParams.set('Recursive', 'true');
-        jellyfinUrl.searchParams.set('SortBy', 'DateCreated');
-        jellyfinUrl.searchParams.set('SortOrder', 'Descending');
-        jellyfinUrl.searchParams.set('IncludeItemTypes', 'Movie,Series,MusicAlbum,Audio,Video');
+        const jellyfinUrl = new URL("/Items", config.website_url);
+        jellyfinUrl.searchParams.set("Recursive", "true");
+        jellyfinUrl.searchParams.set("SortBy", "DateCreated");
+        jellyfinUrl.searchParams.set("SortOrder", "Descending");
         jellyfinUrl.searchParams.set(
-          'Fields',
-          'DateCreated,Overview,ProductionYear,BackdropImageTags,ParentBackdropImageTags,ParentBackdropItemId,ImageTags'
+          "IncludeItemTypes",
+          "Movie,Series,MusicAlbum,Audio,Video",
         );
-        jellyfinUrl.searchParams.set('Limit', String(limit));
-        jellyfinUrl.searchParams.set('StartIndex', String(startIndex));
+        jellyfinUrl.searchParams.set(
+          "Fields",
+          "DateCreated,Overview,ProductionYear,BackdropImageTags,ParentBackdropImageTags,ParentBackdropItemId,ImageTags",
+        );
+        jellyfinUrl.searchParams.set("Limit", String(limit));
+        jellyfinUrl.searchParams.set("StartIndex", String(startIndex));
 
         const response = await fetch(jellyfinUrl.toString(), {
           headers: {
-            'X-Emby-Token': config.api_key,
-            Accept: 'application/json',
+            "X-Emby-Token": config.api_key,
+            Accept: "application/json",
           },
         });
 
         if (!response.ok) {
           set.status = 502;
-          return { error: 'Jellyfin request failed' };
+          return { error: "Jellyfin request failed" };
         }
 
         const data = (await response.json()) as Record<string, unknown>;
         const rawItems = Array.isArray(data.Items) ? data.Items : [];
         const totalRecordCountRaw =
-          typeof data.TotalRecordCount === 'number' ? Math.trunc(data.TotalRecordCount) : Number.NaN;
-        const totalRecordCount = Number.isFinite(totalRecordCountRaw) ? totalRecordCountRaw : null;
+          typeof data.TotalRecordCount === "number"
+            ? Math.trunc(data.TotalRecordCount)
+            : Number.NaN;
+        const totalRecordCount = Number.isFinite(totalRecordCountRaw)
+          ? totalRecordCountRaw
+          : null;
         const items = rawItems
-          .map(item => mapJellyfinApiItem(item, config.website_url))
+          .map((item) => mapJellyfinApiItem(item, config.website_url))
           .filter((item): item is JellyfinLatestItem => !!item);
         const hasMore =
-          totalRecordCount !== null ? startIndex + rawItems.length < totalRecordCount : rawItems.length === limit;
+          totalRecordCount !== null
+            ? startIndex + rawItems.length < totalRecordCount
+            : rawItems.length === limit;
 
         return { enabled: true, items, page, limit, has_more: hasMore };
       } catch (error) {
-        console.error('Error getting latest Jellyfin items:', error);
+        console.error("Error getting latest Jellyfin items:", error);
         set.status = 500;
-        return { error: 'Failed to get latest Jellyfin items' };
+        return { error: "Failed to get latest Jellyfin items" };
       }
     },
     {
@@ -1871,5 +2148,5 @@ export const dashboardRoutes = new Elysia({ prefix: '/api/dashboard' })
         limit: t.Optional(t.String()),
         page: t.Optional(t.String()),
       }),
-    }
+    },
   );

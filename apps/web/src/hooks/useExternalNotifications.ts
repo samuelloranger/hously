@@ -1,20 +1,21 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useFetcher } from '@/lib/api/context';
-import { queryKeys } from '@/lib/queryKeys';
-import { EXTERNAL_NOTIFICATION_ENDPOINTS } from '@hously/shared';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFetcher } from "@/lib/api/context";
+import { queryKeys } from "@/lib/queryKeys";
+import { EXTERNAL_NOTIFICATION_ENDPOINTS } from "@hously/shared";
 import type {
   LogsResponse,
   ServiceResponse,
   ServicesResponse,
   TemplateResponse,
   TemplatesResponse,
-} from '@hously/shared';
+} from "@hously/shared";
 
 export function useExternalNotificationServices() {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: queryKeys.externalNotifications.services(),
-    queryFn: () => fetcher<ServicesResponse>(EXTERNAL_NOTIFICATION_ENDPOINTS.SERVICES),
+    queryFn: () =>
+      fetcher<ServicesResponse>(EXTERNAL_NOTIFICATION_ENDPOINTS.SERVICES),
   });
 }
 
@@ -31,11 +32,16 @@ export function useEnableExternalNotificationService() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (serviceId: number) =>
-      fetcher<ServiceResponse>(EXTERNAL_NOTIFICATION_ENDPOINTS.ENABLE_SERVICE(serviceId), {
-        method: 'POST',
-      }),
+      fetcher<ServiceResponse>(
+        EXTERNAL_NOTIFICATION_ENDPOINTS.ENABLE_SERVICE(serviceId),
+        {
+          method: "POST",
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.externalNotifications.services() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.externalNotifications.services(),
+      });
     },
   });
 }
@@ -45,11 +51,16 @@ export function useDisableExternalNotificationService() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (serviceId: number) =>
-      fetcher<ServiceResponse>(EXTERNAL_NOTIFICATION_ENDPOINTS.DISABLE_SERVICE(serviceId), {
-        method: 'POST',
-      }),
+      fetcher<ServiceResponse>(
+        EXTERNAL_NOTIFICATION_ENDPOINTS.DISABLE_SERVICE(serviceId),
+        {
+          method: "POST",
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.externalNotifications.services() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.externalNotifications.services(),
+      });
     },
   });
 }
@@ -59,11 +70,16 @@ export function useRegenerateExternalNotificationToken() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (serviceId: number) =>
-      fetcher<ServiceResponse>(EXTERNAL_NOTIFICATION_ENDPOINTS.REGENERATE_TOKEN(serviceId), {
-        method: 'POST',
-      }),
+      fetcher<ServiceResponse>(
+        EXTERNAL_NOTIFICATION_ENDPOINTS.REGENERATE_TOKEN(serviceId),
+        {
+          method: "POST",
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.externalNotifications.services() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.externalNotifications.services(),
+      });
     },
   });
 }
@@ -72,13 +88,24 @@ export function useUpdateExternalNotificationAdminsOnly() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ serviceId, notifyAdminsOnly }: { serviceId: number; notifyAdminsOnly: boolean }) =>
-      fetcher<ServiceResponse>(EXTERNAL_NOTIFICATION_ENDPOINTS.UPDATE_NOTIFY_ADMINS_ONLY(serviceId), {
-        method: 'POST',
-        body: { notify_admins_only: notifyAdminsOnly },
-      }),
+    mutationFn: ({
+      serviceId,
+      notifyAdminsOnly,
+    }: {
+      serviceId: number;
+      notifyAdminsOnly: boolean;
+    }) =>
+      fetcher<ServiceResponse>(
+        EXTERNAL_NOTIFICATION_ENDPOINTS.UPDATE_NOTIFY_ADMINS_ONLY(serviceId),
+        {
+          method: "POST",
+          body: { notify_admins_only: notifyAdminsOnly },
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.externalNotifications.services() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.externalNotifications.services(),
+      });
     },
   });
 }
@@ -87,14 +114,32 @@ export function useToggleExternalNotificationTemplate() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ serviceId, eventType, enabled }: { serviceId: number; eventType: string; enabled: boolean }) =>
-      fetcher<{ success: boolean; updated: number }>(EXTERNAL_NOTIFICATION_ENDPOINTS.TOGGLE_TEMPLATE, {
-        method: 'POST',
-        body: { service_id: serviceId, event_type: eventType, enabled },
-      }),
+    mutationFn: ({
+      serviceId,
+      eventType,
+      enabled,
+    }: {
+      serviceId: number;
+      eventType: string;
+      enabled: boolean;
+    }) =>
+      fetcher<{ success: boolean; updated: number }>(
+        EXTERNAL_NOTIFICATION_ENDPOINTS.TOGGLE_TEMPLATE,
+        {
+          method: "POST",
+          body: { service_id: serviceId, event_type: eventType, enabled },
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.externalNotifications.services() });
-      queryClient.invalidateQueries({ queryKey: [...queryKeys.externalNotifications.all, 'templates'] as const });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.externalNotifications.services(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          ...queryKeys.externalNotifications.all,
+          "templates",
+        ] as const,
+      });
     },
   });
 }
@@ -102,8 +147,9 @@ export function useToggleExternalNotificationTemplate() {
 function useExternalNotificationTemplates() {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: [...queryKeys.externalNotifications.all, 'templates'] as const,
-    queryFn: () => fetcher<TemplatesResponse>(EXTERNAL_NOTIFICATION_ENDPOINTS.TEMPLATES),
+    queryKey: [...queryKeys.externalNotifications.all, "templates"] as const,
+    queryFn: () =>
+      fetcher<TemplatesResponse>(EXTERNAL_NOTIFICATION_ENDPOINTS.TEMPLATES),
   });
 }
 
@@ -118,14 +164,26 @@ export function useUpdateExternalNotificationTemplate() {
       templateId: number;
       data: { title_template?: string; body_template?: string };
     }) =>
-      fetcher<TemplateResponse>(EXTERNAL_NOTIFICATION_ENDPOINTS.TEMPLATE(templateId), {
-        method: 'PUT',
-        body: data,
-      }),
+      fetcher<TemplateResponse>(
+        EXTERNAL_NOTIFICATION_ENDPOINTS.TEMPLATE(templateId),
+        {
+          method: "PUT",
+          body: data,
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.externalNotifications.services() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.externalNotifications.logs() });
-      queryClient.invalidateQueries({ queryKey: [...queryKeys.externalNotifications.all, 'templates'] as const });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.externalNotifications.services(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.externalNotifications.logs(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          ...queryKeys.externalNotifications.all,
+          "templates",
+        ] as const,
+      });
     },
   });
 }

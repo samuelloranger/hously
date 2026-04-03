@@ -1,16 +1,24 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useFetcher } from '@/lib/api/context';
-import { queryKeys } from '@/lib/queryKeys';
-import { AUTH_ENDPOINTS } from '@hously/shared';
-import type { UserResponse, ValidateInvitationResponse, AcceptInvitationRequest } from '@hously/shared';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFetcher } from "@/lib/api/context";
+import { queryKeys } from "@/lib/queryKeys";
+import { AUTH_ENDPOINTS } from "@hously/shared";
+import type {
+  UserResponse,
+  ValidateInvitationResponse,
+  AcceptInvitationRequest,
+} from "@hously/shared";
 
 type AuthResponse = UserResponse & { token?: string; refreshToken?: string };
 
 function defaultLocale(): string {
-  if (typeof navigator !== 'undefined' && typeof navigator.language === 'string' && navigator.language.length > 0) {
-    return navigator.language.split('-')[0] || 'en';
+  if (
+    typeof navigator !== "undefined" &&
+    typeof navigator.language === "string" &&
+    navigator.language.length > 0
+  ) {
+    return navigator.language.split("-")[0] || "en";
   }
-  return 'en';
+  return "en";
 }
 
 export function useCurrentUser() {
@@ -51,7 +59,7 @@ export function useLogin() {
   return useMutation({
     mutationFn: (data: { email: string; password: string; locale?: string }) =>
       fetcher<AuthResponse>(AUTH_ENDPOINTS.LOGIN, {
-        method: 'POST',
+        method: "POST",
         body: {
           ...data,
           locale: data.locale || defaultLocale(),
@@ -69,7 +77,9 @@ export function useValidateInvitation(token: string) {
   return useQuery({
     queryKey: queryKeys.auth.validateInvitation(token),
     queryFn: () =>
-      fetcher<ValidateInvitationResponse>(`${AUTH_ENDPOINTS.ACCEPT_INVITATION}?token=${encodeURIComponent(token)}`),
+      fetcher<ValidateInvitationResponse>(
+        `${AUTH_ENDPOINTS.ACCEPT_INVITATION}?token=${encodeURIComponent(token)}`,
+      ),
     enabled: !!token,
     retry: false,
   });
@@ -82,7 +92,7 @@ export function useAcceptInvitation() {
   return useMutation({
     mutationFn: (data: AcceptInvitationRequest) =>
       fetcher<AuthResponse>(AUTH_ENDPOINTS.ACCEPT_INVITATION, {
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     onSuccess: () => {
@@ -99,8 +109,10 @@ export function useLogout() {
   return useMutation({
     mutationFn: (subscriptionEndpoint?: string) =>
       fetcher<{ message: string }>(AUTH_ENDPOINTS.LOGOUT, {
-        method: 'POST',
-        body: subscriptionEndpoint ? { subscription: { endpoint: subscriptionEndpoint } } : {},
+        method: "POST",
+        body: subscriptionEndpoint
+          ? { subscription: { endpoint: subscriptionEndpoint } }
+          : {},
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
@@ -114,7 +126,7 @@ export function useForgotPassword() {
   return useMutation({
     mutationFn: (data: { email: string; locale?: string }) =>
       fetcher<{ message: string }>(AUTH_ENDPOINTS.FORGOT_PASSWORD, {
-        method: 'POST',
+        method: "POST",
         body: {
           ...data,
           locale: data.locale || defaultLocale(),
@@ -129,7 +141,7 @@ export function useResetPassword() {
   return useMutation({
     mutationFn: (data: { token: string; password: string; locale?: string }) =>
       fetcher<{ message: string }>(AUTH_ENDPOINTS.RESET_PASSWORD, {
-        method: 'POST',
+        method: "POST",
         body: {
           ...data,
           locale: data.locale || defaultLocale(),

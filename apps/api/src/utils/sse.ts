@@ -27,7 +27,7 @@ export function createJsonSseResponse<T>({
       let closed = false;
       let pollTimeout: ReturnType<typeof setTimeout> | null = null;
       let heartbeatTimeout: ReturnType<typeof setTimeout> | null = null;
-      let previousPayload = '';
+      let previousPayload = "";
 
       const closeStream = () => {
         if (closed) return;
@@ -53,7 +53,7 @@ export function createJsonSseResponse<T>({
       const scheduleHeartbeat = () => {
         if (closed) return;
         heartbeatTimeout = setTimeout(() => {
-          writeChunk(': ping\n\n');
+          writeChunk(": ping\n\n");
           scheduleHeartbeat();
         }, heartbeatMs);
       };
@@ -63,7 +63,7 @@ export function createJsonSseResponse<T>({
           () => {
             void pollOnce();
           },
-          Math.max(250, Math.trunc(ms))
+          Math.max(250, Math.trunc(ms)),
         );
       };
 
@@ -77,7 +77,10 @@ export function createJsonSseResponse<T>({
             writeChunk(`data: ${payload}\n\n`);
           }
 
-          const nextMs = typeof intervalMs === 'function' ? intervalMs(snapshot) : intervalMs;
+          const nextMs =
+            typeof intervalMs === "function"
+              ? intervalMs(snapshot)
+              : intervalMs;
           schedulePoll(nextMs);
         } catch (error) {
           if (onError) {
@@ -89,7 +92,8 @@ export function createJsonSseResponse<T>({
                 writeChunk(`data: ${payload}\n\n`);
               }
             } catch (innerError) {
-              if (logLabel) console.error(`${logLabel} SSE onError failed:`, innerError);
+              if (logLabel)
+                console.error(`${logLabel} SSE onError failed:`, innerError);
             }
           }
 
@@ -98,7 +102,7 @@ export function createJsonSseResponse<T>({
         }
       };
 
-      signal.addEventListener('abort', closeStream);
+      signal.addEventListener("abort", closeStream);
 
       writeChunk(`retry: ${Math.max(1000, Math.trunc(retryMs))}\n\n`);
       scheduleHeartbeat();
@@ -111,9 +115,9 @@ export function createJsonSseResponse<T>({
 
   return new Response(stream, {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
     },
   });
 }

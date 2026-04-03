@@ -5,11 +5,12 @@
  * - Viewport height fix for iOS address bar
  */
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 export function useIOSImprovements(): void {
   useEffect(() => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 
     if (!isIOS) {
       return;
@@ -37,22 +38,24 @@ export function useIOSImprovements(): void {
     // Viewport height fix for iOS address bar
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
     };
 
     // Improve touch responsiveness
-    document.addEventListener('touchstart', touchStartHandler, { passive: true });
-    document.addEventListener('touchend', touchEndHandler, false);
+    document.addEventListener("touchstart", touchStartHandler, {
+      passive: true,
+    });
+    document.addEventListener("touchend", touchEndHandler, false);
     setVH();
-    window.addEventListener('resize', setVH);
-    window.addEventListener('orientationchange', orientationChangeHandler);
+    window.addEventListener("resize", setVH);
+    window.addEventListener("orientationchange", orientationChangeHandler);
 
     // Cleanup function
     return () => {
-      document.removeEventListener('touchstart', touchStartHandler);
-      document.removeEventListener('touchend', touchEndHandler);
-      window.removeEventListener('resize', setVH);
-      window.removeEventListener('orientationchange', orientationChangeHandler);
+      document.removeEventListener("touchstart", touchStartHandler);
+      document.removeEventListener("touchend", touchEndHandler);
+      window.removeEventListener("resize", setVH);
+      window.removeEventListener("orientationchange", orientationChangeHandler);
     };
   }, []);
 }

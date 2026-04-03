@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from '../db';
+import { Prisma } from "@prisma/client";
+import { prisma } from "../db";
 
 type Options = {
   minutes: number;
@@ -38,25 +38,28 @@ const parseArgs = (): Options => {
     const arg = args[index];
     const next = args[index + 1];
 
-    if (arg === '--minutes' && next) {
+    if (arg === "--minutes" && next) {
       options.minutes = Math.max(1, Math.trunc(Number(next) || 15));
       index += 1;
       continue;
     }
 
-    if (arg === '--limit' && next) {
-      options.limit = Math.max(1, Math.min(5000, Math.trunc(Number(next) || 200)));
+    if (arg === "--limit" && next) {
+      options.limit = Math.max(
+        1,
+        Math.min(5000, Math.trunc(Number(next) || 200)),
+      );
       index += 1;
       continue;
     }
 
-    if (arg === '--endpoint' && next) {
+    if (arg === "--endpoint" && next) {
       options.endpoint = next;
       index += 1;
       continue;
     }
 
-    if (arg === '--errors') {
+    if (arg === "--errors") {
       options.errorsOnly = true;
     }
   }
@@ -64,12 +67,15 @@ const parseArgs = (): Options => {
   return options;
 };
 
-const formatNumber = (value: number) => value.toLocaleString('en-US');
+const formatNumber = (value: number) => value.toLocaleString("en-US");
 
 const percentile = (values: number[], p: number) => {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
-  const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1));
+  const index = Math.min(
+    sorted.length - 1,
+    Math.max(0, Math.ceil((p / 100) * sorted.length) - 1),
+  );
   return sorted[index] ?? 0;
 };
 
@@ -103,7 +109,7 @@ const rows = await prisma.$queryRaw<QbittorrentRequestLogRow[]>(Prisma.sql`
     "error_message" AS "errorMessage",
     "created_at" AS "createdAt"
   FROM "qbittorrent_request_logs"
-  WHERE ${Prisma.join(filters, ' AND ')}
+  WHERE ${Prisma.join(filters, " AND ")}
   ORDER BY "created_at" DESC
   LIMIT ${options.limit}
 `);
@@ -135,19 +141,28 @@ for (const row of rows) {
   entry.durations.push(row.durationMs);
   entry.bytes += row.responseBytes ?? 0;
   entry.fullUpdates += row.fullUpdate ? 1 : 0;
-  if (typeof row.itemCount === 'number') entry.items.push(row.itemCount);
+  if (typeof row.itemCount === "number") entry.items.push(row.itemCount);
 
   byEndpoint.set(row.endpoint, entry);
 }
 
-console.log(`qBittorrent request logs since ${since.toISOString()} (${rows.length} rows)\n`);
+console.log(
+  `qBittorrent request logs since ${since.toISOString()} (${rows.length} rows)\n`,
+);
 
-for (const [endpoint, entry] of [...byEndpoint.entries()].sort((a, b) => b[1].count - a[1].count)) {
+for (const [endpoint, entry] of [...byEndpoint.entries()].sort(
+  (a, b) => b[1].count - a[1].count,
+)) {
   const avgMs = entry.durations.length
-    ? Math.round(entry.durations.reduce((sum, value) => sum + value, 0) / entry.durations.length)
+    ? Math.round(
+        entry.durations.reduce((sum, value) => sum + value, 0) /
+          entry.durations.length,
+      )
     : 0;
   const avgItems = entry.items.length
-    ? Math.round(entry.items.reduce((sum, value) => sum + value, 0) / entry.items.length)
+    ? Math.round(
+        entry.items.reduce((sum, value) => sum + value, 0) / entry.items.length,
+      )
     : 0;
 
   console.log(
@@ -160,19 +175,19 @@ for (const [endpoint, entry] of [...byEndpoint.entries()].sort((a, b) => b[1].co
       `bytes=${formatNumber(entry.bytes)}`,
       `fullUpdates=${formatNumber(entry.fullUpdates)}`,
       `avgItems=${formatNumber(avgItems)}`,
-    ].join('  ')
+    ].join("  "),
   );
 }
 
 if (rows.length > 0) {
-  console.log('\nLatest rows:\n');
+  console.log("\nLatest rows:\n");
   for (const row of rows.slice(0, 20)) {
     console.log(
       [
         row.createdAt.toISOString(),
         row.method,
         row.endpoint,
-        `status=${row.statusCode ?? 'ERR'}`,
+        `status=${row.statusCode ?? "ERR"}`,
         `ok=${row.ok}`,
         `duration=${row.durationMs}ms`,
         `bytes=${row.responseBytes ?? 0}`,
@@ -183,7 +198,7 @@ if (rows.length > 0) {
         row.errorMessage ? `error=${row.errorMessage}` : null,
       ]
         .filter(Boolean)
-        .join('  ')
+        .join("  "),
     );
   }
 }

@@ -1,18 +1,36 @@
-import { Elysia, t } from 'elysia';
-import { prisma } from '../db';
-import { auth } from '../auth';
-import { saveImageAndCreateThumbnail, deleteImageFiles, getImage, getContentType } from '../services/imageService';
-import { formatIso, nowUtc, sanitizeInput, buildUserMap, getUserDisplayName, validateImageFile } from '../utils';
-import { logActivity } from '../utils/activityLogs';
-import { badRequest, forbidden, notFound, serverError, unauthorized } from '../utils/errors';
-import { hasUpdates } from '../utils/updates';
+import { Elysia, t } from "elysia";
+import { prisma } from "../db";
+import { auth } from "../auth";
+import {
+  saveImageAndCreateThumbnail,
+  deleteImageFiles,
+  getImage,
+  getContentType,
+} from "../services/imageService";
+import {
+  formatIso,
+  nowUtc,
+  sanitizeInput,
+  buildUserMap,
+  getUserDisplayName,
+  validateImageFile,
+} from "../utils";
+import { logActivity } from "../utils/activityLogs";
+import {
+  badRequest,
+  forbidden,
+  notFound,
+  serverError,
+  unauthorized,
+} from "../utils/errors";
+import { hasUpdates } from "../utils/updates";
 
-export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
+export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
   .use(auth)
   // GET /api/recipes - Get all recipes
-  .get('/', async ({ user, set }) => {
+  .get("/", async ({ user, set }) => {
     if (!user) {
-      return unauthorized(set, 'Unauthorized');
+      return unauthorized(set, "Unauthorized");
     }
 
     try {
@@ -23,7 +41,7 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
             select: { ingredients: true },
           },
         },
-        orderBy: [{ isFavorite: 'desc' }, { createdAt: 'desc' }],
+        orderBy: [{ isFavorite: "desc" }, { createdAt: "desc" }],
       });
 
       // Get all users for username lookup
@@ -37,7 +55,7 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
 
       const usersById = buildUserMap(allUsers);
 
-      const recipesList = allRecipes.map(recipe => {
+      const recipesList = allRecipes.map((recipe) => {
         return {
           id: recipe.id,
           name: recipe.name,
@@ -59,22 +77,22 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
 
       return { recipes: recipesList };
     } catch (error) {
-      console.error('Error getting recipes:', error);
-      return serverError(set, 'Failed to get recipes');
+      console.error("Error getting recipes:", error);
+      return serverError(set, "Failed to get recipes");
     }
   })
 
   // GET /api/recipes/:id - Get single recipe with ingredients
   .get(
-    '/:id',
+    "/:id",
     async ({ user, params, set }) => {
       if (!user) {
-        return unauthorized(set, 'Unauthorized');
+        return unauthorized(set, "Unauthorized");
       }
 
       const recipeId = parseInt(params.id, 10);
       if (isNaN(recipeId)) {
-        return badRequest(set, 'Invalid recipe ID');
+        return badRequest(set, "Invalid recipe ID");
       }
 
       try {
@@ -84,7 +102,7 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         });
 
         if (!recipe) {
-          return notFound(set, 'Recipe not found');
+          return notFound(set, "Recipe not found");
         }
 
         // Get user info for addedBy
@@ -95,17 +113,18 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
             select: { firstName: true, email: true },
           });
           if (addedByUser) {
-            addedByUsername = addedByUser.firstName || addedByUser.email || null;
+            addedByUsername =
+              addedByUser.firstName || addedByUser.email || null;
           }
         }
 
         // Get ingredients
         const ingredients = await prisma.recipeIngredient.findMany({
           where: { recipeId },
-          orderBy: { position: 'asc' },
+          orderBy: { position: "asc" },
         });
 
-        const ingredientsList = ingredients.map(ing => ({
+        const ingredientsList = ingredients.map((ing) => ({
           id: ing.id,
           name: ing.name,
           quantity: ing.quantity ? parseFloat(ing.quantity.toString()) : null,
@@ -133,23 +152,23 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
           },
         };
       } catch (error) {
-        console.error('Error getting recipe detail:', error);
-        return serverError(set, 'Failed to get recipe');
+        console.error("Error getting recipe detail:", error);
+        return serverError(set, "Failed to get recipe");
       }
     },
     {
       params: t.Object({
         id: t.String(),
       }),
-    }
+    },
   )
 
   // POST /api/recipes - Create a new recipe
   .post(
-    '/',
+    "/",
     async ({ user, body, set }) => {
       if (!user) {
-        return unauthorized(set, 'Unauthorized');
+        return unauthorized(set, "Unauthorized");
       }
 
       try {
@@ -166,25 +185,27 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         } = body;
 
         // Validate required fields
-        const nameTrimmed = (name || '').trim();
+        const nameTrimmed = (name || "").trim();
         if (!nameTrimmed) {
-          return badRequest(set, 'Recipe name is required');
+          return badRequest(set, "Recipe name is required");
         }
 
-        const instructionsTrimmed = (instructions || '').trim();
+        const instructionsTrimmed = (instructions || "").trim();
         if (!instructionsTrimmed) {
-          return badRequest(set, 'Instructions are required');
+          return badRequest(set, "Instructions are required");
         }
 
         // Validate servings
         const servingsNum = servings || 4;
         if (servingsNum <= 0) {
-          return badRequest(set, 'Servings must be positive');
+          return badRequest(set, "Servings must be positive");
         }
 
         // Sanitize inputs (Markdown is stored as plain text, no HTML escaping needed)
         const sanitizedName = sanitizeInput(nameTrimmed);
-        const sanitizedDescription = description ? sanitizeInput(description.trim()) : null;
+        const sanitizedDescription = description
+          ? sanitizeInput(description.trim())
+          : null;
         // Instructions are Markdown - store as-is without HTML sanitization
         const sanitizedInstructions = instructionsTrimmed;
 
@@ -209,7 +230,7 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         if (ingredients && ingredients.length > 0) {
           for (let idx = 0; idx < ingredients.length; idx++) {
             const ingData = ingredients[idx];
-            const ingName = (ingData.name || '').trim();
+            const ingName = (ingData.name || "").trim();
             if (!ingName) continue;
 
             await prisma.recipeIngredient.create({
@@ -226,7 +247,7 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
 
         console.log(`User ${user.id} created recipe ${newRecipe.id}`);
         await logActivity({
-          type: 'recipe_added',
+          type: "recipe_added",
           userId: user.id,
           payload: { recipe_id: newRecipe.id, recipe_name: newRecipe.name },
         });
@@ -234,7 +255,7 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         set.status = 201;
         return {
           success: true,
-          message: 'Recipe created successfully',
+          message: "Recipe created successfully",
           recipe: {
             id: newRecipe.id,
             name: newRecipe.name,
@@ -252,8 +273,8 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
           },
         };
       } catch (error) {
-        console.error('Error creating recipe:', error);
-        return serverError(set, 'Failed to add recipe');
+        console.error("Error creating recipe:", error);
+        return serverError(set, "Failed to add recipe");
       }
     },
     {
@@ -272,24 +293,24 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
               name: t.String(),
               quantity: t.Optional(t.Union([t.Number(), t.Null()])),
               unit: t.Optional(t.Union([t.String(), t.Null()])),
-            })
-          )
+            }),
+          ),
         ),
       }),
-    }
+    },
   )
 
   // PUT /api/recipes/:id - Update a recipe
   .put(
-    '/:id',
+    "/:id",
     async ({ user, params, body, set }) => {
       if (!user) {
-        return unauthorized(set, 'Unauthorized');
+        return unauthorized(set, "Unauthorized");
       }
 
       const recipeId = parseInt(params.id, 10);
       if (isNaN(recipeId)) {
-        return badRequest(set, 'Invalid recipe ID');
+        return badRequest(set, "Invalid recipe ID");
       }
 
       try {
@@ -299,35 +320,37 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         });
 
         if (!recipe) {
-          return notFound(set, 'Recipe not found');
+          return notFound(set, "Recipe not found");
         }
 
         // Check ownership or admin
         if (recipe.addedBy !== user.id && !user.is_admin) {
-          return forbidden(set, 'Unauthorized');
+          return forbidden(set, "Unauthorized");
         }
 
         const updateData: Record<string, any> = {};
 
         // Update name if provided
         if (body.name !== undefined) {
-          const name = (body.name || '').trim();
+          const name = (body.name || "").trim();
           if (!name) {
-            return badRequest(set, 'Recipe name cannot be empty');
+            return badRequest(set, "Recipe name cannot be empty");
           }
           updateData.name = sanitizeInput(name);
         }
 
         // Update description if provided
         if (body.description !== undefined) {
-          updateData.description = body.description ? sanitizeInput(body.description.trim()) : null;
+          updateData.description = body.description
+            ? sanitizeInput(body.description.trim())
+            : null;
         }
 
         // Update instructions if provided
         if (body.instructions !== undefined) {
-          const instructions = (body.instructions || '').trim();
+          const instructions = (body.instructions || "").trim();
           if (!instructions) {
-            return badRequest(set, 'Instructions cannot be empty');
+            return badRequest(set, "Instructions cannot be empty");
           }
           // Instructions are Markdown - store as-is without HTML sanitization
           updateData.instructions = instructions;
@@ -341,7 +364,7 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         // Update servings if provided
         if (body.servings !== undefined) {
           if (body.servings <= 0) {
-            return badRequest(set, 'Servings must be positive');
+            return badRequest(set, "Servings must be positive");
           }
           updateData.servings = body.servings;
         }
@@ -380,7 +403,7 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
           // Add new ingredients
           for (let idx = 0; idx < body.ingredients.length; idx++) {
             const ingData = body.ingredients[idx];
-            const ingName = (ingData.name || '').trim();
+            const ingName = (ingData.name || "").trim();
             if (!ingName) continue;
 
             await prisma.recipeIngredient.create({
@@ -410,14 +433,17 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         }
 
         await logActivity({
-          type: 'recipe_updated',
+          type: "recipe_updated",
           userId: user.id,
-          payload: { recipe_id: updatedRecipe.id, recipe_name: updatedRecipe.name },
+          payload: {
+            recipe_id: updatedRecipe.id,
+            recipe_name: updatedRecipe.name,
+          },
         });
 
         return {
           success: true,
-          message: 'Recipe updated successfully',
+          message: "Recipe updated successfully",
           recipe: {
             id: updatedRecipe.id,
             name: updatedRecipe.name,
@@ -436,7 +462,7 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         };
       } catch (error) {
         console.error(`Error updating recipe ${recipeId}:`, error);
-        return serverError(set, 'Failed to update recipe');
+        return serverError(set, "Failed to update recipe");
       }
     },
     {
@@ -459,24 +485,24 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
               name: t.String(),
               quantity: t.Optional(t.Union([t.Number(), t.Null()])),
               unit: t.Optional(t.Union([t.String(), t.Null()])),
-            })
-          )
+            }),
+          ),
         ),
       }),
-    }
+    },
   )
 
   // DELETE /api/recipes/:id - Delete a recipe
   .delete(
-    '/:id',
+    "/:id",
     async ({ user, params, set }) => {
       if (!user) {
-        return unauthorized(set, 'Unauthorized');
+        return unauthorized(set, "Unauthorized");
       }
 
       const recipeId = parseInt(params.id, 10);
       if (isNaN(recipeId)) {
-        return badRequest(set, 'Invalid recipe ID');
+        return badRequest(set, "Invalid recipe ID");
       }
 
       try {
@@ -486,12 +512,12 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         });
 
         if (!recipe) {
-          return notFound(set, 'Recipe not found');
+          return notFound(set, "Recipe not found");
         }
 
         // Check ownership or admin
         if (recipe.addedBy !== user.id && !user.is_admin) {
-          return forbidden(set, 'Unauthorized');
+          return forbidden(set, "Unauthorized");
         }
 
         // Delete associated image files
@@ -511,35 +537,35 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
 
         console.log(`User ${user.id} deleted recipe ${recipeId}`);
         await logActivity({
-          type: 'recipe_deleted',
+          type: "recipe_deleted",
           userId: user.id,
           payload: { recipe_id: recipeId, recipe_name: recipe.name },
         });
 
-        return { success: true, message: 'Recipe deleted successfully' };
+        return { success: true, message: "Recipe deleted successfully" };
       } catch (error) {
         console.error(`Error deleting recipe ${recipeId}:`, error);
-        return serverError(set, 'Failed to delete recipe');
+        return serverError(set, "Failed to delete recipe");
       }
     },
     {
       params: t.Object({
         id: t.String(),
       }),
-    }
+    },
   )
 
   // POST /api/recipes/:id/toggle-favorite - Toggle favorite status
   .post(
-    '/:id/toggle-favorite',
+    "/:id/toggle-favorite",
     async ({ user, params, set }) => {
       if (!user) {
-        return unauthorized(set, 'Unauthorized');
+        return unauthorized(set, "Unauthorized");
       }
 
       const recipeId = parseInt(params.id, 10);
       if (isNaN(recipeId)) {
-        return badRequest(set, 'Invalid recipe ID');
+        return badRequest(set, "Invalid recipe ID");
       }
 
       try {
@@ -549,7 +575,7 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
         });
 
         if (!recipe) {
-          return notFound(set, 'Recipe not found');
+          return notFound(set, "Recipe not found");
         }
 
         // Toggle favorite
@@ -563,31 +589,35 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
           },
         });
 
-        console.log(`User ${user.id} toggled recipe ${recipeId} favorite to ${newFavorite}`);
+        console.log(
+          `User ${user.id} toggled recipe ${recipeId} favorite to ${newFavorite}`,
+        );
 
         return { success: true, is_favorite: newFavorite };
       } catch (error) {
-        console.error('Error toggling recipe favorite:', error);
-        return serverError(set, 'Failed to toggle favorite');
+        console.error("Error toggling recipe favorite:", error);
+        return serverError(set, "Failed to toggle favorite");
       }
     },
     {
       params: t.Object({
         id: t.String(),
       }),
-    }
+    },
   )
 
   // POST /api/recipes/upload-image - Upload recipe image
   .post(
-    '/upload-image',
+    "/upload-image",
     async ({ user, body, set }) => {
       if (!user) {
-        return unauthorized(set, 'Unauthorized');
+        return unauthorized(set, "Unauthorized");
       }
 
       const { image } = body;
-      const validationError = validateImageFile(image, { maxSizeBytes: 10 * 1024 * 1024 });
+      const validationError = validateImageFile(image, {
+        maxSizeBytes: 10 * 1024 * 1024,
+      });
       if (validationError) {
         return badRequest(set, validationError.error);
       }
@@ -595,7 +625,9 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
       try {
         const imagePath = await saveImageAndCreateThumbnail(image as File);
 
-        console.log(`Recipe image upload successful - image_path: ${imagePath}`);
+        console.log(
+          `Recipe image upload successful - image_path: ${imagePath}`,
+        );
 
         return {
           success: true,
@@ -604,51 +636,51 @@ export const recipesRoutes = new Elysia({ prefix: '/api/recipes' })
           },
         };
       } catch (error) {
-        console.error('Error uploading recipe image:', error);
-        return serverError(set, 'Failed to upload image');
+        console.error("Error uploading recipe image:", error);
+        return serverError(set, "Failed to upload image");
       }
     },
     {
       body: t.Object({
         image: t.File(),
       }),
-    }
+    },
   )
 
   // GET /api/recipes/image/:filename - Serve recipe image (public)
   .get(
-    '/image/*',
+    "/image/*",
     async ({ params, set }) => {
       try {
-        const filename = params['*'] || '';
+        const filename = params["*"] || "";
 
         // Security: ensure filename doesn't contain path traversal
-        if (filename.includes('..') || filename.startsWith('/')) {
-          return badRequest(set, 'Invalid filename');
+        if (filename.includes("..") || filename.startsWith("/")) {
+          return badRequest(set, "Invalid filename");
         }
 
         const imageBuffer = await getImage(filename);
 
         if (!imageBuffer) {
-          return notFound(set, 'Image not found');
+          return notFound(set, "Image not found");
         }
 
         const contentType = getContentType(filename);
 
         return new Response(imageBuffer, {
           headers: {
-            'Content-Type': contentType,
-            'Cache-Control': 'public, max-age=31536000',
+            "Content-Type": contentType,
+            "Cache-Control": "public, max-age=31536000",
           },
         });
       } catch (error) {
-        console.error('Error serving recipe image:', error);
-        return serverError(set, 'Failed to serve image');
+        console.error("Error serving recipe image:", error);
+        return serverError(set, "Failed to serve image");
       }
     },
     {
       params: t.Object({
-        '*': t.String(),
+        "*": t.String(),
       }),
-    }
+    },
   );

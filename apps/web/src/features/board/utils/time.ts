@@ -4,7 +4,9 @@ export function parseTimeInput(value: string): number | null {
   if (!str) return null;
 
   // e.g. "2h 30m" or "2h30m"
-  const fullMatch = str.match(/^(\d+(?:\.\d+)?)\s*h(?:ours?)?\s*(?:(\d+)\s*m(?:in(?:utes?)?)?)?$/);
+  const fullMatch = str.match(
+    /^(\d+(?:\.\d+)?)\s*h(?:ours?)?\s*(?:(\d+)\s*m(?:in(?:utes?)?)?)?$/,
+  );
   if (fullMatch) {
     const hours = parseFloat(fullMatch[1]);
     const mins = fullMatch[2] ? parseInt(fullMatch[2], 10) : 0;
@@ -24,7 +26,7 @@ export function parseTimeInput(value: string): number | null {
 
 /** Format minutes to "Xh Ym" or "Ym" */
 export function formatMinutes(mins: number): string {
-  if (mins <= 0) return '0m';
+  if (mins <= 0) return "0m";
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   if (h === 0) return `${m}m`;

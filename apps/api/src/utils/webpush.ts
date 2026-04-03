@@ -1,6 +1,6 @@
-import webpush from 'web-push';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import webpush from "web-push";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
 
 interface VapidKeys {
   publicKey: string;
@@ -18,15 +18,15 @@ function loadVapidKeys(): VapidKeys {
   }
 
   // Try to load from files first (preferred method)
-  const vapidKeysDir = join(process.cwd(), '..', '..', 'vapid_keys');
-  const privateKeyPath = join(vapidKeysDir, 'vapid_private_key.pem');
-  const publicKeyPath = join(vapidKeysDir, 'vapid_public_key.pem');
+  const vapidKeysDir = join(process.cwd(), "..", "..", "vapid_keys");
+  const privateKeyPath = join(vapidKeysDir, "vapid_private_key.pem");
+  const publicKeyPath = join(vapidKeysDir, "vapid_public_key.pem");
 
   if (existsSync(privateKeyPath) && existsSync(publicKeyPath)) {
     console.log(`Loading VAPID keys from files: ${vapidKeysDir}`);
     try {
-      const publicKeyPem = readFileSync(publicKeyPath, 'utf-8').trim();
-      const privateKeyPem = readFileSync(privateKeyPath, 'utf-8').trim();
+      const publicKeyPem = readFileSync(publicKeyPath, "utf-8").trim();
+      const privateKeyPem = readFileSync(privateKeyPath, "utf-8").trim();
 
       // Convert PEM to base64url format if needed
       const publicKey = convertPemToBase64Url(publicKeyPem);
@@ -35,11 +35,15 @@ function loadVapidKeys(): VapidKeys {
       vapidKeys = { publicKey, privateKey };
 
       // Set VAPID details
-      webpush.setVapidDetails(Bun.env.VAPID_CONTACT_EMAIL || 'mailto:admin@localhost', publicKey, privateKey);
+      webpush.setVapidDetails(
+        Bun.env.VAPID_CONTACT_EMAIL || "mailto:admin@localhost",
+        publicKey,
+        privateKey,
+      );
 
       return vapidKeys;
     } catch (e) {
-      console.error('Error reading VAPID key files:', e);
+      console.error("Error reading VAPID key files:", e);
       // Fall through to environment variables
     }
   }
@@ -50,14 +54,18 @@ function loadVapidKeys(): VapidKeys {
 
   if (!publicKey || !privateKey) {
     throw new Error(
-      'VAPID keys must be provided via files (vapid_keys/) or environment variables (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)'
+      "VAPID keys must be provided via files (vapid_keys/) or environment variables (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)",
     );
   }
 
   vapidKeys = { publicKey, privateKey };
 
   // Set VAPID details
-  webpush.setVapidDetails(Bun.env.VAPID_CONTACT_EMAIL || 'mailto:admin@localhost', publicKey, privateKey);
+  webpush.setVapidDetails(
+    Bun.env.VAPID_CONTACT_EMAIL || "mailto:admin@localhost",
+    publicKey,
+    privateKey,
+  );
 
   return vapidKeys;
 }
@@ -67,7 +75,7 @@ function loadVapidKeys(): VapidKeys {
  */
 function convertPemToBase64Url(pem: string): string {
   // If already in base64url format (no PEM headers), return as-is
-  if (!pem.startsWith('-----BEGIN')) {
+  if (!pem.startsWith("-----BEGIN")) {
     return pem;
   }
 
@@ -76,11 +84,11 @@ function convertPemToBase64Url(pem: string): string {
 
   // Remove PEM headers and decode base64
   const pemContents = pem
-    .replace(/-----BEGIN.*-----/, '')
-    .replace(/-----END.*-----/, '')
-    .replace(/\s/g, '');
+    .replace(/-----BEGIN.*-----/, "")
+    .replace(/-----END.*-----/, "")
+    .replace(/\s/g, "");
 
-  const derBuffer = Buffer.from(pemContents, 'base64');
+  const derBuffer = Buffer.from(pemContents, "base64");
 
   // For P-256 EC public keys, the uncompressed point is the last 65 bytes
   // (0x04 prefix + 32 bytes x + 32 bytes y)
@@ -100,13 +108,17 @@ function convertPemToBase64Url(pem: string): string {
   }
 
   if (pointStart === -1) {
-    throw new Error('Could not find EC point in PEM public key');
+    throw new Error("Could not find EC point in PEM public key");
   }
 
   const point = derBuffer.slice(pointStart, pointStart + 65);
 
   // Convert to base64url (URL-safe base64 without padding)
-  return point.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  return point
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
 }
 
 /**
@@ -114,17 +126,17 @@ function convertPemToBase64Url(pem: string): string {
  */
 function convertPrivateKeyPemToBase64Url(pem: string): string {
   // If already in base64url format, return as-is
-  if (!pem.startsWith('-----BEGIN')) {
+  if (!pem.startsWith("-----BEGIN")) {
     return pem;
   }
 
   // Remove PEM headers and decode base64
   const pemContents = pem
-    .replace(/-----BEGIN.*-----/, '')
-    .replace(/-----END.*-----/, '')
-    .replace(/\s/g, '');
+    .replace(/-----BEGIN.*-----/, "")
+    .replace(/-----END.*-----/, "")
+    .replace(/\s/g, "");
 
-  const derBuffer = Buffer.from(pemContents, 'base64');
+  const derBuffer = Buffer.from(pemContents, "base64");
 
   // For P-256 EC private keys, we need to extract the 32-byte private key value
   // The DER structure varies but typically the private key is preceded by 0x04 0x20
@@ -134,11 +146,15 @@ function convertPrivateKeyPemToBase64Url(pem: string): string {
   for (let i = 0; i < derBuffer.length - 34; i++) {
     if (derBuffer[i] === 0x04 && derBuffer[i + 1] === 0x20) {
       const privateKeyBytes = derBuffer.slice(i + 2, i + 34);
-      return privateKeyBytes.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      return privateKeyBytes
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=/g, "");
     }
   }
 
-  throw new Error('Could not extract private key from PEM');
+  throw new Error("Could not extract private key from PEM");
 }
 
 /**
@@ -173,7 +189,7 @@ interface PushPayload {
  */
 export async function sendWebPushNotification(
   subscription: PushSubscription,
-  payload: PushPayload
+  payload: PushPayload,
 ): Promise<{ success: boolean; expired?: boolean; error?: string }> {
   try {
     // Ensure VAPID keys are loaded
@@ -181,8 +197,8 @@ export async function sendWebPushNotification(
 
     const fullPayload = {
       ...payload,
-      icon: payload.icon || '/icon-192.png',
-      badge: payload.badge || '/icon-32.png',
+      icon: payload.icon || "/icon-192.png",
+      badge: payload.badge || "/icon-32.png",
       vibrate: payload.vibrate || [200, 100, 200],
     };
 
@@ -192,16 +208,16 @@ export async function sendWebPushNotification(
     return { success: true };
   } catch (error: unknown) {
     const err = error as { statusCode?: number; message?: string };
-    console.error('WebPush error:', err);
+    console.error("WebPush error:", err);
 
     // Check for expired subscription (410 Gone)
     if (err.statusCode === 410) {
-      return { success: false, expired: true, error: 'Subscription expired' };
+      return { success: false, expired: true, error: "Subscription expired" };
     }
 
     return {
       success: false,
-      error: err.message || 'Failed to send notification',
+      error: err.message || "Failed to send notification",
     };
   }
 }

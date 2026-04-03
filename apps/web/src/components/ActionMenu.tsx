@@ -1,10 +1,10 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 
 interface ActionMenuItem {
   label: string;
   icon: string;
   onClick: () => void;
-  variant?: 'default' | 'danger' | 'success';
+  variant?: "default" | "danger" | "success";
 }
 
 interface ActionMenuProps {
@@ -13,14 +13,14 @@ interface ActionMenuProps {
 }
 
 const variantClasses = {
-  default: 'text-neutral-700 dark:text-neutral-300',
-  danger: 'text-red-600 dark:text-red-400',
-  success: 'text-green-600 dark:text-green-400',
+  default: "text-neutral-700 dark:text-neutral-300",
+  danger: "text-red-600 dark:text-red-400",
+  success: "text-green-600 dark:text-green-400",
 };
 
 export function ActionMenu({
   items,
-  buttonClassName = 'p-3 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 focus:outline-none rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center',
+  buttonClassName = "p-3 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 focus:outline-none rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center",
 }: ActionMenuProps) {
   return (
     <DropdownMenu.Root>
@@ -41,10 +41,10 @@ export function ActionMenu({
               key={index}
               onSelect={item.onClick}
               className={`w-full text-left px-4 py-3 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors min-h-[44px] flex items-center cursor-pointer outline-none ${
-                variantClasses[item.variant || 'default']
-              } ${index === 0 ? 'rounded-t-md' : ''} ${
-                index === items.length - 1 ? 'rounded-b-md' : ''
-              } ${index > 0 ? 'border-t border-neutral-200 dark:border-neutral-700' : ''}`}
+                variantClasses[item.variant || "default"]
+              } ${index === 0 ? "rounded-t-md" : ""} ${
+                index === items.length - 1 ? "rounded-b-md" : ""
+              } ${index > 0 ? "border-t border-neutral-200 dark:border-neutral-700" : ""}`}
             >
               <span className="mr-2">{item.icon}</span>
               {item.label}

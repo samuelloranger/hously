@@ -1,22 +1,34 @@
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { X, Check, ArrowUp, ArrowDown } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { X, Check, ArrowUp, ArrowDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   QBITTORRENT_STATE_FILTERS,
   type QbittorrentStateFilter,
   type QbittorrentSortKey,
   type QbittorrentSortDir,
-} from '@hously/shared';
-import { cn } from '@/lib/utils';
+} from "@hously/shared";
+import { cn } from "@/lib/utils";
 
-const SORT_OPTIONS: { key: QbittorrentSortKey; labelKey: string; fallback: string }[] = [
-  { key: 'added_on', labelKey: 'torrents.sortAdded', fallback: 'Date added' },
-  { key: 'download_speed', labelKey: 'torrents.sortDownloadSpeed', fallback: 'Download speed' },
-  { key: 'upload_speed', labelKey: 'torrents.sortUploadSpeed', fallback: 'Upload speed' },
-  { key: 'ratio', labelKey: 'torrents.sortRatio', fallback: 'Ratio' },
-  { key: 'size', labelKey: 'torrents.sortSize', fallback: 'Size' },
-  { key: 'name', labelKey: 'torrents.sortName', fallback: 'Name' },
+const SORT_OPTIONS: {
+  key: QbittorrentSortKey;
+  labelKey: string;
+  fallback: string;
+}[] = [
+  { key: "added_on", labelKey: "torrents.sortAdded", fallback: "Date added" },
+  {
+    key: "download_speed",
+    labelKey: "torrents.sortDownloadSpeed",
+    fallback: "Download speed",
+  },
+  {
+    key: "upload_speed",
+    labelKey: "torrents.sortUploadSpeed",
+    fallback: "Upload speed",
+  },
+  { key: "ratio", labelKey: "torrents.sortRatio", fallback: "Ratio" },
+  { key: "size", labelKey: "torrents.sortSize", fallback: "Size" },
+  { key: "name", labelKey: "torrents.sortName", fallback: "Name" },
 ];
 
 interface TorrentFilterSheetProps {
@@ -58,12 +70,12 @@ export function TorrentFilterSheet({
   hasActiveFilters,
   onClearAll,
 }: TorrentFilterSheetProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
 
   useEffect(() => {
     if (!isOpen) return;
     const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
@@ -74,7 +86,10 @@ export function TorrentFilterSheet({
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       {/* Sheet */}
       <div className="relative bg-white dark:bg-neutral-900 rounded-t-2xl max-h-[88vh] flex flex-col shadow-2xl [animation:sheet-slide-up_0.28s_ease-out]">
@@ -87,7 +102,7 @@ export function TorrentFilterSheet({
         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
           <div className="flex items-center gap-3">
             <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-              {t('torrents.filtersTitle', 'Filters & Sort')}
+              {t("torrents.filtersTitle", "Filters & Sort")}
             </h2>
             {hasActiveFilters && (
               <button
@@ -95,7 +110,7 @@ export function TorrentFilterSheet({
                 onClick={onClearAll}
                 className="text-xs text-indigo-600 dark:text-indigo-400 font-medium"
               >
-                {t('torrents.clearFilters', 'Clear all')}
+                {t("torrents.clearFilters", "Clear all")}
               </button>
             )}
           </div>
@@ -113,12 +128,15 @@ export function TorrentFilterSheet({
           {/* Status */}
           <section>
             <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-3">
-              {t('torrents.filterSection', 'Status')}
+              {t("torrents.filterSection", "Status")}
             </h3>
             <div className="grid grid-cols-2 gap-2">
-              {QBITTORRENT_STATE_FILTERS.map(filter => {
-                const count = filter.id === 'all' ? torrentsTotal : (counts[filter.id] ?? 0);
-                if (filter.id !== 'all' && count === 0) return null;
+              {QBITTORRENT_STATE_FILTERS.map((filter) => {
+                const count =
+                  filter.id === "all"
+                    ? torrentsTotal
+                    : (counts[filter.id] ?? 0);
+                if (filter.id !== "all" && count === 0) return null;
                 const active = stateFilter === filter.id;
                 return (
                   <button
@@ -126,17 +144,19 @@ export function TorrentFilterSheet({
                     type="button"
                     onClick={() => onStateChange(filter.id)}
                     className={cn(
-                      'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all border',
+                      "flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all border",
                       active
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700'
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700",
                     )}
                   >
                     <span>{t(filter.labelKey)}</span>
                     <span
                       className={cn(
-                        'text-xs font-bold tabular-nums',
-                        active ? 'text-white/70' : 'text-neutral-400 dark:text-neutral-500'
+                        "text-xs font-bold tabular-nums",
+                        active
+                          ? "text-white/70"
+                          : "text-neutral-400 dark:text-neutral-500",
                       )}
                     >
                       {count}
@@ -150,7 +170,7 @@ export function TorrentFilterSheet({
           {/* Sort */}
           <section>
             <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-3">
-              {t('torrents.sortSection', 'Sort by')}
+              {t("torrents.sortSection", "Sort by")}
             </h3>
             <div className="grid grid-cols-2 gap-2">
               {SORT_OPTIONS.map(({ key, labelKey, fallback }) => {
@@ -161,15 +181,15 @@ export function TorrentFilterSheet({
                     type="button"
                     onClick={() => onSort(key)}
                     className={cn(
-                      'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all border',
+                      "flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all border",
                       active
-                        ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 border-neutral-900 dark:border-neutral-100'
-                        : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700'
+                        ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 border-neutral-900 dark:border-neutral-100"
+                        : "bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700",
                     )}
                   >
                     <span>{t(labelKey, fallback)}</span>
                     {active &&
-                      (sortDir === 'asc' ? (
+                      (sortDir === "asc" ? (
                         <ArrowUp size={13} className="shrink-0" />
                       ) : (
                         <ArrowDown size={13} className="shrink-0" />
@@ -184,10 +204,10 @@ export function TorrentFilterSheet({
           {availableCategories.length > 0 && (
             <section>
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-3">
-                {t('dashboard.qbittorrent.categories', 'Categories')}
+                {t("dashboard.qbittorrent.categories", "Categories")}
               </h3>
               <div className="flex flex-wrap gap-2">
-                {availableCategories.map(cat => {
+                {availableCategories.map((cat) => {
                   const selected = selectedCategories.includes(cat);
                   return (
                     <button
@@ -195,10 +215,10 @@ export function TorrentFilterSheet({
                       type="button"
                       onClick={() => onCategoryToggle(cat, !selected)}
                       className={cn(
-                        'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-all',
+                        "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-all",
                         selected
-                          ? 'bg-indigo-600 text-white border-indigo-600'
-                          : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700'
+                          ? "bg-indigo-600 text-white border-indigo-600"
+                          : "bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700",
                       )}
                     >
                       {selected && <Check size={12} />}
@@ -214,10 +234,10 @@ export function TorrentFilterSheet({
           {availableTags.length > 0 && (
             <section>
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-3">
-                {t('dashboard.qbittorrent.tags', 'Tags')}
+                {t("dashboard.qbittorrent.tags", "Tags")}
               </h3>
               <div className="flex flex-wrap gap-2">
-                {availableTags.map(tag => {
+                {availableTags.map((tag) => {
                   const selected = selectedTags.includes(tag);
                   return (
                     <button
@@ -225,10 +245,10 @@ export function TorrentFilterSheet({
                       type="button"
                       onClick={() => onTagToggle(tag, !selected)}
                       className={cn(
-                        'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-all',
+                        "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-all",
                         selected
-                          ? 'bg-indigo-600 text-white border-indigo-600'
-                          : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700'
+                          ? "bg-indigo-600 text-white border-indigo-600"
+                          : "bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700",
                       )}
                     >
                       {selected && <Check size={12} />}
@@ -248,11 +268,11 @@ export function TorrentFilterSheet({
             onClick={onClose}
             className="w-full py-3.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-500 active:bg-indigo-700 transition-colors"
           >
-            {t('torrents.applyFilters', 'Show results')}
+            {t("torrents.applyFilters", "Show results")}
           </button>
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

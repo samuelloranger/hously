@@ -1,5 +1,5 @@
-import type { QueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queryKeys';
+import type { QueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
 import {
   ADMIN_ENDPOINTS,
   AUTH_ENDPOINTS,
@@ -20,8 +20,8 @@ import {
   type DashboardJellyfinLatestResponse,
   type HomeAssistantWidgetResponse,
   type UserResponse,
-} from '@hously/shared';
-import { webFetcher } from '@/lib/api/fetcher';
+} from "@hously/shared";
+import { webFetcher } from "@/lib/api/fetcher";
 
 /** Jellyfin shelf page size — must match `useDashboardJellyfinLatestInfinite` on the home page. */
 const HOME_JELLYFIN_LIMIT = 10;
@@ -29,7 +29,7 @@ const HOME_JELLYFIN_LIMIT = 10;
 /** Local calendar date `YYYY-MM-DD`, aligned with `HabitsPanel` / `useHabits(today)`. */
 function localIsoDateToday(): string {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 /**
@@ -51,7 +51,10 @@ async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
       queryKey: queryKeys.dashboard.stats(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.STATS),
     },
-    { queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) },
+    {
+      queryKey: queryKeys.chores.list(),
+      queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST),
+    },
     {
       queryKey: [...queryKeys.habits.list(), today] as const,
       queryFn: () => webFetcher(`${HABIT_ENDPOINTS.LIST}?date=${today}`),
@@ -90,19 +93,25 @@ async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
     },
     {
       queryKey: queryKeys.dashboard.homeAssistantWidget(),
-      queryFn: () => webFetcher<HomeAssistantWidgetResponse>(DASHBOARD_ENDPOINTS.HOME_ASSISTANT.WIDGET),
+      queryFn: () =>
+        webFetcher<HomeAssistantWidgetResponse>(
+          DASHBOARD_ENDPOINTS.HOME_ASSISTANT.WIDGET,
+        ),
     },
   ];
 
   await Promise.allSettled([
-    ...standard.map(q => queryClient.ensureQueryData(q as any)),
+    ...standard.map((q) => queryClient.ensureQueryData(q as any)),
     queryClient.prefetchInfiniteQuery({
       queryKey: queryKeys.dashboard.jellyfinLatestInfinite(HOME_JELLYFIN_LIMIT),
       initialPageParam: 1,
       queryFn: ({ pageParam }) => {
-        const page = typeof pageParam === 'number' && Number.isFinite(pageParam) ? pageParam : 1;
+        const page =
+          typeof pageParam === "number" && Number.isFinite(pageParam)
+            ? pageParam
+            : 1;
         return webFetcher<DashboardJellyfinLatestResponse>(
-          `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${HOME_JELLYFIN_LIMIT}&page=${page}`
+          `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${HOME_JELLYFIN_LIMIT}&page=${page}`,
         );
       },
     }),
@@ -166,15 +175,21 @@ function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
   });
   void queryClient.prefetchQuery({
     queryKey: queryKeys.dashboard.homeAssistantWidget(),
-    queryFn: () => webFetcher<HomeAssistantWidgetResponse>(DASHBOARD_ENDPOINTS.HOME_ASSISTANT.WIDGET),
+    queryFn: () =>
+      webFetcher<HomeAssistantWidgetResponse>(
+        DASHBOARD_ENDPOINTS.HOME_ASSISTANT.WIDGET,
+      ),
   });
   void queryClient.prefetchInfiniteQuery({
     queryKey: queryKeys.dashboard.jellyfinLatestInfinite(HOME_JELLYFIN_LIMIT),
     initialPageParam: 1,
     queryFn: ({ pageParam }) => {
-      const page = typeof pageParam === 'number' && Number.isFinite(pageParam) ? pageParam : 1;
+      const page =
+        typeof pageParam === "number" && Number.isFinite(pageParam)
+          ? pageParam
+          : 1;
       return webFetcher<DashboardJellyfinLatestResponse>(
-        `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${HOME_JELLYFIN_LIMIT}&page=${page}`
+        `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${HOME_JELLYFIN_LIMIT}&page=${page}`,
       );
     },
   });
@@ -185,20 +200,35 @@ function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
  * Returns array of {queryKey, queryFn} objects
  */
 const routeQueryDefinitions = {
-  '/shopping': () => [
+  "/shopping": () => [
     {
       queryKey: queryKeys.shopping.items(),
       queryFn: () => webFetcher(SHOPPING_ENDPOINTS.LIST),
     },
   ],
 
-  '/chores': () => [{ queryKey: queryKeys.chores.list(), queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST) }],
+  "/chores": () => [
+    {
+      queryKey: queryKeys.chores.list(),
+      queryFn: () => webFetcher(CHORES_ENDPOINTS.LIST),
+    },
+  ],
 
-  '/board': () => [{ queryKey: queryKeys.boardTasks.list(), queryFn: () => webFetcher(BOARD_TASKS_ENDPOINTS.LIST) }],
+  "/board": () => [
+    {
+      queryKey: queryKeys.boardTasks.list(),
+      queryFn: () => webFetcher(BOARD_TASKS_ENDPOINTS.LIST),
+    },
+  ],
 
-  '/habits': () => [{ queryKey: queryKeys.habits.list(), queryFn: () => webFetcher(HABIT_ENDPOINTS.LIST) }],
+  "/habits": () => [
+    {
+      queryKey: queryKeys.habits.list(),
+      queryFn: () => webFetcher(HABIT_ENDPOINTS.LIST),
+    },
+  ],
 
-  '/calendar': () => [
+  "/calendar": () => [
     {
       queryKey: queryKeys.calendar.events(),
       queryFn: () => webFetcher(CALENDAR_ENDPOINTS.EVENTS),
@@ -213,7 +243,7 @@ const routeQueryDefinitions = {
     },
   ],
 
-  '/kitchen': () => [
+  "/kitchen": () => [
     {
       queryKey: queryKeys.recipes.lists(),
       queryFn: () => webFetcher(RECIPES_ENDPOINTS.LIST),
@@ -224,14 +254,15 @@ const routeQueryDefinitions = {
     },
   ],
 
-  '/kitchen/$recipeId': (params: { recipeId: string }) => [
+  "/kitchen/$recipeId": (params: { recipeId: string }) => [
     {
       queryKey: queryKeys.recipes.detail(Number(params.recipeId)),
-      queryFn: () => webFetcher(RECIPES_ENDPOINTS.DETAIL(Number(params.recipeId))),
+      queryFn: () =>
+        webFetcher(RECIPES_ENDPOINTS.DETAIL(Number(params.recipeId))),
     },
   ],
 
-  '/torrents': () => [
+  "/torrents": () => [
     {
       queryKey: queryKeys.qbittorrent.status(),
       queryFn: () => webFetcher(QBITTORRENT_ENDPOINTS.STATUS),
@@ -240,42 +271,44 @@ const routeQueryDefinitions = {
       queryKey: queryKeys.dashboard.qbittorrentTorrents({
         offset: 0,
         limit: QBITTORRENT_TORRENTS_PAGE_SIZE,
-        sort: 'added_on',
+        sort: "added_on",
         reverse: true,
       }),
       queryFn: () =>
         webFetcher(
-          `${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?sort=added_on&reverse=true&limit=${QBITTORRENT_TORRENTS_PAGE_SIZE}&offset=0`
+          `${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?sort=added_on&reverse=true&limit=${QBITTORRENT_TORRENTS_PAGE_SIZE}&offset=0`,
         ),
     },
   ],
 
-  '/torrents/$hash': (params: { hash: string }) => [
+  "/torrents/$hash": (params: { hash: string }) => [
     {
       queryKey: queryKeys.dashboard.qbittorrentTorrentProperties(params.hash),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.PROPERTIES(params.hash)),
+      queryFn: () =>
+        webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.PROPERTIES(params.hash)),
     },
     {
       queryKey: queryKeys.dashboard.qbittorrentTorrentFiles(params.hash),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.FILES(params.hash)),
+      queryFn: () =>
+        webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.FILES(params.hash)),
     },
   ],
 
-  '/explore': () => [
+  "/explore": () => [
     {
       queryKey: queryKeys.medias.explore(),
       queryFn: () => webFetcher(`${MEDIAS_ENDPOINTS.EXPLORE}?language=en`),
     },
   ],
 
-  '/library': () => [
+  "/library": () => [
     {
       queryKey: queryKeys.medias.list(),
       queryFn: () => webFetcher(MEDIAS_ENDPOINTS.LIST),
     },
   ],
 
-  '/notifications': () => [
+  "/notifications": () => [
     {
       queryKey: queryKeys.notifications.unreadCount(),
       queryFn: () => webFetcher(NOTIFICATION_ENDPOINTS.UNREAD_COUNT),
@@ -284,43 +317,49 @@ const routeQueryDefinitions = {
     // with ensureQueryData due to structure mismatch if not careful.
   ],
 
-  '/activity': (params: { service?: string; type?: string }) => [
+  "/activity": (params: { service?: string; type?: string }) => [
     {
-      queryKey: queryKeys.dashboard.activityFeed({ limit: 25, service: params.service, type: params.type }),
+      queryKey: queryKeys.dashboard.activityFeed({
+        limit: 25,
+        service: params.service,
+        type: params.type,
+      }),
       queryFn: () => {
-        const search = new URLSearchParams({ limit: '25' });
-        if (params.service) search.set('service', params.service);
-        if (params.type) search.set('type', params.type);
-        return webFetcher(`${DASHBOARD_ENDPOINTS.ACTIVITIES_FEED}?${search.toString()}`);
+        const search = new URLSearchParams({ limit: "25" });
+        if (params.service) search.set("service", params.service);
+        if (params.type) search.set("type", params.type);
+        return webFetcher(
+          `${DASHBOARD_ENDPOINTS.ACTIVITIES_FEED}?${search.toString()}`,
+        );
       },
     },
   ],
 
-  '/settings': (params: { tab?: string }) => {
-    const tab = params.tab || 'profile';
+  "/settings": (params: { tab?: string }) => {
+    const tab = params.tab || "profile";
     const queries: any[] = [];
 
     // Always prefetch user profile for settings
     queries.push({
       queryKey: queryKeys.auth.me,
-      queryFn: () => webFetcher('/api/auth/me'),
+      queryFn: () => webFetcher("/api/auth/me"),
     });
 
-    if (tab === 'notifications') {
+    if (tab === "notifications") {
       queries.push({
         queryKey: queryKeys.notifications.devices(),
         queryFn: () => webFetcher(NOTIFICATION_ENDPOINTS.DEVICES),
       });
     }
 
-    if (tab === 'users') {
+    if (tab === "users") {
       queries.push({
         queryKey: queryKeys.admin.users(),
         queryFn: () => webFetcher(ADMIN_ENDPOINTS.USERS),
       });
     }
 
-    if (tab === 'external-notifications') {
+    if (tab === "external-notifications") {
       queries.push({
         queryKey: queryKeys.externalNotifications.services(),
         queryFn: () => webFetcher(EXTERNAL_NOTIFICATION_ENDPOINTS.SERVICES),
@@ -331,21 +370,42 @@ const routeQueryDefinitions = {
       });
     }
 
-    if (tab === 'plugins') {
-      queries.push({ queryKey: queryKeys.plugins.weather(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.WEATHER) });
-      queries.push({ queryKey: queryKeys.plugins.tmdb(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.TMDB) });
-      queries.push({ queryKey: queryKeys.plugins.jellyfin(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.JELLYFIN) });
-      queries.push({ queryKey: queryKeys.plugins.radarr(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.RADARR) });
-      queries.push({ queryKey: queryKeys.plugins.sonarr(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SONARR) });
+    if (tab === "plugins") {
+      queries.push({
+        queryKey: queryKeys.plugins.weather(),
+        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.WEATHER),
+      });
+      queries.push({
+        queryKey: queryKeys.plugins.tmdb(),
+        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.TMDB),
+      });
+      queries.push({
+        queryKey: queryKeys.plugins.jellyfin(),
+        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.JELLYFIN),
+      });
+      queries.push({
+        queryKey: queryKeys.plugins.radarr(),
+        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.RADARR),
+      });
+      queries.push({
+        queryKey: queryKeys.plugins.sonarr(),
+        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SONARR),
+      });
       queries.push({
         queryKey: queryKeys.plugins.qbittorrent(),
         queryFn: () => webFetcher(PLUGIN_ENDPOINTS.QBITTORRENT),
       });
-      queries.push({ queryKey: queryKeys.plugins.scrutiny(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SCRUTINY) });
-      queries.push({ queryKey: queryKeys.plugins.beszel(), queryFn: () => webFetcher(PLUGIN_ENDPOINTS.BESZEL) });
+      queries.push({
+        queryKey: queryKeys.plugins.scrutiny(),
+        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SCRUTINY),
+      });
+      queries.push({
+        queryKey: queryKeys.plugins.beszel(),
+        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.BESZEL),
+      });
     }
 
-    if (tab === 'jobs') {
+    if (tab === "jobs") {
       queries.push({
         queryKey: queryKeys.admin.scheduledJobs(),
         queryFn: () => webFetcher(ADMIN_ENDPOINTS.SCHEDULED_JOBS),
@@ -359,21 +419,31 @@ const routeQueryDefinitions = {
 /**
  * Generic helper to prefetch queries for a route using ensureQueryData
  */
-async function prefetchQueriesForRoute(queryClient: QueryClient, routeId: string, params: any = {}): Promise<void> {
+async function prefetchQueriesForRoute(
+  queryClient: QueryClient,
+  routeId: string,
+  params: any = {},
+): Promise<void> {
   const queryDef = (routeQueryDefinitions as any)[routeId];
   if (!queryDef) return;
 
   const queries = queryDef(params);
-  await Promise.allSettled(queries.map((q: any) => queryClient.ensureQueryData(q)));
+  await Promise.allSettled(
+    queries.map((q: any) => queryClient.ensureQueryData(q)),
+  );
 }
 
 /**
  * Prefetch data for a route
  * Used by router loaders - uses ensureQueryData (waits for data)
  */
-export async function prefetchRouteData(queryClient: QueryClient, routeId: string, params: any = {}): Promise<void> {
-  const normalizedRouteId = routeId === '/dashboard' ? '/' : routeId;
-  if (normalizedRouteId === '/') {
+export async function prefetchRouteData(
+  queryClient: QueryClient,
+  routeId: string,
+  params: any = {},
+): Promise<void> {
+  const normalizedRouteId = routeId === "/dashboard" ? "/" : routeId;
+  if (normalizedRouteId === "/") {
     await prefetchHomePageData(queryClient);
     return;
   }
@@ -384,9 +454,13 @@ export async function prefetchRouteData(queryClient: QueryClient, routeId: strin
  * Optimistically prefetch data for a route (fire and forget)
  * Used by hover prefetching - uses prefetchQuery (non-blocking)
  */
-export function prefetchRouteDataOptimistic(queryClient: QueryClient, routeId: string, params: any = {}): void {
-  const normalizedRouteId = routeId === '/dashboard' ? '/' : routeId;
-  if (normalizedRouteId === '/') {
+export function prefetchRouteDataOptimistic(
+  queryClient: QueryClient,
+  routeId: string,
+  params: any = {},
+): void {
+  const normalizedRouteId = routeId === "/dashboard" ? "/" : routeId;
+  if (normalizedRouteId === "/") {
     prefetchHomePageDataOptimistic(queryClient);
     return;
   }

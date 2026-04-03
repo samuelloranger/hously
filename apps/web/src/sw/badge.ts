@@ -1,17 +1,17 @@
-import type { UnreadCountResponse } from './types';
-import { NOTIFICATION_ENDPOINTS } from '@hously/shared/endpoints/notifications';
+import type { UnreadCountResponse } from "./types";
+import { NOTIFICATION_ENDPOINTS } from "@hously/shared/endpoints/notifications";
 
 // Sync badge count from server
 export async function syncBadgeCount(): Promise<void> {
-  if (!('setAppBadge' in navigator && navigator.setAppBadge)) {
+  if (!("setAppBadge" in navigator && navigator.setAppBadge)) {
     return;
   }
 
   try {
     const response = await fetch(NOTIFICATION_ENDPOINTS.UNREAD_COUNT, {
-      credentials: 'include',
+      credentials: "include",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -24,6 +24,6 @@ export async function syncBadgeCount(): Promise<void> {
       }
     }
   } catch (err) {
-    console.error('Error syncing badge count:', err);
+    console.error("Error syncing badge count:", err);
   }
 }

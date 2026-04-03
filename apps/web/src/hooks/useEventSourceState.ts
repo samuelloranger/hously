@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 type UseEventSourceStateOptions<T> = {
   url: string;
@@ -22,7 +22,9 @@ export function useEventSourceState<T>({
 }: UseEventSourceStateOptions<T>): UseEventSourceStateResult<T> {
   const [sseData, setSseData] = useState<T | null>(null);
   const data = sseData ?? initialData ?? null;
-  const [streamConnected, setStreamConnected] = useState(() => treatInitialDataAsConnected && initialData != null);
+  const [streamConnected, setStreamConnected] = useState(
+    () => treatInitialDataAsConnected && initialData != null,
+  );
   const parseErrorHandlerRef = useRef<typeof onParseError>(onParseError);
 
   useEffect(() => {
@@ -30,14 +32,18 @@ export function useEventSourceState<T>({
   }, [onParseError]);
 
   useEffect(() => {
-    if (!enabled || typeof window === 'undefined' || typeof EventSource === 'undefined') {
+    if (
+      !enabled ||
+      typeof window === "undefined" ||
+      typeof EventSource === "undefined"
+    ) {
       return;
     }
 
     const source = new EventSource(url, { withCredentials: true });
 
     source.onopen = () => setStreamConnected(true);
-    source.onmessage = event => {
+    source.onmessage = (event) => {
       try {
         setSseData(JSON.parse(event.data) as T);
       } catch (error) {

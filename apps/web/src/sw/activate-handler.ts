@@ -18,12 +18,11 @@ export function handleActivate(event: ExtendableEvent): void {
               return caches.delete(cacheName);
             }
             return Promise.resolve();
-          })
+          }),
         );
       }),
     ]).then(() => {
       console.log("Hously service worker activated");
-    })
+    }),
   );
 }
-

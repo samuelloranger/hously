@@ -1,6 +1,6 @@
-import { getJsonCache, setJsonCache } from '../../services/cache';
-import { prisma } from '../../db';
-import { normalizeTmdbConfig } from '../../utils/plugins/normalizers';
+import { getJsonCache, setJsonCache } from "../../services/cache";
+import { prisma } from "../../db";
+import { normalizeTmdbConfig } from "../../utils/plugins/normalizers";
 import type {
   TmdbCreator,
   TmdbExternalIds,
@@ -14,8 +14,14 @@ import type {
   TmdbProductionCountry,
   TmdbSeasonSummary,
   TmdbSpokenLanguage,
-} from '@hously/shared';
-import { toNumberOrNull, toRecord, toStringOrNull, type TmdbProvider, type TmdbWatchProvidersResult } from './mappers';
+} from "@hously/shared";
+import {
+  toNumberOrNull,
+  toRecord,
+  toStringOrNull,
+  type TmdbProvider,
+  type TmdbWatchProvidersResult,
+} from "./mappers";
 
 // ── Return types ────────────────────────────────────────────────────────────
 
@@ -31,18 +37,23 @@ export type RatingsResult = {
 };
 
 export type CreditsResult = {
-  cast: { id: number; name: string; character: string | null; profile_url: string | null }[];
+  cast: {
+    id: number;
+    name: string;
+    character: string | null;
+    profile_url: string | null;
+  }[];
   directors: string[];
 };
 
 export type DetailsResult = TmdbMediaDetailsResponse;
 
-const IMG_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
-const IMG_BACKDROP_STILL = 'https://image.tmdb.org/t/p/w780';
-const IMG_POSTER_STILL = 'https://image.tmdb.org/t/p/w342';
-const IMG_LOGO_STILL = 'https://image.tmdb.org/t/p/w185';
-const IMG_COMPANY = 'https://image.tmdb.org/t/p/w92';
-const IMG_PROFILE = 'https://image.tmdb.org/t/p/w185';
+const IMG_BACKDROP = "https://image.tmdb.org/t/p/w1280";
+const IMG_BACKDROP_STILL = "https://image.tmdb.org/t/p/w780";
+const IMG_POSTER_STILL = "https://image.tmdb.org/t/p/w342";
+const IMG_LOGO_STILL = "https://image.tmdb.org/t/p/w185";
+const IMG_COMPANY = "https://image.tmdb.org/t/p/w92";
+const IMG_PROFILE = "https://image.tmdb.org/t/p/w185";
 
 export function emptyMediaDetails(): TmdbMediaDetailsResponse {
   return {
@@ -81,7 +92,7 @@ export function emptyMediaDetails(): TmdbMediaDetailsResponse {
 }
 
 function parseYmd(value: unknown): string | null {
-  const s = typeof value === 'string' ? value.trim() : '';
+  const s = typeof value === "string" ? value.trim() : "";
   return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
 }
 
@@ -97,12 +108,21 @@ function parseExternalIds(raw: unknown): TmdbExternalIds | null {
   };
 }
 
-function parseImageStills(images: unknown, kind: 'backdrop' | 'poster' | 'logo'): TmdbImageStill[] {
+function parseImageStills(
+  images: unknown,
+  kind: "backdrop" | "poster" | "logo",
+): TmdbImageStill[] {
   const root = toRecord(images);
   if (!root) return [];
-  const key = kind === 'backdrop' ? 'backdrops' : kind === 'poster' ? 'posters' : 'logos';
+  const key =
+    kind === "backdrop" ? "backdrops" : kind === "poster" ? "posters" : "logos";
   const arr = Array.isArray(root[key]) ? (root[key] as unknown[]) : [];
-  const size = kind === 'backdrop' ? IMG_BACKDROP_STILL : kind === 'poster' ? IMG_POSTER_STILL : IMG_LOGO_STILL;
+  const size =
+    kind === "backdrop"
+      ? IMG_BACKDROP_STILL
+      : kind === "poster"
+        ? IMG_POSTER_STILL
+        : IMG_LOGO_STILL;
   const mapped: TmdbImageStill[] = [];
   for (const raw of arr) {
     const r = toRecord(raw);
@@ -113,7 +133,7 @@ function parseImageStills(images: unknown, kind: 'backdrop' | 'poster' | 'logo')
       url: `${size}${path}`,
       width: toNumberOrNull(r.width),
       height: toNumberOrNull(r.height),
-      vote_average: typeof r.vote_average === 'number' ? r.vote_average : null,
+      vote_average: typeof r.vote_average === "number" ? r.vote_average : null,
     });
   }
   mapped.sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0));
@@ -131,25 +151,34 @@ function parseNextEpisode(raw: unknown): TmdbNextEpisode | null {
     season_number: toNumberOrNull(row.season_number),
     runtime: toNumberOrNull(row.runtime),
   };
-  if (!ep.name && !ep.air_date && ep.episode_number == null && ep.season_number == null && ep.runtime == null) {
+  if (
+    !ep.name &&
+    !ep.air_date &&
+    ep.episode_number == null &&
+    ep.season_number == null &&
+    ep.runtime == null
+  ) {
     return null;
   }
   return ep;
 }
 
-function languageLabel(iso: string | null, spoken: TmdbSpokenLanguage[]): string | null {
+function languageLabel(
+  iso: string | null,
+  spoken: TmdbSpokenLanguage[],
+): string | null {
   if (!iso) return null;
-  const match = spoken.find(s => s.iso_639_1 === iso);
+  const match = spoken.find((s) => s.iso_639_1 === iso);
   if (match) return match.english_name || match.name;
   const map: Record<string, string> = {
-    en: 'English',
-    fr: 'French',
-    es: 'Spanish',
-    de: 'German',
-    it: 'Italian',
-    ja: 'Japanese',
-    ko: 'Korean',
-    zh: 'Chinese',
+    en: "English",
+    fr: "French",
+    es: "Spanish",
+    de: "German",
+    it: "Italian",
+    ja: "Japanese",
+    ko: "Korean",
+    zh: "Chinese",
   };
   return map[iso] ?? iso.toUpperCase();
 }
@@ -158,7 +187,7 @@ function languageLabel(iso: string | null, spoken: TmdbSpokenLanguage[]): string
 
 export async function loadTmdbConfig() {
   const plugin = await prisma.plugin.findFirst({
-    where: { type: 'tmdb' },
+    where: { type: "tmdb" },
     select: { enabled: true, config: true },
   });
   return plugin?.enabled ? normalizeTmdbConfig(plugin.config) : null;
@@ -169,17 +198,19 @@ export async function loadTmdbConfig() {
 function makeTmdbFetch(apiKey: string) {
   return async (
     path: string,
-    extraParams?: Record<string, string | undefined>
+    extraParams?: Record<string, string | undefined>,
   ): Promise<Record<string, unknown> | null> => {
     const url = new URL(`https://api.themoviedb.org/3/${path}`);
-    url.searchParams.set('api_key', apiKey);
-    url.searchParams.set('language', 'en-US');
+    url.searchParams.set("api_key", apiKey);
+    url.searchParams.set("language", "en-US");
     if (extraParams) {
       for (const [k, v] of Object.entries(extraParams)) {
-        if (v != null && v !== '') url.searchParams.set(k, v);
+        if (v != null && v !== "") url.searchParams.set(k, v);
       }
     }
-    const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+    const res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+    });
     if (!res.ok) return null;
     return res.json() as Promise<Record<string, unknown>>;
   };
@@ -189,7 +220,7 @@ function makeTmdbFetch(apiKey: string) {
 
 export async function fetchTrailer(
   apiKey: string,
-  mediaType: 'movie' | 'tv',
+  mediaType: "movie" | "tv",
   tmdbId: number,
 ): Promise<TrailerResult> {
   const cacheKey = `medias:trailer:${mediaType}:${tmdbId}`;
@@ -199,13 +230,15 @@ export async function fetchTrailer(
   const tmdbFetch = makeTmdbFetch(apiKey);
   try {
     const data = await tmdbFetch(`${mediaType}/${tmdbId}/videos`);
-    const results = Array.isArray(data?.results) ? (data!.results as Record<string, unknown>[]) : [];
-    const youtube = results.filter(v => v.site === 'YouTube');
+    const results = Array.isArray(data?.results)
+      ? (data!.results as Record<string, unknown>[])
+      : [];
+    const youtube = results.filter((v) => v.site === "YouTube");
     const pick =
-      youtube.find(v => v.official && v.type === 'Trailer') ??
-      youtube.find(v => v.official && v.type === 'Teaser') ??
-      youtube.find(v => v.type === 'Trailer') ??
-      youtube.find(v => v.type === 'Teaser') ??
+      youtube.find((v) => v.official && v.type === "Trailer") ??
+      youtube.find((v) => v.official && v.type === "Teaser") ??
+      youtube.find((v) => v.type === "Trailer") ??
+      youtube.find((v) => v.type === "Teaser") ??
       youtube[0] ??
       null;
     const result: TrailerResult = {
@@ -221,39 +254,56 @@ export async function fetchTrailer(
 
 export async function fetchRatings(
   apiKey: string,
-  mediaType: 'movie' | 'tv',
+  mediaType: "movie" | "tv",
   tmdbId: number,
 ): Promise<RatingsResult> {
   const cacheKey = `medias:ratings:${mediaType}:${tmdbId}`;
   const cached = await getJsonCache<RatingsResult>(cacheKey);
   if (cached) return cached;
 
-  const empty: RatingsResult = { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+  const empty: RatingsResult = {
+    imdb_rating: null,
+    rotten_tomatoes: null,
+    metacritic: null,
+  };
   const omdbKey = Bun.env.OMDB_API_KEY;
   if (!omdbKey) return empty;
 
   const tmdbFetch = makeTmdbFetch(apiKey);
   try {
     const extData = await tmdbFetch(`${mediaType}/${tmdbId}/external_ids`);
-    const imdbId = typeof extData?.imdb_id === 'string' ? extData.imdb_id : null;
+    const imdbId =
+      typeof extData?.imdb_id === "string" ? extData.imdb_id : null;
     if (!imdbId) return empty;
 
-    const omdbUrl = new URL('https://www.omdbapi.com/');
-    omdbUrl.searchParams.set('i', imdbId);
-    omdbUrl.searchParams.set('apikey', omdbKey);
-    const res = await fetch(omdbUrl.toString(), { headers: { Accept: 'application/json' } });
+    const omdbUrl = new URL("https://www.omdbapi.com/");
+    omdbUrl.searchParams.set("i", imdbId);
+    omdbUrl.searchParams.set("apikey", omdbKey);
+    const res = await fetch(omdbUrl.toString(), {
+      headers: { Accept: "application/json" },
+    });
     if (!res.ok) return empty;
 
     const data = (await res.json()) as Record<string, unknown>;
-    if (data.Response === 'False') return empty;
+    if (data.Response === "False") return empty;
 
-    const ratings = Array.isArray(data.Ratings) ? (data.Ratings as { Source: string; Value: string }[]) : [];
-    const rtRaw = ratings.find(r => r.Source === 'Rotten Tomatoes')?.Value ?? null;
-    const mcRaw = ratings.find(r => r.Source === 'Metacritic')?.Value?.replace('/100', '') ?? null;
+    const ratings = Array.isArray(data.Ratings)
+      ? (data.Ratings as { Source: string; Value: string }[])
+      : [];
+    const rtRaw =
+      ratings.find((r) => r.Source === "Rotten Tomatoes")?.Value ?? null;
+    const mcRaw =
+      ratings
+        .find((r) => r.Source === "Metacritic")
+        ?.Value?.replace("/100", "") ?? null;
     const result: RatingsResult = {
-      imdb_rating: typeof data.imdbRating === 'string' && data.imdbRating !== 'N/A' ? data.imdbRating : null,
-      rotten_tomatoes: rtRaw && rtRaw !== 'N/A' && rtRaw !== '0%' ? rtRaw : null,
-      metacritic: mcRaw && mcRaw !== 'N/A' && mcRaw !== '0' ? mcRaw : null,
+      imdb_rating:
+        typeof data.imdbRating === "string" && data.imdbRating !== "N/A"
+          ? data.imdbRating
+          : null,
+      rotten_tomatoes:
+        rtRaw && rtRaw !== "N/A" && rtRaw !== "0%" ? rtRaw : null,
+      metacritic: mcRaw && mcRaw !== "N/A" && mcRaw !== "0" ? mcRaw : null,
     };
     await setJsonCache(cacheKey, result, 24 * 60 * 60);
     return result;
@@ -264,7 +314,7 @@ export async function fetchRatings(
 
 export async function fetchCredits(
   apiKey: string,
-  mediaType: 'movie' | 'tv',
+  mediaType: "movie" | "tv",
   tmdbId: number,
 ): Promise<CreditsResult> {
   const cacheKey = `medias:credits:${mediaType}:${tmdbId}`;
@@ -274,21 +324,25 @@ export async function fetchCredits(
   const tmdbFetch = makeTmdbFetch(apiKey);
   try {
     const data = await tmdbFetch(`${mediaType}/${tmdbId}/credits`);
-    const castArr = Array.isArray(data?.cast) ? (data!.cast as Record<string, unknown>[]) : [];
-    const crewArr = Array.isArray(data?.crew) ? (data!.crew as Record<string, unknown>[]) : [];
+    const castArr = Array.isArray(data?.cast)
+      ? (data!.cast as Record<string, unknown>[])
+      : [];
+    const crewArr = Array.isArray(data?.crew)
+      ? (data!.crew as Record<string, unknown>[])
+      : [];
     const result: CreditsResult = {
-      cast: castArr.slice(0, 10).map(m => ({
-        id: typeof m.id === 'number' ? m.id : 0,
-        name: typeof m.name === 'string' ? m.name : '',
-        character: typeof m.character === 'string' ? m.character : null,
+      cast: castArr.slice(0, 10).map((m) => ({
+        id: typeof m.id === "number" ? m.id : 0,
+        name: typeof m.name === "string" ? m.name : "",
+        character: typeof m.character === "string" ? m.character : null,
         profile_url:
-          typeof m.profile_path === 'string' && m.profile_path
+          typeof m.profile_path === "string" && m.profile_path
             ? `https://image.tmdb.org/t/p/w185${m.profile_path}`
             : null,
       })),
       directors: crewArr
-        .filter(m => m.job === 'Director')
-        .map(m => (typeof m.name === 'string' ? m.name : ''))
+        .filter((m) => m.job === "Director")
+        .map((m) => (typeof m.name === "string" ? m.name : ""))
         .filter(Boolean),
     };
     await setJsonCache(cacheKey, result, 24 * 60 * 60);
@@ -300,7 +354,7 @@ export async function fetchCredits(
 
 export async function fetchMediaDetails(
   apiKey: string,
-  mediaType: 'movie' | 'tv',
+  mediaType: "movie" | "tv",
   tmdbId: number,
 ): Promise<DetailsResult> {
   const cacheKey = `medias:tmdb-details-v4:${mediaType}:${tmdbId}`;
@@ -312,18 +366,22 @@ export async function fetchMediaDetails(
 
   try {
     const data = await tmdbFetch(`${mediaType}/${tmdbId}`, {
-      append_to_response: 'external_ids,images',
+      append_to_response: "external_ids,images",
     });
     if (!data) return empty;
 
-    const overview = typeof data.overview === 'string' ? data.overview || null : null;
-    const vote_average = typeof data.vote_average === 'number' ? data.vote_average : null;
+    const overview =
+      typeof data.overview === "string" ? data.overview || null : null;
+    const vote_average =
+      typeof data.vote_average === "number" ? data.vote_average : null;
     const tagline =
-      typeof data.tagline === 'string' && data.tagline.trim() ? data.tagline.trim() : null;
+      typeof data.tagline === "string" && data.tagline.trim()
+        ? data.tagline.trim()
+        : null;
 
     const genres: TmdbGenre[] = Array.isArray(data.genres)
       ? (data.genres as unknown[])
-          .map(g => {
+          .map((g) => {
             const gr = toRecord(g);
             if (!gr) return null;
             const id = toNumberOrNull(gr.id);
@@ -337,9 +395,11 @@ export async function fetchMediaDetails(
     const original_title = toStringOrNull(data.original_title);
     const original_language = toStringOrNull(data.original_language);
 
-    const production_countries: TmdbProductionCountry[] = Array.isArray(data.production_countries)
+    const production_countries: TmdbProductionCountry[] = Array.isArray(
+      data.production_countries,
+    )
       ? (data.production_countries as unknown[])
-          .map(c => {
+          .map((c) => {
             const r = toRecord(c);
             if (!r) return null;
             const iso = toStringOrNull(r.iso_3166_1);
@@ -350,9 +410,11 @@ export async function fetchMediaDetails(
           .filter((x): x is TmdbProductionCountry => x !== null)
       : [];
 
-    const production_companies: TmdbProductionCompany[] = Array.isArray(data.production_companies)
+    const production_companies: TmdbProductionCompany[] = Array.isArray(
+      data.production_companies,
+    )
       ? (data.production_companies as unknown[])
-          .map(c => {
+          .map((c) => {
             const r = toRecord(c);
             if (!r) return null;
             const id = toNumberOrNull(r.id);
@@ -369,9 +431,11 @@ export async function fetchMediaDetails(
           .filter((x): x is TmdbProductionCompany => x !== null)
       : [];
 
-    const spoken_languages: TmdbSpokenLanguage[] = Array.isArray(data.spoken_languages)
+    const spoken_languages: TmdbSpokenLanguage[] = Array.isArray(
+      data.spoken_languages,
+    )
       ? (data.spoken_languages as unknown[])
-          .map(c => {
+          .map((c) => {
             const r = toRecord(c);
             if (!r) return null;
             const en = toStringOrNull(r.english_name);
@@ -387,10 +451,17 @@ export async function fetchMediaDetails(
           .filter((x): x is TmdbSpokenLanguage => x !== null)
       : [];
 
-    const original_language_label = languageLabel(original_language, spoken_languages);
+    const original_language_label = languageLabel(
+      original_language,
+      spoken_languages,
+    );
 
-    const budget = typeof data.budget === 'number' && data.budget > 0 ? data.budget : null;
-    const revenue = typeof data.revenue === 'number' && data.revenue > 0 ? data.revenue : null;
+    const budget =
+      typeof data.budget === "number" && data.budget > 0 ? data.budget : null;
+    const revenue =
+      typeof data.revenue === "number" && data.revenue > 0
+        ? data.revenue
+        : null;
 
     const homepage = toStringOrNull(data.homepage);
 
@@ -409,20 +480,25 @@ export async function fetchMediaDetails(
       mergedExternal.instagram_id ||
       mergedExternal.twitter_id ||
       mergedExternal.wikidata_id;
-    const external_ids: TmdbExternalIds | null = hasExternal ? mergedExternal : null;
+    const external_ids: TmdbExternalIds | null = hasExternal
+      ? mergedExternal
+      : null;
 
     const imagesRaw = toRecord(data.images);
     const media_stills: TmdbMediaStills = {
-      backdrops: parseImageStills(imagesRaw, 'backdrop'),
-      logos: parseImageStills(imagesRaw, 'logo'),
-      posters: parseImageStills(imagesRaw, 'poster'),
+      backdrops: parseImageStills(imagesRaw, "backdrop"),
+      logos: parseImageStills(imagesRaw, "logo"),
+      posters: parseImageStills(imagesRaw, "poster"),
     };
 
     const backdropPath = toStringOrNull(data.backdrop_path);
-    const primary_backdrop_url = backdropPath ? `${IMG_BACKDROP}${backdropPath}` : null;
+    const primary_backdrop_url = backdropPath
+      ? `${IMG_BACKDROP}${backdropPath}`
+      : null;
 
     let runtime: number | null = null;
-    let belongs_to_collection: TmdbMediaDetailsResponse['belongs_to_collection'] = null;
+    let belongs_to_collection: TmdbMediaDetailsResponse["belongs_to_collection"] =
+      null;
     let number_of_seasons: number | null = null;
     let number_of_episodes: number | null = null;
 
@@ -430,7 +506,9 @@ export async function fetchMediaDetails(
     let first_air_date: string | null = null;
     let last_air_date: string | null = null;
     let status: string | null =
-      typeof data.status === 'string' && data.status.trim() ? data.status.trim() : null;
+      typeof data.status === "string" && data.status.trim()
+        ? data.status.trim()
+        : null;
 
     let tv_type: string | null = null;
     const networks: TmdbNetwork[] = [];
@@ -440,33 +518,48 @@ export async function fetchMediaDetails(
     let last_episode_to_air: TmdbNextEpisode | null = null;
     let seasons: TmdbSeasonSummary[] = [];
 
-    if (mediaType === 'movie') {
-      const rd = typeof data.release_date === 'string' ? data.release_date.trim() : '';
+    if (mediaType === "movie") {
+      const rd =
+        typeof data.release_date === "string" ? data.release_date.trim() : "";
       release_date = /^\d{4}-\d{2}-\d{2}$/.test(rd) ? rd : null;
-      runtime = typeof data.runtime === 'number' ? data.runtime : null;
+      runtime = typeof data.runtime === "number" ? data.runtime : null;
       const col = data.belongs_to_collection as Record<string, unknown> | null;
-      if (col && typeof col === 'object') {
+      if (col && typeof col === "object") {
         belongs_to_collection = {
-          id: typeof col.id === 'number' ? col.id : 0,
-          name: typeof col.name === 'string' ? col.name : '',
+          id: typeof col.id === "number" ? col.id : 0,
+          name: typeof col.name === "string" ? col.name : "",
           poster_url:
-            typeof col.poster_path === 'string' && col.poster_path
+            typeof col.poster_path === "string" && col.poster_path
               ? `https://image.tmdb.org/t/p/w185${col.poster_path}`
               : null,
         };
       }
     } else {
       tv_type = toStringOrNull(data.type);
-      const fa = typeof data.first_air_date === 'string' ? data.first_air_date.trim() : '';
+      const fa =
+        typeof data.first_air_date === "string"
+          ? data.first_air_date.trim()
+          : "";
       first_air_date = /^\d{4}-\d{2}-\d{2}$/.test(fa) ? fa : null;
-      const la = typeof data.last_air_date === 'string' ? data.last_air_date.trim() : '';
+      const la =
+        typeof data.last_air_date === "string" ? data.last_air_date.trim() : "";
       last_air_date = /^\d{4}-\d{2}-\d{2}$/.test(la) ? la : null;
 
-      const episodeRunTime = Array.isArray(data.episode_run_time) ? (data.episode_run_time as number[]) : [];
-      episode_run_times = episodeRunTime.filter(n => typeof n === 'number' && n > 0);
+      const episodeRunTime = Array.isArray(data.episode_run_time)
+        ? (data.episode_run_time as number[])
+        : [];
+      episode_run_times = episodeRunTime.filter(
+        (n) => typeof n === "number" && n > 0,
+      );
       runtime = episode_run_times.length > 0 ? episode_run_times[0] : null;
-      number_of_seasons = typeof data.number_of_seasons === 'number' ? data.number_of_seasons : null;
-      number_of_episodes = typeof data.number_of_episodes === 'number' ? data.number_of_episodes : null;
+      number_of_seasons =
+        typeof data.number_of_seasons === "number"
+          ? data.number_of_seasons
+          : null;
+      number_of_episodes =
+        typeof data.number_of_episodes === "number"
+          ? data.number_of_episodes
+          : null;
 
       if (Array.isArray(data.networks)) {
         for (const n of data.networks as unknown[]) {
@@ -507,17 +600,18 @@ export async function fetchMediaDetails(
         for (const raw of data.seasons as unknown[]) {
           const r = toRecord(raw);
           if (!r) continue;
-          const season_number = typeof r.season_number === 'number' ? r.season_number : null;
+          const season_number =
+            typeof r.season_number === "number" ? r.season_number : null;
           if (season_number === null) continue;
           const rawName = toStringOrNull(r.name);
           const name =
             rawName && rawName.trim()
               ? rawName.trim()
               : season_number === 0
-                ? 'Specials'
+                ? "Specials"
                 : `Season ${season_number}`;
           const ep = r.episode_count;
-          const episode_count = typeof ep === 'number' && ep >= 0 ? ep : null;
+          const episode_count = typeof ep === "number" && ep >= 0 ? ep : null;
           seasons.push({ season_number, name, episode_count });
         }
         seasons.sort((a, b) => a.season_number - b.season_number);
@@ -531,11 +625,11 @@ export async function fetchMediaDetails(
       vote_average,
       number_of_seasons,
       number_of_episodes,
-      release_date: mediaType === 'movie' ? release_date : null,
+      release_date: mediaType === "movie" ? release_date : null,
       tagline,
       genres,
-      first_air_date: mediaType === 'tv' ? first_air_date : null,
-      last_air_date: mediaType === 'tv' ? last_air_date : null,
+      first_air_date: mediaType === "tv" ? first_air_date : null,
+      last_air_date: mediaType === "tv" ? last_air_date : null,
       status,
       original_title,
       original_language,
@@ -543,19 +637,19 @@ export async function fetchMediaDetails(
       production_countries,
       production_companies,
       spoken_languages,
-      budget: mediaType === 'movie' ? budget : null,
-      revenue: mediaType === 'movie' ? revenue : null,
+      budget: mediaType === "movie" ? budget : null,
+      revenue: mediaType === "movie" ? revenue : null,
       homepage,
       external_ids,
       primary_backdrop_url,
       media_stills,
-      tv_type: mediaType === 'tv' ? tv_type : null,
-      networks: mediaType === 'tv' ? networks : [],
-      created_by: mediaType === 'tv' ? created_by : [],
-      episode_run_times: mediaType === 'tv' ? episode_run_times : [],
-      next_episode_to_air: mediaType === 'tv' ? next_episode_to_air : null,
-      last_episode_to_air: mediaType === 'tv' ? last_episode_to_air : null,
-      seasons: mediaType === 'tv' ? seasons : [],
+      tv_type: mediaType === "tv" ? tv_type : null,
+      networks: mediaType === "tv" ? networks : [],
+      created_by: mediaType === "tv" ? created_by : [],
+      episode_run_times: mediaType === "tv" ? episode_run_times : [],
+      next_episode_to_air: mediaType === "tv" ? next_episode_to_air : null,
+      last_episode_to_air: mediaType === "tv" ? last_episode_to_air : null,
+      seasons: mediaType === "tv" ? seasons : [],
     };
     await setJsonCache(cacheKey, result, 24 * 60 * 60);
     return result;
@@ -592,37 +686,56 @@ export async function fetchCollectionDetails(
   if (cached) return cached;
 
   try {
-    const url = new URL(`https://api.themoviedb.org/3/collection/${collectionId}`);
-    url.searchParams.set('api_key', apiKey);
-    url.searchParams.set('language', 'en-US');
-    const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+    const url = new URL(
+      `https://api.themoviedb.org/3/collection/${collectionId}`,
+    );
+    url.searchParams.set("api_key", apiKey);
+    url.searchParams.set("language", "en-US");
+    const res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+    });
     if (!res.ok) return null;
 
     const data = (await res.json()) as Record<string, unknown>;
-    const POSTER_BASE = 'https://image.tmdb.org/t/p/w342';
-    const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w780';
+    const POSTER_BASE = "https://image.tmdb.org/t/p/w342";
+    const BACKDROP_BASE = "https://image.tmdb.org/t/p/w780";
 
-    const parts = Array.isArray(data.parts) ? (data.parts as Record<string, unknown>[]) : [];
+    const parts = Array.isArray(data.parts)
+      ? (data.parts as Record<string, unknown>[])
+      : [];
     const result: TmdbCollectionData = {
-      id: typeof data.id === 'number' ? data.id : collectionId,
-      name: typeof data.name === 'string' ? data.name : '',
-      overview: typeof data.overview === 'string' ? data.overview || null : null,
-      poster_url: typeof data.poster_path === 'string' && data.poster_path ? `${POSTER_BASE}${data.poster_path}` : null,
-      backdrop_url: typeof data.backdrop_path === 'string' && data.backdrop_path ? `${BACKDROP_BASE}${data.backdrop_path}` : null,
+      id: typeof data.id === "number" ? data.id : collectionId,
+      name: typeof data.name === "string" ? data.name : "",
+      overview:
+        typeof data.overview === "string" ? data.overview || null : null,
+      poster_url:
+        typeof data.poster_path === "string" && data.poster_path
+          ? `${POSTER_BASE}${data.poster_path}`
+          : null,
+      backdrop_url:
+        typeof data.backdrop_path === "string" && data.backdrop_path
+          ? `${BACKDROP_BASE}${data.backdrop_path}`
+          : null,
       parts: parts
-        .map(p => {
-          const tmdb_id = typeof p.id === 'number' ? p.id : null;
+        .map((p) => {
+          const tmdb_id = typeof p.id === "number" ? p.id : null;
           if (!tmdb_id) return null;
-          const dateStr = typeof p.release_date === 'string' ? p.release_date : '';
+          const dateStr =
+            typeof p.release_date === "string" ? p.release_date : "";
           const year = dateStr ? parseInt(dateStr.slice(0, 4), 10) : null;
           return {
             tmdb_id,
-            title: typeof p.title === 'string' ? p.title : '',
+            title: typeof p.title === "string" ? p.title : "",
             release_year: year && !isNaN(year) ? year : null,
             release_date: dateStr || null,
-            poster_url: typeof p.poster_path === 'string' && p.poster_path ? `${POSTER_BASE}${p.poster_path}` : null,
-            overview: typeof p.overview === 'string' ? p.overview || null : null,
-            vote_average: typeof p.vote_average === 'number' ? p.vote_average : null,
+            poster_url:
+              typeof p.poster_path === "string" && p.poster_path
+                ? `${POSTER_BASE}${p.poster_path}`
+                : null,
+            overview:
+              typeof p.overview === "string" ? p.overview || null : null,
+            vote_average:
+              typeof p.vote_average === "number" ? p.vote_average : null,
           } satisfies CollectionPart;
         })
         .filter((p): p is CollectionPart => p !== null)
@@ -638,7 +751,7 @@ export async function fetchCollectionDetails(
 
 export async function fetchWatchProviders(
   apiKey: string,
-  mediaType: 'movie' | 'tv',
+  mediaType: "movie" | "tv",
   tmdbId: number,
   region: string,
 ): Promise<TmdbWatchProvidersResult> {
@@ -646,13 +759,24 @@ export async function fetchWatchProviders(
   const cached = await getJsonCache<TmdbWatchProvidersResult>(cacheKey);
   if (cached) return cached;
 
-  const LOGO_BASE = 'https://image.tmdb.org/t/p/w92';
-  const empty: TmdbWatchProvidersResult = { region, streaming: [], free: [], rent: [], buy: [], link: null };
+  const LOGO_BASE = "https://image.tmdb.org/t/p/w92";
+  const empty: TmdbWatchProvidersResult = {
+    region,
+    streaming: [],
+    free: [],
+    rent: [],
+    buy: [],
+    link: null,
+  };
 
   try {
-    const url = new URL(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/watch/providers`);
-    url.searchParams.set('api_key', apiKey);
-    const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+    const url = new URL(
+      `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/watch/providers`,
+    );
+    url.searchParams.set("api_key", apiKey);
+    const res = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+    });
     if (!res.ok) return empty;
 
     const data = (await res.json()) as Record<string, unknown>;
@@ -662,10 +786,13 @@ export async function fetchWatchProviders(
     const mapProviders = (raw: unknown[]): TmdbProvider[] => {
       const seen = new Set<number>();
       return raw
-        .map(item => {
+        .map((item) => {
           const p = toRecord(item);
           if (!p) return null;
-          const id = typeof p.provider_id === 'number' ? Math.trunc(p.provider_id) : null;
+          const id =
+            typeof p.provider_id === "number"
+              ? Math.trunc(p.provider_id)
+              : null;
           const name = toStringOrNull(p.provider_name);
           const logoPath = toStringOrNull(p.logo_path);
           if (!id || !name || !logoPath || seen.has(id)) return null;
@@ -677,10 +804,32 @@ export async function fetchWatchProviders(
 
     const result: TmdbWatchProvidersResult = {
       region,
-      streaming: regionData ? mapProviders(Array.isArray(regionData.flatrate) ? (regionData.flatrate as unknown[]) : []) : [],
-      free: regionData ? mapProviders(Array.isArray(regionData.free) ? (regionData.free as unknown[]) : []) : [],
-      rent: regionData ? mapProviders(Array.isArray(regionData.rent) ? (regionData.rent as unknown[]) : []) : [],
-      buy: regionData ? mapProviders(Array.isArray(regionData.buy) ? (regionData.buy as unknown[]) : []) : [],
+      streaming: regionData
+        ? mapProviders(
+            Array.isArray(regionData.flatrate)
+              ? (regionData.flatrate as unknown[])
+              : [],
+          )
+        : [],
+      free: regionData
+        ? mapProviders(
+            Array.isArray(regionData.free)
+              ? (regionData.free as unknown[])
+              : [],
+          )
+        : [],
+      rent: regionData
+        ? mapProviders(
+            Array.isArray(regionData.rent)
+              ? (regionData.rent as unknown[])
+              : [],
+          )
+        : [],
+      buy: regionData
+        ? mapProviders(
+            Array.isArray(regionData.buy) ? (regionData.buy as unknown[]) : [],
+          )
+        : [],
       link: regionData ? toStringOrNull(regionData.link) : null,
     };
     await setJsonCache(cacheKey, result, 6 * 60 * 60);

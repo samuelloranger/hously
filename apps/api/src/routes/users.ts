@@ -1,8 +1,8 @@
-import { Elysia, t } from 'elysia';
-import { auth } from '../auth';
-import { prisma } from '../db';
-import { hashPassword, verifyPassword } from '../utils/password';
-import { validatePassword } from '../utils/validation';
+import { Elysia, t } from "elysia";
+import { auth } from "../auth";
+import { prisma } from "../db";
+import { hashPassword, verifyPassword } from "../utils/password";
+import { validatePassword } from "../utils/validation";
 import {
   saveImageAndCreateThumbnail,
   deleteImageFiles,
@@ -10,32 +10,37 @@ import {
   isAllowedFile,
   getImage,
   getContentType,
-} from '../services/imageService';
-import { badRequest, notFound, serverError, unauthorized } from '../utils/errors';
-import { mapUser } from '../utils/mappers';
-import { validateImageMimeAndSize } from '@hously/shared';
+} from "../services/imageService";
+import {
+  badRequest,
+  notFound,
+  serverError,
+  unauthorized,
+} from "../utils/errors";
+import { mapUser } from "../utils/mappers";
+import { validateImageMimeAndSize } from "@hously/shared";
 
-export const usersRoutes = new Elysia({ prefix: '/api/users' })
+export const usersRoutes = new Elysia({ prefix: "/api/users" })
   .use(auth)
   // GET /api/users - List all users (for assignee pickers, etc.)
-  .get('/', async ({ user, set }) => {
+  .get("/", async ({ user, set }) => {
     if (!user) {
-      return unauthorized(set, 'Unauthorized');
+      return unauthorized(set, "Unauthorized");
     }
     try {
       const users = await prisma.user.findMany({
-        orderBy: [{ firstName: 'asc' }, { email: 'asc' }],
+        orderBy: [{ firstName: "asc" }, { email: "asc" }],
       });
       return { users: users.map(mapUser) };
     } catch (error) {
-      console.error('Error listing users:', error);
-      return serverError(set, 'Failed to list users');
+      console.error("Error listing users:", error);
+      return serverError(set, "Failed to list users");
     }
   })
   // GET /api/users/me - Get current user profile
-  .get('/me', async ({ user, set }) => {
+  .get("/me", async ({ user, set }) => {
     if (!user) {
-      return unauthorized(set, 'Unauthorized');
+      return unauthorized(set, "Unauthorized");
     }
 
     // Fetch fresh user data from database (including locale)
@@ -44,29 +49,33 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
     });
 
     if (!dbUser) {
-      return unauthorized(set, 'User not found');
+      return unauthorized(set, "User not found");
     }
 
     return { user: mapUser(dbUser) };
   })
   // PUT /api/users/me - Update user profile
   .put(
-    '/me',
+    "/me",
     async ({ user, body, set }) => {
       if (!user) {
-        return unauthorized(set, 'Unauthorized');
+        return unauthorized(set, "Unauthorized");
       }
 
       const { first_name, last_name, locale } = body;
 
       // Check if at least one field is provided
-      if (first_name === undefined && last_name === undefined && locale === undefined) {
-        return badRequest(set, 'At least one field must be provided');
+      if (
+        first_name === undefined &&
+        last_name === undefined &&
+        locale === undefined
+      ) {
+        return badRequest(set, "At least one field must be provided");
       }
 
       // Validate locale if provided
       if (locale && locale.length > 10) {
-        return badRequest(set, 'Locale must be 10 characters or less');
+        return badRequest(set, "Locale must be 10 characters or less");
       }
 
       try {
@@ -96,8 +105,8 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
 
         return { user: mapUser(updatedUser) };
       } catch (error) {
-        console.error('Error updating user profile:', error);
-        return serverError(set, 'Failed to update profile');
+        console.error("Error updating user profile:", error);
+        return serverError(set, "Failed to update profile");
       }
     },
     {
@@ -106,14 +115,14 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         last_name: t.Optional(t.Union([t.String(), t.Null()])),
         locale: t.Optional(t.Union([t.String(), t.Null()])),
       }),
-    }
+    },
   )
   // POST /api/users/me/password - Change password
   .post(
-    '/me/password',
+    "/me/password",
     async ({ user, body, set, jwt, cookie: { auth } }) => {
       if (!user) {
-        return unauthorized(set, 'Unauthorized');
+        return unauthorized(set, "Unauthorized");
       }
 
       const { current_password, new_password } = body;
@@ -121,7 +130,7 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
       // Validate new password
       const [isValid, passwordError] = validatePassword(new_password);
       if (!isValid) {
-        return badRequest(set, passwordError ?? 'Invalid password');
+        return badRequest(set, passwordError ?? "Invalid password");
       }
 
       try {
@@ -132,13 +141,16 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         });
 
         if (!dbUser) {
-          return unauthorized(set, 'User not found');
+          return unauthorized(set, "User not found");
         }
 
         // Verify current password
-        const isCurrentValid = await verifyPassword(current_password, dbUser.passwordHash);
+        const isCurrentValid = await verifyPassword(
+          current_password,
+          dbUser.passwordHash,
+        );
         if (!isCurrentValid) {
-          return badRequest(set, 'Current password is incorrect');
+          return badRequest(set, "Current password is incorrect");
         }
 
         // Hash new password and update
@@ -166,15 +178,15 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
           value: accessToken,
           httpOnly: true,
           maxAge: 7 * 86400,
-          path: '/',
-          sameSite: 'lax',
-          secure: process.env.NODE_ENV === 'production',
+          path: "/",
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
         });
 
-        return { message: 'Password updated successfully', token: accessToken };
+        return { message: "Password updated successfully", token: accessToken };
       } catch (error) {
-        console.error('Error changing password:', error);
-        return serverError(set, 'Failed to change password');
+        console.error("Error changing password:", error);
+        return serverError(set, "Failed to change password");
       }
     },
     {
@@ -182,68 +194,80 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         current_password: t.String(),
         new_password: t.String(),
       }),
-    }
+    },
   )
   // GET /api/users/avatar/:filename - Serve avatar image
-  .get('/avatar/:filename', async ({ params, set }) => {
+  .get("/avatar/:filename", async ({ params, set }) => {
     const { filename } = params;
 
     if (!filename || !isAllowedFile(filename)) {
-      return badRequest(set, 'Invalid filename');
+      return badRequest(set, "Invalid filename");
     }
 
     try {
       const imageBuffer = await getImage(filename);
 
       if (!imageBuffer) {
-        return notFound(set, 'Image not found');
+        return notFound(set, "Image not found");
       }
 
       // Set content type based on filename extension
-      set.headers['Content-Type'] = getContentType(filename);
-      set.headers['Cache-Control'] = 'public, max-age=31536000'; // Cache for 1 year
+      set.headers["Content-Type"] = getContentType(filename);
+      set.headers["Cache-Control"] = "public, max-age=31536000"; // Cache for 1 year
 
       return imageBuffer;
     } catch (error) {
-      console.error('Error serving avatar:', error);
-      return serverError(set, 'Failed to serve avatar');
+      console.error("Error serving avatar:", error);
+      return serverError(set, "Failed to serve avatar");
     }
   })
   // POST /api/users/me/avatar - Upload avatar
   .post(
-    '/me/avatar',
+    "/me/avatar",
     async ({ user, body, set }) => {
       const logPrefix = `[avatar-upload][users][${new Date().toISOString()}]`;
       console.log(`${logPrefix} request received`);
 
       if (!user) {
-        console.warn(`${logPrefix} unauthorized request (no user in auth context)`);
-        return unauthorized(set, 'Unauthorized');
+        console.warn(
+          `${logPrefix} unauthorized request (no user in auth context)`,
+        );
+        return unauthorized(set, "Unauthorized");
       }
 
       const { avatar } = body;
       console.log(`${logPrefix} authenticated user id=${user.id}`);
-      console.log(`${logPrefix} body keys=${Object.keys(body || {}).join(',') || 'none'}`);
+      console.log(
+        `${logPrefix} body keys=${Object.keys(body || {}).join(",") || "none"}`,
+      );
 
       // Support both Web File (instanceof File) and React Native file objects ({uri, name, type})
       const isWebFile = avatar instanceof File;
       const isReactNativeFile =
-        avatar && typeof avatar === 'object' && 'uri' in avatar && 'name' in avatar && 'type' in avatar;
+        avatar &&
+        typeof avatar === "object" &&
+        "uri" in avatar &&
+        "name" in avatar &&
+        "type" in avatar;
 
       if (!avatar || (!isWebFile && !isReactNativeFile)) {
         console.warn(
-          `${logPrefix} invalid payload: avatar missing or not File (type=${typeof avatar}, isWebFile=${isWebFile}, isReactNativeFile=${isReactNativeFile})`
+          `${logPrefix} invalid payload: avatar missing or not File (type=${typeof avatar}, isWebFile=${isWebFile}, isReactNativeFile=${isReactNativeFile})`,
         );
-        return badRequest(set, 'Avatar file is required');
+        return badRequest(set, "Avatar file is required");
       }
 
       console.log(
-        `${logPrefix} avatar file received name="${avatar.name}" type="${avatar.type}" size=${avatar.size || 'unknown'} isWebFile=${isWebFile} isReactNativeFile=${isReactNativeFile}`
+        `${logPrefix} avatar file received name="${avatar.name}" type="${avatar.type}" size=${avatar.size || "unknown"} isWebFile=${isWebFile} isReactNativeFile=${isReactNativeFile}`,
       );
 
-      const avatarValidationError = validateImageMimeAndSize(avatar, { maxSizeBytes: 5 * 1024 * 1024 });
+      const avatarValidationError = validateImageMimeAndSize(avatar, {
+        maxSizeBytes: 5 * 1024 * 1024,
+      });
       if (avatarValidationError) {
-        console.warn(`${logPrefix} avatar validation failed: ${avatarValidationError.error}`);
+        console.warn(
+          `${logPrefix} avatar validation failed: ${avatarValidationError.error}`,
+        );
         return badRequest(set, avatarValidationError.error);
       }
 
@@ -253,14 +277,20 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         const dbUser = await prisma.user.findFirst({
           where: { id: user.id },
         });
-        console.log(`${logPrefix} current db avatarUrl="${dbUser?.avatarUrl || 'none'}"`);
+        console.log(
+          `${logPrefix} current db avatarUrl="${dbUser?.avatarUrl || "none"}"`,
+        );
 
         if (dbUser?.avatarUrl) {
           // Extract filename from URL (assuming S3 format)
-          const oldFilename = dbUser.avatarUrl.split('/').pop();
-          console.log(`${logPrefix} parsed old filename="${oldFilename || 'none'}" from avatarUrl`);
+          const oldFilename = dbUser.avatarUrl.split("/").pop();
+          console.log(
+            `${logPrefix} parsed old filename="${oldFilename || "none"}" from avatarUrl`,
+          );
           if (oldFilename) {
-            console.log(`${logPrefix} deleting old avatar assets for key="${oldFilename}"`);
+            console.log(
+              `${logPrefix} deleting old avatar assets for key="${oldFilename}"`,
+            );
             await deleteImageFiles(oldFilename);
             console.log(`${logPrefix} old avatar assets deleted`);
           }
@@ -269,7 +299,9 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
         // Save to S3 and create thumbnail
         console.log(`${logPrefix} uploading new avatar to image service`);
         const filename = await saveImageAndCreateThumbnail(avatar);
-        console.log(`${logPrefix} image service completed filename="${filename}"`);
+        console.log(
+          `${logPrefix} image service completed filename="${filename}"`,
+        );
 
         // Build avatar URL using S3 direct URL
         const avatarUrl = getAvatarUrl(filename);
@@ -281,23 +313,25 @@ export const usersRoutes = new Elysia({ prefix: '/api/users' })
           where: { id: user.id },
           data: { avatarUrl },
         });
-        console.log(`${logPrefix} database update success for user id=${user.id}`);
+        console.log(
+          `${logPrefix} database update success for user id=${user.id}`,
+        );
         console.log(`${logPrefix} request complete`);
 
         return {
-          message: 'Avatar uploaded successfully',
+          message: "Avatar uploaded successfully",
           avatar_url: avatarUrl,
           url: avatarUrl,
         };
       } catch (error) {
         console.error(`${logPrefix} failed with error:`, error);
-        return serverError(set, 'Failed to upload avatar');
+        return serverError(set, "Failed to upload avatar");
       }
     },
     {
       body: t.Object({
         avatar: t.Any(), // Accept any type for React Native compatibility
       }),
-      type: 'multipart/form-data',
-    }
+      type: "multipart/form-data",
+    },
   );

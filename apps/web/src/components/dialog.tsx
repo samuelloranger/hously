@@ -1,8 +1,14 @@
-import { Dialog as HeadlessDialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
-import { Fragment, ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import {
+  Dialog as HeadlessDialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
+import { Fragment, ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface DialogProps {
   isOpen: boolean;
@@ -16,7 +22,7 @@ interface DialogProps {
   bodyScroll?: boolean;
 }
 
-const PORTAL_ID = 'hously-dialog-root';
+const PORTAL_ID = "hously-dialog-root";
 
 export function Dialog({
   isOpen,
@@ -62,21 +68,21 @@ export function Dialog({
             >
               <DialogPanel
                 className={cn(
-                  'pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col transform rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl transition-all dark:border-neutral-700 dark:bg-neutral-800',
-                  bodyScroll ? 'min-h-0 overflow-hidden' : 'overflow-y-auto',
-                  hideTitle && 'relative',
-                  panelClassName
+                  "pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col transform rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl transition-all dark:border-neutral-700 dark:bg-neutral-800",
+                  bodyScroll ? "min-h-0 overflow-hidden" : "overflow-y-auto",
+                  hideTitle && "relative",
+                  panelClassName,
                 )}
               >
                 <DialogTitle
                   as="h3"
                   className={cn(
                     hideTitle
-                      ? 'sr-only'
+                      ? "sr-only"
                       : cn(
-                          'pb-2 shrink-0 text-lg font-medium leading-6 text-neutral-900 dark:text-white',
-                          panelClassName?.includes('p-0') ? 'pt-4 px-6' : ''
-                        )
+                          "pb-2 shrink-0 text-lg font-medium leading-6 text-neutral-900 dark:text-white",
+                          panelClassName?.includes("p-0") ? "pt-4 px-6" : "",
+                        ),
                   )}
                 >
                   {title}
@@ -88,16 +94,21 @@ export function Dialog({
                     onClick={onClose}
                     aria-label="Close dialog"
                     className={cn(
-                      'pointer-events-auto absolute shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors',
+                      "pointer-events-auto absolute shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors",
                       /* z-20: above modal content (e.g. media hero z-10) that uses negative margin into this corner */
-                      hideTitle ? 'top-4 right-4 z-20' : 'top-5 right-5 z-20'
+                      hideTitle ? "top-4 right-4 z-20" : "top-5 right-5 z-20",
                     )}
                   >
                     <X className="h-5 w-5" />
                   </button>
                 )}
 
-                <div className={cn('min-h-0 flex-1', bodyScroll && 'flex min-h-0 flex-col overflow-hidden')}>
+                <div
+                  className={cn(
+                    "min-h-0 flex-1",
+                    bodyScroll && "flex min-h-0 flex-col overflow-hidden",
+                  )}
+                >
                   {children}
                 </div>
               </DialogPanel>
@@ -107,6 +118,6 @@ export function Dialog({
       </HeadlessDialog>
     </Transition>,
     document.body,
-    PORTAL_ID
+    PORTAL_ID,
   );
 }

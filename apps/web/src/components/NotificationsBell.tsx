@@ -1,33 +1,33 @@
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from '@tanstack/react-router';
-import { Bell, ArrowRight, CheckCheck, BellOff } from 'lucide-react';
-import * as Popover from '@radix-ui/react-popover';
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
+import { Bell, ArrowRight, CheckCheck, BellOff } from "lucide-react";
+import * as Popover from "@radix-ui/react-popover";
 import {
   useMarkAllAsReadOptimistic,
   useMarkAsReadOptimistic,
   useNotifications,
   useUnreadCount,
-} from '@/hooks/useNotifications';
-import { queryKeys } from '@/lib/queryKeys';
-import { formatRelativeTime, resolveDateFnsLocale } from '@hously/shared';
-import { syncBadge } from '@/lib/sw/registration';
-import { useQueryClient } from '@tanstack/react-query';
-import { usePrefetchRoute } from '@/lib/routing/usePrefetchRoute';
-import { openNotificationTarget } from '@/lib/notifications/navigation';
-import { NotificationMenuRow } from '@/components/NotificationMenuRow';
+} from "@/hooks/useNotifications";
+import { queryKeys } from "@/lib/queryKeys";
+import { formatRelativeTime, resolveDateFnsLocale } from "@hously/shared";
+import { syncBadge } from "@/lib/sw/registration";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
+import { openNotificationTarget } from "@/lib/notifications/navigation";
+import { NotificationMenuRow } from "@/components/NotificationMenuRow";
 
 function getRelativeTime(dateStr: string, lang: string): string {
   try {
     const locale = resolveDateFnsLocale(lang);
-    return formatRelativeTime(dateStr, { addSuffix: true, locale }) ?? '';
+    return formatRelativeTime(dateStr, { addSuffix: true, locale }) ?? "";
   } catch {
-    return '';
+    return "";
   }
 }
 
 export function NotificationsMenu() {
-  const { t, i18n } = useTranslation('common');
+  const { t, i18n } = useTranslation("common");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const prefetchRoute = usePrefetchRoute();
@@ -40,13 +40,19 @@ export function NotificationsMenu() {
 
   useEffect(() => {
     if (!isOpen) return;
-    queryClient.invalidateQueries({ queryKey: queryKeys.notifications.list(1, 10) });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.notifications.list(1, 10),
+    });
   }, [isOpen, queryClient]);
 
   const unreadCount = unreadData?.unread_count || 0;
   const recentNotifications = notificationsData?.notifications || [];
 
-  const handleNotificationClick = async (notification: { id: number; read: boolean; url: string | null }) => {
+  const handleNotificationClick = async (notification: {
+    id: number;
+    read: boolean;
+    url: string | null;
+  }) => {
     if (!notification.read) {
       await markAsReadMutation.mutateAsync(notification.id);
     }
@@ -64,13 +70,13 @@ export function NotificationsMenu() {
       <Popover.Trigger asChild>
         <button
           className="flex h-9 w-9 items-center justify-center relative rounded-xl text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-neutral-800 dark:hover:text-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 transition-colors"
-          aria-label={t('notifications.bell')}
-          onMouseEnter={() => prefetchRoute('/notifications')}
+          aria-label={t("notifications.bell")}
+          onMouseEnter={() => prefetchRoute("/notifications")}
         >
           <Bell className="h-[18px] w-[18px]" />
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-neutral-900">
-              {unreadCount > 9 ? '9+' : unreadCount}
+              {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
         </button>
@@ -86,7 +92,9 @@ export function NotificationsMenu() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-700/60">
             <div className="flex items-center gap-2.5">
-              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">{t('notifications.title')}</h3>
+              <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
+                {t("notifications.title")}
+              </h3>
               {unreadCount > 0 && (
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/40 px-1.5 text-[11px] font-semibold text-primary-700 dark:text-primary-300">
                   {unreadCount}
@@ -100,7 +108,7 @@ export function NotificationsMenu() {
                 className="flex items-center gap-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 disabled:opacity-50 transition-colors"
               >
                 <CheckCheck className="h-3.5 w-3.5" />
-                {t('notifications.markAllAsRead')}
+                {t("notifications.markAllAsRead")}
               </button>
             )}
           </div>
@@ -113,12 +121,12 @@ export function NotificationsMenu() {
                   <BellOff className="h-5 w-5 text-neutral-400 dark:text-neutral-500" />
                 </div>
                 <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                  {t('notifications.noNotifications')}
+                  {t("notifications.noNotifications")}
                 </p>
               </div>
             ) : (
               <div className="py-1">
-                {recentNotifications.map(notification => (
+                {recentNotifications.map((notification) => (
                   <NotificationMenuRow
                     key={notification.id}
                     type={notification.type}
@@ -126,7 +134,10 @@ export function NotificationsMenu() {
                     body={notification.body}
                     metadata={notification.metadata}
                     isUnread={!notification.read}
-                    relativeTime={getRelativeTime(notification.created_at, i18n.language || 'en')}
+                    relativeTime={getRelativeTime(
+                      notification.created_at,
+                      i18n.language || "en",
+                    )}
                     onClick={() => handleNotificationClick(notification)}
                   />
                 ))}
@@ -139,11 +150,11 @@ export function NotificationsMenu() {
             <button
               onClick={() => {
                 setIsOpen(false);
-                navigate({ to: '/notifications' });
+                navigate({ to: "/notifications" });
               }}
               className="flex items-center justify-center gap-1.5 w-full py-2.5 text-[13px] font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors"
             >
-              {t('notifications.viewAll')}
+              {t("notifications.viewAll")}
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>

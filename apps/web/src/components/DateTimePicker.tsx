@@ -1,12 +1,16 @@
-import { format, startOfDay } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { TimePicker } from '@/components/ui/time-picker';
-import { toDateTimeLocal } from '@hously/shared';
-import { useState } from 'react';
+import { format, startOfDay } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { TimePicker } from "@/components/ui/time-picker";
+import { toDateTimeLocal } from "@hously/shared";
+import { useState } from "react";
 
 interface DateTimePickerProps {
   id?: string;
@@ -24,10 +28,12 @@ export function DateTimePicker({
   onChange,
   minDate,
   placeholder,
-  className = '',
+  className = "",
   allDay,
 }: DateTimePickerProps) {
-  const [date, setDate] = useState<Date | undefined>(() => (value ? new Date(value) : undefined));
+  const [date, setDate] = useState<Date | undefined>(() =>
+    value ? new Date(value) : undefined,
+  );
   const [time, setTime] = useState(() => ({
     hours: value ? new Date(value).getHours() : new Date().getHours(),
     minutes: value ? new Date(value).getMinutes() : 0,
@@ -39,7 +45,7 @@ export function DateTimePicker({
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (!selectedDate) {
       setDate(undefined);
-      onChange('');
+      onChange("");
       return;
     }
 
@@ -96,10 +102,12 @@ export function DateTimePicker({
   };
 
   const displayValue = date
-    ? `${format(date, 'dd/MM/yyyy')}${
-        allDay ? '' : ` ${String(time.hours).padStart(2, '0')}:${String(time.minutes).padStart(2, '0')}`
+    ? `${format(date, "dd/MM/yyyy")}${
+        allDay
+          ? ""
+          : ` ${String(time.hours).padStart(2, "0")}:${String(time.minutes).padStart(2, "0")}`
       }`
-    : placeholder || 'Select date and time';
+    : placeholder || "Select date and time";
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -108,21 +116,25 @@ export function DateTimePicker({
           id={id}
           variant="outline"
           className={cn(
-            'w-full justify-start text-left font-normal',
-            !date && 'text-neutral-500 dark:text-neutral-400',
-            className
+            "w-full justify-start text-left font-normal",
+            !date && "text-neutral-500 dark:text-neutral-400",
+            className,
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {displayValue}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="bg-white dark:bg-neutral-700 w-auto p-0" align="start" side="top">
+      <PopoverContent
+        className="bg-white dark:bg-neutral-700 w-auto p-0"
+        align="start"
+        side="top"
+      >
         <div className="p-3">
           <Calendar
             selected={date}
             onSelect={handleDateSelect}
-            disabled={date => {
+            disabled={(date) => {
               if (!minDateTime) return false;
               // Compare dates only (normalize to midnight) to allow selecting today
               return startOfDay(date) < startOfDay(minDateTime);
@@ -138,7 +150,11 @@ export function DateTimePicker({
               />
             </div>
           )}
-          <Button variant="outline" className="w-full mt-4" onClick={() => setIsOpen(false)}>
+          <Button
+            variant="outline"
+            className="w-full mt-4"
+            onClick={() => setIsOpen(false)}
+          >
             Ok
           </Button>
         </div>

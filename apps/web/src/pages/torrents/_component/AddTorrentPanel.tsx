@@ -1,23 +1,32 @@
-import { useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   useAddQbittorrentMagnet,
   useAddQbittorrentTorrentFile,
   useDashboardQbittorrentCategories,
   useDashboardQbittorrentTags,
-} from '@/hooks/useDashboard';
+} from "@/hooks/useDashboard";
 import {
   mergeQbittorrentFiles,
   toOptionalQbittorrentString,
   toOptionalQbittorrentTags,
   toggleQbittorrentTagSelection,
-} from '@hously/shared';
-import { ChevronDown, File, FolderOpen, Magnet, Plus, Tag, Upload, X } from 'lucide-react';
+} from "@hously/shared";
+import {
+  ChevronDown,
+  File,
+  FolderOpen,
+  Magnet,
+  Plus,
+  Tag,
+  Upload,
+  X,
+} from "lucide-react";
 
-type Mode = 'magnet' | 'file';
+type Mode = "magnet" | "file";
 
 export function AddTorrentPanel() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
 
   const addMagnetMutation = useAddQbittorrentMagnet();
   const addFileMutation = useAddQbittorrentTorrentFile();
@@ -25,17 +34,18 @@ export function AddTorrentPanel() {
   const tagsQuery = useDashboardQbittorrentTags();
 
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<Mode>('magnet');
-  const [magnet, setMagnet] = useState('');
+  const [mode, setMode] = useState<Mode>("magnet");
+  const [magnet, setMagnet] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const categories = categoriesQuery.data?.categories ?? [];
   const availableTags = tagsQuery.data?.tags ?? [];
-  const canInteract = !addMagnetMutation.isPending && !addFileMutation.isPending;
+  const canInteract =
+    !addMagnetMutation.isPending && !addFileMutation.isPending;
   const hasCategoryOrTags = categories.length > 0 || availableTags.length > 0;
 
   const handleAddMagnet = () => {
@@ -48,18 +58,18 @@ export function AddTorrentPanel() {
         tags: toOptionalQbittorrentTags(selectedTags),
       },
       {
-        onSuccess: res => {
-          if (res.success) setMagnet('');
+        onSuccess: (res) => {
+          if (res.success) setMagnet("");
         },
-      }
+      },
     );
   };
 
   const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    setSelectedFiles(prev => mergeQbittorrentFiles(prev, files));
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setSelectedFiles((prev) => mergeQbittorrentFiles(prev, files));
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -68,17 +78,18 @@ export function AddTorrentPanel() {
     const files = e.dataTransfer.files;
     if (!files || files.length === 0) return;
     const torrentFiles = Array.from(files).filter(
-      f => f.name.endsWith('.torrent') || f.type === 'application/x-bittorrent'
+      (f) =>
+        f.name.endsWith(".torrent") || f.type === "application/x-bittorrent",
     );
     if (torrentFiles.length > 0) {
       const dt = new DataTransfer();
-      torrentFiles.forEach(f => dt.items.add(f));
-      setSelectedFiles(prev => mergeQbittorrentFiles(prev, dt.files));
+      torrentFiles.forEach((f) => dt.items.add(f));
+      setSelectedFiles((prev) => mergeQbittorrentFiles(prev, dt.files));
     }
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmitFiles = () => {
@@ -90,34 +101,37 @@ export function AddTorrentPanel() {
         tags: toOptionalQbittorrentTags(selectedTags),
       },
       {
-        onSuccess: res => {
+        onSuccess: (res) => {
           if (res.success) setSelectedFiles([]);
         },
-      }
+      },
     );
   };
 
-  const canSubmit = mode === 'magnet' ? magnet.trim().length > 0 : selectedFiles.length > 0;
+  const canSubmit =
+    mode === "magnet" ? magnet.trim().length > 0 : selectedFiles.length > 0;
 
-  const isPending = mode === 'magnet' ? addMagnetMutation.isPending : addFileMutation.isPending;
-  const error = mode === 'magnet' ? addMagnetMutation.error : addFileMutation.error;
+  const isPending =
+    mode === "magnet" ? addMagnetMutation.isPending : addFileMutation.isPending;
+  const error =
+    mode === "magnet" ? addMagnetMutation.error : addFileMutation.error;
 
   return (
     <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
       {/* Header */}
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-neutral-50 dark:hover:bg-white/[0.03] transition-colors"
       >
         <div className="flex items-center gap-2">
           <Plus size={14} className="text-neutral-400" />
           <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-            {t('dashboard.qbittorrent.addTorrent')}
+            {t("dashboard.qbittorrent.addTorrent")}
           </span>
         </div>
         <ChevronDown
           size={14}
-          className={`text-neutral-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`text-neutral-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -126,21 +140,21 @@ export function AddTorrentPanel() {
         <div className="border-t border-neutral-100 dark:border-neutral-800">
           {/* Mode tabs */}
           <div className="flex border-b border-neutral-100 dark:border-neutral-800">
-            {(['magnet', 'file'] as Mode[]).map(m => (
+            {(["magnet", "file"] as Mode[]).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => setMode(m)}
                 className={`relative flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors ${
                   mode === m
-                    ? 'text-indigo-600 dark:text-indigo-400'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
+                    ? "text-indigo-600 dark:text-indigo-400"
+                    : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
                 }`}
               >
-                {m === 'magnet' ? <Magnet size={13} /> : <Upload size={13} />}
-                {m === 'magnet'
-                  ? t('dashboard.qbittorrent.addMagnet', 'Magnet link')
-                  : t('dashboard.qbittorrent.addTorrentFile', '.torrent file')}
+                {m === "magnet" ? <Magnet size={13} /> : <Upload size={13} />}
+                {m === "magnet"
+                  ? t("dashboard.qbittorrent.addMagnet", "Magnet link")
+                  : t("dashboard.qbittorrent.addTorrentFile", ".torrent file")}
                 {mode === m && (
                   <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 dark:bg-indigo-400 rounded-t-full" />
                 )}
@@ -150,22 +164,25 @@ export function AddTorrentPanel() {
 
           <div className="p-5 space-y-4">
             {/* Magnet input */}
-            {mode === 'magnet' && (
+            {mode === "magnet" && (
               <input
                 value={magnet}
-                onChange={e => setMagnet(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddMagnet()}
-                placeholder={t('dashboard.qbittorrent.magnetPlaceholder', 'magnet:?xt=urn:btih:...')}
+                onChange={(e) => setMagnet(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddMagnet()}
+                placeholder={t(
+                  "dashboard.qbittorrent.magnetPlaceholder",
+                  "magnet:?xt=urn:btih:...",
+                )}
                 className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2.5 text-sm font-mono text-neutral-900 dark:text-neutral-100 placeholder:font-sans placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 dark:focus:border-indigo-500 transition disabled:opacity-50"
                 disabled={!canInteract}
               />
             )}
 
             {/* File drop zone */}
-            {mode === 'file' && (
+            {mode === "file" && (
               <div className="space-y-3">
                 <div
-                  onDragOver={e => {
+                  onDragOver={(e) => {
                     e.preventDefault();
                     setIsDragging(true);
                   }}
@@ -174,16 +191,21 @@ export function AddTorrentPanel() {
                   onClick={() => fileInputRef.current?.click()}
                   className={`relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-6 px-4 cursor-pointer transition-all ${
                     isDragging
-                      ? 'border-indigo-400 bg-indigo-50/60 dark:bg-indigo-500/10'
-                      : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 bg-neutral-50/50 dark:bg-neutral-950/50'
+                      ? "border-indigo-400 bg-indigo-50/60 dark:bg-indigo-500/10"
+                      : "border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 bg-neutral-50/50 dark:bg-neutral-950/50"
                   }`}
                 >
-                  <Upload size={18} className={isDragging ? 'text-indigo-500' : 'text-neutral-400'} />
+                  <Upload
+                    size={18}
+                    className={
+                      isDragging ? "text-indigo-500" : "text-neutral-400"
+                    }
+                  />
                   <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center">
                     <span className="font-medium text-neutral-700 dark:text-neutral-300">
-                      {t('torrents.clickToSelect', 'Click to select')}
-                    </span>{' '}
-                    {t('torrents.orDrop', 'or drag & drop')}
+                      {t("torrents.clickToSelect", "Click to select")}
+                    </span>{" "}
+                    {t("torrents.orDrop", "or drag & drop")}
                   </p>
                   <p className="text-[11px] text-neutral-400">.torrent</p>
                   <input
@@ -216,7 +238,11 @@ export function AddTorrentPanel() {
                           onClick={() => removeFile(index)}
                           disabled={!canInteract}
                           className="shrink-0 rounded-md p-0.5 text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors disabled:opacity-40"
-                          aria-label={t('torrents.removeFile', 'Remove {{name}}', { name: file.name })}
+                          aria-label={t(
+                            "torrents.removeFile",
+                            "Remove {{name}}",
+                            { name: file.name },
+                          )}
                         >
                           <X size={12} />
                         </button>
@@ -234,16 +260,18 @@ export function AddTorrentPanel() {
                   <div>
                     <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-1.5">
                       <FolderOpen size={11} />
-                      {t('dashboard.qbittorrent.category', 'Category')}
+                      {t("dashboard.qbittorrent.category", "Category")}
                     </label>
                     <select
                       value={selectedCategory}
-                      onChange={e => setSelectedCategory(e.target.value)}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
                       disabled={!canInteract}
                       className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 disabled:opacity-50 transition"
                     >
-                      <option value="">{t('dashboard.qbittorrent.noCategory', 'No category')}</option>
-                      {categories.map(cat => (
+                      <option value="">
+                        {t("dashboard.qbittorrent.noCategory", "No category")}
+                      </option>
+                      {categories.map((cat) => (
                         <option key={cat.name} value={cat.name}>
                           {cat.name}
                         </option>
@@ -256,21 +284,25 @@ export function AddTorrentPanel() {
                   <div>
                     <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-1.5">
                       <Tag size={11} />
-                      {t('dashboard.qbittorrent.tags', 'Tags')}
+                      {t("dashboard.qbittorrent.tags", "Tags")}
                     </label>
                     <div className="flex flex-wrap gap-1.5">
-                      {availableTags.map(tag => {
+                      {availableTags.map((tag) => {
                         const active = selectedTags.includes(tag);
                         return (
                           <button
                             key={tag}
                             type="button"
-                            onClick={() => setSelectedTags(prev => toggleQbittorrentTagSelection(prev, tag))}
+                            onClick={() =>
+                              setSelectedTags((prev) =>
+                                toggleQbittorrentTagSelection(prev, tag),
+                              )
+                            }
                             disabled={!canInteract}
                             className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all disabled:opacity-50 ${
                               active
-                                ? 'bg-indigo-500 text-white'
-                                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                                ? "bg-indigo-500 text-white"
+                                : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
                             }`}
                           >
                             {active && <X size={9} />}
@@ -285,11 +317,15 @@ export function AddTorrentPanel() {
             )}
 
             {/* Error */}
-            {error && <p className="text-xs text-rose-600 dark:text-rose-400">{error.message}</p>}
+            {error && (
+              <p className="text-xs text-rose-600 dark:text-rose-400">
+                {error.message}
+              </p>
+            )}
 
             {/* Single submit button */}
             <button
-              onClick={mode === 'magnet' ? handleAddMagnet : handleSubmitFiles}
+              onClick={mode === "magnet" ? handleAddMagnet : handleSubmitFiles}
               disabled={!canInteract || !canSubmit}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium disabled:opacity-40 disabled:pointer-events-none transition-colors"
             >
@@ -299,12 +335,16 @@ export function AddTorrentPanel() {
                 <Plus size={14} />
               )}
               {isPending
-                ? t('common.loading', 'Loading...')
-                : mode === 'magnet'
-                  ? t('dashboard.qbittorrent.add', 'Add')
+                ? t("common.loading", "Loading...")
+                : mode === "magnet"
+                  ? t("dashboard.qbittorrent.add", "Add")
                   : selectedFiles.length > 1
-                    ? t('torrents.submitTorrentFiles', 'Submit {{count}} files', { count: selectedFiles.length })
-                    : t('torrents.submitTorrentFile', 'Submit')}
+                    ? t(
+                        "torrents.submitTorrentFiles",
+                        "Submit {{count}} files",
+                        { count: selectedFiles.length },
+                      )
+                    : t("torrents.submitTorrentFile", "Submit")}
             </button>
           </div>
         </div>

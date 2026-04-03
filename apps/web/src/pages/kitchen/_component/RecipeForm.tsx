@@ -1,5 +1,5 @@
-import { useState, FormEvent } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState, FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Plus,
   X,
@@ -11,9 +11,18 @@ import {
   UtensilsCrossed,
   ListOrdered,
   ImageOff,
-} from 'lucide-react';
-import { useCreateRecipe, useUpdateRecipe, useUploadRecipeImage } from '@/hooks/useRecipes';
-import { getRecipeImageUrl, COOKING_UNITS, type Recipe, type RecipeIngredient } from '@hously/shared';
+} from "lucide-react";
+import {
+  useCreateRecipe,
+  useUpdateRecipe,
+  useUploadRecipeImage,
+} from "@/hooks/useRecipes";
+import {
+  getRecipeImageUrl,
+  COOKING_UNITS,
+  type Recipe,
+  type RecipeIngredient,
+} from "@hously/shared";
 
 interface RecipeFormProps {
   recipe?: Recipe;
@@ -21,27 +30,36 @@ interface RecipeFormProps {
   onCancel?: () => void;
 }
 
-const CATEGORIES = ['breakfast', 'lunch', 'dinner', 'dessert', 'snack'];
+const CATEGORIES = ["breakfast", "lunch", "dinner", "dessert", "snack"];
 
-function SectionHeader({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+function SectionHeader({
+  icon: Icon,
+  label,
+}: {
+  icon: React.ElementType;
+  label: string;
+}) {
   return (
     <div className="flex items-center gap-2 mb-4">
       <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-900/30">
         <Icon className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
       </div>
-      <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 tracking-wide uppercase">{label}</h3>
+      <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 tracking-wide uppercase">
+        {label}
+      </h3>
       <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700 ml-2" />
     </div>
   );
 }
 
 const inputClasses =
-  'w-full px-3.5 py-2.5 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400 dark:focus:border-orange-500 transition-all placeholder:text-neutral-400';
+  "w-full px-3.5 py-2.5 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400 dark:focus:border-orange-500 transition-all placeholder:text-neutral-400";
 
-const labelClasses = 'block text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-1.5';
+const labelClasses =
+  "block text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-1.5";
 
 export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const isEditing = !!recipe?.id;
 
   const createRecipe = useCreateRecipe();
@@ -49,21 +67,23 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
   const uploadImage = useUploadRecipeImage();
 
   // Form state
-  const [name, setName] = useState(recipe?.name || '');
-  const [description, setDescription] = useState(recipe?.description || '');
-  const [instructions, setInstructions] = useState(recipe?.instructions || '');
-  const [category, setCategory] = useState(recipe?.category || '');
+  const [name, setName] = useState(recipe?.name || "");
+  const [description, setDescription] = useState(recipe?.description || "");
+  const [instructions, setInstructions] = useState(recipe?.instructions || "");
+  const [category, setCategory] = useState(recipe?.category || "");
   const [servings, setServings] = useState(recipe?.servings || 4);
   const [prepTime, setPrepTime] = useState(recipe?.prep_time_minutes || null);
   const [cookTime, setCookTime] = useState(recipe?.cook_time_minutes || null);
   const [imagePath, setImagePath] = useState(recipe?.image_path || null);
-  const [ingredients, setIngredients] = useState<Omit<RecipeIngredient, 'id'>[]>(
-    recipe?.ingredients?.map(ing => ({
+  const [ingredients, setIngredients] = useState<
+    Omit<RecipeIngredient, "id">[]
+  >(
+    recipe?.ingredients?.map((ing) => ({
       name: ing.name,
       quantity: ing.quantity,
       unit: ing.unit || null,
       position: ing.position,
-    })) || [{ name: '', quantity: null, unit: null, position: 0 }]
+    })) || [{ name: "", quantity: null, unit: null, position: 0 }],
   );
 
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -79,21 +99,28 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
         setImagePath(result.data.image_path);
       }
     } catch (error) {
-      console.error('Failed to upload image:', error);
+      console.error("Failed to upload image:", error);
     } finally {
       setUploadingImage(false);
     }
   };
 
   const addIngredient = () => {
-    setIngredients([...ingredients, { name: '', quantity: null, unit: null, position: ingredients.length }]);
+    setIngredients([
+      ...ingredients,
+      { name: "", quantity: null, unit: null, position: ingredients.length },
+    ]);
   };
 
   const removeIngredient = (index: number) => {
     setIngredients(ingredients.filter((_, i) => i !== index));
   };
 
-  const updateIngredient = (index: number, field: keyof RecipeIngredient, value: string | number | null) => {
+  const updateIngredient = (
+    index: number,
+    field: keyof RecipeIngredient,
+    value: string | number | null,
+  ) => {
     const updated = [...ingredients];
     updated[index] = { ...updated[index], [field]: value };
     setIngredients(updated);
@@ -112,7 +139,7 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
       cook_time_minutes: cookTime,
       image_path: imagePath,
       ingredients: ingredients
-        .filter(ing => ing.name.trim())
+        .filter((ing) => ing.name.trim())
         .map((ing, idx) => ({
           ...ing,
           position: idx,
@@ -139,7 +166,7 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
         }
       }
     } catch (error) {
-      console.error('Failed to save recipe:', error);
+      console.error("Failed to save recipe:", error);
     }
   };
 
@@ -158,39 +185,59 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
       <div className="space-y-8 pb-20">
         {/* ── Details Section ── */}
         <section>
-          <SectionHeader icon={BookOpen} label={t('recipes.sectionDetails', 'Details')} />
+          <SectionHeader
+            icon={BookOpen}
+            label={t("recipes.sectionDetails", "Details")}
+          />
           <div className="space-y-4">
             <div>
               <label className={labelClasses}>
-                {t('recipes.recipeName', 'Recipe Name')} <span className="text-orange-500">*</span>
+                {t("recipes.recipeName", "Recipe Name")}{" "}
+                <span className="text-orange-500">*</span>
               </label>
               <input
                 type="text"
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 required
-                placeholder={t('recipes.recipeNamePlaceholder', "e.g. Grandma's Apple Pie")}
+                placeholder={t(
+                  "recipes.recipeNamePlaceholder",
+                  "e.g. Grandma's Apple Pie",
+                )}
                 className={inputClasses}
               />
             </div>
 
             <div>
-              <label className={labelClasses}>{t('recipes.description', 'Description')}</label>
+              <label className={labelClasses}>
+                {t("recipes.description", "Description")}
+              </label>
               <textarea
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                placeholder={t('recipes.descriptionPlaceholder', 'A short description of the dish...')}
+                placeholder={t(
+                  "recipes.descriptionPlaceholder",
+                  "A short description of the dish...",
+                )}
                 className={`${inputClasses} resize-none`}
               />
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className={labelClasses}>{t('recipes.category.label', 'Category')}</label>
-                <select value={category} onChange={e => setCategory(e.target.value)} className={inputClasses}>
-                  <option value="">{t('recipes.categorySelect', 'Select...')}</option>
-                  {CATEGORIES.map(cat => (
+                <label className={labelClasses}>
+                  {t("recipes.category.label", "Category")}
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className={inputClasses}
+                >
+                  <option value="">
+                    {t("recipes.categorySelect", "Select...")}
+                  </option>
+                  {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
                       {t(`recipes.category.${cat}`, cat)}
                     </option>
@@ -200,12 +247,13 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
 
               <div>
                 <label className={labelClasses}>
-                  {t('recipes.servings', 'Servings')} <span className="text-orange-500">*</span>
+                  {t("recipes.servings", "Servings")}{" "}
+                  <span className="text-orange-500">*</span>
                 </label>
                 <input
                   type="number"
                   value={servings}
-                  onChange={e => setServings(parseInt(e.target.value))}
+                  onChange={(e) => setServings(parseInt(e.target.value))}
                   required
                   min="1"
                   className={`${inputClasses} tabular-nums`}
@@ -217,14 +265,21 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
 
         {/* ── Timing Section ── */}
         <section>
-          <SectionHeader icon={Clock} label={t('recipes.sectionTiming', 'Timing')} />
+          <SectionHeader
+            icon={Clock}
+            label={t("recipes.sectionTiming", "Timing")}
+          />
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClasses}>{t('recipes.prepTime', 'Prep Time (minutes)')}</label>
+              <label className={labelClasses}>
+                {t("recipes.prepTime", "Prep Time (minutes)")}
+              </label>
               <input
                 type="number"
-                value={prepTime || ''}
-                onChange={e => setPrepTime(e.target.value ? parseInt(e.target.value) : null)}
+                value={prepTime || ""}
+                onChange={(e) =>
+                  setPrepTime(e.target.value ? parseInt(e.target.value) : null)
+                }
                 min="0"
                 placeholder="0"
                 className={`${inputClasses} tabular-nums`}
@@ -232,11 +287,15 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
             </div>
 
             <div>
-              <label className={labelClasses}>{t('recipes.cookTime', 'Cook Time (minutes)')}</label>
+              <label className={labelClasses}>
+                {t("recipes.cookTime", "Cook Time (minutes)")}
+              </label>
               <input
                 type="number"
-                value={cookTime || ''}
-                onChange={e => setCookTime(e.target.value ? parseInt(e.target.value) : null)}
+                value={cookTime || ""}
+                onChange={(e) =>
+                  setCookTime(e.target.value ? parseInt(e.target.value) : null)
+                }
                 min="0"
                 placeholder="0"
                 className={`${inputClasses} tabular-nums`}
@@ -247,10 +306,17 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
 
         {/* ── Photo Section ── */}
         <section>
-          <SectionHeader icon={Camera} label={t('recipes.sectionPhoto', 'Photo')} />
+          <SectionHeader
+            icon={Camera}
+            label={t("recipes.sectionPhoto", "Photo")}
+          />
           {imageUrl ? (
             <div className="relative group rounded-xl overflow-hidden">
-              <img src={imageUrl} alt="Recipe" className="w-full h-44 object-cover" />
+              <img
+                src={imageUrl}
+                alt="Recipe"
+                className="w-full h-44 object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <button
                 type="button"
@@ -270,9 +336,11 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
                     <Upload className="w-5 h-5 text-neutral-400 group-hover:text-orange-500 transition-colors" />
                   </div>
                   <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                    {t('recipes.uploadImage', 'Click to upload image')}
+                    {t("recipes.uploadImage", "Click to upload image")}
                   </span>
-                  <span className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">JPG, PNG, WebP</span>
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">
+                    JPG, PNG, WebP
+                  </span>
                 </div>
               )}
               <input
@@ -294,7 +362,7 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
                 <UtensilsCrossed className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
               </div>
               <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 tracking-wide uppercase">
-                {t('recipes.ingredients', 'Ingredients')}
+                {t("recipes.ingredients", "Ingredients")}
               </h3>
               <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700 ml-2" />
             </div>
@@ -304,7 +372,7 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
               className="ml-4 inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 px-3 py-1.5 rounded-lg transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
-              {t('recipes.addIngredient', 'Add')}
+              {t("recipes.addIngredient", "Add")}
             </button>
           </div>
 
@@ -319,34 +387,47 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
                 </span>
                 <input
                   type="text"
-                  placeholder={t('recipes.ingredientName', 'Name')}
+                  placeholder={t("recipes.ingredientName", "Name")}
                   value={ingredient.name}
-                  onChange={e => updateIngredient(index, 'name', e.target.value)}
+                  onChange={(e) =>
+                    updateIngredient(index, "name", e.target.value)
+                  }
                   className="flex-1 min-w-0 px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400 transition-all"
                 />
                 <input
                   type="number"
-                  placeholder={t('recipes.quantity', 'Qty')}
-                  value={ingredient.quantity || ''}
-                  onChange={e =>
-                    updateIngredient(index, 'quantity', e.target.value ? parseFloat(e.target.value) : null)
+                  placeholder={t("recipes.quantity", "Qty")}
+                  value={ingredient.quantity || ""}
+                  onChange={(e) =>
+                    updateIngredient(
+                      index,
+                      "quantity",
+                      e.target.value ? parseFloat(e.target.value) : null,
+                    )
                   }
                   className="w-20 shrink-0 px-3 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400 transition-all tabular-nums"
                   step="0.1"
                 />
                 <select
-                  value={ingredient.unit || ''}
-                  onChange={e => updateIngredient(index, 'unit', e.target.value || null)}
+                  value={ingredient.unit || ""}
+                  onChange={(e) =>
+                    updateIngredient(index, "unit", e.target.value || null)
+                  }
                   className="w-28 shrink-0 px-2 py-2 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400 transition-all"
                 >
-                  <option value="">{t('recipes.unitSelect', 'Unit...')}</option>
-                  {(['volume', 'weight', 'other'] as const).map(category => (
-                    <optgroup key={category} label={t(`recipes.units.${category}`, category)}>
-                      {COOKING_UNITS.filter(u => u.category === category).map(u => (
-                        <option key={u.key} value={u.key}>
-                          {t(`recipes.units.${u.key}`, u.key)}
-                        </option>
-                      ))}
+                  <option value="">{t("recipes.unitSelect", "Unit...")}</option>
+                  {(["volume", "weight", "other"] as const).map((category) => (
+                    <optgroup
+                      key={category}
+                      label={t(`recipes.units.${category}`, category)}
+                    >
+                      {COOKING_UNITS.filter((u) => u.category === category).map(
+                        (u) => (
+                          <option key={u.key} value={u.key}>
+                            {t(`recipes.units.${u.key}`, u.key)}
+                          </option>
+                        ),
+                      )}
                     </optgroup>
                   ))}
                 </select>
@@ -363,7 +444,9 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
             {ingredients.length === 0 && (
               <div className="flex flex-col items-center justify-center py-8 text-neutral-400 dark:text-neutral-500">
                 <ImageOff className="w-6 h-6 mb-2" />
-                <p className="text-sm">{t('recipes.noIngredients', 'No ingredients yet')}</p>
+                <p className="text-sm">
+                  {t("recipes.noIngredients", "No ingredients yet")}
+                </p>
               </div>
             )}
           </div>
@@ -371,20 +454,26 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
 
         {/* ── Instructions Section ── */}
         <section>
-          <SectionHeader icon={ListOrdered} label={t('recipes.sectionInstructions', 'Instructions')} />
+          <SectionHeader
+            icon={ListOrdered}
+            label={t("recipes.sectionInstructions", "Instructions")}
+          />
           <div>
             <div className="flex items-baseline justify-between mb-1.5">
               <label className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                {t('recipes.instructions', 'Instructions')} <span className="text-orange-500">*</span>
+                {t("recipes.instructions", "Instructions")}{" "}
+                <span className="text-orange-500">*</span>
               </label>
-              <span className="text-[11px] text-neutral-400 dark:text-neutral-500 font-medium">Markdown</span>
+              <span className="text-[11px] text-neutral-400 dark:text-neutral-500 font-medium">
+                Markdown
+              </span>
             </div>
             <textarea
               value={instructions}
-              onChange={e => setInstructions(e.target.value)}
+              onChange={(e) => setInstructions(e.target.value)}
               placeholder={t(
-                'recipes.instructionsPlaceholder',
-                'Enter cooking instructions... (Markdown supported: **bold**, *italic*, - lists, etc.)'
+                "recipes.instructionsPlaceholder",
+                "Enter cooking instructions... (Markdown supported: **bold**, *italic*, - lists, etc.)",
               )}
               required
               rows={10}
@@ -401,18 +490,23 @@ export function RecipeForm({ recipe, onSuccess, onCancel }: RecipeFormProps) {
           onClick={handleCancel}
           className="px-5 py-2.5 text-sm font-medium border border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-300 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
         >
-          {t('common.cancel', 'Cancel')}
+          {t("common.cancel", "Cancel")}
         </button>
         <button
           type="submit"
-          disabled={createRecipe.isPending || updateRecipe.isPending || !name || !instructions}
+          disabled={
+            createRecipe.isPending ||
+            updateRecipe.isPending ||
+            !name ||
+            !instructions
+          }
           className="px-6 py-2.5 text-sm font-medium bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl shadow-sm shadow-orange-600/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all"
         >
           {createRecipe.isPending || updateRecipe.isPending
-            ? t('common.saving', 'Saving...')
+            ? t("common.saving", "Saving...")
             : isEditing
-              ? t('common.save', 'Save')
-              : t('recipes.create', 'Create Recipe')}
+              ? t("common.save", "Save")
+              : t("recipes.create", "Create Recipe")}
         </button>
       </div>
     </form>

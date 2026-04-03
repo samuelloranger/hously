@@ -1,17 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fireEvent, screen, waitFor, renderWithProviders } from '@/test-utils/render';
-import { mockShoppingItem } from '@/test-utils/mocks';
-import { ShoppingList } from '@/pages/shopping/_component/ShoppingList';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  fireEvent,
+  screen,
+  waitFor,
+  renderWithProviders,
+} from "@/test-utils/render";
+import { mockShoppingItem } from "@/test-utils/mocks";
+import { ShoppingList } from "@/pages/shopping/_component/ShoppingList";
 
 // Mock TanStack Router
-vi.mock('@tanstack/react-router', () => ({
+vi.mock("@tanstack/react-router", () => ({
   useSearch: vi.fn().mockReturnValue({}),
   useNavigate: vi.fn().mockReturnValue(vi.fn()),
   useParams: vi.fn().mockReturnValue({}),
 }));
 
 // Mock shared hooks
-vi.mock('@hously/shared', async importOriginal => {
+vi.mock("@hously/shared", async (importOriginal) => {
   const actual = await importOriginal<any>();
   return {
     ...actual,
@@ -20,19 +25,21 @@ vi.mock('@hously/shared', async importOriginal => {
     useToggleShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
     useDeleteShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
     useDeleteShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
-    useClearAllCompletedShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+    useClearAllCompletedShoppingItems: vi
+      .fn()
+      .mockReturnValue({ mutate: vi.fn() }),
     useReorderShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
   };
 });
 
-import { useShoppingItems } from '@/hooks/useShopping';
+import { useShoppingItems } from "@/hooks/useShopping";
 
-describe('ShoppingList', () => {
+describe("ShoppingList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders shopping list', async () => {
+  it("renders shopping list", async () => {
     (useShoppingItems as any).mockReturnValue({
       data: {
         items: [mockShoppingItem],
@@ -48,7 +55,7 @@ describe('ShoppingList', () => {
     });
   });
 
-  it('shows empty state when no items', async () => {
+  it("shows empty state when no items", async () => {
     (useShoppingItems as any).mockReturnValue({
       data: {
         items: [],
@@ -60,11 +67,11 @@ describe('ShoppingList', () => {
     renderWithProviders(<ShoppingList />);
 
     await waitFor(() => {
-      expect(screen.getByText('shopping.noItems')).toBeInTheDocument();
+      expect(screen.getByText("shopping.noItems")).toBeInTheDocument();
     });
   });
 
-  it('filters shopping items with search and status chips', async () => {
+  it("filters shopping items with search and status chips", async () => {
     (useShoppingItems as any).mockReturnValue({
       data: {
         items: [
@@ -72,8 +79,8 @@ describe('ShoppingList', () => {
           {
             ...mockShoppingItem,
             id: 2,
-            item_name: 'Dish soap',
-            notes: 'Kitchen sink',
+            item_name: "Dish soap",
+            notes: "Kitchen sink",
             completed: true,
           },
         ],
@@ -84,18 +91,22 @@ describe('ShoppingList', () => {
 
     renderWithProviders(<ShoppingList />);
 
-    const searchInput = await screen.findByPlaceholderText('shopping.searchPlaceholder');
-    fireEvent.change(searchInput, { target: { value: 'soap' } });
+    const searchInput = await screen.findByPlaceholderText(
+      "shopping.searchPlaceholder",
+    );
+    fireEvent.change(searchInput, { target: { value: "soap" } });
 
     await waitFor(() => {
-      expect(screen.getByText('Dish soap')).toBeInTheDocument();
-      expect(screen.queryByText('Milk')).not.toBeInTheDocument();
+      expect(screen.getByText("Dish soap")).toBeInTheDocument();
+      expect(screen.queryByText("Milk")).not.toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'shopping.filters.completed' }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "shopping.filters.completed" }),
+    );
 
     await waitFor(() => {
-      expect(screen.getByText('Dish soap')).toBeInTheDocument();
+      expect(screen.getByText("Dish soap")).toBeInTheDocument();
     });
   });
 });

@@ -1,19 +1,19 @@
-import { StrictMode } from 'react';
-import ReactDOM from 'react-dom/client';
-import { RouterProvider } from '@tanstack/react-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { FetcherProvider } from '@/lib/api/context';
-import { router } from '@/router';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { checkVersionAndReload } from '@/lib/version';
-import { registerServiceWorker } from '@/lib/sw/registration';
-import { useAutoInvalidateNotifications } from '@/lib/notifications/useAutoInvalidateNotifications';
-import { useIOSImprovements } from '@/hooks/useIOSImprovements';
-import { NotificationToastContainer } from '@/components/NotificationToastContainer';
-import { setQueryClient } from '@/lib/api/queryClient';
-import { webFetcher } from '@/lib/api/fetcher';
-import './lib/i18n/index';
-import './index.css';
+import { StrictMode } from "react";
+import ReactDOM from "react-dom/client";
+import { RouterProvider } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { FetcherProvider } from "@/lib/api/context";
+import { router } from "@/router";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { checkVersionAndReload } from "@/lib/version";
+import { registerServiceWorker } from "@/lib/sw/registration";
+import { useAutoInvalidateNotifications } from "@/lib/notifications/useAutoInvalidateNotifications";
+import { useIOSImprovements } from "@/hooks/useIOSImprovements";
+import { NotificationToastContainer } from "@/components/NotificationToastContainer";
+import { setQueryClient } from "@/lib/api/queryClient";
+import { webFetcher } from "@/lib/api/fetcher";
+import "./lib/i18n/index";
+import "./index.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,7 +48,7 @@ function AppWithServiceWorkerIntegration() {
 registerServiceWorker();
 
 // Render immediately to avoid blank screens if optional bootstrapping hangs.
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -57,7 +57,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </FetcherProvider>
       </QueryClientProvider>
     </ErrorBoundary>
-  </StrictMode>
+  </StrictMode>,
 );
 
 // Run bootstrapping tasks in the background.

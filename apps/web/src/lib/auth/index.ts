@@ -1,9 +1,9 @@
-import { AUTH_ENDPOINTS, type User } from '@hously/shared';
-import { getQueryClient, invalidateAuthCache } from '@/lib/api/queryClient';
-import { queryKeys } from '@/lib/queryKeys';
-import { webFetcher } from '@/lib/api/fetcher';
-import { ApiError } from '@/lib/api/client';
-import { toast } from 'sonner';
+import { AUTH_ENDPOINTS, type User } from "@hously/shared";
+import { getQueryClient, invalidateAuthCache } from "@/lib/api/queryClient";
+import { queryKeys } from "@/lib/queryKeys";
+import { webFetcher } from "@/lib/api/fetcher";
+import { ApiError } from "@/lib/api/client";
+import { toast } from "sonner";
 
 let currentUser: User | null = null;
 let userPromise: Promise<User | null> | null = null;
@@ -19,7 +19,9 @@ export async function getCurrentUser(): Promise<User | null> {
 
   userPromise = (async () => {
     try {
-      const response = await webFetcher<{ user: User | null }>(AUTH_ENDPOINTS.ME);
+      const response = await webFetcher<{ user: User | null }>(
+        AUTH_ENDPOINTS.ME,
+      );
       currentUser = response.user;
       // Seed the React Query cache so useCurrentUser() picks up the data
       // without needing its own fetch — prevents the "user not loaded" state
@@ -37,13 +39,15 @@ export async function getCurrentUser(): Promise<User | null> {
 
       // If 429, show toast and re-throw so the router can avoid redirect
       if (error instanceof ApiError && error.status === 429) {
-        toast.error('Too many requests. Please slow down.');
+        toast.error("Too many requests. Please slow down.");
         throw error;
       }
 
       // For transient/non-auth errors, preserve any known user state and re-throw.
       // This prevents protected routes from redirecting to login due to flaky /me requests.
-      const cachedUser = getQueryClient()?.getQueryData<User | null>(queryKeys.auth.me);
+      const cachedUser = getQueryClient()?.getQueryData<User | null>(
+        queryKeys.auth.me,
+      );
       if (cachedUser !== undefined) {
         currentUser = cachedUser;
         return currentUser;
@@ -72,5 +76,5 @@ export function setUser(user: User | null): void {
 
 function logout(): void {
   clearUser();
-  window.location.href = '/logout';
+  window.location.href = "/logout";
 }

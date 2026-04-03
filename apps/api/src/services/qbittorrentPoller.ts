@@ -1,7 +1,13 @@
-import { QBITTORRENT_TORRENTS_PAGE_SIZE } from '@hously/shared';
-import { getQbittorrentPluginConfig } from './qbittorrent/config';
-import { fetchMaindata, resetMaindataState, toNumberOr, toTorrent, toTorrentListItem } from './qbittorrent/client';
-import { buildQbittorrentDisabledSnapshot } from './qbittorrent/torrents';
+import { QBITTORRENT_TORRENTS_PAGE_SIZE } from "@hously/shared";
+import { getQbittorrentPluginConfig } from "./qbittorrent/config";
+import {
+  fetchMaindata,
+  resetMaindataState,
+  toNumberOr,
+  toTorrent,
+  toTorrentListItem,
+} from "./qbittorrent/client";
+import { buildQbittorrentDisabledSnapshot } from "./qbittorrent/torrents";
 
 const TORRENTS_SSE_CHANNEL = /^torrents:(\d+)$/;
 
@@ -31,7 +37,11 @@ let running = false;
 // Last payloads for change detection (keyed by channel)
 const lastPayloads = new Map<string, string>();
 
-const computeSummary = (torrents: Array<ReturnType<typeof toTorrent> extends infer T ? Exclude<T, null> : never>) => {
+const computeSummary = (
+  torrents: Array<
+    ReturnType<typeof toTorrent> extends infer T ? Exclude<T, null> : never
+  >,
+) => {
   let downloadingCount = 0;
   let stalledCount = 0;
   let seedingCount = 0;
@@ -41,19 +51,25 @@ const computeSummary = (torrents: Array<ReturnType<typeof toTorrent> extends inf
   for (const torrent of torrents) {
     const state = torrent.state;
     if (
-      state === 'downloading' ||
-      state === 'forcedDL' ||
-      state === 'metaDL' ||
-      state === 'queuedDL' ||
-      state === 'checkingDL'
+      state === "downloading" ||
+      state === "forcedDL" ||
+      state === "metaDL" ||
+      state === "queuedDL" ||
+      state === "checkingDL"
     ) {
       downloadingCount += 1;
     }
-    if (state === 'stalledDL' || state === 'stalledUP') stalledCount += 1;
-    if (state === 'uploading' || state === 'forcedUP' || state === 'queuedUP' || state === 'stalledUP') {
+    if (state === "stalledDL" || state === "stalledUP") stalledCount += 1;
+    if (
+      state === "uploading" ||
+      state === "forcedUP" ||
+      state === "queuedUP" ||
+      state === "stalledUP"
+    ) {
       seedingCount += 1;
     }
-    if (state.startsWith('paused') || state.startsWith('stopped')) pausedCount += 1;
+    if (state.startsWith("paused") || state.startsWith("stopped"))
+      pausedCount += 1;
     if (torrent.progress >= 0.999) completedCount += 1;
   }
 
@@ -91,9 +107,13 @@ const pollOnce = async () => {
 
     if (!enabled || !config) {
       // Notify dashboard subscribers with disabled snapshot
-      const dashboardChannels = new Set(subscribers.filter(s => s.channel === 'dashboard').map(s => s.channel));
+      const dashboardChannels = new Set(
+        subscribers
+          .filter((s) => s.channel === "dashboard")
+          .map((s) => s.channel),
+      );
       if (dashboardChannels.size > 0) {
-        notifySubscribers('dashboard', {
+        notifySubscribers("dashboard", {
           ...buildQbittorrentDisabledSnapshot(),
           updated_at: new Date().toISOString(),
         });
@@ -122,7 +142,9 @@ const pollOnce = async () => {
     // pressure while the page was open.
     const { serverState, torrents: torrentMap } = await fetchMaindata(config);
     const rawTorrents = Array.from(torrentMap.values());
-    const dashboardTorrents = rawTorrents.map(toTorrent).filter((row): row is NonNullable<typeof row> => Boolean(row));
+    const dashboardTorrents = rawTorrents
+      .map(toTorrent)
+      .filter((row): row is NonNullable<typeof row> => Boolean(row));
     const summaryCounts = computeSummary(dashboardTorrents);
     const dashboardSnapshot = {
       enabled: true,
@@ -131,10 +153,22 @@ const pollOnce = async () => {
       poll_interval_seconds: config.poll_interval_seconds,
       summary: {
         ...summaryCounts,
-        download_speed: Math.max(0, Math.trunc(toNumberOr(serverState.dl_info_speed, 0))),
-        upload_speed: Math.max(0, Math.trunc(toNumberOr(serverState.up_info_speed, 0))),
-        downloaded_bytes: Math.max(0, Math.trunc(toNumberOr(serverState.dl_info_data, 0))),
-        uploaded_bytes: Math.max(0, Math.trunc(toNumberOr(serverState.up_info_data, 0))),
+        download_speed: Math.max(
+          0,
+          Math.trunc(toNumberOr(serverState.dl_info_speed, 0)),
+        ),
+        upload_speed: Math.max(
+          0,
+          Math.trunc(toNumberOr(serverState.up_info_speed, 0)),
+        ),
+        downloaded_bytes: Math.max(
+          0,
+          Math.trunc(toNumberOr(serverState.dl_info_data, 0)),
+        ),
+        uploaded_bytes: Math.max(
+          0,
+          Math.trunc(toNumberOr(serverState.up_info_data, 0)),
+        ),
       },
       torrents: [...dashboardTorrents]
         .sort((a, b) => {
@@ -146,9 +180,9 @@ const pollOnce = async () => {
     };
 
     // Notify dashboard subscribers
-    const hasDashboard = subscribers.some(s => s.channel === 'dashboard');
+    const hasDashboard = subscribers.some((s) => s.channel === "dashboard");
     if (hasDashboard) {
-      notifySubscribers('dashboard', dashboardSnapshot);
+      notifySubscribers("dashboard", dashboardSnapshot);
     }
 
     // Notify torrents list subscribers (paginated SSE: one channel per offset)
@@ -163,13 +197,22 @@ const pollOnce = async () => {
           return bAdded - aAdded;
         });
       const total_count = sortedList.length;
-      const download_speed = Math.max(0, Math.trunc(toNumberOr(serverState.dl_info_speed, 0)));
-      const upload_speed = Math.max(0, Math.trunc(toNumberOr(serverState.up_info_speed, 0)));
+      const download_speed = Math.max(
+        0,
+        Math.trunc(toNumberOr(serverState.dl_info_speed, 0)),
+      );
+      const upload_speed = Math.max(
+        0,
+        Math.trunc(toNumberOr(serverState.up_info_speed, 0)),
+      );
 
       for (const channel of torrentsListChannels) {
         const match = channel.match(TORRENTS_SSE_CHANNEL);
         const offset = match ? parseInt(match[1], 10) : 0;
-        const torrents = sortedList.slice(offset, offset + QBITTORRENT_TORRENTS_PAGE_SIZE);
+        const torrents = sortedList.slice(
+          offset,
+          offset + QBITTORRENT_TORRENTS_PAGE_SIZE,
+        );
         notifySubscribers(channel, {
           enabled: true,
           connected: true,
@@ -184,13 +227,26 @@ const pollOnce = async () => {
     }
 
     // Notify individual torrent subscribers
-    const torrentChannels = new Set(subscribers.filter(s => s.channel.startsWith('torrent:')).map(s => s.channel));
+    const torrentChannels = new Set(
+      subscribers
+        .filter((s) => s.channel.startsWith("torrent:"))
+        .map((s) => s.channel),
+    );
     for (const channel of torrentChannels) {
-      const hash = channel.slice('torrent:'.length);
+      const hash = channel.slice("torrent:".length);
       const rawTorrent = torrentMap.get(hash);
       const torrentResult = rawTorrent
-        ? { enabled: true, connected: true, torrent: toTorrentListItem(rawTorrent) }
-        : { enabled: true, connected: true, torrent: null, error: 'Torrent not found' };
+        ? {
+            enabled: true,
+            connected: true,
+            torrent: toTorrentListItem(rawTorrent),
+          }
+        : {
+            enabled: true,
+            connected: true,
+            torrent: null,
+            error: "Torrent not found",
+          };
       notifySubscribers(channel, torrentResult);
     }
 
@@ -200,10 +256,12 @@ const pollOnce = async () => {
       dashboardSnapshot.summary.download_speed > 0 ||
       dashboardSnapshot.summary.upload_speed > 0 ||
       dashboardSnapshot.summary.downloading_count > 0;
-    const intervalMs = hasActiveTransfers ? configuredMs : Math.min(30000, Math.max(10000, configuredMs * 10));
+    const intervalMs = hasActiveTransfers
+      ? configuredMs
+      : Math.min(30000, Math.max(10000, configuredMs * 10));
     schedulePoll(intervalMs);
   } catch (error) {
-    console.error('qBittorrent poller error:', error);
+    console.error("qBittorrent poller error:", error);
     // Reset delta state so the next successful poll starts from a clean full sync.
     resetMaindataState();
     schedulePoll(3000);
@@ -234,8 +292,14 @@ const stopPoller = () => {
   resetMaindataState();
 };
 
-export const subscribe = <T = unknown>(channel: string, callback: ChannelCallback<T>): (() => void) => {
-  const sub: Subscriber = { channel, callback: callback as ChannelCallback<any> };
+export const subscribe = <T = unknown>(
+  channel: string,
+  callback: ChannelCallback<T>,
+): (() => void) => {
+  const sub: Subscriber = {
+    channel,
+    callback: callback as ChannelCallback<any>,
+  };
   subscribers.push(sub);
 
   if (subscribers.length === 1) {
@@ -243,14 +307,17 @@ export const subscribe = <T = unknown>(channel: string, callback: ChannelCallbac
   }
 
   return () => {
-    subscribers = subscribers.filter(s => s !== sub);
+    subscribers = subscribers.filter((s) => s !== sub);
     if (subscribers.length === 0) {
       stopPoller();
     }
   };
 };
 
-export const createPollerSseResponse = (request: Request, channel: string): Response => {
+export const createPollerSseResponse = (
+  request: Request,
+  channel: string,
+): Response => {
   const encoder = new TextEncoder();
   const signal = request.signal;
 
@@ -284,7 +351,7 @@ export const createPollerSseResponse = (request: Request, channel: string): Resp
         if (closed) return;
         if (heartbeatTimeout) clearTimeout(heartbeatTimeout);
         heartbeatTimeout = setTimeout(() => {
-          writeChunk(': ping\n\n');
+          writeChunk(": ping\n\n");
           scheduleHeartbeat();
         }, 15000);
       };
@@ -303,9 +370,9 @@ export const createPollerSseResponse = (request: Request, channel: string): Resp
         writeChunk(`data: ${cachedPayload}\n\n`);
       }
 
-      signal.addEventListener('abort', closeStream);
+      signal.addEventListener("abort", closeStream);
 
-      writeChunk('retry: 3000\n\n');
+      writeChunk("retry: 3000\n\n");
       scheduleHeartbeat();
     },
     cancel() {
@@ -315,9 +382,9 @@ export const createPollerSseResponse = (request: Request, channel: string): Resp
 
   return new Response(stream, {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
     },
   });
 };

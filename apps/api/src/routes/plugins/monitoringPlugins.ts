@@ -1,18 +1,18 @@
-import { Elysia, t } from 'elysia';
-import { Prisma } from '@prisma/client';
-import { auth } from '../../auth';
-import { prisma } from '../../db';
-import { nowUtc } from '../../utils';
-import { isValidHttpUrl } from '../../utils/plugins/utils';
+import { Elysia, t } from "elysia";
+import { Prisma } from "@prisma/client";
+import { auth } from "../../auth";
+import { prisma } from "../../db";
+import { nowUtc } from "../../utils";
+import { isValidHttpUrl } from "../../utils/plugins/utils";
 import {
   normalizeAdguardConfig,
   normalizeBeszelConfig,
   normalizeScrutinyConfig,
-} from '../../utils/plugins/normalizers';
-import { logActivity } from '../../utils/activityLogs';
-import { encrypt } from '../../services/crypto';
-import { requireAdmin } from '../../middleware/auth';
-import { badGateway, badRequest, serverError } from '../../utils/errors';
+} from "../../utils/plugins/normalizers";
+import { logActivity } from "../../utils/activityLogs";
+import { encrypt } from "../../services/crypto";
+import { requireAdmin } from "../../middleware/auth";
+import { badGateway, badRequest, serverError } from "../../utils/errors";
 
 const toBoolean = (value: unknown): boolean => value === true;
 
@@ -26,58 +26,61 @@ async function getAdguardApiConfig(set: {
   status?: number | string;
 }): Promise<{ config?: AdguardApiConfig; error?: string }> {
   const plugin = await prisma.plugin.findFirst({
-    where: { type: 'adguard' },
+    where: { type: "adguard" },
     select: { enabled: true, config: true },
   });
 
   if (!plugin?.enabled) {
-    return badRequest(set, 'AdGuard Home plugin is not enabled');
+    return badRequest(set, "AdGuard Home plugin is not enabled");
   }
 
   const config = normalizeAdguardConfig(plugin.config);
   if (!config) {
-    return badRequest(set, 'AdGuard Home plugin is not configured');
+    return badRequest(set, "AdGuard Home plugin is not configured");
   }
 
   return { config };
 }
 
-export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
+export const monitoringPluginsRoutes = new Elysia({ prefix: "/api/plugins" })
   .use(auth)
   .use(requireAdmin)
-  .get('/scrutiny', async ({ user, set }) => {
+  .get("/scrutiny", async ({ user, set }) => {
     try {
       const plugin = await prisma.plugin.findFirst({
-        where: { type: 'scrutiny' },
+        where: { type: "scrutiny" },
       });
 
       const config = normalizeScrutinyConfig(plugin?.config);
       return {
         plugin: {
-          type: 'scrutiny',
+          type: "scrutiny",
           enabled: plugin?.enabled || false,
-          website_url: config?.website_url || '',
+          website_url: config?.website_url || "",
         },
       };
     } catch (error) {
-      console.error('Error fetching Scrutiny plugin config:', error);
-      return serverError(set, 'Failed to fetch Scrutiny plugin config');
+      console.error("Error fetching Scrutiny plugin config:", error);
+      return serverError(set, "Failed to fetch Scrutiny plugin config");
     }
   })
   .put(
-    '/scrutiny',
+    "/scrutiny",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
       const enabled = body.enabled ?? true;
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
-        return badRequest(set, 'Invalid website_url. Must be a valid http(s) URL.');
+        return badRequest(
+          set,
+          "Invalid website_url. Must be a valid http(s) URL.",
+        );
       }
 
       try {
         const now = nowUtc();
         const plugin = await prisma.plugin.upsert({
-          where: { type: 'scrutiny' },
+          where: { type: "scrutiny" },
           update: {
             enabled,
             config: {
@@ -86,7 +89,7 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
             updatedAt: now,
           },
           create: {
-            type: 'scrutiny',
+            type: "scrutiny",
             enabled,
             config: {
               website_url: websiteUrl,
@@ -97,9 +100,9 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         });
 
         await logActivity({
-          type: 'plugin_updated',
+          type: "plugin_updated",
           userId: user!.id,
-          payload: { plugin_type: 'scrutiny' },
+          payload: { plugin_type: "scrutiny" },
         });
 
         return {
@@ -111,8 +114,8 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         };
       } catch (error) {
-        console.error('Error saving Scrutiny plugin config:', error);
-        return serverError(set, 'Failed to save Scrutiny plugin config');
+        console.error("Error saving Scrutiny plugin config:", error);
+        return serverError(set, "Failed to save Scrutiny plugin config");
       }
     },
     {
@@ -120,59 +123,66 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         website_url: t.String(),
         enabled: t.Optional(t.Boolean()),
       }),
-    }
+    },
   )
-  .get('/beszel', async ({ user, set }) => {
+  .get("/beszel", async ({ user, set }) => {
     try {
       const plugin = await prisma.plugin.findFirst({
-        where: { type: 'beszel' },
+        where: { type: "beszel" },
       });
 
       const config = normalizeBeszelConfig(plugin?.config);
       const rawConfig =
-        plugin?.config && typeof plugin.config === 'object' && !Array.isArray(plugin.config)
+        plugin?.config &&
+        typeof plugin.config === "object" &&
+        !Array.isArray(plugin.config)
           ? (plugin.config as Record<string, unknown>)
           : null;
 
       return {
         plugin: {
-          type: 'beszel',
+          type: "beszel",
           enabled: plugin?.enabled || false,
-          website_url: config?.website_url || '',
-          email: config?.email || (typeof rawConfig?.email === 'string' ? rawConfig.email : ''),
+          website_url: config?.website_url || "",
+          email:
+            config?.email ||
+            (typeof rawConfig?.email === "string" ? rawConfig.email : ""),
           password_set: Boolean(config?.password),
         },
       };
     } catch (error) {
-      console.error('Error fetching Beszel plugin config:', error);
-      return serverError(set, 'Failed to fetch Beszel plugin config');
+      console.error("Error fetching Beszel plugin config:", error);
+      return serverError(set, "Failed to fetch Beszel plugin config");
     }
   })
   .put(
-    '/beszel',
+    "/beszel",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
       const email = body.email.trim();
       const enabled = body.enabled ?? true;
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
-        return badRequest(set, 'Invalid website_url. Must be a valid http(s) URL.');
+        return badRequest(
+          set,
+          "Invalid website_url. Must be a valid http(s) URL.",
+        );
       }
 
       if (!email) {
-        return badRequest(set, 'email is required');
+        return badRequest(set, "email is required");
       }
 
       try {
         const existingPlugin = await prisma.plugin.findFirst({
-          where: { type: 'beszel' },
+          where: { type: "beszel" },
         });
         const existingConfig = normalizeBeszelConfig(existingPlugin?.config);
-        const providedPassword = body.password?.trim() || '';
-        const password = providedPassword || existingConfig?.password || '';
+        const providedPassword = body.password?.trim() || "";
+        const password = providedPassword || existingConfig?.password || "";
 
         if (!password) {
-          return badRequest(set, 'password is required');
+          return badRequest(set, "password is required");
         }
 
         const now = nowUtc();
@@ -183,15 +193,21 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         };
 
         const plugin = await prisma.plugin.upsert({
-          where: { type: 'beszel' },
+          where: { type: "beszel" },
           update: { enabled, config, updatedAt: now },
-          create: { type: 'beszel', enabled, config, createdAt: now, updatedAt: now },
+          create: {
+            type: "beszel",
+            enabled,
+            config,
+            createdAt: now,
+            updatedAt: now,
+          },
         });
 
         await logActivity({
-          type: 'plugin_updated',
+          type: "plugin_updated",
           userId: user!.id,
-          payload: { plugin_type: 'beszel' },
+          payload: { plugin_type: "beszel" },
         });
 
         return {
@@ -205,8 +221,8 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         };
       } catch (error) {
-        console.error('Error saving Beszel plugin config:', error);
-        return serverError(set, 'Failed to save Beszel plugin config');
+        console.error("Error saving Beszel plugin config:", error);
+        return serverError(set, "Failed to save Beszel plugin config");
       }
     },
     {
@@ -216,58 +232,65 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         password: t.Optional(t.String()),
         enabled: t.Optional(t.Boolean()),
       }),
-    }
+    },
   )
-  .get('/adguard', async ({ user, set }) => {
+  .get("/adguard", async ({ user, set }) => {
     try {
       const plugin = await prisma.plugin.findFirst({
-        where: { type: 'adguard' },
+        where: { type: "adguard" },
       });
 
       const config = normalizeAdguardConfig(plugin?.config);
       const rawConfig =
-        plugin?.config && typeof plugin.config === 'object' && !Array.isArray(plugin.config)
+        plugin?.config &&
+        typeof plugin.config === "object" &&
+        !Array.isArray(plugin.config)
           ? (plugin.config as Record<string, unknown>)
           : null;
 
       return {
         plugin: {
-          type: 'adguard',
+          type: "adguard",
           enabled: plugin?.enabled || false,
-          website_url: config?.website_url || '',
-          username: config?.username || (typeof rawConfig?.username === 'string' ? rawConfig.username : ''),
+          website_url: config?.website_url || "",
+          username:
+            config?.username ||
+            (typeof rawConfig?.username === "string" ? rawConfig.username : ""),
           password_set: Boolean(config?.password),
         },
       };
     } catch (error) {
-      console.error('Error fetching AdGuard Home plugin config:', error);
-      return serverError(set, 'Failed to fetch AdGuard Home plugin config');
+      console.error("Error fetching AdGuard Home plugin config:", error);
+      return serverError(set, "Failed to fetch AdGuard Home plugin config");
     }
   })
   .put(
-    '/adguard',
+    "/adguard",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, '');
+      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
       const username = body.username.trim();
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
-        return badRequest(set, 'Invalid website_url. Must be a valid http(s) URL.');
+        return badRequest(
+          set,
+          "Invalid website_url. Must be a valid http(s) URL.",
+        );
       }
 
       if (!username) {
-        return badRequest(set, 'username is required');
+        return badRequest(set, "username is required");
       }
 
       try {
         const existingPlugin = await prisma.plugin.findFirst({
-          where: { type: 'adguard' },
+          where: { type: "adguard" },
         });
         const existingConfig = normalizeAdguardConfig(existingPlugin?.config);
-        const providedPassword = body.password?.trim() || '';
-        const password = providedPassword || existingConfig?.password || '';
+        const providedPassword = body.password?.trim() || "";
+        const password = providedPassword || existingConfig?.password || "";
 
         if (!password) {
-          return badRequest(set, 'password is required');
+          return badRequest(set, "password is required");
         }
 
         const now = nowUtc();
@@ -279,14 +302,14 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         };
 
         const plugin = await prisma.plugin.upsert({
-          where: { type: 'adguard' },
+          where: { type: "adguard" },
           update: {
             enabled,
             config,
             updatedAt: now,
           },
           create: {
-            type: 'adguard',
+            type: "adguard",
             enabled,
             config,
             createdAt: now,
@@ -295,9 +318,9 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         });
 
         await logActivity({
-          type: 'plugin_updated',
+          type: "plugin_updated",
           userId: user!.id,
-          payload: { plugin_type: 'adguard' },
+          payload: { plugin_type: "adguard" },
         });
 
         return {
@@ -311,8 +334,8 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           },
         };
       } catch (error) {
-        console.error('Error saving AdGuard Home plugin config:', error);
-        return serverError(set, 'Failed to save AdGuard Home plugin config');
+        console.error("Error saving AdGuard Home plugin config:", error);
+        return serverError(set, "Failed to save AdGuard Home plugin config");
       }
     },
     {
@@ -322,54 +345,65 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
         password: t.Optional(t.String()),
         enabled: t.Optional(t.Boolean()),
       }),
-    }
+    },
   )
   .post(
-    '/adguard/protection',
+    "/adguard/protection",
     async ({ user, body, set }) => {
       try {
         const { config, error } = await getAdguardApiConfig(set);
         if (!config) {
-          return { error: error || 'AdGuard Home plugin is not configured' };
+          return { error: error || "AdGuard Home plugin is not configured" };
         }
 
-        const authHeader = `Basic ${Buffer.from(`${config.username}:${config.password}`).toString('base64')}`;
-        const protectionUrl = new URL('/control/protection', config.website_url);
-        const statusUrl = new URL('/control/status', config.website_url);
+        const authHeader = `Basic ${Buffer.from(`${config.username}:${config.password}`).toString("base64")}`;
+        const protectionUrl = new URL(
+          "/control/protection",
+          config.website_url,
+        );
+        const statusUrl = new URL("/control/status", config.website_url);
 
         const protectionResponse = await fetch(protectionUrl.toString(), {
-          method: 'POST',
+          method: "POST",
           headers: {
-            Accept: 'application/json',
+            Accept: "application/json",
             Authorization: authHeader,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ enabled: body.enabled }),
         });
 
         if (!protectionResponse.ok) {
-          return badGateway(set, `AdGuard protection request failed with status ${protectionResponse.status}`);
+          return badGateway(
+            set,
+            `AdGuard protection request failed with status ${protectionResponse.status}`,
+          );
         }
 
         const statusResponse = await fetch(statusUrl.toString(), {
           headers: {
-            Accept: 'application/json',
+            Accept: "application/json",
             Authorization: authHeader,
           },
         });
 
         if (!statusResponse.ok) {
-          return badGateway(set, `AdGuard status request failed with status ${statusResponse.status}`);
+          return badGateway(
+            set,
+            `AdGuard status request failed with status ${statusResponse.status}`,
+          );
         }
 
         const statusPayload = (await statusResponse.json()) as unknown;
         const status =
-          statusPayload && typeof statusPayload === 'object' && !Array.isArray(statusPayload)
+          statusPayload &&
+          typeof statusPayload === "object" &&
+          !Array.isArray(statusPayload)
             ? (statusPayload as Record<string, unknown>)
             : null;
 
         if (!status) {
-          return badGateway(set, 'Invalid AdGuard Home status payload');
+          return badGateway(set, "Invalid AdGuard Home status payload");
         }
 
         return {
@@ -377,13 +411,13 @@ export const monitoringPluginsRoutes = new Elysia({ prefix: '/api/plugins' })
           protection_enabled: toBoolean(status.protection_enabled),
         };
       } catch (error) {
-        console.error('Error updating AdGuard Home protection:', error);
-        return serverError(set, 'Failed to update AdGuard Home protection');
+        console.error("Error updating AdGuard Home protection:", error);
+        return serverError(set, "Failed to update AdGuard Home protection");
       }
     },
     {
       body: t.Object({
         enabled: t.Boolean(),
       }),
-    }
+    },
   );

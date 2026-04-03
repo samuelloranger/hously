@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface SkeletonProps {
   className?: string;
@@ -9,7 +9,14 @@ interface SkeletonProps {
  * Shows an animated shimmer effect
  */
 function Skeleton({ className }: SkeletonProps) {
-  return <div className={cn('animate-pulse rounded-md bg-neutral-200 dark:bg-neutral-700', className)} />;
+  return (
+    <div
+      className={cn(
+        "animate-pulse rounded-md bg-neutral-200 dark:bg-neutral-700",
+        className,
+      )}
+    />
+  );
 }
 
 /**

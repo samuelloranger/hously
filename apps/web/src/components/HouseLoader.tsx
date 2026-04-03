@@ -1,4 +1,3 @@
-
 interface HouseLoaderProps {
   size?: "sm" | "md" | "lg";
 }

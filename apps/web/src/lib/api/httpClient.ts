@@ -1,12 +1,12 @@
-import type { Fetcher, FetcherOptions } from '@/lib/api/context';
+import type { Fetcher, FetcherOptions } from "@/lib/api/context";
 
 type LowLevelRequest = <T>(
   endpoint: string,
   options: {
-    method?: FetcherOptions['method'];
-    headers?: FetcherOptions['headers'];
+    method?: FetcherOptions["method"];
+    headers?: FetcherOptions["headers"];
     body?: unknown;
-  }
+  },
 ) => Promise<T>;
 
 type CreateFetcherOptions = {
@@ -18,16 +18,21 @@ export class HttpError extends Error {
   response?: Response;
   data?: unknown;
 
-  constructor(message: string, status: number, response?: Response, data?: unknown) {
+  constructor(
+    message: string,
+    status: number,
+    response?: Response,
+    data?: unknown,
+  ) {
     super(message);
-    this.name = 'HttpError';
+    this.name = "HttpError";
     this.status = status;
     this.response = response;
     this.data = data;
   }
 }
 
-export type AuthMode = 'cookie' | 'bearer';
+export type AuthMode = "cookie" | "bearer";
 
 export type TokenProvider = () => Promise<string | null> | string | null;
 
@@ -45,21 +50,41 @@ export type HttpClientOptions = {
 };
 
 export type HttpRequestOptions = {
-  method?: FetcherOptions['method'];
+  method?: FetcherOptions["method"];
   headers?: Record<string, string> | Headers | [string, string][];
   body?: unknown;
 };
 
 export type HttpClient = {
   request: <T>(endpoint: string, options?: HttpRequestOptions) => Promise<T>;
-  get: <T>(endpoint: string, options?: Omit<HttpRequestOptions, 'method' | 'body'>) => Promise<T>;
-  post: <T>(endpoint: string, body?: unknown, options?: Omit<HttpRequestOptions, 'method' | 'body'>) => Promise<T>;
-  put: <T>(endpoint: string, body?: unknown, options?: Omit<HttpRequestOptions, 'method' | 'body'>) => Promise<T>;
-  patch: <T>(endpoint: string, body?: unknown, options?: Omit<HttpRequestOptions, 'method' | 'body'>) => Promise<T>;
-  delete: <T>(endpoint: string, options?: Omit<HttpRequestOptions, 'method' | 'body'>) => Promise<T>;
+  get: <T>(
+    endpoint: string,
+    options?: Omit<HttpRequestOptions, "method" | "body">,
+  ) => Promise<T>;
+  post: <T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<HttpRequestOptions, "method" | "body">,
+  ) => Promise<T>;
+  put: <T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<HttpRequestOptions, "method" | "body">,
+  ) => Promise<T>;
+  patch: <T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<HttpRequestOptions, "method" | "body">,
+  ) => Promise<T>;
+  delete: <T>(
+    endpoint: string,
+    options?: Omit<HttpRequestOptions, "method" | "body">,
+  ) => Promise<T>;
 };
 
-function normalizeHeaders(input?: Record<string, string> | Headers | [string, string][]): Record<string, string> {
+function normalizeHeaders(
+  input?: Record<string, string> | Headers | [string, string][],
+): Record<string, string> {
   const out: Record<string, string> = {};
   if (!input) return out;
   if (input instanceof Headers) {
@@ -81,14 +106,14 @@ function normalizeHeaders(input?: Record<string, string> | Headers | [string, st
 function buildUrl(baseUrl: string | undefined, endpoint: string): string {
   if (!baseUrl) return endpoint;
   if (/^https?:\/\//.test(endpoint)) return endpoint;
-  const trimmed = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const trimmed = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+  const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   return `${trimmed}${path}`;
 }
 
 async function parseResponseData(response: Response): Promise<unknown> {
-  const contentType = response.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) {
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
     return response.json().catch(() => undefined);
   }
   return response.text().catch(() => undefined);
@@ -98,25 +123,37 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
   const request = async <T>(
     endpoint: string,
     requestOptions: HttpRequestOptions = {},
-    retryingAfterRefresh: boolean = false
+    retryingAfterRefresh: boolean = false,
   ): Promise<T> => {
-    const method = requestOptions.method || 'GET';
+    const method = requestOptions.method || "GET";
     const headers = normalizeHeaders(requestOptions.headers);
     const hasBody = requestOptions.body !== undefined;
-    const isFormData = typeof FormData !== 'undefined' && requestOptions.body instanceof FormData;
+    const isFormData =
+      typeof FormData !== "undefined" &&
+      requestOptions.body instanceof FormData;
 
-    if (options.authMode === 'bearer' && options.getAccessToken && !headers.Authorization) {
+    if (
+      options.authMode === "bearer" &&
+      options.getAccessToken &&
+      !headers.Authorization
+    ) {
       const token = await options.getAccessToken();
       if (token) headers.Authorization = `Bearer ${token}`;
     }
 
-    let body: string | FormData | Blob | ArrayBuffer | ReadableStream | undefined;
+    let body:
+      | string
+      | FormData
+      | Blob
+      | ArrayBuffer
+      | ReadableStream
+      | undefined;
     if (hasBody) {
-      if (!isFormData && !headers['Content-Type']) {
-        headers['Content-Type'] = 'application/json';
+      if (!isFormData && !headers["Content-Type"]) {
+        headers["Content-Type"] = "application/json";
       }
 
-      if (!isFormData && typeof requestOptions.body !== 'string') {
+      if (!isFormData && typeof requestOptions.body !== "string") {
         body = JSON.stringify(requestOptions.body);
       } else {
         body = requestOptions.body as typeof body;
@@ -130,25 +167,28 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
         method,
         headers,
         body,
-        credentials: options.authMode === 'cookie' ? 'include' : 'same-origin',
+        credentials: options.authMode === "cookie" ? "include" : "same-origin",
       });
 
       if (
         response.status === 401 &&
-        options.authMode === 'bearer' &&
+        options.authMode === "bearer" &&
         options.refreshAccessToken &&
         !retryingAfterRefresh
       ) {
         const nextToken = await options.refreshAccessToken();
         if (nextToken) {
-          const retryHeaders = { ...headers, Authorization: `Bearer ${nextToken}` };
+          const retryHeaders = {
+            ...headers,
+            Authorization: `Bearer ${nextToken}`,
+          };
           return request<T>(
             endpoint,
             {
               ...requestOptions,
               headers: retryHeaders,
             },
-            true
+            true,
           );
         }
         if (options.onAuthFailure) {
@@ -159,11 +199,15 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
       if (!response.ok) {
         const errorData = await parseResponseData(response);
         let errorMessage =
-          (errorData && typeof errorData === 'object' && 'error' in errorData && (errorData as any).error) ||
+          (errorData &&
+            typeof errorData === "object" &&
+            "error" in errorData &&
+            (errorData as any).error) ||
           `HTTP error! status: ${response.status}`;
 
         if (options.prod && response.status >= 500 && !errorMessage) {
-          errorMessage = 'An internal server error occurred. Please try again later.';
+          errorMessage =
+            "An internal server error occurred. Please try again later.";
         }
 
         throw new HttpError(errorMessage, response.status, response, errorData);
@@ -178,10 +222,13 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
     } catch (error) {
       if (error instanceof HttpError) throw error;
 
-      if (error instanceof TypeError && error.message.toLowerCase().includes('fetch')) {
+      if (
+        error instanceof TypeError &&
+        error.message.toLowerCase().includes("fetch")
+      ) {
         const defaultNetworkMessage = options.prod
-          ? 'Unable to connect to server. Please check your internet connection and try again.'
-          : 'Unable to connect to server. Please ensure the backend is running.';
+          ? "Unable to connect to server. Please check your internet connection and try again."
+          : "Unable to connect to server. Please ensure the backend is running.";
         const message = options.networkErrorMessage
           ? options.prod
             ? options.networkErrorMessage.prod
@@ -199,50 +246,61 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
     get: (endpoint, reqOptions) =>
       request(endpoint, {
         ...reqOptions,
-        method: 'GET',
+        method: "GET",
       }),
     post: (endpoint, body, reqOptions) =>
       request(endpoint, {
         ...reqOptions,
-        method: 'POST',
+        method: "POST",
         body,
       }),
     put: (endpoint, body, reqOptions) =>
       request(endpoint, {
         ...reqOptions,
-        method: 'PUT',
+        method: "PUT",
         body,
       }),
     patch: (endpoint, body, reqOptions) =>
       request(endpoint, {
         ...reqOptions,
-        method: 'PATCH',
+        method: "PATCH",
         body,
       }),
     delete: (endpoint, reqOptions) =>
       request(endpoint, {
         ...reqOptions,
-        method: 'DELETE',
+        method: "DELETE",
       }),
   };
 }
 
-export function createFetcher(request: LowLevelRequest, options: CreateFetcherOptions = {}): Fetcher {
+export function createFetcher(
+  request: LowLevelRequest,
+  options: CreateFetcherOptions = {},
+): Fetcher {
   const { serializeJsonBody = false } = options;
 
-  return async <T>(endpoint: string, fetcherOptions?: FetcherOptions): Promise<T> => {
+  return async <T>(
+    endpoint: string,
+    fetcherOptions?: FetcherOptions,
+  ): Promise<T> => {
     const params = fetcherOptions?.params;
     const url = params
       ? `${endpoint}?${new URLSearchParams(
           Object.entries(params)
             .filter(([, value]) => value !== undefined)
-            .map(([key, value]) => [key, String(value)]) as Array<[string, string]>
+            .map(([key, value]) => [key, String(value)]) as Array<
+            [string, string]
+          >,
         ).toString()}`
       : endpoint;
 
     const rawBody = fetcherOptions?.body;
     const body =
-      serializeJsonBody && rawBody !== undefined && typeof rawBody !== 'string' && !(rawBody instanceof FormData)
+      serializeJsonBody &&
+      rawBody !== undefined &&
+      typeof rawBody !== "string" &&
+      !(rawBody instanceof FormData)
         ? JSON.stringify(rawBody)
         : rawBody;
 

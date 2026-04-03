@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface EmojiPickerProps {
   selectedEmoji: string;
@@ -8,54 +8,57 @@ interface EmojiPickerProps {
 
 const HABIT_EMOJIS = [
   // Health
-  '💧',
-  '💊',
-  '🏃‍♂️',
-  '🧘‍♀️',
-  '🍎',
-  '🥗',
-  '🥦',
-  '🦷',
+  "💧",
+  "💊",
+  "🏃‍♂️",
+  "🧘‍♀️",
+  "🍎",
+  "🥗",
+  "🥦",
+  "🦷",
   // Wellness
-  '😴',
-  '🧠',
-  '📖',
-  '✍️',
-  '🕯️',
-  '🛀',
-  '💆‍♂️',
-  '☀️',
+  "😴",
+  "🧠",
+  "📖",
+  "✍️",
+  "🕯️",
+  "🛀",
+  "💆‍♂️",
+  "☀️",
   // Productivity
-  '💻',
-  '📝',
-  '📚',
-  '🎯',
-  '⌛',
-  '📅',
-  '💡',
-  '✅',
+  "💻",
+  "📝",
+  "📚",
+  "🎯",
+  "⌛",
+  "📅",
+  "💡",
+  "✅",
   // Home
-  '🧹',
-  '🪥',
-  '🐕',
-  '🌱',
-  '🧺',
-  '🚿',
-  '🍳',
-  '☕',
+  "🧹",
+  "🪥",
+  "🐕",
+  "🌱",
+  "🧺",
+  "🚿",
+  "🍳",
+  "☕",
   // Sport
-  '🏋️‍♂️',
-  '🚴‍♂️',
-  '🏊‍♂️',
-  '🚶‍♂️',
-  '🤸‍♂️',
-  '🧗‍♂️',
-  '🏀',
-  '⚽',
+  "🏋️‍♂️",
+  "🚴‍♂️",
+  "🏊‍♂️",
+  "🚶‍♂️",
+  "🤸‍♂️",
+  "🧗‍♂️",
+  "🏀",
+  "⚽",
 ];
 
-export const EmojiPicker: React.FC<EmojiPickerProps> = ({ selectedEmoji, onSelect }) => {
-  const [customEmoji, setCustomEmoji] = useState('');
+export const EmojiPicker: React.FC<EmojiPickerProps> = ({
+  selectedEmoji,
+  onSelect,
+}) => {
+  const [customEmoji, setCustomEmoji] = useState("");
 
   const handleCustomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -69,16 +72,16 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ selectedEmoji, onSelec
   return (
     <div className="space-y-4 p-1">
       <div className="grid grid-cols-8 gap-1">
-        {HABIT_EMOJIS.map(emoji => (
+        {HABIT_EMOJIS.map((emoji) => (
           <button
             key={emoji}
             type="button"
             onClick={() => onSelect(emoji)}
             className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-xl text-xl transition-all duration-200',
+              "flex h-10 w-10 items-center justify-center rounded-xl text-xl transition-all duration-200",
               selectedEmoji === emoji
-                ? 'bg-primary-100 dark:bg-primary-900/40 scale-110 shadow-sm'
-                : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'
+                ? "bg-primary-100 dark:bg-primary-900/40 scale-110 shadow-sm"
+                : "hover:bg-neutral-100 dark:hover:bg-neutral-700",
             )}
           >
             {emoji}

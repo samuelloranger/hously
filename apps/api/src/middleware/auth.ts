@@ -1,5 +1,5 @@
-import { Elysia } from 'elysia';
-import { auth } from '../auth';
+import { Elysia } from "elysia";
+import { auth } from "../auth";
 
 /**
  * Middleware that requires an authenticated user.
@@ -10,12 +10,12 @@ import { auth } from '../auth';
  *
  * Note: includes the auth plugin to ensure the `user` derive is available.
  */
-export const requireUser = new Elysia({ name: 'middleware/requireUser' })
+export const requireUser = new Elysia({ name: "middleware/requireUser" })
   .use(auth)
   .onBeforeHandle(({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: 'Unauthorized' };
+      return { error: "Unauthorized" };
     }
   });
 
@@ -28,15 +28,15 @@ export const requireUser = new Elysia({ name: 'middleware/requireUser' })
  *
  * Note: includes the auth plugin to ensure the `user` derive is available.
  */
-export const requireAdmin = new Elysia({ name: 'middleware/requireAdmin' })
+export const requireAdmin = new Elysia({ name: "middleware/requireAdmin" })
   .use(auth)
   .onBeforeHandle(({ user, set }) => {
     if (!user) {
       set.status = 401;
-      return { error: 'Unauthorized' };
+      return { error: "Unauthorized" };
     }
     if (!user.is_admin) {
       set.status = 403;
-      return { error: 'Forbidden' };
+      return { error: "Forbidden" };
     }
   });

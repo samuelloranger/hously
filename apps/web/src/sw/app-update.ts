@@ -11,11 +11,14 @@ export async function handleAppUpdate(): Promise<void> {
       cacheNames.map((cacheName) => {
         console.log(`Deleting cache: ${cacheName}`);
         return caches.delete(cacheName);
-      })
+      }),
     );
 
     // Reload all open clients (tabs/windows)
-    const clients = await sw.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const clients = await sw.clients.matchAll({
+      type: "window",
+      includeUncontrolled: true,
+    });
     clients.forEach((client) => {
       if (client.url) {
         console.log(`Reloading client: ${client.url}`);
@@ -28,4 +31,3 @@ export async function handleAppUpdate(): Promise<void> {
     console.error("Error handling app update:", error);
   }
 }
-

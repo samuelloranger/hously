@@ -1,5 +1,5 @@
-import type { QueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queryKeys';
+import type { QueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
 
 let queryClientInstance: QueryClient | null = null;
 

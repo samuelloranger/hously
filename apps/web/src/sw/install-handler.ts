@@ -7,7 +7,6 @@ export function handleInstall(event: ExtendableEvent): void {
   event.waitUntil(
     Promise.resolve().then(() => {
       console.log("Hously service worker installed (push notifications only)");
-    })
+    }),
   );
 }
-

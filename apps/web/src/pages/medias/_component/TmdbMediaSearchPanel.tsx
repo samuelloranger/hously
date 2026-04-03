@@ -1,20 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Search } from 'lucide-react';
-import { useMediaAutoSearch, useTmdbMediaSearch } from '@/hooks/useMedias';
-import { type TmdbMediaSearchItem } from '@hously/shared';
-import { toast } from 'sonner';
-import { ExploreCardDetailDialog } from '@/pages/medias/_component/ExploreCardDetailDialog';
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Search } from "lucide-react";
+import { useMediaAutoSearch, useTmdbMediaSearch } from "@/hooks/useMedias";
+import { type TmdbMediaSearchItem } from "@hously/shared";
+import { toast } from "sonner";
+import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 
 interface TmdbMediaSearchPanelProps {
   onAdded?: () => void;
 }
 
 export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
-  const { t } = useTranslation('common');
-  const [input, setInput] = useState('');
-  const [debounced, setDebounced] = useState('');
-  const [selectedItem, setSelectedItem] = useState<TmdbMediaSearchItem | null>(null);
+  const { t } = useTranslation("common");
+  const [input, setInput] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [selectedItem, setSelectedItem] = useState<TmdbMediaSearchItem | null>(
+    null,
+  );
   const trimmedInput = input.trim();
 
   useEffect(() => {
@@ -28,19 +30,28 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
   const searchQuery = useTmdbMediaSearch(debounced, { enabled: searchEnabled });
   const autoSearchMutation = useMediaAutoSearch();
 
-  const results = useMemo(() => searchQuery.data?.items ?? [], [searchQuery.data?.items]);
+  const results = useMemo(
+    () => searchQuery.data?.items ?? [],
+    [searchQuery.data?.items],
+  );
 
   const triggerAutoSearch = async (item: TmdbMediaSearchItem) => {
-    if (!item.already_exists || !item.can_add || autoSearchMutation.isPending) return;
+    if (!item.already_exists || !item.can_add || autoSearchMutation.isPending)
+      return;
 
     try {
       await autoSearchMutation.mutateAsync({
         service: item.service,
         source_id: item.source_id ?? 0,
       });
-      toast.success(t('medias.autoSearch.success', { service: item.service === 'radarr' ? 'Radarr' : 'Sonarr' }));
+      toast.success(
+        t("medias.autoSearch.success", {
+          service: item.service === "radarr" ? "Radarr" : "Sonarr",
+        }),
+      );
     } catch (error) {
-      const message = error instanceof Error ? error.message : t('medias.autoSearch.failed');
+      const message =
+        error instanceof Error ? error.message : t("medias.autoSearch.failed");
       toast.error(message);
     }
   };
@@ -49,8 +60,12 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
     <>
       <section className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
         <div className="px-5 py-3.5 border-b border-neutral-100 dark:border-neutral-800">
-          <p className="text-sm font-semibold text-neutral-900 dark:text-white">{t('medias.tmdb.title')}</p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{t('medias.tmdb.subtitle')}</p>
+          <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+            {t("medias.tmdb.title")}
+          </p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+            {t("medias.tmdb.subtitle")}
+          </p>
         </div>
 
         <div className="p-4 space-y-3">
@@ -61,21 +76,28 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
             />
             <input
               value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder={t('medias.tmdb.placeholder')}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={t("medias.tmdb.placeholder")}
               className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
             />
           </div>
 
           {searchEnabled ? (
             searchQuery.isLoading ? (
-              <div className="text-sm text-neutral-500 dark:text-neutral-400">{t('medias.tmdb.searching')}</div>
+              <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                {t("medias.tmdb.searching")}
+              </div>
             ) : results.length === 0 ? (
-              <div className="text-sm text-neutral-500 dark:text-neutral-400">{t('medias.tmdb.noResults')}</div>
+              <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                {t("medias.tmdb.noResults")}
+              </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {results.map(item => {
-                  const canAutoSearch = item.already_exists && item.can_add && typeof item.source_id === 'number';
+                {results.map((item) => {
+                  const canAutoSearch =
+                    item.already_exists &&
+                    item.can_add &&
+                    typeof item.source_id === "number";
                   return (
                     <button
                       key={item.id}
@@ -92,7 +114,9 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-lg">🎬</div>
+                          <div className="w-full h-full flex items-center justify-center text-lg">
+                            🎬
+                          </div>
                         )}
                       </div>
 
@@ -101,23 +125,23 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
                           {item.title}
                         </p>
                         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                          {item.release_year ?? t('medias.unknownYear')}
+                          {item.release_year ?? t("medias.unknownYear")}
                         </p>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">
-                            {item.service === 'radarr' ? 'Radarr' : 'Sonarr'}
+                            {item.service === "radarr" ? "Radarr" : "Sonarr"}
                           </span>
                           {item.already_exists ? (
                             <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
-                              {t('medias.tmdb.inLibrary')}
+                              {t("medias.tmdb.inLibrary")}
                             </span>
                           ) : !item.can_add ? (
                             <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                              {t('medias.tmdb.notConfigured')}
+                              {t("medias.tmdb.notConfigured")}
                             </span>
                           ) : (
                             <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">
-                              {t('medias.tmdb.add')}
+                              {t("medias.tmdb.add")}
                             </span>
                           )}
 
@@ -125,12 +149,12 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
                             <span
                               role="button"
                               tabIndex={0}
-                              onClick={e => {
+                              onClick={(e) => {
                                 e.stopPropagation();
                                 void triggerAutoSearch(item);
                               }}
-                              onKeyDown={e => {
-                                if (e.key === 'Enter') {
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
                                   e.stopPropagation();
                                   void triggerAutoSearch(item);
                                 }
@@ -138,8 +162,8 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
                               className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600 cursor-pointer"
                             >
                               {autoSearchMutation.isPending
-                                ? t('medias.autoSearch.running')
-                                : t('medias.autoSearch.button')}
+                                ? t("medias.autoSearch.running")
+                                : t("medias.autoSearch.button")}
                             </span>
                           )}
                         </div>
@@ -150,7 +174,9 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
               </div>
             )
           ) : (
-            <div className="text-xs text-neutral-500 dark:text-neutral-400">{t('medias.tmdb.hint')}</div>
+            <div className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("medias.tmdb.hint")}
+            </div>
           )}
         </div>
       </section>

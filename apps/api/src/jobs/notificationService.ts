@@ -2,11 +2,11 @@
  * Notification service for creating and enqueuing push notifications
  */
 
-import { prisma } from '../db';
-import { nowUtc, getTimezone } from '../utils';
-import { addJob, QUEUE_NAMES } from '../services/queueService';
-import type { NotificationJobData } from '../services/jobs/notificationWorker';
-import { normalizeNotificationUrl } from '@hously/shared';
+import { prisma } from "../db";
+import { nowUtc, getTimezone } from "../utils";
+import { addJob, QUEUE_NAMES } from "../services/queueService";
+import type { NotificationJobData } from "../services/jobs/notificationWorker";
+import { normalizeNotificationUrl } from "@hously/shared";
 
 /**
  * Check if current time is in night period (23h-6h) when notifications should not be sent
@@ -14,9 +14,9 @@ import { normalizeNotificationUrl } from '@hously/shared';
 export function isNightTime(): boolean {
   const tz = getTimezone();
   const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-US', {
+  const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: tz,
-    hour: 'numeric',
+    hour: "numeric",
     hour12: false,
   });
   const currentHour = parseInt(formatter.format(now));
@@ -24,7 +24,9 @@ export function isNightTime(): boolean {
   const isNight = currentHour >= 23 || currentHour < 6;
 
   if (isNight) {
-    console.log(`Night time detected (current hour: ${currentHour}). Skipping notifications.`);
+    console.log(
+      `Night time detected (current hour: ${currentHour}). Skipping notifications.`,
+    );
   }
 
   return isNight;
@@ -46,7 +48,7 @@ export async function createAndQueueNotification(
   body: string,
   notificationType: string,
   url?: string,
-  metadata?: NotificationMetadata
+  metadata?: NotificationMetadata,
 ): Promise<boolean> {
   try {
     const normalizedUrl = normalizeNotificationUrl(url);
@@ -60,13 +62,17 @@ export async function createAndQueueNotification(
         body,
         type: notificationType,
         url: normalizedUrl,
-        notificationMetadata: metadata ? JSON.parse(JSON.stringify(metadata)) : undefined,
+        notificationMetadata: metadata
+          ? JSON.parse(JSON.stringify(metadata))
+          : undefined,
         read: false,
         createdAt: nowUtc(),
       },
     });
 
-    console.log(`[NotificationService] Created notification ${notification.id} for user ${userId}. Enqueuing push job.`);
+    console.log(
+      `[NotificationService] Created notification ${notification.id} for user ${userId}. Enqueuing push job.`,
+    );
 
     // 2. Enqueue the actual push delivery to BullMQ
     await addJob<NotificationJobData>(
@@ -80,12 +86,15 @@ export async function createAndQueueNotification(
         notificationType,
         url: normalizedUrl || undefined,
         metadata,
-      }
+      },
     );
 
     return true;
   } catch (error) {
-    console.error(`[NotificationService] Error creating/enqueuing notification for user ${userId}:`, error);
+    console.error(
+      `[NotificationService] Error creating/enqueuing notification for user ${userId}:`,
+      error,
+    );
     return false;
   }
 }
@@ -93,7 +102,9 @@ export async function createAndQueueNotification(
 /**
  * Get all users (for sending broadcast notifications)
  */
-export async function getAllUsers(): Promise<Array<{ id: number; locale: string | null }>> {
+export async function getAllUsers(): Promise<
+  Array<{ id: number; locale: string | null }>
+> {
   return prisma.user.findMany({
     select: { id: true, locale: true },
   });

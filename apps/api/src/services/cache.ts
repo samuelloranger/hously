@@ -1,4 +1,4 @@
-import { RedisClient } from 'bun';
+import { RedisClient } from "bun";
 
 let redisClient: RedisClient | null = null;
 let redisDisabled = false;
@@ -7,10 +7,10 @@ const getRedisUrl = (): string => {
   const explicitUrl = process.env.REDIS_URL?.trim();
   if (explicitUrl) return explicitUrl;
 
-  const host = process.env.REDIS_HOST?.trim() || 'redis';
-  const port = process.env.REDIS_PORT?.trim() || '6379';
+  const host = process.env.REDIS_HOST?.trim() || "redis";
+  const port = process.env.REDIS_PORT?.trim() || "6379";
   const password = process.env.REDIS_PASSWORD?.trim();
-  const db = process.env.REDIS_DB?.trim() || '0';
+  const db = process.env.REDIS_DB?.trim() || "0";
 
   if (password) {
     return `redis://:${encodeURIComponent(password)}@${host}:${port}/${db}`;
@@ -28,7 +28,7 @@ const getRedisClient = (): RedisClient | null => {
     return redisClient;
   } catch (error) {
     redisDisabled = true;
-    console.error('Failed to initialize Redis client:', error);
+    console.error("Failed to initialize Redis client:", error);
     return null;
   }
 };
@@ -47,7 +47,11 @@ export const getJsonCache = async <T>(key: string): Promise<T | null> => {
   }
 };
 
-export const setJsonCache = async <T>(key: string, value: T, ttlSeconds: number): Promise<void> => {
+export const setJsonCache = async <T>(
+  key: string,
+  value: T,
+  ttlSeconds: number,
+): Promise<void> => {
   const client = getRedisClient();
   if (!client) return;
 

@@ -1,6 +1,6 @@
-import { useNotificationPermission } from '@/lib/notifications/useNotificationPermission';
-import { usePushSubscription } from '@/lib/notifications/usePushSubscription';
-import type { PushSubscriptionData } from '@/lib/notifications/usePushSubscriptionUtils';
+import { useNotificationPermission } from "@/lib/notifications/useNotificationPermission";
+import { usePushSubscription } from "@/lib/notifications/usePushSubscription";
+import type { PushSubscriptionData } from "@/lib/notifications/usePushSubscriptionUtils";
 
 interface UseNotificationsReturn {
   permission: NotificationPermission;
@@ -13,8 +13,10 @@ interface UseNotificationsReturn {
 }
 
 export function useNotifications(): UseNotificationsReturn {
-  const { permission, isSupported, requestPermission } = useNotificationPermission();
-  const { subscription, isLoading, subscribe, unsubscribe } = usePushSubscription(isSupported, permission);
+  const { permission, isSupported, requestPermission } =
+    useNotificationPermission();
+  const { subscription, isLoading, subscribe, unsubscribe } =
+    usePushSubscription(isSupported, permission);
 
   return {
     permission,

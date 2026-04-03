@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
-import { getQueryClient } from '@/lib/api/queryClient';
-import { prefetchRouteDataOptimistic } from '@/lib/routing/prefetch';
+import { useCallback } from "react";
+import { getQueryClient } from "@/lib/api/queryClient";
+import { prefetchRouteDataOptimistic } from "@/lib/routing/prefetch";
 
 /**
  * Hook to prefetch route data on link hover for instant navigation

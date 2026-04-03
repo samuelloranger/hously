@@ -1,4 +1,4 @@
-export const CLOCKIFY_API_BASE = 'https://api.clockify.me/api';
+export const CLOCKIFY_API_BASE = "https://api.clockify.me/api";
 
 /**
  * Submit a weekly timesheet approval request for the week containing the given start date.
@@ -12,16 +12,16 @@ export async function submitApprovalRequest(
   const res = await fetch(
     `${CLOCKIFY_API_BASE}/v1/workspaces/${workspaceId}/approval-requests`,
     {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'X-Api-Key': apiKey,
-        'Content-Type': 'application/json',
+        "X-Api-Key": apiKey,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        period: 'WEEKLY',
+        period: "WEEKLY",
         periodStart: periodStart.toISOString(),
       }),
-    }
+    },
   );
 
   if (!res.ok) {
@@ -37,9 +37,9 @@ export const CLOCKIFY_PAGE_SIZE = 200;
 export function parseDuration(duration: string): number {
   const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/);
   if (!match) return 0;
-  const hours = parseFloat(match[1] || '0');
-  const minutes = parseFloat(match[2] || '0');
-  const seconds = parseFloat(match[3] || '0');
+  const hours = parseFloat(match[1] || "0");
+  const minutes = parseFloat(match[2] || "0");
+  const seconds = parseFloat(match[3] || "0");
   return hours * 3600 + minutes * 60 + seconds;
 }
 

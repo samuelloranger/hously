@@ -1,15 +1,25 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery, type UseQueryOptions } from '@tanstack/react-query';
-import { useFetcher } from '@/lib/api/context';
-import { queryKeys } from '@/lib/queryKeys';
-import { NOTIFICATION_ENDPOINTS } from '@hously/shared';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+  type UseQueryOptions,
+} from "@tanstack/react-query";
+import { useFetcher } from "@/lib/api/context";
+import { queryKeys } from "@/lib/queryKeys";
+import { NOTIFICATION_ENDPOINTS } from "@hously/shared";
 import type {
   NotificationsResponse,
   UnreadCountResponse,
   ApiResult,
   NotificationDevicesResponse,
-} from '@hously/shared';
+} from "@hously/shared";
 
-export function useNotifications(page: number = 1, limit: number = 20, readFilter?: boolean) {
+export function useNotifications(
+  page: number = 1,
+  limit: number = 20,
+  readFilter?: boolean,
+) {
   const fetcher = useFetcher();
 
   const params = new URLSearchParams({
@@ -17,16 +27,22 @@ export function useNotifications(page: number = 1, limit: number = 20, readFilte
     limit: limit.toString(),
   });
   if (readFilter !== undefined) {
-    params.append('read', readFilter.toString());
+    params.append("read", readFilter.toString());
   }
 
   return useQuery({
     queryKey: queryKeys.notifications.list(page, limit, readFilter),
-    queryFn: () => fetcher<NotificationsResponse>(`${NOTIFICATION_ENDPOINTS.LIST}?${params.toString()}`),
+    queryFn: () =>
+      fetcher<NotificationsResponse>(
+        `${NOTIFICATION_ENDPOINTS.LIST}?${params.toString()}`,
+      ),
   });
 }
 
-export function useInfiniteNotifications(limit: number = 20, readFilter?: boolean) {
+export function useInfiniteNotifications(
+  limit: number = 20,
+  readFilter?: boolean,
+) {
   const fetcher = useFetcher();
 
   return useInfiniteQuery({
@@ -37,14 +53,18 @@ export function useInfiniteNotifications(limit: number = 20, readFilter?: boolea
         limit: String(limit),
       });
       if (readFilter !== undefined) {
-        params.append('read', String(readFilter));
+        params.append("read", String(readFilter));
       }
-      return fetcher<NotificationsResponse>(`${NOTIFICATION_ENDPOINTS.LIST}?${params.toString()}`);
+      return fetcher<NotificationsResponse>(
+        `${NOTIFICATION_ENDPOINTS.LIST}?${params.toString()}`,
+      );
     },
-    getNextPageParam: lastPage => {
+    getNextPageParam: (lastPage) => {
       const pagination = lastPage.pagination;
       if (!pagination) return undefined;
-      return pagination.page < pagination.pages ? pagination.page + 1 : undefined;
+      return pagination.page < pagination.pages
+        ? pagination.page + 1
+        : undefined;
     },
     initialPageParam: 1,
   });
@@ -55,7 +75,8 @@ export function useUnreadCount() {
 
   return useQuery({
     queryKey: queryKeys.notifications.unreadCount(),
-    queryFn: () => fetcher<UnreadCountResponse>(NOTIFICATION_ENDPOINTS.UNREAD_COUNT),
+    queryFn: () =>
+      fetcher<UnreadCountResponse>(NOTIFICATION_ENDPOINTS.UNREAD_COUNT),
     staleTime: 10_000,
     refetchOnWindowFocus: true,
   });
@@ -67,9 +88,12 @@ function useMarkAsRead() {
 
   return useMutation({
     mutationFn: (notificationId: number) =>
-      fetcher<ApiResult<{ message: string }>>(NOTIFICATION_ENDPOINTS.MARK_READ(notificationId), {
-        method: 'PUT',
-      }),
+      fetcher<ApiResult<{ message: string }>>(
+        NOTIFICATION_ENDPOINTS.MARK_READ(notificationId),
+        {
+          method: "PUT",
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
     },
@@ -82,53 +106,72 @@ export function useMarkAsReadOptimistic() {
 
   return useMutation({
     mutationFn: (notificationId: number) =>
-      fetcher<ApiResult<{ message: string }>>(NOTIFICATION_ENDPOINTS.MARK_READ(notificationId), {
-        method: 'PUT',
-      }),
-    onMutate: async notificationId => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.notifications.all });
+      fetcher<ApiResult<{ message: string }>>(
+        NOTIFICATION_ENDPOINTS.MARK_READ(notificationId),
+        {
+          method: "PUT",
+        },
+      ),
+    onMutate: async (notificationId) => {
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.notifications.all,
+      });
 
-      const previousNotifications = queryClient.getQueriesData({ queryKey: queryKeys.notifications.all });
+      const previousNotifications = queryClient.getQueriesData({
+        queryKey: queryKeys.notifications.all,
+      });
 
-      queryClient.setQueriesData({ queryKey: queryKeys.notifications.all }, (old: any) => {
-        if (!old) return old;
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.notifications.all },
+        (old: any) => {
+          if (!old) return old;
 
-        if (old.pages) {
-          return {
-            ...old,
-            pages: old.pages.map((page: any) => ({
-              ...page,
-              notifications: (page.notifications || []).map((n: any) =>
-                n.id === notificationId ? { ...n, read: true, read_at: new Date().toISOString() } : n
+          if (old.pages) {
+            return {
+              ...old,
+              pages: old.pages.map((page: any) => ({
+                ...page,
+                notifications: (page.notifications || []).map((n: any) =>
+                  n.id === notificationId
+                    ? { ...n, read: true, read_at: new Date().toISOString() }
+                    : n,
+                ),
+              })),
+            };
+          }
+
+          if (Array.isArray(old.notifications)) {
+            return {
+              ...old,
+              notifications: old.notifications.map((n: any) =>
+                n.id === notificationId
+                  ? { ...n, read: true, read_at: new Date().toISOString() }
+                  : n,
               ),
-            })),
-          };
-        }
+            };
+          }
 
-        if (Array.isArray(old.notifications)) {
-          return {
-            ...old,
-            notifications: old.notifications.map((n: any) =>
-              n.id === notificationId ? { ...n, read: true, read_at: new Date().toISOString() } : n
-            ),
-          };
-        }
+          return old;
+        },
+      );
 
-        return old;
-      });
-
-      queryClient.setQueryData(queryKeys.notifications.unreadCount(), (old: { unread_count: number } | undefined) => {
-        if (!old) return { unread_count: 0 };
-        return { unread_count: Math.max(0, old.unread_count - 1) };
-      });
+      queryClient.setQueryData(
+        queryKeys.notifications.unreadCount(),
+        (old: { unread_count: number } | undefined) => {
+          if (!old) return { unread_count: 0 };
+          return { unread_count: Math.max(0, old.unread_count - 1) };
+        },
+      );
 
       return { previousNotifications };
     },
     onError: (_err, _notificationId, context) => {
       if (context?.previousNotifications) {
-        context.previousNotifications.forEach(([queryKey, data]: [readonly unknown[], unknown]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
+        context.previousNotifications.forEach(
+          ([queryKey, data]: [readonly unknown[], unknown]) => {
+            queryClient.setQueryData(queryKey, data);
+          },
+        );
       }
     },
     onSettled: () => {
@@ -143,9 +186,12 @@ function useMarkAllAsRead() {
 
   return useMutation({
     mutationFn: () =>
-      fetcher<ApiResult<{ message: string }>>(NOTIFICATION_ENDPOINTS.MARK_ALL_READ, {
-        method: 'PUT',
-      }),
+      fetcher<ApiResult<{ message: string }>>(
+        NOTIFICATION_ENDPOINTS.MARK_ALL_READ,
+        {
+          method: "PUT",
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
     },
@@ -158,57 +204,73 @@ export function useMarkAllAsReadOptimistic() {
 
   return useMutation({
     mutationFn: () =>
-      fetcher<ApiResult<{ message: string }>>(NOTIFICATION_ENDPOINTS.MARK_ALL_READ, {
-        method: 'PUT',
-      }),
+      fetcher<ApiResult<{ message: string }>>(
+        NOTIFICATION_ENDPOINTS.MARK_ALL_READ,
+        {
+          method: "PUT",
+        },
+      ),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.notifications.all });
-
-      const previousNotifications = queryClient.getQueriesData({ queryKey: queryKeys.notifications.all });
-
-      queryClient.setQueriesData({ queryKey: queryKeys.notifications.all }, (old: any) => {
-        if (!old) return old;
-
-        const markAsRead = (n: any) => ({
-          ...n,
-          read: true,
-          read_at: n.read_at || new Date().toISOString(),
-        });
-
-        if (old.pages) {
-          return {
-            ...old,
-            pages: old.pages.map((page: any) => ({
-              ...page,
-              notifications: (page.notifications || []).map(markAsRead),
-            })),
-          };
-        }
-
-        if (Array.isArray(old.notifications)) {
-          return {
-            ...old,
-            notifications: old.notifications.map(markAsRead),
-          };
-        }
-
-        return old;
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.notifications.all,
       });
 
-      queryClient.setQueryData(queryKeys.notifications.unreadCount(), { unread_count: 0 });
+      const previousNotifications = queryClient.getQueriesData({
+        queryKey: queryKeys.notifications.all,
+      });
+
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.notifications.all },
+        (old: any) => {
+          if (!old) return old;
+
+          const markAsRead = (n: any) => ({
+            ...n,
+            read: true,
+            read_at: n.read_at || new Date().toISOString(),
+          });
+
+          if (old.pages) {
+            return {
+              ...old,
+              pages: old.pages.map((page: any) => ({
+                ...page,
+                notifications: (page.notifications || []).map(markAsRead),
+              })),
+            };
+          }
+
+          if (Array.isArray(old.notifications)) {
+            return {
+              ...old,
+              notifications: old.notifications.map(markAsRead),
+            };
+          }
+
+          return old;
+        },
+      );
+
+      queryClient.setQueryData(queryKeys.notifications.unreadCount(), {
+        unread_count: 0,
+      });
 
       return { previousNotifications };
     },
     onError: (_err, _variables, context) => {
       if (context?.previousNotifications) {
-        context.previousNotifications.forEach(([queryKey, data]: [readonly unknown[], unknown]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
+        context.previousNotifications.forEach(
+          ([queryKey, data]: [readonly unknown[], unknown]) => {
+            queryClient.setQueryData(queryKey, data);
+          },
+        );
       }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.unreadCount() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unreadCount(),
+      });
     },
   });
 }
@@ -219,9 +281,12 @@ export function useDeleteNotification() {
 
   return useMutation({
     mutationFn: (notificationId: number) =>
-      fetcher<ApiResult<{ message: string }>>(NOTIFICATION_ENDPOINTS.DELETE(notificationId), {
-        method: 'DELETE',
-      }),
+      fetcher<ApiResult<{ message: string }>>(
+        NOTIFICATION_ENDPOINTS.DELETE(notificationId),
+        {
+          method: "DELETE",
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
     },
@@ -229,13 +294,17 @@ export function useDeleteNotification() {
 }
 
 export function useNotificationDevices(
-  options?: Omit<UseQueryOptions<NotificationDevicesResponse>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<NotificationDevicesResponse>,
+    "queryKey" | "queryFn"
+  >,
 ) {
   const fetcher = useFetcher();
 
   return useQuery({
     queryKey: queryKeys.notifications.devices(),
-    queryFn: () => fetcher<NotificationDevicesResponse>(NOTIFICATION_ENDPOINTS.DEVICES),
+    queryFn: () =>
+      fetcher<NotificationDevicesResponse>(NOTIFICATION_ENDPOINTS.DEVICES),
     ...options,
   });
 }
@@ -246,11 +315,16 @@ export function useDeleteNotificationDevice() {
 
   return useMutation({
     mutationFn: (deviceId: number) =>
-      fetcher<{ success: boolean; message: string }>(NOTIFICATION_ENDPOINTS.DELETE_DEVICE(deviceId), {
-        method: 'DELETE',
-      }),
+      fetcher<{ success: boolean; message: string }>(
+        NOTIFICATION_ENDPOINTS.DELETE_DEVICE(deviceId),
+        {
+          method: "DELETE",
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.devices() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.devices(),
+      });
     },
   });
 }
@@ -260,10 +334,13 @@ function useRegisterDevice() {
 
   return useMutation({
     mutationFn: ({ token, platform }: { token: string; platform: string }) =>
-      fetcher<{ success: boolean; message: string }>(NOTIFICATION_ENDPOINTS.REGISTER_DEVICE, {
-        method: 'POST',
-        body: { token, platform },
-      }),
+      fetcher<{ success: boolean; message: string }>(
+        NOTIFICATION_ENDPOINTS.REGISTER_DEVICE,
+        {
+          method: "POST",
+          body: { token, platform },
+        },
+      ),
   });
 }
 
@@ -272,10 +349,13 @@ function useSendTestNotification() {
 
   return useMutation({
     mutationFn: () =>
-      fetcher<{ success: boolean; message: string }>(NOTIFICATION_ENDPOINTS.TEST, {
-        method: 'POST',
-        body: {},
-      }),
+      fetcher<{ success: boolean; message: string }>(
+        NOTIFICATION_ENDPOINTS.TEST,
+        {
+          method: "POST",
+          body: {},
+        },
+      ),
   });
 }
 
@@ -283,8 +363,9 @@ export function useVapidPublicKey() {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: [...queryKeys.notifications.all, 'vapid-public-key'] as const,
-    queryFn: () => fetcher<{ publicKey: string }>(NOTIFICATION_ENDPOINTS.VAPID_PUBLIC_KEY),
+    queryKey: [...queryKeys.notifications.all, "vapid-public-key"] as const,
+    queryFn: () =>
+      fetcher<{ publicKey: string }>(NOTIFICATION_ENDPOINTS.VAPID_PUBLIC_KEY),
   });
 }
 
@@ -300,15 +381,20 @@ export function useSubscribeToPushNotifications() {
       subscription: Record<string, unknown>;
       deviceInfo?: Record<string, unknown>;
     }) =>
-      fetcher<{ success: boolean; message: string }>(NOTIFICATION_ENDPOINTS.SUBSCRIBE, {
-        method: 'POST',
-        body: {
-          subscription,
-          device_info: deviceInfo,
+      fetcher<{ success: boolean; message: string }>(
+        NOTIFICATION_ENDPOINTS.SUBSCRIBE,
+        {
+          method: "POST",
+          body: {
+            subscription,
+            device_info: deviceInfo,
+          },
         },
-      }),
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.devices() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.devices(),
+      });
     },
   });
 }
@@ -319,12 +405,17 @@ export function useUnsubscribeFromPushNotifications() {
 
   return useMutation({
     mutationFn: (subscription?: Record<string, unknown>) =>
-      fetcher<{ success: boolean; message: string }>(NOTIFICATION_ENDPOINTS.UNSUBSCRIBE, {
-        method: 'POST',
-        body: { subscription },
-      }),
+      fetcher<{ success: boolean; message: string }>(
+        NOTIFICATION_ENDPOINTS.UNSUBSCRIBE,
+        {
+          method: "POST",
+          body: { subscription },
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.devices() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.devices(),
+      });
     },
   });
 }
@@ -334,8 +425,11 @@ export function useTestPushNotification() {
 
   return useMutation({
     mutationFn: () =>
-      fetcher<{ success: boolean; message: string }>(NOTIFICATION_ENDPOINTS.TEST, {
-        method: 'POST',
-      }),
+      fetcher<{ success: boolean; message: string }>(
+        NOTIFICATION_ENDPOINTS.TEST,
+        {
+          method: "POST",
+        },
+      ),
   });
 }

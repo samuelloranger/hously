@@ -1,6 +1,6 @@
-import { useTranslation } from 'react-i18next';
-import type { NotificationTemplate } from '@hously/shared';
-import { ServiceTemplateItem } from '@/pages/settings/_component/ServiceTemplateItem';
+import { useTranslation } from "react-i18next";
+import type { NotificationTemplate } from "@hously/shared";
+import { ServiceTemplateItem } from "@/pages/settings/_component/ServiceTemplateItem";
 
 interface ServiceTemplatesListProps {
   templatesByEvent: Record<string, NotificationTemplate[]>;
@@ -15,20 +15,20 @@ export function ServiceTemplatesList({
   onEditTemplate,
   onToggleTemplate,
 }: ServiceTemplatesListProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const eventTypes = Object.keys(templatesByEvent).sort();
 
   if (eventTypes.length === 0) {
     return (
       <div className="text-center py-4 text-neutral-500 dark:text-neutral-400 text-sm">
-        {t('settings.externalNotifications.noTemplates')}
+        {t("settings.externalNotifications.noTemplates")}
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {eventTypes.map(eventType => {
+      {eventTypes.map((eventType) => {
         const eventTemplates = templatesByEvent[eventType];
         const template = eventTemplates[0];
         return (

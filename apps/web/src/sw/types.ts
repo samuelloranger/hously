@@ -22,12 +22,12 @@ export interface PushNotificationData {
 
 export interface MessageData {
   type:
-    | 'clearBadge'
-    | 'syncBadge'
-    | 'showUpdateNotification'
-    | 'notification-sync'
-    | 'notification-received'
-    | 'clearCache';
+    | "clearBadge"
+    | "syncBadge"
+    | "showUpdateNotification"
+    | "notification-sync"
+    | "notification-received"
+    | "clearCache";
   notificationId?: number | null;
   notificationData?: PushNotificationData;
 }

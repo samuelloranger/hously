@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useRemoveFromWatchlist, useWatchlist } from '@/hooks/useMedias';
-import { type WatchlistItem, type TmdbMediaSearchItem } from '@hously/shared';
-import { BookmarkX, Clapperboard } from 'lucide-react';
-import { PageLayout } from '@/components/PageLayout';
-import { PageHeader } from '@/components/PageHeader';
-import { ExploreCardDetailDialog } from '@/pages/medias/_component/ExploreCardDetailDialog';
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useRemoveFromWatchlist, useWatchlist } from "@/hooks/useMedias";
+import { type WatchlistItem, type TmdbMediaSearchItem } from "@hously/shared";
+import { BookmarkX, Clapperboard } from "lucide-react";
+import { PageLayout } from "@/components/PageLayout";
+import { PageHeader } from "@/components/PageHeader";
+import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 
 function toDialogItem(item: WatchlistItem): TmdbMediaSearchItem {
   return {
@@ -17,7 +17,7 @@ function toDialogItem(item: WatchlistItem): TmdbMediaSearchItem {
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: item.vote_average,
-    service: 'radarr',
+    service: "radarr",
     already_exists: false,
     can_add: true,
     source_id: null,
@@ -25,13 +25,25 @@ function toDialogItem(item: WatchlistItem): TmdbMediaSearchItem {
   };
 }
 
-function WatchlistCard({ item, onOpen }: { item: WatchlistItem; onOpen: (item: WatchlistItem) => void }) {
+function WatchlistCard({
+  item,
+  onOpen,
+}: {
+  item: WatchlistItem;
+  onOpen: (item: WatchlistItem) => void;
+}) {
   const [imgError, setImgError] = useState(false);
   const removeMutation = useRemoveFromWatchlist();
 
   const score = item.vote_average ? Math.round(item.vote_average * 10) : null;
   const scoreColor =
-    score === null ? '' : score >= 70 ? 'text-emerald-400' : score >= 50 ? 'text-amber-400' : 'text-rose-400';
+    score === null
+      ? ""
+      : score >= 70
+        ? "text-emerald-400"
+        : score >= 50
+          ? "text-amber-400"
+          : "text-rose-400";
 
   return (
     <div className="group relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-neutral-950 ring-1 ring-white/[0.06]">
@@ -41,7 +53,7 @@ function WatchlistCard({ item, onOpen }: { item: WatchlistItem; onOpen: (item: W
         tabIndex={0}
         aria-label={item.title}
         onClick={() => onOpen(item)}
-        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onOpen(item)}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onOpen(item)}
         className="absolute inset-0 z-10 cursor-pointer"
       />
 
@@ -56,7 +68,9 @@ function WatchlistCard({ item, onOpen }: { item: WatchlistItem; onOpen: (item: W
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-3xl text-white/10">🎞️</div>
+        <div className="absolute inset-0 flex items-center justify-center text-3xl text-white/10">
+          🎞️
+        </div>
       )}
 
       {/* Gradient */}
@@ -65,9 +79,12 @@ function WatchlistCard({ item, onOpen }: { item: WatchlistItem; onOpen: (item: W
       {/* Remove button */}
       <button
         type="button"
-        onClick={e => {
+        onClick={(e) => {
           e.stopPropagation();
-          removeMutation.mutate({ tmdb_id: item.tmdb_id, media_type: item.media_type });
+          removeMutation.mutate({
+            tmdb_id: item.tmdb_id,
+            media_type: item.media_type,
+          });
         }}
         disabled={removeMutation.isPending}
         aria-label={`Remove ${item.title} from watchlist`}
@@ -82,17 +99,27 @@ function WatchlistCard({ item, onOpen }: { item: WatchlistItem; onOpen: (item: W
 
       {/* Bottom info */}
       <div className="absolute inset-x-0 bottom-0 z-10 px-2.5 pb-2.5 pt-6 translate-y-[5px] transition-transform duration-300 ease-out group-hover:translate-y-0">
-        <p className="text-[10.5px] font-semibold leading-tight text-white line-clamp-2">{item.title}</p>
+        <p className="text-[10.5px] font-semibold leading-tight text-white line-clamp-2">
+          {item.title}
+        </p>
         <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity duration-250 group-hover:opacity-100">
-          {item.release_year && <span className="text-[9px] tabular-nums text-white/45">{item.release_year}</span>}
+          {item.release_year && (
+            <span className="text-[9px] tabular-nums text-white/45">
+              {item.release_year}
+            </span>
+          )}
           {score !== null && (
             <>
               <span className="text-[8px] text-white/20">·</span>
-              <span className={`text-[9px] font-semibold tabular-nums ${scoreColor}`}>{score}%</span>
+              <span
+                className={`text-[9px] font-semibold tabular-nums ${scoreColor}`}
+              >
+                {score}%
+              </span>
             </>
           )}
           <span className="ml-auto text-[8px] font-medium uppercase tracking-widest text-white/25">
-            {item.media_type === 'movie' ? 'Film' : 'TV'}
+            {item.media_type === "movie" ? "Film" : "TV"}
           </span>
         </div>
       </div>
@@ -101,9 +128,11 @@ function WatchlistCard({ item, onOpen }: { item: WatchlistItem; onOpen: (item: W
 }
 
 export function WatchlistPage() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const { data, isLoading } = useWatchlist();
-  const [dialogItem, setDialogItem] = useState<TmdbMediaSearchItem | null>(null);
+  const [dialogItem, setDialogItem] = useState<TmdbMediaSearchItem | null>(
+    null,
+  );
 
   const items = data?.items ?? [];
 
@@ -112,28 +141,39 @@ export function WatchlistPage() {
       <PageHeader
         icon="🔖"
         iconColor="text-amber-500"
-        title={t('medias.watchlist.pageTitle')}
-        subtitle={t('medias.watchlist.pageSubtitle')}
+        title={t("medias.watchlist.pageTitle")}
+        subtitle={t("medias.watchlist.pageSubtitle")}
       />
 
       {isLoading ? (
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6">
           {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="aspect-[2/3] animate-pulse rounded-xl bg-neutral-900" />
+            <div
+              key={i}
+              className="aspect-[2/3] animate-pulse rounded-xl bg-neutral-900"
+            />
           ))}
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
           <Clapperboard size={40} className="text-neutral-700" />
           <div>
-            <p className="text-sm font-medium text-neutral-500">{t('medias.watchlist.empty')}</p>
-            <p className="mt-1 text-xs text-neutral-600">{t('medias.watchlist.emptyHint')}</p>
+            <p className="text-sm font-medium text-neutral-500">
+              {t("medias.watchlist.empty")}
+            </p>
+            <p className="mt-1 text-xs text-neutral-600">
+              {t("medias.watchlist.emptyHint")}
+            </p>
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6">
-          {items.map(item => (
-            <WatchlistCard key={item.id} item={item} onOpen={i => setDialogItem(toDialogItem(i))} />
+          {items.map((item) => (
+            <WatchlistCard
+              key={item.id}
+              item={item}
+              onOpen={(i) => setDialogItem(toDialogItem(i))}
+            />
           ))}
         </div>
       )}

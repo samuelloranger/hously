@@ -3,11 +3,19 @@
  * Runs on a schedule; skips night hours (same window as other user notifications).
  */
 
-import { buildNotificationUrl } from '@hously/shared';
-import { prisma } from '../db';
-import { fetchMediaDetails, loadTmdbConfig } from '../routes/medias/tmdbFetchers';
-import { addDaysInTz, formatDateInTimezone, midnightOf, todayLocal } from '../utils';
-import { createAndQueueNotification, isNightTime } from './notificationService';
+import { buildNotificationUrl } from "@hously/shared";
+import { prisma } from "../db";
+import {
+  fetchMediaDetails,
+  loadTmdbConfig,
+} from "../routes/medias/tmdbFetchers";
+import {
+  addDaysInTz,
+  formatDateInTimezone,
+  midnightOf,
+  todayLocal,
+} from "../utils";
+import { createAndQueueNotification, isNightTime } from "./notificationService";
 
 function dbDateToYmd(d: Date | null): string | null {
   if (!d) return null;
@@ -15,7 +23,7 @@ function dbDateToYmd(d: Date | null): string | null {
 }
 
 export async function checkMovieReleaseReminders(): Promise<void> {
-  console.log('[CRON] Running checkMovieReleaseReminders...');
+  console.log("[CRON] Running checkMovieReleaseReminders...");
 
   if (isNightTime()) {
     return;
@@ -23,12 +31,12 @@ export async function checkMovieReleaseReminders(): Promise<void> {
 
   const tmdbConfig = await loadTmdbConfig();
   if (!tmdbConfig?.api_key) {
-    console.log('[CRON] checkMovieReleaseReminders: TMDB not configured, skip');
+    console.log("[CRON] checkMovieReleaseReminders: TMDB not configured, skip");
     return;
   }
 
   const items = await prisma.watchlistItem.findMany({
-    where: { mediaType: 'movie' },
+    where: { mediaType: "movie" },
     include: { user: { select: { id: true, locale: true } } },
   });
 
@@ -39,9 +47,15 @@ export async function checkMovieReleaseReminders(): Promise<void> {
     let reminderSentFor = item.releaseReminderSentFor;
 
     if (!releaseYmd) {
-      const details = await fetchMediaDetails(tmdbConfig.api_key, 'movie', item.tmdbId);
+      const details = await fetchMediaDetails(
+        tmdbConfig.api_key,
+        "movie",
+        item.tmdbId,
+      );
       releaseYmd = details.release_date;
-      const nextDate = releaseYmd ? new Date(`${releaseYmd}T00:00:00.000Z`) : null;
+      const nextDate = releaseYmd
+        ? new Date(`${releaseYmd}T00:00:00.000Z`)
+        : null;
       const prevYmd = dbDateToYmd(item.movieReleaseDate);
       if (releaseYmd && releaseYmd !== prevYmd) {
         reminderSentFor = null;
@@ -50,7 +64,9 @@ export async function checkMovieReleaseReminders(): Promise<void> {
         where: { id: item.id },
         data: {
           movieReleaseDate: nextDate,
-          ...(releaseYmd && releaseYmd !== prevYmd ? { releaseReminderSentFor: null } : {}),
+          ...(releaseYmd && releaseYmd !== prevYmd
+            ? { releaseReminderSentFor: null }
+            : {}),
         },
       });
       if (!releaseYmd) continue;
@@ -68,13 +84,13 @@ export async function checkMovieReleaseReminders(): Promise<void> {
       continue;
     }
 
-    const locale = item.user.locale || 'en';
+    const locale = item.user.locale || "en";
     const title =
-      locale === 'fr'
+      locale === "fr"
         ? `Sort demain : ${item.title}`
         : `Out tomorrow: ${item.title}`;
     const body =
-      locale === 'fr'
+      locale === "fr"
         ? `${item.title} sort au cinéma demain (date TMDB).`
         : `${item.title} releases tomorrow (TMDB date).`;
 
@@ -82,9 +98,9 @@ export async function checkMovieReleaseReminders(): Promise<void> {
       item.userId,
       title,
       body,
-      'movie_release_reminder',
-      buildNotificationUrl('/watchlist'),
-      { tmdb_id: item.tmdbId, watchlist_item_id: item.id }
+      "movie_release_reminder",
+      buildNotificationUrl("/watchlist"),
+      { tmdb_id: item.tmdbId, watchlist_item_id: item.id },
     );
 
     if (ok) {
@@ -97,6 +113,8 @@ export async function checkMovieReleaseReminders(): Promise<void> {
   }
 
   if (sent > 0) {
-    console.log(`[CRON] checkMovieReleaseReminders: sent ${sent} notification(s)`);
+    console.log(
+      `[CRON] checkMovieReleaseReminders: sent ${sent} notification(s)`,
+    );
   }
 }

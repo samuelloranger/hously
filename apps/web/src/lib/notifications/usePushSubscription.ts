@@ -1,5 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useUnsubscribeFromPushNotifications, useVapidPublicKey } from '@/hooks/useNotifications';
+import { useState, useEffect, useCallback } from "react";
+import {
+  useUnsubscribeFromPushNotifications,
+  useVapidPublicKey,
+} from "@/hooks/useNotifications";
 import {
   type PushSubscriptionData,
   saveEndpoint,
@@ -8,7 +11,7 @@ import {
   hardResetServiceWorkerForPush,
   urlBase64ToUint8Array,
   serializeSubscription,
-} from '@/lib/notifications/usePushSubscriptionUtils';
+} from "@/lib/notifications/usePushSubscriptionUtils";
 
 interface UsePushSubscriptionReturn {
   subscription: PushSubscriptionData | null;
@@ -19,33 +22,48 @@ interface UsePushSubscriptionReturn {
 
 export function usePushSubscription(
   isSupported: boolean,
-  permission: NotificationPermission
+  permission: NotificationPermission,
 ): UsePushSubscriptionReturn {
-  const [subscription, setSubscription] = useState<PushSubscriptionData | null>(null);
+  const [subscription, setSubscription] = useState<PushSubscriptionData | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const { data: vapidData } = useVapidPublicKey();
   const unsubscribeMutation = useUnsubscribeFromPushNotifications();
 
   const getSubscriptionSafe = useCallback(
-    async (registration: ServiceWorkerRegistration, options?: { allowReset?: boolean }) => {
+    async (
+      registration: ServiceWorkerRegistration,
+      options?: { allowReset?: boolean },
+    ) => {
       const allowReset = options?.allowReset ?? false;
 
-      const readSubscription = async (swRegistration: ServiceWorkerRegistration) => {
+      const readSubscription = async (
+        swRegistration: ServiceWorkerRegistration,
+      ) => {
         return await swRegistration.pushManager.getSubscription();
       };
 
       try {
         return await readSubscription(registration);
       } catch (err) {
-        console.warn('Error retrieving push subscription, refreshing service worker registration:', err);
+        console.warn(
+          "Error retrieving push subscription, refreshing service worker registration:",
+          err,
+        );
       }
 
       try {
         await registration.update();
-        const refreshedRegistration = (await navigator.serviceWorker.getRegistration('/sw.js')) || registration;
+        const refreshedRegistration =
+          (await navigator.serviceWorker.getRegistration("/sw.js")) ||
+          registration;
         return await readSubscription(refreshedRegistration);
       } catch (err) {
-        console.warn('Push subscription still unavailable after registration refresh:', err);
+        console.warn(
+          "Push subscription still unavailable after registration refresh:",
+          err,
+        );
       }
 
       if (!allowReset) {
@@ -53,22 +71,27 @@ export function usePushSubscription(
       }
 
       try {
-        console.warn('Resetting service worker registration to recover push subscription state');
+        console.warn(
+          "Resetting service worker registration to recover push subscription state",
+        );
         await registration.unregister();
-        await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.register("/sw.js");
         const readyRegistration = await navigator.serviceWorker.ready;
         return await readSubscription(readyRegistration);
       } catch (err) {
-        console.error('Error retrieving push subscription after service worker reset:', err);
+        console.error(
+          "Error retrieving push subscription after service worker reset:",
+          err,
+        );
         return null;
       }
     },
-    []
+    [],
   );
 
   // Check and sync subscription state
   const checkSubscriptionState = useCallback(async () => {
-    if (!('serviceWorker' in navigator)) {
+    if (!("serviceWorker" in navigator)) {
       setIsLoading(false);
       return;
     }
@@ -86,7 +109,7 @@ export function usePushSubscription(
         removeEndpoint();
       }
     } catch (err) {
-      console.error('Error getting subscription:', err);
+      console.error("Error getting subscription:", err);
     } finally {
       setIsLoading(false);
     }
@@ -98,92 +121,109 @@ export function usePushSubscription(
     checkSubscriptionState();
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && Notification.permission === 'granted') {
+      if (
+        document.visibilityState === "visible" &&
+        Notification.permission === "granted"
+      ) {
         checkSubscriptionState();
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [isSupported, checkSubscriptionState]);
 
-  const subscribe = useCallback(async (): Promise<PushSubscriptionData | null> => {
-    if (!isSupported || permission !== 'granted') {
-      console.warn('Notifications not supported or permission not granted');
-      return null;
-    }
-
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      const existingSubscription = await getSubscriptionSafe(registration, { allowReset: true });
-
-      if (existingSubscription) {
-        const sub = serializeSubscription(existingSubscription);
-        setSubscription(sub);
-        return sub;
-      }
-
-      // Get VAPID public key from backend
-      const vapidPublicKey = vapidData?.publicKey;
-      if (!vapidPublicKey) {
-        console.warn('Could not get VAPID public key from backend');
+  const subscribe =
+    useCallback(async (): Promise<PushSubscriptionData | null> => {
+      if (!isSupported || permission !== "granted") {
+        console.warn("Notifications not supported or permission not granted");
         return null;
       }
 
-      // Convert VAPID key to Uint8Array
-      const vapidKey: Uint8Array = urlBase64ToUint8Array(vapidPublicKey);
-      const applicationServerKey = vapidKey as unknown as BufferSource;
-
-      let newSubscription: globalThis.PushSubscription;
       try {
-        newSubscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey,
+        const registration = await navigator.serviceWorker.ready;
+        const existingSubscription = await getSubscriptionSafe(registration, {
+          allowReset: true,
         });
-      } catch (error) {
-        if (!isPushStoreError(error)) {
-          throw error;
+
+        if (existingSubscription) {
+          const sub = serializeSubscription(existingSubscription);
+          setSubscription(sub);
+          return sub;
         }
 
-        console.warn('Push store appears corrupted, resetting service worker registration:', error);
-        const resetRegistration = await hardResetServiceWorkerForPush();
-        const recoveredSubscription = await getSubscriptionSafe(resetRegistration, { allowReset: false });
+        // Get VAPID public key from backend
+        const vapidPublicKey = vapidData?.publicKey;
+        if (!vapidPublicKey) {
+          console.warn("Could not get VAPID public key from backend");
+          return null;
+        }
 
-        if (recoveredSubscription) {
-          newSubscription = recoveredSubscription;
-        } else {
-          newSubscription = await resetRegistration.pushManager.subscribe({
+        // Convert VAPID key to Uint8Array
+        const vapidKey: Uint8Array = urlBase64ToUint8Array(vapidPublicKey);
+        const applicationServerKey = vapidKey as unknown as BufferSource;
+
+        let newSubscription: globalThis.PushSubscription;
+        try {
+          newSubscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey,
           });
+        } catch (error) {
+          if (!isPushStoreError(error)) {
+            throw error;
+          }
+
+          console.warn(
+            "Push store appears corrupted, resetting service worker registration:",
+            error,
+          );
+          const resetRegistration = await hardResetServiceWorkerForPush();
+          const recoveredSubscription = await getSubscriptionSafe(
+            resetRegistration,
+            { allowReset: false },
+          );
+
+          if (recoveredSubscription) {
+            newSubscription = recoveredSubscription;
+          } else {
+            newSubscription = await resetRegistration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey,
+            });
+          }
         }
-      }
 
-      if (!newSubscription) {
+        if (!newSubscription) {
+          return null;
+        }
+
+        if (
+          !newSubscription.getKey("p256dh") ||
+          !newSubscription.getKey("auth")
+        ) {
+          console.warn(
+            "Push subscription keys are missing; subscription will be ignored",
+          );
+          return null;
+        }
+
+        const sub = serializeSubscription(newSubscription);
+        setSubscription(sub);
+        saveEndpoint(newSubscription.endpoint);
+        return sub;
+      } catch (error) {
+        console.error("Error subscribing to push notifications:", error);
         return null;
       }
-
-      if (!newSubscription.getKey('p256dh') || !newSubscription.getKey('auth')) {
-        console.warn('Push subscription keys are missing; subscription will be ignored');
-        return null;
-      }
-
-      const sub = serializeSubscription(newSubscription);
-      setSubscription(sub);
-      saveEndpoint(newSubscription.endpoint);
-      return sub;
-    } catch (error) {
-      console.error('Error subscribing to push notifications:', error);
-      return null;
-    }
-  }, [isSupported, permission, vapidData?.publicKey, getSubscriptionSafe]);
+    }, [isSupported, permission, vapidData?.publicKey, getSubscriptionSafe]);
 
   const unsubscribe = useCallback(async (): Promise<boolean> => {
     if (!isSupported) {
-      console.warn('Notifications not supported');
+      console.warn("Notifications not supported");
       return false;
     }
 
@@ -202,16 +242,18 @@ export function usePushSubscription(
       // Also notify backend with the endpoint to unsubscribe the specific device
       try {
         await unsubscribeMutation.mutateAsync(
-          endpoint ? ({ endpoint } as unknown as Record<string, unknown>) : undefined
+          endpoint
+            ? ({ endpoint } as unknown as Record<string, unknown>)
+            : undefined,
         );
       } catch (error) {
-        console.warn('Failed to notify backend of unsubscribe:', error);
+        console.warn("Failed to notify backend of unsubscribe:", error);
         // Continue anyway, the client-side unsubscribe succeeded
       }
 
       return true;
     } catch (error) {
-      console.error('Error unsubscribing from push notifications:', error);
+      console.error("Error unsubscribing from push notifications:", error);
       return false;
     }
   }, [isSupported, unsubscribeMutation, getSubscriptionSafe]);

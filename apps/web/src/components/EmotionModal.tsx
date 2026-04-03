@@ -110,6 +110,6 @@ export function EmotionModal({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

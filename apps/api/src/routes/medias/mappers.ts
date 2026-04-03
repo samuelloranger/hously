@@ -1,11 +1,11 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from "crypto";
 import type {
   ArrManagementDetailsResponse,
   ArrManagementFileInfo,
   ArrManagementStatistics,
   MediaItem,
-} from '@hously/shared';
-import { getJsonCache, setJsonCache } from '../../services/cache';
+} from "@hously/shared";
+import { getJsonCache, setJsonCache } from "../../services/cache";
 
 export type TmdbProvider = {
   id: number;
@@ -25,13 +25,13 @@ export type TmdbWatchProvidersResult = {
 export type TmdbSearchItem = {
   id: string;
   tmdb_id: number;
-  media_type: 'movie' | 'tv';
+  media_type: "movie" | "tv";
   title: string;
   release_year: number | null;
   poster_url: string | null;
   overview: string | null;
   vote_average: number | null;
-  service: 'radarr' | 'sonarr';
+  service: "radarr" | "sonarr";
   already_exists: boolean;
   can_add: boolean;
   source_id: number | null;
@@ -52,21 +52,27 @@ export type InteractiveReleaseItem = {
   rejected: boolean;
   rejection_reason: string | null;
   info_url: string | null;
-  source: 'arr' | 'prowlarr';
+  source: "arr" | "prowlarr";
   download_token?: string | null;
 };
 
 export type ArrEntry = { sourceId: number; titleSlug: string | null };
 
 const PROWLARR_RELEASE_TTL_MS = 15 * 60 * 1000;
-const prowlarrReleasePayloads = new Map<string, { expiresAt: number; payload: Record<string, unknown> }>();
+const prowlarrReleasePayloads = new Map<
+  string,
+  { expiresAt: number; payload: Record<string, unknown> }
+>();
 
 export const toRecord = (value: unknown): Record<string, unknown> | null =>
-  value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+  value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 
 export const toNumberOrNull = (value: unknown): number | null => {
-  if (typeof value === 'number' && Number.isFinite(value)) return Math.trunc(value);
-  if (typeof value === 'string' && value.trim()) {
+  if (typeof value === "number" && Number.isFinite(value))
+    return Math.trunc(value);
+  if (typeof value === "string" && value.trim()) {
     const parsed = parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : null;
   }
@@ -74,7 +80,7 @@ export const toNumberOrNull = (value: unknown): number | null => {
 };
 
 export const toStringOrNull = (value: unknown): string | null => {
-  if (typeof value !== 'string') return null;
+  if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
 };
@@ -88,7 +94,7 @@ const toUniqueStringArray = (value: unknown): string[] => {
 
   for (const entry of value) {
     let candidate: string | null = null;
-    if (typeof entry === 'string') candidate = toStringOrNull(entry);
+    if (typeof entry === "string") candidate = toStringOrNull(entry);
     else {
       const record = toRecord(entry);
       candidate =
@@ -108,12 +114,14 @@ const toUniqueStringArray = (value: unknown): string[] => {
   return out;
 };
 
-const extractInteractiveLanguages = (row: Record<string, unknown>): string[] => {
+const extractInteractiveLanguages = (
+  row: Record<string, unknown>,
+): string[] => {
   const languages = toUniqueStringArray(row.languages);
   if (languages.length > 0) return languages;
 
   const singleLanguage = row.language;
-  if (typeof singleLanguage === 'string') {
+  if (typeof singleLanguage === "string") {
     const value = toStringOrNull(singleLanguage);
     return value ? [value] : [];
   }
@@ -129,7 +137,7 @@ const extractInteractiveLanguages = (row: Record<string, unknown>): string[] => 
 };
 
 const toIsoOrNull = (value: unknown): string | null => {
-  if (typeof value !== 'string' || !value.trim()) return null;
+  if (typeof value !== "string" || !value.trim()) return null;
   const date = new Date(value);
   return Number.isFinite(date.getTime()) ? date.toISOString() : null;
 };
@@ -139,42 +147,49 @@ const resolveImageUrl = (baseUrl: string, value: unknown): string | null => {
   if (!raw) return null;
   if (/^https?:\/\//i.test(raw)) return raw;
   try {
-    return new URL(raw.startsWith('/') ? raw : `/${raw}`, baseUrl).toString();
+    return new URL(raw.startsWith("/") ? raw : `/${raw}`, baseUrl).toString();
   } catch {
     return null;
   }
 };
 
-export const buildArrItemUrl = (baseUrl: string, service: 'radarr' | 'sonarr', slug: string): string | null => {
+export const buildArrItemUrl = (
+  baseUrl: string,
+  service: "radarr" | "sonarr",
+  slug: string,
+): string | null => {
   try {
     const url = new URL(baseUrl);
-    const basePath = url.pathname.replace(/\/+$/, '');
-    const itemPath = service === 'radarr' ? 'movie' : 'series';
+    const basePath = url.pathname.replace(/\/+$/, "");
+    const itemPath = service === "radarr" ? "movie" : "series";
     url.pathname = `${basePath}/${itemPath}/${slug}`;
-    url.search = '';
-    url.hash = '';
+    url.search = "";
+    url.hash = "";
     return url.toString();
   } catch {
     return null;
   }
 };
 
-const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w342';
+const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w342";
 
 const parseReleaseYear = (value: unknown): number | null => {
-  if (typeof value !== 'string' || value.length < 4) return null;
+  if (typeof value !== "string" || value.length < 4) return null;
   const year = parseInt(value.slice(0, 4), 10);
   return Number.isFinite(year) ? year : null;
 };
 
-const extractPosterUrl = (baseUrl: string, imagesValue: unknown): string | null => {
+const extractPosterUrl = (
+  baseUrl: string,
+  imagesValue: unknown,
+): string | null => {
   if (!Array.isArray(imagesValue)) return null;
 
   for (const rawImage of imagesValue) {
     const image = toRecord(rawImage);
     if (!image) continue;
     const coverType = toStringOrNull(image.coverType)?.toLowerCase();
-    if (coverType !== 'poster') continue;
+    if (coverType !== "poster") continue;
 
     const remoteUrl = resolveImageUrl(baseUrl, image.remoteUrl);
     if (remoteUrl) return remoteUrl;
@@ -186,16 +201,18 @@ const extractPosterUrl = (baseUrl: string, imagesValue: unknown): string | null 
   return null;
 };
 
-const LANG_TAGS = /\b(MULTI[._]VF2|MULTI[._]VFF|MULTI[._]VFQ|VF2|VFF|VFQ|VFI|TRUEFRENCH|FRENCH)\b/i;
+const LANG_TAGS =
+  /\b(MULTI[._]VF2|MULTI[._]VFF|MULTI[._]VFQ|VF2|VFF|VFQ|VFI|TRUEFRENCH|FRENCH)\b/i;
 const RESOLUTION_TAGS = /\b(2160p|1080p|720p|480p|4K|UHD)\b/i;
-const SOURCE_TAGS = /\b(BluRay|BDRip|BRRip|HDLight|WEBRip|WEB-DL|WEB|HDTV|DVDRip|Remux)\b/i;
+const SOURCE_TAGS =
+  /\b(BluRay|BDRip|BRRip|HDLight|WEBRip|WEB-DL|WEB|HDTV|DVDRip|Remux)\b/i;
 
 function parseReleaseTags(name: string): string[] {
   const tags: string[] = [];
-  const parts = name.replace(/\./g, ' ');
+  const parts = name.replace(/\./g, " ");
 
   const lang = parts.match(LANG_TAGS);
-  if (lang) tags.push(lang[1].replace(/[._]/g, '.'));
+  if (lang) tags.push(lang[1].replace(/[._]/g, "."));
 
   const res = parts.match(RESOLUTION_TAGS);
   if (res) tags.push(res[1]);
@@ -204,9 +221,9 @@ function parseReleaseTags(name: string): string[] {
   if (src) tags.push(src[1]);
 
   // Release group: after the last hyphen
-  const lastHyphen = name.lastIndexOf('-');
+  const lastHyphen = name.lastIndexOf("-");
   if (lastHyphen > 0 && lastHyphen < name.length - 1) {
-    const group = name.substring(lastHyphen + 1).replace(/\.\w{2,4}$/, ''); // strip file extension
+    const group = name.substring(lastHyphen + 1).replace(/\.\w{2,4}$/, ""); // strip file extension
     if (group) tags.push(group);
   }
 
@@ -222,28 +239,32 @@ function extractReleaseTags(row: Record<string, unknown>): string[] | null {
   // 1. Language tag — try scene name first for specific FR tags (VF2, VFF, VFQ, VFI)
   const sceneName = toStringOrNull(movieFile.sceneName);
   const relativePath = toStringOrNull(movieFile.relativePath);
-  const nameSource = sceneName || relativePath || '';
-  const langMatch = nameSource.replace(/\./g, ' ').match(LANG_TAGS);
+  const nameSource = sceneName || relativePath || "";
+  const langMatch = nameSource.replace(/\./g, " ").match(LANG_TAGS);
 
   if (langMatch) {
-    tags.push(langMatch[1].replace(/[._]/g, '.'));
+    tags.push(langMatch[1].replace(/[._]/g, "."));
   } else {
     // Derive language tag from Radarr's structured languages array
-    const languages = Array.isArray(movieFile.languages) ? movieFile.languages : [];
+    const languages = Array.isArray(movieFile.languages)
+      ? movieFile.languages
+      : [];
     const langNames = languages
       .map((l: unknown) => toStringOrNull(toRecord(l)?.name)?.toLowerCase())
       .filter(Boolean) as string[];
-    const hasFrench = langNames.some(n => n === 'french');
-    const hasEnglish = langNames.some(n => n === 'english');
-    if (hasFrench && hasEnglish) tags.push('MULTI');
-    else if (hasFrench) tags.push('VF');
-    else if (hasEnglish && langNames.length === 1) tags.push('EN');
+    const hasFrench = langNames.some((n) => n === "french");
+    const hasEnglish = langNames.some((n) => n === "english");
+    if (hasFrench && hasEnglish) tags.push("MULTI");
+    else if (hasFrench) tags.push("VF");
+    else if (hasEnglish && langNames.length === 1) tags.push("EN");
   }
 
   // 2. Resolution — from Radarr quality data, fallback to name parsing
   const quality = toRecord(movieFile.quality);
   const qualityDetail = quality ? toRecord(quality.quality) : null;
-  const resolution = qualityDetail ? toNumberOrNull(qualityDetail.resolution) : null;
+  const resolution = qualityDetail
+    ? toNumberOrNull(qualityDetail.resolution)
+    : null;
   if (resolution && resolution > 0) {
     tags.push(`${resolution}p`);
   } else {
@@ -252,15 +273,17 @@ function extractReleaseTags(row: Record<string, unknown>): string[] | null {
   }
 
   // 3. Source — from Radarr quality source, fallback to name parsing
-  const qualitySource = qualityDetail ? toStringOrNull(qualityDetail.source) : null;
+  const qualitySource = qualityDetail
+    ? toStringOrNull(qualityDetail.source)
+    : null;
   if (qualitySource) {
     const sourceMap: Record<string, string> = {
-      bluray: 'BluRay',
-      webdl: 'WEB-DL',
-      webrip: 'WEBRip',
-      television: 'HDTV',
-      televisionRaw: 'HDTV',
-      dvd: 'DVDRip',
+      bluray: "BluRay",
+      webdl: "WEB-DL",
+      webrip: "WEBRip",
+      television: "HDTV",
+      televisionRaw: "HDTV",
+      dvd: "DVDRip",
     };
     const mapped = sourceMap[qualitySource.toLowerCase()];
     if (mapped) tags.push(mapped);
@@ -274,9 +297,11 @@ function extractReleaseTags(row: Record<string, unknown>): string[] | null {
   if (releaseGroup) {
     tags.push(releaseGroup);
   } else {
-    const lastHyphen = nameSource.lastIndexOf('-');
+    const lastHyphen = nameSource.lastIndexOf("-");
     if (lastHyphen > 0 && lastHyphen < nameSource.length - 1) {
-      const group = nameSource.substring(lastHyphen + 1).replace(/\.\w{2,4}$/, '');
+      const group = nameSource
+        .substring(lastHyphen + 1)
+        .replace(/\.\w{2,4}$/, "");
       if (group) tags.push(group);
     }
   }
@@ -284,7 +309,9 @@ function extractReleaseTags(row: Record<string, unknown>): string[] | null {
   return tags.length > 0 ? tags : null;
 }
 
-function extractSeriesReleaseTags(_row: Record<string, unknown>): string[] | null {
+function extractSeriesReleaseTags(
+  _row: Record<string, unknown>,
+): string[] | null {
   // Sonarr series list response doesn't include episode file data.
   // Tags are populated separately via fetchSonarrSeriesReleaseTags.
   return null;
@@ -297,7 +324,7 @@ function extractSeriesReleaseTags(_row: Record<string, unknown>): string[] | nul
 export async function fetchSonarrSeriesReleaseTags(
   websiteUrl: string,
   apiKey: string,
-  seriesIds: number[]
+  seriesIds: number[],
 ): Promise<Map<number, string[]>> {
   const result = new Map<number, string[]>();
   if (seriesIds.length === 0) return result;
@@ -305,14 +332,14 @@ export async function fetchSonarrSeriesReleaseTags(
   // Check Redis cache for each series
   const uncachedIds: number[] = [];
   await Promise.all(
-    seriesIds.map(async id => {
+    seriesIds.map(async (id) => {
       const cached = await getJsonCache<string[]>(`sonarr:release-tags:${id}`);
       if (cached) {
         result.set(id, cached);
       } else {
         uncachedIds.push(id);
       }
-    })
+    }),
   );
 
   if (uncachedIds.length === 0) return result;
@@ -322,11 +349,11 @@ export async function fetchSonarrSeriesReleaseTags(
   for (let i = 0; i < uncachedIds.length; i += CONCURRENCY) {
     const batch = uncachedIds.slice(i, i + CONCURRENCY);
     const results = await Promise.allSettled(
-      batch.map(async seriesId => {
-        const url = new URL('/api/v3/episodefile', websiteUrl);
-        url.searchParams.set('seriesId', String(seriesId));
+      batch.map(async (seriesId) => {
+        const url = new URL("/api/v3/episodefile", websiteUrl);
+        url.searchParams.set("seriesId", String(seriesId));
         const res = await fetch(url.toString(), {
-          headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
+          headers: { "X-Api-Key": apiKey, Accept: "application/json" },
         });
         if (!res.ok) return { seriesId, tags: null as string[] | null };
 
@@ -347,11 +374,11 @@ export async function fetchSonarrSeriesReleaseTags(
           }
         }
         return { seriesId, tags: null as string[] | null };
-      })
+      }),
     );
 
     for (const r of results) {
-      if (r.status !== 'fulfilled') continue;
+      if (r.status !== "fulfilled") continue;
       const { seriesId, tags } = r.value;
       if (tags && tags.length > 0) {
         result.set(seriesId, tags);
@@ -363,7 +390,10 @@ export async function fetchSonarrSeriesReleaseTags(
   return result;
 }
 
-export const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null => {
+export const mapRadarrMovie = (
+  raw: unknown,
+  baseUrl: string,
+): MediaItem | null => {
   const row = toRecord(raw);
   if (!row) return null;
 
@@ -375,8 +405,8 @@ export const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null 
 
   return {
     id: `radarr-${sourceId}`,
-    media_type: 'movie',
-    service: 'radarr',
+    media_type: "movie",
+    service: "radarr",
     source_id: sourceId,
     title,
     sort_title: toStringOrNull(row.sortTitle),
@@ -392,12 +422,15 @@ export const mapRadarrMovie = (raw: unknown, baseUrl: string): MediaItem | null 
     season_count: null,
     episode_count: null,
     poster_url: extractPosterUrl(baseUrl, row.images),
-    arr_url: tmdbId ? buildArrItemUrl(baseUrl, 'radarr', String(tmdbId)) : null,
+    arr_url: tmdbId ? buildArrItemUrl(baseUrl, "radarr", String(tmdbId)) : null,
     release_tags: extractReleaseTags(row),
   };
 };
 
-export const mapSonarrSeries = (raw: unknown, baseUrl: string): MediaItem | null => {
+export const mapSonarrSeries = (
+  raw: unknown,
+  baseUrl: string,
+): MediaItem | null => {
   const row = toRecord(raw);
   if (!row) return null;
 
@@ -407,23 +440,29 @@ export const mapSonarrSeries = (raw: unknown, baseUrl: string): MediaItem | null
 
   const statistics = toRecord(row.statistics);
   const seasons = Array.isArray(row.seasons) ? row.seasons : [];
-  const seasonCount = seasons.filter(season => {
+  const seasonCount = seasons.filter((season) => {
     const seasonRow = toRecord(season);
-    const seasonNumber = seasonRow ? toNumberOrNull(seasonRow.seasonNumber) : null;
+    const seasonNumber = seasonRow
+      ? toNumberOrNull(seasonRow.seasonNumber)
+      : null;
     return seasonNumber !== null && seasonNumber > 0;
   }).length;
 
-  const episodeCount = toNumberOrNull(statistics?.totalEpisodeCount ?? statistics?.episodeCount);
+  const episodeCount = toNumberOrNull(
+    statistics?.totalEpisodeCount ?? statistics?.episodeCount,
+  );
   const episodeFileCount = toNumberOrNull(statistics?.episodeFileCount);
   const sizeOnDisk = toNumberOrNull(statistics?.sizeOnDisk);
-  const downloaded = (episodeFileCount !== null && episodeFileCount > 0) || (sizeOnDisk !== null && sizeOnDisk > 0);
+  const downloaded =
+    (episodeFileCount !== null && episodeFileCount > 0) ||
+    (sizeOnDisk !== null && sizeOnDisk > 0);
 
   const titleSlug = toStringOrNull(row.titleSlug);
 
   return {
     id: `sonarr-${sourceId}`,
-    media_type: 'series',
-    service: 'sonarr',
+    media_type: "series",
+    service: "sonarr",
     source_id: sourceId,
     title,
     sort_title: toStringOrNull(row.sortTitle),
@@ -439,24 +478,30 @@ export const mapSonarrSeries = (raw: unknown, baseUrl: string): MediaItem | null
     season_count: seasonCount,
     episode_count: episodeCount,
     poster_url: extractPosterUrl(baseUrl, row.images),
-    arr_url: titleSlug ? buildArrItemUrl(baseUrl, 'sonarr', titleSlug) : null,
+    arr_url: titleSlug ? buildArrItemUrl(baseUrl, "sonarr", titleSlug) : null,
     release_tags: extractSeriesReleaseTags(row),
   };
 };
 
-export const fetchRadarrDownloadingMovieIds = async (websiteUrl: string, apiKey: string): Promise<Set<number>> => {
-  const url = new URL('/api/v3/queue', websiteUrl);
-  url.searchParams.set('page', '1');
-  url.searchParams.set('pageSize', '2000');
+export const fetchRadarrDownloadingMovieIds = async (
+  websiteUrl: string,
+  apiKey: string,
+): Promise<Set<number>> => {
+  const url = new URL("/api/v3/queue", websiteUrl);
+  url.searchParams.set("page", "1");
+  url.searchParams.set("pageSize", "2000");
 
   const response = await fetch(url.toString(), {
     headers: {
-      'X-Api-Key': apiKey,
-      Accept: 'application/json',
+      "X-Api-Key": apiKey,
+      Accept: "application/json",
     },
   });
 
-  if (!response.ok) throw new Error(`Radarr queue request failed with status ${response.status}`);
+  if (!response.ok)
+    throw new Error(
+      `Radarr queue request failed with status ${response.status}`,
+    );
 
   const data = (await response.json()) as Record<string, unknown>;
   const records = Array.isArray(data.records) ? data.records : [];
@@ -467,29 +512,42 @@ export const fetchRadarrDownloadingMovieIds = async (websiteUrl: string, apiKey:
     if (!row) continue;
 
     const status = toStringOrNull(row.status)?.toLowerCase();
-    const trackedStatuses = new Set(['queued', 'delayed', 'downloading', 'completed', 'warning']);
+    const trackedStatuses = new Set([
+      "queued",
+      "delayed",
+      "downloading",
+      "completed",
+      "warning",
+    ]);
     if (status && !trackedStatuses.has(status)) continue;
 
-    const movieId = toNumberOrNull(row.movieId) ?? toNumberOrNull(toRecord(row.movie)?.id);
+    const movieId =
+      toNumberOrNull(row.movieId) ?? toNumberOrNull(toRecord(row.movie)?.id);
     if (movieId && movieId > 0) ids.add(movieId);
   }
 
   return ids;
 };
 
-export const fetchSonarrDownloadingSeriesIds = async (websiteUrl: string, apiKey: string): Promise<Set<number>> => {
-  const url = new URL('/api/v3/queue', websiteUrl);
-  url.searchParams.set('page', '1');
-  url.searchParams.set('pageSize', '2000');
+export const fetchSonarrDownloadingSeriesIds = async (
+  websiteUrl: string,
+  apiKey: string,
+): Promise<Set<number>> => {
+  const url = new URL("/api/v3/queue", websiteUrl);
+  url.searchParams.set("page", "1");
+  url.searchParams.set("pageSize", "2000");
 
   const response = await fetch(url.toString(), {
     headers: {
-      'X-Api-Key': apiKey,
-      Accept: 'application/json',
+      "X-Api-Key": apiKey,
+      Accept: "application/json",
     },
   });
 
-  if (!response.ok) throw new Error(`Sonarr queue request failed with status ${response.status}`);
+  if (!response.ok)
+    throw new Error(
+      `Sonarr queue request failed with status ${response.status}`,
+    );
 
   const data = (await response.json()) as Record<string, unknown>;
   const records = Array.isArray(data.records) ? data.records : [];
@@ -500,10 +558,17 @@ export const fetchSonarrDownloadingSeriesIds = async (websiteUrl: string, apiKey
     if (!row) continue;
 
     const status = toStringOrNull(row.status)?.toLowerCase();
-    const trackedStatuses = new Set(['queued', 'delayed', 'downloading', 'completed', 'warning']);
+    const trackedStatuses = new Set([
+      "queued",
+      "delayed",
+      "downloading",
+      "completed",
+      "warning",
+    ]);
     if (status && !trackedStatuses.has(status)) continue;
 
-    const seriesId = toNumberOrNull(row.seriesId) ?? toNumberOrNull(toRecord(row.series)?.id);
+    const seriesId =
+      toNumberOrNull(row.seriesId) ?? toNumberOrNull(toRecord(row.series)?.id);
     if (seriesId && seriesId > 0) ids.add(seriesId);
   }
 
@@ -515,7 +580,7 @@ export const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
   if (!row) return null;
 
   const mediaType = toStringOrNull(row.media_type);
-  if (mediaType !== 'movie' && mediaType !== 'tv') return null;
+  if (mediaType !== "movie" && mediaType !== "tv") return null;
 
   const tmdbId = toNumberOrNull(row.id);
   if (!tmdbId) return null;
@@ -524,7 +589,8 @@ export const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
   if (!title) return null;
 
   const posterPath = toStringOrNull(row.poster_path);
-  const releaseYear = parseReleaseYear(row.release_date) ?? parseReleaseYear(row.first_air_date);
+  const releaseYear =
+    parseReleaseYear(row.release_date) ?? parseReleaseYear(row.first_air_date);
   const overview = toStringOrNull(row.overview);
   const voteAverage = toNumberOrNull(row.vote_average);
 
@@ -537,7 +603,7 @@ export const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
     poster_url: posterPath ? `${TMDB_IMAGE_BASE_URL}${posterPath}` : null,
     overview: overview || null,
     vote_average: voteAverage && voteAverage > 0 ? voteAverage : null,
-    service: mediaType === 'movie' ? 'radarr' : 'sonarr',
+    service: mediaType === "movie" ? "radarr" : "sonarr",
     already_exists: false,
     can_add: false,
     source_id: null,
@@ -545,16 +611,20 @@ export const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
   };
 };
 
-export const fetchRadarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Map<number, ArrEntry>> => {
-  const cacheKey = 'medias:radarr:ids';
+export const fetchRadarrTmdbIds = async (
+  websiteUrl: string,
+  apiKey: string,
+): Promise<Map<number, ArrEntry>> => {
+  const cacheKey = "medias:radarr:ids";
   const cached = await getJsonCache<[number, ArrEntry][]>(cacheKey);
   if (cached) return new Map(cached);
 
-  const url = new URL('/api/v3/movie', websiteUrl);
+  const url = new URL("/api/v3/movie", websiteUrl);
   const response = await fetch(url.toString(), {
-    headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
+    headers: { "X-Api-Key": apiKey, Accept: "application/json" },
   });
-  if (!response.ok) throw new Error(`Radarr request failed with status ${response.status}`);
+  if (!response.ok)
+    throw new Error(`Radarr request failed with status ${response.status}`);
 
   const data = (await response.json()) as unknown[];
   const ids = new Map<number, ArrEntry>();
@@ -563,7 +633,10 @@ export const fetchRadarrTmdbIds = async (websiteUrl: string, apiKey: string): Pr
     const tmdbId = row ? toNumberOrNull(row.tmdbId) : null;
     const sourceId = row ? toNumberOrNull(row.id) : null;
     if (tmdbId && tmdbId > 0 && sourceId && sourceId > 0) {
-      ids.set(tmdbId, { sourceId, titleSlug: row ? toStringOrNull(row.titleSlug) : null });
+      ids.set(tmdbId, {
+        sourceId,
+        titleSlug: row ? toStringOrNull(row.titleSlug) : null,
+      });
     }
   }
 
@@ -580,10 +653,10 @@ export async function fetchSonarrDownloadedEpisodes(
   apiKey: string,
   seriesId: number,
 ): Promise<{ season_number: number; episode_number: number }[]> {
-  const url = new URL('/api/v3/episode', websiteUrl);
-  url.searchParams.set('seriesId', String(seriesId));
+  const url = new URL("/api/v3/episode", websiteUrl);
+  url.searchParams.set("seriesId", String(seriesId));
   const res = await fetch(url.toString(), {
-    headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
+    headers: { "X-Api-Key": apiKey, Accept: "application/json" },
   });
   if (!res.ok) return [];
 
@@ -599,20 +672,27 @@ export async function fetchSonarrDownloadedEpisodes(
     if (sn === null || en === null) continue;
     out.push({ season_number: sn, episode_number: en });
   }
-  out.sort((a, b) => (a.season_number - b.season_number) || (a.episode_number - b.episode_number));
+  out.sort(
+    (a, b) =>
+      a.season_number - b.season_number || a.episode_number - b.episode_number,
+  );
   return out;
 }
 
-export const fetchSonarrTmdbIds = async (websiteUrl: string, apiKey: string): Promise<Map<number, ArrEntry>> => {
-  const cacheKey = 'medias:sonarr:ids';
+export const fetchSonarrTmdbIds = async (
+  websiteUrl: string,
+  apiKey: string,
+): Promise<Map<number, ArrEntry>> => {
+  const cacheKey = "medias:sonarr:ids";
   const cached = await getJsonCache<[number, ArrEntry][]>(cacheKey);
   if (cached) return new Map(cached);
 
-  const url = new URL('/api/v3/series', websiteUrl);
+  const url = new URL("/api/v3/series", websiteUrl);
   const response = await fetch(url.toString(), {
-    headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
+    headers: { "X-Api-Key": apiKey, Accept: "application/json" },
   });
-  if (!response.ok) throw new Error(`Sonarr request failed with status ${response.status}`);
+  if (!response.ok)
+    throw new Error(`Sonarr request failed with status ${response.status}`);
 
   const data = (await response.json()) as unknown[];
   const ids = new Map<number, ArrEntry>();
@@ -621,7 +701,10 @@ export const fetchSonarrTmdbIds = async (websiteUrl: string, apiKey: string): Pr
     const tmdbId = row ? toNumberOrNull(row.tmdbId) : null;
     const sourceId = row ? toNumberOrNull(row.id) : null;
     if (tmdbId && tmdbId > 0 && sourceId && sourceId > 0) {
-      ids.set(tmdbId, { sourceId, titleSlug: row ? toStringOrNull(row.titleSlug) : null });
+      ids.set(tmdbId, {
+        sourceId,
+        titleSlug: row ? toStringOrNull(row.titleSlug) : null,
+      });
     }
   }
 
@@ -629,7 +712,9 @@ export const fetchSonarrTmdbIds = async (websiteUrl: string, apiKey: string): Pr
   return ids;
 };
 
-export const mapInteractiveRelease = (raw: unknown): InteractiveReleaseItem | null => {
+export const mapInteractiveRelease = (
+  raw: unknown,
+): InteractiveReleaseItem | null => {
   const row = toRecord(raw);
   if (!row) return null;
 
@@ -640,17 +725,26 @@ export const mapInteractiveRelease = (raw: unknown): InteractiveReleaseItem | nu
   const rejections = Array.isArray(row.rejections) ? row.rejections : [];
   const indexerRecord = toRecord(row.indexer);
   const indexerName =
-    toStringOrNull(row.indexer) || toStringOrNull(indexerRecord?.name) || toStringOrNull(indexerRecord?.title);
-  const indexerId = toNumberOrNull(row.indexerId) || toNumberOrNull(row.indexerID) || toNumberOrNull(indexerRecord?.id);
+    toStringOrNull(row.indexer) ||
+    toStringOrNull(indexerRecord?.name) ||
+    toStringOrNull(indexerRecord?.title);
+  const indexerId =
+    toNumberOrNull(row.indexerId) ||
+    toNumberOrNull(row.indexerID) ||
+    toNumberOrNull(indexerRecord?.id);
   const rejectionReason =
     rejections.length > 0
       ? rejections
-          .map(r => {
+          .map((r) => {
             const record = toRecord(r);
-            return toStringOrNull(record?.reason) || toStringOrNull(record?.type) || null;
+            return (
+              toStringOrNull(record?.reason) ||
+              toStringOrNull(record?.type) ||
+              null
+            );
           })
           .filter((v): v is string => Boolean(v))
-          .join(', ')
+          .join(", ")
       : null;
 
   return {
@@ -667,7 +761,7 @@ export const mapInteractiveRelease = (raw: unknown): InteractiveReleaseItem | nu
     rejected: toBoolean(row.rejected),
     rejection_reason: rejectionReason,
     info_url: toStringOrNull(row.infoUrl),
-    source: 'arr',
+    source: "arr",
     download_token: null,
   };
 };
@@ -681,7 +775,9 @@ const cleanupExpiredProwlarrPayloads = () => {
   }
 };
 
-const storeProwlarrReleasePayload = (payload: Record<string, unknown>): string => {
+const storeProwlarrReleasePayload = (
+  payload: Record<string, unknown>,
+): string => {
   cleanupExpiredProwlarrPayloads();
   const token = randomUUID();
   prowlarrReleasePayloads.set(token, {
@@ -691,7 +787,9 @@ const storeProwlarrReleasePayload = (payload: Record<string, unknown>): string =
   return token;
 };
 
-export const takeProwlarrReleasePayload = (token: string): Record<string, unknown> | null => {
+export const takeProwlarrReleasePayload = (
+  token: string,
+): Record<string, unknown> | null => {
   cleanupExpiredProwlarrPayloads();
   const entry = prowlarrReleasePayloads.get(token);
   if (!entry) return null;
@@ -699,7 +797,9 @@ export const takeProwlarrReleasePayload = (token: string): Record<string, unknow
   return entry.payload;
 };
 
-export const mapProwlarrInteractiveRelease = (raw: unknown): InteractiveReleaseItem | null => {
+export const mapProwlarrInteractiveRelease = (
+  raw: unknown,
+): InteractiveReleaseItem | null => {
   const base = mapInteractiveRelease(raw);
   const row = toRecord(raw);
   if (!base || !row) return null;
@@ -707,7 +807,7 @@ export const mapProwlarrInteractiveRelease = (raw: unknown): InteractiveReleaseI
   const downloadToken = storeProwlarrReleasePayload(row);
   return {
     ...base,
-    source: 'prowlarr',
+    source: "prowlarr",
     download_token: downloadToken,
   };
 };
@@ -729,12 +829,14 @@ function extractGenreNames(value: unknown): string[] {
 }
 
 function seriesTypeToString(value: unknown): string | null {
-  if (typeof value === 'string') return value.trim() || null;
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value === "string") return value.trim() || null;
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
   return null;
 }
 
-export function mapRadarrManagementDetails(raw: unknown): ArrManagementDetailsResponse | null {
+export function mapRadarrManagementDetails(
+  raw: unknown,
+): ArrManagementDetailsResponse | null {
   const row = toRecord(raw);
   if (!row) return null;
   const title = toStringOrNull(row.title);
@@ -745,7 +847,9 @@ export function mapRadarrManagementDetails(raw: unknown): ArrManagementDetailsRe
   if (movieFile) {
     const quality = toRecord(movieFile.quality);
     const qualityInner = quality ? toRecord(quality.quality) : null;
-    const qualityLabel = qualityInner ? toStringOrNull(qualityInner.name) : null;
+    const qualityLabel = qualityInner
+      ? toStringOrNull(qualityInner.name)
+      : null;
     const mediaInfo = toRecord(movieFile.mediaInfo);
     const languages = Array.isArray(movieFile.languages)
       ? movieFile.languages
@@ -763,14 +867,16 @@ export function mapRadarrManagementDetails(raw: unknown): ArrManagementDetailsRe
       media_resolution: mediaInfo ? toStringOrNull(mediaInfo.resolution) : null,
       video_codec: mediaInfo ? toStringOrNull(mediaInfo.videoCodec) : null,
       audio_codec: mediaInfo ? toStringOrNull(mediaInfo.audioCodec) : null,
-      audio_channels: mediaInfo ? toStringOrNull(mediaInfo.audioChannels) : null,
+      audio_channels: mediaInfo
+        ? toStringOrNull(mediaInfo.audioChannels)
+        : null,
       edition: toStringOrNull(movieFile.edition),
       release_group: toStringOrNull(movieFile.releaseGroup),
     };
   }
 
   return {
-    service: 'radarr',
+    service: "radarr",
     title,
     sort_title: toStringOrNull(row.sortTitle),
     path: toStringOrNull(row.path),
@@ -789,7 +895,9 @@ export function mapRadarrManagementDetails(raw: unknown): ArrManagementDetailsRe
   };
 }
 
-export function mapSonarrManagementDetails(raw: unknown): ArrManagementDetailsResponse | null {
+export function mapSonarrManagementDetails(
+  raw: unknown,
+): ArrManagementDetailsResponse | null {
   const row = toRecord(raw);
   if (!row) return null;
   const title = toStringOrNull(row.title);
@@ -815,7 +923,7 @@ export function mapSonarrManagementDetails(raw: unknown): ArrManagementDetailsRe
   const epCount = stats?.episode_file_count ?? 0;
 
   return {
-    service: 'sonarr',
+    service: "sonarr",
     title,
     sort_title: toStringOrNull(row.sortTitle),
     path: toStringOrNull(row.path),

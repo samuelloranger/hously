@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import React, { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   usePauseQbittorrentTorrent,
   useReannounceQbittorrentTorrent,
   useResumeQbittorrentTorrent,
-} from '@/hooks/useDashboard';
+} from "@/hooks/useDashboard";
 import {
   formatBytes,
   formatQbittorrentEta,
@@ -14,10 +14,19 @@ import {
   hasQbittorrentTransferActivity,
   isQbittorrentPausedState,
   type QbittorrentTorrentListItem,
-} from '@hously/shared';
-import { Tag, Clock, Play, Pause, RefreshCw, Pin, PinOff, MoreHorizontal } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
+} from "@hously/shared";
+import {
+  Tag,
+  Clock,
+  Play,
+  Pause,
+  RefreshCw,
+  Pin,
+  PinOff,
+  MoreHorizontal,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 export function TorrentGridCard({
   torrent,
@@ -30,7 +39,7 @@ export function TorrentGridCard({
   onTogglePin: (hash: string, nextPinned: boolean) => void;
   isPinPending: boolean;
 }) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const { dot, pulse } = getQbittorrentStatusDot(torrent.state);
   const progress = Math.round(torrent.progress * 100);
   const isActive = hasQbittorrentTransferActivity(torrent);
@@ -41,7 +50,10 @@ export function TorrentGridCard({
   const pauseMutation = usePauseQbittorrentTorrent(torrent.id);
   const resumeMutation = useResumeQbittorrentTorrent(torrent.id);
   const reannounceMutation = useReannounceQbittorrentTorrent(torrent.id);
-  const isActionPending = pauseMutation.isPending || resumeMutation.isPending || reannounceMutation.isPending;
+  const isActionPending =
+    pauseMutation.isPending ||
+    resumeMutation.isPending ||
+    reannounceMutation.isPending;
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -49,12 +61,15 @@ export function TorrentGridCard({
   useEffect(() => {
     if (!dropdownOpen) return;
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [dropdownOpen]);
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -86,8 +101,16 @@ export function TorrentGridCard({
       <button
         onClick={handleTogglePin}
         disabled={isPinPending}
-        title={isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
-        aria-label={isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
+        title={
+          isPinned
+            ? t("torrents.unpin", "Unpin from home")
+            : t("torrents.pin", "Pin to home")
+        }
+        aria-label={
+          isPinned
+            ? t("torrents.unpin", "Unpin from home")
+            : t("torrents.pin", "Pin to home")
+        }
         className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
       >
         {isPinned ? <PinOff size={11} /> : <Pin size={11} />}
@@ -95,8 +118,8 @@ export function TorrentGridCard({
       <button
         onClick={handleReannounce}
         disabled={isActionPending}
-        title={t('torrents.reannounce', 'Reannounce')}
-        aria-label={t('torrents.reannounce', 'Reannounce')}
+        title={t("torrents.reannounce", "Reannounce")}
+        aria-label={t("torrents.reannounce", "Reannounce")}
         className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
       >
         {reannounceMutation.isPending ? (
@@ -108,8 +131,16 @@ export function TorrentGridCard({
       <button
         onClick={handleToggle}
         disabled={isActionPending}
-        title={isPaused ? t('torrents.start', 'Resume') : t('torrents.pause', 'Pause')}
-        aria-label={isPaused ? t('torrents.start', 'Resume') : t('torrents.pause', 'Pause')}
+        title={
+          isPaused
+            ? t("torrents.start", "Resume")
+            : t("torrents.pause", "Pause")
+        }
+        aria-label={
+          isPaused
+            ? t("torrents.start", "Resume")
+            : t("torrents.pause", "Pause")
+        }
         className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:pointer-events-none disabled:opacity-30"
       >
         {pauseMutation.isPending || resumeMutation.isPending ? (
@@ -130,12 +161,18 @@ export function TorrentGridCard({
       className="group block rounded-2xl border border-neutral-200 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-sm transition-all overflow-hidden"
     >
       {/* Status accent bar */}
-      <div className={cn('h-1 w-full', dot)} />
+      <div className={cn("h-1 w-full", dot)} />
 
       <div className="p-3">
         {/* Status dot + name */}
         <div className="flex items-start gap-2">
-          <span className={cn('mt-1 block w-2 h-2 rounded-full shrink-0', dot, pulse && 'animate-pulse')} />
+          <span
+            className={cn(
+              "mt-1 block w-2 h-2 rounded-full shrink-0",
+              dot,
+              pulse && "animate-pulse",
+            )}
+          />
           <p className="flex-1 text-[13px] font-medium text-neutral-900 dark:text-neutral-100 line-clamp-2 leading-snug min-w-0 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
             {torrent.name}
           </p>
@@ -154,7 +191,10 @@ export function TorrentGridCard({
         {/* Progress bar */}
         <div className="mt-2.5 h-1 w-full rounded-full overflow-hidden bg-neutral-100 dark:bg-neutral-800">
           <div
-            className={cn('h-full rounded-full transition-all duration-500', barGradient)}
+            className={cn(
+              "h-full rounded-full transition-all duration-500",
+              barGradient,
+            )}
             style={{ width: `${Math.max(2, progress)}%` }}
           />
         </div>
@@ -167,7 +207,7 @@ export function TorrentGridCard({
           <span className="font-mono text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
             {formatBytes(torrent.size_bytes)}
           </span>
-          {isActive && eta !== '∞' && (
+          {isActive && eta !== "∞" && (
             <span className="inline-flex items-center gap-0.5 font-mono text-[11px] text-neutral-400 tabular-nums">
               <Clock size={9} />
               {eta}
@@ -185,7 +225,7 @@ export function TorrentGridCard({
           )}
           {torrent.ratio != null && !isActive && (
             <span className="font-mono text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
-              {t('torrents.shareRatio', 'Ratio')}: {torrent.ratio.toFixed(2)}
+              {t("torrents.shareRatio", "Ratio")}: {torrent.ratio.toFixed(2)}
             </span>
           )}
         </div>
@@ -201,20 +241,20 @@ export function TorrentGridCard({
           <div
             ref={dropdownRef}
             className="relative sm:hidden"
-            onClick={e => {
+            onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
             }}
           >
             <button
-              onClick={e => {
+              onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setDropdownOpen(v => !v);
+                setDropdownOpen((v) => !v);
               }}
               disabled={isActionPending}
               className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:opacity-30"
-              aria-label={t('common.actions', 'Actions')}
+              aria-label={t("common.actions", "Actions")}
             >
               {isActionPending ? (
                 <span className="block w-3 h-3 rounded-full border-2 border-neutral-400 border-t-transparent animate-spin" />
@@ -231,7 +271,9 @@ export function TorrentGridCard({
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors"
                 >
                   {isPinned ? <PinOff size={13} /> : <Pin size={13} />}
-                  {isPinned ? t('torrents.unpin', 'Unpin from home') : t('torrents.pin', 'Pin to home')}
+                  {isPinned
+                    ? t("torrents.unpin", "Unpin from home")
+                    : t("torrents.pin", "Pin to home")}
                 </button>
                 <button
                   onClick={handleReannounce}
@@ -239,7 +281,7 @@ export function TorrentGridCard({
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors"
                 >
                   <RefreshCw size={13} />
-                  {t('torrents.reannounce', 'Reannounce')}
+                  {t("torrents.reannounce", "Reannounce")}
                 </button>
                 <button
                   onClick={handleToggle}
@@ -247,7 +289,9 @@ export function TorrentGridCard({
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors"
                 >
                   {isPaused ? <Play size={13} /> : <Pause size={13} />}
-                  {isPaused ? t('torrents.start', 'Resume') : t('torrents.pause', 'Pause')}
+                  {isPaused
+                    ? t("torrents.start", "Resume")
+                    : t("torrents.pause", "Pause")}
                 </button>
               </div>
             )}

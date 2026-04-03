@@ -3,10 +3,10 @@
  * Runs daily at 8:00 PM
  */
 
-import { buildNotificationUrl } from '@hously/shared';
-import { prisma } from '../db';
-import { todayLocal, addDaysInTz, formatDateInTimezone } from '../utils';
-import { isNightTime, createAndQueueNotification } from './notificationService';
+import { buildNotificationUrl } from "@hously/shared";
+import { prisma } from "../db";
+import { todayLocal, addDaysInTz, formatDateInTimezone } from "../utils";
+import { isNightTime, createAndQueueNotification } from "./notificationService";
 
 /**
  * Check for all-day custom events starting tomorrow and send notifications
@@ -16,7 +16,7 @@ import { isNightTime, createAndQueueNotification } from './notificationService';
  * - Send notifications to the event owner
  */
 export async function checkAndSendAllDayEventNotifications(): Promise<void> {
-  console.log('[CRON] Running checkAndSendAllDayEventNotifications...');
+  console.log("[CRON] Running checkAndSendAllDayEventNotifications...");
 
   // Skip notifications during night time (23h-6h)
   if (isNightTime()) {
@@ -48,28 +48,40 @@ export async function checkAndSendAllDayEventNotifications(): Promise<void> {
 
     for (const event of events) {
       const user = event.user;
-      const locale = user.locale || 'en';
+      const locale = user.locale || "en";
 
-      const title = locale === 'fr' ? `Événement demain: ${event.title}` : `All-day event tomorrow: ${event.title}`;
+      const title =
+        locale === "fr"
+          ? `Événement demain: ${event.title}`
+          : `All-day event tomorrow: ${event.title}`;
       const body =
-        locale === 'fr'
+        locale === "fr"
           ? `Votre événement '${event.title}' est prévu pour demain`
           : `Your all-day event '${event.title}' is scheduled for tomorrow`;
-      const url = buildNotificationUrl('/calendar', {
+      const url = buildNotificationUrl("/calendar", {
         date: formatDateInTimezone(event.startDatetime),
         eventId: event.id,
       });
       const metadata = { custom_event_id: event.id };
 
-      const success = await createAndQueueNotification(user.id, title, body, 'custom_event', url, metadata);
+      const success = await createAndQueueNotification(
+        user.id,
+        title,
+        body,
+        "custom_event",
+        url,
+        metadata,
+      );
 
       if (success) {
         sentCount++;
       }
     }
 
-    console.log(`[CRON] Sent ${sentCount} all-day event notifications for tomorrow`);
+    console.log(
+      `[CRON] Sent ${sentCount} all-day event notifications for tomorrow`,
+    );
   } catch (error) {
-    console.error('[CRON] Error checking all-day events:', error);
+    console.error("[CRON] Error checking all-day events:", error);
   }
 }

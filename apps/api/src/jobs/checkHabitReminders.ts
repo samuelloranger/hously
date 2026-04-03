@@ -1,16 +1,16 @@
-import { prisma } from '../db';
-import { isNightTime, createAndQueueNotification } from './notificationService';
-import { getTimezone, todayLocal } from '../utils';
-import { sendLiveActivityStartPush } from '../utils/apnLiveActivity';
+import { prisma } from "../db";
+import { isNightTime, createAndQueueNotification } from "./notificationService";
+import { getTimezone, todayLocal } from "../utils";
+import { sendLiveActivityStartPush } from "../utils/apnLiveActivity";
 
 const getHabitStatusCounts = (entries: Array<{ status: string }>) => {
   let completions = 0;
   let skipped = 0;
 
   for (const entry of entries) {
-    if (entry.status === 'done') {
+    if (entry.status === "done") {
       completions++;
-    } else if (entry.status === 'skipped') {
+    } else if (entry.status === "skipped") {
       skipped++;
     }
   }
@@ -26,15 +26,19 @@ export const checkHabitReminders = async () => {
 
     const now = new Date();
     const tz = getTimezone();
-    const formatter = new Intl.DateTimeFormat('en-US', {
+    const formatter = new Intl.DateTimeFormat("en-US", {
       timeZone: tz,
-      hour: '2-digit',
-      minute: '2-digit',
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: false,
     });
     const parts = formatter.formatToParts(now);
-    const currentHours = (parts.find(p => p.type === 'hour')?.value || '00').padStart(2, '0');
-    const currentMinutes = (parts.find(p => p.type === 'minute')?.value || '00').padStart(2, '0');
+    const currentHours = (
+      parts.find((p) => p.type === "hour")?.value || "00"
+    ).padStart(2, "0");
+    const currentMinutes = (
+      parts.find((p) => p.type === "minute")?.value || "00"
+    ).padStart(2, "0");
     const currentTimeString = `${currentHours}:${currentMinutes}`;
 
     const startOfToday = todayLocal();
@@ -60,12 +64,12 @@ export const checkHabitReminders = async () => {
               where: {
                 date: {
                   gte: startOfToday,
-                }
-              }
-            }
-          }
-        }
-      }
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     for (const schedule of schedules) {
@@ -75,31 +79,31 @@ export const checkHabitReminders = async () => {
         continue;
       }
 
-      const locale = schedule.habit.user.locale || 'en';
-      const body = locale === 'fr'
-        ? `C'est le temps: ${schedule.habit.name}`
-        : `Time to complete: ${schedule.habit.name}`;
+      const locale = schedule.habit.user.locale || "en";
+      const body =
+        locale === "fr"
+          ? `C'est le temps: ${schedule.habit.name}`
+          : `Time to complete: ${schedule.habit.name}`;
 
       await createAndQueueNotification(
         schedule.habit.userId,
         `${schedule.habit.emoji} ${schedule.habit.name}`,
         body,
-        'habit',
-        '/habits',
-        { habit_id: schedule.habit.id, schedule_id: schedule.id }
+        "habit",
+        "/habits",
+        { habit_id: schedule.habit.id, schedule_id: schedule.id },
       );
 
       await prisma.habitSchedule.update({
         where: { id: schedule.id },
-        data: { lastNotificationSent: now }
+        data: { lastNotificationSent: now },
       });
     }
 
     // --- Live Activity push-to-start (15 min before schedule) ---
     await sendLiveActivityPushes(now, tz, startOfToday);
-
   } catch (error) {
-    console.error('Error checking habit reminders:', error);
+    console.error("Error checking habit reminders:", error);
   }
 };
 
@@ -107,19 +111,27 @@ export const checkHabitReminders = async () => {
  * Check for habit schedules 15 minutes from now and send Live Activity push-to-start
  * notifications so the activity appears on the lock screen before the reminder.
  */
-async function sendLiveActivityPushes(now: Date, tz: string, startOfToday: Date) {
+async function sendLiveActivityPushes(
+  now: Date,
+  tz: string,
+  startOfToday: Date,
+) {
   try {
     // Calculate the time 15 minutes from now in the user's timezone
     const fifteenMinutesFromNow = new Date(now.getTime() + 15 * 60000);
-    const futureFormatter = new Intl.DateTimeFormat('en-US', {
+    const futureFormatter = new Intl.DateTimeFormat("en-US", {
       timeZone: tz,
-      hour: '2-digit',
-      minute: '2-digit',
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: false,
     });
     const futureParts = futureFormatter.formatToParts(fifteenMinutesFromNow);
-    const futureHours = (futureParts.find(p => p.type === 'hour')?.value || '00').padStart(2, '0');
-    const futureMinutes = (futureParts.find(p => p.type === 'minute')?.value || '00').padStart(2, '0');
+    const futureHours = (
+      futureParts.find((p) => p.type === "hour")?.value || "00"
+    ).padStart(2, "0");
+    const futureMinutes = (
+      futureParts.find((p) => p.type === "minute")?.value || "00"
+    ).padStart(2, "0");
     const futureTimeString = `${futureHours}:${futureMinutes}`;
 
     // Find schedules that are 15 minutes away
@@ -161,13 +173,13 @@ async function sendLiveActivityPushes(now: Date, tz: string, startOfToday: Date)
       if (laTokens.length === 0) continue;
 
       // Calculate the scheduled time as Unix timestamp (seconds since 1970)
-      const [hours, minutes] = schedule.time.split(':').map(Number);
+      const [hours, minutes] = schedule.time.split(":").map(Number);
       const scheduledDate = new Date(startOfToday);
       scheduledDate.setHours(hours, minutes, 0, 0);
       const scheduledTimeUnix = Math.floor(scheduledDate.getTime() / 1000);
 
       const { successCount, invalidTokens } = await sendLiveActivityStartPush(
-        laTokens.map(t => t.token),
+        laTokens.map((t) => t.token),
         {
           attributes: {
             habitId: habit.id,
@@ -179,11 +191,13 @@ async function sendLiveActivityPushes(now: Date, tz: string, startOfToday: Date)
             completions: statusCounts.completions,
             scheduledTime: scheduledTimeUnix,
           },
-        }
+        },
       );
 
       if (successCount > 0) {
-        console.log(`[LiveActivity] Started activity for habit "${habit.name}" (${successCount} devices)`);
+        console.log(
+          `[LiveActivity] Started activity for habit "${habit.name}" (${successCount} devices)`,
+        );
       }
 
       // Clean up invalid tokens
@@ -191,10 +205,12 @@ async function sendLiveActivityPushes(now: Date, tz: string, startOfToday: Date)
         await prisma.liveActivityToken.deleteMany({
           where: { token: { in: invalidTokens } },
         });
-        console.log(`[LiveActivity] Removed ${invalidTokens.length} invalid tokens`);
+        console.log(
+          `[LiveActivity] Removed ${invalidTokens.length} invalid tokens`,
+        );
       }
     }
   } catch (error) {
-    console.error('[LiveActivity] Error sending push-to-start:', error);
+    console.error("[LiveActivity] Error sending push-to-start:", error);
   }
 }

@@ -1,16 +1,16 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { Link } from '@tanstack/react-router';
-import { toast } from 'sonner';
-import { useForgotPassword } from '@/hooks/useAuth';
-import { getCurrentUser } from '@/lib/auth';
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { useForgotPassword } from "@/hooks/useAuth";
+import { getCurrentUser } from "@/lib/auth";
 
-export const Route = createFileRoute('/forgot-password')({
+export const Route = createFileRoute("/forgot-password")({
   beforeLoad: async () => {
     const user = await getCurrentUser().catch(() => null);
-    if (user) throw redirect({ to: '/' });
+    if (user) throw redirect({ to: "/" });
   },
   component: ForgotPasswordPage,
 });
@@ -20,7 +20,7 @@ interface ForgotPasswordFormData {
 }
 
 function ForgotPasswordPage() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const forgotPasswordMutation = useForgotPassword();
 
@@ -36,7 +36,7 @@ function ForgotPasswordPage() {
       setIsSubmitted(true);
     } catch (error: unknown) {
       const err = error as { message?: string };
-      toast.error(err.message || t('forgotPassword.error'));
+      toast.error(err.message || t("forgotPassword.error"));
     }
   };
 
@@ -46,13 +46,15 @@ function ForgotPasswordPage() {
         <div className="max-w-md w-full space-y-8">
           <div>
             <div className="mx-auto h-12 w-12 flex items-center justify-center">
-              <span className="text-4xl text-primary-600 dark:text-primary-400">✉️</span>
+              <span className="text-4xl text-primary-600 dark:text-primary-400">
+                ✉️
+              </span>
             </div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
-              {t('forgotPassword.checkEmail')}
+              {t("forgotPassword.checkEmail")}
             </h2>
             <p className="mt-4 text-center text-sm text-neutral-600 dark:text-neutral-400">
-              {t('forgotPassword.emailSent')}
+              {t("forgotPassword.emailSent")}
             </p>
           </div>
           <div className="text-center">
@@ -60,7 +62,7 @@ function ForgotPasswordPage() {
               to="/login"
               className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
             >
-              {t('forgotPassword.backToLogin')}
+              {t("forgotPassword.backToLogin")}
             </Link>
           </div>
         </div>
@@ -73,37 +75,39 @@ function ForgotPasswordPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto h-12 w-12 flex items-center justify-center">
-            <span className="text-4xl text-primary-600 dark:text-primary-400">🔑</span>
+            <span className="text-4xl text-primary-600 dark:text-primary-400">
+              🔑
+            </span>
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
-            {t('forgotPassword.title')}
+            {t("forgotPassword.title")}
           </h2>
           <p className="mt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
-            {t('forgotPassword.description')}
+            {t("forgotPassword.description")}
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div>
             <label htmlFor="email" className="sr-only">
-              {t('login.email')}
+              {t("login.email")}
             </label>
             <input
               id="email"
               type="email"
               autoComplete="email"
               className="appearance-none rounded-md relative block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 placeholder-neutral-500 dark:placeholder-neutral-400 text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-              placeholder={t('login.email')}
-              {...register('email', {
+              placeholder={t("login.email")}
+              {...register("email", {
                 required: true,
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: t('login.invalidEmail'),
+                  message: t("login.invalidEmail"),
                 },
               })}
             />
             {errors.email && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                {errors.email.message || t('login.emailRequired')}
+                {errors.email.message || t("login.emailRequired")}
               </p>
             )}
           </div>
@@ -114,7 +118,9 @@ function ForgotPasswordPage() {
               disabled={forgotPasswordMutation.isPending}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {forgotPasswordMutation.isPending ? t('common.loading') : t('forgotPassword.submit')}
+              {forgotPasswordMutation.isPending
+                ? t("common.loading")
+                : t("forgotPassword.submit")}
             </button>
           </div>
 
@@ -123,7 +129,7 @@ function ForgotPasswordPage() {
               to="/login"
               className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
             >
-              {t('forgotPassword.backToLogin')}
+              {t("forgotPassword.backToLogin")}
             </Link>
           </div>
         </form>

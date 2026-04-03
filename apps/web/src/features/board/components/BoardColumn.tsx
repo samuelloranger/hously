@@ -1,5 +1,5 @@
-import { useDroppable } from '@dnd-kit/react';
-import type { BoardTaskStatusApi } from '@hously/shared';
+import { useDroppable } from "@dnd-kit/react";
+import type { BoardTaskStatusApi } from "@hously/shared";
 
 interface BoardColumnProps {
   status: BoardTaskStatusApi;

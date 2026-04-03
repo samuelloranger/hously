@@ -1,7 +1,7 @@
-import { useTranslation } from 'react-i18next';
-import { CreateChoreForm } from '@/pages/chores/_component/CreateChoreForm';
-import type { ChoreUser } from '@hously/shared';
-import { Dialog } from '@/components/dialog';
+import { useTranslation } from "react-i18next";
+import { CreateChoreForm } from "@/pages/chores/_component/CreateChoreForm";
+import type { ChoreUser } from "@hously/shared";
+import { Dialog } from "@/components/dialog";
 
 interface CreateChoreModalProps {
   isOpen: boolean;
@@ -9,11 +9,20 @@ interface CreateChoreModalProps {
   users: ChoreUser[];
 }
 
-export function CreateChoreModal({ isOpen, onClose, users }: CreateChoreModalProps) {
-  const { t } = useTranslation('common');
+export function CreateChoreModal({
+  isOpen,
+  onClose,
+  users,
+}: CreateChoreModalProps) {
+  const { t } = useTranslation("common");
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={t('chores.addNewChore')} showCloseButton>
+    <Dialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t("chores.addNewChore")}
+      showCloseButton
+    >
       <CreateChoreForm users={users} onSuccess={onClose} />
     </Dialog>
   );

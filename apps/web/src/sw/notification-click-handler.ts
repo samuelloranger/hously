@@ -1,6 +1,6 @@
-import { sw } from './sw';
-import { normalizeNotificationUrl } from '@hously/shared/utils/notifications';
-import type { NotificationData } from './types';
+import { sw } from "./sw";
+import { normalizeNotificationUrl } from "@hously/shared/utils/notifications";
+import type { NotificationData } from "./types";
 
 // Handle notification click events - navigate to URL or handle actions
 export function handleNotificationClick(event: NotificationEvent): void {
@@ -10,123 +10,131 @@ export function handleNotificationClick(event: NotificationEvent): void {
   const notificationData = (event.notification.data || {}) as NotificationData;
 
   // Handle "reload" action for update notifications
-  if (action === 'reload' || notificationData.action === 'reload') {
+  if (action === "reload" || notificationData.action === "reload") {
     event.waitUntil(
-      sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-        // Reload all open windows
-        clients.forEach(client => {
-          if (client.url && 'navigate' in client) {
-            client.navigate(client.url);
-          }
-        });
-        // Also reload the service worker
-        return sw.registration.update().then(() => {
-          // Force reload after a short delay
-          return new Promise<void>(resolve => {
-            setTimeout(() => {
-              clients.forEach(client => {
-                if (client.url && 'navigate' in client) {
-                  client.navigate(client.url);
-                }
-              });
-              resolve();
-            }, 100);
+      sw.clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then((clients) => {
+          // Reload all open windows
+          clients.forEach((client) => {
+            if (client.url && "navigate" in client) {
+              client.navigate(client.url);
+            }
           });
-        });
-      })
+          // Also reload the service worker
+          return sw.registration.update().then(() => {
+            // Force reload after a short delay
+            return new Promise<void>((resolve) => {
+              setTimeout(() => {
+                clients.forEach((client) => {
+                  if (client.url && "navigate" in client) {
+                    client.navigate(client.url);
+                  }
+                });
+                resolve();
+              }, 100);
+            });
+          });
+        }),
     );
     return;
   }
 
   // Handle "dismiss" action for update notifications
-  if (action === 'dismiss' && notificationData.action === 'reload') {
+  if (action === "dismiss" && notificationData.action === "reload") {
     return; // Just close the notification
   }
 
   // Handle "close" action
-  if (action === 'close') {
+  if (action === "close") {
     return;
   }
 
   // Handle "mark-done" action for chore reminders
-  if (action === 'mark-done' && notificationData.chore_id) {
+  if (action === "mark-done" && notificationData.chore_id) {
     event.waitUntil(
       // First, get CSRF token
       fetch(`/api/chores/toggle/${notificationData.chore_id}`, {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       })
-        .then(response => {
+        .then((response) => {
           if (response.ok) {
             // Show a confirmation notification
-            return sw.registration.showNotification('Hously', {
-              body: 'Tâche marquée comme faite !',
-              icon: '/icon-192.png',
-              badge: '/icon-32.png',
-              tag: 'chore-marked-done',
+            return sw.registration.showNotification("Hously", {
+              body: "Tâche marquée comme faite !",
+              icon: "/icon-192.png",
+              badge: "/icon-32.png",
+              tag: "chore-marked-done",
               requireInteraction: true,
             });
           } else {
             // Show error notification
-            return sw.registration.showNotification('Hously', {
-              body: 'Erreur lors de la mise à jour de la tâche',
-              icon: '/icon-192.png',
-              badge: '/icon-32.png',
-              tag: 'chore-error',
+            return sw.registration.showNotification("Hously", {
+              body: "Erreur lors de la mise à jour de la tâche",
+              icon: "/icon-192.png",
+              badge: "/icon-32.png",
+              tag: "chore-error",
               requireInteraction: true,
             });
           }
         })
-        .catch(error => {
-          console.error('Error marking chore as done:', error);
+        .catch((error) => {
+          console.error("Error marking chore as done:", error);
           // Show error notification
-          return sw.registration.showNotification('Hously', {
-            body: 'Erreur de connexion',
-            icon: '/icon-192.png',
-            badge: '/icon-32.png',
-            tag: 'chore-error',
+          return sw.registration.showNotification("Hously", {
+            body: "Erreur de connexion",
+            icon: "/icon-192.png",
+            badge: "/icon-32.png",
+            tag: "chore-error",
             requireInteraction: true,
           });
-        })
+        }),
     );
     return;
   }
 
   // Default: navigate to URL (for "open" action or notification click)
-  const url = normalizeNotificationUrl(notificationData.url) || '/';
+  const url = normalizeNotificationUrl(notificationData.url) || "/";
 
   event.waitUntil(
-    sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async clients => {
-      const destination = new URL(url, self.location.origin).toString();
+    sw.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then(async (clients) => {
+        const destination = new URL(url, self.location.origin).toString();
 
-      for (const client of clients) {
-        if (!('focus' in client) || !('navigate' in client)) {
-          continue;
+        for (const client of clients) {
+          if (!("focus" in client) || !("navigate" in client)) {
+            continue;
+          }
+
+          const currentUrl = new URL(client.url);
+          const targetUrl = new URL(destination);
+
+          if (
+            currentUrl.pathname === targetUrl.pathname &&
+            currentUrl.search === targetUrl.search &&
+            currentUrl.hash === targetUrl.hash
+          ) {
+            await client.focus();
+            return;
+          }
         }
 
-        const currentUrl = new URL(client.url);
-        const targetUrl = new URL(destination);
-
-        if (currentUrl.pathname === targetUrl.pathname && currentUrl.search === targetUrl.search && currentUrl.hash === targetUrl.hash) {
-          await client.focus();
-          return;
+        for (const client of clients) {
+          if ("focus" in client && "navigate" in client) {
+            await client.focus();
+            await client.navigate(destination);
+            return;
+          }
         }
-      }
 
-      for (const client of clients) {
-        if ('focus' in client && 'navigate' in client) {
-          await client.focus();
-          await client.navigate(destination);
-          return;
+        if ("openWindow" in sw.clients) {
+          await sw.clients.openWindow(destination);
         }
-      }
-
-      if ('openWindow' in sw.clients) {
-        await sw.clients.openWindow(destination);
-      }
-    })
+      }),
   );
 }

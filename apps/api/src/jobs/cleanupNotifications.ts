@@ -24,7 +24,9 @@ export async function cleanupOldNotifications(): Promise<number> {
 
     const deletedCount = result.count;
 
-    console.log(`[CRON] Cleaned up ${deletedCount} notifications older than 30 days`);
+    console.log(
+      `[CRON] Cleaned up ${deletedCount} notifications older than 30 days`,
+    );
     return deletedCount;
   } catch (error) {
     console.error("[CRON] Error cleaning up old notifications:", error);

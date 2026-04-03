@@ -3,13 +3,13 @@
  * via service worker push notifications
  */
 
-import { useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
-import { queryKeys } from '@/lib/queryKeys';
-import { type UnreadCountResponse } from '@hously/shared';
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { queryKeys } from "@/lib/queryKeys";
+import { type UnreadCountResponse } from "@hously/shared";
 
-const syncNotificationTypes = ['notification-sync', 'notification-received'];
-const NOTIFICATION_EVENT_CHANNEL = 'hously-notification-events';
+const syncNotificationTypes = ["notification-sync", "notification-received"];
+const NOTIFICATION_EVENT_CHANNEL = "hously-notification-events";
 
 export function useAutoInvalidateNotifications(): void {
   const queryClient = useQueryClient();
@@ -18,15 +18,18 @@ export function useAutoInvalidateNotifications(): void {
     const processNotificationMessage = (data: unknown) => {
       if (
         data &&
-        typeof data === 'object' &&
-        'type' in data &&
+        typeof data === "object" &&
+        "type" in data &&
         syncNotificationTypes.includes((data as { type: string }).type)
       ) {
         // Optimistically increment unread count for instant badge update
-        if ((data as { type: string }).type === 'notification-received') {
-          queryClient.setQueryData<UnreadCountResponse>(queryKeys.notifications.unreadCount(), old => ({
-            unread_count: (old?.unread_count ?? 0) + 1,
-          }));
+        if ((data as { type: string }).type === "notification-received") {
+          queryClient.setQueryData<UnreadCountResponse>(
+            queryKeys.notifications.unreadCount(),
+            (old) => ({
+              unread_count: (old?.unread_count ?? 0) + 1,
+            }),
+          );
         }
 
         // Invalidate to refetch the real count and notification list
@@ -53,17 +56,23 @@ export function useAutoInvalidateNotifications(): void {
     };
 
     // Add event listener for service worker messages
-    navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage);
-    if ('BroadcastChannel' in window) {
+    navigator.serviceWorker?.addEventListener(
+      "message",
+      handleServiceWorkerMessage,
+    );
+    if ("BroadcastChannel" in window) {
       channel = new BroadcastChannel(NOTIFICATION_EVENT_CHANNEL);
-      channel.addEventListener('message', handleChannelMessage);
+      channel.addEventListener("message", handleChannelMessage);
     }
 
     // Cleanup
     return () => {
-      navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage);
+      navigator.serviceWorker?.removeEventListener(
+        "message",
+        handleServiceWorkerMessage,
+      );
       if (channel) {
-        channel.removeEventListener('message', handleChannelMessage);
+        channel.removeEventListener("message", handleChannelMessage);
         channel.close();
       }
     };

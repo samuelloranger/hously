@@ -1,8 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useFetcher } from '@/lib/api/context';
-import { queryKeys } from '@/lib/queryKeys';
-import { USERS_ENDPOINTS } from '@hously/shared';
-import type { ChangePasswordRequest, UpdateProfileRequest, UserResponse, UsersResponse } from '@hously/shared';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFetcher } from "@/lib/api/context";
+import { queryKeys } from "@/lib/queryKeys";
+import { USERS_ENDPOINTS } from "@hously/shared";
+import type {
+  ChangePasswordRequest,
+  UpdateProfileRequest,
+  UserResponse,
+  UsersResponse,
+} from "@hously/shared";
 
 export function useUsers() {
   const fetcher = useFetcher();
@@ -21,10 +26,10 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (data: UpdateProfileRequest) =>
       fetcher<UserResponse>(USERS_ENDPOINTS.ME, {
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-    onSuccess: response => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
       queryClient.setQueryData(queryKeys.auth.me, response.user);
     },
@@ -37,7 +42,7 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (data: ChangePasswordRequest) =>
       fetcher<{ message: string }>(USERS_ENDPOINTS.CHANGE_PASSWORD, {
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
   });
@@ -49,11 +54,14 @@ export function useUploadAvatar() {
 
   return useMutation({
     mutationFn: (formData: FormData) =>
-      fetcher<{ message: string; avatar_url: string; url?: string }>(USERS_ENDPOINTS.AVATAR, {
-        method: 'POST',
-        body: formData,
-      }),
-    onSuccess: response => {
+      fetcher<{ message: string; avatar_url: string; url?: string }>(
+        USERS_ENDPOINTS.AVATAR,
+        {
+          method: "POST",
+          body: formData,
+        },
+      ),
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
       queryClient.setQueryData(queryKeys.auth.me, (old: any) => {
         if (!old) return old;

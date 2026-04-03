@@ -11,8 +11,8 @@ import {
   Magnet,
   ShoppingCart,
   Target,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export interface NavItem {
   path: string;
@@ -28,25 +28,85 @@ export interface NavSection {
 
 export const navSections: NavSection[] = [
   {
-    labelKey: 'nav.section_life',
+    labelKey: "nav.section_life",
     items: [
-      { path: '/', translationKey: 'nav.dashboard', icon: LayoutDashboard, mobileIcon: '📊' },
-      { path: '/chores', translationKey: 'nav.chores', icon: ListChecks, mobileIcon: '✅' },
-      { path: '/board', translationKey: 'nav.board', icon: LayoutGrid, mobileIcon: '📋' },
-      { path: '/habits', translationKey: 'nav.habits', icon: Target, mobileIcon: '🎯' },
-      { path: '/shopping', translationKey: 'nav.shopping', icon: ShoppingCart, mobileIcon: '🛒' },
-      { path: '/calendar', translationKey: 'nav.calendar', icon: CalendarIcon, mobileIcon: '📅' },
-      { path: '/kitchen', translationKey: 'nav.kitchen', icon: CookingPot, mobileIcon: '🍳' },
+      {
+        path: "/",
+        translationKey: "nav.dashboard",
+        icon: LayoutDashboard,
+        mobileIcon: "📊",
+      },
+      {
+        path: "/chores",
+        translationKey: "nav.chores",
+        icon: ListChecks,
+        mobileIcon: "✅",
+      },
+      {
+        path: "/board",
+        translationKey: "nav.board",
+        icon: LayoutGrid,
+        mobileIcon: "📋",
+      },
+      {
+        path: "/habits",
+        translationKey: "nav.habits",
+        icon: Target,
+        mobileIcon: "🎯",
+      },
+      {
+        path: "/shopping",
+        translationKey: "nav.shopping",
+        icon: ShoppingCart,
+        mobileIcon: "🛒",
+      },
+      {
+        path: "/calendar",
+        translationKey: "nav.calendar",
+        icon: CalendarIcon,
+        mobileIcon: "📅",
+      },
+      {
+        path: "/kitchen",
+        translationKey: "nav.kitchen",
+        icon: CookingPot,
+        mobileIcon: "🍳",
+      },
     ],
   },
   {
-    labelKey: 'nav.section_homelab',
+    labelKey: "nav.section_homelab",
     items: [
-      { path: '/torrents', translationKey: 'nav.torrents', icon: Magnet, mobileIcon: '🧲' },
-      { path: '/library', translationKey: 'nav.library', icon: Library, mobileIcon: '🎞️' },
-      { path: '/collections', translationKey: 'nav.collections', icon: Layers2, mobileIcon: '🎬' },
-      { path: '/explore', translationKey: 'nav.explore', icon: Compass, mobileIcon: '🧭' },
-      { path: '/watchlist', translationKey: 'nav.watchlist', icon: Bookmark, mobileIcon: '🔖' },
+      {
+        path: "/torrents",
+        translationKey: "nav.torrents",
+        icon: Magnet,
+        mobileIcon: "🧲",
+      },
+      {
+        path: "/library",
+        translationKey: "nav.library",
+        icon: Library,
+        mobileIcon: "🎞️",
+      },
+      {
+        path: "/collections",
+        translationKey: "nav.collections",
+        icon: Layers2,
+        mobileIcon: "🎬",
+      },
+      {
+        path: "/explore",
+        translationKey: "nav.explore",
+        icon: Compass,
+        mobileIcon: "🧭",
+      },
+      {
+        path: "/watchlist",
+        translationKey: "nav.watchlist",
+        icon: Bookmark,
+        mobileIcon: "🔖",
+      },
     ],
   },
 ];

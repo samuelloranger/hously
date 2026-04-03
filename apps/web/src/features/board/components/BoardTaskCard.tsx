@@ -1,8 +1,12 @@
-import { useSortable } from '@dnd-kit/react/sortable';
-import type { BoardTask, BoardTaskPriorityApi, BoardTaskStatusApi } from '@hously/shared';
-import { cn } from '@/lib/utils';
-import { AlertCircle, Clock, Lock } from 'lucide-react';
-import { formatMinutes } from '../utils/time';
+import { useSortable } from "@dnd-kit/react/sortable";
+import type {
+  BoardTask,
+  BoardTaskPriorityApi,
+  BoardTaskStatusApi,
+} from "@hously/shared";
+import { cn } from "@/lib/utils";
+import { AlertCircle, Clock, Lock } from "lucide-react";
+import { formatMinutes } from "../utils/time";
 
 interface BoardTaskCardProps {
   task: BoardTask;
@@ -12,19 +16,24 @@ interface BoardTaskCardProps {
 }
 
 const PRIORITY_DOT: Record<BoardTaskPriorityApi, string> = {
-  low: 'bg-sky-400',
-  medium: 'bg-amber-400',
-  high: 'bg-orange-500',
-  urgent: 'bg-red-500',
+  low: "bg-sky-400",
+  medium: "bg-amber-400",
+  high: "bg-orange-500",
+  urgent: "bg-red-500",
 };
 
-export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardProps) {
+export function BoardTaskCard({
+  task,
+  columnId,
+  index,
+  onClick,
+}: BoardTaskCardProps) {
   const { ref, handleRef, isDragging } = useSortable({
     id: task.id,
     index,
     group: columnId,
-    type: 'item',
-    accept: 'item',
+    type: "item",
+    accept: "item",
   });
 
   const today = new Date(new Date().toDateString());
@@ -38,17 +47,20 @@ export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardP
 
   const dueDateLabel = dueDate
     ? isOverdue
-      ? `Overdue · ${dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+      ? `Overdue · ${dueDate.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
       : isDueToday
-        ? 'Due today'
-        : dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+        ? "Due today"
+        : dueDate.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          })
     : null;
 
   const initials = task.assignee_name
     ? task.assignee_name
-        .split(' ')
-        .map(w => w[0])
-        .join('')
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
         .toUpperCase()
         .slice(0, 2)
     : null;
@@ -59,11 +71,14 @@ export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardP
         (ref as React.RefCallback<HTMLDivElement>)(node);
         (handleRef as React.RefCallback<HTMLDivElement>)(node);
       }}
-      style={{ opacity: isDragging ? 0.75 : 1, zIndex: isDragging ? 20 : undefined }}
+      style={{
+        opacity: isDragging ? 0.75 : 1,
+        zIndex: isDragging ? 20 : undefined,
+      }}
       onClick={() => onClick(task)}
       role="button"
       tabIndex={0}
-      onKeyDown={e => e.key === 'Enter' && onClick(task)}
+      onKeyDown={(e) => e.key === "Enter" && onClick(task)}
       className="group cursor-pointer rounded-lg border border-neutral-200/90 bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:border-neutral-600/60 dark:bg-neutral-800 dark:hover:border-neutral-500/60"
     >
       {/* Top row: slug + priority dot */}
@@ -72,7 +87,7 @@ export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardP
           {task.slug}
         </span>
         <span
-          className={cn('h-2 w-2 rounded-full', PRIORITY_DOT[task.priority])}
+          className={cn("h-2 w-2 rounded-full", PRIORITY_DOT[task.priority])}
           title={task.priority}
         />
       </div>
@@ -85,13 +100,16 @@ export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardP
       {/* Tags */}
       {task.tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">
-          {task.tags.slice(0, 3).map(tag => (
+          {task.tags.slice(0, 3).map((tag) => (
             <span
               key={tag.id}
               className="flex items-center gap-1 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400"
             >
               {tag.color && (
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: tag.color }} />
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: tag.color }}
+                />
               )}
               {tag.name}
             </span>
@@ -105,7 +123,7 @@ export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardP
       )}
 
       {/* Blocked indicator */}
-      {task.blocked_by.some(d => !d.is_resolved) && (
+      {task.blocked_by.some((d) => !d.is_resolved) && (
         <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-orange-500 dark:text-orange-400">
           <Lock className="h-3 w-3" />
           Blocked
@@ -117,19 +135,22 @@ export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardP
         <div className="mt-2">
           <div className="flex items-center justify-between">
             <span className="text-[10px] text-neutral-400">
-              {formatMinutes(task.logged_minutes)} / {formatMinutes(task.estimated_minutes)}
+              {formatMinutes(task.logged_minutes)} /{" "}
+              {formatMinutes(task.estimated_minutes)}
             </span>
           </div>
           <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-700">
             <div
               className={`h-full rounded-full transition-all ${
                 task.logged_minutes >= task.estimated_minutes
-                  ? 'bg-red-500'
+                  ? "bg-red-500"
                   : task.logged_minutes >= task.estimated_minutes * 0.8
-                    ? 'bg-amber-500'
-                    : 'bg-emerald-500'
+                    ? "bg-amber-500"
+                    : "bg-emerald-500"
               }`}
-              style={{ width: `${Math.min(100, (task.logged_minutes / task.estimated_minutes) * 100)}%` }}
+              style={{
+                width: `${Math.min(100, (task.logged_minutes / task.estimated_minutes) * 100)}%`,
+              }}
             />
           </div>
         </div>
@@ -141,14 +162,14 @@ export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardP
           {dueDateLabel && (
             <span
               className={cn(
-                'flex items-center gap-1 text-[11px] font-medium',
+                "flex items-center gap-1 text-[11px] font-medium",
                 isOverdue
-                  ? 'text-red-500 dark:text-red-400'
+                  ? "text-red-500 dark:text-red-400"
                   : isDueToday
-                    ? 'text-orange-500 dark:text-orange-400'
+                    ? "text-orange-500 dark:text-orange-400"
                     : isDueSoon
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-neutral-400 dark:text-neutral-500'
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-neutral-400 dark:text-neutral-500",
               )}
             >
               {isOverdue ? (
@@ -163,13 +184,13 @@ export function BoardTaskCard({ task, columnId, index, onClick }: BoardTaskCardP
           {task.assignee_avatar ? (
             <img
               src={task.assignee_avatar}
-              alt={task.assignee_name ?? ''}
-              title={task.assignee_name ?? ''}
+              alt={task.assignee_name ?? ""}
+              title={task.assignee_name ?? ""}
               className="h-5 w-5 rounded-full object-cover ring-1 ring-white dark:ring-neutral-800"
             />
           ) : initials ? (
             <span
-              title={task.assignee_name ?? ''}
+              title={task.assignee_name ?? ""}
               className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-[9px] font-bold text-indigo-600 ring-1 ring-white dark:bg-indigo-900/40 dark:text-indigo-400 dark:ring-neutral-800"
             >
               {initials}

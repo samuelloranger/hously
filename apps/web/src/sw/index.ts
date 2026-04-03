@@ -30,4 +30,3 @@ sw.addEventListener("notificationclick", handleNotificationClick);
 
 // Notification close event - track when notifications are dismissed
 sw.addEventListener("notificationclose", handleNotificationClose);
-

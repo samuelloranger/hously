@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Edit2, Check, X as XIcon } from 'lucide-react';
-import { formatBytes, type QbittorrentTorrentFile } from '@hously/shared';
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Edit2, Check, X as XIcon } from "lucide-react";
+import { formatBytes, type QbittorrentTorrentFile } from "@hously/shared";
 
 interface TorrentFilesTabProps {
   isLoading: boolean;
@@ -11,11 +11,17 @@ interface TorrentFilesTabProps {
   isRenamePending: boolean;
 }
 
-export function TorrentFilesTab({ isLoading, files, error, onRenameFile, isRenamePending }: TorrentFilesTabProps) {
-  const { t } = useTranslation('common');
+export function TorrentFilesTab({
+  isLoading,
+  files,
+  error,
+  onRenameFile,
+  isRenamePending,
+}: TorrentFilesTabProps) {
+  const { t } = useTranslation("common");
 
   const [renamingFilePath, setRenamingFilePath] = useState<string | null>(null);
-  const [draftFilePath, setDraftFilePath] = useState('');
+  const [draftFilePath, setDraftFilePath] = useState("");
 
   const beginRename = (path: string) => {
     setRenamingFilePath(path);
@@ -24,7 +30,7 @@ export function TorrentFilesTab({ isLoading, files, error, onRenameFile, isRenam
 
   const cancelRename = () => {
     setRenamingFilePath(null);
-    setDraftFilePath('');
+    setDraftFilePath("");
   };
 
   const submitRename = () => {
@@ -40,10 +46,10 @@ export function TorrentFilesTab({ isLoading, files, error, onRenameFile, isRenam
       <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
         {isLoading ? (
           <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-            {t('common.loading', 'Loading...')}
+            {t("common.loading", "Loading...")}
           </div>
         ) : files?.length ? (
-          files.map(file => (
+          files.map((file) => (
             <div key={`${file.index}-${file.name}`} className="px-5 py-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -58,7 +64,8 @@ export function TorrentFilesTab({ isLoading, files, error, onRenameFile, isRenam
                       />
                     </div>
                     <span className="font-mono text-[11px] text-neutral-500 dark:text-neutral-400 tabular-nums whitespace-nowrap">
-                      {Math.round(file.progress * 100)}% · {formatBytes(file.size_bytes)}
+                      {Math.round(file.progress * 100)}% ·{" "}
+                      {formatBytes(file.size_bytes)}
                     </span>
                   </div>
                 </div>
@@ -67,7 +74,7 @@ export function TorrentFilesTab({ isLoading, files, error, onRenameFile, isRenam
                   className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
                 >
                   <Edit2 size={11} />
-                  {t('torrents.rename', 'Rename')}
+                  {t("torrents.rename", "Rename")}
                 </button>
               </div>
 
@@ -75,10 +82,10 @@ export function TorrentFilesTab({ isLoading, files, error, onRenameFile, isRenam
                 <div className="mt-3 flex flex-col sm:flex-row gap-2">
                   <input
                     value={draftFilePath}
-                    onChange={e => setDraftFilePath(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') submitRename();
-                      if (e.key === 'Escape') cancelRename();
+                    onChange={(e) => setDraftFilePath(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") submitRename();
+                      if (e.key === "Escape") cancelRename();
                     }}
                     className="flex-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2 text-sm font-mono text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition"
                     autoFocus
@@ -90,14 +97,14 @@ export function TorrentFilesTab({ isLoading, files, error, onRenameFile, isRenam
                       className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium disabled:opacity-40 transition-colors"
                     >
                       <Check size={12} />
-                      {t('common.save', 'Save')}
+                      {t("common.save", "Save")}
                     </button>
                     <button
                       onClick={cancelRename}
                       className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-xs font-medium transition-colors"
                     >
                       <XIcon size={12} />
-                      {t('common.cancel', 'Cancel')}
+                      {t("common.cancel", "Cancel")}
                     </button>
                   </div>
                 </div>
@@ -106,7 +113,7 @@ export function TorrentFilesTab({ isLoading, files, error, onRenameFile, isRenam
           ))
         ) : (
           <div className="px-5 py-6 text-sm text-neutral-500 dark:text-neutral-400">
-            {error ?? t('torrents.noFiles', 'No files')}
+            {error ?? t("torrents.noFiles", "No files")}
           </div>
         )}
       </div>

@@ -1,1 +1,1 @@
-export { validateEmail, validatePassword } from '@hously/shared';
+export { validateEmail, validatePassword } from "@hously/shared";

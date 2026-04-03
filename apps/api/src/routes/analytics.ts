@@ -1,46 +1,52 @@
-import { Elysia, t } from 'elysia';
-import { prisma } from '../db';
-import { auth } from '../auth';
-import { requireUser } from '../middleware/auth';
-import { todayLocal, addDaysInTz, formatDateInTimezone, utcToTimezone, calculatePeriodDates } from '../utils';
-import { badRequest, serverError, unauthorized } from '../utils/errors';
+import { Elysia, t } from "elysia";
+import { prisma } from "../db";
+import { auth } from "../auth";
+import { requireUser } from "../middleware/auth";
+import {
+  todayLocal,
+  addDaysInTz,
+  formatDateInTimezone,
+  utcToTimezone,
+  calculatePeriodDates,
+} from "../utils";
+import { badRequest, serverError, unauthorized } from "../utils/errors";
 
 // Day names in different locales
 const dayNames: Record<string, Record<string, string>> = {
   en: {
-    Monday: 'Monday',
-    Tuesday: 'Tuesday',
-    Wednesday: 'Wednesday',
-    Thursday: 'Thursday',
-    Friday: 'Friday',
-    Saturday: 'Saturday',
-    Sunday: 'Sunday',
+    Monday: "Monday",
+    Tuesday: "Tuesday",
+    Wednesday: "Wednesday",
+    Thursday: "Thursday",
+    Friday: "Friday",
+    Saturday: "Saturday",
+    Sunday: "Sunday",
   },
   fr: {
-    Monday: 'Lundi',
-    Tuesday: 'Mardi',
-    Wednesday: 'Mercredi',
-    Thursday: 'Jeudi',
-    Friday: 'Vendredi',
-    Saturday: 'Samedi',
-    Sunday: 'Dimanche',
+    Monday: "Lundi",
+    Tuesday: "Mardi",
+    Wednesday: "Mercredi",
+    Thursday: "Jeudi",
+    Friday: "Vendredi",
+    Saturday: "Samedi",
+    Sunday: "Dimanche",
   },
 };
 
-export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
+export const analyticsRoutes = new Elysia({ prefix: "/api/analytics" })
   .use(auth)
   .use(requireUser)
   // GET /api/analytics/weekly-summary - Get weekly task completion summary
   .get(
-    '/weekly-summary',
+    "/weekly-summary",
     async ({ user, query, set }) => {
       try {
-        const locale = query.locale || 'en';
+        const locale = query.locale || "en";
         const todayTz = todayLocal();
 
         // Calculate start of week (Monday) using timezone-safe day navigation
         const dateStr = formatDateInTimezone(todayTz);
-        const [y, m, d] = dateStr.split('-').map(Number);
+        const [y, m, d] = dateStr.split("-").map(Number);
         const dow = new Date(Date.UTC(y, m - 1, d, 12, 0, 0)).getUTCDay();
         const mondayOffset = dow === 0 ? -6 : 1 - dow;
         const startOfWeekTz = addDaysInTz(todayTz, mondayOffset);
@@ -56,11 +62,11 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         // Group by day and emotion
         const dailyStats: Record<string, number> = {};
         const emotionCounts: Record<string, number> = {
-          '🥵': 0,
-          '😢': 0,
-          '😐': 0,
-          '😄': 0,
-          '🔥': 0,
+          "🥵": 0,
+          "😢": 0,
+          "😐": 0,
+          "😄": 0,
+          "🔥": 0,
         };
 
         for (const completion of weeklyCompletions) {
@@ -71,21 +77,36 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
           }
           dailyStats[day]++;
 
-          if (completion.emotion && completion.taskType === 'chore') {
-            emotionCounts[completion.emotion] = (emotionCounts[completion.emotion] || 0) + 1;
+          if (completion.emotion && completion.taskType === "chore") {
+            emotionCounts[completion.emotion] =
+              (emotionCounts[completion.emotion] || 0) + 1;
           }
         }
 
         const totalTasks = weeklyCompletions.length;
-        const daysPassed = Math.floor((todayTz.getTime() - startOfWeekTz.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-        const avgPerDay = daysPassed > 0 ? Math.round((totalTasks / daysPassed) * 10) / 10 : 0;
+        const daysPassed =
+          Math.floor(
+            (todayTz.getTime() - startOfWeekTz.getTime()) /
+              (1000 * 60 * 60 * 24),
+          ) + 1;
+        const avgPerDay =
+          daysPassed > 0 ? Math.round((totalTasks / daysPassed) * 10) / 10 : 0;
 
         // Pre-calculate percentages for emotion breakdown
-        const choreCompletionsCount = Object.values(emotionCounts).reduce((a, b) => a + b, 0);
-        const emotionBreakdown: Record<string, { count: number; percentage: number; bar_width: number }> = {};
+        const choreCompletionsCount = Object.values(emotionCounts).reduce(
+          (a, b) => a + b,
+          0,
+        );
+        const emotionBreakdown: Record<
+          string,
+          { count: number; percentage: number; bar_width: number }
+        > = {};
 
         for (const [emotion, count] of Object.entries(emotionCounts)) {
-          const percentage = choreCompletionsCount > 0 ? Math.round((count / choreCompletionsCount) * 1000) / 10 : 0;
+          const percentage =
+            choreCompletionsCount > 0
+              ? Math.round((count / choreCompletionsCount) * 1000) / 10
+              : 0;
           emotionBreakdown[emotion] = {
             count,
             percentage,
@@ -95,18 +116,24 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
 
         // Sort emotion breakdown by count
         const sortedEmotionBreakdown = Object.fromEntries(
-          Object.entries(emotionBreakdown).sort(([, a], [, b]) => b.count - a.count)
+          Object.entries(emotionBreakdown).sort(
+            ([, a], [, b]) => b.count - a.count,
+          ),
         );
 
         // Pre-calculate display values for daily breakdown
         const maxDailyTasks = Math.max(...Object.values(dailyStats), 0);
-        const dailyBreakdown: Record<string, { count: number; bar_width: number; day_name: string }> = {};
+        const dailyBreakdown: Record<
+          string,
+          { count: number; bar_width: number; day_name: string }
+        > = {};
 
         for (const [date, count] of Object.entries(dailyStats)) {
-          const barWidth = maxDailyTasks > 0 ? (count / maxDailyTasks) * 100 : 0;
+          const barWidth =
+            maxDailyTasks > 0 ? (count / maxDailyTasks) * 100 : 0;
           const dateObj = new Date(date);
-          const englishDayName = dateObj.toLocaleDateString('en-US', {
-            weekday: 'long',
+          const englishDayName = dateObj.toLocaleDateString("en-US", {
+            weekday: "long",
           });
           const dayName = dayNames[locale]?.[englishDayName] || englishDayName;
 
@@ -119,7 +146,7 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
 
         // Sort daily breakdown by date
         const sortedDailyBreakdown = Object.fromEntries(
-          Object.entries(dailyBreakdown).sort(([a], [b]) => a.localeCompare(b))
+          Object.entries(dailyBreakdown).sort(([a], [b]) => a.localeCompare(b)),
         );
 
         // Find most common emotion
@@ -146,17 +173,20 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         const previousAvgPerDay = Math.round((previousWeekTotal / 7) * 10) / 10;
 
         let changePercentage = 0;
-        let trend = 'stable';
+        let trend = "stable";
         if (previousWeekTotal > 0) {
-          changePercentage = Math.round(((totalTasks - previousWeekTotal) / previousWeekTotal) * 1000) / 10;
+          changePercentage =
+            Math.round(
+              ((totalTasks - previousWeekTotal) / previousWeekTotal) * 1000,
+            ) / 10;
         } else if (totalTasks > 0) {
           changePercentage = 100.0;
         }
 
         if (changePercentage > 0) {
-          trend = 'up';
+          trend = "up";
         } else if (changePercentage < 0) {
-          trend = 'down';
+          trend = "down";
         }
 
         return {
@@ -174,30 +204,36 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
           },
         };
       } catch (error) {
-        console.error('Error getting weekly summary:', error);
-        return serverError(set, 'Failed to get weekly summary');
+        console.error("Error getting weekly summary:", error);
+        return serverError(set, "Failed to get weekly summary");
       }
     },
     {
       query: t.Object({
         locale: t.Optional(t.String()),
       }),
-    }
+    },
   )
 
   // GET /api/analytics/summary - Get analytics summary for a given period
   .get(
-    '/summary',
+    "/summary",
     async ({ user, query, set }) => {
       try {
-        const locale = query.locale || 'en';
-        const period = query.period || 'week';
+        const locale = query.locale || "en";
+        const period = query.period || "week";
 
-        if (!['week', 'month', 'quarter', 'year'].includes(period)) {
-          return badRequest(set, 'Invalid period. Must be: week, month, quarter, or year');
+        if (!["week", "month", "quarter", "year"].includes(period)) {
+          return badRequest(
+            set,
+            "Invalid period. Must be: week, month, quarter, or year",
+          );
         }
 
-        const { start: startOfPeriod, end: endOfPeriod } = calculatePeriodDates(period, query.start_date);
+        const { start: startOfPeriod, end: endOfPeriod } = calculatePeriodDates(
+          period,
+          query.start_date,
+        );
 
         // Get completions for the period
         const completions = await prisma.taskCompletion.findMany({
@@ -213,11 +249,11 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         // Group by day and emotion
         const dailyStats: Record<string, number> = {};
         const emotionCounts: Record<string, number> = {
-          '🥵': 0,
-          '😢': 0,
-          '😐': 0,
-          '😄': 0,
-          '🔥': 0,
+          "🥵": 0,
+          "😢": 0,
+          "😐": 0,
+          "😄": 0,
+          "🔥": 0,
         };
 
         for (const completion of completions) {
@@ -228,21 +264,38 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
           }
           dailyStats[day]++;
 
-          if (completion.emotion && completion.taskType === 'chore') {
-            emotionCounts[completion.emotion] = (emotionCounts[completion.emotion] || 0) + 1;
+          if (completion.emotion && completion.taskType === "chore") {
+            emotionCounts[completion.emotion] =
+              (emotionCounts[completion.emotion] || 0) + 1;
           }
         }
 
         const totalTasks = completions.length;
-        const daysInPeriod = Math.floor((endOfPeriod.getTime() - startOfPeriod.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-        const avgPerDay = daysInPeriod > 0 ? Math.round((totalTasks / daysInPeriod) * 10) / 10 : 0;
+        const daysInPeriod =
+          Math.floor(
+            (endOfPeriod.getTime() - startOfPeriod.getTime()) /
+              (1000 * 60 * 60 * 24),
+          ) + 1;
+        const avgPerDay =
+          daysInPeriod > 0
+            ? Math.round((totalTasks / daysInPeriod) * 10) / 10
+            : 0;
 
         // Pre-calculate percentages for emotion breakdown
-        const choreCompletionsCount = Object.values(emotionCounts).reduce((a, b) => a + b, 0);
-        const emotionBreakdown: Record<string, { count: number; percentage: number; bar_width: number }> = {};
+        const choreCompletionsCount = Object.values(emotionCounts).reduce(
+          (a, b) => a + b,
+          0,
+        );
+        const emotionBreakdown: Record<
+          string,
+          { count: number; percentage: number; bar_width: number }
+        > = {};
 
         for (const [emotion, count] of Object.entries(emotionCounts)) {
-          const percentage = choreCompletionsCount > 0 ? Math.round((count / choreCompletionsCount) * 1000) / 10 : 0;
+          const percentage =
+            choreCompletionsCount > 0
+              ? Math.round((count / choreCompletionsCount) * 1000) / 10
+              : 0;
           emotionBreakdown[emotion] = {
             count,
             percentage,
@@ -251,18 +304,24 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         }
 
         const sortedEmotionBreakdown = Object.fromEntries(
-          Object.entries(emotionBreakdown).sort(([, a], [, b]) => b.count - a.count)
+          Object.entries(emotionBreakdown).sort(
+            ([, a], [, b]) => b.count - a.count,
+          ),
         );
 
         // Daily breakdown
         const maxDailyTasks = Math.max(...Object.values(dailyStats), 0);
-        const dailyBreakdown: Record<string, { count: number; bar_width: number; day_name: string }> = {};
+        const dailyBreakdown: Record<
+          string,
+          { count: number; bar_width: number; day_name: string }
+        > = {};
 
         for (const [date, count] of Object.entries(dailyStats)) {
-          const barWidth = maxDailyTasks > 0 ? (count / maxDailyTasks) * 100 : 0;
+          const barWidth =
+            maxDailyTasks > 0 ? (count / maxDailyTasks) * 100 : 0;
           const dateObj = new Date(date);
-          const englishDayName = dateObj.toLocaleDateString('en-US', {
-            weekday: 'long',
+          const englishDayName = dateObj.toLocaleDateString("en-US", {
+            weekday: "long",
           });
           const dayName = dayNames[locale]?.[englishDayName] || englishDayName;
 
@@ -274,7 +333,7 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         }
 
         const sortedDailyBreakdown = Object.fromEntries(
-          Object.entries(dailyBreakdown).sort(([a], [b]) => a.localeCompare(b))
+          Object.entries(dailyBreakdown).sort(([a], [b]) => a.localeCompare(b)),
         );
 
         const mostCommonEmotion =
@@ -293,8 +352,8 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
           most_common_emotion: mostCommonEmotion,
         };
       } catch (error) {
-        console.error('Error getting summary:', error);
-        return serverError(set, 'Failed to get summary');
+        console.error("Error getting summary:", error);
+        return serverError(set, "Failed to get summary");
       }
     },
     {
@@ -303,13 +362,21 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         period: t.Optional(t.String()),
         start_date: t.Optional(t.String()),
       }),
-    }
+    },
   )
 
   // GET /api/analytics/personal-insights - Get personal insights
-  .get('/personal-insights', async ({ user, set }) => {
+  .get("/personal-insights", async ({ user, set }) => {
     try {
-      const dayNamesArr = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayNamesArr = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
 
       // Get all completions for this user
       const allCompletions = await prisma.taskCompletion.findMany({
@@ -341,8 +408,9 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
       // Find most common emotion (only for chores)
       const emotionStats: Record<string, number> = {};
       for (const completion of allCompletions) {
-        if (completion.taskType === 'chore' && completion.emotion) {
-          emotionStats[completion.emotion] = (emotionStats[completion.emotion] || 0) + 1;
+        if (completion.taskType === "chore" && completion.emotion) {
+          emotionStats[completion.emotion] =
+            (emotionStats[completion.emotion] || 0) + 1;
         }
       }
 
@@ -361,13 +429,13 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         total_tasks_all_time: allCompletions.length,
       };
     } catch (error) {
-      console.error('Error getting personal insights:', error);
-      return serverError(set, 'Failed to get personal insights');
+      console.error("Error getting personal insights:", error);
+      return serverError(set, "Failed to get personal insights");
     }
   })
 
   // GET /api/analytics/shopping - Get shopping analytics
-  .get('/shopping', async ({ user, set }) => {
+  .get("/shopping", async ({ user, set }) => {
     try {
       // Get all shopping items for the user
       const allItems = await prisma.shoppingItem.findMany({
@@ -377,11 +445,16 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
       const totalItems = allItems.length;
 
       // Count completed items
-      const completedItems = allItems.filter(item => item.completed && item.completedAt);
+      const completedItems = allItems.filter(
+        (item) => item.completed && item.completedAt,
+      );
       const completedCount = completedItems.length;
 
       // Calculate completion rate
-      const completionRate = totalItems > 0 ? Math.round((completedCount / totalItems) * 1000) / 10 : 0;
+      const completionRate =
+        totalItems > 0
+          ? Math.round((completedCount / totalItems) * 1000) / 10
+          : 0;
 
       // Calculate average time to completion (in hours)
       const completionTimes: number[] = [];
@@ -389,25 +462,32 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         if (item.createdAt && item.completedAt) {
           const created = new Date(item.createdAt);
           const completed = new Date(item.completedAt);
-          const hours = (completed.getTime() - created.getTime()) / (1000 * 60 * 60);
+          const hours =
+            (completed.getTime() - created.getTime()) / (1000 * 60 * 60);
           completionTimes.push(hours);
         }
       }
 
       const avgCompletionTime =
         completionTimes.length > 0
-          ? Math.round((completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length) * 10) / 10
+          ? Math.round(
+              (completionTimes.reduce((a, b) => a + b, 0) /
+                completionTimes.length) *
+                10,
+            ) / 10
           : null;
 
       // Items completed this week
       const todayTz = todayLocal();
       const shoppingDateStr = formatDateInTimezone(todayTz);
-      const [sy, sm, sd] = shoppingDateStr.split('-').map(Number);
-      const shoppingDow = new Date(Date.UTC(sy, sm - 1, sd, 12, 0, 0)).getUTCDay();
+      const [sy, sm, sd] = shoppingDateStr.split("-").map(Number);
+      const shoppingDow = new Date(
+        Date.UTC(sy, sm - 1, sd, 12, 0, 0),
+      ).getUTCDay();
       const shoppingMondayOffset = shoppingDow === 0 ? -6 : 1 - shoppingDow;
       const startOfWeekTz = addDaysInTz(todayTz, shoppingMondayOffset);
 
-      const weeklyCompleted = completedItems.filter(item => {
+      const weeklyCompleted = completedItems.filter((item) => {
         if (!item.completedAt) return false;
         return new Date(item.completedAt) >= startOfWeekTz;
       }).length;
@@ -420,13 +500,13 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         weekly_completed: weeklyCompleted,
       };
     } catch (error) {
-      console.error('Error getting shopping analytics:', error);
-      return serverError(set, 'Failed to get shopping analytics');
+      console.error("Error getting shopping analytics:", error);
+      return serverError(set, "Failed to get shopping analytics");
     }
   })
 
   // GET /api/analytics/productivity - Get productivity metrics
-  .get('/productivity', async ({ user, set }) => {
+  .get("/productivity", async ({ user, set }) => {
     try {
       // Get all completions for this user
       const allCompletions = await prisma.taskCompletion.findMany({
@@ -471,7 +551,9 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
       for (let i = 1; i < sortedDates.length; i++) {
         const prev = new Date(sortedDates[i - 1]);
         const curr = new Date(sortedDates[i]);
-        const diffDays = Math.round((curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.round(
+          (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24),
+        );
 
         if (diffDays === 1) {
           currentRun++;
@@ -484,13 +566,15 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
       // Calculate completion rate by task type
       const typeCounts: Record<string, number> = {};
       for (const completion of allCompletions) {
-        typeCounts[completion.taskType] = (typeCounts[completion.taskType] || 0) + 1;
+        typeCounts[completion.taskType] =
+          (typeCounts[completion.taskType] || 0) + 1;
       }
 
       const totalCompletions = allCompletions.length;
       const completionRateByType: Record<string, number> = {};
       for (const [taskType, count] of Object.entries(typeCounts)) {
-        completionRateByType[taskType] = Math.round((count / totalCompletions) * 1000) / 10;
+        completionRateByType[taskType] =
+          Math.round((count / totalCompletions) * 1000) / 10;
       }
 
       // Find most productive hour
@@ -521,7 +605,7 @@ export const analyticsRoutes = new Elysia({ prefix: '/api/analytics' })
         most_productive_hour: mostProductiveHour,
       };
     } catch (error) {
-      console.error('Error getting productivity metrics:', error);
-      return serverError(set, 'Failed to get productivity metrics');
+      console.error("Error getting productivity metrics:", error);
+      return serverError(set, "Failed to get productivity metrics");
     }
   });

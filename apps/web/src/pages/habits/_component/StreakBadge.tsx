@@ -1,12 +1,12 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React from "react";
+import { useTranslation } from "react-i18next";
 
 interface StreakBadgeProps {
   streak: number;
 }
 
 export const StreakBadge: React.FC<StreakBadgeProps> = ({ streak }) => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
 
   if (streak <= 1) return null;
 
@@ -15,7 +15,7 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({ streak }) => {
       <span role="img" aria-label="streak">
         🔥
       </span>
-      <span>{t('habits.streak', { count: streak })}</span>
+      <span>{t("habits.streak", { count: streak })}</span>
     </div>
   );
 };

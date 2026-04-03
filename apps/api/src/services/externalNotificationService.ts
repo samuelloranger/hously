@@ -1,7 +1,7 @@
-import { prisma } from '../db';
-import { createAndQueueNotification } from '../jobs/notificationService';
-import { getExternalNotificationUrl } from '@hously/shared';
-import { sendApnNotifications } from '../utils/apnPush';
+import { prisma } from "../db";
+import { createAndQueueNotification } from "../jobs/notificationService";
+import { getExternalNotificationUrl } from "@hously/shared";
+import { sendApnNotifications } from "../utils/apnPush";
 
 /**
  * Generate a secure random token for webhook authentication
@@ -10,22 +10,25 @@ export function generateServiceToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
   return btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
 }
 
 /**
  * Render a template string by replacing {{variable_name}} with actual values
  */
-function renderTemplate(template: string, variables: Record<string, string>): string {
-  if (!template) return '';
+function renderTemplate(
+  template: string,
+  variables: Record<string, string>,
+): string {
+  if (!template) return "";
 
   return template.replace(/\{\{(\w+)\}\}/gi, (match, varName) => {
     const lowerVarName = varName.toLowerCase();
     for (const [key, value] of Object.entries(variables)) {
       if (key.toLowerCase() === lowerVarName) {
-        return value ?? '';
+        return value ?? "";
       }
     }
     return match; // Keep original if not found
@@ -35,7 +38,11 @@ function renderTemplate(template: string, variables: Record<string, string>): st
 /**
  * Get notification template for a specific service, event type, and language
  */
-async function getTemplateForEvent(serviceName: string, eventType: string, language: string = 'en') {
+async function getTemplateForEvent(
+  serviceName: string,
+  eventType: string,
+  language: string = "en",
+) {
   // First get the service
   const service = await prisma.externalNotificationService.findFirst({
     where: { serviceName },
@@ -57,12 +64,12 @@ async function getTemplateForEvent(serviceName: string, eventType: string, langu
   });
 
   // Fallback to English if not found
-  if (!template && language !== 'en') {
+  if (!template && language !== "en") {
     template = await prisma.notificationTemplate.findFirst({
       where: {
         serviceId: service.id,
         eventType,
-        language: 'en',
+        language: "en",
         enabled: true,
       },
     });
@@ -75,26 +82,34 @@ async function getTemplateForEvent(serviceName: string, eventType: string, langu
  * Send a silent background push notification to all user's iOS devices
  * This is used for background synchronization (e.g., calendar sync)
  */
-export async function sendSilentPushToUser(userId: number, type: string): Promise<boolean> {
+export async function sendSilentPushToUser(
+  userId: number,
+  type: string,
+): Promise<boolean> {
   const pushTokens = await prisma.pushToken.findMany({
-    where: { userId, platform: 'ios' },
+    where: { userId, platform: "ios" },
     select: { token: true },
   });
 
-  const iosTokens = [...new Set(pushTokens.map(t => t.token).filter(Boolean))];
+  const iosTokens = [
+    ...new Set(pushTokens.map((t) => t.token).filter(Boolean)),
+  ];
   if (iosTokens.length === 0) {
     return false;
   }
 
-  const { successCount, invalidTokens } = await sendApnNotifications(iosTokens, {
-    contentAvailable: true,
-    sound: null,
-    data: {
-      type,
-      notification_type: type,
-      silent: true,
+  const { successCount, invalidTokens } = await sendApnNotifications(
+    iosTokens,
+    {
+      contentAvailable: true,
+      sound: null,
+      data: {
+        type,
+        notification_type: type,
+        silent: true,
+      },
     },
-  });
+  );
 
   if (invalidTokens.length > 0) {
     await prisma.pushToken.deleteMany({
@@ -117,23 +132,37 @@ export async function sendExternalNotification(
     notification_url?: string;
     notification_metadata?: Record<string, unknown>;
   },
-  language: string = 'en'
+  language: string = "en",
 ): Promise<boolean> {
   try {
     // Get template for this event
-    const template = await getTemplateForEvent(serviceName, eventType, language);
+    const template = await getTemplateForEvent(
+      serviceName,
+      eventType,
+      language,
+    );
 
     if (!template) {
-      console.warn(`No template found for service=${serviceName}, event=${eventType}, language=${language}`);
+      console.warn(
+        `No template found for service=${serviceName}, event=${eventType}, language=${language}`,
+      );
       return false;
     }
 
     // Render templates
-    const title = renderTemplate(template.titleTemplate, payload.template_variables);
-    const body = renderTemplate(template.bodyTemplate, payload.template_variables);
+    const title = renderTemplate(
+      template.titleTemplate,
+      payload.template_variables,
+    );
+    const body = renderTemplate(
+      template.bodyTemplate,
+      payload.template_variables,
+    );
 
     if (!title || !body) {
-      console.error(`Rendered template is empty for ${serviceName}/${eventType}`);
+      console.error(
+        `Rendered template is empty for ${serviceName}/${eventType}`,
+      );
       return false;
     }
 
@@ -156,10 +185,12 @@ export async function sendExternalNotification(
         where: { isAdmin: true },
         select: { id: true },
       });
-      targetUserIds = adminUsers.map(u => u.id);
+      targetUserIds = adminUsers.map((u) => u.id);
 
       if (targetUserIds.length === 0) {
-        console.warn(`No admin users found. Cannot send external notifications for ${serviceName}.`);
+        console.warn(
+          `No admin users found. Cannot send external notifications for ${serviceName}.`,
+        );
         return false;
       }
     } else {
@@ -170,43 +201,48 @@ export async function sendExternalNotification(
       const allPushTokens = await prisma.pushToken.findMany({
         select: { userId: true },
       });
-      targetUserIds = [...new Set([...allSubscriptions.map(s => s.userId), ...allPushTokens.map(t => t.userId)])];
+      targetUserIds = [
+        ...new Set([
+          ...allSubscriptions.map((s) => s.userId),
+          ...allPushTokens.map((t) => t.userId),
+        ]),
+      ];
     }
 
     if (targetUserIds.length === 0) {
-      console.warn('No user push channels found. Cannot send external notifications.');
+      console.warn(
+        "No user push channels found. Cannot send external notifications.",
+      );
       return false;
     }
 
-    const url = payload.notification_url || getExternalNotificationUrl(serviceName);
+    const url =
+      payload.notification_url || getExternalNotificationUrl(serviceName);
 
     // Enqueue notifications for all target users
-    console.log(`[ExternalNotificationService] Enqueuing ${targetUserIds.length} notifications for ${serviceName}/${eventType}`);
-    
+    console.log(
+      `[ExternalNotificationService] Enqueuing ${targetUserIds.length} notifications for ${serviceName}/${eventType}`,
+    );
+
     const results = await Promise.all(
-      targetUserIds.map(userId => 
-        createAndQueueNotification(
-          userId,
-          title,
-          body,
-          'external',
-          url,
-          {
-            service_name: serviceName,
-            event_type: eventType,
-            payload: payload.original_payload as Record<string, any>,
-            ...(payload.notification_metadata ?? {}),
-          }
-        )
-      )
+      targetUserIds.map((userId) =>
+        createAndQueueNotification(userId, title, body, "external", url, {
+          service_name: serviceName,
+          event_type: eventType,
+          payload: payload.original_payload as Record<string, any>,
+          ...(payload.notification_metadata ?? {}),
+        }),
+      ),
     );
 
     const successCount = results.filter(Boolean).length;
-    console.log(`[ExternalNotificationService] Successfully enqueued ${successCount}/${targetUserIds.length} notifications.`);
+    console.log(
+      `[ExternalNotificationService] Successfully enqueued ${successCount}/${targetUserIds.length} notifications.`,
+    );
 
     return successCount > 0;
   } catch (error) {
-    console.error('Error sending external notification:', error);
+    console.error("Error sending external notification:", error);
     return false;
   }
 }

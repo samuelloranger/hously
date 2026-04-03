@@ -15,4 +15,3 @@ export function handleNotificationClose(event: NotificationEvent): void {
     return;
   }
 }
-

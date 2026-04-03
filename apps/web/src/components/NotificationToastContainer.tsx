@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
-import type { NotificationType } from '@hously/shared';
-import { NotificationMenuRow } from '@/components/NotificationMenuRow';
-import { openNotificationTarget } from '@/lib/notifications/navigation';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
+import type { NotificationType } from "@hously/shared";
+import { NotificationMenuRow } from "@/components/NotificationMenuRow";
+import { openNotificationTarget } from "@/lib/notifications/navigation";
 
 interface ToastNotification {
   id: string;
@@ -28,7 +28,7 @@ interface IncomingMessageData {
   };
 }
 
-const NOTIFICATION_EVENT_CHANNEL = 'hously-notification-events';
+const NOTIFICATION_EVENT_CHANNEL = "hously-notification-events";
 const TOAST_DURATION = 8000;
 const EXIT_DURATION = 300;
 const DEDUP_WINDOW_MS = 2000;
@@ -38,17 +38,19 @@ export function NotificationToastContainer() {
   const recentKeys = useRef(new Set<string>());
 
   const dismiss = useCallback((id: string) => {
-    setToasts(prev => prev.map(t => (t.id === id ? { ...t, leaving: true } : t)));
+    setToasts((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, leaving: true } : t)),
+    );
     setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
+      setToasts((prev) => prev.filter((t) => t.id !== id));
     }, EXIT_DURATION);
   }, []);
 
   useEffect(() => {
     const handleMessage = (data: unknown) => {
-      if (!data || typeof data !== 'object') return;
+      if (!data || typeof data !== "object") return;
       const msg = data as IncomingMessageData;
-      if (msg.type !== 'notification-received' || !msg.notificationData) return;
+      if (msg.type !== "notification-received" || !msg.notificationData) return;
 
       const notifData = msg.notificationData;
       const dedupKey = `${notifData.title}:${notifData.body}`;
@@ -58,31 +60,35 @@ export function NotificationToastContainer() {
 
       const toast: ToastNotification = {
         id: `${Date.now()}-${Math.random()}`,
-        title: notifData.title || 'Hously',
+        title: notifData.title || "Hously",
         body: notifData.body,
-        type: (notifData.data?.notification_type as NotificationType) || 'system',
+        type:
+          (notifData.data?.notification_type as NotificationType) || "system",
         url: notifData.data?.url || null,
-        metadata: notifData.data?.service_name ? { service_name: notifData.data.service_name } : null,
+        metadata: notifData.data?.service_name
+          ? { service_name: notifData.data.service_name }
+          : null,
       };
 
-      setToasts(prev => [...prev, toast]);
+      setToasts((prev) => [...prev, toast]);
       setTimeout(() => dismiss(toast.id), TOAST_DURATION);
     };
 
     const handleSWMessage = (event: MessageEvent) => handleMessage(event.data);
-    const handleChannelMessage = (event: MessageEvent) => handleMessage(event.data);
+    const handleChannelMessage = (event: MessageEvent) =>
+      handleMessage(event.data);
 
-    navigator.serviceWorker?.addEventListener('message', handleSWMessage);
+    navigator.serviceWorker?.addEventListener("message", handleSWMessage);
     let channel: BroadcastChannel | null = null;
-    if ('BroadcastChannel' in window) {
+    if ("BroadcastChannel" in window) {
       channel = new BroadcastChannel(NOTIFICATION_EVENT_CHANNEL);
-      channel.addEventListener('message', handleChannelMessage);
+      channel.addEventListener("message", handleChannelMessage);
     }
 
     return () => {
-      navigator.serviceWorker?.removeEventListener('message', handleSWMessage);
+      navigator.serviceWorker?.removeEventListener("message", handleSWMessage);
       if (channel) {
-        channel.removeEventListener('message', handleChannelMessage);
+        channel.removeEventListener("message", handleChannelMessage);
         channel.close();
       }
     };
@@ -92,7 +98,7 @@ export function NotificationToastContainer() {
 
   return createPortal(
     <div className="fixed bottom-4 left-4 z-[9999] flex flex-col gap-2 w-80 pointer-events-none">
-      {toasts.map(toast => (
+      {toasts.map((toast) => (
         <div
           key={toast.id}
           className="pointer-events-auto bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200/80 dark:border-neutral-700/60 overflow-hidden"
@@ -127,12 +133,14 @@ export function NotificationToastContainer() {
           <div className="h-0.5 bg-neutral-100 dark:bg-neutral-700/60">
             <div
               className="h-full bg-primary-500 origin-left"
-              style={{ animation: `shrink ${TOAST_DURATION}ms linear forwards` }}
+              style={{
+                animation: `shrink ${TOAST_DURATION}ms linear forwards`,
+              }}
             />
           </div>
         </div>
       ))}
     </div>,
-    document.body
+    document.body,
   );
 }

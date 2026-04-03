@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useFetcher } from '@/lib/api/context';
-import { queryKeys } from '@/lib/queryKeys';
-import { ADMIN_ENDPOINTS } from '@hously/shared';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useFetcher } from "@/lib/api/context";
+import { queryKeys } from "@/lib/queryKeys";
+import { ADMIN_ENDPOINTS } from "@hously/shared";
 import type {
   AdminPushTokensResponse,
   AdminSessionsResponse,
@@ -22,7 +22,7 @@ import type {
   TestEmailResponse,
   TestEmailTemplatesResponse,
   TriggerActionResponse,
-} from '@hously/shared';
+} from "@hously/shared";
 
 export function useExportData() {
   const fetcher = useFetcher();
@@ -39,7 +39,7 @@ export function useImportData() {
   return useMutation({
     mutationFn: (data: Record<string, unknown>) =>
       fetcher<ImportDataResponse>(ADMIN_ENDPOINTS.IMPORT, {
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     onSuccess: () => {
@@ -57,7 +57,7 @@ export function useTriggerAction() {
   return useMutation({
     mutationFn: (action: string) =>
       fetcher<TriggerActionResponse>(ADMIN_ENDPOINTS.TRIGGER_ACTION, {
-        method: 'POST',
+        method: "POST",
         body: { action },
       }),
   });
@@ -68,7 +68,8 @@ export function useScheduledJobs() {
 
   return useQuery({
     queryKey: queryKeys.admin.scheduledJobs(),
-    queryFn: () => fetcher<ScheduledJobsResponse>(ADMIN_ENDPOINTS.SCHEDULED_JOBS),
+    queryFn: () =>
+      fetcher<ScheduledJobsResponse>(ADMIN_ENDPOINTS.SCHEDULED_JOBS),
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
@@ -93,11 +94,13 @@ export function useInviteUser() {
   return useMutation({
     mutationFn: (data: InviteUserRequest) =>
       fetcher<InviteUserResponse>(ADMIN_ENDPOINTS.INVITE_USER, {
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.invitations() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.invitations(),
+      });
     },
   });
 }
@@ -107,7 +110,8 @@ export function useAdminInvitations() {
 
   return useQuery({
     queryKey: queryKeys.admin.invitations(),
-    queryFn: () => fetcher<ListInvitationsResponse>(ADMIN_ENDPOINTS.INVITATIONS),
+    queryFn: () =>
+      fetcher<ListInvitationsResponse>(ADMIN_ENDPOINTS.INVITATIONS),
   });
 }
 
@@ -118,10 +122,12 @@ export function useResendInvitation() {
   return useMutation({
     mutationFn: (id: number) =>
       fetcher<ResendInvitationResponse>(ADMIN_ENDPOINTS.RESEND_INVITATION(id), {
-        method: 'POST',
+        method: "POST",
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.invitations() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.invitations(),
+      });
     },
   });
 }
@@ -133,10 +139,12 @@ export function useRevokeInvitation() {
   return useMutation({
     mutationFn: (id: number) =>
       fetcher<RevokeInvitationResponse>(ADMIN_ENDPOINTS.REVOKE_INVITATION(id), {
-        method: 'DELETE',
+        method: "DELETE",
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.invitations() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.invitations(),
+      });
     },
   });
 }
@@ -148,7 +156,7 @@ export function useDeleteUser() {
   return useMutation({
     mutationFn: (userId: number) =>
       fetcher<DeleteUserResponse>(ADMIN_ENDPOINTS.DELETE_USER(userId), {
-        method: 'DELETE',
+        method: "DELETE",
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
@@ -163,8 +171,8 @@ function useTestEmail() {
   return useMutation({
     mutationFn: (templateId?: string) =>
       fetcher<TestEmailResponse>(ADMIN_ENDPOINTS.TEST_EMAIL, {
-        method: 'POST',
-        body: { template_id: templateId || 'test' },
+        method: "POST",
+        body: { template_id: templateId || "test" },
       }),
   });
 }
@@ -184,7 +192,9 @@ export function useRevokeSession() {
 
   return useMutation({
     mutationFn: (id: number) =>
-      fetcher<RevokeSessionResponse>(ADMIN_ENDPOINTS.REVOKE_SESSION(id), { method: 'DELETE' }),
+      fetcher<RevokeSessionResponse>(ADMIN_ENDPOINTS.REVOKE_SESSION(id), {
+        method: "DELETE",
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.sessions() });
     },
@@ -197,7 +207,10 @@ export function useRevokeUserSessions() {
 
   return useMutation({
     mutationFn: (userId: number) =>
-      fetcher<RevokeSessionResponse>(ADMIN_ENDPOINTS.REVOKE_USER_SESSIONS(userId), { method: 'DELETE' }),
+      fetcher<RevokeSessionResponse>(
+        ADMIN_ENDPOINTS.REVOKE_USER_SESSIONS(userId),
+        { method: "DELETE" },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.sessions() });
     },
@@ -209,7 +222,8 @@ export function useAdminPushTokens() {
 
   return useQuery({
     queryKey: queryKeys.admin.pushTokens(),
-    queryFn: () => fetcher<AdminPushTokensResponse>(ADMIN_ENDPOINTS.PUSH_TOKENS),
+    queryFn: () =>
+      fetcher<AdminPushTokensResponse>(ADMIN_ENDPOINTS.PUSH_TOKENS),
   });
 }
 
@@ -219,7 +233,9 @@ export function useDeletePushToken() {
 
   return useMutation({
     mutationFn: (id: number) =>
-      fetcher<DeletePushTokenResponse>(ADMIN_ENDPOINTS.DELETE_PUSH_TOKEN(id), { method: 'DELETE' }),
+      fetcher<DeletePushTokenResponse>(ADMIN_ENDPOINTS.DELETE_PUSH_TOKEN(id), {
+        method: "DELETE",
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.pushTokens() });
     },
@@ -241,7 +257,9 @@ export function useDeleteWebPush() {
 
   return useMutation({
     mutationFn: (id: number) =>
-      fetcher<DeleteWebPushResponse>(ADMIN_ENDPOINTS.DELETE_WEB_PUSH(id), { method: 'DELETE' }),
+      fetcher<DeleteWebPushResponse>(ADMIN_ENDPOINTS.DELETE_WEB_PUSH(id), {
+        method: "DELETE",
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.webPush() });
     },
@@ -253,7 +271,8 @@ function useTestEmailTemplates() {
 
   return useQuery({
     queryKey: queryKeys.admin.testEmailTemplates(),
-    queryFn: () => fetcher<TestEmailTemplatesResponse>(ADMIN_ENDPOINTS.TEST_EMAIL_TEMPLATES),
+    queryFn: () =>
+      fetcher<TestEmailTemplatesResponse>(ADMIN_ENDPOINTS.TEST_EMAIL_TEMPLATES),
     staleTime: 5 * 60 * 1000,
   });
 }

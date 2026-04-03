@@ -1,9 +1,15 @@
-import { normalizeNotificationUrl } from '@hously/shared';
+import { normalizeNotificationUrl } from "@hously/shared";
 
-function getNotificationTargetUrl(url: string | null | undefined, fallback = '/notifications'): string {
+function getNotificationTargetUrl(
+  url: string | null | undefined,
+  fallback = "/notifications",
+): string {
   return normalizeNotificationUrl(url) ?? fallback;
 }
 
-export function openNotificationTarget(url: string | null | undefined, fallback = '/notifications'): void {
+export function openNotificationTarget(
+  url: string | null | undefined,
+  fallback = "/notifications",
+): void {
   window.location.assign(getNotificationTargetUrl(url, fallback));
 }

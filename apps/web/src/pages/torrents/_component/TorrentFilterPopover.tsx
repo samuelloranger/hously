@@ -1,4 +1,8 @@
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface TorrentFilterPopoverProps {
   label: string;
@@ -31,7 +35,7 @@ export function TorrentFilterPopover({
       </PopoverTrigger>
       <PopoverContent className="w-56 p-2" align="start">
         <div className="space-y-1">
-          {options.map(option => (
+          {options.map((option) => (
             <label
               key={option}
               className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
@@ -39,10 +43,12 @@ export function TorrentFilterPopover({
               <input
                 type="checkbox"
                 checked={selectedValues.includes(option)}
-                onChange={event => onToggle(option, event.target.checked)}
+                onChange={(event) => onToggle(option, event.target.checked)}
                 className="rounded border-neutral-300 dark:border-neutral-600 focus:ring-sky-500 text-sky-500 bg-transparent h-3.5 w-3.5"
               />
-              <span className="text-[12px] text-neutral-700 dark:text-neutral-300 truncate leading-none">{option}</span>
+              <span className="text-[12px] text-neutral-700 dark:text-neutral-300 truncate leading-none">
+                {option}
+              </span>
             </label>
           ))}
         </div>

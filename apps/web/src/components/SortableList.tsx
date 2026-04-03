@@ -1,8 +1,12 @@
-import { DragDropProvider, KeyboardSensor, PointerSensor } from '@dnd-kit/react';
-import { isSortable, useSortable } from '@dnd-kit/react/sortable';
-import { PointerActivationConstraints, type DragEndEvent } from '@dnd-kit/dom';
-import { ReactNode, useState, type CSSProperties, type Ref } from 'react';
-import { GripVertical } from 'lucide-react';
+import {
+  DragDropProvider,
+  KeyboardSensor,
+  PointerSensor,
+} from "@dnd-kit/react";
+import { isSortable, useSortable } from "@dnd-kit/react/sortable";
+import { PointerActivationConstraints, type DragEndEvent } from "@dnd-kit/dom";
+import { ReactNode, useState, type CSSProperties, type Ref } from "react";
+import { GripVertical } from "lucide-react";
 
 type DragEndPayload = Parameters<DragEndEvent>[0];
 
@@ -22,7 +26,7 @@ function SortableItem({ id, index, children }: SortableItemProps) {
 
   const style: CSSProperties = {
     opacity: isDragging ? 0.8 : 1,
-    zIndex: isDragging ? 50 : 'auto',
+    zIndex: isDragging ? 50 : "auto",
   };
 
   const setNodeRef = (node: HTMLElement | null) => {
@@ -41,7 +45,11 @@ function SortableItem({ id, index, children }: SortableItemProps) {
   );
 }
 
-export function DragHandle({ handleRef }: { handleRef: (element: Element | null) => void }) {
+export function DragHandle({
+  handleRef,
+}: {
+  handleRef: (element: Element | null) => void;
+}) {
   return (
     <div
       ref={handleRef as Ref<HTMLDivElement>}
@@ -63,7 +71,7 @@ interface SortableListProps<T extends { id: number | string }> {
       handleRef: (node: Element | null) => void;
       style: CSSProperties;
       isDragging: boolean;
-    }
+    },
   ) => ReactNode;
   className?: string;
   disabled?: boolean;
@@ -82,7 +90,9 @@ export function SortableList<T extends { id: number | string }>({
 
   const sensors = [
     PointerSensor.configure({
-      activationConstraints: [new PointerActivationConstraints.Distance({ value: 8 })],
+      activationConstraints: [
+        new PointerActivationConstraints.Distance({ value: 8 }),
+      ],
     }),
     KeyboardSensor,
   ];
@@ -127,25 +137,31 @@ export function SortableList<T extends { id: number | string }>({
 
   if (isDisabled) {
     return (
-      <div className={`${className} ${isPending ? 'opacity-60 pointer-events-none' : ''}`}>
-        {displayItems.map(item =>
+      <div
+        className={`${className} ${isPending ? "opacity-60 pointer-events-none" : ""}`}
+      >
+        {displayItems.map((item) =>
           children(item, {
             setNodeRef: () => {},
             handleRef: () => {},
             style: {},
             isDragging: false,
-          })
+          }),
         )}
       </div>
     );
   }
 
   return (
-    <DragDropProvider sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DragDropProvider
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       <div className={className}>
         {displayItems.map((item, index) => (
           <SortableItem key={item.id} id={item.id} index={index}>
-            {handleProps => children(item, handleProps)}
+            {(handleProps) => children(item, handleProps)}
           </SortableItem>
         ))}
       </div>

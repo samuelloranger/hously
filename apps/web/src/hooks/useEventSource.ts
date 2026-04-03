@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 interface UseJsonEventSourceOptions<T> {
   enabled?: boolean;
@@ -41,9 +41,11 @@ export function useJsonEventSource<T>({
     onResetRef.current?.();
 
     if (!enabled || !url) return;
-    if (typeof globalThis.EventSource === 'undefined') return;
+    if (typeof globalThis.EventSource === "undefined") return;
 
-    const source = new (globalThis.EventSource as any)(url, { withCredentials });
+    const source = new (globalThis.EventSource as any)(url, {
+      withCredentials,
+    });
 
     source.onopen = () => {
       onOpenRef.current?.();

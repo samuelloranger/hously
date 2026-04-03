@@ -8,5 +8,5 @@ export interface DashboardWeatherResponse {
   weather_code: number;
   is_day: boolean;
   condition_label: string;
-  temperature_unit: 'fahrenheit' | 'celsius';
+  temperature_unit: "fahrenheit" | "celsius";
 }

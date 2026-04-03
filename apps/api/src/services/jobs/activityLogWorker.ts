@@ -1,6 +1,6 @@
-import type { Job } from 'bullmq';
-import { prisma } from '../../db';
-import { Prisma } from '@prisma/client';
+import type { Job } from "bullmq";
+import { prisma } from "../../db";
+import { Prisma } from "@prisma/client";
 
 export interface ActivityLogJobData {
   type: string;
@@ -11,7 +11,7 @@ export interface ActivityLogJobData {
 
 export async function processActivityLogJob(job: Job<ActivityLogJobData>) {
   const { type, userId, payload, createdAt } = job.data;
-  
+
   try {
     await prisma.activityLog.create({
       data: {
@@ -23,7 +23,10 @@ export async function processActivityLogJob(job: Job<ActivityLogJobData>) {
     });
     return { success: true };
   } catch (error) {
-    console.warn(`[ActivityLogWorker] Failed to write activity log: ${type}`, error);
+    console.warn(
+      `[ActivityLogWorker] Failed to write activity log: ${type}`,
+      error,
+    );
     throw error;
   }
 }

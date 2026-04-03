@@ -6,4 +6,6 @@ export interface WebhookResult {
   notification_metadata?: Record<string, unknown>;
 }
 
-export type WebhookHandler = (payload: Record<string, unknown>) => WebhookResult | null;
+export type WebhookHandler = (
+  payload: Record<string, unknown>,
+) => WebhookResult | null;

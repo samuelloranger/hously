@@ -1,8 +1,14 @@
-import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
-import { Fragment } from 'react';
-import { useTranslation } from 'react-i18next';
-import type { NotificationTemplate } from '@hously/shared';
-import { TemplateEditor } from '@/pages/settings/_component/TemplateEditor';
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
+import { Fragment } from "react";
+import { useTranslation } from "react-i18next";
+import type { NotificationTemplate } from "@hously/shared";
+import { TemplateEditor } from "@/pages/settings/_component/TemplateEditor";
 
 interface TemplateEditorModalProps {
   isOpen: boolean;
@@ -11,8 +17,13 @@ interface TemplateEditorModalProps {
   eventType: string;
 }
 
-export function TemplateEditorModal({ isOpen, onClose, templates, eventType }: TemplateEditorModalProps) {
-  const { t } = useTranslation('common');
+export function TemplateEditorModal({
+  isOpen,
+  onClose,
+  templates,
+  eventType,
+}: TemplateEditorModalProps) {
+  const { t } = useTranslation("common");
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -41,11 +52,18 @@ export function TemplateEditorModal({ isOpen, onClose, templates, eventType }: T
               leaveTo="opacity-0 scale-95"
             >
               <DialogPanel className="w-full max-w-2xl max-h-[90dvh] transform overflow-y-auto rounded-2xl bg-neutral-50 dark:bg-neutral-800 p-6 text-left align-middle shadow-xl transition-all border border-neutral-200 dark:border-neutral-700">
-                <DialogTitle as="h3" className="text-lg font-medium leading-6 text-neutral-900 dark:text-white mb-4">
-                  {t('settings.externalNotifications.editTemplate')}
+                <DialogTitle
+                  as="h3"
+                  className="text-lg font-medium leading-6 text-neutral-900 dark:text-white mb-4"
+                >
+                  {t("settings.externalNotifications.editTemplate")}
                 </DialogTitle>
 
-                <TemplateEditor templates={templates} eventType={eventType} onCancel={onClose} />
+                <TemplateEditor
+                  templates={templates}
+                  eventType={eventType}
+                  onCancel={onClose}
+                />
               </DialogPanel>
             </TransitionChild>
           </div>

@@ -1,16 +1,16 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
-import { getCurrentUser } from '@/lib/auth';
-import { prefetchRouteData } from '@/lib/routing/prefetch';
-import { Settings, type Tab } from '@/pages/settings/_component/Settings';
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { getCurrentUser } from "@/lib/auth";
+import { prefetchRouteData } from "@/lib/routing/prefetch";
+import { Settings, type Tab } from "@/pages/settings/_component/Settings";
 
-export const Route = createFileRoute('/settings/')({
+export const Route = createFileRoute("/settings/")({
   validateSearch: (search: Record<string, unknown>) => ({
-    tab: (search.tab as Tab) || 'profile',
+    tab: (search.tab as Tab) || "profile",
   }),
   beforeLoad: async () => {
     try {
       const user = await getCurrentUser();
-      if (!user) throw redirect({ to: '/login' });
+      if (!user) throw redirect({ to: "/login" });
       return { user };
     } catch (e: any) {
       if (e?.status === 429) return { user: null };
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/settings/')({
   },
   loaderDeps: ({ search: { tab } }) => ({ tab }),
   loader: async ({ context, deps }) => {
-    await prefetchRouteData(context.queryClient, '/settings', deps);
+    await prefetchRouteData(context.queryClient, "/settings", deps);
   },
   component: Settings,
 });

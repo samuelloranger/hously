@@ -1,10 +1,10 @@
-import { sw } from './sw';
-import { normalizeNotificationUrl } from '@hously/shared/utils/notifications';
-import { handleAppUpdate } from './app-update';
-import { syncBadgeCount } from './badge';
-import type { PushNotificationData } from './types';
+import { sw } from "./sw";
+import { normalizeNotificationUrl } from "@hously/shared/utils/notifications";
+import { handleAppUpdate } from "./app-update";
+import { syncBadgeCount } from "./badge";
+import type { PushNotificationData } from "./types";
 
-const NOTIFICATION_EVENT_CHANNEL = 'hously-notification-events';
+const NOTIFICATION_EVENT_CHANNEL = "hously-notification-events";
 
 export function handlePush(event: PushEvent): void {
   let data: PushNotificationData = {};
@@ -13,34 +13,36 @@ export function handlePush(event: PushEvent): void {
     try {
       data = event.data.json() as PushNotificationData;
     } catch {
-      data = { title: 'Hously', body: event.data.text() };
+      data = { title: "Hously", body: event.data.text() };
     }
   }
 
   const messagePayload = {
-    type: 'notification-received' as const,
+    type: "notification-received" as const,
     notificationData: data,
   };
 
-  const broadcast_promise = sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-    clients.forEach(client => {
-      client.postMessage(messagePayload);
+  const broadcast_promise = sw.clients
+    .matchAll({ type: "window", includeUncontrolled: true })
+    .then((clients) => {
+      clients.forEach((client) => {
+        client.postMessage(messagePayload);
+      });
+
+      // Fallback for browsers/tabs where SW client messaging is flaky for uncontrolled windows.
+      if ("BroadcastChannel" in self) {
+        const channel = new BroadcastChannel(NOTIFICATION_EVENT_CHANNEL);
+        channel.postMessage(messagePayload);
+        channel.close();
+      }
     });
 
-    // Fallback for browsers/tabs where SW client messaging is flaky for uncontrolled windows.
-    if ('BroadcastChannel' in self) {
-      const channel = new BroadcastChannel(NOTIFICATION_EVENT_CHANNEL);
-      channel.postMessage(messagePayload);
-      channel.close();
-    }
-  });
-
-  const title = data.title || 'Hously';
-  const body = data.body || 'Vous avez une nouvelle notification';
-  const icon = data.icon || '/icon-192.png';
-  const badge = data.badge || '/icon-32.png';
-  const tag = data.tag || 'notification';
-  const url = normalizeNotificationUrl(data.data?.url) || '/';
+  const title = data.title || "Hously";
+  const body = data.body || "Vous avez une nouvelle notification";
+  const icon = data.icon || "/icon-192.png";
+  const badge = data.badge || "/icon-32.png";
+  const tag = data.tag || "notification";
+  const url = normalizeNotificationUrl(data.data?.url) || "/";
 
   const options: NotificationOptions = {
     body,
@@ -60,8 +62,8 @@ export function handlePush(event: PushEvent): void {
     options.actions = data.actions;
   } else {
     options.actions = [
-      { action: 'open', title: 'Ouvrir' },
-      { action: 'close', title: 'Fermer' },
+      { action: "open", title: "Ouvrir" },
+      { action: "close", title: "Fermer" },
     ];
   }
 
@@ -72,7 +74,7 @@ export function handlePush(event: PushEvent): void {
   ];
 
   // 💡 Ici on remet handleAppUpdate dans la game, SANS faire de silent push
-  if (data.data?.notification_type === 'app-update') {
+  if (data.data?.notification_type === "app-update") {
     promises.push(handleAppUpdate());
   }
 

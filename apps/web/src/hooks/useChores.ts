@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useFetcher } from '@/lib/api/context';
-import { queryKeys } from '@/lib/queryKeys';
-import { CHORES_ENDPOINTS } from '@hously/shared';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useFetcher } from "@/lib/api/context";
+import { queryKeys } from "@/lib/queryKeys";
+import { CHORES_ENDPOINTS } from "@hously/shared";
 import type {
   ApiResult,
   Chore,
@@ -9,7 +9,7 @@ import type {
   CreateChoreRequest,
   UpdateChoreRequest,
   UploadChoreImageResponse,
-} from '@hously/shared';
+} from "@hously/shared";
 
 export function useChores() {
   const fetcher = useFetcher();
@@ -27,7 +27,7 @@ export function useCreateChore() {
   return useMutation({
     mutationFn: (data: CreateChoreRequest) =>
       fetcher<ApiResult<{ id: number }>>(CHORES_ENDPOINTS.CREATE, {
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     onSuccess: () => {
@@ -43,19 +43,26 @@ export function useToggleChore() {
 
   return useMutation({
     mutationFn: ({ choreId, emotion }: { choreId: number; emotion?: string }) =>
-      fetcher<ApiResult<{ completed: boolean }>>(CHORES_ENDPOINTS.TOGGLE(choreId), {
-        method: 'POST',
-        body: { emotion },
-      }),
+      fetcher<ApiResult<{ completed: boolean }>>(
+        CHORES_ENDPOINTS.TOGGLE(choreId),
+        {
+          method: "POST",
+          body: { emotion },
+        },
+      ),
     onMutate: async ({ choreId }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.chores.list() });
-      const previousChores = queryClient.getQueryData<ChoresResponse>(queryKeys.chores.list());
+      const previousChores = queryClient.getQueryData<ChoresResponse>(
+        queryKeys.chores.list(),
+      );
 
       if (previousChores) {
         queryClient.setQueryData<ChoresResponse>(queryKeys.chores.list(), {
           ...previousChores,
-          chores: previousChores.chores.map(chore =>
-            chore.id === choreId ? { ...chore, completed: !chore.completed } : chore
+          chores: previousChores.chores.map((chore) =>
+            chore.id === choreId
+              ? { ...chore, completed: !chore.completed }
+              : chore,
           ),
         });
       }
@@ -64,7 +71,10 @@ export function useToggleChore() {
     },
     onError: (_err, _variables, context) => {
       if (context?.previousChores) {
-        queryClient.setQueryData(queryKeys.chores.list(), context.previousChores);
+        queryClient.setQueryData(
+          queryKeys.chores.list(),
+          context.previousChores,
+        );
       }
     },
     onSettled: () => {
@@ -80,11 +90,20 @@ export function useUpdateChore() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ choreId, data }: { choreId: number; data: UpdateChoreRequest }) =>
-      fetcher<ApiResult<{ message: string }>>(CHORES_ENDPOINTS.UPDATE(choreId), {
-        method: 'PUT',
-        body: data,
-      }),
+    mutationFn: ({
+      choreId,
+      data,
+    }: {
+      choreId: number;
+      data: UpdateChoreRequest;
+    }) =>
+      fetcher<ApiResult<{ message: string }>>(
+        CHORES_ENDPOINTS.UPDATE(choreId),
+        {
+          method: "PUT",
+          body: data,
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.chores.all });
     },
@@ -97,17 +116,22 @@ export function useDeleteChore() {
 
   return useMutation({
     mutationFn: (choreId: number) =>
-      fetcher<ApiResult<{ message: string }>>(CHORES_ENDPOINTS.DELETE(choreId), {
-        method: 'DELETE',
-      }),
-    onMutate: async choreId => {
+      fetcher<ApiResult<{ message: string }>>(
+        CHORES_ENDPOINTS.DELETE(choreId),
+        {
+          method: "DELETE",
+        },
+      ),
+    onMutate: async (choreId) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.chores.list() });
-      const previousChores = queryClient.getQueryData<ChoresResponse>(queryKeys.chores.list());
+      const previousChores = queryClient.getQueryData<ChoresResponse>(
+        queryKeys.chores.list(),
+      );
 
       if (previousChores) {
         queryClient.setQueryData<ChoresResponse>(queryKeys.chores.list(), {
           ...previousChores,
-          chores: previousChores.chores.filter(chore => chore.id !== choreId),
+          chores: previousChores.chores.filter((chore) => chore.id !== choreId),
         });
       }
 
@@ -115,7 +139,10 @@ export function useDeleteChore() {
     },
     onError: (_err, _variables, context) => {
       if (context?.previousChores) {
-        queryClient.setQueryData(queryKeys.chores.list(), context.previousChores);
+        queryClient.setQueryData(
+          queryKeys.chores.list(),
+          context.previousChores,
+        );
       }
     },
     onSettled: () => {
@@ -131,9 +158,12 @@ export function useClearAllCompletedChores() {
 
   return useMutation({
     mutationFn: () =>
-      fetcher<ApiResult<{ message: string; count: number }>>(CHORES_ENDPOINTS.CLEAR_COMPLETED, {
-        method: 'POST',
-      }),
+      fetcher<ApiResult<{ message: string; count: number }>>(
+        CHORES_ENDPOINTS.CLEAR_COMPLETED,
+        {
+          method: "POST",
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.chores.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
@@ -147,9 +177,12 @@ export function useRemoveRecurrence() {
 
   return useMutation({
     mutationFn: (choreId: number) =>
-      fetcher<ApiResult<{ message: string }>>(CHORES_ENDPOINTS.REMOVE_RECURRENCE(choreId), {
-        method: 'PUT',
-      }),
+      fetcher<ApiResult<{ message: string }>>(
+        CHORES_ENDPOINTS.REMOVE_RECURRENCE(choreId),
+        {
+          method: "PUT",
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.chores.all });
     },
@@ -163,22 +196,26 @@ export function useReorderChores() {
   return useMutation({
     mutationFn: (choreIds: number[]) =>
       fetcher<ApiResult<{ message: string }>>(CHORES_ENDPOINTS.REORDER, {
-        method: 'POST',
+        method: "POST",
         body: { chore_ids: choreIds },
       }),
-    onMutate: async choreIds => {
+    onMutate: async (choreIds) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.chores.list() });
-      const previousChores = queryClient.getQueryData<ChoresResponse>(queryKeys.chores.list());
+      const previousChores = queryClient.getQueryData<ChoresResponse>(
+        queryKeys.chores.list(),
+      );
 
       if (previousChores) {
-        const choresMap = new Map(previousChores.chores.map(c => [c.id, c]));
+        const choresMap = new Map(previousChores.chores.map((c) => [c.id, c]));
         const reorderedChores = choreIds
-          .map(id => choresMap.get(id))
+          .map((id) => choresMap.get(id))
           .filter((c): c is Chore => !!c)
           .map((c, index) => ({ ...c, position: index }));
 
         const reorderedIds = new Set(choreIds);
-        const otherChores = previousChores.chores.filter(c => !reorderedIds.has(c.id));
+        const otherChores = previousChores.chores.filter(
+          (c) => !reorderedIds.has(c.id),
+        );
 
         queryClient.setQueryData<ChoresResponse>(queryKeys.chores.list(), {
           ...previousChores,
@@ -190,7 +227,10 @@ export function useReorderChores() {
     },
     onError: (_err, _variables, context) => {
       if (context?.previousChores) {
-        queryClient.setQueryData(queryKeys.chores.list(), context.previousChores);
+        queryClient.setQueryData(
+          queryKeys.chores.list(),
+          context.previousChores,
+        );
       }
     },
     onSettled: () => {
@@ -205,7 +245,7 @@ export function useUploadChoreImage() {
   return useMutation({
     mutationFn: (formData: FormData) =>
       fetcher<UploadChoreImageResponse>(CHORES_ENDPOINTS.UPLOAD_IMAGE, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
   });

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 interface NotificationPermissionModalProps {
   isOpen: boolean;
@@ -9,8 +9,12 @@ interface NotificationPermissionModalProps {
   onDismiss: () => void;
 }
 
-export function NotificationPermissionModal({ isOpen, onAllow, onDismiss }: NotificationPermissionModalProps) {
-  const { t } = useTranslation('common');
+export function NotificationPermissionModal({
+  isOpen,
+  onAllow,
+  onDismiss,
+}: NotificationPermissionModalProps) {
+  const { t } = useTranslation("common");
   const [shouldRender, setShouldRender] = useState(isOpen);
 
   if (isOpen && !shouldRender) {
@@ -41,8 +45,8 @@ export function NotificationPermissionModal({ isOpen, onAllow, onDismiss }: Noti
       {/* Backdrop */}
       <div
         className={cn(
-          'absolute inset-0 bg-black opacity-50 duration-300',
-          isClosing ? 'animate-out fade-out' : 'animate-in fade-in'
+          "absolute inset-0 bg-black opacity-50 duration-300",
+          isClosing ? "animate-out fade-out" : "animate-in fade-in",
         )}
         onClick={onDismiss}
       />
@@ -50,17 +54,24 @@ export function NotificationPermissionModal({ isOpen, onAllow, onDismiss }: Noti
       {/* Modal */}
       <div
         className={cn(
-          'relative bg-neutral-50 dark:bg-neutral-800 rounded-lg shadow-xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-6 border border-neutral-200 dark:border-neutral-700 duration-300',
-          isClosing ? 'animate-out fade-out zoom-out-95' : 'animate-in fade-in zoom-in-95'
+          "relative bg-neutral-50 dark:bg-neutral-800 rounded-lg shadow-xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-6 border border-neutral-200 dark:border-neutral-700 duration-300",
+          isClosing
+            ? "animate-out fade-out zoom-out-95"
+            : "animate-in fade-in zoom-in-95",
         )}
       >
         <div className="flex items-start mb-4">
           <div className="flex-shrink-0 text-3xl">🔔</div>
           <div className="ml-4 flex-1">
-            <h3 id="notification-modal-title" className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
-              {t('notifications.modal.title')}
+            <h3
+              id="notification-modal-title"
+              className="text-lg font-semibold text-neutral-900 dark:text-white mb-2"
+            >
+              {t("notifications.modal.title")}
             </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('notifications.modal.description')}</p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+              {t("notifications.modal.description")}
+            </p>
           </div>
         </div>
 
@@ -69,17 +80,17 @@ export function NotificationPermissionModal({ isOpen, onAllow, onDismiss }: Noti
             onClick={onAllow}
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium"
           >
-            {t('notifications.modal.allow')}
+            {t("notifications.modal.allow")}
           </button>
           <button
             onClick={onDismiss}
             className="flex-1 px-4 py-2 bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-md hover:bg-neutral-300 dark:hover:bg-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 transition-colors font-medium"
           >
-            {t('notifications.modal.dismiss')}
+            {t("notifications.modal.dismiss")}
           </button>
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

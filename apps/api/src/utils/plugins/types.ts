@@ -41,7 +41,7 @@ export interface AdguardPluginConfig {
 
 export interface WeatherPluginConfig {
   address: string;
-  temperature_unit: 'fahrenheit' | 'celsius';
+  temperature_unit: "fahrenheit" | "celsius";
 }
 
 export interface TmdbPluginConfig {
@@ -65,7 +65,7 @@ export interface ClockifyPluginConfig {
 }
 
 export interface HackernewsPluginConfig {
-  feed_type: 'top' | 'best' | 'new' | 'ask' | 'show' | 'job';
+  feed_type: "top" | "best" | "new" | "ask" | "show" | "job";
   story_count: number;
 }
 
@@ -73,7 +73,7 @@ export interface NetdataPluginConfig {
   website_url: string;
 }
 
-export type TrackerType = 'c411' | 'torr9' | 'la-cale';
+export type TrackerType = "c411" | "torr9" | "la-cale";
 
 export interface TrackerPluginConfig {
   flaresolverr_url?: string;

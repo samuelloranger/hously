@@ -3,22 +3,35 @@ import {
   type QbittorrentTorrentTracker,
   qbFetchJson,
   toTorrentTracker,
-} from './client';
+} from "./client";
 
 export const fetchQbittorrentTorrentTrackers = async (
   config: QbittorrentPluginConfig,
   enabled: boolean,
-  hash: string
-): Promise<{ enabled: boolean; connected: boolean; trackers: QbittorrentTorrentTracker[]; error?: string }> => {
+  hash: string,
+): Promise<{
+  enabled: boolean;
+  connected: boolean;
+  trackers: QbittorrentTorrentTracker[];
+  error?: string;
+}> => {
   if (!enabled) return { enabled: false, connected: false, trackers: [] };
   const safeHash = hash.trim();
-  if (!safeHash) return { enabled: true, connected: false, trackers: [], error: 'Missing torrent hash' };
+  if (!safeHash)
+    return {
+      enabled: true,
+      connected: false,
+      trackers: [],
+      error: "Missing torrent hash",
+    };
 
   try {
     const path = `/api/v2/torrents/trackers?hash=${encodeURIComponent(safeHash)}`;
     const raw = await qbFetchJson<unknown>(config, path);
     const trackers = Array.isArray(raw)
-      ? raw.map(toTorrentTracker).filter((row): row is QbittorrentTorrentTracker => Boolean(row))
+      ? raw
+          .map(toTorrentTracker)
+          .filter((row): row is QbittorrentTorrentTracker => Boolean(row))
       : [];
     return { enabled: true, connected: true, trackers };
   } catch (error) {
@@ -26,7 +39,10 @@ export const fetchQbittorrentTorrentTrackers = async (
       enabled: true,
       connected: false,
       trackers: [],
-      error: error instanceof Error ? error.message : 'Unable to connect to qBittorrent',
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to connect to qBittorrent",
     };
   }
 };

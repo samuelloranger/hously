@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
-import { formatRecurrenceText } from '@/pages/chores/_component/utils/recurrence';
+import { useTranslation } from "react-i18next";
+import { formatRecurrenceText } from "@/pages/chores/_component/utils/recurrence";
 
 interface RecurrenceBadgeProps {
-  recurrence_type?: 'daily_interval' | 'weekly' | null;
+  recurrence_type?: "daily_interval" | "weekly" | null;
   recurrence_interval_days?: number | null;
   recurrence_weekday?: number | null;
   className?: string;
@@ -19,9 +19,9 @@ export function RecurrenceBadge({
   recurrence_type,
   recurrence_interval_days,
   recurrence_weekday,
-  className = '',
+  className = "",
 }: RecurrenceBadgeProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
 
   if (!recurrence_type) {
     return null;
@@ -31,7 +31,11 @@ export function RecurrenceBadge({
     <span
       className={`px-2 py-0.5 text-xs font-semibold rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 ${className}`}
     >
-      🔁 {formatRecurrenceText({ recurrence_type, recurrence_interval_days, recurrence_weekday }, t)}
+      🔁{" "}
+      {formatRecurrenceText(
+        { recurrence_type, recurrence_interval_days, recurrence_weekday },
+        t,
+      )}
     </span>
   );
 }

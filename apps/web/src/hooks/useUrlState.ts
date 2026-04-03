@@ -1,5 +1,5 @@
-import { useNavigate } from '@tanstack/react-router';
-import { useCallback, useMemo } from 'react';
+import { useNavigate } from "@tanstack/react-router";
+import { useCallback, useMemo } from "react";
 
 type UrlStatePrimitive = string | number | boolean | null | undefined;
 export type UrlStateValue = UrlStatePrimitive | UrlStatePrimitive[];
@@ -7,7 +7,7 @@ export type UrlStateRecord = Record<string, UrlStateValue>;
 
 function isEmptyUrlStateValue(value: UrlStateValue) {
   if (value == null) return true;
-  if (typeof value === 'string') return value.length === 0;
+  if (typeof value === "string") return value.length === 0;
   if (Array.isArray(value)) return value.length === 0;
   return false;
 }
@@ -22,12 +22,18 @@ function isSameUrlStateValue(left: UrlStateValue, right: UrlStateValue) {
   return left === right;
 }
 
-function sanitizeUrlState<T extends UrlStateRecord>(value: T, defaults: T): Partial<T> {
+function sanitizeUrlState<T extends UrlStateRecord>(
+  value: T,
+  defaults: T,
+): Partial<T> {
   const entries = Object.entries(value).filter(([key, currentValue]) => {
     if (isEmptyUrlStateValue(currentValue)) return false;
 
     const defaultValue = defaults[key];
-    if (defaultValue !== undefined && isSameUrlStateValue(currentValue, defaultValue)) {
+    if (
+      defaultValue !== undefined &&
+      isSameUrlStateValue(currentValue, defaultValue)
+    ) {
       return false;
     }
 
@@ -37,7 +43,10 @@ function sanitizeUrlState<T extends UrlStateRecord>(value: T, defaults: T): Part
   return Object.fromEntries(entries) as Partial<T>;
 }
 
-function mergeUrlState<T extends UrlStateRecord>(defaults: T, search: Partial<T>): T {
+function mergeUrlState<T extends UrlStateRecord>(
+  defaults: T,
+  search: Partial<T>,
+): T {
   const nextState = { ...defaults };
 
   for (const [key, value] of Object.entries(search)) {
@@ -49,10 +58,17 @@ function mergeUrlState<T extends UrlStateRecord>(defaults: T, search: Partial<T>
   return nextState;
 }
 
-export function useUrlState<T extends UrlStateRecord>(from: string, search: Partial<T>, defaults: T) {
+export function useUrlState<T extends UrlStateRecord>(
+  from: string,
+  search: Partial<T>,
+  defaults: T,
+) {
   const navigate = useNavigate();
 
-  const state = useMemo(() => mergeUrlState(defaults, search), [defaults, search]);
+  const state = useMemo(
+    () => mergeUrlState(defaults, search),
+    [defaults, search],
+  );
 
   const setState = useCallback(
     (updates: Partial<T>) => {
@@ -65,7 +81,7 @@ export function useUrlState<T extends UrlStateRecord>(from: string, search: Part
         resetScroll: false,
       });
     },
-    [defaults, from, navigate, state]
+    [defaults, from, navigate, state],
   );
 
   const resetState = useCallback(
@@ -83,7 +99,7 @@ export function useUrlState<T extends UrlStateRecord>(from: string, search: Part
         resetScroll: false,
       });
     },
-    [defaults, from, navigate, state]
+    [defaults, from, navigate, state],
   );
 
   return { state, setState, resetState };

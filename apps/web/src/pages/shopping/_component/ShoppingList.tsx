@@ -1,26 +1,26 @@
-import { useTranslation } from 'react-i18next';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { Search, X } from 'lucide-react';
-import { PageLayout } from '@/components/PageLayout';
-import { PageHeader } from '@/components/PageHeader';
-import { ShoppingItemRow } from '@/pages/shopping/_component/ShoppingItemRow';
-import { CreateShoppingItemForm } from '@/pages/shopping/_component/CreateShoppingItemForm';
-import { EmptyState } from '@/components/EmptyState';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { SortableList } from '@/components/SortableList';
+import { useTranslation } from "react-i18next";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { Search, X } from "lucide-react";
+import { PageLayout } from "@/components/PageLayout";
+import { PageHeader } from "@/components/PageHeader";
+import { ShoppingItemRow } from "@/pages/shopping/_component/ShoppingItemRow";
+import { CreateShoppingItemForm } from "@/pages/shopping/_component/CreateShoppingItemForm";
+import { EmptyState } from "@/components/EmptyState";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { SortableList } from "@/components/SortableList";
 import {
   useShoppingItems,
   useClearAllCompletedShoppingItems,
   useReorderShoppingItems,
   useDeleteShoppingItems,
-} from '@/hooks/useShopping';
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+} from "@/hooks/useShopping";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
-type ShoppingStatusFilter = 'all' | 'active' | 'completed' | 'notes';
+type ShoppingStatusFilter = "all" | "active" | "completed" | "notes";
 
 export function ShoppingList() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const [completedItemsRef] = useAutoAnimate();
 
   const { data, refetch, isFetching } = useShoppingItems();
@@ -30,8 +30,8 @@ export function ShoppingList() {
 
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ShoppingStatusFilter>('all');
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ShoppingStatusFilter>("all");
   const deferredQuery = useDeferredValue(query);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,68 +39,80 @@ export function ShoppingList() {
   const filteredItems = useMemo(() => {
     const normalizedQuery = deferredQuery.trim().toLowerCase();
 
-    return items.filter(item => {
+    return items.filter((item) => {
       const matchesQuery =
         normalizedQuery.length === 0 ||
         item.item_name.toLowerCase().includes(normalizedQuery) ||
         item.notes?.toLowerCase().includes(normalizedQuery);
 
       const matchesFilter =
-        statusFilter === 'all' ||
-        (statusFilter === 'active' && !item.completed) ||
-        (statusFilter === 'completed' && item.completed) ||
-        (statusFilter === 'notes' && Boolean(item.notes?.trim()));
+        statusFilter === "all" ||
+        (statusFilter === "active" && !item.completed) ||
+        (statusFilter === "completed" && item.completed) ||
+        (statusFilter === "notes" && Boolean(item.notes?.trim()));
 
       return matchesQuery && matchesFilter;
     });
   }, [deferredQuery, items, statusFilter]);
   const activeItems = useMemo(
-    () => filteredItems.filter(item => !item.completed).sort((a, b) => a.position - b.position),
-    [filteredItems]
+    () =>
+      filteredItems
+        .filter((item) => !item.completed)
+        .sort((a, b) => a.position - b.position),
+    [filteredItems],
   );
-  const completedItems = useMemo(() => filteredItems.filter(item => item.completed), [filteredItems]);
+  const completedItems = useMemo(
+    () => filteredItems.filter((item) => item.completed),
+    [filteredItems],
+  );
   const validSelectedIds = useMemo(() => {
-    const validIds = new Set(items.map(item => item.id));
-    return new Set([...selectedIds].filter(id => validIds.has(id)));
+    const validIds = new Set(items.map((item) => item.id));
+    return new Set([...selectedIds].filter((id) => validIds.has(id)));
   }, [items, selectedIds]);
   const selectedCount = validSelectedIds.size;
   const totalMatches = activeItems.length + completedItems.length;
-  const hasFilters = query.trim().length > 0 || statusFilter !== 'all';
+  const hasFilters = query.trim().length > 0 || statusFilter !== "all";
 
   const filterOptions = [
-    { id: 'all' as const, label: t('shopping.filters.all') },
-    { id: 'active' as const, label: t('shopping.filters.active') },
-    { id: 'completed' as const, label: t('shopping.filters.completed') },
-    { id: 'notes' as const, label: t('shopping.filters.notes') },
+    { id: "all" as const, label: t("shopping.filters.all") },
+    { id: "active" as const, label: t("shopping.filters.active") },
+    { id: "completed" as const, label: t("shopping.filters.completed") },
+    { id: "notes" as const, label: t("shopping.filters.notes") },
   ];
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       const isTypingField =
-        target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable;
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target?.isContentEditable;
 
-      if (!isTypingField && event.key === '/') {
+      if (!isTypingField && event.key === "/") {
         event.preventDefault();
         searchInputRef.current?.focus();
       }
 
-      if (event.key === 'Escape' && document.activeElement === searchInputRef.current && query) {
-        setQuery('');
+      if (
+        event.key === "Escape" &&
+        document.activeElement === searchInputRef.current &&
+        query
+      ) {
+        setQuery("");
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [query]);
 
   const handleToggleSelectionMode = () => {
-    setIsSelectionMode(prev => !prev);
+    setIsSelectionMode((prev) => !prev);
     setSelectedIds(new Set());
   };
 
   const handleSelectToggle = (itemId: number) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(itemId)) {
         next.delete(itemId);
@@ -115,7 +127,9 @@ export function ShoppingList() {
     if (selectedCount === 0) {
       return;
     }
-    if (!confirm(t('shopping.deleteSelectedConfirm', { count: selectedCount }))) {
+    if (
+      !confirm(t("shopping.deleteSelectedConfirm", { count: selectedCount }))
+    ) {
       return;
     }
     deleteItemsMutation.mutate(Array.from(validSelectedIds), {
@@ -130,8 +144,8 @@ export function ShoppingList() {
       <PageHeader
         icon="🛒"
         iconColor="text-blue-600"
-        title={t('shopping.title')}
-        subtitle={t('shopping.subtitle')}
+        title={t("shopping.title")}
+        subtitle={t("shopping.subtitle")}
         onRefresh={refetch}
         isRefreshing={isFetching}
       />
@@ -143,28 +157,28 @@ export function ShoppingList() {
             <Input
               ref={searchInputRef}
               value={query}
-              onChange={event => setQuery(event.target.value)}
-              placeholder={t('shopping.searchPlaceholder')}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t("shopping.searchPlaceholder")}
               className="pl-9 pr-10"
             />
             {query && (
               <button
                 type="button"
-                onClick={() => setQuery('')}
+                onClick={() => setQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-700 dark:hover:text-neutral-200"
-                aria-label={t('shopping.clearSearch')}
+                aria-label={t("shopping.clearSearch")}
               >
                 <X className="h-4 w-4" />
               </button>
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            {filterOptions.map(option => (
+            {filterOptions.map((option) => (
               <Button
                 key={option.id}
                 type="button"
                 size="sm"
-                variant={statusFilter === option.id ? 'default' : 'secondary'}
+                variant={statusFilter === option.id ? "default" : "secondary"}
                 onClick={() => setStatusFilter(option.id)}
               >
                 {option.label}
@@ -176,40 +190,51 @@ export function ShoppingList() {
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  setQuery('');
-                  setStatusFilter('all');
+                  setQuery("");
+                  setStatusFilter("all");
                 }}
               >
-                {t('shopping.clearFilters')}
+                {t("shopping.clearFilters")}
               </Button>
             )}
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-          <p>{t('shopping.results', { count: totalMatches, total: items.length })}</p>
-          <p>{t('shopping.searchShortcut')}</p>
+          <p>
+            {t("shopping.results", {
+              count: totalMatches,
+              total: items.length,
+            })}
+          </p>
+          <p>{t("shopping.searchShortcut")}</p>
         </div>
       </section>
 
       <CreateShoppingItemForm />
 
       {items.length === 0 ? (
-        <EmptyState icon="🛒" title={t('shopping.noItems')} description={t('shopping.addFirstItem')} />
+        <EmptyState
+          icon="🛒"
+          title={t("shopping.noItems")}
+          description={t("shopping.addFirstItem")}
+        />
       ) : totalMatches === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-200/80 bg-white px-6 py-12 text-center dark:border-neutral-700/60 dark:bg-neutral-800">
-          <p className="text-base font-semibold text-neutral-900 dark:text-white">{t('shopping.emptyFilteredTitle')}</p>
+          <p className="text-base font-semibold text-neutral-900 dark:text-white">
+            {t("shopping.emptyFilteredTitle")}
+          </p>
           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-            {t('shopping.emptyFilteredDescription')}
+            {t("shopping.emptyFilteredDescription")}
           </p>
           <Button
             className="mt-4"
             variant="outline"
             onClick={() => {
-              setQuery('');
-              setStatusFilter('all');
+              setQuery("");
+              setStatusFilter("all");
             }}
           >
-            {t('shopping.clearFilters')}
+            {t("shopping.clearFilters")}
           </Button>
         </div>
       ) : (
@@ -220,10 +245,13 @@ export function ShoppingList() {
                 <div className="flex flex-wrap justify-between items-center gap-3">
                   <div className="flex items-center gap-3">
                     <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                      {t('shopping.currentList')}
+                      {t("shopping.currentList")}
                     </h3>
                     <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">
-                      {activeItems.length} {activeItems.length !== 1 ? t('shopping.itemsPlural') : t('shopping.items')}
+                      {activeItems.length}{" "}
+                      {activeItems.length !== 1
+                        ? t("shopping.itemsPlural")
+                        : t("shopping.items")}
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -234,19 +262,25 @@ export function ShoppingList() {
                         variant="destructive"
                         size="sm"
                       >
-                        {t('shopping.deleteSelected', { count: selectedCount })}
+                        {t("shopping.deleteSelected", { count: selectedCount })}
                       </Button>
                     )}
-                    <Button onClick={handleToggleSelectionMode} variant="secondary" size="sm">
-                      {isSelectionMode ? t('shopping.cancelSelection') : t('shopping.selectItems')}
+                    <Button
+                      onClick={handleToggleSelectionMode}
+                      variant="secondary"
+                      size="sm"
+                    >
+                      {isSelectionMode
+                        ? t("shopping.cancelSelection")
+                        : t("shopping.selectItems")}
                     </Button>
                   </div>
                 </div>
               </div>
               <SortableList
                 items={activeItems}
-                onReorder={newOrder => {
-                  const itemIds = newOrder.map(item => item.id);
+                onReorder={(newOrder) => {
+                  const itemIds = newOrder.map((item) => item.id);
                   reorderMutation.mutate(itemIds);
                 }}
                 className="divide-y divide-neutral-100 dark:divide-neutral-700/50"
@@ -272,7 +306,7 @@ export function ShoppingList() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                      {t('shopping.recentlyCompleted')}
+                      {t("shopping.recentlyCompleted")}
                     </h3>
                     <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-100 px-1.5 text-[11px] font-semibold text-neutral-500 dark:bg-neutral-700/60 dark:text-neutral-400">
                       {completedItems.length}
@@ -284,12 +318,15 @@ export function ShoppingList() {
                     variant="secondary"
                     size="sm"
                   >
-                    {t('shopping.clearAll')}
+                    {t("shopping.clearAll")}
                   </Button>
                 </div>
               </div>
-              <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50" ref={completedItemsRef}>
-                {completedItems.map(item => (
+              <div
+                className="divide-y divide-neutral-100 dark:divide-neutral-700/50"
+                ref={completedItemsRef}
+              >
+                {completedItems.map((item) => (
                   <ShoppingItemRow
                     key={item.id}
                     item={item}

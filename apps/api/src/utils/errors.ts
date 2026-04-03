@@ -10,12 +10,12 @@ export const badRequest = (set: ElysiaSet, message: string) => {
   return { error: message };
 };
 
-export const unauthorized = (set: ElysiaSet, message = 'Unauthorized') => {
+export const unauthorized = (set: ElysiaSet, message = "Unauthorized") => {
   set.status = 401;
   return { error: message };
 };
 
-export const forbidden = (set: ElysiaSet, message = 'Forbidden') => {
+export const forbidden = (set: ElysiaSet, message = "Forbidden") => {
   set.status = 403;
   return { error: message };
 };
