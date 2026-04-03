@@ -9,7 +9,7 @@
     "build": "vite build && tsc --project tsconfig.build.json --noEmit",
     "preview": "vite preview",
     "playwright:load": "bun scripts/playwright-load.mjs",
-    "playwright:load:prod": "BASE_URL=https://hously.example.com bun scripts/playwright-load.mjs",
+    "playwright:load:prod": "bun scripts/playwright-load.mjs",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "lint": "eslint .",

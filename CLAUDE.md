@@ -4,16 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Task Tracking
 
-This project uses **Taskwarrior** to track tech debt and improvements. At the start of a work session, check open tasks:
+Tasks are tracked on the Hously board using the `hously board-tasks` CLI. At the start of a work session, check open tasks:
 
 ```bash
-task project:hously list
+hously board-tasks list --status todo
+hously board-tasks list --status in_progress
 ```
 
-When a task is completed during a session, mark it done:
+When starting a task, move it to in progress:
 
 ```bash
-task <id> done
+hously board-tasks update <id> --status in_progress
+```
+
+When a task is completed:
+
+```bash
+hously board-tasks update <id> --status done
 ```
 
 ## Coding Rules

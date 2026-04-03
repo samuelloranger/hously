@@ -5,6 +5,12 @@
   .prose :where(p):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
     margin-bottom: 0;
   }
+
+  /* Tailwind Typography adds backtick pseudo-elements to <code> — remove them */
+  .prose :where(code)::before,
+  .prose :where(code)::after {
+    content: none;
+  }
 }
 
 /* Source paths for Tailwind to scan */

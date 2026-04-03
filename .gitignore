@@ -4,12 +4,20 @@
 # Environment
 .env
 
-# IDE
+# IDE / Editor
 .idea/
 .vscode/
+.cursor/
 *.swp
 *.swo
 *~
+
+# Claude Code local settings (contains machine-specific paths)
+.claude/settings.local.json
+
+# Screenshot artifacts
+apps/web/screenshot-prod*.png
+apps/web/screenshot-prod*.json
 
 # OS
 .DS_Store

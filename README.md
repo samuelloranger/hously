@@ -40,7 +40,7 @@ Hously runs as a **single container** — the API serves the frontend directly.
 
 1. **Download the compose file:**
    ```bash
-   curl -o docker-compose.yml https://raw.git.example.com/samuelloranger/hously/main/docker-compose.prod-example.yml
+   curl -o docker-compose.yml https://raw.githubusercontent.com/samuelloranger/hously/main/docker-compose.prod-example.yml
    ```
 
 2. **Configure environment variables:**
@@ -74,7 +74,7 @@ DATABASE_URL=postgresql://username:password@localhost:5432/hously
 
 ```bash
 # 1. Clone the repository
-git clone https://git.example.com/samuelloranger/hously.git
+git clone https://github.com/samuelloranger/hously.git
 cd hously
 
 # 2. Copy environment file and configure

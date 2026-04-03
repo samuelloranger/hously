@@ -6,6 +6,7 @@ const ALLOWED_TAGS = new Set([
   'b',
   'i',
   'u',
+  's',
   'strong',
   'em',
   'p',
@@ -20,6 +21,10 @@ const ALLOWED_TAGS = new Set([
   'h5',
   'h6',
   'a',
+  'code',
+  'pre',
+  'blockquote',
+  'hr',
 ]);
 
 export const sanitizeRichText = (input: string): string => {
