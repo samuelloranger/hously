@@ -44,7 +44,7 @@ const buildArrItemUrl = (
   }
 };
 
-export const dashboardUpcomingRoutes = new Elysia()
+export const dashboardUpcomingRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(auth)
   .use(requireUser)
   .get("/upcoming", async ({ user, set }) => {

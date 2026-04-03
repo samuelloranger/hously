@@ -7,6 +7,9 @@ import { checkAndNotifyVersionChange } from "./services/versionService";
 import { auth } from "./auth";
 import { dashboardRoutes } from "./routes/dashboard";
 import { dashboardServiceRoutes } from "./routes/dashboard/servicesRoutes";
+import { dashboardOverviewRoutes } from "./routes/dashboard/overviewRoutes";
+import { dashboardUpcomingRoutes } from "./routes/dashboard/upcomingRoutes";
+import { dashboardJellyfinRoutes } from "./routes/dashboard/jellyfinRoutes";
 import { usersRoutes } from "./routes/users";
 import { notificationsRoutes } from "./routes/notifications";
 import { webhooksRoutes } from "./routes/webhooks";
@@ -65,6 +68,9 @@ export const app = new Elysia()
   .use(globalRateLimit) // Global rate limiting for unauthenticated requests
   .use(dashboardRoutes)
   .use(dashboardServiceRoutes)
+  .use(dashboardOverviewRoutes)
+  .use(dashboardUpcomingRoutes)
+  .use(dashboardJellyfinRoutes)
   .use(usersRoutes)
   .use(notificationsRoutes)
   .use(webhooksRoutes)

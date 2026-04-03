@@ -216,7 +216,7 @@ function matchesActivityFilters(
   return true;
 }
 
-export const dashboardOverviewRoutes = new Elysia()
+export const dashboardOverviewRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(auth)
   .use(requireUser)
   .get("/stats", async ({ user, set }) => {

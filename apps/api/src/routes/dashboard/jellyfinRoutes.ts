@@ -12,7 +12,7 @@ import {
   unauthorized,
 } from "../../utils/errors";
 
-export const dashboardJellyfinRoutes = new Elysia()
+export const dashboardJellyfinRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(auth)
   .use(requireUser)
   .get(
