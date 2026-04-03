@@ -78,7 +78,29 @@ docker compose up -d
 
 Hously will be available at `http://localhost:3000`. Register with an email from your `ALLOWED_EMAILS` list.
 
-### 5. (Optional) Reverse proxy
+### 5. (Optional) Enable push notifications
+
+Generate VAPID keys for browser push notifications:
+
+```bash
+bunx web-push generate-vapid-keys
+```
+
+Copy the output into your `.env`:
+
+```bash
+VAPID_PUBLIC_KEY=BPxr...your-public-key
+VAPID_PRIVATE_KEY=abc...your-private-key
+VAPID_CONTACT_EMAIL=mailto:your-email@example.com
+```
+
+Restart the container after updating:
+
+```bash
+docker compose up -d
+```
+
+### 6. (Optional) Reverse proxy
 
 Put Hously behind a reverse proxy (Caddy, Nginx, Traefik) for HTTPS. Update `BASE_URL` and `CORS_ORIGIN` in `.env` to match your domain.
 
