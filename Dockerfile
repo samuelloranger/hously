@@ -11,6 +11,7 @@ COPY bun.lock ./
 COPY package.json ./
 COPY tsconfig.json ./
 COPY apps/api/package.json ./apps/api/
+COPY apps/app/package.json ./apps/app/
 COPY apps/shared/package.json ./apps/shared/
 COPY apps/web/package.json ./apps/web/
 

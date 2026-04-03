@@ -36,7 +36,6 @@ import { habitsRoutes } from './routes/habits';
 import { boardTasksRoutes } from './routes/boardTasks';
 import { boardTagsRoutes } from './routes/boardTags';
 import { systemRoutes } from './routes/system';
-import { searchRoutes } from './routes/search';
 import { globalRateLimit } from './middleware/rateLimit';
 import { initWorkers, setupScheduledJobs } from './services/queueService';
 
@@ -92,7 +91,6 @@ export const app = new Elysia()
   .use(boardTasksRoutes)
   .use(boardTagsRoutes)
   .use(systemRoutes)
-  .use(searchRoutes)
   .get('/health', () => ({ status: 'ok' }))
   .get('/api/health', () => ({ status: 'ok' }))
   .use(app => {

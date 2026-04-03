@@ -1,8 +1,6 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "moduleResolution": "node",
-    "allowImportingTsExtensions": false,
     "noEmit": true,
     "skipLibCheck": true
   },
@@ -14,4 +12,3 @@
     "src/test-utils/**"
   ]
 }
-

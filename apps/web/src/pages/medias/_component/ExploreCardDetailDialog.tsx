@@ -104,14 +104,14 @@ export function ExploreCardDetailDialog({
   const libraryEpisodes = modalData?.library_episodes ?? null;
 
   const episodesBySeason = useMemo(() => {
-    const m = new Map<number, { episode_number: number; title: string | null; has_file: boolean }[]>();
-    for (const e of libraryEpisodes?.episodes ?? []) {
+    const m = new Map<number, { episode_number: number }[]>();
+    for (const e of libraryEpisodes?.downloaded ?? []) {
       const arr = m.get(e.season_number) ?? [];
-      arr.push({ episode_number: e.episode_number, title: e.title, has_file: e.has_file });
+      arr.push({ episode_number: e.episode_number });
       m.set(e.season_number, arr);
     }
     return m;
-  }, [libraryEpisodes?.episodes]);
+  }, [libraryEpisodes?.downloaded]);
 
   const canSearch = item.already_exists && item.source_id !== null;
   const canManage = item.already_exists && item.source_id !== null;
@@ -736,7 +736,7 @@ export function ExploreCardDetailDialog({
                       <div className="flex flex-col gap-4">
                         {detailsData.seasons.map(s => {
                           const seasonEps = episodesBySeason.get(s.season_number) ?? [];
-                          const onDisk = libraryEpisodes?.in_library ? seasonEps.filter(e => e.has_file).length : null;
+                          const onDisk = libraryEpisodes?.in_library ? seasonEps.length : null;
                           const total = s.episode_count;
                           const complete = onDisk != null && total != null && total > 0 && onDisk === total;
                           const hasEpisodeData = libraryEpisodes?.in_library && seasonEps.length > 0;
@@ -778,26 +778,20 @@ export function ExploreCardDetailDialog({
                                       key={ep.episode_number}
                                       className={cn(
                                         'grid grid-cols-[2rem_minmax(0,1fr)_1rem] items-center gap-x-2 rounded px-1 py-1 text-[12px] transition-colors',
-                                        ep.has_file
-                                          ? 'text-neutral-700 dark:text-neutral-300'
-                                          : 'text-neutral-400 dark:text-neutral-600'
+                                        'text-neutral-700 dark:text-neutral-300'
                                       )}
                                     >
                                       <span className="shrink-0 tabular-nums text-right font-mono text-[11px] text-neutral-400 dark:text-neutral-600">
                                         {`E${String(ep.episode_number).padStart(2, '0')}`}
                                       </span>
                                       <span className="min-w-0 truncate leading-snug">
-                                        {ep.title ?? `Episode ${ep.episode_number}`}
+                                        {`Episode ${ep.episode_number}`}
                                       </span>
-                                      {ep.has_file ? (
-                                        <Check
-                                          size={11}
-                                          className="shrink-0 text-emerald-500 dark:text-emerald-400"
-                                          aria-hidden
-                                        />
-                                      ) : (
-                                        <span />
-                                      )}
+                                      <Check
+                                        size={11}
+                                        className="shrink-0 text-emerald-500 dark:text-emerald-400"
+                                        aria-hidden
+                                      />
                                     </div>
                                   ))}
                                 </div>

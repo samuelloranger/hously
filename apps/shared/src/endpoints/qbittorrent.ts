@@ -28,3 +28,10 @@ export const QBITTORRENT_ENDPOINTS = {
   REANNOUNCE: (hash: string) => `/api/dashboard/qbittorrent/torrents/${encodeURIComponent(hash)}/reannounce`,
   DELETE: (hash: string) => `/api/dashboard/qbittorrent/torrents/${encodeURIComponent(hash)}/delete`,
 } as const;
+
+export const QBITTORRENT_TORRENTS_PAGE_SIZE = 50;
+
+export function buildQbittorrentTorrentsStreamUrl(base: string, offset: number): string {
+  return `${base}?offset=${offset}&limit=${QBITTORRENT_TORRENTS_PAGE_SIZE}`;
+}
+
