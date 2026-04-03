@@ -6,44 +6,12 @@ import {
   type FlareSolverrSolution,
   type HttpTrackerStats,
 } from "./httpScraper";
-import { parseNumber } from "./utils";
 
-// C411 reports sizes in decimal units (1 Go = 1,000,000,000 bytes).
-const parseSizeToGo = (text: string): number | null => {
-  const normalized = text
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(",", ".");
-
-  const match = normalized.match(
-    /(-?\d+(?:\.\d+)?)\s*(o|Ko|Mo|Go|To|B|KB|MB|GB|TB)\b/i,
-  );
-  if (!match) return null;
-
-  const value = Number(match[1]);
-  if (!Number.isFinite(value)) return null;
-
-  switch (match[2].toLowerCase()) {
-    case "o":
-    case "b":
-      return value / 1_000_000_000;
-    case "ko":
-    case "kb":
-      return value / 1_000_000;
-    case "mo":
-    case "mb":
-      return value / 1_000;
-    case "go":
-    case "gb":
-      return value;
-    case "to":
-    case "tb":
-      return value * 1_000;
-    default:
-      return null;
-  }
-};
+interface C411UserResponse {
+  uploaded: number;
+  downloaded: number;
+  ratio: number;
+}
 
 export async function scrapeC411(
   config: TrackerPluginConfig,
@@ -66,7 +34,7 @@ export async function scrapeC411(
   if (!csrfToken)
     throw new Error("C411: csrf-token meta tag not found on login page");
 
-  // Step 2: C411 is a Nuxt.js SPA — login via the JSON API with the meta-tag CSRF token.
+  // Step 2: Login via the JSON API.
   const loginRes = await fetch(
     new URL("/api/auth/login", config.tracker_url).href,
     {
@@ -93,28 +61,32 @@ export async function scrapeC411(
     );
   }
 
-  // Step 3: GET the homepage to get server-rendered stats in the topbar.
-  const homeUrl = new URL("/", config.tracker_url).href;
-  const { html } = await httpFetch(homeUrl, {
-    jar,
-    userAgent: solution.userAgent,
+  // Step 3: Fetch user stats from the API directly.
+  const userUrl = new URL(
+    `/api/users/${encodeURIComponent(config.username)}`,
+    config.tracker_url,
+  ).href;
+  const userRes = await fetch(userUrl, {
+    headers: {
+      "User-Agent": solution.userAgent,
+      Cookie: jar.serialize(),
+      Accept: "application/json",
+    },
   });
-  const root = parse(html);
 
-  const uploadedEl = root.querySelector('span[title="Uploaded"]');
-  const downloadedEl = root.querySelector('span[title="Downloaded"]');
-  const ratioEl = root.querySelector('span[title="Ratio (Upload ÷ Download)"]');
-
-  if (!uploadedEl && !downloadedEl && !ratioEl) {
-    const title = root.querySelector("title")?.textContent ?? "(no title)";
+  if (!userRes.ok) {
+    const body = await userRes.text().catch(() => "");
     throw new Error(
-      `C411 HTTP scrape failed: no stats elements found (page title: ${title})`,
+      `C411 user API failed: ${userRes.status} ${body.slice(0, 200)}`,
     );
   }
 
+  const user = (await userRes.json()) as C411UserResponse;
+
+  // API returns bytes — convert to Go (1 Go = 1,000,000,000 bytes, C411 uses decimal).
   return {
-    uploadedGo: uploadedEl ? parseSizeToGo(uploadedEl.textContent) : null,
-    downloadedGo: downloadedEl ? parseSizeToGo(downloadedEl.textContent) : null,
-    ratio: ratioEl ? parseNumber(ratioEl.textContent) : null,
+    uploadedGo: user.uploaded / 1_000_000_000,
+    downloadedGo: user.downloaded / 1_000_000_000,
+    ratio: user.ratio,
   };
 }
