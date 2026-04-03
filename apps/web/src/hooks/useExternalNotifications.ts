@@ -7,7 +7,6 @@ import type {
   ServiceResponse,
   ServicesResponse,
   TemplateResponse,
-  TemplatesResponse,
 } from "@hously/shared";
 
 export function useExternalNotificationServices() {
@@ -141,15 +140,6 @@ export function useToggleExternalNotificationTemplate() {
         ] as const,
       });
     },
-  });
-}
-
-function useExternalNotificationTemplates() {
-  const fetcher = useFetcher();
-  return useQuery({
-    queryKey: [...queryKeys.externalNotifications.all, "templates"] as const,
-    queryFn: () =>
-      fetcher<TemplatesResponse>(EXTERNAL_NOTIFICATION_ENDPOINTS.TEMPLATES),
   });
 }
 

@@ -6,26 +6,20 @@ import type {
   ArrManagementDetailsResponse,
   DiscoverMediasParams,
   DiscoverMediasResponse,
-  ExploreMediasResponse,
   MediaAutoSearchResponse,
   MediaDeleteResponse,
   MediaRefreshResponse,
   MediaInteractiveDownloadResponse,
   MediaInteractiveSearchResponse,
   MediaModalDataResponse,
-  MediaRatingsResponse,
   MediasResponse,
   MissingCollectionsResponse,
   SimilarMediasResponse,
-  TmdbCreditsResponse,
   TmdbGenresResponse,
-  TmdbMediaDetailsResponse,
   TmdbMediaSearchResponse,
   AiMediaSuggestionsResponse,
   AiMediaSuggestionsConfigResponse,
   TmdbStreamingProvidersResponse,
-  TmdbTrailerResponse,
-  TmdbWatchProvidersResponse,
   WatchlistResponse,
 } from "@hously/shared";
 
@@ -35,35 +29,6 @@ export function useMedias() {
   return useQuery({
     queryKey: queryKeys.medias.list(),
     queryFn: () => fetcher<MediasResponse>(MEDIAS_ENDPOINTS.LIST),
-  });
-}
-
-function useExploreMedias(language?: string) {
-  const fetcher = useFetcher();
-  const lang = language || "en-US";
-
-  return useQuery({
-    queryKey: [...queryKeys.medias.explore(), lang],
-    queryFn: () =>
-      fetcher<ExploreMediasResponse>(
-        `${MEDIAS_ENDPOINTS.EXPLORE}?language=${encodeURIComponent(lang)}`,
-      ),
-  });
-}
-
-function useRefreshRecommendations(language?: string) {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-  const lang = language || "en-US";
-
-  return useMutation({
-    mutationFn: () =>
-      fetcher<ExploreMediasResponse>(
-        `${MEDIAS_ENDPOINTS.EXPLORE}?language=${encodeURIComponent(lang)}&skipCache=true`,
-      ),
-    onSuccess: (data) => {
-      queryClient.setQueryData([...queryKeys.medias.explore(), lang], data);
-    },
   });
 }
 
@@ -193,34 +158,6 @@ export function useProwlarrInteractiveSearch(
   });
 }
 
-function useTmdbWatchProviders(
-  mediaType: "movie" | "tv" | null,
-  tmdbId: number | null,
-  region?: string,
-  options?: { enabled?: boolean },
-) {
-  const fetcher = useFetcher();
-  const isEnabled =
-    (options?.enabled ?? true) &&
-    mediaType !== null &&
-    tmdbId !== null &&
-    tmdbId > 0;
-
-  return useQuery({
-    queryKey: queryKeys.medias.providers(
-      mediaType ?? "movie",
-      tmdbId ?? 0,
-      region,
-    ),
-    queryFn: () =>
-      fetcher<TmdbWatchProvidersResponse>(
-        MEDIAS_ENDPOINTS.PROVIDERS(mediaType!, tmdbId!, region),
-      ),
-    enabled: isEnabled,
-    staleTime: 6 * 60 * 60 * 1000,
-  });
-}
-
 export function useMediaInteractiveDownload() {
   const fetcher = useFetcher();
 
@@ -276,29 +213,6 @@ export function useStreamingProviders(region?: string, type?: "movie" | "tv") {
   });
 }
 
-function useTmdbTrailer(
-  mediaType: "movie" | "tv" | null,
-  tmdbId: number | null,
-  options?: { enabled?: boolean },
-) {
-  const fetcher = useFetcher();
-  const isEnabled =
-    (options?.enabled ?? true) &&
-    mediaType !== null &&
-    tmdbId !== null &&
-    tmdbId > 0;
-
-  return useQuery({
-    queryKey: queryKeys.medias.trailer(mediaType ?? "movie", tmdbId ?? 0),
-    queryFn: () =>
-      fetcher<TmdbTrailerResponse>(
-        MEDIAS_ENDPOINTS.TRAILER(mediaType!, tmdbId!),
-      ),
-    enabled: isEnabled,
-    staleTime: 24 * 60 * 60 * 1000,
-  });
-}
-
 export function useMediaGenres(type: "movie" | "tv") {
   const fetcher = useFetcher();
 
@@ -316,73 +230,6 @@ export function useDiscoverMedias(params: DiscoverMediasParams) {
     queryKey: queryKeys.medias.discover(params),
     queryFn: () =>
       fetcher<DiscoverMediasResponse>(MEDIAS_ENDPOINTS.DISCOVER(params)),
-  });
-}
-
-function useMediaRatings(
-  mediaType: "movie" | "tv" | null,
-  tmdbId: number | null,
-  options?: { enabled?: boolean },
-) {
-  const fetcher = useFetcher();
-  const isEnabled =
-    (options?.enabled ?? true) &&
-    mediaType !== null &&
-    tmdbId !== null &&
-    tmdbId > 0;
-
-  return useQuery({
-    queryKey: queryKeys.medias.ratings(mediaType ?? "movie", tmdbId ?? 0),
-    queryFn: () =>
-      fetcher<MediaRatingsResponse>(
-        MEDIAS_ENDPOINTS.RATINGS(mediaType!, tmdbId!),
-      ),
-    enabled: isEnabled,
-    staleTime: 24 * 60 * 60 * 1000,
-  });
-}
-
-function useTmdbCredits(
-  mediaType: "movie" | "tv" | null,
-  tmdbId: number | null,
-  options?: { enabled?: boolean },
-) {
-  const fetcher = useFetcher();
-  const isEnabled =
-    (options?.enabled ?? true) &&
-    mediaType !== null &&
-    tmdbId !== null &&
-    tmdbId > 0;
-  return useQuery({
-    queryKey: queryKeys.medias.credits(mediaType ?? "movie", tmdbId ?? 0),
-    queryFn: () =>
-      fetcher<TmdbCreditsResponse>(
-        MEDIAS_ENDPOINTS.CREDITS(mediaType!, tmdbId!),
-      ),
-    enabled: isEnabled,
-    staleTime: 24 * 60 * 60 * 1000,
-  });
-}
-
-function useTmdbMediaDetails(
-  mediaType: "movie" | "tv" | null,
-  tmdbId: number | null,
-  options?: { enabled?: boolean },
-) {
-  const fetcher = useFetcher();
-  const isEnabled =
-    (options?.enabled ?? true) &&
-    mediaType !== null &&
-    tmdbId !== null &&
-    tmdbId > 0;
-  return useQuery({
-    queryKey: queryKeys.medias.tmdbDetails(mediaType ?? "movie", tmdbId ?? 0),
-    queryFn: () =>
-      fetcher<TmdbMediaDetailsResponse>(
-        MEDIAS_ENDPOINTS.TMDB_DETAILS(mediaType!, tmdbId!),
-      ),
-    enabled: isEnabled,
-    staleTime: 24 * 60 * 60 * 1000,
   });
 }
 

@@ -4,7 +4,6 @@ import { queryKeys } from "@/lib/queryKeys";
 import { CALENDAR_ENDPOINTS } from "@hously/shared";
 import type {
   CalendarEventsResponse,
-  CustomEventsResponse,
   CustomEvent,
   CreateCustomEventRequest,
   UpdateCustomEventRequest,
@@ -25,25 +24,6 @@ export function useCalendarEvents(year?: number, month?: number) {
     queryFn: async () => {
       const response = await fetcher<CalendarEventsResponse>(
         `${CALENDAR_ENDPOINTS.EVENTS}${queryString ? `?${queryString}` : ""}`,
-      );
-      return response.events;
-    },
-  });
-}
-
-function useCustomEvents(year?: number, month?: number) {
-  const fetcher = useFetcher();
-
-  const params = new URLSearchParams();
-  if (year) params.append("year", year.toString());
-  if (month) params.append("month", month.toString());
-  const queryString = params.toString();
-
-  return useQuery({
-    queryKey: queryKeys.customEvents.list(year, month),
-    queryFn: async () => {
-      const response = await fetcher<CustomEventsResponse>(
-        `${CALENDAR_ENDPOINTS.CUSTOM_EVENTS.LIST}${queryString ? `?${queryString}` : ""}`,
       );
       return response.events;
     },

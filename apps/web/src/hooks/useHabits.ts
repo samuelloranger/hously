@@ -4,11 +4,9 @@ import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import type {
   CreateHabitRequest,
-  HabitHistoryResponse,
   HabitsResponse,
   HabitStatusResponse,
   UpdateHabitRequest,
-  WeeklyHabitsResponse,
 } from "@hously/shared";
 
 const updateHabitStatus = (
@@ -48,35 +46,6 @@ export const useHabits = (date?: string) => {
       let url = HABIT_ENDPOINTS.LIST;
       if (date) url += `?date=${date}`;
       return fetcher<HabitsResponse>(url);
-    },
-  });
-};
-
-const useHabitHistory = (id: number, days?: number) => {
-  const fetcher = useFetcher();
-  return useQuery({
-    queryKey: queryKeys.habits.history(id),
-    queryFn: () => {
-      let url = HABIT_ENDPOINTS.HISTORY(id);
-      if (days) {
-        url += `?days=${days}`;
-      }
-      return fetcher<HabitHistoryResponse>(url);
-    },
-    enabled: !!id,
-  });
-};
-
-const useWeeklyHabits = (weekStart?: string) => {
-  const fetcher = useFetcher();
-  return useQuery({
-    queryKey: [...queryKeys.habits.all, "weekly", weekStart] as const,
-    queryFn: () => {
-      let url = HABIT_ENDPOINTS.WEEKLY;
-      if (weekStart) {
-        url += `?start=${weekStart}`;
-      }
-      return fetcher<WeeklyHabitsResponse>(url);
     },
   });
 };

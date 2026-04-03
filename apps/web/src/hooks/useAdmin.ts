@@ -19,8 +19,6 @@ import type {
   ListUsersResponse,
   RevokeSessionResponse,
   ScheduledJobsResponse,
-  TestEmailResponse,
-  TestEmailTemplatesResponse,
   TriggerActionResponse,
 } from "@hously/shared";
 
@@ -165,18 +163,6 @@ export function useDeleteUser() {
   });
 }
 
-function useTestEmail() {
-  const fetcher = useFetcher();
-
-  return useMutation({
-    mutationFn: (templateId?: string) =>
-      fetcher<TestEmailResponse>(ADMIN_ENDPOINTS.TEST_EMAIL, {
-        method: "POST",
-        body: { template_id: templateId || "test" },
-      }),
-  });
-}
-
 export function useAdminSessions() {
   const fetcher = useFetcher();
 
@@ -266,13 +252,3 @@ export function useDeleteWebPush() {
   });
 }
 
-function useTestEmailTemplates() {
-  const fetcher = useFetcher();
-
-  return useQuery({
-    queryKey: queryKeys.admin.testEmailTemplates(),
-    queryFn: () =>
-      fetcher<TestEmailTemplatesResponse>(ADMIN_ENDPOINTS.TEST_EMAIL_TEMPLATES),
-    staleTime: 5 * 60 * 1000,
-  });
-}

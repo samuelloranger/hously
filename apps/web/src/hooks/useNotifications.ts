@@ -82,24 +82,6 @@ export function useUnreadCount() {
   });
 }
 
-function useMarkAsRead() {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (notificationId: number) =>
-      fetcher<ApiResult<{ message: string }>>(
-        NOTIFICATION_ENDPOINTS.MARK_READ(notificationId),
-        {
-          method: "PUT",
-        },
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
-    },
-  });
-}
-
 export function useMarkAsReadOptimistic() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
@@ -175,24 +157,6 @@ export function useMarkAsReadOptimistic() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
-    },
-  });
-}
-
-function useMarkAllAsRead() {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () =>
-      fetcher<ApiResult<{ message: string }>>(
-        NOTIFICATION_ENDPOINTS.MARK_ALL_READ,
-        {
-          method: "PUT",
-        },
-      ),
-    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
     },
   });
@@ -326,36 +290,6 @@ export function useDeleteNotificationDevice() {
         queryKey: queryKeys.notifications.devices(),
       });
     },
-  });
-}
-
-function useRegisterDevice() {
-  const fetcher = useFetcher();
-
-  return useMutation({
-    mutationFn: ({ token, platform }: { token: string; platform: string }) =>
-      fetcher<{ success: boolean; message: string }>(
-        NOTIFICATION_ENDPOINTS.REGISTER_DEVICE,
-        {
-          method: "POST",
-          body: { token, platform },
-        },
-      ),
-  });
-}
-
-function useSendTestNotification() {
-  const fetcher = useFetcher();
-
-  return useMutation({
-    mutationFn: () =>
-      fetcher<{ success: boolean; message: string }>(
-        NOTIFICATION_ENDPOINTS.TEST,
-        {
-          method: "POST",
-          body: {},
-        },
-      ),
   });
 }
 

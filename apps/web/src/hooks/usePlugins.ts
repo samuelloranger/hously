@@ -95,13 +95,6 @@ function useUpdateTrackerPlugin(type: TrackerType) {
   });
 }
 
-function useDashboardTrackersStats(options?: { enabled?: boolean }) {
-  const fetcher = useFetcher();
-  return useQuery(
-    getDashboardTrackersStatsQuery(fetcher, options?.enabled ?? true),
-  );
-}
-
 function useDashboardTrackerStats(
   type: TrackerType,
   options?: { enabled?: boolean },

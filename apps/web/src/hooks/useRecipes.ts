@@ -11,7 +11,6 @@ import type {
   UpdateRecipeRequest,
   MealPlansResponse,
   CreateMealPlanRequest,
-  UpdateMealPlanRequest,
   ApiResult,
 } from "@hously/shared";
 
@@ -185,31 +184,6 @@ export function useCreateMealPlan() {
         method: "POST",
         body: data,
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.mealPlans.lists() });
-    },
-  });
-}
-
-function useUpdateMealPlan() {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      mealPlanId,
-      data,
-    }: {
-      mealPlanId: number;
-      data: UpdateMealPlanRequest;
-    }) =>
-      fetcher<ApiResult<{ message: string }>>(
-        MEAL_PLAN_ENDPOINTS.UPDATE(mealPlanId),
-        {
-          method: "PUT",
-          body: data,
-        },
-      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.mealPlans.lists() });
     },

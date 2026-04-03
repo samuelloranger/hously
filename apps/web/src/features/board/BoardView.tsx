@@ -739,6 +739,7 @@ export function BoardView() {
 
       {/* Task drawer */}
       <TaskDrawer
+        key={selectedTask?.id ?? "none"}
         task={selectedTask}
         onClose={() => setSelectedTask(null)}
         onUpdate={handleDrawerUpdate}

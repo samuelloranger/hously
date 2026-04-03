@@ -43,26 +43,6 @@ function showUpdateAvailableNotification(): void {
 }
 
 /**
- * Check for service worker updates
- */
-function checkForUpdates(): void {
-  if (!("serviceWorker" in navigator)) {
-    return;
-  }
-
-  navigator.serviceWorker.ready.then((registration) => {
-    registration.update();
-  });
-}
-
-/**
- * Reload the app to apply service worker update
- */
-function reloadApp(): void {
-  window.location.reload();
-}
-
-/**
  * Register the service worker and set up badge clearing, syncing, and update notifications
  */
 export function registerServiceWorker(): void {

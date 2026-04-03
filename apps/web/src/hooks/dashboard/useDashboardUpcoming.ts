@@ -36,17 +36,3 @@ export function useAddUpcomingToArr() {
   });
 }
 
-function useUpcomingStatus() {
-  const fetcher = useFetcher();
-
-  return useMutation({
-    mutationFn: (data: { media_type: "movie" | "tv"; tmdb_id: number }) =>
-      fetcher<{ exists: boolean; service: "radarr" | "sonarr" }>(
-        DASHBOARD_ENDPOINTS.UPCOMING.STATUS,
-        {
-          method: "POST",
-          body: data,
-        },
-      ),
-  });
-}

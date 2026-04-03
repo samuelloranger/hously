@@ -1,20 +1,8 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { DASHBOARD_ENDPOINTS } from "@hously/shared";
 import type { DashboardJellyfinLatestResponse } from "@hously/shared";
-
-function useDashboardJellyfinLatest(limit: number = 10, page: number = 1) {
-  const fetcher = useFetcher();
-
-  return useQuery({
-    queryKey: queryKeys.dashboard.jellyfinLatest(limit, page),
-    queryFn: () =>
-      fetcher<DashboardJellyfinLatestResponse>(
-        `${DASHBOARD_ENDPOINTS.JELLYFIN.LATEST}?limit=${limit}&page=${page}`,
-      ),
-  });
-}
 
 export function useDashboardJellyfinLatestInfinite(limit: number = 10) {
   const fetcher = useFetcher();

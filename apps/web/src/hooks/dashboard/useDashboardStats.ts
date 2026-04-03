@@ -16,20 +16,6 @@ export function useDashboardStats() {
   });
 }
 
-function useDashboardActivities(limit?: number) {
-  const fetcher = useFetcher();
-
-  const params = limit ? `?limit=${limit}` : "";
-
-  return useQuery({
-    queryKey: queryKeys.dashboard.activities(limit),
-    queryFn: () =>
-      fetcher<{ activities: DashboardStatsResponse["activities"] }>(
-        `${DASHBOARD_ENDPOINTS.ACTIVITIES}${params}`,
-      ),
-  });
-}
-
 export function useDashboardActivityFeed(
   params: { limit?: number; service?: string; type?: string } = {},
 ) {

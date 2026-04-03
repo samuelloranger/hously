@@ -15,7 +15,6 @@ import type {
   DashboardQbittorrentTorrentTrackersResponse,
   DashboardQbittorrentAddTorrentResponse,
   DashboardQbittorrentTorrentFilesResponse,
-  DashboardQbittorrentTorrentPeersResponse,
   DashboardQbittorrentMutationResponse,
 } from "@hously/shared";
 
@@ -133,25 +132,6 @@ export function useQbittorrentTorrentFiles(
       ),
     enabled: Boolean(safeHash),
     refetchInterval,
-  });
-}
-
-function useQbittorrentTorrentPeers(hash: string | null, rid?: number) {
-  const fetcher = useFetcher();
-  const safeHash = hash?.trim() ?? "";
-
-  const suffix =
-    typeof rid === "number" && Number.isFinite(rid)
-      ? `?rid=${Math.max(0, Math.trunc(rid))}`
-      : "";
-
-  return useQuery({
-    queryKey: queryKeys.dashboard.qbittorrentTorrentPeers(safeHash),
-    queryFn: () =>
-      fetcher<DashboardQbittorrentTorrentPeersResponse>(
-        `${DASHBOARD_ENDPOINTS.QBITTORRENT.PEERS(safeHash)}${suffix}`,
-      ),
-    enabled: Boolean(safeHash),
   });
 }
 

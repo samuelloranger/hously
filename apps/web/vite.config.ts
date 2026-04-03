@@ -96,7 +96,6 @@ export default defineConfig(({ mode }) => {
   };
 
   const plugins = [
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tanstackRouter({
       target: "react",
       autoCodeSplitting: true,

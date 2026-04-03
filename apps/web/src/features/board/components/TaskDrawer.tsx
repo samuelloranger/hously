@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   X,
@@ -81,17 +81,11 @@ export function TaskDrawer({
   const { data: usersData } = useUsers();
   const users = usersData?.users ?? [];
 
-  const [titleDraft, setTitleDraft] = useState("");
+  const [titleDraft, setTitleDraft] = useState(task?.title ?? "");
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const { data: tagsData } = useBoardTags();
   const availableTags = tagsData?.tags ?? [];
   const titleRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (task) {
-      setTitleDraft(task.title);
-    }
-  }, [task?.id]);
 
   const commitTitle = useCallback(() => {
     if (!task) return;
