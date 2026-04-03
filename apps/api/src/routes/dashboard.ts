@@ -6,9 +6,9 @@ import { getJsonCache, setJsonCache } from "../services/cache";
 import {
   buildQbittorrentDisabledSnapshot,
   fetchQbittorrentSnapshot,
-  normalizeQbittorrentConfig,
-  type QbittorrentDashboardSnapshot,
-} from "../services/qbittorrentService";
+} from "../services/qbittorrent/torrents";
+import type { QbittorrentDashboardSnapshot } from "../services/qbittorrent/client";
+import { normalizeQbittorrentConfig } from "../services/qbittorrent/config";
 
 export interface JellyfinLatestItem {
   id: string;
@@ -92,7 +92,7 @@ interface DashboardScrutinySummary {
   hottest_temp_c: number | null;
 }
 
-interface DashboardScrutinySummaryResponse {
+export interface DashboardScrutinySummaryResponse {
   enabled: boolean;
   connected: boolean;
   updated_at: string;
@@ -121,7 +121,7 @@ interface DashboardNetdataSummary {
   network_out_kbps: number | null;
 }
 
-interface DashboardNetdataSummaryResponse {
+export interface DashboardNetdataSummaryResponse {
   enabled: boolean;
   connected: boolean;
   updated_at: string;
@@ -300,7 +300,7 @@ interface OpenMeteoForecastResponse {
   };
 }
 
-interface DashboardWeatherResponse {
+export interface DashboardWeatherResponse {
   address: string;
   locationName: string;
   latitude: number;
@@ -902,8 +902,8 @@ const fetchNetdataSummary =
         (acc, values) => {
           const rates = resolveNetworkRates(values);
           return {
-            inKbps: acc.inKbps + (rates.inKbps ?? 0),
-            outKbps: acc.outKbps + (rates.outKbps ?? 0),
+            inKbps: acc!.inKbps + (rates.inKbps ?? 0),
+            outKbps: acc!.outKbps + (rates.outKbps ?? 0),
           };
         },
         { inKbps: 0, outKbps: 0 },
@@ -972,10 +972,10 @@ const fetchNetdataSummary =
             load?.load15 != null ? Math.round(load.load15 * 100) / 100 : null,
           network_in_kbps:
             systemNetRates.inKbps ??
-            (hasInterfaceNetData ? interfaceNetTotals.inKbps : null),
+            (hasInterfaceNetData ? interfaceNetTotals!.inKbps : null),
           network_out_kbps:
             systemNetRates.outKbps ??
-            (hasInterfaceNetData ? interfaceNetTotals.outKbps : null),
+            (hasInterfaceNetData ? interfaceNetTotals!.outKbps : null),
         },
         disks,
       };

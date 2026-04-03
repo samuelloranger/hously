@@ -1,7 +1,6 @@
 import type {
   DashboardQbittorrentTorrentsResponse,
   QbittorrentTorrentListItem,
-  QbittorrentTorrentTracker,
 } from '../types';
 
 export type QbittorrentStateFilter =
@@ -481,23 +480,6 @@ export function parseQbittorrentRid(value: string | undefined): number | undefin
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed)) return undefined;
   return Math.max(0, Math.trunc(parsed));
-}
-
-function getQbittorrentTrackerStats(trackers: QbittorrentTorrentTracker[]) {
-  return trackers.map(tracker => [
-    { labelKey: 'torrents.trackerSeeds', fallback: 'Seeds', value: formatQbittorrentTrackerNumber(tracker.seeds) },
-    { labelKey: 'torrents.trackerPeers', fallback: 'Peers', value: formatQbittorrentTrackerNumber(tracker.peers) },
-    {
-      labelKey: 'torrents.trackerLeeches',
-      fallback: 'Leeches',
-      value: formatQbittorrentTrackerNumber(tracker.leeches),
-    },
-    {
-      labelKey: 'torrents.trackerDownloaded',
-      fallback: 'Downloaded',
-      value: formatQbittorrentTrackerNumber(tracker.downloaded),
-    },
-  ]);
 }
 
 function normalizeQbittorrentState(state: string): string {

@@ -23,6 +23,18 @@ vi.mock("@hously/shared", async (importOriginal) => {
   };
 });
 
+vi.mock("@/hooks/useChores", () => ({
+  useChores: vi.fn(),
+  useCreateChore: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useToggleChore: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useUpdateChore: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useDeleteChore: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useClearAllCompletedChores: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useRemoveRecurrence: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useReorderChores: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useUploadChoreImage: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+}));
+
 import { useChores } from "@/hooks/useChores";
 
 describe("ChoresList", () => {

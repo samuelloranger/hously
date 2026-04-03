@@ -62,3 +62,14 @@ export const setJsonCache = async <T>(
     console.warn(`Redis set failed for key ${key}:`, error);
   }
 };
+
+export const deleteCache = async (key: string): Promise<void> => {
+  const client = getRedisClient();
+  if (!client) return;
+
+  try {
+    await client.send('DEL', [key]);
+  } catch (error) {
+    console.warn(`Redis delete failed for key ${key}:`, error);
+  }
+};

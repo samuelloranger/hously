@@ -33,15 +33,6 @@ export const toNumberOrNull = (value: unknown): number | null => {
   return null;
 };
 
-const toPositiveIntOrNull = (value: unknown): number | null => {
-  if (typeof value === 'number' && Number.isFinite(value) && value > 0) return Math.trunc(value);
-  if (typeof value === 'string') {
-    const parsed = parseInt(value, 10);
-    if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  }
-  return null;
-};
-
 export const toPositiveInt = (value: string | undefined, fallback: number): number => {
   if (!value) return fallback;
   const parsed = parseInt(value, 10);

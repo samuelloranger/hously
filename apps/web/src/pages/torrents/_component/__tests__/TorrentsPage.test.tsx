@@ -91,6 +91,12 @@ vi.mock("@/hooks/useEventSourceState", () => ({
   }),
 }));
 
+vi.mock("@/hooks/useDashboard", () => ({
+  useDashboardQbittorrentTorrents: vi.fn(),
+  usePinnedQbittorrentTorrent: vi.fn(() => ({ data: null })),
+  useSetPinnedQbittorrentTorrent: vi.fn(() => ({ mutate: vi.fn() })),
+}));
+
 vi.mock("@hously/shared", async () => {
   return {
     DASHBOARD_ENDPOINTS: {

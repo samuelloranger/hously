@@ -32,6 +32,17 @@ vi.mock("@hously/shared", async (importOriginal) => {
   };
 });
 
+vi.mock("@/hooks/useShopping", () => ({
+  useShoppingItems: vi.fn(),
+  useCreateShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useToggleShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useUpdateShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useDeleteShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useDeleteShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useClearAllCompletedShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useReorderShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+}));
+
 import { useShoppingItems } from "@/hooks/useShopping";
 
 describe("ShoppingList", () => {

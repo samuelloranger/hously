@@ -407,7 +407,7 @@ export const fetchSonarrUpcoming = async (
         poster_url: posterUrl,
         backdrop_url: backdropUrl,
         overview,
-        tmdb_url: tmdbId ? `${TMDB_WEB_BASE_URL}/tv/${tmdbId}` : null,
+        tmdb_url: tmdbId ? `${TMDB_WEB_BASE_URL}/tv/${tmdbId}` : '',
         providers: [],
         vote_average: voteAverage,
       });

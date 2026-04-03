@@ -5,31 +5,11 @@
 
 import {
   addDays,
-  addMonths,
-  addWeeks,
-  addYears,
-  compareAsc,
-  endOfDay,
-  endOfMonth,
   format,
-  formatISO,
-  getDate,
-  getDaysInMonth,
-  getMonth,
-  getYear,
-  isAfter,
   isBefore,
   isSameDay,
   isSameMonth,
-  isSameYear,
   parseISO,
-  startOfDay,
-  startOfMonth,
-  startOfWeek,
-  subDays,
-  subMonths,
-  subWeeks,
-  subYears,
 } from 'date-fns';
 
 export type MaybeDate = Date | string | number | null | undefined;
@@ -51,16 +31,6 @@ export function parseDate(input: MaybeDate): Date | null {
   } catch {
     return null;
   }
-}
-
-function formatISOString(date: MaybeDate): string | null {
-  if (!date) return null;
-  return formatISO(date);
-}
-
-function formatISODate(date: MaybeDate): string | null {
-  if (!date) return null;
-  return format(date, 'yyyy-MM-dd');
 }
 
 export function formatDate(date: MaybeDate, locale: string = 'en'): string {
@@ -90,7 +60,7 @@ export function formatTime(date: MaybeDate, locale: string = 'en'): string {
 
 export function formatDateTime(input: Date | string | null | undefined, language: string = 'en'): string {
   if (!input) return '';
-  const date = input instanceof Date ? input : parseUTCDate(input);
+  const date = input instanceof Date ? input : parseDate(input);
   if (!date) return '';
 
   try {
@@ -132,10 +102,6 @@ export function datetimeLocalToUTC(datetimeLocal: string): string {
   return `${dateTimeStr}${offsetStr}`;
 }
 
-function today(): Date {
-  return startOfDay(new Date());
-}
-
 export function now(): Date {
   return new Date();
 }
@@ -161,174 +127,11 @@ export function sameMonth(date1: MaybeDate, date2: MaybeDate): boolean {
   return isSameMonth(date1Obj, date2Obj);
 }
 
-function sameYear(date1: MaybeDate, date2: MaybeDate): boolean {
-  const date1Obj = parseDate(date1);
-  const date2Obj = parseDate(date2);
-  if (!date1Obj || !date2Obj) return false;
-  return isSameYear(date1Obj, date2Obj);
-}
-
-function compareDates(a: MaybeDate, b: MaybeDate): number {
-  const aObj = parseDate(a);
-  const bObj = parseDate(b);
-  if (!aObj || !bObj) return 0;
-  return compareAsc(aObj, bObj);
-}
-
-function isDateAfter(a: MaybeDate, b: MaybeDate): boolean {
-  if (a instanceof Date && b instanceof Date) {
-    return isAfter(a, b);
-  }
-  const aObj = parseDate(a);
-  const bObj = parseDate(b);
-  if (!aObj || !bObj) return false;
-  return isAfter(aObj, bObj);
-}
-
 export function isDateBefore(a: MaybeDate, b: MaybeDate): boolean {
   const aObj = parseDate(a);
   const bObj = parseDate(b);
   if (!aObj || !bObj) return false;
   return isBefore(aObj, bObj);
-}
-
-function roundTo15Minutes(date: MaybeDate): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  const minute = dateObj.getMinutes();
-  const roundedMinute = Math.floor(minute / 15) * 15;
-  dateObj.setMinutes(roundedMinute, 0, 0);
-  return dateObj;
-}
-
-function startOfDayDate(date: MaybeDate): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return startOfDay(dateObj);
-}
-
-function endOfDayDate(date: MaybeDate): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return endOfDay(dateObj);
-}
-
-function startOfMonthDate(date: MaybeDate): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return startOfMonth(dateObj);
-}
-
-function endOfMonthDate(date: MaybeDate): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return endOfMonth(dateObj);
-}
-
-function startOfWeekDate(date: MaybeDate, weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6 = 0): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return startOfWeek(dateObj, { weekStartsOn });
-}
-
-function addDaysToDate(date: MaybeDate, amount: number): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return addDays(dateObj, amount);
-}
-
-function subtractDays(date: MaybeDate, amount: number): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return subDays(dateObj, amount);
-}
-
-function addWeeksToDate(date: MaybeDate, amount: number): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return addWeeks(dateObj, amount);
-}
-
-function subtractWeeks(date: MaybeDate, amount: number): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return subWeeks(dateObj, amount);
-}
-
-function addMonthsToDate(date: MaybeDate, amount: number): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return addMonths(dateObj, amount);
-}
-
-function subtractMonths(date: MaybeDate, amount: number): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return subMonths(dateObj, amount);
-}
-
-function addYearsToDate(date: MaybeDate, amount: number): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return addYears(dateObj, amount);
-}
-
-function subtractYears(date: Date, amount: number): Date {
-  const dateObj = parseDate(date);
-  if (!dateObj) return new Date();
-  return subYears(dateObj, amount);
-}
-
-function getYearFromDate(date: MaybeDate): number {
-  const dateObj = parseDate(date);
-  if (!dateObj) return 0;
-  return getYear(dateObj);
-}
-
-function getMonthFromDate(date: MaybeDate): number {
-  const dateObj = parseDate(date);
-  if (!dateObj) return 0;
-  return getMonth(dateObj);
-}
-
-function getDayFromDate(date: MaybeDate): number {
-  const dateObj = parseDate(date);
-  if (!dateObj) return 0;
-  return getDate(dateObj);
-}
-
-function getDaysInMonthFromDate(date: MaybeDate): number {
-  const dateObj = parseDate(date);
-  if (!dateObj) return 0;
-  return getDaysInMonth(dateObj);
-}
-
-function formatDateCustom(date: MaybeDate, formatStr: string): string {
-  const dateObj = parseDate(date);
-  if (!dateObj) return '';
-  return format(dateObj, formatStr);
-}
-
-function parseUTCDate(dateString: string | null | undefined): Date | null {
-  if (!dateString) return null;
-
-  if (dateString.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateString)) {
-    return parseISO(dateString);
-  }
-
-  try {
-    return parseISO(dateString + 'Z');
-  } catch {
-    return null;
-  }
-}
-
-function formatTimeUntil(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m\u00A0${seconds % 60}s`;
-  if (seconds < 86400)
-    return `${Math.floor(seconds / 3600)}h\u00A0${Math.floor((seconds % 3600) / 60)}m\u00A0${seconds % 60}s`;
-  return `${Math.floor(seconds / 86400)}d`;
 }
 
 export function tomorrow(): Date {
@@ -351,28 +154,6 @@ export function getWeekDates(weekOffset: number = 0, weekStartsOn: 0 | 1 = 1): D
     dates.push(date);
   }
   return dates;
-}
-
-function formatWeekdayShort(date: MaybeDate, locale: string = 'en'): string {
-  const dateObj = parseDate(date);
-  if (!dateObj) return '';
-  return dateObj.toLocaleDateString(locale, { weekday: 'short' });
-}
-
-function formatMonthYear(date: MaybeDate, locale: string = 'en'): string {
-  const dateObj = parseDate(date);
-  if (!dateObj) return '';
-  return dateObj.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
-}
-
-function formatFullDate(date: MaybeDate, locale: string = 'en'): string {
-  const dateObj = parseDate(date);
-  if (!dateObj) return '';
-  return dateObj.toLocaleDateString(locale, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
 }
 
 export function formatDateOnly(date: MaybeDate): string {

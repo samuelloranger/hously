@@ -5,7 +5,6 @@ export * from './format';
 export * from './media';
 export * from './weather';
 export * from './coerce';
-export * from './bbcode';
 export * from './interactive-search';
 export * from './imageValidation';
 export * from './media-library';

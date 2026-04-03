@@ -23,6 +23,16 @@ vi.mock("@hously/shared", async (importOriginal) => {
   };
 });
 
+vi.mock("@/hooks/useCalendar", () => ({
+  useCalendarEvents: vi.fn(),
+  useCreateCustomEvent: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useUpdateCustomEvent: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useDeleteCustomEvent: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useICalToken: vi.fn().mockReturnValue({ data: null }),
+  useGenerateICalToken: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useRevokeICalToken: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+}));
+
 import { useCalendarEvents } from "@/hooks/useCalendar";
 
 describe("Calendar", () => {

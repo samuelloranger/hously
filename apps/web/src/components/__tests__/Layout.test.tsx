@@ -36,6 +36,16 @@ vi.mock("@hously/shared", async (importOriginal) => {
 });
 
 // Mock hooks
+vi.mock("@/hooks/useAuth", () => ({
+  useCurrentUser: vi.fn(),
+  useLogin: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useValidateInvitation: vi.fn().mockReturnValue({ data: null }),
+  useAcceptInvitation: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useLogout: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useForgotPassword: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useResetPassword: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+}));
+
 vi.mock("@/hooks/useAutoSubscribeNotifications", () => ({
   useAutoSubscribeNotifications: vi.fn().mockReturnValue({
     showModal: false,

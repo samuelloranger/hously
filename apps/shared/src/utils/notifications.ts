@@ -55,18 +55,6 @@ export function buildNotificationUrl(
   return query ? `${normalizedPath}?${query}` : normalizedPath;
 }
 
-function buildCurrentMediaReleaseNotificationUrl(
-  service: string,
-  sourceId: number,
-  releaseId: number
-): string {
-  return buildNotificationUrl('/library', {
-    current_media_id: `${service}:${sourceId}`,
-    current_media_tab: 'releases',
-    current_media_release: releaseId,
-  });
-}
-
 export function getExternalNotificationUrl(serviceName: string): string {
   const normalized = serviceName.trim().toLowerCase();
 
