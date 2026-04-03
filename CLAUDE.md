@@ -2,27 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Task Tracking
-
-Tasks are tracked on the Hously board using the `hously board-tasks` CLI. At the start of a work session, check open tasks:
-
-```bash
-hously board-tasks list --status todo
-hously board-tasks list --status in_progress
-```
-
-When starting a task, move it to in progress:
-
-```bash
-hously board-tasks update <id> --status in_progress
-```
-
-When a task is completed:
-
-```bash
-hously board-tasks update <id> --status done
-```
-
 ## Coding Rules
 
 Detailed coding conventions live in `.claude/rules/` and are loaded automatically based on file globs:

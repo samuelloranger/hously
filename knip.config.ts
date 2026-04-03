@@ -33,9 +33,6 @@ const config: KnipConfig = {
       // shared code is surfaced even though it's an "entry" file.
       includeEntryExports: true,
     },
-    'apps/cli': {
-      project: ['src/**/*.ts'],
-    },
   },
   // elysia at root is a workspace-hoisted dep; the real consumer is apps/api
   ignoreDependencies: ['elysia'],

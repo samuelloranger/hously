@@ -1,4 +1,4 @@
-.PHONY: help install build typecheck dev dev-api dev-services dev-web down rebuild test lint clean migrate-dev migrate-deploy migrate-push migrate-studio db-refresh-collation bump-version cli
+.PHONY: help install build typecheck dev dev-api dev-services dev-web down rebuild test lint clean migrate-dev migrate-deploy migrate-push migrate-studio db-refresh-collation bump-version
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -52,9 +52,6 @@ rebuild: ## Rebuild Docker containers (fixes dependency issues)
 	@echo "Rebuilding Docker containers..."
 	docker compose build --no-cache
 	@echo "✓ Containers rebuilt. Start with: make dev-api"
-
-cli: ## Run the Hously CLI (usage: make cli ARGS="auth login --email ...")
-	bun apps/cli/src/index.ts $(ARGS)
 
 test: ## Run all tests
 	@echo "Running web tests..."
