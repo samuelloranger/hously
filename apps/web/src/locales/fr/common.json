@@ -1270,6 +1270,7 @@
       "trackers": {
         "title": "Trackers",
         "description": "Configurez C411, Torr9 et La Cale au même endroit.",
+        "disclaimer": "Ces intégrations extraient des données de trackers privés et peuvent enfreindre leurs conditions d'utilisation. Utilisation à vos risques.",
         "flaresolverrUrl": "URL FlareSolverr",
         "username": "Nom d'utilisateur",
         "password": "Mot de passe",

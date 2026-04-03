@@ -1271,6 +1271,7 @@
       "trackers": {
         "title": "Trackers",
         "description": "Configure C411, Torr9 and La Cale in one place.",
+        "disclaimer": "These integrations scrape private tracker websites and may violate their Terms of Service. Use at your own risk.",
         "flaresolverrUrl": "FlareSolverr URL",
         "username": "Username",
         "password": "Password",

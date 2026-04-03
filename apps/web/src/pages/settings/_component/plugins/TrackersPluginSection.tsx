@@ -328,6 +328,9 @@ export function TrackersPluginSection() {
         <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
           {t("settings.plugins.trackers.description")}
         </p>
+        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+          {t("settings.plugins.trackers.disclaimer")}
+        </p>
       </div>
 
       {trackers.map((tracker) => (

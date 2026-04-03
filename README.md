@@ -10,7 +10,7 @@ A self-hosted command center for homelab enthusiasts. Monitor your infrastructur
 - **Dashboard** -- Unified overview: server health, disk status, torrent activity, media releases
 - **Torrent Management** -- Full qBittorrent integration with real-time SSE streaming, filtering, and uploads
 - **Media Pipeline** -- Radarr & Sonarr integration with TMDB discovery and interactive release search
-- **Tracker Statistics** -- Ratio, upload stats, and account health across private trackers
+- **Tracker Statistics** -- Ratio, upload stats, and account health across private trackers (see [disclaimer](#private-tracker-integrations))
 - **Server Monitoring** -- Live CPU, RAM, disk, and network stats via Netdata
 - **Disk Health** -- S.M.A.R.T. monitoring via Scrutiny
 - **Jellyfin/Plex** -- Latest media additions on your dashboard
@@ -217,6 +217,19 @@ docker build -t hously:latest .
 ```
 
 The Dockerfile builds the frontend, bundles it into the API's `public/` directory, and produces a single image that serves everything on port 3000.
+
+## Private Tracker Integrations
+
+Hously includes optional integrations with private torrent trackers (C411, Torr9, La Cale). These are **community-contributed, opt-in features** that scrape tracker websites to display your account statistics (ratio, upload/download totals).
+
+**By using these integrations, you acknowledge that:**
+
+- Scraping may violate your tracker's Terms of Service. Use at your own risk.
+- These features are disabled by default and require you to provide your own credentials.
+- The Hously project and its contributors are not responsible for any consequences resulting from their use, including account warnings or bans.
+- These integrations are not affiliated with or endorsed by any tracker.
+
+If you are uncomfortable with this, simply leave the tracker plugins unconfigured.
 
 ## License
 
