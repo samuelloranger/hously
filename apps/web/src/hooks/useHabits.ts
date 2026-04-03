@@ -44,7 +44,7 @@ export const useHabits = (date?: string) => {
   });
 };
 
-export const useHabitHistory = (id: number, days?: number) => {
+const useHabitHistory = (id: number, days?: number) => {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: queryKeys.habits.history(id),
@@ -59,7 +59,7 @@ export const useHabitHistory = (id: number, days?: number) => {
   });
 };
 
-export const useWeeklyHabits = (weekStart?: string) => {
+const useWeeklyHabits = (weekStart?: string) => {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: [...queryKeys.habits.all, 'weekly', weekStart] as const,

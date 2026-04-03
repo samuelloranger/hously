@@ -8,7 +8,7 @@ interface SkeletonProps {
  * Basic skeleton loader component for loading states
  * Shows an animated shimmer effect
  */
-export function Skeleton({ className }: SkeletonProps) {
+function Skeleton({ className }: SkeletonProps) {
   return <div className={cn('animate-pulse rounded-md bg-neutral-200 dark:bg-neutral-700', className)} />;
 }
 

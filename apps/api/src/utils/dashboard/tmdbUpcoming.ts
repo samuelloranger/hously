@@ -151,7 +151,7 @@ export const collectTmdbUpcoming = async (
   return { items, hasMore: page <= totalPages };
 };
 
-export const fetchJellyfinTmdbIds = async (): Promise<Set<number>> => {
+const fetchJellyfinTmdbIds = async (): Promise<Set<number>> => {
   const jellyfinPlugin = await prisma.plugin.findFirst({
     where: { type: 'jellyfin' },
     select: { enabled: true, config: true },

@@ -10,7 +10,7 @@
  *     notes: body.notes,
  *   });
  */
-export const buildUpdateData = (
+const buildUpdateData = (
   fields: Record<string, unknown>,
 ): Record<string, any> => {
   const data: Record<string, any> = {};

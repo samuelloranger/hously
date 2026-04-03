@@ -28,4 +28,4 @@ i18n
     },
   });
 
-export default i18n;
+// i18n instance is initialized as a side-effect; no need to export.

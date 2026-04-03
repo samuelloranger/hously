@@ -220,7 +220,7 @@ export function formatQbittorrentEta(seconds: number | null): string {
   return `${minutes}m`;
 }
 
-export function getQbittorrentStateFilter(state: string): QbittorrentStateFilter {
+function getQbittorrentStateFilter(state: string): QbittorrentStateFilter {
   const normalizedState = normalizeQbittorrentState(state);
   if (normalizedState === 'metadl' || normalizedState === 'downloading') return 'downloading';
   if (QBITTORRENT_SEEDING_STATES.has(normalizedState)) return 'seeding';
@@ -235,13 +235,13 @@ export function isQbittorrentPausedState(state: string): boolean {
   return QBITTORRENT_PAUSED_STATES.has(normalizeQbittorrentState(state));
 }
 
-export function isQbittorrentActivelyUploading(
+function isQbittorrentActivelyUploading(
   torrent: Pick<QbittorrentTorrentListItem, 'state' | 'upload_speed'>
 ): boolean {
   return getQbittorrentStateFilter(torrent.state) === 'seeding' && torrent.upload_speed > 0;
 }
 
-export function matchesQbittorrentStateFilter(
+function matchesQbittorrentStateFilter(
   torrent: Pick<QbittorrentTorrentListItem, 'state' | 'upload_speed'>,
   filter: QbittorrentStateFilter
 ): boolean {
@@ -483,7 +483,7 @@ export function parseQbittorrentRid(value: string | undefined): number | undefin
   return Math.max(0, Math.trunc(parsed));
 }
 
-export function getQbittorrentTrackerStats(trackers: QbittorrentTorrentTracker[]) {
+function getQbittorrentTrackerStats(trackers: QbittorrentTorrentTracker[]) {
   return trackers.map(tracker => [
     { labelKey: 'torrents.trackerSeeds', fallback: 'Seeds', value: formatQbittorrentTrackerNumber(tracker.seeds) },
     { labelKey: 'torrents.trackerPeers', fallback: 'Peers', value: formatQbittorrentTrackerNumber(tracker.peers) },

@@ -99,7 +99,7 @@ export function useToggleExternalNotificationTemplate() {
   });
 }
 
-export function useExternalNotificationTemplates() {
+function useExternalNotificationTemplates() {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: [...queryKeys.externalNotifications.all, 'templates'] as const,

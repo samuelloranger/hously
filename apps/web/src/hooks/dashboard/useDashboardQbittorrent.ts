@@ -111,7 +111,7 @@ export function useQbittorrentTorrentFiles(hash: string | null, refetchInterval?
   });
 }
 
-export function useQbittorrentTorrentPeers(hash: string | null, rid?: number) {
+function useQbittorrentTorrentPeers(hash: string | null, rid?: number) {
   const fetcher = useFetcher();
   const safeHash = hash?.trim() ?? '';
 

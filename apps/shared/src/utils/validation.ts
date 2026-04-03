@@ -1,11 +1,11 @@
-export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export function validateEmail(email: string): boolean {
   if (!email) return false;
   return EMAIL_REGEX.test(email);
 }
 
-export const PASSWORD_RULES = {
+const PASSWORD_RULES = {
   minLength: 8,
   requireUppercase: true,
   requireLowercase: true,

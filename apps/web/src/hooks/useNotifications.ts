@@ -61,7 +61,7 @@ export function useUnreadCount() {
   });
 }
 
-export function useMarkAsRead() {
+function useMarkAsRead() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
 
@@ -137,7 +137,7 @@ export function useMarkAsReadOptimistic() {
   });
 }
 
-export function useMarkAllAsRead() {
+function useMarkAllAsRead() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
 
@@ -255,7 +255,7 @@ export function useDeleteNotificationDevice() {
   });
 }
 
-export function useRegisterDevice() {
+function useRegisterDevice() {
   const fetcher = useFetcher();
 
   return useMutation({
@@ -267,7 +267,7 @@ export function useRegisterDevice() {
   });
 }
 
-export function useSendTestNotification() {
+function useSendTestNotification() {
   const fetcher = useFetcher();
 
   return useMutation({

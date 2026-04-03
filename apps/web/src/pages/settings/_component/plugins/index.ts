@@ -1,8 +1,6 @@
 export { AdguardPluginSection } from '@/pages/settings/_component/plugins/AdguardPluginSection';
 export { JellyfinPluginSection } from '@/pages/settings/_component/plugins/JellyfinPluginSection';
-export { PluginUrlInput } from '@/pages/settings/_component/plugins/PluginUrlInput';
 export { BeszelPluginSection } from '@/pages/settings/_component/plugins/NetdataPluginSection';
-export { PluginSectionCard } from '@/pages/settings/_component/plugins/PluginSectionCard';
 export { ProwlarrPluginSection } from '@/pages/settings/_component/plugins/ProwlarrPluginSection';
 export { QbittorrentPluginSection } from '@/pages/settings/_component/plugins/QbittorrentPluginSection';
 export { RadarrPluginSection } from '@/pages/settings/_component/plugins/RadarrPluginSection';

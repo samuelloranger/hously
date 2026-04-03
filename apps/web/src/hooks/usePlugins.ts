@@ -52,7 +52,7 @@ const getDashboardTrackersStatsQuery = (fetcher: ReturnType<typeof useFetcher>, 
   staleTime: 60 * 60 * 1000,
 });
 
-export function useTrackerPlugin<T extends TrackerType>(type: T) {
+function useTrackerPlugin<T extends TrackerType>(type: T) {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: queryKeys.plugins.tracker(type),
@@ -62,7 +62,7 @@ export function useTrackerPlugin<T extends TrackerType>(type: T) {
   });
 }
 
-export function useUpdateTrackerPlugin(type: TrackerType) {
+function useUpdateTrackerPlugin(type: TrackerType) {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
   return useMutation({
@@ -84,12 +84,12 @@ export function useUpdateTrackerPlugin(type: TrackerType) {
   });
 }
 
-export function useDashboardTrackersStats(options?: { enabled?: boolean }) {
+function useDashboardTrackersStats(options?: { enabled?: boolean }) {
   const fetcher = useFetcher();
   return useQuery(getDashboardTrackersStatsQuery(fetcher, options?.enabled ?? true));
 }
 
-export function useDashboardTrackerStats(type: TrackerType, options?: { enabled?: boolean }) {
+function useDashboardTrackerStats(type: TrackerType, options?: { enabled?: boolean }) {
   const fetcher = useFetcher();
   return useQuery({
     ...getDashboardTrackersStatsQuery(fetcher, options?.enabled ?? true),

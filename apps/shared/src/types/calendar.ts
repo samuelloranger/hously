@@ -59,15 +59,15 @@ export interface CalendarEventMealPlanMetadata {
 export type CalendarEvent = CalendarEventBase &
   (CalendarEventChoreMetadata | CalendarEventCustomEventMetadata | CalendarEventMealPlanMetadata);
 
-export function isCustomEvent(event: CalendarEvent): event is CalendarEventBase & CalendarEventCustomEventMetadata {
+function isCustomEvent(event: CalendarEvent): event is CalendarEventBase & CalendarEventCustomEventMetadata {
   return event.type === 'custom_event';
 }
 
-export function isChoreEvent(event: CalendarEvent): event is CalendarEventBase & CalendarEventChoreMetadata {
+function isChoreEvent(event: CalendarEvent): event is CalendarEventBase & CalendarEventChoreMetadata {
   return event.type === 'chore';
 }
 
-export function isMealPlanEvent(event: CalendarEvent): event is CalendarEventBase & CalendarEventMealPlanMetadata {
+function isMealPlanEvent(event: CalendarEvent): event is CalendarEventBase & CalendarEventMealPlanMetadata {
   return event.type === 'meal_plan';
 }
 

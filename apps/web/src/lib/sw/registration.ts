@@ -45,7 +45,7 @@ function showUpdateAvailableNotification(): void {
 /**
  * Check for service worker updates
  */
-export function checkForUpdates(): void {
+function checkForUpdates(): void {
   if (!('serviceWorker' in navigator)) {
     return;
   }
@@ -58,7 +58,7 @@ export function checkForUpdates(): void {
 /**
  * Reload the app to apply service worker update
  */
-export function reloadApp(): void {
+function reloadApp(): void {
   window.location.reload();
 }
 

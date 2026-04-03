@@ -1,6 +1,6 @@
 import { createHttpClient, HttpError } from '@/lib/api/httpClient';
 
-export const API_BASE = import.meta.env.PROD ? '' : '';
+const API_BASE = import.meta.env.PROD ? '' : '';
 
 const webHttpClient = createHttpClient({
   baseUrl: API_BASE,

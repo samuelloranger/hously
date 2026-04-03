@@ -2,9 +2,9 @@ export type RecurrenceType = 'yearly' | 'monthly' | 'weekly' | 'biweekly' | 'dai
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
-export const MEAL_TYPE_VALUES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+const MEAL_TYPE_VALUES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
-export const RECURRENCE_TYPE_VALUES: Exclude<RecurrenceType, null>[] = [
+const RECURRENCE_TYPE_VALUES: Exclude<RecurrenceType, null>[] = [
   'yearly',
   'monthly',
   'weekly',

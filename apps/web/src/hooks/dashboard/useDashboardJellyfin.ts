@@ -4,7 +4,7 @@ import { queryKeys } from '@/lib/queryKeys';
 import { DASHBOARD_ENDPOINTS } from '@hously/shared';
 import type { DashboardJellyfinLatestResponse } from '@hously/shared';
 
-export function useDashboardJellyfinLatest(limit: number = 10, page: number = 1) {
+function useDashboardJellyfinLatest(limit: number = 10, page: number = 1) {
   const fetcher = useFetcher();
 
   return useQuery({

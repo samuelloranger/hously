@@ -5,7 +5,7 @@ const CACHE_TTL_SECONDS = 15 * 60; // 15 minutes
 
 const cacheKey = (userId: number) => `dashboard:habits-streak:user:${userId}`;
 
-export const calculateHabitsStreak = async (userId: number): Promise<number> => {
+const calculateHabitsStreak = async (userId: number): Promise<number> => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 

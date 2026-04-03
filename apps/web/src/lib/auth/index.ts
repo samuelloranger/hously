@@ -70,7 +70,7 @@ export function setUser(user: User | null): void {
   getQueryClient()?.setQueryData(queryKeys.auth.me, user);
 }
 
-export function logout(): void {
+function logout(): void {
   clearUser();
   window.location.href = '/logout';
 }

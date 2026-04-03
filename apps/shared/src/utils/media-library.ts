@@ -4,7 +4,7 @@ export type MediaFilter = 'all' | 'movie' | 'series';
 export type MediaSortKey = 'added_at' | 'title' | 'year' | 'service' | 'status' | 'downloaded' | 'monitored';
 export type MediaSortDir = 'asc' | 'desc';
 
-export const getAddedTime = (item: MediaItem): number => {
+const getAddedTime = (item: MediaItem): number => {
   if (!item.added_at) return 0;
   const parsed = Date.parse(item.added_at);
   return Number.isFinite(parsed) ? parsed : 0;

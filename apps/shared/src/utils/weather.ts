@@ -55,7 +55,7 @@ function isCloudCode(code: number): boolean {
   return [1, 2, 3].includes(code);
 }
 
-export function getWeatherVisualTheme(weather: WeatherData): WeatherVisualTheme {
+function getWeatherVisualTheme(weather: WeatherData): WeatherVisualTheme {
   const { weather_code: weatherCode, temperature_f: temperatureF, is_day: isDay } = weather;
 
   if (isThunderCode(weatherCode)) {

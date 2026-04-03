@@ -29,7 +29,7 @@ export function getUserFirstName(user: User | null | undefined, fallback: string
   return user.email || fallback;
 }
 
-export function getOrdinalSuffix(day: number, language: string = 'en'): string {
+function getOrdinalSuffix(day: number, language: string = 'en'): string {
   if (language === 'fr') return '';
   if (day === 1 || day === 21 || day === 31) return 'st';
   if (day === 2 || day === 22) return 'nd';
@@ -37,7 +37,7 @@ export function getOrdinalSuffix(day: number, language: string = 'en'): string {
   return 'th';
 }
 
-export function formatAmount(amount: number): string {
+function formatAmount(amount: number): string {
   return `${amount.toFixed(2)}$`;
 }
 
@@ -116,7 +116,7 @@ export function formatSpeed(bytesPerSecond: number | null | undefined): string {
 /**
  * Format bytes to Release-style size strings (Go, Mo, Ko).
  */
-export function formatReleaseSize(bytes: number | null | undefined): string {
+function formatReleaseSize(bytes: number | null | undefined): string {
   if (bytes == null || !Number.isFinite(bytes) || bytes <= 0) return '0 Ko';
   if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(2)} Go`;
   if (bytes >= 1_048_576) return `${(bytes / 1_048_576).toFixed(2)} Mo`;
@@ -126,7 +126,7 @@ export function formatReleaseSize(bytes: number | null | undefined): string {
 /**
  * Calculate recommended bittorrent piece length based on file size.
  */
-export function calcPieceLength(sizeBytes: number): number {
+function calcPieceLength(sizeBytes: number): number {
   if (sizeBytes < 536_870_912) return 20; // 1 MiB
   if (sizeBytes < 1_073_741_824) return 21; // 2 MiB
   if (sizeBytes < 4_294_967_296) return 22; // 4 MiB

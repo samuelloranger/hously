@@ -38,7 +38,7 @@ export function useMedias() {
   });
 }
 
-export function useExploreMedias(language?: string) {
+function useExploreMedias(language?: string) {
   const fetcher = useFetcher();
   const lang = language || 'en-US';
 
@@ -48,7 +48,7 @@ export function useExploreMedias(language?: string) {
   });
 }
 
-export function useRefreshRecommendations(language?: string) {
+function useRefreshRecommendations(language?: string) {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
   const lang = language || 'en-US';
@@ -157,7 +157,7 @@ export function useProwlarrInteractiveSearch(query: string, options?: { enabled?
   });
 }
 
-export function useTmdbWatchProviders(
+function useTmdbWatchProviders(
   mediaType: 'movie' | 'tv' | null,
   tmdbId: number | null,
   region?: string,
@@ -215,7 +215,7 @@ export function useStreamingProviders(region?: string, type?: 'movie' | 'tv') {
   });
 }
 
-export function useTmdbTrailer(
+function useTmdbTrailer(
   mediaType: 'movie' | 'tv' | null,
   tmdbId: number | null,
   options?: { enabled?: boolean }
@@ -250,7 +250,7 @@ export function useDiscoverMedias(params: DiscoverMediasParams) {
   });
 }
 
-export function useMediaRatings(
+function useMediaRatings(
   mediaType: 'movie' | 'tv' | null,
   tmdbId: number | null,
   options?: { enabled?: boolean }
@@ -266,7 +266,7 @@ export function useMediaRatings(
   });
 }
 
-export function useTmdbCredits(
+function useTmdbCredits(
   mediaType: 'movie' | 'tv' | null,
   tmdbId: number | null,
   options?: { enabled?: boolean }
@@ -281,7 +281,7 @@ export function useTmdbCredits(
   });
 }
 
-export function useTmdbMediaDetails(
+function useTmdbMediaDetails(
   mediaType: 'movie' | 'tv' | null,
   tmdbId: number | null,
   options?: { enabled?: boolean }

@@ -161,7 +161,7 @@ export function useCreateMealPlan() {
   });
 }
 
-export function useUpdateMealPlan() {
+function useUpdateMealPlan() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
 

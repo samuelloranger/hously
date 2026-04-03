@@ -157,7 +157,7 @@ export function useDeleteUser() {
   });
 }
 
-export function useTestEmail() {
+function useTestEmail() {
   const fetcher = useFetcher();
 
   return useMutation({
@@ -248,7 +248,7 @@ export function useDeleteWebPush() {
   });
 }
 
-export function useTestEmailTemplates() {
+function useTestEmailTemplates() {
   const fetcher = useFetcher();
 
   return useQuery({

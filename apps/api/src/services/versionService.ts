@@ -37,7 +37,7 @@ async function storeAppVersion(version: string): Promise<void> {
   console.log(`Stored app version in Redis: ${version}`);
 }
 
-export async function sendAppUpdateNotifications(newVersion?: string): Promise<void> {
+async function sendAppUpdateNotifications(newVersion?: string): Promise<void> {
   try {
     const version = newVersion || getAppVersion();
 

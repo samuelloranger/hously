@@ -31,7 +31,7 @@ export function useAddUpcomingToArr() {
   });
 }
 
-export function useUpcomingStatus() {
+function useUpcomingStatus() {
   const fetcher = useFetcher();
 
   return useMutation({

@@ -31,7 +31,7 @@ export function useCalendarEvents(year?: number, month?: number) {
   });
 }
 
-export function useCustomEvents(year?: number, month?: number) {
+function useCustomEvents(year?: number, month?: number) {
   const fetcher = useFetcher();
 
   const params = new URLSearchParams();

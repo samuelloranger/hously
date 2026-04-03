@@ -36,7 +36,7 @@ function localIsoDateToday(): string {
  * Eager cache fill for `/` (home): every TanStack Query used by the home UI.
  * Runs in the route loader before paint (SPA analogue of a server prefetch / “server action” bootstrap).
  */
-export async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
+async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
   const today = localIsoDateToday();
 
   const standard = [
@@ -110,7 +110,7 @@ export async function prefetchHomePageData(queryClient: QueryClient): Promise<vo
 }
 
 /** Non-blocking home prefetch (e.g. nav hover). */
-export function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
+function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
   const today = localIsoDateToday();
 
   void queryClient.prefetchQuery({

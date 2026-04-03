@@ -171,6 +171,23 @@ export const endOfDay = (date: Date): Date => {
 };
 
 /**
+ * Get midnight (start of day) for a YYYY-MM-DD string in local timezone.
+ */
+export const midnightOf = (ymd: string): Date => {
+  const [year, month, day] = ymd.split('-').map(Number);
+  return new Date(year, month - 1, day, 0, 0, 0, 0);
+};
+
+/**
+ * Add (or subtract) days to a Date, returning a new Date at midnight.
+ */
+export const addDaysInTz = (date: Date, days: number): Date => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+/**
  * Calculate period boundaries for analytics
  */
 export const calculatePeriodDates = (period: string, startDateStr?: string): { start: Date; end: Date } => {

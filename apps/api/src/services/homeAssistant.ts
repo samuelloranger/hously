@@ -14,7 +14,7 @@ function haHeaders(token: string): Record<string, string> {
   };
 }
 
-export async function haFetchJson<T>(
+async function haFetchJson<T>(
   baseUrl: string,
   token: string,
   path: string,

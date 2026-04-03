@@ -276,7 +276,7 @@ export const clampInt = (value: unknown, min: number, max: number, fallback: num
   return Math.min(max, Math.max(min, parsed));
 };
 
-export const toIsoDateOrNull = (value: unknown): string | null => {
+const toIsoDateOrNull = (value: unknown): string | null => {
   const seconds = typeof value === 'number' && Number.isFinite(value) ? Math.trunc(value) : null;
   if (!seconds || seconds <= 0) return null;
   try {
@@ -286,7 +286,7 @@ export const toIsoDateOrNull = (value: unknown): string | null => {
   }
 };
 
-export const toTags = (value: unknown): string[] => {
+const toTags = (value: unknown): string[] => {
   if (typeof value !== 'string') return [];
   return value
     .split(',')

@@ -1,7 +1,7 @@
 import { sanitizeUrl } from './media';
 
 /** Convert BBCode to HTML for preview. */
-export function bbcodeToHtml(input: string): string {
+function bbcodeToHtml(input: string): string {
   if (!input) return '';
 
   let html = input

@@ -55,7 +55,7 @@ export function buildNotificationUrl(
   return query ? `${normalizedPath}?${query}` : normalizedPath;
 }
 
-export function buildCurrentMediaReleaseNotificationUrl(
+function buildCurrentMediaReleaseNotificationUrl(
   service: string,
   sourceId: number,
   releaseId: number

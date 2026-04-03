@@ -1,6 +1,6 @@
 import { normalizeNotificationUrl } from '@hously/shared';
 
-export function getNotificationTargetUrl(url: string | null | undefined, fallback = '/notifications'): string {
+function getNotificationTargetUrl(url: string | null | undefined, fallback = '/notifications'): string {
   return normalizeNotificationUrl(url) ?? fallback;
 }
 

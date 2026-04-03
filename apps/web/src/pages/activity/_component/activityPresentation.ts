@@ -69,7 +69,7 @@ function titleize(value: string): string {
     .join(' ');
 }
 
-export function getActivityType(activity: Activity): string {
+function getActivityType(activity: Activity): string {
   if (activity.type) return activity.type;
 
   switch (activity.task_type) {
@@ -84,7 +84,7 @@ export function getActivityType(activity: Activity): string {
   }
 }
 
-export function getActivityService(activity: Activity): string {
+function getActivityService(activity: Activity): string {
   if (activity.service?.trim()) return activity.service.trim().toLowerCase();
 
   switch (activity.task_type) {

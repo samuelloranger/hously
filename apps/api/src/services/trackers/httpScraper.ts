@@ -151,7 +151,7 @@ export async function httpFetch(
  * `credentials` is a map of form field names to values, e.g.:
  *   { username: 'foo', password: 'bar' }
  */
-export async function httpLogin(options: {
+async function httpLogin(options: {
   loginPageUrl: string;
   formSelector: string;
   credentials: Record<string, string>;

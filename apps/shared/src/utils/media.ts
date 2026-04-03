@@ -12,7 +12,7 @@ function joinUrl(base: string, path: string): string {
   return `${normalizedBase}${normalizedPath}`;
 }
 
-export function getDashboardMediaUrl(path: string | null | undefined, baseUrl: string = ''): string | null {
+function getDashboardMediaUrl(path: string | null | undefined, baseUrl: string = ''): string | null {
   if (!path) return null;
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   return joinUrl(stripApiSuffix(baseUrl), path);
@@ -38,7 +38,7 @@ export function getChoreThumbnailUrl(imagePath: string | null | undefined, baseU
 
 // --- Media Normalization & Detection ---
 
-export function normalizeResolution(value: string | null | undefined): string | null {
+function normalizeResolution(value: string | null | undefined): string | null {
   if (!value) return null;
   const upper = value.toUpperCase();
   if (upper.includes('2160') || upper.includes('4K') || upper.includes('UHD')) return '2160P';
@@ -48,7 +48,7 @@ export function normalizeResolution(value: string | null | undefined): string | 
   return null;
 }
 
-export function normalizeVideoCodec(format: string, profile: string = '', codecId: string = ''): string {
+function normalizeVideoCodec(format: string, profile: string = '', codecId: string = ''): string {
   const f = format.toLowerCase();
   const cid = codecId.toLowerCase();
   if (f === 'hevc' || f === 'h.265' || cid.includes('hev1') || cid.includes('hvc1')) return 'H265';
@@ -59,7 +59,7 @@ export function normalizeVideoCodec(format: string, profile: string = '', codecI
   return format || 'Unknown';
 }
 
-export function normalizeContainer(format: string): string {
+function normalizeContainer(format: string): string {
   const f = format.toLowerCase();
   if (f === 'matroska') return 'MKV';
   if (f === 'mpeg-4' || f === 'mp4') return 'MP4';
@@ -69,7 +69,7 @@ export function normalizeContainer(format: string): string {
   return format.toUpperCase();
 }
 
-export function normalizeAudioCodec(format: string, commercialName: string, _codecId: string = ''): string {
+function normalizeAudioCodec(format: string, commercialName: string, _codecId: string = ''): string {
   const f = format.toLowerCase();
   const cn = commercialName.toLowerCase();
   if (f === 'ac-3' || f === 'ac3') return 'AC3';
@@ -87,7 +87,7 @@ export function normalizeAudioCodec(format: string, commercialName: string, _cod
   return format || 'Unknown';
 }
 
-export function normalizeSubtitleFormat(format: string, codecId: string): string {
+function normalizeSubtitleFormat(format: string, codecId: string): string {
   const f = format.toLowerCase();
   const cid = codecId.toLowerCase();
   if (f === 'utf-8' || f === 'ascii' || cid.includes('s_text/utf8') || cid === 's_utf8') return 'SRT';
@@ -100,7 +100,7 @@ export function normalizeSubtitleFormat(format: string, codecId: string): string
   return format || 'N/A';
 }
 
-export function detectSource(fileName: string): string {
+function detectSource(fileName: string): string {
   const name = fileName.toLowerCase();
   let source = '';
   if (/blu-?ray|bdremux|bdmux/.test(name)) source = 'BluRay';
@@ -124,7 +124,7 @@ export function detectSource(fileName: string): string {
   return 'N/A';
 }
 
-export function detectLangFromName(name: string): { lang: string; label: string }[] {
+function detectLangFromName(name: string): { lang: string; label: string }[] {
   const n = name.toUpperCase();
   const langs: { lang: string; label: string }[] = [];
 
@@ -150,7 +150,7 @@ export function detectLangFromName(name: string): { lang: string; label: string 
   return [];
 }
 
-export function detectSourceType(value: string | null | undefined): string | null {
+function detectSourceType(value: string | null | undefined): string | null {
   if (!value) return null;
   const lower = value.toLowerCase();
   if (lower.includes('bdmv')) return 'BDMV';
@@ -167,12 +167,12 @@ export function detectSourceType(value: string | null | undefined): string | nul
   return null;
 }
 
-export function detectHdr(value: string | null | undefined): boolean {
+function detectHdr(value: string | null | undefined): boolean {
   if (!value) return false;
   return /\b(hdr10|hdr|dolby[ .-]?vision|dv)\b/i.test(value);
 }
 
-export function parseVideoBitrateMbps(value: string | null | undefined): number | null {
+function parseVideoBitrateMbps(value: string | null | undefined): number | null {
   if (!value || value === 'N/A') return null;
   const mbpsMatch = value.match(/([\d.]+)\s*Mbps/i);
   if (mbpsMatch) return Number(mbpsMatch[1]);
@@ -230,7 +230,7 @@ function normalizeLangCode(code: string): string {
   return code.toLowerCase().split('-')[0];
 }
 
-export function getFlagCode(langCode: string, title: string): string {
+function getFlagCode(langCode: string, title: string): string {
   const t = (title || langCode).toLowerCase();
   const lc = normalizeLangCode(langCode);
   if (t.includes('vfq') || t.includes('vqc') || t.includes('quebec') || t.includes('canadien') || t.includes('canadian') || t.includes('canada')) return 'ca';
@@ -240,7 +240,7 @@ export function getFlagCode(langCode: string, title: string): string {
   return FLAG_CODE_MAP[lc] ?? 'un';
 }
 
-export function getShortLangLabel(langCode: string, title: string): string {
+function getShortLangLabel(langCode: string, title: string): string {
   const t = (title || '').toLowerCase();
   const lc = normalizeLangCode(langCode);
   if (t.includes('vfq') || t.includes('vqc') || t.includes('canadian') || t.includes('canada') || t.includes('quebec') || t.includes('québ')) return 'VFQ';
@@ -255,7 +255,7 @@ export function getShortLangLabel(langCode: string, title: string): string {
   return langCode;
 }
 
-export function getFullLangName(langCode: string, title: string): string {
+function getFullLangName(langCode: string, title: string): string {
   const lc = normalizeLangCode(langCode);
   const t = (title || langCode).toLowerCase();
   return FULL_LANG_NAME_MAP[lc] ?? FULL_LANG_NAME_MAP[t] ?? (title || langCode);
@@ -263,7 +263,7 @@ export function getFullLangName(langCode: string, title: string): string {
 
 // --- Release Parsing ---
 
-export function parseReleaseName(name: string): { title: string; year: string } {
+function parseReleaseName(name: string): { title: string; year: string } {
   let clean = name.replace(/\.[^.]+$/, '');
   const yearMatch = clean.match(/(19|20)\d{2}/);
   const year = yearMatch?.[0] ?? '';
@@ -280,11 +280,11 @@ export function parseReleaseName(name: string): { title: string; year: string } 
   return { title, year };
 }
 
-export function isTvShow(name: string): boolean {
+function isTvShow(name: string): boolean {
   return /S\d{2}|Saison|Season|Complete|Int[eé]grale/i.test(name);
 }
 
-export function formatRuntime(minutes: number): string {
+function formatRuntime(minutes: number): string {
   if (minutes >= 60) {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
@@ -294,7 +294,7 @@ export function formatRuntime(minutes: number): string {
 }
 
 /** Encode an ArrayBuffer to base64 without blowing the call stack. */
-export function arrayBufferToBase64(buffer: ArrayBuffer): string {
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   const chunks: string[] = [];
   for (let i = 0; i < bytes.length; i += 8192) {

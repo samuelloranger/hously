@@ -13,7 +13,7 @@ export function useDashboardStats() {
   });
 }
 
-export function useDashboardActivities(limit?: number) {
+function useDashboardActivities(limit?: number) {
   const fetcher = useFetcher();
 
   const params = limit ? `?limit=${limit}` : '';

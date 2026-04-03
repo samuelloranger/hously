@@ -9,7 +9,7 @@ export type FetcherOptions = {
 
 export type Fetcher = <T>(endpoint: string, options?: FetcherOptions) => Promise<T>;
 
-export const FetcherContext = createContext<Fetcher | null>(null);
+const FetcherContext = createContext<Fetcher | null>(null);
 
 export function useFetcher(): Fetcher {
   const fetcher = useContext(FetcherContext);
