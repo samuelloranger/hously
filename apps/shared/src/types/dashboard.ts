@@ -6,33 +6,33 @@ export interface DashboardStats {
 }
 
 export type ActivityType =
-  | 'task_completed'
-  | 'shopping_added'
-  | 'shopping_completed'
-  | 'chore_added'
-  | 'chore_completed'
-  | 'habit_completed'
-  | 'recipe_completed'
-  | 'plugin_updated'
-  | 'cron_job_ended'
-  | 'cron_job_skipped'
-  | 'app_updated'
-  | 'recipe_added'
-  | 'recipe_updated'
-  | 'recipe_deleted'
-  | 'admin_triggered_job'
-  | 'event_created'
-  | 'event_updated'
-  | 'event_deleted'
-  | 'shopping_item_added'
-  | 'shopping_item_completed'
-  | 'shopping_list_cleared'
+  | "task_completed"
+  | "shopping_added"
+  | "shopping_completed"
+  | "chore_added"
+  | "chore_completed"
+  | "habit_completed"
+  | "recipe_completed"
+  | "plugin_updated"
+  | "cron_job_ended"
+  | "cron_job_skipped"
+  | "app_updated"
+  | "recipe_added"
+  | "recipe_updated"
+  | "recipe_deleted"
+  | "admin_triggered_job"
+  | "event_created"
+  | "event_updated"
+  | "event_deleted"
+  | "shopping_item_added"
+  | "shopping_item_completed"
+  | "shopping_list_cleared"
   | (string & {});
 
 export interface Activity {
   id?: number;
   user_id?: number;
-  task_type?: 'chore' | 'shopping' | 'recipe';
+  task_type?: "chore" | "shopping" | "recipe";
   task_id?: number;
   completed_at?: string;
   task_name?: string;
@@ -107,7 +107,7 @@ export interface DashboardJellyfinLatestResponse {
 export interface DashboardUpcomingItem {
   id: string;
   title: string;
-  media_type: 'movie' | 'tv';
+  media_type: "movie" | "tv";
   release_date: string | null;
   poster_url: string | null;
   backdrop_url: string | null;
@@ -133,7 +133,7 @@ export interface DashboardUpcomingResponse {
 
 export interface DashboardUpcomingStatusResponse {
   exists: boolean;
-  service: 'radarr' | 'sonarr';
+  service: "radarr" | "sonarr";
   can_add: boolean;
   source_id: number | null;
   arr_url: string | null;
@@ -433,7 +433,10 @@ export interface DashboardTrackerStatsResponse {
   error?: string;
 }
 
-export type DashboardTrackersStatsResponse = Record<'c411' | 'torr9' | 'la-cale', DashboardTrackerStatsResponse>;
+export type DashboardTrackersStatsResponse = Record<
+  "c411" | "torr9" | "la-cale",
+  DashboardTrackerStatsResponse
+>;
 
 export interface RedditPost {
   id: string;
@@ -466,7 +469,7 @@ export interface HackerNewsStory {
   by: string;
   time: number;
   comment_count: number;
-  type: 'story' | 'job' | 'poll';
+  type: "story" | "job" | "poll";
 }
 
 export interface DashboardHackerNewsResponse {

@@ -6,7 +6,13 @@ export interface CustomEvent {
   end_datetime: string;
   all_day: boolean;
   color: string;
-  recurrence_type?: 'yearly' | 'monthly' | 'weekly' | 'biweekly' | 'daily_interval' | null;
+  recurrence_type?:
+    | "yearly"
+    | "monthly"
+    | "weekly"
+    | "biweekly"
+    | "daily_interval"
+    | null;
   recurrence_interval_days?: number | null;
   recurrence_original_created_at?: string | null;
   reminder_enabled?: boolean;
@@ -22,13 +28,13 @@ export interface CalendarEventBase {
 }
 
 export interface CalendarEventChoreMetadata {
-  type: 'chore';
+  type: "chore";
   metadata: {
     chore_id?: number;
     reminder_datetime?: string;
     reminder_enabled?: boolean;
     reminder_minutes_before?: number | null;
-    recurrence_type?: 'daily_interval' | 'weekly' | null;
+    recurrence_type?: "daily_interval" | "weekly" | null;
     recurrence_interval_days?: number | null;
     recurrence_weekday?: number | null;
     assigned_to?: number | null;
@@ -36,15 +42,21 @@ export interface CalendarEventChoreMetadata {
 }
 
 export interface CalendarEventCustomEventMetadata {
-  type: 'custom_event';
+  type: "custom_event";
   metadata: {
     custom_event_id?: number;
-    type?: 'custom_event';
+    type?: "custom_event";
     start_datetime?: string;
     end_datetime?: string;
     all_day?: boolean;
     color?: string;
-    recurrence_type?: 'yearly' | 'monthly' | 'weekly' | 'biweekly' | 'daily_interval' | null;
+    recurrence_type?:
+      | "yearly"
+      | "monthly"
+      | "weekly"
+      | "biweekly"
+      | "daily_interval"
+      | null;
     recurrence_interval_days?: number | null;
     reminder_enabled?: boolean;
     reminder_minutes_before?: number | null;
@@ -52,19 +64,19 @@ export interface CalendarEventCustomEventMetadata {
 }
 
 export interface CalendarEventMealPlanMetadata {
-  type: 'meal_plan';
+  type: "meal_plan";
   metadata: Record<string, unknown>;
 }
 
 export type CalendarEvent = CalendarEventBase &
-  (CalendarEventChoreMetadata | CalendarEventCustomEventMetadata | CalendarEventMealPlanMetadata);
+  (
+    | CalendarEventChoreMetadata
+    | CalendarEventCustomEventMetadata
+    | CalendarEventMealPlanMetadata
+  );
 
 export interface CalendarEventsResponse {
   events: CalendarEvent[];
-}
-
-export interface CustomEventsResponse {
-  events: CustomEvent[];
 }
 
 export interface CreateCustomEventRequest {
@@ -74,7 +86,13 @@ export interface CreateCustomEventRequest {
   end_datetime: string;
   all_day?: boolean;
   color?: string;
-  recurrence_type?: 'yearly' | 'monthly' | 'weekly' | 'biweekly' | 'daily_interval' | null;
+  recurrence_type?:
+    | "yearly"
+    | "monthly"
+    | "weekly"
+    | "biweekly"
+    | "daily_interval"
+    | null;
   recurrence_interval_days?: number | null;
   reminder_enabled?: boolean;
   reminder_minutes_before?: number | null;
@@ -87,7 +105,13 @@ export interface UpdateCustomEventRequest {
   end_datetime?: string;
   all_day?: boolean;
   color?: string;
-  recurrence_type?: 'yearly' | 'monthly' | 'weekly' | 'biweekly' | 'daily_interval' | null;
+  recurrence_type?:
+    | "yearly"
+    | "monthly"
+    | "weekly"
+    | "biweekly"
+    | "daily_interval"
+    | null;
   recurrence_interval_days?: number | null;
   reminder_enabled?: boolean;
   reminder_minutes_before?: number | null;

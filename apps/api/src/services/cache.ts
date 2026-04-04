@@ -53,7 +53,7 @@ export const deleteCache = async (key: string): Promise<void> => {
   if (!client) return;
 
   try {
-    await client.send('DEL', [key]);
+    await client.send("DEL", [key]);
   } catch (error) {
     console.warn(`Redis delete failed for key ${key}:`, error);
   }

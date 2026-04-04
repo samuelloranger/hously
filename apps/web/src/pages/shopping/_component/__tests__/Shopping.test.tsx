@@ -39,7 +39,9 @@ vi.mock("@/hooks/useShopping", () => ({
   useUpdateShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
   useDeleteShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
   useDeleteShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
-  useClearAllCompletedShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useClearAllCompletedShoppingItems: vi
+    .fn()
+    .mockReturnValue({ mutate: vi.fn() }),
   useReorderShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
 }));
 

@@ -10,95 +10,98 @@ import {
   isSameDay,
   isSameMonth,
   parseISO,
-} from 'date-fns';
+} from "date-fns";
 
 export type MaybeDate = Date | string | number | null | undefined;
 
 export function parseDate(input: MaybeDate): Date | null {
   if (!input) return null;
   if (input instanceof Date) return input;
-  if (typeof input === 'number') return new Date(input);
-  if (typeof input !== 'string') return null;
+  if (typeof input === "number") return new Date(input);
+  if (typeof input !== "string") return null;
   try {
     if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
-      const [year, month, day] = input.split('-').map(Number);
+      const [year, month, day] = input.split("-").map(Number);
       return new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
     }
-    if (input.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(input)) {
+    if (input.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(input)) {
       return parseISO(input);
     }
-    return parseISO(input + 'Z');
+    return parseISO(input + "Z");
   } catch {
     return null;
   }
 }
 
-export function formatDate(date: MaybeDate, locale: string = 'en'): string {
+export function formatDate(date: MaybeDate, locale: string = "en"): string {
   const dateObj = parseDate(date);
-  if (!dateObj) return '';
+  if (!dateObj) return "";
 
   try {
-    return dateObj.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      timeZone: 'UTC',
+    return dateObj.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: "UTC",
     });
   } catch {
-    return '';
+    return "";
   }
 }
 
-export function formatTime(date: MaybeDate, locale: string = 'en'): string {
+export function formatTime(date: MaybeDate, locale: string = "en"): string {
   const dateObj = parseDate(date);
-  if (!dateObj) return '';
-  return dateObj.toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
+  if (!dateObj) return "";
+  return dateObj.toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
-export function formatDateTime(input: Date | string | null | undefined, language: string = 'en'): string {
-  if (!input) return '';
+export function formatDateTime(
+  input: Date | string | null | undefined,
+  language: string = "en",
+): string {
+  if (!input) return "";
   const date = input instanceof Date ? input : parseDate(input);
-  if (!date) return '';
+  if (!date) return "";
 
   try {
-    return date.toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString(language === "fr" ? "fr-FR" : "en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   } catch {
-    return '';
+    return "";
   }
 }
 
 export function toDateTimeLocal(date: MaybeDate = new Date()): string {
-  if (!date) return '';
-  let dateObj = typeof date === 'string' ? parseDate(date) : date;
+  if (!date) return "";
+  let dateObj = typeof date === "string" ? parseDate(date) : date;
   if (!dateObj) dateObj = new Date();
-  if (!(dateObj instanceof Date)) return '';
+  if (!(dateObj instanceof Date)) return "";
 
   const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  const hours = String(dateObj.getHours()).padStart(2, '0');
-  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  const hours = String(dateObj.getHours()).padStart(2, "0");
+  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export function datetimeLocalToUTC(datetimeLocal: string): string {
-  if (!datetimeLocal) return '';
+  if (!datetimeLocal) return "";
   const localDate = new Date(datetimeLocal);
   const dateTimeStr = format(localDate, "yyyy-MM-dd'T'HH:mm:ss");
   const offsetMinutes = localDate.getTimezoneOffset();
   const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
   const offsetMins = Math.abs(offsetMinutes) % 60;
-  const offsetSign = offsetMinutes > 0 ? '-' : '+';
-  const offsetStr = `${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMins).padStart(2, '0')}`;
+  const offsetSign = offsetMinutes > 0 ? "-" : "+";
+  const offsetStr = `${offsetSign}${String(offsetHours).padStart(2, "0")}:${String(offsetMins).padStart(2, "0")}`;
   return `${dateTimeStr}${offsetStr}`;
 }
 
@@ -138,10 +141,20 @@ export function tomorrow(): Date {
   return addDays(new Date(), 1);
 }
 
-export function getWeekDates(weekOffset: number = 0, weekStartsOn: 0 | 1 = 1): Date[] {
+export function getWeekDates(
+  weekOffset: number = 0,
+  weekStartsOn: 0 | 1 = 1,
+): Date[] {
   const today = new Date();
   const currentDay = today.getDay();
-  const diff = weekStartsOn === 0 ? (currentDay === 0 ? 0 : -currentDay) : currentDay === 0 ? -6 : 1 - currentDay;
+  const diff =
+    weekStartsOn === 0
+      ? currentDay === 0
+        ? 0
+        : -currentDay
+      : currentDay === 0
+        ? -6
+        : 1 - currentDay;
 
   const startDate = new Date(today);
   startDate.setDate(today.getDate() + diff + weekOffset * 7);
@@ -158,6 +171,6 @@ export function getWeekDates(weekOffset: number = 0, weekStartsOn: 0 | 1 = 1): D
 
 export function formatDateOnly(date: MaybeDate): string {
   const dateObj = parseDate(date);
-  if (!dateObj) return '';
-  return dateObj.toISOString().split('T')[0];
+  if (!dateObj) return "";
+  return dateObj.toISOString().split("T")[0];
 }

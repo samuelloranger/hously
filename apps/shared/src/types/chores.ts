@@ -16,7 +16,7 @@ export interface Chore {
   added_by_username?: string | null;
   assigned_to_username?: string | null;
   completed_by_username?: string | null;
-  recurrence_type?: 'daily_interval' | 'weekly' | null;
+  recurrence_type?: "daily_interval" | "weekly" | null;
   recurrence_interval_days?: number | null;
   recurrence_weekday?: number | null;
   recurrence_original_created_at?: string | null;
@@ -58,7 +58,7 @@ export interface CreateChoreRequest {
       auth: string;
     };
   };
-  recurrence_type?: 'daily_interval' | 'weekly' | null;
+  recurrence_type?: "daily_interval" | "weekly" | null;
   recurrence_interval_days?: number | null;
   recurrence_weekday?: number | null;
 }
@@ -78,7 +78,7 @@ export interface UpdateChoreRequest {
       auth: string;
     };
   };
-  recurrence_type?: 'daily_interval' | 'weekly' | null;
+  recurrence_type?: "daily_interval" | "weekly" | null;
   recurrence_interval_days?: number | null;
   recurrence_weekday?: number | null;
 }

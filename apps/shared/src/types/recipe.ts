@@ -30,7 +30,7 @@ export interface MealPlan {
   id: number;
   recipe_id: number;
   planned_date: string;
-  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  meal_type: "breakfast" | "lunch" | "dinner" | "snack";
   notes: string | null;
   added_by: number;
   created_at: string;
@@ -57,7 +57,7 @@ export interface CreateRecipeRequest {
   prep_time_minutes?: number | null;
   cook_time_minutes?: number | null;
   image_path?: string | null;
-  ingredients: Omit<RecipeIngredient, 'id' | 'recipe_id'>[];
+  ingredients: Omit<RecipeIngredient, "id" | "recipe_id">[];
 }
 
 export interface UpdateRecipeRequest {
@@ -71,7 +71,7 @@ export interface UpdateRecipeRequest {
   image_path?: string | null;
   remove_image?: boolean;
   is_favorite?: boolean;
-  ingredients?: Omit<RecipeIngredient, 'id' | 'recipe_id'>[];
+  ingredients?: Omit<RecipeIngredient, "id" | "recipe_id">[];
 }
 
 export interface MealPlansResponse {
@@ -81,13 +81,6 @@ export interface MealPlansResponse {
 export interface CreateMealPlanRequest {
   recipe_id: number;
   planned_date: string;
-  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  notes?: string | null;
-}
-
-export interface UpdateMealPlanRequest {
-  recipe_id?: number;
-  planned_date?: string;
-  meal_type?: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  meal_type: "breakfast" | "lunch" | "dinner" | "snack";
   notes?: string | null;
 }

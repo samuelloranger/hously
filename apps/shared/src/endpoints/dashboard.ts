@@ -1,44 +1,44 @@
-import { QBITTORRENT_ENDPOINTS } from './qbittorrent';
+import { QBITTORRENT_ENDPOINTS } from "./qbittorrent";
 
 export const DASHBOARD_ENDPOINTS = {
-  STATS: '/api/dashboard/stats',
-  ACTIVITIES: '/api/dashboard/activities',
-  ACTIVITIES_FEED: '/api/dashboard/activities/feed',
+  STATS: "/api/dashboard/stats",
+  ACTIVITIES: "/api/dashboard/activities",
+  ACTIVITIES_FEED: "/api/dashboard/activities/feed",
   JELLYFIN: {
-    LATEST: '/api/dashboard/jellyfin/latest',
-    IMAGE: '/api/dashboard/jellyfin/image',
+    LATEST: "/api/dashboard/jellyfin/latest",
+    IMAGE: "/api/dashboard/jellyfin/image",
   },
   C411: {
-    STATS: '/api/dashboard/c411/stats',
+    STATS: "/api/dashboard/c411/stats",
   },
   TORR9: {
-    STATS: '/api/dashboard/torr9/stats',
+    STATS: "/api/dashboard/torr9/stats",
   },
   LA_CALE: {
-    STATS: '/api/dashboard/la-cale/stats',
+    STATS: "/api/dashboard/la-cale/stats",
   },
   TRACKERS: {
-    STATS: '/api/dashboard/trackers/stats',
+    STATS: "/api/dashboard/trackers/stats",
   },
   UPCOMING: {
-    LIST: '/api/dashboard/upcoming',
-    ADD: '/api/dashboard/upcoming/add',
-    STATUS: '/api/dashboard/upcoming/status',
+    LIST: "/api/dashboard/upcoming",
+    ADD: "/api/dashboard/upcoming/add",
+    STATUS: "/api/dashboard/upcoming/status",
   },
   QBITTORRENT: QBITTORRENT_ENDPOINTS,
   SCRUTINY: {
-    SUMMARY: '/api/dashboard/scrutiny/summary',
+    SUMMARY: "/api/dashboard/scrutiny/summary",
   },
   BESZEL: {
-    SUMMARY: '/api/dashboard/beszel/summary',
-    STREAM: '/api/dashboard/beszel/stream',
+    SUMMARY: "/api/dashboard/beszel/summary",
+    STREAM: "/api/dashboard/beszel/stream",
   },
   ADGUARD: {
-    SUMMARY: '/api/dashboard/adguard/summary',
+    SUMMARY: "/api/dashboard/adguard/summary",
   },
-  WEATHER: '/api/dashboard/weather',
+  WEATHER: "/api/dashboard/weather",
   HOME_ASSISTANT: {
-    WIDGET: '/api/home-assistant/widget',
-    CONTROL: '/api/home-assistant/control',
+    WIDGET: "/api/home-assistant/widget",
+    CONTROL: "/api/home-assistant/control",
   },
 } as const;

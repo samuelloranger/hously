@@ -1,5 +1,5 @@
 const LEGACY_NOTIFICATION_PATHS: Record<string, string> = {
-  '/medias': '/library',
+  "/medias": "/library",
 };
 
 function hasScheme(url: string): boolean {
@@ -11,14 +11,19 @@ function normalizePathname(pathname: string): string {
     return LEGACY_NOTIFICATION_PATHS[pathname];
   }
 
-  if (pathname.endsWith('/') && LEGACY_NOTIFICATION_PATHS[pathname.slice(0, -1)]) {
+  if (
+    pathname.endsWith("/") &&
+    LEGACY_NOTIFICATION_PATHS[pathname.slice(0, -1)]
+  ) {
     return LEGACY_NOTIFICATION_PATHS[pathname.slice(0, -1)];
   }
 
   return pathname;
 }
 
-export function normalizeNotificationUrl(url: string | null | undefined): string | null {
+export function normalizeNotificationUrl(
+  url: string | null | undefined,
+): string | null {
   if (!url) return null;
 
   try {
@@ -26,7 +31,7 @@ export function normalizeNotificationUrl(url: string | null | undefined): string
     if (!raw) return null;
 
     const isAbsolute = hasScheme(raw);
-    const parsed = new URL(raw, 'https://hously.local');
+    const parsed = new URL(raw, "https://hously.local");
     parsed.pathname = normalizePathname(parsed.pathname);
 
     if (isAbsolute) {
@@ -41,12 +46,12 @@ export function normalizeNotificationUrl(url: string | null | undefined): string
 
 export function buildNotificationUrl(
   pathname: string,
-  search?: Record<string, string | number | boolean | null | undefined>
+  search?: Record<string, string | number | boolean | null | undefined>,
 ): string {
   const params = new URLSearchParams();
 
   for (const [key, value] of Object.entries(search ?? {})) {
-    if (value == null || value === '') continue;
+    if (value == null || value === "") continue;
     params.set(key, String(value));
   }
 
@@ -58,13 +63,18 @@ export function buildNotificationUrl(
 export function getExternalNotificationUrl(serviceName: string): string {
   const normalized = serviceName.trim().toLowerCase();
 
-  if (normalized === 'radarr' || normalized === 'sonarr' || normalized === 'jellyfin' || normalized === 'plex') {
-    return '/library';
+  if (
+    normalized === "radarr" ||
+    normalized === "sonarr" ||
+    normalized === "jellyfin" ||
+    normalized === "plex"
+  ) {
+    return "/library";
   }
 
-  if (normalized === 'prowlarr' || normalized === 'cross-seed') {
-    return '/torrents';
+  if (normalized === "prowlarr" || normalized === "cross-seed") {
+    return "/torrents";
   }
 
-  return '/';
+  return "/";
 }

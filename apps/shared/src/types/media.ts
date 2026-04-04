@@ -1,7 +1,7 @@
 export interface MediaItem {
   id: string;
-  media_type: 'movie' | 'series';
-  service: 'radarr' | 'sonarr';
+  media_type: "movie" | "series";
+  service: "radarr" | "sonarr";
   source_id: number;
   title: string;
   sort_title: string | null;
@@ -36,13 +36,13 @@ export interface MediasResponse {
 export interface TmdbMediaSearchItem {
   id: string;
   tmdb_id: number;
-  media_type: 'movie' | 'tv';
+  media_type: "movie" | "tv";
   title: string;
   release_year: number | null;
   poster_url: string | null;
   overview: string | null;
   vote_average: number | null;
-  service: 'radarr' | 'sonarr';
+  service: "radarr" | "sonarr";
   already_exists: boolean;
   can_add: boolean;
   source_id: number | null;
@@ -89,7 +89,7 @@ export interface TmdbWatchProvidersResponse {
 
 export interface MediaAutoSearchResponse {
   success: boolean;
-  service: 'radarr' | 'sonarr';
+  service: "radarr" | "sonarr";
 }
 
 export interface InteractiveReleaseItem {
@@ -106,13 +106,13 @@ export interface InteractiveReleaseItem {
   rejected: boolean;
   rejection_reason: string | null;
   info_url: string | null;
-  source: 'arr' | 'prowlarr';
+  source: "arr" | "prowlarr";
   download_token?: string | null;
 }
 
 export interface MediaInteractiveSearchResponse {
   success: boolean;
-  service: 'radarr' | 'sonarr' | 'prowlarr';
+  service: "radarr" | "sonarr" | "prowlarr";
   releases: InteractiveReleaseItem[];
 }
 
@@ -135,17 +135,17 @@ export interface SimilarMediasResponse {
 
 export interface MediaInteractiveDownloadResponse {
   success: boolean;
-  service: 'radarr' | 'sonarr' | 'prowlarr';
+  service: "radarr" | "sonarr" | "prowlarr";
 }
 
 export interface MediaDeleteResponse {
   success: boolean;
-  service: 'radarr' | 'sonarr';
+  service: "radarr" | "sonarr";
 }
 
 export interface MediaRefreshResponse {
   success: boolean;
-  service: 'radarr' | 'sonarr';
+  service: "radarr" | "sonarr";
 }
 
 /** Single movie file row from Radarr (when downloaded) */
@@ -175,7 +175,7 @@ export interface ArrManagementStatistics {
 
 /** Normalized Radarr movie / Sonarr series payload for the Management tab */
 export interface ArrManagementDetailsResponse {
-  service: 'radarr' | 'sonarr';
+  service: "radarr" | "sonarr";
   title: string;
   sort_title: string | null;
   path: string | null;
@@ -218,7 +218,7 @@ export interface TmdbGenresResponse {
 }
 
 export interface DiscoverMediasParams {
-  type: 'movie' | 'tv';
+  type: "movie" | "tv";
   provider_id?: number | null;
   genre_id?: number | null;
   sort_by?: string;
@@ -378,7 +378,7 @@ export interface TmdbMediaDetailsResponse {
 export interface WatchlistItem {
   id: number;
   tmdb_id: number;
-  media_type: 'movie' | 'tv';
+  media_type: "movie" | "tv";
   title: string;
   poster_url: string | null;
   overview: string | null;
@@ -421,14 +421,14 @@ export interface MediaModalDataResponse {
 export interface CollectionMovieItem {
   id: string;
   tmdb_id: number;
-  media_type: 'movie';
+  media_type: "movie";
   title: string;
   release_year: number | null;
   release_date: string | null;
   poster_url: string | null;
   overview: string | null;
   vote_average: number | null;
-  service: 'radarr';
+  service: "radarr";
   already_exists: boolean;
   can_add: boolean;
   source_id: number | null;

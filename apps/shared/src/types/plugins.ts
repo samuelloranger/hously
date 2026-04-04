@@ -3,17 +3,17 @@ export interface ArrProfile {
   name: string;
 }
 
-export type TrackerType = 'c411' | 'torr9' | 'la-cale';
+export type TrackerType = "c411" | "torr9" | "la-cale";
 
 export interface JellyfinPlugin {
-  type: 'jellyfin';
+  type: "jellyfin";
   enabled: boolean;
   website_url: string;
   api_key: string;
 }
 
 export interface RadarrPlugin {
-  type: 'radarr';
+  type: "radarr";
   enabled: boolean;
   website_url: string;
   api_key: string;
@@ -22,7 +22,7 @@ export interface RadarrPlugin {
 }
 
 export interface SonarrPlugin {
-  type: 'sonarr';
+  type: "sonarr";
   enabled: boolean;
   website_url: string;
   api_key: string;
@@ -32,14 +32,14 @@ export interface SonarrPlugin {
 }
 
 export interface ProwlarrPlugin {
-  type: 'prowlarr';
+  type: "prowlarr";
   enabled: boolean;
   website_url: string;
   api_key: string;
 }
 
 export interface QbittorrentPlugin {
-  type: 'qbittorrent';
+  type: "qbittorrent";
   enabled: boolean;
   website_url: string;
   username: string;
@@ -49,13 +49,13 @@ export interface QbittorrentPlugin {
 }
 
 export interface ScrutinyPlugin {
-  type: 'scrutiny';
+  type: "scrutiny";
   enabled: boolean;
   website_url: string;
 }
 
 export interface BeszelPlugin {
-  type: 'beszel';
+  type: "beszel";
   enabled: boolean;
   website_url: string;
   email: string;
@@ -63,7 +63,7 @@ export interface BeszelPlugin {
 }
 
 export interface AdguardPlugin {
-  type: 'adguard';
+  type: "adguard";
   enabled: boolean;
   website_url: string;
   username: string;
@@ -71,21 +71,21 @@ export interface AdguardPlugin {
 }
 
 export interface WeatherPlugin {
-  type: 'weather';
+  type: "weather";
   enabled: boolean;
   address: string;
-  temperature_unit: 'fahrenheit' | 'celsius';
+  temperature_unit: "fahrenheit" | "celsius";
 }
 
 export interface TmdbPlugin {
-  type: 'tmdb';
+  type: "tmdb";
   enabled: boolean;
   api_key: string;
   popularity_threshold: number;
 }
 
 export interface OllamaPlugin {
-  type: 'ollama';
+  type: "ollama";
   enabled: boolean;
   base_url: string;
   model: string;
@@ -101,7 +101,7 @@ export interface TrackerPlugin {
 }
 
 export interface HomeAssistantPlugin {
-  type: 'home-assistant';
+  type: "home-assistant";
   enabled: boolean;
   base_url: string;
   /** Always empty in API responses; token is server-only. */
@@ -112,14 +112,14 @@ export interface HomeAssistantPlugin {
 export interface HomeAssistantDiscoverEntity {
   entity_id: string;
   friendly_name: string;
-  domain: 'light' | 'switch';
+  domain: "light" | "switch";
 }
 
 export interface HomeAssistantWidgetEntity {
   entity_id: string;
   state: string;
   friendly_name: string;
-  domain: 'light' | 'switch';
+  domain: "light" | "switch";
 }
 
 export interface HomeAssistantWidgetResponse {
@@ -131,10 +131,6 @@ export interface HomeAssistantPluginUpdateResponse {
   success: boolean;
   plugin: HomeAssistantPlugin;
 }
-
-export type C411Plugin = TrackerPlugin & { type: 'c411' };
-export type Torr9Plugin = TrackerPlugin & { type: 'torr9' };
-export type LaCalePlugin = TrackerPlugin & { type: 'la-cale' };
 
 export interface JellyfinPluginUpdateResponse {
   success: boolean;
@@ -187,8 +183,6 @@ export interface WeatherPluginUpdateResponse {
   success: boolean;
   plugin: WeatherPlugin;
 }
-
-
 
 export interface TmdbPluginUpdateResponse {
   success: boolean;

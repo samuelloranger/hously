@@ -1,4 +1,4 @@
-export type ChoreRecurrenceType = 'daily_interval' | 'weekly';
+export type ChoreRecurrenceType = "daily_interval" | "weekly";
 
 export interface ChoreRecurrenceInput {
   recurrenceType: ChoreRecurrenceType | null;
@@ -12,18 +12,26 @@ export interface ChoreRecurrenceInput {
  *
  * recurrenceWeekday uses Monday=0 … Sunday=6 encoding.
  */
-export function computeNextRecurrenceDate(chore: ChoreRecurrenceInput, completedAt: Date): Date | null {
+export function computeNextRecurrenceDate(
+  chore: ChoreRecurrenceInput,
+  completedAt: Date,
+): Date | null {
   if (!chore.recurrenceType) return null;
 
-  if (chore.recurrenceType === 'daily_interval') {
-    if (!chore.recurrenceIntervalDays || chore.recurrenceIntervalDays <= 0) return null;
+  if (chore.recurrenceType === "daily_interval") {
+    if (!chore.recurrenceIntervalDays || chore.recurrenceIntervalDays <= 0)
+      return null;
     const next = new Date(completedAt);
     next.setDate(next.getDate() + chore.recurrenceIntervalDays);
     return next;
   }
 
-  if (chore.recurrenceType === 'weekly') {
-    if (chore.recurrenceWeekday === null || chore.recurrenceWeekday === undefined) return null;
+  if (chore.recurrenceType === "weekly") {
+    if (
+      chore.recurrenceWeekday === null ||
+      chore.recurrenceWeekday === undefined
+    )
+      return null;
     const next = new Date(completedAt);
     const currentDay = next.getDay();
     const currentDayMondayBased = currentDay === 0 ? 6 : currentDay - 1;

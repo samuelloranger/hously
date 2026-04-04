@@ -72,7 +72,7 @@ export interface InviteUserRequest {
 export interface Invitation {
   id: number;
   email: string;
-  status: 'pending' | 'accepted' | 'revoked' | 'expired';
+  status: "pending" | "accepted" | "revoked" | "expired";
   is_admin: boolean;
   locale: string;
   expires_at: string;

@@ -279,8 +279,6 @@ export const normalizeRedditConfig = (config: unknown): RedditPluginConfig => {
   return { subreddits: valid.length > 0 ? valid : defaults.subreddits };
 };
 
-
-
 export const normalizeHackernewsConfig = (
   config: unknown,
 ): HackernewsPluginConfig | null => {

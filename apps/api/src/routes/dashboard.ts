@@ -1117,7 +1117,6 @@ const mapJellyfinApiItem = (
   };
 };
 
-
 export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(auth)
   .get("/netdata/summary", async ({ user, set }) => {

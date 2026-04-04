@@ -28,13 +28,9 @@ export interface ServicesResponse {
   services: ExternalNotificationService[];
 }
 
-export interface TemplatesResponse {
-  templates: NotificationTemplate[];
-}
-
 export interface ServiceResponse {
   success: boolean;
-  service: Omit<ExternalNotificationService, 'templates'>;
+  service: Omit<ExternalNotificationService, "templates">;
 }
 
 export interface TemplateResponse {
@@ -47,7 +43,7 @@ export interface ExternalNotificationServiceLog {
   service_id: number;
   service_name: string | null;
   event_type: string;
-  status: 'success' | 'failure' | 'pending';
+  status: "success" | "failure" | "pending";
   payload: string;
   created_at: string | null;
 }

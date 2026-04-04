@@ -1,6 +1,6 @@
 export interface ScheduleStatus {
   time: string;
-  status: 'done' | 'skipped' | 'pending';
+  status: "done" | "skipped" | "pending";
 }
 
 export interface Habit {
@@ -31,7 +31,7 @@ export interface HabitCompletion {
   habit_id: number;
   date: string;
   completed_at: string;
-  status: 'done' | 'skipped';
+  status: "done" | "skipped";
 }
 
 export interface CreateHabitRequest {

@@ -9,8 +9,3 @@ export interface ApiError {
 }
 
 export type ApiResult<T> = ApiResponse<T> | ApiError;
-
-export interface ApiErrorResponse {
-  error?: string;
-  success?: boolean;
-}

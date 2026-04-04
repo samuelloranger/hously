@@ -1,21 +1,26 @@
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
 
 export type ImageValidationError = { error: string };
 
 export function validateImageFile(
   file: File | null | undefined,
-  options: { maxSizeBytes?: number } = {}
+  options: { maxSizeBytes?: number } = {},
 ): ImageValidationError | null {
   if (!file || !(file instanceof File)) {
-    return { error: 'No image file provided' };
+    return { error: "No image file provided" };
   }
 
   if (file.size === 0) {
-    return { error: 'No file selected' };
+    return { error: "No file selected" };
   }
 
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return { error: 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP' };
+    return { error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP" };
   }
 
   if (options.maxSizeBytes && file.size > options.maxSizeBytes) {
@@ -28,10 +33,10 @@ export function validateImageFile(
 
 export function validateImageMimeAndSize(
   file: { type: string; size?: number },
-  options: { maxSizeBytes?: number } = {}
+  options: { maxSizeBytes?: number } = {},
 ): ImageValidationError | null {
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return { error: 'Invalid file type. Allowed: JPEG, PNG, GIF, WebP' };
+    return { error: "Invalid file type. Allowed: JPEG, PNG, GIF, WebP" };
   }
 
   if (options.maxSizeBytes && file.size && file.size > options.maxSizeBytes) {

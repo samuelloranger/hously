@@ -1,6 +1,6 @@
 export const HABIT_ENDPOINTS = {
-  LIST: '/api/habits',
-  CREATE: '/api/habits',
+  LIST: "/api/habits",
+  CREATE: "/api/habits",
   UPDATE: (id: number) => `/api/habits/${id}`,
   DELETE: (id: number) => `/api/habits/${id}`,
   COMPLETE: (id: number) => `/api/habits/${id}/complete`,
@@ -8,5 +8,5 @@ export const HABIT_ENDPOINTS = {
   SKIP: (id: number) => `/api/habits/${id}/skip`,
   UNSKIP: (id: number) => `/api/habits/${id}/skip`,
   HISTORY: (id: number) => `/api/habits/${id}/history`,
-  WEEKLY: '/api/habits/weekly',
+  WEEKLY: "/api/habits/weekly",
 } as const;

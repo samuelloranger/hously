@@ -27,12 +27,28 @@ export interface DeleteBoardTagRequest {
   merge_into_id?: number;
 }
 
-export const BOARD_TASK_STATUSES = ['backlog', 'on_hold', 'todo', 'in_progress', 'done'] as const;
-export const BOARD_KANBAN_STATUSES = ['on_hold', 'todo', 'in_progress', 'done'] as const;
+export const BOARD_TASK_STATUSES = [
+  "backlog",
+  "on_hold",
+  "todo",
+  "in_progress",
+  "done",
+] as const;
+export const BOARD_KANBAN_STATUSES = [
+  "on_hold",
+  "todo",
+  "in_progress",
+  "done",
+] as const;
 export type BoardTaskStatusApi = (typeof BOARD_TASK_STATUSES)[number];
 export type BoardKanbanStatusApi = (typeof BOARD_KANBAN_STATUSES)[number];
 
-export const BOARD_TASK_PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
+export const BOARD_TASK_PRIORITIES = [
+  "low",
+  "medium",
+  "high",
+  "urgent",
+] as const;
 export type BoardTaskPriorityApi = (typeof BOARD_TASK_PRIORITIES)[number];
 
 export interface TaskDependencyRef {
@@ -114,7 +130,12 @@ export interface CreateTimeLogRequest {
   note?: string;
 }
 
-export type BoardTaskActivityType = 'created' | 'comment' | 'status_change' | 'priority_change' | 'assignee_change';
+export type BoardTaskActivityType =
+  | "created"
+  | "comment"
+  | "status_change"
+  | "priority_change"
+  | "assignee_change";
 
 export interface BoardTaskActivity {
   id: number;
@@ -132,11 +153,13 @@ export interface BoardTaskActivityResponse {
   activities: BoardTaskActivity[];
 }
 
-export interface CreateCommentRequest {
-  body: string;
-}
-
-export const BACKLOG_SORT_OPTIONS = ['position', 'priority', 'due_date', 'created_at', 'assignee'] as const;
+export const BACKLOG_SORT_OPTIONS = [
+  "position",
+  "priority",
+  "due_date",
+  "created_at",
+  "assignee",
+] as const;
 export type BacklogSortOption = (typeof BACKLOG_SORT_OPTIONS)[number];
 
 export interface SyncBoardTasksRequest {
