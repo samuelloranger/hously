@@ -23,28 +23,37 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
   .use(auth)
   .use(requireUser)
   // GET /api/shopping - Get all shopping items
-  .get("/", async ({ user, set }) => {
-    try {
-      // Get all non-deleted shopping items ordered by completed, position, created_at
-      const items = await prisma.shoppingItem.findMany({
-        where: { deletedAt: null },
-        select: {
-          id: true,
-          position: true,
-          itemName: true,
-          notes: true,
-          completed: true,
-          addedBy: true,
-          completedBy: true,
-          createdAt: true,
-          completedAt: true,
-        },
-        orderBy: [
-          { completed: "asc" },
-          { position: "asc" },
-          { createdAt: "desc" },
-        ],
-      });
+  .get(
+    "/",
+    async ({ user, query, set }) => {
+      try {
+        const page = query.page ? Math.max(1, parseInt(query.page, 10) || 1) : null;
+        const limit = page ? Math.min(parseInt(query.limit || "50", 10) || 50, 100) : undefined;
+        const where = { deletedAt: null } as const;
+
+        const [items, total] = await Promise.all([
+          prisma.shoppingItem.findMany({
+            where,
+            select: {
+              id: true,
+              position: true,
+              itemName: true,
+              notes: true,
+              completed: true,
+              addedBy: true,
+              completedBy: true,
+              createdAt: true,
+              completedAt: true,
+            },
+            orderBy: [
+              { completed: "asc" },
+              { position: "asc" },
+              { createdAt: "desc" },
+            ],
+            ...(page && limit ? { skip: (page - 1) * limit, take: limit } : {}),
+          }),
+          page ? prisma.shoppingItem.count({ where }) : Promise.resolve(undefined),
+        ]);
 
       // Get all users for username lookups
       const allUsers = await prisma.user.findMany({
@@ -77,12 +86,24 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
         };
       });
 
-      return { items: itemsList };
+      return {
+        items: itemsList,
+        ...(page && limit && total != null
+          ? { pagination: { page, limit, total, pages: Math.ceil(total / limit) } }
+          : {}),
+      };
     } catch (error) {
       console.error("Error getting shopping items:", error);
       return serverError(set, "Failed to get shopping items");
     }
-  })
+  },
+  {
+    query: t.Object({
+      page: t.Optional(t.String()),
+      limit: t.Optional(t.String()),
+    }),
+  },
+  )
 
   // POST /api/shopping - Add a new shopping item
   .post(

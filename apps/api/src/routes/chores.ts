@@ -85,16 +85,24 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
   .use(auth)
   .use(requireUser)
   // GET /api/chores - Get all chores with users
-  .get("/", async ({ user, set }) => {
-    try {
-      // Get all chores ordered by completed, position, created_at
-      const allChores = await prisma.chore.findMany({
-        orderBy: [
-          { completed: "asc" },
-          { position: "asc" },
-          { createdAt: "desc" },
-        ],
-      });
+  .get(
+    "/",
+    async ({ user, query, set }) => {
+      try {
+        const page = query.page ? Math.max(1, parseInt(query.page, 10) || 1) : null;
+        const limit = page ? Math.min(parseInt(query.limit || "50", 10) || 50, 100) : undefined;
+
+        const [allChores, total] = await Promise.all([
+          prisma.chore.findMany({
+            orderBy: [
+              { completed: "asc" },
+              { position: "asc" },
+              { createdAt: "desc" },
+            ],
+            ...(page && limit ? { skip: (page - 1) * limit, take: limit } : {}),
+          }),
+          page ? prisma.chore.count() : Promise.resolve(undefined),
+        ]);
 
       // Get all users
       const allUsers = await prisma.user.findMany({
@@ -150,12 +158,25 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         last_name: u.lastName,
       }));
 
-      return { chores: choresList, users: usersList };
+      return {
+        chores: choresList,
+        users: usersList,
+        ...(page && limit && total != null
+          ? { pagination: { page, limit, total, pages: Math.ceil(total / limit) } }
+          : {}),
+      };
     } catch (error) {
       console.error("Error getting chores:", error);
       return serverError(set, "Failed to get chores");
     }
-  })
+  },
+  {
+    query: t.Object({
+      page: t.Optional(t.String()),
+      limit: t.Optional(t.String()),
+    }),
+  },
+  )
 
   // POST /api/chores - Add a new chore
   .post(

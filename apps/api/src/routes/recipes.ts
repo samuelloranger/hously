@@ -28,21 +28,29 @@ import { hasUpdates } from "../utils/updates";
 export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
   .use(auth)
   // GET /api/recipes - Get all recipes
-  .get("/", async ({ user, set }) => {
-    if (!user) {
-      return unauthorized(set, "Unauthorized");
-    }
+  .get(
+    "/",
+    async ({ user, query, set }) => {
+      if (!user) {
+        return unauthorized(set, "Unauthorized");
+      }
 
-    try {
-      // Get all recipes with user info
-      const allRecipes = await prisma.recipe.findMany({
-        include: {
-          _count: {
-            select: { ingredients: true },
-          },
-        },
-        orderBy: [{ isFavorite: "desc" }, { createdAt: "desc" }],
-      });
+      try {
+        const page = query.page ? Math.max(1, parseInt(query.page, 10) || 1) : null;
+        const limit = page ? Math.min(parseInt(query.limit || "50", 10) || 50, 100) : undefined;
+
+        const [allRecipes, total] = await Promise.all([
+          prisma.recipe.findMany({
+            include: {
+              _count: {
+                select: { ingredients: true },
+              },
+            },
+            orderBy: [{ isFavorite: "desc" }, { createdAt: "desc" }],
+            ...(page && limit ? { skip: (page - 1) * limit, take: limit } : {}),
+          }),
+          page ? prisma.recipe.count() : Promise.resolve(undefined),
+        ]);
 
       // Get all users for username lookup
       const allUsers = await prisma.user.findMany({
@@ -75,12 +83,24 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
         };
       });
 
-      return { recipes: recipesList };
+      return {
+        recipes: recipesList,
+        ...(page && limit && total != null
+          ? { pagination: { page, limit, total, pages: Math.ceil(total / limit) } }
+          : {}),
+      };
     } catch (error) {
       console.error("Error getting recipes:", error);
       return serverError(set, "Failed to get recipes");
     }
-  })
+  },
+  {
+    query: t.Object({
+      page: t.Optional(t.String()),
+      limit: t.Optional(t.String()),
+    }),
+  },
+  )
 
   // GET /api/recipes/:id - Get single recipe with ingredients
   .get(

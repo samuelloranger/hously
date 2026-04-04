@@ -228,19 +228,40 @@ async function wouldCreateCycle(
 export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
   .use(auth)
   .use(requireUser)
-  .get("/", async ({ set }) => {
-    try {
-      const tasks = await prisma.boardTask.findMany({
-        orderBy: [{ status: "asc" }, { position: "asc" }],
-        include: taskInclude,
-      });
+  .get(
+    "/",
+    async ({ query, set }) => {
+      try {
+        const page = query.page ? Math.max(1, parseInt(query.page, 10) || 1) : null;
+        const limit = page ? Math.min(parseInt(query.limit || "50", 10) || 50, 100) : undefined;
 
-      return { tasks: tasks.map((row) => mapTask(row as unknown as TaskRow)) };
-    } catch (error) {
-      console.error("Error listing board tasks:", error);
-      return serverError(set, "Failed to list board tasks");
-    }
-  })
+        const [tasks, total] = await Promise.all([
+          prisma.boardTask.findMany({
+            orderBy: [{ status: "asc" }, { position: "asc" }],
+            include: taskInclude,
+            ...(page && limit ? { skip: (page - 1) * limit, take: limit } : {}),
+          }),
+          page ? prisma.boardTask.count() : Promise.resolve(undefined),
+        ]);
+
+        return {
+          tasks: tasks.map((row) => mapTask(row as unknown as TaskRow)),
+          ...(page && limit && total != null
+            ? { pagination: { page, limit, total, pages: Math.ceil(total / limit) } }
+            : {}),
+        };
+      } catch (error) {
+        console.error("Error listing board tasks:", error);
+        return serverError(set, "Failed to list board tasks");
+      }
+    },
+    {
+      query: t.Object({
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+      }),
+    },
+  )
 
   .post(
     "/",
