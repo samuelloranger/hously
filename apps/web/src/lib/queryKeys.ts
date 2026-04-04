@@ -77,8 +77,8 @@ export const queryKeys = {
       [...queryKeys.dashboard.all, "qbittorrent-torrent-peers", hash] as const,
     scrutinySummary: () =>
       [...queryKeys.dashboard.all, "scrutiny-summary"] as const,
-    beszelSummary: () =>
-      [...queryKeys.dashboard.all, "beszel-summary"] as const,
+    systemSummary: () =>
+      [...queryKeys.dashboard.all, "system-summary"] as const,
     adguardSummary: () =>
       [...queryKeys.dashboard.all, "adguard-summary"] as const,
     homeAssistantWidget: () =>

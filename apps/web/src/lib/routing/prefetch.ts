@@ -80,8 +80,8 @@ async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
     },
     {
-      queryKey: queryKeys.dashboard.beszelSummary(),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.BESZEL.SUMMARY),
+      queryKey: queryKeys.dashboard.systemSummary(),
+      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.SYSTEM.SUMMARY),
     },
     {
       queryKey: queryKeys.dashboard.adguardSummary(),
@@ -162,8 +162,8 @@ function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
     queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.SCRUTINY.SUMMARY),
   });
   void queryClient.prefetchQuery({
-    queryKey: queryKeys.dashboard.beszelSummary(),
-    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.BESZEL.SUMMARY),
+    queryKey: queryKeys.dashboard.systemSummary(),
+    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.SYSTEM.SUMMARY),
   });
   void queryClient.prefetchQuery({
     queryKey: queryKeys.dashboard.adguardSummary(),

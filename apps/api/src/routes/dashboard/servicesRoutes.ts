@@ -3,9 +3,9 @@ import { auth } from "../../auth";
 import { requireUser } from "../../middleware/auth";
 import { fetchAdguardSummary } from "../../utils/dashboard/adguard";
 import {
-  buildBeszelDisabledSummary,
-  fetchBeszelSummary,
-} from "../../utils/dashboard/beszel";
+  fetchSystemSummary,
+  buildSystemDisabledSummary,
+} from "../../utils/dashboard/system";
 import { fetchScrutinySummary } from "../../utils/dashboard/scrutiny";
 import {
   fetchHackerNewsStories,
@@ -158,26 +158,26 @@ export const dashboardServiceRoutes = new Elysia()
       return serverError(set, "Failed to get Scrutiny summary");
     }
   })
-  .get("/beszel/summary", async ({ user, set }) => {
+  .get("/system/summary", async ({ user, set }) => {
     try {
-      return await fetchBeszelSummary();
+      return await fetchSystemSummary();
     } catch (error) {
-      console.error("Error fetching Beszel summary:", error);
-      return serverError(set, "Failed to get Beszel summary");
+      console.error("Error fetching system summary:", error);
+      return serverError(set, "Failed to get system summary");
     }
   })
-  .get("/beszel/stream", async ({ user, set, request }) => {
+  .get("/system/stream", async ({ user, set, request }) => {
     return createJsonSseResponse({
       request,
-      poll: fetchBeszelSummary,
+      poll: fetchSystemSummary,
       intervalMs: 60000,
       retryMs: 10000,
       onError: () => ({
-        ...buildBeszelDisabledSummary("Failed to refresh Beszel summary"),
+        ...buildSystemDisabledSummary("Failed to refresh system summary"),
         enabled: true,
         connected: false,
       }),
-      logLabel: "Beszel stream",
+      logLabel: "System stream",
     });
   })
   .get("/adguard/summary", async ({ user, set }) => {

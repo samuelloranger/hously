@@ -423,7 +423,7 @@ export function useUpdateBeszelPlugin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.beszel() });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.dashboard.beszelSummary(),
+        queryKey: queryKeys.dashboard.systemSummary(),
       });
     },
   });

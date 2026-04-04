@@ -20,14 +20,14 @@ export function useDashboardScrutinySummary() {
   });
 }
 
-export function useDashboardBeszelSummary() {
+export function useDashboardSystemSummary() {
   const fetcher = useFetcher();
 
   return useQuery({
-    queryKey: queryKeys.dashboard.beszelSummary(),
+    queryKey: queryKeys.dashboard.systemSummary(),
     queryFn: () =>
       fetcher<DashboardBeszelSummaryResponse>(
-        DASHBOARD_ENDPOINTS.BESZEL.SUMMARY,
+        DASHBOARD_ENDPOINTS.SYSTEM.SUMMARY,
       ),
   });
 }

@@ -29,9 +29,9 @@ export const DASHBOARD_ENDPOINTS = {
   SCRUTINY: {
     SUMMARY: "/api/dashboard/scrutiny/summary",
   },
-  BESZEL: {
-    SUMMARY: "/api/dashboard/beszel/summary",
-    STREAM: "/api/dashboard/beszel/stream",
+  SYSTEM: {
+    SUMMARY: "/api/dashboard/system/summary",
+    STREAM: "/api/dashboard/system/stream",
   },
   ADGUARD: {
     SUMMARY: "/api/dashboard/adguard/summary",

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  useDashboardBeszelSummary,
+  useDashboardSystemSummary,
   useDashboardScrutinySummary,
   useDashboardAdguardSummary,
 } from "@/hooks/useDashboard";
@@ -103,10 +103,10 @@ function MiniBar({
 
 function BeszelSection() {
   const { t } = useTranslation("common");
-  const { data: fallback } = useDashboardBeszelSummary();
+  const { data: fallback } = useDashboardSystemSummary();
   const [showDisks, setShowDisks] = useState(false);
   const { data } = useEventSourceState<DashboardBeszelSummaryResponse>({
-    url: DASHBOARD_ENDPOINTS.BESZEL.STREAM,
+    url: DASHBOARD_ENDPOINTS.SYSTEM.STREAM,
     initialData: fallback,
     onParseError: (err) => console.error("beszel stream", err),
   });
