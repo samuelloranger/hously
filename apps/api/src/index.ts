@@ -64,6 +64,19 @@ export const app = new Elysia()
     }
     return app;
   })
+  .onError(({ code, error, set }) => {
+    if (code === "NOT_FOUND") {
+      set.status = 404;
+      return { error: "Not found" };
+    }
+    if (code === "VALIDATION") {
+      set.status = 400;
+      return { error: error.message };
+    }
+    console.error(`[${code}] Unhandled error:`, error);
+    set.status = 500;
+    return { error: "Internal server error" };
+  })
   .use(auth)
   .use(globalRateLimit) // Global rate limiting for unauthenticated requests
   .use(dashboardRoutes)

@@ -34,6 +34,7 @@
   ],
   "devDependencies": {
     "@types/react": "~19.2.14",
+    "elysia": "^1.4.28",
     "husky": "^9.1.7",
     "knip": "^6.1.1",
     "prettier": "^3.8.1",
@@ -50,5 +51,5 @@
     "react-i18next": "^17.0.2",
     "sharp": "^0.34.5"
   },
-  "version": "2.3.12"
+  "version": "2.3.13"
 }
