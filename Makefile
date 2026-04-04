@@ -1,4 +1,4 @@
-.PHONY: help install build typecheck dev dev-api dev-services dev-web down rebuild test lint clean migrate-dev migrate-deploy migrate-push migrate-studio db-refresh-collation bump-version
+.PHONY: help install build typecheck dev dev-api dev-services dev-web down rebuild test lint clean migrate-dev migrate-deploy migrate-push migrate-studio db-refresh-collation
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -70,9 +70,6 @@ clean: ## Clean all build artifacts and caches
 	rm -rf apps/web/dist
 	rm -rf node_modules apps/*/node_modules packages/*/node_modules
 	docker compose down -v
-
-bump-version: ## Bump the patch version in all package.json files
-	@./scripts/bump-version.sh
 
 # ===== Database Migrations (Prisma) =====
 

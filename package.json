@@ -19,7 +19,6 @@
     "typecheck:build": "tsc -b tsconfig.build.json --pretty false",
     "lint": "bun run --workspaces --if-present lint",
     "knip": "knip",
-    "bump-version": "./scripts/bump-version.sh",
     "clean": "rm -rf apps/web/dist node_modules apps/*/node_modules packages/*/node_modules && docker compose down -v",
     "db:migrate:dev": "bun run --filter @hously/server db:migrate:dev",
     "db:migrate:deploy": "bun run --filter @hously/server db:migrate",
@@ -51,5 +50,5 @@
     "react-i18next": "^17.0.2",
     "sharp": "^0.34.5"
   },
-  "version": "2.3.17"
+  "version": "1.0.0"
 }
