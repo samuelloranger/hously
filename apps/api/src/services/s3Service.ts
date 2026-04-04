@@ -10,7 +10,7 @@ import {
   HeadBucketCommand,
   CreateBucketCommand,
 } from "@aws-sdk/client-s3";
-import { getS3Config, getBaseUrl, type S3Config } from "../utils/config";
+import { getS3Config, type S3Config } from "../config";
 
 let s3Client: S3Client | null = null;
 let s3Config: S3Config | null = null;

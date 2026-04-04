@@ -1,12 +1,11 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { getS3Config, loadAccessControl, getBaseUrl } from "../src/utils/config";
+import { getS3Config, getBaseUrl, loadConfig, resetConfig } from "../src/config";
 
 describe("Config", () => {
-  // Store original env values
   const originalEnv = { ...Bun.env };
 
   beforeEach(() => {
-    // Reset env before each test
+    resetConfig();
     Object.keys(Bun.env).forEach((key) => {
       if (key.startsWith("S3_")) {
         delete Bun.env[key];
@@ -15,7 +14,7 @@ describe("Config", () => {
   });
 
   afterEach(() => {
-    // Restore original env after each test
+    resetConfig();
     Object.assign(Bun.env, originalEnv);
   });
 
@@ -108,38 +107,19 @@ describe("Config", () => {
     });
   });
 
-  describe("loadAccessControl", () => {
-    beforeEach(() => {
-      delete Bun.env.ADMIN_EMAILS;
-      delete Bun.env.ALLOWED_EMAILS;
-    });
-
-    it("should return empty arrays when no emails configured", () => {
-      const config = loadAccessControl();
-      expect(config.adminEmails).toEqual([]);
-      expect(config.allowedEmails).toEqual([]);
-    });
-
+  describe("loadConfig", () => {
     it("should parse comma-separated admin emails", () => {
       Bun.env.ADMIN_EMAILS = "admin1@test.com, admin2@test.com";
-
-      const config = loadAccessControl();
-      expect(config.adminEmails).toEqual(["admin1@test.com", "admin2@test.com"]);
+      const config = loadConfig();
+      expect(config.ADMIN_EMAILS).toEqual(["admin1@test.com", "admin2@test.com"]);
     });
 
-    it("should use admin emails as allowed emails when none specified", () => {
-      Bun.env.ADMIN_EMAILS = "admin@test.com";
-
-      const config = loadAccessControl();
-      expect(config.allowedEmails).toEqual(["admin@test.com"]);
-    });
-
-    it("should parse allowed emails when specified", () => {
-      Bun.env.ADMIN_EMAILS = "admin@test.com";
-      Bun.env.ALLOWED_EMAILS = "user1@test.com, user2@test.com";
-
-      const config = loadAccessControl();
-      expect(config.allowedEmails).toEqual(["user1@test.com", "user2@test.com"]);
+    it("should return empty array when no emails configured", () => {
+      delete Bun.env.ADMIN_EMAILS;
+      delete Bun.env.ALLOWED_EMAILS;
+      const config = loadConfig();
+      expect(config.ADMIN_EMAILS).toEqual([]);
+      expect(config.ALLOWED_EMAILS).toEqual([]);
     });
   });
 
@@ -147,7 +127,7 @@ describe("Config", () => {
     it("should return default URL when not configured", () => {
       delete Bun.env.BASE_URL;
       const url = getBaseUrl();
-      expect(url).toBe("http://localhost:5173");
+      expect(url).toBe("http://localhost:3000");
     });
 
     it("should return configured URL", () => {

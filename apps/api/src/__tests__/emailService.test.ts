@@ -22,8 +22,22 @@ mock.module("@react-email/render", () => ({
   ),
 }));
 
-mock.module("../utils/config", () => ({
+mock.module("../config", () => ({
   getBaseUrl: () => "https://hously.example.com",
+  getSmtpConfig: () => {
+    const host = process.env.SMTP_HOST;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+    if (!host || !user || !pass) return null;
+    return {
+      host,
+      port: parseInt(process.env.SMTP_PORT || "587", 10),
+      user,
+      pass,
+      from: process.env.SMTP_FROM || "noreply@localhost",
+      fromName: process.env.SMTP_FROM_NAME || "Hously",
+    };
+  },
 }));
 
 mock.module("../emails/InvitationEmail", () => ({

@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { prisma } from "../db";
 import { auth } from "../auth";
 import { toLocalDate } from "../utils";
-import { getBaseUrl } from "../utils/config";
+import { getBaseUrl } from "../config";
 import {
   calculateRecurringChoreDates,
   calculateRecurringCustomEventDates,

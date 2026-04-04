@@ -1,26 +1,11 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { render } from "@react-email/render";
-import { getBaseUrl } from "../utils/config";
+import { getBaseUrl, getSmtpConfig } from "../config";
 import { InvitationEmail } from "../emails/InvitationEmail";
 import { PasswordResetEmail } from "../emails/PasswordResetEmail";
 
 let transporter: Transporter | null = null;
-
-function getSmtpConfig() {
-  const host = process.env.SMTP_HOST;
-  const port = parseInt(process.env.SMTP_PORT || "587", 10);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  const from = process.env.SMTP_FROM || "noreply@localhost";
-  const fromName = process.env.SMTP_FROM_NAME || "Hously";
-
-  if (!host || !user || !pass) {
-    return null;
-  }
-
-  return { host, port, user, pass, from, fromName };
-}
 
 function getTransporter(): Transporter | null {
   if (transporter) return transporter;

@@ -10,11 +10,7 @@ import {
   serverError,
   unauthorized,
 } from "../utils/errors";
-
-// Helper to get base URL
-function getBaseUrl(): string {
-  return process.env.BASE_URL || "http://localhost:3000";
-}
+import { getBaseUrl } from "../config";
 
 export const externalNotificationsRoutes = new Elysia({
   prefix: "/api/external-notifications",

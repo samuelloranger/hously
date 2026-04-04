@@ -26,7 +26,7 @@
     },
     "apps/api": {
       "name": "@hously/server",
-      "version": "2.3.13",
+      "version": "2.3.14",
       "dependencies": {
         "@aws-sdk/client-s3": "^3.1020.0",
         "@elysiajs/cookie": "^0.8.0",
@@ -48,6 +48,7 @@
         "node-html-parser": "^7.1.0",
         "nodemailer": "^8.0.4",
         "web-push": "^3.6.7",
+        "zod": "^4.3.6",
       },
       "devDependencies": {
         "@types/nodemailer": "^7.0.11",
@@ -61,7 +62,7 @@
     },
     "apps/shared": {
       "name": "@hously/shared",
-      "version": "2.3.13",
+      "version": "2.3.14",
       "peerDependencies": {
         "@tanstack/react-query": "^5.90.21",
         "date-fns": "^4.1.0",
@@ -70,7 +71,7 @@
     },
     "apps/web": {
       "name": "@hously/web",
-      "version": "2.3.13",
+      "version": "2.3.14",
       "dependencies": {
         "@dnd-kit/abstract": "^0.3.2",
         "@dnd-kit/dom": "^0.3.2",

@@ -1,23 +1,8 @@
 import { RedisClient } from "bun";
+import { getRedisUrl } from "../config";
 
 let redisClient: RedisClient | null = null;
 let redisDisabled = false;
-
-const getRedisUrl = (): string => {
-  const explicitUrl = process.env.REDIS_URL?.trim();
-  if (explicitUrl) return explicitUrl;
-
-  const host = process.env.REDIS_HOST?.trim() || "redis";
-  const port = process.env.REDIS_PORT?.trim() || "6379";
-  const password = process.env.REDIS_PASSWORD?.trim();
-  const db = process.env.REDIS_DB?.trim() || "0";
-
-  if (password) {
-    return `redis://:${encodeURIComponent(password)}@${host}:${port}/${db}`;
-  }
-
-  return `redis://${host}:${port}/${db}`;
-};
 
 const getRedisClient = (): RedisClient | null => {
   if (redisDisabled) return null;
