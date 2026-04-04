@@ -28,7 +28,7 @@ import {
   parseCachedTrackerStats,
 } from "../../utils/dashboard/trackers";
 import type { TrackerType } from "../../utils/plugins/types";
-import { serverError, unauthorized } from "../../utils/errors";
+import { serverError } from "../../utils/errors";
 
 const trackerLabel = (type: TrackerType): string => {
   return {
@@ -114,7 +114,7 @@ async function getAllTrackerStatsHandler() {
   return Object.fromEntries(results);
 }
 
-export const dashboardServiceRoutes = new Elysia({ prefix: "/api/dashboard" })
+export const dashboardServiceRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
   .use(dashboardQbittorrentRoutes)

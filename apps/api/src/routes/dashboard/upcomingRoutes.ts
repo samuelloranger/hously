@@ -23,7 +23,6 @@ import {
   badRequest,
   notFound,
   serverError,
-  unauthorized,
 } from "../../utils/errors";
 
 const buildArrItemUrl = (
@@ -44,7 +43,7 @@ const buildArrItemUrl = (
   }
 };
 
-export const dashboardUpcomingRoutes = new Elysia({ prefix: "/api/dashboard" })
+export const dashboardUpcomingRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
   .get("/upcoming", async ({ user, set }) => {

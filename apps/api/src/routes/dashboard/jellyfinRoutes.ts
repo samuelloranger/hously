@@ -9,10 +9,9 @@ import {
   badGateway,
   notFound,
   serverError,
-  unauthorized,
 } from "../../utils/errors";
 
-export const dashboardJellyfinRoutes = new Elysia({ prefix: "/api/dashboard" })
+export const dashboardJellyfinRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
   .get(

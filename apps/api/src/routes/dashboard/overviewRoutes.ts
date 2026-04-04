@@ -15,7 +15,6 @@ import {
   badGateway,
   notFound,
   serverError,
-  unauthorized,
 } from "../../utils/errors";
 
 interface WeatherPluginConfig {
@@ -216,7 +215,7 @@ function matchesActivityFilters(
   return true;
 }
 
-export const dashboardOverviewRoutes = new Elysia({ prefix: "/api/dashboard" })
+export const dashboardOverviewRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
   .get("/stats", async ({ user, set }) => {
