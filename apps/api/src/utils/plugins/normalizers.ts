@@ -1,7 +1,5 @@
 import type {
   AdguardPluginConfig,
-  RedditPluginConfig,
-  HackernewsPluginConfig,
   JellyfinPluginConfig,
   BeszelPluginConfig,
   NetdataPluginConfig,
@@ -258,52 +256,6 @@ export const normalizeOllamaConfig = (
   const model = modelRaw || DEFAULT_OLLAMA_MODEL;
   if (!baseUrl || !isValidHttpUrl(baseUrl)) return null;
   return { base_url: baseUrl, model };
-};
-
-export const normalizeRedditConfig = (config: unknown): RedditPluginConfig => {
-  const defaults: RedditPluginConfig = {
-    subreddits: ["selfhosted", "homelab"],
-  };
-  if (!config || typeof config !== "object" || Array.isArray(config))
-    return defaults;
-  const cfg = config as Record<string, unknown>;
-
-  if (!Array.isArray(cfg.subreddits) || cfg.subreddits.length === 0)
-    return defaults;
-
-  const valid = (cfg.subreddits as unknown[])
-    .filter((s): s is string => typeof s === "string")
-    .map((s) => s.replace(/^r\//, "").trim())
-    .filter((s) => /^[a-zA-Z0-9_]+$/.test(s));
-
-  return { subreddits: valid.length > 0 ? valid : defaults.subreddits };
-};
-
-export const normalizeHackernewsConfig = (
-  config: unknown,
-): HackernewsPluginConfig | null => {
-  if (!config || typeof config !== "object" || Array.isArray(config))
-    return null;
-  const cfg = config as Record<string, unknown>;
-
-  const validFeedTypes = ["top", "best", "new", "ask", "show", "job"] as const;
-  const feedType = validFeedTypes.includes(
-    cfg.feed_type as (typeof validFeedTypes)[number],
-  )
-    ? (cfg.feed_type as HackernewsPluginConfig["feed_type"])
-    : "top";
-
-  const storyCount =
-    typeof cfg.story_count === "number"
-      ? Math.trunc(cfg.story_count)
-      : typeof cfg.story_count === "string"
-        ? parseInt(cfg.story_count, 10)
-        : 10;
-
-  return {
-    feed_type: feedType,
-    story_count: Math.max(1, Math.min(storyCount, 50)),
-  };
 };
 
 export const normalizeNetdataConfig = (
