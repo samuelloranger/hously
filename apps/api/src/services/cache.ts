@@ -1,5 +1,5 @@
 import { RedisClient } from "bun";
-import { getRedisUrl } from "../config";
+import { getRedisUrl } from "@hously/api/config";
 
 let redisClient: RedisClient | null = null;
 let redisDisabled = false;

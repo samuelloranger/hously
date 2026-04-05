@@ -2,12 +2,11 @@
  * Notification service for creating and enqueuing push notifications
  */
 
-import { prisma } from "../db";
-import { nowUtc, getTimezone } from "../utils";
-import { addJob, QUEUE_NAMES } from "../services/queueService";
-import type { NotificationJobData } from "../services/jobs/notificationWorker";
-import { normalizeNotificationUrl } from "@hously/shared";
-
+import { prisma } from "@hously/api/db";
+import { nowUtc, getTimezone } from "@hously/api/utils";
+import { addJob, QUEUE_NAMES } from "@hously/api/services/queueService";
+import type { NotificationJobData } from "@hously/api/services/jobs/notificationWorker";
+import { normalizeNotificationUrl } from "@hously/shared/utils";
 /**
  * Check if current time is in night period (23h-6h) when notifications should not be sent
  */

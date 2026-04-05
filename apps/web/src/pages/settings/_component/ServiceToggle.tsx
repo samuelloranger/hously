@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import type { ExternalNotificationService } from "@hously/shared";
-
+import type { ExternalNotificationService } from "@hously/shared/types";
 interface ServiceToggleProps {
   service: ExternalNotificationService;
   isLoading: boolean;

@@ -14,7 +14,11 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "types": ["bun-types"]
+    "types": ["bun-types"],
+    "paths": {
+      "@hously/api": ["./src/index.ts"],
+      "@hously/api/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*"]
 }

@@ -1,15 +1,15 @@
-import { prisma } from "../../db";
-import { toRecord, toStringOrNull } from "@hously/shared";
+import { prisma } from "@hously/api/db";
+import { toRecord, toStringOrNull } from "@hously/shared/utils";
 import type {
   ArrPluginStatus,
   DashboardUpcomingItem,
   DashboardUpcomingProvider,
-} from "../../types/dashboardUpcoming";
+} from "@hously/api/types/dashboardUpcoming";
 import {
   normalizeJellyfinConfig,
   normalizeSonarrConfig,
-} from "../plugins/normalizers";
-import { getJsonCache, setJsonCache } from "../../services/cache";
+} from "@hously/api/utils/plugins/normalizers";
+import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w342";
 const TMDB_BACKDROP_BASE_URL = "https://image.tmdb.org/t/p/w780";

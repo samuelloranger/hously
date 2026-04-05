@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { hashPassword, verifyPassword } from "../utils/password";
+import { hashPassword, verifyPassword } from "@hously/api/utils/password";
 
 describe("hashPassword", () => {
   it("returns a string hash", async () => {

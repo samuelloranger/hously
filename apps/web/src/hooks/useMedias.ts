@@ -1,28 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { MEDIAS_ENDPOINTS } from "@hously/shared";
-import type {
-  ArrManagementDetailsResponse,
-  DiscoverMediasParams,
-  DiscoverMediasResponse,
-  MediaAutoSearchResponse,
-  MediaDeleteResponse,
-  MediaRefreshResponse,
-  MediaInteractiveDownloadResponse,
-  MediaInteractiveSearchResponse,
-  MediaModalDataResponse,
-  MediasResponse,
-  MissingCollectionsResponse,
-  SimilarMediasResponse,
-  TmdbGenresResponse,
-  TmdbMediaSearchResponse,
-  AiMediaSuggestionsResponse,
-  AiMediaSuggestionsConfigResponse,
-  TmdbStreamingProvidersResponse,
-  WatchlistResponse,
-} from "@hously/shared";
-
+import { MEDIAS_ENDPOINTS } from "@hously/shared/endpoints";
+import type { ArrManagementDetailsResponse, DiscoverMediasParams, DiscoverMediasResponse, MediaAutoSearchResponse, MediaDeleteResponse, MediaRefreshResponse, MediaInteractiveDownloadResponse, MediaInteractiveSearchResponse, MediaModalDataResponse, MediasResponse, MissingCollectionsResponse, SimilarMediasResponse, TmdbGenresResponse, TmdbMediaSearchResponse, AiMediaSuggestionsResponse, AiMediaSuggestionsConfigResponse, TmdbStreamingProvidersResponse, WatchlistResponse } from "@hously/shared/types";
 export function useMedias() {
   const fetcher = useFetcher();
 

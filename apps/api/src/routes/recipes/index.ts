@@ -1,12 +1,12 @@
 import { Elysia, t } from "elysia";
-import { prisma } from "../../db";
-import { auth } from "../../auth";
+import { prisma } from "@hously/api/db";
+import { auth } from "@hously/api/auth";
 import {
   saveImageAndCreateThumbnail,
   deleteImageFiles,
   getImage,
   getContentType,
-} from "../../services/imageService";
+} from "@hously/api/services/imageService";
 import {
   formatIso,
   nowUtc,
@@ -14,16 +14,16 @@ import {
   buildUserMap,
   getUserDisplayName,
   validateImageFile,
-} from "../../utils";
-import { logActivity } from "../../utils/activityLogs";
+} from "@hously/api/utils";
+import { logActivity } from "@hously/api/utils/activityLogs";
 import {
   badRequest,
   forbidden,
   notFound,
   serverError,
   unauthorized,
-} from "../../errors";
-import { hasUpdates } from "../../utils/updates";
+} from "@hously/api/errors";
+import { hasUpdates } from "@hously/api/utils/updates";
 
 export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
   .use(auth)

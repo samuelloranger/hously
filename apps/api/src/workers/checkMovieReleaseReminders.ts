@@ -3,18 +3,18 @@
  * Runs on a schedule; skips night hours (same window as other user notifications).
  */
 
-import { buildNotificationUrl } from "@hously/shared";
-import { prisma } from "../db";
+import { buildNotificationUrl } from "@hously/shared/utils";
+import { prisma } from "@hously/api/db";
 import {
   fetchMediaDetails,
   loadTmdbConfig,
-} from "../utils/medias/tmdbFetchers";
+} from "@hously/api/utils/medias/tmdbFetchers";
 import {
   addDaysInTz,
   formatDateInTimezone,
   midnightOf,
   todayLocal,
-} from "../utils";
+} from "@hously/api/utils";
 import { createAndQueueNotification, isNightTime } from "./notificationService";
 
 function dbDateToYmd(d: Date | null): string | null {

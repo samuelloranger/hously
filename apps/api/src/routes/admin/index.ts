@@ -1,12 +1,12 @@
 import { Elysia, t } from "elysia";
-import { prisma } from "../../db";
-import { auth } from "../../auth";
-import { formatIso, nowUtc, sanitizeInput } from "../../utils";
-import { logActivity } from "../../utils/activityLogs";
-import { sendInvitationEmail } from "../../services/emailService";
-import { generateOpaqueToken, hashOpaqueToken } from "../../utils/tokens";
-import { requireAdmin } from "../../middleware/auth";
-import { badRequest, notFound, serverError } from "../../errors";
+import { prisma } from "@hously/api/db";
+import { auth } from "@hously/api/auth";
+import { formatIso, nowUtc, sanitizeInput } from "@hously/api/utils";
+import { logActivity } from "@hously/api/utils/activityLogs";
+import { sendInvitationEmail } from "@hously/api/services/emailService";
+import { generateOpaqueToken, hashOpaqueToken } from "@hously/api/utils/tokens";
+import { requireAdmin } from "@hously/api/middleware/auth";
+import { badRequest, notFound, serverError } from "@hously/api/errors";
 import {
   scheduledTasksQueue,
   notificationsQueue,
@@ -15,9 +15,9 @@ import {
   QUEUE_NAMES,
   addJob,
   SCHEDULED_JOB_NAMES,
-} from "../../services/queueService";
+} from "@hously/api/services/queueService";
 import type { Job, Queue, JobState } from "bullmq";
-import { createJsonSseResponse } from "../../utils/sse";
+import { createJsonSseResponse } from "@hously/api/utils/sse";
 
 // Validate email format
 const validateEmail = (email: string): boolean => {

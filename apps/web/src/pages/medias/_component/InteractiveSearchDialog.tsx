@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/dialog";
-import type { MediaItem } from "@hously/shared";
+import type { MediaItem } from "@hously/shared/types";
 import { InteractiveSearchPanel } from "@/pages/medias/_component/InteractiveSearchPanel";
 
 interface InteractiveSearchDialogProps {

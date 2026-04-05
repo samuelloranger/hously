@@ -6,14 +6,9 @@ import {
   useSetPinnedQbittorrentTorrent,
 } from "@/hooks/useDashboard";
 import { useQbittorrentStatus } from "@/hooks/useQbittorrentStatus";
-import {
-  type DashboardQbittorrentStatusResponse,
-  DASHBOARD_ENDPOINTS,
-  formatSpeed,
-  formatBytes,
-  formatQbittorrentEta,
-  getQbittorrentProgressBarGradient,
-} from "@hously/shared";
+import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
+import type { DashboardQbittorrentStatusResponse } from "@hously/shared/types";
+import { formatSpeed, formatBytes, formatQbittorrentEta, getQbittorrentProgressBarGradient } from "@hously/shared/utils";
 import { useEventSourceState } from "@/hooks/useEventSourceState";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {

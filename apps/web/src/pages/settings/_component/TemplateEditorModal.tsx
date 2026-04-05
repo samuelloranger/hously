@@ -7,7 +7,7 @@ import {
 } from "@headlessui/react";
 import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
-import type { NotificationTemplate } from "@hously/shared";
+import type { NotificationTemplate } from "@hously/shared/types";
 import { TemplateEditor } from "@/pages/settings/_component/TemplateEditor";
 
 interface TemplateEditorModalProps {

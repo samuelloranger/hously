@@ -1,7 +1,7 @@
-import { prisma } from "../../db";
+import { prisma } from "@hously/api/db";
 import { fetchBeszelSummary, buildBeszelDisabledSummary } from "./beszel";
 import { fetchNetdataSummary } from "./netdata";
-import type { DashboardBeszelSummaryResponse } from "../../types/dashboardServices";
+import type { DashboardBeszelSummaryResponse } from "@hously/api/types/dashboardServices";
 
 /**
  * Unified system monitoring summary.

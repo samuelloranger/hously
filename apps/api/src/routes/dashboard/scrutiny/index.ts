@@ -1,8 +1,8 @@
 import { Elysia } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { fetchScrutinySummary } from "../../../utils/dashboard/scrutiny";
-import { serverError } from "../../../errors";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { fetchScrutinySummary } from "@hously/api/utils/dashboard/scrutiny";
+import { serverError } from "@hously/api/errors";
 
 export const dashboardScrutinyRoutes = new Elysia()
   .use(auth)

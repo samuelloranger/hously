@@ -3,7 +3,7 @@
  * Runs daily at midnight
  */
 
-import { prisma } from "../db";
+import { prisma } from "@hously/api/db";
 
 /**
  * Clean up notifications older than 30 days

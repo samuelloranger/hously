@@ -1,5 +1,5 @@
-import { refreshAllHabitsStreaks } from "../utils/dashboard/habitsStreak";
-import { logActivity } from "../utils/activityLogs";
+import { refreshAllHabitsStreaks } from "@hously/api/utils/dashboard/habitsStreak";
+import { logActivity } from "@hously/api/utils/activityLogs";
 
 const JOB_ID = "refreshHabitsStreaks";
 const JOB_NAME = "Refresh habits streaks";

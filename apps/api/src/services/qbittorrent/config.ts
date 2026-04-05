@@ -1,6 +1,6 @@
-import { prisma } from "../../db";
-import { getJsonCache, setJsonCache, deleteCache } from "../cache";
-import { decrypt } from "../crypto";
+import { prisma } from "@hously/api/db";
+import { getJsonCache, setJsonCache, deleteCache } from "@hously/api/services/cache";
+import { decrypt } from "@hously/api/services/crypto";
 import {
   toRecord,
   toStringOrNull,

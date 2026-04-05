@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import { DASHBOARD_ENDPOINTS } from "@hously/shared";
+import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
 import { useFetcher } from "@/lib/api/context";
-import type { WeatherData } from "@hously/shared";
-
+import type { WeatherData } from "@hously/shared/types";
 export function useDashboardWeather() {
   const fetcher = useFetcher();
 

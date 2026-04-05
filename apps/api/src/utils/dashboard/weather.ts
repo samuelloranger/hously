@@ -1,4 +1,4 @@
-import type { DashboardWeatherResponse } from "../../types/dashboardWeather";
+import type { DashboardWeatherResponse } from "@hously/api/types/dashboardWeather";
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";

@@ -1,8 +1,8 @@
 import { Elysia } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { fetchAdguardSummary } from "../../../utils/dashboard/adguard";
-import { serverError } from "../../../errors";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { fetchAdguardSummary } from "@hously/api/utils/dashboard/adguard";
+import { serverError } from "@hously/api/errors";
 
 export const dashboardAdguardRoutes = new Elysia()
   .use(auth)

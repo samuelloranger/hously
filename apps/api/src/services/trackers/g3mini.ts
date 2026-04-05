@@ -1,5 +1,5 @@
 import type { Page } from "playwright";
-import type { TrackerPluginConfig } from "../../utils/plugins/types";
+import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
 
 const G3MINI_LOGIN_FORM = "form.auth-form__form";
 const G3MINI_USERNAME_INPUT = 'form.auth-form__form input[name="username"]';

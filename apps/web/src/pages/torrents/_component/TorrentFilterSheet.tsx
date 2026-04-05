@@ -2,12 +2,7 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Check, ArrowUp, ArrowDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import {
-  QBITTORRENT_STATE_FILTERS,
-  type QbittorrentStateFilter,
-  type QbittorrentSortKey,
-  type QbittorrentSortDir,
-} from "@hously/shared";
+import { QBITTORRENT_STATE_FILTERS, type QbittorrentStateFilter, type QbittorrentSortKey, type QbittorrentSortDir } from "@hously/shared/utils";
 import { cn } from "@/lib/utils";
 
 const SORT_OPTIONS: {

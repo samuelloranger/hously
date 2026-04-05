@@ -1,12 +1,12 @@
 import { Elysia } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
 import {
   fetchSystemSummary,
   buildSystemDisabledSummary,
-} from "../../../utils/dashboard/system";
-import { createJsonSseResponse } from "../../../utils/sse";
-import { serverError } from "../../../errors";
+} from "@hously/api/utils/dashboard/system";
+import { createJsonSseResponse } from "@hously/api/utils/sse";
+import { serverError } from "@hously/api/errors";
 
 export const dashboardSystemRoutes = new Elysia()
   .use(auth)

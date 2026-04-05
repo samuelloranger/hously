@@ -1,8 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/dialog";
 import { RecipeForm } from "@/pages/kitchen/_component/RecipeForm";
-import type { Recipe } from "@hously/shared";
-
+import type { Recipe } from "@hously/shared/types";
 interface EditRecipeModalProps {
   recipe: Recipe;
   isOpen: boolean;

@@ -6,8 +6,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { queryKeys } from "@/lib/queryKeys";
-import { type UnreadCountResponse } from "@hously/shared";
-
+import { type UnreadCountResponse } from "@hously/shared/types";
 const syncNotificationTypes = ["notification-sync", "notification-received"];
 const NOTIFICATION_EVENT_CHANNEL = "hously-notification-events";
 

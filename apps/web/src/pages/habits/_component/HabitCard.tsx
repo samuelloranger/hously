@@ -9,7 +9,7 @@ import {
   useCompleteHabitForDate,
   useUncompleteHabitForDate,
 } from "@/hooks/useHabits";
-import { Habit } from "@hously/shared";
+import { Habit } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 import { HabitProgress } from "@/pages/habits/_component/HabitProgress";
 import { StreakBadge } from "@/pages/habits/_component/StreakBadge";

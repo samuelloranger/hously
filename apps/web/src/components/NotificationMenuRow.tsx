@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { NotificationType } from "@hously/shared";
-
+import type { NotificationType } from "@hously/shared/types";
 const typeConfig: Record<
   NotificationType,
   { icon: string | React.ReactNode; bg: string }

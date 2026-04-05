@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/dialog";
 import { EditHabitForm } from "@/pages/habits/_component/EditHabitForm";
 import { useUpdateHabit } from "@/hooks/useHabits";
-import { Habit } from "@hously/shared";
+import { Habit } from "@hously/shared/types";
 import { toast } from "sonner";
 
 interface EditHabitModalProps {

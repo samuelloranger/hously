@@ -1,13 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { AUTH_ENDPOINTS } from "@hously/shared";
-import type {
-  UserResponse,
-  ValidateInvitationResponse,
-  AcceptInvitationRequest,
-} from "@hously/shared";
-
+import { AUTH_ENDPOINTS } from "@hously/shared/endpoints";
+import type { UserResponse, ValidateInvitationResponse, AcceptInvitationRequest } from "@hously/shared/types";
 type AuthResponse = UserResponse & { token?: string; refreshToken?: string };
 
 function defaultLocale(): string {

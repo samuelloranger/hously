@@ -17,13 +17,9 @@ import {
   useUpdateRecipe,
   useUploadRecipeImage,
 } from "@/hooks/useRecipes";
-import {
-  getRecipeImageUrl,
-  COOKING_UNITS,
-  type Recipe,
-  type RecipeIngredient,
-} from "@hously/shared";
-
+import { COOKING_UNITS } from "@hously/shared/constants";
+import type { Recipe, RecipeIngredient } from "@hously/shared/types";
+import { getRecipeImageUrl } from "@hously/shared/utils";
 interface RecipeFormProps {
   recipe?: Recipe;
   onSuccess?: (recipeId: number) => void;

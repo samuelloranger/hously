@@ -1,10 +1,10 @@
-import { prisma } from "../../db";
-import { normalizeNetdataConfig } from "../plugins/normalizers";
-import { toNumberOrNull, toRecord } from "@hously/shared";
+import { prisma } from "@hously/api/db";
+import { normalizeNetdataConfig } from "@hously/api/utils/plugins/normalizers";
+import { toNumberOrNull, toRecord } from "@hously/shared/utils";
 import type {
   DashboardNetdataDiskUsage,
   DashboardNetdataSummaryResponse,
-} from "../../types/dashboardServices";
+} from "@hously/api/types/dashboardServices";
 
 export const buildNetdataDisabledSummary = (
   error?: string,

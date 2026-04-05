@@ -5,7 +5,8 @@ import {
   useDeleteNotification,
   useMarkAsReadOptimistic,
 } from "@/hooks/useNotifications";
-import { formatDate, formatTime, type Notification } from "@hously/shared";
+import type { Notification } from "@hously/shared/types";
+import { formatDate, formatTime } from "@hously/shared/utils";
 import { cn } from "@/lib/utils";
 import { getTypeStyle } from "@/components/NotificationMenuRow";
 import { openNotificationTarget } from "@/lib/notifications/navigation";

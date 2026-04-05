@@ -1,10 +1,6 @@
 import { AlertCircle, Clock, Inbox } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type {
-  BoardTask,
-  BoardTaskPriorityApi,
-  BoardTaskStatusApi,
-} from "@hously/shared";
+import type { BoardTask, BoardTaskPriorityApi, BoardTaskStatusApi } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 
 const STATUS_STYLE: Partial<Record<BoardTaskStatusApi, string>> = {

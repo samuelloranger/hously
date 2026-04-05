@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useScheduledJobs, useTriggerAction } from "@/hooks/useAdmin";
 import { useCurrentUser } from "@/hooks/useAuth";
-import { formatCronTrigger } from "@hously/shared";
+import { formatCronTrigger } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 
 type JobAction =

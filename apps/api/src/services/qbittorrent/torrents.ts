@@ -1,4 +1,4 @@
-import { QBITTORRENT_TORRENTS_PAGE_SIZE } from "@hously/shared";
+import { QBITTORRENT_TORRENTS_PAGE_SIZE } from "@hously/shared/endpoints";
 import {
   type QbittorrentPluginConfig,
   type QbittorrentDashboardTorrent,

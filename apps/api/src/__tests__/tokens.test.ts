@@ -3,7 +3,7 @@ import {
   generateOpaqueToken,
   hashOpaqueToken,
   opaqueTokenCandidates,
-} from "../utils/tokens";
+} from "@hously/api/utils/tokens";
 
 describe("generateOpaqueToken", () => {
   it("returns a non-empty string", () => {

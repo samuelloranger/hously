@@ -3,9 +3,9 @@
  * Runs daily at 8:00 PM
  */
 
-import { buildNotificationUrl } from "@hously/shared";
-import { prisma } from "../db";
-import { todayLocal, addDaysInTz, formatDateInTimezone } from "../utils";
+import { buildNotificationUrl } from "@hously/shared/utils";
+import { prisma } from "@hously/api/db";
+import { todayLocal, addDaysInTz, formatDateInTimezone } from "@hously/api/utils";
 import { isNightTime, createAndQueueNotification } from "./notificationService";
 
 /**

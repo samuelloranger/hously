@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
-import { formatIso } from "../../../utils";
-import { serverError } from "../../../errors";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
+import { formatIso } from "@hously/api/utils";
+import { serverError } from "@hously/api/errors";
 
 type ActivityRecord = {
   id: number;

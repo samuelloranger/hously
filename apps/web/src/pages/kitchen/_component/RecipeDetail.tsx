@@ -20,7 +20,7 @@ import {
   useRecipe,
   useToggleFavorite,
 } from "@/hooks/useRecipes";
-import { getRecipeImageUrl } from "@hously/shared";
+import { getRecipeImageUrl } from "@hously/shared/utils";
 import { EditRecipeModal } from "@/pages/kitchen/_component/EditRecipeModal";
 import { cn } from "@/lib/utils";
 import { useModalSearchParams } from "@/lib/routing/useModalSearchParams";

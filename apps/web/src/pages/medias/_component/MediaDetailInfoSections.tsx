@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import type { TmdbMediaDetailsResponse } from "@hously/shared";
+import type { TmdbMediaDetailsResponse } from "@hously/shared/types";
 import { ExternalLink } from "lucide-react";
 
 interface MediaDetailInfoSectionsProps {

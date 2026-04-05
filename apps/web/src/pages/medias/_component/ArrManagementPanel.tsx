@@ -5,7 +5,7 @@ import {
   useMediaDelete,
   useMediaRefresh,
 } from "@/hooks/useMedias";
-import { formatBytes } from "@hously/shared";
+import { formatBytes } from "@hously/shared/utils";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog } from "@/components/dialog";

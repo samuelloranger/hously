@@ -1,4 +1,4 @@
-import type { CalendarEvent } from "@hously/shared";
+import type { CalendarEvent } from "@hously/shared/types";
 import { TFunction } from "i18next";
 
 /**

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRemoveFromWatchlist, useWatchlist } from "@/hooks/useMedias";
-import { type WatchlistItem, type TmdbMediaSearchItem } from "@hously/shared";
+import { type WatchlistItem, type TmdbMediaSearchItem } from "@hously/shared/types";
 import { BookmarkX, Clapperboard } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";

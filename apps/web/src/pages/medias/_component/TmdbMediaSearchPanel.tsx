@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import { useMediaAutoSearch, useTmdbMediaSearch } from "@/hooks/useMedias";
-import { type TmdbMediaSearchItem } from "@hously/shared";
+import { type TmdbMediaSearchItem } from "@hously/shared/types";
 import { toast } from "sonner";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 

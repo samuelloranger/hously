@@ -3,7 +3,7 @@ import { scrapeTorr9 } from "./httpTorr9";
 import type {
   TrackerPluginConfig,
   TrackerType,
-} from "../../utils/plugins/types";
+} from "@hously/api/utils/plugins/types";
 import type { FlareSolverrSolution, HttpTrackerStats } from "./httpScraper";
 import { scrapeLaCale } from "./httpLaCale";
 

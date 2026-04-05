@@ -1,12 +1,12 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { prisma } from "../../../db";
-import { nowUtc } from "../../../utils";
-import { normalizeTmdbConfig } from "../../../utils/plugins/normalizers";
-import { encrypt } from "../../../services/crypto";
-import { logActivity } from "../../../utils/activityLogs";
-import { requireAdmin } from "../../../middleware/auth";
-import { badRequest, serverError } from "../../../errors";
+import { auth } from "@hously/api/auth";
+import { prisma } from "@hously/api/db";
+import { nowUtc } from "@hously/api/utils";
+import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
+import { encrypt } from "@hously/api/services/crypto";
+import { logActivity } from "@hously/api/utils/activityLogs";
+import { requireAdmin } from "@hously/api/middleware/auth";
+import { badRequest, serverError } from "@hously/api/errors";
 
 export const tmdbPluginRoutes = new Elysia()
   .use(auth)

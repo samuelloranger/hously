@@ -2,14 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearch } from "@tanstack/react-router";
 import { useMedias } from "@/hooks/useMedias";
-import {
-  filterAndSortMediaItems,
-  type MediaItem,
-  type MediaFilter,
-  type MediaSortKey as SortKey,
-  type MediaSortDir as SortDir,
-  type TmdbMediaSearchItem,
-} from "@hously/shared";
+import type { MediaItem, TmdbMediaSearchItem } from "@hously/shared/types";
+import type { MediaSortKey as SortKey, MediaSortDir as SortDir } from "@hously/shared/utils";
+import { filterAndSortMediaItems, type MediaFilter } from "@hously/shared/utils";
 import { EmptyState } from "@/components/EmptyState";
 import { MediaPosterCard } from "@/components/MediaPosterCard";
 import {

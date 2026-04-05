@@ -1,16 +1,16 @@
-import { prisma } from "../db";
-import { normalizeTrackerConfig } from "../utils/plugins/normalizers";
-import { cacheKey } from "../utils/dashboard/trackers";
-import { setJsonCache } from "../services/cache";
-import { TRACKER_SCRAPERS } from "../services/trackers";
-import type { TrackerType } from "../utils/plugins/types";
-import { logActivity } from "../utils/activityLogs";
-import { decrypt } from "../services/crypto";
-import { sendApnNotifications } from "../utils/apnPush";
+import { prisma } from "@hously/api/db";
+import { normalizeTrackerConfig } from "@hously/api/utils/plugins/normalizers";
+import { cacheKey } from "@hously/api/utils/dashboard/trackers";
+import { setJsonCache } from "@hously/api/services/cache";
+import { TRACKER_SCRAPERS } from "@hously/api/services/trackers";
+import type { TrackerType } from "@hously/api/utils/plugins/types";
+import { logActivity } from "@hously/api/utils/activityLogs";
+import { decrypt } from "@hously/api/services/crypto";
+import { sendApnNotifications } from "@hously/api/utils/apnPush";
 import type {
   FlareSolverrCookie,
   FlareSolverrSolution,
-} from "../services/trackers/httpScraper";
+} from "@hously/api/services/trackers/httpScraper";
 
 /** Runtime guard for the FlareSolverr JSON response. Throws on invalid shape. */
 function validateFlareSolverrResponse(

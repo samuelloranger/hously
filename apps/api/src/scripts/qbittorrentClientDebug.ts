@@ -1,13 +1,13 @@
-import { prisma } from "../db";
+import { prisma } from "@hously/api/db";
 import {
   getQbittorrentPluginConfig,
   invalidateQbittorrentPluginConfigCache,
-} from "../services/qbittorrent/config";
+} from "@hously/api/services/qbittorrent/config";
 import {
   fetchMaindata,
   qbFetchJson,
   resetMaindataState,
-} from "../services/qbittorrent/client";
+} from "@hously/api/services/qbittorrent/client";
 
 type Options = {
   iterations: number;

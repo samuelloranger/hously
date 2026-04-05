@@ -1,8 +1,8 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../auth";
-import { prisma } from "../../db";
-import { hashPassword, verifyPassword } from "../../utils/password";
-import { validatePassword } from "../../utils/validation";
+import { auth } from "@hously/api/auth";
+import { prisma } from "@hously/api/db";
+import { hashPassword, verifyPassword } from "@hously/api/utils/password";
+import { validatePassword } from "@hously/api/utils/validation";
 import {
   saveImageAndCreateThumbnail,
   deleteImageFiles,
@@ -10,16 +10,15 @@ import {
   isAllowedFile,
   getImage,
   getContentType,
-} from "../../services/imageService";
+} from "@hously/api/services/imageService";
 import {
   badRequest,
   notFound,
   serverError,
   unauthorized,
-} from "../../errors";
-import { mapUser } from "../../utils/mappers";
-import { validateImageMimeAndSize } from "@hously/shared";
-
+} from "@hously/api/errors";
+import { mapUser } from "@hously/api/utils/mappers";
+import { validateImageMimeAndSize } from "@hously/shared/utils";
 export const usersRoutes = new Elysia({ prefix: "/api/users" })
   .use(auth)
   // GET /api/users - List all users (for assignee pickers, etc.)

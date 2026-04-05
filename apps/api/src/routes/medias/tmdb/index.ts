@@ -1,14 +1,14 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
 import {
   normalizeRadarrConfig,
   normalizeSonarrConfig,
   normalizeTmdbConfig,
-} from "../../../utils/plugins/normalizers";
-import { getJsonCache, setJsonCache } from "../../../services/cache";
-import { badGateway, badRequest, serverError } from "../../../errors";
+} from "@hously/api/utils/plugins/normalizers";
+import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
+import { badGateway, badRequest, serverError } from "@hously/api/errors";
 import {
   type TmdbSearchItem,
   type ArrEntry,
@@ -20,7 +20,7 @@ import {
   toRecord,
   toStringOrNull,
   toNumberOrNull,
-} from "../../../utils/medias/mappers";
+} from "@hously/api/utils/medias/mappers";
 import {
   loadTmdbConfig,
   fetchTrailer,
@@ -29,7 +29,7 @@ import {
   emptyMediaDetails,
   fetchMediaDetails,
   fetchWatchProviders,
-} from "../../../utils/medias/tmdbFetchers";
+} from "@hously/api/utils/medias/tmdbFetchers";
 
 export const mediasTmdbRoutes = new Elysia()
   .use(auth)

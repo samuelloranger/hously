@@ -5,16 +5,8 @@ import {
   useReannounceQbittorrentTorrent,
   useResumeQbittorrentTorrent,
 } from "@/hooks/useDashboard";
-import {
-  formatBytes,
-  formatQbittorrentEta,
-  formatSpeed,
-  getQbittorrentProgressBarGradient,
-  getQbittorrentStatusDot,
-  hasQbittorrentTransferActivity,
-  isQbittorrentPausedState,
-  type QbittorrentTorrentListItem,
-} from "@hously/shared";
+import type { QbittorrentTorrentListItem } from "@hously/shared/types";
+import { formatBytes, formatQbittorrentEta, formatSpeed, getQbittorrentProgressBarGradient, getQbittorrentStatusDot, hasQbittorrentTransferActivity, isQbittorrentPausedState } from "@hously/shared/utils";
 import {
   Tag,
   Clock,
@@ -26,8 +18,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { formatRelativeTime, resolveDateFnsLocale } from "@hously/shared";
-
+import { formatRelativeTime, resolveDateFnsLocale } from "@hously/shared/utils";
 export function TorrentRow({
   torrent,
   isPinned,

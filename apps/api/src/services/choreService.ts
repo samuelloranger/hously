@@ -1,11 +1,7 @@
 import type { Chore } from "@prisma/client";
-import { prisma } from "../db";
-import { nowUtc } from "../utils";
-import {
-  computeNextRecurrenceDate,
-  type ChoreRecurrenceType,
-} from "@hously/shared";
-
+import { prisma } from "@hously/api/db";
+import { nowUtc } from "@hously/api/utils";
+import { computeNextRecurrenceDate, type ChoreRecurrenceType } from "@hously/shared/utils";
 export async function createNextChoreOccurrence(
   chore: Chore,
   completedAt: Date,

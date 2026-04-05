@@ -1,5 +1,5 @@
 import type { Job } from "bullmq";
-import { prisma } from "../../db";
+import { prisma } from "@hously/api/db";
 import { Prisma } from "@prisma/client";
 
 export interface ActivityLogJobData {

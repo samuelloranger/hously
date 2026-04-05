@@ -1,5 +1,5 @@
 import type { Page } from "playwright";
-import type { TrackerPluginConfig } from "../../utils/plugins/types";
+import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
 
 const TORR9_USERNAME_INPUT = 'form.space-y-5 input[name="username"]';
 const TORR9_PASSWORD_INPUT = 'form.space-y-5 input[name="password"]';

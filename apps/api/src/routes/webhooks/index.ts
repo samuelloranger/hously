@@ -1,10 +1,10 @@
 import { Elysia } from "elysia";
-import { prisma } from "../../db";
-import { webhookHandlers } from "../../services/webhookHandlers";
-import { enrichArrWebhookNotification } from "../../services/webhookEnrichment";
-import { sendExternalNotification } from "../../services/externalNotificationService";
-import { deleteCache } from "../../services/cache";
-import { badRequest, forbidden, notFound, serverError } from "../../errors";
+import { prisma } from "@hously/api/db";
+import { webhookHandlers } from "@hously/api/services/webhookHandlers";
+import { enrichArrWebhookNotification } from "@hously/api/services/webhookEnrichment";
+import { sendExternalNotification } from "@hously/api/services/externalNotificationService";
+import { deleteCache } from "@hously/api/services/cache";
+import { badRequest, forbidden, notFound, serverError } from "@hously/api/errors";
 
 export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
   // Read all webhook bodies as raw text to avoid Elysia's parser failing on

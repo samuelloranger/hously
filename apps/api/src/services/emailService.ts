@@ -1,9 +1,9 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { render } from "@react-email/render";
-import { getBaseUrl, getSmtpConfig } from "../config";
-import { InvitationEmail } from "../emails/InvitationEmail";
-import { PasswordResetEmail } from "../emails/PasswordResetEmail";
+import { getBaseUrl, getSmtpConfig } from "@hously/api/config";
+import { InvitationEmail } from "@hously/api/emails/InvitationEmail";
+import { PasswordResetEmail } from "@hously/api/emails/PasswordResetEmail";
 
 let transporter: Transporter | null = null;
 

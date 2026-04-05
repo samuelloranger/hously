@@ -1,16 +1,16 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../auth";
-import { prisma } from "../../db";
-import { generateServiceToken } from "../../services/externalNotificationService";
-import { requireAdmin } from "../../middleware/auth";
+import { auth } from "@hously/api/auth";
+import { prisma } from "@hously/api/db";
+import { generateServiceToken } from "@hously/api/services/externalNotificationService";
+import { requireAdmin } from "@hously/api/middleware/auth";
 import {
   badRequest,
   forbidden,
   notFound,
   serverError,
   unauthorized,
-} from "../../errors";
-import { getBaseUrl } from "../../config";
+} from "@hously/api/errors";
+import { getBaseUrl } from "@hously/api/config";
 
 export const externalNotificationsRoutes = new Elysia({
   prefix: "/api/external-notifications",

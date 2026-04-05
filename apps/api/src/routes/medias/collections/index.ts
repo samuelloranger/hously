@@ -1,15 +1,15 @@
 import { Elysia } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
-import { normalizeRadarrConfig } from "../../../utils/plugins/normalizers";
-import { serverError } from "../../../errors";
-import { fetchRadarrTmdbIds, buildArrItemUrl, type ArrEntry } from "../../../utils/medias/mappers";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
+import { normalizeRadarrConfig } from "@hously/api/utils/plugins/normalizers";
+import { serverError } from "@hously/api/errors";
+import { fetchRadarrTmdbIds, buildArrItemUrl, type ArrEntry } from "@hously/api/utils/medias/mappers";
 import {
   loadTmdbConfig,
   fetchMediaDetails,
   fetchCollectionDetails,
-} from "../../../utils/medias/tmdbFetchers";
+} from "@hously/api/utils/medias/tmdbFetchers";
 
 export const mediasCollectionsRoutes = new Elysia()
   .use(auth)

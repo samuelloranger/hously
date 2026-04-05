@@ -6,16 +6,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useCalendarEvents, useDeleteCustomEvent } from "@/hooks/useCalendar";
 import { useDashboardUpcoming } from "@/hooks/useDashboard";
-import {
-  formatDate,
-  parseDate,
-  sameDay,
-  sameMonth,
-  type CalendarEvent,
-  type CalendarEventCustomEventMetadata,
-  type DashboardUpcomingItem,
-  type TmdbMediaSearchItem,
-} from "@hously/shared";
+import type { CalendarEvent, CalendarEventCustomEventMetadata, DashboardUpcomingItem, TmdbMediaSearchItem } from "@hously/shared/types";
+import { formatDate, parseDate, sameDay, sameMonth } from "@hously/shared/utils";
 import { CreateCustomEventForm } from "@/pages/calendar/_component/CreateCustomEventForm";
 import { sortBy } from "lodash-es";
 import {

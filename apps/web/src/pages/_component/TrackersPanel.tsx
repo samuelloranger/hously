@@ -3,12 +3,7 @@ import {
   useDashboardLaCaleStats,
   useDashboardTorr9Stats,
 } from "@/hooks/usePlugins";
-import {
-  formatGo,
-  formatRatio,
-  formatRelativeTime,
-  resolveDateFnsLocale,
-} from "@hously/shared";
+import { formatGo, formatRatio, formatRelativeTime, resolveDateFnsLocale } from "@hously/shared/utils";
 import { useTranslation } from "react-i18next";
 import { ArrowUp, ArrowDown } from "lucide-react";
 

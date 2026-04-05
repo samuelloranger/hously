@@ -1,9 +1,9 @@
-import { getQbittorrentPluginConfig } from "../../services/qbittorrent/config";
+import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
 import {
   buildQbittorrentDisabledSnapshot,
   fetchQbittorrentSnapshot,
-} from "../../services/qbittorrent/torrents";
-import type { QbittorrentDashboardSnapshot } from "../../services/qbittorrent/client";
+} from "@hously/api/services/qbittorrent/torrents";
+import type { QbittorrentDashboardSnapshot } from "@hously/api/services/qbittorrent/client";
 
 export const getQbittorrentSnapshot =
   async (): Promise<QbittorrentDashboardSnapshot> => {

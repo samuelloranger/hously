@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar, type CalendarRange } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
-import { toDateTimeLocal, parseDate } from "@hously/shared";
+import { toDateTimeLocal, parseDate } from "@hously/shared/utils";
 import { useState } from "react";
 
 interface DateRangePickerProps {

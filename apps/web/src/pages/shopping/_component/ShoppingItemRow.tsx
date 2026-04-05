@@ -15,8 +15,8 @@ import {
   useDeleteShoppingItem,
   useUpdateShoppingItem,
 } from "@/hooks/useShopping";
-import { formatUsername, formatDate, type ShoppingItem } from "@hously/shared";
-
+import type { ShoppingItem } from "@hously/shared/types";
+import { formatUsername, formatDate } from "@hously/shared/utils";
 interface ShoppingItemRowProps {
   item: ShoppingItem;
   dragHandleProps?: {

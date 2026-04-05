@@ -1,5 +1,4 @@
-import type { ArrProfile } from "@hously/shared";
-
+import type { ArrProfile } from "@hously/shared/types";
 export const isValidHttpUrl = (value: string): boolean => {
   try {
     const parsed = new URL(value);

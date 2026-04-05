@@ -6,10 +6,8 @@ import {
   useDashboardAdguardSummary,
 } from "@/hooks/useDashboard";
 import { useSetAdguardProtection } from "@/hooks/usePlugins";
-import {
-  type DashboardBeszelSummaryResponse,
-  DASHBOARD_ENDPOINTS,
-} from "@hously/shared";
+import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
+import type { DashboardBeszelSummaryResponse } from "@hously/shared/types";
 import { useEventSourceState } from "@/hooks/useEventSourceState";
 import { useAuth } from "@/lib/auth/useAuth";
 import { ChevronDown, ChevronUp } from "lucide-react";

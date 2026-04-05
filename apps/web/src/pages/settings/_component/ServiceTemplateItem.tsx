@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import type { NotificationTemplate } from "@hously/shared";
-
+import type { NotificationTemplate } from "@hously/shared/types";
 interface ServiceTemplateItemProps {
   template: NotificationTemplate;
   eventType: string;

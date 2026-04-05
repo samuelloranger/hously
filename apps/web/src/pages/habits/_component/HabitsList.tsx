@@ -4,7 +4,7 @@ import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { useHabits, useDeleteHabit } from "@/hooks/useHabits";
-import { Habit } from "@hously/shared";
+import { Habit } from "@hously/shared/types";
 import { HouseLoader } from "@/components/HouseLoader";
 import { EmptyState } from "@/components/EmptyState";
 import { HabitCard } from "@/pages/habits/_component/HabitCard";

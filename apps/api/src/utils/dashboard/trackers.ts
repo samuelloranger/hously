@@ -1,4 +1,4 @@
-import type { TrackerType } from "../plugins/types";
+import type { TrackerType } from "@hously/api/utils/plugins/types";
 
 export type CachedTrackerStats = {
   uploaded_go: number | null;

@@ -1,5 +1,5 @@
 import type { Job } from "bullmq";
-import { SCHEDULED_JOB_NAMES } from "../queueService";
+import { SCHEDULED_JOB_NAMES } from "@hously/api/services/queueService";
 
 /**
  * Worker to process scheduled (repeatable) jobs and on-demand background tasks

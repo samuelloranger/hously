@@ -1,15 +1,15 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
-import { toPositiveInt } from "@hously/shared";
-import { mapJellyfinApiItem } from "../../../utils/dashboard/jellyfin";
-import { normalizeJellyfinConfig } from "../../../utils/plugins/normalizers";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
+import { toPositiveInt } from "@hously/shared/utils";
+import { mapJellyfinApiItem } from "@hously/api/utils/dashboard/jellyfin";
+import { normalizeJellyfinConfig } from "@hously/api/utils/plugins/normalizers";
 import {
   badGateway,
   notFound,
   serverError,
-} from "../../../errors";
+} from "@hously/api/errors";
 
 export const dashboardJellyfinRoutes = new Elysia()
   .use(auth)

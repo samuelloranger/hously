@@ -13,7 +13,7 @@ import type {
   WeatherPluginConfig,
   HomeAssistantPluginConfig,
 } from "./types";
-import { decrypt } from "../../services/crypto";
+import { decrypt } from "@hously/api/services/crypto";
 import { isValidHttpUrl } from "./utils";
 import { haDomainFromEntityId, normalizeHaBaseUrl } from "./homeAssistantUtils";
 

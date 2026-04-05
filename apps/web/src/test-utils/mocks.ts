@@ -1,11 +1,4 @@
-import type {
-  User,
-  ShoppingItem,
-  Chore,
-  Activity,
-  DashboardStats,
-} from "@hously/shared";
-
+import type { User, ShoppingItem, Chore, Activity, DashboardStats } from "@hously/shared/types";
 export const mockUser: User = {
   id: 1,
   email: "test@example.com",

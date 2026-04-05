@@ -1,16 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { CALENDAR_ENDPOINTS } from "@hously/shared";
-import type {
-  CalendarEventsResponse,
-  CustomEvent,
-  CreateCustomEventRequest,
-  UpdateCustomEventRequest,
-  ICalTokenResponse,
-  ICalTokenGenerateResponse,
-} from "@hously/shared";
-
+import { CALENDAR_ENDPOINTS } from "@hously/shared/endpoints";
+import type { CalendarEventsResponse, CustomEvent, CreateCustomEventRequest, UpdateCustomEventRequest, ICalTokenResponse, ICalTokenGenerateResponse } from "@hously/shared/types";
 export function useCalendarEvents(year?: number, month?: number) {
   const fetcher = useFetcher();
 

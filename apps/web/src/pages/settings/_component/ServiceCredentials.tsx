@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Check, Copy } from "lucide-react";
-import type { ExternalNotificationService } from "@hously/shared";
-
+import type { ExternalNotificationService } from "@hously/shared/types";
 interface ServiceCredentialsProps {
   service: ExternalNotificationService;
   isLoading: boolean;

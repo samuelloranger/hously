@@ -1,18 +1,18 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { prisma } from "../../../db";
-import { requireUser } from "../../../middleware/auth";
-import { normalizeHomeAssistantConfig } from "../../../utils/plugins/normalizers";
+import { auth } from "@hously/api/auth";
+import { prisma } from "@hously/api/db";
+import { requireUser } from "@hously/api/middleware/auth";
+import { normalizeHomeAssistantConfig } from "@hously/api/utils/plugins/normalizers";
 import {
   haCallService,
   haGetStatesForEntities,
-} from "../../../services/homeAssistant";
+} from "@hously/api/services/homeAssistant";
 import {
   haDomainFromEntityId,
   haServiceNameForAction,
   type HaAllowedDomain,
-} from "../../../utils/plugins/homeAssistantUtils";
-import { badRequest, serverError } from "../../../errors";
+} from "@hously/api/utils/plugins/homeAssistantUtils";
+import { badRequest, serverError } from "@hously/api/errors";
 
 function friendlyNameFromState(
   attributes: Record<string, unknown> | undefined,

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMissingCollections } from "@/hooks/useMedias";
-import { type CollectionMovieItem, type MediaCollection } from "@hously/shared";
+import { type CollectionMovieItem, type MediaCollection } from "@hously/shared/types";
 import { Check, Film } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";

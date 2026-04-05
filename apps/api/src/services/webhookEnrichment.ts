@@ -1,4 +1,4 @@
-import { buildNotificationUrl } from "@hously/shared";
+import { buildNotificationUrl } from "@hously/shared/utils";
 import { getQbittorrentPluginConfig } from "./qbittorrent/config";
 import { fetchQbittorrentTorrentTrackers } from "./qbittorrent/trackers";
 import { setQbittorrentTorrentTags } from "./qbittorrent/torrents";

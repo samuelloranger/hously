@@ -17,18 +17,8 @@ import {
   useProwlarrInteractiveDownload,
   useProwlarrInteractiveSearch,
 } from "@/hooks/useMedias";
-import {
-  formatBytes,
-  filterAndSortReleases,
-  normalizeFilterKey,
-  UNKNOWN_TRACKER_KEY,
-  UNKNOWN_LANGUAGE_KEY,
-  type InteractiveReleaseItem,
-  type MediaItem,
-  type InteractiveSortKey,
-  type InteractiveSortDir,
-} from "@hously/shared";
-
+import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
+import { formatBytes, filterAndSortReleases, normalizeFilterKey, UNKNOWN_TRACKER_KEY, UNKNOWN_LANGUAGE_KEY, type InteractiveSortKey, type InteractiveSortDir } from "@hously/shared/utils";
 export interface InteractiveSearchPanelProps {
   isActive: boolean;
   media?: MediaItem | null;

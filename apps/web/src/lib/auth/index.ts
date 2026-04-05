@@ -1,4 +1,5 @@
-import { AUTH_ENDPOINTS, type User } from "@hously/shared";
+import { AUTH_ENDPOINTS } from "@hously/shared/endpoints";
+import type { User } from "@hously/shared/types";
 import { getQueryClient, invalidateAuthCache } from "@/lib/api/queryClient";
 import { queryKeys } from "@/lib/queryKeys";
 import { webFetcher } from "@/lib/api/fetcher";

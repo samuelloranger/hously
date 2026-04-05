@@ -9,22 +9,9 @@ import {
 import { useJsonEventSource } from "@/hooks/useEventSource";
 import { useQbittorrentStatus } from "@/hooks/useQbittorrentStatus";
 import { queryKeys } from "@/lib/queryKeys";
-import {
-  DASHBOARD_ENDPOINTS,
-  QBITTORRENT_STATE_FILTERS,
-  QBITTORRENT_TORRENTS_PAGE_SIZE,
-  buildQbittorrentTorrentsStreamUrl,
-  countQbittorrentTorrentsByState,
-  filterAndSortQbittorrentTorrents,
-  formatSpeed,
-  getUniqueQbittorrentCategories,
-  getUniqueQbittorrentTags,
-  type DashboardQbittorrentStatusResponse,
-  type DashboardQbittorrentTorrentsResponse,
-  type QbittorrentSortDir,
-  type QbittorrentSortKey,
-  type QbittorrentStateFilter,
-} from "@hously/shared";
+import { DASHBOARD_ENDPOINTS, QBITTORRENT_TORRENTS_PAGE_SIZE, buildQbittorrentTorrentsStreamUrl } from "@hously/shared/endpoints";
+import type { DashboardQbittorrentStatusResponse, DashboardQbittorrentTorrentsResponse } from "@hously/shared/types";
+import { QBITTORRENT_STATE_FILTERS, countQbittorrentTorrentsByState, filterAndSortQbittorrentTorrents, formatSpeed, getUniqueQbittorrentCategories, getUniqueQbittorrentTags, type QbittorrentSortDir, type QbittorrentSortKey, type QbittorrentStateFilter } from "@hously/shared/utils";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";

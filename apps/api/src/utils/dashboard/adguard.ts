@@ -1,10 +1,10 @@
-import { prisma } from "../../db";
-import { normalizeAdguardConfig } from "../plugins/normalizers";
-import { toNumberOrNull, toRecord, toStringOrNull } from "@hously/shared";
+import { prisma } from "@hously/api/db";
+import { normalizeAdguardConfig } from "@hously/api/utils/plugins/normalizers";
+import { toNumberOrNull, toRecord, toStringOrNull } from "@hously/shared/utils";
 import type {
   DashboardAdguardSummaryResponse,
   DashboardAdguardTopEntry,
-} from "../../types/dashboardServices";
+} from "@hously/api/types/dashboardServices";
 
 const buildAdguardDisabledSummary = (
   error?: string,

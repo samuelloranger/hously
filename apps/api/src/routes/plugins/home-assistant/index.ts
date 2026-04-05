@@ -1,17 +1,17 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { prisma } from "../../../db";
-import { nowUtc } from "../../../utils";
-import { normalizeHomeAssistantConfig } from "../../../utils/plugins/normalizers";
-import { encrypt } from "../../../services/crypto";
+import { auth } from "@hously/api/auth";
+import { prisma } from "@hously/api/db";
+import { nowUtc } from "@hously/api/utils";
+import { normalizeHomeAssistantConfig } from "@hously/api/utils/plugins/normalizers";
+import { encrypt } from "@hously/api/services/crypto";
 import {
   assertValidHaBaseUrl,
   haListDiscoverableEntities,
-} from "../../../services/homeAssistant";
-import { haDomainFromEntityId } from "../../../utils/plugins/homeAssistantUtils";
-import { logActivity } from "../../../utils/activityLogs";
-import { requireAdmin } from "../../../middleware/auth";
-import { badRequest, serverError } from "../../../errors";
+} from "@hously/api/services/homeAssistant";
+import { haDomainFromEntityId } from "@hously/api/utils/plugins/homeAssistantUtils";
+import { logActivity } from "@hously/api/utils/activityLogs";
+import { requireAdmin } from "@hously/api/middleware/auth";
+import { badRequest, serverError } from "@hously/api/errors";
 
 export const homeAssistantPluginRoutes = new Elysia()
   .use(auth)

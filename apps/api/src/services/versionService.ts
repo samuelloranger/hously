@@ -4,11 +4,11 @@
 
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import { prisma } from "../db";
-import { logActivity } from "../utils/activityLogs";
+import { prisma } from "@hously/api/db";
+import { logActivity } from "@hously/api/utils/activityLogs";
 import { getJsonCache, setJsonCache } from "./cache";
 import { sendExternalNotification } from "./externalNotificationService";
-import { createAndQueueNotification } from "../workers/notificationService";
+import { createAndQueueNotification } from "@hously/api/workers/notificationService";
 
 const PACKAGE_VERSION = "1.0.0";
 const APP_VERSION_KEY = "hously:app_version";

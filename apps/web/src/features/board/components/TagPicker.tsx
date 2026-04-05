@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
-import type { BoardTag } from "@hously/shared";
+import type { BoardTag } from "@hously/shared/types";
 import { useCreateBoardTag } from "@/hooks/useBoardTags";
 import { cn } from "@/lib/utils";
 

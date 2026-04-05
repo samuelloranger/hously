@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { clearUser } from "@/lib/auth";
 import { useLogout } from "@/hooks/useAuth";
 import { useUpdateProfile } from "@/hooks/useUsers";
-import { formatDisplayName } from "@hously/shared";
+import { formatDisplayName } from "@hously/shared/utils";
 import { NotificationsMenu } from "@/components/NotificationsBell";
 import { UserMenu } from "@/components/UserMenu";
 import { Loader, LogOut, Search, Settings } from "lucide-react";

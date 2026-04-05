@@ -1,26 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import {
-  ADMIN_ENDPOINTS,
-  AUTH_ENDPOINTS,
-  CALENDAR_ENDPOINTS,
-  CHORES_ENDPOINTS,
-  DASHBOARD_ENDPOINTS,
-  QBITTORRENT_ENDPOINTS,
-  QBITTORRENT_TORRENTS_PAGE_SIZE,
-  EXTERNAL_NOTIFICATION_ENDPOINTS,
-  MEAL_PLAN_ENDPOINTS,
-  MEDIAS_ENDPOINTS,
-  NOTIFICATION_ENDPOINTS,
-  PLUGIN_ENDPOINTS,
-  RECIPES_ENDPOINTS,
-  SHOPPING_ENDPOINTS,
-  HABIT_ENDPOINTS,
-  BOARD_TASKS_ENDPOINTS,
-  type DashboardJellyfinLatestResponse,
-  type HomeAssistantWidgetResponse,
-  type UserResponse,
-} from "@hously/shared";
+import { ADMIN_ENDPOINTS, AUTH_ENDPOINTS, CALENDAR_ENDPOINTS, CHORES_ENDPOINTS, DASHBOARD_ENDPOINTS, QBITTORRENT_ENDPOINTS, QBITTORRENT_TORRENTS_PAGE_SIZE, EXTERNAL_NOTIFICATION_ENDPOINTS, MEAL_PLAN_ENDPOINTS, MEDIAS_ENDPOINTS, NOTIFICATION_ENDPOINTS, PLUGIN_ENDPOINTS, RECIPES_ENDPOINTS, SHOPPING_ENDPOINTS, HABIT_ENDPOINTS, BOARD_TASKS_ENDPOINTS } from "@hously/shared/endpoints";
+import type { DashboardJellyfinLatestResponse, HomeAssistantWidgetResponse, UserResponse } from "@hously/shared/types";
 import { webFetcher } from "@/lib/api/fetcher";
 
 /** Jellyfin shelf page size — must match `useDashboardJellyfinLatestInfinite` on the home page. */

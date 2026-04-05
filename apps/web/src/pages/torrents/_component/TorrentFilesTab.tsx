@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Edit2, Check, X as XIcon } from "lucide-react";
-import { formatBytes, type QbittorrentTorrentFile } from "@hously/shared";
-
+import type { QbittorrentTorrentFile } from "@hously/shared/types";
+import { formatBytes } from "@hously/shared/utils";
 interface TorrentFilesTabProps {
   isLoading: boolean;
   files: QbittorrentTorrentFile[] | undefined;

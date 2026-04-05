@@ -1,5 +1,5 @@
 import React from "react";
-import { ScheduleStatus } from "@hously/shared";
+import { ScheduleStatus } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 
 interface HabitProgressProps {

@@ -1,14 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { EXTERNAL_NOTIFICATION_ENDPOINTS } from "@hously/shared";
-import type {
-  LogsResponse,
-  ServiceResponse,
-  ServicesResponse,
-  TemplateResponse,
-} from "@hously/shared";
-
+import { EXTERNAL_NOTIFICATION_ENDPOINTS } from "@hously/shared/endpoints";
+import type { LogsResponse, ServiceResponse, ServicesResponse, TemplateResponse } from "@hously/shared/types";
 export function useExternalNotificationServices() {
   const fetcher = useFetcher();
   return useQuery({

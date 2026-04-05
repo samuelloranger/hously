@@ -3,9 +3,9 @@
  * Runs every 15 minutes
  */
 
-import { buildNotificationUrl } from "@hously/shared";
-import { prisma } from "../db";
-import { formatDateInTimezone, nowUtc, getTimezone } from "../utils";
+import { buildNotificationUrl } from "@hously/shared/utils";
+import { prisma } from "@hously/api/db";
+import { formatDateInTimezone, nowUtc, getTimezone } from "@hously/api/utils";
 import {
   isNightTime,
   createAndQueueNotification,

@@ -10,7 +10,8 @@ import {
 import { X, Search, Clock, Users, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateMealPlan } from "@/hooks/useRecipes";
-import { getRecipeImageUrl, type Recipe } from "@hously/shared";
+import type { Recipe } from "@hously/shared/types";
+import { getRecipeImageUrl } from "@hously/shared/utils";
 import { cn } from "@/lib/utils";
 
 interface AddMealModalProps {

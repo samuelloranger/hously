@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
-import { Habit, UpdateHabitRequest } from "@hously/shared";
+import { Habit, UpdateHabitRequest } from "@hously/shared/types";
 import { EmojiPicker } from "@/pages/habits/_component/EmojiPicker";
 import { ScheduleTimePicker } from "@/pages/habits/_component/ScheduleTimePicker";
 import {
