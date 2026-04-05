@@ -72,7 +72,6 @@ export interface ActivityDisplay {
 
 export interface DashboardStatsResponse {
   stats: DashboardStats;
-  activities: Activity[];
 }
 
 export interface DashboardActivityFeedResponse {

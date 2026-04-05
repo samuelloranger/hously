@@ -3,7 +3,7 @@
     "dashboard": "Accueil",
     "shopping": "Courses",
     "chores": "Tâches",
-    "board": "Tableau",
+    "board": "Kanban",
     "recipes": "Recettes",
     "kitchen": "Cuisine",
     "explore": "Découvrir",
@@ -666,7 +666,7 @@
     "unknown": "Inconnu"
   },
   "board": {
-    "title": "Tableau",
+    "title": "Kanban",
     "subtitle": "Tâches Kanban pour le foyer — glissez les cartes entre les colonnes.",
     "newTaskTitle": "Nouvelle tâche",
     "newTaskPlaceholder": "Qu'est-ce qu'il faut faire ?",
@@ -1964,7 +1964,7 @@
     "filters": "Filtres",
     "listView": "Liste",
     "gridView": "Grille",
-    "kanbanView": "Tableau",
+    "kanbanView": "Kanban",
     "clearFilters": "Effacer les filtres",
     "sortRatio": "Ratio",
     "sortSize": "Taille",
