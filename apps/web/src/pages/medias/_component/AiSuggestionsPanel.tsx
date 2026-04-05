@@ -5,7 +5,7 @@ import {
   useAiMediaSuggestionsConfig,
 } from "@/hooks/useMedias";
 import { HttpError } from "@/lib/api/httpClient";
-import { type TmdbMediaSearchItem } from "@hously/shared";
+import { type TmdbMediaSearchItem } from "@hously/shared/types";
 import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { ExploreCard } from "@/pages/medias/_component/ExploreCard";

@@ -1,6 +1,6 @@
 import { prisma } from "@hously/api/db";
 import { normalizeNetdataConfig } from "@hously/api/utils/plugins/normalizers";
-import { toNumberOrNull, toRecord } from "@hously/shared";
+import { toNumberOrNull, toRecord } from "@hously/shared/utils";
 import type {
   DashboardNetdataDiskUsage,
   DashboardNetdataSummaryResponse,

@@ -1,6 +1,6 @@
 import { prisma } from "@hously/api/db";
 import { normalizeScrutinyConfig } from "@hously/api/utils/plugins/normalizers";
-import { toNumberOrNull, toRecord, toStringOrNull } from "@hously/shared";
+import { toNumberOrNull, toRecord, toStringOrNull } from "@hously/shared/utils";
 import type {
   DashboardScrutinyDrive,
   DashboardScrutinySummaryResponse,

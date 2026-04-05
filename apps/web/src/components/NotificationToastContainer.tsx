@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import type { NotificationType } from "@hously/shared";
+import type { NotificationType } from "@hously/shared/types";
 import { NotificationMenuRow } from "@/components/NotificationMenuRow";
 import { openNotificationTarget } from "@/lib/notifications/navigation";
 

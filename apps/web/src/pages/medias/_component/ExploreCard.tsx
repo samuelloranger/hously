@@ -3,11 +3,8 @@ import { useTranslation } from "react-i18next";
 import { useAddUpcomingToArr } from "@/hooks/useDashboard";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import {
-  MEDIAS_ENDPOINTS,
-  type MediaModalDataResponse,
-  type TmdbMediaSearchItem,
-} from "@hously/shared";
+import { MEDIAS_ENDPOINTS } from "@hously/shared/endpoints";
+import type { MediaModalDataResponse, TmdbMediaSearchItem } from "@hously/shared/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Check } from "lucide-react";
 import { toast } from "sonner";

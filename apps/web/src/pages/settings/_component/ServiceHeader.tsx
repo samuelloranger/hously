@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import type { ExternalNotificationService } from "@hously/shared";
+import type { ExternalNotificationService } from "@hously/shared/types";
 import { ChevronDown } from "lucide-react";
 
 const SERVICE_ICON_SLUGS: Record<string, string> = {

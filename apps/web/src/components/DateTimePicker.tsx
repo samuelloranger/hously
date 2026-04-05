@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
-import { toDateTimeLocal } from "@hously/shared";
+import { toDateTimeLocal } from "@hously/shared/utils";
 import { useState } from "react";
 
 interface DateTimePickerProps {

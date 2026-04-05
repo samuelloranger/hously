@@ -8,7 +8,11 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./*": "./src/*.ts"
+    "./*": "./src/*.ts",
+    "./types": "./src/types/index.ts",
+    "./utils": "./src/utils/index.ts",
+    "./endpoints": "./src/endpoints/index.ts",
+    "./constants": "./src/constants/index.ts"
   },
   "scripts": {
     "test": "bun test",

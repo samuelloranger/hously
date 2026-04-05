@@ -1,10 +1,5 @@
 import { randomUUID } from "crypto";
-import type {
-  ArrManagementDetailsResponse,
-  ArrManagementFileInfo,
-  ArrManagementStatistics,
-  MediaItem,
-} from "@hously/shared";
+import type { ArrManagementDetailsResponse, ArrManagementFileInfo, ArrManagementStatistics, MediaItem } from "@hously/shared/types";
 import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 
 export type TmdbProvider = {

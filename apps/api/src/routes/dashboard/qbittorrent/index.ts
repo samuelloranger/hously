@@ -1,4 +1,4 @@
-import { QBITTORRENT_TORRENTS_PAGE_SIZE } from "@hously/shared";
+import { QBITTORRENT_TORRENTS_PAGE_SIZE } from "@hously/shared/endpoints";
 import { Elysia, t } from "elysia";
 import { Prisma } from "@prisma/client";
 import { createJsonSseResponse } from "@hously/api/utils/sse";

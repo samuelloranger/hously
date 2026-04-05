@@ -1,13 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { DASHBOARD_ENDPOINTS } from "@hously/shared";
-import type {
-  DashboardAdguardSummaryResponse,
-  DashboardScrutinySummaryResponse,
-  DashboardBeszelSummaryResponse,
-} from "@hously/shared";
-
+import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
+import type { DashboardAdguardSummaryResponse, DashboardScrutinySummaryResponse, DashboardBeszelSummaryResponse } from "@hously/shared/types";
 export function useDashboardScrutinySummary() {
   const fetcher = useFetcher();
 

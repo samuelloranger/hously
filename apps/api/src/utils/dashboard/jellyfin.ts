@@ -1,11 +1,5 @@
 import type { JellyfinLatestItem } from "@hously/api/types/jellyfin";
-import {
-  toRecord,
-  toStringArray,
-  toStringOrNull,
-  toYearOrNull,
-} from "@hously/shared";
-
+import { toRecord, toStringArray, toStringOrNull, toYearOrNull } from "@hously/shared/utils";
 export const mapJellyfinApiItem = (
   rawItem: unknown,
   jellyfinWebsiteUrl: string,

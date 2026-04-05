@@ -6,7 +6,7 @@ import {
   useMediaModalData,
   useRemoveFromWatchlist,
 } from "@/hooks/useMedias";
-import { type MediaItem, type TmdbMediaSearchItem } from "@hously/shared";
+import { type MediaItem, type TmdbMediaSearchItem } from "@hously/shared/types";
 import {
   Bookmark,
   BookmarkCheck,

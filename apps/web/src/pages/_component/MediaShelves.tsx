@@ -4,12 +4,8 @@ import {
   useDashboardJellyfinLatestInfinite,
   useDashboardUpcoming,
 } from "@/hooks/useDashboard";
-import {
-  formatRelativeTime,
-  resolveDateFnsLocale,
-  type DashboardUpcomingItem,
-  type TmdbMediaSearchItem,
-} from "@hously/shared";
+import type { DashboardUpcomingItem, TmdbMediaSearchItem } from "@hously/shared/types";
+import { formatRelativeTime, resolveDateFnsLocale } from "@hously/shared/utils";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 import { RefreshCw } from "lucide-react";
 

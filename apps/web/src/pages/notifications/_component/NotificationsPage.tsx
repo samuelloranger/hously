@@ -3,7 +3,7 @@ import {
   useInfiniteNotifications,
   useMarkAllAsReadOptimistic,
 } from "@/hooks/useNotifications";
-import { type Notification } from "@hously/shared";
+import { type Notification } from "@hously/shared/types";
 import { NotificationList } from "@/components/NotificationList";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";

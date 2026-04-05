@@ -1,8 +1,7 @@
 import { MessageSquare } from "lucide-react";
 import { useBoardTaskActivity } from "@/hooks/useBoardTasks";
 import { cn } from "@/lib/utils";
-import type { BoardTaskActivity } from "@hously/shared";
-
+import type { BoardTaskActivity } from "@hously/shared/types";
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);

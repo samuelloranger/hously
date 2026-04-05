@@ -3,7 +3,7 @@
  * Runs on a schedule; skips night hours (same window as other user notifications).
  */
 
-import { buildNotificationUrl } from "@hously/shared";
+import { buildNotificationUrl } from "@hously/shared/utils";
 import { prisma } from "@hously/api/db";
 import {
   fetchMediaDetails,

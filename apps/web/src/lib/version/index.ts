@@ -3,8 +3,7 @@
  */
 
 import { fetchApi } from "@/lib/api/client";
-import { SYSTEM_ENDPOINTS } from "@hously/shared";
-
+import { SYSTEM_ENDPOINTS } from "@hously/shared/endpoints";
 const VERSION_STORAGE_KEY = "hously_app_version";
 
 /**

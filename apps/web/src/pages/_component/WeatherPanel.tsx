@@ -13,7 +13,8 @@ import {
   Sun,
 } from "lucide-react";
 import { useDashboardWeather } from "@/hooks/useWeather";
-import { type WeatherData, getWeatherConditionKey } from "@hously/shared";
+import type { WeatherData } from "@hously/shared/types";
+import { getWeatherConditionKey } from "@hously/shared/utils";
 import { usePrefetchIntent } from "@/lib/routing/usePrefetchIntent";
 
 const toCelsius = (fahrenheit: number): number => (fahrenheit - 32) * (5 / 9);

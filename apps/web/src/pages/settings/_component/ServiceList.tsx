@@ -9,10 +9,7 @@ import {
   useToggleExternalNotificationTemplate,
 } from "@/hooks/useExternalNotifications";
 import { queryKeys } from "@/lib/queryKeys";
-import {
-  type ExternalNotificationService,
-  type NotificationTemplate,
-} from "@hously/shared";
+import { type ExternalNotificationService, type NotificationTemplate } from "@hously/shared/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { ServiceCard } from "@/pages/settings/_component/ServiceCard";
 

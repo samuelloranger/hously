@@ -1,7 +1,4 @@
-import type {
-  ExternalNotificationService,
-  NotificationTemplate,
-} from "@hously/shared";
+import type { ExternalNotificationService, NotificationTemplate } from "@hously/shared/types";
 import { ServiceToggle } from "@/pages/settings/_component/ServiceToggle";
 import { ServiceCredentials } from "@/pages/settings/_component/ServiceCredentials";
 import { ServiceTemplatesList } from "@/pages/settings/_component/ServiceTemplatesList";

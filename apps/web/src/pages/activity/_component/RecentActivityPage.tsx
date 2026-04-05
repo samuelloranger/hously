@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { ListItemSkeleton } from "@/components/Skeleton";
 import { useDashboardActivityFeed } from "@/hooks/useDashboard";
-import { resolveDateFnsLocale } from "@hously/shared";
+import { resolveDateFnsLocale } from "@hously/shared/utils";
 import {
   getActivityPresentation,
   getActivityServiceLabel,

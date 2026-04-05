@@ -6,12 +6,7 @@ import {
   useDashboardQbittorrentCategories,
   useDashboardQbittorrentTags,
 } from "@/hooks/useDashboard";
-import {
-  mergeQbittorrentFiles,
-  toOptionalQbittorrentString,
-  toOptionalQbittorrentTags,
-  toggleQbittorrentTagSelection,
-} from "@hously/shared";
+import { mergeQbittorrentFiles, toOptionalQbittorrentString, toOptionalQbittorrentTags, toggleQbittorrentTagSelection } from "@hously/shared/utils";
 import {
   ChevronDown,
   File,

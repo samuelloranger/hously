@@ -2,8 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, renderWithProviders } from "@/test-utils/render";
 import { fireEvent } from "@testing-library/react";
 import { TaskDrawer } from "@/features/board/components/TaskDrawer";
-import type { BoardTask } from "@hously/shared";
-
+import type { BoardTask } from "@hously/shared/types";
 // ── TipTap mock ──────────────────────────────────────────────────────────────
 vi.mock("@/components/ui/minimal-tiptap", () => ({
   MinimalTiptap: ({ content, placeholder }: any) => (

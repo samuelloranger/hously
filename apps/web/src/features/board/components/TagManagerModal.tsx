@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Pencil, Trash2, Check, Merge } from "lucide-react";
 import { Dialog } from "@/components/dialog";
 import { Button } from "@/components/ui/button";
-import type { BoardTagWithCount } from "@hously/shared";
+import type { BoardTagWithCount } from "@hously/shared/types";
 import {
   useBoardTags,
   useUpdateBoardTag,

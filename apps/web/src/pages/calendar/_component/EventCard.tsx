@@ -1,10 +1,5 @@
-import {
-  formatTime,
-  formatDateTime,
-  parseDate,
-  sameDay,
-  type CalendarEvent,
-} from "@hously/shared";
+import type { CalendarEvent } from "@hously/shared/types";
+import { formatTime, formatDateTime, parseDate, sameDay } from "@hously/shared/utils";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { Dialog } from "@/components/dialog";

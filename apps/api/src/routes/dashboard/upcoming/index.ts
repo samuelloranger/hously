@@ -16,7 +16,7 @@ import {
   normalizeSonarrConfig,
   normalizeTmdbConfig,
 } from "@hously/api/utils/plugins/normalizers";
-import { toRecord, toStringOrNull } from "@hously/shared";
+import { toRecord, toStringOrNull } from "@hously/shared/utils";
 import type { DashboardUpcomingItem } from "@hously/api/types/dashboardUpcoming";
 import {
   badGateway,

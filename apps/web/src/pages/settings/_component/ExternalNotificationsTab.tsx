@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { type NotificationTemplate } from "@hously/shared";
+import { type NotificationTemplate } from "@hously/shared/types";
 import { ServiceList } from "@/pages/settings/_component/ServiceList";
 import { ServicesLogsList } from "@/pages/settings/_component/ServicesLogsList";
 import { TemplateEditorModal } from "@/pages/settings/_component/TemplateEditorModal";

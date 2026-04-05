@@ -1,6 +1,7 @@
 import { Star, Clock, Users } from "lucide-react";
 import { useToggleFavorite } from "@/hooks/useRecipes";
-import { getRecipeImageUrl, type Recipe } from "@hously/shared";
+import type { Recipe } from "@hously/shared/types";
+import { getRecipeImageUrl } from "@hously/shared/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";

@@ -1,20 +1,7 @@
 import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 import { prisma } from "@hously/api/db";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
-import type {
-  TmdbCreator,
-  TmdbExternalIds,
-  TmdbGenre,
-  TmdbImageStill,
-  TmdbMediaDetailsResponse,
-  TmdbMediaStills,
-  TmdbNetwork,
-  TmdbNextEpisode,
-  TmdbProductionCompany,
-  TmdbProductionCountry,
-  TmdbSeasonSummary,
-  TmdbSpokenLanguage,
-} from "@hously/shared";
+import type { TmdbCreator, TmdbExternalIds, TmdbGenre, TmdbImageStill, TmdbMediaDetailsResponse, TmdbMediaStills, TmdbNetwork, TmdbNextEpisode, TmdbProductionCompany, TmdbProductionCountry, TmdbSeasonSummary, TmdbSpokenLanguage } from "@hously/shared/types";
 import {
   toNumberOrNull,
   toRecord,

@@ -18,8 +18,7 @@ import {
   unauthorized,
 } from "@hously/api/errors";
 import { mapUser } from "@hously/api/utils/mappers";
-import { validateImageMimeAndSize } from "@hously/shared";
-
+import { validateImageMimeAndSize } from "@hously/shared/utils";
 export const usersRoutes = new Elysia({ prefix: "/api/users" })
   .use(auth)
   // GET /api/users - List all users (for assignee pickers, etc.)

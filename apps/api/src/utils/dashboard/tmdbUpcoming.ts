@@ -1,5 +1,5 @@
 import { prisma } from "@hously/api/db";
-import { toRecord, toStringOrNull } from "@hously/shared";
+import { toRecord, toStringOrNull } from "@hously/shared/utils";
 import type {
   ArrPluginStatus,
   DashboardUpcomingItem,

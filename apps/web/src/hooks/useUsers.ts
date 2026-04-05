@@ -1,14 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { USERS_ENDPOINTS } from "@hously/shared";
-import type {
-  ChangePasswordRequest,
-  UpdateProfileRequest,
-  UserResponse,
-  UsersResponse,
-} from "@hously/shared";
-
+import { USERS_ENDPOINTS } from "@hously/shared/endpoints";
+import type { ChangePasswordRequest, UpdateProfileRequest, UserResponse, UsersResponse } from "@hously/shared/types";
 export function useUsers() {
   const fetcher = useFetcher();
 

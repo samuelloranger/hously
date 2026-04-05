@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
-import type { ExternalNotificationService } from "@hously/shared";
-
+import type { ExternalNotificationService } from "@hously/shared/types";
 interface ServiceNotifyAdminsOnlyProps {
   service: ExternalNotificationService;
   isLoading: boolean;

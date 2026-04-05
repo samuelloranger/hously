@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { normalizeNotificationUrl } from "@hously/shared";
+import { normalizeNotificationUrl } from "@hously/shared/utils";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import {

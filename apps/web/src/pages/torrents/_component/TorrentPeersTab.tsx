@@ -1,9 +1,6 @@
 import { useTranslation } from "react-i18next";
-import {
-  formatSpeed,
-  type DashboardQbittorrentTorrentPeersResponse,
-} from "@hously/shared";
-
+import type { DashboardQbittorrentTorrentPeersResponse } from "@hously/shared/types";
+import { formatSpeed } from "@hously/shared/utils";
 interface TorrentPeersTabProps {
   peersSnapshot: DashboardQbittorrentTorrentPeersResponse | null;
 }

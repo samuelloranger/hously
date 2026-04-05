@@ -7,7 +7,7 @@ import {
   normalizeSonarrConfig,
 } from "@hously/api/utils/plugins/normalizers";
 import { serverError } from "@hously/api/errors";
-import type { MediaItem } from "@hously/shared";
+import type { MediaItem } from "@hously/shared/types";
 import {
   mapRadarrMovie,
   mapSonarrSeries,

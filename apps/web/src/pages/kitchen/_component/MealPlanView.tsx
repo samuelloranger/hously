@@ -16,13 +16,8 @@ import {
   useMealPlans,
   useRecipes,
 } from "@/hooks/useRecipes";
-import {
-  formatDateOnly,
-  getRecipeImageUrl,
-  getWeekDates,
-  isToday,
-  type MealPlan,
-} from "@hously/shared";
+import type { MealPlan } from "@hously/shared/types";
+import { formatDateOnly, getRecipeImageUrl, getWeekDates, isToday } from "@hously/shared/utils";
 import { AddMealModal } from "@/pages/kitchen/_component/AddMealModal";
 import { cn } from "@/lib/utils";
 

@@ -3,15 +3,8 @@ import { useForm, useWatch, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useUpdateChore, useUploadChoreImage } from "@/hooks/useChores";
-import {
-  datetimeLocalToUTC,
-  formatUsername,
-  getChoreThumbnailUrl,
-  toDateTimeLocal,
-  tomorrow,
-  type Chore,
-  type ChoreUser,
-} from "@hously/shared";
+import type { Chore, ChoreUser } from "@hously/shared/types";
+import { datetimeLocalToUTC, formatUsername, getChoreThumbnailUrl, toDateTimeLocal, tomorrow } from "@hously/shared/utils";
 import { useNotifications } from "@/lib/notifications/useNotifications";
 import { DateTimePicker } from "@/components/DateTimePicker";
 import { MinimalTiptap } from "@/components/ui/minimal-tiptap";

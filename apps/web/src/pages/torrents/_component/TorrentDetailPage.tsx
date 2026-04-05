@@ -38,22 +38,9 @@ import {
 } from "@/hooks/useDashboard";
 import { useJsonEventSource } from "@/hooks/useEventSource";
 import { queryKeys } from "@/lib/queryKeys";
-import {
-  DASHBOARD_ENDPOINTS,
-  formatBytes,
-  formatQbittorrentEta,
-  formatSpeed,
-  getQbittorrentProgressBarGradient,
-  hasQbittorrentTransferActivity,
-  getQbittorrentStatusConfig,
-  getQbittorrentStreamSnapshot,
-  isQbittorrentPausedState,
-  toOptionalQbittorrentString,
-  type DashboardQbittorrentTorrentsResponse,
-  type DashboardQbittorrentTorrentFilesResponse,
-  type DashboardQbittorrentTorrentPeersResponse,
-  type DashboardQbittorrentTorrentStreamResponse,
-} from "@hously/shared";
+import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
+import type { DashboardQbittorrentTorrentsResponse, DashboardQbittorrentTorrentFilesResponse, DashboardQbittorrentTorrentPeersResponse, DashboardQbittorrentTorrentStreamResponse } from "@hously/shared/types";
+import { formatBytes, formatQbittorrentEta, formatSpeed, getQbittorrentProgressBarGradient, hasQbittorrentTransferActivity, getQbittorrentStatusConfig, getQbittorrentStreamSnapshot, isQbittorrentPausedState, toOptionalQbittorrentString } from "@hously/shared/utils";
 import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/dialog";

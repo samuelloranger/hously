@@ -1,5 +1,4 @@
-import { normalizeNotificationUrl } from "@hously/shared";
-
+import { normalizeNotificationUrl } from "@hously/shared/utils";
 function getNotificationTargetUrl(
   url: string | null | undefined,
   fallback = "/notifications",

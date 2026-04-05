@@ -80,8 +80,7 @@ vi.mock("@/hooks/useBoardTags", () => ({
 
 import { useBoardTasks } from "@/hooks/useBoardTasks";
 import { BoardView } from "@/features/board/BoardView";
-import type { BoardTask } from "@hously/shared";
-
+import type { BoardTask } from "@hously/shared/types";
 const makeMockTask = (overrides: Partial<BoardTask> = {}): BoardTask => ({
   id: 1,
   slug: "HSLY-001",

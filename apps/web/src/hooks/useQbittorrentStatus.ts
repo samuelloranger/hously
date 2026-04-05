@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { QBITTORRENT_ENDPOINTS } from "@hously/shared";
-import type { DashboardQbittorrentStatusResponse } from "@hously/shared";
-
+import { QBITTORRENT_ENDPOINTS } from "@hously/shared/endpoints";
+import type { DashboardQbittorrentStatusResponse } from "@hously/shared/types";
 /** Global qBittorrent status (connection, summary speeds, counts). Same data as the dashboard card. */
 export function useQbittorrentStatus() {
   const fetcher = useFetcher();

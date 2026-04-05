@@ -11,7 +11,7 @@ import {
   useDeleteWebPush,
 } from "@/hooks/useAdmin";
 import { useCurrentUser } from "@/hooks/useAuth";
-import { formatDateTime } from "@hously/shared";
+import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 
 function SectionCard({

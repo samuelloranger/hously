@@ -1,12 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { DASHBOARD_ENDPOINTS } from "@hously/shared";
-import type {
-  DashboardActivityFeedResponse,
-  DashboardStatsResponse,
-} from "@hously/shared";
-
+import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
+import type { DashboardActivityFeedResponse, DashboardStatsResponse } from "@hously/shared/types";
 export function useDashboardStats() {
   const fetcher = useFetcher();
 

@@ -1,5 +1,4 @@
-import type { TrackerType } from "@hously/shared";
-
+import type { TrackerType } from "@hously/shared/types";
 export const queryKeys = {
   auth: {
     all: ["auth"] as const,

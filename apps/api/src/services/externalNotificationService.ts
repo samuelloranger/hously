@@ -1,6 +1,6 @@
 import { prisma } from "@hously/api/db";
 import { createAndQueueNotification } from "@hously/api/workers/notificationService";
-import { getExternalNotificationUrl } from "@hously/shared";
+import { getExternalNotificationUrl } from "@hously/shared/utils";
 import { sendApnNotifications } from "@hously/api/utils/apnPush";
 
 /**

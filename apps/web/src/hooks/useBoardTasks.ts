@@ -1,19 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { BOARD_TASKS_ENDPOINTS } from "@hously/shared";
-import type {
-  ApiResult,
-  BoardTask,
-  BoardTasksResponse,
-  BoardTaskActivityResponse,
-  BoardTimeLogsResponse,
-  CreateBoardTaskRequest,
-  CreateTimeLogRequest,
-  SyncBoardTasksRequest,
-  UpdateBoardTaskRequest,
-} from "@hously/shared";
-
+import { BOARD_TASKS_ENDPOINTS } from "@hously/shared/endpoints";
+import type { ApiResult, BoardTask, BoardTasksResponse, BoardTaskActivityResponse, BoardTimeLogsResponse, CreateBoardTaskRequest, CreateTimeLogRequest, SyncBoardTasksRequest, UpdateBoardTaskRequest } from "@hously/shared/types";
 export function useBoardTasks() {
   const fetcher = useFetcher();
 
