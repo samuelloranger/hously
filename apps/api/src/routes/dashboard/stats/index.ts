@@ -46,7 +46,6 @@ export const dashboardStatsRoutes = new Elysia()
           chores_count: choresCount,
           habits_streak: habitsStreak,
         },
-        activities: [],
       };
     } catch (err) {
       console.error("Error getting dashboard stats:", err);

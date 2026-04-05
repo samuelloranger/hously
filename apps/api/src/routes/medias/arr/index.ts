@@ -14,7 +14,7 @@ import {
   mapRadarrManagementDetails,
   mapSonarrManagementDetails,
   isSonarrFullSeasonRelease,
-} from "../mappers";
+} from "../../../utils/medias/mappers";
 
 export const mediasArrRoutes = new Elysia()
   .use(auth)

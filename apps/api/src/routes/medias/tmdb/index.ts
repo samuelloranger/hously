@@ -20,7 +20,7 @@ import {
   toRecord,
   toStringOrNull,
   toNumberOrNull,
-} from "../mappers";
+} from "../../../utils/medias/mappers";
 import {
   loadTmdbConfig,
   fetchTrailer,
@@ -29,7 +29,7 @@ import {
   emptyMediaDetails,
   fetchMediaDetails,
   fetchWatchProviders,
-} from "../tmdbFetchers";
+} from "../../../utils/medias/tmdbFetchers";
 
 export const mediasTmdbRoutes = new Elysia()
   .use(auth)

@@ -1,6 +1,6 @@
 import { getJsonCache, setJsonCache } from "../../services/cache";
 import { prisma } from "../../db";
-import { normalizeTmdbConfig } from "../../utils/plugins/normalizers";
+import { normalizeTmdbConfig } from "../plugins/normalizers";
 import type {
   TmdbCreator,
   TmdbExternalIds,

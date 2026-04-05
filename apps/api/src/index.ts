@@ -15,7 +15,7 @@ import { customEventsRoutes } from "./routes/custom-events";
 import { dashboardRoutes } from "./routes/dashboard";
 import { externalNotificationsRoutes } from "./routes/external-notifications";
 import { habitsRoutes } from "./routes/habits";
-import { homeAssistantRoutes } from "./routes/home-assistant";
+import { homeAssistantRoutes } from "./routes/dashboard/home-assistant";
 import { mealPlansRoutes } from "./routes/meal-plans";
 import { mediasRoutes } from "./routes/medias";
 import { notificationsRoutes } from "./routes/notifications";

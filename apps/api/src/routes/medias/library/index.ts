@@ -14,7 +14,7 @@ import {
   fetchRadarrDownloadingMovieIds,
   fetchSonarrDownloadingSeriesIds,
   fetchSonarrSeriesReleaseTags,
-} from "../mappers";
+} from "../../../utils/medias/mappers";
 
 export const mediasLibraryRoutes = new Elysia()
   .use(auth)

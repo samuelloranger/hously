@@ -1,4 +1,4 @@
-import { todayLocal, toLocalDate } from "../../utils";
+import { todayLocal, toLocalDate } from "..";
 
 // Calculate recurring chore dates within a date range
 export interface ChoreData {

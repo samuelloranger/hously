@@ -32,7 +32,7 @@ import {
   getQbittorrentConfigOrError,
   getQbittorrentRid,
   validateQbittorrentUploadRequest,
-} from "./helpers";
+} from "../../../utils/qbittorrent/helpers";
 import { prisma } from "../../../db";
 
 type UserDashboardConfig = {

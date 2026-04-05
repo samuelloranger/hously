@@ -13,7 +13,7 @@ import {
   type InteractiveReleaseItem,
   mapProwlarrInteractiveRelease,
   takeProwlarrReleasePayload,
-} from "../mappers";
+} from "../../../utils/medias/mappers";
 
 export const mediasProwlarrRoutes = new Elysia()
   .use(auth)

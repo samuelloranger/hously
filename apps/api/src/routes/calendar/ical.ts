@@ -8,7 +8,7 @@ import {
   calculateRecurringCustomEventDates,
   type ChoreData,
   type CustomEventData,
-} from "./helpers";
+} from "../../utils/calendar/recurrence";
 import { requireUser } from "../../middleware/auth";
 import { unauthorized } from "../../errors";
 

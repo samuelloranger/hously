@@ -4,12 +4,12 @@ import { requireUser } from "../../../middleware/auth";
 import { prisma } from "../../../db";
 import { normalizeRadarrConfig } from "../../../utils/plugins/normalizers";
 import { serverError } from "../../../errors";
-import { fetchRadarrTmdbIds, buildArrItemUrl, type ArrEntry } from "../mappers";
+import { fetchRadarrTmdbIds, buildArrItemUrl, type ArrEntry } from "../../../utils/medias/mappers";
 import {
   loadTmdbConfig,
   fetchMediaDetails,
   fetchCollectionDetails,
-} from "../tmdbFetchers";
+} from "../../../utils/medias/tmdbFetchers";
 
 export const mediasCollectionsRoutes = new Elysia()
   .use(auth)

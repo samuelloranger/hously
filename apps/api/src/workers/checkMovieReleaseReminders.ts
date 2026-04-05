@@ -8,7 +8,7 @@ import { prisma } from "../db";
 import {
   fetchMediaDetails,
   loadTmdbConfig,
-} from "../routes/medias/tmdbFetchers";
+} from "../utils/medias/tmdbFetchers";
 import {
   addDaysInTz,
   formatDateInTimezone,

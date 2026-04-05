@@ -8,7 +8,9 @@ import { badRequest, serverError } from "../../errors";
 import {
   calculateRecurringChoreDates,
   calculateRecurringCustomEventDates,
-} from "./helpers";
+  type ChoreData,
+  type CustomEventData,
+} from "../../utils/calendar/recurrence";
 
 export const calendarEventsRoutes = new Elysia()
   .use(auth)
@@ -139,26 +141,50 @@ export const calendarEventsRoutes = new Elysia()
           },
         });
 
+        // Batch-fetch active reminders for all recurring chores
+        const recurringChoreIds = recurringChores.map((c) => c.id);
+        const activeRemindersForRecurring =
+          recurringChoreIds.length > 0
+            ? await prisma.reminder.findMany({
+                where: {
+                  choreId: { in: recurringChoreIds },
+                  active: true,
+                },
+                orderBy: { reminderDatetime: "asc" },
+                select: {
+                  choreId: true,
+                  reminderDatetime: true,
+                },
+              })
+            : [];
+
+        // Group by choreId, keeping only the first (earliest) reminder per chore
+        const firstReminderByChoreId = new Map<
+          number,
+          { reminderDatetime: Date }
+        >();
+        for (const r of activeRemindersForRecurring) {
+          if (!firstReminderByChoreId.has(r.choreId)) {
+            firstReminderByChoreId.set(r.choreId, r);
+          }
+        }
+
         for (const chore of recurringChores) {
-          // Get the active reminder if it exists
-          const activeReminder = await prisma.reminder.findMany({
-            where: {
-              choreId: chore.id,
-              active: true,
-            },
-            orderBy: { reminderDatetime: "asc" },
-            take: 1,
-            select: {
-              id: true,
-              reminderDatetime: true,
-            },
-          });
+          const choreData: ChoreData = {
+            ...chore,
+            recurrenceOriginalCreatedAt:
+              chore.recurrenceOriginalCreatedAt?.toISOString() ?? null,
+            completedAt: chore.completedAt?.toISOString() ?? null,
+            createdAt: chore.createdAt?.toISOString() ?? null,
+          };
 
           const recurringDates = calculateRecurringChoreDates(
-            chore as any,
+            choreData,
             startDate,
             endDate,
           );
+
+          const activeReminder = firstReminderByChoreId.get(chore.id);
 
           for (const recurringDate of recurringDates) {
             const metadata: Record<string, unknown> = {
@@ -169,9 +195,9 @@ export const calendarEventsRoutes = new Elysia()
               assigned_to: chore.assignedTo,
             };
 
-            if (activeReminder.length > 0) {
+            if (activeReminder) {
               metadata.reminder_datetime = formatIso(
-                activeReminder[0].reminderDatetime,
+                activeReminder.reminderDatetime,
               );
             }
 
@@ -192,10 +218,24 @@ export const calendarEventsRoutes = new Elysia()
         });
 
         for (const event of userCustomEvents) {
+          const eventData: CustomEventData = {
+            id: event.id,
+            title: event.title,
+            description: event.description,
+            startDatetime: event.startDatetime.toISOString(),
+            endDatetime: event.endDatetime.toISOString(),
+            allDay: event.allDay,
+            color: event.color,
+            recurrenceType: event.recurrenceType,
+            recurrenceIntervalDays: event.recurrenceIntervalDays,
+            recurrenceOriginalCreatedAt:
+              event.recurrenceOriginalCreatedAt?.toISOString() ?? null,
+          };
+
           if (event.recurrenceType) {
             // Handle recurring events
             const recurringOccurrences = calculateRecurringCustomEventDates(
-              event as any,
+              eventData,
               startDate,
               endDate,
             );

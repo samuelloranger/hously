@@ -15,8 +15,8 @@ import {
   fetchSonarrTmdbIds,
   buildArrItemUrl,
   toRecord,
-} from "../mappers";
-import { loadTmdbConfig } from "../tmdbFetchers";
+} from "../../../utils/medias/mappers";
+import { loadTmdbConfig } from "../../../utils/medias/tmdbFetchers";
 
 type Candidate = {
   tmdb_id: number;
