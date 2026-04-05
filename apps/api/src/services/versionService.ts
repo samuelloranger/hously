@@ -8,7 +8,7 @@ import { prisma } from "../db";
 import { logActivity } from "../utils/activityLogs";
 import { getJsonCache, setJsonCache } from "./cache";
 import { sendExternalNotification } from "./externalNotificationService";
-import { createAndQueueNotification } from "../jobs/notificationService";
+import { createAndQueueNotification } from "../workers/notificationService";
 
 const PACKAGE_VERSION = "1.0.0";
 const APP_VERSION_KEY = "hously:app_version";

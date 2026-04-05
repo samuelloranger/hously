@@ -5,37 +5,27 @@ import { staticPlugin } from "@elysiajs/static";
 import { cors } from "@elysiajs/cors";
 import { checkAndNotifyVersionChange } from "./services/versionService";
 import { auth } from "./auth";
-import { dashboardRoutes } from "./routes/dashboard/index";
-import { usersRoutes } from "./routes/users";
-import { notificationsRoutes } from "./routes/notifications";
-import { webhooksRoutes } from "./routes/webhooks";
-import { externalNotificationsRoutes } from "./routes/externalNotifications";
-import { choresRoutes } from "./routes/chores";
-import { shoppingRoutes } from "./routes/shopping";
-import { calendarRoutes } from "./routes/calendar";
-import { icalFeedRoutes } from "./routes/icalFeed";
-import { customEventsRoutes } from "./routes/customEvents";
-import { mealPlansRoutes } from "./routes/mealPlans";
-import { recipesRoutes } from "./routes/recipes";
-import { remindersRoutes } from "./routes/reminders";
 import { adminRoutes } from "./routes/admin";
 import { analyticsRoutes } from "./routes/analytics";
-import { trackerPluginsRoutes } from "./routes/plugins/trackerPlugins";
-import { mediaPluginsRoutes } from "./routes/plugins/mediaPlugins";
-import { monitoringPluginsRoutes } from "./routes/plugins/monitoringPlugins";
-import { dashboardPluginsRoutes } from "./routes/plugins/dashboardPlugins";
-import { homeAssistantRoutes } from "./routes/homeAssistant";
-import { mediasLibraryRoutes } from "./routes/medias/library";
-import { mediasTmdbRoutes } from "./routes/medias/tmdb";
-import { mediasProwlarrRoutes } from "./routes/medias/prowlarr";
-import { mediasArrRoutes } from "./routes/medias/arr";
-import { mediasWatchlistRoutes } from "./routes/medias/watchlist";
-import { mediasCollectionsRoutes } from "./routes/medias/collections";
-import { mediasAiSuggestionsRoutes } from "./routes/medias/aiSuggestions";
+import { boardTagsRoutes } from "./routes/board-tags";
+import { boardTasksRoutes } from "./routes/board-tasks";
+import { calendarRoutes } from "./routes/calendar";
+import { choresRoutes } from "./routes/chores";
+import { customEventsRoutes } from "./routes/custom-events";
+import { dashboardRoutes } from "./routes/dashboard";
+import { externalNotificationsRoutes } from "./routes/external-notifications";
 import { habitsRoutes } from "./routes/habits";
-import { boardTasksRoutes } from "./routes/boardTasks";
-import { boardTagsRoutes } from "./routes/boardTags";
+import { homeAssistantRoutes } from "./routes/home-assistant";
+import { mealPlansRoutes } from "./routes/meal-plans";
+import { mediasRoutes } from "./routes/medias";
+import { notificationsRoutes } from "./routes/notifications";
+import { pluginsRoutes } from "./routes/plugins";
+import { recipesRoutes } from "./routes/recipes";
+import { remindersRoutes } from "./routes/reminders";
+import { shoppingRoutes } from "./routes/shopping";
 import { systemRoutes } from "./routes/system";
+import { usersRoutes } from "./routes/users";
+import { webhooksRoutes } from "./routes/webhooks";
 import { globalRateLimit } from "./middleware/rateLimit";
 import { initWorkers, setupScheduledJobs } from "./services/queueService";
 
@@ -82,7 +72,6 @@ export const app = new Elysia()
   .use(externalNotificationsRoutes)
   .use(choresRoutes)
   .use(shoppingRoutes)
-  .use(icalFeedRoutes)
   .use(calendarRoutes)
   .use(customEventsRoutes)
   .use(mealPlansRoutes)
@@ -90,18 +79,9 @@ export const app = new Elysia()
   .use(remindersRoutes)
   .use(adminRoutes)
   .use(analyticsRoutes)
-  .use(trackerPluginsRoutes)
-  .use(mediaPluginsRoutes)
-  .use(monitoringPluginsRoutes)
-  .use(dashboardPluginsRoutes)
+  .use(pluginsRoutes)
   .use(homeAssistantRoutes)
-  .use(mediasLibraryRoutes)
-  .use(mediasTmdbRoutes)
-  .use(mediasProwlarrRoutes)
-  .use(mediasArrRoutes)
-  .use(mediasWatchlistRoutes)
-  .use(mediasCollectionsRoutes)
-  .use(mediasAiSuggestionsRoutes)
+  .use(mediasRoutes)
   .use(habitsRoutes)
   .use(boardTasksRoutes)
   .use(boardTagsRoutes)

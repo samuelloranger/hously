@@ -1,5 +1,5 @@
 import { prisma } from "../db";
-import { createAndQueueNotification } from "../jobs/notificationService";
+import { createAndQueueNotification } from "../workers/notificationService";
 import { getExternalNotificationUrl } from "@hously/shared";
 import { sendApnNotifications } from "../utils/apnPush";
 

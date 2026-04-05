@@ -12,25 +12,25 @@ export async function processScheduledJob(job: Job) {
     switch (job.name) {
       case SCHEDULED_JOB_NAMES.CHECK_REMINDERS: {
         const { checkAndSendReminders } =
-          await import("../../jobs/checkReminders");
+          await import("../../workers/checkReminders");
         await checkAndSendReminders();
         break;
       }
       case SCHEDULED_JOB_NAMES.CHECK_ALL_DAY_EVENTS: {
         const { checkAndSendAllDayEventNotifications } =
-          await import("../../jobs/checkAllDayEvents");
+          await import("../../workers/checkAllDayEvents");
         await checkAndSendAllDayEventNotifications();
         break;
       }
       case SCHEDULED_JOB_NAMES.CLEANUP_NOTIFICATIONS: {
         const { cleanupOldNotifications } =
-          await import("../../jobs/cleanupNotifications");
+          await import("../../workers/cleanupNotifications");
         await cleanupOldNotifications();
         break;
       }
       case SCHEDULED_JOB_NAMES.FETCH_TRACKER_STATS: {
         const { fetchAllTrackerStats, fetchTrackerStats } =
-          await import("../../jobs/fetchTrackerStats");
+          await import("../../workers/fetchTrackerStats");
         const { type } = job.data as { type?: string };
         if (type) {
           await fetchTrackerStats(type as any, { trigger: "queue" });
@@ -41,36 +41,36 @@ export async function processScheduledJob(job: Job) {
       }
       case SCHEDULED_JOB_NAMES.FETCH_C411_STATS: {
         const { fetchTrackerStats } =
-          await import("../../jobs/fetchTrackerStats");
+          await import("../../workers/fetchTrackerStats");
         await fetchTrackerStats("c411", { trigger: "queue" });
         break;
       }
       case SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS: {
         const { fetchTrackerStats } =
-          await import("../../jobs/fetchTrackerStats");
+          await import("../../workers/fetchTrackerStats");
         await fetchTrackerStats("torr9", { trigger: "queue" });
         break;
       }
       case SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS: {
         const { fetchTrackerStats } =
-          await import("../../jobs/fetchTrackerStats");
+          await import("../../workers/fetchTrackerStats");
         await fetchTrackerStats("la-cale", { trigger: "queue" });
         break;
       }
       case SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS: {
         const { checkHabitReminders } =
-          await import("../../jobs/checkHabitReminders");
+          await import("../../workers/checkHabitReminders");
         await checkHabitReminders();
         break;
       }
       case SCHEDULED_JOB_NAMES.REFRESH_UPCOMING: {
-        const { refreshUpcoming } = await import("../../jobs/refreshUpcoming");
+        const { refreshUpcoming } = await import("../../workers/refreshUpcoming");
         await refreshUpcoming({ trigger: "queue" });
         break;
       }
       case SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAKS: {
         const { refreshHabitsStreaks } =
-          await import("../../jobs/refreshHabitsStreaks");
+          await import("../../workers/refreshHabitsStreaks");
         await refreshHabitsStreaks({ trigger: "queue" });
         break;
       }
@@ -83,7 +83,7 @@ export async function processScheduledJob(job: Job) {
       }
       case SCHEDULED_JOB_NAMES.CHECK_MOVIE_RELEASE_REMINDERS: {
         const { checkMovieReleaseReminders } =
-          await import("../../jobs/checkMovieReleaseReminders");
+          await import("../../workers/checkMovieReleaseReminders");
         await checkMovieReleaseReminders();
         break;
       }
