@@ -32,8 +32,6 @@ const SERVICE_LABEL_KEYS: Record<string, string> = {
   prowlarr: "dashboard.activityPage.services.prowlarr",
   radarr: "dashboard.activityPage.services.radarr",
   sonarr: "dashboard.activityPage.services.sonarr",
-  reddit: "dashboard.activityPage.services.reddit",
-  hackernews: "dashboard.activityPage.services.hackernews",
   c411: "dashboard.activityPage.services.c411",
   torr9: "dashboard.activityPage.services.torr9",
   "la-cale": "dashboard.activityPage.services.laCale",

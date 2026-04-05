@@ -3,8 +3,6 @@ import { weatherPluginRoutes } from "./weather";
 import { tmdbPluginRoutes } from "./tmdb";
 import { ollamaPluginRoutes } from "./ollama";
 import { qbittorrentPluginRoutes } from "./qbittorrent";
-import { hackernewsPluginRoutes } from "./hackernews";
-import { redditPluginRoutes } from "./reddit";
 import { homeAssistantPluginRoutes } from "./home-assistant";
 import { jellyfinPluginRoutes } from "./jellyfin";
 import { prowlarrPluginRoutes } from "./prowlarr";
@@ -20,8 +18,6 @@ export const pluginsRoutes = new Elysia({ prefix: "/api/plugins" })
   .use(tmdbPluginRoutes)
   .use(ollamaPluginRoutes)
   .use(qbittorrentPluginRoutes)
-  .use(hackernewsPluginRoutes)
-  .use(redditPluginRoutes)
   .use(homeAssistantPluginRoutes)
   .use(jellyfinPluginRoutes)
   .use(prowlarrPluginRoutes)

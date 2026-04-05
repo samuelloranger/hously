@@ -8,8 +8,6 @@ import { dashboardTrackersRoutes } from "./trackers";
 import { dashboardScrutinyRoutes } from "./scrutiny";
 import { dashboardSystemRoutes } from "./system";
 import { dashboardAdguardRoutes } from "./adguard";
-import { dashboardHackernewsRoutes } from "./hackernews";
-import { dashboardRedditRoutes } from "./reddit";
 import { dashboardQbittorrentRoutes } from "./qbittorrent";
 
 export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
@@ -22,6 +20,4 @@ export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(dashboardScrutinyRoutes)
   .use(dashboardSystemRoutes)
   .use(dashboardAdguardRoutes)
-  .use(dashboardHackernewsRoutes)
-  .use(dashboardRedditRoutes)
   .use(dashboardQbittorrentRoutes);
