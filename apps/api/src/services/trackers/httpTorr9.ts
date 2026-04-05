@@ -1,4 +1,4 @@
-import type { TrackerPluginConfig } from "../../utils/plugins/types";
+import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
 import type { FlareSolverrSolution, HttpTrackerStats } from "./httpScraper";
 
 /**

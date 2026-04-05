@@ -1,6 +1,6 @@
-import { getJsonCache, setJsonCache } from "../../services/cache";
-import { prisma } from "../../db";
-import { normalizeTmdbConfig } from "../plugins/normalizers";
+import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
+import { prisma } from "@hously/api/db";
+import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import type {
   TmdbCreator,
   TmdbExternalIds,

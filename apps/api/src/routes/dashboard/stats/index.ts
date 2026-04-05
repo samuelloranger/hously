@@ -1,10 +1,10 @@
 import { Elysia } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
-import { todayLocal } from "../../../utils";
-import { getCachedHabitsStreak } from "../../../utils/dashboard/habitsStreak";
-import { serverError } from "../../../errors";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
+import { todayLocal } from "@hously/api/utils";
+import { getCachedHabitsStreak } from "@hously/api/utils/dashboard/habitsStreak";
+import { serverError } from "@hously/api/errors";
 
 export const dashboardStatsRoutes = new Elysia()
   .use(auth)

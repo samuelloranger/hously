@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { parseNumber } from "../services/trackers/utils";
+import { parseNumber } from "@hously/api/services/trackers/utils";
 
 describe("parseNumber", () => {
   it("parses integers", () => {

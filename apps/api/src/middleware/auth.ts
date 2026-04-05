@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { auth } from "../auth";
+import { auth } from "@hously/api/auth";
 
 /**
  * Middleware that requires an authenticated user.

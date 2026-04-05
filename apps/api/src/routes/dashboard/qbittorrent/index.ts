@@ -1,9 +1,9 @@
 import { QBITTORRENT_TORRENTS_PAGE_SIZE } from "@hously/shared";
 import { Elysia, t } from "elysia";
 import { Prisma } from "@prisma/client";
-import { createJsonSseResponse } from "../../../utils/sse";
-import { getQbittorrentSnapshot } from "../../../utils/dashboard/qbittorrent";
-import { createPollerSseResponse } from "../../../services/qbittorrentPoller";
+import { createJsonSseResponse } from "@hously/api/utils/sse";
+import { getQbittorrentSnapshot } from "@hously/api/utils/dashboard/qbittorrent";
+import { createPollerSseResponse } from "@hously/api/services/qbittorrentPoller";
 import {
   addQbittorrentMagnet,
   addQbittorrentTorrentFile,
@@ -22,9 +22,9 @@ import {
   reannounceQbittorrentTorrent,
   setQbittorrentTorrentCategory,
   setQbittorrentTorrentTags,
-} from "../../../services/qbittorrent/torrents";
-import { fetchQbittorrentTorrentTrackers } from "../../../services/qbittorrent/trackers";
-import { badRequest, serverError, unauthorized } from "../../../errors";
+} from "@hously/api/services/qbittorrent/torrents";
+import { fetchQbittorrentTorrentTrackers } from "@hously/api/services/qbittorrent/trackers";
+import { badRequest, serverError, unauthorized } from "@hously/api/errors";
 import {
   applyQbittorrentFetchStatus,
   applyQbittorrentMutationStatus,
@@ -32,8 +32,8 @@ import {
   getQbittorrentConfigOrError,
   getQbittorrentRid,
   validateQbittorrentUploadRequest,
-} from "../../../utils/qbittorrent/helpers";
-import { prisma } from "../../../db";
+} from "@hously/api/utils/qbittorrent/helpers";
+import { prisma } from "@hously/api/db";
 
 type UserDashboardConfig = {
   pinned_qbittorrent_hash?: string | null;

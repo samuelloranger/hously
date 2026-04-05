@@ -1,39 +1,39 @@
 import { Elysia, t } from "elysia";
 import type { Chore, Reminder } from "@prisma/client";
-import { prisma } from "../../db";
-import { auth } from "../../auth";
-import { requireUser } from "../../middleware/auth";
+import { prisma } from "@hously/api/db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
 import {
   saveImageAndCreateThumbnail,
   deleteImageFiles,
   getImage,
   getThumbnail,
   getContentType,
-} from "../../services/imageService";
+} from "@hously/api/services/imageService";
 import {
   formatIso,
   nowUtc,
   sanitizeInput,
   buildUserMap,
   validateImageFile,
-} from "../../utils";
+} from "@hously/api/utils";
 import {
   createNextChoreOccurrence,
   removeChoreRecurrence,
-} from "../../services/choreService";
+} from "@hously/api/services/choreService";
 import {
   addJob,
   QUEUE_NAMES,
   NOTIFICATION_JOB_NAMES,
-} from "../../services/queueService";
+} from "@hously/api/services/queueService";
 import {
   badRequest,
   forbidden,
   notFound,
   serverError,
   unauthorized,
-} from "../../errors";
-import { hasUpdates } from "../../utils/updates";
+} from "@hously/api/errors";
+import { hasUpdates } from "@hously/api/utils/updates";
 
 type ChoreUser = { firstName: string | null; email: string } | null;
 

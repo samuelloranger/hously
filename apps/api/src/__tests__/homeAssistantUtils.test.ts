@@ -3,7 +3,7 @@ import {
   haDomainFromEntityId,
   haServiceNameForAction,
   normalizeHaBaseUrl,
-} from "../utils/plugins/homeAssistantUtils";
+} from "@hously/api/utils/plugins/homeAssistantUtils";
 
 describe("homeAssistantUtils", () => {
   it("normalizes base URL", () => {

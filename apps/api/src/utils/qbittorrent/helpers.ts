@@ -1,11 +1,11 @@
-import { getQbittorrentPluginConfig } from "../../services/qbittorrent/config";
+import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
 import {
   isValidQbittorrentUploadFile,
   normalizeQbittorrentUploadTags,
   parseQbittorrentRid,
   toQbittorrentFileList,
 } from "@hously/shared";
-import { badRequest } from "../../errors";
+import { badRequest } from "@hously/api/errors";
 
 const QBITTORRENT_CONFIG_ERROR =
   "qBittorrent plugin is disabled or not configured";

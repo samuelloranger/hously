@@ -1,8 +1,8 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
-import { badRequest, serverError } from "../../../errors";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
+import { badRequest, serverError } from "@hously/api/errors";
 
 function parseYmdToDbDate(ymd: string | null | undefined): Date | null {
   if (ymd == null || ymd === "") return null;

@@ -1,4 +1,4 @@
-import { prisma } from "../../db";
+import { prisma } from "@hously/api/db";
 
 type QbittorrentRequestLogInput = {
   method: string;

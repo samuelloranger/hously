@@ -1,4 +1,4 @@
-import type { JellyfinLatestItem } from "../../types/jellyfin";
+import type { JellyfinLatestItem } from "@hously/api/types/jellyfin";
 import {
   toRecord,
   toStringArray,

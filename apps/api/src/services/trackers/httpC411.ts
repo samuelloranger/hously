@@ -1,5 +1,5 @@
 import { parse } from "node-html-parser";
-import type { TrackerPluginConfig } from "../../utils/plugins/types";
+import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
 import {
   CookieJar,
   httpFetch,

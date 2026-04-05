@@ -10,7 +10,7 @@ import {
   isS3Configured,
   getS3DirectUrl,
 } from "./s3Service";
-import { getBaseUrl } from "../config";
+import { getBaseUrl } from "@hously/api/config";
 
 // Allowed image extensions
 const ALLOWED_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp"]);

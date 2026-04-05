@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
 import {
   TMDB_UPCOMING_CACHE_KEY,
   collectTmdbUpcoming,
@@ -8,22 +8,22 @@ import {
   getArrPluginStatus,
   mergeTmdbTvWithSonarrCalendar,
   toIsoDate,
-} from "../../../utils/dashboard/tmdbUpcoming";
-import { prisma } from "../../../db";
-import { getJsonCache, setJsonCache, deleteCache } from "../../../services/cache";
+} from "@hously/api/utils/dashboard/tmdbUpcoming";
+import { prisma } from "@hously/api/db";
+import { getJsonCache, setJsonCache, deleteCache } from "@hously/api/services/cache";
 import {
   normalizeRadarrConfig,
   normalizeSonarrConfig,
   normalizeTmdbConfig,
-} from "../../../utils/plugins/normalizers";
+} from "@hously/api/utils/plugins/normalizers";
 import { toRecord, toStringOrNull } from "@hously/shared";
-import type { DashboardUpcomingItem } from "../../../types/dashboardUpcoming";
+import type { DashboardUpcomingItem } from "@hously/api/types/dashboardUpcoming";
 import {
   badGateway,
   badRequest,
   notFound,
   serverError,
-} from "../../../errors";
+} from "@hously/api/errors";
 
 const buildArrItemUrl = (
   baseUrl: string,

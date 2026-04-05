@@ -1,11 +1,11 @@
 import { Elysia, t } from "elysia";
 import { BoardTaskStatus, BoardTaskPriority, Prisma } from "@prisma/client";
-import { prisma } from "../../db";
-import { auth } from "../../auth";
-import { requireUser } from "../../middleware/auth";
-import { formatIso, sanitizeInput, sanitizeRichText } from "../../utils";
-import { badRequest, notFound, serverError } from "../../errors";
-import { createJsonSseResponse } from "../../utils/sse";
+import { prisma } from "@hously/api/db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { formatIso, sanitizeInput, sanitizeRichText } from "@hously/api/utils";
+import { badRequest, notFound, serverError } from "@hously/api/errors";
+import { createJsonSseResponse } from "@hously/api/utils/sse";
 
 const STATUS_VALUES = [
   "backlog",

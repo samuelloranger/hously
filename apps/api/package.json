@@ -1,9 +1,13 @@
 {
-  "name": "@hously/server",
+  "name": "@hously/api",
   "version": "1.0.0",
   "packageManager": "bun@1.3.11",
   "module": "src/index.ts",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
   "scripts": {
     "dev": "bun --env-file=../../.env --watch src/index.ts",
     "test": "bun test",

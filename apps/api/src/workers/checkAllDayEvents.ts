@@ -4,8 +4,8 @@
  */
 
 import { buildNotificationUrl } from "@hously/shared";
-import { prisma } from "../db";
-import { todayLocal, addDaysInTz, formatDateInTimezone } from "../utils";
+import { prisma } from "@hously/api/db";
+import { todayLocal, addDaysInTz, formatDateInTimezone } from "@hously/api/utils";
 import { isNightTime, createAndQueueNotification } from "./notificationService";
 
 /**

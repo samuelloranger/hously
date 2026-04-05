@@ -1,24 +1,24 @@
 import { Elysia, t } from "elysia";
 import { normalizeNotificationUrl } from "@hously/shared";
-import { auth } from "../../auth";
-import { prisma } from "../../db";
+import { auth } from "@hously/api/auth";
+import { prisma } from "@hously/api/db";
 import {
   getVapidPublicKey,
   sendWebPushNotification,
   type PushSubscription,
-} from "../../utils/webpush";
-import { sendApnNotifications } from "../../utils/apnPush";
+} from "@hously/api/utils/webpush";
+import { sendApnNotifications } from "@hously/api/utils/apnPush";
 import {
   createAndQueueNotification,
   getAllUsers,
-} from "../../workers/notificationService";
+} from "@hously/api/workers/notificationService";
 import {
   badRequest,
   notFound,
   serverError,
   serviceUnavailable,
   unauthorized,
-} from "../../errors";
+} from "@hously/api/errors";
 
 const getUnreadCountForUser = async (userId: number): Promise<number> =>
   prisma.notification.count({

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { mapTrackerUrlToTag } from "../services/webhookEnrichment";
+import { mapTrackerUrlToTag } from "@hously/api/services/webhookEnrichment";
 
 describe("mapTrackerUrlToTag", () => {
   it("maps C411 tracker URLs to the c411 tag", () => {

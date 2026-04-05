@@ -1,15 +1,15 @@
 import { Elysia } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
-import { getJsonCache, setJsonCache } from "../../../services/cache";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
+import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 import {
   fetchAddressWeather,
   normalizeWeatherAddress,
   WEATHER_CACHE_TTL_SECONDS,
-} from "../../../utils/dashboard/weather";
-import type { DashboardWeatherResponse } from "../../../types/dashboardWeather";
-import { badGateway, notFound, serverError } from "../../../errors";
+} from "@hously/api/utils/dashboard/weather";
+import type { DashboardWeatherResponse } from "@hously/api/types/dashboardWeather";
+import { badGateway, notFound, serverError } from "@hously/api/errors";
 
 interface WeatherPluginConfig {
   address?: string;

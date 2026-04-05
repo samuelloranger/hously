@@ -5,7 +5,7 @@ import type {
   ArrManagementStatistics,
   MediaItem,
 } from "@hously/shared";
-import { getJsonCache, setJsonCache } from "../../services/cache";
+import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 
 export type TmdbProvider = {
   id: number;

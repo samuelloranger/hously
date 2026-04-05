@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
-import { prisma } from "../../db";
-import { auth } from "../../auth";
-import { requireUser } from "../../middleware/auth";
+import { prisma } from "@hously/api/db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
 import {
   formatIso,
   nowUtc,
@@ -9,15 +9,15 @@ import {
   sanitizeInput,
   buildUserMap,
   getUserDisplayName,
-} from "../../utils";
+} from "@hously/api/utils";
 import {
   badRequest,
   forbidden,
   notFound,
   serverError,
   unauthorized,
-} from "../../errors";
-import { hasUpdates } from "../../utils/updates";
+} from "@hously/api/errors";
+import { hasUpdates } from "@hously/api/utils/updates";
 
 // Valid meal types
 const VALID_MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack"];

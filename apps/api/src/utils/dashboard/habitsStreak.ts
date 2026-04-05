@@ -1,5 +1,5 @@
-import { prisma } from "../../db";
-import { getJsonCache, setJsonCache } from "../../services/cache";
+import { prisma } from "@hously/api/db";
+import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 
 const CACHE_TTL_SECONDS = 15 * 60; // 15 minutes
 

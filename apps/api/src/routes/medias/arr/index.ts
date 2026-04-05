@@ -1,20 +1,20 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
 import {
   normalizeRadarrConfig,
   normalizeSonarrConfig,
-} from "../../../utils/plugins/normalizers";
-import { deleteCache } from "../../../services/cache";
-import { badGateway, badRequest, serverError } from "../../../errors";
+} from "@hously/api/utils/plugins/normalizers";
+import { deleteCache } from "@hously/api/services/cache";
+import { badGateway, badRequest, serverError } from "@hously/api/errors";
 import {
   type InteractiveReleaseItem,
   mapInteractiveRelease,
   mapRadarrManagementDetails,
   mapSonarrManagementDetails,
   isSonarrFullSeasonRelease,
-} from "../../../utils/medias/mappers";
+} from "@hously/api/utils/medias/mappers";
 
 export const mediasArrRoutes = new Elysia()
   .use(auth)

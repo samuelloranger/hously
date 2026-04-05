@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
-import { prisma } from "../../db";
-import { auth } from "../../auth";
-import { requireUser } from "../../middleware/auth";
+import { prisma } from "@hously/api/db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
 import {
   formatIso,
   nowUtc,
@@ -13,20 +13,20 @@ import {
   sanitizeInput,
   sanitizeRichText,
   isValidColor,
-} from "../../utils";
-import { logActivity } from "../../utils/activityLogs";
+} from "@hously/api/utils";
+import { logActivity } from "@hously/api/utils/activityLogs";
 import {
   addJob,
   QUEUE_NAMES,
   NOTIFICATION_JOB_NAMES,
-} from "../../services/queueService";
+} from "@hously/api/services/queueService";
 import {
   badRequest,
   notFound,
   serverError,
   unauthorized,
-} from "../../errors";
-import { hasUpdates } from "../../utils/updates";
+} from "@hously/api/errors";
+import { hasUpdates } from "@hously/api/utils/updates";
 
 // Valid recurrence types
 const VALID_RECURRENCE_TYPES = [

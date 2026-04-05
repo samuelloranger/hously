@@ -1,12 +1,12 @@
 import { Elysia } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
 import {
   normalizeRadarrConfig,
   normalizeSonarrConfig,
-} from "../../../utils/plugins/normalizers";
-import { serverError } from "../../../errors";
+} from "@hously/api/utils/plugins/normalizers";
+import { serverError } from "@hously/api/errors";
 import type { MediaItem } from "@hously/shared";
 import {
   mapRadarrMovie,
@@ -14,7 +14,7 @@ import {
   fetchRadarrDownloadingMovieIds,
   fetchSonarrDownloadingSeriesIds,
   fetchSonarrSeriesReleaseTags,
-} from "../../../utils/medias/mappers";
+} from "@hously/api/utils/medias/mappers";
 
 export const mediasLibraryRoutes = new Elysia()
   .use(auth)

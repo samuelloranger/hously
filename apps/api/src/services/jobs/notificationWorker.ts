@@ -1,11 +1,11 @@
 import type { Job } from "bullmq";
-import { prisma } from "../../db";
+import { prisma } from "@hously/api/db";
 import {
   sendWebPushNotification,
   type PushSubscription,
-} from "../../utils/webpush";
-import { sendApnNotifications } from "../../utils/apnPush";
-import { NOTIFICATION_JOB_NAMES } from "../queueService";
+} from "@hously/api/utils/webpush";
+import { sendApnNotifications } from "@hously/api/utils/apnPush";
+import { NOTIFICATION_JOB_NAMES } from "@hously/api/services/queueService";
 
 export interface SilentPushJobData {
   userId: number;

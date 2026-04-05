@@ -1,20 +1,20 @@
 import { Elysia, t } from "elysia";
 import { Prisma } from "@prisma/client";
-import { auth } from "../../../auth";
-import { prisma } from "../../../db";
-import { nowUtc } from "../../../utils";
-import { isValidHttpUrl } from "../../../utils/plugins/utils";
-import { normalizeTrackerConfig } from "../../../utils/plugins/normalizers";
+import { auth } from "@hously/api/auth";
+import { prisma } from "@hously/api/db";
+import { nowUtc } from "@hously/api/utils";
+import { isValidHttpUrl } from "@hously/api/utils/plugins/utils";
+import { normalizeTrackerConfig } from "@hously/api/utils/plugins/normalizers";
 import {
   addJob,
   QUEUE_NAMES,
   SCHEDULED_JOB_NAMES,
-} from "../../../services/queueService";
-import { logActivity } from "../../../utils/activityLogs";
-import { encrypt } from "../../../services/crypto";
-import type { TrackerType } from "../../../utils/plugins/types";
-import { requireAdmin } from "../../../middleware/auth";
-import { badRequest, serverError } from "../../../errors";
+} from "@hously/api/services/queueService";
+import { logActivity } from "@hously/api/utils/activityLogs";
+import { encrypt } from "@hously/api/services/crypto";
+import type { TrackerType } from "@hously/api/utils/plugins/types";
+import { requireAdmin } from "@hously/api/middleware/auth";
+import { badRequest, serverError } from "@hously/api/errors";
 
 type AdminUser = { id: number; is_admin: boolean };
 

@@ -1,13 +1,13 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
 import {
   normalizeOllamaConfig,
   normalizeRadarrConfig,
   normalizeSonarrConfig,
-} from "../../../utils/plugins/normalizers";
-import { badGateway, badRequest, serviceUnavailable } from "../../../errors";
+} from "@hously/api/utils/plugins/normalizers";
+import { badGateway, badRequest, serviceUnavailable } from "@hously/api/errors";
 import {
   type TmdbSearchItem,
   mapTmdbSearchItem,
@@ -15,8 +15,8 @@ import {
   fetchSonarrTmdbIds,
   buildArrItemUrl,
   toRecord,
-} from "../../../utils/medias/mappers";
-import { loadTmdbConfig } from "../../../utils/medias/tmdbFetchers";
+} from "@hously/api/utils/medias/mappers";
+import { loadTmdbConfig } from "@hously/api/utils/medias/tmdbFetchers";
 
 type Candidate = {
   tmdb_id: number;

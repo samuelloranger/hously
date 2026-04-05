@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
-import type { TrackerPluginConfig } from "../utils/plugins/types";
+import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
 
 const mockFetch = mock(async (_url: string, _opts?: RequestInit) => {
   return new Response("", { status: 200 });

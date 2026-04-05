@@ -1,14 +1,14 @@
 import { Elysia, t } from "elysia";
-import { prisma } from "../../db";
-import { auth } from "../../auth";
-import { requireUser } from "../../middleware/auth";
-import { formatIso, nowUtc, parseDateTime } from "../../utils";
+import { prisma } from "@hously/api/db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { formatIso, nowUtc, parseDateTime } from "@hously/api/utils";
 import {
   badRequest,
   unauthorized,
   notFound,
   serverError,
-} from "../../errors";
+} from "@hously/api/errors";
 
 export const remindersRoutes = new Elysia({ prefix: "/api/reminders" })
   .use(auth)

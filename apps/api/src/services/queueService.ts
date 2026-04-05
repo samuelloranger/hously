@@ -5,7 +5,7 @@ import {
   type QueueOptions,
   type JobsOptions,
 } from "bullmq";
-import { redisConnection } from "../db/redis";
+import { redisConnection } from "@hously/api/db/redis";
 
 // Define queue names
 export const QUEUE_NAMES = {

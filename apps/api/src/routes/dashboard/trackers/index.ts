@@ -1,16 +1,16 @@
 import { Elysia } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
-import { getJsonCache } from "../../../services/cache";
-import { normalizeTrackerConfig } from "../../../utils/plugins/normalizers";
-import type { CachedTrackerStats } from "../../../utils/dashboard/trackers";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
+import { getJsonCache } from "@hously/api/services/cache";
+import { normalizeTrackerConfig } from "@hously/api/utils/plugins/normalizers";
+import type { CachedTrackerStats } from "@hously/api/utils/dashboard/trackers";
 import {
   cacheKey,
   parseCachedTrackerStats,
-} from "../../../utils/dashboard/trackers";
-import type { TrackerType } from "../../../utils/plugins/types";
-import { serverError } from "../../../errors";
+} from "@hously/api/utils/dashboard/trackers";
+import type { TrackerType } from "@hously/api/utils/plugins/types";
+import { serverError } from "@hously/api/errors";
 
 const trackerLabel = (type: TrackerType): string => {
   return {

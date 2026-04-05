@@ -1,16 +1,16 @@
 import { Elysia, t } from "elysia";
 import type { Reminder } from "@prisma/client";
-import { prisma } from "../../db";
-import { auth } from "../../auth";
-import { requireUser } from "../../middleware/auth";
-import { formatIso, todayLocal, toLocalDate, getDaysInMonth } from "../../utils";
-import { badRequest, serverError } from "../../errors";
+import { prisma } from "@hously/api/db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { formatIso, todayLocal, toLocalDate, getDaysInMonth } from "@hously/api/utils";
+import { badRequest, serverError } from "@hously/api/errors";
 import {
   calculateRecurringChoreDates,
   calculateRecurringCustomEventDates,
   type ChoreData,
   type CustomEventData,
-} from "../../utils/calendar/recurrence";
+} from "@hously/api/utils/calendar/recurrence";
 
 export const calendarEventsRoutes = new Elysia()
   .use(auth)

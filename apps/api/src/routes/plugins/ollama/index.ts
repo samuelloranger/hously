@@ -1,12 +1,12 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { prisma } from "../../../db";
-import { nowUtc } from "../../../utils";
-import { isValidHttpUrl } from "../../../utils/plugins/utils";
-import { normalizeOllamaConfig } from "../../../utils/plugins/normalizers";
-import { logActivity } from "../../../utils/activityLogs";
-import { requireAdmin } from "../../../middleware/auth";
-import { badRequest, serverError } from "../../../errors";
+import { auth } from "@hously/api/auth";
+import { prisma } from "@hously/api/db";
+import { nowUtc } from "@hously/api/utils";
+import { isValidHttpUrl } from "@hously/api/utils/plugins/utils";
+import { normalizeOllamaConfig } from "@hously/api/utils/plugins/normalizers";
+import { logActivity } from "@hously/api/utils/activityLogs";
+import { requireAdmin } from "@hously/api/middleware/auth";
+import { badRequest, serverError } from "@hously/api/errors";
 
 export const ollamaPluginRoutes = new Elysia()
   .use(auth)

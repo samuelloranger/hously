@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { addJob, QUEUE_NAMES } from "../services/queueService";
+import { addJob, QUEUE_NAMES } from "@hously/api/services/queueService";
 
 export type ActivityLogType =
   | "plugin_updated"

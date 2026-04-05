@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
-import { prisma } from "../../db";
-import { auth } from "../../auth";
-import { requireUser } from "../../middleware/auth";
-import { sanitizeInput } from "../../utils";
-import { badRequest, notFound, serverError } from "../../errors";
+import { prisma } from "@hously/api/db";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { sanitizeInput } from "@hously/api/utils";
+import { badRequest, notFound, serverError } from "@hously/api/errors";
 
 export const boardTagsRoutes = new Elysia({ prefix: "/api/board-tags" })
   .use(auth)

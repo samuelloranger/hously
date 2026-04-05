@@ -1,9 +1,9 @@
-import { prisma } from "../../db";
-import { normalizeBeszelConfig } from "../plugins/normalizers";
+import { prisma } from "@hously/api/db";
+import { normalizeBeszelConfig } from "@hously/api/utils/plugins/normalizers";
 import type {
   DashboardBeszelDiskUsage,
   DashboardBeszelSummaryResponse,
-} from "../../types/dashboardServices";
+} from "@hously/api/types/dashboardServices";
 
 export const buildBeszelDisabledSummary = (
   error?: string,

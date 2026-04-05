@@ -1,13 +1,13 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { prisma } from "../../../db";
-import { nowUtc } from "../../../utils";
-import { isValidHttpUrl, toProfiles } from "../../../utils/plugins/utils";
-import { normalizeSonarrConfig } from "../../../utils/plugins/normalizers";
-import { logActivity } from "../../../utils/activityLogs";
-import { encrypt } from "../../../services/crypto";
-import { requireAdmin } from "../../../middleware/auth";
-import { badGateway, badRequest, serverError } from "../../../errors";
+import { auth } from "@hously/api/auth";
+import { prisma } from "@hously/api/db";
+import { nowUtc } from "@hously/api/utils";
+import { isValidHttpUrl, toProfiles } from "@hously/api/utils/plugins/utils";
+import { normalizeSonarrConfig } from "@hously/api/utils/plugins/normalizers";
+import { logActivity } from "@hously/api/utils/activityLogs";
+import { encrypt } from "@hously/api/services/crypto";
+import { requireAdmin } from "@hously/api/middleware/auth";
+import { badGateway, badRequest, serverError } from "@hously/api/errors";
 
 export const sonarrPluginRoutes = new Elysia()
   .use(auth)

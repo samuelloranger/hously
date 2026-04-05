@@ -1,19 +1,19 @@
 import { Elysia, t } from "elysia";
-import { auth } from "../../../auth";
-import { requireUser } from "../../../middleware/auth";
-import { prisma } from "../../../db";
-import { normalizeProwlarrConfig } from "../../../utils/plugins/normalizers";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
+import { normalizeProwlarrConfig } from "@hously/api/utils/plugins/normalizers";
 import {
   badGateway,
   badRequest,
   notFound,
   serverError,
-} from "../../../errors";
+} from "@hously/api/errors";
 import {
   type InteractiveReleaseItem,
   mapProwlarrInteractiveRelease,
   takeProwlarrReleasePayload,
-} from "../../../utils/medias/mappers";
+} from "@hously/api/utils/medias/mappers";
 
 export const mediasProwlarrRoutes = new Elysia()
   .use(auth)

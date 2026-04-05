@@ -1,5 +1,5 @@
 import type { Page } from "playwright";
-import type { TrackerPluginConfig } from "../../utils/plugins/types";
+import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
 
 const C411_LOGIN_FORM = "form.space-y-4";
 const C411_USERNAME_INPUT = 'form.space-y-4 input[name="username"]';

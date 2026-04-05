@@ -25,7 +25,7 @@
       },
     },
     "apps/api": {
-      "name": "@hously/server",
+      "name": "@hously/api",
       "version": "1.0.0",
       "dependencies": {
         "@aws-sdk/client-s3": "^3.1020.0",
@@ -387,7 +387,7 @@
 
     "@hono/node-server": ["@hono/node-server@1.19.11", "", { "peerDependencies": { "hono": "^4" } }, "sha512-dr8/3zEaB+p0D2n/IUrlPF1HZm586qgJNXK1a9fhg/PzdtkK7Ksd5l312tJX2yBuALqDYBlG20QEbayqPyxn+g=="],
 
-    "@hously/server": ["@hously/server@workspace:apps/api"],
+    "@hously/api": ["@hously/api@workspace:apps/api"],
 
     "@hously/shared": ["@hously/shared@workspace:apps/shared"],
 

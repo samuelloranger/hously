@@ -1,5 +1,5 @@
-import { prisma } from "../db";
-import { normalizeTmdbConfig } from "../utils/plugins/normalizers";
+import { prisma } from "@hously/api/db";
+import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import {
   collectTmdbUpcoming,
   fetchMovieReleaseDates,
@@ -10,10 +10,10 @@ import {
   toIsoDate,
   TMDB_UPCOMING_CACHE_KEY,
   TMDB_UPCOMING_CACHE_TTL_SECONDS,
-} from "../utils/dashboard/tmdbUpcoming";
-import { setJsonCache } from "../services/cache";
-import { logActivity } from "../utils/activityLogs";
-import type { DashboardUpcomingItem } from "../types/dashboardUpcoming";
+} from "@hously/api/utils/dashboard/tmdbUpcoming";
+import { setJsonCache } from "@hously/api/services/cache";
+import { logActivity } from "@hously/api/utils/activityLogs";
+import type { DashboardUpcomingItem } from "@hously/api/types/dashboardUpcoming";
 
 const JOB_ID = "refreshUpcoming";
 const JOB_NAME = "Refresh upcoming releases";

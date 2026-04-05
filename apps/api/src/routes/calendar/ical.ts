@@ -1,16 +1,16 @@
 import { Elysia, t } from "elysia";
-import { prisma } from "../../db";
-import { auth } from "../../auth";
-import { toLocalDate } from "../../utils";
-import { getBaseUrl } from "../../config";
+import { prisma } from "@hously/api/db";
+import { auth } from "@hously/api/auth";
+import { toLocalDate } from "@hously/api/utils";
+import { getBaseUrl } from "@hously/api/config";
 import {
   calculateRecurringChoreDates,
   calculateRecurringCustomEventDates,
   type ChoreData,
   type CustomEventData,
-} from "../../utils/calendar/recurrence";
-import { requireUser } from "../../middleware/auth";
-import { unauthorized } from "../../errors";
+} from "@hously/api/utils/calendar/recurrence";
+import { requireUser } from "@hously/api/middleware/auth";
+import { unauthorized } from "@hously/api/errors";
 
 const generateCalendarToken = (): string => {
   const tokenBytes = new Uint8Array(32);
