@@ -239,6 +239,13 @@
       "updating": "Updating...",
       "temperature": "{{temp}}°{{unit}}",
       "feelsLikeLine": "{{condition}} - Feels like {{feelsLike}}°{{unit}}",
+      "feelsLike": "Feels like {{temp}}°{{unit}}",
+      "forecast": {
+        "title": "7-day forecast",
+        "today": "Today",
+        "unavailable": "Forecast unavailable",
+        "windKmh": "Wind km/h"
+      },
       "conditions": {
         "clearSky": "Clear sky",
         "partlyCloudy": "Partly cloudy",

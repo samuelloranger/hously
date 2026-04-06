@@ -12,7 +12,9 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
+import { useState } from "react";
 import { useDashboardWeather } from "@/hooks/useWeather";
+import { WeatherForecastModal } from "@/pages/_component/WeatherForecastModal";
 import type { WeatherData } from "@hously/shared/types";
 import { getWeatherConditionKey } from "@hously/shared/utils";
 import { usePrefetchIntent } from "@/lib/routing/usePrefetchIntent";
@@ -77,6 +79,7 @@ export function WeatherPanel() {
   const { t } = useTranslation("common");
   const weatherQuery = useDashboardWeather();
   const prefetchIntent = usePrefetchIntent("/settings", { tab: "plugins" });
+  const [forecastOpen, setForecastOpen] = useState(false);
 
   if (!weatherQuery.data || weatherQuery.isError) return null;
 
@@ -100,43 +103,56 @@ export function WeatherPanel() {
   );
 
   return (
-    <section
-      className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden"
-      {...prefetchIntent}
-    >
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
-          <SectionTitle>{t("dashboard.weather.kicker")}</SectionTitle>
+    <>
+      {forecastOpen && (
+        <WeatherForecastModal
+          isOpen={forecastOpen}
+          onClose={() => setForecastOpen(false)}
+          current={weatherQuery.data}
+        />
+      )}
+      <section
+        className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden cursor-pointer"
+        onClick={() => setForecastOpen(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && setForecastOpen(true)}
+        {...prefetchIntent}
+      >
+        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
+            <SectionTitle>{t("dashboard.weather.kicker")}</SectionTitle>
+          </div>
+          {weatherQuery.isFetching ? (
+            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              {t("dashboard.weather.updating")}
+            </span>
+          ) : null}
         </div>
-        {weatherQuery.isFetching ? (
-          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            {t("dashboard.weather.updating")}
-          </span>
-        ) : null}
-      </div>
 
-      <div className="px-4 py-3">
-        <div className="flex items-start gap-3">
-          <WeatherIcon icon={statusIcon} />
-          <div className="min-w-0 flex-1">
-            <Kicker>{weatherQuery.data.location_name}</Kicker>
-            <p className="mt-2 text-xl font-bold leading-none tabular-nums text-zinc-900 dark:text-zinc-50">
-              {t("dashboard.weather.temperature", {
-                temp: Math.round(temperatureValue),
-                unit: unitLabel,
-              })}
-            </p>
-            <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-              {t("dashboard.weather.feelsLikeLine", {
-                condition: conditionLabel,
-                feelsLike: Math.round(feelsLikeValue),
-                unit: unitLabel,
-              })}
-            </p>
+        <div className="px-4 py-3">
+          <div className="flex items-start gap-3">
+            <WeatherIcon icon={statusIcon} />
+            <div className="min-w-0 flex-1">
+              <Kicker>{weatherQuery.data.location_name}</Kicker>
+              <p className="mt-2 text-xl font-bold leading-none tabular-nums text-zinc-900 dark:text-zinc-50">
+                {t("dashboard.weather.temperature", {
+                  temp: Math.round(temperatureValue),
+                  unit: unitLabel,
+                })}
+              </p>
+              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                {t("dashboard.weather.feelsLikeLine", {
+                  condition: conditionLabel,
+                  feelsLike: Math.round(feelsLikeValue),
+                  unit: unitLabel,
+                })}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

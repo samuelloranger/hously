@@ -87,6 +87,7 @@ export const queryKeys = {
   weather: {
     all: ["weather"] as const,
     current: () => [...queryKeys.weather.all, "current"] as const,
+    forecast: () => [...queryKeys.weather.all, "forecast"] as const,
   },
 
   users: {
