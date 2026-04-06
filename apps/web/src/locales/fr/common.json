@@ -373,6 +373,8 @@
       "downloaded": "Download",
       "ratio": "Ratio",
       "updated": "Mis à jour {{value}}",
+      "onlineCount": "{{connected}}/{{total}} en ligne",
+      "offline": "Hors ligne",
       "providers": {
         "c411": "C411",
         "torr9": "Torr9",
