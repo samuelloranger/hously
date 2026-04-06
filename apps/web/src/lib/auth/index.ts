@@ -11,6 +11,9 @@ let userPromise: Promise<User | null> | null = null;
 
 export async function getCurrentUser(): Promise<User | null> {
   if (currentUser) {
+    // Always re-seed the TQ cache on the fast path so components that mount
+    // after navigation always find data and never flash a loading state.
+    getQueryClient()?.setQueryData(queryKeys.auth.me, currentUser);
     return currentUser;
   }
 
