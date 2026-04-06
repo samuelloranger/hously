@@ -40,10 +40,10 @@ export function useCurrentUser() {
       if (error?.status === 401) return false;
       return failureCount < 1;
     },
-    staleTime: 5000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    refetchOnReconnect: true,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 }
 
