@@ -1173,6 +1173,11 @@
         "plugins": "Plugins",
         "trackers": "Trackers"
       },
+      "groups": {
+        "media": "Médias",
+        "infrastructure": "Infrastructure",
+        "other": "Autre"
+      },
       "enabled": "Activé",
       "save": "Enregistrer le plugin",
       "saveSuccess": "Plugin enregistré avec succès",

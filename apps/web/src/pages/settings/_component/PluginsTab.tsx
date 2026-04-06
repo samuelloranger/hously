@@ -65,19 +65,40 @@ export function PluginsTab() {
       </div>
 
       {subTab === "plugins" ? (
-        <div className="space-y-4 animate-in fade-in duration-200">
-          <WeatherPluginSection />
-          <HomeAssistantPluginSection />
-          <TmdbPluginSection />
-          <OllamaPluginSection />
-          <JellyfinPluginSection />
-          <ProwlarrPluginSection />
-          <RadarrPluginSection />
-          <SonarrPluginSection />
-          <QbittorrentPluginSection />
-          <ScrutinyPluginSection />
-          <BeszelPluginSection />
-          <AdguardPluginSection />
+        <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 px-1">
+              {t("settings.plugins.groups.media")}
+            </h3>
+            <div className="space-y-3">
+              <JellyfinPluginSection />
+              <TmdbPluginSection />
+              <RadarrPluginSection />
+              <SonarrPluginSection />
+              <ProwlarrPluginSection />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 px-1">
+              {t("settings.plugins.groups.infrastructure")}
+            </h3>
+            <div className="space-y-3">
+              <QbittorrentPluginSection />
+              <ScrutinyPluginSection />
+              <BeszelPluginSection />
+              <AdguardPluginSection />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 px-1">
+              {t("settings.plugins.groups.other")}
+            </h3>
+            <div className="space-y-3">
+              <WeatherPluginSection />
+              <HomeAssistantPluginSection />
+              <OllamaPluginSection />
+            </div>
+          </div>
         </div>
       ) : (
         <div className="space-y-4 animate-in fade-in duration-200">
