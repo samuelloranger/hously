@@ -238,6 +238,13 @@
       "updating": "Mise à jour...",
       "temperature": "{{temp}}°{{unit}}",
       "feelsLikeLine": "{{condition}} - Ressenti {{feelsLike}}°{{unit}}",
+      "feelsLike": "Ressenti {{temp}}°{{unit}}",
+      "forecast": {
+        "title": "Prévisions 7 jours",
+        "today": "Auj.",
+        "unavailable": "Prévisions indisponibles",
+        "windKmh": "Vent km/h"
+      },
       "conditions": {
         "clearSky": "Ciel dégagé",
         "partlyCloudy": "Partiellement nuageux",

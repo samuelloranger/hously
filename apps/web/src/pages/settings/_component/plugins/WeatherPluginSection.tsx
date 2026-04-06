@@ -66,7 +66,7 @@ function WeatherPluginSectionImpl({
       loading={isLoading}
       saving={saveMutation.isPending}
       isDirty={isDirty}
-      logoUrl="/icons/openweather.png"
+      logoUrl="/icons/open-meteo.png"
       configuredValue={data?.plugin?.address || undefined}
     >
       <div className="space-y-4">

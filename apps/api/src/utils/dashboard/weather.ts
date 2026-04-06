@@ -1,4 +1,5 @@
 import type { DashboardWeatherResponse } from "@hously/api/types/dashboardWeather";
+import type { WeatherForecastData, WeatherForecastDay } from "@hously/shared/types";
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
@@ -30,6 +31,20 @@ interface OpenMeteoCurrent {
 
 interface OpenMeteoResponse {
   current?: OpenMeteoCurrent;
+}
+
+interface OpenMeteoDaily {
+  time?: string[];
+  weather_code?: number[];
+  temperature_2m_max?: number[];
+  temperature_2m_min?: number[];
+  precipitation_probability_max?: number[];
+  precipitation_sum?: number[];
+  wind_speed_10m_max?: number[];
+}
+
+interface OpenMeteoDailyResponse {
+  daily?: OpenMeteoDaily;
 }
 
 export const normalizeWeatherAddress = (address: string): string =>
@@ -73,6 +88,61 @@ const parseIsDay = (value: number | undefined): boolean => {
   if (value === 0) return false;
   if (value === 1) return true;
   return true;
+};
+
+export const fetchAddressWeatherForecast = async (
+  address: string,
+  temperatureUnit: "fahrenheit" | "celsius" = "fahrenheit",
+): Promise<WeatherForecastData> => {
+  const geocodeUrl = new URL(NOMINATIM_URL);
+  geocodeUrl.searchParams.set("q", address);
+  geocodeUrl.searchParams.set("format", "jsonv2");
+  geocodeUrl.searchParams.set("limit", "1");
+  geocodeUrl.searchParams.set("addressdetails", "1");
+
+  const geocodeRes = await fetch(geocodeUrl.toString(), {
+    headers: { "User-Agent": "hously-api/1.0" },
+  });
+  if (!geocodeRes.ok) throw new Error("Unable to geocode address for forecast.");
+
+  const geocodeData = (await geocodeRes.json()) as NominatimResult[];
+  const firstResult = geocodeData[0];
+  if (!firstResult) throw new Error("Could not find this address.");
+
+  const latitude = parseWeatherNumber(firstResult.lat);
+  const longitude = parseWeatherNumber(firstResult.lon);
+  const locationName = formatLocationName(firstResult);
+
+  const weatherUrl = new URL(OPEN_METEO_URL);
+  weatherUrl.searchParams.set("latitude", String(latitude));
+  weatherUrl.searchParams.set("longitude", String(longitude));
+  weatherUrl.searchParams.set(
+    "daily",
+    "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max",
+  );
+  weatherUrl.searchParams.set("temperature_unit", "fahrenheit");
+  weatherUrl.searchParams.set("wind_speed_unit", "kmh");
+  weatherUrl.searchParams.set("forecast_days", "7");
+  weatherUrl.searchParams.set("timezone", "auto");
+
+  const weatherRes = await fetch(weatherUrl.toString());
+  if (!weatherRes.ok) throw new Error("Unable to load forecast data.");
+
+  const data = (await weatherRes.json()) as OpenMeteoDailyResponse;
+  const daily = data.daily;
+  if (!daily?.time?.length) throw new Error("No forecast data available.");
+
+  const days: WeatherForecastDay[] = daily.time.map((date, i) => ({
+    date,
+    weather_code: daily.weather_code?.[i] ?? 0,
+    temperature_max_f: daily.temperature_2m_max?.[i] ?? 0,
+    temperature_min_f: daily.temperature_2m_min?.[i] ?? 0,
+    precipitation_probability_max: daily.precipitation_probability_max?.[i] ?? 0,
+    precipitation_sum_mm: daily.precipitation_sum?.[i] ?? 0,
+    wind_speed_max_kmh: daily.wind_speed_10m_max?.[i] ?? 0,
+  }));
+
+  return { location_name: locationName, temperature_unit: temperatureUnit, days };
 };
 
 export const fetchAddressWeather = async (
