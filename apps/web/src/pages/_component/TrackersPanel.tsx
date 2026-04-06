@@ -6,6 +6,7 @@ import {
 import { formatGo, formatRatio, formatRelativeTime, resolveDateFnsLocale } from "@hously/shared/utils";
 import { useTranslation } from "react-i18next";
 import { ArrowUp, ArrowDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type TrackerInfo = {
   key: string;
@@ -19,66 +20,122 @@ type TrackerInfo = {
   error?: string;
 };
 
-function TrackerCol({
+function ratioColor(ratio: number | null) {
+  if (ratio == null) return "text-zinc-400 dark:text-zinc-500";
+  if (ratio >= 1.5) return "text-emerald-500 dark:text-emerald-400";
+  if (ratio >= 1.0) return "text-amber-500 dark:text-amber-400";
+  return "text-rose-500 dark:text-rose-400";
+}
+
+function ratioBarColor(ratio: number | null) {
+  if (ratio == null) return "from-zinc-300 to-zinc-400";
+  if (ratio >= 1.5) return "from-emerald-400 to-emerald-500";
+  if (ratio >= 1.0) return "from-amber-400 to-amber-500";
+  return "from-rose-400 to-rose-500";
+}
+
+function RatioProgressBar({ ratio }: { ratio: number }) {
+  const fill = Math.min(ratio / 3.0, 1.0);
+  return (
+    <div className="relative h-[3px] rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+      <div
+        className={cn("absolute inset-y-0 left-0 rounded-full bg-gradient-to-r", ratioBarColor(ratio))}
+        style={{ width: `${Math.max(fill * 100, 2)}%` }}
+      />
+    </div>
+  );
+}
+
+function TrackerRow({
   tracker,
   locale,
+  isLast,
 }: {
   tracker: TrackerInfo;
   locale: Parameters<typeof formatRelativeTime>[1]["locale"];
+  isLast: boolean;
 }) {
   const { t } = useTranslation("common");
-  const ratioNum = tracker.ratio ?? 0;
-  const ratioColor =
-    ratioNum >= 1.5
-      ? "text-emerald-600 dark:text-emerald-400"
-      : ratioNum >= 1
-        ? "text-amber-600 dark:text-amber-400"
-        : "text-rose-600 dark:text-rose-400";
 
   return (
-    <div className="min-w-0">
-      <div className="flex items-center gap-2 mb-2.5">
-        <span
-          className={`w-2 h-2 rounded-full shrink-0 ${
-            !tracker.enabled
-              ? "bg-zinc-300 dark:bg-zinc-600"
-              : tracker.connected
-                ? "bg-emerald-500"
-                : "bg-rose-500"
-          }`}
-        />
-        <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-          {tracker.label}
-        </span>
-      </div>
-
-      {!tracker.enabled || !tracker.connected ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
-          {tracker.error ?? t("dashboard.home.trackerNotConnected")}
-        </p>
-      ) : (
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-1.5 font-mono text-xs font-semibold tabular-nums text-sky-600 dark:text-sky-400">
-            <ArrowDown size={10} />
-            {formatGo(tracker.downloaded_go)}
-          </div>
-          <div className="flex items-center gap-1.5 font-mono text-xs font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-            <ArrowUp size={10} />
-            {formatGo(tracker.uploaded_go)}
-          </div>
-          <div
-            className={`font-mono text-sm font-bold tabular-nums ${ratioColor}`}
-          >
-            ×{formatRatio(tracker.ratio)}
-          </div>
-          {tracker.updated_at && (
-            <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
-              {formatRelativeTime(tracker.updated_at, { locale })}
+    <>
+      <div className={cn("px-4 pt-3", tracker.connected ? "pb-2" : "pb-3")}>
+        <div className="flex items-center gap-3">
+          {/* Left: name + time/error */}
+          <div className="flex flex-col gap-0.5 min-w-[64px]">
+            <div className="flex items-center gap-1.5">
+              <span
+                className={cn(
+                  "w-[7px] h-[7px] rounded-full shrink-0",
+                  !tracker.enabled
+                    ? "bg-zinc-300 dark:bg-zinc-600"
+                    : tracker.connected
+                      ? "bg-emerald-500"
+                      : "bg-rose-500",
+                )}
+              />
+              <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-100 leading-none">
+                {tracker.label}
+              </span>
             </div>
+            {tracker.connected && tracker.updated_at ? (
+              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 pl-[15px]">
+                {formatRelativeTime(tracker.updated_at, { locale })}
+              </span>
+            ) : !tracker.connected ? (
+              <span className="text-[10px] italic text-rose-400 dark:text-rose-500 pl-[15px] truncate">
+                {tracker.error ?? t("dashboard.home.trackerNotConnected")}
+              </span>
+            ) : null}
+          </div>
+
+          <div className="flex-1" />
+
+          {tracker.connected && (
+            <>
+              {/* Center: transfer stats */}
+              <div className="flex flex-col items-start gap-1">
+                <div className="flex items-center gap-1 font-mono text-xs font-medium tabular-nums text-sky-400">
+                  <ArrowDown size={10} />
+                  {formatGo(tracker.downloaded_go)}
+                </div>
+                <div className="flex items-center gap-1 font-mono text-xs font-medium tabular-nums text-emerald-400">
+                  <ArrowUp size={10} />
+                  {formatGo(tracker.uploaded_go)}
+                </div>
+              </div>
+
+              {/* Right: ratio hero */}
+              <div className="flex flex-col items-end w-14 shrink-0">
+                <span
+                  className={cn(
+                    "font-mono text-xl font-bold tabular-nums leading-none",
+                    ratioColor(tracker.ratio),
+                  )}
+                >
+                  {formatRatio(tracker.ratio)}
+                </span>
+                <span className="text-[8px] font-semibold tracking-widest text-zinc-400 dark:text-zinc-500 mt-0.5">
+                  RATIO
+                </span>
+              </div>
+            </>
           )}
         </div>
+      </div>
+
+      {/* Ratio progress bar */}
+      {tracker.connected && tracker.ratio != null && (
+        <div className="px-4 pb-3">
+          <RatioProgressBar ratio={tracker.ratio} />
+        </div>
       )}
-    </div>
+
+      {/* Row divider */}
+      {!isLast && (
+        <div className="mx-4 h-px bg-zinc-100 dark:bg-zinc-800" />
+      )}
+    </>
   );
 }
 
@@ -126,22 +183,46 @@ export function TrackersPanel() {
     },
   ];
 
-  const anyEnabled = trackers.some((t) => t.enabled);
-  if (!anyEnabled) return null;
+  const enabledTrackers = trackers.filter((tr) => tr.enabled);
+  if (enabledTrackers.length === 0) return null;
+
+  const connectedCount = enabledTrackers.filter((tr) => tr.connected).length;
 
   return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-      <div className="flex items-center gap-2.5 mb-4">
+    <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
         <span className="w-1 h-4 rounded-full bg-purple-500 shrink-0" />
         <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
           {t("dashboard.home.privateTrackersTitle")}
         </h3>
+        <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800">
+          <span
+            className={cn(
+              "w-1.5 h-1.5 rounded-full shrink-0",
+              connectedCount > 0 ? "bg-emerald-500" : "bg-rose-500",
+            )}
+          />
+          <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+            {connectedCount > 0
+              ? t("dashboard.trackers.onlineCount", {
+                  connected: connectedCount,
+                  total: enabledTrackers.length,
+                })
+              : t("dashboard.trackers.offline")}
+          </span>
+        </div>
       </div>
-      <div className="grid grid-cols-3 gap-4 divide-x divide-zinc-100 dark:divide-zinc-800">
-        {trackers.map((tr, i) => (
-          <div key={tr.key} className={i > 0 ? "pl-4" : ""}>
-            <TrackerCol tracker={tr} locale={locale} />
-          </div>
+
+      {/* Rows */}
+      <div>
+        {enabledTrackers.map((tracker, i) => (
+          <TrackerRow
+            key={tracker.key}
+            tracker={tracker}
+            locale={locale}
+            isLast={i === enabledTrackers.length - 1}
+          />
         ))}
       </div>
     </section>
