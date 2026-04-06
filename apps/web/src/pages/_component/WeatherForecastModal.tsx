@@ -68,10 +68,28 @@ function tempColorClass(f: number): string {
   return "from-orange-500 to-red-400";
 }
 
+// ─── Day icon wrapper (module-level — avoids static-components lint rule) ─────
+
+function DayWeatherIcon({ icon: Icon, isToday }: { icon: LucideIcon; isToday: boolean }) {
+  return (
+    <Icon
+      className={cn(
+        "size-7 shrink-0",
+        isToday
+          ? "text-sky-500 dark:text-sky-400"
+          : "text-zinc-400 dark:text-zinc-500",
+      )}
+      strokeWidth={1.5}
+      aria-hidden
+    />
+  );
+}
+
 // ─── Day column ───────────────────────────────────────────────────────────────
 
 function DayColumn({
   day,
+  icon,
   isToday,
   unit,
   globalMin,
@@ -79,13 +97,13 @@ function DayColumn({
   index,
 }: {
   day: WeatherForecastDay;
+  icon: LucideIcon;
   isToday: boolean;
   unit: "fahrenheit" | "celsius";
   globalMin: number;
   globalMax: number;
   index: number;
 }) {
-  const Icon = dayIcon(day.weather_code);
   const maxDisplay = toDisplay(day.temperature_max_f, unit);
   const minDisplay = toDisplay(day.temperature_min_f, unit);
 
@@ -119,16 +137,7 @@ function DayColumn({
       </span>
 
       {/* Weather icon */}
-      <Icon
-        className={cn(
-          "size-7 shrink-0",
-          isToday
-            ? "text-sky-500 dark:text-sky-400"
-            : "text-zinc-400 dark:text-zinc-500",
-        )}
-        strokeWidth={1.5}
-        aria-hidden
-      />
+      <DayWeatherIcon icon={icon} isToday={isToday} />
 
       {/* Temperature range bar */}
       <div className="relative h-16 w-1.5 rounded-full bg-zinc-100 dark:bg-zinc-700/60 overflow-hidden flex-shrink-0">
@@ -315,6 +324,7 @@ export function WeatherForecastModal({
                             </span>
                             <DayColumn
                               day={day}
+                              icon={dayIcon(day.weather_code)}
                               isToday={isToday}
                               unit={unit}
                               globalMin={globalMin}
