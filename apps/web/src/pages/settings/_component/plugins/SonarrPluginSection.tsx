@@ -141,7 +141,6 @@ function SonarrPluginSectionImpl({
       saving={saveMutation.isPending}
       isDirty={isDirty}
       logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/sonarr.png"
-      configuredValue={data?.plugin?.website_url || undefined}
     >
       <PluginUrlInput
         label={t("settings.plugins.sonarr.websiteUrl")}

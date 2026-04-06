@@ -63,7 +63,6 @@ function OllamaPluginSectionImpl({
       saving={saveMutation.isPending}
       isDirty={isDirty}
       logoUrl="/icons/ollama.png"
-      configuredValue={data?.plugin?.base_url || undefined}
     >
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">

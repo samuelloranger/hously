@@ -68,7 +68,6 @@ function ProwlarrPluginSectionImpl({
       saving={saveMutation.isPending}
       isDirty={isDirty}
       logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/prowlarr.png"
-      configuredValue={data?.plugin?.website_url || undefined}
     >
       <PluginUrlInput
         label={t("settings.plugins.prowlarr.websiteUrl")}

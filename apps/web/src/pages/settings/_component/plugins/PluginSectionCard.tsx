@@ -12,7 +12,6 @@ import { ChevronDown, Check } from "lucide-react";
 interface PluginSectionCardProps {
   children: ReactNode;
   className?: string;
-  configuredValue?: string;
   description: string;
   enabled: boolean;
   isDirty?: boolean;
@@ -28,7 +27,6 @@ interface PluginSectionCardProps {
 export function PluginSectionCard({
   children,
   className,
-  configuredValue,
   description,
   enabled,
   isDirty,
@@ -45,11 +43,6 @@ export function PluginSectionCard({
   const [isOpen, setIsOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const prevSaving = useRef(false);
-
-  // Auto-expand when plugin gets enabled but is not yet configured
-  useEffect(() => {
-    if (enabled && !configuredValue) startTransition(() => setIsOpen(true));
-  }, [enabled]);
 
   // Detect save completion and briefly show success state
   useEffect(() => {
@@ -102,11 +95,6 @@ export function PluginSectionCard({
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5 truncate">
               {description}
             </p>
-            {configuredValue && !isOpen && (
-              <p className="text-xs text-neutral-400 dark:text-neutral-500 font-mono mt-0.5 truncate">
-                {configuredValue}
-              </p>
-            )}
           </div>
         </button>
 
