@@ -95,13 +95,13 @@ function TrackerRow({
             <>
               {/* Center: transfer stats */}
               <div className="flex flex-col items-start gap-1">
-                <div className="flex items-center gap-1 font-mono text-xs font-medium tabular-nums text-emerald-400">
-                  <ArrowUp size={10} />
-                  {formatGo(tracker.uploaded_go)}
-                </div>
                 <div className="flex items-center gap-1 font-mono text-xs font-medium tabular-nums text-sky-400">
                   <ArrowDown size={10} />
                   {formatGo(tracker.downloaded_go)}
+                </div>
+                <div className="flex items-center gap-1 font-mono text-xs font-medium tabular-nums text-emerald-400">
+                  <ArrowUp size={10} />
+                  {formatGo(tracker.uploaded_go)}
                 </div>
               </div>
 
