@@ -1,6 +1,3 @@
-# mkbrr binary stage
-FROM ghcr.io/autobrr/mkbrr:latest AS mkbrr
-
 # Build stage (using Bun)
 FROM oven/bun:1.3.11 AS builder
 
@@ -33,11 +30,8 @@ WORKDIR /app
 ENV LANG=C.UTF-8
 
 # Prisma runtime requires OpenSSL, APNs needs curl
-# C411 release pipeline needs mediainfo, mktorrent, mkbrr, ffmpeg (ffprobe)
-RUN apt-get update -y && apt-get install -y openssl curl mediainfo mktorrent ffmpeg \
+RUN apt-get update -y && apt-get install -y openssl curl \
     && rm -rf /var/lib/apt/lists/*
-
-COPY --from=mkbrr /usr/local/bin/mkbrr /usr/local/bin/mkbrr
 
 # Copy only what's needed for the runtime
 COPY --from=builder /app/node_modules ./node_modules
