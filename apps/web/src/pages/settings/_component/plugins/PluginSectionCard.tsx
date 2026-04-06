@@ -40,7 +40,7 @@ export function PluginSectionCard({
 }: PluginSectionCardProps) {
   const { t } = useTranslation("common");
   const isBusy = loading || saving;
-  const [isOpen, setIsOpen] = useState(enabled);
+  const [isOpen, setIsOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const prevSaving = useRef(false);
 
