@@ -57,8 +57,8 @@ function WeatherPluginSectionImpl({
 
   return (
     <PluginSectionCard
-      title="Weather"
-      description="Configure the dashboard weather location and preferred temperature unit."
+      title={t("settings.plugins.weather.title")}
+      description={t("settings.plugins.weather.help")}
       enabled={enabled}
       onEnabledChange={setEnabled}
       onCancel={handleCancel}
@@ -66,23 +66,24 @@ function WeatherPluginSectionImpl({
       loading={isLoading}
       saving={saveMutation.isPending}
       isDirty={isDirty}
+      logoUrl="/icons/openweather.png"
     >
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-          Address
+          {t("settings.plugins.weather.address")}
         </label>
         <input
           type="text"
           value={address}
           onChange={(event) => setAddress(event.target.value)}
-          placeholder="Enter address for dashboard weather"
+          placeholder={t("settings.plugins.weather.addressPlaceholder")}
           className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-          Temperature unit
+          {t("settings.plugins.weather.temperatureUnit")}
         </label>
         <select
           value={temperatureUnit}
@@ -91,8 +92,8 @@ function WeatherPluginSectionImpl({
           }
           className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
         >
-          <option value="fahrenheit">Fahrenheit (deg F)</option>
-          <option value="celsius">Celsius (deg C)</option>
+          <option value="fahrenheit">{t("settings.plugins.weather.fahrenheit")}</option>
+          <option value="celsius">{t("settings.plugins.weather.celsius")}</option>
         </select>
       </div>
     </PluginSectionCard>

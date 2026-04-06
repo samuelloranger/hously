@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl } from "@hously/api/utils/plugins/utils";
+import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/plugins/utils";
 import { normalizeProwlarrConfig } from "@hously/api/utils/plugins/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { encrypt } from "@hously/api/services/crypto";
@@ -35,7 +35,7 @@ export const prowlarrPluginRoutes = new Elysia()
   .put(
     "/prowlarr",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
+      const websiteUrl = normalizeUrl(body.website_url);
       const existingPlugin = await prisma.plugin.findFirst({
         where: { type: "prowlarr" },
       });

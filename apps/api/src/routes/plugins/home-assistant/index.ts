@@ -3,6 +3,7 @@ import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
 import { normalizeHomeAssistantConfig } from "@hously/api/utils/plugins/normalizers";
+import { normalizeUrl } from "@hously/api/utils/plugins/utils";
 import { encrypt } from "@hously/api/services/crypto";
 import {
   assertValidHaBaseUrl,
@@ -83,7 +84,7 @@ export const homeAssistantPluginRoutes = new Elysia()
   .put(
     "/home-assistant",
     async ({ user, body, set }) => {
-      const baseUrl = body.base_url.trim().replace(/\/+$/, "");
+      const baseUrl = normalizeUrl(body.base_url);
       const enabled = body.enabled ?? true;
       const rawIds = body.enabled_entity_ids ?? [];
       const enabledEntityIds = [

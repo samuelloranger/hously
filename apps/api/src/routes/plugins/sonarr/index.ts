@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl, toProfiles } from "@hously/api/utils/plugins/utils";
+import { isValidHttpUrl, normalizeUrl, toProfiles } from "@hously/api/utils/plugins/utils";
 import { normalizeSonarrConfig } from "@hously/api/utils/plugins/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { encrypt } from "@hously/api/services/crypto";
@@ -38,7 +38,7 @@ export const sonarrPluginRoutes = new Elysia()
   .put(
     "/sonarr",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
+      const websiteUrl = normalizeUrl(body.website_url);
       const existingPlugin = await prisma.plugin.findFirst({
         where: { type: "sonarr" },
       });
@@ -143,7 +143,7 @@ export const sonarrPluginRoutes = new Elysia()
   .post(
     "/sonarr/profiles",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
+      const websiteUrl = normalizeUrl(body.website_url);
       const apiKey = body.api_key.trim();
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {

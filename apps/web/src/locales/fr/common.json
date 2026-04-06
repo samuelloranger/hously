@@ -1195,6 +1195,15 @@
         "popularityThreshold": "Seuil de popularité",
         "popularityThresholdHelp": "Score de popularité TMDB minimum (0–100) pour les sorties à venir. Les valeurs élevées n'affichent que les titres populaires."
       },
+      "weather": {
+        "title": "Météo",
+        "help": "Configurez la localisation météo du tableau de bord et l'unité de température préférée.",
+        "address": "Adresse",
+        "addressPlaceholder": "Entrez une adresse pour la météo",
+        "temperatureUnit": "Unité de température",
+        "fahrenheit": "Fahrenheit (°F)",
+        "celsius": "Celsius (°C)"
+      },
       "ollama": {
         "title": "Ollama",
         "help": "LLM local pour les suggestions IA sur Découvrir (choix ancrés TMDB). Indiquez l’URL de base que le serveur Hously peut joindre.",
