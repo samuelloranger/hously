@@ -123,19 +123,6 @@ function DayColumn({
       )}
       style={{ animationDelay: `${index * 40}ms` }}
     >
-      {/* Day label */}
-      <span
-        className={cn(
-          "text-[11px] font-bold uppercase tracking-widest",
-          isToday
-            ? "text-sky-600 dark:text-sky-400"
-            : "text-zinc-400 dark:text-zinc-500",
-        )}
-      >
-        {isToday ? "—" : ""}
-        {/* rendered by parent via dayLabel */}
-      </span>
-
       {/* Weather icon */}
       <DayWeatherIcon icon={icon} isToday={isToday} />
 
