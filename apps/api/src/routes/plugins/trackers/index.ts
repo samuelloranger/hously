@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl } from "@hously/api/utils/plugins/utils";
+import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/plugins/utils";
 import { normalizeTrackerConfig } from "@hously/api/utils/plugins/normalizers";
 import {
   addJob,
@@ -64,8 +64,8 @@ async function updateTrackerPluginHandler(
   plugin?: Record<string, unknown>;
   error?: string;
 }> {
-  const flaresolverrUrl = body.flaresolverr_url.trim().replace(/\/+$/, "");
-  const trackerUrl = body.tracker_url?.trim().replace(/\/+$/, "") || "";
+  const flaresolverrUrl = normalizeUrl(body.flaresolverr_url);
+  const trackerUrl = body.tracker_url ? normalizeUrl(body.tracker_url) : "";
   const username = body.username.trim();
 
   if (flaresolverrUrl && !isValidHttpUrl(flaresolverrUrl)) {

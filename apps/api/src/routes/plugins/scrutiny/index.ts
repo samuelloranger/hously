@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl } from "@hously/api/utils/plugins/utils";
+import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/plugins/utils";
 import { normalizeScrutinyConfig } from "@hously/api/utils/plugins/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { requireAdmin } from "@hously/api/middleware/auth";
@@ -33,7 +33,7 @@ export const scrutinyPluginRoutes = new Elysia()
   .put(
     "/scrutiny",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
+      const websiteUrl = normalizeUrl(body.website_url);
       const enabled = body.enabled ?? true;
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {

@@ -1,4 +1,7 @@
 import type { ArrProfile } from "@hously/shared/types";
+export const normalizeUrl = (value: string): string =>
+  value.trim().replace(/\/+$/, "");
+
 export const isValidHttpUrl = (value: string): boolean => {
   try {
     const parsed = new URL(value);

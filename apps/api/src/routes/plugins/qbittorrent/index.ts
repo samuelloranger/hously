@@ -7,7 +7,7 @@ import {
   normalizeQbittorrentConfig,
   invalidateQbittorrentPluginConfigCache,
 } from "@hously/api/services/qbittorrent/config";
-import { clampInteger, isValidHttpUrl } from "@hously/api/utils/plugins/utils";
+import { clampInteger, isValidHttpUrl, normalizeUrl } from "@hously/api/utils/plugins/utils";
 import { encrypt } from "@hously/api/services/crypto";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { requireAdmin } from "@hously/api/middleware/auth";
@@ -42,7 +42,7 @@ export const qbittorrentPluginRoutes = new Elysia()
   .put(
     "/qbittorrent",
     async ({ user, body, set }) => {
-      const websiteUrl = body.website_url.trim().replace(/\/+$/, "");
+      const websiteUrl = normalizeUrl(body.website_url);
       const username = body.username.trim();
       const pollIntervalSeconds = clampInteger(
         body.poll_interval_seconds,
