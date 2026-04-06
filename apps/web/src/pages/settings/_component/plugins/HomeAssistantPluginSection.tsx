@@ -136,7 +136,6 @@ function HomeAssistantPluginSectionImpl({
       saving={saveMutation.isPending}
       isDirty={isDirty}
       logoUrl="/icons/home-assistant.png"
-      configuredValue={data?.plugin?.base_url || undefined}
     >
       <div className="space-y-4">
         <div>
