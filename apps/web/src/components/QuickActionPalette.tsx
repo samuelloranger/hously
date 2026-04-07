@@ -36,7 +36,8 @@ interface QuickAction {
     | "recipes"
     | "chores"
     | "shopping"
-    | "users";
+    | "users"
+    | "board_tasks";
   keywords?: string[];
   shortcut?: string;
   action: () => void;
@@ -166,8 +167,15 @@ export function QuickActionPalette({
   const collectionResults = useMemo<QuickAction[]>(() => {
     if (!shouldSearch || !searchQuery.data) return [];
 
-    const { torrents, medias, recipes, chores, shopping, users } =
-      searchQuery.data;
+    const {
+      torrents = [],
+      medias = [],
+      recipes = [],
+      chores = [],
+      shopping = [],
+      users = [],
+      board_tasks = [],
+    } = searchQuery.data;
 
     const torrentActions: QuickAction[] = torrents.map((torrent) => ({
       id: `torrent-${torrent.id}`,
@@ -269,6 +277,28 @@ export function QuickActionPalette({
       },
     }));
 
+    const boardTaskActions: QuickAction[] = board_tasks.map((task) => ({
+      id: `board-task-${task.id}`,
+      title: task.title,
+      description:
+        [task.assignee_name, task.status.replace("_", " ")]
+          .filter(Boolean)
+          .join(" • ") || t("nav.board"),
+      icon:
+        task.status === "done"
+          ? "✅"
+          : task.priority === "urgent"
+            ? "🔴"
+            : task.priority === "high"
+              ? "🟠"
+              : "📋",
+      section: "board_tasks" as const,
+      action: () => {
+        navigate({ to: "/board" });
+        handleClose();
+      },
+    }));
+
     return [
       ...torrentActions,
       ...mediaActions,
@@ -276,6 +306,7 @@ export function QuickActionPalette({
       ...choreActions,
       ...shoppingActions,
       ...userActions,
+      ...boardTaskActions,
     ];
   }, [
     handleClose,
@@ -295,6 +326,7 @@ export function QuickActionPalette({
       shopping: t("shopping.title"),
       users: "Users",
       actions: t("common.quickActionsSectionActions"),
+      board_tasks: t("nav.board"),
     }),
     [t],
   );
