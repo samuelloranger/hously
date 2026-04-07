@@ -22,6 +22,7 @@ import { notificationsRoutes } from "./routes/notifications";
 import { pluginsRoutes } from "./routes/plugins";
 import { recipesRoutes } from "./routes/recipes";
 import { remindersRoutes } from "./routes/reminders";
+import { searchRoutes } from "./routes/search";
 import { shoppingRoutes } from "./routes/shopping";
 import { systemRoutes } from "./routes/system";
 import { usersRoutes } from "./routes/users";
@@ -85,6 +86,7 @@ export const app = new Elysia()
   .use(habitsRoutes)
   .use(boardTasksRoutes)
   .use(boardTagsRoutes)
+  .use(searchRoutes)
   .use(systemRoutes)
   .get("/health", () => ({ status: "ok" }))
   .get("/api/health", () => ({ status: "ok" }))

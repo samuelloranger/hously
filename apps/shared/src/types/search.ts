@@ -43,6 +43,15 @@ export interface QuickSearchUser {
   email: string;
 }
 
+export interface QuickSearchBoardTask {
+  id: number;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  assignee_name?: string;
+}
+
 export interface QuickSearchResponse {
   torrents: QuickSearchTorrent[];
   medias: QuickSearchMedia[];
@@ -50,4 +59,5 @@ export interface QuickSearchResponse {
   chores: QuickSearchChore[];
   shopping: QuickSearchShoppingItem[];
   users: QuickSearchUser[];
+  board_tasks: QuickSearchBoardTask[];
 }

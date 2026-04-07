@@ -45,30 +45,30 @@ export function Dialog({
       >
         <TransitionChild
           as={Fragment}
-          enter="ease-out duration-300"
+          enter="ease-out duration-150"
           enterFrom="opacity-0"
           enterTo="opacity-100"
-          leave="ease-in duration-200"
+          leave="ease-in duration-100"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-black/50" />
         </TransitionChild>
 
         <div className="fixed inset-0 overflow-y-auto overscroll-contain pointer-events-none">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
             <TransitionChild
               as={Fragment}
-              enter="ease-out duration-300"
+              enter="ease-out duration-150"
               enterFrom="opacity-0 scale-95"
               enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
+              leave="ease-in duration-100"
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
               <DialogPanel
                 className={cn(
-                  "pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col transform rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl transition-all dark:border-neutral-700 dark:bg-neutral-800",
+                  "pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col transform rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl transition-[opacity,transform] dark:border-neutral-700 dark:bg-neutral-800",
                   bodyScroll ? "min-h-0 overflow-hidden" : "overflow-y-auto",
                   hideTitle && "relative",
                   panelClassName,
