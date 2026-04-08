@@ -224,7 +224,6 @@ function toTmdbItem(item: DashboardUpcomingItem): TmdbMediaSearchItem {
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: item.vote_average ?? null,
-    service: "prowlarr",
     already_exists: false,
     can_add: true,
     source_id: null,

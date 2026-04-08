@@ -47,9 +47,8 @@ export function ArrMigrationProgress({
               Radarr
             </p>
             <p className="text-neutral-500">
-              {progress.radarr.imported} new ·{" "}
-              {progress.radarr.already_existed} exist ·{" "}
-              {progress.radarr.files_scanned} scanned
+              {progress.radarr.imported} new · {progress.radarr.already_existed}{" "}
+              exist · {progress.radarr.files_scanned} scanned
             </p>
             {progress.radarr.errors > 0 && (
               <p className="text-red-500">{progress.radarr.errors} errors</p>

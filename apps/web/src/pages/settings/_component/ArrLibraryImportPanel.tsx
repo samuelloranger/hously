@@ -135,7 +135,11 @@ export function ArrLibraryImportPanel() {
                         : "bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800",
                     )}
                   >
-                    {s === "both" ? "Both" : s === "radarr" ? "Radarr" : "Sonarr"}
+                    {s === "both"
+                      ? "Both"
+                      : s === "radarr"
+                        ? "Radarr"
+                        : "Sonarr"}
                   </button>
                 ))}
               </div>

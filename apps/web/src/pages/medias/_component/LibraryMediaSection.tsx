@@ -147,9 +147,7 @@ export function LibraryMediaSection({
                 (e) => e.status === "downloaded",
               ).length;
               const progress =
-                s.episodes.length > 0
-                  ? downloadedCount / s.episodes.length
-                  : 0;
+                s.episodes.length > 0 ? downloadedCount / s.episodes.length : 0;
               const allDone = downloadedCount === s.episodes.length;
               const noneDone = downloadedCount === 0;
 

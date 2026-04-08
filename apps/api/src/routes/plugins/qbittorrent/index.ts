@@ -183,12 +183,18 @@ export const qbittorrentPluginRoutes = new Elysia()
     async ({ body, set }) => {
       const qb = await getQbittorrentPluginConfig();
       if (!qb.enabled || !qb.config) {
-        return badRequest(set, "qBittorrent plugin is not configured or disabled.");
+        return badRequest(
+          set,
+          "qBittorrent plugin is not configured or disabled.",
+        );
       }
 
       const secret = qb.config.webhook_secret;
       if (!secret) {
-        return badRequest(set, "Webhook secret not generated yet. Save the plugin settings first.");
+        return badRequest(
+          set,
+          "Webhook secret not generated yet. Save the plugin settings first.",
+        );
       }
 
       const houslyUrl = await resolveHouslyInternalUrl(body.hously_url?.trim());
@@ -205,7 +211,9 @@ export const qbittorrentPluginRoutes = new Elysia()
         autorun_program: makeCmd("/api/webhooks/qbittorrent/completed"),
         // autorun_on_torrent_added_* requires qBittorrent ≥ 4.5.0
         autorun_on_torrent_added_enabled: true,
-        autorun_on_torrent_added_program: makeCmd("/api/webhooks/qbittorrent/added"),
+        autorun_on_torrent_added_program: makeCmd(
+          "/api/webhooks/qbittorrent/added",
+        ),
       };
 
       try {
@@ -218,7 +226,10 @@ export const qbittorrentPluginRoutes = new Elysia()
         return { success: true, hously_url: houslyUrl };
       } catch (error) {
         console.error("Error configuring qBittorrent autorun:", error);
-        return serverError(set, "Failed to update qBittorrent preferences. Check that qBittorrent is reachable.");
+        return serverError(
+          set,
+          "Failed to update qBittorrent preferences. Check that qBittorrent is reachable.",
+        );
       }
     },
     {

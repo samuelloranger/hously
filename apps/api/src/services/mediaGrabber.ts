@@ -294,9 +294,15 @@ export async function grabRelease(opts: {
         if (!add.success) {
           await prisma.downloadHistory.update({
             where: { id: dhRow.id },
-            data: { failed: true, failReason: add.error ?? "Magnet add failed" },
+            data: {
+              failed: true,
+              failReason: add.error ?? "Magnet add failed",
+            },
           });
-          return { grabbed: false, reason: add.error ?? "Failed to add magnet" };
+          return {
+            grabbed: false,
+            reason: add.error ?? "Failed to add magnet",
+          };
         }
       } else if (fetchedFile) {
         const add = await addQbittorrentTorrentFile(qb.config, qb.enabled, {
@@ -307,9 +313,15 @@ export async function grabRelease(opts: {
         if (!add.success) {
           await prisma.downloadHistory.update({
             where: { id: dhRow.id },
-            data: { failed: true, failReason: add.error ?? "Torrent add failed" },
+            data: {
+              failed: true,
+              failReason: add.error ?? "Torrent add failed",
+            },
           });
-          return { grabbed: false, reason: add.error ?? "Failed to add torrent" };
+          return {
+            grabbed: false,
+            reason: add.error ?? "Failed to add torrent",
+          };
         }
       }
     }

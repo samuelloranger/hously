@@ -1,6 +1,11 @@
 import type { LibraryMedia, TmdbMediaSearchItem } from "@hously/shared/types";
 
-export type SortKey = "title" | "year" | "added_at" | "status" | "last_grabbed_at";
+export type SortKey =
+  | "title"
+  | "year"
+  | "added_at"
+  | "status"
+  | "last_grabbed_at";
 export type SortDir = "asc" | "desc";
 export type FilterType = "all" | "movie" | "show";
 export type FilterStatus =
@@ -29,15 +34,22 @@ export function sortItems(
     else if (sortBy === "year") cmp = (a.year ?? 0) - (b.year ?? 0);
     else if (sortBy === "status") cmp = a.status.localeCompare(b.status);
     else if (sortBy === "last_grabbed_at") {
-      const aTime = a.last_grabbed_at ? new Date(a.last_grabbed_at).getTime() : 0;
-      const bTime = b.last_grabbed_at ? new Date(b.last_grabbed_at).getTime() : 0;
+      const aTime = a.last_grabbed_at
+        ? new Date(a.last_grabbed_at).getTime()
+        : 0;
+      const bTime = b.last_grabbed_at
+        ? new Date(b.last_grabbed_at).getTime()
+        : 0;
       cmp = aTime - bTime;
-    } else cmp = new Date(a.added_at).getTime() - new Date(b.added_at).getTime();
+    } else
+      cmp = new Date(a.added_at).getTime() - new Date(b.added_at).getTime();
     return sortDir === "asc" ? cmp : -cmp;
   });
 }
 
-export function libraryItemToSearchItem(item: LibraryMedia): TmdbMediaSearchItem {
+export function libraryItemToSearchItem(
+  item: LibraryMedia,
+): TmdbMediaSearchItem {
   return {
     id: String(item.id),
     tmdb_id: item.tmdb_id,
@@ -47,7 +59,6 @@ export function libraryItemToSearchItem(item: LibraryMedia): TmdbMediaSearchItem
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: null,
-    service: "library",
     already_exists: true,
     can_add: false,
     source_id: null,

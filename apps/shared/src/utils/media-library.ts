@@ -5,7 +5,6 @@ export type MediaSortKey =
   | "added_at"
   | "title"
   | "year"
-  | "service"
   | "status"
   | "downloaded"
   | "monitored";
@@ -45,7 +44,6 @@ export function filterAndSortMediaItems(
       if (sortBy === "added_at") cmp = getAddedTime(a) - getAddedTime(b);
       else if (sortBy === "title") cmp = a.title.localeCompare(b.title);
       else if (sortBy === "year") cmp = (a.year ?? 0) - (b.year ?? 0);
-      else if (sortBy === "service") cmp = a.service.localeCompare(b.service);
       else if (sortBy === "status")
         cmp = (a.status ?? "").localeCompare(b.status ?? "");
       else if (sortBy === "downloaded")

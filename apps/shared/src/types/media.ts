@@ -1,7 +1,6 @@
 export interface MediaItem {
   id: string;
   media_type: "movie" | "series";
-  service: "prowlarr" | "library";
   source_id: number | null;
   title: string;
   sort_title: string | null;
@@ -29,7 +28,6 @@ export interface TmdbMediaSearchItem {
   poster_url: string | null;
   overview: string | null;
   vote_average: number | null;
-  service: "prowlarr" | "library";
   already_exists: boolean;
   can_add: boolean;
   source_id: number | null;
@@ -366,7 +364,6 @@ export interface CollectionMovieItem {
   poster_url: string | null;
   overview: string | null;
   vote_average: number | null;
-  service: "library";
   already_exists: boolean;
   can_add: boolean;
   source_id: number | null;

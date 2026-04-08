@@ -47,13 +47,9 @@ function toMediaItem(
   item: TmdbMediaSearchItem,
   overrideLibraryId?: number | null,
 ): MediaItem {
-  const inNativeLibrary =
-    (overrideLibraryId ?? item.library_id) != null &&
-    (overrideLibraryId ?? item.library_id)! > 0;
   return {
-    id: item.id,
+    id: !Number.isNaN(overrideLibraryId) ? String(overrideLibraryId) : item.id,
     media_type: item.media_type === "tv" ? "series" : "movie",
-    service: inNativeLibrary ? "library" : item.service,
     source_id: item.source_id ?? null,
     title: item.title,
     sort_title: null,

@@ -12,9 +12,7 @@ export async function notifyAdminsMediaDownloaded(
 
   const label = media.year ? `${media.title} (${media.year})` : media.title;
   const title =
-    media.type === "show"
-      ? "Show episode downloaded"
-      : "Movie downloaded";
+    media.type === "show" ? "Show episode downloaded" : "Movie downloaded";
   const body = `${label} is ready to watch.`;
 
   const admins = await prisma.user.findMany({

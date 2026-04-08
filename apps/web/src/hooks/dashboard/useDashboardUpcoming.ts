@@ -25,7 +25,6 @@ export function useAddUpcomingToLibrary() {
     }) =>
       fetcher<{
         success: boolean;
-        service: "library";
         added: boolean;
         already_exists: boolean;
       }>(DASHBOARD_ENDPOINTS.UPCOMING.ADD, {

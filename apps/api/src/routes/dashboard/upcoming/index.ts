@@ -132,7 +132,6 @@ export const dashboardUpcomingRoutes = new Elysia()
         if (existing) {
           return {
             success: true,
-            service: "library" as const,
             added: false,
             already_exists: true,
           };
@@ -155,7 +154,6 @@ export const dashboardUpcomingRoutes = new Elysia()
 
         return {
           success: true,
-          service: "library" as const,
           added: true,
           already_exists: false,
         };

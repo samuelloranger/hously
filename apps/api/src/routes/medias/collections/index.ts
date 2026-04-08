@@ -73,7 +73,6 @@ export const mediasCollectionsRoutes = new Elysia()
               poster_url: part.poster_url,
               overview: part.overview,
               vote_average: part.vote_average,
-              service: "library" as const,
               already_exists,
               can_add: !already_exists,
               source_id: null,

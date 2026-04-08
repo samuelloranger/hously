@@ -57,7 +57,8 @@ function mapLibraryMedia(item: {
       : null,
     added_at: item.addedAt.toISOString(),
     updated_at: item.updatedAt.toISOString(),
-    last_grabbed_at: item.downloadHistories?.[0]?.grabbedAt.toISOString() ?? null,
+    last_grabbed_at:
+      item.downloadHistories?.[0]?.grabbedAt.toISOString() ?? null,
   };
 }
 
@@ -1046,35 +1047,39 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
   // DELETE /api/library/files/:fileId — remove a single MediaFile record
   // ?delete_file=true also removes the physical file from disk
-  .delete("/files/:fileId", async ({ params, query, set }) => {
-    try {
-      const fileId = parseInt(params.fileId, 10);
-      if (!Number.isFinite(fileId)) return badRequest(set, "Invalid file id");
+  .delete(
+    "/files/:fileId",
+    async ({ params, query, set }) => {
+      try {
+        const fileId = parseInt(params.fileId, 10);
+        if (!Number.isFinite(fileId)) return badRequest(set, "Invalid file id");
 
-      const file = await prisma.mediaFile.findUnique({
-        where: { id: fileId },
-      });
-      if (!file) return notFound(set, "File not found");
+        const file = await prisma.mediaFile.findUnique({
+          where: { id: fileId },
+        });
+        if (!file) return notFound(set, "File not found");
 
-      if (query.delete_file === "true") {
-        const { rm } = await import("node:fs/promises");
-        try {
-          await rm(file.filePath);
-        } catch {
-          // ignore — file may already be gone
+        if (query.delete_file === "true") {
+          const { rm } = await import("node:fs/promises");
+          try {
+            await rm(file.filePath);
+          } catch {
+            // ignore — file may already be gone
+          }
         }
-      }
 
-      await prisma.mediaFile.delete({ where: { id: fileId } });
-      return { success: true };
-    } catch {
-      return serverError(set, "Failed to delete file");
-    }
-  }, {
-    query: t.Object({
-      delete_file: t.Optional(t.String()),
-    }),
-  })
+        await prisma.mediaFile.delete({ where: { id: fileId } });
+        return { success: true };
+      } catch {
+        return serverError(set, "Failed to delete file");
+      }
+    },
+    {
+      query: t.Object({
+        delete_file: t.Optional(t.String()),
+      }),
+    },
+  )
 
   // GET /api/library/item/:id — single library item (integrations / c411-manager)
   .get("/item/:id", async ({ params, set }) => {
