@@ -87,6 +87,30 @@ export async function processScheduledJob(job: Job) {
         await checkMovieReleaseReminders();
         break;
       }
+      case SCHEDULED_JOB_NAMES.CHECK_LIBRARY_MOVIE_RELEASES: {
+        const { checkMovieReleases } =
+          await import("../../workers/checkMovieReleases");
+        await checkMovieReleases();
+        break;
+      }
+      case SCHEDULED_JOB_NAMES.CHECK_LIBRARY_EPISODE_RELEASES: {
+        const { checkEpisodeReleases } =
+          await import("../../workers/checkEpisodeReleases");
+        await checkEpisodeReleases();
+        break;
+      }
+      case SCHEDULED_JOB_NAMES.SYNC_LIBRARY_SHOW_EPISODES: {
+        const { syncShowEpisodes } =
+          await import("../../workers/syncShowEpisodes");
+        await syncShowEpisodes();
+        break;
+      }
+      case SCHEDULED_JOB_NAMES.CHECK_LIBRARY_DOWNLOAD_COMPLETION: {
+        const { checkDownloadCompletion } =
+          await import("../../workers/checkDownloadCompletion");
+        await checkDownloadCompletion();
+        break;
+      }
       default:
         console.warn(`[ScheduledTasksWorker] Unknown job name: ${job.name}`);
         return { success: false, error: "Unknown job name" };

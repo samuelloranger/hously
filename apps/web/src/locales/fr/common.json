@@ -141,7 +141,8 @@
         "sonarr": "Sonarr",
         "c411": "C411",
         "torr9": "Torr9",
-        "laCale": "La Cale"
+        "laCale": "La Cale",
+        "library": "Bibliothèque"
       },
       "types": {
         "task_completed": "Tâche complétée",
@@ -162,7 +163,8 @@
         "event_deleted": "Événement supprimé",
         "shopping_item_added": "Article ajouté",
         "shopping_item_completed": "Article complété",
-        "shopping_list_cleared": "Liste de courses vidée"
+        "shopping_list_cleared": "Liste de courses vidée",
+        "media_grab": "Téléchargement média"
       }
     },
     "layout": {
@@ -231,7 +233,9 @@
       "shoppingItemAdded": "Article ajouté : {{item}}",
       "shoppingItemCompleted": "Article complété : {{item}}",
       "shoppingCleared": "{{count}} article(s) complété(s) supprimé(s)",
-      "unknownItem": "Article inconnu"
+      "unknownItem": "Article inconnu",
+      "unknownRelease": "Release inconnue",
+      "mediaGrab": "Release ajoutée : {{title}}"
     },
     "weather": {
       "kicker": "Météo",
@@ -467,7 +471,7 @@
       "mediaTypeAudio": "Audio",
       "mediaTypeGeneric": "Média",
       "upcomingShelfTitle": "À venir",
-      "upcomingArrNotConfigured": "Radarr / Sonarr non configuré",
+      "upcomingArrNotConfigured": "Les sorties à venir sont indisponibles (vérifiez TMDB dans les réglages).",
       "upcomingEmpty": "Rien à venir",
       "systemHeading": "Système",
       "loadAvg": "charge {{value}}",
@@ -1234,7 +1238,9 @@
         "password": "Mot de passe qBittorrent",
         "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel",
         "pollInterval": "Intervalle de rafraîchissement (secondes)",
-        "maxItems": "Nombre max de torrents actifs"
+        "maxItems": "Nombre max de torrents actifs",
+        "setupNote": "Pour activer le post-traitement automatique à la fin d'un téléchargement, qBittorrent doit être configuré avec une commande autorun webhook.",
+        "setupLink": "Voir le guide de configuration"
       },
       "scrutiny": {
         "help": "Connectez Scrutiny pour afficher la santé des disques et les températures SMART sur l'accueil.",
@@ -1351,6 +1357,78 @@
         "success": "L'email de test a été mis en file d'attente et sera envoyé sous peu.",
         "error": "Échec de l'envoi de l'email de test. Veuillez vérifier votre configuration email."
       }
+    },
+    "qualityProfiles": {
+      "title": "Profils qualité",
+      "listTitle": "Profils",
+      "listDescription": "Règles pour noter les releases Prowlarr quand un titre de bibliothèque a un profil assigné.",
+      "createTitle": "Nouveau profil",
+      "editTitle": "Modifier le profil",
+      "formDescription": "Résolution minimale, ordre des sources et codecs préférés, taille max optionnelle, HDR.",
+      "name": "Nom",
+      "nameRequired": "Le nom est requis",
+      "minResolution": "Résolution minimale",
+      "preferredSources": "Sources préférées",
+      "preferredCodecs": "Codecs préférés",
+      "preferredLanguages": "Langues préférées",
+      "maxSizeGb": "Taille max (Go)",
+      "maxSizeGbPlaceholder": "Vide = pas de limite",
+      "cutoffResolution": "Résolution plafond (optionnel)",
+      "noCutoff": "Sans plafond",
+      "requireHdr": "HDR obligatoire",
+      "preferHdr": "Préférer HDR (bonus)",
+      "save": "Enregistrer",
+      "create": "Créer le profil",
+      "cancelEdit": "Annuler",
+      "colName": "Nom",
+      "colMinRes": "Résol. min.",
+      "colHdr": "HDR",
+      "colActions": "Actions",
+      "hdrRequired": "Obligatoire",
+      "hdrPreferred": "Préféré",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "deleteConfirm": "Supprimer le profil « {{name}} » ? Les titres qui l'utilisent seront désassignés.",
+      "deleteSuccess": "Profil supprimé",
+      "deleteError": "Impossible de supprimer le profil",
+      "createSuccess": "Profil créé",
+      "updateSuccess": "Profil mis à jour",
+      "saveError": "Impossible d'enregistrer le profil",
+      "loadError": "Impossible de charger les profils",
+      "empty": "Aucun profil. Créez-en un ci-dessus."
+    },
+    "mediaLibrary": {
+      "title": "Bibliothèque média",
+      "loading": "Chargement…",
+      "description": "Une fois les torrents terminés, Hously peut créer un lien dur ou déplacer les fichiers vidéo vers une arborescence propre, puis retirer le torrent de qBittorrent après un ratio de seed.",
+      "postProcessingToggle": "Activer le post-traitement",
+      "moviesPath": "Chemin bibliothèque films (absolu)",
+      "showsPath": "Chemin bibliothèque séries (absolu)",
+      "fileOperation": "Opération sur les fichiers",
+      "hardlink": "Lien dur (garde le seed)",
+      "move": "Déplacer",
+      "movieTemplate": "Modèle de nom de fichier (film)",
+      "episodeTemplate": "Modèle de chemin (épisode)",
+      "minSeedRatio": "Retirer le torrent de qBittorrent quand le ratio atteint (0 = juste après traitement)",
+      "defaultQualityProfile": "Profil qualité par défaut",
+      "defaultQualityProfileNone": "Aucun (pas de profil assigné à l'ajout)",
+      "defaultQualityProfileHint": "Assigné automatiquement aux nouveaux éléments ajoutés à la bibliothèque.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "saveSuccess": "Paramètres enregistrés",
+      "saveError": "Impossible d'enregistrer",
+      "loadError": "Impossible de charger les paramètres",
+      "scanTitle": "Scanner une bibliothèque existante",
+      "scanDescription": "Parcourt un dossier, associe les fichiers vidéo à TMDB et ajoute les titres comme déjà téléchargés. Nécessite TMDB.",
+      "scanPath": "Chemin absolu à scanner",
+      "scanType": "Type de média",
+      "scanMovies": "Films",
+      "scanShows": "Séries",
+      "scanRun": "Lancer le scan",
+      "scanRunning": "Scan…",
+      "scanResult": "{{count}} titre(s) ajouté(s).",
+      "scanUnmatched": "Non reconnus",
+      "scanError": "Échec du scan"
     },
     "jobs": {
       "title": "Tâches",
@@ -1845,8 +1923,10 @@
         "seeders": "Seeders",
         "age": "Âge",
         "size": "Taille",
-        "title": "Titre"
+        "title": "Titre",
+        "quality": "Score profil"
       },
+      "profileScore": "Score {{score}}",
       "refresh": "Actualiser",
       "retry": "Réessayer",
       "errorTitle": "Impossible de charger les releases.",
@@ -1855,6 +1935,7 @@
       "downloading": "Démarrage...",
       "downloadStarted": "Téléchargement de la release lancé.",
       "downloadFailed": "Impossible de lancer le téléchargement de la release.",
+      "addToLibraryFirstGrab": "Ajoutez d’abord à la bibliothèque pour lancer le grab via Hously.",
       "unknownIndexer": "Indexer inconnu",
       "unknownLanguage": "Langue inconnue",
       "age": "Âge : {{age}}j",
@@ -2035,5 +2116,32 @@
     "notFound": "Recette introuvable",
     "confirmDelete": "Supprimer la recette ?",
     "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer cette recette ? Cette action ne peut pas être annulée."
+  },
+  "library": {
+    "management": {
+      "qualityProfile": "Profil qualité",
+      "qualityProfileNone": "Aucun",
+      "downloads": "Historique des téléchargements",
+      "noDownloads": "Aucun grab pour ce titre.",
+      "searchNow": "Rechercher maintenant",
+      "searching": "Recherche…",
+      "episodeSearch": "Télécharger l’épisode",
+      "grabbed": "Ajouté à qBittorrent",
+      "grabFailed": "Aucune release adaptée",
+      "releaseColumn": "Release",
+      "indexerColumn": "Indexer",
+      "statusColumn": "Statut",
+      "grabbedAtColumn": "Grab",
+      "completedAtColumn": "Terminé",
+      "libraryPathColumn": "Fichier bibliothèque",
+      "delete": "Supprimer le média",
+      "deleteConfirmTitle": "Supprimer ce média ?",
+      "deleteFilesLabel": "Supprimer également les fichiers du disque",
+      "deleteConfirm": "Supprimer",
+      "deleting": "Suppression…",
+      "refreshStatus": "Sync statut",
+      "refreshingStatus": "Synchronisation…",
+      "refreshStatusTitle": "Vérifie qBittorrent & le disque : relance le post-traitement si nécessaire, ou repasse en voulu"
+    }
   }
 }

@@ -1,0 +1,21 @@
+export const LIBRARY_ENDPOINTS = {
+  LIST: "/api/library",
+  ADD: "/api/library",
+  POST_PROCESSING_SETTINGS: "/api/library/post-processing/settings",
+  SCAN: "/api/library/scan",
+  REMOVE: (id: number) => `/api/library/${id}`,
+  UPDATE_STATUS: (id: number) => `/api/library/${id}/status`,
+  UPDATE_QUALITY_PROFILE: (id: number) =>
+    `/api/library/${id}/quality-profile`,
+  EPISODES: (id: number) => `/api/library/${id}/episodes`,
+  DOWNLOADS: (id: number) => `/api/library/${id}/downloads`,
+  SEARCH: (id: number) => `/api/library/${id}/search`,
+  GRAB: (id: number) => `/api/library/${id}/grab`,
+  SEARCH_EPISODE: (mediaId: number, episodeId: number) =>
+    `/api/library/${mediaId}/episodes/${episodeId}/search`,
+  FILES: (id: number) => `/api/library/${id}/files`,
+  RESCAN: (id: number) => `/api/library/${id}/rescan`,
+  REFRESH_STATUS: (id: number) => `/api/library/${id}/refresh-status`,
+  MIGRATE: "/api/library/migrate",
+  MIGRATE_STATUS: "/api/library/migrate/status",
+} as const;

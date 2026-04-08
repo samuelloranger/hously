@@ -8,6 +8,8 @@ import { PluginsTab } from "@/pages/settings/_component/PluginsTab";
 import { DataExportTab } from "@/pages/settings/_component/DataExportTab";
 import { UsersTab } from "@/pages/settings/_component/UsersTab";
 import { JobsTab } from "@/pages/settings/_component/JobsTab";
+import { QualityProfilesTab } from "@/pages/settings/_component/QualityProfilesTab";
+import { MediaPostProcessingTab } from "@/pages/settings/_component/MediaPostProcessingTab";
 import { SessionsTab } from "@/pages/settings/_component/SessionsTab";
 import { RecentActivityTab } from "@/pages/settings/_component/RecentActivityTab";
 import { useCurrentUser } from "@/hooks/useAuth";
@@ -23,6 +25,8 @@ import {
   Clock,
   ShieldCheck,
   History,
+  SlidersHorizontal,
+  FolderTree,
   type LucideIcon,
 } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
@@ -37,7 +41,9 @@ export type Tab =
   | "data-export"
   | "jobs"
   | "users"
-  | "sessions";
+  | "sessions"
+  | "quality-profiles"
+  | "media-library";
 
 interface TabItem {
   id: Tab;
@@ -83,6 +89,16 @@ export function Settings() {
           icon: ShieldCheck,
         },
         { id: "jobs", label: t("settings.jobs.title"), icon: Clock },
+        {
+          id: "quality-profiles",
+          label: t("settings.qualityProfiles.title"),
+          icon: SlidersHorizontal,
+        },
+        {
+          id: "media-library",
+          label: t("settings.mediaLibrary.title"),
+          icon: FolderTree,
+        },
         {
           id: "data-export",
           label: t("settings.dataExport.title"),
@@ -184,6 +200,12 @@ export function Settings() {
           {activeTab === "users" && currentUser?.is_admin && <UsersTab />}
           {activeTab === "sessions" && currentUser?.is_admin && <SessionsTab />}
           {activeTab === "jobs" && currentUser?.is_admin && <JobsTab />}
+          {activeTab === "quality-profiles" && currentUser?.is_admin && (
+            <QualityProfilesTab />
+          )}
+          {activeTab === "media-library" && currentUser?.is_admin && (
+            <MediaPostProcessingTab />
+          )}
         </div>
       </div>
     </div>

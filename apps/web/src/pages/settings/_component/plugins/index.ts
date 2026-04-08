@@ -3,9 +3,7 @@ export { JellyfinPluginSection } from "@/pages/settings/_component/plugins/Jelly
 export { BeszelPluginSection } from "@/pages/settings/_component/plugins/NetdataPluginSection";
 export { ProwlarrPluginSection } from "@/pages/settings/_component/plugins/ProwlarrPluginSection";
 export { QbittorrentPluginSection } from "@/pages/settings/_component/plugins/QbittorrentPluginSection";
-export { RadarrPluginSection } from "@/pages/settings/_component/plugins/RadarrPluginSection";
 export { ScrutinyPluginSection } from "@/pages/settings/_component/plugins/ScrutinyPluginSection";
-export { SonarrPluginSection } from "@/pages/settings/_component/plugins/SonarrPluginSection";
 export { TmdbPluginSection } from "@/pages/settings/_component/plugins/TmdbPluginSection";
 export { OllamaPluginSection } from "@/pages/settings/_component/plugins/OllamaPluginSection";
 export { TrackersPluginSection } from "@/pages/settings/_component/plugins/TrackersPluginSection";

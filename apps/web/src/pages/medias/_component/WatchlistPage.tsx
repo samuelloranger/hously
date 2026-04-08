@@ -17,11 +17,10 @@ function toDialogItem(item: WatchlistItem): TmdbMediaSearchItem {
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: item.vote_average,
-    service: "radarr",
+    service: "prowlarr",
     already_exists: false,
     can_add: true,
     source_id: null,
-    arr_url: null,
   };
 }
 

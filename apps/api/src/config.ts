@@ -64,6 +64,9 @@ const envSchema = z.object({
   SMTP_FROM: z.string().optional().default("noreply@localhost"),
   SMTP_FROM_NAME: z.string().optional().default("Hously"),
 
+  // ── qBittorrent webhook ───────────────────────────────
+  QBITTORRENT_WEBHOOK_SECRET: z.string().optional(),
+
   // ── Web Push (VAPID) ──────────────────────────────────
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),

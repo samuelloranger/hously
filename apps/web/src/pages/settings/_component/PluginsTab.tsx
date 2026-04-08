@@ -7,9 +7,7 @@ import {
   BeszelPluginSection,
   ProwlarrPluginSection,
   QbittorrentPluginSection,
-  RadarrPluginSection,
   ScrutinyPluginSection,
-  SonarrPluginSection,
   TmdbPluginSection,
   OllamaPluginSection,
   TrackersPluginSection,
@@ -72,8 +70,6 @@ export function PluginsTab() {
           <OllamaPluginSection />
           <JellyfinPluginSection />
           <ProwlarrPluginSection />
-          <RadarrPluginSection />
-          <SonarrPluginSection />
           <QbittorrentPluginSection />
           <ScrutinyPluginSection />
           <BeszelPluginSection />

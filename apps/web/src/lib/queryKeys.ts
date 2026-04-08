@@ -163,7 +163,6 @@ export const queryKeys = {
 
   medias: {
     all: ["medias"] as const,
-    list: () => [...queryKeys.medias.all, "list"] as const,
     explore: () => [...queryKeys.medias.all, "explore"] as const,
     aiSuggestionsConfig: () =>
       [...queryKeys.medias.all, "ai-suggestions-config"] as const,
@@ -171,21 +170,18 @@ export const queryKeys = {
       [...queryKeys.medias.all, "similar", tmdbId, type] as const,
     tmdbSearch: (query: string) =>
       [...queryKeys.medias.all, "tmdb-search", query] as const,
-    interactiveSearch: (service: "radarr" | "sonarr", sourceId: number) =>
-      [
-        ...queryKeys.medias.all,
-        "interactive-search",
-        service,
-        sourceId,
-      ] as const,
-    managementInfo: (service: "radarr" | "sonarr", sourceId: number) =>
-      [...queryKeys.medias.all, "management-info", service, sourceId] as const,
-    prowlarrInteractiveSearch: (query: string) =>
+    prowlarrInteractiveSearch: (
+      query: string,
+      libraryMediaId?: number | null,
+      season?: number | "complete" | null,
+    ) =>
       [
         ...queryKeys.medias.all,
         "interactive-search",
         "prowlarr",
         query,
+        libraryMediaId ?? null,
+        season ?? null,
       ] as const,
     providers: (mediaType: "movie" | "tv", tmdbId: number, region?: string) =>
       [
@@ -288,6 +284,23 @@ export const queryKeys = {
     all: ["search"] as const,
     quick: (query: string) =>
       [...queryKeys.search.all, "quick", query] as const,
+  },
+
+  library: {
+    all: ["library"] as const,
+    list: (filters?: { type?: string; status?: string; q?: string }) =>
+      [...queryKeys.library.all, "list", filters] as const,
+    episodes: (id: number) =>
+      [...queryKeys.library.all, "episodes", id] as const,
+    downloads: (id: number) =>
+      [...queryKeys.library.all, "downloads", id] as const,
+    postProcessingSettings: () =>
+      [...queryKeys.library.all, "post-processing-settings"] as const,
+  },
+
+  qualityProfiles: {
+    all: ["quality-profiles"] as const,
+    list: () => [...queryKeys.qualityProfiles.all, "list"] as const,
   },
 } as const;
 

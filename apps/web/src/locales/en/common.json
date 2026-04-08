@@ -142,7 +142,8 @@
         "sonarr": "Sonarr",
         "c411": "C411",
         "torr9": "Torr9",
-        "laCale": "La Cale"
+        "laCale": "La Cale",
+        "library": "Library"
       },
       "types": {
         "task_completed": "Task completed",
@@ -163,7 +164,8 @@
         "event_deleted": "Event deleted",
         "shopping_item_added": "Shopping item added",
         "shopping_item_completed": "Shopping item completed",
-        "shopping_list_cleared": "Shopping list cleared"
+        "shopping_list_cleared": "Shopping list cleared",
+        "media_grab": "Media grab"
       }
     },
     "layout": {
@@ -232,7 +234,9 @@
       "shoppingItemAdded": "Shopping item added: {{item}}",
       "shoppingItemCompleted": "Shopping item completed: {{item}}",
       "shoppingCleared": "Cleared {{count}} completed shopping item(s)",
-      "unknownItem": "Unknown item"
+      "unknownItem": "Unknown item",
+      "unknownRelease": "Unknown release",
+      "mediaGrab": "Grabbed release: {{title}}"
     },
     "weather": {
       "kicker": "Weather",
@@ -468,7 +472,7 @@
       "mediaTypeAudio": "Audio",
       "mediaTypeGeneric": "Media",
       "upcomingShelfTitle": "Upcoming",
-      "upcomingArrNotConfigured": "Radarr / Sonarr not configured",
+      "upcomingArrNotConfigured": "Upcoming releases are unavailable (check TMDB in settings).",
       "upcomingEmpty": "Nothing upcoming",
       "systemHeading": "System",
       "loadAvg": "load {{value}}",
@@ -1235,7 +1239,9 @@
         "password": "qBittorrent Password",
         "passwordPlaceholder": "Leave empty to keep existing password",
         "pollInterval": "Poll Interval (seconds)",
-        "maxItems": "Max Active Torrents"
+        "maxItems": "Max Active Torrents",
+        "setupNote": "To enable automatic post-processing when a torrent completes, qBittorrent must be configured with a webhook autorun command.",
+        "setupLink": "View setup guide"
       },
       "scrutiny": {
         "help": "Connect Scrutiny to show disk health and SMART temperatures on the dashboard.",
@@ -1356,6 +1362,78 @@
         "success": "Test email has been queued and will be sent shortly.",
         "error": "Failed to send test email. Please check your email configuration."
       }
+    },
+    "qualityProfiles": {
+      "title": "Quality profiles",
+      "listTitle": "Profiles",
+      "listDescription": "Rules used to score Prowlarr releases when a library item has a profile assigned.",
+      "createTitle": "New profile",
+      "editTitle": "Edit profile",
+      "formDescription": "Minimum resolution, preferred source and codec order, optional size cap, and HDR rules.",
+      "name": "Name",
+      "nameRequired": "Name is required",
+      "minResolution": "Minimum resolution",
+      "preferredSources": "Preferred sources",
+      "preferredCodecs": "Preferred codecs",
+      "preferredLanguages": "Preferred languages",
+      "maxSizeGb": "Max size (GB)",
+      "maxSizeGbPlaceholder": "Leave empty for no limit",
+      "cutoffResolution": "Cutoff resolution (optional)",
+      "noCutoff": "No cutoff",
+      "requireHdr": "Require HDR",
+      "preferHdr": "Prefer HDR (bonus score)",
+      "save": "Save changes",
+      "create": "Create profile",
+      "cancelEdit": "Cancel",
+      "colName": "Name",
+      "colMinRes": "Min resolution",
+      "colHdr": "HDR",
+      "colActions": "Actions",
+      "hdrRequired": "Required",
+      "hdrPreferred": "Preferred",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete profile \"{{name}}\"? Library items using it will be unassigned.",
+      "deleteSuccess": "Profile deleted",
+      "deleteError": "Could not delete profile",
+      "createSuccess": "Profile created",
+      "updateSuccess": "Profile updated",
+      "saveError": "Could not save profile",
+      "loadError": "Could not load profiles",
+      "empty": "No profiles yet. Create one above."
+    },
+    "mediaLibrary": {
+      "title": "Media library",
+      "loading": "Loading…",
+      "description": "After torrents complete, Hously can hardlink or move video files into a clean folder layout and optionally remove the torrent from qBittorrent once a seed ratio is reached.",
+      "postProcessingToggle": "Enable post-processing",
+      "moviesPath": "Movies library path (absolute)",
+      "showsPath": "TV shows library path (absolute)",
+      "fileOperation": "File operation",
+      "hardlink": "Hardlink (keeps seeding)",
+      "move": "Move",
+      "movieTemplate": "Movie filename template",
+      "episodeTemplate": "Episode path template",
+      "minSeedRatio": "Remove torrent from qBittorrent when ratio reaches (0 = immediately after processing)",
+      "defaultQualityProfile": "Default quality profile",
+      "defaultQualityProfileNone": "None (no profile assigned on add)",
+      "defaultQualityProfileHint": "Automatically assigned to new items added to the library.",
+      "save": "Save settings",
+      "saving": "Saving…",
+      "saveSuccess": "Settings saved",
+      "saveError": "Could not save settings",
+      "loadError": "Could not load settings",
+      "scanTitle": "Scan existing library on disk",
+      "scanDescription": "Walk a folder, match video filenames to TMDB, and add items as already downloaded. Requires TMDB to be configured.",
+      "scanPath": "Absolute path to scan",
+      "scanType": "Media type",
+      "scanMovies": "Movies",
+      "scanShows": "TV shows",
+      "scanRun": "Scan now",
+      "scanRunning": "Scanning…",
+      "scanResult": "Matched {{count}} title(s).",
+      "scanUnmatched": "Unmatched",
+      "scanError": "Scan failed"
     },
     "jobs": {
       "title": "Jobs",
@@ -1817,8 +1895,10 @@
         "seeders": "Seeders",
         "age": "Age",
         "size": "Size",
-        "title": "Title"
+        "title": "Title",
+        "quality": "Profile score"
       },
+      "profileScore": "Score {{score}}",
       "refresh": "Refresh",
       "retry": "Retry",
       "errorTitle": "Could not load releases.",
@@ -1827,6 +1907,7 @@
       "downloading": "Starting...",
       "downloadStarted": "Release download started.",
       "downloadFailed": "Failed to start release download.",
+      "addToLibraryFirstGrab": "Add to library first to grab through Hously.",
       "unknownIndexer": "Unknown indexer",
       "unknownLanguage": "Unknown language",
       "age": "Age: {{age}}d",
@@ -2007,5 +2088,32 @@
     "notFound": "Recipe not found",
     "confirmDelete": "Delete Recipe?",
     "confirmDeleteMessage": "Are you sure you want to delete this recipe? This action cannot be undone."
+  },
+  "library": {
+    "management": {
+      "qualityProfile": "Quality profile",
+      "qualityProfileNone": "None",
+      "downloads": "Download history",
+      "noDownloads": "No grabs yet for this title.",
+      "searchNow": "Search now",
+      "searching": "Searching…",
+      "episodeSearch": "Grab episode",
+      "grabbed": "Added to qBittorrent",
+      "grabFailed": "No suitable release found",
+      "releaseColumn": "Release",
+      "indexerColumn": "Indexer",
+      "statusColumn": "Status",
+      "grabbedAtColumn": "Grabbed",
+      "completedAtColumn": "Completed",
+      "libraryPathColumn": "Library file",
+      "delete": "Delete media",
+      "deleteConfirmTitle": "Delete this media?",
+      "deleteFilesLabel": "Also delete hardlinked files from disk",
+      "deleteConfirm": "Delete",
+      "deleting": "Deleting…",
+      "refreshStatus": "Sync status",
+      "refreshingStatus": "Syncing…",
+      "refreshStatusTitle": "Check qBittorrent & disk: re-run post-processing if needed, or revert to wanted"
+    }
   }
 }
