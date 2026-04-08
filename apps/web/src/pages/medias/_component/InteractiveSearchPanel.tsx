@@ -4,8 +4,6 @@ import { toast } from "sonner";
 import {
   ArrowDownAZ,
   ArrowUpZA,
-  ChevronDown,
-  Download,
   RefreshCw,
   Search,
   TriangleAlert,
@@ -18,7 +16,6 @@ import {
 import { useLibraryGrabRelease, useLibraryEpisodes } from "@/hooks/useLibrary";
 import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
 import {
-  formatBytes,
   filterAndSortReleases,
   normalizeFilterKey,
   UNKNOWN_TRACKER_KEY,
@@ -26,6 +23,14 @@ import {
   type InteractiveSortKey,
   type InteractiveSortDir,
 } from "@hously/shared/utils";
+import {
+  Toggle,
+  ChipMultiSelect,
+  FilterSection,
+  type FilterOption,
+} from "./InteractiveSearchFilters";
+import { ReleaseCard } from "./ReleaseCard";
+
 export interface InteractiveSearchPanelProps {
   isActive: boolean;
   media?: MediaItem | null;
@@ -39,134 +44,6 @@ export interface InteractiveSearchPanelProps {
   /** Pre-select a season (number) or complete series ("complete") when opening */
   defaultSeason?: number | "complete" | null;
   onDownloadSuccess?: () => void;
-}
-
-type FilterOption = { key: string; label: string };
-
-function Toggle({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className="inline-flex items-center gap-2 rounded-full px-1 py-1 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
-      style={{ touchAction: "manipulation" }}
-    >
-      <span
-        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-          checked ? "bg-indigo-600" : "bg-neutral-200 dark:bg-neutral-700"
-        }`}
-      >
-        <span
-          className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 ${
-            checked ? "translate-x-4" : "translate-x-0"
-          }`}
-        />
-      </span>
-      <span className="text-xs text-neutral-600 dark:text-neutral-300">
-        {label}
-      </span>
-    </button>
-  );
-}
-
-function ChipMultiSelect({
-  options,
-  selected,
-  onChange,
-  emptyText,
-}: {
-  options: FilterOption[];
-  selected: string[];
-  onChange: (values: string[]) => void;
-  emptyText: string;
-}) {
-  const toggle = (key: string) => {
-    onChange(
-      selected.includes(key)
-        ? selected.filter((k) => k !== key)
-        : [...selected, key],
-    );
-  };
-
-  if (options.length === 0) {
-    return (
-      <span className="text-[11px] italic text-neutral-400 dark:text-neutral-500">
-        {emptyText}
-      </span>
-    );
-  }
-
-  return (
-    <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto pr-1 pb-2">
-      {options.map((option) => {
-        const active = selected.includes(option.key);
-        return (
-          <button
-            key={option.key}
-            type="button"
-            onClick={() => toggle(option.key)}
-            style={{ touchAction: "manipulation" }}
-            className={`inline-flex appearance-none items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-150 ${
-              active
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
-            }`}
-          >
-            {option.label}
-            {active && <X size={9} strokeWidth={2.5} />}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function FilterSection({
-  title,
-  children,
-  badge,
-}: {
-  title: string;
-  children: React.ReactNode;
-  badge?: number;
-}) {
-  const [open, setOpen] = useState(true);
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="group flex w-full items-center justify-between py-1"
-        style={{ touchAction: "manipulation" }}
-      >
-        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-          {title}
-          {badge != null && badge > 0 && (
-            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-[9px] font-bold text-white">
-              {badge}
-            </span>
-          )}
-        </span>
-        <ChevronDown
-          size={12}
-          className={`text-neutral-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-      {open && <div className="mt-1.5">{children}</div>}
-    </div>
-  );
 }
 
 export function InteractiveSearchPanel({
@@ -768,136 +645,6 @@ export function InteractiveSearchPanel({
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function ReleaseCard({
-  release,
-  onDownload,
-  isDownloading,
-  isBusy,
-  t,
-}: {
-  release: InteractiveReleaseItem;
-  onDownload: () => void;
-  isDownloading: boolean;
-  isBusy: boolean;
-  t: (key: string, options?: Record<string, unknown>) => string;
-}) {
-  const grabDisabled =
-    isBusy || (!release.download_url && !release.download_token);
-  return (
-    <div
-      className={`rounded-2xl border p-3 transition-colors ${
-        release.rejected
-          ? "border-amber-200/60 bg-amber-50/50 dark:border-amber-700/30 dark:bg-amber-950/20"
-          : "border-neutral-200 bg-white hover:bg-neutral-50 dark:border-neutral-700/80 dark:bg-neutral-900/60 dark:hover:bg-neutral-900"
-      }`}
-    >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium leading-snug text-neutral-900 dark:text-white">
-            {release.info_url ? (
-              <a
-                href={release.info_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
-              >
-                {release.title}
-              </a>
-            ) : (
-              release.title
-            )}
-          </p>
-
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {release.is_complete_series && (
-              <span className="inline-flex items-center rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
-                Intégrale
-              </span>
-            )}
-            {release.is_season_pack && !release.is_complete_series && (
-              <span className="inline-flex items-center rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
-                Season pack
-              </span>
-            )}
-            {release.indexer && (
-              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                {release.indexer}
-              </span>
-            )}
-            {release.protocol && (
-              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium uppercase text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                {release.protocol}
-              </span>
-            )}
-            {release.size_bytes != null && (
-              <span className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
-                {formatBytes(release.size_bytes)}
-              </span>
-            )}
-            {release.parsed_quality && (
-              <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200">
-                {[
-                  release.parsed_quality.resolution
-                    ? `${release.parsed_quality.resolution}p`
-                    : null,
-                  release.parsed_quality.source,
-                  release.parsed_quality.codec,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </span>
-            )}
-            {release.quality_score != null && (
-              <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
-                {t("medias.interactive.profileScore", {
-                  score: release.quality_score,
-                })}
-              </span>
-            )}
-            {release.age != null && (
-              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                {t("medias.interactive.age", { age: release.age })}
-              </span>
-            )}
-            {(release.seeders != null || release.leechers != null) && (
-              <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                {t("medias.interactive.seedersLeechers", {
-                  seeders: release.seeders ?? "-",
-                  leechers: release.leechers ?? "-",
-                })}
-              </span>
-            )}
-            {release.languages.length > 0 && (
-              <span className="inline-flex items-center rounded-md bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-700 dark:bg-violet-950/40 dark:text-violet-300">
-                {release.languages.join(", ")}
-              </span>
-            )}
-          </div>
-
-          {release.rejected && release.rejection_reason && (
-            <p className="mt-2 rounded-md bg-amber-100/60 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-              {release.rejection_reason}
-            </p>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={onDownload}
-          disabled={grabDisabled}
-          style={{ touchAction: "manipulation" }}
-          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-        >
-          <Download size={11} strokeWidth={2.5} />
-          {isDownloading
-            ? t("medias.interactive.downloading")
-            : t("medias.interactive.download")}
-        </button>
       </div>
     </div>
   );
