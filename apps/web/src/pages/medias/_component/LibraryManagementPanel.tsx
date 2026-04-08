@@ -818,7 +818,7 @@ export function LibraryManagementPanel({
   );
 
   return (
-    <div className="px-4 pb-5 pt-2 space-y-3">
+    <div className="px-3 pb-5 pt-2 space-y-3">
       {profileSection}
       {episodeGrabSection}
       {filesSection ?? (
