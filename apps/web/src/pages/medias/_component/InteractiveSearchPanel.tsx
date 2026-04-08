@@ -17,7 +17,15 @@ import {
 } from "@/hooks/useMedias";
 import { useLibraryGrabRelease, useLibraryEpisodes } from "@/hooks/useLibrary";
 import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
-import { formatBytes, filterAndSortReleases, normalizeFilterKey, UNKNOWN_TRACKER_KEY, UNKNOWN_LANGUAGE_KEY, type InteractiveSortKey, type InteractiveSortDir } from "@hously/shared/utils";
+import {
+  formatBytes,
+  filterAndSortReleases,
+  normalizeFilterKey,
+  UNKNOWN_TRACKER_KEY,
+  UNKNOWN_LANGUAGE_KEY,
+  type InteractiveSortKey,
+  type InteractiveSortDir,
+} from "@hously/shared/utils";
 export interface InteractiveSearchPanelProps {
   isActive: boolean;
   media?: MediaItem | null;
@@ -191,7 +199,9 @@ export function InteractiveSearchPanel({
     null,
   );
   /** null = episode/free-text, number = season pack, "complete" = full series */
-  const [selectedSeason, setSelectedSeason] = useState<number | "complete" | null>(null);
+  const [selectedSeason, setSelectedSeason] = useState<
+    number | "complete" | null
+  >(null);
   const [showPacksOnly, setShowPacksOnly] = useState(false);
 
   const isShow = media?.media_type === "series";
@@ -205,15 +215,12 @@ export function InteractiveSearchPanel({
       .sort((a, b) => a - b);
   }, [episodesQuery.data]);
 
-  const prowlarrSearchQuery = useProwlarrInteractiveSearch(
-    prowlarrApiQuery,
-    {
-      enabled: isActive,
-      library_media_id: libId,
-      season: selectedSeason,
-      tmdb_id: selectedSeason != null ? mediaTmdbId : null,
-    },
-  );
+  const prowlarrSearchQuery = useProwlarrInteractiveSearch(prowlarrApiQuery, {
+    enabled: isActive,
+    library_media_id: libId,
+    season: selectedSeason,
+    tmdb_id: selectedSeason != null ? mediaTmdbId : null,
+  });
   const prowlarrDownloadMutation = useProwlarrInteractiveDownload();
   const libraryGrabMutation = useLibraryGrabRelease(libId);
   const activeQuery = prowlarrSearchQuery;
@@ -244,7 +251,6 @@ export function InteractiveSearchPanel({
     });
     return () => window.cancelAnimationFrame(frame);
   }, [isActive, media?.id, defaultProwlarrQuery, libId]);
-
 
   const trackerOptions = useMemo<FilterOption[]>(() => {
     const options = new Map<string, string>();
@@ -372,8 +378,7 @@ export function InteractiveSearchPanel({
     includedTrackers.length +
     excludedTrackers.length +
     includedLanguages.length;
-  const hasViewOverrides =
-    totalActiveFilters > 0 || !hideRejected;
+  const hasViewOverrides = totalActiveFilters > 0 || !hideRejected;
   const visibleCount = releases.length;
   const hiddenCount = Math.max(0, totalReleases - visibleCount);
   const errorMessage =
@@ -431,7 +436,9 @@ export function InteractiveSearchPanel({
                 <button
                   key={s}
                   type="button"
-                  onClick={() => setSelectedSeason(s === selectedSeason ? null : s)}
+                  onClick={() =>
+                    setSelectedSeason(s === selectedSeason ? null : s)
+                  }
                   className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                     selectedSeason === s
                       ? "bg-indigo-600 text-white"
@@ -443,7 +450,11 @@ export function InteractiveSearchPanel({
               ))}
               <button
                 type="button"
-                onClick={() => setSelectedSeason(selectedSeason === "complete" ? null : "complete")}
+                onClick={() =>
+                  setSelectedSeason(
+                    selectedSeason === "complete" ? null : "complete",
+                  )
+                }
                 className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                   selectedSeason === "complete"
                     ? "bg-violet-600 text-white"
@@ -464,7 +475,10 @@ export function InteractiveSearchPanel({
                 ref={searchInputRef}
                 value={filterQuery}
                 onChange={(event) => setFilterQuery(event.target.value)}
-                placeholder={t("medias.interactive.filterPlaceholder", "Filter releases…")}
+                placeholder={t(
+                  "medias.interactive.filterPlaceholder",
+                  "Filter releases…",
+                )}
                 className="w-full rounded-xl border border-neutral-200 bg-white py-2 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
               {filterQuery && (
@@ -540,7 +554,12 @@ export function InteractiveSearchPanel({
               )}
               <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] dark:bg-neutral-800 flex items-center gap-1 max-w-[200px]">
                 <span className="text-neutral-400 shrink-0">Prowlarr:</span>
-                <span className="truncate font-medium text-neutral-700 dark:text-neutral-200" title={prowlarrApiQuery}>{prowlarrApiQuery || "…"}</span>
+                <span
+                  className="truncate font-medium text-neutral-700 dark:text-neutral-200"
+                  title={prowlarrApiQuery}
+                >
+                  {prowlarrApiQuery || "…"}
+                </span>
               </span>
             </div>
 

@@ -40,7 +40,13 @@ describe("verifyPassword", () => {
       const { pbkdf2Sync } = await import("node:crypto");
       const salt = "testsalt";
       const iterations = 260000;
-      const derivedKey = pbkdf2Sync("password123", salt, iterations, 32, "sha256");
+      const derivedKey = pbkdf2Sync(
+        "password123",
+        salt,
+        iterations,
+        32,
+        "sha256",
+      );
       const hash = `pbkdf2:sha256:${iterations}$${salt}$${derivedKey.toString("hex")}`;
 
       expect(await verifyPassword("password123", hash)).toBe(true);
@@ -50,14 +56,22 @@ describe("verifyPassword", () => {
       const { pbkdf2Sync } = await import("node:crypto");
       const salt = "testsalt";
       const iterations = 260000;
-      const derivedKey = pbkdf2Sync("password123", salt, iterations, 32, "sha256");
+      const derivedKey = pbkdf2Sync(
+        "password123",
+        salt,
+        iterations,
+        32,
+        "sha256",
+      );
       const hash = `pbkdf2:sha256:${iterations}$${salt}$${derivedKey.toString("hex")}`;
 
       expect(await verifyPassword("wrongpassword", hash)).toBe(false);
     });
 
     it("returns false for malformed pbkdf2 hash (missing parts)", async () => {
-      expect(await verifyPassword("test", "pbkdf2:sha256:260000$salt")).toBe(false);
+      expect(await verifyPassword("test", "pbkdf2:sha256:260000$salt")).toBe(
+        false,
+      );
     });
   });
 
@@ -65,9 +79,14 @@ describe("verifyPassword", () => {
     it("verifies a valid scrypt hash", async () => {
       const { scryptSync } = await import("node:crypto");
       const salt = "testsalt";
-      const n = 32768, r = 8, p = 1;
+      const n = 32768,
+        r = 8,
+        p = 1;
       const derivedKey = scryptSync("password123", salt, 64, {
-        N: n, r, p, maxmem: 128 * 1024 * 1024,
+        N: n,
+        r,
+        p,
+        maxmem: 128 * 1024 * 1024,
       });
       const hash = `scrypt:${n}:${r}:${p}$${salt}$${derivedKey.toString("hex")}`;
 
@@ -77,9 +96,14 @@ describe("verifyPassword", () => {
     it("rejects wrong password for scrypt hash", async () => {
       const { scryptSync } = await import("node:crypto");
       const salt = "testsalt";
-      const n = 32768, r = 8, p = 1;
+      const n = 32768,
+        r = 8,
+        p = 1;
       const derivedKey = scryptSync("password123", salt, 64, {
-        N: n, r, p, maxmem: 128 * 1024 * 1024,
+        N: n,
+        r,
+        p,
+        maxmem: 128 * 1024 * 1024,
       });
       const hash = `scrypt:${n}:${r}:${p}$${salt}$${derivedKey.toString("hex")}`;
 
@@ -87,7 +111,9 @@ describe("verifyPassword", () => {
     });
 
     it("returns false for malformed scrypt hash", async () => {
-      expect(await verifyPassword("test", "scrypt:32768:8$salt$hash")).toBe(false);
+      expect(await verifyPassword("test", "scrypt:32768:8$salt$hash")).toBe(
+        false,
+      );
     });
   });
 

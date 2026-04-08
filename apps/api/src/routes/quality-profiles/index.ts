@@ -3,7 +3,13 @@ import type { QualityProfile } from "@prisma/client";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
-import { badRequest, conflict, forbidden, notFound, serverError } from "@hously/api/errors";
+import {
+  badRequest,
+  conflict,
+  forbidden,
+  notFound,
+  serverError,
+} from "@hously/api/errors";
 
 function mapProfile(p: QualityProfile) {
   return {
@@ -24,7 +30,9 @@ function mapProfile(p: QualityProfile) {
 
 const RESOLUTIONS = new Set([480, 720, 1080, 2160]);
 
-export const qualityProfilesRoutes = new Elysia({ prefix: "/api/quality-profiles" })
+export const qualityProfilesRoutes = new Elysia({
+  prefix: "/api/quality-profiles",
+})
   .use(auth)
   .use(requireUser)
   .get("/", async ({ set }) => {
@@ -42,7 +50,10 @@ export const qualityProfilesRoutes = new Elysia({ prefix: "/api/quality-profiles
     async ({ user, body, set }) => {
       if (!user?.is_admin) return forbidden(set, "Admin access required");
       if (!RESOLUTIONS.has(body.min_resolution)) {
-        return badRequest(set, "min_resolution must be 480, 720, 1080, or 2160");
+        return badRequest(
+          set,
+          "min_resolution must be 480, 720, 1080, or 2160",
+        );
       }
       if (
         body.cutoff_resolution != null &&
@@ -69,9 +80,13 @@ export const qualityProfilesRoutes = new Elysia({ prefix: "/api/quality-profiles
         });
         return { profile: mapProfile(p) };
       } catch (e: unknown) {
-        const msg = e && typeof e === "object" && "code" in e && (e as { code: string }).code === "P2002"
-          ? "A profile with this name already exists"
-          : "Failed to create quality profile";
+        const msg =
+          e &&
+          typeof e === "object" &&
+          "code" in e &&
+          (e as { code: string }).code === "P2002"
+            ? "A profile with this name already exists"
+            : "Failed to create quality profile";
         if (msg.includes("already exists")) {
           return conflict(set, msg);
         }
@@ -99,7 +114,10 @@ export const qualityProfilesRoutes = new Elysia({ prefix: "/api/quality-profiles
       const id = parseInt(params.id, 10);
       if (!Number.isFinite(id)) return badRequest(set, "Invalid id");
       if (!RESOLUTIONS.has(body.min_resolution)) {
-        return badRequest(set, "min_resolution must be 480, 720, 1080, or 2160");
+        return badRequest(
+          set,
+          "min_resolution must be 480, 720, 1080, or 2160",
+        );
       }
       if (
         body.cutoff_resolution != null &&
@@ -131,8 +149,13 @@ export const qualityProfilesRoutes = new Elysia({ prefix: "/api/quality-profiles
         });
         return { profile: mapProfile(p) };
       } catch (e: unknown) {
-        const dup = e && typeof e === "object" && "code" in e && (e as { code: string }).code === "P2002";
-        if (dup) return conflict(set, "A profile with this name already exists");
+        const dup =
+          e &&
+          typeof e === "object" &&
+          "code" in e &&
+          (e as { code: string }).code === "P2002";
+        if (dup)
+          return conflict(set, "A profile with this name already exists");
         return serverError(set, "Failed to update quality profile");
       }
     },

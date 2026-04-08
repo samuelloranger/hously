@@ -54,7 +54,6 @@ export interface OllamaPluginConfig {
   model: string;
 }
 
-
 export interface NetdataPluginConfig {
   website_url: string;
 }

@@ -1,7 +1,9 @@
 import { prisma } from "@hously/api/db";
 import { createAndQueueNotification } from "@hously/api/workers/notificationService";
 
-export async function notifyAdminsLibraryGrabSkipped(body: string): Promise<void> {
+export async function notifyAdminsLibraryGrabSkipped(
+  body: string,
+): Promise<void> {
   const admins = await prisma.user.findMany({
     where: { isAdmin: true },
     select: { id: true },

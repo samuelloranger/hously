@@ -34,21 +34,33 @@ const toDisplay = (f: number, unit: "fahrenheit" | "celsius") =>
 function dayIcon(code: number): LucideIcon {
   const key = getWeatherConditionKey(code);
   switch (key) {
-    case "clearSky": return Sun;
-    case "partlyCloudy": return CloudSun;
-    case "overcast": return Cloud;
-    case "foggy": return CloudFog;
+    case "clearSky":
+      return Sun;
+    case "partlyCloudy":
+      return CloudSun;
+    case "overcast":
+      return Cloud;
+    case "foggy":
+      return CloudFog;
     case "drizzle":
-    case "freezingDrizzle": return CloudDrizzle;
+    case "freezingDrizzle":
+      return CloudDrizzle;
     case "rain":
-    case "freezingRain": return CloudRain;
-    case "snow": return CloudSnow;
-    case "thunderstorm": return CloudLightning;
-    default: return CloudSun;
+    case "freezingRain":
+      return CloudRain;
+    case "snow":
+      return CloudSnow;
+    case "thunderstorm":
+      return CloudLightning;
+    default:
+      return CloudSun;
   }
 }
 
-function dayLabel(dateStr: string, locale: string): { short: string; isToday: boolean } {
+function dayLabel(
+  dateStr: string,
+  locale: string,
+): { short: string; isToday: boolean } {
   const date = new Date(dateStr + "T12:00:00");
   const today = new Date();
   const isToday =
@@ -70,7 +82,13 @@ function tempColorClass(f: number): string {
 
 // ─── Day icon wrapper (module-level — avoids static-components lint rule) ─────
 
-function DayWeatherIcon({ icon: Icon, isToday }: { icon: LucideIcon; isToday: boolean }) {
+function DayWeatherIcon({
+  icon: Icon,
+  isToday,
+}: {
+  icon: LucideIcon;
+  isToday: boolean;
+}) {
   return (
     <Icon
       className={cn(
@@ -110,7 +128,8 @@ function DayColumn({
   // Position the temperature range bar within the week's overall range
   const range = globalMax - globalMin || 1;
   const barBottom = ((day.temperature_min_f - globalMin) / range) * 100;
-  const barHeight = ((day.temperature_max_f - day.temperature_min_f) / range) * 100;
+  const barHeight =
+    ((day.temperature_max_f - day.temperature_min_f) / range) * 100;
   const avgF = (day.temperature_max_f + day.temperature_min_f) / 2;
 
   return (
@@ -142,7 +161,10 @@ function DayColumn({
       {/* Temperature range bar */}
       <div className="relative h-16 w-1.5 rounded-full bg-zinc-100 dark:bg-zinc-700/60 overflow-hidden flex-shrink-0">
         <div
-          className={cn("absolute w-full rounded-full bg-gradient-to-t", tempColorClass(avgF))}
+          className={cn(
+            "absolute w-full rounded-full bg-gradient-to-t",
+            tempColorClass(avgF),
+          )}
           style={{
             bottom: `${barBottom}%`,
             height: `${Math.max(barHeight, 8)}%`,
@@ -151,10 +173,14 @@ function DayColumn({
       </div>
 
       {/* High */}
-      <span className={cn(
-        "text-sm font-semibold tabular-nums leading-none",
-        isToday ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-700 dark:text-zinc-300",
-      )}>
+      <span
+        className={cn(
+          "text-sm font-semibold tabular-nums leading-none",
+          isToday
+            ? "text-zinc-900 dark:text-zinc-50"
+            : "text-zinc-700 dark:text-zinc-300",
+        )}
+      >
         {maxDisplay}°
       </span>
 
@@ -209,7 +235,9 @@ export function WeatherForecastModal({
   const headerGradient =
     condKey === "clearSky" || condKey === "partlyCloudy"
       ? "from-sky-400 via-blue-500 to-indigo-600"
-      : condKey === "rain" || condKey === "drizzle" || condKey === "freezingRain"
+      : condKey === "rain" ||
+          condKey === "drizzle" ||
+          condKey === "freezingRain"
         ? "from-slate-500 via-slate-600 to-slate-800"
         : condKey === "thunderstorm"
           ? "from-zinc-700 via-slate-800 to-zinc-900"
@@ -255,9 +283,13 @@ export function WeatherForecastModal({
               leaveTo="opacity-0 scale-95 translate-y-2"
             >
               <DialogPanel className="pointer-events-auto w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-700">
-
                 {/* Gradient header */}
-                <div className={cn("relative bg-gradient-to-br px-5 pt-5 pb-6", headerGradient)}>
+                <div
+                  className={cn(
+                    "relative bg-gradient-to-br px-5 pt-5 pb-6",
+                    headerGradient,
+                  )}
+                >
                   <button
                     type="button"
                     onClick={onClose}
@@ -275,12 +307,16 @@ export function WeatherForecastModal({
                     {current.location_name}
                   </p>
                   <p className="text-2xl font-bold text-white leading-none tabular-nums">
-                    {toDisplay(current.temperature_f, unit)}°{unit === "celsius" ? "C" : "F"}
+                    {toDisplay(current.temperature_f, unit)}°
+                    {unit === "celsius" ? "C" : "F"}
                   </p>
                   <p className="mt-1 text-sm text-white/75">
-                    {t(`dashboard.weather.conditions.${getWeatherConditionKey(current.weather_code)}`, {
-                      defaultValue: current.condition_label,
-                    })}
+                    {t(
+                      `dashboard.weather.conditions.${getWeatherConditionKey(current.weather_code)}`,
+                      {
+                        defaultValue: current.condition_label,
+                      },
+                    )}
                     {" · "}
                     {t("dashboard.weather.feelsLike", {
                       temp: toDisplay(current.feels_like_f, unit),
@@ -306,9 +342,15 @@ export function WeatherForecastModal({
                   ) : (
                     <div className="flex gap-1">
                       {days.map((day, i) => {
-                        const { short, isToday } = dayLabel(day.date, i18n.language);
+                        const { short, isToday } = dayLabel(
+                          day.date,
+                          i18n.language,
+                        );
                         return (
-                          <div key={day.date} className="flex flex-col items-center gap-0 flex-1 min-w-0">
+                          <div
+                            key={day.date}
+                            className="flex flex-col items-center gap-0 flex-1 min-w-0"
+                          >
                             {/* Day label above the column */}
                             <span
                               className={cn(
@@ -341,8 +383,14 @@ export function WeatherForecastModal({
                   {days.length > 0 && !forecastQuery.isLoading && (
                     <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex gap-1">
                       {days.map((day) => (
-                        <div key={day.date} className="flex-1 flex flex-col items-center gap-0.5">
-                          <Wind className="size-2.5 text-zinc-300 dark:text-zinc-600" strokeWidth={2} />
+                        <div
+                          key={day.date}
+                          className="flex-1 flex flex-col items-center gap-0.5"
+                        >
+                          <Wind
+                            className="size-2.5 text-zinc-300 dark:text-zinc-600"
+                            strokeWidth={2}
+                          />
                           <span className="text-[9px] tabular-nums text-zinc-400 dark:text-zinc-500">
                             {Math.round(day.wind_speed_max_kmh)}
                           </span>

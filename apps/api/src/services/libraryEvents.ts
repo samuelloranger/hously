@@ -10,5 +10,8 @@ export const libraryEventBus = new EventEmitter();
 libraryEventBus.setMaxListeners(200);
 
 export function emitLibraryUpdate(mediaId: number): void {
-  libraryEventBus.emit("update", { mediaId, ts: Date.now() } satisfies LibraryUpdateEvent);
+  libraryEventBus.emit("update", {
+    mediaId,
+    ts: Date.now(),
+  } satisfies LibraryUpdateEvent);
 }

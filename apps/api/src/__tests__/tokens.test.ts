@@ -25,7 +25,9 @@ describe("generateOpaqueToken", () => {
   });
 
   it("generates unique tokens", () => {
-    const tokens = new Set(Array.from({ length: 100 }, () => generateOpaqueToken()));
+    const tokens = new Set(
+      Array.from({ length: 100 }, () => generateOpaqueToken()),
+    );
     expect(tokens.size).toBe(100);
   });
 });

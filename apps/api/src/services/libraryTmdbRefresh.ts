@@ -75,7 +75,9 @@ export async function syncLibraryShowEpisodes(mediaId: number): Promise<void> {
   const key = await getTmdbApiKey();
   if (!key) return;
 
-  const media = await prisma.libraryMedia.findUnique({ where: { id: mediaId } });
+  const media = await prisma.libraryMedia.findUnique({
+    where: { id: mediaId },
+  });
   if (!media || media.type !== "show") return;
 
   const details = await tmdbFetch<{

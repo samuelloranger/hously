@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Download,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, Download, Loader2 } from "lucide-react";
 import { useStartMigration, useMigrateStatus } from "@/hooks/useLibrary";
 import { queryKeys } from "@/lib/queryKeys";
 import { cn } from "@/lib/utils";
@@ -109,7 +104,10 @@ export function ArrLibraryImportPanel() {
             </p>
           </div>
           {isRunning && (
-            <Loader2 size={16} className="text-indigo-500 animate-spin shrink-0" />
+            <Loader2
+              size={16}
+              className="text-indigo-500 animate-spin shrink-0"
+            />
           )}
           {isDone && !isRunning && (
             <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
@@ -141,7 +139,11 @@ export function ArrLibraryImportPanel() {
                         : "bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800",
                     )}
                   >
-                    {s === "both" ? "Both" : s === "radarr" ? "Radarr" : "Sonarr"}
+                    {s === "both"
+                      ? "Both"
+                      : s === "radarr"
+                        ? "Radarr"
+                        : "Sonarr"}
                   </button>
                 ))}
               </div>
@@ -240,7 +242,9 @@ export function ArrLibraryImportPanel() {
                     {progress.radarr.files_scanned} scanned
                   </p>
                   {progress.radarr.errors > 0 && (
-                    <p className="text-red-500">{progress.radarr.errors} errors</p>
+                    <p className="text-red-500">
+                      {progress.radarr.errors} errors
+                    </p>
                   )}
                 </div>
               )}
@@ -255,7 +259,9 @@ export function ArrLibraryImportPanel() {
                     {progress.sonarr.files_scanned} scanned
                   </p>
                   {progress.sonarr.errors > 0 && (
-                    <p className="text-red-500">{progress.sonarr.errors} errors</p>
+                    <p className="text-red-500">
+                      {progress.sonarr.errors} errors
+                    </p>
                   )}
                 </div>
               )}

@@ -35,7 +35,9 @@ export function useLibrary(
   return useQuery({
     queryKey: queryKeys.library.list(filters),
     queryFn: () =>
-      fetcher<LibraryListResponse>(`${LIBRARY_ENDPOINTS.LIST}${qs ? `?${qs}` : ""}`),
+      fetcher<LibraryListResponse>(
+        `${LIBRARY_ENDPOINTS.LIST}${qs ? `?${qs}` : ""}`,
+      ),
     ...options,
   });
 }
@@ -61,7 +63,13 @@ export function useRemoveFromLibrary() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, deleteFiles }: { id: number; deleteFiles?: boolean }) => {
+    mutationFn: ({
+      id,
+      deleteFiles,
+    }: {
+      id: number;
+      deleteFiles?: boolean;
+    }) => {
       const url = deleteFiles
         ? `${LIBRARY_ENDPOINTS.REMOVE(id)}?delete_files=true`
         : LIBRARY_ENDPOINTS.REMOVE(id);
@@ -150,27 +158,32 @@ export function useLibraryGrabRelease(libraryMediaId: number | null) {
       if (libraryMediaId == null || libraryMediaId <= 0) {
         throw new Error("Library context required");
       }
-      return fetcher<LibrarySearchResponse>(LIBRARY_ENDPOINTS.GRAB(libraryMediaId), {
-        method: "POST",
-        body: {
-          download_url: body.download_url,
-          release_title: body.release_title,
-          ...(body.indexer != null && body.indexer !== ""
-            ? { indexer: body.indexer }
-            : {}),
-          ...(body.quality_parsed !== undefined
-            ? { quality_parsed: body.quality_parsed }
-            : {}),
-          ...(body.size_bytes != null ? { size_bytes: body.size_bytes } : {}),
-          ...(body.episode_id != null ? { episode_id: body.episode_id } : {}),
+      return fetcher<LibrarySearchResponse>(
+        LIBRARY_ENDPOINTS.GRAB(libraryMediaId),
+        {
+          method: "POST",
+          body: {
+            download_url: body.download_url,
+            release_title: body.release_title,
+            ...(body.indexer != null && body.indexer !== ""
+              ? { indexer: body.indexer }
+              : {}),
+            ...(body.quality_parsed !== undefined
+              ? { quality_parsed: body.quality_parsed }
+              : {}),
+            ...(body.size_bytes != null ? { size_bytes: body.size_bytes } : {}),
+            ...(body.episode_id != null ? { episode_id: body.episode_id } : {}),
+          },
         },
-      });
+      );
     },
     onSuccess: () => {
       const id = libraryMediaId;
       if (id == null || id <= 0) return;
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.library.downloads(id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.downloads(id),
+      });
     },
   });
 }
@@ -180,13 +193,7 @@ export function useSearchLibraryMovie() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      search_query,
-    }: {
-      id: number;
-      search_query?: string;
-    }) =>
+    mutationFn: ({ id, search_query }: { id: number; search_query?: string }) =>
       fetcher<LibrarySearchResponse>(LIBRARY_ENDPOINTS.SEARCH(id), {
         method: "POST",
         body:
@@ -267,11 +274,16 @@ export function useRescanLibraryItem(id: number) {
 
   return useMutation({
     mutationFn: () =>
-      fetcher<{ rescanned: number; failed: number }>(LIBRARY_ENDPOINTS.RESCAN(id), {
-        method: "POST",
-      }),
+      fetcher<{ rescanned: number; failed: number }>(
+        LIBRARY_ENDPOINTS.RESCAN(id),
+        {
+          method: "POST",
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [...queryKeys.library.all, "files", id] });
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.library.all, "files", id],
+      });
     },
   });
 }
@@ -288,7 +300,9 @@ export function useRefreshLibraryStatus(id: number) {
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.library.downloads(id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.downloads(id),
+      });
     },
   });
 }
@@ -362,14 +376,18 @@ export function useLibraryScan() {
 }
 
 export function useMigrateStatus() {
-  const [status, setStatus] = useState<MigrateJobStatus>(MIGRATE_STATUS_DEFAULT);
+  const [status, setStatus] = useState<MigrateJobStatus>(
+    MIGRATE_STATUS_DEFAULT,
+  );
   const sourceRef = useRef<EventSource | null>(null);
 
   const connect = useCallback(() => {
     if (sourceRef.current) {
       sourceRef.current.close();
     }
-    const es = new EventSource(LIBRARY_ENDPOINTS.MIGRATE_STATUS, { withCredentials: true });
+    const es = new EventSource(LIBRARY_ENDPOINTS.MIGRATE_STATUS, {
+      withCredentials: true,
+    });
     sourceRef.current = es;
 
     es.onmessage = (e) => {

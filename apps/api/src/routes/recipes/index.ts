@@ -36,8 +36,12 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
       }
 
       try {
-        const page = query.page ? Math.max(1, parseInt(query.page, 10) || 1) : null;
-        const limit = page ? Math.min(parseInt(query.limit || "50", 10) || 50, 100) : undefined;
+        const page = query.page
+          ? Math.max(1, parseInt(query.page, 10) || 1)
+          : null;
+        const limit = page
+          ? Math.min(parseInt(query.limit || "50", 10) || 50, 100)
+          : undefined;
 
         const [allRecipes, total] = await Promise.all([
           prisma.recipe.findMany({
@@ -52,54 +56,61 @@ export const recipesRoutes = new Elysia({ prefix: "/api/recipes" })
           page ? prisma.recipe.count() : Promise.resolve(undefined),
         ]);
 
-      // Get all users for username lookup
-      const allUsers = await prisma.user.findMany({
-        select: {
-          id: true,
-          firstName: true,
-          email: true,
-        },
-      });
+        // Get all users for username lookup
+        const allUsers = await prisma.user.findMany({
+          select: {
+            id: true,
+            firstName: true,
+            email: true,
+          },
+        });
 
-      const usersById = buildUserMap(allUsers);
+        const usersById = buildUserMap(allUsers);
 
-      const recipesList = allRecipes.map((recipe) => {
+        const recipesList = allRecipes.map((recipe) => {
+          return {
+            id: recipe.id,
+            name: recipe.name,
+            description: recipe.description,
+            instructions: recipe.instructions,
+            category: recipe.category,
+            servings: recipe.servings,
+            prep_time_minutes: recipe.prepTimeMinutes,
+            cook_time_minutes: recipe.cookTimeMinutes,
+            image_path: recipe.imagePath,
+            is_favorite: recipe.isFavorite,
+            added_by: recipe.addedBy,
+            created_at: formatIso(recipe.createdAt),
+            updated_at: formatIso(recipe.updatedAt),
+            added_by_username: getUserDisplayName(recipe.addedBy, usersById),
+            ingredient_count: recipe._count.ingredients,
+          };
+        });
+
         return {
-          id: recipe.id,
-          name: recipe.name,
-          description: recipe.description,
-          instructions: recipe.instructions,
-          category: recipe.category,
-          servings: recipe.servings,
-          prep_time_minutes: recipe.prepTimeMinutes,
-          cook_time_minutes: recipe.cookTimeMinutes,
-          image_path: recipe.imagePath,
-          is_favorite: recipe.isFavorite,
-          added_by: recipe.addedBy,
-          created_at: formatIso(recipe.createdAt),
-          updated_at: formatIso(recipe.updatedAt),
-          added_by_username: getUserDisplayName(recipe.addedBy, usersById),
-          ingredient_count: recipe._count.ingredients,
+          recipes: recipesList,
+          ...(page && limit && total != null
+            ? {
+                pagination: {
+                  page,
+                  limit,
+                  total,
+                  pages: Math.ceil(total / limit),
+                },
+              }
+            : {}),
         };
-      });
-
-      return {
-        recipes: recipesList,
-        ...(page && limit && total != null
-          ? { pagination: { page, limit, total, pages: Math.ceil(total / limit) } }
-          : {}),
-      };
-    } catch (error) {
-      console.error("Error getting recipes:", error);
-      return serverError(set, "Failed to get recipes");
-    }
-  },
-  {
-    query: t.Object({
-      page: t.Optional(t.String()),
-      limit: t.Optional(t.String()),
-    }),
-  },
+      } catch (error) {
+        console.error("Error getting recipes:", error);
+        return serverError(set, "Failed to get recipes");
+      }
+    },
+    {
+      query: t.Object({
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+      }),
+    },
   )
 
   // GET /api/recipes/:id - Get single recipe with ingredients

@@ -1,7 +1,10 @@
 import type { Job } from "bullmq";
 import { prisma } from "@hously/api/db";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
-import { scanMediaInfo, remapPath } from "@hously/api/utils/medias/mediainfoScanner";
+import {
+  scanMediaInfo,
+  remapPath,
+} from "@hously/api/utils/medias/mediainfoScanner";
 import {
   parseFilenameMetadata,
   refineFrenchAudioLabel,
@@ -144,8 +147,15 @@ type SonarrFile = {
 function normalizeVideoCodec(c: string | undefined): string | null {
   if (!c) return null;
   const m: Record<string, string> = {
-    h265: "HEVC", x265: "HEVC", h264: "AVC", x264: "AVC",
-    av1: "AV1", xvid: "XviD", divx: "DivX", mpeg2: "MPEG-2", vc1: "VC-1",
+    h265: "HEVC",
+    x265: "HEVC",
+    h264: "AVC",
+    x264: "AVC",
+    av1: "AV1",
+    xvid: "XviD",
+    divx: "DivX",
+    mpeg2: "MPEG-2",
+    vc1: "VC-1",
   };
   return m[c.toLowerCase()] ?? c;
 }
@@ -153,8 +163,11 @@ function normalizeVideoCodec(c: string | undefined): string | null {
 function normalizeHdrFormat(d: string | undefined): string | null {
   if (!d) return null;
   const m: Record<string, string> = {
-    HDR: "HDR10", HDR10: "HDR10", HDR10Plus: "HDR10+",
-    DolbyVision: "Dolby Vision", HLG: "HLG",
+    HDR: "HDR10",
+    HDR10: "HDR10",
+    HDR10Plus: "HDR10+",
+    DolbyVision: "Dolby Vision",
+    HLG: "HLG",
   };
   return m[d] ?? null;
 }
@@ -196,16 +209,25 @@ function buildAudioTracksFromArr(
   let frenchIdx = 0;
   return languages.map((lang, i) => {
     const isoLang = lang.toLowerCase().slice(0, 3); // crude 3-letter code
-    const isFrench = /^(fre|fra|fr|french)$/i.test(isoLang) || /french/i.test(lang);
+    const isFrench =
+      /^(fre|fra|fr|french)$/i.test(isoLang) || /french/i.test(lang);
 
     let finalLang = isoLang;
     let finalName = lang;
     if (isFrench) {
-      const refined = refineFrenchAudioLabel(isoLang, null, fnData.audioFlags, frenchIdx++);
+      const refined = refineFrenchAudioLabel(
+        isoLang,
+        null,
+        fnData.audioFlags,
+        frenchIdx++,
+      );
       finalLang = refined.language;
       finalName = refined.language_name;
     } else {
-      finalName = expandLanguageCode(isoLang) !== isoLang ? expandLanguageCode(isoLang) : lang;
+      finalName =
+        expandLanguageCode(isoLang) !== isoLang
+          ? expandLanguageCode(isoLang)
+          : lang;
     }
 
     return {
@@ -226,7 +248,9 @@ function buildAudioTracksFromArr(
   });
 }
 
-function buildSubtitleTracksFromArr(mediaInfo: { subtitles?: string }): object[] {
+function buildSubtitleTracksFromArr(mediaInfo: {
+  subtitles?: string;
+}): object[] {
   return (mediaInfo.subtitles ?? "")
     .split("/")
     .map((s) => s.trim())
@@ -253,8 +277,11 @@ async function tmdbFetch<T>(
 ): Promise<T> {
   const url = new URL(`${TMDB_BASE}/${path}`);
   url.searchParams.set("api_key", apiKey);
-  if (params) for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(10_000) });
+  if (params)
+    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  const res = await fetch(url.toString(), {
+    signal: AbortSignal.timeout(10_000),
+  });
   if (!res.ok) throw new Error(`TMDB ${path} → ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -278,21 +305,36 @@ function pickDigitalRelease(
 export async function processLibraryMigrateJob(
   job: Job<LibraryMigrateJobData>,
 ): Promise<LibraryMigrateResult> {
-  const { source, radarr_url, radarr_api_key, sonarr_url, sonarr_api_key } = job.data;
+  const { source, radarr_url, radarr_api_key, sonarr_url, sonarr_api_key } =
+    job.data;
 
   const tmdbPlugin = await prisma.plugin.findFirst({
     where: { type: "tmdb" },
     select: { enabled: true, config: true },
   });
-  const tmdbConfig = tmdbPlugin?.enabled ? normalizeTmdbConfig(tmdbPlugin.config) : null;
+  const tmdbConfig = tmdbPlugin?.enabled
+    ? normalizeTmdbConfig(tmdbPlugin.config)
+    : null;
 
   const progress: LibraryMigrateProgress = {
     phase: "radarr",
     current: 0,
     total: 0,
     current_title: null,
-    radarr: { imported: 0, already_existed: 0, skipped: 0, files_scanned: 0, errors: 0 },
-    sonarr: { imported_shows: 0, imported_episodes: 0, imported_files: 0, files_scanned: 0, errors: 0 },
+    radarr: {
+      imported: 0,
+      already_existed: 0,
+      skipped: 0,
+      files_scanned: 0,
+      errors: 0,
+    },
+    sonarr: {
+      imported_shows: 0,
+      imported_episodes: 0,
+      imported_files: 0,
+      files_scanned: 0,
+      errors: 0,
+    },
   };
 
   const result: LibraryMigrateResult = {};
@@ -311,7 +353,11 @@ export async function processLibraryMigrateJob(
   if (source === "radarr" || source === "both") {
     const radarrErrors: string[] = [];
     result.radarr = {
-      imported: 0, already_existed: 0, skipped: 0, files_scanned: 0, errors: radarrErrors,
+      imported: 0,
+      already_existed: 0,
+      skipped: 0,
+      files_scanned: 0,
+      errors: radarrErrors,
     };
 
     try {
@@ -322,7 +368,8 @@ export async function processLibraryMigrateJob(
           headers: { "X-Api-Key": radarr_api_key },
           signal: AbortSignal.timeout(30_000),
         });
-        if (!moviesRes.ok) throw new Error(`Radarr responded ${moviesRes.status}`);
+        if (!moviesRes.ok)
+          throw new Error(`Radarr responded ${moviesRes.status}`);
         const movies = (await moviesRes.json()) as RadarrMovie[];
 
         progress.total = movies.length;
@@ -341,7 +388,8 @@ export async function processLibraryMigrateJob(
             }
 
             const poster =
-              movie.images.find((i) => i.coverType === "poster")?.remoteUrl ?? null;
+              movie.images.find((i) => i.coverType === "poster")?.remoteUrl ??
+              null;
 
             const existing = await prisma.libraryMedia.findUnique({
               where: { tmdbId: movie.tmdbId },
@@ -354,7 +402,10 @@ export async function processLibraryMigrateJob(
                 const rd = await tmdbFetch<{
                   results: Array<{
                     iso_3166_1: string;
-                    release_dates: Array<{ type: number; release_date: string }>;
+                    release_dates: Array<{
+                      type: number;
+                      release_date: string;
+                    }>;
                   }>;
                 }>(`movie/${movie.tmdbId}/release_dates`, tmdbConfig.api_key);
                 digitalReleaseDate = pickDigitalRelease(rd.results);
@@ -431,9 +482,14 @@ export async function processLibraryMigrateJob(
                   subtitleTracks: mi.subtitleTracks as object[],
                 };
                 if (existingFile) {
-                  await prisma.mediaFile.update({ where: { id: existingFile.id }, data: miData });
+                  await prisma.mediaFile.update({
+                    where: { id: existingFile.id },
+                    data: miData,
+                  });
                 } else {
-                  await prisma.mediaFile.create({ data: { mediaId: mediaRow.id, ...miData } });
+                  await prisma.mediaFile.create({
+                    data: { mediaId: mediaRow.id, ...miData },
+                  });
                 }
               } else {
                 // Fall back to Radarr's flat mediaInfo
@@ -447,16 +503,27 @@ export async function processLibraryMigrateJob(
                   width: arrMi.width ?? null,
                   height: arrMi.height ?? null,
                   bitDepth: arrMi.videoBitDepth ?? null,
-                  hdrFormat: normalizeHdrFormat(arrMi.videoDynamicRangeType) ?? fnData.hdrFormat,
+                  hdrFormat:
+                    normalizeHdrFormat(arrMi.videoDynamicRangeType) ??
+                    fnData.hdrFormat,
                   resolution: fnData.resolution,
                   source: fnData.source,
-                  audioTracks: buildAudioTracksFromArr(arrMi, fileName, mf.languages),
+                  audioTracks: buildAudioTracksFromArr(
+                    arrMi,
+                    fileName,
+                    mf.languages,
+                  ),
                   subtitleTracks: buildSubtitleTracksFromArr(arrMi),
                 };
                 if (existingFile) {
-                  await prisma.mediaFile.update({ where: { id: existingFile.id }, data: arrData });
+                  await prisma.mediaFile.update({
+                    where: { id: existingFile.id },
+                    data: arrData,
+                  });
                 } else {
-                  await prisma.mediaFile.create({ data: { mediaId: mediaRow.id, ...arrData } });
+                  await prisma.mediaFile.create({
+                    data: { mediaId: mediaRow.id, ...arrData },
+                  });
                 }
               }
             }
@@ -479,8 +546,11 @@ export async function processLibraryMigrateJob(
   if (source === "sonarr" || source === "both") {
     const sonarrErrors: string[] = [];
     result.sonarr = {
-      imported_shows: 0, imported_episodes: 0, imported_files: 0,
-      files_scanned: 0, errors: sonarrErrors,
+      imported_shows: 0,
+      imported_episodes: 0,
+      imported_files: 0,
+      files_scanned: 0,
+      errors: sonarrErrors,
     };
 
     try {
@@ -491,7 +561,8 @@ export async function processLibraryMigrateJob(
           headers: { "X-Api-Key": sonarr_api_key },
           signal: AbortSignal.timeout(30_000),
         });
-        if (!seriesRes.ok) throw new Error(`Sonarr responded ${seriesRes.status}`);
+        if (!seriesRes.ok)
+          throw new Error(`Sonarr responded ${seriesRes.status}`);
         const allSeries = (await seriesRes.json()) as SonarrSeries[];
 
         progress.phase = "sonarr";
@@ -514,23 +585,29 @@ export async function processLibraryMigrateJob(
             let tmdbId: number | null = null;
             if (tmdbConfig) {
               try {
-                const findRes = await tmdbFetch<{ tv_results: Array<{ id: number }> }>(
-                  `find/${series.tvdbId}`,
-                  tmdbConfig.api_key,
-                  { external_source: "tvdb_id" },
-                );
+                const findRes = await tmdbFetch<{
+                  tv_results: Array<{ id: number }>;
+                }>(`find/${series.tvdbId}`, tmdbConfig.api_key, {
+                  external_source: "tvdb_id",
+                });
                 tmdbId = findRes.tv_results[0]?.id ?? null;
               } catch {
                 // best-effort
               }
             }
             if (!tmdbId) {
-              sonarrErrors.push(`Series ${series.title}: could not resolve TMDB ID from TVDB ${series.tvdbId}`);
+              sonarrErrors.push(
+                `Series ${series.title}: could not resolve TMDB ID from TVDB ${series.tvdbId}`,
+              );
               continue;
             }
 
-            const poster = series.images.find((i) => i.coverType === "poster")?.remoteUrl ?? null;
-            const hasAnyFile = series.seasons.some((s) => (s.statistics?.episodeFileCount ?? 0) > 0);
+            const poster =
+              series.images.find((i) => i.coverType === "poster")?.remoteUrl ??
+              null;
+            const hasAnyFile = series.seasons.some(
+              (s) => (s.statistics?.episodeFileCount ?? 0) > 0,
+            );
 
             const mediaRow = await prisma.libraryMedia.upsert({
               where: { tmdbId },
@@ -559,7 +636,10 @@ export async function processLibraryMigrateJob(
             // Fetch episodes
             const epsRes = await fetch(
               `${sonarr_url!}/api/v3/episode?seriesId=${series.id}`,
-              { headers: { "X-Api-Key": sonarr_api_key! }, signal: AbortSignal.timeout(15_000) },
+              {
+                headers: { "X-Api-Key": sonarr_api_key! },
+                signal: AbortSignal.timeout(15_000),
+              },
             );
             if (!epsRes.ok) throw new Error(`Sonarr episodes ${epsRes.status}`);
             const episodes = (await epsRes.json()) as SonarrEp[];
@@ -567,13 +647,20 @@ export async function processLibraryMigrateJob(
             // Build sonarrFileId → episodeNumber map for correct file↔episode linking
             const fileIdToEpNum = new Map<number, number>();
             for (const ep of episodes) {
-              if (ep.episodeFileId) fileIdToEpNum.set(ep.episodeFileId, ep.episodeNumber);
+              if (ep.episodeFileId)
+                fileIdToEpNum.set(ep.episodeFileId, ep.episodeNumber);
             }
 
             for (const ep of episodes) {
               if (ep.seasonNumber === 0) continue;
               await prisma.libraryEpisode.upsert({
-                where: { mediaId_season_episode: { mediaId: mediaRow.id, season: ep.seasonNumber, episode: ep.episodeNumber } },
+                where: {
+                  mediaId_season_episode: {
+                    mediaId: mediaRow.id,
+                    season: ep.seasonNumber,
+                    episode: ep.episodeNumber,
+                  },
+                },
                 create: {
                   mediaId: mediaRow.id,
                   season: ep.seasonNumber,
@@ -595,7 +682,10 @@ export async function processLibraryMigrateJob(
             // Fetch episode files and scan with MediaInfo
             const filesRes = await fetch(
               `${sonarr_url!}/api/v3/episodefile?seriesId=${series.id}`,
-              { headers: { "X-Api-Key": sonarr_api_key! }, signal: AbortSignal.timeout(15_000) },
+              {
+                headers: { "X-Api-Key": sonarr_api_key! },
+                signal: AbortSignal.timeout(15_000),
+              },
             );
             if (filesRes.ok) {
               const files = (await filesRes.json()) as SonarrFile[];
@@ -607,8 +697,9 @@ export async function processLibraryMigrateJob(
                 // Parse episode number from filename (e.g. "Show.S04E07.mkv" → 7)
                 // More reliable than episodeFileId from Sonarr API
                 const epMatch = fileName.match(/[Ss]\d{1,2}[Ee](\d{1,3})/);
-                const epNumber = epMatch ? parseInt(epMatch[1], 10)
-                  : fileIdToEpNum.get(file.id) ?? null;
+                const epNumber = epMatch
+                  ? parseInt(epMatch[1], 10)
+                  : (fileIdToEpNum.get(file.id) ?? null);
 
                 const epRow = await prisma.libraryEpisode.findFirst({
                   where: {
@@ -654,7 +745,10 @@ export async function processLibraryMigrateJob(
                     subtitleTracks: mi.subtitleTracks as object[],
                   };
                   if (existingFile) {
-                    await prisma.mediaFile.update({ where: { id: existingFile.id }, data: miData });
+                    await prisma.mediaFile.update({
+                      where: { id: existingFile.id },
+                      data: miData,
+                    });
                   } else {
                     await prisma.mediaFile.create({ data: miData });
                   }
@@ -671,14 +765,23 @@ export async function processLibraryMigrateJob(
                     width: arrMi.width ?? null,
                     height: arrMi.height ?? null,
                     bitDepth: arrMi.videoBitDepth ?? null,
-                    hdrFormat: normalizeHdrFormat(arrMi.videoDynamicRangeType) ?? fnData.hdrFormat,
+                    hdrFormat:
+                      normalizeHdrFormat(arrMi.videoDynamicRangeType) ??
+                      fnData.hdrFormat,
                     resolution: fnData.resolution,
                     source: fnData.source,
-                    audioTracks: buildAudioTracksFromArr(arrMi, fileName, file.languages),
+                    audioTracks: buildAudioTracksFromArr(
+                      arrMi,
+                      fileName,
+                      file.languages,
+                    ),
                     subtitleTracks: buildSubtitleTracksFromArr(arrMi),
                   };
                   if (existingFile) {
-                    await prisma.mediaFile.update({ where: { id: existingFile.id }, data: arrData });
+                    await prisma.mediaFile.update({
+                      where: { id: existingFile.id },
+                      data: arrData,
+                    });
                   } else {
                     await prisma.mediaFile.create({ data: arrData });
                   }
@@ -689,7 +792,9 @@ export async function processLibraryMigrateJob(
             }
           } catch (err) {
             progress.sonarr.errors++;
-            sonarrErrors.push(`Series ${series.title}: ${err instanceof Error ? err.message : String(err)}`);
+            sonarrErrors.push(
+              `Series ${series.title}: ${err instanceof Error ? err.message : String(err)}`,
+            );
           }
         }
       }

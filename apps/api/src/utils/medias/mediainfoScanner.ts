@@ -81,7 +81,6 @@ export type MediaFileData = {
   subtitleTracks: SubtitleTrack[];
 };
 
-
 function parseChannelLayout(channelStr: string | undefined): string | null {
   if (!channelStr) return null;
   // MediaInfo gives "C L R Ls Rs LFE" style or just a number
@@ -115,7 +114,10 @@ function parseHdrFormat(
 }
 
 /** Extract release group from filename: last segment after last dash before extension */
-function extractReleaseGroup(fileName: string, libraryName?: string): string | null {
+function extractReleaseGroup(
+  fileName: string,
+  libraryName?: string,
+): string | null {
   if (libraryName) return libraryName;
   // e.g. "Movie.2023.1080p.BluRay.x264-GROUP.mkv" → "GROUP"
   const withoutExt = fileName.replace(/\.[^.]+$/, "");
@@ -177,11 +179,15 @@ export function remapPath(filePath: string): string {
  * Returns null if `mediainfo` is not installed or the scan fails — never throws.
  * Applies MEDIA_PATH_FROM/MEDIA_PATH_TO remapping before scanning.
  */
-export async function scanMediaInfo(filePath: string): Promise<MediaFileData | null> {
+export async function scanMediaInfo(
+  filePath: string,
+): Promise<MediaFileData | null> {
   try {
     const bin = Bun.which("mediainfo");
     if (!bin) {
-      console.warn("[mediainfoScanner] mediainfo binary not found — skipping scan");
+      console.warn(
+        "[mediainfoScanner] mediainfo binary not found — skipping scan",
+      );
       return null;
     }
 
@@ -211,8 +217,13 @@ export async function scanMediaInfo(filePath: string): Promise<MediaFileData | n
     // General track
     const general = tracks.find((t) => t["@type"] === "General");
     const sizeBytes = BigInt(general?.FileSize ?? "0");
-    const durationSecs = general?.Duration ? parseFloat(general.Duration) : null;
-    const releaseGroup = extractReleaseGroup(fileName, general?.Encoded_Library_Name);
+    const durationSecs = general?.Duration
+      ? parseFloat(general.Duration)
+      : null;
+    const releaseGroup = extractReleaseGroup(
+      fileName,
+      general?.Encoded_Library_Name,
+    );
 
     // Video track
     const video = tracks.find((t) => t["@type"] === "Video");
@@ -222,8 +233,13 @@ export async function scanMediaInfo(filePath: string): Promise<MediaFileData | n
     const height = video?.Height ? parseInt(video.Height, 10) : null;
     const frameRate = video?.FrameRate ? parseFloat(video.FrameRate) : null;
     const bitDepth = video?.BitDepth ? parseInt(video.BitDepth, 10) : null;
-    const videoBitrate = video?.BitRate ? Math.round(parseInt(video.BitRate, 10) / 1000) : null;
-    const hdrFormat = parseHdrFormat(video?.HDR_Format, video?.HDR_Format_Commercial);
+    const videoBitrate = video?.BitRate
+      ? Math.round(parseInt(video.BitRate, 10) / 1000)
+      : null;
+    const hdrFormat = parseHdrFormat(
+      video?.HDR_Format,
+      video?.HDR_Format_Commercial,
+    );
 
     // Derive resolution from width (not height — widescreen films have short heights due to aspect ratio)
     // Fall back to height-based heuristic, then filename.
@@ -251,18 +267,29 @@ export async function scanMediaInfo(filePath: string): Promise<MediaFileData | n
       .filter((t) => t["@type"] === "Audio")
       .map((t, i) => {
         const rawLang = t.Language ?? "und";
-        const isFrench = /^(fre|fra|fr)$/i.test(rawLang) || /french/i.test(rawLang);
+        const isFrench =
+          /^(fre|fra|fr)$/i.test(rawLang) || /french/i.test(rawLang);
         const refined = isFrench
-          ? refineFrenchAudioLabel(rawLang, t.Title ?? null, fnData.audioFlags, frenchTrackIndex++)
+          ? refineFrenchAudioLabel(
+              rawLang,
+              t.Title ?? null,
+              fnData.audioFlags,
+              frenchTrackIndex++,
+            )
           : { language: rawLang, language_name: expandLanguageCode(rawLang) };
 
         // Normalize codec name using commercial name when available
         let codec = t.Format ?? null;
         const commercial = (t.Format_Commercial_IfAny ?? "").toLowerCase();
         if (commercial.includes("truehd")) codec = "TrueHD";
-        else if (commercial.includes("dts-hd ma") || commercial.includes("dts-hd master")) codec = "DTS-HD MA";
+        else if (
+          commercial.includes("dts-hd ma") ||
+          commercial.includes("dts-hd master")
+        )
+          codec = "DTS-HD MA";
         else if (commercial.includes("dts-hd")) codec = "DTS-HD";
-        else if (commercial.includes("dts:x") || commercial.includes("dts-x")) codec = "DTS:X";
+        else if (commercial.includes("dts:x") || commercial.includes("dts-x"))
+          codec = "DTS:X";
         else if (codec === "AC-3" || codec === "AC3") codec = "AC3";
         else if (codec === "E-AC-3" || codec === "EAC-3") codec = "EAC3";
 
@@ -275,7 +302,9 @@ export async function scanMediaInfo(filePath: string): Promise<MediaFileData | n
           codec,
           channels: t.Channels ? parseInt(t.Channels, 10) : null,
           channel_layout: parseChannelLayout(t.ChannelLayout ?? t.Channels),
-          bitrate_kbps: bitrateRaw ? Math.round(parseInt(bitrateRaw, 10) / 1000) : null,
+          bitrate_kbps: bitrateRaw
+            ? Math.round(parseInt(bitrateRaw, 10) / 1000)
+            : null,
           default: t.Default?.toLowerCase() === "yes",
           forced: t.Forced?.toLowerCase() === "yes",
         };

@@ -47,7 +47,9 @@ describe("sanitizeRichText", () => {
   });
 
   it("strips data: protocol from href", () => {
-    const result = sanitizeRichText('<a href="data:text/html,<h1>bad</h1>">link</a>');
+    const result = sanitizeRichText(
+      '<a href="data:text/html,<h1>bad</h1>">link</a>',
+    );
     expect(result).not.toContain("data:");
   });
 

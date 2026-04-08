@@ -1,4 +1,8 @@
-export type LibraryMediaStatus = "wanted" | "downloading" | "downloaded" | "skipped";
+export type LibraryMediaStatus =
+  | "wanted"
+  | "downloading"
+  | "downloaded"
+  | "skipped";
 
 export interface LibraryAudioTrack {
   index: number;

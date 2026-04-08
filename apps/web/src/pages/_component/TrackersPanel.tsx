@@ -3,7 +3,12 @@ import {
   useDashboardLaCaleStats,
   useDashboardTorr9Stats,
 } from "@/hooks/usePlugins";
-import { formatGo, formatRatio, formatRelativeTime, resolveDateFnsLocale } from "@hously/shared/utils";
+import {
+  formatGo,
+  formatRatio,
+  formatRelativeTime,
+  resolveDateFnsLocale,
+} from "@hously/shared/utils";
 import { useTranslation } from "react-i18next";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -39,7 +44,10 @@ function RatioProgressBar({ ratio }: { ratio: number }) {
   return (
     <div className="relative h-[3px] rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
       <div
-        className={cn("absolute inset-y-0 left-0 rounded-full bg-gradient-to-r", ratioBarColor(ratio))}
+        className={cn(
+          "absolute inset-y-0 left-0 rounded-full bg-gradient-to-r",
+          ratioBarColor(ratio),
+        )}
         style={{ width: `${Math.max(fill * 100, 2)}%` }}
       />
     </div>
@@ -132,9 +140,7 @@ function TrackerRow({
       )}
 
       {/* Row divider */}
-      {!isLast && (
-        <div className="mx-4 h-px bg-zinc-100 dark:bg-zinc-800" />
-      )}
+      {!isLast && <div className="mx-4 h-px bg-zinc-100 dark:bg-zinc-800" />}
     </>
   );
 }

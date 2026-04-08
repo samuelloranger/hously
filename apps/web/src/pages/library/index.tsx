@@ -32,9 +32,7 @@ export const Route = createFileRoute("/library/")({
         ? search.search
         : undefined,
     type:
-      typeof search.type === "string" && search.type
-        ? search.type
-        : undefined,
+      typeof search.type === "string" && search.type ? search.type : undefined,
     status:
       typeof search.status === "string" && search.status
         ? search.status

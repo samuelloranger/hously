@@ -8,7 +8,12 @@ import {
 import { useQbittorrentStatus } from "@/hooks/useQbittorrentStatus";
 import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
 import type { DashboardQbittorrentStatusResponse } from "@hously/shared/types";
-import { formatSpeed, formatBytes, formatQbittorrentEta, getQbittorrentProgressBarGradient } from "@hously/shared/utils";
+import {
+  formatSpeed,
+  formatBytes,
+  formatQbittorrentEta,
+  getQbittorrentProgressBarGradient,
+} from "@hously/shared/utils";
 import { useEventSourceState } from "@/hooks/useEventSourceState";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {

@@ -85,7 +85,9 @@ export async function markDownloadHistoryComplete(dh: {
  * Called directly by the qBittorrent webhook for immediate completion.
  * Returns the download_history id when a matching pending row was updated, else null.
  */
-export async function completeDownloadByHash(hash: string): Promise<number | null> {
+export async function completeDownloadByHash(
+  hash: string,
+): Promise<number | null> {
   const normalizedHash = hash.toLowerCase().trim();
   if (!normalizedHash) return null;
 
@@ -138,7 +140,8 @@ export async function checkDownloadCompletion(): Promise<void> {
       }
       if (!raw) {
         for (const [h, torrentRow] of torrents) {
-          const tStr = typeof torrentRow.tags === "string" ? torrentRow.tags : "";
+          const tStr =
+            typeof torrentRow.tags === "string" ? torrentRow.tags : "";
           const tags = tStr
             .split(",")
             .map((x) => x.trim().toLowerCase())

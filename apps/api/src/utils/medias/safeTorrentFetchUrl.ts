@@ -68,4 +68,3 @@ export async function fetchHttpWithSafeRedirects(
   }
   throw new Error("Too many redirects");
 }
-

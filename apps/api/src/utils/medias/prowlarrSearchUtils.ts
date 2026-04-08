@@ -32,8 +32,7 @@ export function extractProwlarrDownloadTarget(
     toStringOrNull(row.magnetUri) ||
     toStringOrNull(row.magnetLink) ||
     toStringOrNull(row.magnet);
-  if (magnet?.startsWith("magnet:"))
-    return { url: magnet, isMagnet: true };
+  if (magnet?.startsWith("magnet:")) return { url: magnet, isMagnet: true };
 
   const dl =
     toStringOrNull(row.downloadUrl) ||
@@ -54,7 +53,9 @@ export function infoHashFromMagnet(magnet: string): string | null {
   return m ? m[1].toLowerCase() : null;
 }
 
-export function indexerNameFromRaw(row: Record<string, unknown>): string | null {
+export function indexerNameFromRaw(
+  row: Record<string, unknown>,
+): string | null {
   const indexerRecord = toRecord(row.indexer);
   return (
     toStringOrNull(row.indexer) ||
@@ -63,7 +64,9 @@ export function indexerNameFromRaw(row: Record<string, unknown>): string | null 
   );
 }
 
-export function releaseTitleFromRaw(row: Record<string, unknown>): string | null {
+export function releaseTitleFromRaw(
+  row: Record<string, unknown>,
+): string | null {
   return toStringOrNull(row.title);
 }
 

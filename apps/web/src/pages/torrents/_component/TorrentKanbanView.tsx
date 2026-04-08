@@ -1,7 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import type { QbittorrentTorrentListItem } from "@hously/shared/types";
-import { formatBytes, formatSpeed, getQbittorrentProgressBarGradient, getQbittorrentStatusDot } from "@hously/shared/utils";
+import {
+  formatBytes,
+  formatSpeed,
+  getQbittorrentProgressBarGradient,
+  getQbittorrentStatusDot,
+} from "@hously/shared/utils";
 import { cn } from "@/lib/utils";
 
 type KanbanColumnId =

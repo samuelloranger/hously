@@ -1,5 +1,8 @@
 import type { DashboardWeatherResponse } from "@hously/api/types/dashboardWeather";
-import type { WeatherForecastData, WeatherForecastDay } from "@hously/shared/types";
+import type {
+  WeatherForecastData,
+  WeatherForecastDay,
+} from "@hously/shared/types";
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
@@ -103,7 +106,8 @@ export const fetchAddressWeatherForecast = async (
   const geocodeRes = await fetch(geocodeUrl.toString(), {
     headers: { "User-Agent": "hously-api/1.0" },
   });
-  if (!geocodeRes.ok) throw new Error("Unable to geocode address for forecast.");
+  if (!geocodeRes.ok)
+    throw new Error("Unable to geocode address for forecast.");
 
   const geocodeData = (await geocodeRes.json()) as NominatimResult[];
   const firstResult = geocodeData[0];
@@ -137,12 +141,17 @@ export const fetchAddressWeatherForecast = async (
     weather_code: daily.weather_code?.[i] ?? 0,
     temperature_max_f: daily.temperature_2m_max?.[i] ?? 0,
     temperature_min_f: daily.temperature_2m_min?.[i] ?? 0,
-    precipitation_probability_max: daily.precipitation_probability_max?.[i] ?? 0,
+    precipitation_probability_max:
+      daily.precipitation_probability_max?.[i] ?? 0,
     precipitation_sum_mm: daily.precipitation_sum?.[i] ?? 0,
     wind_speed_max_kmh: daily.wind_speed_10m_max?.[i] ?? 0,
   }));
 
-  return { location_name: locationName, temperature_unit: temperatureUnit, days };
+  return {
+    location_name: locationName,
+    temperature_unit: temperatureUnit,
+    days,
+  };
 };
 
 export const fetchAddressWeather = async (

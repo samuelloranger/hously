@@ -35,7 +35,6 @@ export type TmdbSearchItem = {
 
 export type { InteractiveReleaseItem };
 
-
 /**
  * Detects full-season and complete-series packs.
  *

@@ -29,7 +29,9 @@ export async function checkEpisodeReleases(): Promise<void> {
       media: {
         type: "show",
         // Never retry if the show already has a completed (non-failed) download
-        downloadHistories: { none: { completedAt: { not: null }, failed: false } },
+        downloadHistories: {
+          none: { completedAt: { not: null }, failed: false },
+        },
       },
     },
     include: {
@@ -50,11 +52,7 @@ export async function checkEpisodeReleases(): Promise<void> {
       const result = await searchAndGrab({
         mediaId: ep.media.id,
         episodeId: ep.id,
-        searchQuery: episodeSearchQuery(
-          ep.media.title,
-          ep.season,
-          ep.episode,
-        ),
+        searchQuery: episodeSearchQuery(ep.media.title, ep.season, ep.episode),
         qualityProfileId: ep.media.qualityProfileId,
       });
 

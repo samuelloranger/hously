@@ -2,7 +2,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { MEDIAS_ENDPOINTS } from "@hously/shared/endpoints";
-import type { DiscoverMediasParams, DiscoverMediasResponse, MediaInteractiveDownloadResponse, MediaInteractiveSearchResponse, MediaModalDataResponse, MissingCollectionsResponse, SimilarMediasResponse, TmdbGenresResponse, TmdbMediaSearchResponse, AiMediaSuggestionsResponse, AiMediaSuggestionsConfigResponse, TmdbStreamingProvidersResponse, WatchlistResponse } from "@hously/shared/types";
+import type {
+  DiscoverMediasParams,
+  DiscoverMediasResponse,
+  MediaInteractiveDownloadResponse,
+  MediaInteractiveSearchResponse,
+  MediaModalDataResponse,
+  MissingCollectionsResponse,
+  SimilarMediasResponse,
+  TmdbGenresResponse,
+  TmdbMediaSearchResponse,
+  AiMediaSuggestionsResponse,
+  AiMediaSuggestionsConfigResponse,
+  TmdbStreamingProvidersResponse,
+  WatchlistResponse,
+} from "@hously/shared/types";
 
 export function useAiMediaSuggestions() {
   const fetcher = useFetcher();
@@ -90,7 +104,11 @@ export function useProwlarrInteractiveSearch(
   const isCompleteSearch = season === "complete";
 
   return useQuery({
-    queryKey: queryKeys.medias.prowlarrInteractiveSearch(trimmed, libId, season),
+    queryKey: queryKeys.medias.prowlarrInteractiveSearch(
+      trimmed,
+      libId,
+      season,
+    ),
     queryFn: () =>
       fetcher<MediaInteractiveSearchResponse>(
         MEDIAS_ENDPOINTS.PROWLARR_INTERACTIVE_SEARCH,
@@ -100,13 +118,17 @@ export function useProwlarrInteractiveSearch(
             ...(libId != null && libId > 0 ? { library_media_id: libId } : {}),
             ...(isSeasonSearch ? { season } : {}),
             ...(isCompleteSearch ? { complete: "true" } : {}),
-            ...((isSeasonSearch || isCompleteSearch) && tmdbId != null ? { tmdb_id: tmdbId } : {}),
+            ...((isSeasonSearch || isCompleteSearch) && tmdbId != null
+              ? { tmdb_id: tmdbId }
+              : {}),
           },
         },
       ),
     enabled:
       (options?.enabled ?? true) &&
-      (isSeasonSearch || isCompleteSearch ? trimmed.length >= 1 : trimmed.length >= 2),
+      (isSeasonSearch || isCompleteSearch
+        ? trimmed.length >= 1
+        : trimmed.length >= 2),
   });
 }
 

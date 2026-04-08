@@ -43,7 +43,10 @@ function formatTmdbDateYmd(iso: string | null | undefined): string | null {
   }
 }
 
-function toMediaItem(item: TmdbMediaSearchItem, overrideLibraryId?: number | null): MediaItem {
+function toMediaItem(
+  item: TmdbMediaSearchItem,
+  overrideLibraryId?: number | null,
+): MediaItem {
   const inNativeLibrary =
     (overrideLibraryId ?? item.library_id) != null &&
     (overrideLibraryId ?? item.library_id)! > 0;
@@ -97,9 +100,16 @@ export function ExploreCardDetailDialog({
     title: string | null;
   } | null>(null);
 
-  const [seasonSearchContext, setSeasonSearchContext] = useState<number | null>(null);
+  const [seasonSearchContext, setSeasonSearchContext] = useState<number | null>(
+    null,
+  );
 
-  const openEpisodeSearch = (ep: { id: number; season: number; episode: number; title: string | null }) => {
+  const openEpisodeSearch = (ep: {
+    id: number;
+    season: number;
+    episode: number;
+    title: string | null;
+  }) => {
     setEpisodeSearchContext(ep);
     setSeasonSearchContext(null);
     setActiveTab("search");
@@ -120,7 +130,9 @@ export function ExploreCardDetailDialog({
     item.library_id ?? null,
   );
   // Reset when the item changes
-  const [prevTmdbKey, setPrevTmdbKey] = useState(`${item.tmdb_id}-${item.media_type}`);
+  const [prevTmdbKey, setPrevTmdbKey] = useState(
+    `${item.tmdb_id}-${item.media_type}`,
+  );
   const tmdbKeyNow = `${item.tmdb_id}-${item.media_type}`;
   if (tmdbKeyNow !== prevTmdbKey) {
     setPrevTmdbKey(tmdbKeyNow);
@@ -1014,7 +1026,12 @@ export function ExploreCardDetailDialog({
                   {episodeSearchContext && (
                     <div className="mx-4 mb-3 flex items-center justify-between rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-2">
                       <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">
-                        Searching for S{String(episodeSearchContext.season).padStart(2, "0")}E{String(episodeSearchContext.episode).padStart(2, "0")}{episodeSearchContext.title ? ` — ${episodeSearchContext.title}` : ""}
+                        Searching for S
+                        {String(episodeSearchContext.season).padStart(2, "0")}E
+                        {String(episodeSearchContext.episode).padStart(2, "0")}
+                        {episodeSearchContext.title
+                          ? ` — ${episodeSearchContext.title}`
+                          : ""}
                       </span>
                       <button
                         type="button"

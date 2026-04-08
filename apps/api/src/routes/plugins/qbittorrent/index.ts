@@ -8,7 +8,11 @@ import {
   invalidateQbittorrentPluginConfigCache,
   getQbittorrentPluginConfig,
 } from "@hously/api/services/qbittorrent/config";
-import { clampInteger, isValidHttpUrl, normalizeUrl } from "@hously/api/utils/plugins/utils";
+import {
+  clampInteger,
+  isValidHttpUrl,
+  normalizeUrl,
+} from "@hously/api/utils/plugins/utils";
 import { encrypt } from "@hously/api/services/crypto";
 import { randomBytes } from "node:crypto";
 import { logActivity } from "@hously/api/utils/activityLogs";

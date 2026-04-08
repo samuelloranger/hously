@@ -4,7 +4,10 @@ import {
   useDashboardJellyfinLatestInfinite,
   useDashboardUpcoming,
 } from "@/hooks/useDashboard";
-import type { DashboardUpcomingItem, TmdbMediaSearchItem } from "@hously/shared/types";
+import type {
+  DashboardUpcomingItem,
+  TmdbMediaSearchItem,
+} from "@hously/shared/types";
 import { formatRelativeTime, resolveDateFnsLocale } from "@hously/shared/utils";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 import { RefreshCw } from "lucide-react";

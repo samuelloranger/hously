@@ -44,7 +44,10 @@ function parseFilenameForScan(nameWithoutExt: string): {
   const m = nameWithoutExt.match(/^(.+?)[\s.]+(?:\(?(\d{4})\)?)\s*$/);
   if (m) {
     return {
-      title: m[1].replace(/[.\s]+$/g, "").replace(/\./g, " ").trim(),
+      title: m[1]
+        .replace(/[.\s]+$/g, "")
+        .replace(/\./g, " ")
+        .trim(),
       year: parseInt(m[2], 10),
     };
   }
@@ -111,7 +114,10 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
         if (body.shows_library_path !== undefined)
           update.showsLibraryPath = body.shows_library_path;
         if (body.file_operation !== undefined) {
-          if (body.file_operation !== "hardlink" && body.file_operation !== "move") {
+          if (
+            body.file_operation !== "hardlink" &&
+            body.file_operation !== "move"
+          ) {
             return badRequest(set, "file_operation must be hardlink or move");
           }
           update.fileOperation = body.file_operation;
@@ -187,7 +193,11 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
         try {
           if (body.type === "movie") {
             const search = await tmdbFetch<{
-              results: Array<{ id: number; title: string; release_date?: string }>;
+              results: Array<{
+                id: number;
+                title: string;
+                release_date?: string;
+              }>;
             }>("search/movie", key, {
               query: title,
               ...(year ? { year: String(year) } : {}),
@@ -231,7 +241,11 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
             matched++;
           } else {
             const search = await tmdbFetch<{
-              results: Array<{ id: number; name: string; first_air_date?: string }>;
+              results: Array<{
+                id: number;
+                name: string;
+                first_air_date?: string;
+              }>;
             }>("search/tv", key, { query: title });
             const top = search.results[0];
             if (!top) {

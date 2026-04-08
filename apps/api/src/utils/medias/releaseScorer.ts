@@ -23,9 +23,7 @@ const RES_RANK: Record<number, number> = {
   2160: 4,
 };
 
-function resolutionRank(
-  r: ParsedRelease["resolution"],
-): number | null {
+function resolutionRank(r: ParsedRelease["resolution"]): number | null {
   if (r == null) return null;
   const v = RES_RANK[r];
   return v === undefined ? null : v;
@@ -86,12 +84,8 @@ function indexScore(index: number, base: number): number {
 
 function languagePreferenceScore(title: string, preferred: string[]): number {
   if (!preferred.length) return 0;
-  const flags = new Set(
-    parseAudioFlags(title).map((f) => f.toLowerCase()),
-  );
-  const idx = preferred.findIndex((p) =>
-    flags.has(p.trim().toLowerCase()),
-  );
+  const flags = new Set(parseAudioFlags(title).map((f) => f.toLowerCase()));
+  const idx = preferred.findIndex((p) => flags.has(p.trim().toLowerCase()));
   return indexScore(idx, 300);
 }
 

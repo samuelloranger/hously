@@ -4,7 +4,10 @@ import { useAddUpcomingToLibrary } from "@/hooks/useDashboard";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { MEDIAS_ENDPOINTS } from "@hously/shared/endpoints";
-import type { MediaModalDataResponse, TmdbMediaSearchItem } from "@hously/shared/types";
+import type {
+  MediaModalDataResponse,
+  TmdbMediaSearchItem,
+} from "@hously/shared/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Check } from "lucide-react";
 import { toast } from "sonner";

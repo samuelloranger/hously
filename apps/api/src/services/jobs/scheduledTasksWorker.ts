@@ -64,7 +64,8 @@ export async function processScheduledJob(job: Job) {
         break;
       }
       case SCHEDULED_JOB_NAMES.REFRESH_UPCOMING: {
-        const { refreshUpcoming } = await import("../../workers/refreshUpcoming");
+        const { refreshUpcoming } =
+          await import("../../workers/refreshUpcoming");
         await refreshUpcoming({ trigger: "queue" });
         break;
       }

@@ -66,7 +66,8 @@ export function parseStreamingService(filename: string): string | null {
 export function parseHdrFormat(filename: string): string | null {
   const n = filename;
   // Dolby Vision first (most specific)
-  if (/\bDolby\.?Vision\b|\bDOVi\b(?!\w)|\bDV\b(?!\w)/i.test(n)) return "Dolby Vision";
+  if (/\bDolby\.?Vision\b|\bDOVi\b(?!\w)|\bDV\b(?!\w)/i.test(n))
+    return "Dolby Vision";
   // HDR10+ before HDR10
   if (/\bHDR10\+\b|\bHDR10Plus\b|\bHDR10\s*Plus\b/i.test(n)) return "HDR10+";
   if (/\bHDR10\b/i.test(n)) return "HDR10";
@@ -92,13 +93,15 @@ export function parseVideoCodec(filename: string): string | null {
 export function parseAudioFormat(filename: string): string | null {
   const n = filename;
   // Most specific first
-  if (/\bTrueHD\b.*\bAtmos\b|\bAtmos\b.*\bTrueHD\b/i.test(n)) return "TrueHD Atmos";
+  if (/\bTrueHD\b.*\bAtmos\b|\bAtmos\b.*\bTrueHD\b/i.test(n))
+    return "TrueHD Atmos";
   if (/\bTrueHD\b/i.test(n)) return "TrueHD";
   if (/\bDTS[-.]?HD[-.]?MA\b|\bDTS[-.]?MA\b/i.test(n)) return "DTS-HD MA";
   if (/\bDTS[-.]?X\b/i.test(n)) return "DTS:X";
   if (/\bDTS[-.]?HD\b/i.test(n)) return "DTS-HD";
   if (/\bDTS\b/i.test(n)) return "DTS";
-  if (/\bEAC[-.]?3\b|\bDD\s*\+\b|\bDolby\s*Digital\s*Plus\b|\bDDP\b/i.test(n)) return "EAC3";
+  if (/\bEAC[-.]?3\b|\bDD\s*\+\b|\bDolby\s*Digital\s*Plus\b|\bDDP\b/i.test(n))
+    return "EAC3";
   if (/\bDD\b(?!\+)|\bAC[-.]?3\b|\bDolby\s*Digital\b/i.test(n)) return "AC3";
   if (/\bAAC\b/i.test(n)) return "AAC";
   if (/\bFLAC\b/i.test(n)) return "FLAC";
@@ -139,7 +142,10 @@ export function parseAudioFlags(filename: string): string[] {
   if (/\bVFQ\b|\bVQC\b/.test(n)) flags.push("VFQ");
   if (/\bVFI\b/.test(n)) flags.push("VFI");
   // Generic VF only if no specific variant already detected
-  if (/\bVF\b/.test(n) && !flags.some((f) => ["VFF","VFQ","VFI","VF2","TRUEFRENCH"].includes(f))) {
+  if (
+    /\bVF\b/.test(n) &&
+    !flags.some((f) => ["VFF", "VFQ", "VFI", "VF2", "TRUEFRENCH"].includes(f))
+  ) {
     flags.push("VF");
   }
   if (/\bFRENCH\b/.test(n) && !flags.length) flags.push("FRENCH");
@@ -201,8 +207,7 @@ export interface ParsedRelease {
   isSample: boolean;
 }
 
-const RES_TITLE_RES =
-  /\b(2160p|4K|UHD|1080p|1080i|720p|480p|576p)\b/i;
+const RES_TITLE_RES = /\b(2160p|4K|UHD|1080p|1080i|720p|480p|576p)\b/i;
 
 export function parseReleaseResolution(
   title: string,
@@ -219,7 +224,8 @@ export function parseReleaseResolution(
 export function parseReleaseSource(title: string): string | null {
   const n = title;
   if (/\bREMUX\b|\bBDREMUX\b|\bBD[-.]?REMUX\b/i.test(n)) return "REMUX";
-  if (/\bBlu[-.]?ray\b|\bBLURAY\b|\bBDRip\b|\bBRRip\b/i.test(n)) return "BluRay";
+  if (/\bBlu[-.]?ray\b|\bBLURAY\b|\bBDRip\b|\bBRRip\b/i.test(n))
+    return "BluRay";
   if (/\bWEB[-.]?DL\b|\bWEBDL\b/i.test(n)) return "WEB-DL";
   if (/\bWEBRip\b|\bWEB[-.]?Rip\b/i.test(n)) return "WEBRip";
   if (/\bHDTV\b/i.test(n)) return "HDTV";
@@ -309,9 +315,9 @@ export function refineFrenchAudioLabel(
   audioFlags: string[],
   trackIndex: number,
 ): { language: string; language_name: string } {
-  const isFrench =
-    /^(fre|fra|fr)$/i.test(language) || /french/i.test(language);
-  if (!isFrench) return { language, language_name: expandLanguageCode(language) };
+  const isFrench = /^(fre|fra|fr)$/i.test(language) || /french/i.test(language);
+  if (!isFrench)
+    return { language, language_name: expandLanguageCode(language) };
 
   const t = (title ?? "").toLowerCase();
 
@@ -343,16 +349,46 @@ export function refineFrenchAudioLabel(
 }
 
 const ISO_639_2_NAMES: Record<string, string> = {
-  eng: "English", fra: "French", fre: "French", spa: "Spanish",
-  deu: "German", ger: "German", ita: "Italian", por: "Portuguese",
-  jpn: "Japanese", chi: "Chinese", zho: "Chinese", kor: "Korean",
-  rus: "Russian", ara: "Arabic", hin: "Hindi", nld: "Dutch",
-  swe: "Swedish", nor: "Norwegian", dan: "Danish", fin: "Finnish",
-  pol: "Polish", tur: "Turkish", heb: "Hebrew", tha: "Thai",
-  vie: "Vietnamese", ind: "Indonesian", msa: "Malay", ces: "Czech",
-  cze: "Czech", slk: "Slovak", hun: "Hungarian", ron: "Romanian",
-  rum: "Romanian", bul: "Bulgarian", hrv: "Croatian", srp: "Serbian",
-  ukr: "Ukrainian", ell: "Greek", cat: "Catalan", und: "Unknown",
+  eng: "English",
+  fra: "French",
+  fre: "French",
+  spa: "Spanish",
+  deu: "German",
+  ger: "German",
+  ita: "Italian",
+  por: "Portuguese",
+  jpn: "Japanese",
+  chi: "Chinese",
+  zho: "Chinese",
+  kor: "Korean",
+  rus: "Russian",
+  ara: "Arabic",
+  hin: "Hindi",
+  nld: "Dutch",
+  swe: "Swedish",
+  nor: "Norwegian",
+  dan: "Danish",
+  fin: "Finnish",
+  pol: "Polish",
+  tur: "Turkish",
+  heb: "Hebrew",
+  tha: "Thai",
+  vie: "Vietnamese",
+  ind: "Indonesian",
+  msa: "Malay",
+  ces: "Czech",
+  cze: "Czech",
+  slk: "Slovak",
+  hun: "Hungarian",
+  ron: "Romanian",
+  rum: "Romanian",
+  bul: "Bulgarian",
+  hrv: "Croatian",
+  srp: "Serbian",
+  ukr: "Ukrainian",
+  ell: "Greek",
+  cat: "Catalan",
+  und: "Unknown",
 };
 
 export function expandLanguageCode(code: string): string {
