@@ -34,7 +34,18 @@ import { lookup as dnsLookup } from "node:dns/promises";
  *   3. BASE_URL fallback (public URL — last resort)
  */
 async function resolveHouslyInternalUrl(override?: string): Promise<string> {
-  if (override) return override.replace(/\/$/, "");
+  if (override) {
+    let parsed: URL;
+    try {
+      parsed = new URL(override);
+    } catch {
+      throw new Error("Hously URL override is not a valid URL");
+    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      throw new Error("Hously URL override must use http or https");
+    }
+    return override.replace(/\/$/, "");
+  }
 
   const port = loadConfig().API_PORT;
   try {
@@ -197,7 +208,12 @@ export const qbittorrentPluginRoutes = new Elysia()
         );
       }
 
-      const houslyUrl = await resolveHouslyInternalUrl(body.hously_url?.trim());
+      let houslyUrl: string;
+      try {
+        houslyUrl = await resolveHouslyInternalUrl(body.hously_url?.trim());
+      } catch (e) {
+        return badRequest(set, e instanceof Error ? e.message : "Invalid Hously URL");
+      }
 
       // Build the autorun commands. qBittorrent substitutes %I (info hash) before
       // spawning via QProcess::splitCommand, which only understands double-quote

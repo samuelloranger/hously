@@ -9,9 +9,9 @@ import {
   notFound,
   serverError,
 } from "@hously/api/errors";
+import { timingSafeEqual } from "node:crypto";
 import { completeDownloadByHash } from "@hously/api/workers/checkDownloadCompletion";
 import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessor";
-import { loadConfig } from "@hously/api/config";
 import { qbFetchJson } from "@hously/api/services/qbittorrent/client";
 import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
 import { parseReleaseTitle } from "@hously/api/utils/medias/filenameParser";
@@ -36,7 +36,7 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
   //   /config/qb-autorun.sh contents:
   //     #!/bin/sh
   //     curl -s -X POST http://<hously-internal-host>:3000/api/webhooks/qbittorrent/completed \
-  //       -H "Authorization: Bearer <QBITTORRENT_WEBHOOK_SECRET>" \
+  //       -H "Authorization: Bearer <secret from qBittorrent plugin settings>" \
   //       -H "Content-Type: application/json" \
   //       -d "{\"hash\":\"$1\"}"
   //
@@ -48,12 +48,20 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
   // See: https://github.com/qbittorrent/qBittorrent/issues/13178
   //      https://github.com/qbittorrent/qBittorrent/issues/12367
   .post("/qbittorrent/completed", async ({ body, request, set }) => {
-    const secret = loadConfig().QBITTORRENT_WEBHOOK_SECRET;
+    const qb = await getQbittorrentPluginConfig();
+    const secret = qb.config?.webhook_secret;
     if (!secret) return forbidden(set, "Webhook not configured");
 
     const auth = request.headers.get("authorization") ?? "";
     const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-    if (token !== secret) return forbidden(set, "Invalid token");
+    const tokenBuf = Buffer.from(token);
+    const secretBuf = Buffer.from(secret);
+    if (
+      tokenBuf.length !== secretBuf.length ||
+      !timingSafeEqual(tokenBuf, secretBuf)
+    ) {
+      return forbidden(set, "Invalid token");
+    }
 
     // body may be a pre-parsed JSON object (application/json) or a raw string
     let hash: string | undefined;
@@ -84,7 +92,7 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
   //   /config/qb-added.sh contents:
   //     #!/bin/sh
   //     curl -s -X POST http://<hously-internal-host>:3000/api/webhooks/qbittorrent/added \
-  //       -H "Authorization: Bearer <QBITTORRENT_WEBHOOK_SECRET>" \
+  //       -H "Authorization: Bearer <secret from qBittorrent plugin settings>" \
   //       -H "Content-Type: application/json" \
   //       -d "{\"hash\":\"$1\"}"
   //
@@ -92,12 +100,20 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
   // matching LibraryMedia by title and creates a DownloadHistory entry so the
   // item's status switches to "downloading" immediately.
   .post("/qbittorrent/added", async ({ body, request, set }) => {
-    const secret = loadConfig().QBITTORRENT_WEBHOOK_SECRET;
+    const qb = await getQbittorrentPluginConfig();
+    const secret = qb.config?.webhook_secret;
     if (!secret) return forbidden(set, "Webhook not configured");
 
     const auth = request.headers.get("authorization") ?? "";
     const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-    if (token !== secret) return forbidden(set, "Invalid token");
+    const tokenBuf = Buffer.from(token);
+    const secretBuf = Buffer.from(secret);
+    if (
+      tokenBuf.length !== secretBuf.length ||
+      !timingSafeEqual(tokenBuf, secretBuf)
+    ) {
+      return forbidden(set, "Invalid token");
+    }
 
     let hash: string | undefined;
     try {
@@ -114,7 +130,6 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
     const normalizedHash = hash.trim().toLowerCase();
 
     try {
-      const qb = await getQbittorrentPluginConfig();
       if (!qb.enabled || !qb.config) {
         return { matched: false, reason: "qBittorrent not configured" };
       }
@@ -180,11 +195,14 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
         select: { id: true, title: true, qualityProfileId: true },
       });
 
-      const match = candidates.find(
-        (m) =>
-          normalize(m.title).length >= 5 &&
-          normTorrent.includes(normalize(m.title)),
-      );
+      const torrentWordSet = new Set(normTorrent.split(" ").filter(Boolean));
+      const match = candidates.find((m) => {
+        const titleWords = normalize(m.title).split(" ").filter(Boolean);
+        return (
+          titleWords.length >= 1 &&
+          titleWords.every((w) => torrentWordSet.has(w))
+        );
+      });
 
       if (!match) {
         console.log(

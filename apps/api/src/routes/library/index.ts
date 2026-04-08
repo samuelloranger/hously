@@ -592,7 +592,9 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
               .replace(/[^a-z0-9]/g, " ")
               .replace(/\s+/g, " ")
               .trim();
-          const normTitle = normalize(media.title);
+          const titleWords = normalize(media.title)
+            .split(" ")
+            .filter(Boolean);
 
           for (const [hash, raw] of torrents) {
             if (knownHashes.has(hash.toLowerCase())) continue;
@@ -611,8 +613,11 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
             const torrentName = typeof raw.name === "string" ? raw.name : "";
             if (!torrentName) continue;
-            if (normTitle.length < 5) continue;
-            if (!normalize(torrentName).includes(normTitle)) continue;
+            if (titleWords.length === 0) continue;
+            const torrentWordSet = new Set(
+              normalize(torrentName).split(" ").filter(Boolean),
+            );
+            if (!titleWords.every((w) => torrentWordSet.has(w))) continue;
 
             // Title match — link this torrent to the library item
             const state = typeof raw.state === "string" ? raw.state : "";
@@ -1106,16 +1111,10 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       const { source, radarr_url, radarr_api_key, sonarr_url, sonarr_api_key } =
         body;
 
-      // Prevent duplicate jobs: reject if one is already active or waiting
-      const [active, waiting] = await Promise.all([
-        libraryMigrateQueue.getActiveCount(),
-        libraryMigrateQueue.getWaitingCount(),
-      ]);
-      if (active + waiting > 0) {
-        return badRequest(set, "A migration job is already running");
-      }
-
       try {
+        // Use a fixed jobId so BullMQ atomically deduplicates concurrent requests.
+        // If a job with this ID is already waiting or active, BullMQ returns the
+        // existing job rather than creating a duplicate.
         const job = await libraryMigrateQueue.add(
           "library-migrate",
           {
@@ -1126,9 +1125,13 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
             sonarr_url: sonarr_url?.trim() || undefined,
             sonarr_api_key: sonarr_api_key?.trim() || undefined,
           },
-          { jobId: `library-migrate-${Date.now()}` },
+          { jobId: "library-migrate-singleton" },
         );
-        return { job_id: job.id };
+        const state = await job?.getState();
+        if (state === "active" || state === "waiting") {
+          return badRequest(set, "A migration job is already running");
+        }
+        return { job_id: job?.id };
       } catch {
         return serverError(set, "Failed to enqueue migration job");
       }
