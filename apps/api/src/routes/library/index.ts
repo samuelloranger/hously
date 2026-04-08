@@ -942,6 +942,22 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     }
   })
 
+  // GET /api/library/item/:id — single library item (integrations / c411-manager)
+  .get("/item/:id", async ({ params, set }) => {
+    try {
+      const id = parseInt(params.id, 10);
+      if (!Number.isFinite(id)) return badRequest(set, "Invalid id");
+      const item = await prisma.libraryMedia.findUnique({
+        where: { id },
+        include: libraryMediaInclude,
+      });
+      if (!item) return notFound(set, "Library item not found");
+      return { item: mapLibraryMedia(item) };
+    } catch {
+      return serverError(set, "Failed to fetch library item");
+    }
+  })
+
   // POST /api/library/migrate — enqueue import job (admin only)
   .post(
     "/migrate",

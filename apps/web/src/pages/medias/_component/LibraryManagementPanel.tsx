@@ -232,49 +232,7 @@ function FileDetailBlock({ file }: { file: LibraryFileInfo }) {
   );
 }
 
-// ─── Collapsible episode row (files) ─────────────────────────────────────────
-
-function EpisodeRow({ file }: { file: LibraryFileInfo }) {
-  const [expanded, setExpanded] = useState(false);
-  const epCode = file.episode != null
-    ? `E${String(file.episode).padStart(2, "0")}`
-    : "?";
-  const badges = qualityBadges(file);
-
-  return (
-    <div className="border-b last:border-0 border-neutral-100 dark:border-neutral-800">
-      <button
-        type="button"
-        onClick={() => setExpanded((p) => !p)}
-        className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors"
-      >
-        <span className="font-mono text-[10px] font-medium text-neutral-400 dark:text-neutral-500 w-7 shrink-0">{epCode}</span>
-        <span className="text-[11px] text-neutral-700 dark:text-neutral-300 flex-1 min-w-0 truncate leading-tight">
-          {file.episode_title ?? "—"}
-        </span>
-        <div className="flex gap-0.5 shrink-0">
-          {badges.slice(0, 2).map((b) => (
-            <Badge key={b.label} className={cn(b.cls, "text-[9px] py-0")}>{b.label}</Badge>
-          ))}
-          {expanded
-            ? <ChevronDown size={10} className="text-neutral-300 dark:text-neutral-600 ml-1 self-center" />
-            : <ChevronRight size={10} className="text-neutral-300 dark:text-neutral-600 ml-1 self-center" />
-          }
-        </div>
-      </button>
-
-      {expanded && (
-        <div className="px-4 pb-3 pt-2 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/40 dark:bg-neutral-900/20">
-          <FileDetailBlock file={file} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Season group (files) ─────────────────────────────────────────────────────
-
-type SeasonFiles = { season: number; files: LibraryFileInfo[] };
+// ─── Shared helper ────────────────────────────────────────────────────────────
 
 function isUniform<T>(vals: (T | null | undefined)[]): T | null {
   const filled = vals.filter((v) => v != null) as T[];
@@ -282,46 +240,82 @@ function isUniform<T>(vals: (T | null | undefined)[]): T | null {
   return filled.every((v) => v === filled[0]) ? filled[0] : null;
 }
 
-function SeasonGroup({ season, files }: SeasonFiles) {
-  const [collapsed, setCollapsed] = useState(true);
+// ─── Merged episode row (status + optional file details) ──────────────────────
 
-  const uRes = isUniform(files.map((f) => f.resolution));
-  const uSrc = isUniform(files.map((f) => f.source));
-  const uCodec = isUniform(files.map((f) => f.video_codec));
-  const uHdr = isUniform(files.map((f) => f.hdr_format));
-  const uBitDepth = isUniform(files.map((f) => f.bit_depth));
+interface MergedEpisodeRowProps {
+  ep: { id: number; episode: number; title: string | null; status: string; search_attempts: number };
+  season: number;
+  file: LibraryFileInfo | null;
+  libraryId: number;
+  t: ReturnType<typeof useTranslation>["t"];
+  onSearchEpisode?: (ep: { id: number; season: number; episode: number; title: string | null }) => void;
+  searchEpMut: ReturnType<typeof useSearchLibraryEpisode>;
+}
 
-  const seasonBadges = qualityBadges({ resolution: uRes, source: uSrc, video_codec: uCodec, hdr_format: uHdr, bit_depth: uBitDepth });
+function MergedEpisodeRow({ ep, season, file, libraryId, t, onSearchEpisode, searchEpMut }: MergedEpisodeRowProps) {
+  const [expanded, setExpanded] = useState(false);
+  const badges = file ? qualityBadges(file) : [];
 
   return (
-    <div className="border-b border-neutral-100 dark:border-neutral-800 last:border-0">
-      <button
-        type="button"
-        onClick={() => setCollapsed((p) => !p)}
-        className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors text-left"
-      >
-        {collapsed
-          ? <ChevronRight size={12} className="text-neutral-400 shrink-0" />
-          : <ChevronDown size={12} className="text-neutral-400 shrink-0" />
-        }
-        <div className="flex-1 min-w-0">
-          <div className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 leading-tight">
-            Season {season}
-          </div>
-          <div className="text-[10px] text-neutral-400 dark:text-neutral-500 leading-tight mt-0.5">
-            {files.length} episode{files.length > 1 ? "s" : ""}
-          </div>
-        </div>
-        <div className="flex gap-1 flex-wrap justify-end shrink-0">
-          {seasonBadges.map((b) => (
-            <Badge key={b.label} className={b.cls}>{b.label}</Badge>
+    <div className="border-b last:border-0 border-neutral-100 dark:border-neutral-800">
+      <div className="flex items-center gap-2 px-4 py-2">
+        <StatusDot status={ep.status} />
+        <span className="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 shrink-0 w-8">
+          E{String(ep.episode).padStart(2, "0")}
+        </span>
+        <span className="flex-1 min-w-0 truncate text-[11px] text-neutral-700 dark:text-neutral-300">
+          {ep.title ?? "—"}
+        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          {badges.slice(0, 2).map((b) => (
+            <Badge key={b.label} className={cn(b.cls, "text-[9px] py-0")}>{b.label}</Badge>
           ))}
+          {onSearchEpisode && (
+            <button
+              type="button"
+              onClick={() => onSearchEpisode({ id: ep.id, season, episode: ep.episode, title: ep.title ?? null })}
+              title="Open interactive search for this episode"
+              className="rounded p-1 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+            >
+              <Search size={11} />
+            </button>
+          )}
+          {ep.status === "wanted" && ep.search_attempts < 5 && (
+            <button
+              type="button"
+              onClick={() => {
+                void searchEpMut
+                  .mutateAsync({ mediaId: libraryId, episodeId: ep.id })
+                  .then((r) => {
+                    if (r.grabbed) toast.success(t("library.management.grabbed"));
+                    else toast.error(r.reason ?? t("library.management.grabFailed"));
+                  })
+                  .catch(() => toast.error(t("library.management.grabFailed")));
+              }}
+              disabled={searchEpMut.isPending}
+              className="rounded-md bg-indigo-600/90 px-2 py-0.5 text-[9px] font-semibold text-white hover:bg-indigo-600 disabled:opacity-50 transition-colors"
+            >
+              {t("library.management.episodeSearch")}
+            </button>
+          )}
+          {file && (
+            <button
+              type="button"
+              onClick={() => setExpanded((p) => !p)}
+              className="rounded p-1 text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400 transition-colors"
+            >
+              {expanded
+                ? <ChevronDown size={10} />
+                : <ChevronRight size={10} />
+              }
+            </button>
+          )}
         </div>
-      </button>
+      </div>
 
-      {!collapsed && (
-        <div className="divide-y divide-neutral-100 dark:divide-neutral-800 border-t border-neutral-100 dark:border-neutral-800">
-          {files.map((f) => <EpisodeRow key={f.id} file={f} />)}
+      {expanded && file && (
+        <div className="px-4 pb-3 pt-2 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/40 dark:bg-neutral-900/20">
+          <FileDetailBlock file={file} />
         </div>
       )}
     </div>
@@ -376,6 +370,16 @@ export function LibraryManagementPanel({
     () => libList?.items.find((i) => i.id === libraryId),
     [libList?.items, libraryId],
   );
+
+  const fileByEp = useMemo(() => {
+    const m = new Map<string, LibraryFileInfo>();
+    for (const f of files) {
+      if (f.season != null && f.episode != null) {
+        m.set(`${f.season}_${f.episode}`, f);
+      }
+    }
+    return m;
+  }, [files]);
 
   if (isLoading || !data) {
     return (
@@ -444,206 +448,223 @@ export function LibraryManagementPanel({
     </Card>
   );
 
-  // ── Episodes tracker (shows) ────────────────────────────────────────────────
-  const episodeGrabSection =
-    isShow && episodesQuery.data ? (
+  // ── Combined episodes + files ───────────────────────────────────────────────
+  const hasFiles = files.length > 0;
+  const hasEpisodes = isShow && episodesQuery.data != null;
+
+  const mediaSection = (() => {
+    if (!hasFiles && !hasEpisodes) {
+      if (isShow && episodesQuery.isLoading) {
+        return (
+          <Card>
+            <div className="px-4 py-4 text-xs text-neutral-500 dark:text-neutral-400">Loading episodes…</div>
+          </Card>
+        );
+      }
+      return (
+        <Card>
+          <div className="px-4 py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">
+            No file metadata found for this item.
+          </div>
+        </Card>
+      );
+    }
+
+    return (
       <Card>
-        <div className="px-4 pt-3 pb-1">
-          <SectionLabel>Episodes</SectionLabel>
+        {/* Header */}
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-neutral-100 dark:border-neutral-800">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            <Folder size={11} className="text-neutral-400 shrink-0" />
+            {mappedFolder && (
+              <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400 truncate">{mappedFolder}</span>
+            )}
+          </div>
+          {hasFiles && (
+            <button
+              onClick={() => rescan.mutate()}
+              disabled={rescan.isPending}
+              className={cn(
+                "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-colors shrink-0",
+                "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+              )}
+            >
+              <RefreshCw size={10} className={rescan.isPending ? "animate-spin" : ""} />
+              {rescan.isPending ? "Rescanning…" : rescan.isSuccess ? `Done (${rescan.data?.rescanned})` : "Rescan files"}
+            </button>
+          )}
         </div>
-        <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-          {episodesQuery.data.seasons.map((s) => {
-            const isExpanded = expandedSeasons.has(s.season);
-            const downloadedCount = s.episodes.filter((e) => e.status === "downloaded").length;
-            const progress = s.episodes.length > 0 ? downloadedCount / s.episodes.length : 0;
-            const allDone = downloadedCount === s.episodes.length;
-            const noneDone = downloadedCount === 0;
 
-            return (
-              <div key={s.season}>
-                {/* Season header */}
-                <div className="flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => toggleSeason(s.season)}
-                    className="flex flex-1 items-center gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors text-left"
-                  >
-                    <ChevronRight
-                      size={12}
-                      className={cn(
-                        "text-neutral-400 shrink-0 transition-transform duration-150",
-                        isExpanded && "rotate-90",
-                      )}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[11px] font-semibold text-neutral-800 dark:text-neutral-100">
-                          Season {s.season}
-                        </span>
-                        <span className={cn(
-                          "text-[10px] tabular-nums",
-                          allDone
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-neutral-400 dark:text-neutral-500",
-                        )}>
-                          {downloadedCount}/{s.episodes.length}
-                        </span>
-                      </div>
-                      {/* Progress bar */}
-                      <div className="h-1 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                        <div
-                          className={cn(
-                            "h-full rounded-full transition-all duration-300",
-                            allDone
-                              ? "bg-emerald-500"
-                              : noneDone
-                                ? "bg-neutral-300 dark:bg-neutral-700"
-                                : "bg-indigo-500",
-                          )}
-                          style={{ width: `${Math.max(progress * 100, noneDone ? 0 : 4)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </button>
-                  {onSearchSeason && (
-                    <button
-                      type="button"
-                      onClick={() => onSearchSeason(s.season)}
-                      title={`Search season ${s.season} pack`}
-                      className="px-3 py-3 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
-                    >
-                      <Search size={12} />
-                    </button>
-                  )}
-                </div>
+        {isShow ? (
+          /* Show: merged episodes + files by season */
+          hasEpisodes ? (
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+              {episodesQuery.data!.seasons.map((s) => {
+                const isExpanded = expandedSeasons.has(s.season);
+                const downloadedCount = s.episodes.filter((e) => e.status === "downloaded").length;
+                const progress = s.episodes.length > 0 ? downloadedCount / s.episodes.length : 0;
+                const allDone = downloadedCount === s.episodes.length;
+                const noneDone = downloadedCount === 0;
 
-                {/* Episode rows */}
-                {isExpanded && (
-                  <div className="divide-y divide-neutral-100 dark:divide-neutral-800 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30">
-                    {s.episodes.map((ep) => (
-                      <div
-                        key={ep.id}
-                        className="flex items-center gap-2.5 px-4 py-2"
+                const sFiles = files.filter((f) => f.season === s.season);
+                const uRes = isUniform(sFiles.map((f) => f.resolution));
+                const uSrc = isUniform(sFiles.map((f) => f.source));
+                const uCodec = isUniform(sFiles.map((f) => f.video_codec));
+                const uHdr = isUniform(sFiles.map((f) => f.hdr_format));
+                const uBitDepth = isUniform(sFiles.map((f) => f.bit_depth));
+                const sznBadges = qualityBadges({ resolution: uRes, source: uSrc, video_codec: uCodec, hdr_format: uHdr, bit_depth: uBitDepth });
+
+                return (
+                  <div key={s.season}>
+                    <div className="flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => toggleSeason(s.season)}
+                        className="flex flex-1 items-center gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors text-left"
                       >
-                        <StatusDot status={ep.status} />
-                        <span className="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 shrink-0 w-8">
-                          E{String(ep.episode).padStart(2, "0")}
-                        </span>
-                        <span className="flex-1 min-w-0 truncate text-[11px] text-neutral-700 dark:text-neutral-300">
-                          {ep.title ?? "—"}
-                        </span>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {onSearchEpisode && (
-                            <button
-                              type="button"
-                              onClick={() => onSearchEpisode({ id: ep.id, season: s.season, episode: ep.episode, title: ep.title ?? null })}
-                              title="Open interactive search for this episode"
-                              className="rounded p-1 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
-                            >
-                              <Search size={11} />
-                            </button>
-                          )}
-                          {ep.status === "wanted" && ep.search_attempts < 5 ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                void searchEpMut
-                                  .mutateAsync({ mediaId: libraryId, episodeId: ep.id })
-                                  .then((r) => {
-                                    if (r.grabbed) toast.success(t("library.management.grabbed"));
-                                    else toast.error(r.reason ?? t("library.management.grabFailed"));
-                                  })
-                                  .catch(() => toast.error(t("library.management.grabFailed")));
-                              }}
-                              disabled={searchEpMut.isPending}
-                              className="rounded-md bg-indigo-600/90 px-2 py-0.5 text-[9px] font-semibold text-white hover:bg-indigo-600 disabled:opacity-50 transition-colors"
-                            >
-                              {t("library.management.episodeSearch")}
-                            </button>
-                          ) : null}
+                        <ChevronRight
+                          size={12}
+                          className={cn("text-neutral-400 shrink-0 transition-transform duration-150", isExpanded && "rotate-90")}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-[11px] font-semibold text-neutral-800 dark:text-neutral-100">
+                              Season {s.season}
+                            </span>
+                            <span className={cn("text-[10px] tabular-nums", allDone ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-400 dark:text-neutral-500")}>
+                              {downloadedCount}/{s.episodes.length}
+                            </span>
+                            {sznBadges.slice(0, 2).map((b) => (
+                              <Badge key={b.label} className={cn(b.cls, "text-[9px] py-0")}>{b.label}</Badge>
+                            ))}
+                          </div>
+                          <div className="h-1 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                            <div
+                              className={cn("h-full rounded-full transition-all duration-300", allDone ? "bg-emerald-500" : noneDone ? "bg-neutral-300 dark:bg-neutral-700" : "bg-indigo-500")}
+                              style={{ width: `${Math.max(progress * 100, noneDone ? 0 : 4)}%` }}
+                            />
+                          </div>
                         </div>
+                      </button>
+                      {onSearchSeason && (
+                        <button
+                          type="button"
+                          onClick={() => onSearchSeason(s.season)}
+                          title={`Search season ${s.season} pack`}
+                          className="px-3 py-3 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                        >
+                          <Search size={12} />
+                        </button>
+                      )}
+                    </div>
+
+                    {isExpanded && (
+                      <div className="divide-y divide-neutral-100 dark:divide-neutral-800 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30">
+                        {s.episodes.map((ep) => (
+                          <MergedEpisodeRow
+                            key={ep.id}
+                            ep={ep}
+                            season={s.season}
+                            file={fileByEp.get(`${s.season}_${ep.episode}`) ?? null}
+                            libraryId={libraryId}
+                            t={t}
+                            onSearchEpisode={onSearchEpisode}
+                            searchEpMut={searchEpMut}
+                          />
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-    ) : isShow && episodesQuery.isLoading ? (
-      <Card>
-        <div className="px-4 py-4 text-xs text-neutral-500 dark:text-neutral-400">Loading episodes…</div>
-      </Card>
-    ) : null;
+                );
+              })}
+            </div>
+          ) : (
+            /* Episodes not loaded yet but files exist — group by season */
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+              {Array.from(
+                files.reduce((map, f) => {
+                  const s = f.season ?? 0;
+                  if (!map.has(s)) map.set(s, []);
+                  map.get(s)!.push(f);
+                  return map;
+                }, new Map<number, LibraryFileInfo[]>()),
+              )
+                .sort(([a], [b]) => a - b)
+                .map(([season, sFiles]) => {
+                  const isExpanded = expandedSeasons.has(season);
+                  const uRes = isUniform(sFiles.map((f) => f.resolution));
+                  const uSrc = isUniform(sFiles.map((f) => f.source));
+                  const uCodec = isUniform(sFiles.map((f) => f.video_codec));
+                  const uHdr = isUniform(sFiles.map((f) => f.hdr_format));
+                  const uBitDepth = isUniform(sFiles.map((f) => f.bit_depth));
+                  const sznBadges = qualityBadges({ resolution: uRes, source: uSrc, video_codec: uCodec, hdr_format: uHdr, bit_depth: uBitDepth });
 
-  // ── Files ───────────────────────────────────────────────────────────────────
-  const filesSection = files.length > 0 ? (
-    <Card>
-      {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-neutral-100 dark:border-neutral-800">
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-          <Folder size={11} className="text-neutral-400 shrink-0" />
-          {mappedFolder && (
-            <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400 truncate">{mappedFolder}</span>
-          )}
-        </div>
-        <button
-          onClick={() => rescan.mutate()}
-          disabled={rescan.isPending}
-          className={cn(
-            "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-colors shrink-0",
-            "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800",
-            "disabled:opacity-50 disabled:cursor-not-allowed",
-          )}
-        >
-          <RefreshCw size={10} className={rescan.isPending ? "animate-spin" : ""} />
-          {rescan.isPending ? "Rescanning…" : rescan.isSuccess ? `Done (${rescan.data?.rescanned})` : "Rescan files"}
-        </button>
-      </div>
-
-      {/* Show: collapsible by season */}
-      {isShow ? (
-        <div>
-          {Array.from(
-            files.reduce((map, f) => {
-              const s = f.season ?? 0;
-              if (!map.has(s)) map.set(s, []);
-              map.get(s)!.push(f);
-              return map;
-            }, new Map<number, LibraryFileInfo[]>()),
+                  return (
+                    <div key={season} className="border-b border-neutral-100 dark:border-neutral-800 last:border-0">
+                      <button
+                        type="button"
+                        onClick={() => toggleSeason(season)}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors text-left"
+                      >
+                        <ChevronRight size={12} className={cn("text-neutral-400 shrink-0 transition-transform duration-150", isExpanded && "rotate-90")} />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 leading-tight">Season {season}</div>
+                          <div className="text-[10px] text-neutral-400 dark:text-neutral-500 leading-tight mt-0.5">{sFiles.length} file{sFiles.length !== 1 ? "s" : ""}</div>
+                        </div>
+                        <div className="flex gap-1 flex-wrap justify-end shrink-0">
+                          {sznBadges.map((b) => <Badge key={b.label} className={b.cls}>{b.label}</Badge>)}
+                        </div>
+                      </button>
+                      {isExpanded && (
+                        <div className="divide-y divide-neutral-100 dark:divide-neutral-800 border-t border-neutral-100 dark:border-neutral-800">
+                          {sFiles.map((f) => {
+                            const epCode = f.episode != null ? `E${String(f.episode).padStart(2, "0")}` : "?";
+                            const fBadges = qualityBadges(f);
+                            return (
+                              <div key={f.id} className="border-b last:border-0 border-neutral-100 dark:border-neutral-800">
+                                <div className="flex items-center gap-2 px-4 py-2">
+                                  <span className="font-mono text-[10px] font-medium text-neutral-400 dark:text-neutral-500 w-7 shrink-0">{epCode}</span>
+                                  <span className="text-[11px] text-neutral-700 dark:text-neutral-300 flex-1 min-w-0 truncate">{f.episode_title ?? f.file_name}</span>
+                                  <div className="flex gap-0.5 shrink-0">
+                                    {fBadges.slice(0, 2).map((b) => <Badge key={b.label} className={cn(b.cls, "text-[9px] py-0")}>{b.label}</Badge>)}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
           )
-            .sort(([a], [b]) => a - b)
-            .map(([season, sFiles]) => (
-              <SeasonGroup key={season} season={season} files={sFiles} />
-            ))}
-        </div>
-      ) : (
-        /* Movie: flat */
-        <div className="px-4 py-3 space-y-4">
-          {files.map((file, fileIdx) => {
-            const badges = qualityBadges(file);
-            return (
-              <div
-                key={file.id}
-                className={cn(files.length > 1 && "border-t border-neutral-100 dark:border-neutral-800 pt-4 first:border-none first:pt-0")}
-              >
-                {files.length > 1 && (
-                  <p className="text-xs font-semibold text-neutral-500 mb-2">File {fileIdx + 1}</p>
-                )}
-                {badges.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {badges.map((b) => <Badge key={b.label} className={b.cls}>{b.label}</Badge>)}
-                  </div>
-                )}
-                <FileDetailBlock file={file} />
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </Card>
-  ) : null;
+        ) : (
+          /* Movie: flat */
+          <div className="px-4 py-3 space-y-4">
+            {files.map((file, fileIdx) => {
+              const badges = qualityBadges(file);
+              return (
+                <div
+                  key={file.id}
+                  className={cn(files.length > 1 && "border-t border-neutral-100 dark:border-neutral-800 pt-4 first:border-none first:pt-0")}
+                >
+                  {files.length > 1 && <p className="text-xs font-semibold text-neutral-500 mb-2">File {fileIdx + 1}</p>}
+                  {badges.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {badges.map((b) => <Badge key={b.label} className={b.cls}>{b.label}</Badge>)}
+                    </div>
+                  )}
+                  <FileDetailBlock file={file} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+    );
+  })();
 
   // ── Download history ────────────────────────────────────────────────────────
   const downloadHistorySection = (
@@ -820,14 +841,7 @@ export function LibraryManagementPanel({
   return (
     <div className="px-3 pb-5 pt-2 space-y-3">
       {profileSection}
-      {episodeGrabSection}
-      {filesSection ?? (
-        <Card>
-          <div className="px-4 py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">
-            No file metadata found for this item.
-          </div>
-        </Card>
-      )}
+      {mediaSection}
       {downloadHistorySection}
       {deleteConfirm === "confirm" ? deleteConfirmSection : actionsSection}
     </div>
