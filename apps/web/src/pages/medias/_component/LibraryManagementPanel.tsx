@@ -14,7 +14,11 @@ import {
 } from "@/hooks/useLibrary";
 import { useQualityProfilesList } from "@/hooks/useQualityProfiles";
 import { formatBytes } from "@hously/shared/utils";
-import type { LibraryAudioTrack, LibraryFileInfo, LibrarySubtitleTrack } from "@hously/shared/types";
+import type {
+  LibraryAudioTrack,
+  LibraryFileInfo,
+  LibrarySubtitleTrack,
+} from "@hously/shared/types";
 import {
   AlertCircle,
   CheckCircle2,
@@ -49,17 +53,35 @@ function Row({
   if (value == null || value === "") return null;
   return (
     <div className="flex gap-2 text-xs">
-      <span className="w-[34%] shrink-0 text-neutral-500 dark:text-neutral-400">{label}</span>
-      <span className={cn("min-w-0 flex-1 break-all text-neutral-800 dark:text-neutral-200", mono && "font-mono text-[11px] leading-snug")}>
+      <span className="w-[34%] shrink-0 text-neutral-500 dark:text-neutral-400">
+        {label}
+      </span>
+      <span
+        className={cn(
+          "min-w-0 flex-1 break-all text-neutral-800 dark:text-neutral-200",
+          mono && "font-mono text-[11px] leading-snug",
+        )}
+      >
         {String(value)}
       </span>
     </div>
   );
 }
 
-function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
+function Badge({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <span className={cn("inline-flex items-center rounded px-1.5 py-px text-[10px] font-medium tracking-tight", className)}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded px-1.5 py-px text-[10px] font-medium tracking-tight",
+        className,
+      )}
+    >
       {children}
     </span>
   );
@@ -73,7 +95,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SectionTitle({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+function SectionTitle({
+  icon: Icon,
+  label,
+}: {
+  icon: React.ElementType;
+  label: string;
+}) {
   return (
     <div className="flex items-center gap-1 text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mt-3 mb-1.5">
       <Icon size={10} />
@@ -82,9 +110,20 @@ function SectionTitle({ icon: Icon, label }: { icon: React.ElementType; label: s
   );
 }
 
-function Card({ children, className }: { children: React.ReactNode; className?: string }) {
+function Card({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className={cn("rounded-xl border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 overflow-hidden", className)}>
+    <div
+      className={cn(
+        "rounded-xl border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 overflow-hidden",
+        className,
+      )}
+    >
       {children}
     </div>
   );
@@ -95,13 +134,20 @@ function StatusDot({ status }: { status: string }) {
     return <CheckCircle2 size={11} className="text-emerald-500 shrink-0" />;
   }
   if (status === "downloading") {
-    return <Circle size={11} className="text-sky-400 shrink-0 fill-sky-400/20" />;
+    return (
+      <Circle size={11} className="text-sky-400 shrink-0 fill-sky-400/20" />
+    );
   }
   if (status === "skipped") {
     return <AlertCircle size={11} className="text-neutral-400 shrink-0" />;
   }
   // wanted
-  return <Circle size={11} className="text-neutral-300 dark:text-neutral-600 shrink-0" />;
+  return (
+    <Circle
+      size={11}
+      className="text-neutral-300 dark:text-neutral-600 shrink-0"
+    />
+  );
 }
 
 function formatDuration(secs: number | null): string | null {
@@ -112,7 +158,11 @@ function formatDuration(secs: number | null): string | null {
   return `${m}m`;
 }
 
-function formatResolution(res: number | null, w: number | null, h: number | null): string | null {
+function formatResolution(
+  res: number | null,
+  w: number | null,
+  h: number | null,
+): string | null {
   if (w && h) return `${w} × ${h}`;
   if (res) return `${res}p`;
   return null;
@@ -120,24 +170,54 @@ function formatResolution(res: number | null, w: number | null, h: number | null
 
 function frenchLabel(lang: string): string | null {
   const map: Record<string, string> = {
-    VFF: "VFF (France)", VFQ: "VFQ (Québec)", VFI: "VFI (International)",
-    VF2: "VF2", TRUEFRENCH: "TRUEFRENCH",
+    VFF: "VFF (France)",
+    VFQ: "VFQ (Québec)",
+    VFI: "VFI (International)",
+    VF2: "VF2",
+    TRUEFRENCH: "TRUEFRENCH",
   };
   return map[lang.toUpperCase()] ?? null;
 }
 
-function qualityBadges(file: Pick<LibraryFileInfo, "resolution" | "source" | "video_codec" | "hdr_format" | "bit_depth">) {
+function qualityBadges(
+  file: Pick<
+    LibraryFileInfo,
+    "resolution" | "source" | "video_codec" | "hdr_format" | "bit_depth"
+  >,
+) {
   return [
-    file.resolution ? { label: `${file.resolution}p`, cls: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300" } : null,
-    file.source ? { label: file.source, cls: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300" } : null,
-    file.video_codec ? { label: file.video_codec, cls: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300" } : null,
-    file.hdr_format ? {
-      label: file.hdr_format,
-      cls: file.hdr_format.toLowerCase().includes("dolby")
-        ? "bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-300"
-        : "bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300",
-    } : null,
-    file.bit_depth === 10 ? { label: "10-bit", cls: "bg-violet-50 dark:bg-violet-500/15 text-violet-600 dark:text-violet-300" } : null,
+    file.resolution
+      ? {
+          label: `${file.resolution}p`,
+          cls: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
+        }
+      : null,
+    file.source
+      ? {
+          label: file.source,
+          cls: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
+        }
+      : null,
+    file.video_codec
+      ? {
+          label: file.video_codec,
+          cls: "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300",
+        }
+      : null,
+    file.hdr_format
+      ? {
+          label: file.hdr_format,
+          cls: file.hdr_format.toLowerCase().includes("dolby")
+            ? "bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-300"
+            : "bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300",
+        }
+      : null,
+    file.bit_depth === 10
+      ? {
+          label: "10-bit",
+          cls: "bg-violet-50 dark:bg-violet-500/15 text-violet-600 dark:text-violet-300",
+        }
+      : null,
   ].filter(Boolean) as { label: string; cls: string }[];
 }
 
@@ -146,14 +226,32 @@ function qualityBadges(file: Pick<LibraryFileInfo, "resolution" | "source" | "vi
 function AudioTrackRow({ track }: { track: LibraryAudioTrack }) {
   const frFlag = frenchLabel(track.language);
   const langDisplay = frFlag ?? track.language_name ?? track.language;
-  const details = [track.codec, track.channel_layout ?? (track.channels ? `${track.channels}ch` : null), track.bitrate_kbps ? `${track.bitrate_kbps} kbps` : null].filter(Boolean).join(" · ");
+  const details = [
+    track.codec,
+    track.channel_layout ?? (track.channels ? `${track.channels}ch` : null),
+    track.bitrate_kbps ? `${track.bitrate_kbps} kbps` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return (
     <div className="flex items-center gap-2 py-1">
-      <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300 w-28 shrink-0 truncate">{langDisplay}</span>
-      <span className="text-xs text-neutral-500 dark:text-neutral-400 flex-1 truncate">{details || "—"}</span>
+      <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300 w-28 shrink-0 truncate">
+        {langDisplay}
+      </span>
+      <span className="text-xs text-neutral-500 dark:text-neutral-400 flex-1 truncate">
+        {details || "—"}
+      </span>
       <div className="flex gap-1 shrink-0">
-        {track.default && <Badge className="bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300">Default</Badge>}
-        {track.forced && <Badge className="bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300">Forced</Badge>}
+        {track.default && (
+          <Badge className="bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300">
+            Default
+          </Badge>
+        )}
+        {track.forced && (
+          <Badge className="bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300">
+            Forced
+          </Badge>
+        )}
       </div>
     </div>
   );
@@ -164,11 +262,24 @@ function SubtitleTrackRow({ track }: { track: LibrarySubtitleTrack }) {
   const langDisplay = frFlag ?? track.language_name ?? track.language;
   return (
     <div className="flex items-center gap-2 py-1">
-      <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300 w-28 shrink-0 truncate">{langDisplay}</span>
-      <span className="text-xs text-neutral-500 dark:text-neutral-400 flex-1 truncate">{track.format ?? "—"}{track.title ? ` · ${track.title}` : ""}</span>
+      <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300 w-28 shrink-0 truncate">
+        {langDisplay}
+      </span>
+      <span className="text-xs text-neutral-500 dark:text-neutral-400 flex-1 truncate">
+        {track.format ?? "—"}
+        {track.title ? ` · ${track.title}` : ""}
+      </span>
       <div className="flex gap-1 shrink-0">
-        {track.forced && <Badge className="bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300">Forced</Badge>}
-        {track.hearing_impaired && <Badge className="bg-neutral-100 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400">HI</Badge>}
+        {track.forced && (
+          <Badge className="bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300">
+            Forced
+          </Badge>
+        )}
+        {track.hearing_impaired && (
+          <Badge className="bg-neutral-100 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400">
+            HI
+          </Badge>
+        )}
       </div>
     </div>
   );
@@ -193,21 +304,47 @@ function FileDetailBlock({ file }: { file: LibraryFileInfo }) {
 
       <SectionTitle icon={Film} label="Video" />
       <div className="space-y-1">
-        <Row label="Codec" value={[file.video_codec, file.video_profile].filter(Boolean).join(" · ")} />
-        <Row label="Resolution" value={formatResolution(file.resolution, file.width, file.height)} />
-        <Row label="Bit depth" value={file.bit_depth ? `${file.bit_depth}-bit` : null} />
+        <Row
+          label="Codec"
+          value={[file.video_codec, file.video_profile]
+            .filter(Boolean)
+            .join(" · ")}
+        />
+        <Row
+          label="Resolution"
+          value={formatResolution(file.resolution, file.width, file.height)}
+        />
+        <Row
+          label="Bit depth"
+          value={file.bit_depth ? `${file.bit_depth}-bit` : null}
+        />
         <Row label="HDR" value={file.hdr_format} />
         <Row label="Source" value={file.source} />
-        <Row label="Bitrate" value={file.video_bitrate ? `${file.video_bitrate.toLocaleString()} kbps` : null} />
-        <Row label="Frame rate" value={file.frame_rate ? `${file.frame_rate} fps` : null} />
+        <Row
+          label="Bitrate"
+          value={
+            file.video_bitrate
+              ? `${file.video_bitrate.toLocaleString()} kbps`
+              : null
+          }
+        />
+        <Row
+          label="Frame rate"
+          value={file.frame_rate ? `${file.frame_rate} fps` : null}
+        />
       </div>
 
       {audioTracks.length > 0 && (
         <>
-          <SectionTitle icon={Music} label={`Audio (${audioTracks.length} track${audioTracks.length > 1 ? "s" : ""})`} />
+          <SectionTitle
+            icon={Music}
+            label={`Audio (${audioTracks.length} track${audioTracks.length > 1 ? "s" : ""})`}
+          />
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60 rounded-lg border border-neutral-100 dark:border-neutral-800 overflow-hidden">
             {audioTracks.map((t) => (
-              <div key={t.index} className="px-2.5"><AudioTrackRow track={t} /></div>
+              <div key={t.index} className="px-2.5">
+                <AudioTrackRow track={t} />
+              </div>
             ))}
           </div>
         </>
@@ -215,10 +352,15 @@ function FileDetailBlock({ file }: { file: LibraryFileInfo }) {
 
       {subtitleTracks.length > 0 && (
         <>
-          <SectionTitle icon={Subtitles} label={`Subtitles (${subtitleTracks.length} track${subtitleTracks.length > 1 ? "s" : ""})`} />
+          <SectionTitle
+            icon={Subtitles}
+            label={`Subtitles (${subtitleTracks.length} track${subtitleTracks.length > 1 ? "s" : ""})`}
+          />
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60 rounded-lg border border-neutral-100 dark:border-neutral-800 overflow-hidden">
             {subtitleTracks.map((t) => (
-              <div key={t.index} className="px-2.5"><SubtitleTrackRow track={t} /></div>
+              <div key={t.index} className="px-2.5">
+                <SubtitleTrackRow track={t} />
+              </div>
             ))}
           </div>
         </>
@@ -226,7 +368,10 @@ function FileDetailBlock({ file }: { file: LibraryFileInfo }) {
 
       <div className="mt-3 text-[10px] text-neutral-400 dark:text-neutral-500">
         <Clock size={9} className="inline mr-1" />
-        Scanned {new Date(file.scanned_at).toLocaleDateString(undefined, { dateStyle: "medium" })}
+        Scanned{" "}
+        {new Date(file.scanned_at).toLocaleDateString(undefined, {
+          dateStyle: "medium",
+        })}
       </div>
     </div>
   );
@@ -243,16 +388,35 @@ function isUniform<T>(vals: (T | null | undefined)[]): T | null {
 // ─── Merged episode row (status + optional file details) ──────────────────────
 
 interface MergedEpisodeRowProps {
-  ep: { id: number; episode: number; title: string | null; status: string; search_attempts: number };
+  ep: {
+    id: number;
+    episode: number;
+    title: string | null;
+    status: string;
+    search_attempts: number;
+  };
   season: number;
   file: LibraryFileInfo | null;
   libraryId: number;
   t: ReturnType<typeof useTranslation>["t"];
-  onSearchEpisode?: (ep: { id: number; season: number; episode: number; title: string | null }) => void;
+  onSearchEpisode?: (ep: {
+    id: number;
+    season: number;
+    episode: number;
+    title: string | null;
+  }) => void;
   searchEpMut: ReturnType<typeof useSearchLibraryEpisode>;
 }
 
-function MergedEpisodeRow({ ep, season, file, libraryId, t, onSearchEpisode, searchEpMut }: MergedEpisodeRowProps) {
+function MergedEpisodeRow({
+  ep,
+  season,
+  file,
+  libraryId,
+  t,
+  onSearchEpisode,
+  searchEpMut,
+}: MergedEpisodeRowProps) {
   const [expanded, setExpanded] = useState(false);
   const badges = file ? qualityBadges(file) : [];
 
@@ -268,12 +432,21 @@ function MergedEpisodeRow({ ep, season, file, libraryId, t, onSearchEpisode, sea
         </span>
         <div className="flex items-center gap-1 shrink-0">
           {badges.slice(0, 2).map((b) => (
-            <Badge key={b.label} className={cn(b.cls, "text-[9px] py-0")}>{b.label}</Badge>
+            <Badge key={b.label} className={cn(b.cls, "text-[9px] py-0")}>
+              {b.label}
+            </Badge>
           ))}
           {onSearchEpisode && (
             <button
               type="button"
-              onClick={() => onSearchEpisode({ id: ep.id, season, episode: ep.episode, title: ep.title ?? null })}
+              onClick={() =>
+                onSearchEpisode({
+                  id: ep.id,
+                  season,
+                  episode: ep.episode,
+                  title: ep.title ?? null,
+                })
+              }
               title="Open interactive search for this episode"
               className="rounded p-1 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
             >
@@ -287,8 +460,12 @@ function MergedEpisodeRow({ ep, season, file, libraryId, t, onSearchEpisode, sea
                 void searchEpMut
                   .mutateAsync({ mediaId: libraryId, episodeId: ep.id })
                   .then((r) => {
-                    if (r.grabbed) toast.success(t("library.management.grabbed"));
-                    else toast.error(r.reason ?? t("library.management.grabFailed"));
+                    if (r.grabbed)
+                      toast.success(t("library.management.grabbed"));
+                    else
+                      toast.error(
+                        r.reason ?? t("library.management.grabFailed"),
+                      );
                   })
                   .catch(() => toast.error(t("library.management.grabFailed")));
               }}
@@ -304,10 +481,11 @@ function MergedEpisodeRow({ ep, season, file, libraryId, t, onSearchEpisode, sea
               onClick={() => setExpanded((p) => !p)}
               className="rounded p-1 text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400 transition-colors"
             >
-              {expanded
-                ? <ChevronDown size={10} />
-                : <ChevronRight size={10} />
-              }
+              {expanded ? (
+                <ChevronDown size={10} />
+              ) : (
+                <ChevronRight size={10} />
+              )}
             </button>
           )}
         </div>
@@ -324,7 +502,10 @@ function MergedEpisodeRow({ ep, season, file, libraryId, t, onSearchEpisode, sea
 
 // ─── Mapped folder helper ─────────────────────────────────────────────────────
 
-function getMappedFolder(files: LibraryFileInfo[], isShow: boolean): string | null {
+function getMappedFolder(
+  files: LibraryFileInfo[],
+  isShow: boolean,
+): string | null {
   const firstPath = files[0]?.file_path;
   if (!firstPath) return null;
   const parts = firstPath.split("/").filter(Boolean);
@@ -337,7 +518,12 @@ function getMappedFolder(files: LibraryFileInfo[], isShow: boolean): string | nu
 interface LibraryManagementPanelProps {
   libraryId: number;
   onDeleted?: () => void;
-  onSearchEpisode?: (ep: { id: number; season: number; episode: number; title: string | null }) => void;
+  onSearchEpisode?: (ep: {
+    id: number;
+    season: number;
+    episode: number;
+    title: string | null;
+  }) => void;
   onSearchSeason?: (season: number) => void;
 }
 
@@ -350,7 +536,10 @@ export function LibraryManagementPanel({
   const { t } = useTranslation("common");
   const { data, isLoading } = useLibraryFiles(libraryId);
   const { data: libList } = useLibrary(undefined, { staleTime: 0, gcTime: 0 });
-  const { data: profilesData } = useQualityProfilesList({ staleTime: 0, gcTime: 0 });
+  const { data: profilesData } = useQualityProfilesList({
+    staleTime: 0,
+    gcTime: 0,
+  });
   const { data: dlData, isLoading: dlLoading } = useLibraryDownloads(libraryId);
   const updateProfile = useUpdateLibraryQualityProfile();
   const rescan = useRescanLibraryItem(libraryId);
@@ -358,10 +547,14 @@ export function LibraryManagementPanel({
   const searchEpMut = useSearchLibraryEpisode();
   const removeMutation = useRemoveFromLibrary();
   const refreshStatus = useRefreshLibraryStatus(libraryId);
-  const [deleteConfirm, setDeleteConfirm] = useState<"idle" | "confirm">("idle");
+  const [deleteConfirm, setDeleteConfirm] = useState<"idle" | "confirm">(
+    "idle",
+  );
   const [deleteFiles, setDeleteFiles] = useState(true);
   const [downloadsOpen, setDownloadsOpen] = useState(false);
-  const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set());
+  const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(
+    new Set(),
+  );
   const files = data?.files ?? [];
   const isShow = data?.media_type === "show";
   const episodesQuery = useLibraryEpisodes(isShow ? libraryId : null);
@@ -396,7 +589,11 @@ export function LibraryManagementPanel({
   const toggleSeason = (season: number) =>
     setExpandedSeasons((prev) => {
       const next = new Set(prev);
-      next.has(season) ? next.delete(season) : next.add(season);
+      if (next.has(season)) {
+        next.delete(season);
+      } else {
+        next.add(season);
+      }
       return next;
     });
 
@@ -406,43 +603,60 @@ export function LibraryManagementPanel({
       <div className="px-4 pt-3 pb-3">
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
-            <SectionLabel>{t("library.management.qualityProfile")}</SectionLabel>
+            <SectionLabel>
+              {t("library.management.qualityProfile")}
+            </SectionLabel>
             <select
               value={mediaRow?.quality_profile_id ?? ""}
               onChange={(e) => {
                 const v = e.target.value;
                 const qid = v === "" ? null : parseInt(v, 10);
-                void updateProfile.mutateAsync({ id: libraryId, body: { quality_profile_id: qid } });
+                void updateProfile.mutateAsync({
+                  id: libraryId,
+                  body: { quality_profile_id: qid },
+                });
               }}
               disabled={updateProfile.isPending || !mediaRow}
               className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/80 px-2.5 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
             >
-              <option value="">{t("library.management.qualityProfileNone")}</option>
+              <option value="">
+                {t("library.management.qualityProfileNone")}
+              </option>
               {profiles.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
               ))}
             </select>
           </div>
 
-          {mediaRow?.type === "movie" && mediaRow.status === "wanted" && mediaRow.search_attempts < 5 && (
-            <button
-              type="button"
-              onClick={() => {
-                void searchMovieMut
-                  .mutateAsync({ id: libraryId })
-                  .then((r) => {
-                    if (r.grabbed) toast.success(t("library.management.grabbed"));
-                    else toast.error(r.reason ?? t("library.management.grabFailed"));
-                  })
-                  .catch(() => toast.error(t("library.management.grabFailed")));
-              }}
-              disabled={searchMovieMut.isPending}
-              className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors shrink-0"
-            >
-              <Search size={10} />
-              {t("library.management.searchNow")}
-            </button>
-          )}
+          {mediaRow?.type === "movie" &&
+            mediaRow.status === "wanted" &&
+            mediaRow.search_attempts < 5 && (
+              <button
+                type="button"
+                onClick={() => {
+                  void searchMovieMut
+                    .mutateAsync({ id: libraryId })
+                    .then((r) => {
+                      if (r.grabbed)
+                        toast.success(t("library.management.grabbed"));
+                      else
+                        toast.error(
+                          r.reason ?? t("library.management.grabFailed"),
+                        );
+                    })
+                    .catch(() =>
+                      toast.error(t("library.management.grabFailed")),
+                    );
+                }}
+                disabled={searchMovieMut.isPending}
+                className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors shrink-0"
+              >
+                <Search size={10} />
+                {t("library.management.searchNow")}
+              </button>
+            )}
         </div>
       </div>
     </Card>
@@ -457,7 +671,9 @@ export function LibraryManagementPanel({
       if (isShow && episodesQuery.isLoading) {
         return (
           <Card>
-            <div className="px-4 py-4 text-xs text-neutral-500 dark:text-neutral-400">Loading episodes…</div>
+            <div className="px-4 py-4 text-xs text-neutral-500 dark:text-neutral-400">
+              Loading episodes…
+            </div>
           </Card>
         );
       }
@@ -477,7 +693,9 @@ export function LibraryManagementPanel({
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
             <Folder size={11} className="text-neutral-400 shrink-0" />
             {mappedFolder && (
-              <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400 truncate">{mappedFolder}</span>
+              <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400 truncate">
+                {mappedFolder}
+              </span>
             )}
           </div>
           {hasFiles && (
@@ -490,8 +708,15 @@ export function LibraryManagementPanel({
                 "disabled:opacity-50 disabled:cursor-not-allowed",
               )}
             >
-              <RefreshCw size={10} className={rescan.isPending ? "animate-spin" : ""} />
-              {rescan.isPending ? "Rescanning…" : rescan.isSuccess ? `Done (${rescan.data?.rescanned})` : "Rescan files"}
+              <RefreshCw
+                size={10}
+                className={rescan.isPending ? "animate-spin" : ""}
+              />
+              {rescan.isPending
+                ? "Rescanning…"
+                : rescan.isSuccess
+                  ? `Done (${rescan.data?.rescanned})`
+                  : "Rescan files"}
             </button>
           )}
         </div>
@@ -502,8 +727,13 @@ export function LibraryManagementPanel({
             <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
               {episodesQuery.data!.seasons.map((s) => {
                 const isExpanded = expandedSeasons.has(s.season);
-                const downloadedCount = s.episodes.filter((e) => e.status === "downloaded").length;
-                const progress = s.episodes.length > 0 ? downloadedCount / s.episodes.length : 0;
+                const downloadedCount = s.episodes.filter(
+                  (e) => e.status === "downloaded",
+                ).length;
+                const progress =
+                  s.episodes.length > 0
+                    ? downloadedCount / s.episodes.length
+                    : 0;
                 const allDone = downloadedCount === s.episodes.length;
                 const noneDone = downloadedCount === 0;
 
@@ -513,7 +743,13 @@ export function LibraryManagementPanel({
                 const uCodec = isUniform(sFiles.map((f) => f.video_codec));
                 const uHdr = isUniform(sFiles.map((f) => f.hdr_format));
                 const uBitDepth = isUniform(sFiles.map((f) => f.bit_depth));
-                const sznBadges = qualityBadges({ resolution: uRes, source: uSrc, video_codec: uCodec, hdr_format: uHdr, bit_depth: uBitDepth });
+                const sznBadges = qualityBadges({
+                  resolution: uRes,
+                  source: uSrc,
+                  video_codec: uCodec,
+                  hdr_format: uHdr,
+                  bit_depth: uBitDepth,
+                });
 
                 return (
                   <div key={s.season}>
@@ -525,24 +761,48 @@ export function LibraryManagementPanel({
                       >
                         <ChevronRight
                           size={12}
-                          className={cn("text-neutral-400 shrink-0 transition-transform duration-150", isExpanded && "rotate-90")}
+                          className={cn(
+                            "text-neutral-400 shrink-0 transition-transform duration-150",
+                            isExpanded && "rotate-90",
+                          )}
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1.5">
                             <span className="text-[11px] font-semibold text-neutral-800 dark:text-neutral-100">
                               Season {s.season}
                             </span>
-                            <span className={cn("text-[10px] tabular-nums", allDone ? "text-emerald-600 dark:text-emerald-400" : "text-neutral-400 dark:text-neutral-500")}>
+                            <span
+                              className={cn(
+                                "text-[10px] tabular-nums",
+                                allDone
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : "text-neutral-400 dark:text-neutral-500",
+                              )}
+                            >
                               {downloadedCount}/{s.episodes.length}
                             </span>
                             {sznBadges.slice(0, 2).map((b) => (
-                              <Badge key={b.label} className={cn(b.cls, "text-[9px] py-0")}>{b.label}</Badge>
+                              <Badge
+                                key={b.label}
+                                className={cn(b.cls, "text-[9px] py-0")}
+                              >
+                                {b.label}
+                              </Badge>
                             ))}
                           </div>
                           <div className="h-1 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
                             <div
-                              className={cn("h-full rounded-full transition-all duration-300", allDone ? "bg-emerald-500" : noneDone ? "bg-neutral-300 dark:bg-neutral-700" : "bg-indigo-500")}
-                              style={{ width: `${Math.max(progress * 100, noneDone ? 0 : 4)}%` }}
+                              className={cn(
+                                "h-full rounded-full transition-all duration-300",
+                                allDone
+                                  ? "bg-emerald-500"
+                                  : noneDone
+                                    ? "bg-neutral-300 dark:bg-neutral-700"
+                                    : "bg-indigo-500",
+                              )}
+                              style={{
+                                width: `${Math.max(progress * 100, noneDone ? 0 : 4)}%`,
+                              }}
                             />
                           </div>
                         </div>
@@ -566,7 +826,9 @@ export function LibraryManagementPanel({
                             key={ep.id}
                             ep={ep}
                             season={s.season}
-                            file={fileByEp.get(`${s.season}_${ep.episode}`) ?? null}
+                            file={
+                              fileByEp.get(`${s.season}_${ep.episode}`) ?? null
+                            }
                             libraryId={libraryId}
                             t={t}
                             onSearchEpisode={onSearchEpisode}
@@ -598,36 +860,76 @@ export function LibraryManagementPanel({
                   const uCodec = isUniform(sFiles.map((f) => f.video_codec));
                   const uHdr = isUniform(sFiles.map((f) => f.hdr_format));
                   const uBitDepth = isUniform(sFiles.map((f) => f.bit_depth));
-                  const sznBadges = qualityBadges({ resolution: uRes, source: uSrc, video_codec: uCodec, hdr_format: uHdr, bit_depth: uBitDepth });
+                  const sznBadges = qualityBadges({
+                    resolution: uRes,
+                    source: uSrc,
+                    video_codec: uCodec,
+                    hdr_format: uHdr,
+                    bit_depth: uBitDepth,
+                  });
 
                   return (
-                    <div key={season} className="border-b border-neutral-100 dark:border-neutral-800 last:border-0">
+                    <div
+                      key={season}
+                      className="border-b border-neutral-100 dark:border-neutral-800 last:border-0"
+                    >
                       <button
                         type="button"
                         onClick={() => toggleSeason(season)}
                         className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors text-left"
                       >
-                        <ChevronRight size={12} className={cn("text-neutral-400 shrink-0 transition-transform duration-150", isExpanded && "rotate-90")} />
+                        <ChevronRight
+                          size={12}
+                          className={cn(
+                            "text-neutral-400 shrink-0 transition-transform duration-150",
+                            isExpanded && "rotate-90",
+                          )}
+                        />
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 leading-tight">Season {season}</div>
-                          <div className="text-[10px] text-neutral-400 dark:text-neutral-500 leading-tight mt-0.5">{sFiles.length} file{sFiles.length !== 1 ? "s" : ""}</div>
+                          <div className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 leading-tight">
+                            Season {season}
+                          </div>
+                          <div className="text-[10px] text-neutral-400 dark:text-neutral-500 leading-tight mt-0.5">
+                            {sFiles.length} file{sFiles.length !== 1 ? "s" : ""}
+                          </div>
                         </div>
                         <div className="flex gap-1 flex-wrap justify-end shrink-0">
-                          {sznBadges.map((b) => <Badge key={b.label} className={b.cls}>{b.label}</Badge>)}
+                          {sznBadges.map((b) => (
+                            <Badge key={b.label} className={b.cls}>
+                              {b.label}
+                            </Badge>
+                          ))}
                         </div>
                       </button>
                       {isExpanded && (
                         <div className="divide-y divide-neutral-100 dark:divide-neutral-800 border-t border-neutral-100 dark:border-neutral-800">
                           {sFiles.map((f) => {
-                            const epCode = f.episode != null ? `E${String(f.episode).padStart(2, "0")}` : "?";
+                            const epCode =
+                              f.episode != null
+                                ? `E${String(f.episode).padStart(2, "0")}`
+                                : "?";
                             const fBadges = qualityBadges(f);
                             return (
-                              <div key={f.id} className="border-b last:border-0 border-neutral-100 dark:border-neutral-800">
+                              <div
+                                key={f.id}
+                                className="border-b last:border-0 border-neutral-100 dark:border-neutral-800"
+                              >
                                 <div className="flex items-center gap-2 px-4 py-2">
-                                  <span className="font-mono text-[10px] font-medium text-neutral-400 dark:text-neutral-500 w-7 shrink-0">{epCode}</span>
-                                  <span className="text-[11px] text-neutral-700 dark:text-neutral-300 flex-1 min-w-0 truncate">{f.episode_title ?? f.file_name}</span>
+                                  <span className="font-mono text-[10px] font-medium text-neutral-400 dark:text-neutral-500 w-7 shrink-0">
+                                    {epCode}
+                                  </span>
+                                  <span className="text-[11px] text-neutral-700 dark:text-neutral-300 flex-1 min-w-0 truncate">
+                                    {f.episode_title ?? f.file_name}
+                                  </span>
                                   <div className="flex gap-0.5 shrink-0">
-                                    {fBadges.slice(0, 2).map((b) => <Badge key={b.label} className={cn(b.cls, "text-[9px] py-0")}>{b.label}</Badge>)}
+                                    {fBadges.slice(0, 2).map((b) => (
+                                      <Badge
+                                        key={b.label}
+                                        className={cn(b.cls, "text-[9px] py-0")}
+                                      >
+                                        {b.label}
+                                      </Badge>
+                                    ))}
                                   </div>
                                 </div>
                               </div>
@@ -648,12 +950,23 @@ export function LibraryManagementPanel({
               return (
                 <div
                   key={file.id}
-                  className={cn(files.length > 1 && "border-t border-neutral-100 dark:border-neutral-800 pt-4 first:border-none first:pt-0")}
+                  className={cn(
+                    files.length > 1 &&
+                      "border-t border-neutral-100 dark:border-neutral-800 pt-4 first:border-none first:pt-0",
+                  )}
                 >
-                  {files.length > 1 && <p className="text-xs font-semibold text-neutral-500 mb-2">File {fileIdx + 1}</p>}
+                  {files.length > 1 && (
+                    <p className="text-xs font-semibold text-neutral-500 mb-2">
+                      File {fileIdx + 1}
+                    </p>
+                  )}
                   {badges.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {badges.map((b) => <Badge key={b.label} className={b.cls}>{b.label}</Badge>)}
+                      {badges.map((b) => (
+                        <Badge key={b.label} className={b.cls}>
+                          {b.label}
+                        </Badge>
+                      ))}
                     </div>
                   )}
                   <FileDetailBlock file={file} />
@@ -696,9 +1009,13 @@ export function LibraryManagementPanel({
       {downloadsOpen && (
         <div className="border-t border-neutral-100 dark:border-neutral-800 px-4 pb-4 pt-3">
           {dlLoading ? (
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">{t("library.management.searching")}</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("library.management.searching")}
+            </p>
           ) : dlItems.length === 0 ? (
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">{t("library.management.noDownloads")}</p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("library.management.noDownloads")}
+            </p>
           ) : (
             <div className="space-y-2">
               {dlItems.map((row) => {
@@ -711,7 +1028,10 @@ export function LibraryManagementPanel({
                 return (
                   <div
                     key={row.id}
-                    className={cn("rounded-lg border px-3 py-2.5 space-y-1.5", statusColor)}
+                    className={cn(
+                      "rounded-lg border px-3 py-2.5 space-y-1.5",
+                      statusColor,
+                    )}
                   >
                     {/* Release title + status */}
                     <div className="flex items-start justify-between gap-2">
@@ -722,11 +1042,17 @@ export function LibraryManagementPanel({
                         {row.release_title}
                       </p>
                       {row.failed ? (
-                        <Badge className="bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 shrink-0">Failed</Badge>
+                        <Badge className="bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 shrink-0">
+                          Failed
+                        </Badge>
                       ) : row.completed_at ? (
-                        <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 shrink-0">Done</Badge>
+                        <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 shrink-0">
+                          Done
+                        </Badge>
                       ) : (
-                        <Badge className="bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 shrink-0">Active</Badge>
+                        <Badge className="bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 shrink-0">
+                          Active
+                        </Badge>
                       )}
                     </div>
 
@@ -735,13 +1061,19 @@ export function LibraryManagementPanel({
                       {row.indexer && <span>{row.indexer}</span>}
                       <span className="flex items-center gap-1">
                         <Clock size={8} />
-                        {new Date(row.grabbed_at).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
+                        {new Date(row.grabbed_at).toLocaleString(undefined, {
+                          dateStyle: "short",
+                          timeStyle: "short",
+                        })}
                       </span>
                     </div>
 
                     {/* Path / error */}
                     {row.post_process_error ? (
-                      <p className="text-[10px] text-red-600 dark:text-red-400 leading-snug" title={row.post_process_error}>
+                      <p
+                        className="text-[10px] text-red-600 dark:text-red-400 leading-snug"
+                        title={row.post_process_error}
+                      >
                         {row.post_process_error}
                       </p>
                     ) : row.post_process_destination_path ? (
@@ -775,7 +1107,10 @@ export function LibraryManagementPanel({
           "disabled:opacity-50 disabled:cursor-not-allowed",
         )}
       >
-        <RefreshCw size={11} className={refreshStatus.isPending ? "animate-spin" : ""} />
+        <RefreshCw
+          size={11}
+          className={refreshStatus.isPending ? "animate-spin" : ""}
+        />
         {refreshStatus.isPending
           ? t("library.management.refreshingStatus")
           : t("library.management.refreshStatus")}
@@ -813,7 +1148,10 @@ export function LibraryManagementPanel({
             disabled={removeMutation.isPending}
             onClick={async () => {
               try {
-                await removeMutation.mutateAsync({ id: libraryId, deleteFiles });
+                await removeMutation.mutateAsync({
+                  id: libraryId,
+                  deleteFiles,
+                });
                 onDeleted?.();
               } catch {
                 // mutation error handled by hook

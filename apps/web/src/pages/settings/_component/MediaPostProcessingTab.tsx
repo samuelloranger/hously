@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { FolderTree } from "lucide-react";
@@ -11,46 +11,48 @@ import {
   useUpdateMediaPostProcessingSettings,
 } from "@/hooks/useLibrary";
 import { useQualityProfilesList } from "@/hooks/useQualityProfiles";
-import type { MediaFileOperation } from "@hously/shared/types";
+import type {
+  MediaFileOperation,
+  MediaPostProcessingSettings,
+  QualityProfilesListResponse,
+} from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 
-export function MediaPostProcessingTab() {
+function MediaPostProcessingSettingsBody({
+  settings,
+  profilesData,
+}: {
+  settings: MediaPostProcessingSettings;
+  profilesData: QualityProfilesListResponse | undefined;
+}) {
   const { t } = useTranslation("common");
-  const { data, isLoading, error } = useMediaPostProcessingSettings();
   const updateMut = useUpdateMediaPostProcessingSettings();
   const scanMut = useLibraryScan();
-  const { data: profilesData } = useQualityProfilesList();
 
-  const [postProcessingEnabled, setPostProcessingEnabled] = useState(false);
-  const [moviesPath, setMoviesPath] = useState("");
-  const [showsPath, setShowsPath] = useState("");
-  const [fileOperation, setFileOperation] =
-    useState<MediaFileOperation>("hardlink");
-  const [movieTemplate, setMovieTemplate] = useState("");
-  const [episodeTemplate, setEpisodeTemplate] = useState("");
-  const [minSeedRatio, setMinSeedRatio] = useState(1);
-  const [defaultQualityProfileId, setDefaultQualityProfileId] = useState<number | null>(null);
+  const [postProcessingEnabled, setPostProcessingEnabled] = useState(
+    settings.post_processing_enabled,
+  );
+  const [moviesPath, setMoviesPath] = useState(
+    settings.movies_library_path ?? "",
+  );
+  const [showsPath, setShowsPath] = useState(settings.shows_library_path ?? "");
+  const [fileOperation, setFileOperation] = useState<MediaFileOperation>(
+    settings.file_operation === "move" ? "move" : "hardlink",
+  );
+  const [movieTemplate, setMovieTemplate] = useState(settings.movie_template);
+  const [episodeTemplate, setEpisodeTemplate] = useState(
+    settings.episode_template,
+  );
+  const [minSeedRatio, setMinSeedRatio] = useState(settings.min_seed_ratio);
+  const [defaultQualityProfileId, setDefaultQualityProfileId] = useState<
+    number | null
+  >(settings.default_quality_profile_id);
   const [scanPath, setScanPath] = useState("");
   const [scanType, setScanType] = useState<"movie" | "show">("movie");
   const [lastScan, setLastScan] = useState<{
     matched: number;
     unmatched: string[];
   } | null>(null);
-
-  useEffect(() => {
-    const s = data?.settings;
-    if (!s) return;
-    setPostProcessingEnabled(s.post_processing_enabled);
-    setMoviesPath(s.movies_library_path ?? "");
-    setShowsPath(s.shows_library_path ?? "");
-    setFileOperation(
-      s.file_operation === "move" ? "move" : "hardlink",
-    );
-    setMovieTemplate(s.movie_template);
-    setEpisodeTemplate(s.episode_template);
-    setMinSeedRatio(s.min_seed_ratio);
-    setDefaultQualityProfileId(s.default_quality_profile_id);
-  }, [data?.settings]);
 
   const onSave = async () => {
     try {
@@ -88,37 +90,8 @@ export function MediaPostProcessingTab() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-neutral-500">
-        <HouseLoader size="md" />
-        <span className="text-sm">{t("settings.mediaLibrary.loading")}</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <p className="text-sm text-red-600 dark:text-red-400">
-        {t("settings.mediaLibrary.loadError")}
-      </p>
-    );
-  }
-
   return (
     <div className="space-y-10">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <FolderTree className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-            {t("settings.mediaLibrary.title")}
-          </h2>
-        </div>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400 max-w-2xl">
-          {t("settings.mediaLibrary.description")}
-        </p>
-      </div>
-
       <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/40 p-5 space-y-4">
         <label className="flex items-center gap-2 text-sm font-medium text-neutral-800 dark:text-neutral-200">
           <input
@@ -158,7 +131,9 @@ export function MediaPostProcessingTab() {
             }
             className="w-full max-w-md rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           >
-            <option value="hardlink">{t("settings.mediaLibrary.hardlink")}</option>
+            <option value="hardlink">
+              {t("settings.mediaLibrary.hardlink")}
+            </option>
             <option value="move">{t("settings.mediaLibrary.move")}</option>
           </select>
         </div>
@@ -214,9 +189,13 @@ export function MediaPostProcessingTab() {
             }}
             className="w-full max-w-md rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           >
-            <option value="">{t("settings.mediaLibrary.defaultQualityProfileNone")}</option>
+            <option value="">
+              {t("settings.mediaLibrary.defaultQualityProfileNone")}
+            </option>
             {(profilesData?.profiles ?? []).map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
             ))}
           </select>
           <p className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400">
@@ -260,7 +239,9 @@ export function MediaPostProcessingTab() {
             }
             className="w-full max-w-md rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
           >
-            <option value="movie">{t("settings.mediaLibrary.scanMovies")}</option>
+            <option value="movie">
+              {t("settings.mediaLibrary.scanMovies")}
+            </option>
             <option value="show">{t("settings.mediaLibrary.scanShows")}</option>
           </select>
         </div>
@@ -288,6 +269,60 @@ export function MediaPostProcessingTab() {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+export function MediaPostProcessingTab() {
+  const { t } = useTranslation("common");
+  const { data, isLoading, error } = useMediaPostProcessingSettings();
+  const { data: profilesData } = useQualityProfilesList();
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-neutral-500">
+        <HouseLoader size="md" />
+        <span className="text-sm">{t("settings.mediaLibrary.loading")}</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="text-sm text-red-600 dark:text-red-400">
+        {t("settings.mediaLibrary.loadError")}
+      </p>
+    );
+  }
+
+  const settings = data?.settings;
+  if (!settings) {
+    return (
+      <p className="text-sm text-red-600 dark:text-red-400">
+        {t("settings.mediaLibrary.loadError")}
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-10">
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <FolderTree className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+            {t("settings.mediaLibrary.title")}
+          </h2>
+        </div>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 max-w-2xl">
+          {t("settings.mediaLibrary.description")}
+        </p>
+      </div>
+
+      <MediaPostProcessingSettingsBody
+        key={settings.updated_at}
+        settings={settings}
+        profilesData={profilesData}
+      />
     </div>
   );
 }
