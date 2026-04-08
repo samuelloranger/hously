@@ -88,7 +88,9 @@ export const mediasTmdbRoutes = new Elysia()
           where: { tmdbId: { in: tmdbIds } },
           select: { tmdbId: true, id: true },
         });
-        const libraryIdByTmdbId = new Map(libraryEntries.map((e) => [e.tmdbId, e.id]));
+        const libraryIdByTmdbId = new Map(
+          libraryEntries.map((e) => [e.tmdbId, e.id]),
+        );
 
         items = items.map((item) => ({
           ...item,
@@ -131,7 +133,10 @@ export const mediasTmdbRoutes = new Elysia()
       const skipCache =
         (query as Record<string, string | undefined>).skipCache === "true";
 
-      const fetchTmdb = async (path: string, extra?: Record<string, string>) => {
+      const fetchTmdb = async (
+        path: string,
+        extra?: Record<string, string>,
+      ) => {
         const url = new URL(`https://api.themoviedb.org/3/${path}`);
         url.searchParams.set("api_key", tmdbConfig.api_key);
         url.searchParams.set("language", language);

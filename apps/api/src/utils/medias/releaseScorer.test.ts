@@ -68,9 +68,7 @@ describe("scoreRelease", () => {
       group: null,
       isSample: false,
     };
-    expect(
-      scoreRelease(p, { ...baseProfile, maxSizeGb: 5 }, 6e9),
-    ).toBeNull();
+    expect(scoreRelease(p, { ...baseProfile, maxSizeGb: 5 }, 6e9)).toBeNull();
   });
 
   test("scores tier bonus and preferences", () => {
@@ -83,11 +81,7 @@ describe("scoreRelease", () => {
       group: null,
       isSample: false,
     };
-    const s = scoreRelease(
-      p,
-      { ...baseProfile, preferHdr: true },
-      5e9,
-    );
+    const s = scoreRelease(p, { ...baseProfile, preferHdr: true }, 5e9);
     expect(s).not.toBeNull();
     expect(s!).toBeGreaterThan(1500);
   });

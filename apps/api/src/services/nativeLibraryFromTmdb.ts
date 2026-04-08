@@ -67,7 +67,8 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
   const mediaSettings = await prisma.mediaSettings.findUnique({
     where: { id: 1 },
   });
-  const defaultQualityProfileId = mediaSettings?.defaultQualityProfileId ?? null;
+  const defaultQualityProfileId =
+    mediaSettings?.defaultQualityProfileId ?? null;
 
   const { tmdb_id, type } = opts;
 

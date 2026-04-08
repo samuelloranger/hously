@@ -12,18 +12,23 @@ describe("fileTemplate", () => {
   });
 
   it("converts colon to dash like Sonarr", () => {
-    expect(sanitizeFilenamePart("Daredevil: Born Again")).toBe("Daredevil - Born Again");
+    expect(sanitizeFilenamePart("Daredevil: Born Again")).toBe(
+      "Daredevil - Born Again",
+    );
   });
 
   it("renders movie template with year and quality", () => {
-    const out = renderMovieTemplate("{title} ({year}) [{resolution} {source}]", {
-      title: "Test Movie",
-      year: 2021,
-      resolution: "1080p",
-      source: "WEB-DL",
-      codec: "x265",
-      ext: ".mkv",
-    });
+    const out = renderMovieTemplate(
+      "{title} ({year}) [{resolution} {source}]",
+      {
+        title: "Test Movie",
+        year: 2021,
+        resolution: "1080p",
+        source: "WEB-DL",
+        codec: "x265",
+        ext: ".mkv",
+      },
+    );
     expect(out).toContain("Test Movie");
     expect(out).toContain("2021");
     expect(out).toContain("1080p");

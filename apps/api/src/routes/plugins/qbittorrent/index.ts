@@ -7,7 +7,11 @@ import {
   normalizeQbittorrentConfig,
   invalidateQbittorrentPluginConfigCache,
 } from "@hously/api/services/qbittorrent/config";
-import { clampInteger, isValidHttpUrl, normalizeUrl } from "@hously/api/utils/plugins/utils";
+import {
+  clampInteger,
+  isValidHttpUrl,
+  normalizeUrl,
+} from "@hously/api/utils/plugins/utils";
 import { encrypt } from "@hously/api/services/crypto";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { requireAdmin } from "@hously/api/middleware/auth";

@@ -47,7 +47,8 @@ export const mediasProwlarrRoutes = new Elysia()
         query.tmdb_id != null ? parseInt(String(query.tmdb_id), 10) : null;
       const isSeasonSearch =
         seasonNumber != null && Number.isFinite(seasonNumber);
-      const isCompleteSearch = query.complete === "true" || query.complete === true;
+      const isCompleteSearch =
+        query.complete === "true" || query.complete === true;
 
       if (!isSeasonSearch && !isCompleteSearch && searchQuery.length < 2) {
         return badRequest(
@@ -72,7 +73,10 @@ export const mediasProwlarrRoutes = new Elysia()
 
         const fetchReleases = async (url: URL) => {
           const response = await fetch(url.toString(), {
-            headers: { "X-Api-Key": config.api_key, Accept: "application/json" },
+            headers: {
+              "X-Api-Key": config.api_key,
+              Accept: "application/json",
+            },
           });
           if (!response.ok) return null;
           return (await response.json()) as unknown[];
@@ -86,7 +90,8 @@ export const mediasProwlarrRoutes = new Elysia()
           const url = new URL("/api/v1/search", config.website_url);
           url.searchParams.set("type", "tvsearch");
           url.searchParams.set("limit", "100");
-          if (opts.season != null) url.searchParams.set("season", String(opts.season));
+          if (opts.season != null)
+            url.searchParams.set("season", String(opts.season));
           if (opts.tmdbId != null) {
             url.searchParams.set("tmdbid", String(opts.tmdbId));
           } else if (opts.titleQuery) {
@@ -113,12 +118,17 @@ export const mediasProwlarrRoutes = new Elysia()
            *   3. free-text "title integrale" — French scene packs
            *   4. free-text "title complete series" — English scene packs
            */
-          const [tvById, tvByTitle, integrale, completeSeries] = await Promise.all([
-            tmdbId != null ? fetchReleases(buildTvSearchUrl({ tmdbId })) : Promise.resolve([]),
-            fetchReleases(buildTvSearchUrl({ titleQuery: searchQuery })),
-            fetchReleases(buildFreeSearchUrl(`${searchQuery} integrale`)),
-            fetchReleases(buildFreeSearchUrl(`${searchQuery} complete series`)),
-          ]);
+          const [tvById, tvByTitle, integrale, completeSeries] =
+            await Promise.all([
+              tmdbId != null
+                ? fetchReleases(buildTvSearchUrl({ tmdbId }))
+                : Promise.resolve([]),
+              fetchReleases(buildTvSearchUrl({ titleQuery: searchQuery })),
+              fetchReleases(buildFreeSearchUrl(`${searchQuery} integrale`)),
+              fetchReleases(
+                buildFreeSearchUrl(`${searchQuery} complete series`),
+              ),
+            ]);
           const seen = new Set<string>();
           rawList = [];
           for (const batch of [tvById, tvByTitle, integrale, completeSeries]) {
@@ -143,18 +153,36 @@ export const mediasProwlarrRoutes = new Elysia()
            *   All batches are merged and deduped by guid.
            */
           const sN = String(seasonNumber!).padStart(2, "0");
-          const [tvById, tvByTitle, seasonEn, seasonFr, seasonScene] = await Promise.all([
-            tmdbId != null && Number.isFinite(tmdbId)
-              ? fetchReleases(buildTvSearchUrl({ tmdbId, season: seasonNumber! }))
-              : Promise.resolve([]),
-            fetchReleases(buildTvSearchUrl({ titleQuery: searchQuery, season: seasonNumber! })),
-            fetchReleases(buildFreeSearchUrl(`${searchQuery} Season ${seasonNumber}`)),
-            fetchReleases(buildFreeSearchUrl(`${searchQuery} Saison ${seasonNumber}`)),
-            fetchReleases(buildFreeSearchUrl(`${searchQuery} S${sN}`)),
-          ]);
+          const [tvById, tvByTitle, seasonEn, seasonFr, seasonScene] =
+            await Promise.all([
+              tmdbId != null && Number.isFinite(tmdbId)
+                ? fetchReleases(
+                    buildTvSearchUrl({ tmdbId, season: seasonNumber! }),
+                  )
+                : Promise.resolve([]),
+              fetchReleases(
+                buildTvSearchUrl({
+                  titleQuery: searchQuery,
+                  season: seasonNumber!,
+                }),
+              ),
+              fetchReleases(
+                buildFreeSearchUrl(`${searchQuery} Season ${seasonNumber}`),
+              ),
+              fetchReleases(
+                buildFreeSearchUrl(`${searchQuery} Saison ${seasonNumber}`),
+              ),
+              fetchReleases(buildFreeSearchUrl(`${searchQuery} S${sN}`)),
+            ]);
           const seen = new Set<string>();
           rawList = [];
-          for (const batch of [tvById, tvByTitle, seasonEn, seasonFr, seasonScene]) {
+          for (const batch of [
+            tvById,
+            tvByTitle,
+            seasonEn,
+            seasonFr,
+            seasonScene,
+          ]) {
             for (const item of batch ?? []) {
               const row = item as Record<string, unknown>;
               const guid = String(row.guid ?? "");
@@ -165,9 +193,15 @@ export const mediasProwlarrRoutes = new Elysia()
             }
           }
         } else {
-          const response = await fetch(buildFreeSearchUrl(searchQuery).toString(), {
-            headers: { "X-Api-Key": config.api_key, Accept: "application/json" },
-          });
+          const response = await fetch(
+            buildFreeSearchUrl(searchQuery).toString(),
+            {
+              headers: {
+                "X-Api-Key": config.api_key,
+                Accept: "application/json",
+              },
+            },
+          );
           if (!response.ok) {
             return badGateway(
               set,

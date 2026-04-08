@@ -25,7 +25,11 @@ describe("formatUsername", () => {
 
 describe("formatDisplayName", () => {
   it("combines first and last name", () => {
-    const user = { first_name: "john", last_name: "doe", email: "j@d.com" } as any;
+    const user = {
+      first_name: "john",
+      last_name: "doe",
+      email: "j@d.com",
+    } as any;
     expect(formatDisplayName(user)).toBe("John Doe");
   });
 
@@ -61,7 +65,9 @@ describe("formatCronTrigger", () => {
   });
 
   it("formats minute intervals in French", () => {
-    expect(formatCronTrigger("minute='*/5'", "fr")).toBe("à tous les 5 minutes");
+    expect(formatCronTrigger("minute='*/5'", "fr")).toBe(
+      "à tous les 5 minutes",
+    );
   });
 
   it("formats midnight daily", () => {

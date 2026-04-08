@@ -1,6 +1,10 @@
 import { useTranslation } from "react-i18next";
 import type { QbittorrentTorrentTracker } from "@hously/shared/types";
-import { formatQbittorrentTrackerNumber, getQbittorrentTrackerStatusColor, getQbittorrentTrackerStatusLabelKey } from "@hously/shared/utils";
+import {
+  formatQbittorrentTrackerNumber,
+  getQbittorrentTrackerStatusColor,
+  getQbittorrentTrackerStatusLabelKey,
+} from "@hously/shared/utils";
 interface TorrentTrackersTabProps {
   isLoading: boolean;
   trackers: QbittorrentTorrentTracker[] | undefined;

@@ -66,7 +66,9 @@ async function largestVideo(paths: string[]): Promise<string | null> {
 /**
  * Resolve the primary video file for a completed torrent (single file or folder).
  */
-export async function findVideoFile(torrentPath: string): Promise<string | null> {
+export async function findVideoFile(
+  torrentPath: string,
+): Promise<string | null> {
   const st = await stat(torrentPath);
   if (st.isFile()) {
     const ext = extname(torrentPath).toLowerCase();

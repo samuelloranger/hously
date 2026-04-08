@@ -5,7 +5,12 @@ import {
   useCreateCustomEvent,
   useUpdateCustomEvent,
 } from "@/hooks/useCalendar";
-import { type CreateCustomEventRequest, type UpdateCustomEventRequest, type CalendarEvent, type CalendarEventCustomEventMetadata } from "@hously/shared/types";
+import {
+  type CreateCustomEventRequest,
+  type UpdateCustomEventRequest,
+  type CalendarEvent,
+  type CalendarEventCustomEventMetadata,
+} from "@hously/shared/types";
 import { Dialog } from "@/components/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

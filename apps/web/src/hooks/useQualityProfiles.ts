@@ -8,7 +8,10 @@ import type {
   QualityProfilesListResponse,
 } from "@hously/shared/types";
 
-export function useQualityProfilesList(options?: { staleTime?: number; gcTime?: number }) {
+export function useQualityProfilesList(options?: {
+  staleTime?: number;
+  gcTime?: number;
+}) {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: queryKeys.qualityProfiles.list(),
@@ -40,7 +43,9 @@ export function useCreateQualityProfile() {
         { method: "POST", body },
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.qualityProfiles.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.qualityProfiles.all,
+      });
     },
   });
 }
@@ -61,7 +66,9 @@ export function useUpdateQualityProfile() {
         { method: "PUT", body },
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.qualityProfiles.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.qualityProfiles.all,
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
     },
   });
@@ -76,7 +83,9 @@ export function useDeleteQualityProfile() {
         method: "DELETE",
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.qualityProfiles.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.qualityProfiles.all,
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
     },
   });

@@ -30,9 +30,35 @@ export interface FilterParams {
 }
 
 const STOP_WORDS = new Set([
-  "the", "and", "for", "are", "but", "not", "all", "can", "had", "her",
-  "was", "one", "our", "out", "has", "him", "his", "how", "its", "let",
-  "new", "now", "old", "see", "two", "way", "who", "did", "via",
+  "the",
+  "and",
+  "for",
+  "are",
+  "but",
+  "not",
+  "all",
+  "can",
+  "had",
+  "her",
+  "was",
+  "one",
+  "our",
+  "out",
+  "has",
+  "him",
+  "his",
+  "how",
+  "its",
+  "let",
+  "new",
+  "now",
+  "old",
+  "see",
+  "two",
+  "way",
+  "who",
+  "did",
+  "via",
 ]);
 
 /**
@@ -46,7 +72,9 @@ function isClientRejected(
   mediaTitle: string,
   mediaYear?: number | null,
 ): boolean {
-  const normalizedRelease = releaseTitle.toLowerCase().replace(/[^a-z0-9]/g, " ");
+  const normalizedRelease = releaseTitle
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, " ");
 
   // Year check: if release title contains a year and it doesn't match, reject.
   if (mediaYear) {
@@ -100,7 +128,8 @@ export function filterAndSortReleases(
       if (release.rejected) return false;
       // Prowlarr results have no arr-side rejection — apply client-side title/year matching.
       if (isProwlarrMode && mediaTitle) {
-        if (isClientRejected(release.title, mediaTitle, mediaYear)) return false;
+        if (isClientRejected(release.title, mediaTitle, mediaYear))
+          return false;
       }
     }
 
@@ -145,8 +174,7 @@ export function filterAndSortReleases(
     }
 
     let cmp = 0;
-    if (sortBy === "seeders")
-      cmp = (a.seeders ?? -1) - (b.seeders ?? -1);
+    if (sortBy === "seeders") cmp = (a.seeders ?? -1) - (b.seeders ?? -1);
     else if (sortBy === "age")
       cmp =
         (a.age ?? Number.MAX_SAFE_INTEGER) - (b.age ?? Number.MAX_SAFE_INTEGER);

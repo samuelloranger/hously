@@ -3,7 +3,12 @@ import { prisma } from "@hously/api/db";
 import { webhookHandlers } from "@hously/api/services/webhookHandlers";
 import { enrichArrWebhookNotification } from "@hously/api/services/webhookEnrichment";
 import { sendExternalNotification } from "@hously/api/services/externalNotificationService";
-import { badRequest, forbidden, notFound, serverError } from "@hously/api/errors";
+import {
+  badRequest,
+  forbidden,
+  notFound,
+  serverError,
+} from "@hously/api/errors";
 import { completeDownloadByHash } from "@hously/api/workers/checkDownloadCompletion";
 import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessor";
 import { loadConfig } from "@hously/api/config";
@@ -42,39 +47,36 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
   //
   // See: https://github.com/qbittorrent/qBittorrent/issues/13178
   //      https://github.com/qbittorrent/qBittorrent/issues/12367
-  .post(
-    "/qbittorrent/completed",
-    async ({ body, request, set }) => {
-      const secret = loadConfig().QBITTORRENT_WEBHOOK_SECRET;
-      if (!secret) return forbidden(set, "Webhook not configured");
+  .post("/qbittorrent/completed", async ({ body, request, set }) => {
+    const secret = loadConfig().QBITTORRENT_WEBHOOK_SECRET;
+    if (!secret) return forbidden(set, "Webhook not configured");
 
-      const auth = request.headers.get("authorization") ?? "";
-      const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-      if (token !== secret) return forbidden(set, "Invalid token");
+    const auth = request.headers.get("authorization") ?? "";
+    const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+    if (token !== secret) return forbidden(set, "Invalid token");
 
-      // body may be a pre-parsed JSON object (application/json) or a raw string
-      let hash: string | undefined;
-      try {
-        const obj =
-          body !== null && typeof body === "object"
-            ? (body as Record<string, unknown>)
-            : JSON.parse(typeof body === "string" ? body : "{}");
-        hash = typeof obj?.hash === "string" ? obj.hash : undefined;
-      } catch {
-        return badRequest(set, "Invalid JSON");
-      }
-      if (!hash?.trim()) return badRequest(set, "Missing hash");
+    // body may be a pre-parsed JSON object (application/json) or a raw string
+    let hash: string | undefined;
+    try {
+      const obj =
+        body !== null && typeof body === "object"
+          ? (body as Record<string, unknown>)
+          : JSON.parse(typeof body === "string" ? body : "{}");
+      hash = typeof obj?.hash === "string" ? obj.hash : undefined;
+    } catch {
+      return badRequest(set, "Invalid JSON");
+    }
+    if (!hash?.trim()) return badRequest(set, "Missing hash");
 
-      const downloadHistoryId = await completeDownloadByHash(hash);
-      if (downloadHistoryId != null) {
-        enqueueLibraryPostProcess(downloadHistoryId);
-      }
-      return {
-        matched: downloadHistoryId != null,
-        download_history_id: downloadHistoryId,
-      };
-    },
-  )
+    const downloadHistoryId = await completeDownloadByHash(hash);
+    if (downloadHistoryId != null) {
+      enqueueLibraryPostProcess(downloadHistoryId);
+    }
+    return {
+      matched: downloadHistoryId != null,
+      download_history_id: downloadHistoryId,
+    };
+  })
   // ── qBittorrent torrent-added webhook ────────────────────────────────────────
   // Configure qBittorrent: Settings → Downloads → "Run external program on
   // torrent added". Same shell-script pattern as /completed above.
@@ -89,136 +91,146 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
   // When a torrent lands in hously-movies or hously-shows, Hously finds the
   // matching LibraryMedia by title and creates a DownloadHistory entry so the
   // item's status switches to "downloading" immediately.
-  .post(
-    "/qbittorrent/added",
-    async ({ body, request, set }) => {
-      const secret = loadConfig().QBITTORRENT_WEBHOOK_SECRET;
-      if (!secret) return forbidden(set, "Webhook not configured");
+  .post("/qbittorrent/added", async ({ body, request, set }) => {
+    const secret = loadConfig().QBITTORRENT_WEBHOOK_SECRET;
+    if (!secret) return forbidden(set, "Webhook not configured");
 
-      const auth = request.headers.get("authorization") ?? "";
-      const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-      if (token !== secret) return forbidden(set, "Invalid token");
+    const auth = request.headers.get("authorization") ?? "";
+    const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+    if (token !== secret) return forbidden(set, "Invalid token");
 
-      let hash: string | undefined;
-      try {
-        const obj =
-          body !== null && typeof body === "object"
-            ? (body as Record<string, unknown>)
-            : JSON.parse(typeof body === "string" ? body : "{}");
-        hash = typeof obj?.hash === "string" ? obj.hash : undefined;
-      } catch {
-        return badRequest(set, "Invalid JSON");
+    let hash: string | undefined;
+    try {
+      const obj =
+        body !== null && typeof body === "object"
+          ? (body as Record<string, unknown>)
+          : JSON.parse(typeof body === "string" ? body : "{}");
+      hash = typeof obj?.hash === "string" ? obj.hash : undefined;
+    } catch {
+      return badRequest(set, "Invalid JSON");
+    }
+    if (!hash?.trim()) return badRequest(set, "Missing hash");
+
+    const normalizedHash = hash.trim().toLowerCase();
+
+    try {
+      const qb = await getQbittorrentPluginConfig();
+      if (!qb.enabled || !qb.config) {
+        return { matched: false, reason: "qBittorrent not configured" };
       }
-      if (!hash?.trim()) return badRequest(set, "Missing hash");
 
-      const normalizedHash = hash.trim().toLowerCase();
+      // Fetch torrent info from qBittorrent by hash
+      const info = await qbFetchJson<unknown[]>(
+        qb.config,
+        `/api/v2/torrents/info?hashes=${normalizedHash}`,
+      );
+      if (!Array.isArray(info) || info.length === 0) {
+        return { matched: false, reason: "Torrent not found in qBittorrent" };
+      }
 
-      try {
-        const qb = await getQbittorrentPluginConfig();
-        if (!qb.enabled || !qb.config) {
-          return { matched: false, reason: "qBittorrent not configured" };
-        }
+      const raw = info[0] as Record<string, unknown>;
+      const category = typeof raw.category === "string" ? raw.category : "";
+      const tags =
+        typeof raw.tags === "string"
+          ? raw.tags.split(",").map((t: string) => t.trim().toLowerCase())
+          : [];
 
-        // Fetch torrent info from qBittorrent by hash
-        const info = await qbFetchJson<unknown[]>(
-          qb.config,
-          `/api/v2/torrents/info?hashes=${normalizedHash}`,
+      const isHouslyMedia =
+        category === QBIT_CATEGORY_HOUSLY_MOVIES ||
+        category === QBIT_CATEGORY_HOUSLY_SHOWS ||
+        tags.includes("hously");
+
+      if (!isHouslyMedia) {
+        return { matched: false, reason: "Not a Hously media torrent" };
+      }
+
+      const expectedType =
+        category === QBIT_CATEGORY_HOUSLY_SHOWS ? "show" : "movie";
+      const torrentName = typeof raw.name === "string" ? raw.name : "";
+      if (!torrentName) {
+        return { matched: false, reason: "Torrent has no name" };
+      }
+
+      // Check if already tracked
+      const existing = await prisma.downloadHistory.findFirst({
+        where: { torrentHash: normalizedHash },
+      });
+      if (existing) {
+        return {
+          matched: true,
+          reason: "Already tracked",
+          download_history_id: existing.id,
+        };
+      }
+
+      // Title-match against library
+      const normalize = (s: string) =>
+        s
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      const normTorrent = normalize(torrentName);
+
+      const candidates = await prisma.libraryMedia.findMany({
+        where: {
+          type: expectedType,
+          status: { in: ["wanted", "downloading"] },
+        },
+        select: { id: true, title: true, qualityProfileId: true },
+      });
+
+      const match = candidates.find(
+        (m) =>
+          normalize(m.title).length >= 5 &&
+          normTorrent.includes(normalize(m.title)),
+      );
+
+      if (!match) {
+        console.log(
+          `[qbt/added] No library match for "${torrentName}" (${normalizedHash})`,
         );
-        if (!Array.isArray(info) || info.length === 0) {
-          return { matched: false, reason: "Torrent not found in qBittorrent" };
-        }
+        return { matched: false, reason: "No matching library item found" };
+      }
 
-        const raw = info[0] as Record<string, unknown>;
-        const category = typeof raw.category === "string" ? raw.category : "";
-        const tags =
-          typeof raw.tags === "string"
-            ? raw.tags.split(",").map((t: string) => t.trim().toLowerCase())
-            : [];
-
-        const isHouslyMedia =
-          category === QBIT_CATEGORY_HOUSLY_MOVIES ||
-          category === QBIT_CATEGORY_HOUSLY_SHOWS ||
-          tags.includes("hously");
-
-        if (!isHouslyMedia) {
-          return { matched: false, reason: "Not a Hously media torrent" };
-        }
-
-        const expectedType =
-          category === QBIT_CATEGORY_HOUSLY_SHOWS ? "show" : "movie";
-        const torrentName = typeof raw.name === "string" ? raw.name : "";
-        if (!torrentName) {
-          return { matched: false, reason: "Torrent has no name" };
-        }
-
-        // Check if already tracked
-        const existing = await prisma.downloadHistory.findFirst({
-          where: { torrentHash: normalizedHash },
-        });
-        if (existing) {
-          return { matched: true, reason: "Already tracked", download_history_id: existing.id };
-        }
-
-        // Title-match against library
-        const normalize = (s: string) =>
-          s.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
-        const normTorrent = normalize(torrentName);
-
-        const candidates = await prisma.libraryMedia.findMany({
-          where: { type: expectedType, status: { in: ["wanted", "downloading"] } },
-          select: { id: true, title: true, qualityProfileId: true },
-        });
-
-        const match = candidates.find(
-          (m) => normalize(m.title).length >= 5 && normTorrent.includes(normalize(m.title)),
-        );
-
-        if (!match) {
-          console.log(
-            `[qbt/added] No library match for "${torrentName}" (${normalizedHash})`,
-          );
-          return { matched: false, reason: "No matching library item found" };
-        }
-
-        const parsed = parseReleaseTitle(torrentName);
-        const dh = await prisma.downloadHistory.create({
-          data: {
-            mediaId: match.id,
-            releaseTitle: torrentName,
-            torrentHash: normalizedHash,
-            qualityParsed: {
-              resolution: parsed.resolution,
-              source: parsed.source,
-              codec: parsed.codec,
-              hdr: parsed.hdr,
-            },
+      const parsed = parseReleaseTitle(torrentName);
+      const dh = await prisma.downloadHistory.create({
+        data: {
+          mediaId: match.id,
+          releaseTitle: torrentName,
+          torrentHash: normalizedHash,
+          qualityParsed: {
+            resolution: parsed.resolution,
+            source: parsed.source,
+            codec: parsed.codec,
+            hdr: parsed.hdr,
           },
-        });
+        },
+      });
 
-        await prisma.libraryMedia.update({
-          where: { id: match.id },
+      await prisma.libraryMedia.update({
+        where: { id: match.id },
+        data: { status: "downloading" },
+      });
+
+      // For shows, mark all wanted episodes as downloading too
+      if (expectedType === "show") {
+        await prisma.libraryEpisode.updateMany({
+          where: { mediaId: match.id, status: "wanted" },
           data: { status: "downloading" },
         });
-
-        // For shows, mark all wanted episodes as downloading too
-        if (expectedType === "show") {
-          await prisma.libraryEpisode.updateMany({
-            where: { mediaId: match.id, status: "wanted" },
-            data: { status: "downloading" },
-          });
-        }
-
-        console.log(
-          `[qbt/added] Linked "${torrentName}" (${normalizedHash}) → library item ${match.id} "${match.title}"`,
-        );
-
-        return { matched: true, download_history_id: dh.id };
-      } catch (e) {
-        console.error("[qbt/added] Error:", e);
-        return serverError(set, "Failed to process torrent-added webhook");
       }
-    },
-  )
+
+      console.log(
+        `[qbt/added] Linked "${torrentName}" (${normalizedHash}) → library item ${match.id} "${match.title}"`,
+      );
+
+      return { matched: true, download_history_id: dh.id };
+    } catch (e) {
+      console.error("[qbt/added] Error:", e);
+      return serverError(set, "Failed to process torrent-added webhook");
+    }
+  })
   // Read all webhook bodies as raw text to avoid Elysia's parser failing on
   // non-standard payloads (e.g. Kopia sends application/json with plain text body)
   .onParse(({ request }) => request.text())

@@ -27,8 +27,12 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
     "/",
     async ({ user, query, set }) => {
       try {
-        const page = query.page ? Math.max(1, parseInt(query.page, 10) || 1) : null;
-        const limit = page ? Math.min(parseInt(query.limit || "50", 10) || 50, 100) : undefined;
+        const page = query.page
+          ? Math.max(1, parseInt(query.page, 10) || 1)
+          : null;
+        const limit = page
+          ? Math.min(parseInt(query.limit || "50", 10) || 50, 100)
+          : undefined;
         const where = { deletedAt: null } as const;
 
         const [items, total] = await Promise.all([
@@ -52,57 +56,66 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
             ],
             ...(page && limit ? { skip: (page - 1) * limit, take: limit } : {}),
           }),
-          page ? prisma.shoppingItem.count({ where }) : Promise.resolve(undefined),
+          page
+            ? prisma.shoppingItem.count({ where })
+            : Promise.resolve(undefined),
         ]);
 
-      // Get all users for username lookups
-      const allUsers = await prisma.user.findMany({
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-        },
-      });
+        // Get all users for username lookups
+        const allUsers = await prisma.user.findMany({
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+          },
+        });
 
-      const usersById = buildUserMap(allUsers);
+        const usersById = buildUserMap(allUsers);
 
-      // Map items to response format
-      const itemsList = items.map((item) => {
+        // Map items to response format
+        const itemsList = items.map((item) => {
+          return {
+            id: item.id,
+            position: item.position,
+            item_name: item.itemName,
+            notes: item.notes,
+            completed: item.completed,
+            added_by: item.addedBy,
+            completed_by: item.completedBy,
+            created_at: formatIso(item.createdAt),
+            completed_at: formatIso(item.completedAt),
+            added_by_username: getUserDisplayName(item.addedBy, usersById),
+            completed_by_username: getUserDisplayName(
+              item.completedBy,
+              usersById,
+            ),
+          };
+        });
+
         return {
-          id: item.id,
-          position: item.position,
-          item_name: item.itemName,
-          notes: item.notes,
-          completed: item.completed,
-          added_by: item.addedBy,
-          completed_by: item.completedBy,
-          created_at: formatIso(item.createdAt),
-          completed_at: formatIso(item.completedAt),
-          added_by_username: getUserDisplayName(item.addedBy, usersById),
-          completed_by_username: getUserDisplayName(
-            item.completedBy,
-            usersById,
-          ),
+          items: itemsList,
+          ...(page && limit && total != null
+            ? {
+                pagination: {
+                  page,
+                  limit,
+                  total,
+                  pages: Math.ceil(total / limit),
+                },
+              }
+            : {}),
         };
-      });
-
-      return {
-        items: itemsList,
-        ...(page && limit && total != null
-          ? { pagination: { page, limit, total, pages: Math.ceil(total / limit) } }
-          : {}),
-      };
-    } catch (error) {
-      console.error("Error getting shopping items:", error);
-      return serverError(set, "Failed to get shopping items");
-    }
-  },
-  {
-    query: t.Object({
-      page: t.Optional(t.String()),
-      limit: t.Optional(t.String()),
-    }),
-  },
+      } catch (error) {
+        console.error("Error getting shopping items:", error);
+        return serverError(set, "Failed to get shopping items");
+      }
+    },
+    {
+      query: t.Object({
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+      }),
+    },
   )
 
   // POST /api/shopping - Add a new shopping item

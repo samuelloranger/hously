@@ -2,7 +2,11 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl, normalizeUrl, toProfiles } from "@hously/api/utils/plugins/utils";
+import {
+  isValidHttpUrl,
+  normalizeUrl,
+  toProfiles,
+} from "@hously/api/utils/plugins/utils";
 import { normalizeSonarrConfig } from "@hously/api/utils/plugins/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { encrypt } from "@hously/api/services/crypto";

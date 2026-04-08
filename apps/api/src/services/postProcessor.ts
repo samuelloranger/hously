@@ -2,9 +2,18 @@ import { copyFile, link, mkdir, rename, stat, unlink } from "node:fs/promises";
 import { basename, dirname, extname, isAbsolute, join } from "node:path";
 
 import { prisma } from "@hously/api/db";
-import { parseFilenameMetadata, parseReleaseTitle } from "@hously/api/utils/medias/filenameParser";
-import { scanMediaInfo, remapPath } from "@hously/api/utils/medias/mediainfoScanner";
-import { findVideoFile, listVideoFilesUnder } from "@hously/api/utils/medias/fileIdentifier";
+import {
+  parseFilenameMetadata,
+  parseReleaseTitle,
+} from "@hously/api/utils/medias/filenameParser";
+import {
+  scanMediaInfo,
+  remapPath,
+} from "@hously/api/utils/medias/mediainfoScanner";
+import {
+  findVideoFile,
+  listVideoFilesUnder,
+} from "@hously/api/utils/medias/fileIdentifier";
 import {
   renderEpisodeTemplate,
   renderMovieTemplate,
@@ -35,8 +44,7 @@ function qualityStringsFromParsed(
           : null;
     const source = typeof q.source === "string" ? q.source : null;
     const codec = typeof q.codec === "string" ? q.codec : null;
-    if (resolution || source || codec)
-      return { resolution, source, codec };
+    if (resolution || source || codec) return { resolution, source, codec };
   }
   const p = parseReleaseTitle(releaseTitle);
   return {
@@ -127,7 +135,9 @@ async function markItemDownloaded(dh: {
 }
 
 /** Parse season and episode numbers from a video filename. */
-function parseSeasonEpisode(filename: string): { season: number; episode: number } | null {
+function parseSeasonEpisode(
+  filename: string,
+): { season: number; episode: number } | null {
   const m = filename.match(/S(\d{1,2})E(\d{1,3})/i);
   if (!m) return null;
   return { season: parseInt(m[1], 10), episode: parseInt(m[2], 10) };
@@ -154,29 +164,47 @@ async function postProcessSeasonPack(
     minSeedRatio: number;
   },
   op: "hardlink" | "move",
-): Promise<{ success: true; destinationPath: string } | { success: false; reason: string }> {
+): Promise<
+  | { success: true; destinationPath: string }
+  | { success: false; reason: string }
+> {
   const hash = dh.torrentHash?.trim();
   if (!hash) return { success: false, reason: "Torrent hash unknown" };
 
   const qb = await getQbittorrentPluginConfig();
-  if (!qb.enabled || !qb.config) return { success: false, reason: "qBittorrent not configured" };
+  if (!qb.enabled || !qb.config)
+    return { success: false, reason: "qBittorrent not configured" };
 
   const tRes = await fetchQbittorrentTorrent(qb.config, qb.enabled, hash);
-  if (!tRes.torrent) return { success: false, reason: tRes.error ?? "Torrent not found in qBittorrent" };
+  if (!tRes.torrent)
+    return {
+      success: false,
+      reason: tRes.error ?? "Torrent not found in qBittorrent",
+    };
 
   const tor = tRes.torrent;
   let savePathForJoin: string | null = null;
   const cpTrim = tor.content_path?.trim() ?? "";
   if (!cpTrim || !isAbsolute(cpTrim)) {
-    const pRes = await fetchQbittorrentTorrentProperties(qb.config, qb.enabled, hash);
+    const pRes = await fetchQbittorrentTorrentProperties(
+      qb.config,
+      qb.enabled,
+      hash,
+    );
     savePathForJoin = pRes.properties?.save_path ?? null;
   }
 
-  const contentBase = resolveTorrentContentPath(tor.content_path, savePathForJoin, tor.name);
-  if (!contentBase) return { success: false, reason: "Could not resolve torrent content path" };
+  const contentBase = resolveTorrentContentPath(
+    tor.content_path,
+    savePathForJoin,
+    tor.name,
+  );
+  if (!contentBase)
+    return { success: false, reason: "Could not resolve torrent content path" };
 
   const allVideos = await listVideoFilesUnder(remapPath(contentBase));
-  if (allVideos.length === 0) return { success: false, reason: "No video files found in torrent folder" };
+  if (allVideos.length === 0)
+    return { success: false, reason: "No video files found in torrent folder" };
 
   // Load all episodes for this show
   const episodes = await prisma.libraryEpisode.findMany({
@@ -195,13 +223,17 @@ async function postProcessSeasonPack(
     const fn = basename(srcVideo);
     const se = parseSeasonEpisode(fn);
     if (!se) {
-      console.warn(`[postProcess/pack] Could not parse SxxExx from "${fn}", skipping`);
+      console.warn(
+        `[postProcess/pack] Could not parse SxxExx from "${fn}", skipping`,
+      );
       continue;
     }
 
     const ep = epMap.get(`${se.season}x${se.episode}`);
     if (!ep) {
-      console.warn(`[postProcess/pack] No LibraryEpisode for S${se.season}E${se.episode} of "${dh.media.title}", skipping`);
+      console.warn(
+        `[postProcess/pack] No LibraryEpisode for S${se.season}E${se.episode} of "${dh.media.title}", skipping`,
+      );
       continue;
     }
 
@@ -235,24 +267,50 @@ async function postProcessSeasonPack(
     try {
       const fnData = parseFilenameMetadata(fn);
       const mi = await scanMediaInfo(destinationPath);
-      const existingFile = await prisma.mediaFile.findFirst({ where: { filePath: destinationPath }, select: { id: true } });
+      const existingFile = await prisma.mediaFile.findFirst({
+        where: { filePath: destinationPath },
+        select: { id: true },
+      });
       const fileData = mi
         ? {
-            mediaId: dh.media.id, episodeId: ep.id, filePath: destinationPath, fileName: basename(destinationPath),
-            sizeBytes: mi.sizeBytes, durationSecs: mi.durationSecs, releaseGroup: mi.releaseGroup,
-            videoCodec: mi.videoCodec, videoProfile: mi.videoProfile, width: mi.width, height: mi.height,
-            frameRate: mi.frameRate, bitDepth: mi.bitDepth, videoBitrate: mi.videoBitrate,
-            hdrFormat: mi.hdrFormat ?? fnData.hdrFormat, resolution: mi.resolution ?? fnData.resolution,
-            source: mi.source ?? fnData.source, audioTracks: mi.audioTracks as object[], subtitleTracks: mi.subtitleTracks as object[],
+            mediaId: dh.media.id,
+            episodeId: ep.id,
+            filePath: destinationPath,
+            fileName: basename(destinationPath),
+            sizeBytes: mi.sizeBytes,
+            durationSecs: mi.durationSecs,
+            releaseGroup: mi.releaseGroup,
+            videoCodec: mi.videoCodec,
+            videoProfile: mi.videoProfile,
+            width: mi.width,
+            height: mi.height,
+            frameRate: mi.frameRate,
+            bitDepth: mi.bitDepth,
+            videoBitrate: mi.videoBitrate,
+            hdrFormat: mi.hdrFormat ?? fnData.hdrFormat,
+            resolution: mi.resolution ?? fnData.resolution,
+            source: mi.source ?? fnData.source,
+            audioTracks: mi.audioTracks as object[],
+            subtitleTracks: mi.subtitleTracks as object[],
           }
         : {
-            mediaId: dh.media.id, episodeId: ep.id, filePath: destinationPath, fileName: basename(destinationPath),
-            sizeBytes: BigInt(0), releaseGroup: null as string | null,
-            resolution: fnData.resolution, source: fnData.source ?? q.source, hdrFormat: fnData.hdrFormat,
-            audioTracks: [] as object[], subtitleTracks: [] as object[],
+            mediaId: dh.media.id,
+            episodeId: ep.id,
+            filePath: destinationPath,
+            fileName: basename(destinationPath),
+            sizeBytes: BigInt(0),
+            releaseGroup: null as string | null,
+            resolution: fnData.resolution,
+            source: fnData.source ?? q.source,
+            hdrFormat: fnData.hdrFormat,
+            audioTracks: [] as object[],
+            subtitleTracks: [] as object[],
           };
       if (existingFile) {
-        await prisma.mediaFile.update({ where: { id: existingFile.id }, data: fileData });
+        await prisma.mediaFile.update({
+          where: { id: existingFile.id },
+          data: fileData,
+        });
       } else {
         await prisma.mediaFile.create({ data: fileData });
       }
@@ -270,25 +328,43 @@ async function postProcessSeasonPack(
   }
 
   if (processed === 0) {
-    return { success: false, reason: errors.length > 0 ? errors.join("; ") : "No episodes could be matched or placed" };
+    return {
+      success: false,
+      reason:
+        errors.length > 0
+          ? errors.join("; ")
+          : "No episodes could be matched or placed",
+    };
   }
 
   // Mark the show as downloaded and update the DH record
-  await prisma.libraryMedia.update({ where: { id: dh.media.id }, data: { status: "downloaded" } });
+  await prisma.libraryMedia.update({
+    where: { id: dh.media.id },
+    data: { status: "downloaded" },
+  });
   await prisma.downloadHistory.update({
     where: { id: downloadHistoryId },
     data: { postProcessDestinationPath: firstDest, postProcessError: null },
   });
 
-  console.log(`[postProcess/pack] Processed ${processed} episodes for "${dh.media.title}" (${errors.length} errors)`);
+  console.log(
+    `[postProcess/pack] Processed ${processed} episodes for "${dh.media.title}" (${errors.length} errors)`,
+  );
 
   // Remove torrent if seed ratio met
   const ratio = tor.ratio;
   const min = settings.minSeedRatio;
   const shouldRemove = min <= 0 || (ratio != null && ratio >= min);
   if (shouldRemove) {
-    const del = await deleteQbittorrentTorrent(qb.config, qb.enabled, { hash, delete_files: false });
-    if (!del.success) console.warn(`[postProcess/pack] Could not remove torrent ${hash}:`, del.error);
+    const del = await deleteQbittorrentTorrent(qb.config, qb.enabled, {
+      hash,
+      delete_files: false,
+    });
+    if (!del.success)
+      console.warn(
+        `[postProcess/pack] Could not remove torrent ${hash}:`,
+        del.error,
+      );
   }
 
   return { success: true, destinationPath: firstDest! };
@@ -300,7 +376,8 @@ async function postProcessSeasonPack(
 export async function postProcess(
   downloadHistoryId: number,
 ): Promise<
-  { success: true; destinationPath: string } | { success: false; reason: string }
+  | { success: true; destinationPath: string }
+  | { success: false; reason: string }
 > {
   const dh = await prisma.downloadHistory.findUnique({
     where: { id: downloadHistoryId },
@@ -321,8 +398,7 @@ export async function postProcess(
     return { success: false, reason: "Post-processing disabled" };
   }
 
-  const op =
-    settings.fileOperation === "move" ? "move" : "hardlink";
+  const op = settings.fileOperation === "move" ? "move" : "hardlink";
 
   if (dh.media.type === "movie") {
     if (!settings.moviesLibraryPath?.trim()) {
@@ -336,7 +412,14 @@ export async function postProcess(
     if (!dh.episode) {
       return postProcessSeasonPack(
         downloadHistoryId,
-        { id: dh.id, media: dh.media!, episode: null, torrentHash: dh.torrentHash, releaseTitle: dh.releaseTitle, qualityParsed: dh.qualityParsed },
+        {
+          id: dh.id,
+          media: dh.media!,
+          episode: null,
+          torrentHash: dh.torrentHash,
+          releaseTitle: dh.releaseTitle,
+          qualityParsed: dh.qualityParsed,
+        },
         settings,
         op,
       );
@@ -362,7 +445,10 @@ export async function postProcess(
         await markItemDownloaded({ media: dh.media!, episode: dh.episode });
         await prisma.downloadHistory.update({
           where: { id: downloadHistoryId },
-          data: { postProcessDestinationPath: ef.filePath, postProcessError: null },
+          data: {
+            postProcessDestinationPath: ef.filePath,
+            postProcessError: null,
+          },
         });
         return { success: true, destinationPath: ef.filePath };
       } catch {
@@ -510,7 +596,10 @@ export async function postProcess(
         };
 
     if (existingFile) {
-      await prisma.mediaFile.update({ where: { id: existingFile.id }, data: fileData });
+      await prisma.mediaFile.update({
+        where: { id: existingFile.id },
+        data: fileData,
+      });
     } else {
       await prisma.mediaFile.create({ data: fileData });
     }

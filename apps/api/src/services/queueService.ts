@@ -157,7 +157,8 @@ export function initWorkers() {
   new Worker(
     QUEUE_NAMES.LIBRARY_MIGRATE,
     async (job: Job) => {
-      const { processLibraryMigrateJob } = await import("./jobs/libraryMigrateWorker");
+      const { processLibraryMigrateJob } =
+        await import("./jobs/libraryMigrateWorker");
       return processLibraryMigrateJob(job);
     },
     { connection: redisConnection, concurrency: 1 },

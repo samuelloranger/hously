@@ -7,7 +7,10 @@ import { libraryMigrateQueue } from "@hously/api/services/queueService";
 import { createJsonSseResponse } from "@hously/api/utils/sse";
 import type { LibraryMigrateProgress } from "@hously/api/services/jobs/libraryMigrateWorker";
 import { scanMediaInfo } from "@hously/api/utils/medias/mediainfoScanner";
-import { parseFilenameMetadata, parseReleaseTitle } from "@hously/api/utils/medias/filenameParser";
+import {
+  parseFilenameMetadata,
+  parseReleaseTitle,
+} from "@hously/api/utils/medias/filenameParser";
 import {
   QBIT_CATEGORY_HOUSLY_MOVIES,
   QBIT_CATEGORY_HOUSLY_SHOWS,
@@ -60,8 +63,6 @@ const libraryMediaInclude = {
   qualityProfile: { select: { id: true, name: true } },
 } as const;
 
-
-
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const libraryRoutes = new Elysia({ prefix: "/api/library" })
@@ -109,13 +110,21 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     let controller: ReadableStreamDefaultController<Uint8Array>;
 
     const stream = new ReadableStream<Uint8Array>({
-      start(c) { controller = c; },
-      cancel() { closed = true; },
+      start(c) {
+        controller = c;
+      },
+      cancel() {
+        closed = true;
+      },
     });
 
     function send(chunk: string) {
       if (closed) return;
-      try { controller.enqueue(enc.encode(chunk)); } catch { closed = true; }
+      try {
+        controller.enqueue(enc.encode(chunk));
+      } catch {
+        closed = true;
+      }
     }
 
     function onUpdate(payload: { mediaId: number; ts: number }) {
@@ -129,7 +138,9 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       closed = true;
       libraryEventBus.off("update", onUpdate);
       clearInterval(heartbeat);
-      try { controller.close(); } catch {}
+      try {
+        controller.close();
+      } catch {}
     });
 
     send(`data: ${JSON.stringify({ connected: true, ts: Date.now() })}\n\n`);
@@ -358,31 +369,27 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
   })
 
   // POST /api/library/downloads/:dhId/retry-post-process — re-run post-processing for a completed download
-  .post(
-    "/downloads/:dhId/retry-post-process",
-    async ({ params, set }) => {
-      try {
-        const dhId = parseInt(params.dhId, 10);
-        if (isNaN(dhId)) return badRequest(set, "Invalid download history id");
+  .post("/downloads/:dhId/retry-post-process", async ({ params, set }) => {
+    try {
+      const dhId = parseInt(params.dhId, 10);
+      if (isNaN(dhId)) return badRequest(set, "Invalid download history id");
 
-        const dh = await prisma.downloadHistory.findUnique({
-          where: { id: dhId },
-          select: { id: true, completedAt: true, failed: true },
-        });
-        if (!dh) return notFound(set, "Download history not found");
-        if (dh.failed) return badRequest(set, "Download is marked as failed");
-        if (!dh.completedAt) return badRequest(set, "Download not yet completed");
+      const dh = await prisma.downloadHistory.findUnique({
+        where: { id: dhId },
+        select: { id: true, completedAt: true, failed: true },
+      });
+      if (!dh) return notFound(set, "Download history not found");
+      if (dh.failed) return badRequest(set, "Download is marked as failed");
+      if (!dh.completedAt) return badRequest(set, "Download not yet completed");
 
-        const { enqueueLibraryPostProcess } = await import(
-          "@hously/api/services/postProcessor"
-        );
-        enqueueLibraryPostProcess(dhId);
-        return { queued: true, download_history_id: dhId };
-      } catch {
-        return serverError(set, "Failed to queue post-processing");
-      }
-    },
-  )
+      const { enqueueLibraryPostProcess } =
+        await import("@hously/api/services/postProcessor");
+      enqueueLibraryPostProcess(dhId);
+      return { queued: true, download_history_id: dhId };
+    } catch {
+      return serverError(set, "Failed to queue post-processing");
+    }
+  })
 
   // POST /api/library/:id/refresh-status — sync status from qBittorrent + disk
   // - If a MediaFile exists on disk → status = "downloaded"
@@ -417,7 +424,10 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
               data: { status: "downloaded" },
             });
           }
-          const updated = await prisma.libraryMedia.findUnique({ where: { id }, include: libraryMediaInclude });
+          const updated = await prisma.libraryMedia.findUnique({
+            where: { id },
+            include: libraryMediaInclude,
+          });
           return { item: mapLibraryMedia(updated!), detail: "file_on_disk" };
         } catch {
           // file missing — continue
@@ -425,9 +435,8 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       }
 
       // 2. Check completed DH entries that missed post-processing → re-queue
-      const { enqueueLibraryPostProcess } = await import(
-        "@hously/api/services/postProcessor"
-      );
+      const { enqueueLibraryPostProcess } =
+        await import("@hously/api/services/postProcessor");
       for (const dh of media.downloadHistories) {
         if (
           dh.completedAt &&
@@ -435,18 +444,22 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           !dh.postProcessError
         ) {
           enqueueLibraryPostProcess(dh.id);
-          const updated = await prisma.libraryMedia.findUnique({ where: { id }, include: libraryMediaInclude });
-          return { item: mapLibraryMedia(updated!), detail: "post_process_requeued" };
+          const updated = await prisma.libraryMedia.findUnique({
+            where: { id },
+            include: libraryMediaInclude,
+          });
+          return {
+            item: mapLibraryMedia(updated!),
+            detail: "post_process_requeued",
+          };
         }
       }
 
       // 3. Check qBittorrent for pending torrents
-      const { getQbittorrentPluginConfig } = await import(
-        "@hously/api/services/qbittorrent/config"
-      );
-      const { fetchMaindata } = await import(
-        "@hously/api/services/qbittorrent/client"
-      );
+      const { getQbittorrentPluginConfig } =
+        await import("@hously/api/services/qbittorrent/config");
+      const { fetchMaindata } =
+        await import("@hously/api/services/qbittorrent/client");
       const {
         completeDownloadByHash,
         revertLibraryDownloadingIfNoOtherActiveGrabs,
@@ -457,7 +470,9 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
       const qb = await getQbittorrentPluginConfig();
       if (qb.enabled && qb.config) {
-        const pendingDhs = media.downloadHistories.filter((dh) => !dh.completedAt);
+        const pendingDhs = media.downloadHistories.filter(
+          (dh) => !dh.completedAt,
+        );
         if (pendingDhs.length > 0) {
           try {
             const { torrents } = await fetchMaindata(qb.config);
@@ -472,14 +487,18 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
               const state = typeof raw.state === "string" ? raw.state : "";
               const progress =
-                typeof raw.progress === "number" && Number.isFinite(raw.progress)
+                typeof raw.progress === "number" &&
+                Number.isFinite(raw.progress)
                   ? raw.progress
                   : 0;
 
               if (isFailedState(state)) {
                 await prisma.downloadHistory.update({
                   where: { id: dh.id },
-                  data: { failed: true, failReason: `qBittorrent state: ${state}` },
+                  data: {
+                    failed: true,
+                    failReason: `qBittorrent state: ${state}`,
+                  },
                 });
                 await revertLibraryDownloadingIfNoOtherActiveGrabs(dh);
                 continue;
@@ -495,8 +514,14 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
                   completedId = dh.id;
                 }
                 if (completedId != null) enqueueLibraryPostProcess(completedId);
-                const updated = await prisma.libraryMedia.findUnique({ where: { id }, include: libraryMediaInclude });
-                return { item: mapLibraryMedia(updated!), detail: "post_process_queued" };
+                const updated = await prisma.libraryMedia.findUnique({
+                  where: { id },
+                  include: libraryMediaInclude,
+                });
+                return {
+                  item: mapLibraryMedia(updated!),
+                  detail: "post_process_queued",
+                };
               } else {
                 hasActiveDownload = true;
               }
@@ -504,10 +529,19 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
             if (hasActiveDownload) {
               if (media.status !== "downloading") {
-                await prisma.libraryMedia.update({ where: { id }, data: { status: "downloading" } });
+                await prisma.libraryMedia.update({
+                  where: { id },
+                  data: { status: "downloading" },
+                });
               }
-              const updated = await prisma.libraryMedia.findUnique({ where: { id }, include: libraryMediaInclude });
-              return { item: mapLibraryMedia(updated!), detail: "still_downloading" };
+              const updated = await prisma.libraryMedia.findUnique({
+                where: { id },
+                include: libraryMediaInclude,
+              });
+              return {
+                item: mapLibraryMedia(updated!),
+                detail: "still_downloading",
+              };
             }
           } catch (e) {
             console.warn("[refreshStatus] qBittorrent check failed:", e);
@@ -532,20 +566,26 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
               : QBIT_CATEGORY_HOUSLY_MOVIES;
 
           const normalize = (s: string) =>
-            s.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
+            s
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, " ")
+              .replace(/\s+/g, " ")
+              .trim();
           const normTitle = normalize(media.title);
 
           for (const [hash, raw] of torrents) {
             if (knownHashes.has(hash.toLowerCase())) continue;
 
             // Only consider torrents in the Hously category or tagged "hously"
-            const torrentCategory = typeof raw.category === "string" ? raw.category : "";
+            const torrentCategory =
+              typeof raw.category === "string" ? raw.category : "";
             const torrentTags =
               typeof raw.tags === "string"
                 ? raw.tags.split(",").map((t) => t.trim().toLowerCase())
                 : [];
             const isHouslyOwned =
-              torrentCategory === expectedCategory || torrentTags.includes("hously");
+              torrentCategory === expectedCategory ||
+              torrentTags.includes("hously");
             if (!isHouslyOwned) continue;
 
             const torrentName = typeof raw.name === "string" ? raw.name : "";
@@ -575,7 +615,9 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
                 torrentHash: hash.toLowerCase(),
                 qualityParsed,
                 completedAt:
-                  isCompletedDownloadState(state) || progress >= 1 ? new Date() : null,
+                  isCompletedDownloadState(state) || progress >= 1
+                    ? new Date()
+                    : null,
               },
             });
 
@@ -585,12 +627,27 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
             if (isCompletedDownloadState(state) || progress >= 1) {
               enqueueLibraryPostProcess(dh.id);
-              const updated = await prisma.libraryMedia.findUnique({ where: { id }, include: libraryMediaInclude });
-              return { item: mapLibraryMedia(updated!), detail: "linked_and_post_process_queued" };
+              const updated = await prisma.libraryMedia.findUnique({
+                where: { id },
+                include: libraryMediaInclude,
+              });
+              return {
+                item: mapLibraryMedia(updated!),
+                detail: "linked_and_post_process_queued",
+              };
             } else {
-              await prisma.libraryMedia.update({ where: { id }, data: { status: "downloading" } });
-              const updated = await prisma.libraryMedia.findUnique({ where: { id }, include: libraryMediaInclude });
-              return { item: mapLibraryMedia(updated!), detail: "linked_downloading" };
+              await prisma.libraryMedia.update({
+                where: { id },
+                data: { status: "downloading" },
+              });
+              const updated = await prisma.libraryMedia.findUnique({
+                where: { id },
+                include: libraryMediaInclude,
+              });
+              return {
+                item: mapLibraryMedia(updated!),
+                detail: "linked_downloading",
+              };
             }
           }
         } catch (e) {
@@ -605,7 +662,10 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           data: { status: "wanted", searchAttempts: 0 },
         });
       }
-      const updated = await prisma.libraryMedia.findUnique({ where: { id }, include: libraryMediaInclude });
+      const updated = await prisma.libraryMedia.findUnique({
+        where: { id },
+        include: libraryMediaInclude,
+      });
       return { item: mapLibraryMedia(updated!), detail: "reverted_to_wanted" };
     } catch {
       return serverError(set, "Failed to refresh status");
@@ -622,7 +682,11 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         if (!media) return notFound(set, "Library item not found");
         // For shows, episode-level status governs grabs — don't gate on media status
         if (media.type === "movie") {
-          if (media.status === "downloading" || media.status === "downloaded" || media.status === "skipped") {
+          if (
+            media.status === "downloading" ||
+            media.status === "downloaded" ||
+            media.status === "skipped"
+          ) {
             return badRequest(
               set,
               "This item cannot be grabbed in its current state",
@@ -699,7 +763,11 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         if (media.type !== "movie") {
           return badRequest(set, "Search is only available for movies");
         }
-        if (media.status === "downloading" || media.status === "downloaded" || media.status === "skipped") {
+        if (
+          media.status === "downloading" ||
+          media.status === "downloaded" ||
+          media.status === "skipped"
+        ) {
           return badRequest(
             set,
             "This item cannot be grabbed in its current state",
@@ -776,7 +844,11 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         });
         if (!ep) return notFound(set, "Episode not found");
 
-        if (ep.status === "downloading" || ep.status === "downloaded" || ep.status === "skipped") {
+        if (
+          ep.status === "downloading" ||
+          ep.status === "downloaded" ||
+          ep.status === "skipped"
+        ) {
           return badRequest(
             set,
             "This episode cannot be grabbed in its current state",
@@ -850,7 +922,8 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
       // Sort: episodes by season → episode number; non-episode files by filename
       files.sort((a, b) => {
-        const ae = a.episode, be = b.episode;
+        const ae = a.episode,
+          be = b.episode;
         if (ae && be) {
           if (ae.season !== be.season) return ae.season - be.season;
           return ae.episode - be.episode;
@@ -964,7 +1037,8 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     async ({ body, user, set }) => {
       if (!user?.is_admin) return badRequest(set, "Admin access required");
 
-      const { source, radarr_url, radarr_api_key, sonarr_url, sonarr_api_key } = body;
+      const { source, radarr_url, radarr_api_key, sonarr_url, sonarr_api_key } =
+        body;
 
       // Prevent duplicate jobs: reject if one is already active or waiting
       const [active, waiting] = await Promise.all([
@@ -1031,12 +1105,24 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           active[0] ?? waiting[0] ?? completed[0] ?? failed[0] ?? null;
 
         if (!job) {
-          return { state: "unknown", job_id: null, progress: null, result: null, error: null, started_at: null, finished_at: null };
+          return {
+            state: "unknown",
+            job_id: null,
+            progress: null,
+            result: null,
+            error: null,
+            started_at: null,
+            finished_at: null,
+          };
         }
 
         const state = await job.getState();
-        const progress = (job.progress as LibraryMigrateProgress | null | number) ?? null;
-        const typedProgress = typeof progress === "object" && progress !== null ? progress as LibraryMigrateProgress : null;
+        const progress =
+          (job.progress as LibraryMigrateProgress | null | number) ?? null;
+        const typedProgress =
+          typeof progress === "object" && progress !== null
+            ? (progress as LibraryMigrateProgress)
+            : null;
 
         return {
           job_id: job.id ?? null,
@@ -1044,8 +1130,12 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           progress: typedProgress,
           result: state === "completed" ? (job.returnvalue ?? null) : null,
           error: state === "failed" ? (job.failedReason ?? null) : null,
-          started_at: job.processedOn ? new Date(job.processedOn).toISOString() : null,
-          finished_at: job.finishedOn ? new Date(job.finishedOn).toISOString() : null,
+          started_at: job.processedOn
+            ? new Date(job.processedOn).toISOString()
+            : null,
+          finished_at: job.finishedOn
+            ? new Date(job.finishedOn).toISOString()
+            : null,
         };
       },
     });

@@ -11,7 +11,9 @@ export async function checkMovieReleases(): Promise<void> {
       status: "wanted",
       // Never retry if a file or a completed download already exists
       files: { none: {} },
-      downloadHistories: { none: { completedAt: { not: null }, failed: false } },
+      downloadHistories: {
+        none: { completedAt: { not: null }, failed: false },
+      },
     },
     select: {
       id: true,

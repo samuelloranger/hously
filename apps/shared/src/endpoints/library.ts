@@ -5,8 +5,7 @@ export const LIBRARY_ENDPOINTS = {
   SCAN: "/api/library/scan",
   REMOVE: (id: number) => `/api/library/${id}`,
   UPDATE_STATUS: (id: number) => `/api/library/${id}/status`,
-  UPDATE_QUALITY_PROFILE: (id: number) =>
-    `/api/library/${id}/quality-profile`,
+  UPDATE_QUALITY_PROFILE: (id: number) => `/api/library/${id}/quality-profile`,
   EPISODES: (id: number) => `/api/library/${id}/episodes`,
   DOWNLOADS: (id: number) => `/api/library/${id}/downloads`,
   SEARCH: (id: number) => `/api/library/${id}/search`,

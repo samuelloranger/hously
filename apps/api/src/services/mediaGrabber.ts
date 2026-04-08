@@ -122,7 +122,10 @@ function infoHashFromTorrentBuffer(buf: ArrayBuffer): string | null {
       // String: <digits>:<bytes>
       let colon = pos;
       while (bytes[colon] !== 0x3a /* : */) colon++;
-      const len = parseInt(new TextDecoder().decode(bytes.slice(pos, colon)), 10);
+      const len = parseInt(
+        new TextDecoder().decode(bytes.slice(pos, colon)),
+        10,
+      );
       return colon + 1 + len;
     }
 
@@ -134,7 +137,9 @@ function infoHashFromTorrentBuffer(buf: ArrayBuffer): string | null {
       }
       const infoStart = i + marker.length;
       const infoEnd = skipValue(infoStart);
-      return createHash("sha1").update(bytes.slice(infoStart, infoEnd)).digest("hex");
+      return createHash("sha1")
+        .update(bytes.slice(infoStart, infoEnd))
+        .digest("hex");
     }
     return null;
   } catch {
@@ -173,7 +178,8 @@ export async function grabRelease(opts: {
     const downloadUrl = rawUrl.trim();
     const releaseTitle = rawTitle.trim();
     if (!downloadUrl) return { grabbed: false, reason: "Missing download URL" };
-    if (!releaseTitle) return { grabbed: false, reason: "Missing release title" };
+    if (!releaseTitle)
+      return { grabbed: false, reason: "Missing release title" };
 
     const media = await prisma.libraryMedia.findUnique({
       where: { id: mediaId },
@@ -353,8 +359,7 @@ export async function grabRelease(opts: {
     }
     return {
       grabbed: false,
-      reason:
-        e instanceof Error ? e.message : "Unexpected error during grab",
+      reason: e instanceof Error ? e.message : "Unexpected error during grab",
     };
   }
 }
@@ -392,7 +397,10 @@ export async function searchAndGrab(opts: {
       signal: AbortSignal.timeout(60_000),
     });
     if (!res.ok) {
-      return { grabbed: false, reason: `Prowlarr search failed (${res.status})` };
+      return {
+        grabbed: false,
+        reason: `Prowlarr search failed (${res.status})`,
+      };
     }
 
     let rawList: unknown[];

@@ -1,8 +1,39 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { DASHBOARD_ENDPOINTS, PLUGIN_ENDPOINTS } from "@hously/shared/endpoints";
-import type { AdguardPlugin, AdguardProtectionUpdateResponse, AdguardPluginUpdateResponse, DashboardTrackerStatsResponse, DashboardTrackersStatsResponse, JellyfinPlugin, JellyfinPluginUpdateResponse, BeszelPlugin, BeszelPluginUpdateResponse, ProwlarrPlugin, ProwlarrPluginUpdateResponse, QbittorrentPlugin, QbittorrentPluginUpdateResponse, ScrutinyPlugin, ScrutinyPluginUpdateResponse, TmdbPlugin, TmdbPluginUpdateResponse, OllamaPlugin, OllamaPluginUpdateResponse, TrackerPlugin, TrackerPluginUpdateResponse, TrackerType, WeatherPlugin, WeatherPluginUpdateResponse, HomeAssistantPlugin, HomeAssistantPluginUpdateResponse, HomeAssistantDiscoverResponse } from "@hously/shared/types";
+import {
+  DASHBOARD_ENDPOINTS,
+  PLUGIN_ENDPOINTS,
+} from "@hously/shared/endpoints";
+import type {
+  AdguardPlugin,
+  AdguardProtectionUpdateResponse,
+  AdguardPluginUpdateResponse,
+  DashboardTrackerStatsResponse,
+  DashboardTrackersStatsResponse,
+  JellyfinPlugin,
+  JellyfinPluginUpdateResponse,
+  BeszelPlugin,
+  BeszelPluginUpdateResponse,
+  ProwlarrPlugin,
+  ProwlarrPluginUpdateResponse,
+  QbittorrentPlugin,
+  QbittorrentPluginUpdateResponse,
+  ScrutinyPlugin,
+  ScrutinyPluginUpdateResponse,
+  TmdbPlugin,
+  TmdbPluginUpdateResponse,
+  OllamaPlugin,
+  OllamaPluginUpdateResponse,
+  TrackerPlugin,
+  TrackerPluginUpdateResponse,
+  TrackerType,
+  WeatherPlugin,
+  WeatherPluginUpdateResponse,
+  HomeAssistantPlugin,
+  HomeAssistantPluginUpdateResponse,
+  HomeAssistantDiscoverResponse,
+} from "@hously/shared/types";
 const TRACKER_PLUGIN_ENDPOINTS: Record<TrackerType, string> = {
   c411: PLUGIN_ENDPOINTS.C411,
   torr9: PLUGIN_ENDPOINTS.TORR9,
@@ -445,4 +476,3 @@ export const useDashboardTorr9Stats = (options?: { enabled?: boolean }) =>
   useDashboardTrackerStats("torr9", options);
 export const useDashboardLaCaleStats = (options?: { enabled?: boolean }) =>
   useDashboardTrackerStats("la-cale", options);
-

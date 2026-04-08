@@ -5,8 +5,7 @@ describe("parseReleaseTitle", () => {
   const cases: { title: string; exp: ReturnType<typeof parseReleaseTitle> }[] =
     [
       {
-        title:
-          "Movie.Title.2024.1080p.BluRay.x265.HDR10.DTS-HD-GROUP",
+        title: "Movie.Title.2024.1080p.BluRay.x265.HDR10.DTS-HD-GROUP",
         exp: {
           resolution: 1080,
           source: "BluRay",
