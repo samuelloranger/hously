@@ -286,10 +286,7 @@ export function InteractiveSearchPanel({
   };
 
   return (
-    <div
-      className="flex flex-col overflow-hidden"
-      style={{ maxHeight: "calc(90dvh - 12rem)" }}
-    >
+    <div className="flex flex-col">
       <div className="border-b border-neutral-200 pb-4 dark:border-neutral-700">
         <div className="flex flex-col gap-3">
           {/* Season pack search — shows only */}
@@ -572,7 +569,7 @@ export function InteractiveSearchPanel({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pt-4">
+      <div className="pt-4">
         {needsProwlarrQuery ? (
           <div className="flex h-full items-center justify-center py-8">
             <div className="max-w-md text-center text-sm text-neutral-500 dark:text-neutral-400">
