@@ -48,6 +48,7 @@ export async function createAndQueueNotification(
   notificationType: string,
   url?: string,
   metadata?: NotificationMetadata,
+  imageUrl?: string,
 ): Promise<boolean> {
   try {
     const normalizedUrl = normalizeNotificationUrl(url);
@@ -84,6 +85,7 @@ export async function createAndQueueNotification(
         body,
         notificationType,
         url: normalizedUrl || undefined,
+        imageUrl,
         metadata,
       },
     );

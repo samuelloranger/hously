@@ -10,6 +10,8 @@ interface ApnPushPayload {
   channelId?: string;
   badge?: number;
   contentAvailable?: boolean;
+  /** If set, enables mutable-content so the app's Notification Service Extension can attach the image */
+  imageUrl?: string;
 }
 
 /**
@@ -102,6 +104,7 @@ export async function sendApnNotifications(
       badge: payload.badge,
       "thread-id": payload.channelId,
       "content-available": payload.contentAvailable ? 1 : undefined,
+      "mutable-content": payload.imageUrl ? 1 : undefined,
     };
 
     if (payload.title || payload.body) {
@@ -119,6 +122,7 @@ export async function sendApnNotifications(
     const apnsPayload = {
       aps,
       ...payload.data,
+      ...(payload.imageUrl ? { image_url: payload.imageUrl } : {}),
     };
 
     const payloadPath = join("/tmp", `apns_${Date.now()}.json`);

@@ -6,7 +6,7 @@ export async function notifyAdminsMediaDownloaded(
 ): Promise<void> {
   const media = await prisma.libraryMedia.findUnique({
     where: { id: mediaId },
-    select: { title: true, year: true, type: true },
+    select: { title: true, year: true, type: true, posterUrl: true },
   });
   if (!media) return;
 
@@ -22,6 +22,8 @@ export async function notifyAdminsMediaDownloaded(
     select: { id: true },
   });
 
+  const imageUrl = media.posterUrl ?? undefined;
+
   for (const u of admins) {
     try {
       await createAndQueueNotification(
@@ -30,6 +32,8 @@ export async function notifyAdminsMediaDownloaded(
         body,
         "library_media_downloaded",
         "/library",
+        undefined,
+        imageUrl,
       );
     } catch (e) {
       console.warn(`[notifyAdminsMediaDownloaded] Failed for user ${u.id}:`, e);
