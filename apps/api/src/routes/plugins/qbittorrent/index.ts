@@ -6,12 +6,40 @@ import { nowUtc } from "@hously/api/utils";
 import {
   normalizeQbittorrentConfig,
   invalidateQbittorrentPluginConfigCache,
+  getQbittorrentPluginConfig,
 } from "@hously/api/services/qbittorrent/config";
 import { clampInteger, isValidHttpUrl, normalizeUrl } from "@hously/api/utils/plugins/utils";
 import { encrypt } from "@hously/api/services/crypto";
+import { randomBytes } from "node:crypto";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { requireAdmin } from "@hously/api/middleware/auth";
 import { badRequest, serverError } from "@hously/api/errors";
+import { getBaseUrl, loadConfig } from "@hously/api/config";
+import { qbFetchText } from "@hously/api/services/qbittorrent/client";
+import { lookup as dnsLookup } from "node:dns/promises";
+
+/**
+ * Resolve the URL qBittorrent should use to reach Hously internally.
+ *
+ * Priority:
+ *   1. Explicit override from the request body
+ *   2. Docker service DNS — probe "hously" on the configured API port.
+ *      Inside Docker, the service name is always resolvable from the same
+ *      homelab_network, so this works for qBittorrent (via vpn-stack) without
+ *      any env-var configuration.
+ *   3. BASE_URL fallback (public URL — last resort)
+ */
+async function resolveHouslyInternalUrl(override?: string): Promise<string> {
+  if (override) return override.replace(/\/$/, "");
+
+  const port = loadConfig().API_PORT;
+  try {
+    await dnsLookup("hously");
+    return `http://hously:${port}`;
+  } catch {
+    return getBaseUrl().replace(/\/$/, "");
+  }
+}
 
 export const qbittorrentPluginRoutes = new Elysia()
   .use(auth)
@@ -32,6 +60,8 @@ export const qbittorrentPluginRoutes = new Elysia()
           password_set: Boolean(config?.password),
           poll_interval_seconds: config?.poll_interval_seconds || 1,
           max_items: config?.max_items || 8,
+          hously_base_url: getBaseUrl(),
+          webhook_secret_configured: Boolean(config?.webhook_secret),
         },
       };
     } catch (error) {
@@ -77,6 +107,10 @@ export const qbittorrentPluginRoutes = new Elysia()
           return badRequest(set, "password is required");
         }
 
+        // Auto-generate a webhook secret on first save; preserve it on subsequent saves.
+        const webhookSecret =
+          existingConfig?.webhook_secret || randomBytes(16).toString("hex");
+
         const now = nowUtc();
         const enabled = body.enabled ?? existingPlugin?.enabled ?? true;
         const config: Prisma.InputJsonValue = {
@@ -85,6 +119,7 @@ export const qbittorrentPluginRoutes = new Elysia()
           password: encrypt(password),
           poll_interval_seconds: pollIntervalSeconds,
           max_items: maxItems,
+          webhook_secret: encrypt(webhookSecret),
         };
 
         const plugin = await prisma.plugin.upsert({
@@ -136,6 +171,55 @@ export const qbittorrentPluginRoutes = new Elysia()
         poll_interval_seconds: t.Optional(t.Numeric()),
         max_items: t.Optional(t.Numeric()),
         enabled: t.Optional(t.Boolean()),
+      }),
+    },
+  )
+  .post(
+    "/qbittorrent/autorun-setup",
+    async ({ body, set }) => {
+      const qb = await getQbittorrentPluginConfig();
+      if (!qb.enabled || !qb.config) {
+        return badRequest(set, "qBittorrent plugin is not configured or disabled.");
+      }
+
+      const secret = qb.config.webhook_secret;
+      if (!secret) {
+        return badRequest(set, "Webhook secret not generated yet. Save the plugin settings first.");
+      }
+
+      const houslyUrl = await resolveHouslyInternalUrl(body.hously_url?.trim());
+
+      // Build the autorun commands. qBittorrent substitutes %I (info hash) before
+      // spawning via QProcess::splitCommand, which only understands double-quote
+      // grouping (NOT single quotes). We call curl directly — no shell needed —
+      // and pass the hash as a URL query parameter to avoid any JSON quoting.
+      const makeCmd = (endpoint: string) =>
+        `/usr/bin/curl -s -X POST "${houslyUrl}${endpoint}?hash=%I" -H "Authorization: Bearer ${secret}"`;
+
+      const prefs = {
+        autorun_enabled: true,
+        autorun_program: makeCmd("/api/webhooks/qbittorrent/completed"),
+        // autorun_on_torrent_added_* requires qBittorrent ≥ 4.5.0
+        autorun_on_torrent_added_enabled: true,
+        autorun_on_torrent_added_program: makeCmd("/api/webhooks/qbittorrent/added"),
+      };
+
+      try {
+        const formBody = new URLSearchParams({ json: JSON.stringify(prefs) });
+        await qbFetchText(qb.config, "/api/v2/app/setPreferences", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formBody.toString(),
+        });
+        return { success: true, hously_url: houslyUrl };
+      } catch (error) {
+        console.error("Error configuring qBittorrent autorun:", error);
+        return serverError(set, "Failed to update qBittorrent preferences. Check that qBittorrent is reachable.");
+      }
+    },
+    {
+      body: t.Object({
+        hously_url: t.Optional(t.String()),
       }),
     },
   );

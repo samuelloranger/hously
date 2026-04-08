@@ -1041,11 +1041,19 @@ export const addQbittorrentMagnet = async (
     );
 
   try {
-    await qbFetchText(config, "/api/v2/torrents/add", {
+    const responseText = await qbFetchText(config, "/api/v2/torrents/add", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: body.toString(),
     });
+    if (!/^ok\.?$/i.test(responseText.trim())) {
+      return {
+        enabled: true,
+        connected: true,
+        success: false,
+        error: `qBittorrent rejected magnet: ${responseText.trim()}`,
+      };
+    }
     return { enabled: true, connected: true, success: true };
   } catch (error) {
     return {
@@ -1099,10 +1107,21 @@ export const addQbittorrentTorrentFile = async (
     console.log(
       `${logPrefix} sending torrent name="${payload.torrent.name}" size=${payload.torrent.size} category=${payload.category ?? "none"} tags=${payload.tags?.join(",") || "none"}`,
     );
-    await qbFetchText(config, "/api/v2/torrents/add", {
+    const responseText = await qbFetchText(config, "/api/v2/torrents/add", {
       method: "POST",
       body: formData,
     });
+    if (!/^ok\.?$/i.test(responseText.trim())) {
+      console.error(
+        `${logPrefix} qBittorrent rejected torrent name="${payload.torrent.name}" response="${responseText.trim()}"`,
+      );
+      return {
+        enabled: true,
+        connected: true,
+        success: false,
+        error: `qBittorrent rejected torrent: ${responseText.trim()}`,
+      };
+    }
     console.log(
       `${logPrefix} qBittorrent accepted torrent name="${payload.torrent.name}"`,
     );

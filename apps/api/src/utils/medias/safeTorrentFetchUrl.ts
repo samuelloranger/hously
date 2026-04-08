@@ -29,9 +29,17 @@ export function isHttpUrlSafeForServerTorrentFetch(urlString: string): boolean {
   return true;
 }
 
+export class MagnetRedirectError extends Error {
+  constructor(public readonly magnetUrl: string) {
+    super("Redirect to magnet link");
+    this.name = "MagnetRedirectError";
+  }
+}
+
 /**
  * Follow redirects manually so each hop is checked against {@link isHttpUrlSafeForServerTorrentFetch}
  * (mitigates open redirects pointing at loopback/metadata).
+ * Throws {@link MagnetRedirectError} if a redirect target is a magnet link.
  */
 export async function fetchHttpWithSafeRedirects(
   initialUrl: string,
@@ -49,7 +57,11 @@ export async function fetchHttpWithSafeRedirects(
     if (res.status >= 300 && res.status < 400) {
       const loc = res.headers.get("location");
       if (!loc?.trim()) throw new Error("Redirect without Location");
-      url = new URL(loc.trim(), url).href;
+      const next = new URL(loc.trim(), url).href;
+      if (next.startsWith("magnet:")) {
+        throw new MagnetRedirectError(next);
+      }
+      url = next;
       continue;
     }
     return res;

@@ -18,6 +18,7 @@ import {
   fetchQbittorrentTorrentProperties,
 } from "@hously/api/services/qbittorrent/torrents";
 import { notifyAdminsPostProcessFailed } from "@hously/api/workers/notifyPostProcessFailed";
+import { notifyAdminsMediaDownloaded } from "@hously/api/workers/notifyMediaDownloaded";
 import { emitLibraryUpdate } from "@hously/api/services/libraryEvents";
 
 function qualityStringsFromParsed(
@@ -580,7 +581,10 @@ export function enqueueLibraryPostProcess(downloadHistoryId: number): void {
           postProcessError: null,
         },
       });
-      if (dh?.mediaId != null) emitLibraryUpdate(dh.mediaId);
+      if (dh?.mediaId != null) {
+        emitLibraryUpdate(dh.mediaId);
+        await notifyAdminsMediaDownloaded(dh.mediaId);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.warn(

@@ -36,6 +36,7 @@ import {
 import {
   fetchHttpWithSafeRedirects,
   isHttpUrlSafeForServerTorrentFetch,
+  MagnetRedirectError,
 } from "@hously/api/utils/medias/safeTorrentFetchUrl";
 
 function profileToScoreInput(p: QualityProfile): QualityProfileScoreInput {
@@ -231,7 +232,10 @@ export async function grabRelease(opts: {
         return { grabbed: false, reason: add.error ?? "Failed to add magnet" };
       }
     } else {
-      let file: File;
+      // Try to fetch the .torrent file. Some indexers redirect to a magnet instead.
+      let fetchedFile: File | null = null;
+      let magnetFallback: string | null = null;
+
       try {
         const headers: Record<string, string> = {
           ...(await prowlarrHeadersForTorrentUrl(downloadUrl)),
@@ -255,32 +259,52 @@ export async function grabRelease(opts: {
           throw new Error("Torrent file too large");
         }
         torrentHash = infoHashFromTorrentBuffer(buf);
-        file = new File([buf], "release.torrent", {
+        fetchedFile = new File([buf], "release.torrent", {
           type: "application/x-bittorrent",
         });
       } catch (e) {
-        await prisma.downloadHistory.update({
-          where: { id: dhRow.id },
-          data: {
-            failed: true,
-            failReason:
-              e instanceof Error ? e.message : "Torrent download failed",
-          },
-        });
-        return { grabbed: false, reason: "Could not download .torrent file" };
+        if (e instanceof MagnetRedirectError) {
+          magnetFallback = e.magnetUrl;
+        } else {
+          await prisma.downloadHistory.update({
+            where: { id: dhRow.id },
+            data: {
+              failed: true,
+              failReason:
+                e instanceof Error ? e.message : "Torrent download failed",
+            },
+          });
+          return { grabbed: false, reason: "Could not download .torrent file" };
+        }
       }
 
-      const add = await addQbittorrentTorrentFile(qb.config, qb.enabled, {
-        torrent: file,
-        category,
-        tags: ["hously"],
-      });
-      if (!add.success) {
-        await prisma.downloadHistory.update({
-          where: { id: dhRow.id },
-          data: { failed: true, failReason: add.error ?? "Torrent add failed" },
+      if (magnetFallback) {
+        torrentHash = infoHashFromMagnet(magnetFallback);
+        const add = await addQbittorrentMagnet(qb.config, qb.enabled, {
+          magnet: magnetFallback,
+          category,
+          tags: ["hously"],
         });
-        return { grabbed: false, reason: add.error ?? "Failed to add torrent" };
+        if (!add.success) {
+          await prisma.downloadHistory.update({
+            where: { id: dhRow.id },
+            data: { failed: true, failReason: add.error ?? "Magnet add failed" },
+          });
+          return { grabbed: false, reason: add.error ?? "Failed to add magnet" };
+        }
+      } else if (fetchedFile) {
+        const add = await addQbittorrentTorrentFile(qb.config, qb.enabled, {
+          torrent: fetchedFile,
+          category,
+          tags: ["hously"],
+        });
+        if (!add.success) {
+          await prisma.downloadHistory.update({
+            where: { id: dhRow.id },
+            data: { failed: true, failReason: add.error ?? "Torrent add failed" },
+          });
+          return { grabbed: false, reason: add.error ?? "Failed to add torrent" };
+        }
       }
     }
 

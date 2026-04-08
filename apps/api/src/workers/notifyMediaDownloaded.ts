@@ -1,0 +1,38 @@
+import { prisma } from "@hously/api/db";
+import { createAndQueueNotification } from "@hously/api/workers/notificationService";
+
+export async function notifyAdminsMediaDownloaded(
+  mediaId: number,
+): Promise<void> {
+  const media = await prisma.libraryMedia.findUnique({
+    where: { id: mediaId },
+    select: { title: true, year: true, type: true },
+  });
+  if (!media) return;
+
+  const label = media.year ? `${media.title} (${media.year})` : media.title;
+  const title =
+    media.type === "show"
+      ? "Show episode downloaded"
+      : "Movie downloaded";
+  const body = `${label} is ready to watch.`;
+
+  const admins = await prisma.user.findMany({
+    where: { isAdmin: true },
+    select: { id: true },
+  });
+
+  for (const u of admins) {
+    try {
+      await createAndQueueNotification(
+        u.id,
+        title,
+        body,
+        "library_media_downloaded",
+        "/library",
+      );
+    } catch (e) {
+      console.warn(`[notifyAdminsMediaDownloaded] Failed for user ${u.id}:`, e);
+    }
+  }
+}
