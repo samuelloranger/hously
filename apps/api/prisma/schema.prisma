@@ -588,3 +588,146 @@ model WatchlistItem {
   @@index([userId, addedAt], map: "ix_watchlist_user_added_at")
   @@map("watchlist_items")
 }
+
+model QualityProfile {
+  id                 Int      @id @default(autoincrement())
+  name               String   @unique
+  minResolution      Int      @default(1080) @map("min_resolution") // 480 | 720 | 1080 | 2160
+  preferredSources    String[] @map("preferred_sources")
+  preferredCodecs     String[] @map("preferred_codecs")
+  preferredLanguages  String[] @default([]) @map("preferred_languages")
+  maxSizeGb           Float?   @map("max_size_gb")
+  requireHdr         Boolean  @default(false) @map("require_hdr")
+  preferHdr          Boolean  @default(false) @map("prefer_hdr")
+  cutoffResolution   Int?     @map("cutoff_resolution")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  media            LibraryMedia[]
+  defaultForSettings MediaSettings[] @relation("DefaultQualityProfile")
+
+  @@map("quality_profiles")
+}
+
+model LibraryMedia {
+  id                 Int       @id @default(autoincrement())
+  tmdbId             Int       @unique @map("tmdb_id")
+  type               String    // "movie" | "show"
+  title              String
+  sortTitle          String?   @map("sort_title")
+  year               Int?
+  status             String    @default("wanted") // wanted | downloading | downloaded | skipped
+  posterUrl          String?   @map("poster_url")
+  overview           String?
+  digitalReleaseDate DateTime? @map("digital_release_date")
+  qualityProfileId   Int?      @map("quality_profile_id")
+  searchAttempts     Int       @default(0) @map("search_attempts")
+  addedAt            DateTime  @default(now()) @map("added_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  qualityProfile    QualityProfile?   @relation(fields: [qualityProfileId], references: [id], onDelete: SetNull)
+  episodes          LibraryEpisode[]
+  files             MediaFile[]       @relation("MediaFileMedia")
+  downloadHistories DownloadHistory[]
+
+  @@index([type], map: "ix_library_media_type")
+  @@index([status], map: "ix_library_media_status")
+  @@index([qualityProfileId], map: "ix_library_media_quality_profile_id")
+  @@map("library_media")
+}
+
+model LibraryEpisode {
+  id             Int       @id @default(autoincrement())
+  mediaId        Int       @map("media_id")
+  season         Int
+  episode        Int
+  title          String?
+  airDate        DateTime? @map("air_date") @db.Date
+  status         String    @default("wanted") // wanted | downloading | downloaded | skipped
+  tmdbEpisodeId  Int?      @map("tmdb_episode_id")
+  downloadedAt   DateTime? @map("downloaded_at")
+  searchAttempts Int       @default(0) @map("search_attempts")
+
+  media               LibraryMedia      @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  files               MediaFile[]       @relation("MediaFileEpisode")
+  downloadHistories   DownloadHistory[]
+
+  @@unique([mediaId, season, episode])
+  @@index([mediaId], map: "ix_library_episodes_media_id")
+  @@map("library_episodes")
+}
+
+model DownloadHistory {
+  id            Int       @id @default(autoincrement())
+  mediaId       Int?      @map("media_id")
+  episodeId     Int?      @map("episode_id")
+  releaseTitle  String    @map("release_title")
+  indexer       String?
+  torrentHash   String?   @map("torrent_hash")
+  downloadUrl   String?   @map("download_url")
+  qualityParsed Json?     @map("quality_parsed")
+  grabbedAt     DateTime  @default(now()) @map("grabbed_at")
+  completedAt   DateTime? @map("completed_at")
+  failed        Boolean   @default(false)
+  failReason    String?   @map("fail_reason")
+  /// Set when post-processing fails after the torrent completed
+  postProcessError           String? @map("post_process_error") @db.Text
+  /// Final library path after successful post-processing
+  postProcessDestinationPath String? @map("post_process_destination_path") @db.Text
+
+  media   LibraryMedia?   @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  episode LibraryEpisode? @relation(fields: [episodeId], references: [id], onDelete: SetNull)
+
+  @@index([torrentHash], map: "ix_download_history_torrent_hash")
+  @@index([mediaId], map: "ix_download_history_media_id")
+  @@map("download_history")
+}
+
+/// Singleton media / library post-processing settings (row id = 1)
+model MediaSettings {
+  id                      Int      @id @default(1)
+  moviesLibraryPath       String?  @map("movies_library_path")
+  showsLibraryPath        String?  @map("shows_library_path")
+  fileOperation           String   @default("hardlink") @map("file_operation")
+  movieTemplate           String   @default("{title} ({year}) [{resolution} {source}]") @map("movie_template")
+  episodeTemplate         String   @default("{show}/Season {season}/{show} - S{season:02}E{episode:02} - {title} [{resolution} {source}]") @map("episode_template")
+  minSeedRatio            Float    @default(1) @map("min_seed_ratio")
+  postProcessingEnabled   Boolean  @default(false) @map("post_processing_enabled")
+  defaultQualityProfileId Int?     @map("default_quality_profile_id")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  defaultQualityProfile QualityProfile? @relation("DefaultQualityProfile", fields: [defaultQualityProfileId], references: [id], onDelete: SetNull)
+
+  @@map("media_settings")
+}
+
+model MediaFile {
+  id             Int      @id @default(autoincrement())
+  mediaId        Int?     @map("media_id")
+  episodeId      Int?     @map("episode_id")
+  filePath       String   @map("file_path")
+  fileName       String   @map("file_name")
+  sizeBytes      BigInt   @map("size_bytes")
+  durationSecs   Float?   @map("duration_secs")
+  releaseGroup   String?  @map("release_group")
+  videoCodec     String?  @map("video_codec")
+  videoProfile   String?  @map("video_profile")
+  width          Int?
+  height         Int?
+  frameRate      Float?   @map("frame_rate")
+  bitDepth       Int?     @map("bit_depth")
+  videoBitrate   Int?     @map("video_bitrate")
+  hdrFormat      String?  @map("hdr_format")
+  resolution     Int?
+  source         String?
+  audioTracks    Json     @default("[]") @map("audio_tracks")
+  subtitleTracks Json     @default("[]") @map("subtitle_tracks")
+  scannedAt      DateTime @default(now()) @map("scanned_at")
+
+  media   LibraryMedia?   @relation("MediaFileMedia",   fields: [mediaId],   references: [id], onDelete: Cascade)
+  episode LibraryEpisode? @relation("MediaFileEpisode", fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@index([mediaId],   map: "ix_media_files_media_id")
+  @@index([episodeId], map: "ix_media_files_episode_id")
+  @@map("media_files")
+}

@@ -9,10 +9,9 @@ export interface QuickSearchTorrent {
 export interface QuickSearchMedia {
   id: number;
   title: string;
-  service: string;
-  media_type: string;
-  source_id: string;
-  year?: number;
+  type: string; // "movie" | "show"
+  year: number | null;
+  status: string; // "wanted" | "downloading" | "downloaded" | "skipped"
 }
 
 export interface QuickSearchRecipe {

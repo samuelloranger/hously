@@ -17,3 +17,5 @@ export * from "./habits";
 export * from "./search";
 export * from "./boardTasks";
 export * from "./boardTags";
+export * from "./library";
+export * from "./qualityProfiles";
