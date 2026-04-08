@@ -72,6 +72,10 @@ export async function checkMovieReleaseReminders(): Promise<void> {
       if (!releaseYmd) continue;
     }
 
+    // Skip movies releasing more than 5 days from now
+    const releaseMs = new Date(`${releaseYmd}T00:00:00.000Z`).getTime();
+    if (releaseMs - Date.now() > 5 * 24 * 60 * 60 * 1000) continue;
+
     if (reminderSentFor === releaseYmd) {
       continue;
     }

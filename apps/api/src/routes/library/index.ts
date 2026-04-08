@@ -430,7 +430,8 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           });
           return { item: mapLibraryMedia(updated!), detail: "file_on_disk" };
         } catch {
-          // file missing — continue
+          // file missing — remove stale MediaFile record
+          await prisma.mediaFile.delete({ where: { id: f.id } });
         }
       }
 

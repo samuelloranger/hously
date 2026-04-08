@@ -15,172 +15,25 @@ import {
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
-import { MediaPosterCard } from "@/components/MediaPosterCard";
 import { useLibrary, useSearchLibraryMovie } from "@/hooks/useLibrary";
 import { useLibraryEvents } from "@/hooks/useLibraryEvents";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
-import type { LibraryMedia, TmdbMediaSearchItem } from "@hously/shared/types";
+import type { LibraryMedia } from "@hously/shared/types";
 import type { LibrarySearchParams } from "@/pages/library/index";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-type SortKey = "title" | "year" | "added_at" | "status";
-type SortDir = "asc" | "desc";
-
-// ─── Status helpers ───────────────────────────────────────────────────────────
-
-const STATUS_MAP = {
-  wanted: {
-    label: "Wanted",
-    className:
-      "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300",
-  },
-  downloading: {
-    label: "Downloading",
-    className: "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300",
-  },
-  downloaded: {
-    label: "Downloaded",
-    className:
-      "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
-  },
-  skipped: {
-    label: "Skipped",
-    className:
-      "bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400",
-  },
-} as const;
-
-type CardStatus = "downloaded" | "downloading" | "missing";
-
-function toCardStatus(status: LibraryMedia["status"]): CardStatus {
-  if (status === "downloaded") return "downloaded";
-  if (status === "downloading") return "downloading";
-  return "missing";
-}
-
-// ─── Library item card ────────────────────────────────────────────────────────
-
-function LibraryItemCard({
-  item,
-  onOpen,
-  onMovieSearch,
-  movieSearchPending,
-}: {
-  item: LibraryMedia;
-  onOpen: (item: LibraryMedia) => void;
-  onMovieSearch?: (id: number) => void;
-  movieSearchPending?: boolean;
-}) {
-  const { t } = useTranslation("common");
-  const statusInfo = STATUS_MAP[item.status] ?? STATUS_MAP.wanted;
-  const digitalLabel =
-    item.type === "movie" && item.digital_release_date
-      ? new Date(item.digital_release_date).toLocaleDateString(undefined, {
-          dateStyle: "medium",
-        })
-      : null;
-
-  return (
-    <div
-      className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden cursor-pointer group"
-      onClick={() => onOpen(item)}
-    >
-      <MediaPosterCard
-        posterUrl={item.poster_url}
-        title={item.title}
-        status={toCardStatus(item.status)}
-        statusLabel={statusInfo.label}
-      >
-        <div className="pb-2 space-y-1">
-          <div className="flex flex-wrap items-center gap-1">
-            <span className="rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
-              {item.year ?? "—"}
-            </span>
-            <span
-              className={cn(
-                "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                statusInfo.className,
-              )}
-            >
-              {statusInfo.label}
-            </span>
-          </div>
-          {digitalLabel && (
-            <p className="text-[9px] text-neutral-500 dark:text-neutral-400 leading-tight">
-              Digital {digitalLabel}
-            </p>
-          )}
-          {item.type === "movie" &&
-            item.status === "wanted" &&
-            onMovieSearch &&
-            item.search_attempts < 5 && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMovieSearch(item.id);
-                }}
-                disabled={movieSearchPending}
-                className="mt-0.5 w-full rounded-lg bg-indigo-600/90 hover:bg-indigo-600 disabled:opacity-50 text-white text-[10px] font-medium py-1 flex items-center justify-center gap-1 transition-colors"
-              >
-                <Search size={10} />
-                {t("library.management.searchNow")}
-              </button>
-            )}
-        </div>
-      </MediaPosterCard>
-    </div>
-  );
-}
-
-/** Build a TmdbMediaSearchItem from a native LibraryMedia for ExploreCardDetailDialog */
-function libraryItemToSearchItem(item: LibraryMedia): TmdbMediaSearchItem {
-  return {
-    id: String(item.id),
-    tmdb_id: item.tmdb_id,
-    media_type: item.type === "show" ? "tv" : "movie",
-    title: item.title,
-    release_year: item.year,
-    poster_url: item.poster_url,
-    overview: item.overview,
-    vote_average: null,
-    service: "library",
-    already_exists: true,
-    can_add: false,
-    source_id: null,
-    library_id: item.id,
-  };
-}
-
-// ─── Main page ────────────────────────────────────────────────────────────────
-
-type FilterType = "all" | "movie" | "show";
-type FilterStatus = "all" | "wanted" | "downloading" | "downloaded" | "skipped";
+import { LibraryItemCard } from "./LibraryItemCard";
+import {
+  type FilterType,
+  type FilterStatus,
+  type SortKey,
+  type SortDir,
+  SORT_OPTIONS,
+  sortItems,
+  libraryItemToSearchItem,
+} from "../utils/libraryUtils";
 
 const PAGE_SIZE = 48;
-
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: "added_at", label: "Date added" },
-  { key: "title", label: "Title" },
-  { key: "year", label: "Year" },
-  { key: "status", label: "Status" },
-];
-
-function sortItems(
-  items: LibraryMedia[],
-  sortBy: SortKey,
-  sortDir: SortDir,
-): LibraryMedia[] {
-  return [...items].sort((a, b) => {
-    let cmp = 0;
-    if (sortBy === "title") cmp = a.title.localeCompare(b.title);
-    else if (sortBy === "year") cmp = (a.year ?? 0) - (b.year ?? 0);
-    else if (sortBy === "status") cmp = a.status.localeCompare(b.status);
-    else cmp = new Date(a.added_at).getTime() - new Date(b.added_at).getTime();
-    return sortDir === "asc" ? cmp : -cmp;
-  });
-}
 
 export function NativeLibraryPage() {
   const { t } = useTranslation("common");
@@ -212,7 +65,7 @@ export function NativeLibraryPage() {
   const allItems = data?.items ?? [];
 
   const sorted = useMemo(
-    () => sortItems(allItems, sortBy, sortDir),
+    () => sortItems(allItems, sortBy, sortDir as SortDir),
     [allItems, sortBy, sortDir],
   );
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
