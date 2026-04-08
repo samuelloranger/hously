@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useExportData, useImportData } from "@/hooks/useAdmin";
+import { ArrLibraryImportPanel } from "@/pages/settings/_component/ArrLibraryImportPanel";
 
 export function DataExportTab() {
   const { t } = useTranslation("common");
@@ -89,6 +90,8 @@ export function DataExportTab() {
           </p>
 
           <div className="space-y-4">
+            <ArrLibraryImportPanel />
+
             {/* Export Section */}
             <div className="border-b border-neutral-200 dark:border-neutral-700 pb-4">
               <h3 className="text-lg font-medium mb-2 text-neutral-900 dark:text-neutral-100">

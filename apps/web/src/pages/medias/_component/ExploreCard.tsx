@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useAddUpcomingToArr } from "@/hooks/useDashboard";
+import { useAddUpcomingToLibrary } from "@/hooks/useDashboard";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { MEDIAS_ENDPOINTS } from "@hously/shared/endpoints";
@@ -20,7 +20,7 @@ export function ExploreCard({
   const { t } = useTranslation("common");
   const [detailOpen, setDetailOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const addUpcomingMutation = useAddUpcomingToArr();
+  const addUpcomingMutation = useAddUpcomingToLibrary();
   const queryClient = useQueryClient();
   const fetcher = useFetcher();
 

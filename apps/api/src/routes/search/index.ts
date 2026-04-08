@@ -9,11 +9,6 @@ import {
   fetchMaindata,
   toTorrentListItem,
 } from "@hously/api/services/qbittorrent/client";
-import {
-  normalizeRadarrConfig,
-  normalizeSonarrConfig,
-} from "@hously/api/utils/plugins/normalizers";
-import { mapRadarrMovie, mapSonarrSeries } from "@hously/api/utils/medias/mappers";
 
 const PRISMA_TO_API_STATUS: Record<BoardTaskStatus, string> = {
   [BoardTaskStatus.BACKLOG]: "backlog",
@@ -161,103 +156,22 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
           // qBittorrent unreachable or not configured — return empty
         }
 
-        // Medias from Radarr/Sonarr — filter by title in-memory
+        // Medias from native library
         let medias: {
           id: number;
           title: string;
-          service: string;
-          media_type: string;
-          source_id: string;
-          year?: number;
+          type: string;
+          year: number | null;
+          status: string;
         }[] = [];
         try {
-          const [radarrPlugin, sonarrPlugin] = await Promise.all([
-            prisma.plugin.findFirst({
-              where: { type: "radarr" },
-              select: { enabled: true, config: true },
-            }),
-            prisma.plugin.findFirst({
-              where: { type: "sonarr" },
-              select: { enabled: true, config: true },
-            }),
-          ]);
-
-          const mediaFetches: Promise<void>[] = [];
-
-          if (radarrPlugin?.enabled) {
-            const radarrConfig = normalizeRadarrConfig(radarrPlugin.config);
-            if (radarrConfig) {
-              mediaFetches.push(
-                fetch(new URL("/api/v3/movie", radarrConfig.website_url).toString(), {
-                  headers: {
-                    "X-Api-Key": radarrConfig.api_key,
-                    Accept: "application/json",
-                  },
-                  signal: AbortSignal.timeout(5000),
-                })
-                  .then(async (res) => {
-                    if (!res.ok) return;
-                    const movies = (await res.json()) as unknown[];
-                    for (const raw of movies) {
-                      const item = mapRadarrMovie(raw, radarrConfig.website_url);
-                      if (!item) continue;
-                      if (!item.title.toLowerCase().includes(q)) continue;
-                      medias.push({
-                        id: item.source_id,
-                        title: item.title,
-                        service: "radarr",
-                        media_type: "movie",
-                        source_id: String(item.source_id),
-                        year: item.year ?? undefined,
-                      });
-                      if (medias.length >= limit) break;
-                    }
-                  })
-                  .catch(() => {}),
-              );
-            }
-          }
-
-          if (sonarrPlugin?.enabled) {
-            const sonarrConfig = normalizeSonarrConfig(sonarrPlugin.config);
-            if (sonarrConfig) {
-              mediaFetches.push(
-                fetch(new URL("/api/v3/series", sonarrConfig.website_url).toString(), {
-                  headers: {
-                    "X-Api-Key": sonarrConfig.api_key,
-                    Accept: "application/json",
-                  },
-                  signal: AbortSignal.timeout(5000),
-                })
-                  .then(async (res) => {
-                    if (!res.ok) return;
-                    const series = (await res.json()) as unknown[];
-                    let added = 0;
-                    for (const raw of series) {
-                      if (medias.length >= limit) break;
-                      const item = mapSonarrSeries(raw, sonarrConfig.website_url);
-                      if (!item) continue;
-                      if (!item.title.toLowerCase().includes(q)) continue;
-                      medias.push({
-                        id: item.source_id,
-                        title: item.title,
-                        service: "sonarr",
-                        media_type: "series",
-                        source_id: String(item.source_id),
-                        year: item.year ?? undefined,
-                      });
-                      added++;
-                    }
-                  })
-                  .catch(() => {}),
-              );
-            }
-          }
-
-          await Promise.all(mediaFetches);
-          medias = medias.slice(0, limit);
+          medias = await prisma.libraryMedia.findMany({
+            where: { title: { contains: q, mode: "insensitive" } },
+            take: limit,
+            select: { id: true, title: true, type: true, year: true, status: true },
+          });
         } catch {
-          // Media plugins unreachable — return empty
+          // library table not yet available — return empty
         }
 
         return {

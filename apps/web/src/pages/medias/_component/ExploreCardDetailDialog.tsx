@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useAddUpcomingToArr } from "@/hooks/useDashboard";
+import { useAddToLibrary } from "@/hooks/useLibrary";
 import {
   useAddToWatchlist,
   useMediaModalData,
@@ -25,7 +25,7 @@ import {
 import { toast } from "sonner";
 import { Dialog } from "@/components/dialog";
 import { cn } from "@/lib/utils";
-import { ArrManagementPanel } from "@/pages/medias/_component/ArrManagementPanel";
+import { LibraryManagementPanel } from "@/pages/medias/_component/LibraryManagementPanel";
 import { MediaDetailInfoSections } from "@/pages/medias/_component/MediaDetailInfoSections";
 import { InteractiveSearchPanel } from "@/pages/medias/_component/InteractiveSearchPanel";
 import { SimilarMediasPanel } from "@/pages/medias/_component/SimilarMediasPanel";
@@ -43,12 +43,15 @@ function formatTmdbDateYmd(iso: string | null | undefined): string | null {
   }
 }
 
-function toMediaItem(item: TmdbMediaSearchItem): MediaItem {
+function toMediaItem(item: TmdbMediaSearchItem, overrideLibraryId?: number | null): MediaItem {
+  const inNativeLibrary =
+    (overrideLibraryId ?? item.library_id) != null &&
+    (overrideLibraryId ?? item.library_id)! > 0;
   return {
     id: item.id,
     media_type: item.media_type === "tv" ? "series" : "movie",
-    service: item.service,
-    source_id: item.source_id!,
+    service: inNativeLibrary ? "library" : item.service,
+    source_id: item.source_id ?? null,
     title: item.title,
     sort_title: null,
     year: item.release_year,
@@ -63,7 +66,6 @@ function toMediaItem(item: TmdbMediaSearchItem): MediaItem {
     season_count: null,
     episode_count: null,
     poster_url: item.poster_url,
-    arr_url: item.arr_url,
     release_tags: null,
   };
 }
@@ -87,12 +89,43 @@ export function ExploreCardDetailDialog({
 }: ExploreCardDetailDialogProps) {
   const { t } = useTranslation("common");
   const [activeTab, setActiveTab] = useState<TabKey>(defaultTab);
-  const [searchOnAdd, setSearchOnAdd] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [episodeSearchContext, setEpisodeSearchContext] = useState<{
+    id: number;
+    season: number;
+    episode: number;
+    title: string | null;
+  } | null>(null);
 
-  const addMutation = useAddUpcomingToArr();
+  const [seasonSearchContext, setSeasonSearchContext] = useState<number | null>(null);
+
+  const openEpisodeSearch = (ep: { id: number; season: number; episode: number; title: string | null }) => {
+    setEpisodeSearchContext(ep);
+    setSeasonSearchContext(null);
+    setActiveTab("search");
+  };
+
+  const openSeasonSearch = (season: number) => {
+    setSeasonSearchContext(season);
+    setEpisodeSearchContext(null);
+    setActiveTab("search");
+  };
+
+  const addMutation = useAddToLibrary();
   const addToWatchlist = useAddToWatchlist();
   const removeFromWatchlist = useRemoveFromWatchlist();
+
+  // Track library_id locally so Search/Management tabs appear immediately after adding
+  const [localLibraryId, setLocalLibraryId] = useState<number | null>(
+    item.library_id ?? null,
+  );
+  // Reset when the item changes
+  const [prevTmdbKey, setPrevTmdbKey] = useState(`${item.tmdb_id}-${item.media_type}`);
+  const tmdbKeyNow = `${item.tmdb_id}-${item.media_type}`;
+  if (tmdbKeyNow !== prevTmdbKey) {
+    setPrevTmdbKey(tmdbKeyNow);
+    setLocalLibraryId(item.library_id ?? null);
+  }
 
   const { data: modalData, isPending: modalDataPending } = useMediaModalData(
     item.media_type,
@@ -124,8 +157,9 @@ export function ExploreCardDetailDialog({
     return m;
   }, [libraryEpisodes?.downloaded]);
 
-  const canSearch = item.already_exists && item.source_id !== null;
-  const canManage = item.already_exists && item.source_id !== null;
+  const effectiveLibraryId = localLibraryId ?? item.library_id ?? null;
+  const canSearch = effectiveLibraryId != null && effectiveLibraryId > 0;
+  const canManage = effectiveLibraryId != null && effectiveLibraryId > 0;
   const hasTmdbId = item.tmdb_id > 0;
 
   const tabs = useMemo(() => {
@@ -158,13 +192,14 @@ export function ExploreCardDetailDialog({
     : "info";
 
   const handleAdd = async () => {
-    if (addMutation.isPending || item.already_exists || !item.can_add) return;
+    if (addMutation.isPending || !item.can_add) return;
     try {
-      await addMutation.mutateAsync({
-        media_type: item.media_type,
+      const result = await addMutation.mutateAsync({
         tmdb_id: item.tmdb_id,
-        search_on_add: searchOnAdd,
+        type: item.media_type === "tv" ? "show" : "movie",
       });
+      setLocalLibraryId(result.item.id);
+      setActiveTab("search");
       toast.success(t("medias.addSuccess", { title: item.title }));
       onAdded();
     } catch {
@@ -196,7 +231,6 @@ export function ExploreCardDetailDialog({
   };
 
   const tmdbUrl = `https://www.themoviedb.org/${item.media_type}/${item.tmdb_id}`;
-  const serviceName = item.media_type === "movie" ? "Radarr" : "Sonarr";
 
   const overview = item.overview ?? detailsData?.overview ?? null;
   const voteAverage = item.vote_average ?? detailsData?.vote_average ?? null;
@@ -261,7 +295,7 @@ export function ExploreCardDetailDialog({
           className={cn(
             "relative shrink-0 overflow-hidden rounded-t-2xl transition-[min-height] duration-500 ease-out",
             heroBackdropUrl ? "min-h-[200px]" : "min-h-0",
-            !heroBackdropUrl && "px-6 pt-6 pb-4",
+            !heroBackdropUrl && "px-5 pt-5 pb-3",
           )}
         >
           {heroBackdropUrl ? (
@@ -296,7 +330,7 @@ export function ExploreCardDetailDialog({
           <div
             className={cn(
               "relative z-10 flex gap-4 transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
-              heroBackdropUrl ? "px-6 pb-5 pt-6 text-white" : "px-0 py-1 pt-0",
+              heroBackdropUrl ? "px-5 pb-4 pt-5 text-white" : "px-0 py-1 pt-0",
               heroVisualReady
                 ? "translate-y-0 opacity-100"
                 : "translate-y-2 opacity-[0.92]",
@@ -609,7 +643,7 @@ export function ExploreCardDetailDialog({
         </div>
 
         {/* ── Scrollable body (actions, tabs, panels) ───────────────── */}
-        <div className="ios-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-6 pb-6">
+        <div className="ios-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-5 pb-4">
           {modalDataPending && !modalData ? (
             <div
               className="flex flex-col items-center justify-center gap-3 py-16"
@@ -626,7 +660,7 @@ export function ExploreCardDetailDialog({
               }
             >
               {/* ── Actions bar (above tabs) ──────────────────────────────── */}
-              <div className="flex flex-wrap items-center gap-2 border-y border-neutral-200 dark:border-neutral-700/60 py-2.5 mb-4">
+              <div className="flex flex-wrap items-center gap-2 border-y border-neutral-200 dark:border-neutral-700/60 py-2 mb-3">
                 {/* Watchlist toggle */}
                 <button
                   type="button"
@@ -675,33 +709,11 @@ export function ExploreCardDetailDialog({
                   </a>
                 )}
 
-                {/* Arr link */}
-                {item.arr_url && (
-                  <a
-                    href={item.arr_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600/10 px-3 py-1.5 text-xs font-medium text-amber-700 transition-[background-color] hover:bg-amber-600/20 dark:text-amber-400"
-                  >
-                    <ExternalLink size={12} />
-                    {serviceName}
-                  </a>
-                )}
-
                 <div className="flex-1" />
 
                 {/* Add to library — primary CTA */}
                 {!item.already_exists && item.can_add && (
                   <div className="flex items-center gap-2">
-                    <label className="flex cursor-pointer select-none items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
-                      <input
-                        type="checkbox"
-                        checked={searchOnAdd}
-                        onChange={(e) => setSearchOnAdd(e.target.checked)}
-                        className="rounded border-neutral-300 text-indigo-600 focus:ring-indigo-500 dark:border-neutral-600"
-                      />
-                      {t("medias.detail.searchOnAdd")}
-                    </label>
                     <button
                       onClick={handleAdd}
                       disabled={addMutation.isPending}
@@ -727,14 +739,14 @@ export function ExploreCardDetailDialog({
 
               {/* ── Tab pills ─────────────────────────────────────────────── */}
               {tabs.length > 1 && (
-                <div className="flex gap-1 mb-4">
+                <div className="flex gap-1 mb-3">
                   {tabs.map(({ key, label, icon: Icon }) => (
                     <button
                       key={key}
                       type="button"
                       onClick={() => setActiveTab(key)}
                       className={cn(
-                        "flex items-center gap-1.5 rounded-full px-3 py-2 md:px-3.5 md:py-1.5 text-xs font-medium transition-[background-color,color] duration-150",
+                        "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-[background-color,color] duration-150",
                         validTab === key
                           ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
                           : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-300",
@@ -749,7 +761,7 @@ export function ExploreCardDetailDialog({
 
               {/* ── Info tab ─────────────────────────────────────────────── */}
               {validTab === "info" && (
-                <div className="flex flex-col gap-5 pb-6 animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
+                <div className="flex flex-col gap-4 pb-4 animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
                   {/* Trailer */}
                   {trailerData?.key && (
                     <div
@@ -999,31 +1011,47 @@ export function ExploreCardDetailDialog({
               {/* ── Search tab ───────────────────────────────────────────── */}
               {validTab === "search" && canSearch && (
                 <div className="min-h-[300px] pb-6 animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
+                  {episodeSearchContext && (
+                    <div className="mx-4 mb-3 flex items-center justify-between rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-2">
+                      <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">
+                        Searching for S{String(episodeSearchContext.season).padStart(2, "0")}E{String(episodeSearchContext.episode).padStart(2, "0")}{episodeSearchContext.title ? ` — ${episodeSearchContext.title}` : ""}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setEpisodeSearchContext(null)}
+                        className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  )}
                   <InteractiveSearchPanel
                     isActive={isOpen && validTab === "search"}
-                    media={toMediaItem(item)}
+                    media={toMediaItem(item, effectiveLibraryId)}
+                    libraryMediaId={effectiveLibraryId}
+                    defaultProwlarrQuery={
+                      episodeSearchContext
+                        ? `${item.title} S${String(episodeSearchContext.season).padStart(2, "0")}E${String(episodeSearchContext.episode).padStart(2, "0")}`
+                        : item.title
+                    }
+                    episodeId={episodeSearchContext?.id ?? null}
+                    defaultSeason={seasonSearchContext}
                     onDownloadSuccess={onRefetchLibrary}
                   />
                 </div>
               )}
 
-              {validTab === "management" &&
-                canManage &&
-                item.source_id != null && (
-                  <div className="animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
-                    <ArrManagementPanel
-                      service={item.service}
-                      sourceId={item.source_id}
-                      title={item.title}
-                      isActive={isOpen && validTab === "management"}
-                      onDeleted={() => {
-                        onClose();
-                        onAdded();
-                        onRefetchLibrary?.();
-                      }}
+              {validTab === "management" && canManage && (
+                <div className="animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
+                  {effectiveLibraryId != null && effectiveLibraryId > 0 ? (
+                    <LibraryManagementPanel
+                      libraryId={effectiveLibraryId}
+                      onSearchEpisode={openEpisodeSearch}
+                      onSearchSeason={openSeasonSearch}
                     />
-                  </div>
-                )}
+                  ) : null}
+                </div>
+              )}
             </div>
           )}
         </div>

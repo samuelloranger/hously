@@ -22,30 +22,6 @@ export function getTypeStyle(notification: {
 }) {
   if (notification.type === "external" && notification.metadata?.service_name) {
     const serviceName = notification.metadata.service_name as string;
-    if (serviceName === "radarr") {
-      return {
-        icon: (
-          <img
-            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/radarr.png"
-            className="w-[18px] h-[18px] object-contain"
-            alt="Radarr"
-          />
-        ),
-        bg: "bg-yellow-100 dark:bg-yellow-900/30",
-      };
-    }
-    if (serviceName === "sonarr") {
-      return {
-        icon: (
-          <img
-            src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/sonarr.png"
-            className="w-[18px] h-[18px] object-contain"
-            alt="Sonarr"
-          />
-        ),
-        bg: "bg-cyan-100 dark:bg-cyan-900/30",
-      };
-    }
     if (serviceName === "cross-seed") {
       return {
         icon: "🌱",

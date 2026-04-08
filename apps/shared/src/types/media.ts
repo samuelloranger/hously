@@ -1,8 +1,8 @@
 export interface MediaItem {
   id: string;
   media_type: "movie" | "series";
-  service: "radarr" | "sonarr";
-  source_id: number;
+  service: "prowlarr" | "library";
+  source_id: number | null;
   title: string;
   sort_title: string | null;
   year: number | null;
@@ -17,20 +17,7 @@ export interface MediaItem {
   season_count: number | null;
   episode_count: number | null;
   poster_url: string | null;
-  arr_url: string | null;
   release_tags: string[] | null;
-}
-
-export interface MediasResponse {
-  radarr_enabled: boolean;
-  sonarr_enabled: boolean;
-  radarr_connected: boolean;
-  sonarr_connected: boolean;
-  items: MediaItem[];
-  errors?: {
-    radarr?: string;
-    sonarr?: string;
-  };
 }
 
 export interface TmdbMediaSearchItem {
@@ -42,11 +29,12 @@ export interface TmdbMediaSearchItem {
   poster_url: string | null;
   overview: string | null;
   vote_average: number | null;
-  service: "radarr" | "sonarr";
+  service: "prowlarr" | "library";
   already_exists: boolean;
   can_add: boolean;
   source_id: number | null;
-  arr_url: string | null;
+  /** Native library ID — when set, Management tab shows LibraryManagementPanel */
+  library_id?: number | null;
   /** Short rationale from local LLM (Explore AI suggestions). */
   ai_reason?: string | null;
 }
@@ -63,13 +51,7 @@ export interface AiMediaSuggestionsConfigResponse {
 
 export interface TmdbMediaSearchResponse {
   enabled: boolean;
-  radarr_enabled: boolean;
-  sonarr_enabled: boolean;
   items: TmdbMediaSearchItem[];
-  errors?: {
-    radarr?: string;
-    sonarr?: string;
-  };
 }
 
 export interface TmdbWatchProvider {
@@ -87,9 +69,11 @@ export interface TmdbWatchProvidersResponse {
   link: string | null;
 }
 
-export interface MediaAutoSearchResponse {
-  success: boolean;
-  service: "radarr" | "sonarr";
+export interface ParsedQualityFields {
+  resolution: number | null;
+  source: string | null;
+  codec: string | null;
+  hdr: string | null;
 }
 
 export interface InteractiveReleaseItem {
@@ -106,13 +90,22 @@ export interface InteractiveReleaseItem {
   rejected: boolean;
   rejection_reason: string | null;
   info_url: string | null;
-  source: "arr" | "prowlarr";
+  source: "prowlarr";
   download_token?: string | null;
+  /** Resolved magnet or .torrent URL (Prowlarr); used for Hously library grabs */
+  download_url?: string | null;
+  /** Set when Prowlarr search is scoped to a library item with a quality profile */
+  quality_score?: number | null;
+  parsed_quality?: ParsedQualityFields | null;
+  /** True when the release title matches a full-season pattern (SXX with no episode number) */
+  is_season_pack?: boolean;
+  /** True when the release is a complete series (intégrale, Complete Series, …) */
+  is_complete_series?: boolean;
 }
 
 export interface MediaInteractiveSearchResponse {
   success: boolean;
-  service: "radarr" | "sonarr" | "prowlarr";
+  service: "prowlarr";
   releases: InteractiveReleaseItem[];
 }
 
@@ -135,62 +128,7 @@ export interface SimilarMediasResponse {
 
 export interface MediaInteractiveDownloadResponse {
   success: boolean;
-  service: "radarr" | "sonarr" | "prowlarr";
-}
-
-export interface MediaDeleteResponse {
-  success: boolean;
-  service: "radarr" | "sonarr";
-}
-
-export interface MediaRefreshResponse {
-  success: boolean;
-  service: "radarr" | "sonarr";
-}
-
-/** Single movie file row from Radarr (when downloaded) */
-export interface ArrManagementFileInfo {
-  relative_path: string | null;
-  size_bytes: number | null;
-  quality_label: string | null;
-  custom_format_score: number | null;
-  date_added: string | null;
-  languages: string[];
-  scene_name: string | null;
-  media_resolution: string | null;
-  video_codec: string | null;
-  audio_codec: string | null;
-  audio_channels: string | null;
-  edition: string | null;
-  release_group: string | null;
-}
-
-export interface ArrManagementStatistics {
-  episode_file_count: number;
-  episode_count: number;
-  total_episode_count: number;
-  size_on_disk_bytes: number;
-  percent_of_episodes: number;
-}
-
-/** Normalized Radarr movie / Sonarr series payload for the Management tab */
-export interface ArrManagementDetailsResponse {
-  service: "radarr" | "sonarr";
-  title: string;
-  sort_title: string | null;
-  path: string | null;
-  root_folder_path: string | null;
-  monitored: boolean;
-  arr_status: string | null;
-  added: string | null;
-  genres: string[];
-  studio: string | null;
-  has_file: boolean;
-  file: ArrManagementFileInfo | null;
-  series_type: string | null;
-  season_folder: boolean;
-  statistics: ArrManagementStatistics | null;
-  network: string | null;
+  service: "prowlarr";
 }
 
 export interface TmdbStreamingProvider {
@@ -393,16 +331,16 @@ export interface WatchlistResponse {
   items: WatchlistItem[];
 }
 
-/** Sonarr episode on disk (hasFile), for TV modal when the series is in the library. */
+/** Episode row for TV modal when the series is in the native library. */
 export interface MediaLibraryEpisodeRef {
   season_number: number;
   episode_number: number;
 }
 
 export interface MediaModalLibraryEpisodes {
-  /** True when Sonarr is configured and this TMDB show exists in Sonarr. */
+  /** True when this TMDB show exists in the native library. */
   in_library: boolean;
-  /** Episodes with a file on disk; empty when none or not in library. */
+  /** Episodes marked downloaded in the library; empty when none. */
   downloaded: MediaLibraryEpisodeRef[];
 }
 
@@ -414,7 +352,7 @@ export interface MediaModalDataResponse {
   credits: TmdbCreditsResponse;
   details: TmdbMediaDetailsResponse;
   providers: TmdbWatchProvidersResponse;
-  /** TV: Sonarr download state; null for movies. */
+  /** TV: native library episode state; null for movies. */
   library_episodes: MediaModalLibraryEpisodes | null;
 }
 
@@ -428,11 +366,10 @@ export interface CollectionMovieItem {
   poster_url: string | null;
   overview: string | null;
   vote_average: number | null;
-  service: "radarr";
+  service: "library";
   already_exists: boolean;
   can_add: boolean;
   source_id: number | null;
-  arr_url: string | null;
 }
 
 export interface MediaCollection {

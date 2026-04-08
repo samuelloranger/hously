@@ -2,18 +2,11 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
-import {
-  normalizeOllamaConfig,
-  normalizeRadarrConfig,
-  normalizeSonarrConfig,
-} from "@hously/api/utils/plugins/normalizers";
+import { normalizeOllamaConfig } from "@hously/api/utils/plugins/normalizers";
 import { badGateway, badRequest, serviceUnavailable } from "@hously/api/errors";
 import {
   type TmdbSearchItem,
   mapTmdbSearchItem,
-  fetchRadarrTmdbIds,
-  fetchSonarrTmdbIds,
-  buildArrItemUrl,
   toRecord,
 } from "@hously/api/utils/medias/mappers";
 import { loadTmdbConfig } from "@hously/api/utils/medias/tmdbFetchers";
@@ -65,58 +58,21 @@ async function fetchPopularPool(
   return out;
 }
 
-async function enrichWithArr(
+async function enrichWithLibrary(
   items: TmdbSearchItem[],
-  radarrConfig: ReturnType<typeof normalizeRadarrConfig> | null,
-  sonarrConfig: ReturnType<typeof normalizeSonarrConfig> | null,
 ): Promise<TmdbSearchItem[]> {
-  const [radarrIds, sonarrIds] = await Promise.all([
-    radarrConfig
-      ? fetchRadarrTmdbIds(
-          radarrConfig.website_url,
-          radarrConfig.api_key,
-        ).catch(() => new Map())
-      : Promise.resolve(new Map()),
-    sonarrConfig
-      ? fetchSonarrTmdbIds(
-          sonarrConfig.website_url,
-          sonarrConfig.api_key,
-        ).catch(() => new Map())
-      : Promise.resolve(new Map()),
-  ]);
+  const tmdbIds = items.map((i) => i.tmdb_id);
+  const existing = await prisma.libraryMedia.findMany({
+    where: { tmdbId: { in: tmdbIds } },
+    select: { tmdbId: true, id: true, type: true },
+  });
+  const byTmdbId = new Map(existing.map((e) => [e.tmdbId, e]));
 
   return items.map((item) => {
-    const isMovie = item.media_type === "movie";
-    const entry = isMovie
-      ? radarrIds.get(item.tmdb_id)
-      : sonarrIds.get(item.tmdb_id);
-    const sourceId = entry?.sourceId ?? null;
-    const sourceBaseUrl = isMovie
-      ? radarrConfig?.website_url
-      : sonarrConfig?.website_url;
-
-    let arr_url: string | null = null;
-    if (sourceBaseUrl && entry) {
-      if (isMovie) {
-        arr_url = buildArrItemUrl(
-          sourceBaseUrl,
-          "radarr",
-          String(item.tmdb_id),
-        );
-      } else if (entry.titleSlug) {
-        arr_url = buildArrItemUrl(sourceBaseUrl, "sonarr", entry.titleSlug);
-      }
-    }
-
-    return {
-      ...item,
-      already_exists: isMovie
-        ? radarrIds.has(item.tmdb_id)
-        : sonarrIds.has(item.tmdb_id),
-      can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
-      source_id: sourceId,
-      arr_url,
-    };
+    const entry = byTmdbId.get(item.tmdb_id);
+    return entry
+      ? { ...item, already_exists: true, library_id: entry.id, can_add: false }
+      : item;
   });
 }
 
@@ -168,23 +124,6 @@ export const mediasAiSuggestionsRoutes = new Elysia()
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig) return badRequest(set, "TMDB is not configured");
 
-      const [radarrPlugin, sonarrPlugin] = await Promise.all([
-        prisma.plugin.findFirst({
-          where: { type: "radarr" },
-          select: { enabled: true, config: true },
-        }),
-        prisma.plugin.findFirst({
-          where: { type: "sonarr" },
-          select: { enabled: true, config: true },
-        }),
-      ]);
-      const radarrConfig = radarrPlugin?.enabled
-        ? normalizeRadarrConfig(radarrPlugin.config)
-        : null;
-      const sonarrConfig = sonarrPlugin?.enabled
-        ? normalizeSonarrConfig(sonarrPlugin.config)
-        : null;
-
       const language = body.language || "en-US";
       const mediaType = body.media_type;
 
@@ -221,11 +160,7 @@ export const mediasAiSuggestionsRoutes = new Elysia()
         return badRequest(set, "Not enough TMDB candidates for suggestions");
       }
 
-      const enrichedPool = await enrichWithArr(
-        pool,
-        radarrConfig,
-        sonarrConfig,
-      );
+      const enrichedPool = await enrichWithLibrary(pool);
       const candidates = toCandidates(enrichedPool);
       const prompt =
         (body.prompt ?? "").trim() ||
