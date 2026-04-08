@@ -117,7 +117,8 @@ function infoHashFromTorrentBuffer(buf: ArrayBuffer): string | null {
         return pos + 1;
       }
       if (ch === 0x69 /* i */) {
-        while (bytes[pos] !== 0x65 /* e */) pos++;
+        while (pos < bytes.length && bytes[pos] !== 0x65 /* e */) pos++;
+        if (pos >= bytes.length) throw new Error("malformed integer in bencode");
         return pos + 1;
       }
       // String: <digits>:<bytes>
@@ -346,14 +347,12 @@ export async function grabRelease(opts: {
     } catch (e) {
       const msg =
         e instanceof Error ? e.message : "Library status update failed";
-      await prisma.downloadHistory.update({
-        where: { id: dhRow.id },
-        data: { failed: true, failReason: msg },
-      });
-      return {
-        grabbed: false,
-        reason: "Torrent added but library status could not be updated",
-      };
+      // The torrent was already handed to qBittorrent — don't mark DH as failed.
+      // A failed status update leaves the row active so the completion webhook
+      // and the safety-net poller can still process it when the download finishes.
+      console.warn(
+        `[mediaGrabber] Library status update failed for DH ${dhRow.id} (torrent already queued): ${msg}`,
+      );
     }
 
     grabCommittedOk = true;

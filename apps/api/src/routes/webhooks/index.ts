@@ -22,32 +22,20 @@ import {
 
 export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
   // ── qBittorrent torrent-completion webhook ──────────────────────────────────
-  // Configure qBittorrent: Settings → Downloads → "Run external program on
-  // torrent finished".
+  // The "Configure Webhooks" button in Settings auto-configures qBittorrent to
+  // call this endpoint via:
   //
-  // ⚠️  IMPORTANT — qBittorrent uses QProcess (no shell) to spawn the program,
-  // so bare executable names like `curl` are not PATH-resolved and shell
-  // operators (>, |, &&) are silently ignored. Always wrap the command in a
-  // shell script and invoke it via /bin/sh:
+  //   /usr/bin/curl -s -X POST "<hously-url>/api/webhooks/qbittorrent/completed?hash=%I" \
+  //     -H "Authorization: Bearer <secret>"
   //
-  //   Autorun field value:
-  //     /bin/sh /config/qb-autorun.sh %I
+  // qBittorrent substitutes %I with the torrent info-hash before spawning curl.
+  // The hash is read from the query string; a JSON body ({ "hash": "..." }) is
+  // also accepted as a fallback for manual/scripted calls.
   //
-  //   /config/qb-autorun.sh contents:
-  //     #!/bin/sh
-  //     curl -s -X POST http://<hously-internal-host>:3000/api/webhooks/qbittorrent/completed \
-  //       -H "Authorization: Bearer <secret from qBittorrent plugin settings>" \
-  //       -H "Content-Type: application/json" \
-  //       -d "{\"hash\":\"$1\"}"
-  //
-  // Use the internal Docker hostname (e.g. http://hously:3000), not the public
-  // URL — qBittorrent runs inside the VPN network_mode container and its traffic
-  // goes through the VPN tunnel. The internal hostname bypasses Cloudflare/VPN
-  // and reaches Hously directly via the homelab Docker network.
-  //
-  // See: https://github.com/qbittorrent/qBittorrent/issues/13178
-  //      https://github.com/qbittorrent/qBittorrent/issues/12367
-  .post("/qbittorrent/completed", async ({ body, request, set }) => {
+  // Use the internal Docker hostname (e.g. http://hously:3000) so qBittorrent
+  // (inside a VPN network_mode container) reaches Hously directly without going
+  // through the VPN tunnel or Cloudflare.
+  .post("/qbittorrent/completed", async ({ body, query, request, set }) => {
     const qb = await getQbittorrentPluginConfig();
     const secret = qb.config?.webhook_secret;
     if (!secret) return forbidden(set, "Webhook not configured");
@@ -63,16 +51,20 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
       return forbidden(set, "Invalid token");
     }
 
-    // body may be a pre-parsed JSON object (application/json) or a raw string
-    let hash: string | undefined;
-    try {
-      const obj =
-        body !== null && typeof body === "object"
-          ? (body as Record<string, unknown>)
-          : JSON.parse(typeof body === "string" ? body : "{}");
-      hash = typeof obj?.hash === "string" ? obj.hash : undefined;
-    } catch {
-      return badRequest(set, "Invalid JSON");
+    // hash may come from the query string (?hash=%I, set by autorun-setup)
+    // or from a JSON body for manual/scripted calls
+    let hash: string | undefined =
+      typeof query?.hash === "string" ? query.hash : undefined;
+    if (!hash) {
+      try {
+        const obj =
+          body !== null && typeof body === "object"
+            ? (body as Record<string, unknown>)
+            : JSON.parse(typeof body === "string" ? body : "{}");
+        hash = typeof obj?.hash === "string" ? obj.hash : undefined;
+      } catch {
+        return badRequest(set, "Invalid JSON");
+      }
     }
     if (!hash?.trim()) return badRequest(set, "Missing hash");
 
@@ -86,20 +78,13 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
     };
   })
   // ── qBittorrent torrent-added webhook ────────────────────────────────────────
-  // Configure qBittorrent: Settings → Downloads → "Run external program on
-  // torrent added". Same shell-script pattern as /completed above.
+  // Auto-configured by "Configure Webhooks" in Settings — same curl/?hash=%I
+  // pattern as /completed above.
   //
-  //   /config/qb-added.sh contents:
-  //     #!/bin/sh
-  //     curl -s -X POST http://<hously-internal-host>:3000/api/webhooks/qbittorrent/added \
-  //       -H "Authorization: Bearer <secret from qBittorrent plugin settings>" \
-  //       -H "Content-Type: application/json" \
-  //       -d "{\"hash\":\"$1\"}"
-  //
-  // When a torrent lands in hously-movies or hously-shows, Hously finds the
-  // matching LibraryMedia by title and creates a DownloadHistory entry so the
-  // item's status switches to "downloading" immediately.
-  .post("/qbittorrent/added", async ({ body, request, set }) => {
+  // When a torrent lands in the hously-movies or hously-shows category, Hously
+  // matches it against the library by title and creates a DownloadHistory entry
+  // so the item's status switches to "downloading" immediately.
+  .post("/qbittorrent/added", async ({ body, query, request, set }) => {
     const qb = await getQbittorrentPluginConfig();
     const secret = qb.config?.webhook_secret;
     if (!secret) return forbidden(set, "Webhook not configured");
@@ -115,15 +100,18 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
       return forbidden(set, "Invalid token");
     }
 
-    let hash: string | undefined;
-    try {
-      const obj =
-        body !== null && typeof body === "object"
-          ? (body as Record<string, unknown>)
-          : JSON.parse(typeof body === "string" ? body : "{}");
-      hash = typeof obj?.hash === "string" ? obj.hash : undefined;
-    } catch {
-      return badRequest(set, "Invalid JSON");
+    let hash: string | undefined =
+      typeof query?.hash === "string" ? query.hash : undefined;
+    if (!hash) {
+      try {
+        const obj =
+          body !== null && typeof body === "object"
+            ? (body as Record<string, unknown>)
+            : JSON.parse(typeof body === "string" ? body : "{}");
+        hash = typeof obj?.hash === "string" ? obj.hash : undefined;
+      } catch {
+        return badRequest(set, "Invalid JSON");
+      }
     }
     if (!hash?.trim()) return badRequest(set, "Missing hash");
 
@@ -195,13 +183,20 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
         select: { id: true, title: true, qualityProfileId: true },
       });
 
-      const torrentWordSet = new Set(normTorrent.split(" ").filter(Boolean));
+      const torrentWords = normTorrent.split(" ").filter(Boolean);
       const match = candidates.find((m) => {
         const titleWords = normalize(m.title).split(" ").filter(Boolean);
-        return (
-          titleWords.length >= 1 &&
-          titleWords.every((w) => torrentWordSet.has(w))
-        );
+        if (titleWords.length === 0) return false;
+        // Require the title to appear as a contiguous, word-aligned sequence inside
+        // the torrent name. Pure word-set containment ("the boys" ⊆ any torrent that
+        // has both words) produces false positives for short titles like "It" or "Us"
+        // and for partial matches like "The Boys" → "The Boys of Summer S01E01".
+        for (let i = 0; i <= torrentWords.length - titleWords.length; i++) {
+          if (torrentWords.slice(i, i + titleWords.length).join(" ") === titleWords.join(" ")) {
+            return true;
+          }
+        }
+        return false;
       });
 
       if (!match) {
