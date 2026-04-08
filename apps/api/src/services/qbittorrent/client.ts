@@ -26,6 +26,7 @@ export interface QbittorrentPluginConfig {
   password: string;
   poll_interval_seconds: number;
   max_items: number;
+  webhook_secret?: string;
 }
 
 export interface QbittorrentDashboardTorrent {
