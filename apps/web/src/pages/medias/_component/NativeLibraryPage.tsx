@@ -31,7 +31,7 @@ import {
   SORT_OPTIONS,
   sortItems,
   libraryItemToSearchItem,
-} from "../utils/libraryUtils";
+} from "@/utils/libraryUtils";
 
 const PAGE_SIZE = 48;
 

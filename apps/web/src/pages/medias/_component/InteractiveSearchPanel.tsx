@@ -287,7 +287,7 @@ export function InteractiveSearchPanel({
 
   return (
     <div className="flex flex-col">
-      <div className="border-b border-neutral-200 pb-4 dark:border-neutral-700">
+      <div className="sticky top-0 z-10 border-b border-neutral-200 pt-1 pb-4 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
         <div className="flex flex-col gap-3">
           {/* Season pack search — shows only */}
           {isShow && availableSeasons.length > 0 && (
@@ -624,7 +624,7 @@ export function InteractiveSearchPanel({
             </div>
           </div>
         ) : (
-          <div className="pr-1">
+          <div>
             <div className="space-y-2">
               {releases.map((release) => {
                 const releaseKey = `${release.guid}-${release.indexer_id ?? "x"}`;

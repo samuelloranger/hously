@@ -35,6 +35,7 @@ function mapLibraryMedia(item: {
   qualityProfileId: number | null;
   searchAttempts: number;
   qualityProfile: { id: number; name: string } | null;
+  downloadHistories?: { grabbedAt: Date }[];
   addedAt: Date;
   updatedAt: Date;
 }) {
@@ -56,11 +57,17 @@ function mapLibraryMedia(item: {
       : null,
     added_at: item.addedAt.toISOString(),
     updated_at: item.updatedAt.toISOString(),
+    last_grabbed_at: item.downloadHistories?.[0]?.grabbedAt.toISOString() ?? null,
   };
 }
 
 const libraryMediaInclude = {
   qualityProfile: { select: { id: true, name: true } },
+  downloadHistories: {
+    orderBy: { grabbedAt: "desc" as const },
+    take: 1,
+    select: { grabbedAt: true },
+  },
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -414,25 +421,37 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
       const { stat } = await import("node:fs/promises");
 
-      // 1. Check if any MediaFile exists on disk → already processed
+      // 1. Iterate ALL MediaFile records: delete stale ones, track if any valid file remains
+      let hasValidFile = false;
       for (const f of media.files) {
         try {
           await stat(f.filePath);
-          if (media.status !== "downloaded") {
-            await prisma.libraryMedia.update({
-              where: { id },
-              data: { status: "downloaded" },
-            });
-          }
-          const updated = await prisma.libraryMedia.findUnique({
-            where: { id },
-            include: libraryMediaInclude,
-          });
-          return { item: mapLibraryMedia(updated!), detail: "file_on_disk" };
+          hasValidFile = true;
         } catch {
           // file missing — remove stale MediaFile record
-          await prisma.mediaFile.delete({ where: { id: f.id } });
+          try {
+            await prisma.mediaFile.delete({ where: { id: f.id } });
+          } catch (deleteErr) {
+            console.warn(
+              `[refreshStatus] Failed to delete stale MediaFile ${f.id}:`,
+              deleteErr,
+            );
+          }
         }
+      }
+
+      if (hasValidFile) {
+        if (media.status !== "downloaded") {
+          await prisma.libraryMedia.update({
+            where: { id },
+            data: { status: "downloaded" },
+          });
+        }
+        const updated = await prisma.libraryMedia.findUnique({
+          where: { id },
+          include: libraryMediaInclude,
+        });
+        return { item: mapLibraryMedia(updated!), detail: "file_on_disk" };
       }
 
       // 2. Check completed DH entries that missed post-processing → re-queue
@@ -979,10 +998,19 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       let rescanned = 0;
       let failed = 0;
 
+      const { stat: statFile } = await import("node:fs/promises");
+
       for (const file of files) {
         const mi = await scanMediaInfo(file.filePath);
         if (!mi) {
-          failed++;
+          // Check if the file is actually gone; if so, clean up the stale record
+          try {
+            await statFile(file.filePath);
+            failed++; // file exists but mediainfo couldn't read it
+          } catch {
+            await prisma.mediaFile.delete({ where: { id: file.id } });
+            failed++;
+          }
           continue;
         }
 
@@ -1014,6 +1042,38 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     } catch {
       return serverError(set, "Failed to rescan files");
     }
+  })
+
+  // DELETE /api/library/files/:fileId — remove a single MediaFile record
+  // ?delete_file=true also removes the physical file from disk
+  .delete("/files/:fileId", async ({ params, query, set }) => {
+    try {
+      const fileId = parseInt(params.fileId, 10);
+      if (!Number.isFinite(fileId)) return badRequest(set, "Invalid file id");
+
+      const file = await prisma.mediaFile.findUnique({
+        where: { id: fileId },
+      });
+      if (!file) return notFound(set, "File not found");
+
+      if (query.delete_file === "true") {
+        const { rm } = await import("node:fs/promises");
+        try {
+          await rm(file.filePath);
+        } catch {
+          // ignore — file may already be gone
+        }
+      }
+
+      await prisma.mediaFile.delete({ where: { id: fileId } });
+      return { success: true };
+    } catch {
+      return serverError(set, "Failed to delete file");
+    }
+  }, {
+    query: t.Object({
+      delete_file: t.Optional(t.String()),
+    }),
   })
 
   // GET /api/library/item/:id — single library item (integrations / c411-manager)

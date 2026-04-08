@@ -79,6 +79,7 @@ export interface LibraryMedia {
   quality_profile: LibraryQualityProfileRef | null;
   added_at: string;
   updated_at: string;
+  last_grabbed_at: string | null;
 }
 
 export interface LibraryListResponse {

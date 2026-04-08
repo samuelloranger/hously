@@ -10,7 +10,7 @@ import {
   formatDuration,
   formatResolution,
   frenchLabel,
-} from "../utils/libraryDisplayUtils";
+} from "@/utils/libraryDisplayUtils";
 
 function AudioTrackRow({ track }: { track: LibraryAudioTrack }) {
   const frFlag = frenchLabel(track.language);

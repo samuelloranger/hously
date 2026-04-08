@@ -15,6 +15,7 @@ export const LIBRARY_ENDPOINTS = {
   FILES: (id: number) => `/api/library/${id}/files`,
   RESCAN: (id: number) => `/api/library/${id}/rescan`,
   REFRESH_STATUS: (id: number) => `/api/library/${id}/refresh-status`,
+  DELETE_FILE: (fileId: number) => `/api/library/files/${fileId}`,
   MIGRATE: "/api/library/migrate",
   MIGRATE_STATUS: "/api/library/migrate/status",
 } as const;

@@ -288,6 +288,30 @@ export function useRescanLibraryItem(id: number) {
   });
 }
 
+export function useDeleteLibraryFile(libraryId: number) {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      fileId,
+      deleteFile,
+    }: {
+      fileId: number;
+      deleteFile: boolean;
+    }) =>
+      fetcher<{ success: boolean }>(
+        `${LIBRARY_ENDPOINTS.DELETE_FILE(fileId)}${deleteFile ? "?delete_file=true" : ""}`,
+        { method: "DELETE" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.library.all, "files", libraryId],
+      });
+    },
+  });
+}
+
 export function useRefreshLibraryStatus(id: number) {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();

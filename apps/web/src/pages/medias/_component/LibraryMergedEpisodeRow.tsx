@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import type { LibraryFileInfo } from "@hously/shared/types";
 import type { useSearchLibraryEpisode } from "@/hooks/useLibrary";
 import { Badge, StatusDot } from "./LibrarySharedUI";
-import { qualityBadges } from "../utils/libraryDisplayUtils";
+import { qualityBadges } from "@/utils/libraryDisplayUtils";
 import { FileDetailBlock } from "./LibraryFileDetailBlock";
 
 export interface MergedEpisodeRowProps {
@@ -44,7 +44,14 @@ export function MergedEpisodeRow({
 
   return (
     <div className="border-b last:border-0 border-neutral-100 dark:border-neutral-800">
-      <div className="flex items-center gap-2 px-4 py-2">
+      <button
+        type="button"
+        onClick={() => file && setExpanded((p) => !p)}
+        className={cn(
+          "w-full flex items-center gap-2 px-4 py-2 text-left transition-colors",
+          file && "hover:bg-neutral-50 dark:hover:bg-neutral-800/40",
+        )}
+      >
         <StatusDot status={ep.status} />
         <span className="font-mono text-[10px] text-neutral-400 dark:text-neutral-500 shrink-0 w-8">
           E{String(ep.episode).padStart(2, "0")}
@@ -61,14 +68,15 @@ export function MergedEpisodeRow({
           {onSearchEpisode && (
             <button
               type="button"
-              onClick={() =>
+              onClick={(e) => {
+                e.stopPropagation();
                 onSearchEpisode({
                   id: ep.id,
                   season,
                   episode: ep.episode,
                   title: ep.title ?? null,
-                })
-              }
+                });
+              }}
               title="Open interactive search for this episode"
               className="rounded p-1 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
             >
@@ -78,7 +86,8 @@ export function MergedEpisodeRow({
           {ep.status === "wanted" && ep.search_attempts < 5 && (
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 void searchEpMut
                   .mutateAsync({ mediaId: libraryId, episodeId: ep.id })
                   .then((r) => {
@@ -98,20 +107,16 @@ export function MergedEpisodeRow({
             </button>
           )}
           {file && (
-            <button
-              type="button"
-              onClick={() => setExpanded((p) => !p)}
-              className="rounded p-1 text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400 transition-colors"
-            >
+            <span className="rounded p-1 text-neutral-300 dark:text-neutral-600">
               {expanded ? (
                 <ChevronDown size={10} />
               ) : (
                 <ChevronRight size={10} />
               )}
-            </button>
+            </span>
           )}
         </div>
-      </div>
+      </button>
 
       {expanded && file && (
         <div className="px-4 pb-3 pt-2 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/40 dark:bg-neutral-900/20">

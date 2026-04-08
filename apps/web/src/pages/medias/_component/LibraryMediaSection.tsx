@@ -5,16 +5,17 @@ import {
   useLibraryEpisodes,
   useRescanLibraryItem,
   useSearchLibraryEpisode,
+  useDeleteLibraryFile,
 } from "@/hooks/useLibrary";
 import type { LibraryFileInfo } from "@hously/shared/types";
-import { ChevronRight, Folder, RefreshCw, Search } from "lucide-react";
+import { ChevronRight, Folder, RefreshCw, Search, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge, Card } from "./LibrarySharedUI";
 import {
   qualityBadges,
   isUniform,
   getMappedFolder,
-} from "../utils/libraryDisplayUtils";
+} from "@/utils/libraryDisplayUtils";
 import { FileDetailBlock } from "./LibraryFileDetailBlock";
 import { MergedEpisodeRow } from "./LibraryMergedEpisodeRow";
 
@@ -37,7 +38,9 @@ export function LibraryMediaSection({
   const { t } = useTranslation("common");
   const { data, isLoading } = useLibraryFiles(libraryId);
   const rescan = useRescanLibraryItem(libraryId);
+  const deleteFile = useDeleteLibraryFile(libraryId);
   const searchEpMut = useSearchLibraryEpisode();
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(
     new Set(),
   );
@@ -360,6 +363,7 @@ export function LibraryMediaSection({
         <div className="px-4 py-3 space-y-4">
           {files.map((file, fileIdx) => {
             const badges = qualityBadges(file);
+            const isConfirming = deleteConfirmId === file.id;
             return (
               <div
                 key={file.id}
@@ -373,15 +377,62 @@ export function LibraryMediaSection({
                     File {fileIdx + 1}
                   </p>
                 )}
-                {badges.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {badges.map((b) => (
-                      <Badge key={b.label} className={b.cls}>
-                        {b.label}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+                <div className="flex items-center gap-1 flex-wrap mb-3">
+                  {badges.map((b) => (
+                    <Badge key={b.label} className={b.cls}>
+                      {b.label}
+                    </Badge>
+                  ))}
+                  {isConfirming ? (
+                    <div className="flex items-center gap-1.5 ml-1">
+                      <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
+                        Delete file on disk too?
+                      </span>
+                      <button
+                        type="button"
+                        disabled={deleteFile.isPending}
+                        onClick={() => {
+                          deleteFile.mutate(
+                            { fileId: file.id, deleteFile: true },
+                            { onSettled: () => setDeleteConfirmId(null) },
+                          );
+                        }}
+                        className="rounded px-2 py-0.5 text-[10px] font-medium bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 transition-colors"
+                      >
+                        Yes, delete
+                      </button>
+                      <button
+                        type="button"
+                        disabled={deleteFile.isPending}
+                        onClick={() => {
+                          deleteFile.mutate(
+                            { fileId: file.id, deleteFile: false },
+                            { onSettled: () => setDeleteConfirmId(null) },
+                          );
+                        }}
+                        className="rounded px-2 py-0.5 text-[10px] font-medium bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-600 disabled:opacity-50 transition-colors"
+                      >
+                        No, keep file
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="text-[10px] text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmId(file.id)}
+                      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors ml-1"
+                    >
+                      <Trash2 size={10} />
+                      Remove
+                    </button>
+                  )}
+                </div>
                 <FileDetailBlock file={file} />
               </div>
             );
