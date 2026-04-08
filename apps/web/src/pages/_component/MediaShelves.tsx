@@ -207,11 +207,16 @@ export function JellyfinShelf() {
 
 // ─── Upcoming shelf ───────────────────────────────────────────────────────────
 
-function toTmdbItem(item: DashboardUpcomingItem): TmdbMediaSearchItem {
+function toTmdbItem(
+  item: DashboardUpcomingItem,
+  opts: { radarrEnabled: boolean; sonarrEnabled: boolean },
+): TmdbMediaSearchItem {
   const tmdbId = parseInt(item.id.split("-")[1] || "", 10);
   const releaseYear = item.release_date
     ? new Date(item.release_date).getFullYear()
     : null;
+  const canAdd =
+    item.media_type === "movie" ? opts.radarrEnabled : opts.sonarrEnabled;
   return {
     id: item.id,
     tmdb_id: tmdbId,
@@ -221,10 +226,11 @@ function toTmdbItem(item: DashboardUpcomingItem): TmdbMediaSearchItem {
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: item.vote_average ?? null,
-    service: "prowlarr",
+    service: item.media_type === "movie" ? "radarr" : "sonarr",
     already_exists: false,
-    can_add: true,
+    can_add: canAdd,
     source_id: null,
+    arr_url: null,
   };
 }
 
@@ -300,7 +306,14 @@ export function UpcomingShelf() {
                       ? t("dashboard.upcoming.movie")
                       : t("dashboard.upcoming.tv")
                   }
-                  onClick={() => setSelected(toTmdbItem(item))}
+                  onClick={() =>
+                    setSelected(
+                      toTmdbItem(item, {
+                        radarrEnabled: Boolean(data.radarr_enabled),
+                        sonarrEnabled: Boolean(data.sonarr_enabled),
+                      }),
+                    )
+                  }
                   delayMs={i * 40}
                 />
               ))}

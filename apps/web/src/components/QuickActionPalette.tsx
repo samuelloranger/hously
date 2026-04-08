@@ -199,20 +199,23 @@ export function QuickActionPalette({
       id: `media-${item.id}`,
       title: item.title,
       description: [
-        item.type === "movie"
+        item.service.toUpperCase(),
+        item.media_type === "movie"
           ? t("medias.filterMovies")
           : t("medias.filterSeries"),
         item.year ?? "",
-        item.status,
       ]
         .filter(Boolean)
         .join(" • "),
-      icon: item.type === "movie" ? "🎬" : "📺",
+      icon: item.media_type === "movie" ? "🎬" : "📺",
       section: "medias" as const,
       action: () => {
         navigate({
           to: "/library",
-          search: { current_media_id: item.id },
+          search: {
+            current_media_id: `${item.service}:${item.source_id}`,
+            current_media_tab: "search",
+          },
         });
         handleClose();
       },

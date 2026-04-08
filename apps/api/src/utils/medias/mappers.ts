@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
-import type { InteractiveReleaseItem } from "@hously/shared/types";
-import { extractProwlarrDownloadTarget } from "@hously/api/utils/medias/prowlarrSearchUtils";
+import type { ArrManagementDetailsResponse, ArrManagementFileInfo, ArrManagementStatistics, MediaItem } from "@hously/shared/types";
+import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 
 export type TmdbProvider = {
   id: number;
@@ -26,44 +26,32 @@ export type TmdbSearchItem = {
   poster_url: string | null;
   overview: string | null;
   vote_average: number | null;
-  service: "prowlarr" | "library";
+  service: "radarr" | "sonarr";
   already_exists: boolean;
   can_add: boolean;
   source_id: number | null;
-  library_id?: number | null;
+  arr_url: string | null;
 };
 
-export type { InteractiveReleaseItem };
+export type InteractiveReleaseItem = {
+  guid: string;
+  title: string;
+  indexer: string | null;
+  indexer_id: number | null;
+  languages: string[];
+  protocol: string | null;
+  size_bytes: number | null;
+  age: number | null;
+  seeders: number | null;
+  leechers: number | null;
+  rejected: boolean;
+  rejection_reason: string | null;
+  info_url: string | null;
+  source: "arr" | "prowlarr";
+  download_token?: string | null;
+};
 
-
-/**
- * Detects full-season and complete-series packs.
- *
- * A release is a season pack when it has a season marker (S01, Season 1, …)
- * but NO episode number.  The tricky case is SxxExx — "S01E01" has no
- * separator between the season and episode tokens, so the episode regex must
- * also match the bare SxxExx pattern.
- *
- * Matches: "Show.S01", "Show.Season.2.1080p", "Show.S03-S04",
- *          "Show.Integrale", "Show.Complete.Series", "CSI Miami - Season 02 (Complete)"
- * No match: "Show.S01E03", "Show.1x04", "CSI.Miami.S01E01.1080p"
- */
-const SEASON_ONLY_RE =
-  /(?:^|[\s._-])(?:S|Season|Saison|Stagione|Series)[\s._-]?\d{1,2}(?![\s._-]?\d)/i;
-// Covers SxxExx (no separator), as well as " E01", ".x04", "episode 3"
-const EPISODE_RE =
-  /S\d{1,2}E\d{1,3}|[\s._-](?:E\d{1,3}|x\d{1,2}(?!\d)|\d+x\d+|episode[\s._-]?\d+)/i;
-const COMPLETE_SERIES_RE =
-  /(?:^|[\s._(-])(?:int[eé]grale?|complete[.\s_-]*(?:series|pack)?|(?:the[.\s_-])?complete[.\s_-]*series)(?:$|[\s._)-])/i;
-
-export function isSeasonPack(title: string): boolean {
-  if (COMPLETE_SERIES_RE.test(title)) return true;
-  return SEASON_ONLY_RE.test(title) && !EPISODE_RE.test(title);
-}
-
-export function isCompleteSeries(title: string): boolean {
-  return COMPLETE_SERIES_RE.test(title);
-}
+export type ArrEntry = { sourceId: number; titleSlug: string | null };
 
 const PROWLARR_RELEASE_TTL_MS = 15 * 60 * 1000;
 const prowlarrReleasePayloads = new Map<
@@ -143,12 +131,443 @@ const extractInteractiveLanguages = (
   return value ? [value] : [];
 };
 
+const toIsoOrNull = (value: unknown): string | null => {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+};
+
+const resolveImageUrl = (baseUrl: string, value: unknown): string | null => {
+  const raw = toStringOrNull(value);
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  try {
+    return new URL(raw.startsWith("/") ? raw : `/${raw}`, baseUrl).toString();
+  } catch {
+    return null;
+  }
+};
+
+export const buildArrItemUrl = (
+  baseUrl: string,
+  service: "radarr" | "sonarr",
+  slug: string,
+): string | null => {
+  try {
+    const url = new URL(baseUrl);
+    const basePath = url.pathname.replace(/\/+$/, "");
+    const itemPath = service === "radarr" ? "movie" : "series";
+    url.pathname = `${basePath}/${itemPath}/${slug}`;
+    url.search = "";
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return null;
+  }
+};
+
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w342";
 
 const parseReleaseYear = (value: unknown): number | null => {
   if (typeof value !== "string" || value.length < 4) return null;
   const year = parseInt(value.slice(0, 4), 10);
   return Number.isFinite(year) ? year : null;
+};
+
+const extractPosterUrl = (
+  baseUrl: string,
+  imagesValue: unknown,
+): string | null => {
+  if (!Array.isArray(imagesValue)) return null;
+
+  for (const rawImage of imagesValue) {
+    const image = toRecord(rawImage);
+    if (!image) continue;
+    const coverType = toStringOrNull(image.coverType)?.toLowerCase();
+    if (coverType !== "poster") continue;
+
+    const remoteUrl = resolveImageUrl(baseUrl, image.remoteUrl);
+    if (remoteUrl) return remoteUrl;
+
+    const localUrl = resolveImageUrl(baseUrl, image.url);
+    if (localUrl) return localUrl;
+  }
+
+  return null;
+};
+
+const LANG_TAGS =
+  /\b(MULTI[._]VF2|MULTI[._]VFF|MULTI[._]VFQ|VF2|VFF|VFQ|VFI|TRUEFRENCH|FRENCH)\b/i;
+const RESOLUTION_TAGS = /\b(2160p|1080p|720p|480p|4K|UHD)\b/i;
+const SOURCE_TAGS =
+  /\b(BluRay|BDRip|BRRip|HDLight|WEBRip|WEB-DL|WEB|HDTV|DVDRip|Remux)\b/i;
+
+function parseReleaseTags(name: string): string[] {
+  const tags: string[] = [];
+  const parts = name.replace(/\./g, " ");
+
+  const lang = parts.match(LANG_TAGS);
+  if (lang) tags.push(lang[1].replace(/[._]/g, "."));
+
+  const res = parts.match(RESOLUTION_TAGS);
+  if (res) tags.push(res[1]);
+
+  const src = parts.match(SOURCE_TAGS);
+  if (src) tags.push(src[1]);
+
+  // Release group: after the last hyphen
+  const lastHyphen = name.lastIndexOf("-");
+  if (lastHyphen > 0 && lastHyphen < name.length - 1) {
+    const group = name.substring(lastHyphen + 1).replace(/\.\w{2,4}$/, ""); // strip file extension
+    if (group) tags.push(group);
+  }
+
+  return tags;
+}
+
+function extractReleaseTags(row: Record<string, unknown>): string[] | null {
+  const movieFile = toRecord(row.movieFile);
+  if (!movieFile) return null;
+
+  const tags: string[] = [];
+
+  // 1. Language tag — try scene name first for specific FR tags (VF2, VFF, VFQ, VFI)
+  const sceneName = toStringOrNull(movieFile.sceneName);
+  const relativePath = toStringOrNull(movieFile.relativePath);
+  const nameSource = sceneName || relativePath || "";
+  const langMatch = nameSource.replace(/\./g, " ").match(LANG_TAGS);
+
+  if (langMatch) {
+    tags.push(langMatch[1].replace(/[._]/g, "."));
+  } else {
+    // Derive language tag from Radarr's structured languages array
+    const languages = Array.isArray(movieFile.languages)
+      ? movieFile.languages
+      : [];
+    const langNames = languages
+      .map((l: unknown) => toStringOrNull(toRecord(l)?.name)?.toLowerCase())
+      .filter(Boolean) as string[];
+    const hasFrench = langNames.some((n) => n === "french");
+    const hasEnglish = langNames.some((n) => n === "english");
+    if (hasFrench && hasEnglish) tags.push("MULTI");
+    else if (hasFrench) tags.push("VF");
+    else if (hasEnglish && langNames.length === 1) tags.push("EN");
+  }
+
+  // 2. Resolution — from Radarr quality data, fallback to name parsing
+  const quality = toRecord(movieFile.quality);
+  const qualityDetail = quality ? toRecord(quality.quality) : null;
+  const resolution = qualityDetail
+    ? toNumberOrNull(qualityDetail.resolution)
+    : null;
+  if (resolution && resolution > 0) {
+    tags.push(`${resolution}p`);
+  } else {
+    const resMatch = nameSource.match(RESOLUTION_TAGS);
+    if (resMatch) tags.push(resMatch[1]);
+  }
+
+  // 3. Source — from Radarr quality source, fallback to name parsing
+  const qualitySource = qualityDetail
+    ? toStringOrNull(qualityDetail.source)
+    : null;
+  if (qualitySource) {
+    const sourceMap: Record<string, string> = {
+      bluray: "BluRay",
+      webdl: "WEB-DL",
+      webrip: "WEBRip",
+      television: "HDTV",
+      televisionRaw: "HDTV",
+      dvd: "DVDRip",
+    };
+    const mapped = sourceMap[qualitySource.toLowerCase()];
+    if (mapped) tags.push(mapped);
+  } else {
+    const srcMatch = nameSource.match(SOURCE_TAGS);
+    if (srcMatch) tags.push(srcMatch[1]);
+  }
+
+  // 4. Release group — from Radarr data, fallback to name parsing
+  const releaseGroup = toStringOrNull(movieFile.releaseGroup);
+  if (releaseGroup) {
+    tags.push(releaseGroup);
+  } else {
+    const lastHyphen = nameSource.lastIndexOf("-");
+    if (lastHyphen > 0 && lastHyphen < nameSource.length - 1) {
+      const group = nameSource
+        .substring(lastHyphen + 1)
+        .replace(/\.\w{2,4}$/, "");
+      if (group) tags.push(group);
+    }
+  }
+
+  return tags.length > 0 ? tags : null;
+}
+
+function extractSeriesReleaseTags(
+  _row: Record<string, unknown>,
+): string[] | null {
+  // Sonarr series list response doesn't include episode file data.
+  // Tags are populated separately via fetchSonarrSeriesReleaseTags.
+  return null;
+}
+
+/**
+ * Fetch one episode file per series from Sonarr, parse release tags, and cache in Redis.
+ * Returns a map of sourceId -> tags.
+ */
+export async function fetchSonarrSeriesReleaseTags(
+  websiteUrl: string,
+  apiKey: string,
+  seriesIds: number[],
+): Promise<Map<number, string[]>> {
+  const result = new Map<number, string[]>();
+  if (seriesIds.length === 0) return result;
+
+  // Check Redis cache for each series
+  const uncachedIds: number[] = [];
+  await Promise.all(
+    seriesIds.map(async (id) => {
+      const cached = await getJsonCache<string[]>(`sonarr:release-tags:${id}`);
+      if (cached) {
+        result.set(id, cached);
+      } else {
+        uncachedIds.push(id);
+      }
+    }),
+  );
+
+  if (uncachedIds.length === 0) return result;
+
+  // Fetch episode files for uncached series (concurrency limited to 5)
+  const CONCURRENCY = 5;
+  for (let i = 0; i < uncachedIds.length; i += CONCURRENCY) {
+    const batch = uncachedIds.slice(i, i + CONCURRENCY);
+    const results = await Promise.allSettled(
+      batch.map(async (seriesId) => {
+        const url = new URL("/api/v3/episodefile", websiteUrl);
+        url.searchParams.set("seriesId", String(seriesId));
+        const res = await fetch(url.toString(), {
+          headers: { "X-Api-Key": apiKey, Accept: "application/json" },
+        });
+        if (!res.ok) return { seriesId, tags: null as string[] | null };
+
+        const files = (await res.json()) as unknown[];
+        // Pick the most recent file (last in array)
+        for (let j = files.length - 1; j >= 0; j--) {
+          const file = toRecord(files[j]);
+          if (!file) continue;
+          const sceneName = toStringOrNull(file.sceneName);
+          if (sceneName) {
+            const tags = parseReleaseTags(sceneName);
+            if (tags.length > 0) return { seriesId, tags };
+          }
+          const relativePath = toStringOrNull(file.relativePath);
+          if (relativePath) {
+            const tags = parseReleaseTags(relativePath);
+            if (tags.length > 0) return { seriesId, tags };
+          }
+        }
+        return { seriesId, tags: null as string[] | null };
+      }),
+    );
+
+    for (const r of results) {
+      if (r.status !== "fulfilled") continue;
+      const { seriesId, tags } = r.value;
+      if (tags && tags.length > 0) {
+        result.set(seriesId, tags);
+        await setJsonCache(`sonarr:release-tags:${seriesId}`, tags, 86400); // 24h cache
+      }
+    }
+  }
+
+  return result;
+}
+
+export const mapRadarrMovie = (
+  raw: unknown,
+  baseUrl: string,
+): MediaItem | null => {
+  const row = toRecord(raw);
+  if (!row) return null;
+
+  const sourceId = toNumberOrNull(row.id);
+  const title = toStringOrNull(row.title);
+  if (!sourceId || !title) return null;
+
+  const tmdbId = toNumberOrNull(row.tmdbId);
+
+  return {
+    id: `radarr-${sourceId}`,
+    media_type: "movie",
+    service: "radarr",
+    source_id: sourceId,
+    title,
+    sort_title: toStringOrNull(row.sortTitle),
+    year: toNumberOrNull(row.year),
+    status: toStringOrNull(row.status),
+    monitored: toBoolean(row.monitored),
+    downloaded: toBoolean(row.hasFile),
+    downloading: false,
+    added_at: toIsoOrNull(row.added),
+    tmdb_id: tmdbId,
+    imdb_id: toStringOrNull(row.imdbId),
+    tvdb_id: null,
+    season_count: null,
+    episode_count: null,
+    poster_url: extractPosterUrl(baseUrl, row.images),
+    arr_url: tmdbId ? buildArrItemUrl(baseUrl, "radarr", String(tmdbId)) : null,
+    release_tags: extractReleaseTags(row),
+  };
+};
+
+export const mapSonarrSeries = (
+  raw: unknown,
+  baseUrl: string,
+): MediaItem | null => {
+  const row = toRecord(raw);
+  if (!row) return null;
+
+  const sourceId = toNumberOrNull(row.id);
+  const title = toStringOrNull(row.title);
+  if (!sourceId || !title) return null;
+
+  const statistics = toRecord(row.statistics);
+  const seasons = Array.isArray(row.seasons) ? row.seasons : [];
+  const seasonCount = seasons.filter((season) => {
+    const seasonRow = toRecord(season);
+    const seasonNumber = seasonRow
+      ? toNumberOrNull(seasonRow.seasonNumber)
+      : null;
+    return seasonNumber !== null && seasonNumber > 0;
+  }).length;
+
+  const episodeCount = toNumberOrNull(
+    statistics?.totalEpisodeCount ?? statistics?.episodeCount,
+  );
+  const episodeFileCount = toNumberOrNull(statistics?.episodeFileCount);
+  const sizeOnDisk = toNumberOrNull(statistics?.sizeOnDisk);
+  const downloaded =
+    (episodeFileCount !== null && episodeFileCount > 0) ||
+    (sizeOnDisk !== null && sizeOnDisk > 0);
+
+  const titleSlug = toStringOrNull(row.titleSlug);
+
+  return {
+    id: `sonarr-${sourceId}`,
+    media_type: "series",
+    service: "sonarr",
+    source_id: sourceId,
+    title,
+    sort_title: toStringOrNull(row.sortTitle),
+    year: toNumberOrNull(row.year),
+    status: toStringOrNull(row.status),
+    monitored: toBoolean(row.monitored),
+    downloaded,
+    downloading: false,
+    added_at: toIsoOrNull(row.added),
+    tmdb_id: toNumberOrNull(row.tmdbId),
+    imdb_id: toStringOrNull(row.imdbId),
+    tvdb_id: toNumberOrNull(row.tvdbId),
+    season_count: seasonCount,
+    episode_count: episodeCount,
+    poster_url: extractPosterUrl(baseUrl, row.images),
+    arr_url: titleSlug ? buildArrItemUrl(baseUrl, "sonarr", titleSlug) : null,
+    release_tags: extractSeriesReleaseTags(row),
+  };
+};
+
+export const fetchRadarrDownloadingMovieIds = async (
+  websiteUrl: string,
+  apiKey: string,
+): Promise<Set<number>> => {
+  const url = new URL("/api/v3/queue", websiteUrl);
+  url.searchParams.set("page", "1");
+  url.searchParams.set("pageSize", "2000");
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "X-Api-Key": apiKey,
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok)
+    throw new Error(
+      `Radarr queue request failed with status ${response.status}`,
+    );
+
+  const data = (await response.json()) as Record<string, unknown>;
+  const records = Array.isArray(data.records) ? data.records : [];
+  const ids = new Set<number>();
+
+  for (const raw of records) {
+    const row = toRecord(raw);
+    if (!row) continue;
+
+    const status = toStringOrNull(row.status)?.toLowerCase();
+    const trackedStatuses = new Set([
+      "queued",
+      "delayed",
+      "downloading",
+      "completed",
+      "warning",
+    ]);
+    if (status && !trackedStatuses.has(status)) continue;
+
+    const movieId =
+      toNumberOrNull(row.movieId) ?? toNumberOrNull(toRecord(row.movie)?.id);
+    if (movieId && movieId > 0) ids.add(movieId);
+  }
+
+  return ids;
+};
+
+export const fetchSonarrDownloadingSeriesIds = async (
+  websiteUrl: string,
+  apiKey: string,
+): Promise<Set<number>> => {
+  const url = new URL("/api/v3/queue", websiteUrl);
+  url.searchParams.set("page", "1");
+  url.searchParams.set("pageSize", "2000");
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "X-Api-Key": apiKey,
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok)
+    throw new Error(
+      `Sonarr queue request failed with status ${response.status}`,
+    );
+
+  const data = (await response.json()) as Record<string, unknown>;
+  const records = Array.isArray(data.records) ? data.records : [];
+  const ids = new Set<number>();
+
+  for (const raw of records) {
+    const row = toRecord(raw);
+    if (!row) continue;
+
+    const status = toStringOrNull(row.status)?.toLowerCase();
+    const trackedStatuses = new Set([
+      "queued",
+      "delayed",
+      "downloading",
+      "completed",
+      "warning",
+    ]);
+    if (status && !trackedStatuses.has(status)) continue;
+
+    const seriesId =
+      toNumberOrNull(row.seriesId) ?? toNumberOrNull(toRecord(row.series)?.id);
+    if (seriesId && seriesId > 0) ids.add(seriesId);
+  }
+
+  return ids;
 };
 
 export const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
@@ -179,11 +598,113 @@ export const mapTmdbSearchItem = (raw: unknown): TmdbSearchItem | null => {
     poster_url: posterPath ? `${TMDB_IMAGE_BASE_URL}${posterPath}` : null,
     overview: overview || null,
     vote_average: voteAverage && voteAverage > 0 ? voteAverage : null,
-    service: "prowlarr",
+    service: mediaType === "movie" ? "radarr" : "sonarr",
     already_exists: false,
     can_add: false,
     source_id: null,
+    arr_url: null,
   };
+};
+
+export const fetchRadarrTmdbIds = async (
+  websiteUrl: string,
+  apiKey: string,
+): Promise<Map<number, ArrEntry>> => {
+  const cacheKey = "medias:radarr:ids";
+  const cached = await getJsonCache<[number, ArrEntry][]>(cacheKey);
+  if (cached) return new Map(cached);
+
+  const url = new URL("/api/v3/movie", websiteUrl);
+  const response = await fetch(url.toString(), {
+    headers: { "X-Api-Key": apiKey, Accept: "application/json" },
+  });
+  if (!response.ok)
+    throw new Error(`Radarr request failed with status ${response.status}`);
+
+  const data = (await response.json()) as unknown[];
+  const ids = new Map<number, ArrEntry>();
+  for (const raw of data) {
+    const row = toRecord(raw);
+    const tmdbId = row ? toNumberOrNull(row.tmdbId) : null;
+    const sourceId = row ? toNumberOrNull(row.id) : null;
+    if (tmdbId && tmdbId > 0 && sourceId && sourceId > 0) {
+      ids.set(tmdbId, {
+        sourceId,
+        titleSlug: row ? toStringOrNull(row.titleSlug) : null,
+      });
+    }
+  }
+
+  await setJsonCache(cacheKey, Array.from(ids.entries()), 6 * 60 * 60); // 6 hours
+  return ids;
+};
+
+/**
+ * Episodes that have a file on disk (Sonarr `hasFile`).
+ * Sorted by season, then episode.
+ */
+export async function fetchSonarrDownloadedEpisodes(
+  websiteUrl: string,
+  apiKey: string,
+  seriesId: number,
+): Promise<{ season_number: number; episode_number: number }[]> {
+  const url = new URL("/api/v3/episode", websiteUrl);
+  url.searchParams.set("seriesId", String(seriesId));
+  const res = await fetch(url.toString(), {
+    headers: { "X-Api-Key": apiKey, Accept: "application/json" },
+  });
+  if (!res.ok) return [];
+
+  const data = (await res.json()) as unknown[];
+  if (!Array.isArray(data)) return [];
+
+  const out: { season_number: number; episode_number: number }[] = [];
+  for (const raw of data) {
+    const row = toRecord(raw);
+    if (!row || !toBoolean(row.hasFile)) continue;
+    const sn = toNumberOrNull(row.seasonNumber);
+    const en = toNumberOrNull(row.episodeNumber);
+    if (sn === null || en === null) continue;
+    out.push({ season_number: sn, episode_number: en });
+  }
+  out.sort(
+    (a, b) =>
+      a.season_number - b.season_number || a.episode_number - b.episode_number,
+  );
+  return out;
+}
+
+export const fetchSonarrTmdbIds = async (
+  websiteUrl: string,
+  apiKey: string,
+): Promise<Map<number, ArrEntry>> => {
+  const cacheKey = "medias:sonarr:ids";
+  const cached = await getJsonCache<[number, ArrEntry][]>(cacheKey);
+  if (cached) return new Map(cached);
+
+  const url = new URL("/api/v3/series", websiteUrl);
+  const response = await fetch(url.toString(), {
+    headers: { "X-Api-Key": apiKey, Accept: "application/json" },
+  });
+  if (!response.ok)
+    throw new Error(`Sonarr request failed with status ${response.status}`);
+
+  const data = (await response.json()) as unknown[];
+  const ids = new Map<number, ArrEntry>();
+  for (const raw of data) {
+    const row = toRecord(raw);
+    const tmdbId = row ? toNumberOrNull(row.tmdbId) : null;
+    const sourceId = row ? toNumberOrNull(row.id) : null;
+    if (tmdbId && tmdbId > 0 && sourceId && sourceId > 0) {
+      ids.set(tmdbId, {
+        sourceId,
+        titleSlug: row ? toStringOrNull(row.titleSlug) : null,
+      });
+    }
+  }
+
+  await setJsonCache(cacheKey, Array.from(ids.entries()), 6 * 60 * 60); // 6 hours
+  return ids;
 };
 
 export const mapInteractiveRelease = (
@@ -235,10 +756,8 @@ export const mapInteractiveRelease = (
     rejected: toBoolean(row.rejected),
     rejection_reason: rejectionReason,
     info_url: toStringOrNull(row.infoUrl),
-    source: "prowlarr",
+    source: "arr",
     download_token: null,
-    is_season_pack: isSeasonPack(title),
-    is_complete_series: isCompleteSeries(title),
   };
 };
 
@@ -275,18 +794,145 @@ export const takeProwlarrReleasePayload = (
 
 export const mapProwlarrInteractiveRelease = (
   raw: unknown,
-  prowlarrWebsiteUrl: string,
 ): InteractiveReleaseItem | null => {
   const base = mapInteractiveRelease(raw);
   const row = toRecord(raw);
   if (!base || !row) return null;
 
   const downloadToken = storeProwlarrReleasePayload(row);
-  const target = extractProwlarrDownloadTarget(row, prowlarrWebsiteUrl);
   return {
     ...base,
     source: "prowlarr",
     download_token: downloadToken,
-    download_url: target?.url ?? null,
   };
 };
+
+export const isSonarrFullSeasonRelease = (raw: unknown): boolean => {
+  const row = toRecord(raw);
+  if (!row) return false;
+  return toBoolean(row.fullSeason);
+};
+
+function extractGenreNames(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const out: string[] = [];
+  for (const g of value) {
+    const n = toStringOrNull(toRecord(g)?.name);
+    if (n) out.push(n);
+  }
+  return out;
+}
+
+function seriesTypeToString(value: unknown): string | null {
+  if (typeof value === "string") return value.trim() || null;
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
+
+export function mapRadarrManagementDetails(
+  raw: unknown,
+): ArrManagementDetailsResponse | null {
+  const row = toRecord(raw);
+  if (!row) return null;
+  const title = toStringOrNull(row.title);
+  if (!title) return null;
+
+  const movieFile = toRecord(row.movieFile);
+  let file: ArrManagementFileInfo | null = null;
+  if (movieFile) {
+    const quality = toRecord(movieFile.quality);
+    const qualityInner = quality ? toRecord(quality.quality) : null;
+    const qualityLabel = qualityInner
+      ? toStringOrNull(qualityInner.name)
+      : null;
+    const mediaInfo = toRecord(movieFile.mediaInfo);
+    const languages = Array.isArray(movieFile.languages)
+      ? movieFile.languages
+          .map((l: unknown) => toStringOrNull(toRecord(l)?.name))
+          .filter((x): x is string => Boolean(x))
+      : [];
+    file = {
+      relative_path: toStringOrNull(movieFile.relativePath),
+      size_bytes: toNumberOrNull(movieFile.size),
+      quality_label: qualityLabel,
+      custom_format_score: toNumberOrNull(movieFile.customFormatScore),
+      date_added: toIsoOrNull(movieFile.dateAdded),
+      languages,
+      scene_name: toStringOrNull(movieFile.sceneName),
+      media_resolution: mediaInfo ? toStringOrNull(mediaInfo.resolution) : null,
+      video_codec: mediaInfo ? toStringOrNull(mediaInfo.videoCodec) : null,
+      audio_codec: mediaInfo ? toStringOrNull(mediaInfo.audioCodec) : null,
+      audio_channels: mediaInfo
+        ? toStringOrNull(mediaInfo.audioChannels)
+        : null,
+      edition: toStringOrNull(movieFile.edition),
+      release_group: toStringOrNull(movieFile.releaseGroup),
+    };
+  }
+
+  return {
+    service: "radarr",
+    title,
+    sort_title: toStringOrNull(row.sortTitle),
+    path: toStringOrNull(row.path),
+    root_folder_path: toStringOrNull(row.rootFolderPath),
+    monitored: toBoolean(row.monitored),
+    arr_status: toStringOrNull(row.status),
+    added: toIsoOrNull(row.added),
+    genres: extractGenreNames(row.genres),
+    studio: toStringOrNull(row.studio),
+    has_file: toBoolean(row.hasFile),
+    file,
+    series_type: null,
+    season_folder: false,
+    statistics: null,
+    network: null,
+  };
+}
+
+export function mapSonarrManagementDetails(
+  raw: unknown,
+): ArrManagementDetailsResponse | null {
+  const row = toRecord(raw);
+  if (!row) return null;
+  const title = toStringOrNull(row.title);
+  if (!title) return null;
+
+  const statistics = toRecord(row.statistics);
+  let stats: ArrManagementStatistics | null = null;
+  if (statistics) {
+    const epFile = toNumberOrNull(statistics.episodeFileCount) ?? 0;
+    const epCount = toNumberOrNull(statistics.episodeCount) ?? 0;
+    const totalEp = toNumberOrNull(statistics.totalEpisodeCount) ?? 0;
+    const size = toNumberOrNull(statistics.sizeOnDisk) ?? 0;
+    const pct = toNumberOrNull(statistics.percentOfEpisodes) ?? 0;
+    stats = {
+      episode_file_count: epFile,
+      episode_count: epCount,
+      total_episode_count: totalEp,
+      size_on_disk_bytes: size,
+      percent_of_episodes: pct,
+    };
+  }
+
+  const epCount = stats?.episode_file_count ?? 0;
+
+  return {
+    service: "sonarr",
+    title,
+    sort_title: toStringOrNull(row.sortTitle),
+    path: toStringOrNull(row.path),
+    root_folder_path: toStringOrNull(row.rootFolderPath),
+    monitored: toBoolean(row.monitored),
+    arr_status: toStringOrNull(row.status),
+    added: toIsoOrNull(row.added),
+    genres: extractGenreNames(row.genres),
+    studio: null,
+    has_file: epCount > 0,
+    file: null,
+    series_type: seriesTypeToString(row.seriesType),
+    season_folder: toBoolean(row.seasonFolder),
+    statistics: stats,
+    network: toStringOrNull(row.network),
+  };
+}

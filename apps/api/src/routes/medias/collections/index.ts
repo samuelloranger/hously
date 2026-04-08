@@ -2,7 +2,9 @@ import { Elysia } from "elysia";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
+import { normalizeRadarrConfig } from "@hously/api/utils/plugins/normalizers";
 import { serverError } from "@hously/api/errors";
+import { fetchRadarrTmdbIds, buildArrItemUrl, type ArrEntry } from "@hously/api/utils/medias/mappers";
 import {
   loadTmdbConfig,
   fetchMediaDetails,
@@ -14,17 +16,27 @@ export const mediasCollectionsRoutes = new Elysia()
   .use(requireUser)
   .get("/collections/missing", async ({ set }) => {
     try {
-      const tmdbConfig = await loadTmdbConfig();
-      if (!tmdbConfig) return { collections: [] };
+      const [tmdbConfig, radarrPlugin] = await Promise.all([
+        loadTmdbConfig(),
+        prisma.plugin.findFirst({
+          where: { type: "radarr" },
+          select: { enabled: true, config: true },
+        }),
+      ]);
 
-      const ownedMovies = await prisma.libraryMedia.findMany({
-        where: { type: "movie" },
-        select: { tmdbId: true },
-      });
-      const ownedTmdb = new Set(ownedMovies.map((m) => m.tmdbId));
+      const radarrConfig = radarrPlugin?.enabled
+        ? normalizeRadarrConfig(radarrPlugin.config)
+        : null;
+      if (!tmdbConfig || !radarrConfig) return { collections: [] };
 
-      const tmdbIds = [...ownedTmdb];
+      // Fetch all Radarr movies
+      const radarrIds = await fetchRadarrTmdbIds(
+        radarrConfig.website_url,
+        radarrConfig.api_key,
+      );
+      const tmdbIds = Array.from(radarrIds.keys());
 
+      // Fetch TMDB details for all Radarr movies in batches of 15 (uses 24h cache)
       const BATCH_SIZE = 15;
       const detailsMap = new Map<
         number,
@@ -44,6 +56,7 @@ export const mediasCollectionsRoutes = new Elysia()
         });
       }
 
+      // Collect unique collection IDs
       const collectionIds = new Set<number>();
       for (const details of detailsMap.values()) {
         if (details.belongs_to_collection) {
@@ -53,17 +66,29 @@ export const mediasCollectionsRoutes = new Elysia()
 
       if (collectionIds.size === 0) return { collections: [] };
 
+      // Fetch collection data from TMDB (cached 24h per collection)
       const collectionResults = await Promise.all(
         Array.from(collectionIds).map((id) =>
           fetchCollectionDetails(tmdbConfig.api_key, id),
         ),
       );
 
+      // Build response — annotate each movie with library status
       const collections = collectionResults
         .filter((c): c is NonNullable<typeof c> => c !== null)
         .map((collection) => {
           const movies = collection.parts.map((part) => {
-            const already_exists = ownedTmdb.has(part.tmdb_id);
+            const entry: ArrEntry | undefined = radarrIds.get(part.tmdb_id);
+            const already_exists = Boolean(entry);
+            const source_id = entry?.sourceId ?? null;
+            let arr_url: string | null = null;
+            if (radarrConfig.website_url && entry) {
+              arr_url = buildArrItemUrl(
+                radarrConfig.website_url,
+                "radarr",
+                String(part.tmdb_id),
+              );
+            }
             return {
               id: String(part.tmdb_id),
               tmdb_id: part.tmdb_id,
@@ -73,10 +98,11 @@ export const mediasCollectionsRoutes = new Elysia()
               poster_url: part.poster_url,
               overview: part.overview,
               vote_average: part.vote_average,
-              service: "library" as const,
+              service: "radarr" as const,
               already_exists,
               can_add: !already_exists,
-              source_id: null,
+              source_id,
+              arr_url,
             };
           });
 

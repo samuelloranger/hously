@@ -17,9 +17,6 @@ import { externalNotificationsRoutes } from "./routes/external-notifications";
 import { habitsRoutes } from "./routes/habits";
 import { homeAssistantRoutes } from "./routes/dashboard/home-assistant";
 import { mealPlansRoutes } from "./routes/meal-plans";
-import { libraryMediaAdminRoutes } from "./routes/library/libraryMediaAdmin";
-import { libraryRoutes } from "./routes/library";
-import { qualityProfilesRoutes } from "./routes/quality-profiles";
 import { mediasRoutes } from "./routes/medias";
 import { notificationsRoutes } from "./routes/notifications";
 import { pluginsRoutes } from "./routes/plugins";
@@ -85,9 +82,6 @@ export const app = new Elysia()
   .use(analyticsRoutes)
   .use(pluginsRoutes)
   .use(homeAssistantRoutes)
-  .use(libraryMediaAdminRoutes)
-  .use(libraryRoutes)
-  .use(qualityProfilesRoutes)
   .use(mediasRoutes)
   .use(habitsRoutes)
   .use(boardTasksRoutes)

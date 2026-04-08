@@ -2,12 +2,21 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
-import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
+import {
+  normalizeRadarrConfig,
+  normalizeSonarrConfig,
+  normalizeTmdbConfig,
+} from "@hously/api/utils/plugins/normalizers";
 import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 import { badGateway, badRequest, serverError } from "@hously/api/errors";
 import {
   type TmdbSearchItem,
+  type ArrEntry,
   mapTmdbSearchItem,
+  fetchRadarrTmdbIds,
+  fetchSonarrTmdbIds,
+  fetchSonarrDownloadedEpisodes,
+  buildArrItemUrl,
   toRecord,
   toStringOrNull,
   toNumberOrNull,
@@ -32,23 +41,41 @@ export const mediasTmdbRoutes = new Elysia()
       if (q.length < 2) {
         return {
           enabled: true,
+          radarr_enabled: false,
+          sonarr_enabled: false,
           items: [],
         };
       }
 
       const response: {
         enabled: boolean;
+        radarr_enabled: boolean;
+        sonarr_enabled: boolean;
         items: TmdbSearchItem[];
+        errors?: { radarr?: string; sonarr?: string };
       } = {
         enabled: true,
+        radarr_enabled: false,
+        sonarr_enabled: false,
         items: [],
       };
+      const errors: { radarr?: string; sonarr?: string } = {};
 
       try {
-        const tmdbPlugin = await prisma.plugin.findFirst({
-          where: { type: "tmdb" },
-          select: { enabled: true, config: true },
-        });
+        const [tmdbPlugin, radarrPlugin, sonarrPlugin] = await Promise.all([
+          prisma.plugin.findFirst({
+            where: { type: "tmdb" },
+            select: { enabled: true, config: true },
+          }),
+          prisma.plugin.findFirst({
+            where: { type: "radarr" },
+            select: { enabled: true, config: true },
+          }),
+          prisma.plugin.findFirst({
+            where: { type: "sonarr" },
+            select: { enabled: true, config: true },
+          }),
+        ]);
 
         const tmdbConfig = tmdbPlugin?.enabled
           ? normalizeTmdbConfig(tmdbPlugin.config)
@@ -56,6 +83,15 @@ export const mediasTmdbRoutes = new Elysia()
         if (!tmdbConfig) {
           return badRequest(set, "TMDB is not configured");
         }
+
+        const radarrConfig = radarrPlugin?.enabled
+          ? normalizeRadarrConfig(radarrPlugin.config)
+          : null;
+        const sonarrConfig = sonarrPlugin?.enabled
+          ? normalizeSonarrConfig(sonarrPlugin.config)
+          : null;
+        response.radarr_enabled = Boolean(radarrConfig);
+        response.sonarr_enabled = Boolean(sonarrConfig);
 
         const searchUrl = new URL("https://api.themoviedb.org/3/search/multi");
         searchUrl.searchParams.set("api_key", tmdbConfig.api_key);
@@ -82,24 +118,82 @@ export const mediasTmdbRoutes = new Elysia()
           .filter((item): item is TmdbSearchItem => Boolean(item))
           .slice(0, 20);
 
-        // Check which TMDB IDs are already in the native library
-        const tmdbIds = items.map((i) => i.tmdb_id);
-        const libraryEntries = await prisma.libraryMedia.findMany({
-          where: { tmdbId: { in: tmdbIds } },
-          select: { tmdbId: true, id: true },
-        });
-        const libraryIdByTmdbId = new Map(libraryEntries.map((e) => [e.tmdbId, e.id]));
+        let radarrIds = new Map<number, ArrEntry>();
+        let sonarrIds = new Map<number, ArrEntry>();
 
-        items = items.map((item) => ({
-          ...item,
-          service: "prowlarr" as const,
-          already_exists: libraryIdByTmdbId.has(item.tmdb_id),
-          can_add: true,
-          source_id: null,
-          library_id: libraryIdByTmdbId.get(item.tmdb_id) ?? null,
-        }));
+        await Promise.all([
+          (async () => {
+            if (!radarrConfig) return;
+            try {
+              radarrIds = await fetchRadarrTmdbIds(
+                radarrConfig.website_url,
+                radarrConfig.api_key,
+              );
+            } catch (error) {
+              errors.radarr =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to fetch Radarr IDs";
+            }
+          })(),
+          (async () => {
+            if (!sonarrConfig) return;
+            try {
+              sonarrIds = await fetchSonarrTmdbIds(
+                sonarrConfig.website_url,
+                sonarrConfig.api_key,
+              );
+            } catch (error) {
+              errors.sonarr =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to fetch Sonarr IDs";
+            }
+          })(),
+        ]);
+
+        items = items.map((item) => {
+          const isMovie = item.media_type === "movie";
+          const entry = isMovie
+            ? radarrIds.get(item.tmdb_id)
+            : sonarrIds.get(item.tmdb_id);
+          const sourceId = entry?.sourceId ?? null;
+          const sourceBaseUrl = isMovie
+            ? radarrConfig?.website_url
+            : sonarrConfig?.website_url;
+
+          let arr_url: string | null = null;
+          if (sourceBaseUrl && entry) {
+            if (isMovie) {
+              // Radarr uses the TMDB ID in its web UI URL
+              arr_url = buildArrItemUrl(
+                sourceBaseUrl,
+                "radarr",
+                String(item.tmdb_id),
+              );
+            } else if (entry.titleSlug) {
+              // Sonarr uses the title slug in its web UI URL
+              arr_url = buildArrItemUrl(
+                sourceBaseUrl,
+                "sonarr",
+                entry.titleSlug,
+              );
+            }
+          }
+
+          return {
+            ...item,
+            already_exists: isMovie
+              ? radarrIds.has(item.tmdb_id)
+              : sonarrIds.has(item.tmdb_id),
+            can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
+            source_id: sourceId,
+            arr_url,
+          };
+        });
 
         response.items = items;
+        if (errors.radarr || errors.sonarr) response.errors = errors;
         return response;
       } catch (error) {
         console.error("Error searching TMDB medias:", error);
@@ -114,10 +208,20 @@ export const mediasTmdbRoutes = new Elysia()
   )
   .get("/explore", async ({ user, set, query }) => {
     try {
-      const tmdbPlugin = await prisma.plugin.findFirst({
-        where: { type: "tmdb" },
-        select: { enabled: true, config: true },
-      });
+      const [tmdbPlugin, radarrPlugin, sonarrPlugin] = await Promise.all([
+        prisma.plugin.findFirst({
+          where: { type: "tmdb" },
+          select: { enabled: true, config: true },
+        }),
+        prisma.plugin.findFirst({
+          where: { type: "radarr" },
+          select: { enabled: true, config: true },
+        }),
+        prisma.plugin.findFirst({
+          where: { type: "sonarr" },
+          select: { enabled: true, config: true },
+        }),
+      ]);
 
       const tmdbConfig = tmdbPlugin?.enabled
         ? normalizeTmdbConfig(tmdbPlugin.config)
@@ -126,20 +230,22 @@ export const mediasTmdbRoutes = new Elysia()
         return badRequest(set, "TMDB is not configured");
       }
 
+      const radarrConfig = radarrPlugin?.enabled
+        ? normalizeRadarrConfig(radarrPlugin.config)
+        : null;
+      const sonarrConfig = sonarrPlugin?.enabled
+        ? normalizeSonarrConfig(sonarrPlugin.config)
+        : null;
+
       const language =
         (query as Record<string, string | undefined>).language || "en-US";
       const skipCache =
         (query as Record<string, string | undefined>).skipCache === "true";
 
-      const fetchTmdb = async (path: string, extra?: Record<string, string>) => {
+      const fetchTmdb = async (path: string) => {
         const url = new URL(`https://api.themoviedb.org/3/${path}`);
         url.searchParams.set("api_key", tmdbConfig.api_key);
         url.searchParams.set("language", language);
-        if (extra) {
-          for (const [k, v] of Object.entries(extra)) {
-            url.searchParams.set(k, v);
-          }
-        }
         const res = await fetch(url.toString(), {
           headers: { Accept: "application/json" },
         });
@@ -165,6 +271,8 @@ export const mediasTmdbRoutes = new Elysia()
         onTheAir,
         topRatedMovies,
         topRatedShows,
+        radarrIds,
+        sonarrIds,
       ] = await Promise.all([
         fetchTmdb("trending/all/day"),
         fetchTmdb("movie/popular").then(injectMediaType("movie")),
@@ -174,38 +282,64 @@ export const mediasTmdbRoutes = new Elysia()
         fetchTmdb("tv/airing_today").then(injectMediaType("tv")),
         fetchTmdb("tv/on_the_air").then(injectMediaType("tv")),
         fetchTmdb("movie/top_rated").then(injectMediaType("movie")),
-        fetchTmdb("discover/tv", {
-          sort_by: "vote_average.desc",
-          with_origin_country: "US|CA",
-          "vote_count.gte": "200",
-          without_genres: "16", // exclude animation/anime
-        }).then(injectMediaType("tv")),
+        fetchTmdb("tv/top_rated").then(injectMediaType("tv")),
+        radarrConfig
+          ? fetchRadarrTmdbIds(
+              radarrConfig.website_url,
+              radarrConfig.api_key,
+            ).catch(() => new Map())
+          : Promise.resolve(new Map()),
+        sonarrConfig
+          ? fetchSonarrTmdbIds(
+              sonarrConfig.website_url,
+              sonarrConfig.api_key,
+            ).catch(() => new Map())
+          : Promise.resolve(new Map()),
       ]);
-
-      const libraryAllEntries = await prisma.libraryMedia.findMany({
-        select: { tmdbId: true, id: true, type: true },
-      });
-
-      const libraryIdByTmdbId = new Map(
-        libraryAllEntries.map((e) => [e.tmdbId, e.id]),
-      );
 
       const normalize = (items: unknown[]) =>
         items
           .map(mapTmdbSearchItem)
           .filter((item): item is TmdbSearchItem => Boolean(item))
           .map((item) => {
-            const libId = libraryIdByTmdbId.get(item.tmdb_id);
+            const isMovie = item.media_type === "movie";
+            const entry = isMovie
+              ? radarrIds.get(item.tmdb_id)
+              : sonarrIds.get(item.tmdb_id);
+            const sourceId = entry?.sourceId ?? null;
+            const sourceBaseUrl = isMovie
+              ? radarrConfig?.website_url
+              : sonarrConfig?.website_url;
+
+            let arr_url: string | null = null;
+            if (sourceBaseUrl && entry) {
+              if (isMovie) {
+                arr_url = buildArrItemUrl(
+                  sourceBaseUrl,
+                  "radarr",
+                  String(item.tmdb_id),
+                );
+              } else if (entry.titleSlug) {
+                arr_url = buildArrItemUrl(
+                  sourceBaseUrl,
+                  "sonarr",
+                  entry.titleSlug,
+                );
+              }
+            }
+
             return {
               ...item,
-              service: "prowlarr" as const,
-              already_exists: libId != null,
-              can_add: true,
-              source_id: null,
-              library_id: libId ?? null,
+              already_exists: isMovie
+                ? radarrIds.has(item.tmdb_id)
+                : sonarrIds.has(item.tmdb_id),
+              can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
+              source_id: sourceId,
+              arr_url,
             };
           });
 
+      // Recommendations based on library items
       const recommendationsCacheKey = `medias:explore:recommendations:${language}`;
 
       let recommended: TmdbSearchItem[] = [];
@@ -219,13 +353,10 @@ export const mediasTmdbRoutes = new Elysia()
       }
 
       if (!recommended.length) {
-        const movieTmdbIds = libraryAllEntries
-          .filter((e) => e.type === "movie")
-          .map((e) => e.tmdbId);
-        const showTmdbIds = libraryAllEntries
-          .filter((e) => e.type === "show")
-          .map((e) => e.tmdbId);
+        const movieTmdbIds = Array.from(radarrIds.keys());
+        const showTmdbIds = Array.from(sonarrIds.keys());
 
+        // Shuffle and pick a sample
         const shuffle = <T>(arr: T[]): T[] => {
           const copy = [...arr];
           for (let i = copy.length - 1; i > 0; i--) {
@@ -250,7 +381,7 @@ export const mediasTmdbRoutes = new Elysia()
           ),
         ]);
 
-        const allExisting = new Set(libraryAllEntries.map((e) => e.tmdbId));
+        const allExisting = new Set([...radarrIds.keys(), ...sonarrIds.keys()]);
         const seen = new Set<number>();
 
         recommended = normalize(recResults.flat())
@@ -263,7 +394,7 @@ export const mediasTmdbRoutes = new Elysia()
           .slice(0, 20);
 
         if (recommended.length > 0) {
-          await setJsonCache(recommendationsCacheKey, recommended, 60 * 60);
+          await setJsonCache(recommendationsCacheKey, recommended, 60 * 60); // 1 hour
         }
       }
 
@@ -307,10 +438,20 @@ export const mediasTmdbRoutes = new Elysia()
     }
 
     try {
-      const tmdbPlugin = await prisma.plugin.findFirst({
-        where: { type: "tmdb" },
-        select: { enabled: true, config: true },
-      });
+      const [tmdbPlugin, radarrPlugin, sonarrPlugin] = await Promise.all([
+        prisma.plugin.findFirst({
+          where: { type: "tmdb" },
+          select: { enabled: true, config: true },
+        }),
+        prisma.plugin.findFirst({
+          where: { type: "radarr" },
+          select: { enabled: true, config: true },
+        }),
+        prisma.plugin.findFirst({
+          where: { type: "sonarr" },
+          select: { enabled: true, config: true },
+        }),
+      ]);
 
       const tmdbConfig = tmdbPlugin?.enabled
         ? normalizeTmdbConfig(tmdbPlugin.config)
@@ -318,6 +459,13 @@ export const mediasTmdbRoutes = new Elysia()
       if (!tmdbConfig) {
         return badRequest(set, "TMDB is not configured");
       }
+
+      const radarrConfig = radarrPlugin?.enabled
+        ? normalizeRadarrConfig(radarrPlugin.config)
+        : null;
+      const sonarrConfig = sonarrPlugin?.enabled
+        ? normalizeSonarrConfig(sonarrPlugin.config)
+        : null;
 
       const q = query as Record<string, string | undefined>;
       const language = q.language || "en-US";
@@ -346,35 +494,64 @@ export const mediasTmdbRoutes = new Elysia()
         );
       }
 
-      const catTmdbIds = items
-        .map(mapTmdbSearchItem)
-        .filter((item): item is TmdbSearchItem => Boolean(item))
-        .map((i) => i.tmdb_id);
-      const catLibEntries = catTmdbIds.length
-        ? await prisma.libraryMedia.findMany({
-            where: { tmdbId: { in: catTmdbIds } },
-            select: { tmdbId: true, id: true },
-          })
-        : [];
-      const catLibMap = new Map(catLibEntries.map((e) => [e.tmdbId, e.id]));
+      const [radarrIds, sonarrIds] = await Promise.all([
+        radarrConfig
+          ? fetchRadarrTmdbIds(
+              radarrConfig.website_url,
+              radarrConfig.api_key,
+            ).catch(() => new Map())
+          : Promise.resolve(new Map()),
+        sonarrConfig
+          ? fetchSonarrTmdbIds(
+              sonarrConfig.website_url,
+              sonarrConfig.api_key,
+            ).catch(() => new Map())
+          : Promise.resolve(new Map()),
+      ]);
 
-      const enrichedNormalized = items
+      const normalized = items
         .map(mapTmdbSearchItem)
         .filter((item): item is TmdbSearchItem => Boolean(item))
         .map((item) => {
-          const libId = catLibMap.get(item.tmdb_id) ?? null;
+          const isMovie = item.media_type === "movie";
+          const entry = isMovie
+            ? radarrIds.get(item.tmdb_id)
+            : sonarrIds.get(item.tmdb_id);
+          const sourceId = entry?.sourceId ?? null;
+          const sourceBaseUrl = isMovie
+            ? radarrConfig?.website_url
+            : sonarrConfig?.website_url;
+
+          let arr_url: string | null = null;
+          if (sourceBaseUrl && entry) {
+            if (isMovie) {
+              arr_url = buildArrItemUrl(
+                sourceBaseUrl,
+                "radarr",
+                String(item.tmdb_id),
+              );
+            } else if (entry.titleSlug) {
+              arr_url = buildArrItemUrl(
+                sourceBaseUrl,
+                "sonarr",
+                entry.titleSlug,
+              );
+            }
+          }
+
           return {
             ...item,
-            service: "prowlarr" as const,
-            already_exists: libId != null,
-            can_add: true,
-            source_id: null,
-            library_id: libId,
+            already_exists: isMovie
+              ? radarrIds.has(item.tmdb_id)
+              : sonarrIds.has(item.tmdb_id),
+            can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
+            source_id: sourceId,
+            arr_url,
           };
         });
 
       return {
-        items: enrichedNormalized,
+        items: normalized,
         page,
         total_pages:
           typeof data.total_pages === "number" ? data.total_pages : 1,
@@ -407,10 +584,20 @@ export const mediasTmdbRoutes = new Elysia()
           return { items: cached };
         }
 
-        const tmdbPlugin = await prisma.plugin.findFirst({
-          where: { type: "tmdb" },
-          select: { enabled: true, config: true },
-        });
+        const [tmdbPlugin, radarrPlugin, sonarrPlugin] = await Promise.all([
+          prisma.plugin.findFirst({
+            where: { type: "tmdb" },
+            select: { enabled: true, config: true },
+          }),
+          prisma.plugin.findFirst({
+            where: { type: "radarr" },
+            select: { enabled: true, config: true },
+          }),
+          prisma.plugin.findFirst({
+            where: { type: "sonarr" },
+            select: { enabled: true, config: true },
+          }),
+        ]);
 
         const tmdbConfig = tmdbPlugin?.enabled
           ? normalizeTmdbConfig(tmdbPlugin.config)
@@ -418,6 +605,13 @@ export const mediasTmdbRoutes = new Elysia()
         if (!tmdbConfig) {
           return badRequest(set, "TMDB is not configured");
         }
+
+        const radarrConfig = radarrPlugin?.enabled
+          ? normalizeRadarrConfig(radarrPlugin.config)
+          : null;
+        const sonarrConfig = sonarrPlugin?.enabled
+          ? normalizeSonarrConfig(sonarrPlugin.config)
+          : null;
 
         const url = new URL(
           `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/recommendations`,
@@ -433,39 +627,72 @@ export const mediasTmdbRoutes = new Elysia()
           if (Array.isArray(data.results)) rawResults.push(...data.results);
         }
 
+        // Inject media_type for consistency (recommendations may not always include it)
         const withType = rawResults.map((item) =>
           typeof item === "object" && item !== null
             ? { ...item, media_type: mediaType }
             : item,
         );
 
-        const baseItems = withType
+        const [radarrIds, sonarrIds] = await Promise.all([
+          radarrConfig
+            ? fetchRadarrTmdbIds(
+                radarrConfig.website_url,
+                radarrConfig.api_key,
+              ).catch(() => new Map<number, ArrEntry>())
+            : Promise.resolve(new Map<number, ArrEntry>()),
+          sonarrConfig
+            ? fetchSonarrTmdbIds(
+                sonarrConfig.website_url,
+                sonarrConfig.api_key,
+              ).catch(() => new Map<number, ArrEntry>())
+            : Promise.resolve(new Map<number, ArrEntry>()),
+        ]);
+
+        const items = withType
           .map(mapTmdbSearchItem)
           .filter((item): item is TmdbSearchItem => Boolean(item))
+          .map((item) => {
+            const isMovie = item.media_type === "movie";
+            const entry = isMovie
+              ? radarrIds.get(item.tmdb_id)
+              : sonarrIds.get(item.tmdb_id);
+            const sourceId = entry?.sourceId ?? null;
+            const sourceBaseUrl = isMovie
+              ? radarrConfig?.website_url
+              : sonarrConfig?.website_url;
+
+            let arr_url: string | null = null;
+            if (sourceBaseUrl && entry) {
+              if (isMovie) {
+                arr_url = buildArrItemUrl(
+                  sourceBaseUrl,
+                  "radarr",
+                  String(item.tmdb_id),
+                );
+              } else if (entry.titleSlug) {
+                arr_url = buildArrItemUrl(
+                  sourceBaseUrl,
+                  "sonarr",
+                  entry.titleSlug,
+                );
+              }
+            }
+
+            return {
+              ...item,
+              already_exists: isMovie
+                ? radarrIds.has(item.tmdb_id)
+                : sonarrIds.has(item.tmdb_id),
+              can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
+              source_id: sourceId,
+              arr_url,
+            };
+          })
           .slice(0, 40);
 
-        const simTmdbIds = baseItems.map((i) => i.tmdb_id);
-        const simLibEntries = simTmdbIds.length
-          ? await prisma.libraryMedia.findMany({
-              where: { tmdbId: { in: simTmdbIds } },
-              select: { tmdbId: true, id: true },
-            })
-          : [];
-        const simLibMap = new Map(simLibEntries.map((e) => [e.tmdbId, e.id]));
-        const enrichedItems = baseItems.map((item) => {
-          const libId = simLibMap.get(item.tmdb_id) ?? null;
-          return {
-            ...item,
-            service: "prowlarr" as const,
-            already_exists: libId != null,
-            can_add: true,
-            source_id: null,
-            library_id: libId,
-          };
-        });
-
-        await setJsonCache(cacheKey, enrichedItems, 60 * 60);
-        return { items: enrichedItems };
+        await setJsonCache(cacheKey, items, 60 * 60); // 1 hour
+        return { items };
       } catch (error) {
         console.error("Error fetching similar medias:", error);
         return serverError(set, "Failed to fetch similar medias");
@@ -618,15 +845,32 @@ export const mediasTmdbRoutes = new Elysia()
     const tmdbEndPage = Math.floor(endIdx / TMDB_PAGE_SIZE) + 1;
 
     try {
-      const tmdbPlugin = await prisma.plugin.findFirst({
-        where: { type: "tmdb" },
-        select: { enabled: true, config: true },
-      });
+      const [tmdbPlugin, radarrPlugin, sonarrPlugin] = await Promise.all([
+        prisma.plugin.findFirst({
+          where: { type: "tmdb" },
+          select: { enabled: true, config: true },
+        }),
+        prisma.plugin.findFirst({
+          where: { type: "radarr" },
+          select: { enabled: true, config: true },
+        }),
+        prisma.plugin.findFirst({
+          where: { type: "sonarr" },
+          select: { enabled: true, config: true },
+        }),
+      ]);
 
       const tmdbConfig = tmdbPlugin?.enabled
         ? normalizeTmdbConfig(tmdbPlugin.config)
         : null;
       if (!tmdbConfig) return badRequest(set, "TMDB is not configured");
+
+      const radarrConfig = radarrPlugin?.enabled
+        ? normalizeRadarrConfig(radarrPlugin.config)
+        : null;
+      const sonarrConfig = sonarrPlugin?.enabled
+        ? normalizeSonarrConfig(sonarrPlugin.config)
+        : null;
 
       const buildUrl = (tmdbPage: number) => {
         const url = new URL(`https://api.themoviedb.org/3/discover/${type}`);
@@ -688,32 +932,64 @@ export const mediasTmdbRoutes = new Elysia()
       const maxItems = Math.min(totalResults, 500 * TMDB_PAGE_SIZE);
       const totalPages = Math.ceil(maxItems / PAGE_SIZE);
 
-      const baseItems = rawItems
-        .map(mapTmdbSearchItem)
-        .filter((item): item is TmdbSearchItem => Boolean(item));
+      const [radarrIds, sonarrIds] = await Promise.all([
+        radarrConfig
+          ? fetchRadarrTmdbIds(
+              radarrConfig.website_url,
+              radarrConfig.api_key,
+            ).catch(() => new Map<number, ArrEntry>())
+          : Promise.resolve(new Map<number, ArrEntry>()),
+        sonarrConfig
+          ? fetchSonarrTmdbIds(
+              sonarrConfig.website_url,
+              sonarrConfig.api_key,
+            ).catch(() => new Map<number, ArrEntry>())
+          : Promise.resolve(new Map<number, ArrEntry>()),
+      ]);
 
-      const brseTmdbIds = baseItems.map((i) => i.tmdb_id);
-      const brseLibEntries = brseTmdbIds.length
-        ? await prisma.libraryMedia.findMany({
-            where: { tmdbId: { in: brseTmdbIds } },
-            select: { tmdbId: true, id: true },
-          })
-        : [];
-      const brseLibMap = new Map(brseLibEntries.map((e) => [e.tmdbId, e.id]));
-      const enrichedBrse = baseItems.map((item) => {
-        const libId = brseLibMap.get(item.tmdb_id) ?? null;
-        return {
-          ...item,
-          service: "prowlarr" as const,
-          already_exists: libId != null,
-          can_add: true,
-          source_id: null,
-          library_id: libId,
-        };
-      });
+      const items = rawItems
+        .map(mapTmdbSearchItem)
+        .filter((item): item is TmdbSearchItem => Boolean(item))
+        .map((item) => {
+          const isMovie = item.media_type === "movie";
+          const entry = isMovie
+            ? radarrIds.get(item.tmdb_id)
+            : sonarrIds.get(item.tmdb_id);
+          const sourceId = entry?.sourceId ?? null;
+          const sourceBaseUrl = isMovie
+            ? radarrConfig?.website_url
+            : sonarrConfig?.website_url;
+
+          let arr_url: string | null = null;
+          if (sourceBaseUrl && entry) {
+            if (isMovie) {
+              arr_url = buildArrItemUrl(
+                sourceBaseUrl,
+                "radarr",
+                String(item.tmdb_id),
+              );
+            } else if (entry.titleSlug) {
+              arr_url = buildArrItemUrl(
+                sourceBaseUrl,
+                "sonarr",
+                entry.titleSlug,
+              );
+            }
+          }
+
+          return {
+            ...item,
+            already_exists: isMovie
+              ? radarrIds.has(item.tmdb_id)
+              : sonarrIds.has(item.tmdb_id),
+            can_add: isMovie ? Boolean(radarrConfig) : Boolean(sonarrConfig),
+            source_id: sourceId,
+            arr_url,
+          };
+        });
 
       return {
-        items: enrichedBrse,
+        items,
         page,
         total_pages: totalPages,
         total_results: totalResults,
@@ -799,13 +1075,17 @@ export const mediasTmdbRoutes = new Elysia()
           queryParams as Record<string, string | undefined>
         ).region?.toUpperCase() || "CA";
 
-      const [tmdbConfig, watchlistItem] = await Promise.all([
+      const [tmdbConfig, watchlistItem, sonarrPlugin] = await Promise.all([
         loadTmdbConfig(),
         prisma.watchlistItem.findUnique({
           where: {
             userId_tmdbId_mediaType: { userId: user!.id, tmdbId, mediaType },
           },
           select: { id: true },
+        }),
+        prisma.plugin.findFirst({
+          where: { type: "sonarr", enabled: true },
+          select: { config: true },
         }),
       ]);
       if (!tmdbConfig) return badRequest(set, "TMDB is not configured");
@@ -819,23 +1099,26 @@ export const mediasTmdbRoutes = new Elysia()
           fetchWatchProviders(tmdbConfig.api_key, mediaType, tmdbId, region),
           (async () => {
             if (mediaType !== "tv") return null;
-            const show = await prisma.libraryMedia.findFirst({
-              where: { tmdbId, type: "show" },
-              select: {
-                episodes: {
-                  where: { status: "downloaded" },
-                  select: { season: true, episode: true },
-                },
-              },
-            });
-            if (!show) return { in_library: false, downloaded: [] };
-            return {
-              in_library: true,
-              downloaded: show.episodes.map((e) => ({
-                season_number: e.season,
-                episode_number: e.episode,
-              })),
-            };
+            const sonarrConfig = sonarrPlugin?.config
+              ? normalizeSonarrConfig(sonarrPlugin.config)
+              : null;
+            if (!sonarrConfig) return { in_library: false, downloaded: [] };
+            try {
+              const map = await fetchSonarrTmdbIds(
+                sonarrConfig.website_url,
+                sonarrConfig.api_key,
+              );
+              const entry = map.get(tmdbId);
+              if (!entry) return { in_library: false, downloaded: [] };
+              const downloaded = await fetchSonarrDownloadedEpisodes(
+                sonarrConfig.website_url,
+                sonarrConfig.api_key,
+                entry.sourceId,
+              );
+              return { in_library: true, downloaded };
+            } catch {
+              return { in_library: false, downloaded: [] };
+            }
           })(),
         ]);
 

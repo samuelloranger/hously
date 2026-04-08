@@ -30,7 +30,6 @@ mock.module('../src/services/queueService', () => ({
     NOTIFICATIONS: 'notifications',
     SCHEDULED_TASKS: 'scheduled-tasks',
     ACTIVITY_LOGS: 'activity-logs',
-    LIBRARY_MIGRATE: 'library-migrate',
   },
   SCHEDULED_JOB_NAMES: {
     CHECK_REMINDERS: 'check-reminders',
@@ -46,7 +45,6 @@ mock.module('../src/services/queueService', () => ({
   notificationsQueue: mockQueue,
   scheduledTasksQueue: mockQueue,
   activityLogsQueue: mockQueue,
-  libraryMigrateQueue: mockQueue,
   addJob: async () => null,
   initWorkers: () => {},
   setupScheduledJobs: async () => {},

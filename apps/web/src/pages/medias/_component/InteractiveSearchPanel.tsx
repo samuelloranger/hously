@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
@@ -12,24 +12,17 @@ import {
   X,
 } from "lucide-react";
 import {
+  useMediaInteractiveDownload,
+  useMediaInteractiveSearch,
   useProwlarrInteractiveDownload,
   useProwlarrInteractiveSearch,
 } from "@/hooks/useMedias";
-import { useLibraryGrabRelease, useLibraryEpisodes } from "@/hooks/useLibrary";
 import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
 import { formatBytes, filterAndSortReleases, normalizeFilterKey, UNKNOWN_TRACKER_KEY, UNKNOWN_LANGUAGE_KEY, type InteractiveSortKey, type InteractiveSortDir } from "@hously/shared/utils";
 export interface InteractiveSearchPanelProps {
   isActive: boolean;
   media?: MediaItem | null;
   mode?: "arr" | "prowlarr";
-  /** Native library row id — enables quality scoring on Prowlarr results */
-  libraryMediaId?: number | null;
-  /** Prefill Prowlarr query when opening (e.g. media title) */
-  defaultProwlarrQuery?: string | null;
-  /** Episode to link the grab to (shows only) */
-  episodeId?: number | null;
-  /** Pre-select a season (number) or complete series ("complete") when opening */
-  defaultSeason?: number | "complete" | null;
   onDownloadSuccess?: () => void;
 }
 
@@ -164,22 +157,17 @@ function FilterSection({
 export function InteractiveSearchPanel({
   isActive,
   media = null,
-  mode = "prowlarr",
-  libraryMediaId = null,
-  defaultProwlarrQuery = null,
-  episodeId = null,
-  defaultSeason = null,
+  mode = "arr",
   onDownloadSuccess,
 }: InteractiveSearchPanelProps) {
   const { t } = useTranslation("common");
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const libId =
-    libraryMediaId != null && libraryMediaId > 0 ? libraryMediaId : null;
   const isProwlarrMode = mode === "prowlarr";
   const sourceId = media?.source_id ?? null;
-  const canRenderBody = isProwlarrMode || (media != null && sourceId != null);
+  const service = media?.service ?? "radarr";
   const [filterQuery, setFilterQuery] = useState("");
-  const [prowlarrApiQuery, setProwlarrApiQuery] = useState("");
+  const [prowlarrQuery, setProwlarrQuery] = useState("");
+  const [debouncedProwlarrQuery, setDebouncedProwlarrQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [hideRejected, setHideRejected] = useState(true);
   const [sortBy, setSortBy] = useState<InteractiveSortKey>("seeders");
@@ -190,61 +178,55 @@ export function InteractiveSearchPanel({
   const [pendingReleaseKey, setPendingReleaseKey] = useState<string | null>(
     null,
   );
-  /** null = episode/free-text, number = season pack, "complete" = full series */
-  const [selectedSeason, setSelectedSeason] = useState<number | "complete" | null>(null);
-  const [showPacksOnly, setShowPacksOnly] = useState(false);
 
-  const isShow = media?.media_type === "series";
-  const mediaTmdbId = media?.tmdb_id ?? null;
-  const episodesQuery = useLibraryEpisodes(isShow && isActive ? libId : null);
-  const availableSeasons = useMemo(() => {
-    if (!episodesQuery.data?.seasons) return [];
-    return episodesQuery.data.seasons
-      .map((s) => s.season)
-      .filter((s) => s > 0)
-      .sort((a, b) => a - b);
-  }, [episodesQuery.data]);
-
-  const prowlarrSearchQuery = useProwlarrInteractiveSearch(
-    prowlarrApiQuery,
+  const arrQuery = useMediaInteractiveSearch(
+    { service, source_id: sourceId },
     {
-      enabled: isActive,
-      library_media_id: libId,
-      season: selectedSeason,
-      tmdb_id: selectedSeason != null ? mediaTmdbId : null,
+      enabled: isActive && !isProwlarrMode && Boolean(media),
     },
   );
+  const prowlarrSearchQuery = useProwlarrInteractiveSearch(
+    debouncedProwlarrQuery,
+    {
+      enabled: isActive && isProwlarrMode,
+    },
+  );
+  const arrDownloadMutation = useMediaInteractiveDownload();
   const prowlarrDownloadMutation = useProwlarrInteractiveDownload();
-  const libraryGrabMutation = useLibraryGrabRelease(libId);
-  const activeQuery = prowlarrSearchQuery;
-  const grabBusy =
-    libraryGrabMutation.isPending || prowlarrDownloadMutation.isPending;
+  const activeQuery = isProwlarrMode ? prowlarrSearchQuery : arrQuery;
+  const activeDownloadMutation = isProwlarrMode
+    ? prowlarrDownloadMutation
+    : arrDownloadMutation;
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!isActive) return;
 
-    setProwlarrApiQuery(defaultProwlarrQuery?.trim() ?? "");
     setFilterQuery("");
+    setProwlarrQuery("");
+    setDebouncedProwlarrQuery("");
     setShowFilters(false);
     setHideRejected(true);
     setIncludedTrackers([]);
     setExcludedTrackers([]);
     setIncludedLanguages([]);
     setPendingReleaseKey(null);
-    setSelectedSeason(defaultSeason ?? null);
-    setShowPacksOnly(false);
-    setSortBy(libId ? "quality" : "seeders");
-    setSortDir("desc");
-  }, [isActive, media?.id, defaultProwlarrQuery, defaultSeason, libId]);
 
-  useEffect(() => {
-    if (!isActive) return;
     const frame = window.requestAnimationFrame(() => {
       searchInputRef.current?.focus();
     });
-    return () => window.cancelAnimationFrame(frame);
-  }, [isActive, media?.id, defaultProwlarrQuery, libId]);
 
+    return () => window.cancelAnimationFrame(frame);
+  }, [isActive, isProwlarrMode, media?.id]);
+
+  useEffect(() => {
+    if (!isProwlarrMode) return;
+
+    const timeout = window.setTimeout(() => {
+      setDebouncedProwlarrQuery(prowlarrQuery.trim());
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [isProwlarrMode, prowlarrQuery]);
 
   const trackerOptions = useMemo<FilterOption[]>(() => {
     const options = new Map<string, string>();
@@ -292,7 +274,7 @@ export function InteractiveSearchPanel({
   }, [activeQuery.data?.releases, t]);
 
   const releases = useMemo(() => {
-    let list = filterAndSortReleases(activeQuery.data?.releases ?? [], {
+    return filterAndSortReleases(activeQuery.data?.releases ?? [], {
       filterQuery,
       hideRejected,
       includedTrackers,
@@ -300,26 +282,16 @@ export function InteractiveSearchPanel({
       includedLanguages,
       sortBy,
       sortDir,
-      isProwlarrMode: true,
-      mediaTitle: media?.title ?? defaultProwlarrQuery ?? null,
-      mediaYear: media?.year ?? null,
+      isProwlarrMode,
     });
-    if (showPacksOnly || selectedSeason != null) {
-      list = list.filter((r) => r.is_season_pack || r.is_complete_series);
-    }
-    return list;
   }, [
     activeQuery.data?.releases,
-    defaultProwlarrQuery,
     excludedTrackers,
     filterQuery,
     hideRejected,
     includedLanguages,
     includedTrackers,
-    media?.title,
-    media?.year,
-    selectedSeason,
-    showPacksOnly,
+    isProwlarrMode,
     sortBy,
     sortDir,
   ]);
@@ -329,25 +301,26 @@ export function InteractiveSearchPanel({
     setPendingReleaseKey(releaseKey);
 
     try {
-      if (isProwlarrMode && libId != null && release.download_url) {
-        // Library grab — records in DB and sends URL to qBittorrent
-        if (libraryGrabMutation.isPending) return;
-        await libraryGrabMutation.mutateAsync({
-          download_url: release.download_url,
-          release_title: release.title,
-          indexer: release.indexer,
-          quality_parsed: release.parsed_quality ?? undefined,
-          size_bytes: release.size_bytes,
-          episode_id: episodeId,
-        });
-      } else if (isProwlarrMode && release.download_token) {
-        // Token-based Prowlarr download (fallback when download_url unavailable)
-        if (prowlarrDownloadMutation.isPending) return;
+      if (isProwlarrMode) {
+        if (!release.download_token || prowlarrDownloadMutation.isPending)
+          return;
         await prowlarrDownloadMutation.mutateAsync({
           token: release.download_token,
         });
       } else {
-        return;
+        if (
+          !media ||
+          !sourceId ||
+          !release.indexer_id ||
+          arrDownloadMutation.isPending
+        )
+          return;
+        await arrDownloadMutation.mutateAsync({
+          service,
+          source_id: sourceId,
+          guid: release.guid,
+          indexer_id: release.indexer_id,
+        });
       }
 
       toast.success(t("medias.interactive.downloadStarted"));
@@ -373,16 +346,19 @@ export function InteractiveSearchPanel({
     excludedTrackers.length +
     includedLanguages.length;
   const hasViewOverrides =
-    totalActiveFilters > 0 || !hideRejected;
+    (!isProwlarrMode && filterQuery.trim().length > 0) ||
+    totalActiveFilters > 0 ||
+    !hideRejected;
   const visibleCount = releases.length;
   const hiddenCount = Math.max(0, totalReleases - visibleCount);
   const errorMessage =
     activeQuery.error instanceof Error ? activeQuery.error.message : null;
-  const needsProwlarrQuery = prowlarrApiQuery.length < 2;
-
-  if (!canRenderBody) return null;
+  const needsProwlarrQuery =
+    isProwlarrMode && debouncedProwlarrQuery.length < 2;
+  const canRenderBody = isProwlarrMode || Boolean(media);
 
   const resetView = () => {
+    setFilterQuery("");
     setHideRejected(false);
     setIncludedTrackers([]);
     setExcludedTrackers([]);
@@ -403,6 +379,8 @@ export function InteractiveSearchPanel({
     );
   };
 
+  if (!canRenderBody) return null;
+
   return (
     <div
       className="flex flex-col overflow-hidden"
@@ -410,50 +388,6 @@ export function InteractiveSearchPanel({
     >
       <div className="border-b border-neutral-200 pb-4 dark:border-neutral-700">
         <div className="flex flex-col gap-3">
-          {/* Season pack search — shows only */}
-          {isShow && availableSeasons.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-neutral-500 dark:text-neutral-400 shrink-0">
-                {t("medias.interactive.seasonSearch", "Season pack:")}
-              </span>
-              <button
-                type="button"
-                onClick={() => setSelectedSeason(null)}
-                className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
-                  selectedSeason === null
-                    ? "bg-indigo-600 text-white"
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                }`}
-              >
-                {t("medias.interactive.seasonAll", "Episodes")}
-              </button>
-              {availableSeasons.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSelectedSeason(s === selectedSeason ? null : s)}
-                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
-                    selectedSeason === s
-                      ? "bg-indigo-600 text-white"
-                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                  }`}
-                >
-                  S{String(s).padStart(2, "0")}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => setSelectedSeason(selectedSeason === "complete" ? null : "complete")}
-                className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
-                  selectedSeason === "complete"
-                    ? "bg-violet-600 text-white"
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                }`}
-              >
-                {t("medias.interactive.completeSeries", "Intégrale")}
-              </button>
-            </div>
-          )}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative min-w-0 flex-1">
               <Search
@@ -462,15 +396,25 @@ export function InteractiveSearchPanel({
               />
               <input
                 ref={searchInputRef}
-                value={filterQuery}
-                onChange={(event) => setFilterQuery(event.target.value)}
-                placeholder={t("medias.interactive.filterPlaceholder", "Filter releases…")}
+                value={isProwlarrMode ? prowlarrQuery : filterQuery}
+                onChange={(event) =>
+                  isProwlarrMode
+                    ? setProwlarrQuery(event.target.value)
+                    : setFilterQuery(event.target.value)
+                }
+                placeholder={
+                  isProwlarrMode
+                    ? t("medias.interactive.prowlarrSearchPlaceholder")
+                    : t("medias.interactive.searchPlaceholder")
+                }
                 className="w-full rounded-xl border border-neutral-200 bg-white py-2 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
-              {filterQuery && (
+              {(isProwlarrMode ? prowlarrQuery : filterQuery) && (
                 <button
                   type="button"
-                  onClick={() => setFilterQuery("")}
+                  onClick={() =>
+                    isProwlarrMode ? setProwlarrQuery("") : setFilterQuery("")
+                  }
                   className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
                   aria-label={t("medias.interactive.clearSearch")}
                 >
@@ -501,11 +445,6 @@ export function InteractiveSearchPanel({
                 checked={hideRejected}
                 onChange={setHideRejected}
                 label={t("medias.interactive.hideRejected")}
-              />
-              <Toggle
-                checked={showPacksOnly}
-                onChange={setShowPacksOnly}
-                label={t("medias.interactive.packsOnly", "Packs only")}
               />
 
               <button
@@ -538,9 +477,8 @@ export function InteractiveSearchPanel({
                   {t("medias.interactive.hiddenCount", { count: hiddenCount })}
                 </span>
               )}
-              <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] dark:bg-neutral-800 flex items-center gap-1 max-w-[200px]">
-                <span className="text-neutral-400 shrink-0">Prowlarr:</span>
-                <span className="truncate font-medium text-neutral-700 dark:text-neutral-200" title={prowlarrApiQuery}>{prowlarrApiQuery || "…"}</span>
+              <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] capitalize dark:bg-neutral-800">
+                {isProwlarrMode ? "prowlarr" : service}
               </span>
             </div>
 
@@ -577,9 +515,6 @@ export function InteractiveSearchPanel({
                   </option>
                   <option value="title">
                     {t("medias.interactive.sortOptions.title")}
-                  </option>
-                  <option value="quality">
-                    {t("medias.interactive.sortOptions.quality")}
                   </option>
                 </select>
                 <button
@@ -741,7 +676,7 @@ export function InteractiveSearchPanel({
                     release={release}
                     onDownload={() => void downloadRelease(release)}
                     isDownloading={pendingReleaseKey === releaseKey}
-                    isBusy={grabBusy}
+                    isBusy={activeDownloadMutation.isPending}
                     t={t}
                   />
                 );
@@ -767,8 +702,6 @@ function ReleaseCard({
   isBusy: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
-  const grabDisabled =
-    isBusy || (!release.download_url && !release.download_token);
   return (
     <div
       className={`rounded-2xl border p-3 transition-colors ${
@@ -795,16 +728,6 @@ function ReleaseCard({
           </p>
 
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {release.is_complete_series && (
-              <span className="inline-flex items-center rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
-                Intégrale
-              </span>
-            )}
-            {release.is_season_pack && !release.is_complete_series && (
-              <span className="inline-flex items-center rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">
-                Season pack
-              </span>
-            )}
             {release.indexer && (
               <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
                 {release.indexer}
@@ -818,26 +741,6 @@ function ReleaseCard({
             {release.size_bytes != null && (
               <span className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
                 {formatBytes(release.size_bytes)}
-              </span>
-            )}
-            {release.parsed_quality && (
-              <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200">
-                {[
-                  release.parsed_quality.resolution
-                    ? `${release.parsed_quality.resolution}p`
-                    : null,
-                  release.parsed_quality.source,
-                  release.parsed_quality.codec,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </span>
-            )}
-            {release.quality_score != null && (
-              <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
-                {t("medias.interactive.profileScore", {
-                  score: release.quality_score,
-                })}
               </span>
             )}
             {release.age != null && (
@@ -870,7 +773,7 @@ function ReleaseCard({
         <button
           type="button"
           onClick={onDownload}
-          disabled={grabDisabled}
+          disabled={isBusy || !release.indexer_id}
           style={{ touchAction: "manipulation" }}
           className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >

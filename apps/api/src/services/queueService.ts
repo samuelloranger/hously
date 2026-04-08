@@ -13,7 +13,6 @@ export const QUEUE_NAMES = {
   NOTIFICATIONS: "notifications",
   SCHEDULED_TASKS: "scheduled-tasks",
   ACTIVITY_LOGS: "activity-logs",
-  LIBRARY_MIGRATE: "library-migrate",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -32,10 +31,6 @@ export const SCHEDULED_JOB_NAMES = {
   REFRESH_HABITS_STREAKS: "refresh-habits-streaks",
   REFRESH_HABITS_STREAK_FOR_USER: "refresh-habits-streak-for-user",
   CHECK_MOVIE_RELEASE_REMINDERS: "check-movie-release-reminders",
-  CHECK_LIBRARY_MOVIE_RELEASES: "check-library-movie-releases",
-  CHECK_LIBRARY_EPISODE_RELEASES: "check-library-episode-releases",
-  SYNC_LIBRARY_SHOW_EPISODES: "sync-library-show-episodes",
-  CHECK_LIBRARY_DOWNLOAD_COMPLETION: "check-library-download-completion",
 } as const;
 
 // Job names for Notifications queue
@@ -75,20 +70,11 @@ export const activityLogsQueue = new Queue(QUEUE_NAMES.ACTIVITY_LOGS, {
     removeOnComplete: true,
   },
 });
-export const libraryMigrateQueue = new Queue(QUEUE_NAMES.LIBRARY_MIGRATE, {
-  ...defaultQueueOptions,
-  defaultJobOptions: {
-    attempts: 1, // migration is idempotent (upserts) — no auto-retry needed
-    removeOnComplete: { age: 7 * 24 * 3600 }, // keep result 7 days
-    removeOnFail: { age: 7 * 24 * 3600 },
-  },
-});
 const queues: Record<QueueName, Queue> = {
   [QUEUE_NAMES.DEFAULT]: defaultQueue,
   [QUEUE_NAMES.NOTIFICATIONS]: notificationsQueue,
   [QUEUE_NAMES.SCHEDULED_TASKS]: scheduledTasksQueue,
   [QUEUE_NAMES.ACTIVITY_LOGS]: activityLogsQueue,
-  [QUEUE_NAMES.LIBRARY_MIGRATE]: libraryMigrateQueue,
 };
 
 /**
@@ -152,16 +138,6 @@ export function initWorkers() {
     },
     { connection: redisConnection },
   );
-
-  // 5. Library Migrate Worker (concurrency 1 — one migration at a time)
-  new Worker(
-    QUEUE_NAMES.LIBRARY_MIGRATE,
-    async (job: Job) => {
-      const { processLibraryMigrateJob } = await import("./jobs/libraryMigrateWorker");
-      return processLibraryMigrateJob(job);
-    },
-    { connection: redisConnection, concurrency: 1 },
-  );
 }
 
 /**
@@ -187,22 +163,6 @@ export async function setupScheduledJobs() {
       name: SCHEDULED_JOB_NAMES.CHECK_MOVIE_RELEASE_REMINDERS,
       pattern: "20 * * * *",
     }, // hourly :20 — day-before movie (watchlist)
-    {
-      name: SCHEDULED_JOB_NAMES.CHECK_LIBRARY_MOVIE_RELEASES,
-      pattern: "0 */6 * * *",
-    },
-    {
-      name: SCHEDULED_JOB_NAMES.CHECK_LIBRARY_EPISODE_RELEASES,
-      pattern: "0 */4 * * *",
-    },
-    {
-      name: SCHEDULED_JOB_NAMES.SYNC_LIBRARY_SHOW_EPISODES,
-      pattern: "0 8 * * *",
-    },
-    {
-      name: SCHEDULED_JOB_NAMES.CHECK_LIBRARY_DOWNLOAD_COMPLETION,
-      pattern: "*/30 * * * *",
-    },
   ];
 
   const repeatableJobs = await scheduledTasksQueue.getRepeatableJobs();

@@ -3,7 +3,9 @@ import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import {
   collectTmdbUpcoming,
   fetchMovieReleaseDates,
+  fetchSonarrUpcoming,
   fetchTmdbProviders,
+  mergeTmdbTvWithSonarrCalendar,
   parseTmdbNumericId,
   toIsoDate,
   TMDB_UPCOMING_CACHE_KEY,
@@ -67,7 +69,7 @@ export const refreshUpcoming = async (options?: {
     const oneYearOutIso = toIsoDate(oneYearOut);
 
     const POOL_SIZE_PER_TYPE = 60;
-    const [moviesResult, tvResult] = await Promise.all([
+    const [moviesResult, tvResult, sonarrItems] = await Promise.all([
       collectTmdbUpcoming(
         "movie",
         POOL_SIZE_PER_TYPE,
@@ -82,6 +84,7 @@ export const refreshUpcoming = async (options?: {
         todayIso,
         oneYearOutIso,
       ),
+      fetchSonarrUpcoming(todayIso, oneYearOutIso),
     ]);
 
     if (!moviesResult || !tvResult) {
@@ -108,10 +111,10 @@ export const refreshUpcoming = async (options?: {
       (item) => (item.popularity ?? 0) >= popularityThreshold,
     );
 
-    const mergedTv = filteredTv;
+    const mergedTv = mergeTmdbTvWithSonarrCalendar(filteredTv, sonarrItems);
 
     console.log(
-      `[cron:upcoming] After popularity filter: ${filteredMovies.length} movies, ${mergedTv.length} TV rows`,
+      `[cron:upcoming] After popularity filter: ${filteredMovies.length} movies, ${filteredTv.length} TMDB TV, ${sonarrItems.length} Sonarr calendar → ${mergedTv.length} TV rows after merge`,
     );
 
     const enrichedMovies = await processBatch(

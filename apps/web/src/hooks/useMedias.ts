@@ -2,7 +2,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { MEDIAS_ENDPOINTS } from "@hously/shared/endpoints";
-import type { DiscoverMediasParams, DiscoverMediasResponse, MediaInteractiveDownloadResponse, MediaInteractiveSearchResponse, MediaModalDataResponse, MissingCollectionsResponse, SimilarMediasResponse, TmdbGenresResponse, TmdbMediaSearchResponse, AiMediaSuggestionsResponse, AiMediaSuggestionsConfigResponse, TmdbStreamingProvidersResponse, WatchlistResponse } from "@hously/shared/types";
+import type { ArrManagementDetailsResponse, DiscoverMediasParams, DiscoverMediasResponse, MediaAutoSearchResponse, MediaDeleteResponse, MediaRefreshResponse, MediaInteractiveDownloadResponse, MediaInteractiveSearchResponse, MediaModalDataResponse, MediasResponse, MissingCollectionsResponse, SimilarMediasResponse, TmdbGenresResponse, TmdbMediaSearchResponse, AiMediaSuggestionsResponse, AiMediaSuggestionsConfigResponse, TmdbStreamingProvidersResponse, WatchlistResponse } from "@hously/shared/types";
+export function useMedias() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.medias.list(),
+    queryFn: () => fetcher<MediasResponse>(MEDIAS_ENDPOINTS.LIST),
+  });
+}
 
 export function useAiMediaSuggestions() {
   const fetcher = useFetcher();
@@ -70,43 +78,89 @@ export function useTmdbMediaSearch(
   });
 }
 
+export function useMediaAutoSearch() {
+  const fetcher = useFetcher();
+
+  return useMutation({
+    mutationFn: (params: { service: "radarr" | "sonarr"; source_id: number }) =>
+      fetcher<MediaAutoSearchResponse>(
+        MEDIAS_ENDPOINTS.AUTO_SEARCH(params.service, params.source_id),
+        {
+          method: "POST",
+          body: {},
+        },
+      ),
+  });
+}
+
+export function useMediaInteractiveSearch(
+  params: { service: "radarr" | "sonarr"; source_id: number | null },
+  options?: { enabled?: boolean },
+) {
+  const fetcher = useFetcher();
+  const isEnabled =
+    Boolean(options?.enabled ?? true) &&
+    Boolean(params.source_id && params.source_id > 0);
+
+  return useQuery({
+    queryKey: queryKeys.medias.interactiveSearch(
+      params.service,
+      params.source_id ?? 0,
+    ),
+    queryFn: () =>
+      fetcher<MediaInteractiveSearchResponse>(
+        MEDIAS_ENDPOINTS.INTERACTIVE_SEARCH(
+          params.service,
+          params.source_id ?? 0,
+        ),
+      ),
+    enabled: isEnabled,
+  });
+}
+
 export function useProwlarrInteractiveSearch(
   query: string,
-  options?: {
-    enabled?: boolean;
-    library_media_id?: number | null;
-    /** When set to a number, triggers tvsearch for that season. "complete" triggers full-series search. */
-    season?: number | "complete" | null;
-    /** TMDB ID — used for tier-1 structured tvsearch */
-    tmdb_id?: number | null;
-  },
+  options?: { enabled?: boolean },
 ) {
   const fetcher = useFetcher();
   const trimmed = query.trim();
-  const libId = options?.library_media_id;
-  const season = options?.season ?? null;
-  const tmdbId = options?.tmdb_id ?? null;
-  const isSeasonSearch = typeof season === "number";
-  const isCompleteSearch = season === "complete";
 
   return useQuery({
-    queryKey: queryKeys.medias.prowlarrInteractiveSearch(trimmed, libId, season),
+    queryKey: queryKeys.medias.prowlarrInteractiveSearch(trimmed),
     queryFn: () =>
       fetcher<MediaInteractiveSearchResponse>(
         MEDIAS_ENDPOINTS.PROWLARR_INTERACTIVE_SEARCH,
         {
-          params: {
-            q: trimmed,
-            ...(libId != null && libId > 0 ? { library_media_id: libId } : {}),
-            ...(isSeasonSearch ? { season } : {}),
-            ...(isCompleteSearch ? { complete: "true" } : {}),
-            ...((isSeasonSearch || isCompleteSearch) && tmdbId != null ? { tmdb_id: tmdbId } : {}),
+          params: { q: trimmed },
+        },
+      ),
+    enabled: (options?.enabled ?? true) && trimmed.length >= 2,
+  });
+}
+
+export function useMediaInteractiveDownload() {
+  const fetcher = useFetcher();
+
+  return useMutation({
+    mutationFn: (params: {
+      service: "radarr" | "sonarr";
+      source_id: number;
+      guid: string;
+      indexer_id: number;
+    }) =>
+      fetcher<MediaInteractiveDownloadResponse>(
+        MEDIAS_ENDPOINTS.INTERACTIVE_SEARCH_DOWNLOAD(
+          params.service,
+          params.source_id,
+        ),
+        {
+          method: "POST",
+          body: {
+            guid: params.guid,
+            indexer_id: params.indexer_id,
           },
         },
       ),
-    enabled:
-      (options?.enabled ?? true) &&
-      (isSeasonSearch || isCompleteSearch ? trimmed.length >= 1 : trimmed.length >= 2),
   });
 }
 
@@ -156,6 +210,75 @@ export function useDiscoverMedias(params: DiscoverMediasParams) {
     queryKey: queryKeys.medias.discover(params),
     queryFn: () =>
       fetcher<DiscoverMediasResponse>(MEDIAS_ENDPOINTS.DISCOVER(params)),
+  });
+}
+
+export function useArrManagementDetails(
+  params: { service: "radarr" | "sonarr"; source_id: number | null },
+  options?: { enabled?: boolean },
+) {
+  const fetcher = useFetcher();
+  const enabled =
+    (options?.enabled ?? true) &&
+    params.source_id != null &&
+    params.source_id > 0;
+
+  return useQuery({
+    queryKey: queryKeys.medias.managementInfo(
+      params.service,
+      params.source_id ?? 0,
+    ),
+    queryFn: () =>
+      fetcher<ArrManagementDetailsResponse>(
+        MEDIAS_ENDPOINTS.MANAGEMENT_INFO(params.service, params.source_id!),
+      ),
+    enabled,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useMediaRefresh() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { service: "radarr" | "sonarr"; source_id: number }) =>
+      fetcher<MediaRefreshResponse>(
+        MEDIAS_ENDPOINTS.REFRESH(params.service, params.source_id),
+        {
+          method: "POST",
+          body: {},
+        },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.all });
+    },
+  });
+}
+
+export function useMediaDelete() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: {
+      service: "radarr" | "sonarr";
+      source_id: number;
+      deleteFiles: boolean;
+    }) =>
+      fetcher<MediaDeleteResponse>(
+        MEDIAS_ENDPOINTS.DELETE(
+          params.service,
+          params.source_id,
+          params.deleteFiles,
+        ),
+        {
+          method: "DELETE",
+        },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.all });
+    },
   });
 }
 

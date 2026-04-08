@@ -155,18 +155,6 @@ function QbittorrentPluginSectionImpl({
           />
         </div>
       </div>
-
-      <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400">
-        {t("settings.plugins.qbittorrent.setupNote")}{" "}
-        <a
-          href="https://github.com/samuelloranger/hously/blob/main/docs/QBITTORRENT_SETUP.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary-600 dark:text-primary-400 hover:underline font-medium"
-        >
-          {t("settings.plugins.qbittorrent.setupLink")} →
-        </a>
-      </div>
     </PluginSectionCard>
   );
 }

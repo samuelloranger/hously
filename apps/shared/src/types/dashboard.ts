@@ -27,7 +27,6 @@ export type ActivityType =
   | "shopping_item_added"
   | "shopping_item_completed"
   | "shopping_list_cleared"
-  | "media_grab"
   | (string & {});
 
 export interface Activity {
@@ -62,9 +61,6 @@ export interface Activity {
   shopping_item_id?: number;
   item_name?: string;
   count?: number;
-  media_id?: number;
-  episode_id?: number;
-  release_title?: string;
 }
 
 export interface ActivityDisplay {
@@ -129,12 +125,17 @@ export interface DashboardUpcomingProvider {
 
 export interface DashboardUpcomingResponse {
   enabled: boolean;
+  radarr_enabled: boolean;
+  sonarr_enabled: boolean;
   items: DashboardUpcomingItem[];
 }
 
 export interface DashboardUpcomingStatusResponse {
   exists: boolean;
-  library_id: number | null;
+  service: "radarr" | "sonarr";
+  can_add: boolean;
+  source_id: number | null;
+  arr_url: string | null;
 }
 
 export interface QbittorrentDashboardSummary {
@@ -179,7 +180,6 @@ export interface QbittorrentTorrentListItem extends QbittorrentDashboardTorrent 
   ratio: number | null;
   added_on: string | null;
   completed_on: string | null;
-  content_path?: string | null;
 }
 
 export interface DashboardQbittorrentTorrentsResponse {

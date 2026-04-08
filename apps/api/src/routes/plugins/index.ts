@@ -6,7 +6,8 @@ import { qbittorrentPluginRoutes } from "./qbittorrent";
 import { homeAssistantPluginRoutes } from "./home-assistant";
 import { jellyfinPluginRoutes } from "./jellyfin";
 import { prowlarrPluginRoutes } from "./prowlarr";
-
+import { radarrPluginRoutes } from "./radarr";
+import { sonarrPluginRoutes } from "./sonarr";
 import { scrutinyPluginRoutes } from "./scrutiny";
 import { beszelPluginRoutes } from "./beszel";
 import { adguardPluginRoutes } from "./adguard";
@@ -20,7 +21,8 @@ export const pluginsRoutes = new Elysia({ prefix: "/api/plugins" })
   .use(homeAssistantPluginRoutes)
   .use(jellyfinPluginRoutes)
   .use(prowlarrPluginRoutes)
-
+  .use(radarrPluginRoutes)
+  .use(sonarrPluginRoutes)
   .use(scrutinyPluginRoutes)
   .use(beszelPluginRoutes)
   .use(adguardPluginRoutes)

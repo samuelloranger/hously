@@ -34,9 +34,6 @@ type ActivityRecord = {
   duration_ms?: number;
   message?: string;
   trigger?: string;
-  media_id?: number;
-  episode_id?: number;
-  release_title?: string;
 };
 
 const ACTIVITY_FEED_SOURCE_LIMIT = 500;
@@ -99,7 +96,6 @@ function getLogService(
   if (type.startsWith("recipe_")) return "recipes";
   if (type.startsWith("event_")) return "calendar";
   if (type.startsWith("shopping_")) return "shopping";
-  if (type === "media_grab") return "library";
 
   return "system";
 }
@@ -168,9 +164,6 @@ function mapActivityLogToActivity(log: {
     duration_ms: parseNumber(payload?.duration_ms),
     message: parseString(payload?.message),
     trigger: parseString(payload?.trigger),
-    media_id: parseIntNumber(payload?.media_id),
-    episode_id: parseIntNumber(payload?.episode_id),
-    release_title: parseString(payload?.release_title),
   };
 }
 

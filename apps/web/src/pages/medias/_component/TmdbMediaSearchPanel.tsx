@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
-import { useTmdbMediaSearch } from "@/hooks/useMedias";
+import { useMediaAutoSearch, useTmdbMediaSearch } from "@/hooks/useMedias";
 import { type TmdbMediaSearchItem } from "@hously/shared/types";
+import { toast } from "sonner";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 
 interface TmdbMediaSearchPanelProps {
@@ -27,11 +28,33 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
 
   const searchEnabled = debounced.length >= 2;
   const searchQuery = useTmdbMediaSearch(debounced, { enabled: searchEnabled });
+  const autoSearchMutation = useMediaAutoSearch();
 
   const results = useMemo(
     () => searchQuery.data?.items ?? [],
     [searchQuery.data?.items],
   );
+
+  const triggerAutoSearch = async (item: TmdbMediaSearchItem) => {
+    if (!item.already_exists || !item.can_add || autoSearchMutation.isPending)
+      return;
+
+    try {
+      await autoSearchMutation.mutateAsync({
+        service: item.service,
+        source_id: item.source_id ?? 0,
+      });
+      toast.success(
+        t("medias.autoSearch.success", {
+          service: item.service === "radarr" ? "Radarr" : "Sonarr",
+        }),
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : t("medias.autoSearch.failed");
+      toast.error(message);
+    }
+  };
 
   return (
     <>
@@ -71,6 +94,10 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {results.map((item) => {
+                  const canAutoSearch =
+                    item.already_exists &&
+                    item.can_add &&
+                    typeof item.source_id === "number";
                   return (
                     <button
                       key={item.id}
@@ -102,9 +129,7 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
                         </p>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">
-                            {item.library_id != null && item.library_id > 0
-                              ? t("medias.tmdb.badgeLibrary", "Library")
-                              : "Prowlarr"}
+                            {item.service === "radarr" ? "Radarr" : "Sonarr"}
                           </span>
                           {item.already_exists ? (
                             <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
@@ -117,6 +142,28 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
                           ) : (
                             <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">
                               {t("medias.tmdb.add")}
+                            </span>
+                          )}
+
+                          {canAutoSearch && (
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void triggerAutoSearch(item);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.stopPropagation();
+                                  void triggerAutoSearch(item);
+                                }
+                              }}
+                              className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600 cursor-pointer"
+                            >
+                              {autoSearchMutation.isPending
+                                ? t("medias.autoSearch.running")
+                                : t("medias.autoSearch.button")}
                             </span>
                           )}
                         </div>

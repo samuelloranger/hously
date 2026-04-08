@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { DASHBOARD_ENDPOINTS, PLUGIN_ENDPOINTS } from "@hously/shared/endpoints";
-import type { AdguardPlugin, AdguardProtectionUpdateResponse, AdguardPluginUpdateResponse, DashboardTrackerStatsResponse, DashboardTrackersStatsResponse, JellyfinPlugin, JellyfinPluginUpdateResponse, BeszelPlugin, BeszelPluginUpdateResponse, ProwlarrPlugin, ProwlarrPluginUpdateResponse, QbittorrentPlugin, QbittorrentPluginUpdateResponse, ScrutinyPlugin, ScrutinyPluginUpdateResponse, TmdbPlugin, TmdbPluginUpdateResponse, OllamaPlugin, OllamaPluginUpdateResponse, TrackerPlugin, TrackerPluginUpdateResponse, TrackerType, WeatherPlugin, WeatherPluginUpdateResponse, HomeAssistantPlugin, HomeAssistantPluginUpdateResponse, HomeAssistantDiscoverResponse } from "@hously/shared/types";
+import type { AdguardPlugin, AdguardProtectionUpdateResponse, AdguardPluginUpdateResponse, ArrProfile, DashboardTrackerStatsResponse, DashboardTrackersStatsResponse, JellyfinPlugin, JellyfinPluginUpdateResponse, BeszelPlugin, BeszelPluginUpdateResponse, ProwlarrPlugin, ProwlarrPluginUpdateResponse, QbittorrentPlugin, QbittorrentPluginUpdateResponse, RadarrPlugin, RadarrPluginUpdateResponse, ScrutinyPlugin, ScrutinyPluginUpdateResponse, SonarrPlugin, SonarrPluginUpdateResponse, TmdbPlugin, TmdbPluginUpdateResponse, OllamaPlugin, OllamaPluginUpdateResponse, TrackerPlugin, TrackerPluginUpdateResponse, TrackerType, WeatherPlugin, WeatherPluginUpdateResponse, HomeAssistantPlugin, HomeAssistantPluginUpdateResponse, HomeAssistantDiscoverResponse } from "@hously/shared/types";
 const TRACKER_PLUGIN_ENDPOINTS: Record<TrackerType, string> = {
   c411: PLUGIN_ENDPOINTS.C411,
   torr9: PLUGIN_ENDPOINTS.TORR9,
@@ -76,6 +76,26 @@ export function useJellyfinPlugin() {
     queryKey: queryKeys.plugins.jellyfin(),
     queryFn: () =>
       fetcher<{ plugin: JellyfinPlugin }>(PLUGIN_ENDPOINTS.JELLYFIN),
+    refetchOnMount: "always",
+    staleTime: 0,
+  });
+}
+
+export function useRadarrPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.radarr(),
+    queryFn: () => fetcher<{ plugin: RadarrPlugin }>(PLUGIN_ENDPOINTS.RADARR),
+    refetchOnMount: "always",
+    staleTime: 0,
+  });
+}
+
+export function useSonarrPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.sonarr(),
+    queryFn: () => fetcher<{ plugin: SonarrPlugin }>(PLUGIN_ENDPOINTS.SONARR),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -234,6 +254,55 @@ export function useUpdateJellyfinPlugin() {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.jellyfin() });
       queryClient.invalidateQueries({
         queryKey: queryKeys.dashboard.jellyfinLatest(),
+      });
+    },
+  });
+}
+
+export function useUpdateRadarrPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      website_url: string;
+      api_key: string;
+      root_folder_path: string;
+      quality_profile_id: number;
+      enabled: boolean;
+    }) =>
+      fetcher<RadarrPluginUpdateResponse>(PLUGIN_ENDPOINTS.RADARR, {
+        method: "PUT",
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.radarr() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboard.upcoming(),
+      });
+    },
+  });
+}
+
+export function useUpdateSonarrPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      website_url: string;
+      api_key: string;
+      root_folder_path: string;
+      quality_profile_id: number;
+      language_profile_id: number;
+      enabled: boolean;
+    }) =>
+      fetcher<SonarrPluginUpdateResponse>(PLUGIN_ENDPOINTS.SONARR, {
+        method: "PUT",
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.sonarr() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboard.upcoming(),
       });
     },
   });
@@ -446,3 +515,30 @@ export const useDashboardTorr9Stats = (options?: { enabled?: boolean }) =>
 export const useDashboardLaCaleStats = (options?: { enabled?: boolean }) =>
   useDashboardTrackerStats("la-cale", options);
 
+export function useRadarrProfiles() {
+  const fetcher = useFetcher();
+  return useMutation({
+    mutationFn: (data: { website_url: string; api_key: string }) =>
+      fetcher<{ quality_profiles: ArrProfile[] }>(
+        PLUGIN_ENDPOINTS.RADARR_PROFILES,
+        {
+          method: "POST",
+          body: data,
+        },
+      ),
+  });
+}
+
+export function useSonarrProfiles() {
+  const fetcher = useFetcher();
+  return useMutation({
+    mutationFn: (data: { website_url: string; api_key: string }) =>
+      fetcher<{
+        quality_profiles: ArrProfile[];
+        language_profiles: ArrProfile[];
+      }>(PLUGIN_ENDPOINTS.SONARR_PROFILES, {
+        method: "POST",
+        body: data,
+      }),
+  });
+}

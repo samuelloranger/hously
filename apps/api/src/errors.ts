@@ -25,11 +25,6 @@ export const notFound = (set: ElysiaSet, message: string) => {
   return { error: message };
 };
 
-export const conflict = (set: ElysiaSet, message: string) => {
-  set.status = 409;
-  return { error: message };
-};
-
 export const unprocessable = (set: ElysiaSet, message: string) => {
   set.status = 422;
   return { error: message };
