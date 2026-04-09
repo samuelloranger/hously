@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddToLibrary } from "@/hooks/useLibrary";
 import {
@@ -121,14 +121,16 @@ export function ExploreCardDetailDialog({
   const addToWatchlist = useAddToWatchlist();
   const removeFromWatchlist = useRemoveFromWatchlist();
 
-  // Track library_id locally so Search/Management tabs appear immediately after adding
-  const [localLibraryId, setLocalLibraryId] = useState<number | null>(
-    item.library_id ?? null,
-  );
-  // Reset when the item changes
-  useEffect(() => {
-    setLocalLibraryId(item.library_id ?? null);
-  }, [item.tmdb_id, item.media_type, item.library_id]);
+  // Track library_id locally so Search/Management tabs appear immediately after adding.
+  // Key-tracking avoids a setState-in-effect: when tmdb_id/media_type changes the key
+  // won't match and we fall back to item.library_id without needing an effect.
+  const itemKey = `${item.tmdb_id}:${item.media_type}`;
+  const [localIdState, setLocalIdState] = useState<{ key: string; id: number | null }>({
+    key: itemKey,
+    id: item.library_id ?? null,
+  });
+  const localLibraryId =
+    localIdState.key === itemKey ? localIdState.id : (item.library_id ?? null);
 
   const { data: modalData, isPending: modalDataPending } = useMediaModalData(
     item.media_type,
@@ -139,8 +141,8 @@ export function ExploreCardDetailDialog({
     },
   );
 
-  const [heroBackdropLoaded, setHeroBackdropLoaded] = useState(false);
-  const [posterLoaded, setPosterLoaded] = useState(false);
+  const [loadedBackdropUrl, setLoadedBackdropUrl] = useState<string | null>(null);
+  const [loadedPosterKey, setLoadedPosterKey] = useState<string | null>(null);
 
   const isInWatchlist = modalData?.watchlist_status ?? false;
   const providers = modalData?.providers ?? null;
@@ -201,7 +203,7 @@ export function ExploreCardDetailDialog({
         tmdb_id: item.tmdb_id,
         type: item.media_type === "tv" ? "show" : "movie",
       });
-      setLocalLibraryId(result.item.id);
+      setLocalIdState({ key: itemKey, id: result.item.id });
       setActiveTab("search");
       toast.success(t("medias.addSuccess", { title: item.title }));
       onAdded();
@@ -250,18 +252,9 @@ export function ExploreCardDetailDialog({
     detailsData?.media_stills?.backdrops?.[0]?.url ??
     null;
 
-  useEffect(() => {
-    setHeroBackdropLoaded(false);
-  }, [heroBackdropUrl]);
-
-  useEffect(() => {
-    if (!isOpen) setPosterLoaded(false);
-  }, [isOpen]);
-
-  useEffect(() => {
-    setPosterLoaded(false);
-  }, [item.tmdb_id, item.media_type]);
-
+  // Derived: reset automatically when the URL or item key changes — no effect needed.
+  const heroBackdropLoaded = loadedBackdropUrl === heroBackdropUrl;
+  const posterLoaded = isOpen && loadedPosterKey === itemKey;
   const heroVisualReady = !heroBackdropUrl || heroBackdropLoaded;
 
   const hasProviders =
@@ -306,7 +299,7 @@ export function ExploreCardDetailDialog({
                     ? "opacity-100 scale-100"
                     : "opacity-0 scale-[1.03]",
                 )}
-                onLoad={() => setHeroBackdropLoaded(true)}
+                onLoad={() => setLoadedBackdropUrl(heroBackdropUrl)}
               />
               <div
                 className={cn(
@@ -342,7 +335,7 @@ export function ExploreCardDetailDialog({
                       ? "opacity-100 translate-y-0"
                       : "opacity-0 translate-y-1",
                   )}
-                  onLoad={() => setPosterLoaded(true)}
+                  onLoad={() => setLoadedPosterKey(itemKey)}
                   onError={() => setImageError(true)}
                 />
               ) : (

@@ -139,7 +139,6 @@ export function InteractiveSearchPanel({
     setFilters(buildInitialFilters());
     setPendingReleaseKey(null);
     // buildInitialFilters reads defaultProwlarrQuery, defaultSeason, libId from closure
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, media?.id, defaultProwlarrQuery, defaultSeason, libId]);
 
   useEffect(() => {
