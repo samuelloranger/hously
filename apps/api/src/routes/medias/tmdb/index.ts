@@ -649,6 +649,15 @@ export const mediasTmdbRoutes = new Elysia()
           url.searchParams.set("with_original_language", originalLanguage);
         if (sortBy.startsWith("vote_average"))
           url.searchParams.set("vote_count.gte", "100");
+        // When sorting by newest, cap results to already-released content only
+        if (sortBy === "primary_release_date.desc") {
+          const today = new Date().toISOString().slice(0, 10);
+          url.searchParams.set("primary_release_date.lte", today);
+        }
+        if (sortBy === "first_air_date.desc") {
+          const today = new Date().toISOString().slice(0, 10);
+          url.searchParams.set("first_air_date.lte", today);
+        }
         return url.toString();
       };
 
