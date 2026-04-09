@@ -427,7 +427,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       const media = await prisma.libraryMedia.findUnique({
         where: { id },
         include: {
-          files: { select: { id: true, filePath: true } },
+          files: { select: { id: true, filePath: true, episodeId: true } },
           downloadHistories: {
             where: { failed: false },
             orderBy: { grabbedAt: "desc" },
@@ -450,12 +450,14 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
       const { stat } = await import("node:fs/promises");
 
-      // 1. Iterate ALL MediaFile records: delete stale ones, track if any valid file remains
+      // 1. Iterate ALL MediaFile records: delete stale ones, track valid episode IDs
       let hasValidFile = false;
+      const validEpisodeIds = new Set<number>();
       for (const f of media.files) {
         try {
           await stat(f.filePath);
           hasValidFile = true;
+          if (f.episodeId != null) validEpisodeIds.add(f.episodeId);
         } catch {
           // file missing — remove stale MediaFile record
           try {
@@ -476,16 +478,21 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         });
       }
 
-      // 2. Check completed DH entries that missed post-processing → re-queue ALL of them
+      // 2. Re-queue completed DHs whose target file is missing on disk.
+      //    Intentionally ignores postProcessDestinationPath — that only records
+      //    whether post-processing ran before, not whether the file still exists.
       const { enqueueLibraryPostProcess } =
         await import("@hously/api/services/postProcessor");
       let requeuedCount = 0;
       for (const dh of media.downloadHistories) {
-        if (
-          dh.completedAt &&
-          !dh.postProcessDestinationPath &&
-          !dh.postProcessError
-        ) {
+        if (!dh.completedAt) continue;
+        // Episode-specific DH: re-queue if that episode has no valid file on disk
+        // Season pack / movie DH (no episodeId): re-queue if no file exists at all
+        const needsRequeue =
+          dh.episodeId != null
+            ? !validEpisodeIds.has(dh.episodeId)
+            : !hasValidFile;
+        if (needsRequeue) {
           enqueueLibraryPostProcess(dh.id);
           requeuedCount++;
         }
