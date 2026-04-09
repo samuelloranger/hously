@@ -636,6 +636,191 @@ export async function postProcess(
 }
 
 /**
+ * Scan the library destination folder for video files that exist on disk but have
+ * no MediaFile record. Creates missing records and marks episodes/movies as downloaded.
+ * Called from refresh-status to recover from partial imports or manual file placement.
+ */
+export async function scanAndImportLibraryFiles(media: {
+  id: number;
+  type: string;
+  title: string;
+  year: number | null;
+}): Promise<number> {
+  const settings = await prisma.mediaSettings.findUnique({ where: { id: 1 } });
+  if (!settings?.postProcessingEnabled) return 0;
+
+  const root =
+    media.type === "movie"
+      ? settings.moviesLibraryPath?.trim()
+      : settings.showsLibraryPath?.trim();
+  if (!root) return 0;
+
+  const scanRoot = join(root.replace(/\/+$/, ""), sanitizePathTemplateOutput(media.title));
+
+  let allVideos: string[];
+  try {
+    allVideos = await listVideoFilesUnder(scanRoot);
+  } catch {
+    return 0; // folder doesn't exist or isn't accessible
+  }
+  if (allVideos.length === 0) return 0;
+
+  const existing = await prisma.mediaFile.findMany({
+    where: { mediaId: media.id },
+    select: { filePath: true, episodeId: true },
+  });
+  const existingPaths = new Set(existing.map((f) => f.filePath));
+  const existingEpisodeIds = new Set(
+    existing.map((f) => f.episodeId).filter((id): id is number => id != null),
+  );
+
+  let imported = 0;
+
+  if (media.type === "show") {
+    const episodes = await prisma.libraryEpisode.findMany({
+      where: { mediaId: media.id },
+    });
+    const epMap = new Map(
+      episodes.map((e) => [`${e.season}x${e.episode}`, e]),
+    );
+
+    for (const videoPath of allVideos) {
+      if (existingPaths.has(videoPath)) continue;
+      const fn = basename(videoPath);
+      const se = parseSeasonEpisode(fn);
+      if (!se) continue;
+      const ep = epMap.get(`${se.season}x${se.episode}`);
+      if (!ep) continue;
+      if (existingEpisodeIds.has(ep.id)) continue;
+
+      try {
+        const fnData = parseFilenameMetadata(fn);
+        const mi = await scanMediaInfo(videoPath);
+        const fileData = mi
+          ? {
+              mediaId: media.id,
+              episodeId: ep.id,
+              filePath: videoPath,
+              fileName: fn,
+              sizeBytes: mi.sizeBytes,
+              durationSecs: mi.durationSecs,
+              releaseGroup: mi.releaseGroup,
+              videoCodec: mi.videoCodec,
+              videoProfile: mi.videoProfile,
+              width: mi.width,
+              height: mi.height,
+              frameRate: mi.frameRate,
+              bitDepth: mi.bitDepth,
+              videoBitrate: mi.videoBitrate,
+              hdrFormat: mi.hdrFormat ?? fnData.hdrFormat,
+              resolution: mi.resolution ?? fnData.resolution,
+              source: mi.source ?? fnData.source,
+              audioTracks: mi.audioTracks as object[],
+              subtitleTracks: mi.subtitleTracks as object[],
+            }
+          : {
+              mediaId: media.id,
+              episodeId: ep.id,
+              filePath: videoPath,
+              fileName: fn,
+              sizeBytes: BigInt(0),
+              releaseGroup: null as string | null,
+              resolution: fnData.resolution,
+              source: fnData.source,
+              hdrFormat: fnData.hdrFormat,
+              audioTracks: [] as object[],
+              subtitleTracks: [] as object[],
+            };
+        await prisma.mediaFile.create({ data: fileData });
+        await prisma.libraryEpisode.update({
+          where: { id: ep.id },
+          data: { status: "downloaded", downloadedAt: new Date() },
+        });
+        existingEpisodeIds.add(ep.id);
+        imported++;
+        console.log(
+          `[scanLibrary] Imported untracked file "${fn}" for "${media.title}" S${se.season}E${se.episode}`,
+        );
+      } catch (e) {
+        console.warn(`[scanLibrary] Failed to import "${fn}":`, e);
+      }
+    }
+
+    if (imported > 0) {
+      await prisma.libraryMedia.update({
+        where: { id: media.id },
+        data: { status: "downloaded" },
+      });
+    }
+  } else if (media.type === "movie") {
+    for (const videoPath of allVideos) {
+      if (existingPaths.has(videoPath)) continue;
+
+      // For movies, only import if there's no MediaFile at all
+      const existingFile = await prisma.mediaFile.findFirst({
+        where: { mediaId: media.id },
+      });
+      if (existingFile) break;
+
+      try {
+        const fn = basename(videoPath);
+        const fnData = parseFilenameMetadata(fn);
+        const mi = await scanMediaInfo(videoPath);
+        const fileData = mi
+          ? {
+              mediaId: media.id,
+              episodeId: null as number | null,
+              filePath: videoPath,
+              fileName: fn,
+              sizeBytes: mi.sizeBytes,
+              durationSecs: mi.durationSecs,
+              releaseGroup: mi.releaseGroup,
+              videoCodec: mi.videoCodec,
+              videoProfile: mi.videoProfile,
+              width: mi.width,
+              height: mi.height,
+              frameRate: mi.frameRate,
+              bitDepth: mi.bitDepth,
+              videoBitrate: mi.videoBitrate,
+              hdrFormat: mi.hdrFormat ?? fnData.hdrFormat,
+              resolution: mi.resolution ?? fnData.resolution,
+              source: mi.source ?? fnData.source,
+              audioTracks: mi.audioTracks as object[],
+              subtitleTracks: mi.subtitleTracks as object[],
+            }
+          : {
+              mediaId: media.id,
+              episodeId: null as number | null,
+              filePath: videoPath,
+              fileName: fn,
+              sizeBytes: BigInt(0),
+              releaseGroup: null as string | null,
+              resolution: fnData.resolution,
+              source: fnData.source,
+              hdrFormat: fnData.hdrFormat,
+              audioTracks: [] as object[],
+              subtitleTracks: [] as object[],
+            };
+        await prisma.mediaFile.create({ data: fileData });
+        await prisma.libraryMedia.update({
+          where: { id: media.id },
+          data: { status: "downloaded" },
+        });
+        imported++;
+        console.log(
+          `[scanLibrary] Imported untracked movie file "${fn}" for "${media.title}"`,
+        );
+        break; // one file per movie
+      } catch (e) {
+        console.warn(`[scanLibrary] Failed to import movie file:`, e);
+      }
+    }
+  }
+
+  return imported;
+}
+
+/**
  * Run after marking a download complete — never await from cron/webhook handlers.
  */
 export function enqueueLibraryPostProcess(downloadHistoryId: number): void {

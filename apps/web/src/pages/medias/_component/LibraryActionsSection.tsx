@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { RefreshCw, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  useRefreshLibraryStatus,
-  useRemoveFromLibrary,
-} from "@/hooks/useLibrary";
+import { Trash2 } from "lucide-react";
+import { useRemoveFromLibrary } from "@/hooks/useLibrary";
 import { Card } from "./LibrarySharedUI";
 
 interface LibraryActionsSectionProps {
@@ -19,7 +15,6 @@ export function LibraryActionsSection({
 }: LibraryActionsSectionProps) {
   const { t } = useTranslation("common");
   const removeMutation = useRemoveFromLibrary();
-  const refreshStatus = useRefreshLibraryStatus(libraryId);
   const [deleteConfirm, setDeleteConfirm] = useState<"idle" | "confirm">(
     "idle",
   );
@@ -77,26 +72,7 @@ export function LibraryActionsSection({
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 px-1">
-      <button
-        onClick={() => void refreshStatus.mutate()}
-        disabled={refreshStatus.isPending}
-        title={t("library.management.refreshStatusTitle")}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-colors",
-          "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-        )}
-      >
-        <RefreshCw
-          size={11}
-          className={refreshStatus.isPending ? "animate-spin" : ""}
-        />
-        {refreshStatus.isPending
-          ? t("library.management.refreshingStatus")
-          : t("library.management.refreshStatus")}
-      </button>
-
+    <div className="flex items-center justify-end gap-2 px-1">
       <button
         type="button"
         onClick={() => setDeleteConfirm("confirm")}
