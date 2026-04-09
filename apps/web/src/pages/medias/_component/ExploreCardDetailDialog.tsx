@@ -589,7 +589,7 @@ export function ExploreCardDetailDialog({
                         : "text-neutral-400 dark:text-neutral-500"
                     }
                   >
-                    {t("medias.detail.director", "Directed by")}{" "}
+                    {t("medias.detail.director")}{" "}
                   </span>
                   <span
                     className={cn(
@@ -616,7 +616,7 @@ export function ExploreCardDetailDialog({
                     )}
                   >
                     <span className="shrink-0">
-                      {t("medias.detail.partOfCollection", "Part of")}
+                      {t("medias.detail.partOfCollection")}
                     </span>
                     <span className="truncate">{collection.name}</span>
                   </span>
@@ -914,10 +914,7 @@ export function ExploreCardDetailDialog({
                                           ? "font-semibold text-emerald-600 dark:text-emerald-400"
                                           : "text-neutral-500 dark:text-neutral-400",
                                       )}
-                                      title={t(
-                                        "medias.detail.seasonOnDiskTitle",
-                                        "Downloaded on disk",
-                                      )}
+                                      title={t("medias.detail.seasonOnDiskTitle")}
                                     >
                                       {total != null
                                         ? t("medias.detail.seasonOnDiskRatio", {

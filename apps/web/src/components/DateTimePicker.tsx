@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
 import { toDateTimeLocal } from "@hously/shared/utils";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface DateTimePickerProps {
   id?: string;
@@ -31,6 +32,7 @@ export function DateTimePicker({
   className = "",
   allDay,
 }: DateTimePickerProps) {
+  const { t } = useTranslation("common");
   const [date, setDate] = useState<Date | undefined>(() =>
     value ? new Date(value) : undefined,
   );
@@ -155,7 +157,7 @@ export function DateTimePicker({
             className="w-full mt-4"
             onClick={() => setIsOpen(false)}
           >
-            Ok
+            {t("common.ok")}
           </Button>
         </div>
       </PopoverContent>

@@ -28,7 +28,7 @@ import {
   type FilterStatus,
   type SortKey,
   type SortDir,
-  SORT_OPTIONS,
+  LIBRARY_SORT_KEYS,
   sortItems,
   libraryItemToSearchItem,
 } from "@/utils/libraryUtils";
@@ -139,7 +139,7 @@ export function NativeLibraryPage() {
                   page: undefined,
                 })
               }
-              placeholder="Search library…"
+              placeholder={t("medias.library.searchPlaceholder")}
               className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
             />
           </div>
@@ -164,14 +164,20 @@ export function NativeLibraryPage() {
                 )}
               >
                 {f === "all" ? (
-                  "All"
+                  t("medias.library.typeAll")
                 ) : f === "movie" ? (
                   <span className="flex items-center gap-1">
-                    <Film size={12} /> Movies ({movieCount})
+                    <Film size={12} />{" "}
+                    {t("medias.library.moviesWithCount", {
+                      count: movieCount,
+                    })}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1">
-                    <Tv size={12} /> Shows ({showCount})
+                    <Tv size={12} />{" "}
+                    {t("medias.library.showsWithCount", {
+                      count: showCount,
+                    })}
                   </span>
                 )}
               </button>
@@ -199,17 +205,19 @@ export function NativeLibraryPage() {
                   )}
                 >
                   {f === "all" ? (
-                    "All"
+                    t("medias.library.statusAll")
                   ) : f === "downloaded" ? (
                     <span className="flex items-center gap-1">
-                      <CheckCircle2 size={12} /> Downloaded
+                      <CheckCircle2 size={12} />{" "}
+                      {t("medias.library.statusDownloaded")}
                     </span>
                   ) : f === "wanted" ? (
                     <span className="flex items-center gap-1">
-                      <Clock size={12} /> Wanted
+                      <Clock size={12} />{" "}
+                      {t("medias.library.statusWanted")}
                     </span>
                   ) : (
-                    "Downloading"
+                    t("medias.library.statusDownloading")
                   )}
                 </button>
               ),
@@ -225,9 +233,9 @@ export function NativeLibraryPage() {
               }
               className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition"
             >
-              {SORT_OPTIONS.map((o) => (
-                <option key={o.key} value={o.key}>
-                  {o.label}
+              {LIBRARY_SORT_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {t(`medias.library.sort.${key}`)}
                 </option>
               ))}
             </select>
@@ -240,7 +248,11 @@ export function NativeLibraryPage() {
                 })
               }
               className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
-              title={sortDir === "asc" ? "Ascending" : "Descending"}
+              title={
+                sortDir === "asc"
+                  ? t("medias.sortDirectionAsc")
+                  : t("medias.sortDirectionDesc")
+              }
             >
               {sortDir === "asc" ? (
                 <ArrowUpAZ size={14} />
@@ -264,8 +276,8 @@ export function NativeLibraryPage() {
         ) : pagedItems.length === 0 ? (
           <EmptyState
             icon="🎬"
-            title="No items in library"
-            description="Search for movies or shows in the panel on the right and add them to your library."
+            title={t("medias.library.emptyTitle")}
+            description={t("medias.library.emptyDescription")}
           />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3">
@@ -287,8 +299,11 @@ export function NativeLibraryPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between pt-2">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              {(safePage - 1) * PAGE_SIZE + 1}–
-              {Math.min(safePage * PAGE_SIZE, sorted.length)} of {sorted.length}
+              {t("medias.library.paginationRange", {
+                start: (safePage - 1) * PAGE_SIZE + 1,
+                end: Math.min(safePage * PAGE_SIZE, sorted.length),
+                total: sorted.length,
+              })}
             </p>
             <div className="flex items-center gap-1">
               <button

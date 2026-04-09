@@ -11,6 +11,7 @@ import { Calendar, type CalendarRange } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
 import { toDateTimeLocal, parseDate } from "@hously/shared/utils";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface DateRangePickerProps {
   startValue?: string; // ISO datetime string
@@ -31,6 +32,7 @@ export function DateRangePicker({
   placeholder,
   className = "",
 }: DateRangePickerProps) {
+  const { t } = useTranslation("common");
   const [dateRange, setDateRange] = useState<CalendarRange>(() => {
     const start = startValue ? parseDate(startValue) : undefined;
     const end = endValue ? parseDate(endValue) : undefined;
@@ -225,7 +227,7 @@ export function DateRangePicker({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2">
-                    Start Time
+                    {t("common.startTime")}
                   </label>
                   <div className="flex items-center justify-center">
                     <TimePicker
@@ -238,7 +240,7 @@ export function DateRangePicker({
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2">
-                    End Time
+                    {t("common.endTime")}
                   </label>
                   <div className="flex items-center justify-center">
                     <TimePicker
@@ -257,7 +259,7 @@ export function DateRangePicker({
             className="w-full mt-4"
             onClick={() => setIsOpen(false)}
           >
-            Ok
+            {t("common.ok")}
           </Button>
         </div>
       </PopoverContent>

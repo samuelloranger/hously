@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useCreateComment } from "@/hooks/useBoardTasks";
 
 export function CommentInput({ taskId }: { taskId: number }) {
+  const { t } = useTranslation("common");
   const [body, setBody] = useState("");
   const { mutate, isPending } = useCreateComment();
 
@@ -30,7 +32,7 @@ export function CommentInput({ taskId }: { taskId: number }) {
           disabled={isPending || !body.trim()}
           className="h-7 bg-indigo-600 px-3 text-xs hover:bg-indigo-700"
         >
-          Comment
+          {t("board.comment")}
         </Button>
       </div>
     </div>

@@ -46,10 +46,10 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
           <Inbox className="h-6 w-6 text-neutral-400 dark:text-neutral-500" />
         </div>
         <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
-          Backlog is empty
+          {t("board.backlogEmpty")}
         </p>
         <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-          Add tasks to the backlog to plan future work
+          {t("board.backlogEmptyDescription")}
         </p>
       </div>
     );

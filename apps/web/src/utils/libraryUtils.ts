@@ -15,13 +15,13 @@ export type FilterStatus =
   | "downloaded"
   | "skipped";
 
-export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: "added_at", label: "Date added" },
-  { key: "last_grabbed_at", label: "Last grab" },
-  { key: "title", label: "Title" },
-  { key: "year", label: "Year" },
-  { key: "status", label: "Status" },
-];
+export const LIBRARY_SORT_KEYS: readonly SortKey[] = [
+  "added_at",
+  "last_grabbed_at",
+  "title",
+  "year",
+  "status",
+] as const;
 
 export function sortItems(
   items: LibraryMedia[],

@@ -196,14 +196,14 @@ export function JobsTab() {
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500 dark:text-neutral-400">
                         <span className="flex items-center gap-1.5">
                           <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                            Schedule:
+                            {t("settings.jobs.schedule")}
                           </span>
                           {formatCronTrigger(job.trigger, i18n.language)}
                         </span>
                         {job.next_run_time && (
                           <span className="flex items-center gap-1.5">
                             <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                              Next:
+                              {t("settings.jobs.next")}
                             </span>
                             {new Date(job.next_run_time).toLocaleString()}
                           </span>

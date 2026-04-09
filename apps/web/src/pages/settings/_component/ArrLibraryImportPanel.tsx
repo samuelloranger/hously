@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AlertCircle, CheckCircle2, Download, Loader2 } from "lucide-react";
 import { useStartMigration, useMigrateStatus } from "@/hooks/useLibrary";
@@ -41,6 +42,7 @@ function CredentialInput({
 }
 
 export function ArrLibraryImportPanel() {
+  const { t } = useTranslation("common");
   const queryClient = useQueryClient();
   const startMigration = useStartMigration();
   const status = useMigrateStatus();
@@ -71,9 +73,9 @@ export function ArrLibraryImportPanel() {
         sonarr_url: needsSonarr ? sonarrUrl.trim() : undefined,
         sonarr_api_key: needsSonarr ? sonarrApiKey.trim() : undefined,
       });
-      toast.success("Import started in background");
+      toast.success(t("settings.arrImport.importStarted"));
     } catch {
-      toast.error("Failed to start import");
+      toast.error(t("settings.arrImport.importStartFailed"));
     }
   };
 
@@ -92,11 +94,10 @@ export function ArrLibraryImportPanel() {
           <div>
             <p className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
               <Download size={14} className="text-indigo-500" />
-              Import library from Radarr / Sonarr
+              {t("settings.arrImport.title")}
             </p>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-              One-time migration: scans files with MediaInfo and copies titles
-              into the native library.
+              {t("settings.arrImport.description")}
             </p>
           </div>
           {isRunning && (
@@ -120,7 +121,7 @@ export function ArrLibraryImportPanel() {
             {/* Source picker */}
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
-                Source
+                {t("settings.arrImport.sourceLabel")}
               </p>
               <div className="flex rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
                 {(["both", "radarr", "sonarr"] as const).map((s) => (
@@ -136,10 +137,10 @@ export function ArrLibraryImportPanel() {
                     )}
                   >
                     {s === "both"
-                      ? "Both"
+                      ? t("settings.arrImport.sourceBoth")
                       : s === "radarr"
-                        ? "Radarr"
-                        : "Sonarr"}
+                        ? t("settings.arrImport.serviceRadarr")
+                        : t("settings.arrImport.serviceSonarr")}
                   </button>
                 ))}
               </div>
@@ -149,17 +150,17 @@ export function ArrLibraryImportPanel() {
             {needsRadarr && (
               <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 p-3 space-y-2">
                 <p className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-                  Radarr
+                  {t("settings.arrImport.serviceRadarr")}
                 </p>
                 <CredentialInput
-                  label="URL"
-                  placeholder="http://radarr:7878"
+                  label={t("settings.arrImport.urlLabel")}
+                  placeholder={t("settings.arrImport.radarrUrlPlaceholder")}
                   value={radarrUrl}
                   onChange={setRadarrUrl}
                 />
                 <CredentialInput
-                  label="API Key"
-                  placeholder="••••••••••••••••••••••••••••••••"
+                  label={t("settings.arrImport.apiKeyLabel")}
+                  placeholder={t("settings.arrImport.apiKeyPlaceholder")}
                   value={radarrApiKey}
                   onChange={setRadarrApiKey}
                   type="password"
@@ -171,17 +172,17 @@ export function ArrLibraryImportPanel() {
             {needsSonarr && (
               <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 p-3 space-y-2">
                 <p className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-                  Sonarr
+                  {t("settings.arrImport.serviceSonarr")}
                 </p>
                 <CredentialInput
-                  label="URL"
-                  placeholder="http://sonarr:8989"
+                  label={t("settings.arrImport.urlLabel")}
+                  placeholder={t("settings.arrImport.sonarrUrlPlaceholder")}
                   value={sonarrUrl}
                   onChange={setSonarrUrl}
                 />
                 <CredentialInput
-                  label="API Key"
-                  placeholder="••••••••••••••••••••••••••••••••"
+                  label={t("settings.arrImport.apiKeyLabel")}
+                  placeholder={t("settings.arrImport.apiKeyPlaceholder")}
                   value={sonarrApiKey}
                   onChange={setSonarrApiKey}
                   type="password"
@@ -195,7 +196,9 @@ export function ArrLibraryImportPanel() {
               disabled={startMigration.isPending || !canStart}
               className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2.5 transition-colors"
             >
-              {startMigration.isPending ? "Starting…" : "Start import"}
+              {startMigration.isPending
+                ? t("settings.arrImport.starting")
+                : t("settings.arrImport.startImport")}
             </button>
           </div>
         )}
@@ -214,21 +217,21 @@ export function ArrLibraryImportPanel() {
         {isFailed && (
           <div className="space-y-2">
             <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 px-3 py-2 text-xs text-red-700 dark:text-red-400">
-              {status.error ?? "Import failed with an unknown error"}
+              {status.error ?? t("settings.arrImport.importFailedUnknown")}
             </div>
             <button
               type="button"
               onClick={() => void handleStart()}
               className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2.5 transition-colors"
             >
-              Retry
+              {t("settings.arrImport.retry")}
             </button>
           </div>
         )}
 
         {status.state === "unknown" && !startMigration.isPending && (
           <p className="text-[10px] text-neutral-400 dark:text-neutral-500 text-center">
-            No previous import job found.
+            {t("settings.arrImport.noPreviousJob")}
           </p>
         )}
       </div>

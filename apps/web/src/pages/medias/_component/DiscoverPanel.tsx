@@ -94,7 +94,8 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
     originalLanguage: null,
   });
 
-  const { mediaType, providerId, genreId, sortBy, page, originalLanguage } = filters;
+  const { mediaType, providerId, genreId, sortBy, page, originalLanguage } =
+    filters;
 
   const topRef = useRef<HTMLDivElement>(null);
   const isFirstRender = useRef(true);
@@ -130,25 +131,47 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
   function switchType(type: "movie" | "tv") {
     setFilters((prev) => {
       let nextSort = prev.sortBy;
-      if (type === "tv" && (nextSort === "revenue.desc" || nextSort === "primary_release_date.desc"))
+      if (
+        type === "tv" &&
+        (nextSort === "revenue.desc" ||
+          nextSort === "primary_release_date.desc")
+      )
         nextSort = "popularity.desc";
       if (type === "movie" && nextSort === "first_air_date.desc")
         nextSort = "popularity.desc";
-      return { ...prev, mediaType: type, genreId: null, sortBy: nextSort, page: 1 };
+      return {
+        ...prev,
+        mediaType: type,
+        genreId: null,
+        sortBy: nextSort,
+        page: 1,
+      };
     });
   }
 
   function toggleProvider(id: number) {
-    setFilters((prev) => ({ ...prev, providerId: prev.providerId === id ? null : id, page: 1 }));
+    setFilters((prev) => ({
+      ...prev,
+      providerId: prev.providerId === id ? null : id,
+      page: 1,
+    }));
   }
   function toggleGenre(id: number) {
-    setFilters((prev) => ({ ...prev, genreId: prev.genreId === id ? null : id, page: 1 }));
+    setFilters((prev) => ({
+      ...prev,
+      genreId: prev.genreId === id ? null : id,
+      page: 1,
+    }));
   }
   function changeSort(value: string) {
     setFilters((prev) => ({ ...prev, sortBy: value, page: 1 }));
   }
   function toggleLanguage(code: string) {
-    setFilters((prev) => ({ ...prev, originalLanguage: prev.originalLanguage === code ? null : code, page: 1 }));
+    setFilters((prev) => ({
+      ...prev,
+      originalLanguage: prev.originalLanguage === code ? null : code,
+      page: 1,
+    }));
   }
 
   const totalPages = data?.total_pages ?? 1;
@@ -166,7 +189,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         </h2>
         {totalResults != null && !isLoading && (
           <span className="text-xs tabular-nums text-neutral-400">
-            {totalResults.toLocaleString()} titles
+            {totalResults.toLocaleString()} {t("medias.discover.titles")}
           </span>
         )}
       </div>
@@ -290,7 +313,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         {/* Language pills */}
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-600">
-            Lang
+            {t("medias.discover.lang")}
           </span>
           {LANGUAGE_FILTERS.map((lf) => {
             const active = originalLanguage === lf.code;
@@ -355,7 +378,12 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
           <div className="flex items-center justify-between gap-3 md:hidden">
             <button
               type="button"
-              onClick={() => setFilters((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+              onClick={() =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: Math.max(1, prev.page - 1),
+                }))
+              }
               disabled={page === 1 || isFetching}
               className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-neutral-300 transition-colors hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-30"
             >
@@ -369,7 +397,12 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
 
             <button
               type="button"
-              onClick={() => setFilters((prev) => ({ ...prev, page: Math.min(totalPages, prev.page + 1) }))}
+              onClick={() =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: Math.min(totalPages, prev.page + 1),
+                }))
+              }
               disabled={page === totalPages || isFetching}
               className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-neutral-300 transition-colors hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-30"
             >
@@ -382,7 +415,12 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
           <div className="hidden items-center justify-center gap-2 md:flex">
             <button
               type="button"
-              onClick={() => setFilters((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+              onClick={() =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: Math.max(1, prev.page - 1),
+                }))
+              }
               disabled={page === 1 || isFetching}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
             >
@@ -392,7 +430,11 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
             <div className="flex items-center gap-1">
               {page > 3 && (
                 <>
-                  <PageDot n={1} current={page} onClick={() => setFilters((prev) => ({ ...prev, page: 1 }))} />
+                  <PageDot
+                    n={1}
+                    current={page}
+                    onClick={() => setFilters((prev) => ({ ...prev, page: 1 }))}
+                  />
                   {page > 4 && (
                     <span className="px-0.5 text-xs text-neutral-600">…</span>
                   )}
@@ -417,7 +459,9 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
                   <PageDot
                     n={totalPages}
                     current={page}
-                    onClick={() => setFilters((prev) => ({ ...prev, page: totalPages }))}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, page: totalPages }))
+                    }
                   />
                 </>
               )}
@@ -425,7 +469,12 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
 
             <button
               type="button"
-              onClick={() => setFilters((prev) => ({ ...prev, page: Math.min(totalPages, prev.page + 1) }))}
+              onClick={() =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: Math.min(totalPages, prev.page + 1),
+                }))
+              }
               disabled={page === totalPages || isFetching}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
             >

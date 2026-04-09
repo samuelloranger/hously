@@ -318,7 +318,7 @@ export function InteractiveSearchPanel({
           {isShow && availableSeasons.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-xs text-neutral-500 dark:text-neutral-400 shrink-0">
-                {t("medias.interactive.seasonSearch", "Season pack:")}
+                {t("medias.interactive.seasonSearch")}
               </span>
               <button
                 type="button"
@@ -329,7 +329,7 @@ export function InteractiveSearchPanel({
                     : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                 }`}
               >
-                {t("medias.interactive.seasonAll", "Episodes")}
+                {t("medias.interactive.seasonAll")}
               </button>
               {availableSeasons.map((s) => (
                 <button
@@ -361,7 +361,7 @@ export function InteractiveSearchPanel({
                     : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                 }`}
               >
-                {t("medias.interactive.completeSeries", "Intégrale")}
+                {t("medias.interactive.completeSeries")}
               </button>
             </div>
           )}
@@ -375,10 +375,7 @@ export function InteractiveSearchPanel({
                 ref={searchInputRef}
                 value={filterQuery}
                 onChange={(event) => setFilters((prev) => ({ ...prev, filterQuery: event.target.value }))}
-                placeholder={t(
-                  "medias.interactive.filterPlaceholder",
-                  "Filter releases…",
-                )}
+                placeholder={t("medias.interactive.filterPlaceholder")}
                 className="w-full rounded-xl border border-neutral-200 bg-white py-2 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
               {filterQuery && (
@@ -419,7 +416,7 @@ export function InteractiveSearchPanel({
               <Toggle
                 checked={showPacksOnly}
                 onChange={(v) => setFilters((prev) => ({ ...prev, showPacksOnly: v }))}
-                label={t("medias.interactive.packsOnly", "Packs only")}
+                label={t("medias.interactive.packsOnly")}
               />
 
               <button

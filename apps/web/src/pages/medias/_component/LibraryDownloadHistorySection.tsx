@@ -79,15 +79,15 @@ export function LibraryDownloadHistorySection({
                       </p>
                       {row.failed ? (
                         <Badge className="bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 shrink-0">
-                          Failed
+                          {t("library.download.failed")}
                         </Badge>
                       ) : row.completed_at ? (
                         <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 shrink-0">
-                          Done
+                          {t("library.download.done")}
                         </Badge>
                       ) : (
                         <Badge className="bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 shrink-0">
-                          Active
+                          {t("library.download.active")}
                         </Badge>
                       )}
                     </div>

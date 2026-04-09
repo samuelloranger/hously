@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { MigrateJobProgress } from "@hously/shared/types";
 
 interface ArrMigrationProgressProps {
@@ -9,20 +10,27 @@ export function ArrMigrationProgress({
   progress,
   source,
 }: ArrMigrationProgressProps) {
+  const { t } = useTranslation("common");
   const pct =
     progress.total > 0
       ? Math.round((progress.current / progress.total) * 100)
       : 0;
 
+  const phaseLabel =
+    progress.phase === "done"
+      ? t("settings.arrImport.wrappingUp")
+      : t("settings.arrImport.importingService", {
+          service:
+            progress.phase === "radarr"
+              ? t("settings.arrImport.serviceRadarr")
+              : t("settings.arrImport.serviceSonarr"),
+        });
+
   return (
     <div className="space-y-3">
       <div className="space-y-1">
         <div className="flex items-center justify-between text-xs text-neutral-600 dark:text-neutral-400">
-          <span className="capitalize font-medium">
-            {progress.phase === "done"
-              ? "Wrapping up…"
-              : `Importing ${progress.phase}…`}
-          </span>
+          <span className="capitalize font-medium">{phaseLabel}</span>
           <span>
             {progress.current} / {progress.total}
           </span>
@@ -44,29 +52,42 @@ export function ArrMigrationProgress({
         {(source === "both" || source === "radarr") && (
           <div className="rounded-lg bg-neutral-50 dark:bg-neutral-800/60 px-2.5 py-2">
             <p className="font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-              Radarr
+              {t("settings.arrImport.serviceRadarr")}
             </p>
             <p className="text-neutral-500">
-              {progress.radarr.imported} new · {progress.radarr.already_existed}{" "}
-              exist · {progress.radarr.files_scanned} scanned
+              {t("settings.arrImport.radarrStats", {
+                imported: progress.radarr.imported,
+                existed: progress.radarr.already_existed,
+                scanned: progress.radarr.files_scanned,
+              })}
             </p>
             {progress.radarr.errors > 0 && (
-              <p className="text-red-500">{progress.radarr.errors} errors</p>
+              <p className="text-red-500">
+                {t("settings.arrImport.errorsCount", {
+                  count: progress.radarr.errors,
+                })}
+              </p>
             )}
           </div>
         )}
         {(source === "both" || source === "sonarr") && (
           <div className="rounded-lg bg-neutral-50 dark:bg-neutral-800/60 px-2.5 py-2">
             <p className="font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-              Sonarr
+              {t("settings.arrImport.serviceSonarr")}
             </p>
             <p className="text-neutral-500">
-              {progress.sonarr.imported_shows} shows ·{" "}
-              {progress.sonarr.imported_files} files ·{" "}
-              {progress.sonarr.files_scanned} scanned
+              {t("settings.arrImport.sonarrProgressStats", {
+                shows: progress.sonarr.imported_shows,
+                files: progress.sonarr.imported_files,
+                scanned: progress.sonarr.files_scanned,
+              })}
             </p>
             {progress.sonarr.errors > 0 && (
-              <p className="text-red-500">{progress.sonarr.errors} errors</p>
+              <p className="text-red-500">
+                {t("settings.arrImport.errorsCount", {
+                  count: progress.sonarr.errors,
+                })}
+              </p>
             )}
           </div>
         )}
