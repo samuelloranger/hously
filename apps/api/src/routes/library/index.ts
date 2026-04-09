@@ -436,6 +436,18 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       });
       if (!media) return notFound(set, "Library item not found");
 
+      // 0. Scan library destination folder for files on disk with no MediaFile record
+      const { scanAndImportLibraryFiles } =
+        await import("@hously/api/services/postProcessor");
+      const scanned = await scanAndImportLibraryFiles(media);
+      if (scanned > 0) {
+        const updated = await prisma.libraryMedia.findUnique({
+          where: { id },
+          include: libraryMediaInclude,
+        });
+        return { item: mapLibraryMedia(updated!), detail: "files_imported" };
+      }
+
       const { stat } = await import("node:fs/promises");
 
       // 1. Iterate ALL MediaFile records: delete stale ones, track if any valid file remains
