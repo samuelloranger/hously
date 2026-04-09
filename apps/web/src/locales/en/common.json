@@ -552,6 +552,7 @@
     "startTime": "Start time",
     "endTime": "End time",
     "somethingWentWrong": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred",
     "reloadPage": "Reload page",
     "failedToLoad": "Failed to load",
     "toggleTheme": "Toggle theme",

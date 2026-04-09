@@ -52,8 +52,7 @@ function unflatten(flat: Record<string, string>): NestedRecord {
 //    Three strategies:
 //    (a) t("foo.bar") / t('foo.bar')   — direct literal call
 //    (b) t(`prefix.${...}`)            — template literal → captures prefix
-//    (c) ANY quoted dot-notation string — catches translationKey, labelKey, etc.
-//        whose first segment is a known locale namespace
+//    (c) i18nKey="foo.bar"             — Trans component prop
 // ---------------------------------------------------------------------------
 const sourceGlob = new Bun.Glob("**/*.{ts,tsx}");
 const sourceFiles = [
@@ -62,24 +61,23 @@ const sourceFiles = [
 
 const literalKeys = new Set<string>();
 const dynamicPrefixes = new Set<string>();
-const allQuotedDotStrings = new Set<string>();
 
 // (a) direct t() call with a string literal
 const LITERAL_RE = /\bt\(\s*["']([a-zA-Z0-9][\w.]+)["']/g;
 // (b) template literal: t(`prefix.${...}`)
 const DYNAMIC_RE = /\bt\(`([a-zA-Z0-9][\w.]*)\$\{/g;
-// (c) any quoted string that looks like a dotted key (≥2 segments)
-const ANY_KEY_RE = /["']([a-zA-Z][a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+)["']/g;
+// (c) i18nKey prop for Trans component usage
+const I18N_KEY_RE = /\bi18nKey=["']([a-zA-Z0-9][\w.]+)["']/g;
 
 for (const file of sourceFiles) {
   const src = fs.readFileSync(file, "utf8");
   for (const m of src.matchAll(LITERAL_RE)) literalKeys.add(m[1]);
   for (const m of src.matchAll(DYNAMIC_RE)) dynamicPrefixes.add(m[1]);
-  for (const m of src.matchAll(ANY_KEY_RE)) allQuotedDotStrings.add(m[1]);
+  for (const m of src.matchAll(I18N_KEY_RE)) literalKeys.add(m[1]);
 }
 
 // ---------------------------------------------------------------------------
-// 3. Load locale files — use EN to derive valid top-level namespaces
+// 3. Load locale files
 // ---------------------------------------------------------------------------
 const localeGlob = new Bun.Glob("*/common.json");
 const localeFiles = [
@@ -91,24 +89,13 @@ if (localeFiles.length === 0) {
   process.exit(1);
 }
 
-const enFile = localeFiles.find((f) => f.includes("/en/"))!;
-const enRaw = JSON.parse(fs.readFileSync(enFile, "utf8")) as NestedRecord;
-const validNamespaces = new Set(Object.keys(enRaw));
-
-// Promote any quoted dot-string whose root namespace is valid into literalKeys
-for (const s of allQuotedDotStrings) {
-  if (validNamespaces.has(s.split(".")[0])) {
-    literalKeys.add(s);
-  }
-}
-
 // ---------------------------------------------------------------------------
 // 4. Decide if a flat key is "used"
 // ---------------------------------------------------------------------------
 function isUsed(key: string): boolean {
   if (literalKeys.has(key)) return true;
-  // i18next plural suffixes
-  const base = key.replace(/_(one|other|zero|two|few|many)$/, "");
+  // i18next plural suffixes (both v4+ _one/_other and legacy _plural)
+  const base = key.replace(/_(one|other|zero|two|few|many|plural)$/, "");
   if (base !== key && literalKeys.has(base)) return true;
   // Dynamic template literal prefix
   for (const prefix of dynamicPrefixes) {
