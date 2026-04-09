@@ -1662,7 +1662,7 @@
   },
   "medias": {
     "title": "Medias",
-    "subtitle": "Merged Radarr and Sonarr library",
+    "subtitle": "Medias library management",
     "tabs": {
       "discover": "Discover",
       "search": "Search",
@@ -1670,7 +1670,7 @@
     },
     "library": {
       "pageTitle": "Library",
-      "pageSubtitle": "Merged Radarr and Sonarr library"
+      "pageSubtitle": "Medias library management"
     },
     "releases": {
       "pageTitle": "Release Calendar",

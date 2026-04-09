@@ -61,16 +61,16 @@ export const navSections: NavSection[] = [
         mobileIcon: "🛒",
       },
       {
-        path: "/calendar",
-        translationKey: "nav.calendar",
-        icon: CalendarIcon,
-        mobileIcon: "📅",
-      },
-      {
         path: "/kitchen",
         translationKey: "nav.kitchen",
         icon: CookingPot,
         mobileIcon: "🍳",
+      },
+      {
+        path: "/calendar",
+        translationKey: "nav.calendar",
+        icon: CalendarIcon,
+        mobileIcon: "📅",
       },
     ],
   },
@@ -78,22 +78,10 @@ export const navSections: NavSection[] = [
     labelKey: "nav.section_homelab",
     items: [
       {
-        path: "/torrents",
-        translationKey: "nav.torrents",
-        icon: Magnet,
-        mobileIcon: "🧲",
-      },
-      {
         path: "/library",
         translationKey: "nav.library",
         icon: Library,
         mobileIcon: "🎞️",
-      },
-      {
-        path: "/collections",
-        translationKey: "nav.collections",
-        icon: Layers2,
-        mobileIcon: "🎬",
       },
       {
         path: "/explore",
@@ -102,10 +90,22 @@ export const navSections: NavSection[] = [
         mobileIcon: "🧭",
       },
       {
+        path: "/torrents",
+        translationKey: "nav.torrents",
+        icon: Magnet,
+        mobileIcon: "🧲",
+      },
+      {
         path: "/watchlist",
         translationKey: "nav.watchlist",
         icon: Bookmark,
         mobileIcon: "🔖",
+      },
+      {
+        path: "/collections",
+        translationKey: "nav.collections",
+        icon: Layers2,
+        mobileIcon: "🎬",
       },
     ],
   },
