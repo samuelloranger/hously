@@ -46,6 +46,21 @@ export interface InteractiveSearchPanelProps {
   onDownloadSuccess?: () => void;
 }
 
+interface FilterState {
+  filterQuery: string;
+  prowlarrApiQuery: string;
+  showFilters: boolean;
+  hideRejected: boolean;
+  sortBy: InteractiveSortKey;
+  sortDir: InteractiveSortDir;
+  includedTrackers: string[];
+  excludedTrackers: string[];
+  includedLanguages: string[];
+  /** null = episode/free-text, number = season pack, "complete" = full series */
+  selectedSeason: number | "complete" | null;
+  showPacksOnly: boolean;
+}
+
 export function InteractiveSearchPanel({
   isActive,
   media = null,
@@ -63,23 +78,38 @@ export function InteractiveSearchPanel({
   const isProwlarrMode = mode === "prowlarr";
   const sourceId = media?.source_id ?? null;
   const canRenderBody = isProwlarrMode || (media != null && sourceId != null);
-  const [filterQuery, setFilterQuery] = useState("");
-  const [prowlarrApiQuery, setProwlarrApiQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [hideRejected, setHideRejected] = useState(true);
-  const [sortBy, setSortBy] = useState<InteractiveSortKey>("seeders");
-  const [sortDir, setSortDir] = useState<InteractiveSortDir>("desc");
-  const [includedTrackers, setIncludedTrackers] = useState<string[]>([]);
-  const [excludedTrackers, setExcludedTrackers] = useState<string[]>([]);
-  const [includedLanguages, setIncludedLanguages] = useState<string[]>([]);
-  const [pendingReleaseKey, setPendingReleaseKey] = useState<string | null>(
-    null,
-  );
-  /** null = episode/free-text, number = season pack, "complete" = full series */
-  const [selectedSeason, setSelectedSeason] = useState<
-    number | "complete" | null
-  >(null);
-  const [showPacksOnly, setShowPacksOnly] = useState(false);
+
+
+  const buildInitialFilters = (): FilterState => ({
+    filterQuery: "",
+    prowlarrApiQuery: defaultProwlarrQuery?.trim() ?? "",
+    showFilters: false,
+    hideRejected: true,
+    sortBy: libId ? "quality" : "seeders",
+    sortDir: "desc",
+    includedTrackers: [],
+    excludedTrackers: [],
+    includedLanguages: [],
+    selectedSeason: defaultSeason ?? null,
+    showPacksOnly: false,
+  });
+
+  const [filters, setFilters] = useState<FilterState>(buildInitialFilters);
+  const [pendingReleaseKey, setPendingReleaseKey] = useState<string | null>(null);
+
+  const {
+    filterQuery,
+    prowlarrApiQuery,
+    showFilters,
+    hideRejected,
+    sortBy,
+    sortDir,
+    includedTrackers,
+    excludedTrackers,
+    includedLanguages,
+    selectedSeason,
+    showPacksOnly,
+  } = filters;
 
   const isShow = media?.media_type === "series";
   const mediaTmdbId = media?.tmdb_id ?? null;
@@ -106,19 +136,10 @@ export function InteractiveSearchPanel({
 
   useLayoutEffect(() => {
     if (!isActive) return;
-
-    setProwlarrApiQuery(defaultProwlarrQuery?.trim() ?? "");
-    setFilterQuery("");
-    setShowFilters(false);
-    setHideRejected(true);
-    setIncludedTrackers([]);
-    setExcludedTrackers([]);
-    setIncludedLanguages([]);
+    setFilters(buildInitialFilters());
     setPendingReleaseKey(null);
-    setSelectedSeason(defaultSeason ?? null);
-    setShowPacksOnly(false);
-    setSortBy(libId ? "quality" : "seeders");
-    setSortDir("desc");
+    // buildInitialFilters reads defaultProwlarrQuery, defaultSeason, libId from closure
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, media?.id, defaultProwlarrQuery, defaultSeason, libId]);
 
   useEffect(() => {
@@ -265,24 +286,29 @@ export function InteractiveSearchPanel({
   if (!canRenderBody) return null;
 
   const resetView = () => {
-    setHideRejected(false);
-    setIncludedTrackers([]);
-    setExcludedTrackers([]);
-    setIncludedLanguages([]);
+    setFilters((prev) => ({
+      ...prev,
+      hideRejected: false,
+      includedTrackers: [],
+      excludedTrackers: [],
+      includedLanguages: [],
+    }));
   };
 
   const handleIncludedTrackersChange = (values: string[]) => {
-    setIncludedTrackers(values);
-    setExcludedTrackers((previous) =>
-      previous.filter((key) => !values.includes(key)),
-    );
+    setFilters((prev) => ({
+      ...prev,
+      includedTrackers: values,
+      excludedTrackers: prev.excludedTrackers.filter((k) => !values.includes(k)),
+    }));
   };
 
   const handleExcludedTrackersChange = (values: string[]) => {
-    setExcludedTrackers(values);
-    setIncludedTrackers((previous) =>
-      previous.filter((key) => !values.includes(key)),
-    );
+    setFilters((prev) => ({
+      ...prev,
+      excludedTrackers: values,
+      includedTrackers: prev.includedTrackers.filter((k) => !values.includes(k)),
+    }));
   };
 
   return (
@@ -297,7 +323,7 @@ export function InteractiveSearchPanel({
               </span>
               <button
                 type="button"
-                onClick={() => setSelectedSeason(null)}
+                onClick={() => setFilters((prev) => ({ ...prev, selectedSeason: null }))}
                 className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                   selectedSeason === null
                     ? "bg-indigo-600 text-white"
@@ -311,7 +337,7 @@ export function InteractiveSearchPanel({
                   key={s}
                   type="button"
                   onClick={() =>
-                    setSelectedSeason(s === selectedSeason ? null : s)
+                    setFilters((prev) => ({ ...prev, selectedSeason: prev.selectedSeason === s ? null : s }))
                   }
                   className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                     selectedSeason === s
@@ -325,9 +351,10 @@ export function InteractiveSearchPanel({
               <button
                 type="button"
                 onClick={() =>
-                  setSelectedSeason(
-                    selectedSeason === "complete" ? null : "complete",
-                  )
+                  setFilters((prev) => ({
+                    ...prev,
+                    selectedSeason: prev.selectedSeason === "complete" ? null : "complete",
+                  }))
                 }
                 className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                   selectedSeason === "complete"
@@ -348,7 +375,7 @@ export function InteractiveSearchPanel({
               <input
                 ref={searchInputRef}
                 value={filterQuery}
-                onChange={(event) => setFilterQuery(event.target.value)}
+                onChange={(event) => setFilters((prev) => ({ ...prev, filterQuery: event.target.value }))}
                 placeholder={t(
                   "medias.interactive.filterPlaceholder",
                   "Filter releases…",
@@ -358,7 +385,7 @@ export function InteractiveSearchPanel({
               {filterQuery && (
                 <button
                   type="button"
-                  onClick={() => setFilterQuery("")}
+                  onClick={() => setFilters((prev) => ({ ...prev, filterQuery: "" }))}
                   className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
                   aria-label={t("medias.interactive.clearSearch")}
                 >
@@ -370,7 +397,7 @@ export function InteractiveSearchPanel({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setShowFilters((value) => !value)}
+                onClick={() => setFilters((prev) => ({ ...prev, showFilters: !prev.showFilters }))}
                 className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
                   showFilters || hasAdvancedFilters
                     ? "border-indigo-500/40 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300"
@@ -387,12 +414,12 @@ export function InteractiveSearchPanel({
 
               <Toggle
                 checked={hideRejected}
-                onChange={setHideRejected}
+                onChange={(v) => setFilters((prev) => ({ ...prev, hideRejected: v }))}
                 label={t("medias.interactive.hideRejected")}
               />
               <Toggle
                 checked={showPacksOnly}
-                onChange={setShowPacksOnly}
+                onChange={(v) => setFilters((prev) => ({ ...prev, showPacksOnly: v }))}
                 label={t("medias.interactive.packsOnly", "Packs only")}
               />
 
@@ -455,7 +482,7 @@ export function InteractiveSearchPanel({
                 <select
                   value={sortBy}
                   onChange={(event) =>
-                    setSortBy(event.target.value as InteractiveSortKey)
+                    setFilters((prev) => ({ ...prev, sortBy: event.target.value as InteractiveSortKey }))
                   }
                   className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                 >
@@ -478,7 +505,7 @@ export function InteractiveSearchPanel({
                 <button
                   type="button"
                   onClick={() =>
-                    setSortDir((prev) => (prev === "asc" ? "desc" : "asc"))
+                    setFilters((prev) => ({ ...prev, sortDir: prev.sortDir === "asc" ? "desc" : "asc" }))
                   }
                   className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
                   title={
@@ -511,11 +538,14 @@ export function InteractiveSearchPanel({
                 {hasAdvancedFilters && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setIncludedTrackers([]);
-                      setExcludedTrackers([]);
-                      setIncludedLanguages([]);
-                    }}
+                    onClick={() =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        includedTrackers: [],
+                        excludedTrackers: [],
+                        includedLanguages: [],
+                      }))
+                    }
                     className="text-[11px] font-medium text-indigo-600 transition-colors hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200"
                   >
                     {t("medias.interactive.clearFilters")}
@@ -558,7 +588,7 @@ export function InteractiveSearchPanel({
                     <ChipMultiSelect
                       options={languageOptions}
                       selected={includedLanguages}
-                      onChange={setIncludedLanguages}
+                      onChange={(values) => setFilters((prev) => ({ ...prev, includedLanguages: values }))}
                       emptyText={t("medias.interactive.noLanguages")}
                     />
                   </FilterSection>

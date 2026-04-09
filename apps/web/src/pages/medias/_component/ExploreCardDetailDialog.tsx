@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddToLibrary } from "@/hooks/useLibrary";
 import {
@@ -126,14 +126,9 @@ export function ExploreCardDetailDialog({
     item.library_id ?? null,
   );
   // Reset when the item changes
-  const [prevTmdbKey, setPrevTmdbKey] = useState(
-    `${item.tmdb_id}-${item.media_type}`,
-  );
-  const tmdbKeyNow = `${item.tmdb_id}-${item.media_type}`;
-  if (tmdbKeyNow !== prevTmdbKey) {
-    setPrevTmdbKey(tmdbKeyNow);
+  useEffect(() => {
     setLocalLibraryId(item.library_id ?? null);
-  }
+  }, [item.tmdb_id, item.media_type, item.library_id]);
 
   const { data: modalData, isPending: modalDataPending } = useMediaModalData(
     item.media_type,
@@ -255,29 +250,17 @@ export function ExploreCardDetailDialog({
     detailsData?.media_stills?.backdrops?.[0]?.url ??
     null;
 
-  // Reset heroBackdropLoaded when the backdrop URL changes (during-render update)
-  const [prevHeroBackdropUrl, setPrevHeroBackdropUrl] =
-    useState(heroBackdropUrl);
-  if (heroBackdropUrl !== prevHeroBackdropUrl) {
-    setPrevHeroBackdropUrl(heroBackdropUrl);
+  useEffect(() => {
     setHeroBackdropLoaded(false);
-  }
+  }, [heroBackdropUrl]);
 
-  // Reset posterLoaded when the dialog closes or the item changes (during-render update)
-  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
-  if (isOpen !== prevIsOpen) {
-    setPrevIsOpen(isOpen);
+  useEffect(() => {
     if (!isOpen) setPosterLoaded(false);
-  }
+  }, [isOpen]);
 
-  const [prevItemKey, setPrevItemKey] = useState(
-    `${item.tmdb_id}-${item.media_type}`,
-  );
-  const itemKey = `${item.tmdb_id}-${item.media_type}`;
-  if (itemKey !== prevItemKey) {
-    setPrevItemKey(itemKey);
+  useEffect(() => {
     setPosterLoaded(false);
-  }
+  }, [item.tmdb_id, item.media_type]);
 
   const heroVisualReady = !heroBackdropUrl || heroBackdropLoaded;
 
