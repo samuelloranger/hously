@@ -9,7 +9,6 @@ import {
   QbittorrentPluginSection,
   ScrutinyPluginSection,
   TmdbPluginSection,
-  OllamaPluginSection,
   TrackersPluginSection,
   WeatherPluginSection,
   HomeAssistantPluginSection,
@@ -92,7 +91,6 @@ export function PluginsTab() {
             <div className="space-y-3">
               <WeatherPluginSection />
               <HomeAssistantPluginSection />
-              <OllamaPluginSection />
             </div>
           </div>
         </div>

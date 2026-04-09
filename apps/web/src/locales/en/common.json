@@ -115,7 +115,6 @@
         "admin": "Admin",
         "weather": "Weather",
         "tmdb": "TMDB",
-        "ollama": "Ollama",
         "jellyfin": "Jellyfin",
         "qbittorrent": "qBittorrent",
         "scrutiny": "Scrutiny",
@@ -906,15 +905,6 @@
         "fahrenheit": "Fahrenheit (°F)",
         "celsius": "Celsius (°C)"
       },
-      "ollama": {
-        "title": "Ollama",
-        "help": "Local LLM for Explore AI suggestions (TMDB-grounded picks). Set the API base URL your Hously server can reach.",
-        "baseUrl": "Ollama base URL",
-        "baseUrlPlaceholder": "http://127.0.0.1:11434",
-        "model": "Model name",
-        "modelPlaceholder": "llama3.2",
-        "modelHelp": "Must be pulled on the Ollama host (e.g. ollama pull llama3.2)."
-      },
       "prowlarr": {
         "help": "Connect Prowlarr to run global release searches and send results to your configured download client.",
         "websiteUrl": "Prowlarr URL",
@@ -1267,8 +1257,7 @@
   "medias": {
     "tabs": {
       "discover": "Discover",
-      "search": "Search",
-      "ai": "AI"
+      "search": "Search"
     },
     "library": {
       "pageTitle": "Library",
@@ -1314,7 +1303,7 @@
     },
     "explore": {
       "pageTitle": "Explore",
-      "pageSubtitle": "Search TMDB, browse Discover, and get AI picks.",
+      "pageSubtitle": "Search TMDB and browse Discover.",
       "trending": "Trending",
       "popularMovies": "Popular Movies",
       "popularShows": "Popular TV Shows",
@@ -1325,20 +1314,7 @@
       "topRatedMovies": "Top Rated Movies",
       "topRatedShows": "Top Rated Shows",
       "recommended": "Recommended For You",
-      "browseTab": "Browse",
-      "aiTitle": "AI picks",
-      "aiSubtitle": "Describe a mood — your model picks from today's popular titles.",
-      "aiPromptPlaceholder": "Optional: e.g. cozy sci-fi, feel-good, strong female leads, non-English…",
-      "aiTypeLabel": "Pool",
-      "aiTypeMovie": "Movies",
-      "aiTypeTv": "TV",
-      "aiTypeBoth": "Both",
-      "aiGenerate": "Suggest",
-      "aiModelLabel": "Model: {{model}}",
-      "aiError": "Could not load suggestions.",
-      "aiPluginDisabled": "AI suggestions need the Ollama plugin enabled with a valid base URL.",
-      "aiPluginSettingsLink": "Open Plugins",
-      "aiPluginAskAdmin": "AI suggestions are not configured. Ask an administrator to enable the Ollama plugin in Settings."
+      "browseTab": "Browse"
     },
     "discover": {
       "title": "Discover",

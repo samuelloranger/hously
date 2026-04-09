@@ -5,7 +5,6 @@ export { ProwlarrPluginSection } from "@/pages/settings/_component/plugins/Prowl
 export { QbittorrentPluginSection } from "@/pages/settings/_component/plugins/QbittorrentPluginSection";
 export { ScrutinyPluginSection } from "@/pages/settings/_component/plugins/ScrutinyPluginSection";
 export { TmdbPluginSection } from "@/pages/settings/_component/plugins/TmdbPluginSection";
-export { OllamaPluginSection } from "@/pages/settings/_component/plugins/OllamaPluginSection";
 export { TrackersPluginSection } from "@/pages/settings/_component/plugins/TrackersPluginSection";
 export { WeatherPluginSection } from "@/pages/settings/_component/plugins/WeatherPluginSection";
 export { HomeAssistantPluginSection } from "@/pages/settings/_component/plugins/HomeAssistantPluginSection";
