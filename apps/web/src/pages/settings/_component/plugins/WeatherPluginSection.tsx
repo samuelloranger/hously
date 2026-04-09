@@ -93,8 +93,12 @@ function WeatherPluginSectionImpl({
             }
             className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
           >
-            <option value="fahrenheit">{t("settings.plugins.weather.fahrenheit")}</option>
-            <option value="celsius">{t("settings.plugins.weather.celsius")}</option>
+            <option value="fahrenheit">
+              {t("settings.plugins.weather.fahrenheit")}
+            </option>
+            <option value="celsius">
+              {t("settings.plugins.weather.celsius")}
+            </option>
           </select>
         </div>
       </div>

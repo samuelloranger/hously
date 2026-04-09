@@ -1,10 +1,13 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useAddUpcomingToArr } from "@/hooks/useDashboard";
+import { useAddUpcomingToLibrary } from "@/hooks/useDashboard";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { MEDIAS_ENDPOINTS } from "@hously/shared/endpoints";
-import type { MediaModalDataResponse, TmdbMediaSearchItem } from "@hously/shared/types";
+import type {
+  MediaModalDataResponse,
+  TmdbMediaSearchItem,
+} from "@hously/shared/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -20,7 +23,7 @@ export function ExploreCard({
   const { t } = useTranslation("common");
   const [detailOpen, setDetailOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const addUpcomingMutation = useAddUpcomingToArr();
+  const addUpcomingMutation = useAddUpcomingToLibrary();
   const queryClient = useQueryClient();
   const fetcher = useFetcher();
 

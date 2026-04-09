@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { prisma } from "@hously/api/db";
 import { auth } from "@hously/api/auth";
-import { formatIso, nowUtc, sanitizeInput } from "@hously/api/utils";
+import { formatIso, sanitizeInput } from "@hously/api/utils";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { sendInvitationEmail } from "@hously/api/services/emailService";
 import { generateOpaqueToken, hashOpaqueToken } from "@hously/api/utils/tokens";
@@ -250,7 +250,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   )
 
   // GET /api/admin/users - List all users
-  .get("/users", async ({ user, set }) => {
+  .get("/users", async ({ set }) => {
     try {
       const allUsers = await prisma.user.findMany({
         orderBy: { createdAt: "desc" },
@@ -367,7 +367,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   )
 
   // GET /api/admin/invitations - List all invitations
-  .get("/invitations", async ({ user, set }) => {
+  .get("/invitations", async ({ set }) => {
     try {
       const invitations = await prisma.invitation.findMany({
         orderBy: { createdAt: "desc" },
@@ -450,7 +450,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   // DELETE /api/admin/invitations/:id - Revoke an invitation
   .delete(
     "/invitations/:id",
-    async ({ user, params, set }) => {
+    async ({ params, set }) => {
       const id = parseInt(params.id, 10);
       if (isNaN(id)) return badRequest(set, "Invalid invitation ID");
 
@@ -506,7 +506,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   )
 
   // GET /api/admin/sessions - List all active refresh tokens (sessions)
-  .get("/sessions", async ({ user, set }) => {
+  .get("/sessions", async ({ set }) => {
     try {
       const tokens = await prisma.refreshToken.findMany({
         where: { revoked: false, expiresAt: { gt: new Date() } },
@@ -540,7 +540,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   // DELETE /api/admin/sessions/:id - Revoke a specific session
   .delete(
     "/sessions/:id",
-    async ({ user, params, set }) => {
+    async ({ params, set }) => {
       const id = parseInt(params.id, 10);
       if (isNaN(id)) return badRequest(set, "Invalid session ID");
 
@@ -561,7 +561,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   // DELETE /api/admin/sessions/user/:userId - Revoke all sessions for a user
   .delete(
     "/sessions/user/:userId",
-    async ({ user, params, set }) => {
+    async ({ params, set }) => {
       const userId = parseInt(params.userId, 10);
       if (isNaN(userId)) return badRequest(set, "Invalid user ID");
 
@@ -580,7 +580,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   )
 
   // GET /api/admin/push-tokens - List all iOS/mobile push tokens
-  .get("/push-tokens", async ({ user, set }) => {
+  .get("/push-tokens", async ({ set }) => {
     try {
       const tokens = await prisma.pushToken.findMany({
         include: {
@@ -615,7 +615,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   // DELETE /api/admin/push-tokens/:id - Delete a push token
   .delete(
     "/push-tokens/:id",
-    async ({ user, params, set }) => {
+    async ({ params, set }) => {
       const id = parseInt(params.id, 10);
       if (isNaN(id)) return badRequest(set, "Invalid token ID");
 
@@ -631,7 +631,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   )
 
   // GET /api/admin/web-push - List all web push subscriptions
-  .get("/web-push", async ({ user, set }) => {
+  .get("/web-push", async ({ set }) => {
     try {
       const subs = await prisma.userSubscription.findMany({
         include: {
@@ -671,7 +671,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   // DELETE /api/admin/web-push/:id - Delete a web push subscription
   .delete(
     "/web-push/:id",
-    async ({ user, params, set }) => {
+    async ({ params, set }) => {
       const id = parseInt(params.id, 10);
       if (isNaN(id)) return badRequest(set, "Invalid subscription ID");
 
@@ -687,7 +687,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   )
 
   // GET /api/admin/export - Export all data
-  .get("/export", async ({ user, set }) => {
+  .get("/export", async ({ set }) => {
     try {
       const allUsers = await prisma.user.findMany();
       const idToEmail = new Map<number, string>();
@@ -737,7 +737,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   // POST /api/admin/import - Import data
   .post(
     "/import",
-    async ({ user, body, set }) => {
+    async () => {
       // Simplified import logic for brevity here
       return { success: true, message: "Import logic placeholder" };
     },

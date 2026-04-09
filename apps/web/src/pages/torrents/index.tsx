@@ -1,5 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import type { QbittorrentSortDir, QbittorrentSortKey, QbittorrentStateFilter } from "@hously/shared/utils";
+import type {
+  QbittorrentSortDir,
+  QbittorrentSortKey,
+  QbittorrentStateFilter,
+} from "@hously/shared/utils";
 import { getCurrentUser } from "@/lib/auth";
 import { prefetchRouteData } from "@/lib/routing/prefetch";
 import { TorrentsPage } from "@/pages/torrents/_component/index";

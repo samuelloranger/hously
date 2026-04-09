@@ -14,7 +14,7 @@ export function useDashboardUpcoming(options?: { enabled?: boolean }) {
   });
 }
 
-export function useAddUpcomingToArr() {
+export function useAddUpcomingToLibrary() {
   const fetcher = useFetcher();
 
   return useMutation({
@@ -25,7 +25,6 @@ export function useAddUpcomingToArr() {
     }) =>
       fetcher<{
         success: boolean;
-        service: "radarr" | "sonarr";
         added: boolean;
         already_exists: boolean;
       }>(DASHBOARD_ENDPOINTS.UPCOMING.ADD, {

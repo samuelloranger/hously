@@ -232,8 +232,12 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
     "/",
     async ({ query, set }) => {
       try {
-        const page = query.page ? Math.max(1, parseInt(query.page, 10) || 1) : null;
-        const limit = page ? Math.min(parseInt(query.limit || "50", 10) || 50, 100) : undefined;
+        const page = query.page
+          ? Math.max(1, parseInt(query.page, 10) || 1)
+          : null;
+        const limit = page
+          ? Math.min(parseInt(query.limit || "50", 10) || 50, 100)
+          : undefined;
 
         const [tasks, total] = await Promise.all([
           prisma.boardTask.findMany({
@@ -247,7 +251,14 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
         return {
           tasks: tasks.map((row) => mapTask(row as unknown as TaskRow)),
           ...(page && limit && total != null
-            ? { pagination: { page, limit, total, pages: Math.ceil(total / limit) } }
+            ? {
+                pagination: {
+                  page,
+                  limit,
+                  total,
+                  pages: Math.ceil(total / limit),
+                },
+              }
             : {}),
         };
       } catch (error) {

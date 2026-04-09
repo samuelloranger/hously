@@ -1,5 +1,9 @@
 import { useSortable } from "@dnd-kit/react/sortable";
-import type { BoardTask, BoardTaskPriorityApi, BoardTaskStatusApi } from "@hously/shared/types";
+import type {
+  BoardTask,
+  BoardTaskPriorityApi,
+  BoardTaskStatusApi,
+} from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Clock, Lock } from "lucide-react";
 import { formatMinutes } from "../utils/time";

@@ -1,1 +1,5 @@
-export { sanitizeInput, sanitizeRichText, isValidColor } from "@hously/shared/utils";
+export {
+  sanitizeInput,
+  sanitizeRichText,
+  isValidColor,
+} from "@hously/shared/utils";

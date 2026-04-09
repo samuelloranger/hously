@@ -35,7 +35,19 @@ import {
 import { useJsonEventSource } from "@/hooks/useEventSource";
 import { useUsers } from "@/hooks/useUsers";
 import { BOARD_TASKS_ENDPOINTS } from "@hously/shared/endpoints";
-import { BACKLOG_SORT_OPTIONS, BOARD_KANBAN_STATUSES, BOARD_TASK_STATUSES, type BacklogSortOption, type BoardKanbanStatusApi, type BoardTag, type BoardTask, type BoardTaskPriorityApi, type BoardTaskStatusApi, type BoardTasksResponse, type UpdateBoardTaskRequest } from "@hously/shared/types";
+import {
+  BACKLOG_SORT_OPTIONS,
+  BOARD_KANBAN_STATUSES,
+  BOARD_TASK_STATUSES,
+  type BacklogSortOption,
+  type BoardKanbanStatusApi,
+  type BoardTag,
+  type BoardTask,
+  type BoardTaskPriorityApi,
+  type BoardTaskStatusApi,
+  type BoardTasksResponse,
+  type UpdateBoardTaskRequest,
+} from "@hously/shared/types";
 import { useBoardTags } from "@/hooks/useBoardTags";
 import { queryKeys } from "@/lib/queryKeys";
 import { TagManagerModal } from "./components/TagManagerModal";

@@ -34,6 +34,7 @@ const SERVICE_LABEL_KEYS: Record<string, string> = {
   c411: "dashboard.activityPage.services.c411",
   torr9: "dashboard.activityPage.services.torr9",
   "la-cale": "dashboard.activityPage.services.laCale",
+  library: "dashboard.activityPage.services.library",
 };
 
 const TYPE_LABEL_KEYS: Record<string, string> = {
@@ -57,6 +58,7 @@ const TYPE_LABEL_KEYS: Record<string, string> = {
   shopping_item_completed:
     "dashboard.activityPage.types.shopping_item_completed",
   shopping_list_cleared: "dashboard.activityPage.types.shopping_list_cleared",
+  media_grab: "dashboard.activityPage.types.media_grab",
 };
 
 function titleize(value: string): string {
@@ -323,6 +325,23 @@ export function getActivityPresentation(
       typeLabel: getActivityTypeLabel(t, type),
       service,
       serviceLabel: getActivityServiceLabel(t, service),
+    };
+  }
+
+  if (type === "media_grab") {
+    const time =
+      formatRelativeTime(activity.completed_at ?? null, { locale }) ?? "";
+    const title =
+      activity.release_title ?? t("dashboard.activity.unknownRelease");
+    const svc = activity.service?.trim().toLowerCase() || "library";
+    return {
+      icon: "⬇️",
+      description: t("dashboard.activity.mediaGrab", { title }),
+      time,
+      type,
+      typeLabel: getActivityTypeLabel(t, type),
+      service: svc,
+      serviceLabel: getActivityServiceLabel(t, svc),
     };
   }
 

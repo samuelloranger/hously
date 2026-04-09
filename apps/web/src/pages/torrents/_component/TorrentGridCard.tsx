@@ -6,7 +6,15 @@ import {
   useResumeQbittorrentTorrent,
 } from "@/hooks/useDashboard";
 import type { QbittorrentTorrentListItem } from "@hously/shared/types";
-import { formatBytes, formatQbittorrentEta, formatSpeed, getQbittorrentProgressBarGradient, getQbittorrentStatusDot, hasQbittorrentTransferActivity, isQbittorrentPausedState } from "@hously/shared/utils";
+import {
+  formatBytes,
+  formatQbittorrentEta,
+  formatSpeed,
+  getQbittorrentProgressBarGradient,
+  getQbittorrentStatusDot,
+  hasQbittorrentTransferActivity,
+  isQbittorrentPausedState,
+} from "@hously/shared/utils";
 import {
   Tag,
   Clock,

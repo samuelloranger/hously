@@ -1,232 +1,153 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   ArrowDownAZ,
   ArrowUpZA,
-  ChevronDown,
-  Download,
   RefreshCw,
   Search,
   TriangleAlert,
   X,
 } from "lucide-react";
 import {
-  useMediaInteractiveDownload,
-  useMediaInteractiveSearch,
   useProwlarrInteractiveDownload,
   useProwlarrInteractiveSearch,
 } from "@/hooks/useMedias";
+import { useLibraryGrabRelease, useLibraryEpisodes } from "@/hooks/useLibrary";
 import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
-import { formatBytes, filterAndSortReleases, normalizeFilterKey, UNKNOWN_TRACKER_KEY, UNKNOWN_LANGUAGE_KEY, type InteractiveSortKey, type InteractiveSortDir } from "@hously/shared/utils";
+import {
+  filterAndSortReleases,
+  normalizeFilterKey,
+  UNKNOWN_TRACKER_KEY,
+  UNKNOWN_LANGUAGE_KEY,
+  type InteractiveSortKey,
+  type InteractiveSortDir,
+} from "@hously/shared/utils";
+import {
+  Toggle,
+  ChipMultiSelect,
+  FilterSection,
+  type FilterOption,
+} from "./InteractiveSearchFilters";
+import { ReleaseCard } from "./ReleaseCard";
+
 export interface InteractiveSearchPanelProps {
   isActive: boolean;
   media?: MediaItem | null;
   mode?: "arr" | "prowlarr";
+  /** Native library row id — enables quality scoring on Prowlarr results */
+  libraryMediaId?: number | null;
+  /** Prefill Prowlarr query when opening (e.g. media title) */
+  defaultProwlarrQuery?: string | null;
+  /** Episode to link the grab to (shows only) */
+  episodeId?: number | null;
+  /** Pre-select a season (number) or complete series ("complete") when opening */
+  defaultSeason?: number | "complete" | null;
   onDownloadSuccess?: () => void;
 }
 
-type FilterOption = { key: string; label: string };
-
-function Toggle({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className="inline-flex items-center gap-2 rounded-full px-1 py-1 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
-      style={{ touchAction: "manipulation" }}
-    >
-      <span
-        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-          checked ? "bg-indigo-600" : "bg-neutral-200 dark:bg-neutral-700"
-        }`}
-      >
-        <span
-          className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 ${
-            checked ? "translate-x-4" : "translate-x-0"
-          }`}
-        />
-      </span>
-      <span className="text-xs text-neutral-600 dark:text-neutral-300">
-        {label}
-      </span>
-    </button>
-  );
-}
-
-function ChipMultiSelect({
-  options,
-  selected,
-  onChange,
-  emptyText,
-}: {
-  options: FilterOption[];
-  selected: string[];
-  onChange: (values: string[]) => void;
-  emptyText: string;
-}) {
-  const toggle = (key: string) => {
-    onChange(
-      selected.includes(key)
-        ? selected.filter((k) => k !== key)
-        : [...selected, key],
-    );
-  };
-
-  if (options.length === 0) {
-    return (
-      <span className="text-[11px] italic text-neutral-400 dark:text-neutral-500">
-        {emptyText}
-      </span>
-    );
-  }
-
-  return (
-    <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto pr-1 pb-2">
-      {options.map((option) => {
-        const active = selected.includes(option.key);
-        return (
-          <button
-            key={option.key}
-            type="button"
-            onClick={() => toggle(option.key)}
-            style={{ touchAction: "manipulation" }}
-            className={`inline-flex appearance-none items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-150 ${
-              active
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
-            }`}
-          >
-            {option.label}
-            {active && <X size={9} strokeWidth={2.5} />}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function FilterSection({
-  title,
-  children,
-  badge,
-}: {
-  title: string;
-  children: React.ReactNode;
-  badge?: number;
-}) {
-  const [open, setOpen] = useState(true);
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="group flex w-full items-center justify-between py-1"
-        style={{ touchAction: "manipulation" }}
-      >
-        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-          {title}
-          {badge != null && badge > 0 && (
-            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-[9px] font-bold text-white">
-              {badge}
-            </span>
-          )}
-        </span>
-        <ChevronDown
-          size={12}
-          className={`text-neutral-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-      {open && <div className="mt-1.5">{children}</div>}
-    </div>
-  );
+interface FilterState {
+  filterQuery: string;
+  prowlarrApiQuery: string;
+  showFilters: boolean;
+  hideRejected: boolean;
+  sortBy: InteractiveSortKey;
+  sortDir: InteractiveSortDir;
+  includedTrackers: string[];
+  excludedTrackers: string[];
+  includedLanguages: string[];
+  /** null = episode/free-text, number = season pack, "complete" = full series */
+  selectedSeason: number | "complete" | null;
+  showPacksOnly: boolean;
 }
 
 export function InteractiveSearchPanel({
   isActive,
   media = null,
-  mode = "arr",
+  mode = "prowlarr",
+  libraryMediaId = null,
+  defaultProwlarrQuery = null,
+  episodeId = null,
+  defaultSeason = null,
   onDownloadSuccess,
 }: InteractiveSearchPanelProps) {
   const { t } = useTranslation("common");
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const libId =
+    libraryMediaId != null && libraryMediaId > 0 ? libraryMediaId : null;
   const isProwlarrMode = mode === "prowlarr";
   const sourceId = media?.source_id ?? null;
-  const service = media?.service ?? "radarr";
-  const [filterQuery, setFilterQuery] = useState("");
-  const [prowlarrQuery, setProwlarrQuery] = useState("");
-  const [debouncedProwlarrQuery, setDebouncedProwlarrQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [hideRejected, setHideRejected] = useState(true);
-  const [sortBy, setSortBy] = useState<InteractiveSortKey>("seeders");
-  const [sortDir, setSortDir] = useState<InteractiveSortDir>("desc");
-  const [includedTrackers, setIncludedTrackers] = useState<string[]>([]);
-  const [excludedTrackers, setExcludedTrackers] = useState<string[]>([]);
-  const [includedLanguages, setIncludedLanguages] = useState<string[]>([]);
-  const [pendingReleaseKey, setPendingReleaseKey] = useState<string | null>(
-    null,
-  );
+  const canRenderBody = isProwlarrMode || (media != null && sourceId != null);
 
-  const arrQuery = useMediaInteractiveSearch(
-    { service, source_id: sourceId },
-    {
-      enabled: isActive && !isProwlarrMode && Boolean(media),
-    },
-  );
-  const prowlarrSearchQuery = useProwlarrInteractiveSearch(
-    debouncedProwlarrQuery,
-    {
-      enabled: isActive && isProwlarrMode,
-    },
-  );
-  const arrDownloadMutation = useMediaInteractiveDownload();
+
+  const buildInitialFilters = (): FilterState => ({
+    filterQuery: "",
+    prowlarrApiQuery: defaultProwlarrQuery?.trim() ?? "",
+    showFilters: false,
+    hideRejected: true,
+    sortBy: libId ? "quality" : "seeders",
+    sortDir: "desc",
+    includedTrackers: [],
+    excludedTrackers: [],
+    includedLanguages: [],
+    selectedSeason: defaultSeason ?? null,
+    showPacksOnly: false,
+  });
+
+  const [filters, setFilters] = useState<FilterState>(buildInitialFilters);
+  const [pendingReleaseKey, setPendingReleaseKey] = useState<string | null>(null);
+
+  const {
+    filterQuery,
+    prowlarrApiQuery,
+    showFilters,
+    hideRejected,
+    sortBy,
+    sortDir,
+    includedTrackers,
+    excludedTrackers,
+    includedLanguages,
+    selectedSeason,
+    showPacksOnly,
+  } = filters;
+
+  const isShow = media?.media_type === "series";
+  const mediaTmdbId = media?.tmdb_id ?? null;
+  const episodesQuery = useLibraryEpisodes(isShow && isActive ? libId : null);
+  const availableSeasons = useMemo(() => {
+    if (!episodesQuery.data?.seasons) return [];
+    return episodesQuery.data.seasons
+      .map((s) => s.season)
+      .filter((s) => s > 0)
+      .sort((a, b) => a - b);
+  }, [episodesQuery.data]);
+
+  const prowlarrSearchQuery = useProwlarrInteractiveSearch(prowlarrApiQuery, {
+    enabled: isActive,
+    library_media_id: libId,
+    season: selectedSeason,
+    tmdb_id: selectedSeason != null ? mediaTmdbId : null,
+  });
   const prowlarrDownloadMutation = useProwlarrInteractiveDownload();
-  const activeQuery = isProwlarrMode ? prowlarrSearchQuery : arrQuery;
-  const activeDownloadMutation = isProwlarrMode
-    ? prowlarrDownloadMutation
-    : arrDownloadMutation;
+  const libraryGrabMutation = useLibraryGrabRelease(libId);
+  const activeQuery = prowlarrSearchQuery;
+  const grabBusy =
+    libraryGrabMutation.isPending || prowlarrDownloadMutation.isPending;
+
+  useLayoutEffect(() => {
+    if (!isActive) return;
+    setFilters(buildInitialFilters());
+    setPendingReleaseKey(null);
+    // buildInitialFilters reads defaultProwlarrQuery, defaultSeason, libId from closure
+  }, [isActive, media?.id, defaultProwlarrQuery, defaultSeason, libId]);
 
   useEffect(() => {
     if (!isActive) return;
-
-    setFilterQuery("");
-    setProwlarrQuery("");
-    setDebouncedProwlarrQuery("");
-    setShowFilters(false);
-    setHideRejected(true);
-    setIncludedTrackers([]);
-    setExcludedTrackers([]);
-    setIncludedLanguages([]);
-    setPendingReleaseKey(null);
-
     const frame = window.requestAnimationFrame(() => {
       searchInputRef.current?.focus();
     });
-
     return () => window.cancelAnimationFrame(frame);
-  }, [isActive, isProwlarrMode, media?.id]);
-
-  useEffect(() => {
-    if (!isProwlarrMode) return;
-
-    const timeout = window.setTimeout(() => {
-      setDebouncedProwlarrQuery(prowlarrQuery.trim());
-    }, 250);
-
-    return () => window.clearTimeout(timeout);
-  }, [isProwlarrMode, prowlarrQuery]);
+  }, [isActive, media?.id, defaultProwlarrQuery, libId]);
 
   const trackerOptions = useMemo<FilterOption[]>(() => {
     const options = new Map<string, string>();
@@ -274,7 +195,7 @@ export function InteractiveSearchPanel({
   }, [activeQuery.data?.releases, t]);
 
   const releases = useMemo(() => {
-    return filterAndSortReleases(activeQuery.data?.releases ?? [], {
+    let list = filterAndSortReleases(activeQuery.data?.releases ?? [], {
       filterQuery,
       hideRejected,
       includedTrackers,
@@ -282,16 +203,26 @@ export function InteractiveSearchPanel({
       includedLanguages,
       sortBy,
       sortDir,
-      isProwlarrMode,
+      isProwlarrMode: true,
+      mediaTitle: media?.title ?? defaultProwlarrQuery ?? null,
+      mediaYear: media?.year ?? null,
     });
+    if (showPacksOnly || selectedSeason != null) {
+      list = list.filter((r) => r.is_season_pack || r.is_complete_series);
+    }
+    return list;
   }, [
     activeQuery.data?.releases,
+    defaultProwlarrQuery,
     excludedTrackers,
     filterQuery,
     hideRejected,
     includedLanguages,
     includedTrackers,
-    isProwlarrMode,
+    media?.title,
+    media?.year,
+    selectedSeason,
+    showPacksOnly,
     sortBy,
     sortDir,
   ]);
@@ -301,26 +232,25 @@ export function InteractiveSearchPanel({
     setPendingReleaseKey(releaseKey);
 
     try {
-      if (isProwlarrMode) {
-        if (!release.download_token || prowlarrDownloadMutation.isPending)
-          return;
+      if (isProwlarrMode && libId != null && release.download_url) {
+        // Library grab — records in DB and sends URL to qBittorrent
+        if (libraryGrabMutation.isPending) return;
+        await libraryGrabMutation.mutateAsync({
+          download_url: release.download_url,
+          release_title: release.title,
+          indexer: release.indexer,
+          quality_parsed: release.parsed_quality ?? undefined,
+          size_bytes: release.size_bytes,
+          episode_id: episodeId,
+        });
+      } else if (isProwlarrMode && release.download_token) {
+        // Token-based Prowlarr download (fallback when download_url unavailable)
+        if (prowlarrDownloadMutation.isPending) return;
         await prowlarrDownloadMutation.mutateAsync({
           token: release.download_token,
         });
       } else {
-        if (
-          !media ||
-          !sourceId ||
-          !release.indexer_id ||
-          arrDownloadMutation.isPending
-        )
-          return;
-        await arrDownloadMutation.mutateAsync({
-          service,
-          source_id: sourceId,
-          guid: release.guid,
-          indexer_id: release.indexer_id,
-        });
+        return;
       }
 
       toast.success(t("medias.interactive.downloadStarted"));
@@ -345,49 +275,96 @@ export function InteractiveSearchPanel({
     includedTrackers.length +
     excludedTrackers.length +
     includedLanguages.length;
-  const hasViewOverrides =
-    (!isProwlarrMode && filterQuery.trim().length > 0) ||
-    totalActiveFilters > 0 ||
-    !hideRejected;
+  const hasViewOverrides = totalActiveFilters > 0 || !hideRejected;
   const visibleCount = releases.length;
   const hiddenCount = Math.max(0, totalReleases - visibleCount);
   const errorMessage =
     activeQuery.error instanceof Error ? activeQuery.error.message : null;
-  const needsProwlarrQuery =
-    isProwlarrMode && debouncedProwlarrQuery.length < 2;
-  const canRenderBody = isProwlarrMode || Boolean(media);
-
-  const resetView = () => {
-    setFilterQuery("");
-    setHideRejected(false);
-    setIncludedTrackers([]);
-    setExcludedTrackers([]);
-    setIncludedLanguages([]);
-  };
-
-  const handleIncludedTrackersChange = (values: string[]) => {
-    setIncludedTrackers(values);
-    setExcludedTrackers((previous) =>
-      previous.filter((key) => !values.includes(key)),
-    );
-  };
-
-  const handleExcludedTrackersChange = (values: string[]) => {
-    setExcludedTrackers(values);
-    setIncludedTrackers((previous) =>
-      previous.filter((key) => !values.includes(key)),
-    );
-  };
+  const needsProwlarrQuery = prowlarrApiQuery.length < 2;
 
   if (!canRenderBody) return null;
 
+  const resetView = () => {
+    setFilters((prev) => ({
+      ...prev,
+      hideRejected: false,
+      includedTrackers: [],
+      excludedTrackers: [],
+      includedLanguages: [],
+    }));
+  };
+
+  const handleIncludedTrackersChange = (values: string[]) => {
+    setFilters((prev) => ({
+      ...prev,
+      includedTrackers: values,
+      excludedTrackers: prev.excludedTrackers.filter((k) => !values.includes(k)),
+    }));
+  };
+
+  const handleExcludedTrackersChange = (values: string[]) => {
+    setFilters((prev) => ({
+      ...prev,
+      excludedTrackers: values,
+      includedTrackers: prev.includedTrackers.filter((k) => !values.includes(k)),
+    }));
+  };
+
   return (
-    <div
-      className="flex flex-col overflow-hidden"
-      style={{ maxHeight: "calc(90dvh - 12rem)" }}
-    >
-      <div className="border-b border-neutral-200 pb-4 dark:border-neutral-700">
+    <div className="flex flex-col">
+      <div className="sticky top-0 z-10 border-b border-neutral-200 pt-1 pb-4 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
         <div className="flex flex-col gap-3">
+          {/* Season pack search — shows only */}
+          {isShow && availableSeasons.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-neutral-500 dark:text-neutral-400 shrink-0">
+                {t("medias.interactive.seasonSearch", "Season pack:")}
+              </span>
+              <button
+                type="button"
+                onClick={() => setFilters((prev) => ({ ...prev, selectedSeason: null }))}
+                className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+                  selectedSeason === null
+                    ? "bg-indigo-600 text-white"
+                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                }`}
+              >
+                {t("medias.interactive.seasonAll", "Episodes")}
+              </button>
+              {availableSeasons.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() =>
+                    setFilters((prev) => ({ ...prev, selectedSeason: prev.selectedSeason === s ? null : s }))
+                  }
+                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+                    selectedSeason === s
+                      ? "bg-indigo-600 text-white"
+                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                  }`}
+                >
+                  S{String(s).padStart(2, "0")}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    selectedSeason: prev.selectedSeason === "complete" ? null : "complete",
+                  }))
+                }
+                className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+                  selectedSeason === "complete"
+                    ? "bg-violet-600 text-white"
+                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                }`}
+              >
+                {t("medias.interactive.completeSeries", "Intégrale")}
+              </button>
+            </div>
+          )}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative min-w-0 flex-1">
               <Search
@@ -396,25 +373,18 @@ export function InteractiveSearchPanel({
               />
               <input
                 ref={searchInputRef}
-                value={isProwlarrMode ? prowlarrQuery : filterQuery}
-                onChange={(event) =>
-                  isProwlarrMode
-                    ? setProwlarrQuery(event.target.value)
-                    : setFilterQuery(event.target.value)
-                }
-                placeholder={
-                  isProwlarrMode
-                    ? t("medias.interactive.prowlarrSearchPlaceholder")
-                    : t("medias.interactive.searchPlaceholder")
-                }
+                value={filterQuery}
+                onChange={(event) => setFilters((prev) => ({ ...prev, filterQuery: event.target.value }))}
+                placeholder={t(
+                  "medias.interactive.filterPlaceholder",
+                  "Filter releases…",
+                )}
                 className="w-full rounded-xl border border-neutral-200 bg-white py-2 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
-              {(isProwlarrMode ? prowlarrQuery : filterQuery) && (
+              {filterQuery && (
                 <button
                   type="button"
-                  onClick={() =>
-                    isProwlarrMode ? setProwlarrQuery("") : setFilterQuery("")
-                  }
+                  onClick={() => setFilters((prev) => ({ ...prev, filterQuery: "" }))}
                   className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
                   aria-label={t("medias.interactive.clearSearch")}
                 >
@@ -426,7 +396,7 @@ export function InteractiveSearchPanel({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setShowFilters((value) => !value)}
+                onClick={() => setFilters((prev) => ({ ...prev, showFilters: !prev.showFilters }))}
                 className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
                   showFilters || hasAdvancedFilters
                     ? "border-indigo-500/40 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300"
@@ -443,8 +413,13 @@ export function InteractiveSearchPanel({
 
               <Toggle
                 checked={hideRejected}
-                onChange={setHideRejected}
+                onChange={(v) => setFilters((prev) => ({ ...prev, hideRejected: v }))}
                 label={t("medias.interactive.hideRejected")}
+              />
+              <Toggle
+                checked={showPacksOnly}
+                onChange={(v) => setFilters((prev) => ({ ...prev, showPacksOnly: v }))}
+                label={t("medias.interactive.packsOnly", "Packs only")}
               />
 
               <button
@@ -477,8 +452,14 @@ export function InteractiveSearchPanel({
                   {t("medias.interactive.hiddenCount", { count: hiddenCount })}
                 </span>
               )}
-              <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] capitalize dark:bg-neutral-800">
-                {isProwlarrMode ? "prowlarr" : service}
+              <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] dark:bg-neutral-800 flex items-center gap-1 max-w-[200px]">
+                <span className="text-neutral-400 shrink-0">Prowlarr:</span>
+                <span
+                  className="truncate font-medium text-neutral-700 dark:text-neutral-200"
+                  title={prowlarrApiQuery}
+                >
+                  {prowlarrApiQuery || "…"}
+                </span>
               </span>
             </div>
 
@@ -500,7 +481,7 @@ export function InteractiveSearchPanel({
                 <select
                   value={sortBy}
                   onChange={(event) =>
-                    setSortBy(event.target.value as InteractiveSortKey)
+                    setFilters((prev) => ({ ...prev, sortBy: event.target.value as InteractiveSortKey }))
                   }
                   className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                 >
@@ -516,11 +497,14 @@ export function InteractiveSearchPanel({
                   <option value="title">
                     {t("medias.interactive.sortOptions.title")}
                   </option>
+                  <option value="quality">
+                    {t("medias.interactive.sortOptions.quality")}
+                  </option>
                 </select>
                 <button
                   type="button"
                   onClick={() =>
-                    setSortDir((prev) => (prev === "asc" ? "desc" : "asc"))
+                    setFilters((prev) => ({ ...prev, sortDir: prev.sortDir === "asc" ? "desc" : "asc" }))
                   }
                   className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
                   title={
@@ -553,11 +537,14 @@ export function InteractiveSearchPanel({
                 {hasAdvancedFilters && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setIncludedTrackers([]);
-                      setExcludedTrackers([]);
-                      setIncludedLanguages([]);
-                    }}
+                    onClick={() =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        includedTrackers: [],
+                        excludedTrackers: [],
+                        includedLanguages: [],
+                      }))
+                    }
                     className="text-[11px] font-medium text-indigo-600 transition-colors hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200"
                   >
                     {t("medias.interactive.clearFilters")}
@@ -600,7 +587,7 @@ export function InteractiveSearchPanel({
                     <ChipMultiSelect
                       options={languageOptions}
                       selected={includedLanguages}
-                      onChange={setIncludedLanguages}
+                      onChange={(values) => setFilters((prev) => ({ ...prev, includedLanguages: values }))}
                       emptyText={t("medias.interactive.noLanguages")}
                     />
                   </FilterSection>
@@ -611,7 +598,7 @@ export function InteractiveSearchPanel({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pt-4">
+      <div className="pt-4">
         {needsProwlarrQuery ? (
           <div className="flex h-full items-center justify-center py-8">
             <div className="max-w-md text-center text-sm text-neutral-500 dark:text-neutral-400">
@@ -666,7 +653,7 @@ export function InteractiveSearchPanel({
             </div>
           </div>
         ) : (
-          <div className="pr-1">
+          <div>
             <div className="space-y-2">
               {releases.map((release) => {
                 const releaseKey = `${release.guid}-${release.indexer_id ?? "x"}`;
@@ -676,7 +663,7 @@ export function InteractiveSearchPanel({
                     release={release}
                     onDownload={() => void downloadRelease(release)}
                     isDownloading={pendingReleaseKey === releaseKey}
-                    isBusy={activeDownloadMutation.isPending}
+                    isBusy={grabBusy}
                     t={t}
                   />
                 );
@@ -684,104 +671,6 @@ export function InteractiveSearchPanel({
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function ReleaseCard({
-  release,
-  onDownload,
-  isDownloading,
-  isBusy,
-  t,
-}: {
-  release: InteractiveReleaseItem;
-  onDownload: () => void;
-  isDownloading: boolean;
-  isBusy: boolean;
-  t: (key: string, options?: Record<string, unknown>) => string;
-}) {
-  return (
-    <div
-      className={`rounded-2xl border p-3 transition-colors ${
-        release.rejected
-          ? "border-amber-200/60 bg-amber-50/50 dark:border-amber-700/30 dark:bg-amber-950/20"
-          : "border-neutral-200 bg-white hover:bg-neutral-50 dark:border-neutral-700/80 dark:bg-neutral-900/60 dark:hover:bg-neutral-900"
-      }`}
-    >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium leading-snug text-neutral-900 dark:text-white">
-            {release.info_url ? (
-              <a
-                href={release.info_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-colors hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
-              >
-                {release.title}
-              </a>
-            ) : (
-              release.title
-            )}
-          </p>
-
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {release.indexer && (
-              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                {release.indexer}
-              </span>
-            )}
-            {release.protocol && (
-              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium uppercase text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                {release.protocol}
-              </span>
-            )}
-            {release.size_bytes != null && (
-              <span className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
-                {formatBytes(release.size_bytes)}
-              </span>
-            )}
-            {release.age != null && (
-              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                {t("medias.interactive.age", { age: release.age })}
-              </span>
-            )}
-            {(release.seeders != null || release.leechers != null) && (
-              <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                {t("medias.interactive.seedersLeechers", {
-                  seeders: release.seeders ?? "-",
-                  leechers: release.leechers ?? "-",
-                })}
-              </span>
-            )}
-            {release.languages.length > 0 && (
-              <span className="inline-flex items-center rounded-md bg-violet-50 px-2 py-0.5 text-[10px] font-medium text-violet-700 dark:bg-violet-950/40 dark:text-violet-300">
-                {release.languages.join(", ")}
-              </span>
-            )}
-          </div>
-
-          {release.rejected && release.rejection_reason && (
-            <p className="mt-2 rounded-md bg-amber-100/60 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-              {release.rejection_reason}
-            </p>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={onDownload}
-          disabled={isBusy || !release.indexer_id}
-          style={{ touchAction: "manipulation" }}
-          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-        >
-          <Download size={11} strokeWidth={2.5} />
-          {isDownloading
-            ? t("medias.interactive.downloading")
-            : t("medias.interactive.download")}
-        </button>
       </div>
     </div>
   );

@@ -6,8 +6,18 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useCalendarEvents, useDeleteCustomEvent } from "@/hooks/useCalendar";
 import { useDashboardUpcoming } from "@/hooks/useDashboard";
-import type { CalendarEvent, CalendarEventCustomEventMetadata, DashboardUpcomingItem, TmdbMediaSearchItem } from "@hously/shared/types";
-import { formatDate, parseDate, sameDay, sameMonth } from "@hously/shared/utils";
+import type {
+  CalendarEvent,
+  CalendarEventCustomEventMetadata,
+  DashboardUpcomingItem,
+  TmdbMediaSearchItem,
+} from "@hously/shared/types";
+import {
+  formatDate,
+  parseDate,
+  sameDay,
+  sameMonth,
+} from "@hously/shared/utils";
 import { CreateCustomEventForm } from "@/pages/calendar/_component/CreateCustomEventForm";
 import { sortBy } from "lodash-es";
 import {
@@ -76,11 +86,9 @@ function upcomingToDialogItem(
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: item.vote_average ?? null,
-    service: "radarr",
     already_exists: false,
     can_add: true,
     source_id: null,
-    arr_url: null,
   };
 }
 

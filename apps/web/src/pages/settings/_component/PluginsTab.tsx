@@ -7,9 +7,7 @@ import {
   BeszelPluginSection,
   ProwlarrPluginSection,
   QbittorrentPluginSection,
-  RadarrPluginSection,
   ScrutinyPluginSection,
-  SonarrPluginSection,
   TmdbPluginSection,
   OllamaPluginSection,
   TrackersPluginSection,
@@ -73,8 +71,6 @@ export function PluginsTab() {
             <div className="space-y-3">
               <JellyfinPluginSection />
               <TmdbPluginSection />
-              <RadarrPluginSection />
-              <SonarrPluginSection />
               <ProwlarrPluginSection />
             </div>
           </div>

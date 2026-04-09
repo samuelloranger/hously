@@ -1,7 +1,31 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import { ADMIN_ENDPOINTS, AUTH_ENDPOINTS, CALENDAR_ENDPOINTS, CHORES_ENDPOINTS, DASHBOARD_ENDPOINTS, QBITTORRENT_ENDPOINTS, QBITTORRENT_TORRENTS_PAGE_SIZE, EXTERNAL_NOTIFICATION_ENDPOINTS, MEAL_PLAN_ENDPOINTS, MEDIAS_ENDPOINTS, NOTIFICATION_ENDPOINTS, PLUGIN_ENDPOINTS, RECIPES_ENDPOINTS, SHOPPING_ENDPOINTS, HABIT_ENDPOINTS, BOARD_TASKS_ENDPOINTS } from "@hously/shared/endpoints";
-import type { DashboardJellyfinLatestResponse, HomeAssistantWidgetResponse, UserResponse } from "@hously/shared/types";
+import {
+  ADMIN_ENDPOINTS,
+  AUTH_ENDPOINTS,
+  CALENDAR_ENDPOINTS,
+  CHORES_ENDPOINTS,
+  DASHBOARD_ENDPOINTS,
+  QBITTORRENT_ENDPOINTS,
+  QBITTORRENT_TORRENTS_PAGE_SIZE,
+  EXTERNAL_NOTIFICATION_ENDPOINTS,
+  LIBRARY_ENDPOINTS,
+  MEAL_PLAN_ENDPOINTS,
+  MEDIAS_ENDPOINTS,
+  NOTIFICATION_ENDPOINTS,
+  PLUGIN_ENDPOINTS,
+  QUALITY_PROFILES_ENDPOINTS,
+  RECIPES_ENDPOINTS,
+  SHOPPING_ENDPOINTS,
+  HABIT_ENDPOINTS,
+  BOARD_TASKS_ENDPOINTS,
+} from "@hously/shared/endpoints";
+import type {
+  DashboardJellyfinLatestResponse,
+  HomeAssistantWidgetResponse,
+  LibraryListResponse,
+  UserResponse,
+} from "@hously/shared/types";
 import { webFetcher } from "@/lib/api/fetcher";
 
 /** Jellyfin shelf page size — must match `useDashboardJellyfinLatestInfinite` on the home page. */
@@ -284,8 +308,8 @@ const routeQueryDefinitions = {
 
   "/library": () => [
     {
-      queryKey: queryKeys.medias.list(),
-      queryFn: () => webFetcher(MEDIAS_ENDPOINTS.LIST),
+      queryKey: queryKeys.library.list({}),
+      queryFn: () => webFetcher<LibraryListResponse>(LIBRARY_ENDPOINTS.LIST),
     },
   ],
 
@@ -365,14 +389,6 @@ const routeQueryDefinitions = {
         queryFn: () => webFetcher(PLUGIN_ENDPOINTS.JELLYFIN),
       });
       queries.push({
-        queryKey: queryKeys.plugins.radarr(),
-        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.RADARR),
-      });
-      queries.push({
-        queryKey: queryKeys.plugins.sonarr(),
-        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SONARR),
-      });
-      queries.push({
         queryKey: queryKeys.plugins.qbittorrent(),
         queryFn: () => webFetcher(PLUGIN_ENDPOINTS.QBITTORRENT),
       });
@@ -390,6 +406,20 @@ const routeQueryDefinitions = {
       queries.push({
         queryKey: queryKeys.admin.scheduledJobs(),
         queryFn: () => webFetcher(ADMIN_ENDPOINTS.SCHEDULED_JOBS),
+      });
+    }
+
+    if (tab === "quality-profiles") {
+      queries.push({
+        queryKey: queryKeys.qualityProfiles.list(),
+        queryFn: () => webFetcher(QUALITY_PROFILES_ENDPOINTS.LIST),
+      });
+    }
+
+    if (tab === "media-library") {
+      queries.push({
+        queryKey: queryKeys.library.postProcessingSettings(),
+        queryFn: () => webFetcher(LIBRARY_ENDPOINTS.POST_PROCESSING_SETTINGS),
       });
     }
 

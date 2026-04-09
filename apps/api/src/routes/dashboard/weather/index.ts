@@ -72,7 +72,10 @@ export const dashboardWeatherRoutes = new Elysia()
       const cached = await getJsonCache<WeatherForecastData>(cacheKey);
       if (cached) return cached;
 
-      const forecast = await fetchAddressWeatherForecast(address, temperatureUnit);
+      const forecast = await fetchAddressWeatherForecast(
+        address,
+        temperatureUnit,
+      );
       await setJsonCache(cacheKey, forecast, WEATHER_CACHE_TTL_SECONDS);
       return forecast;
     } catch (err) {

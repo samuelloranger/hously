@@ -5,7 +5,6 @@ import {
   useAiMediaSuggestionsConfig,
 } from "@/hooks/useMedias";
 import { HttpError } from "@/lib/api/httpClient";
-import { type TmdbMediaSearchItem } from "@hously/shared/types";
 import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { ExploreCard } from "@/pages/medias/_component/ExploreCard";
@@ -14,9 +13,6 @@ export function AiSuggestionsPanel({ onAdded }: { onAdded: () => void }) {
   const { t, i18n } = useTranslation("common");
   const [prompt, setPrompt] = useState("");
   const [mediaType, setMediaType] = useState<"movie" | "tv" | "both">("both");
-  const [items, setItems] = useState<TmdbMediaSearchItem[] | null>(null);
-  const [modelLabel, setModelLabel] = useState<string | null>(null);
-
   const mutation = useAiMediaSuggestions();
   const { data: aiConfig, isLoading: aiConfigLoading } =
     useAiMediaSuggestionsConfig();
@@ -27,13 +23,11 @@ export function AiSuggestionsPanel({ onAdded }: { onAdded: () => void }) {
   const handleGenerate = async () => {
     if (!ready) return;
     try {
-      const data = await mutation.mutateAsync({
+      await mutation.mutateAsync({
         prompt: prompt.trim() || undefined,
         media_type: mediaType,
         language: i18n.language,
       });
-      setItems(data.items);
-      setModelLabel(data.model);
     } catch (e) {
       const msg =
         e instanceof HttpError
@@ -114,15 +108,15 @@ export function AiSuggestionsPanel({ onAdded }: { onAdded: () => void }) {
           </button>
         </div>
 
-        {modelLabel && items && items.length > 0 && (
+        {mutation.data?.model && (mutation.data?.items.length ?? 0) > 0 && (
           <p className="text-[10px] text-white/35">
-            {t("medias.explore.aiModelLabel", { model: modelLabel })}
+            {t("medias.explore.aiModelLabel", { model: mutation.data.model })}
           </p>
         )}
 
-        {items && items.length > 0 && (
+        {(mutation.data?.items.length ?? 0) > 0 && (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 pt-1">
-            {items.map((item) => (
+            {mutation.data!.items.map((item) => (
               <ExploreCard key={item.id} item={item} onAdded={onAdded} />
             ))}
           </div>

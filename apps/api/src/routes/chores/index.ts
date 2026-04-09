@@ -89,8 +89,12 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
     "/",
     async ({ user, query, set }) => {
       try {
-        const page = query.page ? Math.max(1, parseInt(query.page, 10) || 1) : null;
-        const limit = page ? Math.min(parseInt(query.limit || "50", 10) || 50, 100) : undefined;
+        const page = query.page
+          ? Math.max(1, parseInt(query.page, 10) || 1)
+          : null;
+        const limit = page
+          ? Math.min(parseInt(query.limit || "50", 10) || 50, 100)
+          : undefined;
 
         const [allChores, total] = await Promise.all([
           prisma.chore.findMany({
@@ -104,78 +108,87 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           page ? prisma.chore.count() : Promise.resolve(undefined),
         ]);
 
-      // Get all users
-      const allUsers = await prisma.user.findMany({
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-        },
-        orderBy: { email: "asc" },
-      });
+        // Get all users
+        const allUsers = await prisma.user.findMany({
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+          orderBy: { email: "asc" },
+        });
 
-      // Get all active reminders
-      const activeReminders = await prisma.reminder.findMany({
-        where: { active: true },
-        orderBy: [{ choreId: "asc" }, { reminderDatetime: "asc" }],
-      });
+        // Get all active reminders
+        const activeReminders = await prisma.reminder.findMany({
+          where: { active: true },
+          orderBy: [{ choreId: "asc" }, { reminderDatetime: "asc" }],
+        });
 
-      // Create lookup maps
-      const remindersByChoreId = new Map<number, any>();
-      for (const reminder of activeReminders) {
-        if (!remindersByChoreId.has(reminder.choreId)) {
-          remindersByChoreId.set(reminder.choreId, reminder);
+        // Create lookup maps
+        const remindersByChoreId = new Map<number, any>();
+        for (const reminder of activeReminders) {
+          if (!remindersByChoreId.has(reminder.choreId)) {
+            remindersByChoreId.set(reminder.choreId, reminder);
+          }
         }
+
+        const usersById = buildUserMap(allUsers);
+
+        // Build response
+        const choresList = allChores.map((chore) => {
+          const activeReminder = remindersByChoreId.get(chore.id);
+          const addedByUser = chore.addedBy
+            ? usersById.get(chore.addedBy)
+            : null;
+          const assignedToUser = chore.assignedTo
+            ? usersById.get(chore.assignedTo)
+            : null;
+          const completedByUser = chore.completedBy
+            ? usersById.get(chore.completedBy)
+            : null;
+
+          return mapChore(
+            chore,
+            activeReminder,
+            addedByUser,
+            assignedToUser,
+            completedByUser,
+          );
+        });
+
+        const usersList = allUsers.map((u) => ({
+          id: u.id,
+          email: u.email,
+          first_name: u.firstName,
+          last_name: u.lastName,
+        }));
+
+        return {
+          chores: choresList,
+          users: usersList,
+          ...(page && limit && total != null
+            ? {
+                pagination: {
+                  page,
+                  limit,
+                  total,
+                  pages: Math.ceil(total / limit),
+                },
+              }
+            : {}),
+        };
+      } catch (error) {
+        console.error("Error getting chores:", error);
+        return serverError(set, "Failed to get chores");
       }
-
-      const usersById = buildUserMap(allUsers);
-
-      // Build response
-      const choresList = allChores.map((chore) => {
-        const activeReminder = remindersByChoreId.get(chore.id);
-        const addedByUser = chore.addedBy ? usersById.get(chore.addedBy) : null;
-        const assignedToUser = chore.assignedTo
-          ? usersById.get(chore.assignedTo)
-          : null;
-        const completedByUser = chore.completedBy
-          ? usersById.get(chore.completedBy)
-          : null;
-
-        return mapChore(
-          chore,
-          activeReminder,
-          addedByUser,
-          assignedToUser,
-          completedByUser,
-        );
-      });
-
-      const usersList = allUsers.map((u) => ({
-        id: u.id,
-        email: u.email,
-        first_name: u.firstName,
-        last_name: u.lastName,
-      }));
-
-      return {
-        chores: choresList,
-        users: usersList,
-        ...(page && limit && total != null
-          ? { pagination: { page, limit, total, pages: Math.ceil(total / limit) } }
-          : {}),
-      };
-    } catch (error) {
-      console.error("Error getting chores:", error);
-      return serverError(set, "Failed to get chores");
-    }
-  },
-  {
-    query: t.Object({
-      page: t.Optional(t.String()),
-      limit: t.Optional(t.String()),
-    }),
-  },
+    },
+    {
+      query: t.Object({
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+      }),
+    },
   )
 
   // POST /api/chores - Add a new chore

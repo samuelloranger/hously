@@ -2,7 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { BOARD_TAGS_ENDPOINTS } from "@hously/shared/endpoints";
-import type { BoardTagsResponse, CreateBoardTagRequest, UpdateBoardTagRequest, DeleteBoardTagRequest } from "@hously/shared/types";
+import type {
+  BoardTagsResponse,
+  CreateBoardTagRequest,
+  UpdateBoardTagRequest,
+  DeleteBoardTagRequest,
+} from "@hously/shared/types";
 export function useBoardTags() {
   const fetcher = useFetcher();
 

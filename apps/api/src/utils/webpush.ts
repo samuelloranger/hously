@@ -177,6 +177,7 @@ interface PushPayload {
   title: string;
   body: string;
   icon?: string;
+  image?: string;
   badge?: string;
   vibrate?: number[];
   tag?: string;

@@ -20,7 +20,8 @@ export function useDashboardWeatherForecast(enabled: boolean) {
 
   return useQuery({
     queryKey: queryKeys.weather.forecast(),
-    queryFn: () => fetcher<WeatherForecastData>(DASHBOARD_ENDPOINTS.WEATHER_FORECAST),
+    queryFn: () =>
+      fetcher<WeatherForecastData>(DASHBOARD_ENDPOINTS.WEATHER_FORECAST),
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
     enabled,

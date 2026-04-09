@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRemoveFromWatchlist, useWatchlist } from "@/hooks/useMedias";
-import { type WatchlistItem, type TmdbMediaSearchItem } from "@hously/shared/types";
+import {
+  type WatchlistItem,
+  type TmdbMediaSearchItem,
+} from "@hously/shared/types";
 import { BookmarkX, Clapperboard } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
@@ -17,11 +20,9 @@ function toDialogItem(item: WatchlistItem): TmdbMediaSearchItem {
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: item.vote_average,
-    service: "radarr",
     already_exists: false,
     can_add: true,
     source_id: null,
-    arr_url: null,
   };
 }
 

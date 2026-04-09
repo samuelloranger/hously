@@ -3,6 +3,8 @@ import { logQbittorrentRequest } from "./requestLogs";
 export interface QbittorrentTorrentRaw {
   hash?: string;
   name?: string;
+  /** Top-level file or folder path for the download (qBittorrent API v2) */
+  content_path?: string;
   progress?: number;
   dlspeed?: number;
   upspeed?: number;
@@ -24,6 +26,7 @@ export interface QbittorrentPluginConfig {
   password: string;
   poll_interval_seconds: number;
   max_items: number;
+  webhook_secret?: string;
 }
 
 export interface QbittorrentDashboardTorrent {
@@ -45,6 +48,8 @@ export interface QbittorrentTorrentListItem extends QbittorrentDashboardTorrent 
   ratio: number | null;
   added_on: string | null;
   completed_on: string | null;
+  /** Top-level torrent content path when provided by qBittorrent */
+  content_path: string | null;
 }
 
 export interface QbittorrentTorrentPropertiesRaw {
@@ -781,6 +786,7 @@ export const toTorrentListItem = (
         : null,
     added_on: toIsoDateOrNull(row.added_on),
     completed_on: toIsoDateOrNull(row.completed_on),
+    content_path: toStringOrNull(row.content_path),
   };
 };
 

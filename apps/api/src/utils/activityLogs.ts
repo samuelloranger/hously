@@ -15,7 +15,8 @@ export type ActivityLogType =
   | "event_deleted"
   | "shopping_item_added"
   | "shopping_item_completed"
-  | "shopping_list_cleared";
+  | "shopping_list_cleared"
+  | "media_grab";
 
 /**
  * Enqueue an activity log to be processed in the background

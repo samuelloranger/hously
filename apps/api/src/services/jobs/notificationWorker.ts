@@ -19,6 +19,7 @@ export interface NotificationJobData {
   body: string;
   notificationType: string;
   url?: string;
+  imageUrl?: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -45,6 +46,7 @@ async function processRegularNotificationJob(job: Job<NotificationJobData>) {
     body,
     notificationType,
     url,
+    imageUrl,
     metadata,
   } = job.data;
 
@@ -72,6 +74,7 @@ async function processRegularNotificationJob(job: Job<NotificationJobData>) {
         title,
         body,
         tag: notificationType,
+        image: imageUrl,
         data: {
           url,
           notification_type: notificationType,
@@ -111,6 +114,7 @@ async function processRegularNotificationJob(job: Job<NotificationJobData>) {
         {
           title,
           body,
+          imageUrl,
           data: {
             url,
             notification_type: notificationType,

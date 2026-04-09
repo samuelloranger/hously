@@ -2,7 +2,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { HABIT_ENDPOINTS } from "@hously/shared/endpoints";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import type { CreateHabitRequest, HabitsResponse, HabitStatusResponse, UpdateHabitRequest } from "@hously/shared/types";
+import type {
+  CreateHabitRequest,
+  HabitsResponse,
+  HabitStatusResponse,
+  UpdateHabitRequest,
+} from "@hously/shared/types";
 const updateHabitStatus = (
   previousHabits: HabitsResponse | undefined,
   id: number,

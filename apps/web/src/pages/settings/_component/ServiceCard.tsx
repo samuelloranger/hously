@@ -4,7 +4,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { ExternalNotificationService, NotificationTemplate } from "@hously/shared/types";
+import type {
+  ExternalNotificationService,
+  NotificationTemplate,
+} from "@hously/shared/types";
 import { ServiceHeader } from "@/pages/settings/_component/ServiceHeader";
 import { ServiceDrawer } from "@/pages/settings/_component/ServiceDrawer";
 
