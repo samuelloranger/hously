@@ -65,6 +65,7 @@ function MultiSelect({
   selected: string[];
   onChange: (next: string[]) => void;
 }) {
+  const { t } = useTranslation("common");
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [popoverWidth, setPopoverWidth] = useState<number | undefined>();
@@ -185,7 +186,7 @@ function MultiSelect({
                 className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-xs text-neutral-400 hover:bg-neutral-50 hover:text-neutral-600 dark:hover:bg-neutral-700/50 dark:hover:text-neutral-300 transition-colors"
               >
                 <X size={10} />
-                Tout désélectionner
+                {t("settings.qualityProfiles.deselectAll")}
               </button>
             </>
           )}

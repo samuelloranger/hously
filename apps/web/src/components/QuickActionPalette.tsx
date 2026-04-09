@@ -195,6 +195,9 @@ export function QuickActionPalette({
       },
     }));
 
+    const libraryStatusLabel = (status: string) =>
+      t(`medias.library.itemStatus.${status}`, { defaultValue: status });
+
     const mediaActions: QuickAction[] = medias.map((item) => ({
       id: `media-${item.id}`,
       title: item.title,
@@ -203,7 +206,7 @@ export function QuickActionPalette({
           ? t("medias.filterMovies")
           : t("medias.filterSeries"),
         item.year ?? "",
-        item.status,
+        libraryStatusLabel(item.status),
       ]
         .filter(Boolean)
         .join(" • "),
@@ -278,7 +281,12 @@ export function QuickActionPalette({
       id: `board-task-${task.id}`,
       title: task.title,
       description:
-        [task.assignee_name, task.status.replace("_", " ")]
+        [
+          task.assignee_name,
+          t(`board.status.${task.status}`, {
+            defaultValue: task.status.replace(/_/g, " "),
+          }),
+        ]
           .filter(Boolean)
           .join(" • ") || t("nav.board"),
       icon:
@@ -321,7 +329,7 @@ export function QuickActionPalette({
       recipes: t("common.quickActionsSectionRecipes"),
       chores: t("chores.title"),
       shopping: t("shopping.title"),
-      users: "Users",
+      users: t("common.quickActionsSectionUsers"),
       actions: t("common.quickActionsSectionActions"),
       board_tasks: t("nav.board"),
     }),

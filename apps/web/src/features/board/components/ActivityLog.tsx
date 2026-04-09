@@ -1,4 +1,5 @@
 import { MessageSquare } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useBoardTaskActivity } from "@/hooks/useBoardTasks";
 import { cn } from "@/lib/utils";
 import type { BoardTaskActivity } from "@hously/shared/types";
@@ -36,16 +37,18 @@ function activityMessage(activity: BoardTaskActivity): string {
 }
 
 export function ActivityLog({ taskId }: { taskId: number }) {
+  const { t } = useTranslation("common");
   const { data, isLoading } = useBoardTaskActivity(taskId);
   const activities = data?.activities ?? [];
 
-  if (isLoading) return <p className="text-xs text-neutral-400">Loading…</p>;
+  if (isLoading)
+    return <p className="text-xs text-neutral-400">{t("common.loading")}</p>;
   if (activities.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-center">
         <MessageSquare className="h-5 w-5 text-neutral-300 dark:text-neutral-600" />
         <p className="text-xs text-neutral-400 dark:text-neutral-500">
-          No activity yet
+          {t("board.noActivity")}
         </p>
       </div>
     );

@@ -40,14 +40,14 @@ describe("BacklogView", () => {
   it("shows empty state when task list is empty", async () => {
     renderWithProviders(<BacklogView tasks={[]} onTaskClick={onTaskClick} />);
     await waitFor(() => {
-      expect(screen.getByText("Backlog is empty")).toBeInTheDocument();
+      expect(screen.getByText("board.backlogEmpty")).toBeInTheDocument();
     });
   });
 
   it("shows helpful description in empty state", async () => {
     renderWithProviders(<BacklogView tasks={[]} onTaskClick={onTaskClick} />);
     await waitFor(() => {
-      expect(screen.getByText(/Add tasks to the backlog/)).toBeInTheDocument();
+      expect(screen.getByText("board.backlogEmptyDescription")).toBeInTheDocument();
     });
   });
 

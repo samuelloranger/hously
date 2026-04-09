@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export function TimePicker({
   onMinutesChange,
   className,
 }: TimePickerProps) {
+  const { t } = useTranslation("common");
   const [isOpen, setIsOpen] = useState(false);
   const hoursRef = useRef<HTMLDivElement>(null);
   const minutesRef = useRef<HTMLDivElement>(null);
@@ -78,7 +80,7 @@ export function TimePicker({
           {/* Hours */}
           <div className="flex flex-col items-center border-r border-neutral-200 dark:border-neutral-700 pr-2">
             <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 px-2">
-              Hours
+              {t("common.hours")}
             </div>
             <div
               ref={hoursRef}
@@ -107,7 +109,7 @@ export function TimePicker({
           {/* Minutes */}
           <div className="flex flex-col items-center pl-2">
             <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1 px-2">
-              Minutes
+              {t("common.minutes")}
             </div>
             <div
               ref={minutesRef}

@@ -6,6 +6,7 @@ import { FlatCompat } from "@eslint/eslintrc";
 import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
+import noHardcodedStrings from "eslint-plugin-no-hardcoded-strings";
 import globals from "globals";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -62,6 +63,7 @@ export default [
     plugins: {
       "@typescript-eslint": tsPlugin,
       "react-hooks": reactHooksPlugin,
+      "no-hardcoded-strings": noHardcodedStrings,
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
@@ -72,6 +74,7 @@ export default [
       "react-hooks/purity": "error",
       "react-hooks/static-components": "error",
       "react-hooks/preserve-manual-memoization": "error",
+      "no-hardcoded-strings/no-hardcoded-strings": "warn",
     },
   },
   ...compat

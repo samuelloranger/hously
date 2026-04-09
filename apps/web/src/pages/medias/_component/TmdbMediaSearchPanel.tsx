@@ -103,8 +103,8 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">
                             {item.library_id != null && item.library_id > 0
-                              ? t("medias.tmdb.badgeLibrary", "Library")
-                              : "Prowlarr"}
+                              ? t("medias.tmdb.badgeLibrary")
+                              : t("medias.tmdb.badgeProwlarr")}
                           </span>
                           {item.already_exists ? (
                             <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">

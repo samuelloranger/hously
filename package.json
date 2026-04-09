@@ -34,6 +34,7 @@
   "devDependencies": {
     "@types/react": "~19.2.14",
     "elysia": "^1.4.28",
+    "eslint-plugin-no-hardcoded-strings": "^1.0.0",
     "husky": "^9.1.7",
     "knip": "^6.1.1",
     "prettier": "^3.8.1",

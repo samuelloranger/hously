@@ -183,10 +183,10 @@ export function NotificationsTab() {
     setLoading(true);
     try {
       await testNotificationMutation.mutateAsync();
-      toast.success("Test notification sent! Check your notifications.");
+      toast.success(t("settings.notifications.testNotificationSuccess"));
     } catch (error) {
       console.error("Error sending test notification:", error);
-      toast.error("Failed to send test notification");
+      toast.error(t("settings.notifications.testNotificationError"));
     } finally {
       setLoading(false);
     }
@@ -215,18 +215,17 @@ export function NotificationsTab() {
             {user?.is_admin && (
               <div>
                 <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Test Notification
+                  {t("settings.notifications.testNotificationTitle")}
                 </h3>
                 <button
                   onClick={handleTestNotification}
                   disabled={loading}
                   className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Send Test Notification
+                  {t("settings.notifications.sendTestNotification")}
                 </button>
                 <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-                  Click to send a test notification to verify everything is
-                  working.
+                  {t("settings.notifications.testNotificationDescription")}
                 </p>
               </div>
             )}

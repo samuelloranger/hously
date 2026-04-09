@@ -4,27 +4,30 @@ import { MediaPosterCard } from "@/components/MediaPosterCard";
 import { cn } from "@/lib/utils";
 import type { LibraryMedia } from "@hously/shared/types";
 
-const STATUS_MAP = {
+const STATUS_STYLES: Record<
+  LibraryMedia["status"],
+  { labelKey: string; className: string }
+> = {
   wanted: {
-    label: "Wanted",
+    labelKey: "medias.library.itemStatus.wanted",
     className:
       "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300",
   },
   downloading: {
-    label: "Downloading",
+    labelKey: "medias.library.itemStatus.downloading",
     className: "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300",
   },
   downloaded: {
-    label: "Downloaded",
+    labelKey: "medias.library.itemStatus.downloaded",
     className:
       "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
   },
   skipped: {
-    label: "Skipped",
+    labelKey: "medias.library.itemStatus.skipped",
     className:
       "bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400",
   },
-} as const;
+};
 
 type CardStatus = "downloaded" | "downloading" | "missing";
 
@@ -48,7 +51,8 @@ export function LibraryItemCard({
   movieSearchPending,
 }: LibraryItemCardProps) {
   const { t } = useTranslation("common");
-  const statusInfo = STATUS_MAP[item.status] ?? STATUS_MAP.wanted;
+  const statusInfo = STATUS_STYLES[item.status] ?? STATUS_STYLES.wanted;
+  const statusLabel = t(statusInfo.labelKey);
   const digitalLabel =
     item.type === "movie" && item.digital_release_date
       ? new Date(item.digital_release_date).toLocaleDateString(undefined, {
@@ -65,7 +69,7 @@ export function LibraryItemCard({
         posterUrl={item.poster_url}
         title={item.title}
         status={toCardStatus(item.status)}
-        statusLabel={statusInfo.label}
+        statusLabel={statusLabel}
       >
         <div className="pb-2 space-y-1">
           <div className="flex flex-wrap items-center gap-1">
@@ -78,12 +82,12 @@ export function LibraryItemCard({
                 statusInfo.className,
               )}
             >
-              {statusInfo.label}
+              {statusLabel}
             </span>
           </div>
           {digitalLabel && (
             <p className="text-[9px] text-neutral-500 dark:text-neutral-400 leading-tight">
-              Digital {digitalLabel}
+              {t("medias.library.digitalRelease", { date: digitalLabel })}
             </p>
           )}
           {item.type === "movie" &&

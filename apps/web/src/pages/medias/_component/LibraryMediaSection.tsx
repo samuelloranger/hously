@@ -76,7 +76,7 @@ export function LibraryMediaSection({
   if (isLoading) {
     return (
       <div className="px-5 py-10 text-center text-sm text-neutral-400 dark:text-neutral-500">
-        Loading file info…
+        {t("library.media.loadingFileInfo")}
       </div>
     );
   }
@@ -86,7 +86,7 @@ export function LibraryMediaSection({
       return (
         <Card>
           <div className="px-4 py-4 text-xs text-neutral-500 dark:text-neutral-400">
-            Loading episodes…
+            {t("library.media.loadingEpisodes")}
           </div>
         </Card>
       );
@@ -94,7 +94,7 @@ export function LibraryMediaSection({
     return (
       <Card>
         <div className="px-4 py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">
-          No file metadata found for this item.
+          {t("library.media.noFileMetadata")}
         </div>
       </Card>
     );
@@ -183,7 +183,7 @@ export function LibraryMediaSection({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="text-[11px] font-semibold text-neutral-800 dark:text-neutral-100">
-                            Season {s.season}
+                            {t("library.media.season")} {s.season}
                           </span>
                           <span
                             className={cn(
@@ -301,10 +301,12 @@ export function LibraryMediaSection({
                       />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 leading-tight">
-                          Season {season}
+                          {t("library.media.season")} {season}
                         </div>
                         <div className="text-[10px] text-neutral-400 dark:text-neutral-500 leading-tight mt-0.5">
-                          {sFiles.length} file{sFiles.length !== 1 ? "s" : ""}
+                          {t("library.media.filesCount", {
+                            count: sFiles.length,
+                          })}
                         </div>
                       </div>
                       <div className="flex gap-1 flex-wrap justify-end shrink-0">
@@ -372,7 +374,7 @@ export function LibraryMediaSection({
               >
                 {files.length > 1 && (
                   <p className="text-xs font-semibold text-neutral-500 mb-2">
-                    File {fileIdx + 1}
+                    {t("library.media.fileLabel")} {fileIdx + 1}
                   </p>
                 )}
                 <div className="flex items-center gap-1 flex-wrap mb-3">
@@ -384,7 +386,7 @@ export function LibraryMediaSection({
                   {isConfirming ? (
                     <div className="flex items-center gap-1.5 ml-1">
                       <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
-                        Delete file on disk too?
+                        {t("library.media.deleteFileOnDisk")}
                       </span>
                       <button
                         type="button"
@@ -397,7 +399,7 @@ export function LibraryMediaSection({
                         }}
                         className="rounded px-2 py-0.5 text-[10px] font-medium bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 transition-colors"
                       >
-                        Yes, delete
+                        {t("library.media.yesDelete")}
                       </button>
                       <button
                         type="button"
@@ -410,14 +412,14 @@ export function LibraryMediaSection({
                         }}
                         className="rounded px-2 py-0.5 text-[10px] font-medium bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-600 disabled:opacity-50 transition-colors"
                       >
-                        No, keep file
+                        {t("library.media.keepFile")}
                       </button>
                       <button
                         type="button"
                         onClick={() => setDeleteConfirmId(null)}
                         className="text-[10px] text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                       >
-                        Cancel
+                        {t("common.cancel")}
                       </button>
                     </div>
                   ) : (
@@ -427,7 +429,7 @@ export function LibraryMediaSection({
                       className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors ml-1"
                     >
                       <Trash2 size={10} />
-                      Remove
+                      {t("common.remove")}
                     </button>
                   )}
                 </div>

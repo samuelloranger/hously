@@ -109,12 +109,12 @@ export function QualityProfilesTab() {
                       </span>
                       {p.require_hdr && (
                         <span className="rounded-md bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
-                          HDR ✦
+                          {t("settings.qualityProfiles.hdrRequired")}
                         </span>
                       )}
                       {!p.require_hdr && p.prefer_hdr && (
                         <span className="rounded-md bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
-                          HDR préféré
+                          {t("settings.qualityProfiles.hdrPreferred")}
                         </span>
                       )}
                     </div>

@@ -77,7 +77,7 @@ export function MergedEpisodeRow({
                   title: ep.title ?? null,
                 });
               }}
-              title="Open interactive search for this episode"
+              title={t("library.episodeInteractiveSearchTitle")}
               className="rounded p-1 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
             >
               <Search size={11} />

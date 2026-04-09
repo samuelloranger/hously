@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Plus, Lock } from "lucide-react";
 import { useAddDependency, useRemoveDependency } from "@/hooks/useBoardTasks";
 import type { BoardTask, TaskDependencyRef } from "@hously/shared/types";
@@ -18,6 +19,7 @@ function DepList({
   onRemove: (depId: number) => void;
   isRemoving: boolean;
 }) {
+  const { t } = useTranslation("common");
   return (
     <div>
       <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
@@ -25,7 +27,7 @@ function DepList({
       </p>
       {items.length === 0 && (
         <p className="text-[12px] text-neutral-400 dark:text-neutral-500">
-          None
+          {t("common.none")}
         </p>
       )}
       {items.map((dep) => (

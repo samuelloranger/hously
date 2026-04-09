@@ -1,4 +1,5 @@
 import { Clock, Film, HardDrive, Music, Subtitles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { formatBytes } from "@hously/shared/utils";
 import type {
   LibraryAudioTrack,
@@ -13,12 +14,17 @@ import {
 } from "@/utils/libraryDisplayUtils";
 
 function AudioTrackRow({ track }: { track: LibraryAudioTrack }) {
+  const { t } = useTranslation("common");
   const frFlag = frenchLabel(track.language);
   const langDisplay = frFlag ?? track.language_name ?? track.language;
   const details = [
     track.codec,
     track.channel_layout ?? (track.channels ? `${track.channels}ch` : null),
-    track.bitrate_kbps ? `${track.bitrate_kbps} kbps` : null,
+    track.bitrate_kbps
+      ? t("library.fileDetail.bitrateKbps", {
+          value: track.bitrate_kbps.toLocaleString(),
+        })
+      : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -33,12 +39,12 @@ function AudioTrackRow({ track }: { track: LibraryAudioTrack }) {
       <div className="flex gap-1 shrink-0">
         {track.default && (
           <Badge className="bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300">
-            Default
+            {t("library.fileDetail.defaultTrack")}
           </Badge>
         )}
         {track.forced && (
           <Badge className="bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300">
-            Forced
+            {t("library.fileDetail.forced")}
           </Badge>
         )}
       </div>
@@ -47,6 +53,7 @@ function AudioTrackRow({ track }: { track: LibraryAudioTrack }) {
 }
 
 function SubtitleTrackRow({ track }: { track: LibrarySubtitleTrack }) {
+  const { t } = useTranslation("common");
   const frFlag = frenchLabel(track.language);
   const langDisplay = frFlag ?? track.language_name ?? track.language;
   return (
@@ -61,12 +68,12 @@ function SubtitleTrackRow({ track }: { track: LibrarySubtitleTrack }) {
       <div className="flex gap-1 shrink-0">
         {track.forced && (
           <Badge className="bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300">
-            Forced
+            {t("library.fileDetail.forced")}
           </Badge>
         )}
         {track.hearing_impaired && (
           <Badge className="bg-neutral-100 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400">
-            HI
+            {t("library.fileDetail.hearingImpaired")}
           </Badge>
         )}
       </div>
@@ -75,49 +82,74 @@ function SubtitleTrackRow({ track }: { track: LibrarySubtitleTrack }) {
 }
 
 export function FileDetailBlock({ file }: { file: LibraryFileInfo }) {
+  const { t } = useTranslation("common");
   const audioTracks = (file.audio_tracks ?? []) as LibraryAudioTrack[];
   const subtitleTracks = (file.subtitle_tracks ?? []) as LibrarySubtitleTrack[];
+  const scannedDate = new Date(file.scanned_at).toLocaleDateString(undefined, {
+    dateStyle: "medium",
+  });
 
   return (
     <div>
-      <SectionTitle icon={HardDrive} label="File" />
+      <SectionTitle icon={HardDrive} label={t("library.fileDetail.sectionFile")} />
       <div className="space-y-1">
-        <Row label="Name" value={file.file_name} mono />
-        <Row label="Size" value={formatBytes(Number(file.size_bytes))} />
-        <Row label="Duration" value={formatDuration(file.duration_secs)} />
-        <Row label="Release group" value={file.release_group} />
-        <Row label="Path" value={file.file_path} mono />
+        <Row label={t("library.fileDetail.name")} value={file.file_name} mono />
+        <Row
+          label={t("library.fileDetail.size")}
+          value={formatBytes(Number(file.size_bytes))}
+        />
+        <Row
+          label={t("library.fileDetail.duration")}
+          value={formatDuration(file.duration_secs)}
+        />
+        <Row
+          label={t("library.fileDetail.releaseGroup")}
+          value={file.release_group}
+        />
+        <Row label={t("library.fileDetail.path")} value={file.file_path} mono />
       </div>
 
-      <SectionTitle icon={Film} label="Video" />
+      <SectionTitle icon={Film} label={t("library.fileDetail.sectionVideo")} />
       <div className="space-y-1">
         <Row
-          label="Codec"
+          label={t("library.fileDetail.codec")}
           value={[file.video_codec, file.video_profile]
             .filter(Boolean)
             .join(" · ")}
         />
         <Row
-          label="Resolution"
+          label={t("library.fileDetail.resolution")}
           value={formatResolution(file.resolution, file.width, file.height)}
         />
         <Row
-          label="Bit depth"
-          value={file.bit_depth ? `${file.bit_depth}-bit` : null}
+          label={t("library.fileDetail.bitDepth")}
+          value={
+            file.bit_depth
+              ? t("library.fileDetail.bitDepthValue", { bits: file.bit_depth })
+              : null
+          }
         />
-        <Row label="HDR" value={file.hdr_format} />
-        <Row label="Source" value={file.source} />
+        <Row label={t("library.fileDetail.hdr")} value={file.hdr_format} />
+        <Row label={t("library.fileDetail.source")} value={file.source} />
         <Row
-          label="Bitrate"
+          label={t("library.fileDetail.bitrate")}
           value={
             file.video_bitrate
-              ? `${file.video_bitrate.toLocaleString()} kbps`
+              ? t("library.fileDetail.bitrateKbps", {
+                  value: file.video_bitrate.toLocaleString(),
+                })
               : null
           }
         />
         <Row
-          label="Frame rate"
-          value={file.frame_rate ? `${file.frame_rate} fps` : null}
+          label={t("library.fileDetail.frameRate")}
+          value={
+            file.frame_rate
+              ? t("library.fileDetail.frameRateFps", {
+                  value: String(file.frame_rate),
+                })
+              : null
+          }
         />
       </div>
 
@@ -125,12 +157,14 @@ export function FileDetailBlock({ file }: { file: LibraryFileInfo }) {
         <>
           <SectionTitle
             icon={Music}
-            label={`Audio (${audioTracks.length} track${audioTracks.length > 1 ? "s" : ""})`}
+            label={t("library.fileDetail.audioTracksHeading", {
+              count: audioTracks.length,
+            })}
           />
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60 rounded-lg border border-neutral-100 dark:border-neutral-800 overflow-hidden">
-            {audioTracks.map((t) => (
-              <div key={t.index} className="px-2.5">
-                <AudioTrackRow track={t} />
+            {audioTracks.map((tr) => (
+              <div key={tr.index} className="px-2.5">
+                <AudioTrackRow track={tr} />
               </div>
             ))}
           </div>
@@ -141,12 +175,14 @@ export function FileDetailBlock({ file }: { file: LibraryFileInfo }) {
         <>
           <SectionTitle
             icon={Subtitles}
-            label={`Subtitles (${subtitleTracks.length} track${subtitleTracks.length > 1 ? "s" : ""})`}
+            label={t("library.fileDetail.subtitlesTracksHeading", {
+              count: subtitleTracks.length,
+            })}
           />
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60 rounded-lg border border-neutral-100 dark:border-neutral-800 overflow-hidden">
-            {subtitleTracks.map((t) => (
-              <div key={t.index} className="px-2.5">
-                <SubtitleTrackRow track={t} />
+            {subtitleTracks.map((tr) => (
+              <div key={tr.index} className="px-2.5">
+                <SubtitleTrackRow track={tr} />
               </div>
             ))}
           </div>
@@ -155,10 +191,7 @@ export function FileDetailBlock({ file }: { file: LibraryFileInfo }) {
 
       <div className="mt-3 text-[10px] text-neutral-400 dark:text-neutral-500">
         <Clock size={9} className="inline mr-1" />
-        Scanned{" "}
-        {new Date(file.scanned_at).toLocaleDateString(undefined, {
-          dateStyle: "medium",
-        })}
+        {t("library.fileDetail.scanned", { date: scannedDate })}
       </div>
     </div>
   );

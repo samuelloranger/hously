@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from "react";
+import i18next from "i18next";
 
 interface Props {
   children: ReactNode;
@@ -34,16 +35,17 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
           <div className="max-w-md w-full space-y-4 text-center">
             <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-              Something went wrong
+              {i18next.t("common.somethingWentWrong")}
             </h1>
             <p className="text-neutral-600 dark:text-neutral-400">
-              {this.state.error?.message || "An unexpected error occurred"}
+              {this.state.error?.message ||
+                i18next.t("common.unexpectedError")}
             </p>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
-              Reload page
+              {i18next.t("common.reloadPage")}
             </button>
           </div>
         </div>
@@ -77,7 +79,7 @@ export class CardErrorBoundary extends Component<Props, State> {
       return (
         <div className="relative overflow-hidden rounded-3xl border border-neutral-200/80 dark:border-neutral-700/60 bg-neutral-50 dark:bg-neutral-800/60 p-4 shadow-sm flex items-center justify-center min-h-[80px]">
           <p className="text-xs text-neutral-400 dark:text-neutral-500">
-            Failed to load
+            {i18next.t("common.failedToLoad")}
           </p>
         </div>
       );
