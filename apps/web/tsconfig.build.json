@@ -9,6 +9,7 @@
     "src/**/*.test.ts",
     "src/**/*.test.tsx",
     "src/test/**",
-    "src/test-utils/**"
+    "src/test-utils/**",
+    "src/locales/audit-unused.ts"
   ]
 }
