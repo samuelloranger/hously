@@ -139,6 +139,7 @@ type TaskRow = {
   updatedAt: Date | null;
   estimatedMinutes: number | null;
   loggedMinutes: number;
+  archived: boolean;
   createdByUser: { email: string; firstName: string | null };
   assignee: {
     id: number;
@@ -183,6 +184,7 @@ function mapTask(row: TaskRow) {
     tags: row.boardTags,
     estimated_minutes: row.estimatedMinutes,
     logged_minutes: row.loggedMinutes,
+    archived: row.archived,
     created_by: row.createdBy,
     created_at: formatIso(row.createdAt),
     updated_at: formatIso(row.updatedAt),
@@ -239,13 +241,17 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
           ? Math.min(parseInt(query.limit || "50", 10) || 50, 100)
           : undefined;
 
+        const archived = query.archived === "true";
+        const where = { archived };
+
         const [tasks, total] = await Promise.all([
           prisma.boardTask.findMany({
+            where,
             orderBy: [{ status: "asc" }, { position: "asc" }],
             include: taskInclude,
             ...(page && limit ? { skip: (page - 1) * limit, take: limit } : {}),
           }),
-          page ? prisma.boardTask.count() : Promise.resolve(undefined),
+          page ? prisma.boardTask.count({ where }) : Promise.resolve(undefined),
         ]);
 
         return {
@@ -270,6 +276,7 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
       query: t.Object({
         page: t.Optional(t.String()),
         limit: t.Optional(t.String()),
+        archived: t.Optional(t.String()),
       }),
     },
   )
@@ -345,6 +352,7 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
       request,
       poll: async () => {
         const tasks = await prisma.boardTask.findMany({
+          where: { archived: false },
           orderBy: [{ status: "asc" }, { position: "asc" }],
           include: taskInclude,
         });
@@ -390,6 +398,7 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
           assigneeId?: number | null;
           boardTags?: { set: { id: number }[] };
           estimatedMinutes?: number | null;
+          archived?: boolean;
         } = {};
 
         const activityInserts: Prisma.BoardTaskActivityCreateManyInput[] = [];
@@ -484,6 +493,10 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
           data.estimatedMinutes = body.estimated_minutes ?? null;
         }
 
+        if (body.archived !== undefined) {
+          data.archived = body.archived;
+        }
+
         const [updated] = await prisma.$transaction([
           prisma.boardTask.update({
             where: { id },
@@ -513,6 +526,7 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
         assignee_id: t.Optional(t.Nullable(t.Number())),
         tag_ids: t.Optional(t.Array(t.Number())),
         estimated_minutes: t.Optional(t.Nullable(t.Number())),
+        archived: t.Optional(t.Boolean()),
       }),
     },
   )

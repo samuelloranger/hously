@@ -270,6 +270,7 @@ export const queryKeys = {
   boardTasks: {
     all: ["board-tasks"] as const,
     list: () => [...queryKeys.boardTasks.all, "list"] as const,
+    archived: () => [...queryKeys.boardTasks.all, "archived"] as const,
     activity: (id: number) =>
       [...queryKeys.boardTasks.all, "activity", id] as const,
     timeLogs: (id: number) =>

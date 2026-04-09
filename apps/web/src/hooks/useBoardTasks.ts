@@ -22,6 +22,50 @@ export function useBoardTasks() {
   });
 }
 
+export function useArchivedBoardTasks() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.boardTasks.archived(),
+    queryFn: () =>
+      fetcher<BoardTasksResponse>(
+        `${BOARD_TASKS_ENDPOINTS.LIST}?archived=true`,
+      ),
+  });
+}
+
+export function useArchiveBoardTask() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<{ task: BoardTask }>(BOARD_TASKS_ENDPOINTS.UPDATE(id), {
+        method: "PATCH",
+        body: { archived: true },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.all });
+    },
+  });
+}
+
+export function useUnarchiveBoardTask() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<{ task: BoardTask }>(BOARD_TASKS_ENDPOINTS.UPDATE(id), {
+        method: "PATCH",
+        body: { archived: false },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.all });
+    },
+  });
+}
+
 export function useCreateBoardTask() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();

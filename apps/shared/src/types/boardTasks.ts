@@ -75,6 +75,7 @@ export interface BoardTask {
   tags: BoardTag[];
   estimated_minutes: number | null;
   logged_minutes: number;
+  archived: boolean;
   created_by: number;
   created_at: string | null;
   updated_at: string | null;
@@ -108,6 +109,7 @@ export interface UpdateBoardTaskRequest {
   assignee_id?: number | null;
   tag_ids?: number[];
   estimated_minutes?: number | null;
+  archived?: boolean;
 }
 
 export interface BoardTimeLog {
