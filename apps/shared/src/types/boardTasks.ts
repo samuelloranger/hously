@@ -137,7 +137,9 @@ export type BoardTaskActivityType =
   | "comment"
   | "status_change"
   | "priority_change"
-  | "assignee_change";
+  | "assignee_change"
+  | "archived"
+  | "unarchived";
 
 export interface BoardTaskActivity {
   id: number;

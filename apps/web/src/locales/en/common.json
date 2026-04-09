@@ -693,11 +693,20 @@
     "addDescription": "Add a description…",
     "descriptionPlaceholder": "Description…",
     "status": {
+      "backlog": "Backlog",
       "on_hold": "On hold",
       "todo": "To do",
       "in_progress": "In progress",
       "done": "Done"
-    }
+    },
+    "archiveEmpty": "Archive is empty",
+    "archiveEmptyDescription": "Archived tasks will appear here",
+    "columnId": "ID",
+    "columnTitle": "Title",
+    "columnStatus": "Status",
+    "columnRestore": "Restore",
+    "restoreTask": "Restore task",
+    "restore": "Restore"
   },
   "chores": {
     "title": "Chores",

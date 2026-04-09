@@ -495,6 +495,14 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
 
         if (body.archived !== undefined) {
           data.archived = body.archived;
+          if (body.archived !== existing.archived) {
+            activityInserts.push({
+              taskId: id,
+              userId: user!.id,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              type: (body.archived ? "archived" : "unarchived") as any,
+            });
+          }
         }
 
         const [updated] = await prisma.$transaction([

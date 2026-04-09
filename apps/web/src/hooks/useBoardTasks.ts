@@ -18,11 +18,14 @@ export function useBoardTasks() {
 
   return useQuery({
     queryKey: queryKeys.boardTasks.list(),
-    queryFn: () => fetcher<BoardTasksResponse>(BOARD_TASKS_ENDPOINTS.LIST),
+    queryFn: () =>
+      fetcher<BoardTasksResponse>(
+        `${BOARD_TASKS_ENDPOINTS.LIST}?archived=false`,
+      ),
   });
 }
 
-export function useArchivedBoardTasks() {
+export function useArchivedBoardTasks(enabled = true) {
   const fetcher = useFetcher();
 
   return useQuery({
@@ -31,34 +34,19 @@ export function useArchivedBoardTasks() {
       fetcher<BoardTasksResponse>(
         `${BOARD_TASKS_ENDPOINTS.LIST}?archived=true`,
       ),
+    enabled,
   });
 }
 
-export function useArchiveBoardTask() {
+export function useSetBoardTaskArchived() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: ({ id, archived }: { id: number; archived: boolean }) =>
       fetcher<{ task: BoardTask }>(BOARD_TASKS_ENDPOINTS.UPDATE(id), {
         method: "PATCH",
-        body: { archived: true },
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.all });
-    },
-  });
-}
-
-export function useUnarchiveBoardTask() {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) =>
-      fetcher<{ task: BoardTask }>(BOARD_TASKS_ENDPOINTS.UPDATE(id), {
-        method: "PATCH",
-        body: { archived: false },
+        body: { archived },
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.all });

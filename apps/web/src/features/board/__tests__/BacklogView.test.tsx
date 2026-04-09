@@ -3,30 +3,32 @@ import { screen, waitFor, renderWithProviders } from "@/test-utils/render";
 import { fireEvent } from "@testing-library/react";
 import { BacklogView } from "@/features/board/components/BacklogView";
 import type { BoardTask } from "@hously/shared/types";
-const makeTask = (overrides: Partial<BoardTask> = {}): BoardTask => ({
-  id: 1,
-  slug: "HSLY-001",
-  title: "Default backlog task",
-  description: null,
-  status: "backlog",
-  position: 0,
-  priority: "medium",
-  start_date: null,
-  due_date: null,
-  assignee_id: null,
-  assignee_name: null,
-  assignee_avatar: null,
-  tags: [],
-  created_by: 1,
-  created_by_username: "Alice",
-  created_at: "2025-01-15T00:00:00Z",
-  updated_at: "2025-01-15T00:00:00Z",
-  estimated_minutes: null,
-  logged_minutes: 0,
-  blocks: [],
-  blocked_by: [],
-  ...overrides,
-});
+const makeTask = (overrides: Partial<BoardTask> = {}): BoardTask =>
+  ({
+    id: 1,
+    slug: "HSLY-001",
+    title: "Default backlog task",
+    description: null,
+    status: "backlog",
+    position: 0,
+    priority: "medium",
+    start_date: null,
+    due_date: null,
+    assignee_id: null,
+    assignee_name: null,
+    assignee_avatar: null,
+    tags: [],
+    created_by: 1,
+    created_by_username: "Alice",
+    created_at: "2025-01-15T00:00:00Z",
+    updated_at: "2025-01-15T00:00:00Z",
+    estimated_minutes: null,
+    logged_minutes: 0,
+    archived: false,
+    blocks: [],
+    blocked_by: [],
+    ...overrides,
+  }) as BoardTask;
 
 describe("BacklogView", () => {
   const onTaskClick = vi.fn();

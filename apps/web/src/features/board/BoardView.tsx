@@ -26,13 +26,12 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { HouseLoader } from "@/components/HouseLoader";
 import {
-  useArchiveBoardTask,
   useArchivedBoardTasks,
   useBoardTasks,
   useCreateBoardTask,
   useDeleteBoardTask,
+  useSetBoardTaskArchived,
   useSyncBoardTasks,
-  useUnarchiveBoardTask,
   useUpdateBoardTask,
 } from "@/hooks/useBoardTasks";
 import { useJsonEventSource } from "@/hooks/useEventSource";
@@ -210,9 +209,11 @@ export function BoardView() {
   const createMutation = useCreateBoardTask();
   const updateMutation = useUpdateBoardTask();
   const deleteMutation = useDeleteBoardTask();
-  const archiveMutation = useArchiveBoardTask();
-  const unarchiveMutation = useUnarchiveBoardTask();
-  const { data: archivedData } = useArchivedBoardTasks();
+  const archiveMutation = useSetBoardTaskArchived();
+  const [restoringId, setRestoringId] = useState<number | null>(null);
+  // View mode — declared early so the archive fetch can be gated
+  const [viewMode, setViewMode] = useState<ViewMode>("board");
+  const { data: archivedData } = useArchivedBoardTasks(viewMode === "archive");
   const archivedTasks = archivedData?.tasks ?? [];
 
   useJsonEventSource<BoardTasksResponse>({
@@ -323,9 +324,6 @@ export function BoardView() {
     },
     [deleteMutation],
   );
-
-  // View mode
-  const [viewMode, setViewMode] = useState<ViewMode>("board");
 
   // Backlog sort
   const [backlogSort, setBacklogSort] = useState<BacklogSortOption>("position");
@@ -448,11 +446,6 @@ export function BoardView() {
           >
             <Archive className="h-3.5 w-3.5" />
             Archive
-            {archivedTasks.length > 0 && (
-              <span className="rounded-full bg-neutral-200/80 px-1.5 py-px text-[10px] text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300">
-                {archivedTasks.length}
-              </span>
-            )}
           </button>
         </div>
 
@@ -762,9 +755,13 @@ export function BoardView() {
           tasks={archivedTasks}
           onTaskClick={handleTaskClick}
           onRestore={(id) => {
-            unarchiveMutation.mutate(id);
+            setRestoringId(id);
+            archiveMutation.mutate(
+              { id, archived: false },
+              { onSettled: () => setRestoringId(null) },
+            );
           }}
-          isRestoring={unarchiveMutation.isPending}
+          restoringId={restoringId}
         />
       )}
 
@@ -782,12 +779,11 @@ export function BoardView() {
         onUpdate={handleDrawerUpdate}
         onDelete={handleDelete}
         onArchive={(id) => {
-          if (selectedTask?.archived) {
-            unarchiveMutation.mutate(id);
-          } else {
-            archiveMutation.mutate(id);
-          }
-          setSelectedTask(null);
+          const archived = !selectedTask?.archived;
+          archiveMutation.mutate(
+            { id, archived },
+            { onSuccess: () => setSelectedTask(null) },
+          );
         }}
         allTasks={allTasks}
       />

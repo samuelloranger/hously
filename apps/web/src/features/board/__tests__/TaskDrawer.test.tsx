@@ -100,6 +100,7 @@ const baseTask: BoardTask = {
   updated_at: "2025-01-20T00:00:00Z",
   estimated_minutes: null,
   logged_minutes: 0,
+  archived: false,
   blocks: [],
   blocked_by: [],
 };

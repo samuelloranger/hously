@@ -141,6 +141,8 @@ enum BoardTaskActivityType {
   status_change
   priority_change
   assignee_change
+  archived
+  unarchived
 }
 
 model BoardTaskActivity {
