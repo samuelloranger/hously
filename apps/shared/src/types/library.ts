@@ -84,6 +84,8 @@ export interface LibraryMedia {
 
 export interface LibraryListResponse {
   items: LibraryMedia[];
+  movie_count: number;
+  show_count: number;
 }
 
 export interface AddToLibraryRequest {

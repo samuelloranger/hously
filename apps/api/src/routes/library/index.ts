@@ -83,16 +83,32 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     async ({ query, set }) => {
       try {
         const { type, status, q } = query;
-        const items = await prisma.libraryMedia.findMany({
-          where: {
-            ...(type ? { type } : {}),
-            ...(status ? { status } : {}),
-            ...(q ? { title: { contains: q, mode: "insensitive" } } : {}),
-          },
-          orderBy: { title: "asc" },
-          include: libraryMediaInclude,
-        });
-        return { items: items.map(mapLibraryMedia) };
+        const titleFilter = q
+          ? { title: { contains: q, mode: "insensitive" as const } }
+          : {};
+        const sharedWhere = {
+          ...(status ? { status } : {}),
+          ...titleFilter,
+        };
+        const [items, counts] = await Promise.all([
+          prisma.libraryMedia.findMany({
+            where: { ...sharedWhere, ...(type ? { type } : {}) },
+            orderBy: { title: "asc" },
+            include: libraryMediaInclude,
+          }),
+          prisma.libraryMedia.groupBy({
+            by: ["type"],
+            where: sharedWhere,
+            _count: true,
+          }),
+        ]);
+        const movieCount = counts.find((c) => c.type === "movie")?._count ?? 0;
+        const showCount = counts.find((c) => c.type === "show")?._count ?? 0;
+        return {
+          items: items.map(mapLibraryMedia),
+          movie_count: movieCount,
+          show_count: showCount,
+        };
       } catch {
         return serverError(set, "Failed to fetch library");
       }

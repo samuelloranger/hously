@@ -109,8 +109,8 @@ export function NativeLibraryPage() {
     );
   };
 
-  const movieCount = allItems.filter((i) => i.type === "movie").length;
-  const showCount = allItems.filter((i) => i.type === "show").length;
+  const movieCount = data?.movie_count ?? 0;
+  const showCount = data?.show_count ?? 0;
 
   return (
     <PageLayout>
