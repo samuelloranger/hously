@@ -1,16 +1,14 @@
 import { useState } from "react";
-import { Compass, Search, Sparkles } from "lucide-react";
+import { Compass, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { TmdbMediaSearchPanel } from "@/pages/medias/_component/TmdbMediaSearchPanel";
 import { DiscoverPanel } from "@/pages/medias/_component/DiscoverPanel";
-import { AiSuggestionsPanel } from "@/pages/medias/_component/AiSuggestionsPanel";
 
-type Tab = "discover" | "search" | "ai";
+type Tab = "discover" | "search";
 
 const TABS: { id: Tab; icon: typeof Compass; labelKey: string }[] = [
   { id: "discover", icon: Compass, labelKey: "medias.tabs.discover" },
   { id: "search", icon: Search, labelKey: "medias.tabs.search" },
-  { id: "ai", icon: Sparkles, labelKey: "medias.tabs.ai" },
 ];
 
 export function MediasExplore() {
@@ -42,9 +40,6 @@ export function MediasExplore() {
                   aria-hidden
                 />
                 <span className="truncate">{t(labelKey)}</span>
-                {active && id === "ai" && (
-                  <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-indigo-400" />
-                )}
               </button>
             );
           })}
@@ -53,19 +48,12 @@ export function MediasExplore() {
 
       {/* ── Panels ─────────────────────────────────────────── */}
       <div className="space-y-6">
-        {/* AI — shown on desktop always; on mobile only when active */}
-        <div className={activeTab !== "ai" ? "hidden md:block" : ""}>
-          <AiSuggestionsPanel onAdded={() => {}} />
-        </div>
-
-        {/* Search */}
-        <div className={activeTab !== "search" ? "hidden md:block" : ""}>
-          <TmdbMediaSearchPanel onAdded={() => {}} />
-        </div>
-
-        {/* Discover */}
         <div className={activeTab !== "discover" ? "hidden md:block" : ""}>
           <DiscoverPanel onAdded={() => {}} />
+        </div>
+
+        <div className={activeTab !== "search" ? "hidden md:block" : ""}>
+          <TmdbMediaSearchPanel onAdded={() => {}} />
         </div>
       </div>
     </div>

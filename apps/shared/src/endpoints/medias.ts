@@ -1,7 +1,5 @@
 export const MEDIAS_ENDPOINTS = {
   EXPLORE: "/api/medias/explore",
-  AI_SUGGESTIONS: "/api/medias/ai/suggestions",
-  AI_SUGGESTIONS_CONFIG: "/api/medias/ai/suggestions/config",
   SIMILAR: (tmdbId: number, type: "movie" | "tv") =>
     `/api/medias/similar/${encodeURIComponent(String(tmdbId))}?type=${encodeURIComponent(type)}`,
   PROVIDERS: (mediaType: "movie" | "tv", tmdbId: number, region?: string) =>

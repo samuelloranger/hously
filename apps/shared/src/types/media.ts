@@ -33,18 +33,6 @@ export interface TmdbMediaSearchItem {
   source_id: number | null;
   /** Native library ID — when set, Management tab shows LibraryManagementPanel */
   library_id?: number | null;
-  /** Short rationale from local LLM (Explore AI suggestions). */
-  ai_reason?: string | null;
-}
-
-export interface AiMediaSuggestionsResponse {
-  items: TmdbMediaSearchItem[];
-  model: string;
-}
-
-export interface AiMediaSuggestionsConfigResponse {
-  enabled: boolean;
-  ready: boolean;
 }
 
 export interface TmdbMediaSearchResponse {

@@ -136,12 +136,6 @@ export function ExploreCard({
             {item.title}
           </p>
 
-          {item.ai_reason ? (
-            <p className="mt-0.5 text-[9px] leading-snug text-indigo-200/85 line-clamp-3">
-              {item.ai_reason}
-            </p>
-          ) : null}
-
           {/* Meta row — fades in on hover */}
           <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity duration-250 group-hover:opacity-100">
             {item.release_year && (

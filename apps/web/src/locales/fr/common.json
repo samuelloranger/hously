@@ -115,7 +115,6 @@
         "admin": "Admin",
         "weather": "Météo",
         "tmdb": "TMDB",
-        "ollama": "Ollama",
         "jellyfin": "Jellyfin",
         "qbittorrent": "qBittorrent",
         "scrutiny": "Scrutiny",
@@ -906,15 +905,6 @@
         "fahrenheit": "Fahrenheit (°F)",
         "celsius": "Celsius (°C)"
       },
-      "ollama": {
-        "title": "Ollama",
-        "help": "LLM local pour les suggestions IA sur Découvrir (choix ancrés TMDB). Indiquez l’URL de base que le serveur Hously peut joindre.",
-        "baseUrl": "URL de base Ollama",
-        "baseUrlPlaceholder": "http://127.0.0.1:11434",
-        "model": "Nom du modèle",
-        "modelPlaceholder": "llama3.2",
-        "modelHelp": "Le modèle doit être téléchargé sur l’hôte Ollama (ex. ollama pull llama3.2)."
-      },
       "prowlarr": {
         "help": "Connectez Prowlarr pour lancer des recherches globales de releases et envoyer les résultats à votre client de téléchargement configuré.",
         "websiteUrl": "URL Prowlarr",
@@ -1267,8 +1257,7 @@
   "medias": {
     "tabs": {
       "discover": "Découvrir",
-      "search": "Chercher",
-      "ai": "IA"
+      "search": "Chercher"
     },
     "library": {
       "pageTitle": "Bibliothèque",
@@ -1314,7 +1303,7 @@
     },
     "explore": {
       "pageTitle": "Découvrir",
-      "pageSubtitle": "Recherchez sur TMDB, parcourez Découvrir et obtenez des suggestions IA.",
+      "pageSubtitle": "Recherchez sur TMDB et parcourez Découvrir.",
       "trending": "Tendances",
       "popularMovies": "Films populaires",
       "popularShows": "Séries populaires",
@@ -1325,20 +1314,7 @@
       "topRatedMovies": "Films les mieux notés",
       "topRatedShows": "Séries les mieux notées",
       "recommended": "Recommandé pour vous",
-      "browseTab": "Parcourir",
-      "aiTitle": "Sélection IA",
-      "aiSubtitle": "Décrivez une envie — le modèle sélectionne parmi les titres populaires du moment.",
-      "aiPromptPlaceholder": "Optionnel : ex. science-fiction douillette, feel-good, rôles féminins fortes, hors anglais…",
-      "aiTypeLabel": "Périmètre",
-      "aiTypeMovie": "Films",
-      "aiTypeTv": "Séries",
-      "aiTypeBoth": "Les deux",
-      "aiGenerate": "Suggérer",
-      "aiModelLabel": "Modèle : {{model}}",
-      "aiError": "Impossible de charger les suggestions.",
-      "aiPluginDisabled": "Les suggestions IA nécessitent le plugin Ollama activé avec une URL de base valide.",
-      "aiPluginSettingsLink": "Ouvrir Plugins",
-      "aiPluginAskAdmin": "Les suggestions IA ne sont pas configurées. Demandez à un administrateur d’activer le plugin Ollama dans les paramètres."
+      "browseTab": "Parcourir"
     },
     "discover": {
       "title": "Découvrir",

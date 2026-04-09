@@ -12,39 +12,9 @@ import type {
   SimilarMediasResponse,
   TmdbGenresResponse,
   TmdbMediaSearchResponse,
-  AiMediaSuggestionsResponse,
-  AiMediaSuggestionsConfigResponse,
   TmdbStreamingProvidersResponse,
   WatchlistResponse,
 } from "@hously/shared/types";
-
-export function useAiMediaSuggestions() {
-  const fetcher = useFetcher();
-
-  return useMutation({
-    mutationFn: (body: {
-      prompt?: string;
-      media_type: "movie" | "tv" | "both";
-      language?: string;
-    }) =>
-      fetcher<AiMediaSuggestionsResponse>(MEDIAS_ENDPOINTS.AI_SUGGESTIONS, {
-        method: "POST",
-        body,
-      }),
-  });
-}
-
-export function useAiMediaSuggestionsConfig() {
-  const fetcher = useFetcher();
-
-  return useQuery({
-    queryKey: queryKeys.medias.aiSuggestionsConfig(),
-    queryFn: () =>
-      fetcher<AiMediaSuggestionsConfigResponse>(
-        MEDIAS_ENDPOINTS.AI_SUGGESTIONS_CONFIG,
-      ),
-  });
-}
 
 export function useSimilarMedias(
   tmdbId: number | null,
