@@ -63,12 +63,7 @@ export function buildNotificationUrl(
 export function getExternalNotificationUrl(serviceName: string): string {
   const normalized = serviceName.trim().toLowerCase();
 
-  if (
-    normalized === "radarr" ||
-    normalized === "sonarr" ||
-    normalized === "jellyfin" ||
-    normalized === "plex"
-  ) {
+  if (normalized === "jellyfin" || normalized === "plex") {
     return "/library";
   }
 

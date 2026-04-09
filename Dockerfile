@@ -24,6 +24,11 @@ RUN cd apps/web && bun run build
 # Final production stage (using a slim Bun image)
 FROM oven/bun:1.3.11-slim
 
+# Baked in at build time by the CI pipeline (--build-arg APP_VERSION=<git-tag>).
+# Falls back to "0.0.0-dev" for local builds without the arg.
+ARG APP_VERSION=0.0.0-dev
+ENV APP_VERSION=$APP_VERSION
+
 WORKDIR /app
 
 # Set locale for UTF-8 support

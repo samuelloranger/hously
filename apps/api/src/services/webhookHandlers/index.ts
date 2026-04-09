@@ -1,4 +1,4 @@
-import type { WebhookHandler, WebhookResult } from "./types";
+import type { WebhookHandler } from "./types";
 
 // Generic helper to ensure all values are strings
 function ensureStrings(obj: Record<string, unknown>): Record<string, string> {
@@ -68,136 +68,6 @@ function normalizeJellyfinEventType(eventType: string): string {
 
   return mappings[eventType] || eventType;
 }
-
-// Radarr webhook handler
-const handleRadarrWebhook: WebhookHandler = (payload) => {
-  const eventType = (payload.eventType as string) || "";
-  const variables: Record<string, unknown> = {};
-
-  // Movie information
-  const movie = (payload.movie as Record<string, unknown>) || {};
-  if (movie) {
-    variables.movie_name = movie.title || "Unknown Movie";
-    variables.year = movie.year || "";
-    variables.imdb_id = movie.imdbId || "";
-    variables.tmdb_id = movie.tmdbId || "";
-  }
-
-  // File information
-  const movieFile = (payload.movieFile as Record<string, unknown>) || {};
-  if (movieFile) {
-    variables.file_name = movieFile.relativePath || movieFile.path || "";
-    variables.quality = movieFile.quality || "";
-    variables.quality_version = movieFile.qualityVersion || "";
-  }
-
-  // Remote movie (for some events)
-  const remoteMovie = (payload.remoteMovie as Record<string, unknown>) || {};
-  if (remoteMovie.title) {
-    variables.movie_name = remoteMovie.title;
-    variables.year = remoteMovie.year || variables.year;
-  }
-
-  // Health/Application events
-  if (eventType === "HealthIssue" || eventType === "HealthRestored") {
-    variables.message = payload.message || "";
-    variables.level = payload.level || "";
-    variables.type = payload.type || "";
-  }
-
-  if (eventType === "ApplicationUpdate") {
-    variables.version = `${payload.previousVersion || ""} → ${payload.newVersion || ""}`;
-    variables.previous_version = payload.previousVersion || "";
-    variables.new_version = payload.newVersion || "";
-  }
-
-  if (eventType === "ManualInteractionRequired") {
-    variables.message = payload.message || "";
-  }
-
-  variables.download_client = payload.downloadClient || "";
-  variables.download_id = payload.downloadId || "";
-
-  // Release information
-  const release = (payload.release as Record<string, unknown>) || {};
-  if (release) {
-    variables.release_title = release.title || "";
-    variables.release_quality = release.quality || "";
-    variables.indexer = release.indexer || "";
-  }
-
-  return {
-    event_type: eventType,
-    template_variables: ensureStrings(variables),
-    original_payload: payload,
-  };
-};
-
-// Sonarr webhook handler
-const handleSonarrWebhook: WebhookHandler = (payload) => {
-  const eventType = (payload.eventType as string) || "";
-  const variables: Record<string, unknown> = {};
-
-  // Series information
-  const series = (payload.series as Record<string, unknown>) || {};
-  if (series) {
-    variables.series_title = series.title || "Unknown Series";
-    variables.year = series.year || "";
-    variables.tvdb_id = series.tvdbId || "";
-    variables.imdb_id = series.imdbId || "";
-  }
-
-  // Episode information
-  const episodes = (payload.episodes as Array<Record<string, unknown>>) || [];
-  if (episodes.length > 0) {
-    const ep = episodes[0];
-    variables.season_number = ep.seasonNumber || "";
-    variables.episode_number = ep.episodeNumber || "";
-    variables.episode_title = ep.title || "";
-  }
-
-  // Episode file
-  const episodeFile = (payload.episodeFile as Record<string, unknown>) || {};
-  if (episodeFile) {
-    variables.file_name = episodeFile.relativePath || episodeFile.path || "";
-    variables.quality = episodeFile.quality || "";
-    variables.quality_version = episodeFile.qualityVersion || "";
-  }
-
-  // Health/Application events
-  if (eventType === "HealthIssue" || eventType === "HealthRestored") {
-    variables.message = payload.message || "";
-    variables.level = payload.level || "";
-    variables.type = payload.type || "";
-  }
-
-  if (eventType === "ApplicationUpdate") {
-    variables.version = `${payload.previousVersion || ""} → ${payload.newVersion || ""}`;
-    variables.previous_version = payload.previousVersion || "";
-    variables.new_version = payload.newVersion || "";
-  }
-
-  if (eventType === "ManualInteractionRequired") {
-    variables.message = payload.message || "";
-  }
-
-  variables.download_client = payload.downloadClient || "";
-  variables.download_id = payload.downloadId || "";
-
-  // Release information
-  const release = (payload.release as Record<string, unknown>) || {};
-  if (release) {
-    variables.release_title = release.title || "";
-    variables.release_quality = release.quality || "";
-    variables.indexer = release.indexer || "";
-  }
-
-  return {
-    event_type: eventType,
-    template_variables: ensureStrings(variables),
-    original_payload: payload,
-  };
-};
 
 // Prowlarr webhook handler
 const handleProwlarrWebhook: WebhookHandler = (payload) => {
@@ -745,8 +615,6 @@ const handleGenericWebhook: WebhookHandler = (payload) => {
 
 // Handler registry
 export const webhookHandlers: Record<string, WebhookHandler> = {
-  radarr: handleRadarrWebhook,
-  sonarr: handleSonarrWebhook,
   prowlarr: handleProwlarrWebhook,
   jellyfin: handleJellyfinWebhook,
   plex: handlePlexWebhook,

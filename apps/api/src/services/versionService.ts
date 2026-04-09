@@ -2,28 +2,18 @@
  * Version service for checking app version changes and notifying users
  */
 
-import { readFileSync } from "fs";
-import { resolve } from "path";
 import { prisma } from "@hously/api/db";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { getJsonCache, setJsonCache } from "./cache";
 import { sendExternalNotification } from "./externalNotificationService";
 import { createAndQueueNotification } from "@hously/api/workers/notificationService";
 
-const PACKAGE_VERSION = "1.0.0";
 const APP_VERSION_KEY = "hously:app_version";
 
 function getCurrentAppVersion(): string {
-  try {
-    const versionFromFile = readFileSync(
-      resolve(process.cwd(), "package.json"),
-      "utf-8",
-    );
-    const pkg = JSON.parse(versionFromFile);
-    return pkg.version || PACKAGE_VERSION;
-  } catch {
-    return PACKAGE_VERSION;
-  }
+  // APP_VERSION is injected at Docker build time via --build-arg APP_VERSION=<git-tag>.
+  // Falls back to "0.0.0-dev" in local dev where the env var is absent.
+  return process.env.APP_VERSION ?? "0.0.0-dev";
 }
 
 export function getAppVersion(): string {
