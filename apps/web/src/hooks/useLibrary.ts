@@ -273,16 +273,22 @@ export function useRescanLibraryItem(id: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () =>
-      fetcher<{ rescanned: number; failed: number }>(
+    mutationFn: async () => {
+      // First, trigger refresh-status to re-queue any missed post-processing / import
+      await fetcher<{ item: LibraryMedia; detail: string }>(
+        LIBRARY_ENDPOINTS.REFRESH_STATUS(id),
+        { method: "POST" },
+      );
+      // Then rescan MediaInfo for all known files
+      return fetcher<{ rescanned: number; failed: number }>(
         LIBRARY_ENDPOINTS.RESCAN(id),
-        {
-          method: "POST",
-        },
-      ),
+        { method: "POST" },
+      );
+    },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
       queryClient.invalidateQueries({
-        queryKey: [...queryKeys.library.all, "files", id],
+        queryKey: queryKeys.library.downloads(id),
       });
     },
   });

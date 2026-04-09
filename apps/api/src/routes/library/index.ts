@@ -457,23 +457,17 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         }
       }
 
-      if (hasValidFile) {
-        if (media.status !== "downloaded") {
-          await prisma.libraryMedia.update({
-            where: { id },
-            data: { status: "downloaded" },
-          });
-        }
-        const updated = await prisma.libraryMedia.findUnique({
+      if (hasValidFile && media.status !== "downloaded") {
+        await prisma.libraryMedia.update({
           where: { id },
-          include: libraryMediaInclude,
+          data: { status: "downloaded" },
         });
-        return { item: mapLibraryMedia(updated!), detail: "file_on_disk" };
       }
 
-      // 2. Check completed DH entries that missed post-processing → re-queue
+      // 2. Check completed DH entries that missed post-processing → re-queue ALL of them
       const { enqueueLibraryPostProcess } =
         await import("@hously/api/services/postProcessor");
+      let requeuedCount = 0;
       for (const dh of media.downloadHistories) {
         if (
           dh.completedAt &&
@@ -481,15 +475,26 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           !dh.postProcessError
         ) {
           enqueueLibraryPostProcess(dh.id);
-          const updated = await prisma.libraryMedia.findUnique({
-            where: { id },
-            include: libraryMediaInclude,
-          });
-          return {
-            item: mapLibraryMedia(updated!),
-            detail: "post_process_requeued",
-          };
+          requeuedCount++;
         }
+      }
+      if (requeuedCount > 0) {
+        const updated = await prisma.libraryMedia.findUnique({
+          where: { id },
+          include: libraryMediaInclude,
+        });
+        return {
+          item: mapLibraryMedia(updated!),
+          detail: "post_process_requeued",
+        };
+      }
+
+      if (hasValidFile) {
+        const updated = await prisma.libraryMedia.findUnique({
+          where: { id },
+          include: libraryMediaInclude,
+        });
+        return { item: mapLibraryMedia(updated!), detail: "file_on_disk" };
       }
 
       // 3. Check qBittorrent for pending torrents
@@ -608,9 +613,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
               .replace(/[^a-z0-9]/g, " ")
               .replace(/\s+/g, " ")
               .trim();
-          const titleWords = normalize(media.title)
-            .split(" ")
-            .filter(Boolean);
+          const titleWords = normalize(media.title).split(" ").filter(Boolean);
 
           for (const [hash, raw] of torrents) {
             if (knownHashes.has(hash.toLowerCase())) continue;
