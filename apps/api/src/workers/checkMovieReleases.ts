@@ -57,16 +57,13 @@ export async function checkMovieReleases(): Promise<void> {
       if (result.grabbed) continue;
 
       const next = m.searchAttempts + 1;
+      const skipped = next >= MAX_LIBRARY_GRAB_ATTEMPTS;
       await prisma.libraryMedia.update({
         where: { id: m.id },
-        data: { searchAttempts: next },
+        data: { searchAttempts: next, ...(skipped ? { status: "skipped" } : {}) },
       });
 
-      if (next >= MAX_LIBRARY_GRAB_ATTEMPTS) {
-        await prisma.libraryMedia.update({
-          where: { id: m.id },
-          data: { status: "skipped" },
-        });
+      if (skipped) {
         await notifyAdminsLibraryGrabSkipped(
           `Movie "${m.title}" (${m.id}) exceeded ${MAX_LIBRARY_GRAB_ATTEMPTS} failed grab attempts (${result.reason}). Status set to skipped.`,
         );

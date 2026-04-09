@@ -59,16 +59,13 @@ export async function checkEpisodeReleases(): Promise<void> {
       if (result.grabbed) continue;
 
       const next = ep.searchAttempts + 1;
+      const skipped = next >= MAX_LIBRARY_GRAB_ATTEMPTS;
       await prisma.libraryEpisode.update({
         where: { id: ep.id },
-        data: { searchAttempts: next },
+        data: { searchAttempts: next, ...(skipped ? { status: "skipped" } : {}) },
       });
 
-      if (next >= MAX_LIBRARY_GRAB_ATTEMPTS) {
-        await prisma.libraryEpisode.update({
-          where: { id: ep.id },
-          data: { status: "skipped" },
-        });
+      if (skipped) {
         await notifyAdminsLibraryGrabSkipped(
           `Episode "${ep.media.title}" S${ep.season}E${ep.episode} (${ep.id}) exceeded ${MAX_LIBRARY_GRAB_ATTEMPTS} failed grab attempts (${result.reason}). Status set to skipped.`,
         );

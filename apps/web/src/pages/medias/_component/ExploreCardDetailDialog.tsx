@@ -1044,6 +1044,7 @@ export function ExploreCardDetailDialog({
                       libraryId={effectiveLibraryId}
                       onSearchEpisode={openEpisodeSearch}
                       onSearchSeason={openSeasonSearch}
+                      onDeleted={onClose}
                     />
                   ) : null}
                 </div>
