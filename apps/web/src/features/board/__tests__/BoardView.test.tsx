@@ -51,6 +51,10 @@ vi.mock("@/hooks/useBoardTasks", () => ({
   useSyncBoardTasks: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useSetBoardTaskArchived: vi
+    .fn()
+    .mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useArchivedBoardTasks: vi.fn().mockReturnValue({ data: { tasks: [] } }),
   useAddDependency: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
@@ -81,30 +85,32 @@ vi.mock("@/hooks/useBoardTags", () => ({
 import { useBoardTasks } from "@/hooks/useBoardTasks";
 import { BoardView } from "@/features/board/BoardView";
 import type { BoardTask } from "@hously/shared/types";
-const makeMockTask = (overrides: Partial<BoardTask> = {}): BoardTask => ({
-  id: 1,
-  slug: "HSLY-001",
-  title: "Fix login bug",
-  description: null,
-  status: "todo",
-  position: 0,
-  priority: "medium",
-  start_date: null,
-  due_date: null,
-  assignee_id: null,
-  assignee_name: null,
-  assignee_avatar: null,
-  tags: [],
-  created_by: 1,
-  created_by_username: "Alice",
-  created_at: "2025-01-15T00:00:00Z",
-  updated_at: "2025-01-15T00:00:00Z",
-  estimated_minutes: null,
-  logged_minutes: 0,
-  blocks: [],
-  blocked_by: [],
-  ...overrides,
-});
+const makeMockTask = (overrides: Partial<BoardTask> = {}): BoardTask =>
+  ({
+    id: 1,
+    slug: "HSLY-001",
+    title: "Fix login bug",
+    description: null,
+    status: "todo",
+    position: 0,
+    priority: "medium",
+    start_date: null,
+    due_date: null,
+    assignee_id: null,
+    assignee_name: null,
+    assignee_avatar: null,
+    tags: [],
+    created_by: 1,
+    created_by_username: "Alice",
+    created_at: "2025-01-15T00:00:00Z",
+    updated_at: "2025-01-15T00:00:00Z",
+    estimated_minutes: null,
+    logged_minutes: 0,
+    archived: false,
+    blocks: [],
+    blocked_by: [],
+    ...overrides,
+  }) as BoardTask;
 
 describe("BoardView", () => {
   beforeEach(() => {

@@ -26,6 +26,10 @@ function activityMessage(activity: BoardTaskActivity): string {
       return activity.metadata?.to
         ? `Assigned to ${activity.metadata.to}`
         : "Unassigned";
+    case "archived":
+      return "Archived this task";
+    case "unarchived":
+      return "Restored this task";
     default:
       return "";
   }

@@ -19,16 +19,18 @@ import {
   type DragEndEvent,
   type DragOverEvent,
 } from "@dnd-kit/dom";
-import { Filter, LayoutGrid, List, Plus, X } from "lucide-react";
+import { Archive, Filter, LayoutGrid, List, Plus, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { HouseLoader } from "@/components/HouseLoader";
 import {
+  useArchivedBoardTasks,
   useBoardTasks,
   useCreateBoardTask,
   useDeleteBoardTask,
+  useSetBoardTaskArchived,
   useSyncBoardTasks,
   useUpdateBoardTask,
 } from "@/hooks/useBoardTasks";
@@ -56,11 +58,12 @@ import { BoardColumn } from "./components/BoardColumn";
 import { BoardTaskCard } from "./components/BoardTaskCard";
 import { TaskDrawer } from "./components/TaskDrawer";
 import { BacklogView } from "./components/BacklogView";
+import { ArchiveView } from "./components/ArchiveView";
 
 type DragEndPayload = Parameters<DragEndEvent>[0];
 type DragOverPayload = Parameters<DragOverEvent>[0];
 
-type ViewMode = "board" | "backlog";
+type ViewMode = "board" | "backlog" | "archive";
 
 interface BoardFilters {
   tags: number[]; // tag IDs
@@ -206,6 +209,12 @@ export function BoardView() {
   const createMutation = useCreateBoardTask();
   const updateMutation = useUpdateBoardTask();
   const deleteMutation = useDeleteBoardTask();
+  const archiveMutation = useSetBoardTaskArchived();
+  const [restoringId, setRestoringId] = useState<number | null>(null);
+  // View mode — declared early so the archive fetch can be gated
+  const [viewMode, setViewMode] = useState<ViewMode>("board");
+  const { data: archivedData } = useArchivedBoardTasks(viewMode === "archive");
+  const archivedTasks = archivedData?.tasks ?? [];
 
   useJsonEventSource<BoardTasksResponse>({
     url: BOARD_TASKS_ENDPOINTS.STREAM,
@@ -316,9 +325,6 @@ export function BoardView() {
     [deleteMutation],
   );
 
-  // View mode
-  const [viewMode, setViewMode] = useState<ViewMode>("board");
-
   // Backlog sort
   const [backlogSort, setBacklogSort] = useState<BacklogSortOption>("position");
   const [backlogSortDir, setBacklogSortDir] = useState<"asc" | "desc">("asc");
@@ -428,6 +434,18 @@ export function BoardView() {
                 {backlogTasks.length}
               </span>
             )}
+          </button>
+          <button
+            onClick={() => setViewMode("archive")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+              viewMode === "archive"
+                ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white"
+                : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200",
+            )}
+          >
+            <Archive className="h-3.5 w-3.5" />
+            Archive
           </button>
         </div>
 
@@ -731,6 +749,22 @@ export function BoardView() {
         />
       )}
 
+      {/* Archive view */}
+      {viewMode === "archive" && (
+        <ArchiveView
+          tasks={archivedTasks}
+          onTaskClick={handleTaskClick}
+          onRestore={(id) => {
+            setRestoringId(id);
+            archiveMutation.mutate(
+              { id, archived: false },
+              { onSettled: () => setRestoringId(null) },
+            );
+          }}
+          restoringId={restoringId}
+        />
+      )}
+
       {syncMutation.isPending && (
         <p className="mt-2 text-center text-xs text-neutral-400">
           {t("board.saving")}
@@ -744,6 +778,13 @@ export function BoardView() {
         onClose={() => setSelectedTask(null)}
         onUpdate={handleDrawerUpdate}
         onDelete={handleDelete}
+        onArchive={(id) => {
+          const archived = !selectedTask?.archived;
+          archiveMutation.mutate(
+            { id, archived },
+            { onSuccess: () => setSelectedTask(null) },
+          );
+        }}
         allTasks={allTasks}
       />
 

@@ -18,7 +18,39 @@ export function useBoardTasks() {
 
   return useQuery({
     queryKey: queryKeys.boardTasks.list(),
-    queryFn: () => fetcher<BoardTasksResponse>(BOARD_TASKS_ENDPOINTS.LIST),
+    queryFn: () =>
+      fetcher<BoardTasksResponse>(
+        `${BOARD_TASKS_ENDPOINTS.LIST}?archived=false`,
+      ),
+  });
+}
+
+export function useArchivedBoardTasks(enabled = true) {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.boardTasks.archived(),
+    queryFn: () =>
+      fetcher<BoardTasksResponse>(
+        `${BOARD_TASKS_ENDPOINTS.LIST}?archived=true`,
+      ),
+    enabled,
+  });
+}
+
+export function useSetBoardTaskArchived() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, archived }: { id: number; archived: boolean }) =>
+      fetcher<{ task: BoardTask }>(BOARD_TASKS_ENDPOINTS.UPDATE(id), {
+        method: "PATCH",
+        body: { archived },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.boardTasks.all });
+    },
   });
 }
 

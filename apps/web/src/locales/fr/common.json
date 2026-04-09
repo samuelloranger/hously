@@ -692,11 +692,20 @@
     "addDescription": "Ajouter une description…",
     "descriptionPlaceholder": "Description…",
     "status": {
+      "backlog": "Backlog",
       "on_hold": "En attente",
       "todo": "À faire",
       "in_progress": "En cours",
       "done": "Terminé"
-    }
+    },
+    "archiveEmpty": "L'archive est vide",
+    "archiveEmptyDescription": "Les tâches archivées apparaîtront ici",
+    "columnId": "ID",
+    "columnTitle": "Titre",
+    "columnStatus": "Statut",
+    "columnRestore": "Restaurer",
+    "restoreTask": "Restaurer la tâche",
+    "restore": "Restaurer"
   },
   "chores": {
     "title": "Tâches",

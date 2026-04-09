@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import {
   X,
   Trash2,
+  Archive,
+  RotateCcw,
   ChevronDown,
   Calendar,
   User,
@@ -40,6 +42,7 @@ interface TaskDrawerProps {
   onClose: () => void;
   onUpdate: (id: number, data: Partial<BoardTask>) => void;
   onDelete: (id: number) => void;
+  onArchive?: (id: number) => void;
   allTasks: BoardTask[];
 }
 
@@ -78,6 +81,7 @@ export function TaskDrawer({
   onClose,
   onUpdate,
   onDelete,
+  onArchive,
   allTasks,
 }: TaskDrawerProps) {
   const { t } = useTranslation("common");
@@ -190,6 +194,25 @@ export function TaskDrawer({
                 {task.slug}
               </span>
               <div className="flex-1" />
+              {onArchive && (
+                <button
+                  onClick={() => onArchive(task.id)}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-md text-neutral-400 transition-colors",
+                    task.archived
+                      ? "hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400"
+                      : "hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-900/20 dark:hover:text-amber-400",
+                  )}
+                  aria-label={task.archived ? "Restore task" : "Archive task"}
+                  title={task.archived ? "Restore task" : "Archive task"}
+                >
+                  {task.archived ? (
+                    <RotateCcw className="h-4 w-4" />
+                  ) : (
+                    <Archive className="h-4 w-4" />
+                  )}
+                </button>
+              )}
               <button
                 onClick={() => setConfirmDeleteOpen(true)}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
