@@ -2,7 +2,7 @@ import {
   useDashboardC411Stats,
   useDashboardLaCaleStats,
   useDashboardTorr9Stats,
-} from "@/hooks/usePlugins";
+} from "@/hooks/plugins/usePlugins";
 import {
   formatGo,
   formatRatio,

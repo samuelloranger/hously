@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
   useDashboardJellyfinLatestInfinite,
   useDashboardUpcoming,
-} from "@/hooks/useDashboard";
+} from "@/hooks/dashboard/useDashboard";
 import type {
   DashboardUpcomingItem,
   TmdbMediaSearchItem,

@@ -8,7 +8,7 @@ import {
   useMarkAsReadOptimistic,
   useNotifications,
   useUnreadCount,
-} from "@/hooks/useNotifications";
+} from "@/hooks/notifications/useNotifications";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatRelativeTime, resolveDateFnsLocale } from "@hously/shared/utils";
 import { syncBadge } from "@/lib/sw/registration";

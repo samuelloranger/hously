@@ -4,8 +4,8 @@ import { Pin, PinOff, ArrowDown, ArrowUp, Clock } from "lucide-react";
 import {
   usePinnedQbittorrentTorrent,
   useSetPinnedQbittorrentTorrent,
-} from "@/hooks/useDashboard";
-import { useQbittorrentStatus } from "@/hooks/useQbittorrentStatus";
+} from "@/hooks/dashboard/useDashboard";
+import { useQbittorrentStatus } from "@/hooks/torrents/useQbittorrentStatus";
 import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
 import type { DashboardQbittorrentStatusResponse } from "@hously/shared/types";
 import {
@@ -14,7 +14,7 @@ import {
   formatQbittorrentEta,
   getQbittorrentProgressBarGradient,
 } from "@hously/shared/utils";
-import { useEventSourceState } from "@/hooks/useEventSourceState";
+import { useEventSourceState } from "@/hooks/realtime/useEventSourceState";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (

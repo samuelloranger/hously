@@ -14,7 +14,7 @@ import {
   useCreateQualityProfile,
   useUpdateQualityProfile,
   type QualityProfileFormPayload,
-} from "@/hooks/useQualityProfiles";
+} from "@/hooks/medias/useQualityProfiles";
 import type { QualityProfile } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 

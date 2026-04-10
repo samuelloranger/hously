@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import {
   useInfiniteNotifications,
   useMarkAllAsReadOptimistic,
-} from "@/hooks/useNotifications";
+} from "@/hooks/notifications/useNotifications";
 import { type Notification } from "@hously/shared/types";
 import { NotificationList } from "@/components/NotificationList";
 import { Button } from "@/components/ui/button";

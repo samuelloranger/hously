@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   useUnsubscribeFromPushNotifications,
   useVapidPublicKey,
-} from "@/hooks/useNotifications";
+} from "@/hooks/notifications/useNotifications";
 import {
   type PushSubscriptionData,
   saveEndpoint,

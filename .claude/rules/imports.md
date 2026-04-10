@@ -1,6 +1,6 @@
 ---
 description: Import path conventions for the monorepo
-globs: ["apps/**/*.ts", "apps/**/*.tsx"]
+paths: ["apps/**/*.ts", "apps/**/*.tsx"]
 ---
 
 # Import Path Rules
@@ -12,12 +12,12 @@ Always use the `@/` alias for local imports. Never use relative paths like `../.
 ```typescript
 // Correct
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { CompleteCheckbox } from "@/components/CompleteCheckbox";
 
 // Wrong
 import { cn } from "../../lib/utils";
-import { useAuth } from "../../../hooks/useAuth";
+import { useAuth } from "../../../hooks/auth/useAuth";
 ```
 
 ## API App (`apps/api`)

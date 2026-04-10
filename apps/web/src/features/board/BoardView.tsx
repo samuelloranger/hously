@@ -33,9 +33,9 @@ import {
   useSetBoardTaskArchived,
   useSyncBoardTasks,
   useUpdateBoardTask,
-} from "@/hooks/useBoardTasks";
-import { useJsonEventSource } from "@/hooks/useEventSource";
-import { useUsers } from "@/hooks/useUsers";
+} from "@/hooks/board/useBoardTasks";
+import { useJsonEventSource } from "@/hooks/realtime/useEventSource";
+import { useUsers } from "@/hooks/users/useUsers";
 import { BOARD_TASKS_ENDPOINTS } from "@hously/shared/endpoints";
 import {
   BACKLOG_SORT_OPTIONS,
@@ -50,7 +50,7 @@ import {
   type BoardTasksResponse,
   type UpdateBoardTaskRequest,
 } from "@hously/shared/types";
-import { useBoardTags } from "@/hooks/useBoardTags";
+import { useBoardTags } from "@/hooks/board/useBoardTags";
 import { queryKeys } from "@/lib/queryKeys";
 import { TagManagerModal } from "./components/TagManagerModal";
 import { cn } from "@/lib/utils";

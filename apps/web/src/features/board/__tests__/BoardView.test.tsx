@@ -41,7 +41,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 // ── Hook mocks ───────────────────────────────────────────────────────────────
-vi.mock("@/hooks/useBoardTasks", () => ({
+vi.mock("@/hooks/board/useBoardTasks", () => ({
   useBoardTasks: vi.fn(),
   useCreateBoardTask: vi
     .fn()
@@ -68,10 +68,10 @@ vi.mock("@/hooks/useBoardTasks", () => ({
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
 }));
-vi.mock("@/hooks/useUsers", () => ({
+vi.mock("@/hooks/users/useUsers", () => ({
   useUsers: vi.fn().mockReturnValue({ data: { users: [] } }),
 }));
-vi.mock("@/hooks/useBoardTags", () => ({
+vi.mock("@/hooks/board/useBoardTags", () => ({
   useBoardTags: vi.fn().mockReturnValue({ data: { tags: [] } }),
   useCreateBoardTag: vi.fn().mockReturnValue({ mutateAsync: vi.fn() }),
   useUpdateBoardTag: vi
@@ -82,7 +82,7 @@ vi.mock("@/hooks/useBoardTags", () => ({
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
 }));
 
-import { useBoardTasks } from "@/hooks/useBoardTasks";
+import { useBoardTasks } from "@/hooks/board/useBoardTasks";
 import { BoardView } from "@/features/board/BoardView";
 import type { BoardTask } from "@hously/shared/types";
 const makeMockTask = (overrides: Partial<BoardTask> = {}): BoardTask =>

@@ -14,7 +14,7 @@ import {
   useClearAllCompletedShoppingItems,
   useReorderShoppingItems,
   useDeleteShoppingItems,
-} from "@/hooks/useShopping";
+} from "@/hooks/shopping/useShopping";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 type ShoppingStatusFilter = "all" | "active" | "completed" | "notes";

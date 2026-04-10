@@ -4,7 +4,7 @@ import {
   useDiscoverMedias,
   useMediaGenres,
   useStreamingProviders,
-} from "@/hooks/useMedias";
+} from "@/hooks/medias/useMedias";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ExploreCard } from "@/pages/medias/_component/ExploreCard";
 

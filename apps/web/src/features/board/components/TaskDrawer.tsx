@@ -16,7 +16,7 @@ import {
 import { MinimalTiptap } from "@/components/ui/minimal-tiptap";
 import { Dialog } from "@/components/dialog";
 import { Button } from "@/components/ui/button";
-import { useUsers } from "@/hooks/useUsers";
+import { useUsers } from "@/hooks/users/useUsers";
 import type {
   BoardTask,
   BoardTaskStatusApi,
@@ -26,7 +26,7 @@ import {
   BOARD_TASK_STATUSES,
   BOARD_TASK_PRIORITIES,
 } from "@hously/shared/types";
-import { useBoardTags } from "@/hooks/useBoardTags";
+import { useBoardTags } from "@/hooks/board/useBoardTags";
 import { TagPicker } from "./TagPicker";
 import { ActivityLog } from "./ActivityLog";
 import { CommentInput } from "./CommentInput";

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUpdateExternalNotificationTemplate } from "@/hooks/useExternalNotifications";
+import { useUpdateExternalNotificationTemplate } from "@/hooks/notifications/useExternalNotifications";
 import { queryKeys } from "@/lib/queryKeys";
 import { type NotificationTemplate } from "@hously/shared/types";
 interface TemplateEditorProps {

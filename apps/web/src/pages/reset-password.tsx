@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useResetPassword } from "@/hooks/useAuth";
+import { useResetPassword } from "@/hooks/auth/useAuth";
 import { getCurrentUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/reset-password")({

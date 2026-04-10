@@ -15,7 +15,7 @@ vi.mock("@/components/ui/minimal-tiptap", () => ({
 }));
 
 // ── Users hook mock ──────────────────────────────────────────────────────────
-vi.mock("@/hooks/useUsers", () => ({
+vi.mock("@/hooks/users/useUsers", () => ({
   useUsers: vi.fn().mockReturnValue({
     data: {
       users: [
@@ -48,7 +48,7 @@ vi.mock("@/hooks/useUsers", () => ({
 const { mockCreateBoardTag } = vi.hoisted(() => ({
   mockCreateBoardTag: vi.fn(),
 }));
-vi.mock("@/hooks/useBoardTags", () => ({
+vi.mock("@/hooks/board/useBoardTags", () => ({
   useBoardTags: vi.fn().mockReturnValue({ data: { tags: [] } }),
   useCreateBoardTag: vi
     .fn()
@@ -62,7 +62,7 @@ vi.mock("@/hooks/useBoardTags", () => ({
 }));
 
 // ── Board tasks hook mock (for DependencySection, ActivityLog, TimeTracking) ──
-vi.mock("@/hooks/useBoardTasks", () => ({
+vi.mock("@/hooks/board/useBoardTasks", () => ({
   useAddDependency: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),

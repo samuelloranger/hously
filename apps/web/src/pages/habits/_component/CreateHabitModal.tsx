@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/dialog";
 import { CreateHabitForm } from "@/pages/habits/_component/CreateHabitForm";
-import { useCreateHabit } from "@/hooks/useHabits";
+import { useCreateHabit } from "@/hooks/habits/useHabits";
 import { toast } from "sonner";
 
 interface CreateHabitModalProps {

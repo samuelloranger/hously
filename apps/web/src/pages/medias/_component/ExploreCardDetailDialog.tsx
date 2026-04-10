@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { useAddToLibrary } from "@/hooks/useLibrary";
+import { useAddToLibrary } from "@/hooks/medias/useLibrary";
 import {
   useAddToWatchlist,
   useMediaModalData,
   useRemoveFromWatchlist,
-} from "@/hooks/useMedias";
+} from "@/hooks/medias/useMedias";
 import { type TmdbMediaSearchItem } from "@hously/shared/types";
 import {
   Bookmark,

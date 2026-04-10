@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Square, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLogTime } from "@/hooks/useBoardTasks";
+import { useLogTime } from "@/hooks/board/useBoardTasks";
 import { parseTimeInput, formatMinutes } from "../utils/time";
 
 export function LogTimeForm({ taskId }: { taskId: number }) {

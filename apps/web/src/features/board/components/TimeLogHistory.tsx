@@ -1,4 +1,4 @@
-import { useBoardTimeLogs } from "@/hooks/useBoardTasks";
+import { useBoardTimeLogs } from "@/hooks/board/useBoardTasks";
 import { formatMinutes } from "../utils/time";
 
 export function TimeLogHistory({ taskId }: { taskId: number }) {

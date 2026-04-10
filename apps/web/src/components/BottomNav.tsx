@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { usePWA } from "@/lib/sw/usePWA";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobile } from "@/hooks/app/useIsMobile";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
 
 interface NavItem {

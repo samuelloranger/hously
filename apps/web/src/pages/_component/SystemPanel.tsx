@@ -4,11 +4,11 @@ import {
   useDashboardSystemSummary,
   useDashboardScrutinySummary,
   useDashboardAdguardSummary,
-} from "@/hooks/useDashboard";
-import { useSetAdguardProtection } from "@/hooks/usePlugins";
+} from "@/hooks/dashboard/useDashboard";
+import { useSetAdguardProtection } from "@/hooks/plugins/usePlugins";
 import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
 import type { DashboardBeszelSummaryResponse } from "@hously/shared/types";
-import { useEventSourceState } from "@/hooks/useEventSourceState";
+import { useEventSourceState } from "@/hooks/realtime/useEventSourceState";
 import { useAuth } from "@/lib/auth/useAuth";
 import { ChevronDown, ChevronUp } from "lucide-react";
 

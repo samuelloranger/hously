@@ -1,6 +1,8 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to **Claude Code** (claude.ai/code) when working in this repository.
+
+**Cursor Agent:** Use [`AGENTS.md`](./AGENTS.md) at the repo root and [`.cursor/rules/*.mdc`](./.cursor/rules/) for the same project context and conventions. Custom slash-style workflows live in [`.cursor/commands/`](./.cursor/commands/).
 
 ## Personality
 
@@ -8,13 +10,13 @@ Act as a rigorous, honest mentor. Do not default to agreement. Identify weakness
 
 ## Coding Rules
 
-Detailed coding conventions live in `.claude/rules/` and are loaded automatically based on file globs:
+Detailed coding conventions live in `.claude/rules/` (Claude Code) and are mirrored as `.mdc` files in `.cursor/rules/` (Cursor). Topics:
 
-- **`imports.md`** — Import path aliases (`@/` for web, relative for API, `@hously/shared` for cross-app)
-- **`dry-and-shared-code.md`** — Shared code organization and DRY principles
-- **`naming-conventions.md`** — File, code, and API response naming (PascalCase, camelCase, snake_case)
-- **`feature-structure.md`** — Frontend feature folders and API route plugin patterns
-- **`tanstack-query.md`** — Query/mutation hooks, query key factory, cross-feature invalidation
+- **Imports** — Path aliases (`@/` for web, relative for API, `@hously/shared` for cross-app)
+- **DRY / shared code** — Shared code organization and DRY principles
+- **Naming** — File, code, and API response naming (PascalCase, camelCase, snake_case)
+- **Feature structure** — Frontend feature folders and API route plugin patterns
+- **TanStack Query** — Query/mutation hooks, query key factory, cross-feature invalidation
 
 ## Project Overview
 
@@ -83,7 +85,7 @@ Route modules export Elysia plugins composed in `src/index.ts`. Webhook handlers
 | `src/features/`   | Feature-based modules (auth, chores, shopping, calendar, dashboard, torrents, medias, etc.) |
 | `src/components/` | Shared components (+ `ui/` for Radix/CVA primitives)                                        |
 | `src/routes/`     | File-based routing (TanStack Router)                                                        |
-| `src/hooks/`      | App-specific React hooks                                                                    |
+| `src/hooks/<domain>/` | App-specific hooks grouped by domain (e.g. `chores`, `dashboard`, `app`, `realtime`) |
 | `src/lib/`        | API client, query client, utilities                                                         |
 | `src/locales/`    | i18next translations                                                                        |
 | `src/sw/`         | Service Worker (PWA)                                                                        |

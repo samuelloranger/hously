@@ -15,7 +15,7 @@ import {
   useDeleteMealPlan,
   useMealPlans,
   useRecipes,
-} from "@/hooks/useRecipes";
+} from "@/hooks/recipes/useRecipes";
 import type { MealPlan } from "@hously/shared/types";
 import {
   formatDateOnly,

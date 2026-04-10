@@ -11,7 +11,7 @@ import {
   useDeleteChore,
   useRemoveRecurrence,
   useToggleChore,
-} from "@/hooks/useChores";
+} from "@/hooks/chores/useChores";
 import { queryKeys } from "@/lib/queryKeys";
 import type { Chore, ChoreUser } from "@hously/shared/types";
 import {

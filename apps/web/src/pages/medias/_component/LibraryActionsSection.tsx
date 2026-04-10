@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Trash2 } from "lucide-react";
-import { useRemoveFromLibrary } from "@/hooks/useLibrary";
+import { useRemoveFromLibrary } from "@/hooks/medias/useLibrary";
 import { Card } from "./LibrarySharedUI";
 
 interface LibraryActionsSectionProps {

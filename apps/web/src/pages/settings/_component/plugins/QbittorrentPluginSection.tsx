@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
   useQbittorrentPlugin,
   useUpdateQbittorrentPlugin,
-} from "@/hooks/usePlugins";
+} from "@/hooks/plugins/usePlugins";
 import { toast } from "sonner";
 import { PluginSectionCard } from "@/pages/settings/_component/plugins/PluginSectionCard";
 import { PluginUrlInput } from "@/pages/settings/_component/plugins/PluginUrlInput";
