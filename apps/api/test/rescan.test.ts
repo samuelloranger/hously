@@ -147,7 +147,6 @@ mock.module("@hously/api/utils/medias/filenameParser", () => ({
     source: null,
     releaseGroup: null,
   }),
-  parseReleaseTitle: () => ({ title: "", year: null }),
 }));
 
 mock.module("@hously/api/services/postProcessor", () => ({
