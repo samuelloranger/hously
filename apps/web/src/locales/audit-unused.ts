@@ -117,7 +117,7 @@ for (const localeFile of localeFiles) {
   const allKeys = Object.keys(flat);
   const unusedKeys = allKeys.filter((k) => !isUsed(k));
   const usedFlat = Object.fromEntries(
-    Object.entries(flat).filter(([k]) => isUsed(k))
+    Object.entries(flat).filter(([k]) => isUsed(k)),
   );
 
   console.log(`\n=== ${lang.toUpperCase()} ===`);
@@ -135,7 +135,7 @@ for (const localeFile of localeFiles) {
     fs.writeFileSync(
       localeFile,
       JSON.stringify(cleaned, null, 2) + "\n",
-      "utf8"
+      "utf8",
     );
     console.log(`\n  Removed ${unusedKeys.length} keys.`);
     totalRemoved += unusedKeys.length;
@@ -145,5 +145,5 @@ for (const localeFile of localeFiles) {
 console.log(
   FIX
     ? `\nDone. Total keys removed: ${totalRemoved}`
-    : "\nRun with --fix to remove unused keys."
+    : "\nRun with --fix to remove unused keys.",
 );

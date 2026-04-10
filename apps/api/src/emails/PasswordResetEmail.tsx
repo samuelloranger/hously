@@ -1,5 +1,5 @@
-import { Button, Text } from '@react-email/components';
-import { EmailLayout } from './EmailLayout';
+import { Button, Text } from "@react-email/components";
+import { EmailLayout } from "./EmailLayout";
 
 interface PasswordResetEmailProps {
   resetUrl: string;
@@ -10,34 +10,34 @@ export function PasswordResetEmail({
   resetUrl,
   locale,
 }: PasswordResetEmailProps) {
-  const isFr = locale.startsWith('fr');
+  const isFr = locale.startsWith("fr");
 
   const heading = isFr
-    ? 'R\u00e9initialisation du mot de passe'
-    : 'Password Reset';
+    ? "R\u00e9initialisation du mot de passe"
+    : "Password Reset";
 
   const preview = isFr
-    ? 'R\u00e9initialisez votre mot de passe Hously'
-    : 'Reset your Hously password';
+    ? "R\u00e9initialisez votre mot de passe Hously"
+    : "Reset your Hously password";
 
   const bodyText = isFr
-    ? 'Vous avez demand\u00e9 la r\u00e9initialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau.'
-    : 'You requested a password reset. Click the button below to choose a new password.';
+    ? "Vous avez demand\u00e9 la r\u00e9initialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau."
+    : "You requested a password reset. Click the button below to choose a new password.";
 
   const buttonText = isFr
-    ? 'R\u00e9initialiser le mot de passe'
-    : 'Reset Password';
+    ? "R\u00e9initialiser le mot de passe"
+    : "Reset Password";
 
   const expiry = isFr
-    ? 'Ce lien expire dans 1 heure.'
-    : 'This link expires in 1 hour.';
+    ? "Ce lien expire dans 1 heure."
+    : "This link expires in 1 hour.";
 
   const ignore = isFr
     ? "Si vous n'avez pas demand\u00e9 cette r\u00e9initialisation, ignorez simplement cet e-mail."
     : "If you didn't request this, you can safely ignore this email.";
 
   const fallback = isFr
-    ? 'Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :'
+    ? "Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :"
     : "If the button doesn't work, copy this link into your browser:";
 
   return (

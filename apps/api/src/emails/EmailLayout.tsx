@@ -6,9 +6,9 @@ import {
   Container,
   Section,
   Text,
-} from '@react-email/components';
-import { Tailwind } from '@react-email/tailwind';
-import type { ReactNode } from 'react';
+} from "@react-email/components";
+import { Tailwind } from "@react-email/tailwind";
+import type { ReactNode } from "react";
 
 interface EmailLayoutProps {
   heading: string;

@@ -18,6 +18,7 @@ qBittorrent spawns the autorun program via `QProcess::startDetached()` — **wit
 - Shell operators (`>`, `|`, `&&`, redirects) are silently ignored — they are never interpreted.
 
 This is a known upstream behaviour documented in:
+
 - [qBittorrent/qBittorrent#13178](https://github.com/qbittorrent/qBittorrent/issues/13178)
 - [qBittorrent/qBittorrent#12367](https://github.com/qbittorrent/qBittorrent/issues/12367)
 

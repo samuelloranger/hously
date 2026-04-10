@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Personality 
+## Personality
 
 Act as a rigorous, honest mentor. Do not default to agreement. Identify weaknesses, blind spots, and flawed assumptions. Challenge ideas when needed. Be direct and clear, not harsh. Prioritize helping me improve over being agreeable. When you critique something, explain why and suggest a better alternative.
 
@@ -21,6 +21,7 @@ Detailed coding conventions live in `.claude/rules/` and are loaded automaticall
 Hously is a self-hosted command center for homelab enthusiasts. It provides a unified dashboard for monitoring infrastructure, managing media pipelines, and organizing daily life.
 
 This monorepo contains:
+
 - **API** (`apps/api`): Elysia (Bun runtime) + Prisma ORM
 - **Web** (`apps/web`): React 19 + Vite + TanStack Router/Query + Tailwind CSS 4
 - **Shared** (`apps/shared`): Types, hooks, utilities, endpoints shared across apps
@@ -28,6 +29,7 @@ This monorepo contains:
 In production, the frontend is built into `apps/api/public/` and served by the API via `@elysiajs/static` (enabled with `SERVE_STATIC=true`). A single `Dockerfile` builds both.
 
 A native companion app lives in a separate repository:
+
 - **iOS App** (`../hously-ios`): Swift/SwiftUI
 
 ## Development Setup
@@ -49,6 +51,7 @@ docker compose up      # Start everything in containers
 ### Environment Configuration
 
 Copy `.env.example` to `.env` and configure at minimum:
+
 - `ALLOWED_EMAILS` / `ADMIN_EMAILS`: Comma-separated email lists
 - `SECRET_KEY`: Change from default for security
 - `DATABASE_URL`: Connection string (adjust hostname based on Docker/local)
@@ -59,15 +62,15 @@ Copy `.env.example` to `.env` and configure at minimum:
 
 **Stack**: Elysia, Prisma, PostgreSQL, Redis, MinIO
 
-| Directory | Purpose |
-|-----------|---------|
-| `src/routes/` | Feature-specific Elysia route plugins |
-| `src/services/` | Business logic (S3, images, notifications, webhooks) |
-| `src/jobs/` | Cron jobs (`@elysiajs/cron`) |
-| `src/middleware/` | Rate limiting, etc. |
-| `src/db/` | Prisma client |
-| `src/auth.ts` | JWT auth with HTTP-only cookies |
-| `prisma/schema.prisma` | Database schema |
+| Directory              | Purpose                                              |
+| ---------------------- | ---------------------------------------------------- |
+| `src/routes/`          | Feature-specific Elysia route plugins                |
+| `src/services/`        | Business logic (S3, images, notifications, webhooks) |
+| `src/jobs/`            | Cron jobs (`@elysiajs/cron`)                         |
+| `src/middleware/`      | Rate limiting, etc.                                  |
+| `src/db/`              | Prisma client                                        |
+| `src/auth.ts`          | JWT auth with HTTP-only cookies                      |
+| `prisma/schema.prisma` | Database schema                                      |
 
 Route modules export Elysia plugins composed in `src/index.ts`. Webhook handlers integrate Radarr, Sonarr, Jellyfin, Plex, and others. Push notifications support Web Push (VAPID) and APNs.
 
@@ -75,26 +78,26 @@ Route modules export Elysia plugins composed in `src/index.ts`. Webhook handlers
 
 **Stack**: React 19, Vite, TanStack Router, TanStack Query, Tailwind CSS 4
 
-| Directory | Purpose |
-|-----------|---------|
-| `src/features/` | Feature-based modules (auth, chores, shopping, calendar, dashboard, torrents, medias, etc.) |
-| `src/components/` | Shared components (+ `ui/` for Radix/CVA primitives) |
-| `src/routes/` | File-based routing (TanStack Router) |
-| `src/hooks/` | App-specific React hooks |
-| `src/lib/` | API client, query client, utilities |
-| `src/locales/` | i18next translations |
-| `src/sw/` | Service Worker (PWA) |
+| Directory         | Purpose                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| `src/features/`   | Feature-based modules (auth, chores, shopping, calendar, dashboard, torrents, medias, etc.) |
+| `src/components/` | Shared components (+ `ui/` for Radix/CVA primitives)                                        |
+| `src/routes/`     | File-based routing (TanStack Router)                                                        |
+| `src/hooks/`      | App-specific React hooks                                                                    |
+| `src/lib/`        | API client, query client, utilities                                                         |
+| `src/locales/`    | i18next translations                                                                        |
+| `src/sw/`         | Service Worker (PWA)                                                                        |
 
 ### Shared (`apps/shared`)
 
-| Directory | Purpose |
-|-----------|---------|
-| `src/types/` | TypeScript interfaces (shared between API and Web) |
-| `src/endpoints/` | API endpoint constants (`CHORES_ENDPOINTS`, etc.) |
-| `src/hooks/` | TanStack Query hooks (`useChores`, `useCreateChore`, etc.) |
-| `src/utils/` | Shared utilities (date, sanitize, media URLs, etc.) |
-| `src/queryKeys.ts` | Centralized query key factory |
-| `src/api.ts` | API client factories |
+| Directory          | Purpose                                                    |
+| ------------------ | ---------------------------------------------------------- |
+| `src/types/`       | TypeScript interfaces (shared between API and Web)         |
+| `src/endpoints/`   | API endpoint constants (`CHORES_ENDPOINTS`, etc.)          |
+| `src/hooks/`       | TanStack Query hooks (`useChores`, `useCreateChore`, etc.) |
+| `src/utils/`       | Shared utilities (date, sanitize, media URLs, etc.)        |
+| `src/queryKeys.ts` | Centralized query key factory                              |
+| `src/api.ts`       | API client factories                                       |
 
 ## Common Commands
 
@@ -131,6 +134,7 @@ Maintained in `../hously-ios`. Connects to this API with native push notificatio
 ## Key Features
 
 ### Homelab Integrations
+
 - **Dashboard** — Server health (Netdata), disk diagnostics (Scrutiny), torrent activity, media releases
 - **Torrent Management** — qBittorrent integration with real-time SSE streaming
 - **Media Pipeline** — Radarr/Sonarr + TMDB discovery + interactive release search
@@ -139,6 +143,7 @@ Maintained in `../hously-ios`. Connects to this API with native push notificatio
 - **External Notifications** — Webhooks for Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma
 
 ### Life Management
+
 - **Shopping List** — Collaborative with real-time updates
 - **Chores** — Assignment, tracking, recurring schedules
 - **Calendar** — Shared calendar with reminders and iCal export

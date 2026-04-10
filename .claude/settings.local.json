@@ -42,7 +42,9 @@
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:bun.com)",
-      "Bash(hously board-tasks:*)"
+      "Bash(hously board-tasks:*)",
+      "Bash(npx @tanstack/router-cli generate)",
+      "Bash(npx @tanstack/router-cli generate --routesDirectory src/pages --generatedRouteTree src/routeTree.gen.ts)"
     ],
     "deny": [],
     "ask": []

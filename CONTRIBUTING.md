@@ -51,14 +51,14 @@ CI runs typecheck, lint, format check, and tests on every push and PR.
 
 ### Naming
 
-| Context | Convention | Example |
-|---------|-----------|---------|
-| React components | PascalCase | `ChoreRow.tsx` |
-| Hooks | camelCase with `use` prefix | `useChores.ts` |
-| API route plugins | camelCase + `Routes` | `choresRoutes` |
-| API response fields | snake_case | `created_at` |
-| URL paths | kebab-case | `/api/shopping` |
-| Endpoint constants | UPPER_SNAKE_CASE | `CHORES_ENDPOINTS` |
+| Context             | Convention                  | Example            |
+| ------------------- | --------------------------- | ------------------ |
+| React components    | PascalCase                  | `ChoreRow.tsx`     |
+| Hooks               | camelCase with `use` prefix | `useChores.ts`     |
+| API route plugins   | camelCase + `Routes`        | `choresRoutes`     |
+| API response fields | snake_case                  | `created_at`       |
+| URL paths           | kebab-case                  | `/api/shopping`    |
+| Endpoint constants  | UPPER_SNAKE_CASE            | `CHORES_ENDPOINTS` |
 
 ### Imports
 
@@ -79,10 +79,10 @@ Each feature is self-contained under `apps/web/src/features/<name>/` with its ow
 Each route file exports an Elysia plugin composed in `src/index.ts`:
 
 ```typescript
-export const featureRoutes = new Elysia({ prefix: '/api/feature' })
+export const featureRoutes = new Elysia({ prefix: "/api/feature" })
   .use(auth)
   .use(requireUser)
-  .get('/', async ({ user, set }) => {
+  .get("/", async ({ user, set }) => {
     // ...
   });
 ```
@@ -119,6 +119,7 @@ make migrate-dev     # Creates a migration file
 ## Reporting Issues
 
 Use [GitHub Issues](https://github.com/samuelloranger/hously/issues). Include:
+
 - Steps to reproduce
 - Expected vs actual behavior
 - Docker or local dev setup

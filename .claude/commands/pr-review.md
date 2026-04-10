@@ -57,6 +57,7 @@ Categorize each finding:
 Use the GitHub CLI to submit a **pull request review** with inline comments on specific lines.
 
 For each comment, identify:
+
 - The **file path** (relative to repo root)
 - The **line number** in the diff (the line in the new version of the file)
 - The **comment body** — be specific, explain why, suggest a fix

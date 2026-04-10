@@ -1,4 +1,12 @@
-import { describe, expect, it, beforeEach, afterEach, mock, spyOn } from "bun:test";
+import {
+  describe,
+  expect,
+  it,
+  beforeEach,
+  afterEach,
+  mock,
+  spyOn,
+} from "bun:test";
 import {
   uploadToS3,
   deleteFromS3,
@@ -96,9 +104,7 @@ describe("S3 Service Integration", () => {
   // Skip integration tests if S3 is not configured
   const skipIfNoS3 = () => {
     const hasS3 =
-      Bun.env.S3_ENDPOINT_URL &&
-      Bun.env.S3_ACCESS_KEY &&
-      Bun.env.S3_SECRET_KEY;
+      Bun.env.S3_ENDPOINT_URL && Bun.env.S3_ACCESS_KEY && Bun.env.S3_SECRET_KEY;
     return !hasS3;
   };
 

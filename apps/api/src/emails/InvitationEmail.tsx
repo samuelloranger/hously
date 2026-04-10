@@ -1,5 +1,5 @@
-import { Button, Text } from '@react-email/components';
-import { EmailLayout } from './EmailLayout';
+import { Button, Text } from "@react-email/components";
+import { EmailLayout } from "./EmailLayout";
 
 interface InvitationEmailProps {
   acceptUrl: string;
@@ -12,10 +12,10 @@ export function InvitationEmail({
   inviterName,
   locale,
 }: InvitationEmailProps) {
-  const isFr = locale.startsWith('fr');
+  const isFr = locale.startsWith("fr");
 
   const heading = isFr
-    ? 'Vous avez \u00e9t\u00e9 invit\u00e9 !'
+    ? "Vous avez \u00e9t\u00e9 invit\u00e9 !"
     : "You've been invited!";
 
   const preview = isFr
@@ -26,14 +26,14 @@ export function InvitationEmail({
     ? `${inviterName} vous invite \u00e0 rejoindre Hously. Cliquez sur le bouton ci-dessous pour cr\u00e9er votre compte.`
     : `${inviterName} has invited you to join Hously. Click the button below to set up your account.`;
 
-  const buttonText = isFr ? "Accepter l'invitation" : 'Accept Invitation';
+  const buttonText = isFr ? "Accepter l'invitation" : "Accept Invitation";
 
   const expiry = isFr
-    ? 'Ce lien expire dans 7 jours.'
-    : 'This link expires in 7 days.';
+    ? "Ce lien expire dans 7 jours."
+    : "This link expires in 7 days.";
 
   const fallback = isFr
-    ? 'Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :'
+    ? "Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :"
     : "If the button doesn't work, copy this link into your browser:";
 
   return (

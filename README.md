@@ -7,6 +7,7 @@ A self-hosted command center for homelab enthusiasts. Monitor your infrastructur
 ## Features
 
 ### Infrastructure & Media
+
 - **Dashboard** -- Unified overview: server health, disk status, torrent activity, media releases
 - **Torrent Management** -- Full qBittorrent integration with real-time SSE streaming, filtering, and uploads
 - **Media Pipeline** -- Radarr & Sonarr integration with TMDB discovery and interactive release search
@@ -16,6 +17,7 @@ A self-hosted command center for homelab enthusiasts. Monitor your infrastructur
 - **Jellyfin/Plex** -- Latest media additions on your dashboard
 
 ### Life Management
+
 - **Shopping List** -- Collaborative with drag-and-drop reordering
 - **Chores** -- Assignment, tracking, recurring schedules, and reminders
 - **Calendar** -- Shared calendar with custom events and iCal export
@@ -23,6 +25,7 @@ A self-hosted command center for homelab enthusiasts. Monitor your infrastructur
 - **Habits** -- Daily habit tracking with streaks
 
 ### Notifications
+
 - **Webhook Integrations** -- Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma, Prowlarr
 - **Customizable Templates** -- Per-service notification templates with variables
 - **Multi-Channel Push** -- Web Push (VAPID) and Apple Push Notifications (APNs)
@@ -117,31 +120,31 @@ Migrations run automatically on startup.
 
 ### Required
 
-| Variable | Description |
-|----------|-------------|
-| `ALLOWED_EMAILS` | Comma-separated list of emails allowed to register |
-| `ADMIN_EMAILS` | Comma-separated list of admin emails |
-| `SECRET_KEY` | Secret key for JWT signing (change from default) |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | Database credentials |
-| `REDIS_PASSWORD` | Redis password |
-| `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` | MinIO credentials |
-| `S3_ACCESS_KEY` / `S3_SECRET_KEY` | S3 credentials (same as MinIO by default) |
+| Variable                                              | Description                                        |
+| ----------------------------------------------------- | -------------------------------------------------- |
+| `ALLOWED_EMAILS`                                      | Comma-separated list of emails allowed to register |
+| `ADMIN_EMAILS`                                        | Comma-separated list of admin emails               |
+| `SECRET_KEY`                                          | Secret key for JWT signing (change from default)   |
+| `DATABASE_URL`                                        | PostgreSQL connection string                       |
+| `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | Database credentials                               |
+| `REDIS_PASSWORD`                                      | Redis password                                     |
+| `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD`             | MinIO credentials                                  |
+| `S3_ACCESS_KEY` / `S3_SECRET_KEY`                     | S3 credentials (same as MinIO by default)          |
 
 ### Optional
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `BASE_URL` | Public URL of the app | `http://localhost:5000` |
-| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:5173` |
-| `TZ` | Timezone for cron jobs and date boundaries | `America/New_York` |
-| `TMDB_API_KEY` | TMDB API key for media discovery | -- |
-| `OMDB_API_KEY` | OMDB API key for additional media data | -- |
-| `VAPID_CONTACT_EMAIL` | Contact email for web push notifications | -- |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | SMTP server for email notifications | -- |
-| `SMTP_FROM` / `SMTP_FROM_NAME` | Email sender address and name | -- |
-| `APNS_TEAM_ID` / `APNS_KEY_ID` / `APNS_AUTH_KEY` / `APNS_TOPIC` | Apple Push Notification service credentials | -- |
-| `LOG_LEVEL` | Log level (`DEBUG`, `INFO`, `WARN`, `ERROR`) | `DEBUG` |
+| Variable                                                        | Description                                  | Default                 |
+| --------------------------------------------------------------- | -------------------------------------------- | ----------------------- |
+| `BASE_URL`                                                      | Public URL of the app                        | `http://localhost:5000` |
+| `CORS_ORIGIN`                                                   | Allowed CORS origin                          | `http://localhost:5173` |
+| `TZ`                                                            | Timezone for cron jobs and date boundaries   | `America/New_York`      |
+| `TMDB_API_KEY`                                                  | TMDB API key for media discovery             | --                      |
+| `OMDB_API_KEY`                                                  | OMDB API key for additional media data       | --                      |
+| `VAPID_CONTACT_EMAIL`                                           | Contact email for web push notifications     | --                      |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS`           | SMTP server for email notifications          | --                      |
+| `SMTP_FROM` / `SMTP_FROM_NAME`                                  | Email sender address and name                | --                      |
+| `APNS_TEAM_ID` / `APNS_KEY_ID` / `APNS_AUTH_KEY` / `APNS_TOPIC` | Apple Push Notification service credentials  | --                      |
+| `LOG_LEVEL`                                                     | Log level (`DEBUG`, `INFO`, `WARN`, `ERROR`) | `DEBUG`                 |
 
 ## External Notifications
 
@@ -182,13 +185,13 @@ make dev-web          # Start frontend with Vite (Terminal 3)
 
 ### Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **API** | [Elysia](https://elysiajs.com) (Bun runtime) + [Prisma](https://prisma.io) ORM |
+| Layer        | Technology                                                                                                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **API**      | [Elysia](https://elysiajs.com) (Bun runtime) + [Prisma](https://prisma.io) ORM                                                                                                  |
 | **Frontend** | React 19 + [Vite](https://vite.dev) + [TanStack Router](https://tanstack.com/router) + [TanStack Query](https://tanstack.com/query) + [Tailwind CSS](https://tailwindcss.com) 4 |
-| **Database** | PostgreSQL 15 |
-| **Cache** | Redis 7 |
-| **Storage** | MinIO (S3-compatible) |
+| **Database** | PostgreSQL 15                                                                                                                                                                   |
+| **Cache**    | Redis 7                                                                                                                                                                         |
+| **Storage**  | MinIO (S3-compatible)                                                                                                                                                           |
 
 ### Project Structure
 

@@ -11,14 +11,14 @@ Any type, utility, hook, endpoint constant, or API factory used by more than one
 
 ### Where shared code lives
 
-| What | Location |
-|------|----------|
-| TypeScript interfaces | `apps/shared/src/types/` |
-| API endpoint constants | `apps/shared/src/endpoints/` |
-| TanStack Query hooks | `apps/shared/src/hooks/` |
-| Utility functions | `apps/shared/src/utils/` |
-| Query key factory | `apps/shared/src/queryKeys.ts` |
-| API client factories | `apps/shared/src/api.ts` |
+| What                   | Location                       |
+| ---------------------- | ------------------------------ |
+| TypeScript interfaces  | `apps/shared/src/types/`       |
+| API endpoint constants | `apps/shared/src/endpoints/`   |
+| TanStack Query hooks   | `apps/shared/src/hooks/`       |
+| Utility functions      | `apps/shared/src/utils/`       |
+| Query key factory      | `apps/shared/src/queryKeys.ts` |
+| API client factories   | `apps/shared/src/api.ts`       |
 
 ### Adding new shared code
 
@@ -32,11 +32,11 @@ Always define query keys in the centralized factory (`apps/shared/src/queryKeys.
 
 ```typescript
 // Correct
-import { queryKeys } from '@hously/shared';
+import { queryKeys } from "@hously/shared";
 queryClient.invalidateQueries({ queryKey: queryKeys.chores.all });
 
 // Wrong
-queryClient.invalidateQueries({ queryKey: ['chores'] });
+queryClient.invalidateQueries({ queryKey: ["chores"] });
 ```
 
 ## Within an app, extract only when reused

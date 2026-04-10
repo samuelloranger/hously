@@ -31,7 +31,7 @@ export function useCreateFeature() {
   return useMutation({
     mutationFn: (data: CreateFeatureRequest) =>
       fetcher<ApiResult<{ id: number }>>(FEATURE_ENDPOINTS.CREATE, {
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     onSuccess: () => {

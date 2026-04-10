@@ -1,5 +1,10 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { getS3Config, getBaseUrl, loadConfig, resetConfig } from "../src/config";
+import {
+  getS3Config,
+  getBaseUrl,
+  loadConfig,
+  resetConfig,
+} from "../src/config";
 
 describe("Config", () => {
   const originalEnv = { ...Bun.env };
@@ -111,7 +116,10 @@ describe("Config", () => {
     it("should parse comma-separated admin emails", () => {
       Bun.env.ADMIN_EMAILS = "admin1@test.com, admin2@test.com";
       const config = loadConfig();
-      expect(config.ADMIN_EMAILS).toEqual(["admin1@test.com", "admin2@test.com"]);
+      expect(config.ADMIN_EMAILS).toEqual([
+        "admin1@test.com",
+        "admin2@test.com",
+      ]);
     });
 
     it("should return empty array when no emails configured", () => {

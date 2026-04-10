@@ -67,7 +67,10 @@ export default [
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
       "react-hooks/exhaustive-deps": "off",
       "react-hooks/set-state-in-effect": "error",
       "react-hooks/incompatible-library": "error",
@@ -78,7 +81,11 @@ export default [
     },
   },
   ...compat
-    .extends("eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier")
+    .extends(
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "prettier",
+    )
     .map((config) => ({
       ...config,
       files: ["apps/api/**/*.{ts,tsx,js,jsx}"],
@@ -96,7 +103,10 @@ export default [
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
     },
   },
 ];

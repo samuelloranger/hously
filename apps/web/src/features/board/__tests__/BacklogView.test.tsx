@@ -47,7 +47,9 @@ describe("BacklogView", () => {
   it("shows helpful description in empty state", async () => {
     renderWithProviders(<BacklogView tasks={[]} onTaskClick={onTaskClick} />);
     await waitFor(() => {
-      expect(screen.getByText("board.backlogEmptyDescription")).toBeInTheDocument();
+      expect(
+        screen.getByText("board.backlogEmptyDescription"),
+      ).toBeInTheDocument();
     });
   });
 

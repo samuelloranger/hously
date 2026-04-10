@@ -109,7 +109,7 @@ describe("Image Service", () => {
       const mockFile = new File(["test"], "test.jpg", { type: "image/jpeg" });
 
       await expect(saveImageAndCreateThumbnail(mockFile)).rejects.toThrow(
-        "S3 storage is not configured"
+        "S3 storage is not configured",
       );
     });
 
@@ -124,7 +124,7 @@ describe("Image Service", () => {
       });
 
       await expect(saveImageAndCreateThumbnail(mockFile)).rejects.toThrow(
-        "Invalid file type"
+        "Invalid file type",
       );
     });
   });
@@ -186,9 +186,7 @@ describe("Image Service Integration", () => {
 
   const skipIfNoS3 = () => {
     const hasS3 =
-      Bun.env.S3_ENDPOINT_URL &&
-      Bun.env.S3_ACCESS_KEY &&
-      Bun.env.S3_SECRET_KEY;
+      Bun.env.S3_ENDPOINT_URL && Bun.env.S3_ACCESS_KEY && Bun.env.S3_SECRET_KEY;
     return !hasS3;
   };
 
@@ -203,7 +201,8 @@ describe("Image Service Integration", () => {
     }
 
     // Load the test image from fixtures (copied from frontend icon)
-    const testImagePath = new URL("./fixtures/test-image.png", import.meta.url).pathname;
+    const testImagePath = new URL("./fixtures/test-image.png", import.meta.url)
+      .pathname;
     const imageFile = Bun.file(testImagePath);
     const imageBuffer = await imageFile.arrayBuffer();
 
@@ -236,7 +235,8 @@ describe("Image Service Integration", () => {
 // Unit tests that use the real test image file
 describe("Image Service with Test Fixture", () => {
   it("should load and validate test image file", async () => {
-    const testImagePath = new URL("./fixtures/test-image.png", import.meta.url).pathname;
+    const testImagePath = new URL("./fixtures/test-image.png", import.meta.url)
+      .pathname;
     const imageFile = Bun.file(testImagePath);
 
     expect(await imageFile.exists()).toBe(true);

@@ -28,15 +28,15 @@ features/<name>/
 Each route file exports an Elysia plugin with a prefix:
 
 ```typescript
-export const featureRoutes = new Elysia({ prefix: '/api/feature' })
+export const featureRoutes = new Elysia({ prefix: "/api/feature" })
   .use(auth)
   .use(requireUser)
-  .get('/', async ({ user, set }) => {
+  .get("/", async ({ user, set }) => {
     try {
       // ... prisma query
       return { items };
     } catch (error) {
-      return serverError(set, 'Failed to fetch items');
+      return serverError(set, "Failed to fetch items");
     }
   });
 ```

@@ -214,8 +214,8 @@ export function QuickActionPalette({
       section: "medias" as const,
       action: () => {
         navigate({
-          to: "/library",
-          search: { current_media_id: item.id },
+          to: "/library/$libraryId",
+          params: { libraryId: String(item.id) },
         });
         handleClose();
       },

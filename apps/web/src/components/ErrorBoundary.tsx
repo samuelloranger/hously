@@ -38,8 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
               {i18next.t("common.somethingWentWrong")}
             </h1>
             <p className="text-neutral-600 dark:text-neutral-400">
-              {this.state.error?.message ||
-                i18next.t("common.unexpectedError")}
+              {this.state.error?.message || i18next.t("common.unexpectedError")}
             </p>
             <button
               onClick={() => window.location.reload()}
