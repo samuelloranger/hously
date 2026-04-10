@@ -14,6 +14,7 @@ export interface MergedEpisodeRowProps {
     id: number;
     episode: number;
     title: string | null;
+    air_date: string | null;
     status: string;
     search_attempts: number;
   };
@@ -30,6 +31,16 @@ export interface MergedEpisodeRowProps {
   searchEpMut: ReturnType<typeof useSearchLibraryEpisode>;
 }
 
+function formatAirDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year:
+      d.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
+  });
+}
+
 export function MergedEpisodeRow({
   ep,
   season,
@@ -41,6 +52,8 @@ export function MergedEpisodeRow({
 }: MergedEpisodeRowProps) {
   const [expanded, setExpanded] = useState(false);
   const badges = file ? qualityBadges(file) : [];
+  const isFuture =
+    ep.air_date != null && new Date(ep.air_date) > new Date();
 
   return (
     <div className="border-b last:border-0 border-neutral-100 dark:border-neutral-800">
@@ -59,6 +72,11 @@ export function MergedEpisodeRow({
         <span className="flex-1 min-w-0 truncate text-[11px] text-neutral-700 dark:text-neutral-300">
           {ep.title ?? "—"}
         </span>
+        {isFuture && ep.air_date && (
+          <span className="shrink-0 text-[10px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+            {formatAirDate(ep.air_date)}
+          </span>
+        )}
         <div className="flex items-center gap-1 shrink-0">
           {badges.slice(0, 2).map((b) => (
             <Badge key={b.label} className={cn(b.cls, "text-[9px] py-0")}>

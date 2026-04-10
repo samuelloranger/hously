@@ -273,18 +273,11 @@ export function useRescanLibraryItem(id: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      // First, trigger refresh-status to re-queue any missed post-processing / import
-      await fetcher<{ item: LibraryMedia; detail: string }>(
-        LIBRARY_ENDPOINTS.REFRESH_STATUS(id),
-        { method: "POST" },
-      );
-      // Then rescan MediaInfo for all known files
-      return fetcher<{ rescanned: number; failed: number }>(
+    mutationFn: () =>
+      fetcher<{ rescanned: number; failed: number }>(
         LIBRARY_ENDPOINTS.RESCAN(id),
         { method: "POST" },
-      );
-    },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
       queryClient.invalidateQueries({
@@ -318,24 +311,6 @@ export function useDeleteLibraryFile(libraryId: number) {
   });
 }
 
-export function useRefreshLibraryStatus(id: number) {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () =>
-      fetcher<{ item: LibraryMedia; detail: string }>(
-        LIBRARY_ENDPOINTS.REFRESH_STATUS(id),
-        { method: "POST" },
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.library.downloads(id),
-      });
-    },
-  });
-}
 
 export function useStartMigration() {
   const fetcher = useFetcher();

@@ -8,6 +8,7 @@ const redisDb = parseInt(Bun.env.REDIS_DB || "0");
 export const redisConnection = {
   host: redisHost,
   port: redisPort,
+  username: "default",
   password: redisPassword,
   db: redisDb,
   // BullMQ needs these settings for stability

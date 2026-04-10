@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "@tanstack/react-router";
 import { useAddToLibrary } from "@/hooks/useLibrary";
 import {
   useAddToWatchlist,
   useMediaModalData,
   useRemoveFromWatchlist,
 } from "@/hooks/useMedias";
-import { type MediaItem, type TmdbMediaSearchItem } from "@hously/shared/types";
+import { type TmdbMediaSearchItem } from "@hously/shared/types";
 import {
   Bookmark,
   BookmarkCheck,
@@ -17,20 +18,16 @@ import {
   Info,
   Play,
   Plus,
-  Search,
-  Settings2,
   Sparkles,
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog } from "@/components/dialog";
 import { cn } from "@/lib/utils";
-import { LibraryManagementPanel } from "@/pages/medias/_component/LibraryManagementPanel";
 import { MediaDetailInfoSections } from "@/pages/medias/_component/MediaDetailInfoSections";
-import { InteractiveSearchPanel } from "@/pages/medias/_component/InteractiveSearchPanel";
 import { SimilarMediasPanel } from "@/pages/medias/_component/SimilarMediasPanel";
 
-export type TabKey = "info" | "similar" | "search" | "management";
+export type TabKey = "info" | "similar";
 
 function formatTmdbDateYmd(iso: string | null | undefined): string | null {
   if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
@@ -43,39 +40,12 @@ function formatTmdbDateYmd(iso: string | null | undefined): string | null {
   }
 }
 
-function toMediaItem(
-  item: TmdbMediaSearchItem,
-  overrideLibraryId?: number | null,
-): MediaItem {
-  return {
-    id: !Number.isNaN(overrideLibraryId) ? String(overrideLibraryId) : item.id,
-    media_type: item.media_type === "tv" ? "series" : "movie",
-    source_id: item.source_id ?? null,
-    title: item.title,
-    sort_title: null,
-    year: item.release_year,
-    status: null,
-    monitored: true,
-    downloaded: false,
-    downloading: false,
-    added_at: null,
-    tmdb_id: item.tmdb_id,
-    imdb_id: null,
-    tvdb_id: null,
-    season_count: null,
-    episode_count: null,
-    poster_url: item.poster_url,
-    release_tags: null,
-  };
-}
 
 interface ExploreCardDetailDialogProps {
   item: TmdbMediaSearchItem;
   isOpen: boolean;
   onClose: () => void;
   onAdded: () => void;
-  defaultTab?: TabKey;
-  onRefetchLibrary?: () => void;
 }
 
 export function ExploreCardDetailDialog({
@@ -83,54 +53,16 @@ export function ExploreCardDetailDialog({
   isOpen,
   onClose,
   onAdded,
-  defaultTab = "info",
-  onRefetchLibrary,
 }: ExploreCardDetailDialogProps) {
   const { t } = useTranslation("common");
-  const [activeTab, setActiveTab] = useState<TabKey>(defaultTab);
+  const [activeTab, setActiveTab] = useState<TabKey>("info");
   const [imageError, setImageError] = useState(false);
-  const [episodeSearchContext, setEpisodeSearchContext] = useState<{
-    id: number;
-    season: number;
-    episode: number;
-    title: string | null;
-  } | null>(null);
-
-  const [seasonSearchContext, setSeasonSearchContext] = useState<number | null>(
-    null,
-  );
-
-  const openEpisodeSearch = (ep: {
-    id: number;
-    season: number;
-    episode: number;
-    title: string | null;
-  }) => {
-    setEpisodeSearchContext(ep);
-    setSeasonSearchContext(null);
-    setActiveTab("search");
-  };
-
-  const openSeasonSearch = (season: number) => {
-    setSeasonSearchContext(season);
-    setEpisodeSearchContext(null);
-    setActiveTab("search");
-  };
 
   const addMutation = useAddToLibrary();
   const addToWatchlist = useAddToWatchlist();
   const removeFromWatchlist = useRemoveFromWatchlist();
 
-  // Track library_id locally so Search/Management tabs appear immediately after adding.
-  // Key-tracking avoids a setState-in-effect: when tmdb_id/media_type changes the key
-  // won't match and we fall back to item.library_id without needing an effect.
   const itemKey = `${item.tmdb_id}:${item.media_type}`;
-  const [localIdState, setLocalIdState] = useState<{ key: string; id: number | null }>({
-    key: itemKey,
-    id: item.library_id ?? null,
-  });
-  const localLibraryId =
-    localIdState.key === itemKey ? localIdState.id : (item.library_id ?? null);
 
   const { data: modalData, isPending: modalDataPending } = useMediaModalData(
     item.media_type,
@@ -141,7 +73,9 @@ export function ExploreCardDetailDialog({
     },
   );
 
-  const [loadedBackdropUrl, setLoadedBackdropUrl] = useState<string | null>(null);
+  const [loadedBackdropUrl, setLoadedBackdropUrl] = useState<string | null>(
+    null,
+  );
   const [loadedPosterKey, setLoadedPosterKey] = useState<string | null>(null);
 
   const isInWatchlist = modalData?.watchlist_status ?? false;
@@ -162,9 +96,6 @@ export function ExploreCardDetailDialog({
     return m;
   }, [libraryEpisodes?.downloaded]);
 
-  const effectiveLibraryId = localLibraryId ?? item.library_id ?? null;
-  const canSearch = effectiveLibraryId != null && effectiveLibraryId > 0;
-  const canManage = effectiveLibraryId != null && effectiveLibraryId > 0;
   const hasTmdbId = item.tmdb_id > 0;
 
   const tabs = useMemo(() => {
@@ -177,20 +108,8 @@ export function ExploreCardDetailDialog({
         label: t("medias.detail.tabSimilar", "Similar"),
         icon: Sparkles,
       });
-    if (canSearch)
-      result.push({
-        key: "search",
-        label: t("medias.detail.tabSearch", "Search"),
-        icon: Search,
-      });
-    if (canManage)
-      result.push({
-        key: "management",
-        label: t("medias.detail.tabManagement", "Management"),
-        icon: Settings2,
-      });
     return result;
-  }, [hasTmdbId, canSearch, canManage, t]);
+  }, [hasTmdbId, t]);
 
   const validTab = tabs.some((tab) => tab.key === activeTab)
     ? activeTab
@@ -199,12 +118,10 @@ export function ExploreCardDetailDialog({
   const handleAdd = async () => {
     if (addMutation.isPending || !item.can_add) return;
     try {
-      const result = await addMutation.mutateAsync({
+      await addMutation.mutateAsync({
         tmdb_id: item.tmdb_id,
         type: item.media_type === "tv" ? "show" : "movie",
       });
-      setLocalIdState({ key: itemKey, id: result.item.id });
-      setActiveTab("search");
       toast.success(t("medias.addSuccess", { title: item.title }));
       onAdded();
     } catch {
@@ -714,7 +631,17 @@ export function ExploreCardDetailDialog({
                 )}
 
                 {/* Already in library */}
-                {item.already_exists && (
+                {item.already_exists && item.library_id && (
+                  <Link
+                    to="/library/$libraryId"
+                    params={{ libraryId: String(item.library_id) }}
+                    onClick={onClose}
+                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-700 transition-[background-color] hover:bg-emerald-500/20 dark:text-emerald-400"
+                  >
+                    <Check size={12} /> {t("medias.detail.inLibrary")}
+                  </Link>
+                )}
+                {item.already_exists && !item.library_id && (
                   <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                     <Check size={12} /> {t("medias.detail.inLibrary")}
                   </span>
@@ -914,7 +841,9 @@ export function ExploreCardDetailDialog({
                                           ? "font-semibold text-emerald-600 dark:text-emerald-400"
                                           : "text-neutral-500 dark:text-neutral-400",
                                       )}
-                                      title={t("medias.detail.seasonOnDiskTitle")}
+                                      title={t(
+                                        "medias.detail.seasonOnDiskTitle",
+                                      )}
                                     >
                                       {total != null
                                         ? t("medias.detail.seasonOnDiskRatio", {
@@ -989,56 +918,6 @@ export function ExploreCardDetailDialog({
                 </div>
               )}
 
-              {/* ── Search tab ───────────────────────────────────────────── */}
-              {validTab === "search" && canSearch && (
-                <div className="min-h-[300px] pb-6 animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
-                  {episodeSearchContext && (
-                    <div className="mx-4 mb-3 flex items-center justify-between rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-2">
-                      <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">
-                        Searching for S
-                        {String(episodeSearchContext.season).padStart(2, "0")}E
-                        {String(episodeSearchContext.episode).padStart(2, "0")}
-                        {episodeSearchContext.title
-                          ? ` — ${episodeSearchContext.title}`
-                          : ""}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setEpisodeSearchContext(null)}
-                        className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  )}
-                  <InteractiveSearchPanel
-                    isActive={isOpen && validTab === "search"}
-                    media={toMediaItem(item, effectiveLibraryId)}
-                    libraryMediaId={effectiveLibraryId}
-                    defaultProwlarrQuery={
-                      episodeSearchContext
-                        ? `${item.title} S${String(episodeSearchContext.season).padStart(2, "0")}E${String(episodeSearchContext.episode).padStart(2, "0")}`
-                        : item.title
-                    }
-                    episodeId={episodeSearchContext?.id ?? null}
-                    defaultSeason={seasonSearchContext}
-                    onDownloadSuccess={onRefetchLibrary}
-                  />
-                </div>
-              )}
-
-              {validTab === "management" && canManage && (
-                <div className="animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
-                  {effectiveLibraryId != null && effectiveLibraryId > 0 ? (
-                    <LibraryManagementPanel
-                      libraryId={effectiveLibraryId}
-                      onSearchEpisode={openEpisodeSearch}
-                      onSearchSeason={openSeasonSearch}
-                      onDeleted={onClose}
-                    />
-                  ) : null}
-                </div>
-              )}
             </div>
           )}
         </div>

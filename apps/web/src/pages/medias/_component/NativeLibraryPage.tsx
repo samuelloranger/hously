@@ -17,8 +17,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { useLibrary, useSearchLibraryMovie } from "@/hooks/useLibrary";
 import { useLibraryEvents } from "@/hooks/useLibraryEvents";
-import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
-import type { LibraryMedia } from "@hously/shared/types";
 import type { LibrarySearchParams } from "@/pages/library/index";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -30,7 +28,6 @@ import {
   type SortDir,
   LIBRARY_SORT_KEYS,
   sortItems,
-  libraryItemToSearchItem,
 } from "@/utils/libraryUtils";
 
 const PAGE_SIZE = 48;
@@ -46,8 +43,6 @@ export function NativeLibraryPage() {
   const sortBy = (searchParams.sortBy as SortKey) ?? "added_at";
   const sortDir = searchParams.sortDir ?? "desc";
   const page = searchParams.page ?? 1;
-  const currentMediaId = searchParams.current_media_id;
-  const currentTab = searchParams.current_media_tab;
 
   const setParam = (updates: Partial<LibrarySearchParams>) =>
     navigate({ search: (prev) => ({ ...prev, ...updates }) });
@@ -81,20 +76,6 @@ export function NativeLibraryPage() {
       setParam({ page: totalPages > 1 ? totalPages : undefined });
     }
   }, [page, totalPages]);
-
-  const selectedItem = useMemo(
-    () => allItems.find((i) => i.id === currentMediaId) ?? null,
-    [allItems, currentMediaId],
-  );
-
-  const openItem = (item: LibraryMedia) =>
-    setParam({
-      current_media_id: item.id,
-      current_media_tab: item.status === "downloaded" ? "management" : "info",
-    });
-
-  const closeItem = () =>
-    setParam({ current_media_id: undefined, current_media_tab: undefined });
 
   const handleMovieSearch = (id: number) => {
     searchMovie.mutate(
@@ -213,8 +194,7 @@ export function NativeLibraryPage() {
                     </span>
                   ) : f === "wanted" ? (
                     <span className="flex items-center gap-1">
-                      <Clock size={12} />{" "}
-                      {t("medias.library.statusWanted")}
+                      <Clock size={12} /> {t("medias.library.statusWanted")}
                     </span>
                   ) : (
                     t("medias.library.statusDownloading")
@@ -285,7 +265,6 @@ export function NativeLibraryPage() {
               <LibraryItemCard
                 key={item.id}
                 item={item}
-                onOpen={openItem}
                 onMovieSearch={handleMovieSearch}
                 movieSearchPending={
                   searchMovie.isPending && searchMovie.variables?.id === item.id
@@ -329,21 +308,6 @@ export function NativeLibraryPage() {
           </div>
         )}
       </div>
-
-      {/* Detail modal */}
-      {selectedItem && (
-        <ExploreCardDetailDialog
-          item={libraryItemToSearchItem(selectedItem)}
-          isOpen={!!selectedItem}
-          onClose={closeItem}
-          onAdded={() => refetch()}
-          defaultTab={
-            (currentTab as "info" | "management") ??
-            (selectedItem.status === "downloaded" ? "management" : "info")
-          }
-          onRefetchLibrary={() => refetch()}
-        />
-      )}
     </PageLayout>
   );
 }

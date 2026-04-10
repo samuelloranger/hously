@@ -638,7 +638,7 @@ export async function postProcess(
 /**
  * Scan the library destination folder for video files that exist on disk but have
  * no MediaFile record. Creates missing records and marks episodes/movies as downloaded.
- * Called from refresh-status to recover from partial imports or manual file placement.
+
  */
 export async function scanAndImportLibraryFiles(media: {
   id: number;

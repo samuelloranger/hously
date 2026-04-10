@@ -192,7 +192,10 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
         // has both words) produces false positives for short titles like "It" or "Us"
         // and for partial matches like "The Boys" → "The Boys of Summer S01E01".
         for (let i = 0; i <= torrentWords.length - titleWords.length; i++) {
-          if (torrentWords.slice(i, i + titleWords.length).join(" ") === titleWords.join(" ")) {
+          if (
+            torrentWords.slice(i, i + titleWords.length).join(" ") ===
+            titleWords.join(" ")
+          ) {
             return true;
           }
         }

@@ -1,19 +1,22 @@
-import { MAX_LIBRARY_GRAB_ATTEMPTS } from "@hously/api/constants/libraryGrab";
 import { prisma } from "@hously/api/db";
 import { searchAndGrab } from "@hously/api/services/mediaGrabber";
 import { refreshLibraryMovieDigitalDate } from "@hously/api/services/libraryTmdbRefresh";
 import { notifyAdminsLibraryGrabSkipped } from "@hously/api/workers/notifyLibraryGrabSkipped";
 
+// Give up searching after this many days past the digital release date.
+const MOVIE_GRAB_WINDOW_DAYS = 30;
+
 export async function checkMovieReleases(): Promise<void> {
+  const now = new Date();
+  const windowCutoff = new Date(
+    now.getTime() - MOVIE_GRAB_WINDOW_DAYS * 24 * 60 * 60 * 1000,
+  );
+
   const movies = await prisma.libraryMedia.findMany({
     where: {
       type: "movie",
       status: "wanted",
-      // Never retry if a file or a completed download already exists
       files: { none: {} },
-      downloadHistories: {
-        none: { completedAt: { not: null }, failed: false },
-      },
     },
     select: {
       id: true,
@@ -25,12 +28,8 @@ export async function checkMovieReleases(): Promise<void> {
     },
   });
 
-  const now = new Date();
-
   for (const m of movies) {
     try {
-      if (m.searchAttempts >= MAX_LIBRARY_GRAB_ATTEMPTS) continue;
-
       let digital = m.digitalReleaseDate;
       if (!digital) {
         try {
@@ -45,7 +44,20 @@ export async function checkMovieReleases(): Promise<void> {
         if (!digital) continue;
       }
 
+      // Not yet released digitally — nothing to search.
       if (digital > now) continue;
+
+      // Past the grab window — give up and notify.
+      if (digital < windowCutoff) {
+        await prisma.libraryMedia.update({
+          where: { id: m.id },
+          data: { status: "skipped" },
+        });
+        await notifyAdminsLibraryGrabSkipped(
+          `Movie "${m.title}" (${m.id}) aged out of the ${MOVIE_GRAB_WINDOW_DAYS}-day search window without a successful grab. Status set to skipped.`,
+        );
+        continue;
+      }
 
       const y = m.year ? ` ${m.year}` : "";
       const result = await searchAndGrab({
@@ -56,18 +68,10 @@ export async function checkMovieReleases(): Promise<void> {
 
       if (result.grabbed) continue;
 
-      const next = m.searchAttempts + 1;
-      const skipped = next >= MAX_LIBRARY_GRAB_ATTEMPTS;
       await prisma.libraryMedia.update({
         where: { id: m.id },
-        data: { searchAttempts: next, ...(skipped ? { status: "skipped" } : {}) },
+        data: { searchAttempts: m.searchAttempts + 1 },
       });
-
-      if (skipped) {
-        await notifyAdminsLibraryGrabSkipped(
-          `Movie "${m.title}" (${m.id}) exceeded ${MAX_LIBRARY_GRAB_ATTEMPTS} failed grab attempts (${result.reason}). Status set to skipped.`,
-        );
-      }
     } catch (e) {
       console.warn(`[checkMovieReleases] Failed for movie ${m.id}:`, e);
     }

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { MediaPosterCard } from "@/components/MediaPosterCard";
 import { cn } from "@/lib/utils";
@@ -39,18 +40,17 @@ function toCardStatus(status: LibraryMedia["status"]): CardStatus {
 
 interface LibraryItemCardProps {
   item: LibraryMedia;
-  onOpen: (item: LibraryMedia) => void;
   onMovieSearch?: (id: number) => void;
   movieSearchPending?: boolean;
 }
 
 export function LibraryItemCard({
   item,
-  onOpen,
   onMovieSearch,
   movieSearchPending,
 }: LibraryItemCardProps) {
   const { t } = useTranslation("common");
+  const navigate = useNavigate();
   const statusInfo = STATUS_STYLES[item.status] ?? STATUS_STYLES.wanted;
   const statusLabel = t(statusInfo.labelKey);
   const digitalLabel =
@@ -63,7 +63,12 @@ export function LibraryItemCard({
   return (
     <div
       className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden cursor-pointer group"
-      onClick={() => onOpen(item)}
+      onClick={() =>
+        navigate({
+          to: "/library/$libraryId",
+          params: { libraryId: String(item.id) },
+        })
+      }
     >
       <MediaPosterCard
         posterUrl={item.poster_url}

@@ -212,7 +212,10 @@ export const qbittorrentPluginRoutes = new Elysia()
       try {
         houslyUrl = await resolveHouslyInternalUrl(body.hously_url?.trim());
       } catch (e) {
-        return badRequest(set, e instanceof Error ? e.message : "Invalid Hously URL");
+        return badRequest(
+          set,
+          e instanceof Error ? e.message : "Invalid Hously URL",
+        );
       }
 
       // Build the autorun commands. qBittorrent substitutes %I (info hash) before

@@ -114,8 +114,7 @@ export function LibraryMediaSection({
             </span>
           )}
         </div>
-        {hasFiles && (
-          <button
+        <button
             onClick={() => rescan.mutate()}
             disabled={rescan.isPending}
             className={cn(
@@ -134,7 +133,6 @@ export function LibraryMediaSection({
                 ? `Done (${rescan.data?.rescanned})`
                 : "Rescan files"}
           </button>
-        )}
       </div>
 
       {isShow ? (

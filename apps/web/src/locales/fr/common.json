@@ -228,14 +228,38 @@
       "tags": "Tags",
       "searchPlaceholder": "Rechercher des torrents...",
       "trackers": "Trackers",
-      "noTrackers": "Aucun tracker trouvé."
+      "noTrackers": "Aucun tracker trouvé.",
+      "category": "Catégorie",
+      "noCategory": "Sans catégorie",
+      "states": {
+        "checkingDl": "Vérification",
+        "unknown": "Inconnu",
+        "metaDl": "Récupération des métadonnées",
+        "downloading": "Téléchargement",
+        "uploading": "Partage",
+        "stalledUp": "Partage (inactif)",
+        "pausedDl": "En pause",
+        "pausedUp": "En pause (partage)",
+        "stalledDl": "Inactif",
+        "checkingUp": "Vérification (partage)",
+        "checkingResumeData": "Vérification des données",
+        "moving": "Déplacement",
+        "forcedDl": "Téléchargement forcé",
+        "forcedUp": "Partage forcé",
+        "queuedDl": "En attente",
+        "queuedUp": "En attente (partage)",
+        "error": "Erreur",
+        "missingFiles": "Fichiers manquants",
+        "completed": "Terminé"
+      }
     },
     "trackers": {
       "onlineCount": "{{connected}}/{{total}} en ligne",
       "offline": "Hors ligne",
       "providers": {
         "c411": "C411",
-        "torr9": "Torr9"
+        "torr9": "Torr9",
+        "la-cale": "La Cale"
       }
     },
     "scrutiny": {
@@ -570,7 +594,12 @@
     "create": "Créer",
     "creating": "Création...",
     "update": "Mettre à jour",
-    "updating": "Mise à jour..."
+    "updating": "Mise à jour...",
+    "actions": "Actions",
+    "back": "Retour",
+    "clear": "Effacer",
+    "deleting": "Suppression...",
+    "edit": "Modifier"
   },
   "notifications": {
     "modal": {
@@ -969,7 +998,8 @@
         },
         "providers": {
           "c411": "C411",
-          "torr9": "Torr9"
+          "torr9": "Torr9",
+          "la-cale": "La Cale"
         }
       }
     },
@@ -1375,7 +1405,11 @@
       "nextEpisode": "Prochain épisode",
       "lastEpisode": "Dernier épisode",
       "director": "Réalisé par",
-      "partOfCollection": "Fait partie de"
+      "partOfCollection": "Fait partie de",
+      "addToWatchlist": "Watchlist",
+      "inWatchlist": "Watchlist ✓",
+      "cast": "Casting",
+      "searchingEpisode": "Recherche de"
     },
     "addSuccess": "{{title}} ajouté à la bibliothèque.",
     "addFailed": "Échec de l'ajout du média à la bibliothèque.",
@@ -1513,7 +1547,19 @@
     "sortDownloadSpeed": "Trier par vitesse de réception",
     "sortUploadSpeed": "Trier par vitesse d'envoi",
     "sortAdded": "Date d'ajout",
-    "results": "{{count}} sur cette page · {{total}} au total"
+    "results": "{{count}} sur cette page · {{total}} au total",
+    "applyFilters": "Afficher les résultats",
+    "clickToSelect": "Cliquer pour sélectionner",
+    "filterSection": "Statut",
+    "filtersTitle": "Filtres & tri",
+    "orDrop": "ou glisser-déposer",
+    "sortSection": "Trier par",
+    "trackerStatusDisabled": "Désactivé",
+    "trackerStatusNotContacted": "Non contacté",
+    "trackerStatusWorking": "Actif",
+    "trackerStatusUpdating": "Mise à jour",
+    "trackerStatusNotWorking": "Inactif",
+    "trackerStatusUnknown": "Inconnu"
   },
   "recipes": {
     "noRecipes": "Aucune recette pour le moment",
@@ -1571,7 +1617,19 @@
     "backToList": "Retour aux recettes",
     "notFound": "Recette introuvable",
     "confirmDelete": "Supprimer la recette ?",
-    "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer cette recette ? Cette action ne peut pas être annulée."
+    "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer cette recette ? Cette action ne peut pas être annulée.",
+    "categorySelect": "Sélectionner...",
+    "clearFilters": "Effacer les filtres",
+    "noIngredients": "Aucun ingrédient",
+    "results": "{{count}} sur {{total}}",
+    "sectionDetails": "Détails",
+    "sectionInstructions": "Instructions",
+    "sectionPhoto": "Photo",
+    "sectionTiming": "Temps",
+    "shortcuts": "Appuyez sur / pour chercher, N pour ajouter",
+    "sortQuickest": "Plus rapide",
+    "sortTitle": "A-Z",
+    "sortUpdated": "Récemment modifié"
   },
   "library": {
     "fileDetail": {
@@ -1637,6 +1695,7 @@
       "refreshStatus": "Sync statut",
       "refreshingStatus": "Synchronisation…",
       "refreshStatusTitle": "Vérifie qBittorrent & le disque : relance le post-traitement si nécessaire, ou repasse en voulu"
-    }
+    },
+    "notFound": "Élément introuvable dans la bibliothèque."
   }
 }

@@ -91,7 +91,10 @@ export function FileDetailBlock({ file }: { file: LibraryFileInfo }) {
 
   return (
     <div>
-      <SectionTitle icon={HardDrive} label={t("library.fileDetail.sectionFile")} />
+      <SectionTitle
+        icon={HardDrive}
+        label={t("library.fileDetail.sectionFile")}
+      />
       <div className="space-y-1">
         <Row label={t("library.fileDetail.name")} value={file.file_name} mono />
         <Row

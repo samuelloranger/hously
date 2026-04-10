@@ -228,14 +228,38 @@
       "tags": "Tags",
       "searchPlaceholder": "Search torrents...",
       "trackers": "Trackers",
-      "noTrackers": "No trackers found."
+      "noTrackers": "No trackers found.",
+      "category": "Category",
+      "noCategory": "No category",
+      "states": {
+        "checkingDl": "Checking",
+        "unknown": "Unknown",
+        "metaDl": "Fetching metadata",
+        "downloading": "Downloading",
+        "uploading": "Seeding",
+        "stalledUp": "Seeding (stalled)",
+        "pausedDl": "Paused",
+        "pausedUp": "Paused (seeding)",
+        "stalledDl": "Stalled",
+        "checkingUp": "Checking (seeding)",
+        "checkingResumeData": "Checking resume data",
+        "moving": "Moving",
+        "forcedDl": "Forced download",
+        "forcedUp": "Forced seeding",
+        "queuedDl": "Queued",
+        "queuedUp": "Queued (seeding)",
+        "error": "Error",
+        "missingFiles": "Missing files",
+        "completed": "Completed"
+      }
     },
     "trackers": {
       "onlineCount": "{{connected}}/{{total}} online",
       "offline": "Offline",
       "providers": {
         "c411": "C411",
-        "torr9": "Torr9"
+        "torr9": "Torr9",
+        "la-cale": "La Cale"
       }
     },
     "scrutiny": {
@@ -570,7 +594,12 @@
     "create": "Create",
     "creating": "Creating...",
     "update": "Update",
-    "updating": "Updating..."
+    "updating": "Updating...",
+    "actions": "Actions",
+    "back": "Back",
+    "clear": "Clear",
+    "deleting": "Deleting...",
+    "edit": "Edit"
   },
   "notifications": {
     "modal": {
@@ -969,7 +998,8 @@
         },
         "providers": {
           "c411": "C411",
-          "torr9": "Torr9"
+          "torr9": "Torr9",
+          "la-cale": "La Cale"
         }
       }
     },
@@ -1375,7 +1405,11 @@
       "nextEpisode": "Next episode",
       "lastEpisode": "Latest episode",
       "director": "Directed by",
-      "partOfCollection": "Part of"
+      "partOfCollection": "Part of",
+      "addToWatchlist": "Watchlist",
+      "inWatchlist": "Watchlist ✓",
+      "cast": "Cast",
+      "searchingEpisode": "Searching for"
     },
     "addSuccess": "Added {{title}} to library.",
     "addFailed": "Failed to add media to library.",
@@ -1513,7 +1547,19 @@
     "sortDownloadSpeed": "Sort by download speed",
     "sortUploadSpeed": "Sort by upload speed",
     "sortAdded": "Date added",
-    "results": "{{count}} on page · {{total}} total"
+    "results": "{{count}} on page · {{total}} total",
+    "applyFilters": "Show results",
+    "clickToSelect": "Click to select",
+    "filterSection": "Status",
+    "filtersTitle": "Filters & Sort",
+    "orDrop": "or drag & drop",
+    "sortSection": "Sort by",
+    "trackerStatusDisabled": "Disabled",
+    "trackerStatusNotContacted": "Not contacted",
+    "trackerStatusWorking": "Working",
+    "trackerStatusUpdating": "Updating",
+    "trackerStatusNotWorking": "Not working",
+    "trackerStatusUnknown": "Unknown"
   },
   "recipes": {
     "noRecipes": "No recipes yet",
@@ -1571,7 +1617,19 @@
     "backToList": "Back to recipes",
     "notFound": "Recipe not found",
     "confirmDelete": "Delete Recipe?",
-    "confirmDeleteMessage": "Are you sure you want to delete this recipe? This action cannot be undone."
+    "confirmDeleteMessage": "Are you sure you want to delete this recipe? This action cannot be undone.",
+    "categorySelect": "Select...",
+    "clearFilters": "Clear filters",
+    "noIngredients": "No ingredients yet",
+    "results": "{{count}} of {{total}}",
+    "sectionDetails": "Details",
+    "sectionInstructions": "Instructions",
+    "sectionPhoto": "Photo",
+    "sectionTiming": "Timing",
+    "shortcuts": "Press / to search, N to add",
+    "sortQuickest": "Quickest",
+    "sortTitle": "A-Z",
+    "sortUpdated": "Recently updated"
   },
   "library": {
     "fileDetail": {
@@ -1637,6 +1695,7 @@
       "refreshStatus": "Sync status",
       "refreshingStatus": "Syncing…",
       "refreshStatusTitle": "Check qBittorrent & disk: re-run post-processing if needed, or revert to wanted"
-    }
+    },
+    "notFound": "Item not found in library."
   }
 }

@@ -11,8 +11,6 @@ export type LibrarySearchParams = {
   status?: string;
   sortBy?: string;
   sortDir?: "asc" | "desc";
-  current_media_id?: number;
-  current_media_tab?: string;
   scrollToMedia?: string;
 };
 
@@ -44,11 +42,6 @@ export const Route = createFileRoute("/library/")({
     sortDir:
       search.sortDir === "asc" || search.sortDir === "desc"
         ? search.sortDir
-        : undefined,
-    current_media_id: parseOptionalInt(search.current_media_id),
-    current_media_tab:
-      typeof search.current_media_tab === "string"
-        ? search.current_media_tab
         : undefined,
     scrollToMedia:
       typeof search.scrollToMedia === "string"

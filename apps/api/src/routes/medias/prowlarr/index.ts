@@ -77,8 +77,9 @@ export const mediasProwlarrRoutes = new Elysia()
               "X-Api-Key": config.api_key,
               Accept: "application/json",
             },
-          });
-          if (!response.ok) return null;
+            signal: AbortSignal.timeout(25_000),
+          }).catch(() => null);
+          if (!response?.ok) return null;
           return (await response.json()) as unknown[];
         };
 

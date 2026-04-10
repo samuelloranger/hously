@@ -118,7 +118,8 @@ function infoHashFromTorrentBuffer(buf: ArrayBuffer): string | null {
       }
       if (ch === 0x69 /* i */) {
         while (pos < bytes.length && bytes[pos] !== 0x65 /* e */) pos++;
-        if (pos >= bytes.length) throw new Error("malformed integer in bencode");
+        if (pos >= bytes.length)
+          throw new Error("malformed integer in bencode");
         return pos + 1;
       }
       // String: <digits>:<bytes>
