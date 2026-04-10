@@ -10,7 +10,6 @@ import {
   useMediaModalData,
   useRemoveFromWatchlist,
 } from "@/hooks/useMedias";
-import type { LibraryMedia, MediaItem } from "@hously/shared/types";
 import { LibraryManagementPanel } from "./LibraryManagementPanel";
 import { SimilarMediasPanel } from "./SimilarMediasPanel";
 import { LibraryItemHero } from "./LibraryItemHero";
@@ -22,51 +21,6 @@ export type LibraryItemSearchParams = {
 };
 
 type PageTab = "info" | "similar" | "search" | "management";
-
-function libraryToMediaItem(item: LibraryMedia): MediaItem {
-  return {
-    id: String(item.id),
-    media_type: item.type === "show" ? "series" : "movie",
-    source_id: null,
-    title: item.title,
-    sort_title: null,
-    year: item.year,
-    status: item.status,
-    monitored: true,
-    downloaded: item.status === "downloaded",
-    downloading: item.status === "downloading",
-    added_at: item.added_at,
-    tmdb_id: item.tmdb_id,
-    imdb_id: null,
-    tvdb_id: null,
-    season_count: null,
-    episode_count: null,
-    poster_url: item.poster_url,
-    release_tags: null,
-  };
-}
-
-const STATUS_BADGE: Record<
-  LibraryMedia["status"],
-  { labelKey: string; cls: string }
-> = {
-  wanted: {
-    labelKey: "medias.library.itemStatus.wanted",
-    cls: "bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/30",
-  },
-  downloading: {
-    labelKey: "medias.library.itemStatus.downloading",
-    cls: "bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/30",
-  },
-  downloaded: {
-    labelKey: "medias.library.itemStatus.downloaded",
-    cls: "bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/30",
-  },
-  skipped: {
-    labelKey: "medias.library.itemStatus.skipped",
-    cls: "bg-neutral-500/20 text-neutral-400 ring-1 ring-neutral-500/30",
-  },
-};
 
 export function LibraryItemPage() {
   const { libraryId } = useParams({ from: "/library/$libraryId" });
@@ -201,9 +155,6 @@ export function LibraryItemPage() {
     );
   }
 
-  const statusBadge = STATUS_BADGE[item.status] ?? STATUS_BADGE.wanted;
-  const mediaItem = libraryToMediaItem(item);
-
   return (
     <div>
       <LibraryItemHero
@@ -216,7 +167,6 @@ export function LibraryItemPage() {
           addToWatchlist.isPending || removeFromWatchlist.isPending
         }
         mediaType={mediaType}
-        statusBadge={statusBadge}
         onBack={() => navigate({ to: "/library" })}
         onWatchlistToggle={handleWatchlistToggle}
       />
@@ -287,7 +237,6 @@ export function LibraryItemPage() {
             <div className="min-h-[300px] pb-6 animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
               <LibraryItemSearchTab
                 item={item}
-                mediaItem={mediaItem}
                 episodeSearchCtx={episodeSearchCtx}
                 seasonSearchCtx={seasonSearchCtx}
                 onClearEpisodeCtx={() => setEpisodeSearchCtx(null)}

@@ -2,6 +2,29 @@ import { useTranslation } from "react-i18next";
 import type { LibraryMedia, MediaItem } from "@hously/shared/types";
 import { InteractiveSearchPanel } from "./InteractiveSearchPanel";
 
+function libraryToMediaItem(item: LibraryMedia): MediaItem {
+  return {
+    id: String(item.id),
+    media_type: item.type === "show" ? "series" : "movie",
+    source_id: null,
+    title: item.title,
+    sort_title: null,
+    year: item.year,
+    status: item.status,
+    monitored: true,
+    downloaded: item.status === "downloaded",
+    downloading: item.status === "downloading",
+    added_at: item.added_at,
+    tmdb_id: item.tmdb_id,
+    imdb_id: null,
+    tvdb_id: null,
+    season_count: null,
+    episode_count: null,
+    poster_url: item.poster_url,
+    release_tags: null,
+  };
+}
+
 export type EpisodeSearchCtx = {
   id: number;
   season: number;
@@ -11,7 +34,6 @@ export type EpisodeSearchCtx = {
 
 type Props = {
   item: LibraryMedia;
-  mediaItem: MediaItem;
   episodeSearchCtx: EpisodeSearchCtx | null;
   seasonSearchCtx: number | null;
   onClearEpisodeCtx: () => void;
@@ -19,11 +41,11 @@ type Props = {
 
 export function LibraryItemSearchTab({
   item,
-  mediaItem,
   episodeSearchCtx,
   seasonSearchCtx,
   onClearEpisodeCtx,
 }: Props) {
+  const mediaItem = libraryToMediaItem(item);
   const { t } = useTranslation("common");
 
   return (

@@ -18,9 +18,26 @@ import type {
   TmdbTrailerResponse,
 } from "@hously/shared/types";
 
-type StatusBadge = {
-  labelKey: string;
-  cls: string;
+const STATUS_BADGE: Record<
+  LibraryMedia["status"],
+  { labelKey: string; cls: string }
+> = {
+  wanted: {
+    labelKey: "medias.library.itemStatus.wanted",
+    cls: "bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/30",
+  },
+  downloading: {
+    labelKey: "medias.library.itemStatus.downloading",
+    cls: "bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/30",
+  },
+  downloaded: {
+    labelKey: "medias.library.itemStatus.downloaded",
+    cls: "bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/30",
+  },
+  skipped: {
+    labelKey: "medias.library.itemStatus.skipped",
+    cls: "bg-neutral-500/20 text-neutral-400 ring-1 ring-neutral-500/30",
+  },
 };
 
 type Props = {
@@ -31,7 +48,6 @@ type Props = {
   isInWatchlist: boolean;
   watchlistPending: boolean;
   mediaType: "movie" | "tv";
-  statusBadge: StatusBadge;
   onBack: () => void;
   onWatchlistToggle: () => void;
 };
@@ -50,7 +66,6 @@ export function LibraryItemHero({
   isInWatchlist,
   watchlistPending,
   mediaType,
-  statusBadge,
   onBack,
   onWatchlistToggle,
 }: Props) {
@@ -67,6 +82,7 @@ export function LibraryItemHero({
   const voteAverage = detailsData?.vote_average ?? null;
   const rtScore = ratingsData?.rotten_tomatoes ?? null;
   const tmdbUrl = `https://www.themoviedb.org/${mediaType}/${item.tmdb_id}`;
+  const statusBadge = STATUS_BADGE[item.status] ?? STATUS_BADGE.wanted;
 
   return (
     <div
