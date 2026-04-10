@@ -55,6 +55,9 @@ const state: State = {
 // Files that exist on disk (by filePath) — stat will succeed for these
 const statMap: Record<string, boolean> = {};
 
+// Path remapping function — defaults to identity (no remap configured)
+let remapFn: (path: string) => string = (p) => p;
+
 // Files for which scanMediaInfo returns a result (by filePath)
 type MiResult = {
   sizeBytes: bigint;
@@ -134,6 +137,7 @@ mock.module("node:fs/promises", () => ({
 mock.module("@hously/api/utils/medias/mediainfoScanner", () => ({
   scanMediaInfo: (filePath: string) =>
     Promise.resolve(scanMap[filePath] ?? null),
+  remapPath: (filePath: string) => remapFn(filePath),
 }));
 
 mock.module("@hously/api/utils/medias/filenameParser", () => ({
@@ -234,6 +238,7 @@ beforeEach(() => {
   for (const k of Object.keys(statMap)) delete statMap[k];
   for (const k of Object.keys(scanMap)) delete scanMap[k];
   qbCompleteHashes.clear();
+  remapFn = (p) => p; // reset to identity
 });
 
 // ---------------------------------------------------------------------------
@@ -538,6 +543,57 @@ describe("rescanLibraryItem", () => {
     expect(state.enqueuedDhIds).toContain(77);
     expect(result?.episodesReset).toBe(0); // skipped
     expect(result?.mediaReset).toBe(false); // skipped
+  });
+
+  // ── Path remapping (statFile must use remapPath) ───────────────────────────
+
+  it("24. remapPath identity (no env vars) → statFile receives original path, file found → failed:1", async () => {
+    // remapFn is identity by default — verifies existing tests still hold
+    const file = makeFile({ id: 1, filePath: "/library/show.mkv" });
+    state.media = { id: 1, type: "movie", status: "downloaded" };
+    state.files = [file];
+    state.remainingFileCount = 1;
+    statMap["/library/show.mkv"] = true; // file exists at raw path
+    scanMap[file.filePath] = null;        // MediaInfo fails
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.failed).toBe(1);
+    expect(result?.deleted).toBe(0);
+  });
+
+  it("25. remapPath active → statFile uses remapped path, file found there → failed:1 not deleted:1", async () => {
+    // Simulates: MEDIA_PATH_FROM=/data/library MEDIA_PATH_TO=/mnt/library
+    remapFn = (p) => p.replace("/data/library/", "/mnt/library/");
+
+    const file = makeFile({ id: 1, filePath: "/data/library/show.mkv" });
+    state.media = { id: 1, type: "movie", status: "downloaded" };
+    state.files = [file];
+    state.remainingFileCount = 1;
+    // File does NOT exist at raw path — only at the remapped path
+    statMap["/mnt/library/show.mkv"] = true;
+    scanMap[file.filePath] = null; // MediaInfo fails (same path scanMediaInfo uses)
+
+    const result = await rescanLibraryItem(1);
+    // statFile uses remapped path → file found → failed, not deleted
+    expect(result?.failed).toBe(1);
+    expect(result?.deleted).toBe(0);
+    expect(state.deletedFileIds).toHaveLength(0);
+  });
+
+  it("26. remapPath active → statFile uses remapped path, file absent at remapped path → deleted:1", async () => {
+    remapFn = (p) => p.replace("/data/library/", "/mnt/library/");
+
+    const file = makeFile({ id: 1, filePath: "/data/library/gone.mkv" });
+    state.media = { id: 1, type: "movie", status: "downloaded" };
+    state.files = [file];
+    scanMap[file.filePath] = null;
+    // statMap has neither raw nor remapped path → stat throws
+
+    const result = await rescanLibraryItem(1);
+    // statFile uses remapped path → file not found → record deleted
+    expect(result?.deleted).toBe(1);
+    expect(result?.failed).toBe(0);
+    expect(state.deletedFileIds).toContain(1);
   });
 
   it("23. DH has null torrentHash → never re-queued regardless of qBittorrent state", async () => {

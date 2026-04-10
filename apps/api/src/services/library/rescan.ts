@@ -1,6 +1,6 @@
 import { stat as statFile } from "node:fs/promises";
 import { prisma } from "@hously/api/db";
-import { scanMediaInfo } from "@hously/api/utils/medias/mediainfoScanner";
+import { scanMediaInfo, remapPath } from "@hously/api/utils/medias/mediainfoScanner";
 import { parseFilenameMetadata } from "@hously/api/utils/medias/filenameParser";
 import {
   scanAndImportLibraryFiles,
@@ -53,7 +53,7 @@ export async function rescanLibraryItem(
     const mi = await scanMediaInfo(file.filePath);
     if (!mi) {
       try {
-        await statFile(file.filePath);
+        await statFile(remapPath(file.filePath));
         // File is on disk but MediaInfo can't read it (corrupt / unsupported format)
         failed++;
         hasValidFile = true;
