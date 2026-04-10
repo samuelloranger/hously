@@ -32,6 +32,15 @@ export const normalizeQbittorrentConfig = (
   }
   if (!websiteUrl || !username || !password) return null;
 
+  let webhookSecret = toStringOrNull(cfg.webhook_secret);
+  if (webhookSecret) {
+    try {
+      webhookSecret = decrypt(webhookSecret);
+    } catch {
+      // Keep legacy plaintext values working until they are re-saved.
+    }
+  }
+
   return {
     website_url: websiteUrl.replace(/\/+$/, ""),
     username,
@@ -43,6 +52,7 @@ export const normalizeQbittorrentConfig = (
       DEFAULT_POLL_INTERVAL_SECONDS,
     ),
     max_items: clampInt(cfg.max_items, 3, 30, DEFAULT_MAX_ITEMS),
+    ...(webhookSecret ? { webhook_secret: webhookSecret } : {}),
   };
 };
 
