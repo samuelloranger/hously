@@ -10,8 +10,8 @@ import {
   useAdminInvitations,
   useResendInvitation,
   useRevokeInvitation,
-} from "@/hooks/useAdmin";
-import { useCurrentUser } from "@/hooks/useAuth";
+} from "@/hooks/admin/useAdmin";
+import { useCurrentUser } from "@/hooks/auth/useAuth";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 

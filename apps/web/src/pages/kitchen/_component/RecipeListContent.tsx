@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Plus, Search, Star, X, UtensilsCrossed } from "lucide-react";
 import { LoadingState } from "@/components/LoadingState";
 import { RecipeCard } from "@/pages/kitchen/_component/RecipeCard";
-import { useRecipes } from "@/hooks/useRecipes";
+import { useRecipes } from "@/hooks/recipes/useRecipes";
 import { CreateRecipeModal } from "@/pages/kitchen/_component/CreateRecipeModal";
 import { EditRecipeModal } from "@/pages/kitchen/_component/EditRecipeModal";
 import { cn } from "@/lib/utils";

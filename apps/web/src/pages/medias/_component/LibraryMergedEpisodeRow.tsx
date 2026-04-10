@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LibraryFileInfo } from "@hously/shared/types";
-import type { useSearchLibraryEpisode } from "@/hooks/useLibrary";
+import type { useSearchLibraryEpisode } from "@/hooks/medias/useLibrary";
 import { Badge, StatusDot } from "./LibrarySharedUI";
 import { qualityBadges } from "@/utils/libraryDisplayUtils";
 import { FileDetailBlock } from "./LibraryFileDetailBlock";

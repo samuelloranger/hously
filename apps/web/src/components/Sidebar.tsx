@@ -1,15 +1,15 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { clearUser } from "@/lib/auth";
-import { useLogout } from "@/hooks/useAuth";
-import { useUpdateProfile } from "@/hooks/useUsers";
+import { useLogout } from "@/hooks/auth/useAuth";
+import { useUpdateProfile } from "@/hooks/users/useUsers";
 import { formatDisplayName } from "@hously/shared/utils";
 import { NotificationsMenu } from "@/components/NotificationsBell";
 import { UserMenu } from "@/components/UserMenu";
 import { Loader, LogOut, Search, Settings } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
 import { useAuth } from "@/lib/auth/useAuth";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/app/useTheme";
 import { cn } from "@/lib/utils";
 import { navSections } from "@/lib/routing/navigation";
 

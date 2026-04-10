@@ -1,13 +1,13 @@
 ---
 description: TanStack Query patterns for data fetching and mutations
-globs: ["apps/web/**/*.tsx", "apps/shared/src/hooks/**"]
+paths: ["apps/web/**/*.tsx"]
 ---
 
 # TanStack Query Patterns
 
-## Hooks live in `@hously/shared`
+## Hooks live in `apps/web/src/hooks/<domain>/`
 
-All query/mutation hooks are defined in `apps/shared/src/hooks/` and imported via `@hously/shared`. Never define TanStack Query hooks directly in web components.
+All query/mutation hooks are defined under domain folders (for example `hooks/chores/useChores.ts`). Never define TanStack Query hooks directly in web components.
 
 ## Query hook pattern
 

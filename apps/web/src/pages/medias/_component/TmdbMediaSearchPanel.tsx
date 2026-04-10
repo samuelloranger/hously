@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
-import { useTmdbMediaSearch } from "@/hooks/useMedias";
+import { useTmdbMediaSearch } from "@/hooks/medias/useMedias";
 import { type TmdbMediaSearchItem } from "@hously/shared/types";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 

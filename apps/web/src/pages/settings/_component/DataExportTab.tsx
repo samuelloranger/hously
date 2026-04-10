@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useExportData, useImportData } from "@/hooks/useAdmin";
+import { useExportData, useImportData } from "@/hooks/admin/useAdmin";
 import { ArrLibraryImportPanel } from "@/pages/settings/_component/ArrLibraryImportPanel";
 
 export function DataExportTab() {

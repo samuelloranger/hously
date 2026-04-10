@@ -3,13 +3,13 @@ import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Info, Search, Settings2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLibrary } from "@/hooks/useLibrary";
-import { useLibraryEvents } from "@/hooks/useLibraryEvents";
+import { useLibrary } from "@/hooks/medias/useLibrary";
+import { useLibraryEvents } from "@/hooks/medias/useLibraryEvents";
 import {
   useAddToWatchlist,
   useMediaModalData,
   useRemoveFromWatchlist,
-} from "@/hooks/useMedias";
+} from "@/hooks/medias/useMedias";
 import { LibraryManagementPanel } from "./LibraryManagementPanel";
 import { SimilarMediasPanel } from "./SimilarMediasPanel";
 import { LibraryItemHero } from "./LibraryItemHero";

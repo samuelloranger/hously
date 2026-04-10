@@ -15,7 +15,7 @@ import {
   useICalToken,
   useGenerateICalToken,
   useRevokeICalToken,
-} from "@/hooks/useCalendar";
+} from "@/hooks/calendar/useCalendar";
 
 export function CalendarTab() {
   const { t } = useTranslation("common");

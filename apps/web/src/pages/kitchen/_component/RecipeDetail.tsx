@@ -19,7 +19,7 @@ import {
   useDeleteRecipe,
   useRecipe,
   useToggleFavorite,
-} from "@/hooks/useRecipes";
+} from "@/hooks/recipes/useRecipes";
 import { getRecipeImageUrl } from "@hously/shared/utils";
 import { EditRecipeModal } from "@/pages/kitchen/_component/EditRecipeModal";
 import { cn } from "@/lib/utils";

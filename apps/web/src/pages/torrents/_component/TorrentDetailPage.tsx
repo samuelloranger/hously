@@ -35,8 +35,8 @@ import {
   useSetPinnedQbittorrentTorrent,
   useSetQbittorrentTorrentCategory,
   useSetQbittorrentTorrentTags,
-} from "@/hooks/useDashboard";
-import { useJsonEventSource } from "@/hooks/useEventSource";
+} from "@/hooks/dashboard/useDashboard";
+import { useJsonEventSource } from "@/hooks/realtime/useEventSource";
 import { queryKeys } from "@/lib/queryKeys";
 import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
 import type {

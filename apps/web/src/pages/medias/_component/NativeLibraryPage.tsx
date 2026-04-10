@@ -15,8 +15,8 @@ import {
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
-import { useLibrary, useSearchLibraryMovie } from "@/hooks/useLibrary";
-import { useLibraryEvents } from "@/hooks/useLibraryEvents";
+import { useLibrary, useSearchLibraryMovie } from "@/hooks/medias/useLibrary";
+import { useLibraryEvents } from "@/hooks/medias/useLibraryEvents";
 import type { LibrarySearchParams } from "@/pages/library/index";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";

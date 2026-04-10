@@ -2,7 +2,7 @@ import { useState, type ChangeEvent } from "react";
 import { useForm, useWatch, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useUpdateChore, useUploadChoreImage } from "@/hooks/useChores";
+import { useUpdateChore, useUploadChoreImage } from "@/hooks/chores/useChores";
 import type { Chore, ChoreUser } from "@hously/shared/types";
 import {
   datetimeLocalToUTC,

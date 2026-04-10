@@ -12,8 +12,8 @@ import {
 import {
   useProwlarrInteractiveDownload,
   useProwlarrInteractiveSearch,
-} from "@/hooks/useMedias";
-import { useLibraryGrabRelease, useLibraryEpisodes } from "@/hooks/useLibrary";
+} from "@/hooks/medias/useMedias";
+import { useLibraryGrabRelease, useLibraryEpisodes } from "@/hooks/medias/useLibrary";
 import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
 import {
   filterAndSortReleases,

@@ -1,4 +1,4 @@
-import { useCurrentUser } from "@/hooks/useAuth";
+import { useCurrentUser } from "@/hooks/auth/useAuth";
 
 export function useAuth() {
   const { data: user, isLoading, error, refetch } = useCurrentUser();

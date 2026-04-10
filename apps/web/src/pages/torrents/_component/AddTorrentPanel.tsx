@@ -5,7 +5,7 @@ import {
   useAddQbittorrentTorrentFile,
   useDashboardQbittorrentCategories,
   useDashboardQbittorrentTags,
-} from "@/hooks/useDashboard";
+} from "@/hooks/dashboard/useDashboard";
 import {
   mergeQbittorrentFiles,
   toOptionalQbittorrentString,

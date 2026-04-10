@@ -32,7 +32,7 @@ vi.mock("@hously/shared", async (importOriginal) => {
   };
 });
 
-vi.mock("@/hooks/useShopping", () => ({
+vi.mock("@/hooks/shopping/useShopping", () => ({
   useShoppingItems: vi.fn(),
   useCreateShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
   useToggleShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
@@ -45,7 +45,7 @@ vi.mock("@/hooks/useShopping", () => ({
   useReorderShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
 }));
 
-import { useShoppingItems } from "@/hooks/useShopping";
+import { useShoppingItems } from "@/hooks/shopping/useShopping";
 
 describe("ShoppingList", () => {
   beforeEach(() => {

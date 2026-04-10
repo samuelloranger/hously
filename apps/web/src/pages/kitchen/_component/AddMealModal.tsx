@@ -9,7 +9,7 @@ import {
 } from "@headlessui/react";
 import { X, Search, Clock, Users, Star } from "lucide-react";
 import { toast } from "sonner";
-import { useCreateMealPlan } from "@/hooks/useRecipes";
+import { useCreateMealPlan } from "@/hooks/recipes/useRecipes";
 import type { Recipe } from "@hously/shared/types";
 import { getRecipeImageUrl } from "@hously/shared/utils";
 import { cn } from "@/lib/utils";

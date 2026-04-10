@@ -14,7 +14,7 @@ import { QuickActionPalette } from "@/components/QuickActionPalette";
 import { RouteDataRefetcher } from "@/components/RouteDataRefetcher";
 import { useAuth } from "@/lib/auth/useAuth";
 import { usePWA } from "@/lib/sw/usePWA";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobile } from "@/hooks/app/useIsMobile";
 import { useAutoSubscribeNotifications } from "@/lib/notifications/useAutoSubscribeNotifications";
 
 export interface RouterContext {

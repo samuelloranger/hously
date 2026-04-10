@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { ListItemSkeleton } from "@/components/Skeleton";
-import { useDashboardActivityFeed } from "@/hooks/useDashboard";
+import { useDashboardActivityFeed } from "@/hooks/dashboard/useDashboard";
 import { resolveDateFnsLocale } from "@hously/shared/utils";
 import {
   getActivityPresentation,

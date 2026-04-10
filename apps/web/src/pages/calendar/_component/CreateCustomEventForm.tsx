@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import {
   useCreateCustomEvent,
   useUpdateCustomEvent,
-} from "@/hooks/useCalendar";
+} from "@/hooks/calendar/useCalendar";
 import {
   type CreateCustomEventRequest,
   type UpdateCustomEventRequest,

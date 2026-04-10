@@ -8,7 +8,7 @@ import {
   useUnskipHabit,
   useCompleteHabitForDate,
   useUncompleteHabitForDate,
-} from "@/hooks/useHabits";
+} from "@/hooks/habits/useHabits";
 import { Habit } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 import { HabitProgress } from "@/pages/habits/_component/HabitProgress";

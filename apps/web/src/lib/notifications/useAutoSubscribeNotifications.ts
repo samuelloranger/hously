@@ -7,7 +7,7 @@ import {
   useNotificationDevices,
   useSubscribeToPushNotifications,
   useUnsubscribeFromPushNotifications,
-} from "@/hooks/useNotifications";
+} from "@/hooks/notifications/useNotifications";
 import { queryKeys } from "@/lib/queryKeys";
 
 /**

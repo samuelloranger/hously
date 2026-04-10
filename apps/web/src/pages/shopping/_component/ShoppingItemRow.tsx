@@ -14,7 +14,7 @@ import {
   useToggleShoppingItem,
   useDeleteShoppingItem,
   useUpdateShoppingItem,
-} from "@/hooks/useShopping";
+} from "@/hooks/shopping/useShopping";
 import type { ShoppingItem } from "@hously/shared/types";
 import { formatUsername, formatDate } from "@hously/shared/utils";
 interface ShoppingItemRowProps {

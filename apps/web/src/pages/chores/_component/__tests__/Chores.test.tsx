@@ -23,7 +23,7 @@ vi.mock("@hously/shared", async (importOriginal) => {
   };
 });
 
-vi.mock("@/hooks/useChores", () => ({
+vi.mock("@/hooks/chores/useChores", () => ({
   useChores: vi.fn(),
   useCreateChore: vi.fn().mockReturnValue({ mutate: vi.fn() }),
   useToggleChore: vi.fn().mockReturnValue({ mutate: vi.fn() }),
@@ -35,7 +35,7 @@ vi.mock("@/hooks/useChores", () => ({
   useUploadChoreImage: vi.fn().mockReturnValue({ mutate: vi.fn() }),
 }));
 
-import { useChores } from "@/hooks/useChores";
+import { useChores } from "@/hooks/chores/useChores";
 
 describe("ChoresList", () => {
   beforeEach(() => {

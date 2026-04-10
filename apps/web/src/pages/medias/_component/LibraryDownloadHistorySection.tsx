@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, Clock, Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useLibraryDownloads } from "@/hooks/useLibrary";
+import { useLibraryDownloads } from "@/hooks/medias/useLibrary";
 import { Badge, Card } from "./LibrarySharedUI";
 import { cn } from "@/lib/utils";
 

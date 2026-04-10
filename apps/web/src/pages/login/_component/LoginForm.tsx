@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { setUser } from "@/lib/auth";
-import { useLogin } from "@/hooks/useAuth";
+import { useLogin } from "@/hooks/auth/useAuth";
 
 interface FormData {
   email: string;

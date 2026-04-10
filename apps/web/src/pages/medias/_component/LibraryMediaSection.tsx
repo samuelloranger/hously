@@ -6,7 +6,7 @@ import {
   useRescanLibraryItem,
   useSearchLibraryEpisode,
   useDeleteLibraryFile,
-} from "@/hooks/useLibrary";
+} from "@/hooks/medias/useLibrary";
 import type { LibraryFileInfo } from "@hously/shared/types";
 import { ChevronRight, Folder, RefreshCw, Search, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";

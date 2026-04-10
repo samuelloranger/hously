@@ -16,7 +16,7 @@ import {
   useCreateRecipe,
   useUpdateRecipe,
   useUploadRecipeImage,
-} from "@/hooks/useRecipes";
+} from "@/hooks/recipes/useRecipes";
 import { COOKING_UNITS } from "@hously/shared/constants";
 import type { Recipe, RecipeIngredient } from "@hously/shared/types";
 import { getRecipeImageUrl } from "@hously/shared/utils";

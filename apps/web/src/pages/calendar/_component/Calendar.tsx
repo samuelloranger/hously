@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { useCalendarEvents, useDeleteCustomEvent } from "@/hooks/useCalendar";
-import { useDashboardUpcoming } from "@/hooks/useDashboard";
+import { useCalendarEvents, useDeleteCustomEvent } from "@/hooks/calendar/useCalendar";
+import { useDashboardUpcoming } from "@/hooks/dashboard/useDashboard";
 import type {
   CalendarEvent,
   CalendarEventCustomEventMetadata,

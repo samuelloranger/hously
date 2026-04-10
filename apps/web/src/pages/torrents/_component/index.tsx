@@ -5,9 +5,9 @@ import {
   usePinnedQbittorrentTorrent,
   useSetPinnedQbittorrentTorrent,
   useDashboardQbittorrentTorrents,
-} from "@/hooks/useDashboard";
-import { useJsonEventSource } from "@/hooks/useEventSource";
-import { useQbittorrentStatus } from "@/hooks/useQbittorrentStatus";
+} from "@/hooks/dashboard/useDashboard";
+import { useJsonEventSource } from "@/hooks/realtime/useEventSource";
+import { useQbittorrentStatus } from "@/hooks/torrents/useQbittorrentStatus";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   DASHBOARD_ENDPOINTS,
@@ -55,7 +55,7 @@ import { TorrentGridCard } from "@/pages/torrents/_component/TorrentGridCard";
 import { TorrentKanbanView } from "@/pages/torrents/_component/TorrentKanbanView";
 import { TorrentFilterSheet } from "@/pages/torrents/_component/TorrentFilterSheet";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUrlState } from "@/hooks/useUrlState";
+import { useUrlState } from "@/hooks/app/useUrlState";
 export type TorrentsSearchParams = {
   search?: string;
   state?: import("@hously/shared").QbittorrentStateFilter;
@@ -66,8 +66,8 @@ export type TorrentsSearchParams = {
   page?: number;
 };
 import { TorrentFilterPopover } from "@/pages/torrents/_component/TorrentFilterPopover";
-import { usePersistentState } from "@/hooks/usePersistentState";
-import { useEventSourceState } from "@/hooks/useEventSourceState";
+import { usePersistentState } from "@/hooks/app/usePersistentState";
+import { useEventSourceState } from "@/hooks/realtime/useEventSourceState";
 
 const TORRENTS_URL_STATE_DEFAULTS = {
   search: "",

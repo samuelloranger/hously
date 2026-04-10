@@ -6,7 +6,7 @@ import {
   useUpdateTorr9Plugin,
   useLaCalePlugin,
   useTorr9Plugin,
-} from "@/hooks/usePlugins";
+} from "@/hooks/plugins/usePlugins";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";

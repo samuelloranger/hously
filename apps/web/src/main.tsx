@@ -8,7 +8,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { checkVersionAndReload } from "@/lib/version";
 import { registerServiceWorker } from "@/lib/sw/registration";
 import { useAutoInvalidateNotifications } from "@/lib/notifications/useAutoInvalidateNotifications";
-import { useIOSImprovements } from "@/hooks/useIOSImprovements";
+import { useIOSImprovements } from "@/hooks/app/useIOSImprovements";
 import { NotificationToastContainer } from "@/components/NotificationToastContainer";
 import { setQueryClient } from "@/lib/api/queryClient";
 import { webFetcher } from "@/lib/api/fetcher";
