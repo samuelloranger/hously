@@ -490,7 +490,9 @@
       "archive": "Archiver",
       "delete": "Supprimer",
       "clear": "Effacer",
-      "deleteConfirm": "Supprimer {{count}} tâches ? Cette action est irréversible.",
+      "deleteConfirm": "Supprimer {{count}} tâches ?",
+      "confirmYes": "Supprimer",
+      "confirmNo": "Annuler",
       "selectTask": "Sélectionner la tâche"
     }
   },

@@ -249,6 +249,8 @@ export function BoardView() {
   // View mode — declared early so the archive fetch can be gated
   const [viewMode, setViewMode] = useState<ViewMode>("board");
   const [selectedTaskIds, setSelectedTaskIds] = useState<number[]>([]);
+  const [deleteConfirmPending, setDeleteConfirmPending] = useState(false);
+  const selectedSet = useMemo(() => new Set(selectedTaskIds), [selectedTaskIds]);
   const { data: archivedData } = useArchivedBoardTasks(viewMode === "archive");
   const archivedTasks = archivedData?.tasks ?? [];
 
@@ -341,7 +343,7 @@ export function BoardView() {
   const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null);
 
   const handleBoardCardClick = useCallback(
-    (task: BoardTask, e: React.MouseEvent) => {
+    (task: BoardTask, e: React.MouseEvent | React.KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
         setSelectedTaskIds((prev) =>
@@ -397,10 +399,14 @@ export function BoardView() {
     }
   }, [selectedTaskIds, archiveMutation]);
 
-  const handleBulkDelete = useCallback(async () => {
+  const handleBulkDelete = useCallback(() => {
     if (selectedTaskIds.length === 0) return;
+    setDeleteConfirmPending(true);
+  }, [selectedTaskIds]);
+
+  const confirmBulkDelete = useCallback(async () => {
     const ids = [...selectedTaskIds];
-    if (!confirm(t("board.bulk.deleteConfirm", { count: ids.length }))) return;
+    setDeleteConfirmPending(false);
     try {
       await Promise.all(ids.map((id) => deleteMutation.mutateAsync(id)));
       setSelectedTaskIds([]);
@@ -408,7 +414,7 @@ export function BoardView() {
     } catch {
       /* mutation error surfaced elsewhere */
     }
-  }, [selectedTaskIds, deleteMutation, t]);
+  }, [selectedTaskIds, deleteMutation]);
 
   const openTaskDrawer = useCallback((task: BoardTask) => {
     setSelectedTask(task);
@@ -686,20 +692,43 @@ export function BoardView() {
               <Archive className="mr-1 h-3.5 w-3.5" />
               {t("board.bulk.archive")}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 border-red-200 bg-white text-xs text-red-700 hover:bg-red-50 dark:border-red-900 dark:bg-neutral-900 dark:text-red-400 dark:hover:bg-red-950/40"
-              disabled={deleteMutation.isPending}
-              onClick={() => void handleBulkDelete()}
-            >
-              <Trash2 className="mr-1 h-3.5 w-3.5" />
-              {t("board.bulk.delete")}
-            </Button>
+            {deleteConfirmPending ? (
+              <div className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs dark:border-red-900 dark:bg-red-950/40">
+                <span className="text-red-800 dark:text-red-300">
+                  {t("board.bulk.deleteConfirm", { count: selectedTaskIds.length })}
+                </span>
+                <button
+                  type="button"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => void confirmBulkDelete()}
+                  className="font-semibold text-red-700 hover:underline dark:text-red-400"
+                >
+                  {t("board.bulk.confirmYes")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmPending(false)}
+                  className="text-neutral-500 hover:underline dark:text-neutral-400"
+                >
+                  {t("board.bulk.confirmNo")}
+                </button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 border-red-200 bg-white text-xs text-red-700 hover:bg-red-50 dark:border-red-900 dark:bg-neutral-900 dark:text-red-400 dark:hover:bg-red-950/40"
+                disabled={deleteMutation.isPending}
+                onClick={handleBulkDelete}
+              >
+                <Trash2 className="mr-1 h-3.5 w-3.5" />
+                {t("board.bulk.delete")}
+              </Button>
+            )}
             <button
               type="button"
-              onClick={() => setSelectedTaskIds([])}
+              onClick={() => { setSelectedTaskIds([]); setDeleteConfirmPending(false); }}
               className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100/80 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
             >
               <X className="h-3.5 w-3.5" />
@@ -915,7 +944,7 @@ export function BoardView() {
                       task={task}
                       columnId={status}
                       index={index}
-                      isSelected={selectedTaskIds.includes(task.id)}
+                      isSelected={selectedSet.has(task.id)}
                       onToggleSelect={() => toggleTaskSelect(task.id)}
                       onCardClick={handleBoardCardClick}
                     />

@@ -490,7 +490,9 @@
       "archive": "Archive",
       "delete": "Delete",
       "clear": "Clear",
-      "deleteConfirm": "Delete {{count}} tasks? This cannot be undone.",
+      "deleteConfirm": "Delete {{count}} tasks?",
+      "confirmYes": "Delete",
+      "confirmNo": "Cancel",
       "selectTask": "Select task"
     }
   },

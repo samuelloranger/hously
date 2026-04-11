@@ -14,27 +14,10 @@
 import { prisma } from "@hously/api/db";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
+import { sortTitleFromName, pickDigitalRelease } from "@hously/api/utils/medias/libraryHelpers";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
-
-function sortTitleFromName(name: string): string {
-  return name.replace(/^(the |a |an )/i, "").trim();
-}
-
-function pickDigitalRelease(
-  results: Array<{
-    iso_3166_1: string;
-    release_dates: Array<{ type: number; release_date: string }>;
-  }>,
-): Date | null {
-  for (const country of ["US", ...results.map((r) => r.iso_3166_1)]) {
-    const entry = results.find((r) => r.iso_3166_1 === country);
-    const digital = entry?.release_dates.find((d) => d.type === 4);
-    if (digital) return new Date(digital.release_date);
-  }
-  return null;
-}
 
 function sameInstant(a: Date | null | undefined, b: Date | null): boolean {
   if (a == null && b == null) return true;

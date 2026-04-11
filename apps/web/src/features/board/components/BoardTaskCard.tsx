@@ -15,7 +15,7 @@ interface BoardTaskCardProps {
   index: number;
   isSelected: boolean;
   onToggleSelect: () => void;
-  onCardClick: (task: BoardTask, e: React.MouseEvent) => void;
+  onCardClick: (task: BoardTask, e: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
 const PRIORITY_DOT: Record<BoardTaskPriorityApi, string> = {
@@ -85,7 +85,7 @@ export function BoardTaskCard({
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === "Enter") onCardClick(task, e as unknown as React.MouseEvent);
+        if (e.key === "Enter") onCardClick(task, e);
       }}
       className={cn(
         "group cursor-pointer rounded-lg border bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:bg-neutral-800",
