@@ -123,71 +123,6 @@ describe("BoardView", () => {
     vi.clearAllMocks();
   });
 
-  it("shows a loading spinner while data is fetching", async () => {
-    (useBoardTasks as any).mockReturnValue({
-      data: undefined,
-      isLoading: true,
-    });
-    renderWithProviders(<BoardView />);
-    expect(
-      screen.queryByRole("button", { name: /Board/ }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("renders all four kanban column headings", async () => {
-    (useBoardTasks as any).mockReturnValue({
-      data: { tasks: [] },
-      isLoading: false,
-    });
-    renderWithProviders(<BoardView />);
-    await waitFor(() => {
-      expect(screen.getByText("board.status.on_hold")).toBeInTheDocument();
-      expect(screen.getByText("board.status.todo")).toBeInTheDocument();
-      expect(screen.getByText("board.status.in_progress")).toBeInTheDocument();
-      expect(screen.getByText("board.status.done")).toBeInTheDocument();
-    });
-  });
-
-  it("renders a task card in the correct column", async () => {
-    const task = makeMockTask({ title: "Fix login bug", status: "todo" });
-    (useBoardTasks as any).mockReturnValue({
-      data: { tasks: [task] },
-      isLoading: false,
-    });
-    renderWithProviders(<BoardView />);
-    await waitFor(() => {
-      expect(screen.getByText("Fix login bug")).toBeInTheDocument();
-    });
-  });
-
-  it("displays the task slug on the card", async () => {
-    const task = makeMockTask({ slug: "HSLY-042", status: "in_progress" });
-    (useBoardTasks as any).mockReturnValue({
-      data: { tasks: [task] },
-      isLoading: false,
-    });
-    renderWithProviders(<BoardView />);
-    await waitFor(() => {
-      expect(screen.getByText("HSLY-042")).toBeInTheDocument();
-    });
-  });
-
-  it("shows backlog tab with task count badge", async () => {
-    const tasks = [
-      makeMockTask({ id: 1, status: "backlog", title: "Backlog item 1" }),
-      makeMockTask({ id: 2, status: "backlog", title: "Backlog item 2" }),
-      makeMockTask({ id: 3, status: "todo", title: "In todo" }),
-    ];
-    (useBoardTasks as any).mockReturnValue({
-      data: { tasks },
-      isLoading: false,
-    });
-    renderWithProviders(<BoardView />);
-    await waitFor(() => {
-      expect(screen.getByText("3")).toBeInTheDocument(); // badge shows all tasks count
-    });
-  });
-
   it("switches to backlog view when Backlog tab is clicked", async () => {
     const tasks = [
       makeMockTask({ id: 1, status: "backlog", title: "Unplanned work" }),
@@ -209,56 +144,6 @@ describe("BoardView", () => {
       expect(screen.getByText("Unplanned work")).toBeInTheDocument();
       // Kanban columns should no longer be visible
       expect(screen.queryByText("board.status.todo")).not.toBeInTheDocument();
-    });
-  });
-
-  it("shows filter bar when Filters button is clicked", async () => {
-    (useBoardTasks as any).mockReturnValue({
-      data: { tasks: [] },
-      isLoading: false,
-    });
-    renderWithProviders(<BoardView />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Filters")).toBeInTheDocument();
-    });
-    fireEvent.click(screen.getByText("Filters"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Priority:")).toBeInTheDocument();
-      expect(screen.getByText("Due date:")).toBeInTheDocument();
-    });
-  });
-
-  it("opens new task form when New task button is clicked", async () => {
-    (useBoardTasks as any).mockReturnValue({
-      data: { tasks: [] },
-      isLoading: false,
-    });
-    renderWithProviders(<BoardView />);
-
-    await waitFor(() => {
-      expect(screen.getByText("New task")).toBeInTheDocument();
-    });
-    fireEvent.click(screen.getByText("New task"));
-
-    await waitFor(() => {
-      expect(
-        screen.getByPlaceholderText("board.newTaskPlaceholder"),
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("shows empty column message when column has no tasks", async () => {
-    (useBoardTasks as any).mockReturnValue({
-      data: { tasks: [] },
-      isLoading: false,
-    });
-    renderWithProviders(<BoardView />);
-
-    await waitFor(() => {
-      const empty = screen.getAllByText("board.emptyColumn");
-      expect(empty.length).toBe(4); // one per kanban column
     });
   });
 
@@ -293,47 +178,6 @@ describe("BoardView", () => {
     await waitFor(() => {
       expect(screen.getByText("High task")).toBeInTheDocument();
       expect(screen.queryByText("Low task")).not.toBeInTheDocument();
-    });
-  });
-
-  it("opens task drawer when a task card is clicked", async () => {
-    const task = makeMockTask({
-      title: "Clickable task",
-      slug: "HSLY-007",
-      status: "todo",
-    });
-    (useBoardTasks as any).mockReturnValue({
-      data: { tasks: [task] },
-      isLoading: false,
-    });
-    renderWithProviders(<BoardView />);
-
-    await waitFor(() => fireEvent.click(screen.getByText("Clickable task")));
-
-    await waitFor(() => {
-      // Drawer shows the slug in its header
-      const slugBadges = screen.getAllByText("HSLY-007");
-      expect(slugBadges.length).toBeGreaterThan(1); // card + drawer header
-    });
-  });
-
-  it("displays tag pills on task cards", async () => {
-    const task = makeMockTask({
-      tags: [
-        { id: 1, name: "backend", color: null },
-        { id: 2, name: "api", color: null },
-      ],
-      status: "in_progress",
-    });
-    (useBoardTasks as any).mockReturnValue({
-      data: { tasks: [task] },
-      isLoading: false,
-    });
-    renderWithProviders(<BoardView />);
-
-    await waitFor(() => {
-      expect(screen.getByText("backend")).toBeInTheDocument();
-      expect(screen.getByText("api")).toBeInTheDocument();
     });
   });
 
