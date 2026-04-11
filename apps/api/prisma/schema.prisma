@@ -24,7 +24,6 @@ model User {
 
   notifications          Notification[]
   customEvents           CustomEvent[]
-  recipes                Recipe[]
   reminders              Reminder[]
   shoppingItemsAdded     ShoppingItem[]       @relation("ShoppingItemAddedBy")
   shoppingItemsCompleted ShoppingItem[]       @relation("ShoppingItemCompletedBy")
@@ -34,7 +33,6 @@ model User {
   choresAdded            Chore[]              @relation("ChoreAddedBy")
   choresAssigned         Chore[]              @relation("ChoreAssignedTo")
   choresCompleted        Chore[]              @relation("ChoreCompletedBy")
-  mealPlans              MealPlan[]
   passwordResetTokens    PasswordResetToken[]
   refreshTokens          RefreshToken[]
   pushTokens             PushToken[]
@@ -258,28 +256,6 @@ model CustomEvent {
   @@map("custom_events")
 }
 
-model Recipe {
-  id              Int       @id @default(autoincrement())
-  name            String
-  description     String?
-  instructions    String
-  category        String?
-  servings        Int
-  prepTimeMinutes Int?      @map("prep_time_minutes")
-  cookTimeMinutes Int?      @map("cook_time_minutes")
-  imagePath       String?   @map("image_path")
-  isFavorite      Int       @map("is_favorite")
-  addedBy         Int       @map("added_by")
-  createdAt       DateTime? @map("created_at")
-  updatedAt       DateTime? @map("updated_at")
-
-  user        User               @relation(fields: [addedBy], references: [id])
-  ingredients RecipeIngredient[]
-  mealPlans   MealPlan[]
-
-  @@map("recipes")
-}
-
 model Reminder {
   id                   Int       @id @default(autoincrement())
   choreId              Int       @map("chore_id")
@@ -363,19 +339,6 @@ model ActivityLog {
   @@map("activity_logs")
 }
 
-model RecipeIngredient {
-  id       Int      @id @default(autoincrement())
-  recipeId Int      @map("recipe_id")
-  name     String
-  quantity Decimal? @db.Decimal(10, 2)
-  unit     String?
-  position Int
-
-  recipe Recipe @relation(fields: [recipeId], references: [id])
-
-  @@map("recipe_ingredients")
-}
-
 model Chore {
   id                          Int       @id @default(autoincrement())
   choreName                   String    @map("chore_name")
@@ -403,21 +366,6 @@ model Chore {
   reminders        Reminder[]
 
   @@map("chores")
-}
-
-model MealPlan {
-  id          Int       @id @default(autoincrement())
-  recipeId    Int       @map("recipe_id")
-  plannedDate DateTime  @map("planned_date") @db.Date
-  mealType    String    @map("meal_type")
-  notes       String?
-  addedBy     Int       @map("added_by")
-  createdAt   DateTime? @map("created_at")
-
-  user   User   @relation(fields: [addedBy], references: [id])
-  recipe Recipe @relation(fields: [recipeId], references: [id])
-
-  @@map("meal_plans")
 }
 
 model PasswordResetToken {

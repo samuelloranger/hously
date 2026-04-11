@@ -2,7 +2,6 @@ import {
   Bookmark,
   CalendarIcon,
   Compass,
-  CookingPot,
   LayoutDashboard,
   LayoutGrid,
   Layers2,
@@ -59,12 +58,6 @@ export const navSections: NavSection[] = [
         translationKey: "nav.shopping",
         icon: ShoppingCart,
         mobileIcon: "🛒",
-      },
-      {
-        path: "/kitchen",
-        translationKey: "nav.kitchen",
-        icon: CookingPot,
-        mobileIcon: "🍳",
       },
       {
         path: "/calendar",

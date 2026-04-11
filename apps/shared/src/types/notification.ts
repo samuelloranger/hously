@@ -5,7 +5,6 @@ export type NotificationType =
   | "service_monitor"
   | "chore"
   | "shopping"
-  | "recipe"
   | "event"
   | "system"
   | "habit";

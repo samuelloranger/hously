@@ -87,13 +87,6 @@ export const mockAppUpdatedActivity: Activity = {
   completed_at: "2024-01-01T00:00:00Z",
 };
 
-export const mockRecipeAddedActivity: Activity = {
-  type: "recipe_added",
-  recipe_id: 1,
-  recipe_name: "Pasta",
-  completed_at: "2024-01-01T00:00:00Z",
-};
-
 export const mockEventCreatedActivity: Activity = {
   type: "event_created",
   event_id: 1,

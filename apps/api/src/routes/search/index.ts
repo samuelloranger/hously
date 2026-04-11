@@ -38,7 +38,6 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
         const empty = {
           torrents: [],
           medias: [],
-          recipes: [],
           chores: [],
           shopping: [],
           users: [],
@@ -50,80 +49,69 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
         }
 
         // Parallel DB queries
-        const [recipes, chores, shopping, users, boardTasks] =
-          await Promise.all([
-            prisma.recipe.findMany({
-              where: { name: { contains: q, mode: "insensitive" } },
-              take: limit,
-              select: {
-                id: true,
-                name: true,
-                category: true,
-                isFavorite: true,
+        const [chores, shopping, users, boardTasks] = await Promise.all([
+          prisma.chore.findMany({
+            where: {
+              completed: false,
+              choreName: { contains: q, mode: "insensitive" },
+            },
+            take: limit,
+            select: {
+              id: true,
+              choreName: true,
+              description: true,
+              completed: true,
+              assignedToUser: {
+                select: { firstName: true, email: true },
               },
-            }),
-            prisma.chore.findMany({
-              where: {
-                completed: false,
-                choreName: { contains: q, mode: "insensitive" },
+            },
+          }),
+          prisma.shoppingItem.findMany({
+            where: { itemName: { contains: q, mode: "insensitive" } },
+            take: limit,
+            select: {
+              id: true,
+              itemName: true,
+              notes: true,
+              completed: true,
+            },
+          }),
+          prisma.user.findMany({
+            where: {
+              OR: [
+                { firstName: { contains: q, mode: "insensitive" } },
+                { lastName: { contains: q, mode: "insensitive" } },
+                { email: { contains: q, mode: "insensitive" } },
+              ],
+            },
+            take: limit,
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          }),
+          prisma.boardTask.findMany({
+            where: {
+              OR: [
+                { title: { contains: q, mode: "insensitive" } },
+                { description: { contains: q, mode: "insensitive" } },
+              ],
+            },
+            take: limit,
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              status: true,
+              priority: true,
+              assignee: {
+                select: { firstName: true, email: true },
               },
-              take: limit,
-              select: {
-                id: true,
-                choreName: true,
-                description: true,
-                completed: true,
-                assignedToUser: {
-                  select: { firstName: true, email: true },
-                },
-              },
-            }),
-            prisma.shoppingItem.findMany({
-              where: { itemName: { contains: q, mode: "insensitive" } },
-              take: limit,
-              select: {
-                id: true,
-                itemName: true,
-                notes: true,
-                completed: true,
-              },
-            }),
-            prisma.user.findMany({
-              where: {
-                OR: [
-                  { firstName: { contains: q, mode: "insensitive" } },
-                  { lastName: { contains: q, mode: "insensitive" } },
-                  { email: { contains: q, mode: "insensitive" } },
-                ],
-              },
-              take: limit,
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
-            }),
-            prisma.boardTask.findMany({
-              where: {
-                OR: [
-                  { title: { contains: q, mode: "insensitive" } },
-                  { description: { contains: q, mode: "insensitive" } },
-                ],
-              },
-              take: limit,
-              select: {
-                id: true,
-                title: true,
-                description: true,
-                status: true,
-                priority: true,
-                assignee: {
-                  select: { firstName: true, email: true },
-                },
-              },
-            }),
-          ]);
+            },
+          }),
+        ]);
 
         // Torrents from qBittorrent — filter by name in-memory
         let torrents: {
@@ -184,12 +172,6 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
         return {
           torrents,
           medias,
-          recipes: recipes.map((r) => ({
-            id: r.id,
-            name: r.name,
-            category: r.category ?? undefined,
-            is_favorite: r.isFavorite === 1,
-          })),
           chores: chores.map((c) => ({
             id: c.id,
             chore_name: c.choreName,

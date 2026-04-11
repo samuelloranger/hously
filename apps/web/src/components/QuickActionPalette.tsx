@@ -33,7 +33,6 @@ interface QuickAction {
     | "actions"
     | "torrents"
     | "medias"
-    | "recipes"
     | "chores"
     | "shopping"
     | "users"
@@ -170,7 +169,6 @@ export function QuickActionPalette({
     const {
       torrents = [],
       medias = [],
-      recipes = [],
       chores = [],
       shopping = [],
       users = [],
@@ -216,23 +214,6 @@ export function QuickActionPalette({
         navigate({
           to: "/library/$libraryId",
           params: { libraryId: String(item.id) },
-        });
-        handleClose();
-      },
-    }));
-
-    const recipeActions: QuickAction[] = recipes.map((recipe) => ({
-      id: `recipe-${recipe.id}`,
-      title: recipe.name,
-      description: recipe.category
-        ? t(`recipes.category.${recipe.category}`, recipe.category)
-        : t("common.quickActionsOpenRecipe"),
-      icon: recipe.is_favorite ? "⭐" : "🍳",
-      section: "recipes" as const,
-      action: () => {
-        navigate({
-          to: "/kitchen/$recipeId",
-          params: { recipeId: String(recipe.id) },
         });
         handleClose();
       },
@@ -307,7 +288,6 @@ export function QuickActionPalette({
     return [
       ...torrentActions,
       ...mediaActions,
-      ...recipeActions,
       ...choreActions,
       ...shoppingActions,
       ...userActions,
@@ -326,7 +306,6 @@ export function QuickActionPalette({
     () => ({
       torrents: t("common.quickActionsSectionTorrents"),
       medias: t("common.quickActionsSectionMedias"),
-      recipes: t("common.quickActionsSectionRecipes"),
       chores: t("chores.title"),
       shopping: t("shopping.title"),
       users: t("common.quickActionsSectionUsers"),

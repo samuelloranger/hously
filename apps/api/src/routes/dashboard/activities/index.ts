@@ -8,7 +8,7 @@ import { serverError } from "@hously/api/errors";
 type ActivityRecord = {
   id: number;
   user_id?: number;
-  task_type?: "chore" | "shopping" | "recipe";
+  task_type?: "chore" | "shopping";
   task_id?: number;
   completed_at?: string;
   task_name?: string;
@@ -20,8 +20,6 @@ type ActivityRecord = {
   reason?: string;
   from_version?: string;
   to_version?: string;
-  recipe_id?: number;
-  recipe_name?: string;
   event_id?: number;
   event_title?: string;
   shopping_item_id?: number;
@@ -63,8 +61,6 @@ function getTaskCompletionType(taskType: string): string {
       return "chore_completed";
     case "shopping":
       return "shopping_completed";
-    case "recipe":
-      return "recipe_completed";
     case "habit":
       return "habit_completed";
     default:
@@ -78,8 +74,6 @@ function getTaskCompletionService(taskType: string): string {
       return "chores";
     case "shopping":
       return "shopping";
-    case "recipe":
-      return "recipes";
     case "habit":
       return "habits";
     default:
@@ -96,7 +90,6 @@ function getLogService(
   }
 
   if (type === "admin_triggered_job") return "admin";
-  if (type.startsWith("recipe_")) return "recipes";
   if (type.startsWith("event_")) return "calendar";
   if (type.startsWith("shopping_")) return "shopping";
   if (type === "media_grab") return "library";
@@ -117,7 +110,7 @@ function mapTaskCompletionToActivity(completion: {
   return {
     id: completion.id,
     user_id: completion.userId,
-    task_type: completion.taskType as "chore" | "shopping" | "recipe",
+    task_type: completion.taskType as "chore" | "shopping",
     task_id: completion.taskId,
     completed_at: formatIso(completion.completedAt) ?? undefined,
     task_name: completion.taskName,
@@ -154,8 +147,6 @@ function mapActivityLogToActivity(log: {
     reason: parseString(payload?.reason),
     from_version: parseString(payload?.from_version),
     to_version: parseString(payload?.to_version),
-    recipe_id: parseIntNumber(payload?.recipe_id),
-    recipe_name: parseString(payload?.recipe_name),
     event_id: parseIntNumber(payload?.event_id),
     event_title: parseString(payload?.event_title),
     shopping_item_id: parseIntNumber(payload?.shopping_item_id),

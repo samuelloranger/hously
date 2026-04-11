@@ -4,8 +4,6 @@ export * from "./chores";
 export * from "./calendar";
 export * from "./qbittorrent";
 export * from "./dashboard";
-export * from "./recipes";
-export * from "./mealPlans";
 export * from "./notifications";
 export * from "./users";
 export * from "./admin";

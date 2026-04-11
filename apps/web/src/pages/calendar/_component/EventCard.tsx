@@ -39,8 +39,6 @@ export const EventCard = ({
     switch (type) {
       case "chore":
         return "#3b82f6";
-      case "meal_plan":
-        return "#f59e0b";
       default:
         return "#6b7280";
     }
@@ -50,8 +48,6 @@ export const EventCard = ({
     switch (type) {
       case "chore":
         return "bg-blue-50/60 dark:bg-blue-950/20";
-      case "meal_plan":
-        return "bg-amber-50/60 dark:bg-amber-950/20";
       default:
         return "bg-neutral-50/60 dark:bg-neutral-800/40";
     }
@@ -209,7 +205,7 @@ export const EventCard = ({
             </div>
           ) : (
             <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500 shrink-0 mt-0.5">
-              {event.type === "chore" ? t("calendar.chores") : event.type}
+              {t("calendar.chores")}
             </span>
           )}
         </div>

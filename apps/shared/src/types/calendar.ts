@@ -63,17 +63,8 @@ export interface CalendarEventCustomEventMetadata {
   };
 }
 
-export interface CalendarEventMealPlanMetadata {
-  type: "meal_plan";
-  metadata: Record<string, unknown>;
-}
-
 export type CalendarEvent = CalendarEventBase &
-  (
-    | CalendarEventChoreMetadata
-    | CalendarEventCustomEventMetadata
-    | CalendarEventMealPlanMetadata
-  );
+  (CalendarEventChoreMetadata | CalendarEventCustomEventMetadata);
 
 export interface CalendarEventsResponse {
   events: CalendarEvent[];

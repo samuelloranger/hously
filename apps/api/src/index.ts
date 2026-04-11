@@ -16,14 +16,12 @@ import { dashboardRoutes } from "./routes/dashboard";
 import { externalNotificationsRoutes } from "./routes/external-notifications";
 import { habitsRoutes } from "./routes/habits";
 import { homeAssistantRoutes } from "./routes/dashboard/home-assistant";
-import { mealPlansRoutes } from "./routes/meal-plans";
 import { libraryMediaAdminRoutes } from "./routes/library/libraryMediaAdmin";
 import { libraryRoutes } from "./routes/library";
 import { qualityProfilesRoutes } from "./routes/quality-profiles";
 import { mediasRoutes } from "./routes/medias";
 import { notificationsRoutes } from "./routes/notifications";
 import { pluginsRoutes } from "./routes/plugins";
-import { recipesRoutes } from "./routes/recipes";
 import { remindersRoutes } from "./routes/reminders";
 import { searchRoutes } from "./routes/search";
 import { shoppingRoutes } from "./routes/shopping";
@@ -78,8 +76,6 @@ export const app = new Elysia()
   .use(shoppingRoutes)
   .use(calendarRoutes)
   .use(customEventsRoutes)
-  .use(mealPlansRoutes)
-  .use(recipesRoutes)
   .use(remindersRoutes)
   .use(adminRoutes)
   .use(analyticsRoutes)

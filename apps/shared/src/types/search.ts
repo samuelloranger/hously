@@ -14,13 +14,6 @@ export interface QuickSearchMedia {
   status: string; // "wanted" | "downloading" | "downloaded" | "skipped"
 }
 
-export interface QuickSearchRecipe {
-  id: number;
-  name: string;
-  category?: string;
-  is_favorite: boolean;
-}
-
 export interface QuickSearchChore {
   id: number;
   chore_name: string;
@@ -54,7 +47,6 @@ export interface QuickSearchBoardTask {
 export interface QuickSearchResponse {
   torrents: QuickSearchTorrent[];
   medias: QuickSearchMedia[];
-  recipes: QuickSearchRecipe[];
   chores: QuickSearchChore[];
   shopping: QuickSearchShoppingItem[];
   users: QuickSearchUser[];

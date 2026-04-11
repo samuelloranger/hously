@@ -22,7 +22,6 @@ export function BottomNav() {
     { path: "/", translationKey: "nav.dashboard", icon: "📊" },
     { path: "/shopping", translationKey: "nav.shopping", icon: "🛒" },
     { path: "/chores", translationKey: "nav.chores", icon: "✅" },
-    { path: "/kitchen", translationKey: "nav.kitchen", icon: "🍳" },
     { path: "/explore", translationKey: "nav.explore", icon: "🧭" },
     { path: "/library", translationKey: "nav.library", icon: "🎞️" },
     { path: "/torrents", translationKey: "nav.torrents", icon: "🧲" },
