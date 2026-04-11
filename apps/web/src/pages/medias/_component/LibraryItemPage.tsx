@@ -14,7 +14,10 @@ import { LibraryManagementPanel } from "./LibraryManagementPanel";
 import { SimilarMediasPanel } from "./SimilarMediasPanel";
 import { LibraryItemHero } from "./LibraryItemHero";
 import { LibraryItemInfoTab } from "./LibraryItemInfoTab";
-import { LibraryItemSearchTab, type EpisodeSearchCtx } from "./LibraryItemSearchTab";
+import {
+  LibraryItemSearchTab,
+  type EpisodeSearchCtx,
+} from "./LibraryItemSearchTab";
 
 export type LibraryItemSearchParams = {
   tab?: "info" | "similar" | "search" | "management";

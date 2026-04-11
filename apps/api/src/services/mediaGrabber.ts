@@ -62,6 +62,8 @@ function profileToScoreInput(p: QualityProfile): QualityProfileScoreInput {
     preferredSources: p.preferredSources,
     preferredCodecs: p.preferredCodecs,
     preferredLanguages: p.preferredLanguages ?? [],
+    prioritizedTrackers: p.prioritizedTrackers ?? [],
+    preferTrackerOverQuality: p.preferTrackerOverQuality ?? false,
     maxSizeGb: p.maxSizeGb,
     requireHdr: p.requireHdr,
     preferHdr: p.preferHdr,
@@ -494,12 +496,13 @@ export async function searchAndGrab(opts: {
       if (!target) continue;
       const parsed = parseReleaseTitle(title);
       const size = sizeBytesFromRaw(row);
+      const indexerName = indexerNameFromRaw(row);
 
       // Always reject samples regardless of profile
       if (parsed.isSample) continue;
 
       if (profileInput) {
-        const sc = scoreRelease(parsed, profileInput, size, title);
+        const sc = scoreRelease(parsed, profileInput, size, title, indexerName);
         if (sc === null) continue;
         rows.push({ raw: row, parsed, score: sc, title, size });
       } else {

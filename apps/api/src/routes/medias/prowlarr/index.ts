@@ -28,6 +28,8 @@ function toScoreInput(p: QualityProfile): QualityProfileScoreInput {
     preferredSources: p.preferredSources,
     preferredCodecs: p.preferredCodecs,
     preferredLanguages: p.preferredLanguages ?? [],
+    prioritizedTrackers: p.prioritizedTrackers ?? [],
+    preferTrackerOverQuality: p.preferTrackerOverQuality ?? false,
     maxSizeGb: p.maxSizeGb,
     requireHdr: p.requireHdr,
     preferHdr: p.preferHdr,
@@ -237,6 +239,7 @@ export const mediasProwlarrRoutes = new Elysia()
                   profile,
                   r.size_bytes,
                   r.title,
+                  r.indexer,
                 );
                 const qualityReject = score === null;
                 const parsed_quality = {
@@ -303,6 +306,47 @@ export const mediasProwlarrRoutes = new Elysia()
       }),
     },
   )
+  .get("/prowlarr/indexers", async ({ set }) => {
+    try {
+      const plugin = await prisma.plugin.findFirst({
+        where: { type: "prowlarr" },
+        select: { enabled: true, config: true },
+      });
+      if (!plugin?.enabled) {
+        return badRequest(set, "Prowlarr plugin is not enabled");
+      }
+      const config = normalizeProwlarrConfig(plugin.config);
+      if (!config) {
+        return badRequest(set, "Prowlarr plugin is not configured");
+      }
+      const response = await fetch(
+        new URL("/api/v1/indexer", config.website_url).toString(),
+        {
+          headers: { "X-Api-Key": config.api_key, Accept: "application/json" },
+          signal: AbortSignal.timeout(10_000),
+        },
+      ).catch(() => null);
+      if (!response?.ok) {
+        return badGateway(set, "Failed to fetch indexers from Prowlarr");
+      }
+      const raw = (await response.json()) as Array<Record<string, unknown>>;
+      const indexers = raw.map((item) => ({
+        id: Number(item.id),
+        name: String(item.name ?? ""),
+        protocol: String(item.protocol ?? "torrent"),
+        enable: Boolean(item.enable),
+        privacy: String(item.privacy ?? "public"),
+      }));
+      // private trackers first, then public, alpha within each group
+      indexers.sort((a, b) => {
+        if (a.privacy === b.privacy) return a.name.localeCompare(b.name);
+        return a.privacy === "private" ? -1 : 1;
+      });
+      return { indexers };
+    } catch {
+      return serverError(set, "Failed to fetch Prowlarr indexers");
+    }
+  })
   .post(
     "/prowlarr/interactive-search/download",
     async ({ user, set, body }) => {

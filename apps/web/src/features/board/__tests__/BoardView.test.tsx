@@ -201,7 +201,9 @@ describe("BoardView", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("region", { name: /board\.bulk\.barLabel|bulk action/i }),
+        screen.getByRole("region", {
+          name: /board\.bulk\.barLabel|bulk action/i,
+        }),
       ).toBeInTheDocument();
     });
   });
@@ -221,7 +223,9 @@ describe("BoardView", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByRole("region", { name: /board\.bulk\.barLabel|bulk action/i }),
+        screen.getByRole("region", {
+          name: /board\.bulk\.barLabel|bulk action/i,
+        }),
       ).toBeInTheDocument(),
     );
     fireEvent.click(
@@ -254,7 +258,9 @@ describe("BoardView", () => {
     });
     renderWithProviders(<BoardView />);
 
-    await waitFor(() => expect(screen.getByText("Move me")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Move me")).toBeInTheDocument(),
+    );
     fireEvent.click(
       screen.getAllByRole("checkbox", {
         name: /board\.bulk\.selectTask/i,
@@ -263,7 +269,9 @@ describe("BoardView", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByRole("region", { name: /board\.bulk\.barLabel|bulk action/i }),
+        screen.getByRole("region", {
+          name: /board\.bulk\.barLabel|bulk action/i,
+        }),
       ).toBeInTheDocument(),
     );
 

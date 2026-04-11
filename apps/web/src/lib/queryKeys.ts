@@ -238,8 +238,18 @@ export const queryKeys = {
         tmdbId,
         language ?? "en-US",
       ] as const,
-    tmdbDetails: (mediaType: "movie" | "tv", tmdbId: number, language?: string) =>
-      [...queryKeys.medias.all, "tmdb-details", mediaType, tmdbId, language ?? "en-US"] as const,
+    tmdbDetails: (
+      mediaType: "movie" | "tv",
+      tmdbId: number,
+      language?: string,
+    ) =>
+      [
+        ...queryKeys.medias.all,
+        "tmdb-details",
+        mediaType,
+        tmdbId,
+        language ?? "en-US",
+      ] as const,
     watchlist: () => [...queryKeys.medias.all, "watchlist"] as const,
     missingCollections: (language?: string) =>
       [
@@ -247,7 +257,12 @@ export const queryKeys = {
         "missing-collections",
         language ?? "en-US",
       ] as const,
-    modalData: (mediaType: "movie" | "tv", tmdbId: number, region?: string, language?: string) =>
+    modalData: (
+      mediaType: "movie" | "tv",
+      tmdbId: number,
+      region?: string,
+      language?: string,
+    ) =>
       [
         ...queryKeys.medias.all,
         "modal",

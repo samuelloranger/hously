@@ -36,8 +36,7 @@ function formatAirDate(dateStr: string): string {
   return d.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
-    year:
-      d.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
+    year: d.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
   });
 }
 
@@ -52,8 +51,7 @@ export function MergedEpisodeRow({
 }: MergedEpisodeRowProps) {
   const [expanded, setExpanded] = useState(false);
   const badges = file ? qualityBadges(file) : [];
-  const isFuture =
-    ep.air_date != null && new Date(ep.air_date) > new Date();
+  const isFuture = ep.air_date != null && new Date(ep.air_date) > new Date();
 
   return (
     <div className="border-b last:border-0 border-neutral-100 dark:border-neutral-800">

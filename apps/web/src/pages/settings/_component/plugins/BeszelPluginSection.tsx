@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useBeszelPlugin, useUpdateBeszelPlugin } from "@/hooks/plugins/usePlugins";
+import {
+  useBeszelPlugin,
+  useUpdateBeszelPlugin,
+} from "@/hooks/plugins/usePlugins";
 import { toast } from "sonner";
 import { PluginSectionCard } from "@/pages/settings/_component/plugins/PluginSectionCard";
 import { PluginUrlInput } from "@/pages/settings/_component/plugins/PluginUrlInput";

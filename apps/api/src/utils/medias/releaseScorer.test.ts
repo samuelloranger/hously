@@ -11,6 +11,8 @@ const baseProfile: QualityProfileScoreInput = {
   preferredSources: ["BluRay", "WEB-DL"],
   preferredCodecs: ["x265", "x264"],
   preferredLanguages: [],
+  prioritizedTrackers: [],
+  preferTrackerOverQuality: false,
   maxSizeGb: null,
   requireHdr: false,
   preferHdr: false,
@@ -33,20 +35,30 @@ function parsed(overrides: Partial<ParsedRelease> = {}): ParsedRelease {
 
 describe("scoreRelease — hard rejections", () => {
   test("rejects below min resolution", () => {
-    expect(scoreRelease(parsed({ resolution: 720 }), baseProfile, null)).toBeNull();
+    expect(
+      scoreRelease(parsed({ resolution: 720 }), baseProfile, null),
+    ).toBeNull();
   });
 
   test("rejects null resolution", () => {
-    expect(scoreRelease(parsed({ resolution: null }), baseProfile, null)).toBeNull();
+    expect(
+      scoreRelease(parsed({ resolution: null }), baseProfile, null),
+    ).toBeNull();
   });
 
   test("rejects sample", () => {
-    expect(scoreRelease(parsed({ isSample: true }), baseProfile, null)).toBeNull();
+    expect(
+      scoreRelease(parsed({ isSample: true }), baseProfile, null),
+    ).toBeNull();
   });
 
   test("rejects when requireHdr and no hdr", () => {
     expect(
-      scoreRelease(parsed({ hdr: null }), { ...baseProfile, requireHdr: true }, null),
+      scoreRelease(
+        parsed({ hdr: null }),
+        { ...baseProfile, requireHdr: true },
+        null,
+      ),
     ).toBeNull();
   });
 
@@ -69,7 +81,11 @@ describe("scoreRelease — hard rejections", () => {
 
 describe("scoreRelease — resolution tier bonus", () => {
   test("4K scores higher than 1080p with same profile", () => {
-    const s1080 = scoreRelease(parsed({ resolution: 1080 }), baseProfile, null)!;
+    const s1080 = scoreRelease(
+      parsed({ resolution: 1080 }),
+      baseProfile,
+      null,
+    )!;
     const s4k = scoreRelease(parsed({ resolution: 2160 }), baseProfile, null)!;
     expect(s4k).toBeGreaterThan(s1080);
   });
@@ -77,21 +93,39 @@ describe("scoreRelease — resolution tier bonus", () => {
   test("cutoff at 1080 rejects 2160 but accepts 1080", () => {
     const capped = { ...baseProfile, cutoffResolution: 1080 };
     expect(scoreRelease(parsed({ resolution: 2160 }), capped, null)).toBeNull();
-    expect(scoreRelease(parsed({ resolution: 1080 }), capped, null)).not.toBeNull();
+    expect(
+      scoreRelease(parsed({ resolution: 1080 }), capped, null),
+    ).not.toBeNull();
   });
 });
 
 describe("scoreRelease — source preferences", () => {
   test("BluRay outscores WEBRip with BluRay first in prefs", () => {
-    const bluray = scoreRelease(parsed({ source: "BluRay" }), baseProfile, null)!;
-    const webrip = scoreRelease(parsed({ source: "WEBRip" }), baseProfile, null)!;
+    const bluray = scoreRelease(
+      parsed({ source: "BluRay" }),
+      baseProfile,
+      null,
+    )!;
+    const webrip = scoreRelease(
+      parsed({ source: "WEBRip" }),
+      baseProfile,
+      null,
+    )!;
     expect(bluray).toBeGreaterThan(webrip);
   });
 
   test("HDLight matches BluRay preference (French re-encode alias)", () => {
-    const hdlight = scoreRelease(parsed({ source: "HDLight" }), baseProfile, null);
+    const hdlight = scoreRelease(
+      parsed({ source: "HDLight" }),
+      baseProfile,
+      null,
+    );
     // HDLight aliases to BluRay — should get the same source score as BluRay
-    const bluray = scoreRelease(parsed({ source: "BluRay" }), baseProfile, null);
+    const bluray = scoreRelease(
+      parsed({ source: "BluRay" }),
+      baseProfile,
+      null,
+    );
     expect(hdlight).not.toBeNull();
     expect(hdlight).toEqual(bluray);
   });
@@ -106,7 +140,11 @@ describe("scoreRelease — source preferences", () => {
 
   test("REMUX matches BluRay preference", () => {
     const remux = scoreRelease(parsed({ source: "REMUX" }), baseProfile, null)!;
-    const bluray = scoreRelease(parsed({ source: "BluRay" }), baseProfile, null)!;
+    const bluray = scoreRelease(
+      parsed({ source: "BluRay" }),
+      baseProfile,
+      null,
+    )!;
     expect(remux).toEqual(bluray);
   });
 });
@@ -120,27 +158,47 @@ describe("scoreRelease — PROPER/REPACK bonus", () => {
 
   test("PROPER still rejected if below min resolution", () => {
     expect(
-      scoreRelease(parsed({ resolution: 720, isProper: true }), baseProfile, null),
+      scoreRelease(
+        parsed({ resolution: 720, isProper: true }),
+        baseProfile,
+        null,
+      ),
     ).toBeNull();
   });
 
   test("PROPER still rejected if isSample", () => {
     expect(
-      scoreRelease(parsed({ isSample: true, isProper: true }), baseProfile, null),
+      scoreRelease(
+        parsed({ isSample: true, isProper: true }),
+        baseProfile,
+        null,
+      ),
     ).toBeNull();
   });
 });
 
 describe("scoreRelease — HDR preferences", () => {
   test("preferHdr adds bonus when hdr present", () => {
-    const no = scoreRelease(parsed({ hdr: null }), { ...baseProfile, preferHdr: true }, null)!;
-    const yes = scoreRelease(parsed({ hdr: "HDR10" }), { ...baseProfile, preferHdr: true }, null)!;
+    const no = scoreRelease(
+      parsed({ hdr: null }),
+      { ...baseProfile, preferHdr: true },
+      null,
+    )!;
+    const yes = scoreRelease(
+      parsed({ hdr: "HDR10" }),
+      { ...baseProfile, preferHdr: true },
+      null,
+    )!;
     expect(yes).toBeGreaterThan(no);
   });
 
   test("requireHdr accepts release with hdr", () => {
     expect(
-      scoreRelease(parsed({ hdr: "DV" }), { ...baseProfile, requireHdr: true }, null),
+      scoreRelease(
+        parsed({ hdr: "DV" }),
+        { ...baseProfile, requireHdr: true },
+        null,
+      ),
     ).not.toBeNull();
   });
 });
@@ -178,57 +236,168 @@ describe("scoreRelease — large file penalty", () => {
 describe("scoreRelease — language hard filter", () => {
   test("rejects release with no matching language when languages are set", () => {
     const prof = { ...baseProfile, preferredLanguages: ["VF2", "VFQ"] };
-    expect(scoreRelease(parsed(), prof, null, "Movie.VFF.1080p.BluRay.x265")).toBeNull();
-    expect(scoreRelease(parsed(), prof, null, "Movie.1080p.BluRay.x265")).toBeNull();
+    expect(
+      scoreRelease(parsed(), prof, null, "Movie.VFF.1080p.BluRay.x265"),
+    ).toBeNull();
+    expect(
+      scoreRelease(parsed(), prof, null, "Movie.1080p.BluRay.x265"),
+    ).toBeNull();
   });
 
   test("accepts release whose language matches a preferred entry", () => {
     const prof = { ...baseProfile, preferredLanguages: ["VF2", "VFQ"] };
-    expect(scoreRelease(parsed(), prof, null, "Movie.MULTi.VF2.1080p.BluRay.x265")).not.toBeNull();
-    expect(scoreRelease(parsed(), prof, null, "Movie.MULTi.VFQ.1080p.BluRay.x265")).not.toBeNull();
+    expect(
+      scoreRelease(parsed(), prof, null, "Movie.MULTi.VF2.1080p.BluRay.x265"),
+    ).not.toBeNull();
+    expect(
+      scoreRelease(parsed(), prof, null, "Movie.MULTi.VFQ.1080p.BluRay.x265"),
+    ).not.toBeNull();
   });
 
   test("VFF is rejected when only VF2 and VFQ are preferred", () => {
     const prof = { ...baseProfile, preferredLanguages: ["VF2", "VFQ"] };
-    expect(scoreRelease(parsed(), prof, null, "Movie.MULTi.VFF.1080p.BluRay.x265")).toBeNull();
+    expect(
+      scoreRelease(parsed(), prof, null, "Movie.MULTi.VFF.1080p.BluRay.x265"),
+    ).toBeNull();
   });
 
   test("no preferred languages — all releases pass the language check", () => {
-    expect(scoreRelease(parsed(), baseProfile, null, "Movie.VFF.1080p.BluRay.x265")).not.toBeNull();
-    expect(scoreRelease(parsed(), baseProfile, null, "Movie.1080p.BluRay.x265")).not.toBeNull();
+    expect(
+      scoreRelease(parsed(), baseProfile, null, "Movie.VFF.1080p.BluRay.x265"),
+    ).not.toBeNull();
+    expect(
+      scoreRelease(parsed(), baseProfile, null, "Movie.1080p.BluRay.x265"),
+    ).not.toBeNull();
   });
 
   test("VFF ranks higher than FRENCH when both pass [VFF, fr] filter", () => {
     const prof = { ...baseProfile, preferredLanguages: ["VFF", "fr"] };
-    const vff = scoreRelease(parsed(), prof, null, "Movie.VFF.1080p.BluRay.x265")!;
-    const french = scoreRelease(parsed(), prof, null, "Movie.FRENCH.1080p.BluRay.x265")!;
+    const vff = scoreRelease(
+      parsed(),
+      prof,
+      null,
+      "Movie.VFF.1080p.BluRay.x265",
+    )!;
+    const french = scoreRelease(
+      parsed(),
+      prof,
+      null,
+      "Movie.FRENCH.1080p.BluRay.x265",
+    )!;
     expect(vff).toBeGreaterThan(french);
   });
 
   test("generic fr rejects VFF release (VFF is a specific variant, not generic French)", () => {
     const frOnly = { ...baseProfile, preferredLanguages: ["fr"] };
-    expect(scoreRelease(parsed(), frOnly, null, "Movie.VFF.1080p.BluRay.x265")).toBeNull();
+    expect(
+      scoreRelease(parsed(), frOnly, null, "Movie.VFF.1080p.BluRay.x265"),
+    ).toBeNull();
   });
 
   test("generic fr accepts FRENCH-labelled release", () => {
     const frOnly = { ...baseProfile, preferredLanguages: ["fr"] };
-    expect(scoreRelease(parsed(), frOnly, null, "Movie.FRENCH.1080p.BluRay.x265")).not.toBeNull();
+    expect(
+      scoreRelease(parsed(), frOnly, null, "Movie.FRENCH.1080p.BluRay.x265"),
+    ).not.toBeNull();
   });
 
   test("VFQ preference rejects VFF release", () => {
     const vfqOnly = { ...baseProfile, preferredLanguages: ["VFQ"] };
-    expect(scoreRelease(parsed(), vfqOnly, null, "Movie.VFF.1080p.BluRay.x265")).toBeNull();
+    expect(
+      scoreRelease(parsed(), vfqOnly, null, "Movie.VFF.1080p.BluRay.x265"),
+    ).toBeNull();
   });
 
   test("English preference rejects unlabelled release", () => {
     const enFirst = { ...baseProfile, preferredLanguages: ["en"] };
-    expect(scoreRelease(parsed(), enFirst, null, "Movie.1080p.BluRay.x265")).toBeNull();
-    expect(scoreRelease(parsed(), enFirst, null, "Movie.1080p.BluRay.ENG.DTS.x265")).not.toBeNull();
+    expect(
+      scoreRelease(parsed(), enFirst, null, "Movie.1080p.BluRay.x265"),
+    ).toBeNull();
+    expect(
+      scoreRelease(parsed(), enFirst, null, "Movie.1080p.BluRay.ENG.DTS.x265"),
+    ).not.toBeNull();
   });
 
   test("Italian preference matches ITA, rejects non-Italian", () => {
     const itFirst = { ...baseProfile, preferredLanguages: ["it"] };
-    expect(scoreRelease(parsed(), itFirst, null, "Movie.1080p.BluRay.ita.eng.AC3.x265")).not.toBeNull();
-    expect(scoreRelease(parsed(), itFirst, null, "Movie.1080p.BluRay.x265")).toBeNull();
+    expect(
+      scoreRelease(
+        parsed(),
+        itFirst,
+        null,
+        "Movie.1080p.BluRay.ita.eng.AC3.x265",
+      ),
+    ).not.toBeNull();
+    expect(
+      scoreRelease(parsed(), itFirst, null, "Movie.1080p.BluRay.x265"),
+    ).toBeNull();
+  });
+});
+
+describe("tracker priority bonus", () => {
+  const trackerProfile = {
+    ...baseProfile,
+    prioritizedTrackers: ["C411", "La Cale (API)", "Torr9"],
+  };
+
+  test("tie-breaker mode: #1 tracker beats #3 by 200 pts", () => {
+    const s1 = scoreRelease(parsed(), trackerProfile, null, undefined, "C411");
+    const s3 = scoreRelease(parsed(), trackerProfile, null, undefined, "Torr9");
+    expect(s1).not.toBeNull();
+    expect(s3).not.toBeNull();
+    expect(s1! - s3!).toBe(200); // 300 - 100 = 200
+  });
+
+  test("tracker not in list gets no bonus", () => {
+    const withTracker = scoreRelease(
+      parsed(),
+      trackerProfile,
+      null,
+      undefined,
+      "C411",
+    );
+    const noTracker = scoreRelease(
+      parsed(),
+      trackerProfile,
+      null,
+      undefined,
+      "LimeTorrents",
+    );
+    expect(withTracker! - noTracker!).toBe(300);
+  });
+
+  test("no trackers configured: indexerName has no effect", () => {
+    const s1 = scoreRelease(parsed(), baseProfile, null, undefined, "C411");
+    const s2 = scoreRelease(
+      parsed(),
+      baseProfile,
+      null,
+      undefined,
+      "LimeTorrents",
+    );
+    expect(s1).toBe(s2);
+  });
+
+  test("prefer-tracker mode: #1 tracker (+1500) beats a 4K release from an unprioritized tracker", () => {
+    const preferMode = { ...trackerProfile, preferTrackerOverQuality: true };
+    // 4K from LimeTorrents (not prioritized): resolution tier delta = 1 → +1000
+    const unprioritized4k = scoreRelease(
+      parsed({ resolution: 2160 }),
+      preferMode,
+      null,
+      undefined,
+      "LimeTorrents",
+    );
+    // 1080p from C411 (#1 tracker): tier delta = 0, tracker bonus = +1500
+    const prioritized1080p = scoreRelease(
+      parsed({ resolution: 1080 }),
+      preferMode,
+      null,
+      undefined,
+      "C411",
+    );
+    expect(unprioritized4k).not.toBeNull();
+    expect(prioritized1080p).not.toBeNull();
+    expect(prioritized1080p!).toBeGreaterThan(unprioritized4k!);
   });
 });

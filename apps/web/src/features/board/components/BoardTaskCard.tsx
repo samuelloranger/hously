@@ -15,7 +15,10 @@ interface BoardTaskCardProps {
   index: number;
   isSelected: boolean;
   onToggleSelect: () => void;
-  onCardClick: (task: BoardTask, e: React.MouseEvent | React.KeyboardEvent) => void;
+  onCardClick: (
+    task: BoardTask,
+    e: React.MouseEvent | React.KeyboardEvent,
+  ) => void;
 }
 
 const PRIORITY_DOT: Record<BoardTaskPriorityApi, string> = {
@@ -114,7 +117,10 @@ export function BoardTaskCard({
           </span>
         </div>
         <span
-          className={cn("h-2 w-2 shrink-0 rounded-full", PRIORITY_DOT[task.priority])}
+          className={cn(
+            "h-2 w-2 shrink-0 rounded-full",
+            PRIORITY_DOT[task.priority],
+          )}
           title={task.priority}
         />
       </div>

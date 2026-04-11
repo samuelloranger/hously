@@ -3,7 +3,10 @@ import { useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { setUser } from "@/lib/auth";
-import { useValidateInvitation, useAcceptInvitation } from "@/hooks/auth/useAuth";
+import {
+  useValidateInvitation,
+  useAcceptInvitation,
+} from "@/hooks/auth/useAuth";
 import { getCurrentUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/accept-invitation")({

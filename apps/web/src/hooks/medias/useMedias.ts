@@ -137,16 +137,14 @@ export function useStreamingProviders(
   });
 }
 
-export function useMediaGenres(
-  type: "movie" | "tv",
-  language?: string,
-) {
+export function useMediaGenres(type: "movie" | "tv", language?: string) {
   const fetcher = useFetcher();
   const lang = language ?? "en-US";
 
   return useQuery({
     queryKey: queryKeys.medias.genres(type, lang),
-    queryFn: () => fetcher<TmdbGenresResponse>(MEDIAS_ENDPOINTS.GENRES(type, lang)),
+    queryFn: () =>
+      fetcher<TmdbGenresResponse>(MEDIAS_ENDPOINTS.GENRES(type, lang)),
     staleTime: 24 * 60 * 60 * 1000,
   });
 }

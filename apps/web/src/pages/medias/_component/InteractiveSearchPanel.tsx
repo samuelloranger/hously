@@ -13,7 +13,10 @@ import {
   useProwlarrInteractiveDownload,
   useProwlarrInteractiveSearch,
 } from "@/hooks/medias/useMedias";
-import { useLibraryGrabRelease, useLibraryEpisodes } from "@/hooks/medias/useLibrary";
+import {
+  useLibraryGrabRelease,
+  useLibraryEpisodes,
+} from "@/hooks/medias/useLibrary";
 import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
 import {
   filterAndSortReleases,
@@ -150,7 +153,14 @@ export function InteractiveSearchPanel({
     setFilters(buildInitialFilters());
     setPendingReleaseKey(null);
     // buildInitialFilters reads defaultProwlarrQuery, defaultSeason, libId from closure
-  }, [isActive, media?.id, defaultProwlarrQuery, prowlarrQueryOriginal, defaultSeason, libId]);
+  }, [
+    isActive,
+    media?.id,
+    defaultProwlarrQuery,
+    prowlarrQueryOriginal,
+    defaultSeason,
+    libId,
+  ]);
 
   useEffect(() => {
     if (!isActive) return;

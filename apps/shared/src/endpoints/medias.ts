@@ -22,7 +22,12 @@ export const MEDIAS_ENDPOINTS = {
   PROWLARR_INTERACTIVE_SEARCH: "/api/medias/prowlarr/interactive-search",
   PROWLARR_INTERACTIVE_SEARCH_DOWNLOAD:
     "/api/medias/prowlarr/interactive-search/download",
-  STREAMING_PROVIDERS: (region?: string, type?: "movie" | "tv", language?: string) => {
+  PROWLARR_INDEXERS: "/api/medias/prowlarr/indexers",
+  STREAMING_PROVIDERS: (
+    region?: string,
+    type?: "movie" | "tv",
+    language?: string,
+  ) => {
     const p = new URLSearchParams({
       region: region ?? "CA",
       type: type ?? "movie",
@@ -31,9 +36,7 @@ export const MEDIAS_ENDPOINTS = {
     return `/api/medias/streaming-providers?${p.toString()}`;
   },
   TRAILER: (mediaType: "movie" | "tv", tmdbId: number, language?: string) => {
-    const qs = language
-      ? `?language=${encodeURIComponent(language)}`
-      : "";
+    const qs = language ? `?language=${encodeURIComponent(language)}` : "";
     return `/api/medias/trailer/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs}`;
   },
   GENRES: (type: "movie" | "tv", language?: string) => {
@@ -42,18 +45,18 @@ export const MEDIAS_ENDPOINTS = {
     return `/api/medias/genres?${p.toString()}`;
   },
   RATINGS: (mediaType: "movie" | "tv", tmdbId: number, language?: string) => {
-    const qs = language
-      ? `?language=${encodeURIComponent(language)}`
-      : "";
+    const qs = language ? `?language=${encodeURIComponent(language)}` : "";
     return `/api/medias/ratings/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs}`;
   },
   CREDITS: (mediaType: "movie" | "tv", tmdbId: number, language?: string) => {
-    const qs = language
-      ? `?language=${encodeURIComponent(language)}`
-      : "";
+    const qs = language ? `?language=${encodeURIComponent(language)}` : "";
     return `/api/medias/credits/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs}`;
   },
-  TMDB_DETAILS: (mediaType: "movie" | "tv", tmdbId: number, language?: string) =>
+  TMDB_DETAILS: (
+    mediaType: "movie" | "tv",
+    tmdbId: number,
+    language?: string,
+  ) =>
     `/api/medias/tmdb-details/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${language ? `?language=${encodeURIComponent(language)}` : ""}`,
   WATCHLIST: "/api/medias/watchlist",
   WATCHLIST_REMOVE: (tmdbId: number, type: "movie" | "tv") =>
@@ -62,7 +65,12 @@ export const MEDIAS_ENDPOINTS = {
     language
       ? `/api/medias/collections/missing?language=${encodeURIComponent(language)}`
       : "/api/medias/collections/missing",
-  MODAL_DATA: (mediaType: "movie" | "tv", tmdbId: number, region?: string, language?: string) => {
+  MODAL_DATA: (
+    mediaType: "movie" | "tv",
+    tmdbId: number,
+    region?: string,
+    language?: string,
+  ) => {
     const p = new URLSearchParams();
     if (region) p.set("region", region);
     if (language) p.set("language", language);
