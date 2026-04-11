@@ -164,6 +164,11 @@ export default defineConfig(({ mode }) => {
       environment: "happy-dom",
       setupFiles: ["./src/test/setup.ts"],
       exclude: ["e2e/**", "node_modules/**"],
+      poolOptions: {
+        forks: {
+          execArgv: ["--max-old-space-size=1024"],
+        },
+      },
     },
   };
 });
