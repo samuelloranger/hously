@@ -39,16 +39,17 @@ export function useSimilarMedias(
 
 export function useTmdbMediaSearch(
   query: string,
-  options?: { enabled?: boolean },
+  options?: { enabled?: boolean; language?: string },
 ) {
   const fetcher = useFetcher();
   const trimmed = query.trim();
+  const lang = options?.language ?? "en-US";
 
   return useQuery({
-    queryKey: queryKeys.medias.tmdbSearch(trimmed),
+    queryKey: queryKeys.medias.tmdbSearch(trimmed, lang),
     queryFn: () =>
       fetcher<TmdbMediaSearchResponse>(
-        `${MEDIAS_ENDPOINTS.TMDB_SEARCH}?q=${encodeURIComponent(trimmed)}`,
+        MEDIAS_ENDPOINTS.TMDB_SEARCH(trimmed, lang),
       ),
     enabled: (options?.enabled ?? true) && trimmed.length >= 2,
   });
@@ -119,24 +120,33 @@ export function useProwlarrInteractiveDownload() {
   });
 }
 
-export function useStreamingProviders(region?: string, type?: "movie" | "tv") {
+export function useStreamingProviders(
+  region?: string,
+  type?: "movie" | "tv",
+  language?: string,
+) {
   const fetcher = useFetcher();
+  const lang = language ?? "en-US";
   return useQuery({
-    queryKey: queryKeys.medias.streamingProviders(region, type),
+    queryKey: queryKeys.medias.streamingProviders(region, type, lang),
     queryFn: () =>
       fetcher<TmdbStreamingProvidersResponse>(
-        MEDIAS_ENDPOINTS.STREAMING_PROVIDERS(region, type),
+        MEDIAS_ENDPOINTS.STREAMING_PROVIDERS(region, type, lang),
       ),
     staleTime: 24 * 60 * 60 * 1000,
   });
 }
 
-export function useMediaGenres(type: "movie" | "tv") {
+export function useMediaGenres(
+  type: "movie" | "tv",
+  language?: string,
+) {
   const fetcher = useFetcher();
+  const lang = language ?? "en-US";
 
   return useQuery({
-    queryKey: queryKeys.medias.genres(type),
-    queryFn: () => fetcher<TmdbGenresResponse>(MEDIAS_ENDPOINTS.GENRES(type)),
+    queryKey: queryKeys.medias.genres(type, lang),
+    queryFn: () => fetcher<TmdbGenresResponse>(MEDIAS_ENDPOINTS.GENRES(type, lang)),
     staleTime: 24 * 60 * 60 * 1000,
   });
 }
@@ -156,6 +166,7 @@ export function useMediaModalData(
   tmdbId: number | null,
   region?: string,
   options?: { enabled?: boolean },
+  language?: string,
 ) {
   const fetcher = useFetcher();
   const isEnabled =
@@ -168,10 +179,11 @@ export function useMediaModalData(
       mediaType ?? "movie",
       tmdbId ?? 0,
       region,
+      language,
     ),
     queryFn: () =>
       fetcher<MediaModalDataResponse>(
-        MEDIAS_ENDPOINTS.MODAL_DATA(mediaType!, tmdbId!, region),
+        MEDIAS_ENDPOINTS.MODAL_DATA(mediaType!, tmdbId!, region, language),
       ),
     enabled: isEnabled,
     staleTime: 60 * 1000, // 1 min — watchlist status is user-specific
@@ -209,7 +221,7 @@ export function useAddToWatchlist() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.watchlist() });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.medias.modalData(
+        queryKey: queryKeys.medias.modalDataAll(
           variables.media_type,
           variables.tmdb_id,
         ),
@@ -238,7 +250,7 @@ export function useRemoveFromWatchlist() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.medias.watchlist() });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.medias.modalData(
+        queryKey: queryKeys.medias.modalDataAll(
           variables.media_type,
           variables.tmdb_id,
         ),
@@ -247,12 +259,18 @@ export function useRemoveFromWatchlist() {
   });
 }
 
-export function useMissingCollections(options?: { enabled?: boolean }) {
+export function useMissingCollections(options?: {
+  enabled?: boolean;
+  language?: string;
+}) {
   const fetcher = useFetcher();
+  const lang = options?.language ?? "en-US";
   return useQuery({
-    queryKey: queryKeys.medias.missingCollections(),
+    queryKey: queryKeys.medias.missingCollections(lang),
     queryFn: () =>
-      fetcher<MissingCollectionsResponse>(MEDIAS_ENDPOINTS.MISSING_COLLECTIONS),
+      fetcher<MissingCollectionsResponse>(
+        MEDIAS_ENDPOINTS.MISSING_COLLECTIONS(lang),
+      ),
     enabled: options?.enabled ?? true,
     staleTime: 5 * 60 * 1000,
   });

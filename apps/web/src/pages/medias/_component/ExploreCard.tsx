@@ -20,7 +20,7 @@ export function ExploreCard({
   item: TmdbMediaSearchItem;
   onAdded: () => void;
 }) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const [detailOpen, setDetailOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
   const addUpcomingMutation = useAddUpcomingToLibrary();
@@ -28,15 +28,16 @@ export function ExploreCard({
   const fetcher = useFetcher();
 
   const prefetchModal = useCallback(() => {
+    const lang = i18n.language;
     queryClient.prefetchQuery({
-      queryKey: queryKeys.medias.modalData(item.media_type, item.tmdb_id),
+      queryKey: queryKeys.medias.modalData(item.media_type, item.tmdb_id, undefined, lang),
       queryFn: () =>
         fetcher<MediaModalDataResponse>(
-          MEDIAS_ENDPOINTS.MODAL_DATA(item.media_type, item.tmdb_id),
+          MEDIAS_ENDPOINTS.MODAL_DATA(item.media_type, item.tmdb_id, undefined, lang),
         ),
       staleTime: 60 * 1000,
     });
-  }, [queryClient, fetcher, item.media_type, item.tmdb_id]);
+  }, [queryClient, fetcher, item.media_type, item.tmdb_id, i18n.language]);
 
   const handleAdd = async (e: React.MouseEvent) => {
     e.stopPropagation();

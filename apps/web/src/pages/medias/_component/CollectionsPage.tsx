@@ -136,8 +136,10 @@ function CollectionCard({
 }
 
 export function CollectionsPage() {
-  const { t } = useTranslation("common");
-  const { data, isLoading, refetch } = useMissingCollections();
+  const { t, i18n } = useTranslation("common");
+  const { data, isLoading, refetch } = useMissingCollections({
+    language: i18n.language,
+  });
   const collections = data?.collections ?? [];
 
   return (

@@ -1,5 +1,6 @@
 import { prisma } from "@hously/api/db";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
+import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -60,7 +61,9 @@ export async function refreshLibraryMovieDigitalDate(
       iso_3166_1: string;
       release_dates: Array<{ type: number; release_date: string }>;
     }>;
-  }>(`movie/${m.tmdbId}/release_dates`, key);
+  }>(`movie/${m.tmdbId}/release_dates`, key, {
+    language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE,
+  });
 
   const picked = pickDigitalRelease(releaseDatesData.results);
   await prisma.libraryMedia.update({
@@ -82,7 +85,9 @@ export async function syncLibraryShowEpisodes(mediaId: number): Promise<void> {
 
   const details = await tmdbFetch<{
     seasons: Array<{ season_number: number; episode_count: number }>;
-  }>(`tv/${media.tmdbId}`, key);
+  }>(`tv/${media.tmdbId}`, key, {
+    language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE,
+  });
 
   const regularSeasons = details.seasons.filter((s) => s.season_number > 0);
 
@@ -95,7 +100,9 @@ export async function syncLibraryShowEpisodes(mediaId: number): Promise<void> {
           name: string;
           air_date: string | null;
         }>;
-      }>(`tv/${media.tmdbId}/season/${s.season_number}`, key);
+      }>(`tv/${media.tmdbId}/season/${s.season_number}`, key, {
+        language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE,
+      });
 
       await Promise.all(
         seasonData.episodes.map((ep) =>

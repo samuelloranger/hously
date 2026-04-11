@@ -195,14 +195,14 @@ export async function loadTmdbConfig() {
 
 // ── Low-level TMDB fetch ─────────────────────────────────────────────────────
 
-function makeTmdbFetch(apiKey: string) {
+function makeTmdbFetch(apiKey: string, language = "en-US") {
   return async (
     path: string,
     extraParams?: Record<string, string | undefined>,
   ): Promise<Record<string, unknown> | null> => {
     const url = new URL(`https://api.themoviedb.org/3/${path}`);
     url.searchParams.set("api_key", apiKey);
-    url.searchParams.set("language", "en-US");
+    url.searchParams.set("language", language);
     if (extraParams) {
       for (const [k, v] of Object.entries(extraParams)) {
         if (v != null && v !== "") url.searchParams.set(k, v);
@@ -222,12 +222,14 @@ export async function fetchTrailer(
   apiKey: string,
   mediaType: "movie" | "tv",
   tmdbId: number,
+  language = "en-US",
 ): Promise<TrailerResult> {
-  const cacheKey = `medias:trailer:${mediaType}:${tmdbId}`;
+  const lang = toTmdbLanguage(language);
+  const cacheKey = `medias:trailer:${mediaType}:${tmdbId}:${lang}`;
   const cached = await getJsonCache<TrailerResult>(cacheKey);
   if (cached) return cached;
 
-  const tmdbFetch = makeTmdbFetch(apiKey);
+  const tmdbFetch = makeTmdbFetch(apiKey, lang);
   try {
     const data = await tmdbFetch(`${mediaType}/${tmdbId}/videos`);
     const results = Array.isArray(data?.results)
@@ -256,8 +258,10 @@ export async function fetchRatings(
   apiKey: string,
   mediaType: "movie" | "tv",
   tmdbId: number,
+  language = "en-US",
 ): Promise<RatingsResult> {
-  const cacheKey = `medias:ratings:${mediaType}:${tmdbId}`;
+  const lang = toTmdbLanguage(language);
+  const cacheKey = `medias:ratings:${mediaType}:${tmdbId}:${lang}`;
   const cached = await getJsonCache<RatingsResult>(cacheKey);
   if (cached) return cached;
 
@@ -269,7 +273,7 @@ export async function fetchRatings(
   const omdbKey = Bun.env.OMDB_API_KEY;
   if (!omdbKey) return empty;
 
-  const tmdbFetch = makeTmdbFetch(apiKey);
+  const tmdbFetch = makeTmdbFetch(apiKey, lang);
   try {
     const extData = await tmdbFetch(`${mediaType}/${tmdbId}/external_ids`);
     const imdbId =
@@ -316,12 +320,14 @@ export async function fetchCredits(
   apiKey: string,
   mediaType: "movie" | "tv",
   tmdbId: number,
+  language = "en-US",
 ): Promise<CreditsResult> {
-  const cacheKey = `medias:credits:${mediaType}:${tmdbId}`;
+  const lang = toTmdbLanguage(language);
+  const cacheKey = `medias:credits:${mediaType}:${tmdbId}:${lang}`;
   const cached = await getJsonCache<CreditsResult>(cacheKey);
   if (cached) return cached;
 
-  const tmdbFetch = makeTmdbFetch(apiKey);
+  const tmdbFetch = makeTmdbFetch(apiKey, lang);
   try {
     const data = await tmdbFetch(`${mediaType}/${tmdbId}/credits`);
     const castArr = Array.isArray(data?.cast)
@@ -352,17 +358,32 @@ export async function fetchCredits(
   }
 }
 
+const LOCALE_TO_TMDB: Record<string, string> = {
+  fr: "fr-FR",
+  en: "en-US",
+};
+
+/** Maps i18n locale or TMDB-style tag to a TMDB `language` query value. */
+export function toTmdbLanguage(locale: string): string {
+  return LOCALE_TO_TMDB[locale] ?? LOCALE_TO_TMDB[locale.split("-")[0]] ?? "en-US";
+}
+
+/** TMDB `language` for library rows (title, overview, episode names) — always English. */
+export const TMDB_LANGUAGE_LIBRARY_PERSISTENCE = "en-US";
+
 export async function fetchMediaDetails(
   apiKey: string,
   mediaType: "movie" | "tv",
   tmdbId: number,
+  language = "en-US",
 ): Promise<DetailsResult> {
-  const cacheKey = `medias:tmdb-details-v4:${mediaType}:${tmdbId}`;
+  const tmdbLanguage = toTmdbLanguage(language);
+  const cacheKey = `medias:tmdb-details-v4:${mediaType}:${tmdbId}:${tmdbLanguage}`;
   const cached = await getJsonCache<DetailsResult>(cacheKey);
   if (cached) return cached;
 
   const empty = emptyMediaDetails();
-  const tmdbFetch = makeTmdbFetch(apiKey);
+  const tmdbFetch = makeTmdbFetch(apiKey, tmdbLanguage);
 
   try {
     const data = await tmdbFetch(`${mediaType}/${tmdbId}`, {
@@ -392,7 +413,10 @@ export async function fetchMediaDetails(
           .filter((g): g is TmdbGenre => g !== null)
       : [];
 
-    const original_title = toStringOrNull(data.original_title);
+    const original_title =
+      mediaType === "movie"
+        ? toStringOrNull(data.original_title)
+        : toStringOrNull(data.original_name ?? data.original_title);
     const original_language = toStringOrNull(data.original_language);
 
     const production_countries: TmdbProductionCountry[] = Array.isArray(
@@ -680,8 +704,10 @@ export type TmdbCollectionData = {
 export async function fetchCollectionDetails(
   apiKey: string,
   collectionId: number,
+  language = "en-US",
 ): Promise<TmdbCollectionData | null> {
-  const cacheKey = `medias:collection:${collectionId}`;
+  const lang = toTmdbLanguage(language);
+  const cacheKey = `medias:collection:${collectionId}:${lang}`;
   const cached = await getJsonCache<TmdbCollectionData>(cacheKey);
   if (cached) return cached;
 
@@ -690,7 +716,7 @@ export async function fetchCollectionDetails(
       `https://api.themoviedb.org/3/collection/${collectionId}`,
     );
     url.searchParams.set("api_key", apiKey);
-    url.searchParams.set("language", "en-US");
+    url.searchParams.set("language", lang);
     const res = await fetch(url.toString(), {
       headers: { Accept: "application/json" },
     });
@@ -754,8 +780,10 @@ export async function fetchWatchProviders(
   mediaType: "movie" | "tv",
   tmdbId: number,
   region: string,
+  language = "en-US",
 ): Promise<TmdbWatchProvidersResult> {
-  const cacheKey = `medias:providers:${mediaType}:${tmdbId}:${region}`;
+  const lang = toTmdbLanguage(language);
+  const cacheKey = `medias:providers:${mediaType}:${tmdbId}:${region}:${lang}`;
   const cached = await getJsonCache<TmdbWatchProvidersResult>(cacheKey);
   if (cached) return cached;
 
@@ -774,6 +802,7 @@ export async function fetchWatchProviders(
       `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/watch/providers`,
     );
     url.searchParams.set("api_key", apiKey);
+    url.searchParams.set("language", lang);
     const res = await fetch(url.toString(), {
       headers: { Accept: "application/json" },
     });

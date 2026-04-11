@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@hously/api/db";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
+import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
@@ -56,6 +57,7 @@ function pickDigitalRelease(
 
 /**
  * Upsert native library media from TMDB (shared by POST /api/library and dashboard flows).
+ * Titles, overviews, and episode names are always fetched in English for stable DB storage.
  */
 export async function addOrUpdateLibraryFromTmdb(opts: {
   tmdb_id: number;
@@ -71,6 +73,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
     mediaSettings?.defaultQualityProfileId ?? null;
 
   const { tmdb_id, type } = opts;
+  const lang = { language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE };
 
   if (type === "movie") {
     const [details, releaseDatesData] = await Promise.all([
@@ -79,13 +82,13 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
         release_date: string;
         poster_path: string | null;
         overview: string;
-      }>(`movie/${tmdb_id}`, key),
+      }>(`movie/${tmdb_id}`, key, lang),
       tmdbFetch<{
         results: Array<{
           iso_3166_1: string;
           release_dates: Array<{ type: number; release_date: string }>;
         }>;
-      }>(`movie/${tmdb_id}/release_dates`, key),
+      }>(`movie/${tmdb_id}/release_dates`, key, lang),
     ]);
 
     const year = details.release_date
@@ -129,7 +132,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
     poster_path: string | null;
     overview: string;
     seasons: Array<{ season_number: number; episode_count: number }>;
-  }>(`tv/${tmdb_id}`, key);
+  }>(`tv/${tmdb_id}`, key, lang);
 
   const year = details.first_air_date
     ? parseInt(details.first_air_date.slice(0, 4), 10)
@@ -170,7 +173,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
           name: string;
           air_date: string | null;
         }>;
-      }>(`tv/${tmdb_id}/season/${s.season_number}`, key);
+      }>(`tv/${tmdb_id}/season/${s.season_number}`, key, lang);
 
       await Promise.all(
         seasonData.episodes.map((ep) =>

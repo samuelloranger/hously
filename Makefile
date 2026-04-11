@@ -1,4 +1,4 @@
-.PHONY: help install build typecheck dev dev-api dev-services dev-web down rebuild test lint clean migrate-dev migrate-deploy migrate-push migrate-studio db-refresh-collation cc
+.PHONY: help install build typecheck dev dev-api dev-services dev-web down rebuild test lint clean migrate-dev migrate-deploy migrate-push migrate-studio db-refresh-collation library-refresh-titles-dry library-refresh-titles-apply cc
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -94,6 +94,12 @@ migrate-push: ## Push schema changes to database (development only, bypasses mig
 migrate-studio: ## Open Prisma Studio for database exploration
 	@echo "Opening Prisma Studio..."
 	cd apps/api && bun run db:studio
+
+library-refresh-titles-dry: ## Preview en-US TMDB refresh for library titles (dry-run, no DB writes)
+	cd apps/api && bun --env-file=../../.env src/scripts/refreshLibraryTitlesFromTmdb.ts
+
+library-refresh-titles-apply: ## Apply en-US TMDB metadata to all library_media (run dry-run first)
+	cd apps/api && bun --env-file=../../.env src/scripts/refreshLibraryTitlesFromTmdb.ts --apply
 
 db-refresh-collation: ## Refresh PostgreSQL collation version for template1 and app DB (use DB_NAME/DB_USER overrides)
 	@DB_NAME=$${DB_NAME:-hously}; \

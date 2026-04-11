@@ -422,11 +422,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         if (!media) return notFound(set, "Library item not found");
         // For shows, episode-level status governs grabs — don't gate on media status
         if (media.type === "movie") {
-          if (
-            media.status === "downloading" ||
-            media.status === "downloaded" ||
-            media.status === "skipped"
-          ) {
+          if (media.status === "downloading") {
             return badRequest(
               set,
               "This item cannot be grabbed in its current state",
@@ -584,11 +580,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         });
         if (!ep) return notFound(set, "Episode not found");
 
-        if (
-          ep.status === "downloading" ||
-          ep.status === "downloaded" ||
-          ep.status === "skipped"
-        ) {
+        if (ep.status === "downloading") {
           return badRequest(
             set,
             "This episode cannot be grabbed in its current state",
@@ -747,6 +739,23 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         }
 
         await prisma.mediaFile.delete({ where: { id: fileId } });
+
+        // If the parent media item now has no files left, reset it to "wanted"
+        if (file.mediaId !== null) {
+          const remaining = await prisma.mediaFile.count({
+            where: { mediaId: file.mediaId },
+          });
+          if (remaining === 0) {
+            await prisma.libraryMedia.updateMany({
+              where: {
+                id: file.mediaId,
+                status: { notIn: ["wanted", "skipped"] },
+              },
+              data: { status: "wanted", searchAttempts: 0 },
+            });
+          }
+        }
+
         return { success: true };
       } catch {
         return serverError(set, "Failed to delete file");

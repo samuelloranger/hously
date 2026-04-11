@@ -6,6 +6,7 @@ import { requireAdmin } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, serverError } from "@hously/api/errors";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
+import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
 import { listVideoFilesUnder } from "@hously/api/utils/medias/fileIdentifier";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
@@ -200,6 +201,7 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
               }>;
             }>("search/movie", key, {
               query: title,
+              language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE,
               ...(year ? { year: String(year) } : {}),
             });
             const top = search.results[0];
@@ -217,7 +219,9 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
               release_date: string;
               poster_path: string | null;
               overview: string;
-            }>(`movie/${top.id}`, key);
+            }>(`movie/${top.id}`, key, {
+              language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE,
+            });
 
             const y = details.release_date
               ? parseInt(details.release_date.slice(0, 4), 10)
@@ -246,7 +250,10 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
                 name: string;
                 first_air_date?: string;
               }>;
-            }>("search/tv", key, { query: title });
+            }>("search/tv", key, {
+              query: title,
+              language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE,
+            });
             const top = search.results[0];
             if (!top) {
               unmatched.push(base);
@@ -262,7 +269,9 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
               first_air_date: string;
               poster_path: string | null;
               overview: string;
-            }>(`tv/${top.id}`, key);
+            }>(`tv/${top.id}`, key, {
+              language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE,
+            });
 
             const y = details.first_air_date
               ? parseInt(details.first_air_date.slice(0, 4), 10)

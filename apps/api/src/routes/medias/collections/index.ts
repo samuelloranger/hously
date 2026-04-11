@@ -7,15 +7,20 @@ import {
   loadTmdbConfig,
   fetchMediaDetails,
   fetchCollectionDetails,
+  toTmdbLanguage,
 } from "@hously/api/utils/medias/tmdbFetchers";
 
 export const mediasCollectionsRoutes = new Elysia()
   .use(auth)
   .use(requireUser)
-  .get("/collections/missing", async ({ set }) => {
+  .get("/collections/missing", async ({ set, query }) => {
     try {
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig) return { collections: [] };
+
+      const language = toTmdbLanguage(
+        (query as Record<string, string | undefined>).language || "en-US",
+      );
 
       const ownedMovies = await prisma.libraryMedia.findMany({
         where: { type: "movie" },
@@ -34,7 +39,7 @@ export const mediasCollectionsRoutes = new Elysia()
         const batch = tmdbIds.slice(i, i + BATCH_SIZE);
         const results = await Promise.all(
           batch.map((id) =>
-            fetchMediaDetails(tmdbConfig.api_key, "movie", id).catch(
+            fetchMediaDetails(tmdbConfig.api_key, "movie", id, language).catch(
               () => null,
             ),
           ),
@@ -55,7 +60,7 @@ export const mediasCollectionsRoutes = new Elysia()
 
       const collectionResults = await Promise.all(
         Array.from(collectionIds).map((id) =>
-          fetchCollectionDetails(tmdbConfig.api_key, id),
+          fetchCollectionDetails(tmdbConfig.api_key, id, language),
         ),
       );
 

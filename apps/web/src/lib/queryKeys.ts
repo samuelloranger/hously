@@ -166,8 +166,13 @@ export const queryKeys = {
     explore: () => [...queryKeys.medias.all, "explore"] as const,
     similar: (tmdbId: number, type: "movie" | "tv") =>
       [...queryKeys.medias.all, "similar", tmdbId, type] as const,
-    tmdbSearch: (query: string) =>
-      [...queryKeys.medias.all, "tmdb-search", query] as const,
+    tmdbSearch: (query: string, language?: string) =>
+      [
+        ...queryKeys.medias.all,
+        "tmdb-search",
+        query,
+        language ?? "en-US",
+      ] as const,
     prowlarrInteractiveSearch: (
       query: string,
       libraryMediaId?: number | null,
@@ -181,35 +186,68 @@ export const queryKeys = {
         libraryMediaId ?? null,
         season ?? null,
       ] as const,
-    providers: (mediaType: "movie" | "tv", tmdbId: number, region?: string) =>
+    providers: (
+      mediaType: "movie" | "tv",
+      tmdbId: number,
+      region?: string,
+      language?: string,
+    ) =>
       [
         ...queryKeys.medias.all,
         "providers",
         mediaType,
         tmdbId,
         region ?? "CA",
+        language ?? "en-US",
       ] as const,
-    streamingProviders: (region?: string, type?: "movie" | "tv") =>
+    streamingProviders: (
+      region?: string,
+      type?: "movie" | "tv",
+      language?: string,
+    ) =>
       [
         ...queryKeys.medias.all,
         "streaming-providers",
         region ?? "CA",
         type ?? "movie",
+        language ?? "en-US",
       ] as const,
-    trailer: (mediaType: "movie" | "tv", tmdbId: number) =>
-      [...queryKeys.medias.all, "trailer", mediaType, tmdbId] as const,
-    genres: (type: "movie" | "tv") =>
-      [...queryKeys.medias.all, "genres", type] as const,
-    ratings: (mediaType: "movie" | "tv", tmdbId: number) =>
-      [...queryKeys.medias.all, "ratings", mediaType, tmdbId] as const,
-    credits: (mediaType: "movie" | "tv", tmdbId: number) =>
-      [...queryKeys.medias.all, "credits", mediaType, tmdbId] as const,
-    tmdbDetails: (mediaType: "movie" | "tv", tmdbId: number) =>
-      [...queryKeys.medias.all, "tmdb-details", mediaType, tmdbId] as const,
+    trailer: (mediaType: "movie" | "tv", tmdbId: number, language?: string) =>
+      [
+        ...queryKeys.medias.all,
+        "trailer",
+        mediaType,
+        tmdbId,
+        language ?? "en-US",
+      ] as const,
+    genres: (type: "movie" | "tv", language?: string) =>
+      [...queryKeys.medias.all, "genres", type, language ?? "en-US"] as const,
+    ratings: (mediaType: "movie" | "tv", tmdbId: number, language?: string) =>
+      [
+        ...queryKeys.medias.all,
+        "ratings",
+        mediaType,
+        tmdbId,
+        language ?? "en-US",
+      ] as const,
+    credits: (mediaType: "movie" | "tv", tmdbId: number, language?: string) =>
+      [
+        ...queryKeys.medias.all,
+        "credits",
+        mediaType,
+        tmdbId,
+        language ?? "en-US",
+      ] as const,
+    tmdbDetails: (mediaType: "movie" | "tv", tmdbId: number, language?: string) =>
+      [...queryKeys.medias.all, "tmdb-details", mediaType, tmdbId, language ?? "en-US"] as const,
     watchlist: () => [...queryKeys.medias.all, "watchlist"] as const,
-    missingCollections: () =>
-      [...queryKeys.medias.all, "missing-collections"] as const,
-    modalData: (mediaType: "movie" | "tv", tmdbId: number, region?: string) =>
+    missingCollections: (language?: string) =>
+      [
+        ...queryKeys.medias.all,
+        "missing-collections",
+        language ?? "en-US",
+      ] as const,
+    modalData: (mediaType: "movie" | "tv", tmdbId: number, region?: string, language?: string) =>
       [
         ...queryKeys.medias.all,
         "modal",
@@ -217,7 +255,10 @@ export const queryKeys = {
         mediaType,
         tmdbId,
         region ?? "CA",
+        language ?? "en-US",
       ] as const,
+    modalDataAll: (mediaType: "movie" | "tv", tmdbId: number) =>
+      [...queryKeys.medias.all, "modal", "v2", mediaType, tmdbId] as const,
     discover: (params: {
       type: "movie" | "tv";
       provider_id?: number | null;

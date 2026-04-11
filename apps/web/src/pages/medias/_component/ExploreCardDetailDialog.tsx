@@ -54,7 +54,7 @@ export function ExploreCardDetailDialog({
   onClose,
   onAdded,
 }: ExploreCardDetailDialogProps) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const [activeTab, setActiveTab] = useState<TabKey>("info");
   const [imageError, setImageError] = useState(false);
 
@@ -68,9 +68,8 @@ export function ExploreCardDetailDialog({
     item.media_type,
     item.tmdb_id,
     undefined,
-    {
-      enabled: isOpen,
-    },
+    { enabled: isOpen },
+    i18n.language,
   );
 
   const [loadedBackdropUrl, setLoadedBackdropUrl] = useState<string | null>(

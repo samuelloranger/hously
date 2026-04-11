@@ -7,13 +7,13 @@ import { DiscoverPanel } from "@/pages/medias/_component/DiscoverPanel";
 type Tab = "discover" | "search";
 
 const TABS: { id: Tab; icon: typeof Compass; labelKey: string }[] = [
-  { id: "discover", icon: Compass, labelKey: "medias.tabs.discover" },
   { id: "search", icon: Search, labelKey: "medias.tabs.search" },
+  { id: "discover", icon: Compass, labelKey: "medias.tabs.discover" },
 ];
 
 export function MediasExplore() {
   const { t } = useTranslation("common");
-  const [activeTab, setActiveTab] = useState<Tab>("discover");
+  const [activeTab, setActiveTab] = useState<Tab>("search");
 
   return (
     <div className="pb-10">
@@ -46,14 +46,14 @@ export function MediasExplore() {
         </div>
       </div>
 
-      {/* ── Panels ─────────────────────────────────────────── */}
+      {/* ── Panels — TMDB search first (desktop + mobile priority) ─ */}
       <div className="space-y-6">
-        <div className={activeTab !== "discover" ? "hidden md:block" : ""}>
-          <DiscoverPanel onAdded={() => {}} />
-        </div>
-
         <div className={activeTab !== "search" ? "hidden md:block" : ""}>
           <TmdbMediaSearchPanel onAdded={() => {}} />
+        </div>
+
+        <div className={activeTab !== "discover" ? "hidden md:block" : ""}>
+          <DiscoverPanel onAdded={() => {}} />
         </div>
       </div>
     </div>

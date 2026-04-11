@@ -25,7 +25,7 @@ type PageTab = "info" | "similar" | "search" | "management";
 export function LibraryItemPage() {
   const { libraryId } = useParams({ from: "/library/$libraryId" });
   const navigate = useNavigate({ from: "/library/$libraryId" });
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const search = useSearch({
     from: "/library/$libraryId",
   }) as LibraryItemSearchParams;
@@ -47,6 +47,7 @@ export function LibraryItemPage() {
     item?.tmdb_id ?? 0,
     undefined,
     { enabled: !!item },
+    i18n.language,
   );
 
   const addToWatchlist = useAddToWatchlist();
@@ -63,7 +64,7 @@ export function LibraryItemPage() {
   const providers = modalData?.providers ?? null;
   const isInWatchlist = modalData?.watchlist_status ?? false;
 
-  const overview = item?.overview ?? detailsData?.overview ?? null;
+  const overview = detailsData?.overview ?? item?.overview ?? null;
   const voteAverage = detailsData?.vote_average ?? null;
 
   const tabs = useMemo(() => {
@@ -240,6 +241,7 @@ export function LibraryItemPage() {
                 episodeSearchCtx={episodeSearchCtx}
                 seasonSearchCtx={seasonSearchCtx}
                 onClearEpisodeCtx={() => setEpisodeSearchCtx(null)}
+                tmdbOriginalTitle={detailsData?.original_title ?? null}
               />
             </div>
           )}
