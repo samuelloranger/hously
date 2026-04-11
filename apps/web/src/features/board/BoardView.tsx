@@ -19,7 +19,15 @@ import {
   type DragEndEvent,
   type DragOverEvent,
 } from "@dnd-kit/dom";
-import { Archive, Filter, LayoutGrid, List, Plus, X } from "lucide-react";
+import {
+  Archive,
+  Filter,
+  LayoutGrid,
+  List,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
@@ -123,6 +131,33 @@ function toSyncPayload(cols: Record<BoardKanbanStatusApi, BoardTask[]>) {
   );
 }
 
+/** Move all tasks in `selectedIds` to `targetStatus` (appended at end). Works on full column state. */
+function bulkMoveTasksToColumn(
+  cols: Record<BoardKanbanStatusApi, BoardTask[]>,
+  selectedIds: number[],
+  targetStatus: BoardKanbanStatusApi,
+): Record<BoardKanbanStatusApi, BoardTask[]> {
+  const idSet = new Set(selectedIds);
+  const collected: BoardTask[] = [];
+  const next: Record<BoardKanbanStatusApi, BoardTask[]> = {
+    on_hold: [],
+    todo: [],
+    in_progress: [],
+    done: [],
+  };
+  for (const s of BOARD_KANBAN_STATUSES) {
+    for (const task of cols[s]) {
+      if (idSet.has(task.id)) {
+        collected.push(task);
+      } else {
+        next[s].push(task);
+      }
+    }
+  }
+  next[targetStatus] = [...next[targetStatus], ...collected];
+  return normalizeColumns(next);
+}
+
 function applyFilters(tasks: BoardTask[], filters: BoardFilters): BoardTask[] {
   return tasks.filter((task) => {
     if (filters.priority && task.priority !== filters.priority) return false;
@@ -213,8 +248,13 @@ export function BoardView() {
   const [restoringId, setRestoringId] = useState<number | null>(null);
   // View mode — declared early so the archive fetch can be gated
   const [viewMode, setViewMode] = useState<ViewMode>("board");
+  const [selectedTaskIds, setSelectedTaskIds] = useState<number[]>([]);
   const { data: archivedData } = useArchivedBoardTasks(viewMode === "archive");
   const archivedTasks = archivedData?.tasks ?? [];
+
+  useEffect(() => {
+    if (viewMode !== "board") setSelectedTaskIds([]);
+  }, [viewMode]);
 
   useJsonEventSource<BoardTasksResponse>({
     url: BOARD_TASKS_ENDPOINTS.STREAM,
@@ -233,6 +273,11 @@ export function BoardView() {
     [allTasks],
   );
   const backlogTasks = allTasks;
+
+  useEffect(() => {
+    const valid = new Set(kanbanTasks.map((t) => t.id));
+    setSelectedTaskIds((prev) => prev.filter((id) => valid.has(id)));
+  }, [kanbanTasks]);
 
   const groupedFromServer = useMemo(
     () => groupTasks(kanbanTasks),
@@ -295,8 +340,87 @@ export function BoardView() {
   // Drawer
   const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null);
 
-  const handleTaskClick = useCallback((task: BoardTask) => {
+  const handleBoardCardClick = useCallback(
+    (task: BoardTask, e: React.MouseEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        setSelectedTaskIds((prev) =>
+          prev.includes(task.id)
+            ? prev.filter((id) => id !== task.id)
+            : [...prev, task.id],
+        );
+        return;
+      }
+      setSelectedTask(task);
+    },
+    [],
+  );
+
+  const toggleTaskSelect = useCallback((taskId: number) => {
+    setSelectedTaskIds((prev) =>
+      prev.includes(taskId)
+        ? prev.filter((id) => id !== taskId)
+        : [...prev, taskId],
+    );
+  }, []);
+
+  const handleBulkMoveToColumn = useCallback(
+    (targetStatus: BoardKanbanStatusApi) => {
+      if (selectedTaskIds.length === 0) return;
+      const next = bulkMoveTasksToColumn(
+        columnsRef.current,
+        selectedTaskIds,
+        targetStatus,
+      );
+      setColumns(next);
+      syncMutation.mutate(
+        { tasks: toSyncPayload(next) },
+        {
+          onSuccess: () => setSelectedTaskIds([]),
+        },
+      );
+    },
+    [selectedTaskIds, syncMutation],
+  );
+
+  const handleBulkArchive = useCallback(async () => {
+    if (selectedTaskIds.length === 0) return;
+    const ids = [...selectedTaskIds];
+    try {
+      await Promise.all(
+        ids.map((id) => archiveMutation.mutateAsync({ id, archived: true })),
+      );
+      setSelectedTaskIds([]);
+      setSelectedTask((cur) => (cur && ids.includes(cur.id) ? null : cur));
+    } catch {
+      /* mutation error surfaced elsewhere */
+    }
+  }, [selectedTaskIds, archiveMutation]);
+
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedTaskIds.length === 0) return;
+    const ids = [...selectedTaskIds];
+    if (!confirm(t("board.bulk.deleteConfirm", { count: ids.length }))) return;
+    try {
+      await Promise.all(ids.map((id) => deleteMutation.mutateAsync(id)));
+      setSelectedTaskIds([]);
+      setSelectedTask((cur) => (cur && ids.includes(cur.id) ? null : cur));
+    } catch {
+      /* mutation error surfaced elsewhere */
+    }
+  }, [selectedTaskIds, deleteMutation, t]);
+
+  const openTaskDrawer = useCallback((task: BoardTask) => {
     setSelectedTask(task);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setSelectedTaskIds((prev) => (prev.length > 0 ? [] : prev));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   // Keep drawer in sync with server data
@@ -518,6 +642,73 @@ export function BoardView() {
         </Button>
       </div>
 
+      {viewMode === "board" && selectedTaskIds.length > 0 && (
+        <div
+          className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-indigo-200/80 bg-indigo-50/90 px-3 py-2.5 dark:border-indigo-800/60 dark:bg-indigo-950/40"
+          role="region"
+          aria-label={t("board.bulk.barLabel")}
+        >
+          <span className="text-xs font-medium text-indigo-900 dark:text-indigo-100">
+            {t("board.bulk.selectedCount", { count: selectedTaskIds.length })}
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-1.5 text-xs text-indigo-800 dark:text-indigo-200">
+              <span className="sr-only">{t("board.bulk.moveToColumn")}</span>
+              <select
+                className="max-w-[11rem] rounded-md border border-indigo-200/80 bg-white px-2 py-1 text-xs font-medium text-neutral-800 outline-none dark:border-indigo-700/60 dark:bg-neutral-900 dark:text-neutral-100"
+                defaultValue=""
+                disabled={syncMutation.isPending}
+                onChange={(e) => {
+                  const v = e.target.value as BoardKanbanStatusApi;
+                  if (!v) return;
+                  handleBulkMoveToColumn(v);
+                  e.target.selectedIndex = 0;
+                }}
+              >
+                <option value="" disabled>
+                  {t("board.bulk.moveToPlaceholder")}
+                </option>
+                {BOARD_KANBAN_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {statusLabel(s)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 border-indigo-200 bg-white text-xs dark:border-indigo-700 dark:bg-neutral-900"
+              disabled={archiveMutation.isPending}
+              onClick={() => void handleBulkArchive()}
+            >
+              <Archive className="mr-1 h-3.5 w-3.5" />
+              {t("board.bulk.archive")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 border-red-200 bg-white text-xs text-red-700 hover:bg-red-50 dark:border-red-900 dark:bg-neutral-900 dark:text-red-400 dark:hover:bg-red-950/40"
+              disabled={deleteMutation.isPending}
+              onClick={() => void handleBulkDelete()}
+            >
+              <Trash2 className="mr-1 h-3.5 w-3.5" />
+              {t("board.bulk.delete")}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setSelectedTaskIds([])}
+              className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100/80 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
+            >
+              <X className="h-3.5 w-3.5" />
+              {t("board.bulk.clear")}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Create form */}
       {showCreate && (
         <div className="mb-4 flex flex-col gap-3 rounded-xl border border-neutral-200/80 bg-white p-4 dark:border-neutral-700/60 dark:bg-neutral-800 sm:flex-row sm:items-end">
@@ -724,7 +915,9 @@ export function BoardView() {
                       task={task}
                       columnId={status}
                       index={index}
-                      onClick={handleTaskClick}
+                      isSelected={selectedTaskIds.includes(task.id)}
+                      onToggleSelect={() => toggleTaskSelect(task.id)}
+                      onCardClick={handleBoardCardClick}
                     />
                   ))}
                   {filteredKanbanColumns[status].length === 0 && (
@@ -745,7 +938,7 @@ export function BoardView() {
       {viewMode === "backlog" && (
         <BacklogView
           tasks={filteredBacklogTasks}
-          onTaskClick={handleTaskClick}
+          onTaskClick={openTaskDrawer}
         />
       )}
 
@@ -753,7 +946,7 @@ export function BoardView() {
       {viewMode === "archive" && (
         <ArchiveView
           tasks={archivedTasks}
-          onTaskClick={handleTaskClick}
+          onTaskClick={openTaskDrawer}
           onRestore={(id) => {
             setRestoringId(id);
             archiveMutation.mutate(
