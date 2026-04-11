@@ -1,4 +1,5 @@
 import { useSortable } from "@dnd-kit/react/sortable";
+import { useTranslation } from "react-i18next";
 import type {
   BoardTask,
   BoardTaskPriorityApi,
@@ -12,7 +13,9 @@ interface BoardTaskCardProps {
   task: BoardTask;
   columnId: BoardTaskStatusApi;
   index: number;
-  onClick: (task: BoardTask) => void;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  onCardClick: (task: BoardTask, e: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
 const PRIORITY_DOT: Record<BoardTaskPriorityApi, string> = {
@@ -26,8 +29,11 @@ export function BoardTaskCard({
   task,
   columnId,
   index,
-  onClick,
+  isSelected,
+  onToggleSelect,
+  onCardClick,
 }: BoardTaskCardProps) {
+  const { t } = useTranslation("common");
   const { ref, handleRef, isDragging } = useSortable({
     id: task.id,
     index,
@@ -75,19 +81,40 @@ export function BoardTaskCard({
         opacity: isDragging ? 0.75 : 1,
         zIndex: isDragging ? 20 : undefined,
       }}
-      onClick={() => onClick(task)}
+      onClick={(e) => onCardClick(task, e)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && onClick(task)}
-      className="group cursor-pointer rounded-lg border border-neutral-200/90 bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:border-neutral-600/60 dark:bg-neutral-800 dark:hover:border-neutral-500/60"
+      onKeyDown={(e) => {
+        if (e.key === "Enter") onCardClick(task, e);
+      }}
+      className={cn(
+        "group cursor-pointer rounded-lg border bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:bg-neutral-800",
+        isSelected
+          ? "border-indigo-400 ring-1 ring-indigo-300/80 dark:border-indigo-500 dark:ring-indigo-600/50"
+          : "border-neutral-200/90 dark:border-neutral-600/60 dark:hover:border-neutral-500/60",
+      )}
     >
-      {/* Top row: slug + priority dot */}
-      <div className="mb-2 flex items-center justify-between">
-        <span className="font-mono text-[10px] font-semibold text-neutral-400 dark:text-neutral-500">
-          {task.slug}
-        </span>
+      {/* Top row: checkbox + slug + priority dot */}
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={(e) => {
+              e.stopPropagation();
+              onToggleSelect();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="h-3.5 w-3.5 shrink-0 rounded border-neutral-300 text-indigo-600 focus:ring-indigo-500 dark:border-neutral-600"
+            aria-label={t("board.bulk.selectTask")}
+          />
+          <span className="truncate font-mono text-[10px] font-semibold text-neutral-400 dark:text-neutral-500">
+            {task.slug}
+          </span>
+        </div>
         <span
-          className={cn("h-2 w-2 rounded-full", PRIORITY_DOT[task.priority])}
+          className={cn("h-2 w-2 shrink-0 rounded-full", PRIORITY_DOT[task.priority])}
           title={task.priority}
         />
       </div>

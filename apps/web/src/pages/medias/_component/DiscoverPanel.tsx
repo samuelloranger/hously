@@ -108,8 +108,8 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [page]);
 
-  const { data: providersData } = useStreamingProviders("CA", mediaType);
-  const { data: genresData } = useMediaGenres(mediaType);
+  const { data: providersData } = useStreamingProviders("CA", mediaType, lang);
+  const { data: genresData } = useMediaGenres(mediaType, lang);
 
   const { data, isLoading, isFetching } = useDiscoverMedias({
     type: mediaType,

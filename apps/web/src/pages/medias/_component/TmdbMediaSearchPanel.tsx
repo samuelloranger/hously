@@ -10,7 +10,7 @@ interface TmdbMediaSearchPanelProps {
 }
 
 export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const [input, setInput] = useState("");
   const [debounced, setDebounced] = useState("");
   const [selectedItem, setSelectedItem] = useState<TmdbMediaSearchItem | null>(
@@ -26,7 +26,10 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
   }, [trimmedInput]);
 
   const searchEnabled = debounced.length >= 2;
-  const searchQuery = useTmdbMediaSearch(debounced, { enabled: searchEnabled });
+  const searchQuery = useTmdbMediaSearch(debounced, {
+    enabled: searchEnabled,
+    language: i18n.language,
+  });
 
   const results = useMemo(
     () => searchQuery.data?.items ?? [],
@@ -101,11 +104,11 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
                           {item.release_year ?? t("medias.unknownYear")}
                         </p>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                          <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">
-                            {item.library_id != null && item.library_id > 0
-                              ? t("medias.tmdb.badgeLibrary")
-                              : t("medias.tmdb.badgeProwlarr")}
-                          </span>
+                          {item.library_id != null && item.library_id > 0 ? (
+                            <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">
+                              {t("medias.tmdb.badgeLibrary")}
+                            </span>
+                          ) : null}
                           {item.already_exists ? (
                             <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
                               {t("medias.tmdb.inLibrary")}

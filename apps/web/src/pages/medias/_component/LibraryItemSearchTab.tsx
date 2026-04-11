@@ -37,6 +37,8 @@ type Props = {
   episodeSearchCtx: EpisodeSearchCtx | null;
   seasonSearchCtx: number | null;
   onClearEpisodeCtx: () => void;
+  /** From TMDB details — original-language title (movies + TV) */
+  tmdbOriginalTitle: string | null;
 };
 
 export function LibraryItemSearchTab({
@@ -44,9 +46,24 @@ export function LibraryItemSearchTab({
   episodeSearchCtx,
   seasonSearchCtx,
   onClearEpisodeCtx,
+  tmdbOriginalTitle,
 }: Props) {
   const mediaItem = libraryToMediaItem(item);
   const { t } = useTranslation("common");
+
+  const epSuffix = episodeSearchCtx
+    ? ` S${String(episodeSearchCtx.season).padStart(2, "0")}E${String(episodeSearchCtx.episode).padStart(2, "0")}`
+    : "";
+
+  const localizedQuery = episodeSearchCtx
+    ? `${item.title}${epSuffix}`
+    : item.title;
+
+  const orig = tmdbOriginalTitle?.trim() || null;
+  const prowlarrQueryOriginal =
+    orig && orig.toLowerCase() !== item.title.trim().toLowerCase()
+      ? `${orig}${epSuffix}`
+      : null;
 
   return (
     <>
@@ -71,11 +88,8 @@ export function LibraryItemSearchTab({
         isActive
         media={mediaItem}
         libraryMediaId={item.id}
-        defaultProwlarrQuery={
-          episodeSearchCtx
-            ? `${item.title} S${String(episodeSearchCtx.season).padStart(2, "0")}E${String(episodeSearchCtx.episode).padStart(2, "0")}`
-            : item.title
-        }
+        defaultProwlarrQuery={localizedQuery}
+        prowlarrQueryOriginal={prowlarrQueryOriginal}
         episodeId={episodeSearchCtx?.id ?? null}
         defaultSeason={seasonSearchCtx}
       />

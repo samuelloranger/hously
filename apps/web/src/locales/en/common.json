@@ -481,7 +481,20 @@
     "columnStatus": "Status",
     "columnRestore": "Restore",
     "restoreTask": "Restore task",
-    "restore": "Restore"
+    "restore": "Restore",
+    "bulk": {
+      "barLabel": "Bulk actions for selected tasks",
+      "selectedCount": "{{count}} selected",
+      "moveToColumn": "Move to column",
+      "moveToPlaceholder": "Move to…",
+      "archive": "Archive",
+      "delete": "Delete",
+      "clear": "Clear",
+      "deleteConfirm": "Delete {{count}} tasks?",
+      "confirmYes": "Delete",
+      "confirmNo": "Cancel",
+      "selectTask": "Select task"
+    }
   },
   "chores": {
     "title": "Chores",
@@ -1437,6 +1450,10 @@
       "minQuery": "Type at least 2 characters to search Prowlarr.",
       "resultsVisible": "{{visible}} of {{total}} releases",
       "hiddenCount": "{{count}} hidden",
+      "useOriginalTitleHint": "Click to search using the original-language title",
+      "useLocalizedTitleHint": "Click to search using the localized title (English/French)",
+      "titleBadgeOriginal": "Original",
+      "titleBadgeLocalized": "Locale",
       "resetView": "Reset view",
       "sortLabel": "Sort by",
       "sortOptions": {

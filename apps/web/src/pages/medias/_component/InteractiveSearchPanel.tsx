@@ -37,8 +37,10 @@ export interface InteractiveSearchPanelProps {
   mode?: "arr" | "prowlarr";
   /** Native library row id — enables quality scoring on Prowlarr results */
   libraryMediaId?: number | null;
-  /** Prefill Prowlarr query when opening (e.g. media title) */
+  /** Prefill Prowlarr query when opening (e.g. media title) — localized EN/FR (UI) title */
   defaultProwlarrQuery?: string | null;
+  /** Same query shape but using TMDB original-language title; enables title toggle */
+  prowlarrQueryOriginal?: string | null;
   /** Episode to link the grab to (shows only) */
   episodeId?: number | null;
   /** Pre-select a season (number) or complete series ("complete") when opening */
@@ -67,6 +69,7 @@ export function InteractiveSearchPanel({
   mode = "prowlarr",
   libraryMediaId = null,
   defaultProwlarrQuery = null,
+  prowlarrQueryOriginal = null,
   episodeId = null,
   defaultSeason = null,
   onDownloadSuccess,
@@ -79,9 +82,16 @@ export function InteractiveSearchPanel({
   const sourceId = media?.source_id ?? null;
   const canRenderBody = isProwlarrMode || (media != null && sourceId != null);
 
+  const localizedProwlQuery = defaultProwlarrQuery?.trim() ?? "";
+  const originalProwlQuery = prowlarrQueryOriginal?.trim() ?? "";
+  const canToggleProwlarrTitle =
+    isProwlarrMode &&
+    originalProwlQuery.length >= 2 &&
+    originalProwlQuery !== localizedProwlQuery;
+
   const buildInitialFilters = (): FilterState => ({
     filterQuery: "",
-    prowlarrApiQuery: defaultProwlarrQuery?.trim() ?? "",
+    prowlarrApiQuery: localizedProwlQuery,
     showFilters: false,
     hideRejected: true,
     sortBy: libId ? "quality" : "seeders",
@@ -140,7 +150,7 @@ export function InteractiveSearchPanel({
     setFilters(buildInitialFilters());
     setPendingReleaseKey(null);
     // buildInitialFilters reads defaultProwlarrQuery, defaultSeason, libId from closure
-  }, [isActive, media?.id, defaultProwlarrQuery, defaultSeason, libId]);
+  }, [isActive, media?.id, defaultProwlarrQuery, prowlarrQueryOriginal, defaultSeason, libId]);
 
   useEffect(() => {
     if (!isActive) return;
@@ -148,7 +158,21 @@ export function InteractiveSearchPanel({
       searchInputRef.current?.focus();
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [isActive, media?.id, defaultProwlarrQuery, libId]);
+  }, [isActive, media?.id, defaultProwlarrQuery, prowlarrQueryOriginal, libId]);
+
+  const toggleProwlarrTitleVariant = () => {
+    if (!canToggleProwlarrTitle) return;
+    setFilters((prev) => ({
+      ...prev,
+      prowlarrApiQuery:
+        prev.prowlarrApiQuery === originalProwlQuery
+          ? localizedProwlQuery
+          : originalProwlQuery,
+    }));
+  };
+
+  const isOriginalTitleQuery =
+    canToggleProwlarrTitle && prowlarrApiQuery === originalProwlQuery;
 
   const trackerOptions = useMemo<FilterOption[]>(() => {
     const options = new Map<string, string>();
@@ -476,14 +500,48 @@ export function InteractiveSearchPanel({
                   {t("medias.interactive.hiddenCount", { count: hiddenCount })}
                 </span>
               )}
-              <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] dark:bg-neutral-800 flex items-center gap-1 max-w-[200px]">
-                <span className="text-neutral-400 shrink-0">Prowlarr:</span>
-                <span
-                  className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                  title={prowlarrApiQuery}
-                >
-                  {prowlarrApiQuery || "…"}
-                </span>
+              <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] dark:bg-neutral-800 flex items-center gap-1 max-w-[min(100%,280px)]">
+                {canToggleProwlarrTitle ? (
+                  <button
+                    type="button"
+                    onClick={toggleProwlarrTitleVariant}
+                    title={
+                      isOriginalTitleQuery
+                        ? t("medias.interactive.useLocalizedTitleHint")
+                        : t("medias.interactive.useOriginalTitleHint")
+                    }
+                    className="flex min-w-0 flex-1 items-center gap-1 text-left transition-colors hover:bg-neutral-200/80 dark:hover:bg-neutral-700/80 rounded-md -mx-0.5 px-0.5"
+                  >
+                    <span className="text-neutral-400 shrink-0">Prowlarr:</span>
+                    <span
+                      className="truncate font-medium text-neutral-700 dark:text-neutral-200"
+                      title={prowlarrApiQuery}
+                    >
+                      {prowlarrApiQuery || "…"}
+                    </span>
+                    <span
+                      className={`shrink-0 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wide ${
+                        isOriginalTitleQuery
+                          ? "bg-amber-200/80 text-amber-900 dark:bg-amber-900/50 dark:text-amber-100"
+                          : "bg-indigo-200/70 text-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-100"
+                      }`}
+                    >
+                      {isOriginalTitleQuery
+                        ? t("medias.interactive.titleBadgeOriginal")
+                        : t("medias.interactive.titleBadgeLocalized")}
+                    </span>
+                  </button>
+                ) : (
+                  <>
+                    <span className="text-neutral-400 shrink-0">Prowlarr:</span>
+                    <span
+                      className="truncate font-medium text-neutral-700 dark:text-neutral-200"
+                      title={prowlarrApiQuery}
+                    >
+                      {prowlarrApiQuery || "…"}
+                    </span>
+                  </>
+                )}
               </span>
             </div>
 

@@ -20,6 +20,7 @@ import {
   emptyMediaDetails,
   fetchMediaDetails,
   fetchWatchProviders,
+  toTmdbLanguage,
 } from "@hously/api/utils/medias/tmdbFetchers";
 
 export const mediasTmdbRoutes = new Elysia()
@@ -58,10 +59,13 @@ export const mediasTmdbRoutes = new Elysia()
         }
 
         const searchUrl = new URL("https://api.themoviedb.org/3/search/multi");
+        const language = toTmdbLanguage(
+          (query as Record<string, string | undefined>).language || "en-US",
+        );
         searchUrl.searchParams.set("api_key", tmdbConfig.api_key);
         searchUrl.searchParams.set("query", q);
         searchUrl.searchParams.set("include_adult", "false");
-        searchUrl.searchParams.set("language", "en-US");
+        searchUrl.searchParams.set("language", language);
         searchUrl.searchParams.set("page", "1");
 
         const searchRes = await fetch(searchUrl.toString(), {
@@ -111,6 +115,7 @@ export const mediasTmdbRoutes = new Elysia()
     {
       query: t.Object({
         q: t.String(),
+        language: t.Optional(t.String()),
       }),
     },
   )
@@ -128,8 +133,9 @@ export const mediasTmdbRoutes = new Elysia()
         return badRequest(set, "TMDB is not configured");
       }
 
-      const language =
-        (query as Record<string, string | undefined>).language || "en-US";
+      const language = toTmdbLanguage(
+        (query as Record<string, string | undefined>).language || "en-US",
+      );
       const skipCache =
         (query as Record<string, string | undefined>).skipCache === "true";
 
@@ -325,7 +331,7 @@ export const mediasTmdbRoutes = new Elysia()
       }
 
       const q = query as Record<string, string | undefined>;
-      const language = q.language || "en-US";
+      const language = toTmdbLanguage(q.language || "en-US");
       const page = parseInt(q.page || "1", 10);
 
       const url = new URL(`https://api.themoviedb.org/3/${config.path}`);
@@ -403,7 +409,7 @@ export const mediasTmdbRoutes = new Elysia()
         return badRequest(set, "Invalid type, must be movie or tv");
       }
 
-      const language = typedQuery.language || "en-US";
+      const language = toTmdbLanguage(typedQuery.language || "en-US");
 
       try {
         const cacheKey = `medias:recommendations:${mediaType}:${tmdbId}:${language}`;
@@ -484,7 +490,8 @@ export const mediasTmdbRoutes = new Elysia()
     const q = query as Record<string, string | undefined>;
     const region = (q.region || "CA").toUpperCase();
     const type = q.type === "tv" ? "tv" : "movie";
-    const cacheKey = `medias:streaming-providers:${region}:${type}`;
+    const language = toTmdbLanguage(q.language || "en-US");
+    const cacheKey = `medias:streaming-providers:${region}:${type}:${language}`;
 
     const cached =
       await getJsonCache<{ id: number; name: string; logo_url: string }[]>(
@@ -506,6 +513,7 @@ export const mediasTmdbRoutes = new Elysia()
         `https://api.themoviedb.org/3/watch/providers/${type}`,
       );
       url.searchParams.set("api_key", tmdbConfig.api_key);
+      url.searchParams.set("language", language);
       url.searchParams.set("watch_region", region);
       const res = await fetch(url.toString(), {
         headers: { Accept: "application/json" },
@@ -546,7 +554,8 @@ export const mediasTmdbRoutes = new Elysia()
     }
 
     try {
-      const cacheKey = `medias:genres:${type}`;
+      const language = toTmdbLanguage(q.language || "en-US");
+      const cacheKey = `medias:genres:${type}:${language}`;
       const cached =
         await getJsonCache<{ id: number; name: string }[]>(cacheKey);
       if (cached) return { genres: cached };
@@ -562,6 +571,7 @@ export const mediasTmdbRoutes = new Elysia()
 
       const url = new URL(`https://api.themoviedb.org/3/genre/${type}/list`);
       url.searchParams.set("api_key", tmdbConfig.api_key);
+      url.searchParams.set("language", language);
       const res = await fetch(url.toString(), {
         headers: { Accept: "application/json" },
       });
@@ -595,7 +605,7 @@ export const mediasTmdbRoutes = new Elysia()
     const genreId = q.genre_id ? parseInt(q.genre_id, 10) : null;
     const sortBy = q.sort_by || "popularity.desc";
     const page = parseInt(q.page || "1", 10);
-    const language = q.language || "en-US";
+    const language = toTmdbLanguage(q.language || "en-US");
     const region = (q.region || "CA").toUpperCase();
     const originalLanguage = q.original_language || null;
 
@@ -739,62 +749,78 @@ export const mediasTmdbRoutes = new Elysia()
   })
   .get(
     "/ratings/:mediaType/:tmdbId",
-    async ({ set, params }) => {
+    async ({ set, params, query: queryParams }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;
       if (mediaType !== "movie" && mediaType !== "tv")
         return badRequest(set, "Invalid media type");
       const tmdbId = parseInt(tmdbIdStr, 10);
       if (!Number.isFinite(tmdbId) || tmdbId <= 0)
         return badRequest(set, "Invalid TMDB ID");
+      const language = toTmdbLanguage(
+        (queryParams as Record<string, string | undefined>).language ||
+          "en-US",
+      );
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig)
         return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
-      return fetchRatings(tmdbConfig.api_key, mediaType, tmdbId);
+      return fetchRatings(tmdbConfig.api_key, mediaType, tmdbId, language);
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) },
   )
   .get(
     "/trailer/:mediaType/:tmdbId",
-    async ({ set, params }) => {
+    async ({ set, params, query: queryParams }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;
       if (mediaType !== "movie" && mediaType !== "tv")
         return badRequest(set, "Invalid media type");
       const tmdbId = parseInt(tmdbIdStr, 10);
       if (!Number.isFinite(tmdbId) || tmdbId <= 0)
         return badRequest(set, "Invalid TMDB ID");
+      const language = toTmdbLanguage(
+        (queryParams as Record<string, string | undefined>).language ||
+          "en-US",
+      );
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig) return { key: null, name: null };
-      return fetchTrailer(tmdbConfig.api_key, mediaType, tmdbId);
+      return fetchTrailer(tmdbConfig.api_key, mediaType, tmdbId, language);
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) },
   )
   .get(
     "/credits/:mediaType/:tmdbId",
-    async ({ set, params }) => {
+    async ({ set, params, query: queryParams }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;
       if (mediaType !== "movie" && mediaType !== "tv")
         return badRequest(set, "Invalid media type");
       const tmdbId = parseInt(tmdbIdStr, 10);
       if (!Number.isFinite(tmdbId) || tmdbId <= 0)
         return badRequest(set, "Invalid TMDB ID");
+      const language = toTmdbLanguage(
+        (queryParams as Record<string, string | undefined>).language ||
+          "en-US",
+      );
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig) return { cast: [], directors: [] };
-      return fetchCredits(tmdbConfig.api_key, mediaType, tmdbId);
+      return fetchCredits(tmdbConfig.api_key, mediaType, tmdbId, language);
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) },
   )
   .get(
     "/tmdb-details/:mediaType/:tmdbId",
-    async ({ set, params }) => {
+    async ({ set, params, query: queryParams }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;
       if (mediaType !== "movie" && mediaType !== "tv")
         return badRequest(set, "Invalid media type");
       const tmdbId = parseInt(tmdbIdStr, 10);
       if (!Number.isFinite(tmdbId) || tmdbId <= 0)
         return badRequest(set, "Invalid TMDB ID");
+      const language = toTmdbLanguage(
+        (queryParams as Record<string, string | undefined>).language ||
+          "en-US",
+      );
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig) return emptyMediaDetails();
-      return fetchMediaDetails(tmdbConfig.api_key, mediaType, tmdbId);
+      return fetchMediaDetails(tmdbConfig.api_key, mediaType, tmdbId, language);
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) },
   )
@@ -812,6 +838,9 @@ export const mediasTmdbRoutes = new Elysia()
         (
           queryParams as Record<string, string | undefined>
         ).region?.toUpperCase() || "CA";
+      const language = toTmdbLanguage(
+        (queryParams as Record<string, string | undefined>).language || "en-US",
+      );
 
       const [tmdbConfig, watchlistItem] = await Promise.all([
         loadTmdbConfig(),
@@ -826,11 +855,17 @@ export const mediasTmdbRoutes = new Elysia()
 
       const [trailer, ratings, credits, details, providers, library_episodes] =
         await Promise.all([
-          fetchTrailer(tmdbConfig.api_key, mediaType, tmdbId),
-          fetchRatings(tmdbConfig.api_key, mediaType, tmdbId),
-          fetchCredits(tmdbConfig.api_key, mediaType, tmdbId),
-          fetchMediaDetails(tmdbConfig.api_key, mediaType, tmdbId),
-          fetchWatchProviders(tmdbConfig.api_key, mediaType, tmdbId, region),
+          fetchTrailer(tmdbConfig.api_key, mediaType, tmdbId, language),
+          fetchRatings(tmdbConfig.api_key, mediaType, tmdbId, language),
+          fetchCredits(tmdbConfig.api_key, mediaType, tmdbId, language),
+          fetchMediaDetails(tmdbConfig.api_key, mediaType, tmdbId, language),
+          fetchWatchProviders(
+            tmdbConfig.api_key,
+            mediaType,
+            tmdbId,
+            region,
+            language,
+          ),
           (async () => {
             if (mediaType !== "tv") return null;
             const show = await prisma.libraryMedia.findFirst({
@@ -879,6 +914,10 @@ export const mediasTmdbRoutes = new Elysia()
         (
           queryParams as Record<string, string | undefined>
         ).region?.toUpperCase() || "CA";
+      const language = toTmdbLanguage(
+        (queryParams as Record<string, string | undefined>).language ||
+          "en-US",
+      );
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig)
         return {
@@ -889,7 +928,13 @@ export const mediasTmdbRoutes = new Elysia()
           buy: [],
           link: null,
         };
-      return fetchWatchProviders(tmdbConfig.api_key, mediaType, tmdbId, region);
+      return fetchWatchProviders(
+        tmdbConfig.api_key,
+        mediaType,
+        tmdbId,
+        region,
+        language,
+      );
     },
     { params: t.Object({ mediaType: t.String(), tmdbId: t.String() }) },
   );

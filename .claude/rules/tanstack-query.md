@@ -5,9 +5,10 @@ paths: ["apps/web/**/*.tsx"]
 
 # TanStack Query Patterns
 
-## Hooks live in `apps/web/src/hooks/<domain>/`
+## Where hooks live
 
-All query/mutation hooks are defined under domain folders (for example `hooks/chores/useChores.ts`). Never define TanStack Query hooks directly in web components.
+- **Web-only hooks** — defined under domain folders in `apps/web/src/hooks/<domain>/` (e.g. `hooks/medias/useMedias.ts`, `hooks/board/useBoardTasks.ts`). Never define TanStack Query hooks directly in web components.
+- **Cross-app hooks** — defined in `apps/shared/src/hooks/` and imported via `@hously/shared` (e.g. `useChores`, `useCreateChore`). Any hook needed by more than one app must live here.
 
 ## Query hook pattern
 

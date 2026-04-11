@@ -2,30 +2,73 @@ export const MEDIAS_ENDPOINTS = {
   EXPLORE: "/api/medias/explore",
   SIMILAR: (tmdbId: number, type: "movie" | "tv") =>
     `/api/medias/similar/${encodeURIComponent(String(tmdbId))}?type=${encodeURIComponent(type)}`,
-  PROVIDERS: (mediaType: "movie" | "tv", tmdbId: number, region?: string) =>
-    `/api/medias/providers/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${region ? `?region=${encodeURIComponent(region)}` : ""}`,
-  TMDB_SEARCH: "/api/medias/tmdb-search",
+  PROVIDERS: (
+    mediaType: "movie" | "tv",
+    tmdbId: number,
+    region?: string,
+    language?: string,
+  ) => {
+    const p = new URLSearchParams();
+    if (region) p.set("region", region);
+    if (language) p.set("language", language);
+    const qs = p.toString();
+    return `/api/medias/providers/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs ? `?${qs}` : ""}`;
+  },
+  TMDB_SEARCH: (q: string, language?: string) => {
+    const p = new URLSearchParams({ q });
+    if (language) p.set("language", language);
+    return `/api/medias/tmdb-search?${p.toString()}`;
+  },
   PROWLARR_INTERACTIVE_SEARCH: "/api/medias/prowlarr/interactive-search",
   PROWLARR_INTERACTIVE_SEARCH_DOWNLOAD:
     "/api/medias/prowlarr/interactive-search/download",
-  STREAMING_PROVIDERS: (region?: string, type?: "movie" | "tv") =>
-    `/api/medias/streaming-providers?region=${encodeURIComponent(region ?? "CA")}&type=${encodeURIComponent(type ?? "movie")}`,
-  TRAILER: (mediaType: "movie" | "tv", tmdbId: number) =>
-    `/api/medias/trailer/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
-  GENRES: (type: "movie" | "tv") =>
-    `/api/medias/genres?type=${encodeURIComponent(type)}`,
-  RATINGS: (mediaType: "movie" | "tv", tmdbId: number) =>
-    `/api/medias/ratings/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
-  CREDITS: (mediaType: "movie" | "tv", tmdbId: number) =>
-    `/api/medias/credits/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
-  TMDB_DETAILS: (mediaType: "movie" | "tv", tmdbId: number) =>
-    `/api/medias/tmdb-details/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}`,
+  STREAMING_PROVIDERS: (region?: string, type?: "movie" | "tv", language?: string) => {
+    const p = new URLSearchParams({
+      region: region ?? "CA",
+      type: type ?? "movie",
+    });
+    if (language) p.set("language", language);
+    return `/api/medias/streaming-providers?${p.toString()}`;
+  },
+  TRAILER: (mediaType: "movie" | "tv", tmdbId: number, language?: string) => {
+    const qs = language
+      ? `?language=${encodeURIComponent(language)}`
+      : "";
+    return `/api/medias/trailer/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs}`;
+  },
+  GENRES: (type: "movie" | "tv", language?: string) => {
+    const p = new URLSearchParams({ type });
+    if (language) p.set("language", language);
+    return `/api/medias/genres?${p.toString()}`;
+  },
+  RATINGS: (mediaType: "movie" | "tv", tmdbId: number, language?: string) => {
+    const qs = language
+      ? `?language=${encodeURIComponent(language)}`
+      : "";
+    return `/api/medias/ratings/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs}`;
+  },
+  CREDITS: (mediaType: "movie" | "tv", tmdbId: number, language?: string) => {
+    const qs = language
+      ? `?language=${encodeURIComponent(language)}`
+      : "";
+    return `/api/medias/credits/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs}`;
+  },
+  TMDB_DETAILS: (mediaType: "movie" | "tv", tmdbId: number, language?: string) =>
+    `/api/medias/tmdb-details/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${language ? `?language=${encodeURIComponent(language)}` : ""}`,
   WATCHLIST: "/api/medias/watchlist",
   WATCHLIST_REMOVE: (tmdbId: number, type: "movie" | "tv") =>
     `/api/medias/watchlist/${encodeURIComponent(String(tmdbId))}?type=${encodeURIComponent(type)}`,
-  MISSING_COLLECTIONS: "/api/medias/collections/missing",
-  MODAL_DATA: (mediaType: "movie" | "tv", tmdbId: number, region?: string) =>
-    `/api/medias/modal/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${region ? `?region=${encodeURIComponent(region)}` : ""}`,
+  MISSING_COLLECTIONS: (language?: string) =>
+    language
+      ? `/api/medias/collections/missing?language=${encodeURIComponent(language)}`
+      : "/api/medias/collections/missing",
+  MODAL_DATA: (mediaType: "movie" | "tv", tmdbId: number, region?: string, language?: string) => {
+    const p = new URLSearchParams();
+    if (region) p.set("region", region);
+    if (language) p.set("language", language);
+    const qs = p.toString();
+    return `/api/medias/modal/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs ? `?${qs}` : ""}`;
+  },
   DISCOVER: (params: {
     type: "movie" | "tv";
     provider_id?: number | null;

@@ -481,7 +481,20 @@
     "columnStatus": "Statut",
     "columnRestore": "Restaurer",
     "restoreTask": "Restaurer la tâche",
-    "restore": "Restaurer"
+    "restore": "Restaurer",
+    "bulk": {
+      "barLabel": "Actions groupées pour les tâches sélectionnées",
+      "selectedCount": "{{count}} sélectionné(s)",
+      "moveToColumn": "Déplacer vers la colonne",
+      "moveToPlaceholder": "Déplacer vers…",
+      "archive": "Archiver",
+      "delete": "Supprimer",
+      "clear": "Effacer",
+      "deleteConfirm": "Supprimer {{count}} tâches ?",
+      "confirmYes": "Supprimer",
+      "confirmNo": "Annuler",
+      "selectTask": "Sélectionner la tâche"
+    }
   },
   "chores": {
     "title": "Tâches",
@@ -1442,6 +1455,10 @@
       "minQuery": "Tapez au moins 2 caractères pour interroger Prowlarr.",
       "resultsVisible": "{{visible}} sur {{total}} releases",
       "hiddenCount": "{{count}} masquées",
+      "useOriginalTitleHint": "Cliquer pour chercher avec le titre dans la langue d’origine",
+      "useLocalizedTitleHint": "Cliquer pour chercher avec le titre localisé (anglais ou français)",
+      "titleBadgeOriginal": "Original",
+      "titleBadgeLocalized": "Loc.",
       "resetView": "Réinitialiser la vue",
       "sortLabel": "Trier par",
       "sortOptions": {

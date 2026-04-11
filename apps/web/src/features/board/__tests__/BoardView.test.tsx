@@ -47,13 +47,19 @@ vi.mock("@/hooks/board/useBoardTasks", () => ({
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
   useUpdateBoardTask: vi.fn().mockReturnValue({ mutate: vi.fn() }),
-  useDeleteBoardTask: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+  useDeleteBoardTask: vi.fn().mockReturnValue({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn().mockResolvedValue({}),
+    isPending: false,
+  }),
   useSyncBoardTasks: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
-  useSetBoardTaskArchived: vi
-    .fn()
-    .mockReturnValue({ mutate: vi.fn(), isPending: false }),
+  useSetBoardTaskArchived: vi.fn().mockReturnValue({
+    mutate: vi.fn(),
+    mutateAsync: vi.fn().mockResolvedValue({}),
+    isPending: false,
+  }),
   useArchivedBoardTasks: vi.fn().mockReturnValue({ data: { tasks: [] } }),
   useAddDependency: vi
     .fn()
@@ -82,7 +88,7 @@ vi.mock("@/hooks/board/useBoardTags", () => ({
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
 }));
 
-import { useBoardTasks } from "@/hooks/board/useBoardTasks";
+import { useBoardTasks, useSyncBoardTasks } from "@/hooks/board/useBoardTasks";
 import { BoardView } from "@/features/board/BoardView";
 import type { BoardTask } from "@hously/shared/types";
 const makeMockTask = (overrides: Partial<BoardTask> = {}): BoardTask =>
@@ -328,6 +334,113 @@ describe("BoardView", () => {
     await waitFor(() => {
       expect(screen.getByText("backend")).toBeInTheDocument();
       expect(screen.getByText("api")).toBeInTheDocument();
+    });
+  });
+
+  it("shows bulk action bar when selecting tasks via checkbox", async () => {
+    const tasks = [
+      makeMockTask({ id: 1, title: "Task A", status: "todo" }),
+      makeMockTask({ id: 2, title: "Task B", status: "todo" }),
+    ];
+    (useBoardTasks as any).mockReturnValue({
+      data: { tasks },
+      isLoading: false,
+    });
+    renderWithProviders(<BoardView />);
+
+    await waitFor(() => expect(screen.getByText("Task A")).toBeInTheDocument());
+    fireEvent.click(
+      screen.getAllByRole("checkbox", {
+        name: /board\.bulk\.selectTask/i,
+      })[0],
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("region", { name: /board\.bulk\.barLabel|bulk action/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("clears bulk selection when Clear is clicked", async () => {
+    const task = makeMockTask({ id: 1, title: "Solo", status: "todo" });
+    (useBoardTasks as any).mockReturnValue({
+      data: { tasks: [task] },
+      isLoading: false,
+    });
+    renderWithProviders(<BoardView />);
+
+    await waitFor(() => expect(screen.getByText("Solo")).toBeInTheDocument());
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /board\.bulk\.selectTask/i }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("region", { name: /board\.bulk\.barLabel|bulk action/i }),
+      ).toBeInTheDocument(),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /board\.bulk\.clear|clear/i }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("region", {
+          name: /board\.bulk\.barLabel|bulk action/i,
+        }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it("calls sync when moving selected tasks to another column", async () => {
+    const syncMutate = vi.fn();
+    (useSyncBoardTasks as ReturnType<typeof vi.fn>).mockReturnValue({
+      mutate: syncMutate,
+      isPending: false,
+    });
+
+    const tasks = [
+      makeMockTask({ id: 1, title: "Move me", status: "todo", position: 0 }),
+      makeMockTask({ id: 2, title: "Stay", status: "todo", position: 1 }),
+    ];
+    (useBoardTasks as any).mockReturnValue({
+      data: { tasks },
+      isLoading: false,
+    });
+    renderWithProviders(<BoardView />);
+
+    await waitFor(() => expect(screen.getByText("Move me")).toBeInTheDocument());
+    fireEvent.click(
+      screen.getAllByRole("checkbox", {
+        name: /board\.bulk\.selectTask/i,
+      })[0],
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("region", { name: /board\.bulk\.barLabel|bulk action/i }),
+      ).toBeInTheDocument(),
+    );
+
+    const moveSelect = screen.getByRole("combobox", {
+      name: /board\.bulk\.moveToColumn|move to column/i,
+    });
+    fireEvent.change(moveSelect, { target: { value: "done" } });
+
+    await waitFor(() => {
+      expect(syncMutate).toHaveBeenCalled();
+      const payload = syncMutate.mock.calls[0][0];
+      expect(payload.tasks).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 1, status: "done" }),
+        ]),
+      );
+    });
+
+    (useSyncBoardTasks as ReturnType<typeof vi.fn>).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
     });
   });
 });
