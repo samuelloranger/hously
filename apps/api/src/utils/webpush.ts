@@ -203,7 +203,9 @@ export async function sendWebPushNotification(
       vibrate: payload.vibrate || [200, 100, 200],
     };
 
-    await webpush.sendNotification(subscription, JSON.stringify(fullPayload));
+    await webpush.sendNotification(subscription, JSON.stringify(fullPayload), {
+      TTL: 86400, // 24 hours — push services discard queued messages after this
+    });
 
     console.log(`Sent notification: ${payload.title}`);
     return { success: true };

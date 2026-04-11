@@ -7,6 +7,9 @@ import {
   type PushSubscriptionData,
   saveEndpoint,
   removeEndpoint,
+  saveSubscription,
+  loadSubscription,
+  removeSubscription,
   isPushStoreError,
   hardResetServiceWorkerForPush,
   urlBase64ToUint8Array,
@@ -16,6 +19,7 @@ import {
 interface UsePushSubscriptionReturn {
   subscription: PushSubscriptionData | null;
   isLoading: boolean;
+  keysRotated: boolean;
   subscribe: () => Promise<PushSubscriptionData | null>;
   unsubscribe: () => Promise<boolean>;
 }
@@ -28,6 +32,7 @@ export function usePushSubscription(
     null,
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [keysRotated, setKeysRotated] = useState(false);
   const { data: vapidData } = useVapidPublicKey();
   const unsubscribeMutation = useUnsubscribeFromPushNotifications();
 
@@ -102,11 +107,21 @@ export function usePushSubscription(
 
       if (sub) {
         const subData = serializeSubscription(sub);
+        const stored = loadSubscription();
+        const rotated =
+          stored !== null &&
+          stored.endpoint === subData.endpoint &&
+          (stored.keys.p256dh !== subData.keys.p256dh ||
+            stored.keys.auth !== subData.keys.auth);
         setSubscription(subData);
+        setKeysRotated(rotated);
         saveEndpoint(sub.endpoint);
+        saveSubscription(subData);
       } else {
         setSubscription(null);
+        setKeysRotated(false);
         removeEndpoint();
+        removeSubscription();
       }
     } catch (err) {
       console.error("Error getting subscription:", err);
@@ -213,7 +228,9 @@ export function usePushSubscription(
 
         const sub = serializeSubscription(newSubscription);
         setSubscription(sub);
+        setKeysRotated(false);
         saveEndpoint(newSubscription.endpoint);
+        saveSubscription(sub);
         return sub;
       } catch (error) {
         console.error("Error subscribing to push notifications:", error);
@@ -261,6 +278,7 @@ export function usePushSubscription(
   return {
     subscription,
     isLoading,
+    keysRotated,
     subscribe,
     unsubscribe,
   };
