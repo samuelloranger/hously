@@ -1,10 +1,9 @@
 import { prisma } from "@hously/api/db";
 import { searchAndGrab } from "@hously/api/services/mediaGrabber";
 import { refreshLibraryMovieDigitalDate } from "@hously/api/services/libraryTmdbRefresh";
-import { notifyAdminsLibraryGrabSkipped } from "@hously/api/workers/notifyLibraryGrabSkipped";
 
-// Give up searching after this many days past the digital release date.
-const MOVIE_GRAB_WINDOW_DAYS = 30;
+// Only search for movies released digitally within this many days.
+const MOVIE_GRAB_WINDOW_DAYS = 14;
 
 export async function checkMovieReleases(): Promise<void> {
   const now = new Date();
@@ -47,17 +46,8 @@ export async function checkMovieReleases(): Promise<void> {
       // Not yet released digitally — nothing to search.
       if (digital > now) continue;
 
-      // Past the grab window — give up and notify.
-      if (digital < windowCutoff) {
-        await prisma.libraryMedia.update({
-          where: { id: m.id },
-          data: { status: "skipped" },
-        });
-        await notifyAdminsLibraryGrabSkipped(
-          `Movie "${m.title}" (${m.id}) aged out of the ${MOVIE_GRAB_WINDOW_DAYS}-day search window without a successful grab. Status set to skipped.`,
-        );
-        continue;
-      }
+      // Outside the grab window — silently ignore.
+      if (digital < windowCutoff) continue;
 
       const y = m.year ? ` ${m.year}` : "";
       const result = await searchAndGrab({

@@ -57,7 +57,7 @@ test: ## Run all tests
 	@echo "Running web tests..."
 	cd apps/web && bun run test
 	@echo "Running API tests..."
-	cd apps/api && bun test
+	cd apps/api && bun test test/ && bun test src/
 
 lint: ## Lint all code
 	@echo "Linting frontend..."

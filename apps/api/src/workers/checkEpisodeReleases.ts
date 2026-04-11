@@ -1,6 +1,5 @@
 import { prisma } from "@hously/api/db";
 import { searchAndGrab } from "@hously/api/services/mediaGrabber";
-import { notifyAdminsLibraryGrabSkipped } from "@hously/api/workers/notifyLibraryGrabSkipped";
 
 function episodeSearchQuery(
   showTitle: string,
@@ -14,40 +13,10 @@ function episodeSearchQuery(
 
 export async function checkEpisodeReleases(): Promise<void> {
   const now = new Date();
-  // Only process episodes that aired in the past 5 days. Give indexers 60 min
+  // Only process episodes that aired in the past 7 days. Give indexers 60 min
   // after air time before searching, so skip anything aired less than an hour ago.
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const cutoff = new Date(now.getTime() - 60 * 60 * 1000);
-
-  // Mark episodes that have aged out of the search window without being grabbed.
-  const agedOut = await prisma.libraryEpisode.findMany({
-    where: {
-      status: "wanted",
-      airDate: { lt: sevenDaysAgo },
-      files: { none: {} },
-      media: { type: "show" },
-    },
-    include: {
-      media: { select: { title: true } },
-    },
-  });
-
-  for (const ep of agedOut) {
-    try {
-      await prisma.libraryEpisode.update({
-        where: { id: ep.id },
-        data: { status: "skipped" },
-      });
-      await notifyAdminsLibraryGrabSkipped(
-        `Episode "${ep.media.title}" S${ep.season}E${ep.episode} (${ep.id}) aged out of the 7-day search window without a successful grab. Status set to skipped.`,
-      );
-    } catch (e) {
-      console.warn(
-        `[checkEpisodeReleases] Failed to age out episode ${ep.id}:`,
-        e,
-      );
-    }
-  }
 
   const episodes = await prisma.libraryEpisode.findMany({
     where: {
