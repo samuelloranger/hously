@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { X, Plus, Lock } from "lucide-react";
-import { useAddDependency, useRemoveDependency } from "@/hooks/board/useBoardTasks";
+import {
+  useAddDependency,
+  useRemoveDependency,
+} from "@/hooks/board/useBoardTasks";
 import type { BoardTask, TaskDependencyRef } from "@hously/shared/types";
 interface DependencySectionProps {
   task: BoardTask;

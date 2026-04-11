@@ -70,8 +70,8 @@ export function LibraryItemSearchTab({
       {episodeSearchCtx && (
         <div className="mb-3 flex items-center justify-between rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-2">
           <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">
-            {t("medias.detail.searchingEpisode", "Searching for")}{" "}
-            S{String(episodeSearchCtx.season).padStart(2, "0")}E
+            {t("medias.detail.searchingEpisode", "Searching for")} S
+            {String(episodeSearchCtx.season).padStart(2, "0")}E
             {String(episodeSearchCtx.episode).padStart(2, "0")}
             {episodeSearchCtx.title ? ` — ${episodeSearchCtx.title}` : ""}
           </span>

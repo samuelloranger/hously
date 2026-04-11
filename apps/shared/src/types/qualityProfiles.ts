@@ -5,12 +5,26 @@ export interface QualityProfile {
   preferred_sources: string[];
   preferred_codecs: string[];
   preferred_languages: string[];
+  prioritized_trackers: string[];
+  prefer_tracker_over_quality: boolean;
   max_size_gb: number | null;
   require_hdr: boolean;
   prefer_hdr: boolean;
   cutoff_resolution: number | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ProwlarrIndexer {
+  id: number;
+  name: string;
+  protocol: string;
+  enable: boolean;
+  privacy: "private" | "public" | string;
+}
+
+export interface ProwlarrIndexersResponse {
+  indexers: ProwlarrIndexer[];
 }
 
 export interface QualityProfilesListResponse {

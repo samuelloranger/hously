@@ -250,7 +250,10 @@ export function BoardView() {
   const [viewMode, setViewMode] = useState<ViewMode>("board");
   const [selectedTaskIds, setSelectedTaskIds] = useState<number[]>([]);
   const [deleteConfirmPending, setDeleteConfirmPending] = useState(false);
-  const selectedSet = useMemo(() => new Set(selectedTaskIds), [selectedTaskIds]);
+  const selectedSet = useMemo(
+    () => new Set(selectedTaskIds),
+    [selectedTaskIds],
+  );
   const { data: archivedData } = useArchivedBoardTasks(viewMode === "archive");
   const archivedTasks = archivedData?.tasks ?? [];
 
@@ -695,7 +698,9 @@ export function BoardView() {
             {deleteConfirmPending ? (
               <div className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs dark:border-red-900 dark:bg-red-950/40">
                 <span className="text-red-800 dark:text-red-300">
-                  {t("board.bulk.deleteConfirm", { count: selectedTaskIds.length })}
+                  {t("board.bulk.deleteConfirm", {
+                    count: selectedTaskIds.length,
+                  })}
                 </span>
                 <button
                   type="button"
@@ -728,7 +733,10 @@ export function BoardView() {
             )}
             <button
               type="button"
-              onClick={() => { setSelectedTaskIds([]); setDeleteConfirmPending(false); }}
+              onClick={() => {
+                setSelectedTaskIds([]);
+                setDeleteConfirmPending(false);
+              }}
               className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100/80 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
             >
               <X className="h-3.5 w-3.5" />

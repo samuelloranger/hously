@@ -411,7 +411,6 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     }
   })
 
-
   // POST /api/library/:id/grab — interactive grab (known download URL → qB + history)
   .post(
     "/:id/grab",

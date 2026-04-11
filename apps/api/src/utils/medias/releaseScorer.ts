@@ -11,6 +11,13 @@ export interface QualityProfileScoreInput {
   preferredCodecs: string[];
   /** e.g. VFF, VF2, en — matched via parseAudioFlags on the release title */
   preferredLanguages: string[];
+  /** Ordered list of indexer names — earlier = higher bonus. */
+  prioritizedTrackers: string[];
+  /**
+   * When true, the tracker bonus (~1500/1000/500) overrides resolution/source
+   * preference. When false, it acts as a tie-breaker only (~300/200/100).
+   */
+  preferTrackerOverQuality: boolean;
   maxSizeGb: number | null;
   requireHdr: boolean;
   preferHdr: boolean;
@@ -92,8 +99,8 @@ function parsedSourceMatchesPreferred(
 const CODEC_ALIASES: Record<string, string[]> = {
   hevc: ["hevc", "x265", "h265", "h.265"],
   x265: ["hevc", "x265", "h265", "h.265"],
-  avc:  ["avc",  "x264", "h264", "h.264"],
-  x264: ["avc",  "x264", "h264", "h.264"],
+  avc: ["avc", "x264", "h264", "h.264"],
+  x264: ["avc", "x264", "h264", "h.264"],
 };
 
 function codecMatches(pref: string, parsed: string): boolean {
@@ -118,6 +125,7 @@ function languagePreferenceScore(title: string, preferred: string[]): number {
 /**
  * Score a parsed release against a quality profile.
  * @param releaseTitleForFlags raw indexer title (used for parseAudioFlags / language bonus)
+ * @param indexerName name of the Prowlarr indexer (used for tracker priority bonus)
  * @returns null if the release fails hard requirements.
  */
 export function scoreRelease(
@@ -125,6 +133,7 @@ export function scoreRelease(
   profile: QualityProfileScoreInput,
   sizeBytes: number | null,
   releaseTitleForFlags?: string | null,
+  indexerName?: string | null,
 ): number | null {
   const pr = resolutionRank(parsed.resolution);
   const minR = minResolutionRank(profile.minResolution);
@@ -188,6 +197,16 @@ export function scoreRelease(
     const gb = sizeBytes / 1e9;
     if (gb > 10) {
       score -= Math.floor(gb - 10) * 50;
+    }
+  }
+
+  if (indexerName && profile.prioritizedTrackers.length > 0) {
+    const trackerIdx = profile.prioritizedTrackers.findIndex(
+      (t) => t.toLowerCase() === indexerName.toLowerCase(),
+    );
+    if (trackerIdx >= 0) {
+      const base = profile.preferTrackerOverQuality ? 1500 : 300;
+      score += indexScore(trackerIdx, base);
     }
   }
 

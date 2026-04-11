@@ -14,7 +14,10 @@
 import { prisma } from "@hously/api/db";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
-import { sortTitleFromName, pickDigitalRelease } from "@hously/api/utils/medias/libraryHelpers";
+import {
+  sortTitleFromName,
+  pickDigitalRelease,
+} from "@hously/api/utils/medias/libraryHelpers";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
@@ -280,7 +283,9 @@ async function main() {
     console.log(
       `— [${c.type}] id=${c.id} tmdb=${c.tmdbId} fields=[${c.fields.join(", ")}]`,
     );
-    console.log(`    title: ${JSON.stringify(c.before.title)} → ${JSON.stringify(c.after.title)}`);
+    console.log(
+      `    title: ${JSON.stringify(c.before.title)} → ${JSON.stringify(c.after.title)}`,
+    );
     if (c.before.sortTitle !== c.after.sortTitle) {
       console.log(
         `    sortTitle: ${JSON.stringify(c.before.sortTitle)} → ${JSON.stringify(c.after.sortTitle)}`,

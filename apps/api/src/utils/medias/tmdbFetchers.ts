@@ -371,7 +371,9 @@ const LOCALE_TO_TMDB: Record<string, string> = {
 
 /** Maps an i18n locale or TMDB-style tag to a TMDB `language` query value. */
 export function toTmdbLanguage(locale: string): string {
-  return LOCALE_TO_TMDB[locale] ?? LOCALE_TO_TMDB[locale.split("-")[0]] ?? "en-US";
+  return (
+    LOCALE_TO_TMDB[locale] ?? LOCALE_TO_TMDB[locale.split("-")[0]] ?? "en-US"
+  );
 }
 
 /** TMDB `language` for library rows (title, overview, episode names) — always English. */

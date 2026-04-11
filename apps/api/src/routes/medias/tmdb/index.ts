@@ -757,8 +757,7 @@ export const mediasTmdbRoutes = new Elysia()
       if (!Number.isFinite(tmdbId) || tmdbId <= 0)
         return badRequest(set, "Invalid TMDB ID");
       const language = toTmdbLanguage(
-        (queryParams as Record<string, string | undefined>).language ||
-          "en-US",
+        (queryParams as Record<string, string | undefined>).language || "en-US",
       );
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig)
@@ -777,8 +776,7 @@ export const mediasTmdbRoutes = new Elysia()
       if (!Number.isFinite(tmdbId) || tmdbId <= 0)
         return badRequest(set, "Invalid TMDB ID");
       const language = toTmdbLanguage(
-        (queryParams as Record<string, string | undefined>).language ||
-          "en-US",
+        (queryParams as Record<string, string | undefined>).language || "en-US",
       );
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig) return { key: null, name: null };
@@ -796,8 +794,7 @@ export const mediasTmdbRoutes = new Elysia()
       if (!Number.isFinite(tmdbId) || tmdbId <= 0)
         return badRequest(set, "Invalid TMDB ID");
       const language = toTmdbLanguage(
-        (queryParams as Record<string, string | undefined>).language ||
-          "en-US",
+        (queryParams as Record<string, string | undefined>).language || "en-US",
       );
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig) return { cast: [], directors: [] };
@@ -815,8 +812,7 @@ export const mediasTmdbRoutes = new Elysia()
       if (!Number.isFinite(tmdbId) || tmdbId <= 0)
         return badRequest(set, "Invalid TMDB ID");
       const language = toTmdbLanguage(
-        (queryParams as Record<string, string | undefined>).language ||
-          "en-US",
+        (queryParams as Record<string, string | undefined>).language || "en-US",
       );
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig) return emptyMediaDetails();
@@ -915,8 +911,7 @@ export const mediasTmdbRoutes = new Elysia()
           queryParams as Record<string, string | undefined>
         ).region?.toUpperCase() || "CA";
       const language = toTmdbLanguage(
-        (queryParams as Record<string, string | undefined>).language ||
-          "en-US",
+        (queryParams as Record<string, string | undefined>).language || "en-US",
       );
       const tmdbConfig = await loadTmdbConfig();
       if (!tmdbConfig)

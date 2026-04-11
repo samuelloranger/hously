@@ -656,7 +656,10 @@ export async function scanAndImportLibraryFiles(media: {
       : settings.showsLibraryPath?.trim();
   if (!root) return 0;
 
-  const scanRoot = join(root.replace(/\/+$/, ""), sanitizePathTemplateOutput(media.title));
+  const scanRoot = join(
+    root.replace(/\/+$/, ""),
+    sanitizePathTemplateOutput(media.title),
+  );
 
   let allVideos: string[];
   try {
@@ -681,9 +684,7 @@ export async function scanAndImportLibraryFiles(media: {
     const episodes = await prisma.libraryEpisode.findMany({
       where: { mediaId: media.id },
     });
-    const epMap = new Map(
-      episodes.map((e) => [`${e.season}x${e.episode}`, e]),
-    );
+    const epMap = new Map(episodes.map((e) => [`${e.season}x${e.episode}`, e]));
 
     for (const videoPath of allVideos) {
       if (existingPaths.has(videoPath)) continue;

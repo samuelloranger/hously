@@ -1,5 +1,19 @@
 {
   "enabledPlugins": {
     "context7@claude-plugins-official": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read -r f; cd /home/samuelloranger/sites/hously && bunx prettier --write \"$f\"; } 2>/dev/null || true",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
   }
 }

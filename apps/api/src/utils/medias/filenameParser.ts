@@ -150,7 +150,10 @@ export function parseAudioFlags(filename: string): string[] {
     flags.push("VF");
     flags.push("fr");
   }
-  if (/\bFRENCH\b/.test(n) && !flags.length) { flags.push("FRENCH"); flags.push("fr"); }
+  if (/\bFRENCH\b/.test(n) && !flags.length) {
+    flags.push("FRENCH");
+    flags.push("fr");
+  }
   if (/\bVOSTFR\b/.test(n)) flags.push("VOSTFR");
   if (/\bVFSTFR\b/.test(n)) flags.push("VFSTFR");
 

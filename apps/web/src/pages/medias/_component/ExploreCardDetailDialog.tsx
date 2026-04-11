@@ -40,7 +40,6 @@ function formatTmdbDateYmd(iso: string | null | undefined): string | null {
   }
 }
 
-
 interface ExploreCardDetailDialogProps {
   item: TmdbMediaSearchItem;
   isOpen: boolean;
@@ -916,7 +915,6 @@ export function ExploreCardDetailDialog({
                   />
                 </div>
               )}
-
             </div>
           )}
         </div>

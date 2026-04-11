@@ -208,7 +208,9 @@ export function LibraryItemHero({
                       alt=""
                       className="h-4 w-4"
                     />
-                    <span className="text-white/75 font-semibold">{rtScore}</span>
+                    <span className="text-white/75 font-semibold">
+                      {rtScore}
+                    </span>
                   </span>
                 )}
               </div>

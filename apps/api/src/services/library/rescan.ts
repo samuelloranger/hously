@@ -1,6 +1,9 @@
 import { stat as statFile } from "node:fs/promises";
 import { prisma } from "@hously/api/db";
-import { scanMediaInfo, remapPath } from "@hously/api/utils/medias/mediainfoScanner";
+import {
+  scanMediaInfo,
+  remapPath,
+} from "@hously/api/utils/medias/mediainfoScanner";
 import { parseFilenameMetadata } from "@hously/api/utils/medias/filenameParser";
 import {
   scanAndImportLibraryFiles,
@@ -171,5 +174,13 @@ export async function rescanLibraryItem(
     }
   }
 
-  return { rescanned, failed, deleted, imported, requeued, episodesReset, mediaReset };
+  return {
+    rescanned,
+    failed,
+    deleted,
+    imported,
+    requeued,
+    episodesReset,
+    mediaReset,
+  };
 }

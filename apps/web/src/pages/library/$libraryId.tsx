@@ -1,11 +1,16 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getCurrentUser } from "@/lib/auth";
-import { LibraryItemPage, type LibraryItemSearchParams } from "@/pages/medias/_component/LibraryItemPage";
+import {
+  LibraryItemPage,
+  type LibraryItemSearchParams,
+} from "@/pages/medias/_component/LibraryItemPage";
 
 export { type LibraryItemSearchParams };
 
 export const Route = createFileRoute("/library/$libraryId")({
-  validateSearch: (search: Record<string, unknown>): LibraryItemSearchParams => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): LibraryItemSearchParams => ({
     tab: (["info", "similar", "search", "management"] as const).includes(
       search.tab as any,
     )

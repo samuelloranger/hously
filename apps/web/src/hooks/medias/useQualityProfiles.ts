@@ -1,11 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { QUALITY_PROFILES_ENDPOINTS } from "@hously/shared/endpoints";
+import {
+  QUALITY_PROFILES_ENDPOINTS,
+  MEDIAS_ENDPOINTS,
+} from "@hously/shared/endpoints";
 import type {
   QualityProfile,
   QualityProfileMutationResponse,
   QualityProfilesListResponse,
+  ProwlarrIndexersResponse,
 } from "@hously/shared/types";
 
 export function useQualityProfilesList(options?: {
@@ -27,6 +31,8 @@ export type QualityProfileFormPayload = {
   preferred_sources: string[];
   preferred_codecs: string[];
   preferred_languages: string[];
+  prioritized_trackers: string[];
+  prefer_tracker_over_quality: boolean;
   max_size_gb: number | null;
   require_hdr: boolean;
   prefer_hdr: boolean;
@@ -98,9 +104,22 @@ export function profileToForm(p: QualityProfile): QualityProfileFormPayload {
     preferred_sources: [...p.preferred_sources],
     preferred_codecs: [...p.preferred_codecs],
     preferred_languages: [...(p.preferred_languages ?? [])],
+    prioritized_trackers: [...(p.prioritized_trackers ?? [])],
+    prefer_tracker_over_quality: p.prefer_tracker_over_quality ?? false,
     max_size_gb: p.max_size_gb,
     require_hdr: p.require_hdr,
     prefer_hdr: p.prefer_hdr,
     cutoff_resolution: p.cutoff_resolution,
   };
+}
+
+export function useProwlarrIndexers(enabled: boolean) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: ["prowlarr", "indexers"],
+    queryFn: () =>
+      fetcher<ProwlarrIndexersResponse>(MEDIAS_ENDPOINTS.PROWLARR_INDEXERS),
+    enabled,
+    staleTime: 60_000,
+  });
 }
