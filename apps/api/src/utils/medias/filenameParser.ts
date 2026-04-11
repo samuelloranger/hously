@@ -137,20 +137,30 @@ export function parseAudioFlags(filename: string): string[] {
     return flags; // signals both VFF+VFQ, don't add separately
   }
 
+  // Specific French variants — only match themselves, not the generic "fr"
   if (/\bTRUEFRENCH\b/.test(n)) flags.push("TRUEFRENCH");
   if (/\bVFF\b/.test(n)) flags.push("VFF");
   if (/\bVFQ\b|\bVQC\b/.test(n)) flags.push("VFQ");
   if (/\bVFI\b/.test(n)) flags.push("VFI");
-  // Generic VF only if no specific variant already detected
+  // Generic VF / FRENCH — these emit "fr" so the generic "Français" preference catches them
   if (
     /\bVF\b/.test(n) &&
     !flags.some((f) => ["VFF", "VFQ", "VFI", "VF2", "TRUEFRENCH"].includes(f))
   ) {
     flags.push("VF");
+    flags.push("fr");
   }
-  if (/\bFRENCH\b/.test(n) && !flags.length) flags.push("FRENCH");
+  if (/\bFRENCH\b/.test(n) && !flags.length) { flags.push("FRENCH"); flags.push("fr"); }
   if (/\bVOSTFR\b/.test(n)) flags.push("VOSTFR");
   if (/\bVFSTFR\b/.test(n)) flags.push("VFSTFR");
+
+  // Generic ISO language codes — for releases that label audio tracks explicitly
+  if (/\bENGLISH\b|\bENG\b/.test(n)) flags.push("en");
+  if (/\bGERMAN\b|\bDEUTSCH\b|\bGER\b/.test(n)) flags.push("de");
+  if (/\bSPANISH\b|\bESPANOL\b|\bSPA\b/.test(n)) flags.push("es");
+  if (/\bITALIAN\b|\bITA\b/.test(n)) flags.push("it");
+  if (/\bJAPANESE\b|\bJPN\b/.test(n)) flags.push("ja");
+  if (/\bPORTUGUESE\b|\bPOR\b/.test(n)) flags.push("pt");
 
   return flags;
 }
@@ -204,7 +214,9 @@ export interface ParsedRelease {
   hdr: string | null;
   audio: string | null;
   group: string | null;
+  streaming: string | null;
   isSample: boolean;
+  isProper: boolean;
 }
 
 const RES_TITLE_RES = /\b(2160p|4K|UHD|1080p|1080i|720p|480p|576p)\b/i;
@@ -213,21 +225,28 @@ export function parseReleaseResolution(
   title: string,
 ): 480 | 720 | 1080 | 2160 | null {
   const n = title;
-  if (/\b(2160p|4K|UHD)\b/i.test(n)) return 2160;
+  // Explicit pixel-count tokens take priority over generic UHD/4K markers.
+  // "UHD BluRay 1080p" is a 1080p encode sourced from a UHD disc — resolution is 1080p.
+  if (/\b2160p\b/i.test(n)) return 2160;
   if (/\b1080[pi]\b/i.test(n)) return 1080;
   if (/\b720p\b/i.test(n)) return 720;
   if (/\b480p\b/i.test(n) || /\b576p\b/i.test(n)) return 480;
+  // Fall back to generic markers only when no explicit resolution is present
+  if (/\b(4K|UHD)\b/i.test(n)) return 2160;
   return null;
 }
 
-/** Order matters: REMUX before BluRay, WEB-DL before WEB */
+/** Order matters: REMUX before BluRay, HDLight before BluRay, WEB-DL before WEB */
 export function parseReleaseSource(title: string): string | null {
   const n = title;
   if (/\bREMUX\b|\bBDREMUX\b|\bBD[-.]?REMUX\b/i.test(n)) return "REMUX";
+  // HDLight: French re-encode from BluRay — check before generic BluRay
+  if (/\bHDLight\b/i.test(n)) return "HDLight";
   if (/\bBlu[-.]?ray\b|\bBLURAY\b|\bBDRip\b|\bBRRip\b/i.test(n))
     return "BluRay";
   if (/\bWEB[-.]?DL\b|\bWEBDL\b/i.test(n)) return "WEB-DL";
   if (/\bWEBRip\b|\bWEB[-.]?Rip\b/i.test(n)) return "WEBRip";
+  if (/\bHDRip\b/i.test(n)) return "HDRip";
   if (/\bHDTV\b/i.test(n)) return "HDTV";
   if (/\bDVDRip\b|\bDVD\b/i.test(n)) return "DVDRip";
   if (/\bWEB\b/i.test(n)) return "WEB";
@@ -239,6 +258,7 @@ export function parseReleaseCodec(title: string): string | null {
   if (/\bx265\b|\bH\.?265\b|\bH265\b|\bHEVC\b/i.test(n)) return "x265";
   if (/\bx264\b|\bH\.?264\b|\bH264\b|\bAVC\b/i.test(n)) return "x264";
   if (/\bAV1\b/i.test(n)) return "AV1";
+  if (/\bVC[-.]?1\b/i.test(n)) return "VC-1";
   if (/\bXviD\b/i.test(n)) return "XviD";
   if (/\bDivX\b/i.test(n)) return "DivX";
   return null;
@@ -247,11 +267,16 @@ export function parseReleaseCodec(title: string): string | null {
 export function parseReleaseHdr(title: string): string | null {
   const n = title;
   if (/HDR10\+|HDR10Plus/i.test(n)) return "HDR10+";
-  if (/\bDolby\.?Vision\b|\bDoVi\b|\bDV\b(?![a-z])/i.test(n)) return "DV";
+  // DoVi/DOVI/DV are all Dolby Vision variants used across trackers
+  if (/\bDolby\.?Vision\b|\bDoVi\b|\bDOVI\b|\bDV\b/i.test(n)) return "DV";
   if (/\bHDR10\b/i.test(n)) return "HDR10";
   if (/\bHDR\b/i.test(n)) return "HDR10";
   if (/\bHLG\b/i.test(n)) return "HLG";
   return null;
+}
+
+export function parseReleaseIsProper(title: string): boolean {
+  return /\bPROPER\b|\bREPACK\b|\bREPROP\b|\bREAL\b|\bRERIP\b/i.test(title);
 }
 
 export function parseReleaseAudio(title: string): string | null {
@@ -301,7 +326,9 @@ export function parseReleaseTitle(title: string): ParsedRelease {
     hdr: parseReleaseHdr(title),
     audio: parseReleaseAudio(title),
     group: parseReleaseGroupFromTitle(title),
+    streaming: parseStreamingService(title),
     isSample: parseReleaseIsSample(title),
+    isProper: parseReleaseIsProper(title),
   };
 }
 

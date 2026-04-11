@@ -39,6 +39,22 @@ import {
   MagnetRedirectError,
 } from "@hously/api/utils/medias/safeTorrentFetchUrl";
 
+async function checkBlocklist(
+  releaseTitle: string,
+  torrentHash?: string | null,
+): Promise<string | null> {
+  const conditions: { releaseTitle?: string; torrentHash?: string }[] = [
+    { releaseTitle },
+  ];
+  if (torrentHash) conditions.push({ torrentHash });
+  const entry = await prisma.grabBlocklist.findFirst({
+    where: { OR: conditions },
+    select: { reason: true },
+  });
+  if (!entry) return null;
+  return entry.reason ?? "Release is blocklisted";
+}
+
 function profileToScoreInput(p: QualityProfile): QualityProfileScoreInput {
   return {
     minResolution: p.minResolution,
@@ -208,6 +224,12 @@ export async function grabRelease(opts: {
 
     const category = qbCategoryForLibraryType(media.type);
     const qJson = qualityJsonValue(releaseTitle, qualityParsed);
+
+    const earlyHash = isMagnet ? infoHashFromMagnet(downloadUrl) : null;
+    const blockReason = await checkBlocklist(releaseTitle, earlyHash);
+    if (blockReason) {
+      return { grabbed: false, reason: `Blocklisted: ${blockReason}` };
+    }
 
     const dhRow = await prisma.downloadHistory.create({
       data: {
@@ -473,6 +495,9 @@ export async function searchAndGrab(opts: {
       const parsed = parseReleaseTitle(title);
       const size = sizeBytesFromRaw(row);
 
+      // Always reject samples regardless of profile
+      if (parsed.isSample) continue;
+
       if (profileInput) {
         const sc = scoreRelease(parsed, profileInput, size, title);
         if (sc === null) continue;
@@ -483,24 +508,45 @@ export async function searchAndGrab(opts: {
     }
 
     rows.sort((a, b) => b.score - a.score);
-    const best = rows[0];
-    if (!best) {
+
+    if (rows.length === 0) {
       return { grabbed: false, reason: "No matching releases found" };
     }
 
-    const downloadTarget = extractProwlarrDownloadTarget(best.raw, baseUrl);
-    if (!downloadTarget) {
-      return { grabbed: false, reason: "No download URL for best release" };
+    // Pre-filter blocklisted titles so we don't waste the grab attempt on them.
+    // Hash-based blocklist is a secondary check inside grabRelease itself.
+    const blocklistTitles = await prisma.grabBlocklist
+      .findMany({ select: { releaseTitle: true } })
+      .then((rows) => new Set(rows.map((r) => r.releaseTitle.toLowerCase())));
+
+    for (const candidate of rows) {
+      if (blocklistTitles.has(candidate.title.toLowerCase())) continue;
+
+      const downloadTarget = extractProwlarrDownloadTarget(
+        candidate.raw,
+        baseUrl,
+      );
+      if (!downloadTarget) continue;
+
+      const result = await grabRelease({
+        mediaId,
+        episodeId,
+        downloadUrl: downloadTarget.url,
+        releaseTitle: candidate.title,
+        indexer: indexerNameFromRaw(candidate.raw),
+        qualityParsed: candidate.parsed,
+      });
+
+      if (result.grabbed) return result;
+
+      // Only continue to the next candidate on a hash-level blocklist hit.
+      // All other failures (network, qBittorrent) are terminal.
+      if (!result.grabbed && result.reason.startsWith("Blocklisted:")) continue;
+
+      return result;
     }
 
-    return grabRelease({
-      mediaId,
-      episodeId,
-      downloadUrl: downloadTarget.url,
-      releaseTitle: best.title,
-      indexer: indexerNameFromRaw(best.raw),
-      qualityParsed: best.parsed,
-    });
+    return { grabbed: false, reason: "No matching releases found" };
   } catch (e) {
     console.warn("[mediaGrabber] searchAndGrab failed:", e);
     return {

@@ -29,6 +29,7 @@ import {
 import { notifyAdminsPostProcessFailed } from "@hously/api/workers/notifyPostProcessFailed";
 import { notifyAdminsMediaDownloaded } from "@hously/api/workers/notifyMediaDownloaded";
 import { emitLibraryUpdate } from "@hously/api/services/libraryEvents";
+import { triggerJellyfinLibraryScan } from "@hously/api/services/jellyfinLibraryRefresh";
 
 function qualityStringsFromParsed(
   qualityParsed: unknown,
@@ -859,6 +860,7 @@ export function enqueueLibraryPostProcess(downloadHistoryId: number): void {
         emitLibraryUpdate(dh.mediaId);
         await notifyAdminsMediaDownloaded(dh.mediaId);
       }
+      await triggerJellyfinLibraryScan();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.warn(

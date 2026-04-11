@@ -47,11 +47,22 @@ function sourceAliases(source: string): string[] {
     set.add("BluRay");
     set.add("BDRip");
   }
+  // HDLight: French compressed-BluRay re-encode — treated as BluRay equivalent for preference matching
+  if (lower === "hdlight") {
+    set.add("HDLight");
+    set.add("BluRay");
+    set.add("bluray");
+  }
   if (lower === "web-dl" || lower === "webdl") {
     set.add("WEB-DL");
     set.add("WEBDL");
   }
   if (lower === "webrip") {
+    set.add("WEBRip");
+  }
+  // HDRip: generic re-encode from HD source — mapped to WEBRip tier
+  if (lower === "hdrip") {
+    set.add("HDRip");
     set.add("WEBRip");
   }
   if (lower === "web") {
@@ -75,6 +86,21 @@ function parsedSourceMatchesPreferred(
     }
   }
   return false;
+}
+
+// HEVC/x265 and AVC/x264 are the same codec under different names
+const CODEC_ALIASES: Record<string, string[]> = {
+  hevc: ["hevc", "x265", "h265", "h.265"],
+  x265: ["hevc", "x265", "h265", "h.265"],
+  avc:  ["avc",  "x264", "h264", "h.264"],
+  x264: ["avc",  "x264", "h264", "h.264"],
+};
+
+function codecMatches(pref: string, parsed: string): boolean {
+  const p = pref.toLowerCase();
+  const c = parsed.toLowerCase();
+  const aliases = CODEC_ALIASES[p];
+  return aliases ? aliases.includes(c) : p === c;
 }
 
 function indexScore(index: number, base: number): number {
@@ -112,6 +138,16 @@ export function scoreRelease(
 
   if (profile.requireHdr && !parsed.hdr) return null;
 
+  if (profile.preferredLanguages.length > 0) {
+    const flags = new Set(
+      parseAudioFlags(releaseTitleForFlags ?? "").map((f) => f.toLowerCase()),
+    );
+    const hasMatch = profile.preferredLanguages.some((p) =>
+      flags.has(p.trim().toLowerCase()),
+    );
+    if (!hasMatch) return null;
+  }
+
   if (
     profile.maxSizeGb != null &&
     sizeBytes != null &&
@@ -134,7 +170,7 @@ export function scoreRelease(
 
   const codecIdx = profile.preferredCodecs.findIndex((pref) => {
     if (!parsed.codec) return false;
-    return pref.toLowerCase() === parsed.codec.toLowerCase();
+    return codecMatches(pref, parsed.codec);
   });
   score += indexScore(codecIdx, 200);
 
@@ -144,6 +180,9 @@ export function scoreRelease(
   );
 
   if (profile.preferHdr && parsed.hdr) score += 100;
+
+  // PROPER/REPACK releases fix mastering errors — prefer them over the original at same quality
+  if (parsed.isProper) score += 150;
 
   if (profile.maxSizeGb == null && sizeBytes != null) {
     const gb = sizeBytes / 1e9;

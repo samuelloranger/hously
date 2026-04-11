@@ -632,6 +632,7 @@ model LibraryMedia {
   episodes          LibraryEpisode[]
   files             MediaFile[]       @relation("MediaFileMedia")
   downloadHistories DownloadHistory[]
+  blocklistEntries  GrabBlocklist[]
 
   @@index([type], map: "ix_library_media_type")
   @@index([status], map: "ix_library_media_status")
@@ -654,6 +655,7 @@ model LibraryEpisode {
   media               LibraryMedia      @relation(fields: [mediaId], references: [id], onDelete: Cascade)
   files               MediaFile[]       @relation("MediaFileEpisode")
   downloadHistories   DownloadHistory[]
+  blocklistEntries    GrabBlocklist[]
 
   @@unique([mediaId, season, episode])
   @@index([mediaId], map: "ix_library_episodes_media_id")
@@ -684,6 +686,24 @@ model DownloadHistory {
   @@index([torrentHash], map: "ix_download_history_torrent_hash")
   @@index([mediaId], map: "ix_download_history_media_id")
   @@map("download_history")
+}
+
+model GrabBlocklist {
+  id           Int      @id @default(autoincrement())
+  torrentHash  String?  @map("torrent_hash")
+  releaseTitle String   @map("release_title")
+  indexer      String?
+  mediaId      Int?     @map("media_id")
+  episodeId    Int?     @map("episode_id")
+  reason       String?
+  blockedAt    DateTime @default(now()) @map("blocked_at")
+
+  media   LibraryMedia?   @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  episode LibraryEpisode? @relation(fields: [episodeId], references: [id], onDelete: SetNull)
+
+  @@index([torrentHash], map: "ix_grab_blocklist_hash")
+  @@index([mediaId], map: "ix_grab_blocklist_media_id")
+  @@map("grab_blocklist")
 }
 
 /// Singleton media / library post-processing settings (row id = 1)

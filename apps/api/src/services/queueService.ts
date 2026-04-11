@@ -198,7 +198,7 @@ export async function setupScheduledJobs() {
     },
     {
       name: SCHEDULED_JOB_NAMES.SYNC_LIBRARY_SHOW_EPISODES,
-      pattern: "0 8 * * *",
+      pattern: "0 */6 * * *",
     },
     {
       name: SCHEDULED_JOB_NAMES.CHECK_LIBRARY_DOWNLOAD_COMPLETION,
