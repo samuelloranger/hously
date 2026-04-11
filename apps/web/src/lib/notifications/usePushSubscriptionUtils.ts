@@ -82,6 +82,35 @@ export const removeEndpoint = () => {
   }
 };
 
+// Store the full serialized subscription (endpoint + keys) so we can detect
+// key rotation: same endpoint, different p256dh/auth.
+const SUBSCRIPTION_STORAGE_KEY = "push-subscription-data";
+
+export const saveSubscription = (sub: PushSubscriptionData) => {
+  try {
+    localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, JSON.stringify(sub));
+  } catch (e) {
+    console.warn("Failed to save subscription data to localStorage:", e);
+  }
+};
+
+export const loadSubscription = (): PushSubscriptionData | null => {
+  try {
+    const raw = localStorage.getItem(SUBSCRIPTION_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as PushSubscriptionData) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const removeSubscription = () => {
+  try {
+    localStorage.removeItem(SUBSCRIPTION_STORAGE_KEY);
+  } catch (e) {
+    console.warn("Failed to remove subscription data from localStorage:", e);
+  }
+};
+
 export const isPushStoreError = (error: unknown): boolean => {
   const message = error instanceof Error ? error.message : String(error);
   return message.toLowerCase().includes("error retrieving push subscription");

@@ -8,6 +8,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { checkVersionAndReload } from "@/lib/version";
 import { registerServiceWorker } from "@/lib/sw/registration";
 import { useAutoInvalidateNotifications } from "@/lib/notifications/useAutoInvalidateNotifications";
+import { useCloseReadNotifications } from "@/lib/notifications/useCloseReadNotifications";
 import { useIOSImprovements } from "@/hooks/app/useIOSImprovements";
 import { NotificationToastContainer } from "@/components/NotificationToastContainer";
 import { setQueryClient } from "@/lib/api/queryClient";
@@ -34,6 +35,7 @@ setQueryClient(queryClient);
 // Component to handle service worker query invalidation and iOS improvements
 function AppWithServiceWorkerIntegration() {
   useAutoInvalidateNotifications();
+  useCloseReadNotifications();
   useIOSImprovements();
 
   return (

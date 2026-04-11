@@ -157,6 +157,25 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
       return serverError(set, "Failed to get unread count");
     }
   })
+  // GET /api/notifications/unread-ids - Lightweight endpoint for the SW to check read status
+  // Returns only the IDs of unread notifications so the SW can skip showing already-read ones.
+  .get("/unread-ids", async ({ user, set }) => {
+    if (!user) {
+      return unauthorized(set, "Unauthorized");
+    }
+
+    try {
+      const unread = await prisma.notification.findMany({
+        where: { userId: user.id, read: false },
+        select: { id: true },
+      });
+
+      return { ids: unread.map((n) => n.id) };
+    } catch (error) {
+      console.error("Error getting unread notification IDs:", error);
+      return serverError(set, "Failed to get unread IDs");
+    }
+  })
   // PUT /api/notifications/:id/read - Mark notification as read
   .put("/:id/read", async ({ user, params, set }) => {
     if (!user) {

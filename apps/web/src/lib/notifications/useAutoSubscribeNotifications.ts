@@ -24,6 +24,7 @@ export function useAutoSubscribeNotifications() {
     isSubscriptionLoading,
     subscribe,
     isSupported,
+    keysRotated,
   } = useNotifications();
   const { refetch: refetchDevices } = useNotificationDevices({
     enabled: false,
@@ -61,36 +62,55 @@ export function useAutoSubscribeNotifications() {
       return;
     }
 
-    // If permission already granted, ensure subscription is saved
+    // If permission already granted, ensure subscription is saved and up to date
     if (permission === "granted") {
       if (subscription) {
-        // If subscription exists but not in backend, re-register it instead of unsubscribing
+        // Re-register if: (a) device not found in backend, or (b) browser rotated push keys
         try {
           const devicesResponse = await refetchDevices();
           const devices = devicesResponse.data?.devices ?? [];
           const device = devices.find(
-            (device) => device.endpoint === subscription?.endpoint,
+            (d) => d.endpoint === subscription.endpoint,
           );
-          if (!device) {
-            // Re-register the subscription with the backend
+          if (!device || keysRotated) {
+            if (keysRotated) {
+              console.log(
+                "Push subscription keys rotated — re-registering with backend",
+              );
+            }
             const deviceInfo = getDeviceInfo();
             await subscribeMutation.mutateAsync({
               subscription: subscription as unknown as Record<string, unknown>,
               deviceInfo: deviceInfo as unknown as Record<string, unknown>,
             });
-            // Invalidate devices query to refresh the list
             queryClient.invalidateQueries({
               queryKey: queryKeys.notifications.devices(),
             });
           }
         } catch (error) {
           console.error("Error verifying subscription:", error);
-          // Don't unsubscribe on error - the subscription might still be valid
         }
       } else {
-        setTimeout(() => {
-          setShowModal(true);
-        }, 1000);
+        // Subscription was lost (browser cleared it). Permission is already granted,
+        // so silently re-subscribe — no need to ask the user again.
+        try {
+          const newSubscription = await subscribe();
+          if (newSubscription) {
+            const deviceInfo = getDeviceInfo();
+            await subscribeMutation.mutateAsync({
+              subscription: newSubscription as unknown as Record<
+                string,
+                unknown
+              >,
+              deviceInfo: deviceInfo as unknown as Record<string, unknown>,
+            });
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.notifications.devices(),
+            });
+          }
+        } catch (error) {
+          console.error("Error silently re-subscribing:", error);
+        }
       }
     }
 
@@ -102,10 +122,12 @@ export function useAutoSubscribeNotifications() {
     isSubscriptionLoading,
     permission,
     subscription,
+    keysRotated,
     queryClient,
     unsubscribeMutation,
     refetchDevices,
     subscribeMutation,
+    subscribe,
   ]);
 
   // Check if we should show the modal
@@ -120,6 +142,7 @@ export function useAutoSubscribeNotifications() {
     isSubscriptionLoading,
     permission,
     subscription,
+    keysRotated,
     verifySubscription,
   ]);
 
