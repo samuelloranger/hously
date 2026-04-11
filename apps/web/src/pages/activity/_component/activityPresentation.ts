@@ -15,7 +15,6 @@ export interface ActivityPresentation {
 const SERVICE_LABEL_KEYS: Record<string, string> = {
   chores: "dashboard.activityPage.services.chores",
   shopping: "dashboard.activityPage.services.shopping",
-  recipes: "dashboard.activityPage.services.recipes",
   calendar: "dashboard.activityPage.services.calendar",
   habits: "dashboard.activityPage.services.habits",
   system: "dashboard.activityPage.services.system",
@@ -41,14 +40,10 @@ const TYPE_LABEL_KEYS: Record<string, string> = {
   chore_completed: "dashboard.activityPage.types.chore_completed",
   shopping_completed: "dashboard.activityPage.types.shopping_completed",
   habit_completed: "dashboard.activityPage.types.habit_completed",
-  recipe_completed: "dashboard.activityPage.types.recipe_completed",
   plugin_updated: "dashboard.activityPage.types.plugin_updated",
   cron_job_ended: "dashboard.activityPage.types.cron_job_ended",
   cron_job_skipped: "dashboard.activityPage.types.cron_job_skipped",
   app_updated: "dashboard.activityPage.types.app_updated",
-  recipe_added: "dashboard.activityPage.types.recipe_added",
-  recipe_updated: "dashboard.activityPage.types.recipe_updated",
-  recipe_deleted: "dashboard.activityPage.types.recipe_deleted",
   admin_triggered_job: "dashboard.activityPage.types.admin_triggered_job",
   event_created: "dashboard.activityPage.types.event_created",
   event_updated: "dashboard.activityPage.types.event_updated",
@@ -76,8 +71,6 @@ function getActivityType(activity: Activity): string {
       return "chore_completed";
     case "shopping":
       return "shopping_completed";
-    case "recipe":
-      return "recipe_completed";
     default:
       return "task_completed";
   }
@@ -91,8 +84,6 @@ function getActivityService(activity: Activity): string {
       return "chores";
     case "shopping":
       return "shopping";
-    case "recipe":
-      return "recipes";
     default:
       return "system";
   }
@@ -237,32 +228,6 @@ export function getActivityPresentation(
   }
 
   if (
-    type === "recipe_added" ||
-    type === "recipe_updated" ||
-    type === "recipe_deleted"
-  ) {
-    const time =
-      formatRelativeTime(activity.completed_at ?? null, { locale }) ?? "";
-    const recipeName =
-      activity.recipe_name || t("dashboard.activity.unknownRecipe");
-    const description =
-      type === "recipe_added"
-        ? t("dashboard.activity.recipeAdded", { recipe: recipeName })
-        : type === "recipe_updated"
-          ? t("dashboard.activity.recipeUpdated", { recipe: recipeName })
-          : t("dashboard.activity.recipeDeleted", { recipe: recipeName });
-    return {
-      icon: "🍳",
-      description,
-      time,
-      type,
-      typeLabel: getActivityTypeLabel(t, type),
-      service,
-      serviceLabel: getActivityServiceLabel(t, service),
-    };
-  }
-
-  if (
     type === "event_created" ||
     type === "event_updated" ||
     type === "event_deleted"
@@ -348,12 +313,7 @@ export function getActivityPresentation(
   const taskName = activity.task_name || t("dashboard.activity.unknownTask");
   const time =
     formatRelativeTime(activity.completed_at ?? null, { locale }) ?? "";
-  const icon =
-    activity.task_type === "shopping"
-      ? "🛒"
-      : activity.task_type === "recipe"
-        ? "🍳"
-        : "✅";
+  const icon = activity.task_type === "shopping" ? "🛒" : "✅";
 
   return {
     icon,

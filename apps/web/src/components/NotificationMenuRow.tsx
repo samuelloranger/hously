@@ -10,7 +10,6 @@ const typeConfig: Record<
   service_monitor: { icon: "🖥️", bg: "bg-indigo-100 dark:bg-indigo-900/30" },
   chore: { icon: "✅", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
   shopping: { icon: "🛒", bg: "bg-sky-100 dark:bg-sky-900/30" },
-  recipe: { icon: "🍳", bg: "bg-orange-100 dark:bg-orange-900/30" },
   event: { icon: "📅", bg: "bg-rose-100 dark:bg-rose-900/30" },
   system: { icon: "⚙️", bg: "bg-neutral-100 dark:bg-neutral-700/60" },
   habit: { icon: "🎯", bg: "bg-orange-100 dark:bg-orange-900/30" },

@@ -12,14 +12,10 @@ export type ActivityType =
   | "chore_added"
   | "chore_completed"
   | "habit_completed"
-  | "recipe_completed"
   | "plugin_updated"
   | "cron_job_ended"
   | "cron_job_skipped"
   | "app_updated"
-  | "recipe_added"
-  | "recipe_updated"
-  | "recipe_deleted"
   | "admin_triggered_job"
   | "event_created"
   | "event_updated"
@@ -33,7 +29,7 @@ export type ActivityType =
 export interface Activity {
   id?: number;
   user_id?: number;
-  task_type?: "chore" | "shopping" | "recipe";
+  task_type?: "chore" | "shopping";
   task_id?: number;
   completed_at?: string;
   task_name?: string;
@@ -55,8 +51,6 @@ export interface Activity {
   reason?: string;
   from_version?: string;
   to_version?: string;
-  recipe_id?: number;
-  recipe_name?: string;
   event_id?: number;
   event_title?: string;
   shopping_item_id?: number;

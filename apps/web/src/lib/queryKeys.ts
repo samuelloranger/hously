@@ -283,22 +283,6 @@ export const queryKeys = {
       ] as const,
   },
 
-  recipes: {
-    all: ["recipes"] as const,
-    lists: () => [...queryKeys.recipes.all, "list"] as const,
-    list: (filters?: Record<string, unknown>) =>
-      [...queryKeys.recipes.lists(), filters] as const,
-    details: () => [...queryKeys.recipes.all, "detail"] as const,
-    detail: (id: number) => [...queryKeys.recipes.details(), id] as const,
-  },
-
-  mealPlans: {
-    all: ["meal-plans"] as const,
-    lists: () => [...queryKeys.mealPlans.all, "list"] as const,
-    list: (start_date?: string, end_date?: string) =>
-      [...queryKeys.mealPlans.lists(), start_date, end_date] as const,
-    detail: (id: number) => [...queryKeys.mealPlans.all, "detail", id] as const,
-  },
   habits: {
     all: ["habits"] as const,
     list: () => [...queryKeys.habits.all, "list"] as const,

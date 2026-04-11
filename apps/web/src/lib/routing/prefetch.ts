@@ -10,12 +10,10 @@ import {
   QBITTORRENT_TORRENTS_PAGE_SIZE,
   EXTERNAL_NOTIFICATION_ENDPOINTS,
   LIBRARY_ENDPOINTS,
-  MEAL_PLAN_ENDPOINTS,
   MEDIAS_ENDPOINTS,
   NOTIFICATION_ENDPOINTS,
   PLUGIN_ENDPOINTS,
   QUALITY_PROFILES_ENDPOINTS,
-  RECIPES_ENDPOINTS,
   SHOPPING_ENDPOINTS,
   HABIT_ENDPOINTS,
   BOARD_TASKS_ENDPOINTS,
@@ -245,25 +243,6 @@ const routeQueryDefinitions = {
     {
       queryKey: queryKeys.dashboard.upcoming(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
-    },
-  ],
-
-  "/kitchen": () => [
-    {
-      queryKey: queryKeys.recipes.lists(),
-      queryFn: () => webFetcher(RECIPES_ENDPOINTS.LIST),
-    },
-    {
-      queryKey: queryKeys.mealPlans.lists(),
-      queryFn: () => webFetcher(MEAL_PLAN_ENDPOINTS.LIST),
-    },
-  ],
-
-  "/kitchen/$recipeId": (params: { recipeId: string }) => [
-    {
-      queryKey: queryKeys.recipes.detail(Number(params.recipeId)),
-      queryFn: () =>
-        webFetcher(RECIPES_ENDPOINTS.DETAIL(Number(params.recipeId))),
     },
   ],
 
