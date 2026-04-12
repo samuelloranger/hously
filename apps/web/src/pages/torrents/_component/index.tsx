@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, startTransition } from "react";
+import { motion, AnimatePresence, type Variants } from "motion/react";
 import { useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import {
@@ -68,6 +69,36 @@ export type TorrentsSearchParams = {
 import { TorrentFilterPopover } from "@/pages/torrents/_component/TorrentFilterPopover";
 import { usePersistentState } from "@/hooks/app/usePersistentState";
 import { useEventSourceState } from "@/hooks/realtime/useEventSourceState";
+
+// ─── Motion variants ──────────────────────────────────────────────────────────
+
+const listContainerVariants: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.025 } },
+};
+
+const listItemVariants: Variants = {
+  hidden: { opacity: 0, y: 6 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
+  },
+};
+
+const gridContainerVariants: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.04 } },
+};
+
+const gridItemVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.96 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] },
+  },
+};
 
 const TORRENTS_URL_STATE_DEFAULTS = {
   search: "",
@@ -737,34 +768,61 @@ export function TorrentsPage() {
                     : (data?.error ?? t("dashboard.qbittorrent.emptyTitle"))}
                 </p>
               </div>
-            ) : viewMode === "grid" ? (
-              <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {filtered.map((torrent) => (
-                  <TorrentGridCard
-                    key={torrent.id}
-                    torrent={torrent}
-                    isPinned={pinnedHash === torrent.id}
-                    isPinPending={setPinnedTorrent.isPending}
-                    onTogglePin={handleTogglePin}
-                  />
-                ))}
-              </div>
-            ) : viewMode === "kanban" ? (
-              <div className="p-3">
-                <TorrentKanbanView torrents={filtered} />
-              </div>
             ) : (
-              <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
-                {filtered.map((torrent) => (
-                  <TorrentRow
-                    key={torrent.id}
-                    torrent={torrent}
-                    isPinned={pinnedHash === torrent.id}
-                    isPinPending={setPinnedTorrent.isPending}
-                    onTogglePin={handleTogglePin}
-                  />
-                ))}
-              </div>
+              <AnimatePresence mode="wait">
+                {viewMode === "grid" ? (
+                  <motion.div
+                    key="grid"
+                    className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"
+                    variants={gridContainerVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                  >
+                    {filtered.map((torrent) => (
+                      <motion.div key={torrent.id} variants={gridItemVariants}>
+                        <TorrentGridCard
+                          torrent={torrent}
+                          isPinned={pinnedHash === torrent.id}
+                          isPinPending={setPinnedTorrent.isPending}
+                          onTogglePin={handleTogglePin}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                ) : viewMode === "kanban" ? (
+                  <motion.div
+                    key="kanban"
+                    className="p-3"
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -16 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <TorrentKanbanView torrents={filtered} />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="list"
+                    className="divide-y divide-neutral-100 dark:divide-neutral-700/50"
+                    variants={listContainerVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                  >
+                    {filtered.map((torrent) => (
+                      <motion.div key={torrent.id} variants={listItemVariants}>
+                        <TorrentRow
+                          torrent={torrent}
+                          isPinned={pinnedHash === torrent.id}
+                          isPinPending={setPinnedTorrent.isPending}
+                          onTogglePin={handleTogglePin}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             )}
           </div>
         </div>

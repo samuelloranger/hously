@@ -1,6 +1,7 @@
 import { useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearch, useNavigate } from "@tanstack/react-router";
+import { motion, AnimatePresence, type Variants } from "motion/react";
+import { useSearch } from "@tanstack/react-router";
 import {
   Search,
   Film,
@@ -12,12 +13,28 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+// ─── Motion variants ──────────────────────────────────────────────────────────
+
+const gridContainerVariants: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.03 } },
+};
+
+const gridItemVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] },
+  },
+};
+
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { useLibrary, useSearchLibraryMovie } from "@/hooks/medias/useLibrary";
 import { useLibraryEvents } from "@/hooks/medias/useLibraryEvents";
-import type { LibrarySearchParams } from "@/pages/library/index";
+import { useUrlState } from "@/hooks/app/useUrlState";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { LibraryItemCard } from "./LibraryItemCard";
@@ -32,20 +49,31 @@ import {
 
 const PAGE_SIZE = 48;
 
+const LIBRARY_DEFAULTS = {
+  type: "all" as FilterType,
+  status: "all" as FilterStatus,
+  search: "" as string,
+  sortBy: "added_at" as SortKey,
+  sortDir: "desc" as SortDir,
+  page: 1,
+};
+
 export function NativeLibraryPage() {
   const { t } = useTranslation("common");
-  const searchParams = useSearch({ from: "/library/" }) as LibrarySearchParams;
-  const navigate = useNavigate({ from: "/library/" });
-
-  const typeFilter = (searchParams.type as FilterType) ?? "all";
-  const statusFilter = (searchParams.status as FilterStatus) ?? "all";
-  const search = searchParams.search ?? "";
-  const sortBy = (searchParams.sortBy as SortKey) ?? "added_at";
-  const sortDir = searchParams.sortDir ?? "desc";
-  const page = searchParams.page ?? 1;
-
-  const setParam = (updates: Partial<LibrarySearchParams>) =>
-    navigate({ search: (prev) => ({ ...prev, ...updates }) });
+  const searchParams = useSearch({ from: "/library/" });
+  const { state, setState } = useUrlState(
+    "/library/",
+    searchParams as Partial<typeof LIBRARY_DEFAULTS>,
+    LIBRARY_DEFAULTS,
+  );
+  const {
+    type: typeFilter,
+    status: statusFilter,
+    search,
+    sortBy,
+    sortDir,
+    page,
+  } = state;
 
   useLibraryEvents();
 
@@ -72,10 +100,11 @@ export function NativeLibraryPage() {
 
   // Sync page if it's out of range
   useEffect(() => {
+    if (isLoading) return;
     if (page > totalPages && totalPages > 0) {
-      setParam({ page: totalPages > 1 ? totalPages : undefined });
+      setState({ page: totalPages > 1 ? totalPages : 1 });
     }
-  }, [page, totalPages]);
+  }, [page, totalPages, isLoading]);
 
   const handleMovieSearch = (id: number) => {
     searchMovie.mutate(
@@ -115,9 +144,9 @@ export function NativeLibraryPage() {
             <input
               value={search}
               onChange={(e) =>
-                setParam({
-                  search: e.target.value || undefined,
-                  page: undefined,
+                setState({
+                  search: e.target.value,
+                  page: 1,
                 })
               }
               placeholder={t("medias.library.searchPlaceholder")}
@@ -131,12 +160,7 @@ export function NativeLibraryPage() {
               <button
                 key={f}
                 type="button"
-                onClick={() =>
-                  setParam({
-                    type: f !== "all" ? f : undefined,
-                    page: undefined,
-                  })
-                }
+                onClick={() => setState({ type: f, page: 1 })}
                 className={cn(
                   "px-3 py-1.5 text-xs font-medium transition-colors",
                   typeFilter === f
@@ -173,9 +197,9 @@ export function NativeLibraryPage() {
                   key={f}
                   type="button"
                   onClick={() =>
-                    setParam({
-                      status: f !== "all" ? f : undefined,
-                      page: undefined,
+                    setState({
+                      status: f,
+                      page: 1,
                     })
                   }
                   className={cn(
@@ -209,7 +233,7 @@ export function NativeLibraryPage() {
             <select
               value={sortBy}
               onChange={(e) =>
-                setParam({ sortBy: e.target.value as SortKey, page: undefined })
+                setState({ sortBy: e.target.value as SortKey, page: 1 })
               }
               className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition"
             >
@@ -222,9 +246,9 @@ export function NativeLibraryPage() {
             <button
               type="button"
               onClick={() =>
-                setParam({
+                setState({
                   sortDir: sortDir === "asc" ? "desc" : "asc",
-                  page: undefined,
+                  page: 1,
                 })
               }
               className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
@@ -244,35 +268,56 @@ export function NativeLibraryPage() {
         </div>
 
         {/* Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="aspect-[2/3] rounded-2xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <div
+              key="skeleton"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3"
+            >
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="aspect-[2/3] rounded-2xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                />
+              ))}
+            </div>
+          ) : pagedItems.length === 0 ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <EmptyState
+                icon="🎬"
+                title={t("medias.library.emptyTitle")}
+                description={t("medias.library.emptyDescription")}
               />
-            ))}
-          </div>
-        ) : pagedItems.length === 0 ? (
-          <EmptyState
-            icon="🎬"
-            title={t("medias.library.emptyTitle")}
-            description={t("medias.library.emptyDescription")}
-          />
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3">
-            {pagedItems.map((item) => (
-              <LibraryItemCard
-                key={item.id}
-                item={item}
-                onMovieSearch={handleMovieSearch}
-                movieSearchPending={
-                  searchMovie.isPending && searchMovie.variables?.id === item.id
-                }
-              />
-            ))}
-          </div>
-        )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`${typeFilter}-${statusFilter}-${sortBy}-${sortDir}-${safePage}`}
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3"
+              variants={gridContainerVariants}
+              initial="hidden"
+              animate="show"
+              exit={{ opacity: 0, transition: { duration: 0.12 } }}
+            >
+              {pagedItems.map((item) => (
+                <motion.div key={item.id} variants={gridItemVariants}>
+                  <LibraryItemCard
+                    item={item}
+                    onMovieSearch={handleMovieSearch}
+                    movieSearchPending={
+                      searchMovie.isPending &&
+                      searchMovie.variables?.id === item.id
+                    }
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -287,7 +332,7 @@ export function NativeLibraryPage() {
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => setParam({ page: safePage - 1 })}
+                onClick={() => setState({ page: safePage - 1 })}
                 disabled={safePage <= 1}
                 className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-40 transition-colors"
               >
@@ -298,7 +343,7 @@ export function NativeLibraryPage() {
               </span>
               <button
                 type="button"
-                onClick={() => setParam({ page: safePage + 1 })}
+                onClick={() => setState({ page: safePage + 1 })}
                 disabled={safePage >= totalPages}
                 className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-40 transition-colors"
               >

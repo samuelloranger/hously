@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useQuickSearch } from "@/hooks/search/useSearch";
 import { formatBytes } from "@hously/shared/utils";
 import { navSections } from "@/lib/routing/navigation";
+import { usePrefetchAllRoutes } from "@/lib/routing/usePrefetchAllRoutes";
 import { Dialog } from "@/components/dialog";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/hooks/app/useTheme";
@@ -51,6 +52,7 @@ export function QuickActionPalette({
   const navigate = useNavigate();
   const router = useRouterState();
   const { isDark, toggleTheme } = useTheme();
+  const prefetchAllRoutes = usePrefetchAllRoutes();
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -360,13 +362,15 @@ export function QuickActionPalette({
       return;
     }
 
+    prefetchAllRoutes();
+
     const timer = window.setTimeout(() => {
       inputRef.current?.focus();
       inputRef.current?.select();
     }, 50);
 
     return () => window.clearTimeout(timer);
-  }, [isOpen]);
+  }, [isOpen, prefetchAllRoutes]);
 
   const safeActiveIndex =
     results.length > 0 ? Math.min(activeIndex, results.length - 1) : 0;

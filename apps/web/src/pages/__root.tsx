@@ -7,14 +7,10 @@ import { useState } from "react";
 import { Toaster } from "sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/Sidebar";
-import { BottomNav } from "@/components/BottomNav";
 import { PageTransition } from "@/components/PageTransition";
 import { NotificationPermissionModal } from "@/components/NotificationPermissionModal";
 import { QuickActionPalette } from "@/components/QuickActionPalette";
 import { RouteDataRefetcher } from "@/components/RouteDataRefetcher";
-import { useAuth } from "@/lib/auth/useAuth";
-import { usePWA } from "@/lib/sw/usePWA";
-import { useIsMobile } from "@/hooks/app/useIsMobile";
 import { useAutoSubscribeNotifications } from "@/lib/notifications/useAutoSubscribeNotifications";
 
 export interface RouterContext {
@@ -22,15 +18,11 @@ export interface RouterContext {
 }
 
 function RootLayout() {
-  const { user } = useAuth();
-  const { isStandalone } = usePWA();
-  const isMobile = useIsMobile();
   const { showModal, handleAllow, handleDismiss } =
     useAutoSubscribeNotifications();
   const router = useRouterState();
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
 
-  const showBottomNav = isStandalone && isMobile;
   const isSettings = router.location.pathname.startsWith("/settings");
   const shouldShowNav = !["/login"].includes(router.location.pathname);
 
@@ -42,13 +34,12 @@ function RootLayout() {
       )}
       <div className={shouldShowNav ? "lg:pl-60" : ""}>
         <main
-          className={`user min-h-full flex-1 flex flex-col ${showBottomNav ? "pb-24" : isSettings ? "pb-0" : "pb-10"}`}
+          className={`user min-h-full flex-1 flex flex-col ${isSettings ? "pb-0" : "pb-10"}`}
         >
           <RouteDataRefetcher />
           <PageTransition />
         </main>
       </div>
-      {user && <BottomNav />}
       <QuickActionPalette
         isOpen={isQuickActionsOpen}
         onOpen={() => setIsQuickActionsOpen(true)}

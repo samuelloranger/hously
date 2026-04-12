@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import { MediaPosterCard } from "@/components/MediaPosterCard";
 import { cn } from "@/lib/utils";
 import type { LibraryMedia } from "@hously/shared/types";
+import { usePrefetchLibraryItem } from "@/hooks/medias/usePrefetchLibraryItem";
 
 const STATUS_STYLES: Record<
   LibraryMedia["status"],
@@ -51,6 +52,7 @@ export function LibraryItemCard({
 }: LibraryItemCardProps) {
   const { t } = useTranslation("common");
   const navigate = useNavigate();
+  const prefetchLibraryItem = usePrefetchLibraryItem();
   const statusInfo = STATUS_STYLES[item.status] ?? STATUS_STYLES.wanted;
   const statusLabel = t(statusInfo.labelKey);
   const digitalLabel =
@@ -69,6 +71,8 @@ export function LibraryItemCard({
           params: { libraryId: String(item.id) },
         })
       }
+      onMouseEnter={() => prefetchLibraryItem(item)}
+      onTouchStart={() => prefetchLibraryItem(item)}
     >
       <MediaPosterCard
         posterUrl={item.poster_url}
