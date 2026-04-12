@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, type Variants } from "motion/react";
 import { useTranslation } from "react-i18next";
 import {
   useDiscoverMedias,
@@ -70,6 +71,22 @@ const LANGUAGE_FILTERS = [
   { code: "en", flag: "🇺🇸", label: "EN" },
   { code: "fr", flag: "🇫🇷", label: "FR" },
 ];
+
+// ─── Motion variants ──────────────────────────────────────────────────────────
+
+const gridContainerVariants: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.025 } },
+};
+
+const gridItemVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] },
+  },
+};
 
 // ─── DiscoverPanel ────────────────────────────────────────────────────────────
 export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
@@ -359,16 +376,24 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
           </div>
         )}
 
-        {!isFetching && (data?.items.length ?? 0) > 0 && (
-          <div
-            key={gridKey}
-            className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-          >
-            {data!.items.map((item) => (
-              <ExploreCard key={item.id} item={item} onAdded={onAdded} />
-            ))}
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {!isFetching && (data?.items.length ?? 0) > 0 && (
+            <motion.div
+              key={gridKey}
+              className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+              variants={gridContainerVariants}
+              initial="hidden"
+              animate="show"
+              exit={{ opacity: 0, transition: { duration: 0.1 } }}
+            >
+              {data!.items.map((item) => (
+                <motion.div key={item.id} variants={gridItemVariants}>
+                  <ExploreCard item={item} onAdded={onAdded} />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ── Pagination ──────────────────────────────────────── */}

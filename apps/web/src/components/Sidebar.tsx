@@ -1,5 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { motion } from "motion/react";
+import { useEffect } from "react";
 import { clearUser } from "@/lib/auth";
 import { useLogout } from "@/hooks/auth/useAuth";
 import { useUpdateProfile } from "@/hooks/users/useUsers";
@@ -12,6 +14,7 @@ import { useAuth } from "@/lib/auth/useAuth";
 import { useTheme } from "@/hooks/app/useTheme";
 import { cn } from "@/lib/utils";
 import { navSections } from "@/lib/routing/navigation";
+import { usePrefetchAllRoutes } from "@/lib/routing/usePrefetchAllRoutes";
 
 interface SidebarProps {
   onOpenQuickActions?: () => void;
@@ -25,7 +28,12 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
   const navigate = useNavigate();
   const logoutMutation = useLogout();
   const prefetchRoute = usePrefetchRoute();
+  const prefetchAllRoutes = usePrefetchAllRoutes();
   const { isDark, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    prefetchAllRoutes();
+  }, [prefetchAllRoutes]);
   const updateProfile = useUpdateProfile();
 
   const languages = [
@@ -131,19 +139,33 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
                       to={item.path}
                       onMouseEnter={() => prefetchRoute(item.path)}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150",
+                        "relative flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150",
                         isActive
-                          ? "bg-neutral-100 dark:bg-white/[0.08] text-neutral-900 dark:text-white"
+                          ? "text-neutral-900 dark:text-white"
                           : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] hover:text-neutral-800 dark:hover:text-neutral-200",
                       )}
                     >
+                      {isActive && (
+                        <motion.span
+                          layoutId="sidebar-active"
+                          className="absolute inset-0 rounded-lg bg-neutral-100 dark:bg-white/[0.08]"
+                          transition={{
+                            type: "spring",
+                            stiffness: 500,
+                            damping: 40,
+                          }}
+                        />
+                      )}
                       <Icon
                         size={18}
                         className={cn(
+                          "relative z-10",
                           isActive && "text-indigo-600 dark:text-indigo-400",
                         )}
                       />
-                      {t(item.translationKey)}
+                      <span className="relative z-10">
+                        {t(item.translationKey)}
+                      </span>
                     </Link>
                   );
                 })}
@@ -184,14 +206,21 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
             search={{ tab: "profile" }}
             onMouseEnter={() => prefetchRoute("/settings", { tab: "profile" })}
             className={cn(
-              "flex items-center gap-3 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-150",
+              "relative flex items-center gap-3 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150",
               currentPath.startsWith("/settings")
-                ? "bg-neutral-100 dark:bg-white/[0.08] text-neutral-900 dark:text-white"
+                ? "text-neutral-900 dark:text-white"
                 : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] hover:text-neutral-800 dark:hover:text-neutral-200",
             )}
           >
-            <Settings size={18} />
-            {t("settings.title")}
+            {currentPath.startsWith("/settings") && (
+              <motion.span
+                layoutId="sidebar-active"
+                className="absolute inset-0 rounded-lg bg-neutral-100 dark:bg-white/[0.08]"
+                transition={{ type: "spring", stiffness: 500, damping: 40 }}
+              />
+            )}
+            <Settings size={18} className="relative z-10" />
+            <span className="relative z-10">{t("settings.title")}</span>
           </Link>
 
           {/* Divider */}

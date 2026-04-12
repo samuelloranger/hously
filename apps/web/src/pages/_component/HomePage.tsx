@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, ShoppingCart, CheckSquare2, Flame } from "lucide-react";
+import { motion, type Variants } from "motion/react";
 import { PageLayout } from "@/components/PageLayout";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
 import { useDashboardStats } from "@/hooks/dashboard/useDashboard";
@@ -16,20 +17,21 @@ import { JellyfinShelf, UpcomingShelf } from "@/pages/_component/MediaShelves";
 import { TrackersPanel } from "@/pages/_component/TrackersPanel";
 import { ChoresPanel, HabitsPanel } from "@/pages/_component/HomePanel";
 
-// ─── Styles injected once ─────────────────────────────────────────────────────
+// ─── Motion variants ──────────────────────────────────────────────────────────
 
-const STYLES = `
-  @keyframes homeSlideUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .home-enter {
-    animation: homeSlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
-  }
-  .home-poster-card {
-    animation: homeSlideUp 0.35s cubic-bezier(0.16,1,0.3,1) both;
-  }
-`;
+const columnVariants: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.055 } },
+};
+
+const panelVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
+  },
+};
 
 // ─── Stats row ────────────────────────────────────────────────────────────────
 
@@ -105,17 +107,17 @@ export function HomePage() {
 
   return (
     <PageLayout fullWidth>
-      <style>{STYLES}</style>
-
       <div className="space-y-6">
         {/* Main layout: left stacked widgets / right tall column */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 items-start">
           {/* Left: stacked widgets */}
-          <div className="min-w-0 space-y-4">
-            <div
-              className="home-enter space-y-3"
-              style={{ animationDelay: "0ms" }}
-            >
+          <motion.div
+            className="min-w-0 space-y-4"
+            variants={columnVariants}
+            initial="hidden"
+            animate="show"
+          >
+            <motion.div className="space-y-3" variants={panelVariants}>
               <GreetingCard
                 userName={getUserFirstName(user, t("dashboard.user"))}
                 pendingChores={stats?.chores_count || 0}
@@ -123,65 +125,70 @@ export function HomePage() {
                 eventsToday={stats?.events_today || 0}
               />
               <StatsRow stats={stats} />
-            </div>
+            </motion.div>
 
-            <div className="home-enter" style={{ animationDelay: "60ms" }}>
+            <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <JellyfinShelf />
               </CardErrorBoundary>
-            </div>
+            </motion.div>
 
-            <div className="home-enter" style={{ animationDelay: "100ms" }}>
+            <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <UpcomingShelf />
               </CardErrorBoundary>
-            </div>
+            </motion.div>
 
-            <div className="home-enter" style={{ animationDelay: "140ms" }}>
+            <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <HabitsPanel />
               </CardErrorBoundary>
-            </div>
+            </motion.div>
 
-            <div className="home-enter" style={{ animationDelay: "180ms" }}>
+            <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <ChoresPanel />
               </CardErrorBoundary>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Right: weather + system + downloads + trackers */}
-          <div className="space-y-4">
-            <div className="home-enter" style={{ animationDelay: "60ms" }}>
+          <motion.div
+            className="space-y-4"
+            variants={columnVariants}
+            initial="hidden"
+            animate="show"
+          >
+            <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <WeatherPanel />
               </CardErrorBoundary>
-            </div>
+            </motion.div>
 
-            <div className="home-enter" style={{ animationDelay: "80ms" }}>
+            <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <HomeAssistantPanel />
               </CardErrorBoundary>
-            </div>
+            </motion.div>
 
-            <div className="home-enter" style={{ animationDelay: "100ms" }}>
+            <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <SystemPanel />
               </CardErrorBoundary>
-            </div>
+            </motion.div>
 
-            <div className="home-enter" style={{ animationDelay: "140ms" }}>
+            <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <DownloadsPanel />
               </CardErrorBoundary>
-            </div>
+            </motion.div>
 
-            <div className="home-enter" style={{ animationDelay: "180ms" }}>
+            <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <TrackersPanel />
               </CardErrorBoundary>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </PageLayout>

@@ -1,14 +1,13 @@
 import { Suspense } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { Outlet } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "motion/react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { HouseLoader } from "@/components/HouseLoader";
 
 export function PageTransition() {
   const location = useLocation();
 
-  // Key is on the inner div for animations, not on Suspense wrapper
-  // This prevents Suspense from remounting and re-checking lazy components
   return (
     <Suspense
       fallback={
@@ -17,14 +16,20 @@ export function PageTransition() {
         </div>
       }
     >
-      <div
-        className="h-full flex flex-col flex-1 page-transition page-enter"
-        key={location.pathname}
-      >
-        <ErrorBoundary>
-          <Outlet />
-        </ErrorBoundary>
-      </div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={location.pathname}
+          className="h-full flex flex-col flex-1"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        </motion.div>
+      </AnimatePresence>
     </Suspense>
   );
 }

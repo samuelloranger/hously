@@ -1,5 +1,11 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 
+/** Derives a tiny TMDB thumbnail URL (w92) from any TMDB image URL. */
+function toThumbnailUrl(url: string): string | null {
+  const m = url.match(/^(https:\/\/image\.tmdb\.org\/t\/p\/)([^/]+)(\/.*)/);
+  return m ? `${m[1]}w92${m[3]}` : null;
+}
+
 export type MediaPosterCardStatus = "downloaded" | "downloading" | "missing";
 
 const STATUS_BORDER_COLORS: Record<MediaPosterCardStatus, string> = {
@@ -57,7 +63,10 @@ export function MediaPosterCard({
   animationDelayMs,
 }: MediaPosterCardProps) {
   const [imageError, setImageError] = useState(false);
+  const [thumbLoaded, setThumbLoaded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const showImage = Boolean(posterUrl) && !imageError;
+  const thumbnailUrl = showImage ? toThumbnailUrl(posterUrl!) : null;
 
   const containerClass = [
     "group/card relative shrink-0 overflow-hidden rounded-2xl",
@@ -81,15 +90,27 @@ export function MediaPosterCard({
 
   const content = (
     <>
-      {/* Poster */}
+      {/* Blurred thumbnail — loads instantly, hidden once full res is ready */}
+      {thumbnailUrl && (
+        <img
+          src={thumbnailUrl}
+          alt=""
+          aria-hidden="true"
+          onLoad={() => setThumbLoaded(true)}
+          className={`absolute inset-0 h-full w-full scale-110 object-cover blur-xl transition-opacity duration-300 ${thumbLoaded && !imageLoaded ? "opacity-100" : "opacity-0"}`}
+        />
+      )}
+
+      {/* Full-res poster — fades in over the thumbnail */}
       {showImage && (
         <img
           src={posterUrl!}
           alt=""
           loading="lazy"
           aria-hidden="true"
+          onLoad={() => setImageLoaded(true)}
           onError={() => setImageError(true)}
-          className="absolute inset-0 h-full w-full object-cover"
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-in-out ${imageLoaded ? "opacity-100" : "opacity-0"}`}
         />
       )}
 
