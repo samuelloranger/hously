@@ -1,239 +1,157 @@
 # Hously
 
-A self-hosted command center for homelab enthusiasts. Monitor your infrastructure, manage your media pipeline, and keep your life organized -- all from a single dashboard.
+A self-hosted command center for homelab enthusiasts. Hously provides a unified dashboard for managing media pipelines, monitoring infrastructure, tracking torrents, and organizing daily life — all from a single web app.
 
-> **Early stage project** -- expect breaking changes between releases.
+> **Early-stage project.** Breaking changes may occur between releases.
 
 ## Features
 
-### Infrastructure & Media
+**Media & Entertainment**
+- **Media Library** — Radarr/Sonarr integration with TMDB discovery, release search, and quality profiles
+- **Watchlist** — Track what you want to watch with one-click add to Radarr/Sonarr
+- **Torrents** — qBittorrent management with real-time activity streaming (SSE)
+- **Tracker Stats** — Private tracker statistics (C411, Torr9, La Cale)
+- **Jellyfin/Plex** — Latest additions and webhook notifications
 
-- **Dashboard** -- Unified overview: server health, disk status, torrent activity, media releases
-- **Torrent Management** -- Full qBittorrent integration with real-time SSE streaming, filtering, and uploads
-- **Media Pipeline** -- Radarr & Sonarr integration with TMDB discovery and interactive release search
-- **Tracker Statistics** -- Ratio, upload stats, and account health across private trackers (see [disclaimer](#private-tracker-integrations))
-- **Server Monitoring** -- Live CPU, RAM, disk, and network stats via Netdata
-- **Disk Health** -- S.M.A.R.T. monitoring via Scrutiny
-- **Jellyfin/Plex** -- Latest media additions on your dashboard
+**Infrastructure**
+- **Dashboard** — Server health (Netdata), disk diagnostics (Scrutiny), torrent activity, upcoming releases
+- **Plugins** — Configurable integrations with external services
+- **External Notifications** — Inbound webhooks from Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma
 
-### Life Management
+**Life Management**
+- **Board** — Kanban-style task management with dependencies, time logging, and tags
+- **Calendar** — Shared calendar with reminders and iCal export
+- **Chores** — Assignment, tracking, and recurring schedules
+- **Habits** — Habit tracking with completion history
+- **Shopping List** — Collaborative list with real-time updates
+- **Collections** — Organize and track personal collections
 
-- **Shopping List** -- Collaborative with drag-and-drop reordering
-- **Chores** -- Assignment, tracking, recurring schedules, and reminders
-- **Calendar** -- Shared calendar with custom events and iCal export
-- **Recipes & Meal Plans** -- Recipe management with ingredients, images, and weekly planning
-- **Habits** -- Daily habit tracking with streaks
+**Platform**
+- Push notifications (Web Push + APNs for iOS)
+- i18n support via i18next
+- PWA-ready with service worker
+- Activity log across all features
 
-### Notifications
+## Tech Stack
 
-- **Webhook Integrations** -- Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma, Prowlarr
-- **Customizable Templates** -- Per-service notification templates with variables
-- **Multi-Channel Push** -- Web Push (VAPID) and Apple Push Notifications (APNs)
+| Layer | Technology |
+|-------|-----------|
+| Runtime | [Bun](https://bun.sh) |
+| API framework | [Elysia](https://elysiajs.com) |
+| Database | PostgreSQL 15 + [Prisma](https://prisma.io) |
+| Cache / Queues | Redis + BullMQ |
+| Object storage | MinIO (S3-compatible) |
+| Frontend | React 19 + Vite |
+| Routing | TanStack Router |
+| Data fetching | TanStack Query |
+| Styling | Tailwind CSS 4 |
+| Auth | JWT (HTTP-only cookies) |
 
-## Quick Start
+## Quick Start (Docker)
 
-Hously runs as a **single Docker container** -- the API serves the frontend directly.
-
-### 1. Create a project directory
-
-```bash
-mkdir hously && cd hously
-```
-
-### 2. Download the compose file and environment template
-
-```bash
-curl -o docker-compose.yml https://raw.githubusercontent.com/samuelloranger/hously/main/docker-compose.prod-example.yml
-curl -o .env https://raw.githubusercontent.com/samuelloranger/hously/main/.env.example
-```
-
-### 3. Configure environment
-
-Edit `.env` and set at minimum:
-
-```bash
-# Required
-ALLOWED_EMAILS=your-email@example.com
-ADMIN_EMAILS=your-email@example.com
-SECRET_KEY=generate-a-random-secret-here
-
-# Database (must match the db service)
-POSTGRES_DB=hously
-POSTGRES_USER=hously
-POSTGRES_PASSWORD=change-me
-DATABASE_URL=postgresql://hously:change-me@db:5432/hously
-
-# Redis
-REDIS_PASSWORD=change-me
-
-# MinIO (S3-compatible storage for images)
-MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=change-me
-S3_ACCESS_KEY=minioadmin
-S3_SECRET_KEY=change-me
-```
-
-### 4. Start the application
+The production image runs both the API and the pre-built frontend from a single container.
 
 ```bash
-docker compose up -d
-```
+# 1. Copy and edit the example compose file
+cp docker-compose.prod-example.yml docker-compose.prod.yml
 
-Hously will be available at `http://localhost:3000`. Register with an email from your `ALLOWED_EMAILS` list.
-
-### 5. (Optional) Enable push notifications
-
-Generate VAPID keys for browser push notifications:
-
-```bash
-bunx web-push generate-vapid-keys
-```
-
-Copy the output into your `.env`:
-
-```bash
-VAPID_PUBLIC_KEY=BPxr...your-public-key
-VAPID_PRIVATE_KEY=abc...your-private-key
-VAPID_CONTACT_EMAIL=mailto:your-email@example.com
-```
-
-Restart the container after updating:
-
-```bash
-docker compose up -d
-```
-
-### 6. (Optional) Reverse proxy
-
-Put Hously behind a reverse proxy (Caddy, Nginx, Traefik) for HTTPS. Update `BASE_URL` and `CORS_ORIGIN` in `.env` to match your domain.
-
-## Updating
-
-```bash
-docker compose pull
-docker compose up -d
-```
-
-Migrations run automatically on startup.
-
-## Environment Variables
-
-### Required
-
-| Variable                                              | Description                                        |
-| ----------------------------------------------------- | -------------------------------------------------- |
-| `ALLOWED_EMAILS`                                      | Comma-separated list of emails allowed to register |
-| `ADMIN_EMAILS`                                        | Comma-separated list of admin emails               |
-| `SECRET_KEY`                                          | Secret key for JWT signing (change from default)   |
-| `DATABASE_URL`                                        | PostgreSQL connection string                       |
-| `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | Database credentials                               |
-| `REDIS_PASSWORD`                                      | Redis password                                     |
-| `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD`             | MinIO credentials                                  |
-| `S3_ACCESS_KEY` / `S3_SECRET_KEY`                     | S3 credentials (same as MinIO by default)          |
-
-### Optional
-
-| Variable                                                        | Description                                  | Default                 |
-| --------------------------------------------------------------- | -------------------------------------------- | ----------------------- |
-| `BASE_URL`                                                      | Public URL of the app                        | `http://localhost:5000` |
-| `CORS_ORIGIN`                                                   | Allowed CORS origin                          | `http://localhost:5173` |
-| `TZ`                                                            | Timezone for cron jobs and date boundaries   | `America/New_York`      |
-| `TMDB_API_KEY`                                                  | TMDB API key for media discovery             | --                      |
-| `OMDB_API_KEY`                                                  | OMDB API key for additional media data       | --                      |
-| `VAPID_CONTACT_EMAIL`                                           | Contact email for web push notifications     | --                      |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS`           | SMTP server for email notifications          | --                      |
-| `SMTP_FROM` / `SMTP_FROM_NAME`                                  | Email sender address and name                | --                      |
-| `APNS_TEAM_ID` / `APNS_KEY_ID` / `APNS_AUTH_KEY` / `APNS_TOPIC` | Apple Push Notification service credentials  | --                      |
-| `LOG_LEVEL`                                                     | Log level (`DEBUG`, `INFO`, `WARN`, `ERROR`) | `DEBUG`                 |
-
-## External Notifications
-
-Hously supports webhook-based notifications from external services.
-
-### Supported Services
-
-- **Media Servers**: Jellyfin, Plex
-- **Media Management**: Radarr, Sonarr, Prowlarr
-- **Backup**: Kopia
-- **Monitoring**: UptimeKuma
-- **Generic**: Any JSON webhook with `title` and `body`
-
-### Setup
-
-1. Go to **Settings > External Notifications**
-2. Enable the service and click **Regenerate Token**
-3. Copy the webhook URL (`https://your-domain.com/api/webhooks/{service}?token=TOKEN`)
-4. Add the URL as a webhook in your external service
-
-Each service has customizable notification templates with per-event variables.
-
-## Development
-
-**Requirements**: [Bun](https://bun.sh) v1.3+
-
-```bash
-git clone https://github.com/samuelloranger/hously.git
-cd hously
+# 2. Create your .env from the example
 cp .env.example .env
-# Edit .env: set ALLOWED_EMAILS, ADMIN_EMAILS, SECRET_KEY
+# Edit .env — at minimum set SECRET_KEY, ALLOWED_EMAILS, ADMIN_EMAILS, DATABASE_URL
 
-make install          # Install dependencies
-make dev-services     # Start PostgreSQL + MinIO + Redis (Terminal 1)
-make dev-api          # Start API with hot reload (Terminal 2)
-make dev-web          # Start frontend with Vite (Terminal 3)
+# 3. Start everything
+docker compose -f docker-compose.prod.yml up -d
+
+# 4. Run database migrations
+docker compose -f docker-compose.prod.yml exec hously bunx prisma migrate deploy
 ```
 
-### Tech Stack
+The app will be available on port `3000` by default.
 
-| Layer        | Technology                                                                                                                                                                      |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **API**      | [Elysia](https://elysiajs.com) (Bun runtime) + [Prisma](https://prisma.io) ORM                                                                                                  |
-| **Frontend** | React 19 + [Vite](https://vite.dev) + [TanStack Router](https://tanstack.com/router) + [TanStack Query](https://tanstack.com/query) + [Tailwind CSS](https://tailwindcss.com) 4 |
-| **Database** | PostgreSQL 15                                                                                                                                                                   |
-| **Cache**    | Redis 7                                                                                                                                                                         |
-| **Storage**  | MinIO (S3-compatible)                                                                                                                                                           |
+## Development Setup
 
-### Project Structure
-
-```
-apps/
-  api/       Elysia API server + Prisma schema + cron jobs
-  web/       React frontend (SPA)
-  shared/    Types, hooks, utilities shared between API and web
-```
-
-### Useful Commands
+**Prerequisites:** [Bun](https://bun.sh) >= 1.3
 
 ```bash
-make test             # Run all tests
-make lint             # Lint frontend
-make typecheck        # Type check all workspaces
-make migrate-dev      # Create a new Prisma migration
-make migrate-deploy   # Apply pending migrations
-make build            # Build frontend for production
+# Install dependencies and git hooks
+make install
+
+# Copy and configure environment
+cp .env.example .env
+
+# Terminal 1 — Start PostgreSQL, MinIO, and Redis
+make dev-services
+
+# Terminal 2 — Start the API with hot reload
+make dev-api
+
+# Terminal 3 — Start the React frontend
+make dev-web
 ```
 
-## Building from Source
+The API runs on `http://localhost:3001` and the frontend on `http://localhost:5173` by default.
+
+## Configuration
+
+Copy `.env.example` to `.env`. Required variables:
+
+| Variable | Description |
+|----------|-------------|
+| `SECRET_KEY` | JWT signing secret — change from default |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `ALLOWED_EMAILS` | Comma-separated list of emails allowed to register |
+| `ADMIN_EMAILS` | Comma-separated list of admin emails |
+| `BASE_URL` | Public URL of the app (e.g. `https://hously.example.com`) |
+
+Optional integrations:
+
+| Variable | Description |
+|----------|-------------|
+| `TMDB_API_KEY` | Required for media discovery |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web push notifications |
+| `APNS_*` | Apple Push Notifications (iOS) |
+| `SMTP_*` | Email delivery |
+
+See `.env.example` for the full reference.
+
+## Common Commands
 
 ```bash
-docker build -t hously:latest .
+make install           # Install dependencies
+make dev-services      # Start backing services (PostgreSQL, MinIO, Redis)
+make dev-api           # Start API with hot reload
+make dev-web           # Start frontend with live reload
+make build             # Build frontend for production
+make test              # Run all tests
+make lint              # Lint all code
+make typecheck         # Type-check the frontend
+
+# Database
+make migrate-dev       # Create a new migration
+make migrate-deploy    # Apply pending migrations (production)
+make migrate-studio    # Open Prisma Studio
 ```
 
-The Dockerfile builds the frontend, bundles it into the API's `public/` directory, and produces a single image that serves everything on port 3000.
+## Project Structure
 
-## Private Tracker Integrations
+```
+hously/
+├── apps/
+│   ├── api/           # Elysia API (routes, services, workers, jobs)
+│   │   └── prisma/    # Database schema and migrations
+│   ├── web/           # React frontend (pages, features, components)
+│   └── shared/        # Shared types, hooks, endpoints, utilities
+├── docs/              # Integration guides
+├── docker-compose.yml # Dev backing services
+└── Makefile
+```
 
-Hously includes optional integrations with private torrent trackers (C411, Torr9, La Cale). These are **community-contributed, opt-in features** that scrape tracker websites to display your account statistics (ratio, upload/download totals).
+Shared code (types, TanStack Query hooks, API endpoint constants) lives in `apps/shared` and is imported as `@hously/shared` by both apps.
 
-**By using these integrations, you acknowledge that:**
+## Contributing
 
-- Scraping may violate your tracker's Terms of Service. Use at your own risk.
-- These features are disabled by default and require you to provide your own credentials.
-- The Hously project and its contributors are not responsible for any consequences resulting from their use, including account warnings or bans.
-- These integrations are not affiliated with or endorsed by any tracker.
-
-If you are uncomfortable with this, simply leave the tracker plugins unconfigured.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for development conventions, branch naming, and PR guidelines.
 
 ## License
 
-TBD
+[MIT](./LICENSE)
