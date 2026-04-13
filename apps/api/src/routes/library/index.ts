@@ -342,6 +342,88 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     }
   })
 
+  // POST /api/library/:id/seasons/:season/search — auto-grab best season pack
+  .post(
+    "/:id/seasons/:season/search",
+    async ({ params, body, set }) => {
+      try {
+        const mediaId = parseInt(params.id, 10);
+        const season = parseInt(params.season, 10);
+
+        const media = await prisma.libraryMedia.findUnique({
+          where: { id: mediaId },
+        });
+        if (!media) return notFound(set, "Library item not found");
+        if (media.type !== "show") {
+          return badRequest(set, "Season search only applies to TV shows");
+        }
+
+        const downloadingCount = await prisma.libraryEpisode.count({
+          where: { mediaId, season, status: "downloading" },
+        });
+        if (downloadingCount > 0) {
+          return badRequest(
+            set,
+            "One or more episodes in this season are already downloading",
+          );
+        }
+
+        const wantedEpisodes = await prisma.libraryEpisode.findMany({
+          where: { mediaId, season, status: "wanted" },
+        });
+        if (wantedEpisodes.length === 0) {
+          return badRequest(set, "No wanted episodes in this season");
+        }
+
+        const s = String(season).padStart(2, "0");
+        const defaultQ = `${media.title} S${s}`;
+        const q = body.search_query?.trim() || defaultQ;
+
+        const result = await searchAndGrab({
+          mediaId,
+          searchQuery: q,
+          qualityProfileId: media.qualityProfileId,
+        });
+
+        if (result.grabbed) {
+          return { grabbed: true, release_title: result.releaseTitle };
+        }
+
+        for (const ep of wantedEpisodes) {
+          const next = ep.searchAttempts + 1;
+          await prisma.libraryEpisode.update({
+            where: { id: ep.id },
+            data: {
+              searchAttempts: next,
+              ...(next >= MAX_LIBRARY_GRAB_ATTEMPTS
+                ? { status: "skipped" }
+                : {}),
+            },
+          });
+        }
+
+        const allNowSkipped = wantedEpisodes.every(
+          (ep) => ep.searchAttempts + 1 >= MAX_LIBRARY_GRAB_ATTEMPTS,
+        );
+        if (allNowSkipped) {
+          await notifyAdminsLibraryGrabSkipped(
+            `Season pack "${media.title}" S${season} exceeded ${MAX_LIBRARY_GRAB_ATTEMPTS} failed grab attempts (${result.reason}). All episodes set to skipped.`,
+          );
+        }
+
+        return { grabbed: false, reason: result.reason };
+      } catch (err) {
+        console.error("Library season search error:", err);
+        return serverError(set, "Search failed");
+      }
+    },
+    {
+      body: t.Object({
+        search_query: t.Optional(t.String({ maxLength: 400 })),
+      }),
+    },
+  )
+
   // PATCH /api/library/:id/monitored — toggle monitoring for a movie or show
   .patch(
     "/:id/monitored",

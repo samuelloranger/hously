@@ -6,6 +6,7 @@ import {
   useLibraryEpisodes,
   useRescanLibraryItem,
   useSearchLibraryEpisode,
+  useSearchSeasonPack,
   useRetrySkippedMedia,
   useRetrySkippedSeason,
   useToggleEpisodeMonitored,
@@ -18,6 +19,7 @@ import {
   Eye,
   EyeOff,
   Folder,
+  Layers,
   RefreshCw,
   Search,
   Trash2,
@@ -53,6 +55,7 @@ export function LibraryMediaSection({
   const rescan = useRescanLibraryItem(libraryId);
   const deleteFile = useDeleteLibraryFile(libraryId);
   const searchEpMut = useSearchLibraryEpisode();
+  const searchSeasonPackMut = useSearchSeasonPack();
   const retryEpMut = useRetrySkippedMedia();
   const retrySeasonMut = useRetrySkippedSeason();
   const toggleEpMonitoredMut = useToggleEpisodeMonitored();
@@ -170,6 +173,10 @@ export function LibraryMediaSection({
                 s.episodes.length > 0 ? downloadedCount / s.episodes.length : 0;
               const allDone = downloadedCount === s.episodes.length;
               const noneDone = downloadedCount === 0;
+              const anyDownloading = s.episodes.some(
+                (e) => e.status === "downloading",
+              );
+              const packEligible = noneDone && !anyDownloading;
 
               const sFiles = files.filter((f) => f.season === s.season);
               const uRes = isUniform(sFiles.map((f) => f.resolution));
@@ -241,11 +248,54 @@ export function LibraryMediaSection({
                         </div>
                       </div>
                     </button>
+                    {packEligible && (
+                      <button
+                        type="button"
+                        title={t(
+                          "library.management.searchSeasonPack",
+                          "Search season pack",
+                        )}
+                        disabled={searchSeasonPackMut.isPending}
+                        onClick={() => {
+                          void searchSeasonPackMut
+                            .mutateAsync({
+                              mediaId: libraryId,
+                              season: s.season,
+                            })
+                            .then((r) => {
+                              if (r.grabbed) {
+                                toast.success(
+                                  t(
+                                    "library.management.seasonPackGrabbed",
+                                    "Season pack grabbed!",
+                                  ),
+                                );
+                              } else {
+                                toast.info(
+                                  t(
+                                    "library.management.seasonPackNotFound",
+                                    "No season pack found — episodes will be searched individually.",
+                                  ),
+                                );
+                              }
+                            })
+                            .catch(() =>
+                              toast.error(t("library.management.grabFailed")),
+                            );
+                        }}
+                        className="px-3 py-3 text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 disabled:opacity-50 transition-colors"
+                      >
+                        <Layers size={12} />
+                      </button>
+                    )}
                     {onSearchSeason && (
                       <button
                         type="button"
                         onClick={() => onSearchSeason(s.season)}
-                        title={`Search season ${s.season} pack`}
+                        title={t(
+                          "library.management.searchSeasonManual",
+                          "Browse torrents for this season",
+                        )}
                         className="px-3 py-3 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
                       >
                         <Search size={12} />

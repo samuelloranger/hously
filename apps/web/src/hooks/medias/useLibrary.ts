@@ -276,6 +276,39 @@ export function useRetrySkippedMedia() {
   });
 }
 
+export function useSearchSeasonPack() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      mediaId,
+      season,
+      search_query,
+    }: {
+      mediaId: number;
+      season: number;
+      search_query?: string;
+    }) =>
+      fetcher<LibrarySearchResponse>(
+        LIBRARY_ENDPOINTS.SEARCH_SEASON(mediaId, season),
+        {
+          method: "POST",
+          body: search_query ? { search_query } : {},
+        },
+      ),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.episodes(vars.mediaId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.downloads(vars.mediaId),
+      });
+    },
+  });
+}
+
 export function useRetrySkippedSeason() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();

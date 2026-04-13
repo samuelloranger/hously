@@ -1380,7 +1380,8 @@
       "addToWatchlist": "Watchlist",
       "inWatchlist": "Watchlist ✓",
       "cast": "Cast",
-      "searchingEpisode": "Searching for"
+      "searchingEpisode": "Searching for",
+      "searchingSeasonPack": "Searching season pack"
     },
     "addSuccess": "Added {{title}} to library.",
     "addFailed": "Failed to add media to library.",
@@ -1605,6 +1606,10 @@
       "retrySearchQueued": "Re-queued for search",
       "retrySkippedSeasonTitle": "Retry {{count}} skipped episode(s) in this season",
       "retrySkippedSeasonQueued": "{{count}} episode(s) re-queued for search",
+      "searchSeasonPack": "Auto-grab season pack",
+      "searchSeasonManual": "Browse torrents for this season",
+      "seasonPackGrabbed": "Season pack grabbed!",
+      "seasonPackNotFound": "No season pack found — episodes will be searched individually.",
       "monitor": "Monitor",
       "unmonitor": "Unmonitor",
       "monitorSeason": "Monitor season",

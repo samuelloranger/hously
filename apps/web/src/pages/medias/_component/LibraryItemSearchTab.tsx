@@ -37,6 +37,7 @@ type Props = {
   episodeSearchCtx: EpisodeSearchCtx | null;
   seasonSearchCtx: number | null;
   onClearEpisodeCtx: () => void;
+  onClearSeasonCtx: () => void;
   /** From TMDB details — original-language title (movies + TV) */
   tmdbOriginalTitle: string | null;
 };
@@ -46,23 +47,29 @@ export function LibraryItemSearchTab({
   episodeSearchCtx,
   seasonSearchCtx,
   onClearEpisodeCtx,
+  onClearSeasonCtx,
   tmdbOriginalTitle,
 }: Props) {
   const mediaItem = libraryToMediaItem(item);
   const { t } = useTranslation("common");
 
+  const seasonSuffix =
+    !episodeSearchCtx && seasonSearchCtx !== null
+      ? ` S${String(seasonSearchCtx).padStart(2, "0")}`
+      : "";
+
   const epSuffix = episodeSearchCtx
     ? ` S${String(episodeSearchCtx.season).padStart(2, "0")}E${String(episodeSearchCtx.episode).padStart(2, "0")}`
     : "";
 
-  const localizedQuery = episodeSearchCtx
-    ? `${item.title}${epSuffix}`
-    : item.title;
+  const ctxSuffix = epSuffix || seasonSuffix;
+
+  const localizedQuery = `${item.title}${ctxSuffix}`;
 
   const orig = tmdbOriginalTitle?.trim() || null;
   const prowlarrQueryOriginal =
     orig && orig.toLowerCase() !== item.title.trim().toLowerCase()
-      ? `${orig}${epSuffix}`
+      ? `${orig}${ctxSuffix}`
       : null;
 
   return (
@@ -79,6 +86,21 @@ export function LibraryItemSearchTab({
             type="button"
             onClick={onClearEpisodeCtx}
             className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300"
+          >
+            {t("common.clear", "Clear")}
+          </button>
+        </div>
+      )}
+      {seasonSearchCtx !== null && !episodeSearchCtx && (
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 px-3 py-2">
+          <span className="text-xs font-medium text-violet-700 dark:text-violet-300">
+            {t("medias.detail.searchingSeasonPack", "Searching season pack")} S
+            {String(seasonSearchCtx).padStart(2, "0")}
+          </span>
+          <button
+            type="button"
+            onClick={onClearSeasonCtx}
+            className="text-xs text-violet-500 hover:text-violet-700 dark:hover:text-violet-300"
           >
             {t("common.clear", "Clear")}
           </button>
