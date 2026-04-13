@@ -246,6 +246,55 @@ export function useSearchLibraryEpisode() {
   });
 }
 
+export function useRetrySkippedMedia() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation<unknown, Error, { mediaId: number; episodeId?: number }>({
+    mutationFn: ({ mediaId, episodeId }) => {
+      if (episodeId !== undefined) {
+        return fetcher<{
+          episode: { id: number; status: string; search_attempts: number };
+        }>(LIBRARY_ENDPOINTS.UPDATE_EPISODE_STATUS(mediaId, episodeId), {
+          method: "PATCH",
+          body: { status: "wanted" },
+        });
+      }
+      return fetcher<{ item: LibraryMedia }>(
+        LIBRARY_ENDPOINTS.UPDATE_STATUS(mediaId),
+        { method: "PATCH", body: { status: "wanted" } },
+      );
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      if (vars.episodeId !== undefined) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.library.episodes(vars.mediaId),
+        });
+      }
+    },
+  });
+}
+
+export function useRetrySkippedSeason() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ mediaId, season }: { mediaId: number; season: number }) =>
+      fetcher<{ retried: number }>(
+        LIBRARY_ENDPOINTS.RETRY_SKIPPED_SEASON(mediaId, season),
+        { method: "POST" },
+      ),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.episodes(vars.mediaId),
+      });
+    },
+  });
+}
+
 export function useUpdateLibraryQualityProfile() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();

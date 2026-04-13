@@ -1,20 +1,27 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Trash2 } from "lucide-react";
-import { useRemoveFromLibrary } from "@/hooks/medias/useLibrary";
+import { RefreshCw, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  useRemoveFromLibrary,
+  useRetrySkippedMedia,
+} from "@/hooks/medias/useLibrary";
 import { Card } from "./LibrarySharedUI";
 
 interface LibraryActionsSectionProps {
   libraryId: number;
+  itemStatus?: string;
   onDeleted?: () => void;
 }
 
 export function LibraryActionsSection({
   libraryId,
+  itemStatus,
   onDeleted,
 }: LibraryActionsSectionProps) {
   const { t } = useTranslation("common");
   const removeMutation = useRemoveFromLibrary();
+  const retryMutation = useRetrySkippedMedia();
   const [deleteConfirm, setDeleteConfirm] = useState<"idle" | "confirm">(
     "idle",
   );
@@ -73,6 +80,25 @@ export function LibraryActionsSection({
 
   return (
     <div className="flex items-center justify-end gap-2 px-1">
+      {itemStatus === "skipped" && (
+        <button
+          type="button"
+          title={t("library.management.retrySearchTitle")}
+          disabled={retryMutation.isPending}
+          onClick={() => {
+            void retryMutation
+              .mutateAsync({ mediaId: libraryId })
+              .then(() =>
+                toast.success(t("library.management.retrySearchQueued")),
+              )
+              .catch(() => toast.error(t("library.management.grabFailed")));
+          }}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+        >
+          <RefreshCw size={11} />
+          {t("library.management.retrySearch")}
+        </button>
+      )}
       <button
         type="button"
         onClick={() => setDeleteConfirm("confirm")}

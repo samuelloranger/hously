@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   useLibraryFiles,
   useLibraryEpisodes,
   useRescanLibraryItem,
   useSearchLibraryEpisode,
+  useRetrySkippedMedia,
+  useRetrySkippedSeason,
   useDeleteLibraryFile,
 } from "@/hooks/medias/useLibrary";
 import type { LibraryFileInfo } from "@hously/shared/types";
@@ -40,6 +43,8 @@ export function LibraryMediaSection({
   const rescan = useRescanLibraryItem(libraryId);
   const deleteFile = useDeleteLibraryFile(libraryId);
   const searchEpMut = useSearchLibraryEpisode();
+  const retryEpMut = useRetrySkippedMedia();
+  const retrySeasonMut = useRetrySkippedSeason();
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(
     new Set(),
@@ -144,6 +149,9 @@ export function LibraryMediaSection({
               const downloadedCount = s.episodes.filter(
                 (e) => e.status === "downloaded",
               ).length;
+              const skippedCount = s.episodes.filter(
+                (e) => e.status === "skipped",
+              ).length;
               const progress =
                 s.episodes.length > 0 ? downloadedCount / s.episodes.length : 0;
               const allDone = downloadedCount === s.episodes.length;
@@ -229,6 +237,36 @@ export function LibraryMediaSection({
                         <Search size={12} />
                       </button>
                     )}
+                    {skippedCount > 0 && (
+                      <button
+                        type="button"
+                        title={t("library.management.retrySkippedSeasonTitle", {
+                          count: skippedCount,
+                        })}
+                        disabled={retrySeasonMut.isPending}
+                        onClick={() => {
+                          void retrySeasonMut
+                            .mutateAsync({
+                              mediaId: libraryId,
+                              season: s.season,
+                            })
+                            .then((r) =>
+                              toast.success(
+                                t(
+                                  "library.management.retrySkippedSeasonQueued",
+                                  { count: r.retried },
+                                ),
+                              ),
+                            )
+                            .catch(() =>
+                              toast.error(t("library.management.grabFailed")),
+                            );
+                        }}
+                        className="px-3 py-3 text-neutral-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+                      >
+                        <RefreshCw size={12} />
+                      </button>
+                    )}
                   </div>
 
                   {isExpanded && (
@@ -245,6 +283,7 @@ export function LibraryMediaSection({
                           t={t}
                           onSearchEpisode={onSearchEpisode}
                           searchEpMut={searchEpMut}
+                          retryEpMut={retryEpMut}
                         />
                       ))}
                     </div>

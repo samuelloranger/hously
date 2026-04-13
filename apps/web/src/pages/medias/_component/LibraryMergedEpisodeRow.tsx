@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, Search } from "lucide-react";
+import { ChevronDown, ChevronRight, RefreshCw, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LibraryFileInfo } from "@hously/shared/types";
-import type { useSearchLibraryEpisode } from "@/hooks/medias/useLibrary";
+import type {
+  useRetrySkippedMedia,
+  useSearchLibraryEpisode,
+} from "@/hooks/medias/useLibrary";
 import { Badge, StatusDot } from "./LibrarySharedUI";
 import { qualityBadges } from "@/utils/libraryDisplayUtils";
 import { FileDetailBlock } from "./LibraryFileDetailBlock";
@@ -29,6 +32,7 @@ export interface MergedEpisodeRowProps {
     title: string | null;
   }) => void;
   searchEpMut: ReturnType<typeof useSearchLibraryEpisode>;
+  retryEpMut: ReturnType<typeof useRetrySkippedMedia>;
 }
 
 function formatAirDate(dateStr: string): string {
@@ -48,6 +52,7 @@ export function MergedEpisodeRow({
   t,
   onSearchEpisode,
   searchEpMut,
+  retryEpMut,
 }: MergedEpisodeRowProps) {
   const [expanded, setExpanded] = useState(false);
   const badges = file ? qualityBadges(file) : [];
@@ -120,6 +125,25 @@ export function MergedEpisodeRow({
               className="rounded-md bg-indigo-600/90 px-2 py-0.5 text-[9px] font-semibold text-white hover:bg-indigo-600 disabled:opacity-50 transition-colors"
             >
               {t("library.management.episodeSearch")}
+            </button>
+          )}
+          {ep.status === "skipped" && (
+            <button
+              type="button"
+              title={t("library.management.retrySearchTitle")}
+              onClick={(e) => {
+                e.stopPropagation();
+                void retryEpMut
+                  .mutateAsync({ mediaId: libraryId, episodeId: ep.id })
+                  .then(() =>
+                    toast.success(t("library.management.retrySearchQueued")),
+                  )
+                  .catch(() => toast.error(t("library.management.grabFailed")));
+              }}
+              disabled={retryEpMut.isPending}
+              className="rounded p-1 text-neutral-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw size={11} />
             </button>
           )}
           {file && (

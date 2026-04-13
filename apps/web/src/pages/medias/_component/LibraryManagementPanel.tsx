@@ -5,6 +5,7 @@ import { LibraryActionsSection } from "./LibraryActionsSection";
 
 interface LibraryManagementPanelProps {
   libraryId: number;
+  itemStatus?: string;
   onDeleted?: () => void;
   onSearchEpisode?: (ep: {
     id: number;
@@ -17,6 +18,7 @@ interface LibraryManagementPanelProps {
 
 export function LibraryManagementPanel({
   libraryId,
+  itemStatus,
   onDeleted,
   onSearchEpisode,
   onSearchSeason,
@@ -30,7 +32,11 @@ export function LibraryManagementPanel({
         onSearchSeason={onSearchSeason}
       />
       <LibraryDownloadHistorySection libraryId={libraryId} />
-      <LibraryActionsSection libraryId={libraryId} onDeleted={onDeleted} />
+      <LibraryActionsSection
+        libraryId={libraryId}
+        itemStatus={itemStatus}
+        onDeleted={onDeleted}
+      />
     </div>
   );
 }

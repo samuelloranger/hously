@@ -267,7 +267,10 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         }
         const item = await prisma.libraryMedia.update({
           where: { id },
-          data: { status: body.status },
+          data: {
+            status: body.status,
+            ...(body.status === "wanted" ? { searchAttempts: 0 } : {}),
+          },
           include: libraryMediaInclude,
         });
         return { item: mapLibraryMedia(item) };
@@ -279,6 +282,63 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       body: t.Object({ status: t.String() }),
     },
   )
+
+  // PATCH /api/library/:id/episodes/:episodeId/status — reset episode status (e.g. retry skipped)
+  .patch(
+    "/:id/episodes/:episodeId/status",
+    async ({ params, body, set }) => {
+      try {
+        const mediaId = parseInt(params.id, 10);
+        const episodeId = parseInt(params.episodeId, 10);
+        const validStatuses = [
+          "wanted",
+          "downloading",
+          "downloaded",
+          "skipped",
+        ];
+        if (!validStatuses.includes(body.status)) {
+          return badRequest(
+            set,
+            `status must be one of: ${validStatuses.join(", ")}`,
+          );
+        }
+        const ep = await prisma.libraryEpisode.update({
+          where: { id: episodeId, mediaId },
+          data: {
+            status: body.status,
+            ...(body.status === "wanted" ? { searchAttempts: 0 } : {}),
+          },
+        });
+        return {
+          episode: {
+            id: ep.id,
+            status: ep.status,
+            search_attempts: ep.searchAttempts,
+          },
+        };
+      } catch {
+        return serverError(set, "Failed to update episode status");
+      }
+    },
+    {
+      body: t.Object({ status: t.String() }),
+    },
+  )
+
+  // POST /api/library/:id/seasons/:season/retry-skipped — reset all skipped episodes in a season
+  .post("/:id/seasons/:season/retry-skipped", async ({ params, set }) => {
+    try {
+      const mediaId = parseInt(params.id, 10);
+      const season = parseInt(params.season, 10);
+      const result = await prisma.libraryEpisode.updateMany({
+        where: { mediaId, season, status: "skipped" },
+        data: { status: "wanted", searchAttempts: 0 },
+      });
+      return { retried: result.count };
+    } catch {
+      return serverError(set, "Failed to retry skipped episodes");
+    }
+  })
 
   // PATCH /api/library/:id/quality-profile
   .patch(

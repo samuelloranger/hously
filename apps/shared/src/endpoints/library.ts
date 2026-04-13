@@ -12,6 +12,10 @@ export const LIBRARY_ENDPOINTS = {
   GRAB: (id: number) => `/api/library/${id}/grab`,
   SEARCH_EPISODE: (mediaId: number, episodeId: number) =>
     `/api/library/${mediaId}/episodes/${episodeId}/search`,
+  UPDATE_EPISODE_STATUS: (mediaId: number, episodeId: number) =>
+    `/api/library/${mediaId}/episodes/${episodeId}/status`,
+  RETRY_SKIPPED_SEASON: (mediaId: number, season: number) =>
+    `/api/library/${mediaId}/seasons/${season}/retry-skipped`,
   FILES: (id: number) => `/api/library/${id}/files`,
   RESCAN: (id: number) => `/api/library/${id}/rescan`,
   DELETE_FILE: (fileId: number) => `/api/library/files/${fileId}`,

@@ -1599,7 +1599,12 @@
       "deleting": "Deleting…",
       "refreshStatus": "Sync status",
       "refreshingStatus": "Syncing…",
-      "refreshStatusTitle": "Check qBittorrent & disk: re-run post-processing if needed, or revert to wanted"
+      "refreshStatusTitle": "Check qBittorrent & disk: re-run post-processing if needed, or revert to wanted",
+      "retrySearch": "Retry search",
+      "retrySearchTitle": "Reset attempts and re-queue for automatic search",
+      "retrySearchQueued": "Re-queued for search",
+      "retrySkippedSeasonTitle": "Retry {{count}} skipped episode(s) in this season",
+      "retrySkippedSeasonQueued": "{{count}} episode(s) re-queued for search"
     },
     "notFound": "Item not found in library."
   }
