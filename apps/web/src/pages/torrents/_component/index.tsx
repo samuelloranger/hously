@@ -14,16 +14,16 @@ import {
   DASHBOARD_ENDPOINTS,
   QBITTORRENT_TORRENTS_PAGE_SIZE,
   buildQbittorrentTorrentsStreamUrl,
-} from "@hously/shared/endpoints";
+} from "@/lib/endpoints";
 import type {
   DashboardQbittorrentStatusResponse,
   DashboardQbittorrentTorrentsResponse,
 } from "@hously/shared/types";
+import { formatSpeed } from "@/lib/utils/format";
 import {
   QBITTORRENT_STATE_FILTERS,
   countQbittorrentTorrentsByState,
   filterAndSortQbittorrentTorrents,
-  formatSpeed,
   getUniqueQbittorrentCategories,
   getUniqueQbittorrentTags,
   type QbittorrentSortDir,

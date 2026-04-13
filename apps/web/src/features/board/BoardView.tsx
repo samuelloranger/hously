@@ -44,7 +44,7 @@ import {
 } from "@/hooks/board/useBoardTasks";
 import { useJsonEventSource } from "@/hooks/realtime/useEventSource";
 import { useUsers } from "@/hooks/users/useUsers";
-import { BOARD_TASKS_ENDPOINTS } from "@hously/shared/endpoints";
+import { BOARD_TASKS_ENDPOINTS } from "@/lib/endpoints";
 import {
   BACKLOG_SORT_OPTIONS,
   BOARD_KANBAN_STATUSES,

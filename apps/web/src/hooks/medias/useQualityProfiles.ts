@@ -1,10 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import {
-  QUALITY_PROFILES_ENDPOINTS,
-  MEDIAS_ENDPOINTS,
-} from "@hously/shared/endpoints";
+import { QUALITY_PROFILES_ENDPOINTS, MEDIAS_ENDPOINTS } from "@/lib/endpoints";
 import type {
   QualityProfile,
   QualityProfileMutationResponse,

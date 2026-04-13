@@ -2,9 +2,12 @@ import { useCallback } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import { MEDIAS_ENDPOINTS } from "@hously/shared/endpoints";
+import { MEDIAS_ENDPOINTS } from "@/lib/endpoints";
 import { webFetcher } from "@/lib/api/fetcher";
-import type { LibraryMedia, MediaModalDataResponse } from "@hously/shared/types";
+import type {
+  LibraryMedia,
+  MediaModalDataResponse,
+} from "@hously/shared/types";
 
 /**
  * Prefetch both the JS chunk and TMDB modal data for a library item on hover.

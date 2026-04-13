@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
+import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 import {
   buildQbittorrentTorrentSearchParams,
   createQbittorrentUploadFormData,

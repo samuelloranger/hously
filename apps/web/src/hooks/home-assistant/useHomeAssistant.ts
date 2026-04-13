@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
+import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 import { queryKeys } from "@/lib/queryKeys";
 import type { HomeAssistantWidgetResponse } from "@hously/shared/types";
 import { useFetcher } from "@/lib/api/context";

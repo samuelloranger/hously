@@ -20,7 +20,7 @@ import {
   SHOPPING_ENDPOINTS,
   HABIT_ENDPOINTS,
   BOARD_TASKS_ENDPOINTS,
-} from "@hously/shared/endpoints";
+} from "@/lib/endpoints";
 import type {
   DashboardJellyfinLatestResponse,
   HomeAssistantWidgetResponse,

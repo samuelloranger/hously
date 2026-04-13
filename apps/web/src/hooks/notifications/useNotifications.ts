@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { NOTIFICATION_ENDPOINTS } from "@hously/shared/endpoints";
+import { NOTIFICATION_ENDPOINTS } from "@/lib/endpoints";
 import type {
   Notification,
   NotificationsResponse,

@@ -1,7 +1,3 @@
-/**
- * qBittorrent API routes. On the server these live under the dashboard router
- * (`/api/dashboard/qbittorrent/...`); grouping them here matches the feature, not the mount path.
- */
 export const QBITTORRENT_ENDPOINTS = {
   STATUS: "/api/dashboard/qbittorrent/status",
   STREAM: "/api/dashboard/qbittorrent/stream",

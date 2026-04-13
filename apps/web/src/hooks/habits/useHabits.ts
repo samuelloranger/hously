@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { HABIT_ENDPOINTS } from "@hously/shared/endpoints";
+import { HABIT_ENDPOINTS } from "@/lib/endpoints";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import type {

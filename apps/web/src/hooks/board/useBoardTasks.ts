@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { BOARD_TASKS_ENDPOINTS } from "@hously/shared/endpoints";
+import { BOARD_TASKS_ENDPOINTS } from "@/lib/endpoints";
 import type {
   ApiResult,
   BoardTask,

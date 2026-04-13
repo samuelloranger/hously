@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { HttpError } from "@/lib/api/httpClient";
 import { queryKeys } from "@/lib/queryKeys";
-import { AUTH_ENDPOINTS } from "@hously/shared/endpoints";
+import { AUTH_ENDPOINTS } from "@/lib/endpoints";
 import type {
   UserResponse,
   ValidateInvitationResponse,

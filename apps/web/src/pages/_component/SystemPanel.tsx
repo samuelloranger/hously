@@ -6,7 +6,7 @@ import {
   useDashboardAdguardSummary,
 } from "@/hooks/dashboard/useDashboard";
 import { useSetAdguardProtection } from "@/hooks/plugins/usePlugins";
-import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
+import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 import type { DashboardBeszelSummaryResponse } from "@hously/shared/types";
 import { useEventSourceState } from "@/hooks/realtime/useEventSourceState";
 import { useAuth } from "@/lib/auth/useAuth";

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { CHORES_ENDPOINTS } from "@hously/shared/endpoints";
+import { CHORES_ENDPOINTS } from "@/lib/endpoints";
 import type {
   ApiResult,
   Chore,

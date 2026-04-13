@@ -1,7 +1,7 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { SEARCH_ENDPOINTS } from "@hously/shared/endpoints";
+import { SEARCH_ENDPOINTS } from "@/lib/endpoints";
 import type { QuickSearchResponse } from "@hously/shared/types";
 export function useQuickSearch(
   query: string,

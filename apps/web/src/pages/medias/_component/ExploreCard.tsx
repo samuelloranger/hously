@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAddUpcomingToLibrary } from "@/hooks/dashboard/useDashboard";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
-import { MEDIAS_ENDPOINTS } from "@hously/shared/endpoints";
+import { MEDIAS_ENDPOINTS } from "@/lib/endpoints";
 import type {
   MediaModalDataResponse,
   TmdbMediaSearchItem,
