@@ -558,11 +558,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         if (media.type !== "movie") {
           return badRequest(set, "Search is only available for movies");
         }
-        if (
-          media.status === "downloading" ||
-          media.status === "downloaded" ||
-          media.status === "skipped"
-        ) {
+        if (media.status === "downloading") {
           return badRequest(
             set,
             "This item cannot be grabbed in its current state",
