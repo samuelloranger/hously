@@ -79,7 +79,6 @@ export function LibraryMediaSection({
     return m;
   }, [files]);
 
-  const hasFiles = files.length > 0;
   const hasEpisodes = isShow && episodesQuery.data != null;
 
   const toggleSeason = (season: number) =>
@@ -101,30 +100,11 @@ export function LibraryMediaSection({
     );
   }
 
-  if (!hasFiles && !hasEpisodes) {
-    if (isShow && episodesQuery.isLoading) {
-      return (
-        <Card>
-          <div className="px-4 py-4 text-xs text-neutral-500 dark:text-neutral-400">
-            {t("library.media.loadingEpisodes")}
-          </div>
-        </Card>
-      );
-    }
-    return (
-      <Card>
-        <div className="px-4 py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">
-          {t("library.media.noFileMetadata")}
-        </div>
-      </Card>
-    );
-  }
-
   const mappedFolder = files.length ? getMappedFolder(files, isShow) : null;
 
   return (
     <Card>
-      {/* Header */}
+      {/* Header — always visible */}
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-neutral-100 dark:border-neutral-800">
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           <Folder size={11} className="text-neutral-400 shrink-0" />
@@ -154,6 +134,18 @@ export function LibraryMediaSection({
               : "Rescan files"}
         </button>
       </div>
+
+      {isShow && episodesQuery.isLoading && (
+        <div className="px-4 py-4 text-xs text-neutral-500 dark:text-neutral-400">
+          {t("library.media.loadingEpisodes")}
+        </div>
+      )}
+
+      {!files.length && !hasEpisodes && !episodesQuery.isLoading && (
+        <div className="px-4 py-4 text-xs text-neutral-400 dark:text-neutral-500">
+          {t("library.media.noFileMetadata")}
+        </div>
+      )}
 
       {isShow ? (
         /* Show: merged episodes + files by season */
