@@ -7,7 +7,7 @@ import { setUser } from "@/lib/auth";
 import {
   useValidateInvitation,
   useAcceptInvitation,
-} from "@/hooks/auth/useAuth";
+} from "@/lib/auth/useAuth";
 import { getCurrentUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/accept-invitation")({

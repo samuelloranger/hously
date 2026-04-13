@@ -12,7 +12,7 @@ import {
   useResendInvitation,
   useRevokeInvitation,
 } from "@/pages/settings/useAdmin";
-import { useCurrentUser } from "@/hooks/auth/useAuth";
+import { useCurrentUser } from "@/lib/auth/useAuth";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 

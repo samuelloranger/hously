@@ -42,7 +42,7 @@ import {
   useSyncBoardTasks,
   useUpdateBoardTask,
 } from "@/features/board/hooks/useBoardTasks";
-import { useJsonEventSource } from "@/hooks/realtime/useEventSource";
+import { useJsonEventSource } from "@/lib/realtime/useEventSource";
 import { useUsers } from "@/pages/settings/useUsers";
 import { BOARD_TASKS_ENDPOINTS } from "@/lib/endpoints";
 import {

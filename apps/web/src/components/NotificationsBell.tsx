@@ -8,7 +8,7 @@ import {
   useMarkAsReadOptimistic,
   useNotifications,
   useUnreadCount,
-} from "@/hooks/notifications/useNotifications";
+} from "@/lib/notifications/useNotificationData";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   formatRelativeTime,

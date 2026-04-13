@@ -13,7 +13,7 @@ import {
   formatQbittorrentEta,
   getQbittorrentProgressBarGradient,
 } from "@hously/shared/utils";
-import { useEventSourceState } from "@/hooks/realtime/useEventSourceState";
+import { useEventSourceState } from "@/lib/realtime/useEventSourceState";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (

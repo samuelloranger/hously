@@ -4,7 +4,7 @@ import { Trash2 } from "lucide-react";
 import {
   useDeleteNotification,
   useMarkAsReadOptimistic,
-} from "@/hooks/notifications/useNotifications";
+} from "@/lib/notifications/useNotificationData";
 import type { Notification } from "@hously/shared/types";
 import { formatDate, formatTime } from "@hously/shared/utils";
 import { cn } from "@/lib/utils";

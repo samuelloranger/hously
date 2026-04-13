@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { CalendarDays, ShoppingCart, CheckSquare2, Flame } from "lucide-react";
 import { motion, type Variants } from "motion/react";
 import { PageLayout } from "@/components/PageLayout";
-import { useCurrentUser } from "@/hooks/auth/useAuth";
+import { useCurrentUser } from "@/lib/auth/useAuth";
 import { useDashboardStats } from "@/pages/_component/useDashboardStats";
 import type { DashboardStats } from "@hously/shared/types";
 import { getUserFirstName } from "@/lib/utils/format";

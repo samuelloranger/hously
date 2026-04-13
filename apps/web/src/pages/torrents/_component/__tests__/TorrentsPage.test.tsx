@@ -79,7 +79,7 @@ vi.mock("@/pages/torrents/_component/TorrentRow", () => ({
   ),
 }));
 
-vi.mock("@/hooks/realtime/useEventSourceState", () => ({
+vi.mock("@/lib/realtime/useEventSourceState", () => ({
   useEventSourceState: ({
     initialData,
   }: {

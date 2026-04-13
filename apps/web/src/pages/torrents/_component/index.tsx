@@ -7,7 +7,7 @@ import {
   useSetPinnedQbittorrentTorrent,
   useDashboardQbittorrentTorrents,
 } from "@/pages/torrents/useDashboardQbittorrent";
-import { useJsonEventSource } from "@/hooks/realtime/useEventSource";
+import { useJsonEventSource } from "@/lib/realtime/useEventSource";
 import { useQbittorrentStatus } from "@/pages/torrents/useQbittorrentStatus";
 import { queryKeys } from "@/lib/queryKeys";
 import {
@@ -56,7 +56,7 @@ import { TorrentGridCard } from "@/pages/torrents/_component/TorrentGridCard";
 import { TorrentKanbanView } from "@/pages/torrents/_component/TorrentKanbanView";
 import { TorrentFilterSheet } from "@/pages/torrents/_component/TorrentFilterSheet";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUrlState } from "@/hooks/app/useUrlState";
+import { useUrlState } from "@/lib/app/useUrlState";
 export type TorrentsSearchParams = {
   search?: string;
   state?: import("@hously/shared").QbittorrentStateFilter;
@@ -67,8 +67,8 @@ export type TorrentsSearchParams = {
   page?: number;
 };
 import { TorrentFilterPopover } from "@/pages/torrents/_component/TorrentFilterPopover";
-import { usePersistentState } from "@/hooks/app/usePersistentState";
-import { useEventSourceState } from "@/hooks/realtime/useEventSourceState";
+import { usePersistentState } from "@/lib/app/usePersistentState";
+import { useEventSourceState } from "@/lib/realtime/useEventSourceState";
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
 

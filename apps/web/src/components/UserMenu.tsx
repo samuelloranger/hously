@@ -5,7 +5,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { useUpdateProfile } from "@/pages/settings/useUsers";
 import type { User } from "@hously/shared/types";
 import { formatDisplayName } from "@/lib/utils/format";
-import { useTheme } from "@/hooks/app/useTheme";
+import { useTheme } from "@/lib/app/useTheme";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";

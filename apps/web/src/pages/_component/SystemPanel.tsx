@@ -8,7 +8,7 @@ import {
 import { useSetAdguardProtection } from "@/pages/settings/usePlugins";
 import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 import type { DashboardBeszelSummaryResponse } from "@hously/shared/types";
-import { useEventSourceState } from "@/hooks/realtime/useEventSourceState";
+import { useEventSourceState } from "@/lib/realtime/useEventSourceState";
 import { useAuth } from "@/lib/auth/useAuth";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
