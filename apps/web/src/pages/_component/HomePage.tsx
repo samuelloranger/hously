@@ -6,7 +6,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
 import { useDashboardStats } from "@/hooks/dashboard/useDashboard";
 import type { DashboardStats } from "@hously/shared/types";
-import { getUserFirstName } from "@hously/shared/utils";
+import { getUserFirstName } from "@/lib/utils/format";
 import { CardErrorBoundary } from "@/components/ErrorBoundary";
 import { GreetingCard } from "@/pages/_component/GreetingCard";
 import { DownloadsPanel } from "@/pages/_component/DownloadsPanel";

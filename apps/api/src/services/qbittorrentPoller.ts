@@ -27,7 +27,7 @@ type ChannelCallback<T = unknown> = (data: T) => void;
 
 interface Subscriber {
   channel: string;
-  callback: ChannelCallback<any>;
+  callback: ChannelCallback<unknown>;
 }
 
 let subscribers: Subscriber[] = [];
@@ -298,7 +298,7 @@ export const subscribe = <T = unknown>(
 ): (() => void) => {
   const sub: Subscriber = {
     channel,
-    callback: callback as ChannelCallback<any>,
+    callback: callback as ChannelCallback<unknown>,
   };
   subscribers.push(sub);
 

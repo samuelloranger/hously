@@ -10,7 +10,8 @@ import { useEffect } from "react";
 export function useIOSImprovements(): void {
   useEffect(() => {
     const isIOS =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+      !(window as Window & { MSStream?: unknown }).MSStream;
 
     if (!isIOS) {
       return;

@@ -9,6 +9,7 @@ import {
   DeleteObjectCommand,
   HeadBucketCommand,
   CreateBucketCommand,
+  type BucketLocationConstraint,
 } from "@aws-sdk/client-s3";
 import { getS3Config, type S3Config } from "@hously/api/config";
 
@@ -59,8 +60,15 @@ async function ensureBucketExists(bucketName?: string): Promise<boolean> {
     await client.send(new HeadBucketCommand({ Bucket: bucket }));
     console.log(`Bucket '${bucket}' already exists`);
     return true;
-  } catch (error: any) {
-    if (error.name === "NotFound" || error.$metadata?.httpStatusCode === 404) {
+  } catch (error: unknown) {
+    const awsError = error as {
+      name?: string;
+      $metadata?: { httpStatusCode?: number };
+    };
+    if (
+      awsError.name === "NotFound" ||
+      awsError.$metadata?.httpStatusCode === 404
+    ) {
       // Bucket doesn't exist, create it
       console.log(`Creating bucket '${bucket}'`);
       try {
@@ -68,7 +76,7 @@ async function ensureBucketExists(bucketName?: string): Promise<boolean> {
           new CreateBucketCommand({
             Bucket: bucket,
             CreateBucketConfiguration: {
-              LocationConstraint: config.region as any,
+              LocationConstraint: config.region as BucketLocationConstraint,
             },
           }),
         );
@@ -193,8 +201,15 @@ export async function getFileFromS3(
       chunks.push(chunk);
     }
     return Buffer.concat(chunks);
-  } catch (error: any) {
-    if (error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
+  } catch (error: unknown) {
+    const awsError = error as {
+      name?: string;
+      $metadata?: { httpStatusCode?: number };
+    };
+    if (
+      awsError.name === "NoSuchKey" ||
+      awsError.$metadata?.httpStatusCode === 404
+    ) {
       console.warn(`File not found in S3: ${key}`);
     } else {
       console.error(`Failed to get file from S3:`, error);

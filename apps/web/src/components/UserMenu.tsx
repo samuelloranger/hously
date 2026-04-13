@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import * as Popover from "@radix-ui/react-popover";
 import { useUpdateProfile } from "@/hooks/users/useUsers";
 import type { User } from "@hously/shared/types";
-import { formatDisplayName } from "@hously/shared/utils";
+import { formatDisplayName } from "@/lib/utils/format";
 import { useTheme } from "@/hooks/app/useTheme";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";

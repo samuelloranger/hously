@@ -38,9 +38,11 @@ export function LoginForm() {
       }
 
       navigate({ to: "/" });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(
-        err?.message || loginMutation.error?.message || t("login.authFailed"),
+        (err instanceof Error ? err.message : null) ||
+          loginMutation.error?.message ||
+          t("login.authFailed"),
       );
     }
   };

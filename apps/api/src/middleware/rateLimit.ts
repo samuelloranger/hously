@@ -6,7 +6,8 @@ import { rateLimit } from "elysia-rate-limit";
  */
 export const globalRateLimit = rateLimit({
   duration: 60 * 60 * 1000, // 1 hour in milliseconds
-  max: ((key: string) => (key.startsWith("user:") ? 10000 : 1000)) as any,
+  max: ((key: string) =>
+    key.startsWith("user:") ? 10000 : 1000) as unknown as number,
   generator: (req, _server, derived: { user?: { id: number } | null }) => {
     if (derived.user?.id) {
       return `user:${derived.user.id}`;

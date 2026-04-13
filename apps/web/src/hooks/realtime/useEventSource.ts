@@ -43,9 +43,9 @@ export function useJsonEventSource<T>({
     if (!enabled || !url) return;
     if (typeof globalThis.EventSource === "undefined") return;
 
-    const source = new (globalThis.EventSource as any)(url, {
-      withCredentials,
-    });
+    const source = new (globalThis.EventSource as typeof EventSource & {
+      new (url: string, init?: { withCredentials?: boolean }): EventSource;
+    })(url, { withCredentials });
 
     source.onopen = () => {
       onOpenRef.current?.();

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
+import { HttpError } from "@/lib/api/httpClient";
 import { queryKeys } from "@/lib/queryKeys";
 import { AUTH_ENDPOINTS } from "@hously/shared/endpoints";
 import type {
@@ -29,9 +30,9 @@ export function useCurrentUser() {
       try {
         const response = await fetcher<UserResponse>(AUTH_ENDPOINTS.ME);
         return response.user;
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Only return null for 401 (actually not authenticated)
-        if (error?.status === 401) {
+        if (error instanceof HttpError && error.status === 401) {
           return null;
         }
         // Re-throw other errors (network, 429, 500) so TanStack Query
@@ -39,9 +40,9 @@ export function useCurrentUser() {
         throw error;
       }
     },
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: unknown) => {
       // Don't retry auth failures, but retry transient errors once
-      if (error?.status === 401) return false;
+      if (error instanceof HttpError && error.status === 401) return false;
       return failureCount < 1;
     },
     staleTime: 5 * 60 * 1000,

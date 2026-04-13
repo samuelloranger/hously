@@ -10,7 +10,10 @@ import {
   useUnreadCount,
 } from "@/hooks/notifications/useNotifications";
 import { queryKeys } from "@/lib/queryKeys";
-import { formatRelativeTime, resolveDateFnsLocale } from "@hously/shared/utils";
+import {
+  formatRelativeTime,
+  resolveDateFnsLocale,
+} from "@/lib/utils/relativeTime";
 import { syncBadge } from "@/lib/sw/registration";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";

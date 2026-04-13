@@ -85,8 +85,12 @@ export function TemplateEditor({
       if (onCancel) {
         onCancel();
       }
-    } catch (error: any) {
-      toast.error(error?.message || t("settings.externalNotifications.error"));
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("settings.externalNotifications.error"),
+      );
     } finally {
       setIsSaving(false);
     }

@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { clearUser } from "@/lib/auth";
 import { useLogout } from "@/hooks/auth/useAuth";
 import { useUpdateProfile } from "@/hooks/users/useUsers";
-import { formatDisplayName } from "@hously/shared/utils";
+import { formatDisplayName } from "@/lib/utils/format";
 import { NotificationsMenu } from "@/components/NotificationsBell";
 import { UserMenu } from "@/components/UserMenu";
 import { Loader, LogOut, Search, Settings } from "lucide-react";

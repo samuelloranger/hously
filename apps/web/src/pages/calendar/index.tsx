@@ -20,7 +20,7 @@ export const Route = createFileRoute("/calendar/")({
           : undefined,
     modal:
       search.modal === "create" || search.modal === "edit"
-        ? (search.modal as any)
+        ? search.modal
         : undefined,
   }),
   beforeLoad: async () => {
@@ -28,8 +28,8 @@ export const Route = createFileRoute("/calendar/")({
       const user = await getCurrentUser();
       if (!user) throw redirect({ to: "/login" });
       return { user };
-    } catch (e: any) {
-      if (e?.status === 429) return { user: null };
+    } catch (e: unknown) {
+      if ((e as { status?: number })?.status === 429) return { user: null };
       throw e;
     }
   },

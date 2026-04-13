@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/dialog";
 import { EditHabitForm } from "@/pages/habits/_component/EditHabitForm";
 import { useUpdateHabit } from "@/hooks/habits/useHabits";
-import { Habit } from "@hously/shared/types";
+import type { Habit, UpdateHabitRequest } from "@hously/shared/types";
 import { toast } from "sonner";
 
 interface EditHabitModalProps {
@@ -20,7 +20,7 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
   const { t } = useTranslation("common");
   const updateHabit = useUpdateHabit();
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: UpdateHabitRequest) => {
     updateHabit.mutate(
       { id: habit.id, data },
       {

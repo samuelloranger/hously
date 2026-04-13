@@ -31,7 +31,7 @@ export async function getCurrentUser(): Promise<User | null> {
       // without needing its own fetch — prevents the "user not loaded" state
       getQueryClient()?.setQueryData(queryKeys.auth.me, currentUser);
       return currentUser;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If 401, user is not authenticated - clear cache
       if (error instanceof ApiError && error.status === 401) {
         currentUser = null;

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Settings2, Check, Tag, X as XIcon } from "lucide-react";
 import type { DashboardQbittorrentTorrentPropertiesResponse } from "@hously/shared/types";
-import { formatBytes } from "@hously/shared/utils";
+import { formatBytes } from "@/lib/utils/format";
 import { Select } from "@/components/ui/select";
 
 interface TorrentPropertiesTabProps {

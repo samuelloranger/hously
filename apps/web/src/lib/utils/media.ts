@@ -1,4 +1,4 @@
-import { CHORES_ENDPOINTS } from "../endpoints/chores";
+import { CHORES_ENDPOINTS } from "@hously/shared/endpoints";
 
 function stripApiSuffix(baseUrl: string): string {
   return baseUrl.replace(/\/api\/?$/, "");

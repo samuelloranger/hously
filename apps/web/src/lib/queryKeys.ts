@@ -341,6 +341,11 @@ export const queryKeys = {
     all: ["quality-profiles"] as const,
     list: () => [...queryKeys.qualityProfiles.all, "list"] as const,
   },
+
+  prowlarr: {
+    all: ["prowlarr"] as const,
+    indexers: () => [...queryKeys.prowlarr.all, "indexers"] as const,
+  },
 } as const;
 
 export type QueryKeys = typeof queryKeys;

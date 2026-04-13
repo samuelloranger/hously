@@ -31,7 +31,9 @@ const getJwtSecret = (): string => {
 const ACCESS_TOKEN_TTL_SECONDS = 7 * 86400;
 
 const signAccessToken = async (
-  jwt: { sign: (value: any) => Promise<string> },
+  jwt: {
+    sign: (value: { id: number; ver: number; exp: number }) => Promise<string>;
+  },
   userId: number,
   authVersion: number,
 ): Promise<string> =>

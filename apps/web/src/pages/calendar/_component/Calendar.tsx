@@ -591,9 +591,9 @@ function CalendarBody({
                                   );
                                   setSelectedDate(null);
                                 },
-                                onError: (error: any) => {
+                                onError: (error: Error) => {
                                   toast.error(
-                                    error?.message ||
+                                    error.message ||
                                       t("calendar.customEventDeleteError") ||
                                       t("common.error"),
                                   );

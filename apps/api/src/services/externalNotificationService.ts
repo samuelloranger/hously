@@ -229,7 +229,7 @@ export async function sendExternalNotification(
         createAndQueueNotification(userId, title, body, "external", url, {
           service_name: serviceName,
           event_type: eventType,
-          payload: payload.original_payload as Record<string, any>,
+          payload: payload.original_payload as Record<string, unknown>,
           ...(payload.notification_metadata ?? {}),
         }),
       ),

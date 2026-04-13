@@ -1,53 +1,25 @@
 import { Elysia, t } from "elysia";
-import { BoardTaskStatus, BoardTaskPriority, Prisma } from "@prisma/client";
+import {
+  BoardTaskStatus,
+  BoardTaskPriority,
+  BoardTaskActivityType,
+  Prisma,
+} from "@prisma/client";
 import { prisma } from "@hously/api/db";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { formatIso, sanitizeInput, sanitizeRichText } from "@hously/api/utils";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
 import { createJsonSseResponse } from "@hously/api/utils/sse";
-
-const STATUS_VALUES = [
-  "backlog",
-  "on_hold",
-  "todo",
-  "in_progress",
-  "done",
-] as const;
-type StatusApi = (typeof STATUS_VALUES)[number];
-
-const PRIORITY_VALUES = ["low", "medium", "high", "urgent"] as const;
-type PriorityApi = (typeof PRIORITY_VALUES)[number];
-
-const API_TO_PRISMA_STATUS: Record<StatusApi, BoardTaskStatus> = {
-  backlog: BoardTaskStatus.BACKLOG,
-  on_hold: BoardTaskStatus.ON_HOLD,
-  todo: BoardTaskStatus.TODO,
-  in_progress: BoardTaskStatus.IN_PROGRESS,
-  done: BoardTaskStatus.DONE,
-};
-
-const PRISMA_TO_API_STATUS: Record<BoardTaskStatus, StatusApi> = {
-  [BoardTaskStatus.BACKLOG]: "backlog",
-  [BoardTaskStatus.ON_HOLD]: "on_hold",
-  [BoardTaskStatus.TODO]: "todo",
-  [BoardTaskStatus.IN_PROGRESS]: "in_progress",
-  [BoardTaskStatus.DONE]: "done",
-};
-
-const API_TO_PRISMA_PRIORITY: Record<PriorityApi, BoardTaskPriority> = {
-  low: BoardTaskPriority.LOW,
-  medium: BoardTaskPriority.MEDIUM,
-  high: BoardTaskPriority.HIGH,
-  urgent: BoardTaskPriority.URGENT,
-};
-
-const PRISMA_TO_API_PRIORITY: Record<BoardTaskPriority, PriorityApi> = {
-  [BoardTaskPriority.LOW]: "low",
-  [BoardTaskPriority.MEDIUM]: "medium",
-  [BoardTaskPriority.HIGH]: "high",
-  [BoardTaskPriority.URGENT]: "urgent",
-};
+import {
+  STATUS_VALUES,
+  PRIORITY_VALUES,
+  API_TO_PRISMA_STATUS,
+  PRISMA_TO_API_STATUS,
+  API_TO_PRISMA_PRIORITY,
+  PRISMA_TO_API_PRIORITY,
+} from "./mappers";
+import type { StatusApi, PriorityApi } from "./mappers";
 
 function parseStatus(
   s: string | undefined,
@@ -499,8 +471,9 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
             activityInserts.push({
               taskId: id,
               userId: user!.id,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              type: (body.archived ? "archived" : "unarchived") as any,
+              type: body.archived
+                ? BoardTaskActivityType.archived
+                : BoardTaskActivityType.unarchived,
             });
           }
         }

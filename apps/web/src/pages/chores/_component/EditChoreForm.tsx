@@ -4,13 +4,9 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useUpdateChore, useUploadChoreImage } from "@/hooks/chores/useChores";
 import type { Chore, ChoreUser } from "@hously/shared/types";
-import {
-  datetimeLocalToUTC,
-  formatUsername,
-  getChoreThumbnailUrl,
-  toDateTimeLocal,
-  tomorrow,
-} from "@hously/shared/utils";
+import { formatUsername } from "@/lib/utils/format";
+import { getChoreThumbnailUrl } from "@/lib/utils/media";
+import { datetimeLocalToUTC, toDateTimeLocal, tomorrow } from "@hously/shared/utils";
 import { useNotifications } from "@/lib/notifications/useNotifications";
 import { DateTimePicker } from "@/components/DateTimePicker";
 import { MinimalTiptap } from "@/components/ui/minimal-tiptap";

@@ -116,7 +116,7 @@ export function profileToForm(p: QualityProfile): QualityProfileFormPayload {
 export function useProwlarrIndexers(enabled: boolean) {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: ["prowlarr", "indexers"],
+    queryKey: queryKeys.prowlarr.indexers(),
     queryFn: () =>
       fetcher<ProwlarrIndexersResponse>(MEDIAS_ENDPOINTS.PROWLARR_INDEXERS),
     enabled,

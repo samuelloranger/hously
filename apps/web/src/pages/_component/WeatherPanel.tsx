@@ -16,7 +16,7 @@ import { useState } from "react";
 import { useDashboardWeather } from "@/hooks/dashboard/useWeather";
 import { WeatherForecastModal } from "@/pages/_component/WeatherForecastModal";
 import type { WeatherData } from "@hously/shared/types";
-import { getWeatherConditionKey } from "@hously/shared/utils";
+import { getWeatherConditionKey } from "@/lib/utils/weather";
 import { usePrefetchIntent } from "@/lib/routing/usePrefetchIntent";
 
 const toCelsius = (fahrenheit: number): number => (fahrenheit - 32) * (5 / 9);

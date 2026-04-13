@@ -8,9 +8,8 @@ import {
 import { useQbittorrentStatus } from "@/hooks/torrents/useQbittorrentStatus";
 import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
 import type { DashboardQbittorrentStatusResponse } from "@hously/shared/types";
+import { formatSpeed, formatBytes } from "@/lib/utils/format";
 import {
-  formatSpeed,
-  formatBytes,
   formatQbittorrentEta,
   getQbittorrentProgressBarGradient,
 } from "@hously/shared/utils";

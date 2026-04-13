@@ -15,7 +15,7 @@ export async function processActivityLogJob(job: Job<ActivityLogJobData>) {
   try {
     await prisma.activityLog.create({
       data: {
-        type: type as any,
+        type,
         userId: userId ?? null,
         payload: payload ?? Prisma.DbNull,
         createdAt: createdAt ? new Date(createdAt) : new Date(),

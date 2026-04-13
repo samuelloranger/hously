@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, renderWithProviders } from "@/test-utils/render";
 import { mockChore, mockUser } from "@/test-utils/mocks";

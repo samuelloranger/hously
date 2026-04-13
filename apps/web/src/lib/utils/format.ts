@@ -1,5 +1,5 @@
-import type { User } from "../types";
-import { parseDate, isDateBefore, now } from "./date";
+import type { User } from "@hously/shared/types";
+import { parseDate, isDateBefore, now } from "@hously/shared/utils";
 
 export function formatUsername(
   username: string | null | undefined,

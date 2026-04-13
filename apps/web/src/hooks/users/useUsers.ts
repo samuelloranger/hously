@@ -62,13 +62,16 @@ export function useUploadAvatar() {
       ),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
-      queryClient.setQueryData(queryKeys.auth.me, (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          avatar_url: response.avatar_url || response.url,
-        };
-      });
+      queryClient.setQueryData(
+        queryKeys.auth.me,
+        (old: { avatar_url?: string | null } | null | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            avatar_url: response.avatar_url || response.url,
+          };
+        },
+      );
     },
   });
 }

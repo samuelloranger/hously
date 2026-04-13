@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import type { Chore, Reminder } from "@prisma/client";
+import type { Chore, Prisma, Reminder } from "@prisma/client";
 import { prisma } from "@hously/api/db";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
@@ -126,7 +126,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         });
 
         // Create lookup maps
-        const remindersByChoreId = new Map<number, any>();
+        const remindersByChoreId = new Map<number, Reminder>();
         for (const reminder of activeReminders) {
           if (!remindersByChoreId.has(reminder.choreId)) {
             remindersByChoreId.set(reminder.choreId, reminder);
@@ -485,7 +485,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           return badRequest(set, "Cannot update completed chore");
         }
 
-        const updateData: Record<string, any> = {};
+        const updateData: Prisma.ChoreUncheckedUpdateInput = {};
 
         // Update chore name if provided
         if (body.chore_name !== undefined) {

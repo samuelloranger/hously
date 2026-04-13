@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { EditChoreForm } from "@/pages/chores/_component/EditChoreForm";
 import { ImageModal } from "@/components/ImageModal";
 import type { Chore, ChoreUser } from "@hously/shared/types";
-import { getChoreImageUrl } from "@hously/shared/utils";
+import { getChoreImageUrl } from "@/lib/utils/media";
 import { X } from "lucide-react";
 
 interface EditChoreModalProps {

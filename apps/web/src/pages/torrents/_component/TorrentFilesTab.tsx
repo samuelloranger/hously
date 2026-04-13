@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Edit2, Check, X as XIcon } from "lucide-react";
 import type { QbittorrentTorrentFile } from "@hously/shared/types";
-import { formatBytes } from "@hously/shared/utils";
+import { formatBytes } from "@/lib/utils/format";
 interface TorrentFilesTabProps {
   isLoading: boolean;
   files: QbittorrentTorrentFile[] | undefined;

@@ -3,12 +3,14 @@ import {
   useMutation,
   useQueryClient,
   useInfiniteQuery,
+  type InfiniteData,
   type UseQueryOptions,
 } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { NOTIFICATION_ENDPOINTS } from "@hously/shared/endpoints";
 import type {
+  Notification,
   NotificationsResponse,
   UnreadCountResponse,
   ApiResult,
@@ -104,18 +106,24 @@ export function useMarkAsReadOptimistic() {
 
       queryClient.setQueriesData(
         { queryKey: queryKeys.notifications.all },
-        (old: any) => {
+        (
+          old:
+            | NotificationsResponse
+            | InfiniteData<NotificationsResponse>
+            | undefined,
+        ) => {
           if (!old) return old;
 
-          if (old.pages) {
+          if ("pages" in old) {
             return {
               ...old,
-              pages: old.pages.map((page: any) => ({
+              pages: old.pages.map((page: NotificationsResponse) => ({
                 ...page,
-                notifications: (page.notifications || []).map((n: any) =>
-                  n.id === notificationId
-                    ? { ...n, read: true, read_at: new Date().toISOString() }
-                    : n,
+                notifications: (page.notifications || []).map(
+                  (n: Notification) =>
+                    n.id === notificationId
+                      ? { ...n, read: true, read_at: new Date().toISOString() }
+                      : n,
                 ),
               })),
             };
@@ -124,7 +132,7 @@ export function useMarkAsReadOptimistic() {
           if (Array.isArray(old.notifications)) {
             return {
               ...old,
-              notifications: old.notifications.map((n: any) =>
+              notifications: old.notifications.map((n: Notification) =>
                 n.id === notificationId
                   ? { ...n, read: true, read_at: new Date().toISOString() }
                   : n,
@@ -184,19 +192,24 @@ export function useMarkAllAsReadOptimistic() {
 
       queryClient.setQueriesData(
         { queryKey: queryKeys.notifications.all },
-        (old: any) => {
+        (
+          old:
+            | NotificationsResponse
+            | InfiniteData<NotificationsResponse>
+            | undefined,
+        ) => {
           if (!old) return old;
 
-          const markAsRead = (n: any) => ({
+          const markAsRead = (n: Notification): Notification => ({
             ...n,
             read: true,
             read_at: n.read_at || new Date().toISOString(),
           });
 
-          if (old.pages) {
+          if ("pages" in old) {
             return {
               ...old,
-              pages: old.pages.map((page: any) => ({
+              pages: old.pages.map((page: NotificationsResponse) => ({
                 ...page,
                 notifications: (page.notifications || []).map(markAsRead),
               })),

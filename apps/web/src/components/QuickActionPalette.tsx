@@ -11,7 +11,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Search, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useQuickSearch } from "@/hooks/search/useSearch";
-import { formatBytes } from "@hously/shared/utils";
+import { formatBytes } from "@/lib/utils/format";
 import { navSections } from "@/lib/routing/navigation";
 import { usePrefetchAllRoutes } from "@/lib/routing/usePrefetchAllRoutes";
 import { Dialog } from "@/components/dialog";

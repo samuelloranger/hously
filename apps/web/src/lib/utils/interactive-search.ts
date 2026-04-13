@@ -1,4 +1,4 @@
-import type { InteractiveReleaseItem } from "../types/media";
+import type { InteractiveReleaseItem } from "@hously/shared/types";
 
 export type InteractiveSortKey =
   | "seeders"

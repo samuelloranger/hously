@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/dialog";
 import { CreateHabitForm } from "@/pages/habits/_component/CreateHabitForm";
 import { useCreateHabit } from "@/hooks/habits/useHabits";
+import type { CreateHabitRequest } from "@hously/shared/types";
 import { toast } from "sonner";
 
 interface CreateHabitModalProps {
@@ -17,7 +18,7 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({
   const { t } = useTranslation("common");
   const createHabit = useCreateHabit();
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: CreateHabitRequest) => {
     createHabit.mutate(data, {
       onSuccess: () => {
         toast.success(t("habits.habitCreated"));

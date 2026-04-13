@@ -50,8 +50,12 @@ export function ServiceList({
         eventType,
         enabled,
       });
-    } catch (error: any) {
-      toast.error(error?.message || t("settings.externalNotifications.error"));
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("settings.externalNotifications.error"),
+      );
     }
   };
 
@@ -69,8 +73,12 @@ export function ServiceList({
       queryClient.invalidateQueries({
         queryKey: queryKeys.externalNotifications.services(),
       });
-    } catch (error: any) {
-      toast.error(error?.message || t("settings.externalNotifications.error"));
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("settings.externalNotifications.error"),
+      );
     } finally {
       setLoadingServiceId(null);
     }
@@ -90,8 +98,12 @@ export function ServiceList({
       queryClient.invalidateQueries({
         queryKey: queryKeys.externalNotifications.services(),
       });
-    } catch (error: any) {
-      toast.error(error?.message || t("settings.externalNotifications.error"));
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("settings.externalNotifications.error"),
+      );
     } finally {
       setLoadingServiceId(null);
     }
@@ -112,8 +124,12 @@ export function ServiceList({
       queryClient.invalidateQueries({
         queryKey: queryKeys.externalNotifications.services(),
       });
-    } catch (error: any) {
-      toast.error(error?.message || t("settings.externalNotifications.error"));
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("settings.externalNotifications.error"),
+      );
     } finally {
       setLoadingServiceId(null);
     }

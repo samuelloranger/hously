@@ -15,14 +15,16 @@ export function usePWA() {
     useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS] = useState(
     () =>
-      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream,
+      /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+      !(window as Window & { MSStream?: unknown }).MSStream,
   );
   const { user } = useAuth();
   const [isStandalone, setIsStandalone] = useState(
     () =>
       window.matchMedia("(display-mode: standalone)").matches ||
       ("standalone" in window.navigator &&
-        (window.navigator as any).standalone === true),
+        (window.navigator as Navigator & { standalone?: boolean })
+          .standalone === true),
   );
   const [showIOSBanner, setShowIOSBanner] = useState(false);
   const [showPWABanner, setShowPWABanner] = useState(false);

@@ -6,10 +6,9 @@ import {
   useResumeQbittorrentTorrent,
 } from "@/hooks/dashboard/useDashboard";
 import type { QbittorrentTorrentListItem } from "@hously/shared/types";
+import { formatBytes, formatSpeed } from "@/lib/utils/format";
 import {
-  formatBytes,
   formatQbittorrentEta,
-  formatSpeed,
   getQbittorrentProgressBarGradient,
   getQbittorrentStatusDot,
   hasQbittorrentTransferActivity,
@@ -26,7 +25,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { formatRelativeTime, resolveDateFnsLocale } from "@hously/shared/utils";
+import { formatRelativeTime, resolveDateFnsLocale } from "@/lib/utils/relativeTime";
 export function TorrentRow({
   torrent,
   isPinned,

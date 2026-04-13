@@ -1,4 +1,7 @@
-import type { QueryClient } from "@tanstack/react-query";
+import type {
+  QueryClient,
+  EnsureQueryDataOptions,
+} from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   ADMIN_ENDPOINTS,
@@ -104,7 +107,9 @@ async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
   ];
 
   await Promise.allSettled([
-    ...standard.map((q) => queryClient.ensureQueryData(q as any)),
+    ...standard.map((q) =>
+      queryClient.ensureQueryData(q as EnsureQueryDataOptions<unknown>),
+    ),
     queryClient.prefetchInfiniteQuery({
       queryKey: queryKeys.dashboard.jellyfinLatestInfinite(HOME_JELLYFIN_LIMIT),
       initialPageParam: 1,
@@ -321,7 +326,10 @@ const routeQueryDefinitions = {
 
   "/settings": (params: { tab?: string }) => {
     const tab = params.tab || "profile";
-    const queries: any[] = [];
+    const queries: Array<{
+      queryKey: readonly unknown[];
+      queryFn: () => unknown;
+    }> = [];
 
     // Always prefetch user profile for settings
     queries.push({
@@ -406,20 +414,31 @@ const routeQueryDefinitions = {
   },
 } as const;
 
+type RouteQueryDef = {
+  queryKey: readonly unknown[];
+  queryFn: () => unknown;
+};
+type RouteQueryMap = Record<
+  string,
+  ((params: Record<string, unknown>) => RouteQueryDef[]) | undefined
+>;
+
 /**
  * Generic helper to prefetch queries for a route using ensureQueryData
  */
 async function prefetchQueriesForRoute(
   queryClient: QueryClient,
   routeId: string,
-  params: any = {},
+  params: Record<string, unknown> = {},
 ): Promise<void> {
-  const queryDef = (routeQueryDefinitions as any)[routeId];
+  const queryDef = (routeQueryDefinitions as unknown as RouteQueryMap)[routeId];
   if (!queryDef) return;
 
   const queries = queryDef(params);
   await Promise.allSettled(
-    queries.map((q: any) => queryClient.ensureQueryData(q)),
+    queries.map((q) =>
+      queryClient.ensureQueryData(q as EnsureQueryDataOptions<unknown>),
+    ),
   );
 }
 
@@ -430,7 +449,7 @@ async function prefetchQueriesForRoute(
 export async function prefetchRouteData(
   queryClient: QueryClient,
   routeId: string,
-  params: any = {},
+  params: Record<string, unknown> = {},
 ): Promise<void> {
   const normalizedRouteId = routeId === "/dashboard" ? "/" : routeId;
   if (normalizedRouteId === "/") {
@@ -447,7 +466,7 @@ export async function prefetchRouteData(
 export function prefetchRouteDataOptimistic(
   queryClient: QueryClient,
   routeId: string,
-  params: any = {},
+  params: Record<string, unknown> = {},
 ): void {
   const normalizedRouteId = routeId === "/dashboard" ? "/" : routeId;
   if (normalizedRouteId === "/") {
@@ -455,11 +474,13 @@ export function prefetchRouteDataOptimistic(
     return;
   }
 
-  const queryDef = (routeQueryDefinitions as any)[normalizedRouteId];
+  const queryDef = (routeQueryDefinitions as unknown as RouteQueryMap)[
+    normalizedRouteId
+  ];
   if (!queryDef) return;
 
   const queries = queryDef(params);
-  queries.forEach((q: any) => {
-    queryClient.prefetchQuery(q);
+  queries.forEach((q) => {
+    queryClient.prefetchQuery(q as EnsureQueryDataOptions<unknown>);
   });
 }
