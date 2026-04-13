@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useAddUpcomingToLibrary } from "@/hooks/dashboard/useDashboard";
+import { useAddUpcomingToLibrary } from "@/pages/_component/useDashboardUpcoming";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { MEDIAS_ENDPOINTS } from "@/lib/endpoints";

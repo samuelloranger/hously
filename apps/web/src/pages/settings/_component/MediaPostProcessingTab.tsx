@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { FolderTree } from "lucide-react";
 import { HouseLoader } from "@/components/HouseLoader";
-import { useMediaPostProcessingSettings } from "@/hooks/medias/useLibrary";
-import { useQualityProfilesList } from "@/hooks/medias/useQualityProfiles";
+import { useMediaPostProcessingSettings } from "@/features/medias/hooks/useLibrary";
+import { useQualityProfilesList } from "@/pages/settings/useQualityProfiles";
 import { MediaPostProcessingSettingsBody } from "./MediaPostProcessingSettingsBody";
 
 export function MediaPostProcessingTab() {

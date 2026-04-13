@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useCreateShoppingItem } from "@/hooks/shopping/useShopping";
+import { useCreateShoppingItem } from "@/pages/shopping/useShopping";
 import { FormInput, FormTextarea } from "@/components/ui/form-field";
 import { Button } from "@/components/ui/button";
 

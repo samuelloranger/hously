@@ -4,8 +4,8 @@ import { Pin, PinOff, ArrowDown, ArrowUp, Clock } from "lucide-react";
 import {
   usePinnedQbittorrentTorrent,
   useSetPinnedQbittorrentTorrent,
-} from "@/hooks/dashboard/useDashboard";
-import { useQbittorrentStatus } from "@/hooks/torrents/useQbittorrentStatus";
+} from "@/pages/torrents/useDashboardQbittorrent";
+import { useQbittorrentStatus } from "@/pages/torrents/useQbittorrentStatus";
 import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 import type { DashboardQbittorrentStatusResponse } from "@hously/shared/types";
 import { formatSpeed, formatBytes } from "@/lib/utils/format";

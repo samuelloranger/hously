@@ -7,7 +7,7 @@ import {
   useBoardTags,
   useUpdateBoardTag,
   useDeleteBoardTag,
-} from "@/hooks/board/useBoardTags";
+} from "@/features/board/hooks/useBoardTags";
 import { cn } from "@/lib/utils";
 
 interface TagManagerModalProps {

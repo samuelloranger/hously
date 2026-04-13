@@ -13,7 +13,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useState } from "react";
-import { useDashboardWeather } from "@/hooks/dashboard/useWeather";
+import { useDashboardWeather } from "@/pages/_component/useWeather";
 import { WeatherForecastModal } from "@/pages/_component/WeatherForecastModal";
 import type { WeatherData } from "@hously/shared/types";
 import { getWeatherConditionKey } from "@/lib/utils/weather";

@@ -7,7 +7,7 @@ import {
   useRegenerateExternalNotificationToken,
   useUpdateExternalNotificationAdminsOnly,
   useToggleExternalNotificationTemplate,
-} from "@/hooks/notifications/useExternalNotifications";
+} from "@/pages/settings/useExternalNotifications";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   type ExternalNotificationService,

@@ -4,7 +4,7 @@ import {
   usePauseQbittorrentTorrent,
   useReannounceQbittorrentTorrent,
   useResumeQbittorrentTorrent,
-} from "@/hooks/dashboard/useDashboard";
+} from "@/pages/torrents/useDashboardQbittorrent";
 import type { QbittorrentTorrentListItem } from "@hously/shared/types";
 import { formatBytes, formatSpeed } from "@/lib/utils/format";
 import {
@@ -25,7 +25,10 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { formatRelativeTime, resolveDateFnsLocale } from "@/lib/utils/relativeTime";
+import {
+  formatRelativeTime,
+  resolveDateFnsLocale,
+} from "@/lib/utils/relativeTime";
 export function TorrentRow({
   torrent,
   isPinned,

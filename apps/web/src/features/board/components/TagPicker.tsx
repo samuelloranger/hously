@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import type { BoardTag } from "@hously/shared/types";
-import { useCreateBoardTag } from "@/hooks/board/useBoardTags";
+import { useCreateBoardTag } from "@/features/board/hooks/useBoardTags";
 import { cn } from "@/lib/utils";
 
 interface TagPickerProps {

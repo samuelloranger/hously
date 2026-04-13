@@ -15,7 +15,7 @@ import type {
   useRetrySkippedMedia,
   useSearchLibraryEpisode,
   useToggleEpisodeMonitored,
-} from "@/hooks/medias/useLibrary";
+} from "@/features/medias/hooks/useLibrary";
 import { Badge, StatusDot } from "./LibrarySharedUI";
 import { qualityBadges } from "@/utils/libraryDisplayUtils";
 import { FileDetailBlock } from "./LibraryFileDetailBlock";

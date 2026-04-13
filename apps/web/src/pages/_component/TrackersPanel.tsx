@@ -2,7 +2,7 @@ import {
   useDashboardC411Stats,
   useDashboardLaCaleStats,
   useDashboardTorr9Stats,
-} from "@/hooks/plugins/usePlugins";
+} from "@/pages/settings/usePlugins";
 import { formatRelativeTime, resolveDateFnsLocale } from "@/lib/utils/relativeTime";
 import { formatGo, formatRatio } from "@hously/shared/utils";
 import { useTranslation } from "react-i18next";

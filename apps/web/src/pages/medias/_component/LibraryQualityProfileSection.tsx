@@ -6,8 +6,8 @@ import {
   useLibrary,
   useUpdateLibraryQualityProfile,
   useSearchLibraryMovie,
-} from "@/hooks/medias/useLibrary";
-import { useQualityProfilesList } from "@/hooks/medias/useQualityProfiles";
+} from "@/features/medias/hooks/useLibrary";
+import { useQualityProfilesList } from "@/pages/settings/useQualityProfiles";
 import { Card, SectionLabel } from "./LibrarySharedUI";
 
 interface LibraryQualityProfileSectionProps {

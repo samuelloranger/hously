@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useExternalNotificationLogs } from "@/hooks/notifications/useExternalNotifications";
+import { useExternalNotificationLogs } from "@/pages/settings/useExternalNotifications";
 import {
   Collapsible,
   CollapsibleContent,

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { ListItemSkeleton } from "@/components/Skeleton";
-import { useDashboardActivityFeed } from "@/hooks/dashboard/useDashboard";
+import { useDashboardActivityFeed } from "@/pages/_component/useDashboardStats";
 import { resolveDateFnsLocale } from "@/lib/utils/relativeTime";
 import {
   getActivityPresentation,

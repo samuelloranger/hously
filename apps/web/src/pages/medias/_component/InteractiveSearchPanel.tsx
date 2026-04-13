@@ -12,11 +12,11 @@ import {
 import {
   useProwlarrInteractiveDownload,
   useProwlarrInteractiveSearch,
-} from "@/hooks/medias/useMedias";
+} from "@/features/medias/hooks/useMedias";
 import {
   useLibraryGrabRelease,
   useLibraryEpisodes,
-} from "@/hooks/medias/useLibrary";
+} from "@/features/medias/hooks/useLibrary";
 import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
 import {
   filterAndSortReleases,

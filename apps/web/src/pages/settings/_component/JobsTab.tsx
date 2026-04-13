@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useScheduledJobs, useTriggerAction } from "@/hooks/admin/useAdmin";
+import { useScheduledJobs, useTriggerAction } from "@/pages/settings/useAdmin";
 import { useCurrentUser } from "@/hooks/auth/useAuth";
 import { formatCronTrigger } from "@/lib/utils/format";
 import { LoadingState } from "@/components/LoadingState";

@@ -6,9 +6,9 @@ import {
   usePinnedQbittorrentTorrent,
   useSetPinnedQbittorrentTorrent,
   useDashboardQbittorrentTorrents,
-} from "@/hooks/dashboard/useDashboard";
+} from "@/pages/torrents/useDashboardQbittorrent";
 import { useJsonEventSource } from "@/hooks/realtime/useEventSource";
-import { useQbittorrentStatus } from "@/hooks/torrents/useQbittorrentStatus";
+import { useQbittorrentStatus } from "@/pages/torrents/useQbittorrentStatus";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   DASHBOARD_ENDPOINTS,

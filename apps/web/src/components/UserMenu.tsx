@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import * as Popover from "@radix-ui/react-popover";
-import { useUpdateProfile } from "@/hooks/users/useUsers";
+import { useUpdateProfile } from "@/pages/settings/useUsers";
 import type { User } from "@hously/shared/types";
 import { formatDisplayName } from "@/lib/utils/format";
 import { useTheme } from "@/hooks/app/useTheme";

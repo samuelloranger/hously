@@ -11,7 +11,7 @@ import { X, Droplets, Wind } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { WeatherData, WeatherForecastDay } from "@hously/shared/types";
 import { getWeatherConditionKey } from "@/lib/utils/weather";
-import { useDashboardWeatherForecast } from "@/hooks/dashboard/useWeather";
+import { useDashboardWeatherForecast } from "@/pages/_component/useWeather";
 import {
   Cloud,
   CloudDrizzle,
