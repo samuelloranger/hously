@@ -113,8 +113,29 @@ export function LibraryMediaSection({
     }
     return (
       <Card>
-        <div className="px-4 py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">
-          {t("library.media.noFileMetadata")}
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-neutral-100 dark:border-neutral-800">
+          <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
+            {t("library.media.noFileMetadata")}
+          </span>
+          <button
+            onClick={() => rescan.mutate()}
+            disabled={rescan.isPending}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-colors shrink-0",
+              "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+            )}
+          >
+            <RefreshCw
+              size={10}
+              className={rescan.isPending ? "animate-spin" : ""}
+            />
+            {rescan.isPending
+              ? t("library.media.rescanning", "Rescanning…")
+              : rescan.isSuccess
+                ? `Done (${rescan.data?.rescanned})`
+                : t("library.media.rescanFiles", "Rescan files")}
+          </button>
         </div>
       </Card>
     );
