@@ -1,12 +1,20 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, RefreshCw, Search } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Search,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LibraryFileInfo } from "@hously/shared/types";
 import type {
   useRetrySkippedMedia,
   useSearchLibraryEpisode,
+  useToggleEpisodeMonitored,
 } from "@/hooks/medias/useLibrary";
 import { Badge, StatusDot } from "./LibrarySharedUI";
 import { qualityBadges } from "@/utils/libraryDisplayUtils";
@@ -19,6 +27,7 @@ export interface MergedEpisodeRowProps {
     title: string | null;
     air_date: string | null;
     status: string;
+    monitored: boolean;
     search_attempts: number;
   };
   season: number;
@@ -33,6 +42,7 @@ export interface MergedEpisodeRowProps {
   }) => void;
   searchEpMut: ReturnType<typeof useSearchLibraryEpisode>;
   retryEpMut: ReturnType<typeof useRetrySkippedMedia>;
+  toggleMonitoredMut: ReturnType<typeof useToggleEpisodeMonitored>;
 }
 
 function formatAirDate(dateStr: string): string {
@@ -53,6 +63,7 @@ export function MergedEpisodeRow({
   onSearchEpisode,
   searchEpMut,
   retryEpMut,
+  toggleMonitoredMut,
 }: MergedEpisodeRowProps) {
   const [expanded, setExpanded] = useState(false);
   const badges = file ? qualityBadges(file) : [];
@@ -66,6 +77,7 @@ export function MergedEpisodeRow({
         className={cn(
           "w-full flex items-center gap-2 px-4 py-2 text-left transition-colors",
           file && "hover:bg-neutral-50 dark:hover:bg-neutral-800/40",
+          !ep.monitored && "opacity-50",
         )}
       >
         <StatusDot status={ep.status} />
@@ -146,6 +158,28 @@ export function MergedEpisodeRow({
               <RefreshCw size={11} />
             </button>
           )}
+          <button
+            type="button"
+            title={
+              ep.monitored
+                ? t("library.management.unmonitor")
+                : t("library.management.monitor")
+            }
+            onClick={(e) => {
+              e.stopPropagation();
+              void toggleMonitoredMut
+                .mutateAsync({
+                  mediaId: libraryId,
+                  episodeId: ep.id,
+                  monitored: !ep.monitored,
+                })
+                .catch(() => toast.error(t("library.management.grabFailed")));
+            }}
+            disabled={toggleMonitoredMut.isPending}
+            className="rounded p-1 text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400 disabled:opacity-50 transition-colors"
+          >
+            {ep.monitored ? <Eye size={11} /> : <EyeOff size={11} />}
+          </button>
           {file && (
             <span className="rounded p-1 text-neutral-300 dark:text-neutral-600">
               {expanded ? (

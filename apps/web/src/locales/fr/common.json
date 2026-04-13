@@ -1604,7 +1604,11 @@
       "retrySearchTitle": "Réinitialise les tentatives et remet en file pour la recherche automatique",
       "retrySearchQueued": "Remis en recherche",
       "retrySkippedSeasonTitle": "Relancer {{count}} épisode(s) ignoré(s) dans cette saison",
-      "retrySkippedSeasonQueued": "{{count}} épisode(s) remis en recherche"
+      "retrySkippedSeasonQueued": "{{count}} épisode(s) remis en recherche",
+      "monitor": "Suivre",
+      "unmonitor": "Ne plus suivre",
+      "monitorSeason": "Suivre la saison",
+      "unmonitorSeason": "Ne plus suivre la saison"
     },
     "notFound": "Élément introuvable dans la bibliothèque."
   }

@@ -16,6 +16,11 @@ export const LIBRARY_ENDPOINTS = {
     `/api/library/${mediaId}/episodes/${episodeId}/status`,
   RETRY_SKIPPED_SEASON: (mediaId: number, season: number) =>
     `/api/library/${mediaId}/seasons/${season}/retry-skipped`,
+  UPDATE_MONITORED: (id: number) => `/api/library/${id}/monitored`,
+  UPDATE_EPISODE_MONITORED: (mediaId: number, episodeId: number) =>
+    `/api/library/${mediaId}/episodes/${episodeId}/monitored`,
+  UPDATE_SEASON_MONITORED: (mediaId: number, season: number) =>
+    `/api/library/${mediaId}/seasons/${season}/monitored`,
   FILES: (id: number) => `/api/library/${id}/files`,
   RESCAN: (id: number) => `/api/library/${id}/rescan`,
   DELETE_FILE: (fileId: number) => `/api/library/files/${fileId}`,

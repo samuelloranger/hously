@@ -8,10 +8,20 @@ import {
   useSearchLibraryEpisode,
   useRetrySkippedMedia,
   useRetrySkippedSeason,
+  useToggleEpisodeMonitored,
+  useToggleSeasonMonitored,
   useDeleteLibraryFile,
 } from "@/hooks/medias/useLibrary";
 import type { LibraryFileInfo } from "@hously/shared/types";
-import { ChevronRight, Folder, RefreshCw, Search, Trash2 } from "lucide-react";
+import {
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Folder,
+  RefreshCw,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge, Card } from "./LibrarySharedUI";
 import {
@@ -45,6 +55,8 @@ export function LibraryMediaSection({
   const searchEpMut = useSearchLibraryEpisode();
   const retryEpMut = useRetrySkippedMedia();
   const retrySeasonMut = useRetrySkippedSeason();
+  const toggleEpMonitoredMut = useToggleEpisodeMonitored();
+  const toggleSeasonMonitoredMut = useToggleSeasonMonitored();
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(
     new Set(),
@@ -152,6 +164,8 @@ export function LibraryMediaSection({
               const skippedCount = s.episodes.filter(
                 (e) => e.status === "skipped",
               ).length;
+              const allMonitored = s.episodes.every((e) => e.monitored);
+              const anyMonitored = s.episodes.some((e) => e.monitored);
               const progress =
                 s.episodes.length > 0 ? downloadedCount / s.episodes.length : 0;
               const allDone = downloadedCount === s.episodes.length;
@@ -267,6 +281,34 @@ export function LibraryMediaSection({
                         <RefreshCw size={12} />
                       </button>
                     )}
+                    <button
+                      type="button"
+                      title={
+                        allMonitored
+                          ? t("library.management.unmonitorSeason")
+                          : t("library.management.monitorSeason")
+                      }
+                      disabled={toggleSeasonMonitoredMut.isPending}
+                      onClick={() => {
+                        void toggleSeasonMonitoredMut
+                          .mutateAsync({
+                            mediaId: libraryId,
+                            season: s.season,
+                            monitored: !anyMonitored,
+                          })
+                          .catch(() =>
+                            toast.error(t("library.management.grabFailed")),
+                          );
+                      }}
+                      className={cn(
+                        "px-3 py-3 transition-colors disabled:opacity-50",
+                        anyMonitored
+                          ? "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
+                          : "text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800/40",
+                      )}
+                    >
+                      {anyMonitored ? <Eye size={12} /> : <EyeOff size={12} />}
+                    </button>
                   </div>
 
                   {isExpanded && (
@@ -284,6 +326,7 @@ export function LibraryMediaSection({
                           onSearchEpisode={onSearchEpisode}
                           searchEpMut={searchEpMut}
                           retryEpMut={retryEpMut}
+                          toggleMonitoredMut={toggleEpMonitoredMut}
                         />
                       ))}
                     </div>

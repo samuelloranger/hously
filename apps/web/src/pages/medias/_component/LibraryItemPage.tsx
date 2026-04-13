@@ -254,6 +254,7 @@ export function LibraryItemPage() {
               <LibraryManagementPanel
                 libraryId={item.id}
                 itemStatus={item.status}
+                itemMonitored={item.monitored}
                 onDeleted={() => navigate({ to: "/library" })}
                 onSearchEpisode={(ep) => {
                   setEpisodeSearchCtx(ep);

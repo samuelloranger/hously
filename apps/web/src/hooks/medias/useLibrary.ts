@@ -295,6 +295,75 @@ export function useRetrySkippedSeason() {
   });
 }
 
+export function useToggleMediaMonitored() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, monitored }: { id: number; monitored: boolean }) =>
+      fetcher<{ item: LibraryMedia }>(LIBRARY_ENDPOINTS.UPDATE_MONITORED(id), {
+        method: "PATCH",
+        body: { monitored },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+    },
+  });
+}
+
+export function useToggleEpisodeMonitored() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      mediaId,
+      episodeId,
+      monitored,
+    }: {
+      mediaId: number;
+      episodeId: number;
+      monitored: boolean;
+    }) =>
+      fetcher<{ episode: { id: number; monitored: boolean } }>(
+        LIBRARY_ENDPOINTS.UPDATE_EPISODE_MONITORED(mediaId, episodeId),
+        { method: "PATCH", body: { monitored } },
+      ),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.episodes(vars.mediaId),
+      });
+    },
+  });
+}
+
+export function useToggleSeasonMonitored() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      mediaId,
+      season,
+      monitored,
+    }: {
+      mediaId: number;
+      season: number;
+      monitored: boolean;
+    }) =>
+      fetcher<{ updated: number }>(
+        LIBRARY_ENDPOINTS.UPDATE_SEASON_MONITORED(mediaId, season),
+        { method: "PATCH", body: { monitored } },
+      ),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.episodes(vars.mediaId),
+      });
+    },
+  });
+}
+
 export function useUpdateLibraryQualityProfile() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();

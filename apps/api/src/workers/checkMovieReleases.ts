@@ -2,19 +2,14 @@ import { prisma } from "@hously/api/db";
 import { searchAndGrab } from "@hously/api/services/mediaGrabber";
 import { refreshLibraryMovieDigitalDate } from "@hously/api/services/libraryTmdbRefresh";
 
-// Only search for movies released digitally within this many days.
-const MOVIE_GRAB_WINDOW_DAYS = 14;
-
 export async function checkMovieReleases(): Promise<void> {
   const now = new Date();
-  const windowCutoff = new Date(
-    now.getTime() - MOVIE_GRAB_WINDOW_DAYS * 24 * 60 * 60 * 1000,
-  );
 
   const movies = await prisma.libraryMedia.findMany({
     where: {
       type: "movie",
       status: "wanted",
+      monitored: true,
       files: { none: {} },
     },
     select: {
@@ -45,9 +40,6 @@ export async function checkMovieReleases(): Promise<void> {
 
       // Not yet released digitally — nothing to search.
       if (digital > now) continue;
-
-      // Outside the grab window — silently ignore.
-      if (digital < windowCutoff) continue;
 
       const y = m.year ? ` ${m.year}` : "";
       const result = await searchAndGrab({
