@@ -244,6 +244,7 @@ export function LibraryItemPage() {
                 episodeSearchCtx={episodeSearchCtx}
                 seasonSearchCtx={seasonSearchCtx}
                 onClearEpisodeCtx={() => setEpisodeSearchCtx(null)}
+                onClearSeasonCtx={() => setSeasonSearchCtx(null)}
                 tmdbOriginalTitle={detailsData?.original_title ?? null}
               />
             </div>
