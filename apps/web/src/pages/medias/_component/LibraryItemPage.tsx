@@ -253,6 +253,8 @@ export function LibraryItemPage() {
             <div className="animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none">
               <LibraryManagementPanel
                 libraryId={item.id}
+                itemStatus={item.status}
+                itemMonitored={item.monitored}
                 onDeleted={() => navigate({ to: "/library" })}
                 onSearchEpisode={(ep) => {
                   setEpisodeSearchCtx(ep);

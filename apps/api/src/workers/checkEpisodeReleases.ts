@@ -13,15 +13,14 @@ function episodeSearchQuery(
 
 export async function checkEpisodeReleases(): Promise<void> {
   const now = new Date();
-  // Only process episodes that aired in the past 7 days. Give indexers 60 min
-  // after air time before searching, so skip anything aired less than an hour ago.
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  // Give indexers 60 min after air time before searching.
   const cutoff = new Date(now.getTime() - 60 * 60 * 1000);
 
   const episodes = await prisma.libraryEpisode.findMany({
     where: {
       status: "wanted",
-      airDate: { gte: sevenDaysAgo, lte: cutoff },
+      monitored: true,
+      airDate: { lte: cutoff },
       files: { none: {} },
       media: { type: "show" },
     },

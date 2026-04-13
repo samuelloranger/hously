@@ -71,6 +71,7 @@ export interface LibraryMedia {
   sort_title: string | null;
   year: number | null;
   status: LibraryMediaStatus;
+  monitored: boolean;
   poster_url: string | null;
   overview: string | null;
   digital_release_date: string | null;
@@ -104,6 +105,7 @@ export interface LibraryEpisode {
   title: string | null;
   air_date: string | null;
   status: LibraryMediaStatus;
+  monitored: boolean;
   tmdb_episode_id: number | null;
   downloaded_at: string | null;
   search_attempts: number;

@@ -25,6 +25,7 @@ function mapLibraryMedia(item: {
   sortTitle: string | null;
   year: number | null;
   status: string;
+  monitored: boolean;
   posterUrl: string | null;
   overview: string | null;
   digitalReleaseDate: Date | null;
@@ -43,6 +44,7 @@ function mapLibraryMedia(item: {
     sort_title: item.sortTitle,
     year: item.year,
     status: item.status,
+    monitored: item.monitored,
     poster_url: item.posterUrl,
     overview: item.overview,
     digital_release_date: item.digitalReleaseDate?.toISOString() ?? null,
@@ -267,7 +269,10 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         }
         const item = await prisma.libraryMedia.update({
           where: { id },
-          data: { status: body.status },
+          data: {
+            status: body.status,
+            ...(body.status === "wanted" ? { searchAttempts: 0 } : {}),
+          },
           include: libraryMediaInclude,
         });
         return { item: mapLibraryMedia(item) };
@@ -278,6 +283,125 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     {
       body: t.Object({ status: t.String() }),
     },
+  )
+
+  // PATCH /api/library/:id/episodes/:episodeId/status — reset episode status (e.g. retry skipped)
+  .patch(
+    "/:id/episodes/:episodeId/status",
+    async ({ params, body, set }) => {
+      try {
+        const mediaId = parseInt(params.id, 10);
+        const episodeId = parseInt(params.episodeId, 10);
+        const validStatuses = [
+          "wanted",
+          "downloading",
+          "downloaded",
+          "skipped",
+        ];
+        if (!validStatuses.includes(body.status)) {
+          return badRequest(
+            set,
+            `status must be one of: ${validStatuses.join(", ")}`,
+          );
+        }
+        const ep = await prisma.libraryEpisode.update({
+          where: { id: episodeId, mediaId },
+          data: {
+            status: body.status,
+            ...(body.status === "wanted" ? { searchAttempts: 0 } : {}),
+          },
+        });
+        return {
+          episode: {
+            id: ep.id,
+            status: ep.status,
+            search_attempts: ep.searchAttempts,
+          },
+        };
+      } catch {
+        return serverError(set, "Failed to update episode status");
+      }
+    },
+    {
+      body: t.Object({ status: t.String() }),
+    },
+  )
+
+  // POST /api/library/:id/seasons/:season/retry-skipped — reset all skipped episodes in a season
+  .post("/:id/seasons/:season/retry-skipped", async ({ params, set }) => {
+    try {
+      const mediaId = parseInt(params.id, 10);
+      const season = parseInt(params.season, 10);
+      const result = await prisma.libraryEpisode.updateMany({
+        where: { mediaId, season, status: "skipped" },
+        data: { status: "wanted", searchAttempts: 0 },
+      });
+      return { retried: result.count };
+    } catch {
+      return serverError(set, "Failed to retry skipped episodes");
+    }
+  })
+
+  // PATCH /api/library/:id/monitored — toggle monitoring for a movie or show
+  .patch(
+    "/:id/monitored",
+    async ({ params, body, set }) => {
+      try {
+        const id = parseInt(params.id, 10);
+        const item = await prisma.libraryMedia.update({
+          where: { id },
+          data: { monitored: body.monitored },
+          include: libraryMediaInclude,
+        });
+        return { item: mapLibraryMedia(item) };
+      } catch {
+        return serverError(set, "Failed to update monitored status");
+      }
+    },
+    { body: t.Object({ monitored: t.Boolean() }) },
+  )
+
+  // PATCH /api/library/:id/episodes/:episodeId/monitored — toggle monitoring for an episode
+  .patch(
+    "/:id/episodes/:episodeId/monitored",
+    async ({ params, body, set }) => {
+      try {
+        const mediaId = parseInt(params.id, 10);
+        const episodeId = parseInt(params.episodeId, 10);
+        const ep = await prisma.libraryEpisode.update({
+          where: { id: episodeId, mediaId },
+          data: { monitored: body.monitored },
+        });
+        return {
+          episode: {
+            id: ep.id,
+            monitored: ep.monitored,
+          },
+        };
+      } catch {
+        return serverError(set, "Failed to update episode monitored status");
+      }
+    },
+    { body: t.Object({ monitored: t.Boolean() }) },
+  )
+
+  // PATCH /api/library/:id/seasons/:season/monitored — bulk toggle monitoring for a season
+  .patch(
+    "/:id/seasons/:season/monitored",
+    async ({ params, body, set }) => {
+      try {
+        const mediaId = parseInt(params.id, 10);
+        const season = parseInt(params.season, 10);
+        const result = await prisma.libraryEpisode.updateMany({
+          where: { mediaId, season },
+          data: { monitored: body.monitored },
+        });
+        return { updated: result.count };
+      } catch {
+        return serverError(set, "Failed to update season monitored status");
+      }
+    },
+    { body: t.Object({ monitored: t.Boolean() }) },
   )
 
   // PATCH /api/library/:id/quality-profile
@@ -345,6 +469,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
             title: ep.title,
             air_date: ep.airDate?.toISOString().slice(0, 10) ?? null,
             status: ep.status,
+            monitored: ep.monitored,
             tmdb_episode_id: ep.tmdbEpisodeId,
             downloaded_at: ep.downloadedAt?.toISOString() ?? null,
             search_attempts: ep.searchAttempts,
@@ -498,11 +623,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         if (media.type !== "movie") {
           return badRequest(set, "Search is only available for movies");
         }
-        if (
-          media.status === "downloading" ||
-          media.status === "downloaded" ||
-          media.status === "skipped"
-        ) {
+        if (media.status === "downloading") {
           return badRequest(
             set,
             "This item cannot be grabbed in its current state",

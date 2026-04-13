@@ -570,6 +570,7 @@ model LibraryMedia {
   sortTitle          String?   @map("sort_title")
   year               Int?
   status             String    @default("wanted") // wanted | downloading | downloaded | skipped
+  monitored          Boolean   @default(true)
   posterUrl          String?   @map("poster_url")
   overview           String?
   digitalReleaseDate DateTime? @map("digital_release_date")
@@ -598,6 +599,7 @@ model LibraryEpisode {
   title          String?
   airDate        DateTime? @map("air_date") @db.Date
   status         String    @default("wanted") // wanted | downloading | downloaded | skipped
+  monitored      Boolean   @default(true)
   tmdbEpisodeId  Int?      @map("tmdb_episode_id")
   downloadedAt   DateTime? @map("downloaded_at")
   searchAttempts Int       @default(0) @map("search_attempts")

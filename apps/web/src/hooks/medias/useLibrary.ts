@@ -246,6 +246,124 @@ export function useSearchLibraryEpisode() {
   });
 }
 
+export function useRetrySkippedMedia() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation<unknown, Error, { mediaId: number; episodeId?: number }>({
+    mutationFn: ({ mediaId, episodeId }) => {
+      if (episodeId !== undefined) {
+        return fetcher<{
+          episode: { id: number; status: string; search_attempts: number };
+        }>(LIBRARY_ENDPOINTS.UPDATE_EPISODE_STATUS(mediaId, episodeId), {
+          method: "PATCH",
+          body: { status: "wanted" },
+        });
+      }
+      return fetcher<{ item: LibraryMedia }>(
+        LIBRARY_ENDPOINTS.UPDATE_STATUS(mediaId),
+        { method: "PATCH", body: { status: "wanted" } },
+      );
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      if (vars.episodeId !== undefined) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.library.episodes(vars.mediaId),
+        });
+      }
+    },
+  });
+}
+
+export function useRetrySkippedSeason() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ mediaId, season }: { mediaId: number; season: number }) =>
+      fetcher<{ retried: number }>(
+        LIBRARY_ENDPOINTS.RETRY_SKIPPED_SEASON(mediaId, season),
+        { method: "POST" },
+      ),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.episodes(vars.mediaId),
+      });
+    },
+  });
+}
+
+export function useToggleMediaMonitored() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, monitored }: { id: number; monitored: boolean }) =>
+      fetcher<{ item: LibraryMedia }>(LIBRARY_ENDPOINTS.UPDATE_MONITORED(id), {
+        method: "PATCH",
+        body: { monitored },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+    },
+  });
+}
+
+export function useToggleEpisodeMonitored() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      mediaId,
+      episodeId,
+      monitored,
+    }: {
+      mediaId: number;
+      episodeId: number;
+      monitored: boolean;
+    }) =>
+      fetcher<{ episode: { id: number; monitored: boolean } }>(
+        LIBRARY_ENDPOINTS.UPDATE_EPISODE_MONITORED(mediaId, episodeId),
+        { method: "PATCH", body: { monitored } },
+      ),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.episodes(vars.mediaId),
+      });
+    },
+  });
+}
+
+export function useToggleSeasonMonitored() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      mediaId,
+      season,
+      monitored,
+    }: {
+      mediaId: number;
+      season: number;
+      monitored: boolean;
+    }) =>
+      fetcher<{ updated: number }>(
+        LIBRARY_ENDPOINTS.UPDATE_SEASON_MONITORED(mediaId, season),
+        { method: "PATCH", body: { monitored } },
+      ),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.episodes(vars.mediaId),
+      });
+    },
+  });
+}
+
 export function useUpdateLibraryQualityProfile() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();

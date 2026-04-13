@@ -1599,7 +1599,16 @@
       "deleting": "Suppression…",
       "refreshStatus": "Sync statut",
       "refreshingStatus": "Synchronisation…",
-      "refreshStatusTitle": "Vérifie qBittorrent & le disque : relance le post-traitement si nécessaire, ou repasse en voulu"
+      "refreshStatusTitle": "Vérifie qBittorrent & le disque : relance le post-traitement si nécessaire, ou repasse en voulu",
+      "retrySearch": "Relancer la recherche",
+      "retrySearchTitle": "Réinitialise les tentatives et remet en file pour la recherche automatique",
+      "retrySearchQueued": "Remis en recherche",
+      "retrySkippedSeasonTitle": "Relancer {{count}} épisode(s) ignoré(s) dans cette saison",
+      "retrySkippedSeasonQueued": "{{count}} épisode(s) remis en recherche",
+      "monitor": "Suivre",
+      "unmonitor": "Ne plus suivre",
+      "monitorSeason": "Suivre la saison",
+      "unmonitorSeason": "Ne plus suivre la saison"
     },
     "notFound": "Élément introuvable dans la bibliothèque."
   }
