@@ -18,7 +18,7 @@ export const Route = createFileRoute("/habits/")({
   validateSearch: (search: Record<string, unknown>): HabitsSearchParams => ({
     modal:
       search.modal === "create" || search.modal === "edit"
-        ? (search.modal as any)
+        ? search.modal
         : undefined,
     habitId: parseOptionalInt(search.habitId),
   }),
@@ -27,8 +27,8 @@ export const Route = createFileRoute("/habits/")({
       const user = await getCurrentUser();
       if (!user) throw redirect({ to: "/login" });
       return { user };
-    } catch (e: any) {
-      if (e?.status === 429) return { user: null };
+    } catch (e: unknown) {
+      if ((e as { status?: number })?.status === 429) return { user: null };
       throw e;
     }
   },

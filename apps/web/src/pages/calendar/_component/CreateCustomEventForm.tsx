@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import {
   useCreateCustomEvent,
   useUpdateCustomEvent,
-} from "@/hooks/calendar/useCalendar";
+} from "@/pages/calendar/useCalendar";
 import {
   type CreateCustomEventRequest,
   type UpdateCustomEventRequest,
@@ -123,9 +123,9 @@ export function CreateCustomEventForm({
             reset();
             onClose();
           },
-          onError: (error: any) => {
+          onError: (error: Error) => {
             toast.error(
-              error?.message ||
+              error.message ||
                 t("calendar.customEventError") ||
                 t("common.error"),
             );
@@ -153,6 +153,7 @@ export function CreateCustomEventForm({
           reset();
           onClose();
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- error shape varies; accessing API error properties not on the Error type
         onError: (error: any) => {
           toast.error(
             error?.message ||

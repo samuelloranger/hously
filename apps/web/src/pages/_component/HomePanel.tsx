@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { useChores } from "@/hooks/chores/useChores";
-import { useHabits } from "@/hooks/habits/useHabits";
+import { useChores } from "@/pages/chores/useChores";
+import { useHabits } from "@/pages/habits/useHabits";
 import { ChevronRight, Flame } from "lucide-react";
 
 // ─── Chores panel ─────────────────────────────────────────────────────────────

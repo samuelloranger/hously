@@ -1,14 +1,12 @@
 import { useMemo, useState, type UIEvent } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useDashboardJellyfinLatestInfinite,
-  useDashboardUpcoming,
-} from "@/hooks/dashboard/useDashboard";
+import { useDashboardJellyfinLatestInfinite } from "@/pages/_component/useDashboardJellyfin";
+import { useDashboardUpcoming } from "@/pages/_component/useDashboardUpcoming";
 import type {
   DashboardUpcomingItem,
   TmdbMediaSearchItem,
 } from "@hously/shared/types";
-import { formatRelativeTime, resolveDateFnsLocale } from "@hously/shared/utils";
+import { formatRelativeTime, resolveDateFnsLocale } from "@/lib/utils/relativeTime";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 import { RefreshCw } from "lucide-react";
 

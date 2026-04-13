@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, renderWithProviders, screen } from "@/test-utils/render";
 import { TorrentsPage } from "@/pages/torrents/_component";
-import { useDashboardQbittorrentTorrents } from "@/hooks/dashboard/useDashboard";
+import { useDashboardQbittorrentTorrents } from "@/pages/torrents/useDashboardQbittorrent";
 
 const mockNavigate = vi.fn();
 let mockSearch: Record<string, unknown> = {};
@@ -78,7 +79,7 @@ vi.mock("@/pages/torrents/_component/TorrentRow", () => ({
   ),
 }));
 
-vi.mock("@/hooks/realtime/useEventSourceState", () => ({
+vi.mock("@/lib/realtime/useEventSourceState", () => ({
   useEventSourceState: ({
     initialData,
   }: {
@@ -91,7 +92,7 @@ vi.mock("@/hooks/realtime/useEventSourceState", () => ({
   }),
 }));
 
-vi.mock("@/hooks/dashboard/useDashboard", () => ({
+vi.mock("@/pages/torrents/useDashboardQbittorrent", () => ({
   useDashboardQbittorrentTorrents: vi.fn(),
   usePinnedQbittorrentTorrent: vi.fn(() => ({ data: null })),
   useSetPinnedQbittorrentTorrent: vi.fn(() => ({ mutate: vi.fn() })),

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useTmdbPlugin, useUpdateTmdbPlugin } from "@/hooks/plugins/usePlugins";
+import { useTmdbPlugin, useUpdateTmdbPlugin } from "@/pages/settings/usePlugins";
 import { toast } from "sonner";
 import { PluginSectionCard } from "@/pages/settings/_component/plugins/PluginSectionCard";
 

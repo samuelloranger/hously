@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   fireEvent,
@@ -32,7 +33,7 @@ vi.mock("@hously/shared", async (importOriginal) => {
   };
 });
 
-vi.mock("@/hooks/shopping/useShopping", () => ({
+vi.mock("@/pages/shopping/useShopping", () => ({
   useShoppingItems: vi.fn(),
   useCreateShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
   useToggleShoppingItem: vi.fn().mockReturnValue({ mutate: vi.fn() }),
@@ -45,7 +46,7 @@ vi.mock("@/hooks/shopping/useShopping", () => ({
   useReorderShoppingItems: vi.fn().mockReturnValue({ mutate: vi.fn() }),
 }));
 
-import { useShoppingItems } from "@/hooks/shopping/useShopping";
+import { useShoppingItems } from "@/pages/shopping/useShopping";
 
 describe("ShoppingList", () => {
   beforeEach(() => {

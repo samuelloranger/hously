@@ -3,7 +3,7 @@ import { Lamp, Plug } from "lucide-react";
 import {
   useHomeAssistantControl,
   useHomeAssistantWidget,
-} from "@/hooks/home-assistant/useHomeAssistant";
+} from "@/pages/settings/useHomeAssistant";
 import { usePrefetchIntent } from "@/lib/routing/usePrefetchIntent";
 import { cn } from "@/lib/utils";
 import { useState } from "react";

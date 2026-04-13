@@ -9,8 +9,8 @@ import {
   useDeletePushToken,
   useAdminWebPush,
   useDeleteWebPush,
-} from "@/hooks/admin/useAdmin";
-import { useCurrentUser } from "@/hooks/auth/useAuth";
+} from "@/pages/settings/useAdmin";
+import { useCurrentUser } from "@/lib/auth/useAuth";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 

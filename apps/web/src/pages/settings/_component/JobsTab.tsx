@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useScheduledJobs, useTriggerAction } from "@/hooks/admin/useAdmin";
-import { useCurrentUser } from "@/hooks/auth/useAuth";
-import { formatCronTrigger } from "@hously/shared/utils";
+import { useScheduledJobs, useTriggerAction } from "@/pages/settings/useAdmin";
+import { useCurrentUser } from "@/lib/auth/useAuth";
+import { formatCronTrigger } from "@/lib/utils/format";
 import { LoadingState } from "@/components/LoadingState";
 
 type JobAction =
@@ -126,9 +126,11 @@ export function JobsTab() {
     try {
       const result = await triggerAction(action);
       toast.success(result.message || t("settings.jobs.success"));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error running job:", err);
-      toast.error(err?.message || t("settings.jobs.error"));
+      toast.error(
+        err instanceof Error ? err.message : t("settings.jobs.error"),
+      );
     } finally {
       setExecuting(null);
     }

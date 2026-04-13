@@ -4,7 +4,7 @@ import {
   useHomeAssistantDiscoverEntities,
   useHomeAssistantPlugin,
   useUpdateHomeAssistantPlugin,
-} from "@/hooks/plugins/usePlugins";
+} from "@/pages/settings/usePlugins";
 import { type HomeAssistantDiscoverEntity } from "@hously/shared/types";
 import { toast } from "sonner";
 import { PluginSectionCard } from "@/pages/settings/_component/plugins/PluginSectionCard";

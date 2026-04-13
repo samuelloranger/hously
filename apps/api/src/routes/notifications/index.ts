@@ -1,4 +1,5 @@
 import { Elysia, t } from "elysia";
+import type { Prisma } from "@prisma/client";
 import { normalizeNotificationUrl } from "@hously/shared/utils";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
@@ -89,7 +90,7 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
 
       try {
         // Build where conditions
-        const where: any = { userId: user.id };
+        const where: Prisma.NotificationWhereInput = { userId: user.id };
 
         if (readFilter === "true") {
           where.read = true;

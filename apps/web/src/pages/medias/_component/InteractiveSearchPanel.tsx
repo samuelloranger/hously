@@ -12,11 +12,11 @@ import {
 import {
   useProwlarrInteractiveDownload,
   useProwlarrInteractiveSearch,
-} from "@/hooks/medias/useMedias";
+} from "@/features/medias/hooks/useMedias";
 import {
   useLibraryGrabRelease,
   useLibraryEpisodes,
-} from "@/hooks/medias/useLibrary";
+} from "@/features/medias/hooks/useLibrary";
 import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
 import {
   filterAndSortReleases,
@@ -25,7 +25,7 @@ import {
   UNKNOWN_LANGUAGE_KEY,
   type InteractiveSortKey,
   type InteractiveSortDir,
-} from "@hously/shared/utils";
+} from "@/lib/utils/interactive-search";
 import {
   Toggle,
   ChipMultiSelect,
@@ -621,7 +621,7 @@ export function InteractiveSearchPanel({
             </div>
           </div>
 
-          {(showFilters || hasAdvancedFilters) && (
+          {showFilters && (
             <div className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 dark:border-neutral-700/80 dark:bg-neutral-900/50">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <p className="flex items-center gap-1.5 text-xs font-semibold text-neutral-700 dark:text-neutral-200">

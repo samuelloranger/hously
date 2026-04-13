@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
-import { useHabits, useDeleteHabit } from "@/hooks/habits/useHabits";
+import { useHabits, useDeleteHabit } from "@/pages/habits/useHabits";
 import { Habit } from "@hously/shared/types";
 import { HouseLoader } from "@/components/HouseLoader";
 import { EmptyState } from "@/components/EmptyState";

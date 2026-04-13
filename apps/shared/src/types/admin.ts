@@ -49,15 +49,15 @@ export interface ScheduledJobsResponse {
 export interface QueueJob {
   id: string;
   name: string;
-  data: any;
-  opts: any;
+  data: unknown;
+  opts: unknown;
   progress: number | object;
   delay: number;
   timestamp: string;
   processedOn: string | null;
   finishedOn: string | null;
   status: string;
-  returnValue: any;
+  returnValue: unknown;
   failedReason: string | null;
   stacktrace: string[];
   attemptsMade: number;

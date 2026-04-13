@@ -13,7 +13,7 @@ import {
   useChores,
   useClearAllCompletedChores,
   useReorderChores,
-} from "@/hooks/chores/useChores";
+} from "@/pages/chores/useChores";
 import { HouseLoader } from "@/components/HouseLoader";
 import { useSearch } from "@tanstack/react-router";
 import { useModalSearchParams } from "@/lib/routing/useModalSearchParams";

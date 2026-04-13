@@ -4,12 +4,11 @@ import {
   usePauseQbittorrentTorrent,
   useReannounceQbittorrentTorrent,
   useResumeQbittorrentTorrent,
-} from "@/hooks/dashboard/useDashboard";
+} from "@/pages/torrents/useDashboardQbittorrent";
 import type { QbittorrentTorrentListItem } from "@hously/shared/types";
+import { formatBytes, formatSpeed } from "@/lib/utils/format";
 import {
-  formatBytes,
   formatQbittorrentEta,
-  formatSpeed,
   getQbittorrentProgressBarGradient,
   getQbittorrentStatusDot,
   hasQbittorrentTransferActivity,

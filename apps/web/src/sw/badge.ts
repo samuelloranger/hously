@@ -1,5 +1,5 @@
 import type { UnreadCountResponse } from "./types";
-import { NOTIFICATION_ENDPOINTS } from "@hously/shared/endpoints/notifications";
+import { NOTIFICATION_ENDPOINTS } from "@/lib/endpoints";
 
 // Sync badge count from server
 export async function syncBadgeCount(): Promise<void> {

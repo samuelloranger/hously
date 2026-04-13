@@ -12,7 +12,7 @@ import {
   useToggleEpisodeMonitored,
   useToggleSeasonMonitored,
   useDeleteLibraryFile,
-} from "@/hooks/medias/useLibrary";
+} from "@/features/medias/hooks/useLibrary";
 import type { LibraryFileInfo } from "@hously/shared/types";
 import {
   ChevronRight,

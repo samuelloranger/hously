@@ -1,4 +1,5 @@
 import type { Job } from "bullmq";
+import type { TrackerType } from "@hously/api/utils/plugins/types";
 import { SCHEDULED_JOB_NAMES } from "@hously/api/services/queueService";
 
 /**
@@ -33,7 +34,7 @@ export async function processScheduledJob(job: Job) {
           await import("../../workers/fetchTrackerStats");
         const { type } = job.data as { type?: string };
         if (type) {
-          await fetchTrackerStats(type as any, { trigger: "queue" });
+          await fetchTrackerStats(type as TrackerType, { trigger: "queue" });
         } else {
           await fetchAllTrackerStats({ trigger: "queue" });
         }

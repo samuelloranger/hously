@@ -18,7 +18,7 @@ export const Route = createFileRoute("/chores/")({
   validateSearch: (search: Record<string, unknown>): ChoresSearchParams => ({
     modal:
       search.modal === "create" || search.modal === "edit"
-        ? (search.modal as any)
+        ? search.modal
         : undefined,
     choreId: parseOptionalInt(search.choreId),
     viewImage:
@@ -29,8 +29,8 @@ export const Route = createFileRoute("/chores/")({
       const user = await getCurrentUser();
       if (!user) throw redirect({ to: "/login" });
       return { user };
-    } catch (e: any) {
-      if (e?.status === 429) return { user: null };
+    } catch (e: unknown) {
+      if ((e as { status?: number })?.status === 429) return { user: null };
       throw e;
     }
   },

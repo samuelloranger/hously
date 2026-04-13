@@ -9,7 +9,7 @@ import { checkVersionAndReload } from "@/lib/version";
 import { registerServiceWorker } from "@/lib/sw/registration";
 import { useAutoInvalidateNotifications } from "@/lib/notifications/useAutoInvalidateNotifications";
 import { useCloseReadNotifications } from "@/lib/notifications/useCloseReadNotifications";
-import { useIOSImprovements } from "@/hooks/app/useIOSImprovements";
+import { useIOSImprovements } from "@/lib/app/useIOSImprovements";
 import { NotificationToastContainer } from "@/components/NotificationToastContainer";
 import { setQueryClient } from "@/lib/api/queryClient";
 import { webFetcher } from "@/lib/api/fetcher";

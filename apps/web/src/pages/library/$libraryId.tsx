@@ -11,19 +11,21 @@ export const Route = createFileRoute("/library/$libraryId")({
   validateSearch: (
     search: Record<string, unknown>,
   ): LibraryItemSearchParams => ({
-    tab: (["info", "similar", "search", "management"] as const).includes(
-      search.tab as any,
-    )
-      ? (search.tab as LibraryItemSearchParams["tab"])
-      : undefined,
+    tab:
+      typeof search.tab === "string" &&
+      (
+        ["info", "similar", "search", "management"] as readonly string[]
+      ).includes(search.tab)
+        ? (search.tab as LibraryItemSearchParams["tab"])
+        : undefined,
   }),
   beforeLoad: async () => {
     try {
       const user = await getCurrentUser();
       if (!user) throw redirect({ to: "/login" });
       return { user };
-    } catch (e: any) {
-      if (e?.status === 429) return { user: null };
+    } catch (e: unknown) {
+      if ((e as { status?: number })?.status === 429) return { user: null };
       throw e;
     }
   },

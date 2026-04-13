@@ -17,6 +17,7 @@ import {
   serverError,
   unauthorized,
 } from "@hously/api/errors";
+import type { Prisma } from "@prisma/client";
 import { hasUpdates } from "@hously/api/utils/updates";
 
 export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
@@ -266,7 +267,7 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
           return forbidden(set, "Unauthorized");
         }
 
-        const updateData: Record<string, any> = {};
+        const updateData: Prisma.ShoppingItemUncheckedUpdateInput = {};
 
         // Update item_name if provided
         if (body.item_name !== undefined) {

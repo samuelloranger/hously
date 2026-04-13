@@ -26,6 +26,7 @@ import {
   serverError,
   unauthorized,
 } from "@hously/api/errors";
+import type { Prisma } from "@prisma/client";
 import { hasUpdates } from "@hously/api/utils/updates";
 
 // Valid recurrence types
@@ -281,7 +282,7 @@ export const customEventsRoutes = new Elysia({ prefix: "/api/custom-events" })
           return notFound(set, "Event not found");
         }
 
-        const updateData: Record<string, any> = {};
+        const updateData: Prisma.CustomEventUncheckedUpdateInput = {};
 
         // Update title if provided
         if (body.title !== undefined) {

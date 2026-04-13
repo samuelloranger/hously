@@ -102,7 +102,7 @@ export default defineConfig(({ mode }) => {
       routesDirectory: "./src/pages",
       generatedRouteTree: "./src/routeTree.gen.ts",
       routeFileIgnorePattern: "^_[^_]",
-    }) as any,
+    }) as Plugin,
     react({ babel: { plugins: ["babel-plugin-react-compiler"] } }),
     chunkSplittingPlugin,
     excludeTestFiles(),

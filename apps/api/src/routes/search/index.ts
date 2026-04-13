@@ -1,5 +1,4 @@
 import { Elysia, t } from "elysia";
-import { BoardTaskStatus, BoardTaskPriority } from "@prisma/client";
 import { prisma } from "@hously/api/db";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
@@ -9,21 +8,10 @@ import {
   fetchMaindata,
   toTorrentListItem,
 } from "@hously/api/services/qbittorrent/client";
-
-const PRISMA_TO_API_STATUS: Record<BoardTaskStatus, string> = {
-  [BoardTaskStatus.BACKLOG]: "backlog",
-  [BoardTaskStatus.ON_HOLD]: "on_hold",
-  [BoardTaskStatus.TODO]: "todo",
-  [BoardTaskStatus.IN_PROGRESS]: "in_progress",
-  [BoardTaskStatus.DONE]: "done",
-};
-
-const PRISMA_TO_API_PRIORITY: Record<BoardTaskPriority, string> = {
-  [BoardTaskPriority.LOW]: "low",
-  [BoardTaskPriority.MEDIUM]: "medium",
-  [BoardTaskPriority.HIGH]: "high",
-  [BoardTaskPriority.URGENT]: "urgent",
-};
+import {
+  PRISMA_TO_API_STATUS,
+  PRISMA_TO_API_PRIORITY,
+} from "@hously/api/routes/board-tasks/mappers";
 
 export const searchRoutes = new Elysia({ prefix: "/api/search" })
   .use(auth)

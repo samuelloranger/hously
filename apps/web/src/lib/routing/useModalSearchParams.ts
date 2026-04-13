@@ -1,4 +1,4 @@
-import { useUrlState, type UrlStateRecord } from "@/hooks/app/useUrlState";
+import { useUrlState, type UrlStateRecord } from "@/lib/app/useUrlState";
 
 /**
  * Reusable hook for syncing modal state to URL search params.

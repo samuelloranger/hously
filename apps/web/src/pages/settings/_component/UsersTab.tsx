@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { HttpError } from "@/lib/api/httpClient";
 import { FormInput } from "@/components/ui/form-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,8 +11,8 @@ import {
   useAdminInvitations,
   useResendInvitation,
   useRevokeInvitation,
-} from "@/hooks/admin/useAdmin";
-import { useCurrentUser } from "@/hooks/auth/useAuth";
+} from "@/pages/settings/useAdmin";
+import { useCurrentUser } from "@/lib/auth/useAuth";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 
@@ -61,9 +62,9 @@ export function UsersTab() {
         reset();
         toast.success(t("settings.users.inviteSuccess"));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(
-        error?.error ||
+        (error instanceof HttpError ? error.apiError() : undefined) ||
           t("settings.users.inviteError") ||
           "Failed to send invitation",
       );
@@ -78,9 +79,9 @@ export function UsersTab() {
     try {
       await deleteMutation.mutateAsync(userId);
       toast.success(t("settings.users.deleteSuccess"));
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(
-        error?.error ||
+        (error instanceof HttpError ? error.apiError() : undefined) ||
           t("settings.users.deleteError") ||
           "Failed to delete user",
       );
@@ -91,9 +92,9 @@ export function UsersTab() {
     try {
       await resendMutation.mutateAsync(id);
       toast.success(t("settings.users.resendSuccess"));
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(
-        error?.error ||
+        (error instanceof HttpError ? error.apiError() : undefined) ||
           t("settings.users.resendError") ||
           "Failed to resend invitation",
       );
@@ -108,9 +109,9 @@ export function UsersTab() {
     try {
       await revokeMutation.mutateAsync(id);
       toast.success(t("settings.users.revokeSuccess"));
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(
-        error?.error ||
+        (error instanceof HttpError ? error.apiError() : undefined) ||
           t("settings.users.revokeError") ||
           "Failed to revoke invitation",
       );

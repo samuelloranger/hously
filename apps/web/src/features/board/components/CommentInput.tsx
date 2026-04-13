@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { useCreateComment } from "@/hooks/board/useBoardTasks";
+import { useCreateComment } from "@/features/board/hooks/useBoardTasks";
 
 export function CommentInput({ taskId }: { taskId: number }) {
   const { t } = useTranslation("common");

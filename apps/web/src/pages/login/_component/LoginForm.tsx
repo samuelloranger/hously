@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { setUser } from "@/lib/auth";
-import { useLogin } from "@/hooks/auth/useAuth";
+import { useLogin } from "@/lib/auth/useAuth";
 
 interface FormData {
   email: string;
@@ -38,9 +38,11 @@ export function LoginForm() {
       }
 
       navigate({ to: "/" });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(
-        err?.message || loginMutation.error?.message || t("login.authFailed"),
+        (err instanceof Error ? err.message : null) ||
+          loginMutation.error?.message ||
+          t("login.authFailed"),
       );
     }
   };

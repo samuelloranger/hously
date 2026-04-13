@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 import { MediaPosterCard } from "@/components/MediaPosterCard";
 import { cn } from "@/lib/utils";
 import type { LibraryMedia } from "@hously/shared/types";
-import { usePrefetchLibraryItem } from "@/hooks/medias/usePrefetchLibraryItem";
+import { usePrefetchLibraryItem } from "@/features/medias/hooks/usePrefetchLibraryItem";
 
 const STATUS_STYLES: Record<
   LibraryMedia["status"],

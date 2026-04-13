@@ -11,17 +11,12 @@ import {
   useDeleteChore,
   useRemoveRecurrence,
   useToggleChore,
-} from "@/hooks/chores/useChores";
+} from "@/pages/chores/useChores";
 import { queryKeys } from "@/lib/queryKeys";
 import type { Chore, ChoreUser } from "@hously/shared/types";
-import {
-  formatUsername,
-  getChoreImageUrl,
-  getChoreThumbnailUrl,
-  isChoreOverdue,
-  formatDate,
-  formatDateTime,
-} from "@hously/shared/utils";
+import { formatUsername, isChoreOverdue } from "@/lib/utils/format";
+import { getChoreImageUrl, getChoreThumbnailUrl } from "@/lib/utils/media";
+import { formatDate, formatDateTime } from "@hously/shared/utils";
 import { EditChoreModal } from "@/pages/chores/_component/EditChoreModal";
 import { RecurrenceBadge } from "@/pages/chores/_component/RecurrenceBadge";
 import { syncBadge } from "@/lib/sw/registration";

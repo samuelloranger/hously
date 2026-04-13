@@ -83,7 +83,6 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
           firstName: string | null;
           lastName: string | null;
           locale: string | null;
-          dashboardConfig: any | null;
         }> = {};
 
         if (first_name !== undefined) {

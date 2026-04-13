@@ -121,8 +121,9 @@ export function getDeviceInfo(): DeviceInfo {
   const os = detectOS(userAgent);
 
   // Try to get device name (not always available)
-  const deviceName = (navigator as any).deviceMemory
-    ? `${platform} (${(navigator as any).deviceMemory}GB)`
+  const deviceName = (navigator as Navigator & { deviceMemory?: number })
+    .deviceMemory
+    ? `${platform} (${(navigator as Navigator & { deviceMemory?: number }).deviceMemory}GB)`
     : null;
 
   return {

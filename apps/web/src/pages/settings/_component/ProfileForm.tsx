@@ -8,12 +8,12 @@ import ReactCrop, {
   type Crop,
   type PixelCrop,
 } from "react-image-crop";
-import { useCurrentUser } from "@/hooks/auth/useAuth";
+import { useCurrentUser } from "@/lib/auth/useAuth";
 import {
   useUpdateProfile,
   useChangePassword,
   useUploadAvatar,
-} from "@/hooks/users/useUsers";
+} from "@/pages/settings/useUsers";
 import { Dialog } from "@/components/dialog";
 import "react-image-crop/dist/ReactCrop.css";
 
