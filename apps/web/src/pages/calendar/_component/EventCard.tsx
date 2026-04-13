@@ -1,4 +1,7 @@
-import type { CalendarEvent } from "@hously/shared/types";
+import type {
+  CalendarEvent,
+  CalendarEventCustomEventMetadata,
+} from "@hously/shared/types";
 import {
   formatTime,
   formatDateTime,
@@ -32,7 +35,10 @@ export const EventCard = ({
   const { t, i18n } = useTranslation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const getEventAccentColor = (type: CalendarEvent["type"], metadata?: any) => {
+  const getEventAccentColor = (
+    type: CalendarEvent["type"],
+    metadata?: CalendarEventCustomEventMetadata["metadata"],
+  ) => {
     if (type === "custom_event" && metadata?.color) {
       return metadata.color;
     }
