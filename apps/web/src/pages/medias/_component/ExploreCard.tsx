@@ -57,7 +57,6 @@ export function ExploreCard({
       await addUpcomingMutation.mutateAsync({
         media_type: item.media_type,
         tmdb_id: item.tmdb_id,
-        search_on_add: false,
       });
       toast.success(t("medias.addSuccess", { title: item.title }));
       onAdded();

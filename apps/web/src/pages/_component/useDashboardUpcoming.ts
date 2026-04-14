@@ -18,11 +18,7 @@ export function useAddUpcomingToLibrary() {
   const fetcher = useFetcher();
 
   return useMutation({
-    mutationFn: (data: {
-      media_type: "movie" | "tv";
-      tmdb_id: number;
-      search_on_add: boolean;
-    }) =>
+    mutationFn: (data: { media_type: "movie" | "tv"; tmdb_id: number }) =>
       fetcher<{
         success: boolean;
         added: boolean;
