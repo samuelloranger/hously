@@ -83,6 +83,12 @@ export interface InteractiveReleaseItem {
   /** Set when Prowlarr search is scoped to a library item with a quality profile */
   quality_score?: number | null;
   parsed_quality?: ParsedQualityFields | null;
+  /**
+   * Reason codes for quality-profile hard-requirement failures.
+   * Possible values: "Resolution", "HDR", "Language", "Size", "Sample".
+   * Used by the frontend to display translated rejection messages.
+   */
+  quality_rejection_reasons?: string[] | null;
   /** True when the release title matches a full-season pattern (SXX with no episode number) */
   is_season_pack?: boolean;
   /** True when the release is a complete series (intégrale, Complete Series, …) */

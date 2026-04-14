@@ -503,7 +503,7 @@ export async function searchAndGrab(opts: {
 
       if (profileInput) {
         const sc = scoreRelease(parsed, profileInput, size, title, indexerName);
-        if (sc === null) continue;
+        if (Array.isArray(sc)) continue;
         rows.push({ raw: row, parsed, score: sc, title, size });
       } else {
         rows.push({ raw: row, parsed, score: 0, title, size });

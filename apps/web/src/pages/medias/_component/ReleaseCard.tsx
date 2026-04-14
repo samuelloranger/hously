@@ -108,10 +108,29 @@ export function ReleaseCard({
             )}
           </div>
 
-          {release.rejected && release.rejection_reason && (
-            <p className="mt-2 rounded-md bg-amber-100/60 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-              {release.rejection_reason}
-            </p>
+          {release.rejected && (
+            <>
+              {release.rejection_reason && (
+                <p className="mt-2 rounded-md bg-amber-100/60 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                  {release.rejection_reason}
+                </p>
+              )}
+              {release.quality_rejection_reasons &&
+                release.quality_rejection_reasons.length > 0 && (
+                  <p className="mt-1 rounded-md bg-amber-100/60 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                    {release.quality_rejection_reasons.length === 1
+                      ? t(
+                          `medias.interactive.rejection.${release.quality_rejection_reasons[0]}`,
+                          {
+                            defaultValue: t(
+                              "medias.interactive.rejection.generic",
+                            ),
+                          },
+                        )
+                      : t("medias.interactive.rejection.generic")}
+                  </p>
+                )}
+            </>
           )}
         </div>
 

@@ -1439,7 +1439,15 @@
       "unknownIndexer": "Unknown indexer",
       "unknownLanguage": "Unknown language",
       "age": "Age: {{age}}d",
-      "seedersLeechers": "S/L: {{seeders}}/{{leechers}}"
+      "seedersLeechers": "S/L: {{seeders}}/{{leechers}}",
+      "rejection": {
+        "generic": "Does not match quality profile",
+        "Resolution": "Resolution does not match quality profile",
+        "HDR": "HDR does not match quality profile",
+        "Language": "Language does not match quality profile",
+        "Size": "Size does not match quality profile",
+        "Sample": "Sample file rejected by quality profile"
+      }
     },
     "tmdb": {
       "title": "Search and add from TMDB",
