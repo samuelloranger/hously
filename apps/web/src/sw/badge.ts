@@ -1,5 +1,4 @@
 import type { UnreadCountResponse } from "./types";
-import { NOTIFICATION_ENDPOINTS } from "@/lib/endpoints";
 
 // Sync badge count from server
 export async function syncBadgeCount(): Promise<void> {
@@ -8,7 +7,8 @@ export async function syncBadgeCount(): Promise<void> {
   }
 
   try {
-    const response = await fetch(NOTIFICATION_ENDPOINTS.UNREAD_COUNT, {
+    // Inlined — the SW build can't resolve the @/ alias used by the main app
+    const response = await fetch("/api/notifications/unread-count", {
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
