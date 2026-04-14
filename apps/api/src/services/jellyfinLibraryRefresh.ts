@@ -1,4 +1,4 @@
-import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { normalizeJellyfinConfig } from "@hously/api/utils/plugins/normalizers";
 
 /**
@@ -7,11 +7,8 @@ import { normalizeJellyfinConfig } from "@hously/api/utils/plugins/normalizers";
  */
 export async function triggerJellyfinLibraryScan(): Promise<void> {
   try {
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: "jellyfin", enabled: true },
-      select: { config: true },
-    });
-    if (!plugin) return;
+    const plugin = await getPluginConfigRecord("jellyfin");
+    if (!plugin?.enabled) return;
 
     const config = normalizeJellyfinConfig(plugin.config);
     if (!config?.website_url || !config?.api_key) return;

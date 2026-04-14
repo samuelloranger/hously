@@ -10,11 +10,11 @@ Hously is a self-hosted command center for homelab enthusiasts — unified dashb
 
 **Monorepo layout:**
 
-| App | Path | Stack |
-|-----|------|-------|
-| API | `apps/api` | Bun + Elysia + Prisma + PostgreSQL + Redis |
-| Web | `apps/web` | React 19 + Vite + TanStack Router/Query + Tailwind CSS 4 |
-| Shared | `apps/shared` | Types, hooks, endpoints, utilities shared across apps |
+| App    | Path          | Stack                                                    |
+| ------ | ------------- | -------------------------------------------------------- |
+| API    | `apps/api`    | Bun + Elysia + Prisma + PostgreSQL + Redis               |
+| Web    | `apps/web`    | React 19 + Vite + TanStack Router/Query + Tailwind CSS 4 |
+| Shared | `apps/shared` | Types, hooks, endpoints, utilities shared across apps    |
 
 In production, the frontend is built into `apps/api/public/` and served by the API (`SERVE_STATIC=true`). A single `Dockerfile` builds both.
 
@@ -45,40 +45,40 @@ make migrate-push      # Push schema without migration file (dev only)
 
 ### API (`apps/api/src/`)
 
-| Directory | Purpose |
-|-----------|---------|
-| `routes/` | Elysia route plugins, one file per feature |
-| `services/` | Business logic (S3, images, notifications, webhooks) |
-| `jobs/` | Cron jobs via `@elysiajs/cron` |
-| `middleware/` | Rate limiting, etc. |
-| `db/` | Prisma client singleton |
-| `auth.ts` | JWT auth with HTTP-only cookies |
-| `prisma/schema.prisma` | Database schema |
+| Directory              | Purpose                                              |
+| ---------------------- | ---------------------------------------------------- |
+| `routes/`              | Elysia route plugins, one file per feature           |
+| `services/`            | Business logic (S3, images, notifications, webhooks) |
+| `jobs/`                | Cron jobs via `@elysiajs/cron`                       |
+| `middleware/`          | Rate limiting, etc.                                  |
+| `db/`                  | Prisma client singleton                              |
+| `auth.ts`              | JWT auth with HTTP-only cookies                      |
+| `prisma/schema.prisma` | Database schema                                      |
 
 Routes are composed in `src/index.ts` via `.use()`.
 
 ### Web (`apps/web/src/`)
 
-| Directory | Purpose |
-|-----------|---------|
-| `features/` | Feature modules (auth, chores, shopping, medias, torrents, …) |
-| `components/` | Shared components; `ui/` for Radix/CVA primitives |
-| `routes/` | File-based routing (TanStack Router) |
-| `hooks/<domain>/` | App-specific TanStack Query hooks grouped by domain |
-| `lib/` | API client, query client, utilities |
-| `locales/` | i18next translation files |
-| `sw/` | Service Worker (PWA) |
+| Directory         | Purpose                                                       |
+| ----------------- | ------------------------------------------------------------- |
+| `features/`       | Feature modules (auth, chores, shopping, medias, torrents, …) |
+| `components/`     | Shared components; `ui/` for Radix/CVA primitives             |
+| `routes/`         | File-based routing (TanStack Router)                          |
+| `hooks/<domain>/` | App-specific TanStack Query hooks grouped by domain           |
+| `lib/`            | API client, query client, utilities                           |
+| `locales/`        | i18next translation files                                     |
+| `sw/`             | Service Worker (PWA)                                          |
 
 ### Shared (`apps/shared/src/`)
 
-| Directory | Purpose |
-|-----------|---------|
-| `types/` | TypeScript interfaces shared by API and Web |
-| `endpoints/` | API endpoint constants (`CHORES_ENDPOINTS`, etc.) |
-| `hooks/` | TanStack Query hooks usable in any app |
-| `utils/` | Date, sanitize, media URL helpers |
-| `queryKeys.ts` | Centralized TanStack Query key factory |
-| `api.ts` | API client factories |
+| Directory      | Purpose                                           |
+| -------------- | ------------------------------------------------- |
+| `types/`       | TypeScript interfaces shared by API and Web       |
+| `endpoints/`   | API endpoint constants (`CHORES_ENDPOINTS`, etc.) |
+| `hooks/`       | TanStack Query hooks usable in any app            |
+| `utils/`       | Date, sanitize, media URL helpers                 |
+| `queryKeys.ts` | Centralized TanStack Query key factory            |
+| `api.ts`       | API client factories                              |
 
 ---
 
@@ -106,17 +106,17 @@ import { cn } from "../../lib/utils";
 
 ### Naming
 
-| Context | Convention | Example |
-|---------|------------|---------|
-| React components | PascalCase | `ChoreRow.tsx`, `CreateChoreModal.tsx` |
-| Hooks | `use` + PascalCase | `useChores.ts`, `useDeleteChore.ts` |
-| Utilities | camelCase | `formatDate.ts` |
-| API route modules | camelCase + `Routes` | `choresRoutes`, `shoppingRoutes` |
-| TypeScript types/interfaces | PascalCase | `Chore`, `CreateChoreRequest` |
-| Endpoint constants | UPPER_SNAKE_CASE | `CHORES_ENDPOINTS` |
-| Database columns (Prisma) | camelCase | `choreName`, `addedBy` |
-| API response fields | snake_case | `chore_name`, `added_by`, `created_at` |
-| URL paths | kebab-case | `/api/shopping`, `/api/clear-completed` |
+| Context                     | Convention           | Example                                 |
+| --------------------------- | -------------------- | --------------------------------------- |
+| React components            | PascalCase           | `ChoreRow.tsx`, `CreateChoreModal.tsx`  |
+| Hooks                       | `use` + PascalCase   | `useChores.ts`, `useDeleteChore.ts`     |
+| Utilities                   | camelCase            | `formatDate.ts`                         |
+| API route modules           | camelCase + `Routes` | `choresRoutes`, `shoppingRoutes`        |
+| TypeScript types/interfaces | PascalCase           | `Chore`, `CreateChoreRequest`           |
+| Endpoint constants          | UPPER_SNAKE_CASE     | `CHORES_ENDPOINTS`                      |
+| Database columns (Prisma)   | camelCase            | `choreName`, `addedBy`                  |
+| API response fields         | snake_case           | `chore_name`, `added_by`, `created_at`  |
+| URL paths                   | kebab-case           | `/api/shopping`, `/api/clear-completed` |
 
 The API always maps Prisma's camelCase fields to snake_case in responses:
 

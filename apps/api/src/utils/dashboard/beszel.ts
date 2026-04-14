@@ -1,31 +1,32 @@
-import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { normalizeBeszelConfig } from "@hously/api/utils/plugins/normalizers";
 import type {
   DashboardBeszelDiskUsage,
   DashboardBeszelSummaryResponse,
 } from "@hously/api/types/dashboardServices";
+import { buildDisabledDashboardSummary } from "@hously/api/utils/dashboard/disabledSummary";
 
 export const buildBeszelDisabledSummary = (
   error?: string,
-): DashboardBeszelSummaryResponse => ({
-  enabled: false,
-  connected: false,
-  updated_at: new Date().toISOString(),
-  summary: {
-    cpu_percent: null,
-    cpu_name: null,
-    ram_used_mib: null,
-    ram_total_mib: null,
-    ram_used_percent: null,
-    load_1: null,
-    load_5: null,
-    load_15: null,
-    network_in_kbps: null,
-    network_out_kbps: null,
-  },
-  disks: [],
-  ...(error ? { error } : {}),
-});
+): DashboardBeszelSummaryResponse =>
+  buildDisabledDashboardSummary(
+    {
+      summary: {
+        cpu_percent: null,
+        cpu_name: null,
+        ram_used_mib: null,
+        ram_total_mib: null,
+        ram_used_percent: null,
+        load_1: null,
+        load_5: null,
+        load_15: null,
+        network_in_kbps: null,
+        network_out_kbps: null,
+      },
+      disks: [],
+    },
+    error,
+  );
 
 type BeszelSystemRecord = {
   id: string;
@@ -61,10 +62,7 @@ type PocketBaseList<T> = {
 
 export const fetchBeszelSummary =
   async (): Promise<DashboardBeszelSummaryResponse> => {
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: "beszel" },
-      select: { enabled: true, config: true },
-    });
+    const plugin = await getPluginConfigRecord("beszel");
 
     if (!plugin?.enabled) {
       return buildBeszelDisabledSummary();

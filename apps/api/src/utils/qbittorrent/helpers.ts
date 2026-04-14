@@ -10,7 +10,8 @@ import { badRequest } from "@hously/api/errors";
 const QBITTORRENT_CONFIG_ERROR =
   "qBittorrent plugin is disabled or not configured";
 
-type MutableStatus = { status?: number };
+/** Elysia may type `set.status` as HTTP status unions; allow both. */
+export type MutableStatus = { status?: number | string };
 
 export async function getQbittorrentConfigOrError(set: MutableStatus) {
   const { enabled, config } = await getQbittorrentPluginConfig();

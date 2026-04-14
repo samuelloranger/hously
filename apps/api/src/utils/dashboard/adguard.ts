@@ -1,32 +1,33 @@
-import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { normalizeAdguardConfig } from "@hously/api/utils/plugins/normalizers";
 import { toNumberOrNull, toRecord, toStringOrNull } from "@hously/shared/utils";
 import type {
   DashboardAdguardSummaryResponse,
   DashboardAdguardTopEntry,
-} from "@hously/api/types/dashboardServices";
+} from "@hously/shared";
+import { buildDisabledDashboardSummary } from "@hously/api/utils/dashboard/disabledSummary";
 
 const buildAdguardDisabledSummary = (
   error?: string,
-): DashboardAdguardSummaryResponse => ({
-  enabled: false,
-  connected: false,
-  updated_at: new Date().toISOString(),
-  protection_enabled: false,
-  version: null,
-  summary: {
-    dns_queries: 0,
-    blocked_queries: 0,
-    blocked_ratio: null,
-    avg_processing_time_ms: null,
-    safebrowsing_blocked: 0,
-    safesearch_rewritten: 0,
-    parental_blocked: 0,
-  },
-  top_blocked_domains: [],
-  top_clients: [],
-  ...(error ? { error } : {}),
-});
+): DashboardAdguardSummaryResponse =>
+  buildDisabledDashboardSummary(
+    {
+      protection_enabled: false,
+      version: null,
+      summary: {
+        dns_queries: 0,
+        blocked_queries: 0,
+        blocked_ratio: null,
+        avg_processing_time_ms: null,
+        safebrowsing_blocked: 0,
+        safesearch_rewritten: 0,
+        parental_blocked: 0,
+      },
+      top_blocked_domains: [],
+      top_clients: [],
+    },
+    error,
+  );
 
 const toBoolean = (value: unknown): boolean => value === true;
 
@@ -75,10 +76,7 @@ const parseTopEntries = (value: unknown): DashboardAdguardTopEntry[] => {
 
 export const fetchAdguardSummary =
   async (): Promise<DashboardAdguardSummaryResponse> => {
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: "adguard" },
-      select: { enabled: true, config: true },
-    });
+    const plugin = await getPluginConfigRecord("adguard");
 
     if (!plugin?.enabled) {
       return buildAdguardDisabledSummary();

@@ -1,9 +1,10 @@
-import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import {
   collectTmdbUpcoming,
   fetchMovieReleaseDates,
   fetchTmdbProviders,
+  getTmdbUpcomingDateWindowIso,
   parseTmdbNumericId,
   toIsoDate,
   TMDB_UPCOMING_CACHE_KEY,
@@ -41,10 +42,7 @@ export const refreshUpcoming = async (options?: {
   const startedAt = Date.now();
 
   try {
-    const tmdbPlugin = await prisma.plugin.findFirst({
-      where: { type: "tmdb" },
-      select: { enabled: true, config: true },
-    });
+    const tmdbPlugin = await getPluginConfigRecord("tmdb");
     const tmdbConfig = tmdbPlugin?.enabled
       ? normalizeTmdbConfig(tmdbPlugin.config)
       : null;
@@ -55,16 +53,7 @@ export const refreshUpcoming = async (options?: {
       return;
     }
 
-    const today = new Date();
-    const todayIso = toIsoDate(today);
-    const oneYearOut = new Date(
-      Date.UTC(
-        today.getUTCFullYear() + 1,
-        today.getUTCMonth(),
-        today.getUTCDate(),
-      ),
-    );
-    const oneYearOutIso = toIsoDate(oneYearOut);
+    const { todayIso, oneYearOutIso } = getTmdbUpcomingDateWindowIso();
 
     const POOL_SIZE_PER_TYPE = 60;
     const [moviesResult, tvResult] = await Promise.all([

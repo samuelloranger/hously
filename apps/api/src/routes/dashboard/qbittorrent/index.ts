@@ -24,7 +24,9 @@ import {
   setQbittorrentTorrentTags,
 } from "@hously/api/services/qbittorrent/torrents";
 import { fetchQbittorrentTorrentTrackers } from "@hously/api/services/qbittorrent/trackers";
-import { badRequest, serverError, unauthorized } from "@hously/api/errors";
+import { auth } from "@hously/api/auth";
+import { requireUser } from "@hously/api/middleware/auth";
+import { badRequest, serverError } from "@hously/api/errors";
 import {
   applyQbittorrentFetchStatus,
   applyQbittorrentMutationStatus,
@@ -138,8 +140,9 @@ const getPinnedTorrentResponse = async (userId: number) => {
 };
 
 export const dashboardQbittorrentRoutes = new Elysia()
-  .get("/qbittorrent/status", async (ctx: any) => {
-    const { user, set } = ctx;
+  .use(auth)
+  .use(requireUser)
+  .get("/qbittorrent/status", async ({ set }) => {
     try {
       const snapshot = await getQbittorrentSnapshot();
       return { ...snapshot, updated_at: new Date().toISOString() };
@@ -150,8 +153,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
   })
   .get(
     "/qbittorrent/torrents",
-    async (ctx: any) => {
-      const { user, set, query } = ctx;
+    async ({ set, query }) => {
       const config = await getQbittorrentConfigOrError(set);
       const parsedOffset = query.offset ? parseInt(query.offset, 10) : 0;
       const safeOffset =
@@ -193,21 +195,16 @@ export const dashboardQbittorrentRoutes = new Elysia()
       }),
     },
   )
-  .get("/qbittorrent/torrents/stream", async (ctx: any) => {
-    const { request } = ctx;
+  .get("/qbittorrent/torrents/stream", async ({ request }) => {
     const url = new URL(request.url);
     const rawOffset = parseInt(url.searchParams.get("offset") ?? "0", 10);
     const offset =
       Number.isFinite(rawOffset) && rawOffset >= 0 ? Math.trunc(rawOffset) : 0;
     return createPollerSseResponse(request, `torrents:${offset}`);
   })
-  .get("/qbittorrent/pinned", async ({ user, set }: any) => {
-    if (!user) {
-      return unauthorized(set, "Unauthorized");
-    }
-
+  .get("/qbittorrent/pinned", async ({ user, set }) => {
     try {
-      return await getPinnedTorrentResponse(user.id);
+      return await getPinnedTorrentResponse(user!.id);
     } catch (error) {
       console.error("Error fetching pinned qBittorrent torrent:", error);
       return serverError(set, "Failed to get pinned qBittorrent torrent");
@@ -215,11 +212,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
   })
   .post(
     "/qbittorrent/pinned",
-    async ({ user, body, set }: any) => {
-      if (!user) {
-        return unauthorized(set, "Unauthorized");
-      }
-
+    async ({ user, body, set }) => {
       const hash = typeof body.hash === "string" ? body.hash.trim() : "";
       const nextHash = hash.length > 0 ? hash : null;
 
@@ -247,8 +240,8 @@ export const dashboardQbittorrentRoutes = new Elysia()
           }
         }
 
-        await savePinnedTorrentHashForUser(user.id, nextHash);
-        return await getPinnedTorrentResponse(user.id);
+        await savePinnedTorrentHashForUser(user!.id, nextHash);
+        return await getPinnedTorrentResponse(user!.id);
       } catch (error) {
         console.error("Error updating pinned qBittorrent torrent:", error);
         return serverError(set, "Failed to update pinned qBittorrent torrent");
@@ -260,8 +253,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
       }),
     },
   )
-  .get("/qbittorrent/torrents/:hash/properties", async (ctx: any) => {
-    const { user, set, params } = ctx;
+  .get("/qbittorrent/torrents/:hash/properties", async ({ set, params }) => {
     const config = await getQbittorrentConfigOrError(set);
     if (!config) {
       return getQbittorrentConfigErrorResponse();
@@ -274,8 +266,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
     );
     return applyQbittorrentFetchStatus(set, result);
   })
-  .get("/qbittorrent/torrents/:hash/trackers", async (ctx: any) => {
-    const { user, set, params } = ctx;
+  .get("/qbittorrent/torrents/:hash/trackers", async ({ set, params }) => {
     const config = await getQbittorrentConfigOrError(set);
     if (!config) {
       return getQbittorrentConfigErrorResponse();
@@ -288,8 +279,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
     );
     return applyQbittorrentFetchStatus(set, result);
   })
-  .get("/qbittorrent/categories", async (ctx: any) => {
-    const { user, set } = ctx;
+  .get("/qbittorrent/categories", async ({ set }) => {
     const config = await getQbittorrentConfigOrError(set);
     if (!config) {
       return getQbittorrentConfigErrorResponse();
@@ -298,8 +288,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
     const result = await fetchQbittorrentCategories(config, true);
     return applyQbittorrentFetchStatus(set, result);
   })
-  .get("/qbittorrent/options", async (ctx: any) => {
-    const { user, set } = ctx;
+  .get("/qbittorrent/options", async ({ set }) => {
     const config = await getQbittorrentConfigOrError(set);
     if (!config) {
       return getQbittorrentConfigErrorResponse();
@@ -323,8 +312,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
       error: categoriesResult.error ?? tagsResult.error,
     };
   })
-  .get("/qbittorrent/tags", async (ctx: any) => {
-    const { user, set } = ctx;
+  .get("/qbittorrent/tags", async ({ set }) => {
     const config = await getQbittorrentConfigOrError(set);
     if (!config) {
       return getQbittorrentConfigErrorResponse();
@@ -333,8 +321,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
     const result = await fetchQbittorrentTags(config, true);
     return applyQbittorrentFetchStatus(set, result);
   })
-  .get("/qbittorrent/torrents/:hash/files", async (ctx: any) => {
-    const { user, set, params } = ctx;
+  .get("/qbittorrent/torrents/:hash/files", async ({ set, params }) => {
     const config = await getQbittorrentConfigOrError(set);
     if (!config) {
       return getQbittorrentConfigErrorResponse();
@@ -349,8 +336,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
   })
   .get(
     "/qbittorrent/torrents/:hash/peers",
-    async (ctx: any) => {
-      const { user, set, params, query } = ctx;
+    async ({ set, params, query }) => {
       const config = await getQbittorrentConfigOrError(set);
       if (!config) {
         return getQbittorrentConfigErrorResponse();
@@ -371,52 +357,52 @@ export const dashboardQbittorrentRoutes = new Elysia()
       }),
     },
   )
-  .get("/qbittorrent/torrents/:hash/peers/stream", async (ctx: any) => {
-    const { user, set, params, request } = ctx;
-    const config = await getQbittorrentConfigOrError(set);
-    if (!config) {
-      return getQbittorrentConfigErrorResponse();
-    }
+  .get(
+    "/qbittorrent/torrents/:hash/peers/stream",
+    async ({ set, params, request }) => {
+      const config = await getQbittorrentConfigOrError(set);
+      if (!config) {
+        return getQbittorrentConfigErrorResponse();
+      }
 
-    let rid = 0;
-    return createJsonSseResponse({
-      request,
-      poll: async () => {
-        const snapshot = await fetchQbittorrentTorrentPeers(
-          config,
-          true,
-          params.hash,
+      let rid = 0;
+      return createJsonSseResponse({
+        request,
+        poll: async () => {
+          const snapshot = await fetchQbittorrentTorrentPeers(
+            config,
+            true,
+            params.hash,
+            rid,
+          );
+          if (snapshot.connected) {
+            rid = snapshot.rid;
+          }
+          return snapshot;
+        },
+        intervalMs: 1000,
+        retryMs: 3000,
+        onError: (error) => ({
+          enabled: true,
+          connected: false,
           rid,
-        );
-        if (snapshot.connected) {
-          rid = snapshot.rid;
-        }
-        return snapshot;
-      },
-      intervalMs: 1000,
-      retryMs: 3000,
-      onError: (error) => ({
-        enabled: true,
-        connected: false,
-        rid,
-        full_update: true,
-        peers: [],
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unable to connect to qBittorrent",
-      }),
-      logLabel: "qBittorrent peers stream",
-    });
-  })
-  .get("/qbittorrent/torrents/:hash/stream", async (ctx: any) => {
-    const { user, set, params, request } = ctx;
+          full_update: true,
+          peers: [],
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to connect to qBittorrent",
+        }),
+        logLabel: "qBittorrent peers stream",
+      });
+    },
+  )
+  .get("/qbittorrent/torrents/:hash/stream", async ({ params, request }) => {
     return createPollerSseResponse(request, `torrent:${params.hash}`);
   })
   .post(
     "/qbittorrent/torrents/:hash/rename",
-    async (ctx: any) => {
-      const { user, set, params, body } = ctx;
+    async ({ set, params, body }) => {
       const config = await getQbittorrentConfigOrError(set);
       if (!config) {
         return getQbittorrentConfigErrorResponse();
@@ -436,8 +422,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
   )
   .post(
     "/qbittorrent/torrents/:hash/rename-file",
-    async (ctx: any) => {
-      const { user, set, params, body } = ctx;
+    async ({ set, params, body }) => {
       const config = await getQbittorrentConfigOrError(set);
       if (!config) {
         return getQbittorrentConfigErrorResponse();
@@ -459,8 +444,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
   )
   .post(
     "/qbittorrent/torrents/:hash/set-category",
-    async (ctx: any) => {
-      const { user, set, params, body } = ctx;
+    async ({ set, params, body }) => {
       const config = await getQbittorrentConfigOrError(set);
       if (!config) {
         return getQbittorrentConfigErrorResponse();
@@ -481,8 +465,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
   )
   .post(
     "/qbittorrent/torrents/:hash/set-tags",
-    async (ctx: any) => {
-      const { user, set, params, body } = ctx;
+    async ({ set, params, body }) => {
       const config = await getQbittorrentConfigOrError(set);
       if (!config) {
         return getQbittorrentConfigErrorResponse();
@@ -506,8 +489,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
       }),
     },
   )
-  .post("/qbittorrent/torrents/:hash/pause", async (ctx: any) => {
-    const { user, set, params } = ctx;
+  .post("/qbittorrent/torrents/:hash/pause", async ({ set, params }) => {
     const config = await getQbittorrentConfigOrError(set);
     if (!config) {
       return getQbittorrentConfigErrorResponse();
@@ -518,8 +500,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
     });
     return applyQbittorrentMutationStatus(set, result);
   })
-  .post("/qbittorrent/torrents/:hash/resume", async (ctx: any) => {
-    const { user, set, params } = ctx;
+  .post("/qbittorrent/torrents/:hash/resume", async ({ set, params }) => {
     const config = await getQbittorrentConfigOrError(set);
     if (!config) {
       return getQbittorrentConfigErrorResponse();
@@ -530,8 +511,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
     });
     return applyQbittorrentMutationStatus(set, result);
   })
-  .post("/qbittorrent/torrents/:hash/reannounce", async (ctx: any) => {
-    const { user, set, params } = ctx;
+  .post("/qbittorrent/torrents/:hash/reannounce", async ({ set, params }) => {
     const config = await getQbittorrentConfigOrError(set);
     if (!config) {
       return getQbittorrentConfigErrorResponse();
@@ -544,8 +524,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
   })
   .post(
     "/qbittorrent/torrents/:hash/delete",
-    async (ctx: any) => {
-      const { user, set, params, body } = ctx;
+    async ({ set, params, body }) => {
       const config = await getQbittorrentConfigOrError(set);
       if (!config) {
         return getQbittorrentConfigErrorResponse();
@@ -566,8 +545,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
   )
   .post(
     "/qbittorrent/torrents/add-magnet",
-    async (ctx: any) => {
-      const { user, set, body } = ctx;
+    async ({ set, body }) => {
       const config = await getQbittorrentConfigOrError(set);
       if (!config) {
         return getQbittorrentConfigErrorResponse();
@@ -590,19 +568,18 @@ export const dashboardQbittorrentRoutes = new Elysia()
   )
   .post(
     "/qbittorrent/torrents/add-file",
-    async (ctx: any) => {
-      const { user, set, body } = ctx;
+    async ({ user, set, body }) => {
       const logPrefix = "[qbittorrent:add-file]";
       const config = await getQbittorrentConfigOrError(set);
       if (!config) {
         console.warn(
-          `${logPrefix} plugin disabled or misconfigured for user id=${user.id}`,
+          `${logPrefix} plugin disabled or misconfigured for user id=${user!.id}`,
         );
         return getQbittorrentConfigErrorResponse();
       }
 
       console.log(
-        `${logPrefix} user id=${user.id} body keys=${Object.keys(body || {}).join(",") || "none"} category=${body.category ?? "none"} tags=${body.tags ?? "none"}`,
+        `${logPrefix} user id=${user!.id} body keys=${Object.keys(body || {}).join(",") || "none"} category=${body.category ?? "none"} tags=${body.tags ?? "none"}`,
       );
       const validationResult = validateQbittorrentUploadRequest(
         set,
@@ -657,7 +634,6 @@ export const dashboardQbittorrentRoutes = new Elysia()
       type: "multipart/form-data",
     },
   )
-  .get("/qbittorrent/stream", async (ctx: any) => {
-    const { user, set, request } = ctx;
+  .get("/qbittorrent/stream", async ({ request }) => {
     return createPollerSseResponse(request, "dashboard");
   });

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { NOTIFICATION_ENDPOINTS } from "@/lib/endpoints/notifications";
 import type { NotificationData } from "@/sw/types";
 
 /**
@@ -24,7 +25,7 @@ export function useCloseReadNotifications(): void {
       if (ids.length === 0) return;
 
       try {
-        const res = await fetch("/api/notifications/unread-ids", {
+        const res = await fetch(NOTIFICATION_ENDPOINTS.UNREAD_IDS, {
           credentials: "include",
         });
         if (!res.ok) return;

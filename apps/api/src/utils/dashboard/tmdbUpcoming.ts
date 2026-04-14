@@ -1,4 +1,4 @@
-import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { toRecord, toStringOrNull } from "@hously/shared/utils";
 import type {
   ArrPluginStatus,
@@ -23,14 +23,8 @@ const JELLYFIN_TMDB_IDS_CACHE_KEY = "dashboard:jellyfin:tmdb-ids:v1";
 
 export const getArrPluginStatus = async (): Promise<ArrPluginStatus> => {
   const [radarrPlugin, sonarrPlugin] = await Promise.all([
-    prisma.plugin.findFirst({
-      where: { type: "radarr" },
-      select: { enabled: true },
-    }),
-    prisma.plugin.findFirst({
-      where: { type: "sonarr" },
-      select: { enabled: true },
-    }),
+    getPluginConfigRecord("radarr"),
+    getPluginConfigRecord("sonarr"),
   ]);
 
   return {
@@ -44,6 +38,24 @@ export const toIsoDate = (date: Date): string => {
   const month = String(date.getUTCMonth() + 1).padStart(2, "0");
   const day = String(date.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+
+/** Shared date window for TMDB discover (worker + dashboard fallback). */
+export const getTmdbUpcomingDateWindowIso = (): {
+  todayIso: string;
+  oneYearOutIso: string;
+} => {
+  const today = new Date();
+  const todayIso = toIsoDate(today);
+  const oneYearOut = new Date(
+    Date.UTC(
+      today.getUTCFullYear() + 1,
+      today.getUTCMonth(),
+      today.getUTCDate(),
+    ),
+  );
+  const oneYearOutIso = toIsoDate(oneYearOut);
+  return { todayIso, oneYearOutIso };
 };
 
 const mapTmdbItem = (
@@ -186,10 +198,7 @@ export const collectTmdbUpcoming = async (
 };
 
 const fetchJellyfinTmdbIds = async (): Promise<Set<number>> => {
-  const jellyfinPlugin = await prisma.plugin.findFirst({
-    where: { type: "jellyfin" },
-    select: { enabled: true, config: true },
-  });
+  const jellyfinPlugin = await getPluginConfigRecord("jellyfin");
 
   if (!jellyfinPlugin?.enabled) return new Set<number>();
 
@@ -326,10 +335,7 @@ export const fetchSonarrUpcoming = async (
   toDateIso: string,
 ): Promise<DashboardUpcomingItem[]> => {
   try {
-    const sonarrPlugin = await prisma.plugin.findFirst({
-      where: { type: "sonarr" },
-      select: { enabled: true, config: true },
-    });
+    const sonarrPlugin = await getPluginConfigRecord("sonarr");
     if (!sonarrPlugin?.enabled) return [];
 
     const config = normalizeSonarrConfig(sonarrPlugin.config);

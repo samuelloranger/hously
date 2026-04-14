@@ -1,5 +1,5 @@
 import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
-import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import type {
   TmdbCreator,
@@ -186,10 +186,7 @@ function languageLabel(
 // ── Config loader ────────────────────────────────────────────────────────────
 
 export async function loadTmdbConfig() {
-  const plugin = await prisma.plugin.findFirst({
-    where: { type: "tmdb" },
-    select: { enabled: true, config: true },
-  });
+  const plugin = await getPluginConfigRecord("tmdb");
   return plugin?.enabled ? normalizeTmdbConfig(plugin.config) : null;
 }
 

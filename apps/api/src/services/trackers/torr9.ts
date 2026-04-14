@@ -62,7 +62,8 @@ export const loginToTorr9 = async (
 
   try {
     await ratioValue.waitFor({ state: "visible", timeout: 20_000 });
-  } catch {
+  } catch (e) {
+    console.warn("[torr9] ratio bar wait failed after login:", e);
     const loginFormStillVisible = await page
       .locator("form.space-y-5")
       .isVisible()

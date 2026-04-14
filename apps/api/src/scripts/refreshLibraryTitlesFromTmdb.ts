@@ -12,6 +12,7 @@
  */
 
 import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
 import {
@@ -69,10 +70,7 @@ async function main() {
     ? Math.max(1, parseInt(limitArg.split("=")[1] ?? "", 10) || 0)
     : undefined;
 
-  const plugin = await prisma.plugin.findFirst({
-    where: { type: "tmdb" },
-    select: { enabled: true, config: true },
-  });
+  const plugin = await getPluginConfigRecord("tmdb");
   const cfg = plugin?.enabled ? normalizeTmdbConfig(plugin.config) : null;
   const apiKey = cfg?.api_key ?? null;
   if (!apiKey) {

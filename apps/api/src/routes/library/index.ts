@@ -162,7 +162,9 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       clearInterval(heartbeat);
       try {
         controller.close();
-      } catch {}
+      } catch (e) {
+        console.warn("[library SSE] controller.close on abort:", e);
+      }
     });
 
     send(`data: ${JSON.stringify({ connected: true, ts: Date.now() })}\n\n`);

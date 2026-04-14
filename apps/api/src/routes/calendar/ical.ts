@@ -9,6 +9,7 @@ import {
   type ChoreData,
   type CustomEventData,
 } from "@hously/api/utils/calendar/recurrence";
+import { fetchRecurringChoresForCalendar } from "@hously/api/utils/calendar/choreCalendarQueries";
 import { requireUser } from "@hously/api/middleware/auth";
 import { unauthorized } from "@hously/api/errors";
 
@@ -124,26 +125,7 @@ export const icalFeedRoutes = new Elysia()
         }
       }
 
-      // --- Recurring chores ---
-      const recurringChores = await prisma.chore.findMany({
-        where: {
-          recurrenceType: { not: null },
-          completed: false,
-        },
-        select: {
-          id: true,
-          choreName: true,
-          description: true,
-          recurrenceType: true,
-          recurrenceIntervalDays: true,
-          recurrenceWeekday: true,
-          recurrenceOriginalCreatedAt: true,
-          completed: true,
-          completedAt: true,
-          createdAt: true,
-          assignedTo: true,
-        },
-      });
+      const recurringChores = await fetchRecurringChoresForCalendar();
 
       for (const chore of recurringChores) {
         const dates = calculateRecurringChoreDates(

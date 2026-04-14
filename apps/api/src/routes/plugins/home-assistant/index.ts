@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { nowUtc } from "@hously/api/utils";
 import { normalizeHomeAssistantConfig } from "@hously/api/utils/plugins/normalizers";
 import { normalizeUrl } from "@hously/api/utils/plugins/utils";
@@ -19,10 +20,7 @@ export const homeAssistantPluginRoutes = new Elysia()
   .use(requireAdmin)
   .get("/home-assistant/entities", async ({ set }) => {
     try {
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: "home-assistant" },
-        select: { enabled: true, config: true },
-      });
+      const plugin = await getPluginConfigRecord("home-assistant");
       if (!plugin?.enabled) {
         return badRequest(set, "Enable the Home Assistant plugin first");
       }

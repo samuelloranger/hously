@@ -34,6 +34,7 @@ import {
   unauthorized,
 } from "@hously/api/errors";
 import { hasUpdates } from "@hously/api/utils/updates";
+import { logActivity } from "@hously/api/utils/activityLogs";
 
 type ChoreUser = { firstName: string | null; email: string } | null;
 
@@ -319,7 +320,11 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           });
         }
 
-        console.log(`User ${user!.id} created chore ${newChore.id}`);
+        await logActivity({
+          type: "chore_created",
+          userId: user!.id,
+          payload: { chore_id: newChore.id },
+        });
         // Trigger calendar sync on iOS
         addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, {
           userId: user!.id,
@@ -430,9 +435,14 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           }
         }
 
-        console.log(
-          `User ${user!.id} toggled chore ${choreId} to ${newStatus ? "completed" : "pending"}`,
-        );
+        await logActivity({
+          type: "chore_toggled",
+          userId: user!.id,
+          payload: {
+            chore_id: choreId,
+            completed: newStatus,
+          },
+        });
         // Trigger calendar sync on iOS
         addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, {
           userId: user!.id,
@@ -640,7 +650,11 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           });
         }
 
-        console.log(`User ${user!.id} updated chore ${choreId}`);
+        await logActivity({
+          type: "chore_updated",
+          userId: user!.id,
+          payload: { chore_id: choreId },
+        });
         return { success: true, message: "Chore updated successfully" };
       } catch (error) {
         console.error(`Error updating chore ${choreId}:`, error);
@@ -692,9 +706,11 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
 
         await removeChoreRecurrence(choreId);
 
-        console.log(
-          `User ${user!.id} removed recurrence from chore ${choreId}`,
-        );
+        await logActivity({
+          type: "chore_recurrence_removed",
+          userId: user!.id,
+          payload: { chore_id: choreId },
+        });
         return { success: true, message: "Recurrence removed successfully" };
       } catch (error) {
         console.error(
@@ -724,7 +740,11 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         where: { completed: true },
       });
 
-      console.log(`User ${user!.id} deleted ${count} completed chores`);
+      await logActivity({
+        type: "chore_completed_cleared",
+        userId: user!.id,
+        payload: { count },
+      });
       // Trigger calendar sync on iOS
       addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, {
         userId: user!.id,
@@ -775,7 +795,11 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           where: { id: choreId },
         });
 
-        console.log(`User ${user!.id} deleted chore ${choreId}`);
+        await logActivity({
+          type: "chore_deleted",
+          userId: user!.id,
+          payload: { chore_id: choreId },
+        });
         // Trigger calendar sync on iOS
         addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, {
           userId: user!.id,
@@ -811,7 +835,11 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         // Save image and create thumbnail using S3
         const imagePath = await saveImageAndCreateThumbnail(image);
 
-        console.log(`Image upload successful - image_path: ${imagePath}`);
+        await logActivity({
+          type: "chore_image_uploaded",
+          userId: user!.id,
+          payload: { image_path: imagePath },
+        });
         return {
           success: true,
           data: {
@@ -940,7 +968,11 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           }
         });
 
-        console.log(`User ${user!.id} reordered chores`);
+        await logActivity({
+          type: "chore_reordered",
+          userId: user!.id,
+          payload: { count: chore_ids.length },
+        });
         return { success: true, message: "Chores reordered successfully" };
       } catch (error) {
         console.error("Error reordering chores:", error);

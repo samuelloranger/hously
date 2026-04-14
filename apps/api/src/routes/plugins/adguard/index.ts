@@ -2,6 +2,10 @@ import { Elysia, t } from "elysia";
 import { Prisma } from "@prisma/client";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
+import {
+  getPluginConfigRecord,
+  invalidatePluginConfigCache,
+} from "@hously/api/services/pluginConfigCache";
 import { nowUtc } from "@hously/api/utils";
 import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/plugins/utils";
 import { normalizeAdguardConfig } from "@hously/api/utils/plugins/normalizers";
@@ -21,10 +25,7 @@ type AdguardApiConfig = {
 async function getAdguardApiConfig(set: {
   status?: number | string;
 }): Promise<{ config?: AdguardApiConfig; error?: string }> {
-  const plugin = await prisma.plugin.findFirst({
-    where: { type: "adguard" },
-    select: { enabled: true, config: true },
-  });
+  const plugin = await getPluginConfigRecord("adguard");
 
   if (!plugin?.enabled) {
     return badRequest(set, "AdGuard Home plugin is not enabled");
@@ -43,9 +44,7 @@ export const adguardPluginRoutes = new Elysia()
   .use(requireAdmin)
   .get("/adguard", async ({ user, set }) => {
     try {
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: "adguard" },
-      });
+      const plugin = await getPluginConfigRecord("adguard");
 
       const config = normalizeAdguardConfig(plugin?.config);
       const rawConfig =
@@ -89,9 +88,7 @@ export const adguardPluginRoutes = new Elysia()
       }
 
       try {
-        const existingPlugin = await prisma.plugin.findFirst({
-          where: { type: "adguard" },
-        });
+        const existingPlugin = await getPluginConfigRecord("adguard");
         const existingConfig = normalizeAdguardConfig(existingPlugin?.config);
         const providedPassword = body.password?.trim() || "";
         const password = providedPassword || existingConfig?.password || "";
@@ -123,6 +120,7 @@ export const adguardPluginRoutes = new Elysia()
             updatedAt: now,
           },
         });
+        await invalidatePluginConfigCache("adguard");
 
         await logActivity({
           type: "plugin_updated",

@@ -5,38 +5,15 @@ import { Elysia, t } from "elysia";
 import { requireAdmin } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, serverError } from "@hously/api/errors";
-import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
 import { listVideoFilesUnder } from "@hously/api/utils/medias/fileIdentifier";
+import {
+  getLibraryTmdbApiKey,
+  sortTitleFromName,
+  tmdbApiFetch,
+} from "@hously/api/utils/medias/libraryHelpers";
 
-const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
-
-async function getTmdbConfig() {
-  const plugin = await prisma.plugin.findFirst({
-    where: { type: "tmdb" },
-    select: { enabled: true, config: true },
-  });
-  if (!plugin?.enabled) return null;
-  return normalizeTmdbConfig(plugin.config);
-}
-
-async function tmdbFetch<T>(
-  path: string,
-  apiKey: string,
-  params?: Record<string, string>,
-): Promise<T> {
-  const url = new URL(`${TMDB_BASE}/${path}`);
-  url.searchParams.set("api_key", apiKey);
-  if (params) {
-    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-  }
-  const res = await fetch(url.toString(), {
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!res.ok) throw new Error(`TMDB ${path} → ${res.status}`);
-  return res.json() as Promise<T>;
-}
 
 function parseFilenameForScan(nameWithoutExt: string): {
   title: string;
@@ -168,8 +145,8 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
   .post(
     "/scan",
     async ({ body, set }) => {
-      const tmdbConfig = await getTmdbConfig();
-      if (!tmdbConfig) return badRequest(set, "TMDB is not configured");
+      const key = await getLibraryTmdbApiKey();
+      if (!key) return badRequest(set, "TMDB is not configured");
 
       const absPath = resolve(body.path);
       try {
@@ -177,8 +154,6 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
       } catch {
         return badRequest(set, "Path does not exist or is not accessible");
       }
-
-      const key = tmdbConfig.api_key;
       const videos = await listVideoFilesUnder(absPath);
       const unmatched: string[] = [];
       let matched = 0;
@@ -193,7 +168,7 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
 
         try {
           if (body.type === "movie") {
-            const search = await tmdbFetch<{
+            const search = await tmdbApiFetch<{
               results: Array<{
                 id: number;
                 title: string;
@@ -214,7 +189,7 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
             });
             if (exists) continue;
 
-            const details = await tmdbFetch<{
+            const details = await tmdbApiFetch<{
               title: string;
               release_date: string;
               poster_path: string | null;
@@ -235,7 +210,7 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
                 tmdbId: top.id,
                 type: "movie",
                 title: details.title,
-                sortTitle: details.title.replace(/^(the |a |an )/i, "").trim(),
+                sortTitle: sortTitleFromName(details.title),
                 year: y,
                 status: "downloaded",
                 posterUrl,
@@ -244,7 +219,7 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
             });
             matched++;
           } else {
-            const search = await tmdbFetch<{
+            const search = await tmdbApiFetch<{
               results: Array<{
                 id: number;
                 name: string;
@@ -264,7 +239,7 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
             });
             if (exists) continue;
 
-            const details = await tmdbFetch<{
+            const details = await tmdbApiFetch<{
               name: string;
               first_air_date: string;
               poster_path: string | null;
@@ -285,7 +260,7 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
                 tmdbId: top.id,
                 type: "show",
                 title: details.name,
-                sortTitle: details.name.replace(/^(the |a |an )/i, "").trim(),
+                sortTitle: sortTitleFromName(details.name),
                 year: y,
                 status: "downloaded",
                 posterUrl,

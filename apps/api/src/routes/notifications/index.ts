@@ -20,6 +20,7 @@ import {
   serviceUnavailable,
   unauthorized,
 } from "@hously/api/errors";
+import { logActivity } from "@hously/api/utils/activityLogs";
 
 const getUnreadCountForUser = async (userId: number): Promise<number> =>
   prisma.notification.count({
@@ -54,10 +55,6 @@ const syncBadgesForUser = async (
     if (readNotificationIds && readNotificationIds.length > 0) {
       data.read_notification_ids = readNotificationIds;
     }
-
-    console.log(
-      `[syncBadges] Sending badge-sync to ${iosTokens.length} iOS device(s) — badge=${unreadCount}, readIds=${readNotificationIds?.join(",") ?? "none"}`,
-    );
 
     const { invalidTokens } = await sendApnNotifications(iosTokens, {
       data,
@@ -419,7 +416,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
             },
           });
 
-          console.log(`User ${user.id} updated existing subscription`);
+          await logActivity({
+            type: "notification_push_subscription_saved",
+            userId: user.id,
+            payload: { action: "updated" },
+          });
         } else {
           // Create new subscription
           await prisma.userSubscription.create({
@@ -439,9 +440,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
           });
 
           isNewSubscription = true;
-          console.log(
-            `User ${user.id} added new push notification subscription`,
-          );
+          await logActivity({
+            type: "notification_push_subscription_saved",
+            userId: user.id,
+            payload: { action: "created" },
+          });
         }
 
         // Send welcome notification for new subscriptions
@@ -453,7 +456,10 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
               data: { url: "/settings?tab=notifications" },
               tag: "welcome-notification",
             });
-            console.log(`Welcome notification sent to user ${user.id}`);
+            await logActivity({
+              type: "notification_welcome_sent",
+              userId: user.id,
+            });
           } catch (welcomeError) {
             console.warn(
               `Failed to send welcome notification to user ${user.id}:`,
@@ -509,15 +515,16 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
               endpoint: subscription.endpoint,
             },
           });
-          console.log(
-            `User ${user.id} unsubscribed device: ${subscription.endpoint.slice(0, 50)}...`,
-          );
+          await logActivity({
+            type: "notification_unsubscribed",
+            userId: user.id,
+            payload: {
+              endpoint_prefix: subscription.endpoint.slice(0, 50),
+            },
+          });
         } else {
           // No endpoint provided - do nothing rather than deleting all subscriptions.
           // iOS push tokens should use /unregister-device instead.
-          console.log(
-            `User ${user.id} called unsubscribe without endpoint - skipping`,
-          );
           return {
             success: true,
             message: "No endpoint provided, nothing to unsubscribe",
@@ -636,7 +643,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
             },
           });
 
-          console.log(`Push token updated for user ${user.id} (${platform})`);
+          await logActivity({
+            type: "notification_register_device",
+            userId: user.id,
+            payload: { platform, action: "updated" },
+          });
         } else {
           // Insert new push token
           await prisma.pushToken.create({
@@ -649,9 +660,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
             },
           });
 
-          console.log(
-            `Push token registered for user ${user.id} (${platform})`,
-          );
+          await logActivity({
+            type: "notification_register_device",
+            userId: user.id,
+            payload: { platform, action: "created" },
+          });
         }
 
         return { success: true, message: "Device registered successfully" };
@@ -689,11 +702,11 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
           },
         });
 
-        if (deleted.count === 0) {
-          console.log(`No push token found to unregister for user ${user.id}`);
-        } else {
-          console.log(`Push token unregistered for user ${user.id}`);
-        }
+        await logActivity({
+          type: "notification_unregister_device",
+          userId: user.id,
+          payload: { deleted: deleted.count },
+        });
 
         return { success: true, message: "Device unregistered successfully" };
       } catch (error) {

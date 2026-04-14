@@ -2,6 +2,7 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { normalizeProwlarrConfig } from "@hously/api/utils/plugins/normalizers";
 import {
   badGateway,
@@ -60,10 +61,7 @@ export const mediasProwlarrRoutes = new Elysia()
       }
 
       try {
-        const plugin = await prisma.plugin.findFirst({
-          where: { type: "prowlarr" },
-          select: { enabled: true, config: true },
-        });
+        const plugin = await getPluginConfigRecord("prowlarr");
         if (!plugin?.enabled) {
           return badRequest(set, "Prowlarr plugin is not enabled");
         }
@@ -308,10 +306,7 @@ export const mediasProwlarrRoutes = new Elysia()
   )
   .get("/prowlarr/indexers", async ({ set }) => {
     try {
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: "prowlarr" },
-        select: { enabled: true, config: true },
-      });
+      const plugin = await getPluginConfigRecord("prowlarr");
       if (!plugin?.enabled) {
         return badRequest(set, "Prowlarr plugin is not enabled");
       }
@@ -356,10 +351,7 @@ export const mediasProwlarrRoutes = new Elysia()
       }
 
       try {
-        const plugin = await prisma.plugin.findFirst({
-          where: { type: "prowlarr" },
-          select: { enabled: true, config: true },
-        });
+        const plugin = await getPluginConfigRecord("prowlarr");
         if (!plugin?.enabled) {
           return badRequest(set, "Prowlarr plugin is not enabled");
         }

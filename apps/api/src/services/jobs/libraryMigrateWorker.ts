@@ -1,5 +1,6 @@
 import type { Job } from "bullmq";
 import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import {
   scanMediaInfo,
@@ -10,6 +11,7 @@ import {
   refineFrenchAudioLabel,
   expandLanguageCode,
 } from "@hously/api/utils/medias/filenameParser";
+import { sortTitleFromName } from "@hously/api/utils/medias/libraryHelpers";
 
 // ─── Job data & progress types ────────────────────────────────────────────────
 
@@ -308,10 +310,7 @@ export async function processLibraryMigrateJob(
   const { source, radarr_url, radarr_api_key, sonarr_url, sonarr_api_key } =
     job.data;
 
-  const tmdbPlugin = await prisma.plugin.findFirst({
-    where: { type: "tmdb" },
-    select: { enabled: true, config: true },
-  });
+  const tmdbPlugin = await getPluginConfigRecord("tmdb");
   const tmdbConfig = tmdbPlugin?.enabled
     ? normalizeTmdbConfig(tmdbPlugin.config)
     : null;
@@ -415,8 +414,11 @@ export async function processLibraryMigrateJob(
                   }>;
                 }>(`movie/${movie.tmdbId}/release_dates`, tmdbConfig.api_key);
                 digitalReleaseDate = pickDigitalRelease(rd.results);
-              } catch {
-                // best-effort
+              } catch (e) {
+                console.warn(
+                  `[libraryMigrate] TMDB release_dates movie=${movie.tmdbId}:`,
+                  e,
+                );
               }
             }
 
@@ -426,7 +428,7 @@ export async function processLibraryMigrateJob(
                 tmdbId: movie.tmdbId,
                 type: "movie",
                 title: movie.title,
-                sortTitle: movie.title.replace(/^(the |a |an )/i, "").trim(),
+                sortTitle: sortTitleFromName(movie.title),
                 year: movie.year || null,
                 status: movie.hasFile ? "downloaded" : "wanted",
                 posterUrl: poster,
@@ -600,8 +602,11 @@ export async function processLibraryMigrateJob(
                   external_source: "tvdb_id",
                 });
                 tmdbId = findRes.tv_results[0]?.id ?? null;
-              } catch {
-                // best-effort
+              } catch (e) {
+                console.warn(
+                  `[libraryMigrate] TMDB find tvdb_id=${series.tvdbId}:`,
+                  e,
+                );
               }
             }
             if (!tmdbId) {
@@ -624,7 +629,7 @@ export async function processLibraryMigrateJob(
                 tmdbId,
                 type: "show",
                 title: series.title,
-                sortTitle: series.title.replace(/^(the |a |an )/i, "").trim(),
+                sortTitle: sortTitleFromName(series.title),
                 year: series.year || null,
                 status: hasAnyFile ? "downloaded" : "wanted",
                 posterUrl: poster,

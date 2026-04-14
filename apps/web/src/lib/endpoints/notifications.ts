@@ -1,6 +1,7 @@
 export const NOTIFICATION_ENDPOINTS = {
   LIST: "/api/notifications",
   UNREAD_COUNT: "/api/notifications/unread-count",
+  UNREAD_IDS: "/api/notifications/unread-ids",
   MARK_READ: (id: number) => `/api/notifications/${id}/read`,
   MARK_ALL_READ: "/api/notifications/read-all",
   DELETE: (id: number) => `/api/notifications/${id}`,
