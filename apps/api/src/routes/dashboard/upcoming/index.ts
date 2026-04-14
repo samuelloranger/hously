@@ -4,9 +4,10 @@ import { requireUser } from "@hously/api/middleware/auth";
 import {
   TMDB_UPCOMING_CACHE_KEY,
   collectTmdbUpcoming,
-  toIsoDate,
+  getTmdbUpcomingDateWindowIso,
 } from "@hously/api/utils/dashboard/tmdbUpcoming";
 import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import type { DashboardUpcomingItem } from "@hously/api/types/dashboardUpcoming";
@@ -18,10 +19,7 @@ export const dashboardUpcomingRoutes = new Elysia()
   .use(requireUser)
   .get("/upcoming", async ({ set }) => {
     try {
-      const tmdbPlugin = await prisma.plugin.findFirst({
-        where: { type: "tmdb" },
-        select: { enabled: true, config: true },
-      });
+      const tmdbPlugin = await getPluginConfigRecord("tmdb");
       const tmdbConfig = tmdbPlugin?.enabled
         ? normalizeTmdbConfig(tmdbPlugin.config)
         : null;
@@ -41,16 +39,7 @@ export const dashboardUpcomingRoutes = new Elysia()
       }
 
       console.log("[upcoming] Cache miss, running inline fallback");
-      const today = new Date();
-      const todayIso = toIsoDate(today);
-      const oneYearOut = new Date(
-        Date.UTC(
-          today.getUTCFullYear() + 1,
-          today.getUTCMonth(),
-          today.getUTCDate(),
-        ),
-      );
-      const oneYearOutIso = toIsoDate(oneYearOut);
+      const { todayIso, oneYearOutIso } = getTmdbUpcomingDateWindowIso();
 
       const POOL_SIZE_PER_TYPE = 40;
       const [moviesResult, tvResult] = await Promise.all([

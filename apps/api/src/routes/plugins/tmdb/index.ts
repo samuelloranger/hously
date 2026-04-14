@@ -1,6 +1,10 @@
 import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
+import {
+  getPluginConfigRecord,
+  invalidatePluginConfigCache,
+} from "@hously/api/services/pluginConfigCache";
 import { nowUtc } from "@hously/api/utils";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import { encrypt } from "@hously/api/services/crypto";
@@ -13,9 +17,7 @@ export const tmdbPluginRoutes = new Elysia()
   .use(requireAdmin)
   .get("/tmdb", async ({ user, set }) => {
     try {
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: "tmdb" },
-      });
+      const plugin = await getPluginConfigRecord("tmdb");
       const config = normalizeTmdbConfig(plugin?.config);
 
       return {
@@ -34,9 +36,7 @@ export const tmdbPluginRoutes = new Elysia()
   .put(
     "/tmdb",
     async ({ user, body, set }) => {
-      const existingPlugin = await prisma.plugin.findFirst({
-        where: { type: "tmdb" },
-      });
+      const existingPlugin = await getPluginConfigRecord("tmdb");
       const existingConfig = normalizeTmdbConfig(existingPlugin?.config);
       const providedApiKey = body.api_key.trim();
       const apiKey = providedApiKey || existingConfig?.api_key || "";
@@ -71,6 +71,7 @@ export const tmdbPluginRoutes = new Elysia()
             updatedAt: now,
           },
         });
+        await invalidatePluginConfigCache("tmdb");
 
         await logActivity({
           type: "plugin_updated",

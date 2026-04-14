@@ -80,15 +80,15 @@ Route modules export Elysia plugins composed in `src/index.ts`. Webhook handlers
 
 **Stack**: React 19, Vite, TanStack Router, TanStack Query, Tailwind CSS 4
 
-| Directory         | Purpose                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------- |
-| `src/features/`   | Feature-based modules (auth, chores, shopping, calendar, dashboard, torrents, medias, etc.) |
-| `src/components/` | Shared components (+ `ui/` for Radix/CVA primitives)                                        |
-| `src/routes/`     | File-based routing (TanStack Router)                                                        |
-| `src/hooks/<domain>/` | App-specific hooks grouped by domain (e.g. `chores`, `dashboard`, `app`, `realtime`) |
-| `src/lib/`        | API client, query client, utilities                                                         |
-| `src/locales/`    | i18next translations                                                                        |
-| `src/sw/`         | Service Worker (PWA)                                                                        |
+| Directory             | Purpose                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------- |
+| `src/features/`       | Feature-based modules (auth, chores, shopping, calendar, dashboard, torrents, medias, etc.) |
+| `src/components/`     | Shared components (+ `ui/` for Radix/CVA primitives)                                        |
+| `src/routes/`         | File-based routing (TanStack Router)                                                        |
+| `src/hooks/<domain>/` | App-specific hooks grouped by domain (e.g. `chores`, `dashboard`, `app`, `realtime`)        |
+| `src/lib/`            | API client, query client, utilities                                                         |
+| `src/locales/`        | i18next translations                                                                        |
+| `src/sw/`             | Service Worker (PWA)                                                                        |
 
 ### Shared (`apps/shared`)
 

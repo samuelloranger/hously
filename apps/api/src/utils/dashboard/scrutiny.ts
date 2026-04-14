@@ -1,34 +1,32 @@
-import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { normalizeScrutinyConfig } from "@hously/api/utils/plugins/normalizers";
 import { toNumberOrNull, toRecord, toStringOrNull } from "@hously/shared/utils";
 import type {
   DashboardScrutinyDrive,
   DashboardScrutinySummaryResponse,
 } from "@hously/api/types/dashboardServices";
+import { buildDisabledDashboardSummary } from "@hously/api/utils/dashboard/disabledSummary";
 
 const buildScrutinyDisabledSummary = (
   error?: string,
-): DashboardScrutinySummaryResponse => ({
-  enabled: false,
-  connected: false,
-  updated_at: new Date().toISOString(),
-  summary: {
-    total_drives: 0,
-    healthy_drives: 0,
-    warning_drives: 0,
-    avg_temp_c: null,
-    hottest_temp_c: null,
-  },
-  drives: [],
-  ...(error ? { error } : {}),
-});
+): DashboardScrutinySummaryResponse =>
+  buildDisabledDashboardSummary(
+    {
+      summary: {
+        total_drives: 0,
+        healthy_drives: 0,
+        warning_drives: 0,
+        avg_temp_c: null,
+        hottest_temp_c: null,
+      },
+      drives: [],
+    },
+    error,
+  );
 
 export const fetchScrutinySummary =
   async (): Promise<DashboardScrutinySummaryResponse> => {
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: "scrutiny" },
-      select: { enabled: true, config: true },
-    });
+    const plugin = await getPluginConfigRecord("scrutiny");
 
     if (!plugin?.enabled) {
       return buildScrutinyDisabledSummary();

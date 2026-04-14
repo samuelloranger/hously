@@ -4,6 +4,7 @@ import type { QualityProfile } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import {
   addQbittorrentMagnet,
   addQbittorrentTorrentFile,
@@ -98,10 +99,7 @@ function qualityJsonValue(
 async function prowlarrHeadersForTorrentUrl(
   downloadUrl: string,
 ): Promise<Record<string, string>> {
-  const prowPlugin = await prisma.plugin.findFirst({
-    where: { type: "prowlarr" },
-    select: { enabled: true, config: true },
-  });
+  const prowPlugin = await getPluginConfigRecord("prowlarr");
   if (!prowPlugin?.enabled) return {};
   const prowCfg = normalizeProwlarrConfig(prowPlugin.config);
   if (!prowCfg) return {};
@@ -111,8 +109,8 @@ async function prowlarrHeadersForTorrentUrl(
     if (du.hostname === pu.hostname) {
       return { "X-Api-Key": prowCfg.api_key };
     }
-  } catch {
-    // ignore
+  } catch (e) {
+    console.warn("[mediaGrabber] URL compare failed:", e);
   }
   return {};
 }
@@ -163,7 +161,8 @@ function infoHashFromTorrentBuffer(buf: ArrayBuffer): string | null {
         .digest("hex");
     }
     return null;
-  } catch {
+  } catch (e) {
+    console.warn("[mediaGrabber] torrent buffer parse failed:", e);
     return null;
   }
 }
@@ -413,8 +412,11 @@ export async function grabRelease(opts: {
               e instanceof Error ? e.message : "Unexpected error during grab",
           },
         });
-      } catch {
-        // ignore secondary failure
+      } catch (e) {
+        console.warn(
+          "[mediaGrabber] failed to mark download history as failed:",
+          e,
+        );
       }
     }
     return {
@@ -437,10 +439,7 @@ export async function searchAndGrab(opts: {
     const qTrim = searchQuery.trim();
     if (!qTrim) return { grabbed: false, reason: "Empty search query" };
 
-    const prowPlugin = await prisma.plugin.findFirst({
-      where: { type: "prowlarr" },
-      select: { enabled: true, config: true },
-    });
+    const prowPlugin = await getPluginConfigRecord("prowlarr");
     if (!prowPlugin?.enabled) {
       return { grabbed: false, reason: "Prowlarr not configured" };
     }
@@ -470,7 +469,8 @@ export async function searchAndGrab(opts: {
         return { grabbed: false, reason: "Invalid Prowlarr response" };
       }
       rawList = body;
-    } catch {
+    } catch (e) {
+      console.warn("[mediaGrabber] Prowlarr JSON parse failed:", e);
       return { grabbed: false, reason: "Could not parse Prowlarr response" };
     }
 

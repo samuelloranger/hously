@@ -16,6 +16,7 @@ import {
   type ChoreData,
   type CustomEventData,
 } from "@hously/api/utils/calendar/recurrence";
+import { fetchRecurringChoresForCalendar } from "@hously/api/utils/calendar/choreCalendarQueries";
 
 export const calendarEventsRoutes = new Elysia()
   .use(auth)
@@ -125,26 +126,7 @@ export const calendarEventsRoutes = new Elysia()
           }
         }
 
-        // Get recurring chores (not completed) and calculate future dates
-        const recurringChores = await prisma.chore.findMany({
-          where: {
-            recurrenceType: { not: null },
-            completed: false,
-          },
-          select: {
-            id: true,
-            choreName: true,
-            description: true,
-            recurrenceType: true,
-            recurrenceIntervalDays: true,
-            recurrenceWeekday: true,
-            recurrenceOriginalCreatedAt: true,
-            completed: true,
-            completedAt: true,
-            createdAt: true,
-            assignedTo: true,
-          },
-        });
+        const recurringChores = await fetchRecurringChoresForCalendar();
 
         // Batch-fetch active reminders for all recurring chores
         const recurringChoreIds = recurringChores.map((c) => c.id);

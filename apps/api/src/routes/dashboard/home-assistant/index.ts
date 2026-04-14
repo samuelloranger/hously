@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { requireUser } from "@hously/api/middleware/auth";
 import { normalizeHomeAssistantConfig } from "@hously/api/utils/plugins/normalizers";
 import {
@@ -33,10 +34,7 @@ export const homeAssistantRoutes = new Elysia({ prefix: "/api/home-assistant" })
   .use(requireUser)
   .get("/widget", async ({ user: _user, set }) => {
     try {
-      const plugin = await prisma.plugin.findFirst({
-        where: { type: "home-assistant" },
-        select: { enabled: true, config: true },
-      });
+      const plugin = await getPluginConfigRecord("home-assistant");
       if (!plugin?.enabled) {
         return { plugin_enabled: false, entities: [] as const };
       }
@@ -81,10 +79,7 @@ export const homeAssistantRoutes = new Elysia({ prefix: "/api/home-assistant" })
     "/control",
     async ({ body, user: _user, set }) => {
       try {
-        const plugin = await prisma.plugin.findFirst({
-          where: { type: "home-assistant" },
-          select: { enabled: true, config: true },
-        });
+        const plugin = await getPluginConfigRecord("home-assistant");
         if (!plugin?.enabled) {
           return badRequest(set, "Home Assistant plugin is not enabled");
         }

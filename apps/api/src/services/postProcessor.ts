@@ -86,7 +86,10 @@ async function placeFile(
     await stat(dst);
     console.warn(`[postProcess] Destination already exists, skipping: ${dst}`);
     return;
-  } catch {
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
+      console.warn(`[postProcess] stat destination failed (${dst}):`, e);
+    }
     // absent — proceed
   }
 
@@ -453,7 +456,13 @@ export async function postProcess(
           },
         });
         return { success: true, destinationPath: ef.filePath };
-      } catch {
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
+          console.warn(
+            `[postProcess] stat existing file unexpected error (${ef.filePath}):`,
+            e,
+          );
+        }
         // File gone from disk — continue to normal flow
       }
     }
@@ -664,7 +673,8 @@ export async function scanAndImportLibraryFiles(media: {
   let allVideos: string[];
   try {
     allVideos = await listVideoFilesUnder(scanRoot);
-  } catch {
+  } catch (e) {
+    console.warn(`[postProcess] listVideoFilesUnder failed (${scanRoot}):`, e);
     return 0; // folder doesn't exist or isn't accessible
   }
   if (allVideos.length === 0) return 0;
@@ -874,8 +884,11 @@ export function enqueueLibraryPostProcess(downloadHistoryId: number): void {
           data: { postProcessError: msg },
         });
         await notifyAdminsPostProcessFailed(downloadHistoryId, msg);
-      } catch {
-        // ignore
+      } catch (e) {
+        console.warn(
+          `[postProcess] failed to persist postProcessError dh=${downloadHistoryId}:`,
+          e,
+        );
       }
     }
   })();

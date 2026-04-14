@@ -1,31 +1,32 @@
-import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { normalizeNetdataConfig } from "@hously/api/utils/plugins/normalizers";
 import { toNumberOrNull, toRecord } from "@hously/shared/utils";
 import type {
   DashboardNetdataDiskUsage,
   DashboardNetdataSummaryResponse,
 } from "@hously/api/types/dashboardServices";
+import { buildDisabledDashboardSummary } from "@hously/api/utils/dashboard/disabledSummary";
 
 export const buildNetdataDisabledSummary = (
   error?: string,
-): DashboardNetdataSummaryResponse => ({
-  enabled: false,
-  connected: false,
-  updated_at: new Date().toISOString(),
-  summary: {
-    cpu_percent: null,
-    ram_used_mib: null,
-    ram_total_mib: null,
-    ram_used_percent: null,
-    load_1: null,
-    load_5: null,
-    load_15: null,
-    network_in_kbps: null,
-    network_out_kbps: null,
-  },
-  disks: [],
-  ...(error ? { error } : {}),
-});
+): DashboardNetdataSummaryResponse =>
+  buildDisabledDashboardSummary(
+    {
+      summary: {
+        cpu_percent: null,
+        ram_used_mib: null,
+        ram_total_mib: null,
+        ram_used_percent: null,
+        load_1: null,
+        load_5: null,
+        load_15: null,
+        network_in_kbps: null,
+        network_out_kbps: null,
+      },
+      disks: [],
+    },
+    error,
+  );
 
 const valueByLabels = (
   labels: string[],
@@ -121,10 +122,7 @@ const fetchNetdataChartLatest = async (
 
 export const fetchNetdataSummary =
   async (): Promise<DashboardNetdataSummaryResponse> => {
-    const plugin = await prisma.plugin.findFirst({
-      where: { type: "netdata" },
-      select: { enabled: true, config: true },
-    });
+    const plugin = await getPluginConfigRecord("netdata");
 
     if (!plugin?.enabled) {
       return buildNetdataDisabledSummary();

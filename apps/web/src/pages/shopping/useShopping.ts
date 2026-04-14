@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
+import { useToggleListItemMutation } from "@/lib/hooks/useToggleMutation";
 import { queryKeys } from "@/lib/queryKeys";
 import { SHOPPING_ENDPOINTS } from "@/lib/endpoints";
 import type {
@@ -38,50 +39,24 @@ export function useCreateShoppingItem() {
 
 export function useToggleShoppingItem() {
   const fetcher = useFetcher();
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (itemId: number) =>
+  return useToggleListItemMutation<ShoppingItemsResponse, ShoppingItem>({
+    listQueryKey: queryKeys.shopping.items(),
+    getItems: (d) => d.items,
+    setItems: (d, items) => ({ ...d, items }),
+    getId: (item) => item.id,
+    toggleCompleted: (item) => ({
+      ...item,
+      completed: !item.completed,
+    }),
+    mutationFn: (itemId) =>
       fetcher<ApiResult<{ completed: boolean }>>(
         SHOPPING_ENDPOINTS.TOGGLE(itemId),
         {
           method: "POST",
         },
       ),
-    onMutate: async (itemId) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.shopping.items() });
-      const previousItems = queryClient.getQueryData<ShoppingItemsResponse>(
-        queryKeys.shopping.items(),
-      );
-
-      if (previousItems) {
-        queryClient.setQueryData<ShoppingItemsResponse>(
-          queryKeys.shopping.items(),
-          {
-            ...previousItems,
-            items: previousItems.items.map((item) =>
-              item.id === itemId
-                ? { ...item, completed: !item.completed }
-                : item,
-            ),
-          },
-        );
-      }
-
-      return { previousItems };
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previousItems) {
-        queryClient.setQueryData(
-          queryKeys.shopping.items(),
-          context.previousItems,
-        );
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.shopping.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
-    },
+    extraInvalidateKeys: [queryKeys.shopping.all, queryKeys.dashboard.all],
   });
 }
 

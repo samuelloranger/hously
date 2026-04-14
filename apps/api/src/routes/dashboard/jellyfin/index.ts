@@ -2,6 +2,7 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
+import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { toPositiveInt } from "@hously/shared/utils";
 import { mapJellyfinApiItem } from "@hously/api/utils/dashboard/jellyfin";
 import { normalizeJellyfinConfig } from "@hously/api/utils/plugins/normalizers";
@@ -14,10 +15,7 @@ export const dashboardJellyfinRoutes = new Elysia()
     "/jellyfin/image",
     async ({ user, query, set }) => {
       try {
-        const jellyfinPlugin = await prisma.plugin.findFirst({
-          where: { type: "jellyfin" },
-          select: { enabled: true, config: true },
-        });
+        const jellyfinPlugin = await getPluginConfigRecord("jellyfin");
 
         if (!jellyfinPlugin?.enabled) {
           return notFound(set, "Jellyfin plugin not enabled");
@@ -128,10 +126,7 @@ export const dashboardJellyfinRoutes = new Elysia()
         const limit = Math.max(1, Math.min(30, requestedLimit));
         const startIndex = (page - 1) * limit;
 
-        const jellyfinPlugin = await prisma.plugin.findFirst({
-          where: { type: "jellyfin" },
-          select: { enabled: true, config: true },
-        });
+        const jellyfinPlugin = await getPluginConfigRecord("jellyfin");
 
         if (!jellyfinPlugin?.enabled) {
           return { enabled: false, items: [], page, limit, has_more: false };

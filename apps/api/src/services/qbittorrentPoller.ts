@@ -92,8 +92,8 @@ const notifySubscribers = <T>(channel: string, data: T) => {
     if (sub.channel === channel) {
       try {
         sub.callback(data);
-      } catch {
-        // Ignore individual subscriber errors
+      } catch (e) {
+        console.warn("[qbittorrentPoller] subscriber callback error:", e);
       }
     }
   }
@@ -333,8 +333,8 @@ export const createPollerSseResponse = (
         unsubscribe();
         try {
           controller.close();
-        } catch {
-          // Stream may already be closed
+        } catch (e) {
+          console.warn("[qbittorrentPoller] SSE controller.close:", e);
         }
       };
 
@@ -342,7 +342,8 @@ export const createPollerSseResponse = (
         if (closed) return;
         try {
           controller.enqueue(encoder.encode(chunk));
-        } catch {
+        } catch (e) {
+          console.warn("[qbittorrentPoller] SSE enqueue:", e);
           closeStream();
         }
       };

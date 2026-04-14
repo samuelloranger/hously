@@ -7,6 +7,7 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 ## Features
 
 **Media & Entertainment**
+
 - **Media Library** — Radarr/Sonarr integration with TMDB discovery, release search, and quality profiles
 - **Watchlist** — Track what you want to watch with one-click add to Radarr/Sonarr
 - **Torrents** — qBittorrent management with real-time activity streaming (SSE)
@@ -14,11 +15,13 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 - **Jellyfin/Plex** — Latest additions and webhook notifications
 
 **Infrastructure**
+
 - **Dashboard** — Server health (Netdata), disk diagnostics (Scrutiny), torrent activity, upcoming releases
 - **Plugins** — Configurable integrations with external services
 - **External Notifications** — Inbound webhooks from Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma
 
 **Life Management**
+
 - **Board** — Kanban-style task management with dependencies, time logging, and tags
 - **Calendar** — Shared calendar with reminders and iCal export
 - **Chores** — Assignment, tracking, and recurring schedules
@@ -27,6 +30,7 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 - **Collections** — Organize and track personal collections
 
 **Platform**
+
 - Push notifications (Web Push + APNs for iOS)
 - i18n support via i18next
 - PWA-ready with service worker
@@ -34,18 +38,18 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Runtime | [Bun](https://bun.sh) |
-| API framework | [Elysia](https://elysiajs.com) |
-| Database | PostgreSQL 15 + [Prisma](https://prisma.io) |
-| Cache / Queues | Redis + BullMQ |
-| Object storage | MinIO (S3-compatible) |
-| Frontend | React 19 + Vite |
-| Routing | TanStack Router |
-| Data fetching | TanStack Query |
-| Styling | Tailwind CSS 4 |
-| Auth | JWT (HTTP-only cookies) |
+| Layer          | Technology                                  |
+| -------------- | ------------------------------------------- |
+| Runtime        | [Bun](https://bun.sh)                       |
+| API framework  | [Elysia](https://elysiajs.com)              |
+| Database       | PostgreSQL 15 + [Prisma](https://prisma.io) |
+| Cache / Queues | Redis + BullMQ                              |
+| Object storage | MinIO (S3-compatible)                       |
+| Frontend       | React 19 + Vite                             |
+| Routing        | TanStack Router                             |
+| Data fetching  | TanStack Query                              |
+| Styling        | Tailwind CSS 4                              |
+| Auth           | JWT (HTTP-only cookies)                     |
 
 ## Quick Start (Docker)
 
@@ -95,22 +99,22 @@ The API runs on `http://localhost:3001` and the frontend on `http://localhost:51
 
 Copy `.env.example` to `.env`. Required variables:
 
-| Variable | Description |
-|----------|-------------|
-| `SECRET_KEY` | JWT signing secret — change from default |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `ALLOWED_EMAILS` | Comma-separated list of emails allowed to register |
-| `ADMIN_EMAILS` | Comma-separated list of admin emails |
-| `BASE_URL` | Public URL of the app (e.g. `https://hously.example.com`) |
+| Variable         | Description                                               |
+| ---------------- | --------------------------------------------------------- |
+| `SECRET_KEY`     | JWT signing secret — change from default                  |
+| `DATABASE_URL`   | PostgreSQL connection string                              |
+| `ALLOWED_EMAILS` | Comma-separated list of emails allowed to register        |
+| `ADMIN_EMAILS`   | Comma-separated list of admin emails                      |
+| `BASE_URL`       | Public URL of the app (e.g. `https://hously.example.com`) |
 
 Optional integrations:
 
-| Variable | Description |
-|----------|-------------|
-| `TMDB_API_KEY` | Required for media discovery |
-| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web push notifications |
-| `APNS_*` | Apple Push Notifications (iOS) |
-| `SMTP_*` | Email delivery |
+| Variable                                 | Description                    |
+| ---------------------------------------- | ------------------------------ |
+| `TMDB_API_KEY`                           | Required for media discovery   |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web push notifications         |
+| `APNS_*`                                 | Apple Push Notifications (iOS) |
+| `SMTP_*`                                 | Email delivery                 |
 
 See `.env.example` for the full reference.
 

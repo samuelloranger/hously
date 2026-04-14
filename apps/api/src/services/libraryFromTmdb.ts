@@ -1,9 +1,14 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@hously/api/db";
-import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
+import {
+  getLibraryTmdbApiKey,
+  pickDigitalRelease,
+  sortTitleFromName,
+  tmdbApiFetch,
+  upsertLibraryShowEpisodesFromTmdb,
+} from "@hously/api/utils/medias/libraryHelpers";
 
-const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
 
 export const libraryMediaInclude = {
@@ -14,47 +19,6 @@ export type LibraryMediaWithProfile = Prisma.LibraryMediaGetPayload<{
   include: typeof libraryMediaInclude;
 }>;
 
-async function getTmdbApiKey(): Promise<string | null> {
-  const plugin = await prisma.plugin.findFirst({
-    where: { type: "tmdb" },
-    select: { enabled: true, config: true },
-  });
-  if (!plugin?.enabled) return null;
-  const cfg = normalizeTmdbConfig(plugin.config);
-  return cfg?.api_key ?? null;
-}
-
-async function tmdbFetch<T>(
-  path: string,
-  apiKey: string,
-  params?: Record<string, string>,
-): Promise<T> {
-  const url = new URL(`${TMDB_BASE}/${path}`);
-  url.searchParams.set("api_key", apiKey);
-  if (params) {
-    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
-  }
-  const res = await fetch(url.toString(), {
-    signal: AbortSignal.timeout(10_000),
-  });
-  if (!res.ok) throw new Error(`TMDB ${path} → ${res.status}`);
-  return res.json() as Promise<T>;
-}
-
-function pickDigitalRelease(
-  results: Array<{
-    iso_3166_1: string;
-    release_dates: Array<{ type: number; release_date: string }>;
-  }>,
-): Date | null {
-  for (const country of ["US", ...results.map((r) => r.iso_3166_1)]) {
-    const entry = results.find((r) => r.iso_3166_1 === country);
-    const digital = entry?.release_dates.find((d) => d.type === 4);
-    if (digital) return new Date(digital.release_date);
-  }
-  return null;
-}
-
 /**
  * Upsert library media from TMDB (shared by POST /api/library and dashboard flows).
  * Titles, overviews, and episode names are always fetched in English for stable DB storage.
@@ -63,7 +27,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
   tmdb_id: number;
   type: "movie" | "show";
 }): Promise<NonNullable<LibraryMediaWithProfile>> {
-  const key = await getTmdbApiKey();
+  const key = await getLibraryTmdbApiKey();
   if (!key) throw new Error("TMDB is not configured");
 
   const mediaSettings = await prisma.mediaSettings.findUnique({
@@ -77,13 +41,13 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
 
   if (type === "movie") {
     const [details, releaseDatesData] = await Promise.all([
-      tmdbFetch<{
+      tmdbApiFetch<{
         title: string;
         release_date: string;
         poster_path: string | null;
         overview: string;
       }>(`movie/${tmdb_id}`, key, lang),
-      tmdbFetch<{
+      tmdbApiFetch<{
         results: Array<{
           iso_3166_1: string;
           release_dates: Array<{ type: number; release_date: string }>;
@@ -104,7 +68,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
         tmdbId: tmdb_id,
         type: "movie",
         title: details.title,
-        sortTitle: details.title.replace(/^(the |a |an )/i, "").trim(),
+        sortTitle: sortTitleFromName(details.title),
         year,
         status: "wanted",
         posterUrl,
@@ -116,7 +80,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
       },
       update: {
         title: details.title,
-        sortTitle: details.title.replace(/^(the |a |an )/i, "").trim(),
+        sortTitle: sortTitleFromName(details.title),
         year,
         posterUrl,
         overview: details.overview || null,
@@ -126,7 +90,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
     });
   }
 
-  const details = await tmdbFetch<{
+  const details = await tmdbApiFetch<{
     name: string;
     first_air_date: string;
     poster_path: string | null;
@@ -147,7 +111,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
       tmdbId: tmdb_id,
       type: "show",
       title: details.name,
-      sortTitle: details.name.replace(/^(the |a |an )/i, "").trim(),
+      sortTitle: sortTitleFromName(details.name),
       year,
       status: "wanted",
       posterUrl,
@@ -158,7 +122,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
     },
     update: {
       title: details.name,
-      sortTitle: details.name.replace(/^(the |a |an )/i, "").trim(),
+      sortTitle: sortTitleFromName(details.name),
       year,
       posterUrl,
       overview: details.overview || null,
@@ -166,46 +130,12 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
     include: libraryMediaInclude,
   });
 
-  const regularSeasons = details.seasons.filter((s) => s.season_number > 0);
-  await Promise.all(
-    regularSeasons.map(async (s) => {
-      const seasonData = await tmdbFetch<{
-        episodes: Array<{
-          id: number;
-          episode_number: number;
-          name: string;
-          air_date: string | null;
-        }>;
-      }>(`tv/${tmdb_id}/season/${s.season_number}`, key, lang);
-
-      await Promise.all(
-        seasonData.episodes.map((ep) =>
-          prisma.libraryEpisode.upsert({
-            where: {
-              mediaId_season_episode: {
-                mediaId: media.id,
-                season: s.season_number,
-                episode: ep.episode_number,
-              },
-            },
-            create: {
-              mediaId: media.id,
-              season: s.season_number,
-              episode: ep.episode_number,
-              title: ep.name || null,
-              airDate: ep.air_date ? new Date(ep.air_date) : null,
-              tmdbEpisodeId: ep.id,
-            },
-            update: {
-              title: ep.name || null,
-              airDate: ep.air_date ? new Date(ep.air_date) : null,
-              tmdbEpisodeId: ep.id,
-            },
-          }),
-        ),
-      );
-    }),
-  );
+  await upsertLibraryShowEpisodesFromTmdb({
+    mediaId: media.id,
+    tmdbShowId: tmdb_id,
+    apiKey: key,
+    languageParams: lang,
+  });
 
   return media;
 }

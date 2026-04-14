@@ -158,7 +158,6 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
           },
         });
 
-        console.log(`User ${user!.id} added shopping item: ${itemName}`);
         await logActivity({
           type: "shopping_item_added",
           userId: user!.id,
@@ -216,8 +215,15 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
           },
         });
 
-        const action = newStatus ? "completed" : "uncompleted";
-        console.log(`User ${user!.id} ${action} shopping item ${itemId}`);
+        await logActivity({
+          type: "shopping_item_toggled",
+          userId: user!.id,
+          payload: {
+            shopping_item_id: item.id,
+            item_name: item.itemName,
+            completed: newStatus,
+          },
+        });
 
         if (newStatus) {
           await logActivity({
@@ -291,9 +297,13 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
             where: { id: itemId },
             data: updateData,
           });
+          await logActivity({
+            type: "shopping_item_updated",
+            userId: user!.id,
+            payload: { shopping_item_id: itemId },
+          });
         }
 
-        console.log(`User ${user!.id} updated shopping item ${itemId}`);
         return { success: true, message: "Item updated successfully" };
       } catch (error) {
         console.error(`Error updating shopping item ${itemId}:`, error);
@@ -344,7 +354,11 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
           data: { deletedAt: nowUtc() },
         });
 
-        console.log(`User ${user!.id} deleted shopping item ${itemId}`);
+        await logActivity({
+          type: "shopping_item_deleted",
+          userId: user!.id,
+          payload: { shopping_item_id: itemId },
+        });
         return { success: true, message: "Item deleted successfully" };
       } catch (error) {
         console.error(`Error deleting shopping item ${itemId}:`, error);
@@ -380,7 +394,6 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
         });
       }
 
-      console.log(`User ${user!.id} deleted ${count} completed shopping items`);
       await logActivity({
         type: "shopping_list_cleared",
         userId: user!.id,
@@ -451,7 +464,11 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
           });
         }
 
-        console.log(`User ${user!.id} deleted ${count} shopping items (bulk)`);
+        await logActivity({
+          type: "shopping_bulk_deleted",
+          userId: user!.id,
+          payload: { count },
+        });
         return {
           success: true,
           message: `Deleted ${count} items`,
@@ -506,7 +523,11 @@ export const shoppingRoutes = new Elysia({ prefix: "/api/shopping" })
           }
         });
 
-        console.log(`User ${user!.id} reordered shopping items`);
+        await logActivity({
+          type: "shopping_reordered",
+          userId: user!.id,
+          payload: { count: item_ids.length },
+        });
         return {
           success: true,
           message: "Shopping items reordered successfully",

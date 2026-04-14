@@ -75,7 +75,8 @@ export const loginToG3mini = async (
 
   try {
     await ratioBar.waitFor({ state: "visible", timeout: 20_000 });
-  } catch {
+  } catch (e) {
+    console.warn("[g3mini] ratio bar wait failed after login:", e);
     const loginFormStillVisible = await loginForm
       .isVisible()
       .catch(() => false);

@@ -91,7 +91,10 @@ mock.module("@hously/api/db", () => ({
       findUnique: () =>
         Promise.resolve(
           state.media
-            ? { ...state.media, downloadHistories: state.media.downloadHistories ?? [] }
+            ? {
+                ...state.media,
+                downloadHistories: state.media.downloadHistories ?? [],
+              }
             : null,
         ),
       update: (args: object) => {
@@ -261,9 +264,13 @@ describe("rescanLibraryItem", () => {
 
     const result = await rescanLibraryItem(1);
     expect(result).toEqual({
-      rescanned: 0, failed: 0, deleted: 0,
-      imported: 0, requeued: 0,
-      episodesReset: 0, mediaReset: false,
+      rescanned: 0,
+      failed: 0,
+      deleted: 0,
+      imported: 0,
+      requeued: 0,
+      episodesReset: 0,
+      mediaReset: false,
     });
     expect(state.mediaUpdateArgs).toBeNull();
   });
@@ -404,7 +411,11 @@ describe("rescanLibraryItem", () => {
   });
 
   it("14. Show, 1 file still present → media NOT reset to 'wanted'", async () => {
-    const file = makeFile({ id: 1, filePath: "/media/show/s01e01.mkv", episodeId: 10 });
+    const file = makeFile({
+      id: 1,
+      filePath: "/media/show/s01e01.mkv",
+      episodeId: 10,
+    });
     state.media = { id: 1, type: "show", status: "downloaded" };
     state.files = [file];
     state.remainingFileCount = 1;
@@ -483,7 +494,9 @@ describe("rescanLibraryItem", () => {
 
   it("19. Completed DH with torrent still in qBittorrent (completed state) → requeued:1", async () => {
     state.media = {
-      id: 1, type: "movie", status: "downloading",
+      id: 1,
+      type: "movie",
+      status: "downloading",
       downloadHistories: [{ id: 42, torrentHash: "abc123", episodeId: null }],
     };
     state.remainingFileCount = 0;
@@ -499,7 +512,9 @@ describe("rescanLibraryItem", () => {
 
   it("20. Completed DH but torrent NOT in qBittorrent → requeued:0, status reset to 'wanted'", async () => {
     state.media = {
-      id: 1, type: "movie", status: "downloading",
+      id: 1,
+      type: "movie",
+      status: "downloading",
       downloadHistories: [{ id: 42, torrentHash: "abc123", episodeId: null }],
     };
     state.remainingFileCount = 0;
@@ -513,9 +528,15 @@ describe("rescanLibraryItem", () => {
   });
 
   it("21. Show: episode DH in qBittorrent but that episode already has a file → not re-queued", async () => {
-    const file = makeFile({ id: 1, filePath: "/media/s01e01.mkv", episodeId: 10 });
+    const file = makeFile({
+      id: 1,
+      filePath: "/media/s01e01.mkv",
+      episodeId: 10,
+    });
     state.media = {
-      id: 1, type: "show", status: "downloaded",
+      id: 1,
+      type: "show",
+      status: "downloaded",
       downloadHistories: [{ id: 55, torrentHash: "ep10hash", episodeId: 10 }],
     };
     state.files = [file];
@@ -531,7 +552,9 @@ describe("rescanLibraryItem", () => {
 
   it("22. Show: episode DH in qBittorrent, file missing → re-queued, reconciliation skipped", async () => {
     state.media = {
-      id: 1, type: "show", status: "downloading",
+      id: 1,
+      type: "show",
+      status: "downloading",
       downloadHistories: [{ id: 77, torrentHash: "ephash", episodeId: 20 }],
     };
     state.remainingFileCount = 0;
@@ -553,7 +576,7 @@ describe("rescanLibraryItem", () => {
     state.files = [file];
     state.remainingFileCount = 1;
     statMap["/library/show.mkv"] = true; // file exists at raw path
-    scanMap[file.filePath] = null;        // MediaInfo fails
+    scanMap[file.filePath] = null; // MediaInfo fails
 
     const result = await rescanLibraryItem(1);
     expect(result?.failed).toBe(1);
@@ -597,7 +620,9 @@ describe("rescanLibraryItem", () => {
 
   it("23. DH has null torrentHash → never re-queued regardless of qBittorrent state", async () => {
     state.media = {
-      id: 1, type: "movie", status: "downloading",
+      id: 1,
+      type: "movie",
+      status: "downloading",
       downloadHistories: [{ id: 99, torrentHash: null, episodeId: null }],
     };
     state.remainingFileCount = 0;
