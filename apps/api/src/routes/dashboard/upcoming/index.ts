@@ -11,8 +11,7 @@ import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import type { DashboardUpcomingItem } from "@hously/api/types/dashboardUpcoming";
 import { badGateway, badRequest, serverError } from "@hously/api/errors";
-import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/nativeLibraryFromTmdb";
-import { searchAndGrab } from "@hously/api/services/mediaGrabber";
+import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
 
 export const dashboardUpcomingRoutes = new Elysia()
   .use(auth)
@@ -123,7 +122,6 @@ export const dashboardUpcomingRoutes = new Elysia()
     "/upcoming/add",
     async ({ body, set }) => {
       const { media_type: mediaType, tmdb_id: tmdbId } = body;
-      const searchOnAdd = body.search_on_add ?? true;
 
       try {
         const existing = await prisma.libraryMedia.findUnique({
@@ -138,19 +136,10 @@ export const dashboardUpcomingRoutes = new Elysia()
         }
 
         const libType = mediaType === "movie" ? "movie" : "show";
-        const row = await addOrUpdateLibraryFromTmdb({
+        await addOrUpdateLibraryFromTmdb({
           tmdb_id: tmdbId,
           type: libType,
         });
-
-        if (searchOnAdd && libType === "movie") {
-          const q = row.year ? `${row.title} ${row.year}` : row.title;
-          void searchAndGrab({
-            mediaId: row.id,
-            searchQuery: q,
-            qualityProfileId: row.qualityProfileId,
-          });
-        }
 
         return {
           success: true,
@@ -170,7 +159,6 @@ export const dashboardUpcomingRoutes = new Elysia()
       body: t.Object({
         media_type: t.Union([t.Literal("movie"), t.Literal("tv")]),
         tmdb_id: t.Numeric(),
-        search_on_add: t.Optional(t.Boolean()),
       }),
     },
   )
