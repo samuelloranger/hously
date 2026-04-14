@@ -4,7 +4,7 @@ import { type NotificationTemplate } from "@hously/shared/types";
 import { ServiceList } from "@/pages/settings/_component/ServiceList";
 import { ServicesLogsList } from "@/pages/settings/_component/ServicesLogsList";
 import { TemplateEditorModal } from "@/pages/settings/_component/TemplateEditorModal";
-import { useExternalNotificationServices } from "@/hooks/notifications/useExternalNotifications";
+import { useExternalNotificationServices } from "@/pages/settings/useExternalNotifications";
 
 interface EditingTemplateData {
   templates: NotificationTemplate[];

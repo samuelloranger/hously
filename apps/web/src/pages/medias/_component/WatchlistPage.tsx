@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useRemoveFromWatchlist, useWatchlist } from "@/hooks/medias/useMedias";
+import { useRemoveFromWatchlist, useWatchlist } from "@/features/medias/hooks/useMedias";
 import {
   type WatchlistItem,
   type TmdbMediaSearchItem,

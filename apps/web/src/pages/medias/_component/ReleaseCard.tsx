@@ -1,6 +1,6 @@
 import { Download } from "lucide-react";
 import type { InteractiveReleaseItem } from "@hously/shared/types";
-import { formatBytes } from "@hously/shared/utils";
+import { formatBytes } from "@/lib/utils/format";
 
 export function ReleaseCard({
   release,

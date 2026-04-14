@@ -41,10 +41,10 @@ import {
   useSetBoardTaskArchived,
   useSyncBoardTasks,
   useUpdateBoardTask,
-} from "@/hooks/board/useBoardTasks";
-import { useJsonEventSource } from "@/hooks/realtime/useEventSource";
-import { useUsers } from "@/hooks/users/useUsers";
-import { BOARD_TASKS_ENDPOINTS } from "@hously/shared/endpoints";
+} from "@/features/board/hooks/useBoardTasks";
+import { useJsonEventSource } from "@/lib/realtime/useEventSource";
+import { useUsers } from "@/pages/settings/useUsers";
+import { BOARD_TASKS_ENDPOINTS } from "@/lib/endpoints";
 import {
   BACKLOG_SORT_OPTIONS,
   BOARD_KANBAN_STATUSES,
@@ -58,7 +58,7 @@ import {
   type BoardTasksResponse,
   type UpdateBoardTaskRequest,
 } from "@hously/shared/types";
-import { useBoardTags } from "@/hooks/board/useBoardTags";
+import { useBoardTags } from "@/features/board/hooks/useBoardTags";
 import { queryKeys } from "@/lib/queryKeys";
 import { TagManagerModal } from "./components/TagManagerModal";
 import { cn } from "@/lib/utils";

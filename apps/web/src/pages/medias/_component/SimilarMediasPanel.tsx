@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useSimilarMedias } from "@/hooks/medias/useMedias";
+import { useSimilarMedias } from "@/features/medias/hooks/useMedias";
 import { ExploreCard } from "@/pages/medias/_component/ExploreCard";
 
 interface SimilarMediasPanelProps {

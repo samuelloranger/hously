@@ -30,6 +30,12 @@ export class HttpError extends Error {
     this.response = response;
     this.data = data;
   }
+
+  /** Returns the API-level `error` string from the response body, if present. */
+  apiError(): string | undefined {
+    const d = this.data as { error?: unknown } | null | undefined;
+    return typeof d?.error === "string" ? d.error : undefined;
+  }
 }
 
 export type AuthMode = "cookie" | "bearer";
@@ -198,12 +204,15 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
 
       if (!response.ok) {
         const errorData = await parseResponseData(response);
-        let errorMessage =
-          (errorData &&
-            typeof errorData === "object" &&
-            "error" in errorData &&
-            (errorData as any).error) ||
-          `HTTP error! status: ${response.status}`;
+        const apiErrorField =
+          errorData &&
+          typeof errorData === "object" &&
+          "error" in errorData &&
+          typeof (errorData as { error?: unknown }).error === "string"
+            ? (errorData as { error: string }).error
+            : undefined;
+        let errorMessage: string =
+          apiErrorField || `HTTP error! status: ${response.status}`;
 
         if (options.prod && response.status >= 500 && !errorMessage) {
           errorMessage =

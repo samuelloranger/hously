@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, renderWithProviders } from "@/test-utils/render";
 import { fireEvent } from "@testing-library/react";
@@ -15,7 +16,7 @@ vi.mock("@/components/ui/minimal-tiptap", () => ({
 }));
 
 // ── Users hook mock ──────────────────────────────────────────────────────────
-vi.mock("@/hooks/users/useUsers", () => ({
+vi.mock("@/pages/settings/useUsers", () => ({
   useUsers: vi.fn().mockReturnValue({
     data: {
       users: [
@@ -48,7 +49,7 @@ vi.mock("@/hooks/users/useUsers", () => ({
 const { mockCreateBoardTag } = vi.hoisted(() => ({
   mockCreateBoardTag: vi.fn(),
 }));
-vi.mock("@/hooks/board/useBoardTags", () => ({
+vi.mock("@/features/board/hooks/useBoardTags", () => ({
   useBoardTags: vi.fn().mockReturnValue({ data: { tags: [] } }),
   useCreateBoardTag: vi
     .fn()
@@ -62,7 +63,7 @@ vi.mock("@/hooks/board/useBoardTags", () => ({
 }));
 
 // ── Board tasks hook mock (for DependencySection, ActivityLog, TimeTracking) ──
-vi.mock("@/hooks/board/useBoardTasks", () => ({
+vi.mock("@/features/board/hooks/useBoardTasks", () => ({
   useAddDependency: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),

@@ -32,9 +32,9 @@ const gridItemVariants: Variants = {
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
-import { useLibrary, useSearchLibraryMovie } from "@/hooks/medias/useLibrary";
-import { useLibraryEvents } from "@/hooks/medias/useLibraryEvents";
-import { useUrlState } from "@/hooks/app/useUrlState";
+import { useLibrary, useSearchLibraryMovie } from "@/features/medias/hooks/useLibrary";
+import { useLibraryEvents } from "@/features/medias/hooks/useLibraryEvents";
+import { useUrlState } from "@/lib/app/useUrlState";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { LibraryItemCard } from "./LibraryItemCard";

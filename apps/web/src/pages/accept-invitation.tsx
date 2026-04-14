@@ -2,11 +2,12 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { HttpError } from "@/lib/api/httpClient";
 import { setUser } from "@/lib/auth";
 import {
   useValidateInvitation,
   useAcceptInvitation,
-} from "@/hooks/auth/useAuth";
+} from "@/lib/auth/useAuth";
 import { getCurrentUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/accept-invitation")({
@@ -82,8 +83,12 @@ function AcceptInvitationPage() {
       if (response.user) setUser(response.user);
       toast.success(t("acceptInvitation.successTitle"));
       navigate({ to: "/" });
-    } catch (err: any) {
-      toast.error(err?.message || err?.error || t("acceptInvitation.error"));
+    } catch (err: unknown) {
+      toast.error(
+        (err instanceof HttpError
+          ? (err.apiError() ?? err.message)
+          : undefined) || t("acceptInvitation.error"),
+      );
     }
   };
 

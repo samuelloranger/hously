@@ -10,7 +10,11 @@
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "noLib": false
+    "noLib": false,
+    "baseUrl": "..",
+    "paths": {
+      "@/*": ["../*"]
+    }
   },
   "include": ["./**/*"],
   "exclude": ["node_modules"]

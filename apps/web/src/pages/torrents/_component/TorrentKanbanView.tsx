@@ -1,9 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import type { QbittorrentTorrentListItem } from "@hously/shared/types";
+import { formatBytes, formatSpeed } from "@/lib/utils/format";
 import {
-  formatBytes,
-  formatSpeed,
   getQbittorrentProgressBarGradient,
   getQbittorrentStatusDot,
 } from "@hously/shared/utils";

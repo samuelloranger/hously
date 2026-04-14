@@ -14,9 +14,10 @@ import {
   useToggleShoppingItem,
   useDeleteShoppingItem,
   useUpdateShoppingItem,
-} from "@/hooks/shopping/useShopping";
+} from "@/pages/shopping/useShopping";
 import type { ShoppingItem } from "@hously/shared/types";
-import { formatUsername, formatDate } from "@hously/shared/utils";
+import { formatUsername } from "@/lib/utils/format";
+import { formatDate } from "@hously/shared/utils";
 interface ShoppingItemRowProps {
   item: ShoppingItem;
   dragHandleProps?: {

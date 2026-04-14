@@ -6,7 +6,7 @@ import { FormInput } from "@/components/ui/form-field";
 import {
   useLibraryScan,
   useUpdateMediaPostProcessingSettings,
-} from "@/hooks/medias/useLibrary";
+} from "@/features/medias/hooks/useLibrary";
 import type {
   MediaFileOperation,
   MediaPostProcessingSettings,

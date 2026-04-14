@@ -35,20 +35,19 @@ import {
   useSetPinnedQbittorrentTorrent,
   useSetQbittorrentTorrentCategory,
   useSetQbittorrentTorrentTags,
-} from "@/hooks/dashboard/useDashboard";
-import { useJsonEventSource } from "@/hooks/realtime/useEventSource";
+} from "@/pages/torrents/useDashboardQbittorrent";
+import { useJsonEventSource } from "@/lib/realtime/useEventSource";
 import { queryKeys } from "@/lib/queryKeys";
-import { DASHBOARD_ENDPOINTS } from "@hously/shared/endpoints";
+import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 import type {
   DashboardQbittorrentTorrentsResponse,
   DashboardQbittorrentTorrentFilesResponse,
   DashboardQbittorrentTorrentPeersResponse,
   DashboardQbittorrentTorrentStreamResponse,
 } from "@hously/shared/types";
+import { formatBytes, formatSpeed } from "@/lib/utils/format";
 import {
-  formatBytes,
   formatQbittorrentEta,
-  formatSpeed,
   getQbittorrentProgressBarGradient,
   hasQbittorrentTransferActivity,
   getQbittorrentStatusConfig,

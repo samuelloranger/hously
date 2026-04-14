@@ -12,8 +12,8 @@
  */
 const buildUpdateData = (
   fields: Record<string, unknown>,
-): Record<string, any> => {
-  const data: Record<string, any> = {};
+): Record<string, unknown> => {
+  const data: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(fields)) {
     if (value !== undefined) {
       data[key] = value;
@@ -25,6 +25,6 @@ const buildUpdateData = (
 /**
  * Returns true if the update data object has at least one field to update.
  */
-export const hasUpdates = (data: Record<string, any>): boolean => {
+export const hasUpdates = (data: Record<string, unknown>): boolean => {
   return Object.keys(data).length > 0;
 };

@@ -50,8 +50,9 @@ export class CookieJar {
   absorb(headers: Headers): void {
     // getSetCookie() is the Node 18+ / Bun API for multi-value Set-Cookie headers.
     const setCookies: string[] =
-      typeof (headers as any).getSetCookie === "function"
-        ? (headers as any).getSetCookie()
+      typeof (headers as Headers & { getSetCookie?: () => string[] })
+        .getSetCookie === "function"
+        ? (headers as Headers & { getSetCookie: () => string[] }).getSetCookie()
         : ([headers.get("set-cookie")].filter(Boolean) as string[]);
 
     for (const header of setCookies) {

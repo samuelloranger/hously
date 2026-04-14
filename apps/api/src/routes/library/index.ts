@@ -1042,7 +1042,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       logLabel: "LibraryMigrate",
       intervalMs: (data) => {
         // Poll faster while active, slower when done/unknown
-        if ((data as any)?.state === "active") return 1500;
+        if ((data as { state?: string })?.state === "active") return 1500;
         return 3000;
       },
       poll: async () => {

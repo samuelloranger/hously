@@ -1,6 +1,6 @@
 import { Clock, Film, HardDrive, Music, Subtitles } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { formatBytes } from "@hously/shared/utils";
+import { formatBytes } from "@/lib/utils/format";
 import type {
   LibraryAudioTrack,
   LibraryFileInfo,

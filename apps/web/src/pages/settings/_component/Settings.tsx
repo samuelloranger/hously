@@ -12,7 +12,7 @@ import { QualityProfilesTab } from "@/pages/settings/_component/QualityProfilesT
 import { MediaPostProcessingTab } from "@/pages/settings/_component/MediaPostProcessingTab";
 import { SessionsTab } from "@/pages/settings/_component/SessionsTab";
 import { RecentActivityTab } from "@/pages/settings/_component/RecentActivityTab";
-import { useCurrentUser } from "@/hooks/auth/useAuth";
+import { useCurrentUser } from "@/lib/auth/useAuth";
 import { cn } from "@/lib/utils";
 import {
   User,

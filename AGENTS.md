@@ -1,158 +1,254 @@
 # AGENTS.md
 
-Instructions for **Cursor Agent** (and compatible tools) working in this repository.
+Agent instructions for the **Hously** monorepo. Read this before writing any code.
 
-## Personality
+---
 
-Act as a rigorous, honest mentor. Do not default to agreement. Identify weaknesses, blind spots, and flawed assumptions. Challenge ideas when needed. Be direct and clear, not harsh. Prioritize helping me improve over being agreeable. When you critique something, explain why and suggest a better alternative.
+## Project Overview
 
-## Coding rules
+Hously is a self-hosted command center for homelab enthusiasts — unified dashboard for infrastructure monitoring, media pipelines, and life management.
 
-Detailed conventions live in **`.cursor/rules/`** as `.mdc` files (imports, DRY/shared code, naming, feature structure, TanStack Query). They apply by glob when relevant files are in context.
+**Monorepo layout:**
 
-**Claude Code** users: the same conventions are mirrored under `.claude/rules/` for `CLAUDE.md`.
+| App | Path | Stack |
+|-----|------|-------|
+| API | `apps/api` | Bun + Elysia + Prisma + PostgreSQL + Redis |
+| Web | `apps/web` | React 19 + Vite + TanStack Router/Query + Tailwind CSS 4 |
+| Shared | `apps/shared` | Types, hooks, endpoints, utilities shared across apps |
 
-## Project overview
+In production, the frontend is built into `apps/api/public/` and served by the API (`SERVE_STATIC=true`). A single `Dockerfile` builds both.
 
-Hously is a self-hosted command center for homelab enthusiasts. It provides a unified dashboard for monitoring infrastructure, managing media pipelines, and organizing daily life.
+---
 
-This monorepo contains:
+## Development Setup
 
-- **API** (`apps/api`): Elysia (Bun runtime) + Prisma ORM
-- **Web** (`apps/web`): React 19 + Vite + TanStack Router/Query + Tailwind CSS 4
-- **Shared** (`apps/shared`): Types, hooks, utilities, endpoints shared across apps
-
-In production, the frontend is built into `apps/api/public/` and served by the API via `@elysiajs/static` (enabled with `SERVE_STATIC=true`). A single `Dockerfile` builds both.
-
-A native companion app lives in a separate repository:
-
-- **iOS App** (`../hously-ios`): Swift/SwiftUI
-
-## Development setup
-
-**Bun** is the package manager and runtime. Use the **Makefile** for common operations:
+**Bun** is the package manager and runtime. Never use `npm` or `yarn`.
 
 ```bash
 make install           # Install all dependencies
-
-# Local development (recommended)
 make dev-services      # Start PostgreSQL + MinIO + Redis (Terminal 1)
-make dev-api           # Start Bun API with hot reload (Terminal 2)
-make dev-web           # Start React frontend with Vite (Terminal 3)
-
-# Docker development (production-like)
-docker compose up      # Start everything in containers
+make dev-api           # Start API with hot reload (Terminal 2)
+make dev-web           # Start Vite frontend (Terminal 3)
 ```
 
-### Environment configuration
+Always use `make` targets for database operations — never run Prisma CLI directly:
 
-Copy `.env.example` to `.env` and configure at minimum:
+```bash
+make migrate-dev       # Create a new migration
+make migrate-deploy    # Apply pending migrations (prod)
+make migrate-push      # Push schema without migration file (dev only)
+```
 
-- `ALLOWED_EMAILS` / `ADMIN_EMAILS`: Comma-separated email lists
-- `SECRET_KEY`: Change from default for security
-- `DATABASE_URL`: Connection string (adjust hostname based on Docker/local)
+---
 
 ## Architecture
 
-### Backend (`apps/api`)
+### API (`apps/api/src/`)
 
-**Stack**: Elysia, Prisma, PostgreSQL, Redis, MinIO
+| Directory | Purpose |
+|-----------|---------|
+| `routes/` | Elysia route plugins, one file per feature |
+| `services/` | Business logic (S3, images, notifications, webhooks) |
+| `jobs/` | Cron jobs via `@elysiajs/cron` |
+| `middleware/` | Rate limiting, etc. |
+| `db/` | Prisma client singleton |
+| `auth.ts` | JWT auth with HTTP-only cookies |
+| `prisma/schema.prisma` | Database schema |
 
-| Directory              | Purpose                                              |
-| ---------------------- | ---------------------------------------------------- |
-| `src/routes/`          | Feature-specific Elysia route plugins                |
-| `src/services/`        | Business logic (S3, images, notifications, webhooks) |
-| `src/jobs/`            | Cron jobs (`@elysiajs/cron`)                         |
-| `src/middleware/`      | Rate limiting, etc.                                  |
-| `src/db/`              | Prisma client                                        |
-| `src/auth.ts`          | JWT auth with HTTP-only cookies                      |
-| `prisma/schema.prisma` | Database schema                                      |
+Routes are composed in `src/index.ts` via `.use()`.
 
-Route modules export Elysia plugins composed in `src/index.ts`. Webhook handlers integrate Radarr, Sonarr, Jellyfin, Plex, and others. Push notifications support Web Push (VAPID) and APNs.
+### Web (`apps/web/src/`)
 
-### Frontend (`apps/web`)
+| Directory | Purpose |
+|-----------|---------|
+| `features/` | Feature modules (auth, chores, shopping, medias, torrents, …) |
+| `components/` | Shared components; `ui/` for Radix/CVA primitives |
+| `routes/` | File-based routing (TanStack Router) |
+| `hooks/<domain>/` | App-specific TanStack Query hooks grouped by domain |
+| `lib/` | API client, query client, utilities |
+| `locales/` | i18next translation files |
+| `sw/` | Service Worker (PWA) |
 
-**Stack**: React 19, Vite, TanStack Router, TanStack Query, Tailwind CSS 4
+### Shared (`apps/shared/src/`)
 
-| Directory         | Purpose                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------- |
-| `src/features/`   | Feature-based modules (auth, chores, shopping, calendar, dashboard, torrents, medias, etc.) |
-| `src/components/` | Shared components (+ `ui/` for Radix/CVA primitives)                                        |
-| `src/routes/`     | File-based routing (TanStack Router)                                                        |
-| `src/hooks/<domain>/` | App-specific hooks grouped by domain (e.g. `chores`, `dashboard`, `app`, `realtime`) |
-| `src/lib/`        | API client, query client, utilities                                                         |
-| `src/locales/`    | i18next translations                                                                        |
-| `src/sw/`         | Service Worker (PWA)                                                                        |
+| Directory | Purpose |
+|-----------|---------|
+| `types/` | TypeScript interfaces shared by API and Web |
+| `endpoints/` | API endpoint constants (`CHORES_ENDPOINTS`, etc.) |
+| `hooks/` | TanStack Query hooks usable in any app |
+| `utils/` | Date, sanitize, media URL helpers |
+| `queryKeys.ts` | Centralized TanStack Query key factory |
+| `api.ts` | API client factories |
 
-### Shared (`apps/shared`)
+---
 
-| Directory          | Purpose                                                    |
-| ------------------ | ---------------------------------------------------------- |
-| `src/types/`       | TypeScript interfaces (shared between API and Web)         |
-| `src/endpoints/`   | API endpoint constants (`CHORES_ENDPOINTS`, etc.)          |
-| `src/hooks/`       | TanStack Query hooks (`useChores`, `useCreateChore`, etc.) |
-| `src/utils/`       | Shared utilities (date, sanitize, media URLs, etc.)        |
-| `src/queryKeys.ts` | Centralized query key factory                              |
-| `src/api.ts`       | API client factories                                       |
+## Coding Conventions
 
-## Common commands
+### Imports
 
-```bash
-# Testing
-make test                          # Run all tests
-cd apps/web && bun run test        # Web tests only
-cd apps/api && bun test            # API tests only
+- **Web** — always use the `@/` alias. Never use relative paths like `../../`.
+- **API** — no aliases; use relative imports.
+- **Shared** — always import from `@hously/shared`, never reach into internal paths.
 
-# Linting & Types
-make lint                          # Lint all code
-make typecheck                     # Type check frontend
+```typescript
+// Web ✓
+import { cn } from "@/lib/utils";
+import { useChores } from "@hously/shared";
 
-# Database (ALWAYS use Makefile)
-make migrate-dev                   # Create new migration
-make migrate-deploy                # Apply pending migrations (prod)
-make migrate-push                  # Push schema changes (dev only)
-make migrate-studio                # Open Prisma Studio
+// API ✓
+import { prisma } from "../db";
+import { badRequest } from "../utils/errors";
 
-# Build & Docker
-make build                         # Build web app for production
-docker build -t hously:latest .    # Build unified image (API + frontend)
-docker compose up -d               # Start all services
-docker compose down                # Stop all services
-make rebuild                       # Rebuild containers
+// Wrong anywhere
+import { Chore } from "@hously/shared/src/types/chores";
+import { cn } from "../../lib/utils";
 ```
 
-Edit `apps/api/prisma/schema.prisma` for schema changes, then run the appropriate `make migrate-*` from root.
+### Naming
 
-### iOS app (external)
+| Context | Convention | Example |
+|---------|------------|---------|
+| React components | PascalCase | `ChoreRow.tsx`, `CreateChoreModal.tsx` |
+| Hooks | `use` + PascalCase | `useChores.ts`, `useDeleteChore.ts` |
+| Utilities | camelCase | `formatDate.ts` |
+| API route modules | camelCase + `Routes` | `choresRoutes`, `shoppingRoutes` |
+| TypeScript types/interfaces | PascalCase | `Chore`, `CreateChoreRequest` |
+| Endpoint constants | UPPER_SNAKE_CASE | `CHORES_ENDPOINTS` |
+| Database columns (Prisma) | camelCase | `choreName`, `addedBy` |
+| API response fields | snake_case | `chore_name`, `added_by`, `created_at` |
+| URL paths | kebab-case | `/api/shopping`, `/api/clear-completed` |
 
-Maintained in `../hously-ios`. Connects to this API with native push notifications via APNs.
+The API always maps Prisma's camelCase fields to snake_case in responses:
 
-## Key features
+```typescript
+return {
+  id: item.id,
+  item_name: item.itemName,
+  created_at: formatIso(item.createdAt),
+};
+```
 
-### Homelab integrations
+### Feature Structure
 
-- **Dashboard** — Server health (Netdata), disk diagnostics (Scrutiny), torrent activity, media releases
-- **Torrent Management** — qBittorrent integration with real-time SSE streaming
-- **Media Pipeline** — Radarr/Sonarr + TMDB discovery + interactive release search
-- **Tracker Statistics** — Private tracker stats (C411, Torr9, La Cale)
-- **Jellyfin/Plex** — Latest media additions + webhook notifications
-- **External Notifications** — Webhooks for Radarr, Sonarr, Jellyfin, Plex, Kopia, UptimeKuma
+Frontend features are self-contained:
 
-### Life management
+```
+features/<name>/
+├── index.tsx
+└── components/
+    ├── <Name>Row.tsx
+    ├── Create<Name>Modal.tsx
+    └── Edit<Name>Modal.tsx
+```
 
-- **Shopping List** — Collaborative with real-time updates
-- **Chores** — Assignment, tracking, recurring schedules
-- **Calendar** — Shared calendar with reminders and iCal export
-- **Meal Plans** — Weekly planning with recipe management
+API routes export an Elysia plugin with a prefix:
 
-## Important notes
+```typescript
+export const featureRoutes = new Elysia({ prefix: "/api/feature" })
+  .use(auth)
+  .use(requireUser)
+  .get("/", async ({ user, set }) => {
+    try {
+      // prisma query + snake_case mapping
+    } catch (error) {
+      return serverError(set, "Failed to fetch items");
+    }
+  });
+```
 
-- **Unstable project**: Early-stage, subject to breaking changes
-- **Access control**: Users must be on `ALLOWED_EMAILS` to register; admins need `ADMIN_EMAILS`
-- **Image storage**: MinIO (S3-compatible) for avatars, chores, recipes
-- **Push notifications**: Web Push (VAPID) + APNs (iOS)
-- **Rate limiting**: 1000 requests/hour per IP
+- Use error helpers from `src/utils/errors.ts` (`badRequest`, `notFound`, `serverError`)
+- Always wrap handlers in try/catch
+- Compose new routes in `src/index.ts` via `.use()`
 
-## Documentation and APIs
+### TanStack Query
 
-When answering questions about library APIs, configuration, or migrations, prefer **up-to-date docs** (e.g. Context7 MCP or official docs) over guessing from memory.
+- App-specific hooks → `apps/web/src/hooks/<domain>/`
+- Shared hooks → `apps/shared/src/hooks/` (imported via `@hously/shared`)
+- Never define query/mutation hooks inline in components
+
+Query key factory pattern:
+
+```typescript
+// Always use the centralized factory
+import { queryKeys } from "@hously/shared";
+queryClient.invalidateQueries({ queryKey: queryKeys.chores.all });
+
+// Never hardcode strings
+queryClient.invalidateQueries({ queryKey: ["chores"] }); // ✗
+```
+
+Query hook pattern:
+
+```typescript
+export function useFeature() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.feature.list(),
+    queryFn: () => fetcher<FeatureResponse>(FEATURE_ENDPOINTS.LIST),
+  });
+}
+```
+
+Mutation hook pattern — invalidate all affected query keys on success:
+
+```typescript
+export function useCreateFeature() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateFeatureRequest) =>
+      fetcher<ApiResult<{ id: number }>>(FEATURE_ENDPOINTS.CREATE, {
+        method: "POST",
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.feature.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all }); // if dashboard shows this data
+    },
+  });
+}
+```
+
+### DRY / Shared Code
+
+- Any type, hook, utility, or endpoint constant used by more than one app **must** live in `apps/shared/src/`.
+- Re-export new shared code from `apps/shared/src/index.ts`.
+- Within a single app, extract a helper only when the same logic appears in 3+ places. Prefer three similar lines over a premature abstraction.
+
+---
+
+## Adding a New Feature
+
+1. **Schema** — add models to `apps/api/prisma/schema.prisma`, run `make migrate-dev`
+2. **Types** — add interfaces to `apps/shared/src/types/<feature>.ts`, re-export from `index.ts`
+3. **Endpoints** — add constants to `apps/shared/src/endpoints/<feature>.ts`, re-export
+4. **Query keys** — add to `apps/shared/src/queryKeys.ts`
+5. **API routes** — create `apps/api/src/routes/<feature>.ts`, compose in `src/index.ts`
+6. **Hooks** — add TanStack Query hooks to `apps/web/src/hooks/<domain>/` or `apps/shared/src/hooks/` if shared
+7. **UI** — create `apps/web/src/features/<name>/` with `index.tsx` and `components/`
+8. **Route** — add a route file to `apps/web/src/routes/`
+
+---
+
+## Common Commands
+
+```bash
+make test              # Run all tests
+make lint              # Lint all packages
+make typecheck         # Type-check the frontend
+make build             # Build web for production
+docker build -t hously:latest .   # Build unified image
+docker compose up -d   # Start all services
+```
+
+---
+
+## Important Notes
+
+- **Bun only** — do not use `npm`, `yarn`, or `pnpm` anywhere in this repo
+- **Unstable** — early-stage project, breaking changes are expected
+- **Access control** — `ALLOWED_EMAILS` gates registration; `ADMIN_EMAILS` gates admin routes
+- **Image storage** — MinIO (S3-compatible) for avatars, chore images, recipe photos
+- **Push notifications** — Web Push (VAPID) + APNs (iOS via `../hously-ios`)
+- **Rate limiting** — 1000 requests/hour per IP
+- **Production** — configs live in `~/servers/hously`, separate from the dev repo at `~/sites/hously`

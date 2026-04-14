@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUpdateExternalNotificationTemplate } from "@/hooks/notifications/useExternalNotifications";
+import { useUpdateExternalNotificationTemplate } from "@/pages/settings/useExternalNotifications";
 import { queryKeys } from "@/lib/queryKeys";
 import { type NotificationTemplate } from "@hously/shared/types";
 interface TemplateEditorProps {
@@ -85,8 +85,12 @@ export function TemplateEditor({
       if (onCancel) {
         onCancel();
       }
-    } catch (error: any) {
-      toast.error(error?.message || t("settings.externalNotifications.error"));
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("settings.externalNotifications.error"),
+      );
     } finally {
       setIsSaving(false);
     }

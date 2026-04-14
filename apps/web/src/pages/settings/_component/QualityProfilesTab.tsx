@@ -6,7 +6,7 @@ import { LoadingState } from "@/components/LoadingState";
 import {
   useDeleteQualityProfile,
   useQualityProfilesList,
-} from "@/hooks/medias/useQualityProfiles";
+} from "@/pages/settings/useQualityProfiles";
 import type { QualityProfile } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 import {

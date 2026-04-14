@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, renderWithProviders } from "@/test-utils/render";
 import { mockChore, mockUser } from "@/test-utils/mocks";
@@ -23,7 +24,7 @@ vi.mock("@hously/shared", async (importOriginal) => {
   };
 });
 
-vi.mock("@/hooks/chores/useChores", () => ({
+vi.mock("@/pages/chores/useChores", () => ({
   useChores: vi.fn(),
   useCreateChore: vi.fn().mockReturnValue({ mutate: vi.fn() }),
   useToggleChore: vi.fn().mockReturnValue({ mutate: vi.fn() }),
@@ -35,7 +36,7 @@ vi.mock("@/hooks/chores/useChores", () => ({
   useUploadChoreImage: vi.fn().mockReturnValue({ mutate: vi.fn() }),
 }));
 
-import { useChores } from "@/hooks/chores/useChores";
+import { useChores } from "@/pages/chores/useChores";
 
 describe("ChoresList", () => {
   beforeEach(() => {

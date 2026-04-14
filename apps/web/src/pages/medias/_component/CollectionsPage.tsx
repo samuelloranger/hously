@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useMissingCollections } from "@/hooks/medias/useMedias";
+import { useMissingCollections } from "@/features/medias/hooks/useMedias";
 import {
   type CollectionMovieItem,
   type MediaCollection,

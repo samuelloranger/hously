@@ -6,7 +6,7 @@ import {
   useRemoveFromLibrary,
   useRetrySkippedMedia,
   useToggleMediaMonitored,
-} from "@/hooks/medias/useLibrary";
+} from "@/features/medias/hooks/useLibrary";
 import { Card } from "./LibrarySharedUI";
 
 interface LibraryActionsSectionProps {

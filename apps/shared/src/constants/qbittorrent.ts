@@ -1,0 +1,1 @@
+export const QBITTORRENT_TORRENTS_PAGE_SIZE = 50;
