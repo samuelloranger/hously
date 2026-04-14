@@ -86,7 +86,7 @@ export const mediasTmdbRoutes = new Elysia()
           .filter((item): item is TmdbSearchItem => Boolean(item))
           .slice(0, 20);
 
-        // Check which TMDB IDs are already in the native library
+        // Check which TMDB IDs are already in the library
         const tmdbIds = items.map((i) => i.tmdb_id);
         const libraryEntries = await prisma.libraryMedia.findMany({
           where: { tmdbId: { in: tmdbIds } },

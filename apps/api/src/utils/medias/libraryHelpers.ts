@@ -1,6 +1,6 @@
 /**
  * Shared helpers for TMDB-sourced library data.
- * Used by nativeLibraryFromTmdb, libraryMediaAdmin, and the refresh scripts.
+ * Used by libraryFromTmdb, libraryMediaAdmin, and the refresh scripts.
  */
 
 export function sortTitleFromName(name: string): string {
