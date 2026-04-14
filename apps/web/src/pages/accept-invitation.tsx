@@ -4,10 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { HttpError } from "@/lib/api/httpClient";
 import { setUser } from "@/lib/auth";
-import {
-  useValidateInvitation,
-  useAcceptInvitation,
-} from "@/lib/auth/useAuth";
+import { useValidateInvitation, useAcceptInvitation } from "@/lib/auth/useAuth";
 import { getCurrentUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/accept-invitation")({

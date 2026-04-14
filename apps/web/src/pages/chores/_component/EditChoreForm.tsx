@@ -6,7 +6,11 @@ import { useUpdateChore, useUploadChoreImage } from "@/pages/chores/useChores";
 import type { Chore, ChoreUser } from "@hously/shared/types";
 import { formatUsername } from "@/lib/utils/format";
 import { getChoreThumbnailUrl } from "@/lib/utils/media";
-import { datetimeLocalToUTC, toDateTimeLocal, tomorrow } from "@hously/shared/utils";
+import {
+  datetimeLocalToUTC,
+  toDateTimeLocal,
+  tomorrow,
+} from "@hously/shared/utils";
 import { useNotifications } from "@/lib/notifications/useNotifications";
 import { DateTimePicker } from "@/components/DateTimePicker";
 import { MinimalTiptap } from "@/components/ui/minimal-tiptap";
