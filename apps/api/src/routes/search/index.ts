@@ -133,7 +133,7 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
           // qBittorrent unreachable or not configured — return empty
         }
 
-        // Medias from native library
+        // Medias from library
         let medias: {
           id: number;
           title: string;

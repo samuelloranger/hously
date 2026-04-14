@@ -14,7 +14,7 @@ import { grabRelease, searchAndGrab } from "@hously/api/services/mediaGrabber";
 import { notifyAdminsLibraryGrabSkipped } from "@hously/api/workers/notifyLibraryGrabSkipped";
 import { MAX_LIBRARY_GRAB_ATTEMPTS } from "@hously/api/constants/libraryGrab";
 import { libraryEventBus } from "@hously/api/services/libraryEvents";
-import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/nativeLibraryFromTmdb";
+import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
 import { rescanLibraryItem } from "@hously/api/services/library/rescan";
 
 function mapLibraryMedia(item: {

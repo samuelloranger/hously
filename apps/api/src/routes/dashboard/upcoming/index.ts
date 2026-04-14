@@ -11,7 +11,7 @@ import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
 import type { DashboardUpcomingItem } from "@hously/api/types/dashboardUpcoming";
 import { badGateway, badRequest, serverError } from "@hously/api/errors";
-import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/nativeLibraryFromTmdb";
+import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
 
 export const dashboardUpcomingRoutes = new Elysia()
   .use(auth)

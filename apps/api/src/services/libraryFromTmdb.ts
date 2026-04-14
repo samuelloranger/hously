@@ -56,7 +56,7 @@ function pickDigitalRelease(
 }
 
 /**
- * Upsert native library media from TMDB (shared by POST /api/library and dashboard flows).
+ * Upsert library media from TMDB (shared by POST /api/library and dashboard flows).
  * Titles, overviews, and episode names are always fetched in English for stable DB storage.
  */
 export async function addOrUpdateLibraryFromTmdb(opts: {
