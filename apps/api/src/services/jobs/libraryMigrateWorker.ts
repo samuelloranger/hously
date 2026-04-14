@@ -316,6 +316,12 @@ export async function processLibraryMigrateJob(
     ? normalizeTmdbConfig(tmdbPlugin.config)
     : null;
 
+  const mediaSettings = await prisma.mediaSettings.findUnique({
+    where: { id: 1 },
+  });
+  const defaultQualityProfileId =
+    mediaSettings?.defaultQualityProfileId ?? null;
+
   const progress: LibraryMigrateProgress = {
     phase: "radarr",
     current: 0,
@@ -427,6 +433,9 @@ export async function processLibraryMigrateJob(
                 overview: movie.overview || null,
                 digitalReleaseDate,
                 ...(movie.added ? { addedAt: new Date(movie.added) } : {}),
+                ...(defaultQualityProfileId != null
+                  ? { qualityProfileId: defaultQualityProfileId }
+                  : {}),
               },
               update: {
                 title: movie.title,
@@ -621,6 +630,9 @@ export async function processLibraryMigrateJob(
                 posterUrl: poster,
                 overview: series.overview || null,
                 ...(series.added ? { addedAt: new Date(series.added) } : {}),
+                ...(defaultQualityProfileId != null
+                  ? { qualityProfileId: defaultQualityProfileId }
+                  : {}),
               },
               update: {
                 title: series.title,
