@@ -152,6 +152,9 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
       status: "wanted",
       posterUrl,
       overview: details.overview || null,
+      ...(defaultQualityProfileId != null
+        ? { qualityProfileId: defaultQualityProfileId }
+        : {}),
     },
     update: {
       title: details.name,
