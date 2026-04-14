@@ -6,7 +6,10 @@ import type {
   DashboardUpcomingItem,
   TmdbMediaSearchItem,
 } from "@hously/shared/types";
-import { formatRelativeTime, resolveDateFnsLocale } from "@/lib/utils/relativeTime";
+import {
+  formatRelativeTime,
+  resolveDateFnsLocale,
+} from "@/lib/utils/relativeTime";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 import { RefreshCw } from "lucide-react";
 
