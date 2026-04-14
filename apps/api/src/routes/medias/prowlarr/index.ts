@@ -232,14 +232,15 @@ export const mediasProwlarrRoutes = new Elysia()
               const profile = toScoreInput(qp);
               mapped = mapped.map((r) => {
                 const parsed = parseReleaseTitle(r.title);
-                const score = scoreRelease(
+                const result = scoreRelease(
                   parsed,
                   profile,
                   r.size_bytes,
                   r.title,
                   r.indexer,
                 );
-                const qualityReject = score === null;
+                const qualityReject = Array.isArray(result);
+                const score = qualityReject ? null : result;
                 const parsed_quality = {
                   resolution: parsed.resolution,
                   source: parsed.source,
@@ -247,19 +248,15 @@ export const mediasProwlarrRoutes = new Elysia()
                   hdr: parsed.hdr,
                 };
                 const rejected = r.rejected || qualityReject;
-                const qmsg = "Does not match quality profile";
-                let rejection_reason = r.rejection_reason;
-                if (qualityReject) {
-                  rejection_reason = rejection_reason
-                    ? `${rejection_reason}; ${qmsg}`
-                    : qmsg;
-                }
+                const quality_rejection_reasons = qualityReject
+                  ? (result as string[])
+                  : null;
                 return {
                   ...r,
                   quality_score: score,
                   parsed_quality,
                   rejected,
-                  rejection_reason,
+                  quality_rejection_reasons,
                 };
               });
               mapped.sort((a, b) => {
