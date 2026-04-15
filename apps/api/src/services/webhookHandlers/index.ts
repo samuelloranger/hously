@@ -419,24 +419,36 @@ const handleKopiaWebhook: WebhookHandler = (payload) => {
 };
 
 // Uptime Kuma webhook handler
+// Uptime Kuma does not include an `event` field in its payload. We derive the
+// event_type from heartbeat.status so it matches the notification_templates
+// keys (MonitorDown / MonitorUp / MonitorEvent).
+// Status codes: 0 = DOWN, 1 = UP, 2 = PENDING, 3 = MAINTENANCE.
 const handleUptimekumaWebhook: WebhookHandler = (payload) => {
-  const eventType = (payload.event as string) || "StatusChange";
+  const monitor = asRecord(payload.monitor || payload.Monitor);
+  const heartbeat = asRecord(payload.heartbeat || payload.Heartbeat);
+
+  let eventType: string;
+  if (typeof payload.event === "string" && payload.event.trim()) {
+    eventType = payload.event;
+  } else if (heartbeat && typeof heartbeat.status === "number") {
+    eventType =
+      heartbeat.status === 0
+        ? "MonitorDown"
+        : heartbeat.status === 1
+          ? "MonitorUp"
+          : "MonitorEvent";
+  } else {
+    eventType = "MonitorEvent";
+  }
+
   const variables: Record<string, unknown> = {};
 
-  // Monitor information
-  const monitor = (payload.monitor || payload.Monitor) as
-    | Record<string, unknown>
-    | undefined;
   if (monitor) {
     variables.monitor_name = monitor.name || monitor.Name || "Unknown Monitor";
     variables.monitor_url = monitor.url || monitor.URL || "";
     variables.monitor_type = monitor.type || monitor.Type || "";
   }
 
-  // Heartbeat information
-  const heartbeat = (payload.heartbeat || payload.Heartbeat) as
-    | Record<string, unknown>
-    | undefined;
   if (heartbeat) {
     variables.status = heartbeat.status === 1 ? "UP" : "DOWN";
     variables.ping = heartbeat.ping || "";
@@ -444,7 +456,6 @@ const handleUptimekumaWebhook: WebhookHandler = (payload) => {
     variables.duration = heartbeat.duration || "";
   }
 
-  // Direct fields
   variables.msg = (payload.msg as string) || (payload.message as string) || "";
 
   return {
