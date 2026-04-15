@@ -35,7 +35,7 @@ import {
   useSetPinnedQbittorrentTorrent,
   useSetQbittorrentTorrentCategory,
   useSetQbittorrentTorrentTags,
-} from "@/pages/torrents/useDashboardQbittorrent";
+} from "@/pages/torrents/_hooks/useDashboardQbittorrent";
 import { useJsonEventSource } from "@/lib/realtime/useEventSource";
 import { queryKeys } from "@/lib/queryKeys";
 import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
@@ -548,7 +548,6 @@ export function TorrentDetailPage() {
         }))}
         value={activeTab}
         onChange={setActiveTab}
-
       />
 
       {/* ── Tab panels ── */}

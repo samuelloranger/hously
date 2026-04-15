@@ -220,6 +220,7 @@ export function DiscoverPanel() {
         ]}
         value={mediaType}
         onChange={switchType}
+        containerClassName="max-w-sm"
       />
 
       {/* ── Streaming providers ─────────────────────────────── */}
@@ -303,6 +304,7 @@ export function DiscoverPanel() {
           }))}
           value={sortBy}
           onChange={changeSort}
+          containerClassName="max-w-md"
         />
 
         {/* Language pills */}

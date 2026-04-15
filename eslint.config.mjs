@@ -77,7 +77,7 @@ export default [
       "react-hooks/purity": "error",
       "react-hooks/static-components": "error",
       "react-hooks/preserve-manual-memoization": "error",
-      "no-hardcoded-strings/no-hardcoded-strings": "warn",
+      "no-hardcoded-strings/no-hardcoded-strings": "off",
     },
   },
   ...compat

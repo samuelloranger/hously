@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, renderWithProviders, screen } from "@/test-utils/render";
 import { TorrentsPage } from "@/pages/torrents/_component";
-import { useDashboardQbittorrentTorrents } from "@/pages/torrents/useDashboardQbittorrent";
+import { useDashboardQbittorrentTorrents } from "@/pages/torrents/_hooks/useDashboardQbittorrent";
 
 const mockNavigate = vi.fn();
 let mockSearch: Record<string, unknown> = {};

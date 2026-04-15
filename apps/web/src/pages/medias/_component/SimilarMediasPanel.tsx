@@ -6,14 +6,12 @@ interface SimilarMediasPanelProps {
   isActive: boolean;
   tmdbId: number | null;
   mediaType: "movie" | "tv" | null;
-  onAdded: () => void;
 }
 
 export function SimilarMediasPanel({
   isActive,
   tmdbId,
   mediaType,
-  onAdded,
 }: SimilarMediasPanelProps) {
   const { t, i18n } = useTranslation("common");
   const { data, isLoading } = useSimilarMedias(
@@ -47,7 +45,7 @@ export function SimilarMediasPanel({
   return (
     <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 py-1">
       {items.map((item) => (
-        <ExploreCard key={item.id} item={item} onAdded={onAdded} />
+        <ExploreCard key={item.id} item={item} />
       ))}
     </div>
   );

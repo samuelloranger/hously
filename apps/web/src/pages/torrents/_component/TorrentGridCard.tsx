@@ -4,7 +4,7 @@ import {
   usePauseQbittorrentTorrent,
   useReannounceQbittorrentTorrent,
   useResumeQbittorrentTorrent,
-} from "@/pages/torrents/useDashboardQbittorrent";
+} from "@/pages/torrents/_hooks/useDashboardQbittorrent";
 import type { QbittorrentTorrentListItem } from "@hously/shared/types";
 import { formatBytes, formatSpeed } from "@/lib/utils/format";
 import {
