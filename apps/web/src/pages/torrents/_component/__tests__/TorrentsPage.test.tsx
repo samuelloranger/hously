@@ -92,7 +92,7 @@ vi.mock("@/lib/realtime/useEventSourceState", () => ({
   }),
 }));
 
-vi.mock("@/pages/torrents/useDashboardQbittorrent", () => ({
+vi.mock("@/pages/torrents/_hooks/useDashboardQbittorrent", () => ({
   useDashboardQbittorrentTorrents: vi.fn(),
   usePinnedQbittorrentTorrent: vi.fn(() => ({ data: null })),
   useSetPinnedQbittorrentTorrent: vi.fn(() => ({ mutate: vi.fn() })),
