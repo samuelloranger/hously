@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { RefreshCw } from "lucide-react";
 import { formatRecurrenceText } from "@/pages/chores/_component/utils/recurrence";
 
 interface RecurrenceBadgeProps {
@@ -29,9 +30,9 @@ export function RecurrenceBadge({
 
   return (
     <span
-      className={`px-2 py-0.5 text-xs font-semibold rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 ${className}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 ${className}`}
     >
-      🔁{" "}
+      <RefreshCw size={11} />
       {formatRecurrenceText(
         { recurrence_type, recurrence_interval_days, recurrence_weekday },
         t,

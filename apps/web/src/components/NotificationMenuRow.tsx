@@ -1,29 +1,67 @@
+import type { ReactNode } from "react";
+import {
+  Clock,
+  Radio,
+  Sparkles,
+  Monitor,
+  CheckCircle,
+  ShoppingCart,
+  Calendar,
+  Settings,
+  Target,
+  Leaf,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NotificationType } from "@hously/shared/types";
-const typeConfig: Record<
-  NotificationType,
-  { icon: string | React.ReactNode; bg: string }
-> = {
-  reminder: { icon: "⏰", bg: "bg-amber-100 dark:bg-amber-900/30" },
-  external: { icon: "📡", bg: "bg-blue-100 dark:bg-blue-900/30" },
-  "app-update": { icon: "✨", bg: "bg-violet-100 dark:bg-violet-900/30" },
-  service_monitor: { icon: "🖥️", bg: "bg-indigo-100 dark:bg-indigo-900/30" },
-  chore: { icon: "✅", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
-  shopping: { icon: "🛒", bg: "bg-sky-100 dark:bg-sky-900/30" },
-  event: { icon: "📅", bg: "bg-rose-100 dark:bg-rose-900/30" },
-  system: { icon: "⚙️", bg: "bg-neutral-100 dark:bg-neutral-700/60" },
-  habit: { icon: "🎯", bg: "bg-orange-100 dark:bg-orange-900/30" },
+
+const typeConfig: Record<NotificationType, { icon: ReactNode; bg: string }> = {
+  reminder: {
+    icon: <Clock size={16} />,
+    bg: "bg-amber-100 dark:bg-amber-900/30",
+  },
+  external: {
+    icon: <Radio size={16} />,
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+  },
+  "app-update": {
+    icon: <Sparkles size={16} />,
+    bg: "bg-violet-100 dark:bg-violet-900/30",
+  },
+  service_monitor: {
+    icon: <Monitor size={16} />,
+    bg: "bg-indigo-100 dark:bg-indigo-900/30",
+  },
+  chore: {
+    icon: <CheckCircle size={16} />,
+    bg: "bg-emerald-100 dark:bg-emerald-900/30",
+  },
+  shopping: {
+    icon: <ShoppingCart size={16} />,
+    bg: "bg-sky-100 dark:bg-sky-900/30",
+  },
+  event: {
+    icon: <Calendar size={16} />,
+    bg: "bg-rose-100 dark:bg-rose-900/30",
+  },
+  system: {
+    icon: <Settings size={16} />,
+    bg: "bg-neutral-100 dark:bg-neutral-700/60",
+  },
+  habit: {
+    icon: <Target size={16} />,
+    bg: "bg-orange-100 dark:bg-orange-900/30",
+  },
 };
 
 export function getTypeStyle(notification: {
   type: NotificationType;
   metadata?: Record<string, unknown> | null;
-}) {
+}): { icon: ReactNode; bg: string } {
   if (notification.type === "external" && notification.metadata?.service_name) {
     const serviceName = notification.metadata.service_name as string;
     if (serviceName === "cross-seed") {
       return {
-        icon: "🌱",
+        icon: <Leaf size={16} />,
         bg: "bg-emerald-100 dark:bg-emerald-900/30",
       };
     }
@@ -92,7 +130,7 @@ export function NotificationMenuRow({
 
       <div
         className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm",
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
           style.bg,
         )}
       >

@@ -45,8 +45,8 @@ function CollectionCard({
             className="w-20 shrink-0 rounded-xl object-cover shadow-sm ring-1 ring-black/10 dark:ring-white/10 self-start"
           />
         ) : (
-          <div className="flex w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-700 text-2xl aspect-[2/3]">
-            🎬
+          <div className="flex w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-700 aspect-[2/3]">
+            <Clapperboard className="w-7 h-7 text-neutral-400 dark:text-neutral-500" />
           </div>
         )}
 
@@ -89,8 +89,8 @@ function CollectionCard({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-neutral-200 dark:bg-neutral-700 text-xs">
-                    🎬
+                  <div className="flex h-full w-full items-center justify-center bg-neutral-200 dark:bg-neutral-700">
+                    <Film className="w-3 h-3 text-neutral-400 dark:text-neutral-500" />
                   </div>
                 )}
                 {/* Status overlay */}

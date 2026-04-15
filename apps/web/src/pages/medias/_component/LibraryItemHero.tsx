@@ -136,8 +136,8 @@ export function LibraryItemHero({
                 onError={() => setPosterError(true)}
               />
             ) : (
-              <div className="w-[86px] md:w-[116px] aspect-[2/3] rounded-xl bg-white/8 ring-1 ring-white/12 flex items-center justify-center text-2xl">
-                🎬
+              <div className="w-[86px] md:w-[116px] aspect-[2/3] rounded-xl bg-white/8 ring-1 ring-white/12 flex items-center justify-center">
+                <Film className="w-7 h-7 text-white/30" />
               </div>
             )}
           </div>

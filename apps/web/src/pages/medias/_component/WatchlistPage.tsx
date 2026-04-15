@@ -8,7 +8,7 @@ import {
   type WatchlistItem,
   type TmdbMediaSearchItem,
 } from "@hously/shared/types";
-import { BookmarkX, Clapperboard, Bookmark } from "lucide-react";
+import { BookmarkX, Clapperboard, Bookmark, Film } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
@@ -72,8 +72,8 @@ function WatchlistCard({
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-3xl text-white/10">
-          🎞️
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Film className="w-8 h-8 text-white/10" />
         </div>
       )}
 

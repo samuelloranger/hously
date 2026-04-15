@@ -9,17 +9,11 @@ import type {
   TmdbMediaSearchItem,
 } from "@hously/shared/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, Film } from "lucide-react";
 import { toast } from "sonner";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 
-export function ExploreCard({
-  item,
-  onAdded,
-}: {
-  item: TmdbMediaSearchItem;
-  onAdded: () => void;
-}) {
+export function ExploreCard({ item }: { item: TmdbMediaSearchItem }) {
   const { t, i18n } = useTranslation("common");
   const [detailOpen, setDetailOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -59,7 +53,6 @@ export function ExploreCard({
         tmdb_id: item.tmdb_id,
       });
       toast.success(t("medias.addSuccess", { title: item.title }));
-      onAdded();
     } catch {
       toast.error(t("medias.addFailed"));
     }
@@ -107,8 +100,8 @@ export function ExploreCard({
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-3xl text-white/10">
-            🎞️
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Film className="w-8 h-8 text-white/10" />
           </div>
         )}
 
@@ -174,7 +167,6 @@ export function ExploreCard({
         item={item}
         isOpen={detailOpen}
         onClose={() => setDetailOpen(false)}
-        onAdded={onAdded}
       />
     </>
   );

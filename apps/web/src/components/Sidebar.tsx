@@ -8,7 +8,7 @@ import { useUpdateProfile } from "@/pages/settings/useUsers";
 import { formatDisplayName } from "@/lib/utils/format";
 import { NotificationsMenu } from "@/components/NotificationsBell";
 import { UserMenu } from "@/components/UserMenu";
-import { Loader, LogOut, Search, Settings } from "lucide-react";
+import { Loader, LogOut, Moon, Search, Settings, Sun } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
 import { useAuth } from "@/lib/auth/useAuth";
 import { useTheme } from "@/lib/app/useTheme";
@@ -228,7 +228,7 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
 
           {/* User section */}
           {user && (
-            <div className="flex items-center gap-2.5 px-2.5 py-1.5">
+            <div className="flex items-center gap-2 px-1.5 py-1">
               {user.avatar_url ? (
                 <img
                   src={user.avatar_url}
@@ -254,7 +254,7 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
               aria-label={t("common.toggleTheme")}
               title={t("common.toggleTheme")}
             >
-              <span className="text-sm">{isDark ? "☀️" : "🌙"}</span>
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             <button
               onClick={toggleLanguage}

@@ -69,8 +69,8 @@ const GENRE_COLORS: Record<string, { text: string; bg: string }> = {
 
 // ─── Language filter options ──────────────────────────────────────────────────
 const LANGUAGE_FILTERS = [
-  { code: "en", flag: "🇺🇸", label: "EN" },
-  { code: "fr", flag: "🇫🇷", label: "FR" },
+  { code: "en", label: "EN" },
+  { code: "fr", label: "FR" },
 ];
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ const gridItemVariants: Variants = {
 };
 
 // ─── DiscoverPanel ────────────────────────────────────────────────────────────
-export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
+export function DiscoverPanel() {
   const { t, i18n } = useTranslation("common");
   const lang = i18n.language;
 
@@ -324,7 +324,6 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
                     : "border-white/[0.07] bg-white/[0.03] text-neutral-500 hover:border-white/[0.14] hover:text-neutral-300",
                 ].join(" ")}
               >
-                <span>{lf.flag}</span>
                 <span>{lf.label}</span>
               </button>
             );
@@ -366,7 +365,7 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
             >
               {data!.items.map((item) => (
                 <motion.div key={item.id} variants={gridItemVariants}>
-                  <ExploreCard item={item} onAdded={onAdded} />
+                  <ExploreCard item={item} />
                 </motion.div>
               ))}
             </motion.div>

@@ -18,7 +18,7 @@ import {
 import type { ShoppingItem } from "@hously/shared/types";
 import { formatUsername } from "@/lib/utils/format";
 import { formatDate } from "@hously/shared/utils";
-import { CheckCircle, Trash2 } from "lucide-react";
+import { Check, CheckCircle, Trash2 } from "lucide-react";
 interface ShoppingItemRowProps {
   item: ShoppingItem;
   dragHandleProps?: {
@@ -224,7 +224,7 @@ export function ShoppingItemRow({
                   className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 transition-colors disabled:opacity-50"
                   title={t("shopping.save") || "Save"}
                 >
-                  ✓
+                  <Check size={14} />
                 </button>
               </div>
             ) : (
@@ -266,7 +266,7 @@ export function ShoppingItemRow({
                   className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 transition-colors disabled:opacity-50"
                   title={t("shopping.save") || "Save"}
                 >
-                  ✓
+                  <Check size={14} />
                 </button>
               </div>
             ) : (
@@ -294,8 +294,8 @@ export function ShoppingItemRow({
                 {t("shopping.on")} {formatDate(item.created_at, i18n.language)}
               </p>
               {!!item.completed && !!item.completed_by_username && (
-                <p className="ml-0 text-xs text-green-600 dark:text-green-400">
-                  <span className="mr-1">✅</span>
+                <p className="ml-0 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                  <CheckCircle size={12} />
                   {t("shopping.completedBy")}{" "}
                   {formatUsername(
                     item.completed_by_username,

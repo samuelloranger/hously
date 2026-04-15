@@ -12,6 +12,7 @@ import {
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { formatCronTrigger } from "@/lib/utils/format";
 import { LoadingState } from "@/components/LoadingState";
+import type { LucideIcon } from "lucide-react";
 import {
   ChevronDown,
   ChevronRight,
@@ -23,6 +24,16 @@ import {
   Clock,
   Loader2,
   Timer,
+  CalendarDays,
+  Activity,
+  Eraser,
+  FileText,
+  Film,
+  Flame,
+  Clapperboard,
+  Tv,
+  RefreshCw,
+  Download,
 } from "lucide-react";
 import type { QueueStat, QueueJob } from "@hously/shared/types";
 import { ADMIN_ENDPOINTS } from "@/lib/endpoints";
@@ -53,7 +64,7 @@ type JobAction =
 type JobConfig = {
   action: JobAction;
   jobNames: string[];
-  icon: string;
+  Icon: LucideIcon;
   labelKey: string;
   descriptionKey: string;
 };
@@ -62,70 +73,70 @@ const JOBS: JobConfig[] = [
   {
     action: "check_reminders",
     jobNames: ["check-reminders"],
-    icon: "⏰",
+    Icon: Clock,
     labelKey: "settings.jobs.actions.checkReminders.label",
     descriptionKey: "settings.jobs.actions.checkReminders.description",
   },
   {
     action: "check_all_day_events",
     jobNames: ["check-all-day-events"],
-    icon: "📆",
+    Icon: CalendarDays,
     labelKey: "settings.jobs.actions.checkAllDayEvents.label",
     descriptionKey: "settings.jobs.actions.checkAllDayEvents.description",
   },
   {
     action: "check_habit_reminders",
     jobNames: ["check-habit-reminders"],
-    icon: "🧘",
+    Icon: Activity,
     labelKey: "settings.jobs.actions.checkHabitReminders.label",
     descriptionKey: "settings.jobs.actions.checkHabitReminders.description",
   },
   {
     action: "cleanup_notifications",
     jobNames: ["cleanup-notifications"],
-    icon: "🧹",
+    Icon: Eraser,
     labelKey: "settings.jobs.actions.cleanupNotifications.label",
     descriptionKey: "settings.jobs.actions.cleanupNotifications.description",
   },
   {
     action: "fetch_c411_stats",
     jobNames: ["fetch-c411-stats"],
-    icon: "🧾",
+    Icon: FileText,
     labelKey: "settings.jobs.actions.fetchC411Stats.label",
     descriptionKey: "settings.jobs.actions.fetchC411Stats.description",
   },
   {
     action: "fetch_torr9_stats",
     jobNames: ["fetch-torr9-stats"],
-    icon: "🧾",
+    Icon: FileText,
     labelKey: "settings.jobs.actions.fetchTorr9Stats.label",
     descriptionKey: "settings.jobs.actions.fetchTorr9Stats.description",
   },
   {
     action: "fetch_la_cale_stats",
     jobNames: ["fetch-la-cale-stats"],
-    icon: "🧾",
+    Icon: FileText,
     labelKey: "settings.jobs.actions.fetchLaCaleStats.label",
     descriptionKey: "settings.jobs.actions.fetchLaCaleStats.description",
   },
   {
     action: "refresh_upcoming",
     jobNames: ["refresh-upcoming"],
-    icon: "🎥",
+    Icon: Film,
     labelKey: "settings.jobs.actions.refreshUpcoming.label",
     descriptionKey: "settings.jobs.actions.refreshUpcoming.description",
   },
   {
     action: "refresh_habits_streaks",
     jobNames: ["refresh-habits-streaks"],
-    icon: "🔥",
+    Icon: Flame,
     labelKey: "settings.jobs.actions.refreshHabitsStreaks.label",
     descriptionKey: "settings.jobs.actions.refreshHabitsStreaks.description",
   },
   {
     action: "check_movie_release_reminders",
     jobNames: ["check-movie-release-reminders"],
-    icon: "🎬",
+    Icon: Clapperboard,
     labelKey: "settings.jobs.actions.checkMovieReleaseReminders.label",
     descriptionKey:
       "settings.jobs.actions.checkMovieReleaseReminders.description",
@@ -133,7 +144,7 @@ const JOBS: JobConfig[] = [
   {
     action: "check_library_movie_releases",
     jobNames: ["check-library-movie-releases"],
-    icon: "🎞️",
+    Icon: Film,
     labelKey: "settings.jobs.actions.checkLibraryMovieReleases.label",
     descriptionKey:
       "settings.jobs.actions.checkLibraryMovieReleases.description",
@@ -141,7 +152,7 @@ const JOBS: JobConfig[] = [
   {
     action: "check_library_episode_releases",
     jobNames: ["check-library-episode-releases"],
-    icon: "📺",
+    Icon: Tv,
     labelKey: "settings.jobs.actions.checkLibraryEpisodeReleases.label",
     descriptionKey:
       "settings.jobs.actions.checkLibraryEpisodeReleases.description",
@@ -149,14 +160,14 @@ const JOBS: JobConfig[] = [
   {
     action: "sync_library_show_episodes",
     jobNames: ["sync-library-show-episodes"],
-    icon: "🔄",
+    Icon: RefreshCw,
     labelKey: "settings.jobs.actions.syncLibraryShowEpisodes.label",
     descriptionKey: "settings.jobs.actions.syncLibraryShowEpisodes.description",
   },
   {
     action: "check_library_download_completion",
     jobNames: ["check-library-download-completion"],
-    icon: "⬇️",
+    Icon: Download,
     labelKey: "settings.jobs.actions.checkLibraryDownloadCompletion.label",
     descriptionKey:
       "settings.jobs.actions.checkLibraryDownloadCompletion.description",
@@ -606,7 +617,7 @@ export function JobsTab() {
                   {scheduledJobsData.jobs.map((job) => {
                     const config = jobsByName.get(job.name);
                     const action = config?.action ?? null;
-                    const icon = config?.icon ?? "⏱️";
+                    const JobIcon = config?.Icon ?? Timer;
                     const title = config ? t(config.labelKey) : job.name;
                     const description = config
                       ? t(config.descriptionKey)
@@ -624,7 +635,7 @@ export function JobsTab() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1.5">
-                              <span className="text-xl">{icon}</span>
+                              <JobIcon className="w-5 h-5 text-neutral-600 dark:text-neutral-400 shrink-0" />
                               <h4 className="font-medium text-neutral-900 dark:text-neutral-100">
                                 {title}
                               </h4>

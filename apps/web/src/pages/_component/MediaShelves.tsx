@@ -11,7 +11,15 @@ import {
   resolveDateFnsLocale,
 } from "@/lib/utils/relativeTime";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
-import { RefreshCw } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  RefreshCw,
+  Clapperboard,
+  Tv,
+  Disc,
+  Headphones,
+  Film,
+} from "lucide-react";
 
 // ─── Poster card ──────────────────────────────────────────────────────────────
 
@@ -19,7 +27,7 @@ function PosterCard({
   title,
   subtitle,
   posterUrl,
-  fallback,
+  FallbackIcon,
   type,
   onClick,
   href,
@@ -28,7 +36,7 @@ function PosterCard({
   title: string;
   subtitle: string;
   posterUrl?: string | null;
-  fallback: string;
+  FallbackIcon: LucideIcon;
   type: string;
   onClick?: () => void;
   href?: string;
@@ -48,8 +56,8 @@ function PosterCard({
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-3xl bg-zinc-200 dark:bg-zinc-700">
-            {fallback}
+          <div className="flex h-full w-full items-center justify-center bg-zinc-200 dark:bg-zinc-700">
+            <FallbackIcon className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
           </div>
         )}
       </div>
@@ -130,14 +138,14 @@ export function JellyfinShelf() {
     return t("dashboard.home.mediaTypeGeneric");
   };
 
-  const mediaFallback = (type: string | null) => {
-    const map: Record<string, string> = {
-      movie: "🎬",
-      episode: "📺",
-      musicalbum: "💿",
-      audio: "🎧",
+  const mediaFallback = (type: string | null): LucideIcon => {
+    const map: Record<string, LucideIcon> = {
+      movie: Clapperboard,
+      episode: Tv,
+      musicalbum: Disc,
+      audio: Headphones,
     };
-    return (type && map[type.toLowerCase()]) ?? "🎞️";
+    return (type ? map[type.toLowerCase()] : undefined) ?? Film;
   };
 
   return (
@@ -193,7 +201,7 @@ export function JellyfinShelf() {
                 title={item.title}
                 subtitle={formatRelativeTime(item.added_at, { locale }) ?? ""}
                 posterUrl={item.poster_url}
-                fallback={mediaFallback(item.item_type)}
+                FallbackIcon={mediaFallback(item.item_type)}
                 type={mediaTypeLabel(item.item_type)}
                 href={item.item_url || undefined}
                 delayMs={i * 40}
@@ -297,7 +305,7 @@ export function UpcomingShelf() {
                     t("dashboard.upcoming.unknownDate")
                   }
                   posterUrl={item.poster_url}
-                  fallback={item.media_type === "movie" ? "🎬" : "📺"}
+                  FallbackIcon={item.media_type === "movie" ? Clapperboard : Tv}
                   type={
                     item.media_type === "movie"
                       ? t("dashboard.upcoming.movie")
