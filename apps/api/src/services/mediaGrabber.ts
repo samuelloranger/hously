@@ -9,8 +9,12 @@ import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import {
   addQbittorrentMagnet,
   addQbittorrentTorrentFile,
+  fetchQbittorrentTorrent,
+  setQbittorrentTorrentCategory,
+  setQbittorrentTorrentTags,
 } from "@hously/api/services/qbittorrent/torrents";
 import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
+import { isCompletedDownloadState } from "@hously/api/workers/checkDownloadCompletion";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import {
   parseReleaseTitle,
@@ -161,6 +165,139 @@ function infoHashFromTorrentBuffer(buf: ArrayBuffer): string | null {
 }
 
 /**
+ * If qBittorrent rejected an add because the infohash already exists,
+ * adopt the existing torrent into Hously instead of marking the grab as failed.
+ *
+ * Flips the torrent's category to the expected Hously category, adds the
+ * `hously` tag, finalises the DownloadHistory row, and updates the library
+ * status — marking it `downloaded` immediately when the existing torrent is
+ * already complete in qBittorrent.
+ *
+ * Returns null when adoption is not applicable (no hash, qB unreachable, or
+ * no matching torrent). Returns a success descriptor when the torrent was
+ * adopted.
+ */
+async function tryAdoptQbDuplicate(ctx: {
+  dhRowId: number;
+  mediaId: number;
+  episodeId: number | null;
+  mediaType: string;
+  torrentHash: string | null;
+  releaseTitle: string;
+  qJson: Prisma.InputJsonValue;
+}): Promise<{ adopted: true; completed: boolean } | null> {
+  const {
+    dhRowId,
+    mediaId,
+    episodeId,
+    mediaType,
+    torrentHash,
+    releaseTitle,
+    qJson,
+  } = ctx;
+  if (!torrentHash) return null;
+
+  const qb = await getQbittorrentPluginConfig();
+  if (!qb.enabled || !qb.config) return null;
+
+  const info = await fetchQbittorrentTorrent(
+    qb.config,
+    qb.enabled,
+    torrentHash,
+  );
+  if (!info.torrent) return null;
+
+  const expectedCategory = qbCategoryForLibraryType(mediaType);
+  const currentCategory = info.torrent.category ?? "";
+  if (currentCategory !== expectedCategory) {
+    const setCat = await setQbittorrentTorrentCategory(qb.config, qb.enabled, {
+      hash: torrentHash,
+      category: expectedCategory,
+    });
+    if (!setCat.success) {
+      console.warn(
+        `[mediaGrabber] adoption: failed to set category on ${torrentHash}: ${setCat.error ?? "unknown error"}`,
+      );
+      return null;
+    }
+  }
+
+  const currentTags = info.torrent.tags ?? [];
+  if (!currentTags.includes("hously")) {
+    // Non-fatal: tag update failure shouldn't block adoption.
+    const tagRes = await setQbittorrentTorrentTags(qb.config, qb.enabled, {
+      hash: torrentHash,
+      tags: ["hously"],
+      previous_tags: null,
+    });
+    if (!tagRes.success) {
+      console.warn(
+        `[mediaGrabber] adoption: failed to add 'hously' tag to ${torrentHash}: ${tagRes.error ?? "unknown error"}`,
+      );
+    }
+  }
+
+  const completed =
+    isCompletedDownloadState(info.torrent.state ?? "") &&
+    (info.torrent.progress ?? 0) >= 1;
+
+  const now = new Date();
+  await prisma.downloadHistory.update({
+    where: { id: dhRowId },
+    data: {
+      torrentHash,
+      failed: false,
+      failReason: null,
+      ...(completed ? { completedAt: now } : {}),
+    },
+  });
+
+  try {
+    const nextStatus: "downloading" | "downloaded" = completed
+      ? "downloaded"
+      : "downloading";
+    if (episodeId != null) {
+      await prisma.libraryEpisode.update({
+        where: { id: episodeId },
+        data: {
+          status: nextStatus,
+          searchAttempts: 0,
+          ...(completed ? { downloadedAt: now } : {}),
+        },
+      });
+    } else {
+      await prisma.libraryMedia.update({
+        where: { id: mediaId },
+        data: { status: nextStatus, searchAttempts: 0 },
+      });
+    }
+  } catch (e) {
+    console.warn(
+      "[mediaGrabber] adopted qB torrent but failed to update library status:",
+      e,
+    );
+  }
+
+  await logActivity({
+    type: "media_grab",
+    payload: {
+      media_id: mediaId,
+      episode_id: episodeId ?? null,
+      release_title: releaseTitle,
+      quality: qJson,
+      adopted: true,
+      completed,
+    },
+  });
+
+  console.log(
+    `[mediaGrabber] adopted existing qB torrent hash=${torrentHash} media=${mediaId} episode=${episodeId ?? "none"} completed=${completed}`,
+  );
+
+  return { adopted: true, completed };
+}
+
+/**
  * Add a known release URL to qBittorrent with Hously categories/tags,
  * create DownloadHistory, set library status, and log activity.
  */
@@ -249,6 +386,20 @@ export async function grabRelease(opts: {
         tags: ["hously"],
       });
       if (!add.success) {
+        const adopted = await tryAdoptQbDuplicate({
+          dhRowId: dhRow.id,
+          mediaId,
+          episodeId: episodeId ?? null,
+          mediaType: media.type,
+          torrentHash,
+          releaseTitle,
+          qJson,
+        });
+        if (adopted) {
+          grabCommittedOk = true;
+          successReleaseTitle = releaseTitle;
+          return { grabbed: true, releaseTitle };
+        }
         await prisma.downloadHistory.update({
           where: { id: dhRow.id },
           data: { failed: true, failReason: add.error ?? "Magnet add failed" },
@@ -310,6 +461,20 @@ export async function grabRelease(opts: {
           tags: ["hously"],
         });
         if (!add.success) {
+          const adopted = await tryAdoptQbDuplicate({
+            dhRowId: dhRow.id,
+            mediaId,
+            episodeId: episodeId ?? null,
+            mediaType: media.type,
+            torrentHash,
+            releaseTitle,
+            qJson,
+          });
+          if (adopted) {
+            grabCommittedOk = true;
+            successReleaseTitle = releaseTitle;
+            return { grabbed: true, releaseTitle };
+          }
           await prisma.downloadHistory.update({
             where: { id: dhRow.id },
             data: {
@@ -329,6 +494,20 @@ export async function grabRelease(opts: {
           tags: ["hously"],
         });
         if (!add.success) {
+          const adopted = await tryAdoptQbDuplicate({
+            dhRowId: dhRow.id,
+            mediaId,
+            episodeId: episodeId ?? null,
+            mediaType: media.type,
+            torrentHash,
+            releaseTitle,
+            qJson,
+          });
+          if (adopted) {
+            grabCommittedOk = true;
+            successReleaseTitle = releaseTitle;
+            return { grabbed: true, releaseTitle };
+          }
           await prisma.downloadHistory.update({
             where: { id: dhRow.id },
             data: {
