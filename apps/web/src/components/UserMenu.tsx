@@ -7,7 +7,7 @@ import type { User } from "@hously/shared/types";
 import { formatDisplayName } from "@/lib/utils/format";
 import { useTheme } from "@/lib/app/useTheme";
 import { cn } from "@/lib/utils";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LogOut, Moon, Settings, Sun } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
 import { navSections } from "@/lib/routing/navigation";
 
@@ -161,9 +161,11 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
               <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">
                 {t("common.theme")}
               </span>
-              <span className="text-sm transition-transform duration-200 group-hover:scale-110">
-                {isDark ? "☀️" : "🌙"}
-              </span>
+              {isDark ? (
+                <Sun className="h-4 w-4 text-neutral-600 dark:text-neutral-300 transition-transform duration-200 group-hover:scale-110" />
+              ) : (
+                <Moon className="h-4 w-4 text-neutral-600 dark:text-neutral-300 transition-transform duration-200 group-hover:scale-110" />
+              )}
             </button>
           </div>
 
@@ -182,14 +184,14 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
                   : "text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.04]"
               }`}
             >
-              <span className="text-sm">⚙️</span>
+              <Settings className="h-4 w-4" />
               {t("settings.title")}
             </Link>
             <button
               onClick={handleLogout}
               className="flex items-center gap-2.5 w-full px-2.5 py-2 text-sm rounded-lg text-neutral-600 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-white/[0.04] transition-colors"
             >
-              <span className="text-sm">🚪</span>
+              <LogOut className="h-4 w-4" />
               {t("nav.logout")}
             </button>
           </div>

@@ -307,7 +307,7 @@ body {
     cursor: pointer;
   }
 
-  button:not(.checkbox),
+  button:not(.checkbox):not([role="switch"]),
   .btn,
   a[role="button"] {
     min-height: 44px;
