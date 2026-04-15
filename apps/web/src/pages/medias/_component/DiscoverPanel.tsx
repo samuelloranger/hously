@@ -6,9 +6,23 @@ import {
   useMediaGenres,
   useStreamingProviders,
 } from "@/features/medias/hooks/useMedias";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Check,
+  X,
+  Tv,
+  Tag,
+  ArrowDownUp,
+} from "lucide-react";
 import { ExploreCard } from "@/pages/medias/_component/ExploreCard";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // ─── Sort options ─────────────────────────────────────────────────────────────
 type SortOpt = {
@@ -37,36 +51,6 @@ const SORTS: SortOpt[] = [
   },
 ];
 
-// ─── Genre colors ─────────────────────────────────────────────────────────────
-const GENRE_COLORS: Record<string, { text: string; bg: string }> = {
-  Action: { text: "#f87171", bg: "rgba(248,113,113,0.12)" },
-  Adventure: { text: "#fb923c", bg: "rgba(251,146,60,0.12)" },
-  Animation: { text: "#34d399", bg: "rgba(52,211,153,0.12)" },
-  Comedy: { text: "#fbbf24", bg: "rgba(251,191,36,0.12)" },
-  Crime: { text: "#9ca3af", bg: "rgba(156,163,175,0.09)" },
-  Documentary: { text: "#2dd4bf", bg: "rgba(45,212,191,0.12)" },
-  Drama: { text: "#a78bfa", bg: "rgba(167,139,250,0.12)" },
-  Family: { text: "#4ade80", bg: "rgba(74,222,128,0.12)" },
-  Fantasy: { text: "#c084fc", bg: "rgba(192,132,252,0.12)" },
-  Horror: { text: "#f43f5e", bg: "rgba(244,63,94,0.12)" },
-  Music: { text: "#f472b6", bg: "rgba(244,114,182,0.12)" },
-  Mystery: { text: "#818cf8", bg: "rgba(129,140,248,0.12)" },
-  Romance: { text: "#fb7185", bg: "rgba(251,113,133,0.12)" },
-  "Science Fiction": { text: "#38bdf8", bg: "rgba(56,189,248,0.12)" },
-  Thriller: { text: "#f87171", bg: "rgba(248,113,113,0.12)" },
-  War: { text: "#6b7280", bg: "rgba(107,114,128,0.09)" },
-  Western: { text: "#d97706", bg: "rgba(217,119,6,0.12)" },
-  History: { text: "#92400e", bg: "rgba(146,64,14,0.12)" },
-  Kids: { text: "#4ade80", bg: "rgba(74,222,128,0.12)" },
-  "Sci-Fi & Fantasy": { text: "#38bdf8", bg: "rgba(56,189,248,0.12)" },
-  "Action & Adventure": { text: "#fb923c", bg: "rgba(251,146,60,0.12)" },
-  "War & Politics": { text: "#6b7280", bg: "rgba(107,114,128,0.09)" },
-  Soap: { text: "#fb7185", bg: "rgba(251,113,133,0.12)" },
-  Talk: { text: "#fbbf24", bg: "rgba(251,191,36,0.12)" },
-  Reality: { text: "#f472b6", bg: "rgba(244,114,182,0.12)" },
-  News: { text: "#2dd4bf", bg: "rgba(45,212,191,0.12)" },
-};
-
 // ─── Language filter options ──────────────────────────────────────────────────
 const LANGUAGE_FILTERS = [
   { code: "en", label: "EN" },
@@ -74,7 +58,6 @@ const LANGUAGE_FILTERS = [
 ];
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
-
 const gridContainerVariants: Variants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.025 } },
@@ -146,6 +129,13 @@ export function DiscoverPanel() {
     return true;
   });
 
+  const providers = providersData?.providers ?? [];
+  const genres = genresData?.genres ?? [];
+
+  const activeProvider = providers.find((p) => p.id === providerId) ?? null;
+  const activeGenre = genres.find((g) => g.id === genreId) ?? null;
+  const activeSort = visibleSorts.find((s) => s.value === sortBy) ?? null;
+
   function switchType(type: "movie" | "tv") {
     setFilters((prev) => {
       let nextSort = prev.sortBy;
@@ -167,19 +157,11 @@ export function DiscoverPanel() {
     });
   }
 
-  function toggleProvider(id: number) {
-    setFilters((prev) => ({
-      ...prev,
-      providerId: prev.providerId === id ? null : id,
-      page: 1,
-    }));
+  function setProvider(id: number | null) {
+    setFilters((prev) => ({ ...prev, providerId: id, page: 1 }));
   }
-  function toggleGenre(id: number) {
-    setFilters((prev) => ({
-      ...prev,
-      genreId: prev.genreId === id ? null : id,
-      page: 1,
-    }));
+  function setGenre(id: number | null) {
+    setFilters((prev) => ({ ...prev, genreId: id, page: 1 }));
   }
   function changeSort(value: string) {
     setFilters((prev) => ({ ...prev, sortBy: value, page: 1 }));
@@ -223,93 +205,86 @@ export function DiscoverPanel() {
         containerClassName="max-w-sm"
       />
 
-      {/* ── Streaming providers ─────────────────────────────── */}
-      <div
-        className="flex gap-2.5 overflow-x-auto"
-        style={{
-          scrollbarWidth: "none",
-          margin: "0 -16px",
-          padding: "4px 16px 8px",
-        }}
-      >
-        {(providersData?.providers ?? []).slice(0, 10).map((provider) => {
-          const active = providerId === provider.id;
-          return (
-            <button
-              key={provider.id}
-              type="button"
-              onClick={() => toggleProvider(provider.id)}
-              title={provider.name}
-              aria-label={provider.name}
-              className={[
-                "flex shrink-0 items-center justify-center rounded-xl border transition-[border-color,background-color,transform] duration-200 select-none",
-                "h-12 w-12 p-0 md:h-11 md:w-11",
-                active
-                  ? "scale-[1.08] border-white/40 bg-white/10"
-                  : "border-neutral-800 bg-neutral-900 hover:border-neutral-600 hover:scale-[1.04]",
-              ].join(" ")}
-            >
-              <img
-                src={provider.logo_url}
-                alt={provider.name}
-                className="h-9 w-9 rounded-lg object-contain md:h-8 md:w-8"
-              />
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Genres ──────────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-2 md:gap-1.5">
-        {genresData?.genres.map((genre) => {
-          const active = genreId === genre.id;
-          const colors = GENRE_COLORS[genre.name] ?? {
-            text: "#6366f1",
-            bg: "rgba(99,102,241,0.10)",
-          };
-          return (
-            <button
-              key={genre.id}
-              type="button"
-              onClick={() => toggleGenre(genre.id)}
-              style={
-                active
-                  ? {
-                      color: colors.text,
-                      backgroundColor: colors.bg,
-                      borderColor: `${colors.text}50`,
-                    }
-                  : undefined
-              }
-              className={[
-                "rounded-full border px-3 py-1 text-xs font-medium transition-[border-color,background-color,color] duration-150 md:px-2.5 md:py-0.5 md:text-[11px]",
-                active
-                  ? ""
-                  : "border-white/[0.07] bg-white/[0.03] text-neutral-500 hover:border-white/[0.14] hover:text-neutral-300",
-              ].join(" ")}
-            >
-              {genre.name}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Sort + Language row ─────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Sort — scrolls horizontally if too narrow to fit */}
-        <SegmentedTabs
-          items={visibleSorts.map((s) => ({
-            id: s.value,
-            label: t(s.labelKey),
-          }))}
-          value={sortBy}
-          onChange={changeSort}
-          containerClassName="max-w-md"
+      {/* ── Filter toolbar: Service · Genre · Sort · Language ── */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Service */}
+        <FilterChip
+          icon={Tv}
+          label={t("medias.discover.service", { defaultValue: "Service" })}
+          value={
+            activeProvider ? (
+              <span className="flex items-center gap-1.5">
+                <img
+                  src={activeProvider.logo_url}
+                  alt=""
+                  className="h-4 w-4 rounded-sm object-contain"
+                />
+                <span className="truncate max-w-[8rem]">
+                  {activeProvider.name}
+                </span>
+              </span>
+            ) : null
+          }
+          onClear={activeProvider ? () => setProvider(null) : undefined}
+          popoverContent={(close) => (
+            <ServicePicker
+              providers={providers.slice(0, 18)}
+              selectedId={providerId}
+              onSelect={(id) => {
+                setProvider(id);
+                close();
+              }}
+              allLabel={t("medias.discover.allServices", {
+                defaultValue: "All services",
+              })}
+            />
+          )}
         />
 
-        {/* Language pills */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-600">
+        {/* Genre */}
+        <FilterChip
+          icon={Tag}
+          label={t("medias.discover.genre", { defaultValue: "Genre" })}
+          value={activeGenre?.name ?? null}
+          onClear={activeGenre ? () => setGenre(null) : undefined}
+          popoverContent={(close) => (
+            <GenrePicker
+              genres={genres}
+              selectedId={genreId}
+              onSelect={(id) => {
+                setGenre(id);
+                close();
+              }}
+              allLabel={t("medias.discover.allGenres", {
+                defaultValue: "All genres",
+              })}
+            />
+          )}
+        />
+
+        {/* Sort */}
+        <FilterChip
+          icon={ArrowDownUp}
+          label={t("medias.discover.sort", { defaultValue: "Sort" })}
+          value={activeSort ? t(activeSort.labelKey) : null}
+          popoverContent={(close) => (
+            <SortPicker
+              options={visibleSorts.map((s) => ({
+                value: s.value,
+                label: t(s.labelKey),
+              }))}
+              selected={sortBy}
+              onSelect={(value) => {
+                changeSort(value);
+                close();
+              }}
+            />
+          )}
+        />
+
+        {/* Spacer pushes language pills to the right on wider screens */}
+        <div className="ml-auto flex items-center gap-1.5">
+          <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-600 dark:text-neutral-500">
             {t("medias.discover.lang")}
           </span>
           {LANGUAGE_FILTERS.map((lf) => {
@@ -320,13 +295,13 @@ export function DiscoverPanel() {
                 type="button"
                 onClick={() => toggleLanguage(lf.code)}
                 className={[
-                  "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-[border-color,background-color,color] duration-150 md:px-2 md:py-0.5 md:text-[11px]",
+                  "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
                   active
-                    ? "border-indigo-500/60 bg-indigo-500/15 text-indigo-300"
-                    : "border-white/[0.07] bg-white/[0.03] text-neutral-500 hover:border-white/[0.14] hover:text-neutral-300",
+                    ? "border-indigo-500/60 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300"
+                    : "border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-neutral-600 dark:text-neutral-400 hover:border-neutral-400 dark:hover:border-white/20",
                 ].join(" ")}
               >
-                <span>{lf.label}</span>
+                {lf.label}
               </button>
             );
           })}
@@ -488,6 +463,232 @@ export function DiscoverPanel() {
         </>
       )}
     </section>
+  );
+}
+
+// ─── FilterChip ───────────────────────────────────────────────────────────────
+/**
+ * A compact pill with an icon + label ("Sort"), optional inline value, chevron,
+ * and a clear (X) button when a value is selected. Clicking opens a popover.
+ */
+function FilterChip({
+  icon: Icon,
+  label,
+  value,
+  onClear,
+  popoverContent,
+}: {
+  icon: React.ComponentType<{ className?: string; size?: number }>;
+  label: string;
+  value: React.ReactNode | null;
+  onClear?: () => void;
+  popoverContent: (close: () => void) => React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const active = value !== null && value !== undefined;
+  return (
+    <div
+      className={[
+        "inline-flex items-center rounded-full border text-xs font-medium transition-colors",
+        active
+          ? "border-indigo-500/50 bg-indigo-500/10 text-indigo-700 dark:text-indigo-200"
+          : "border-neutral-200 dark:border-white/[0.09] bg-white dark:bg-white/[0.03] text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-white/20",
+      ].join(" ")}
+    >
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
+          >
+            <Icon
+              className={active ? "text-indigo-500" : "text-neutral-400"}
+              size={13}
+            />
+            <span className={active ? "text-[11px] uppercase tracking-wide opacity-70" : ""}>
+              {label}
+            </span>
+            {active && (
+              <>
+                <span className="opacity-40">·</span>
+                <span className="font-semibold">{value}</span>
+              </>
+            )}
+            <ChevronDown size={12} className="opacity-50" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          sideOffset={6}
+          className="w-80 p-0 overflow-hidden"
+        >
+          {popoverContent(() => setOpen(false))}
+        </PopoverContent>
+      </Popover>
+
+      {active && onClear && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClear();
+          }}
+          aria-label="Clear filter"
+          className="mr-1 flex h-5 w-5 items-center justify-center rounded-full text-neutral-400 hover:bg-black/5 hover:text-neutral-700 dark:hover:bg-white/10 dark:hover:text-neutral-200"
+        >
+          <X size={12} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── ServicePicker ────────────────────────────────────────────────────────────
+function ServicePicker({
+  providers,
+  selectedId,
+  onSelect,
+  allLabel,
+}: {
+  providers: { id: number; name: string; logo_url: string }[];
+  selectedId: number | null;
+  onSelect: (id: number | null) => void;
+  allLabel: string;
+}) {
+  return (
+    <div className="max-h-[360px] overflow-y-auto p-2">
+      <button
+        type="button"
+        onClick={() => onSelect(null)}
+        className={[
+          "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
+          selectedId === null
+            ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200"
+            : "text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5",
+        ].join(" ")}
+      >
+        <span className="font-medium">{allLabel}</span>
+        {selectedId === null && <Check size={14} />}
+      </button>
+      <div className="mt-1 grid grid-cols-4 gap-1.5 p-1">
+        {providers.map((p) => {
+          const active = selectedId === p.id;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => onSelect(p.id)}
+              title={p.name}
+              aria-label={p.name}
+              className={[
+                "relative flex aspect-square items-center justify-center rounded-lg border p-1.5 transition-all",
+                active
+                  ? "border-indigo-500 ring-2 ring-indigo-500/30 bg-indigo-500/5"
+                  : "border-neutral-200 dark:border-white/[0.08] hover:border-neutral-400 dark:hover:border-white/20",
+              ].join(" ")}
+            >
+              <img
+                src={p.logo_url}
+                alt={p.name}
+                className="h-full w-full rounded-md object-contain"
+              />
+              {active && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-white ring-2 ring-white dark:ring-neutral-800">
+                  <Check size={9} strokeWidth={3} />
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── GenrePicker ──────────────────────────────────────────────────────────────
+function GenrePicker({
+  genres,
+  selectedId,
+  onSelect,
+  allLabel,
+}: {
+  genres: { id: number; name: string }[];
+  selectedId: number | null;
+  onSelect: (id: number | null) => void;
+  allLabel: string;
+}) {
+  return (
+    <div className="max-h-[360px] overflow-y-auto p-2">
+      <button
+        type="button"
+        onClick={() => onSelect(null)}
+        className={[
+          "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
+          selectedId === null
+            ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200"
+            : "text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5",
+        ].join(" ")}
+      >
+        <span className="font-medium">{allLabel}</span>
+        {selectedId === null && <Check size={14} />}
+      </button>
+      <div className="mt-1 grid grid-cols-2 gap-1">
+        {genres.map((g) => {
+          const active = selectedId === g.id;
+          return (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => onSelect(g.id)}
+              className={[
+                "flex items-center justify-between rounded-md px-3 py-1.5 text-left text-sm transition-colors",
+                active
+                  ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200"
+                  : "text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5",
+              ].join(" ")}
+            >
+              <span className="truncate">{g.name}</span>
+              {active && <Check size={13} className="shrink-0" />}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── SortPicker ───────────────────────────────────────────────────────────────
+function SortPicker({
+  options,
+  selected,
+  onSelect,
+}: {
+  options: { value: string; label: string }[];
+  selected: string;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <div className="p-1.5">
+      {options.map((o) => {
+        const active = selected === o.value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => onSelect(o.value)}
+            className={[
+              "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
+              active
+                ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200 font-medium"
+                : "text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5",
+            ].join(" ")}
+          >
+            <span>{o.label}</span>
+            {active && <Check size={14} />}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
