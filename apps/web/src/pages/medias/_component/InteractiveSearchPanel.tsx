@@ -10,8 +10,8 @@ import {
   X,
 } from "lucide-react";
 import {
-  useProwlarrInteractiveDownload,
-  useProwlarrInteractiveSearch,
+  useInteractiveDownload,
+  useInteractiveSearch,
 } from "@/features/medias/hooks/useMedias";
 import {
   useLibraryGrabRelease,
@@ -37,13 +37,13 @@ import { ReleaseCard } from "./ReleaseCard";
 export interface InteractiveSearchPanelProps {
   isActive: boolean;
   media?: MediaItem | null;
-  mode?: "arr" | "prowlarr";
-  /** Native library row id — enables quality scoring on Prowlarr results */
+  mode?: "arr" | "search";
+  /** Native library row id — enables quality scoring on search results */
   libraryMediaId?: number | null;
-  /** Prefill Prowlarr query when opening (e.g. media title) — localized EN/FR (UI) title */
-  defaultProwlarrQuery?: string | null;
+  /** Prefill search query when opening (e.g. media title) — localized EN/FR (UI) title */
+  defaultSearchQuery?: string | null;
   /** Same query shape but using TMDB original-language title; enables title toggle */
-  prowlarrQueryOriginal?: string | null;
+  searchQueryOriginal?: string | null;
   /** Episode to link the grab to (shows only) */
   episodeId?: number | null;
   /** Pre-select a season (number) or complete series ("complete") when opening */
@@ -53,7 +53,7 @@ export interface InteractiveSearchPanelProps {
 
 interface FilterState {
   filterQuery: string;
-  prowlarrApiQuery: string;
+  searchApiQuery: string;
   showFilters: boolean;
   hideRejected: boolean;
   sortBy: InteractiveSortKey;
@@ -69,10 +69,10 @@ interface FilterState {
 export function InteractiveSearchPanel({
   isActive,
   media = null,
-  mode = "prowlarr",
+  mode = "search",
   libraryMediaId = null,
-  defaultProwlarrQuery = null,
-  prowlarrQueryOriginal = null,
+  defaultSearchQuery = null,
+  searchQueryOriginal = null,
   episodeId = null,
   defaultSeason = null,
   onDownloadSuccess,
@@ -81,20 +81,20 @@ export function InteractiveSearchPanel({
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const libId =
     libraryMediaId != null && libraryMediaId > 0 ? libraryMediaId : null;
-  const isProwlarrMode = mode === "prowlarr";
+  const isSearchMode = mode === "search";
   const sourceId = media?.source_id ?? null;
-  const canRenderBody = isProwlarrMode || (media != null && sourceId != null);
+  const canRenderBody = isSearchMode || (media != null && sourceId != null);
 
-  const localizedProwlQuery = defaultProwlarrQuery?.trim() ?? "";
-  const originalProwlQuery = prowlarrQueryOriginal?.trim() ?? "";
-  const canToggleProwlarrTitle =
-    isProwlarrMode &&
-    originalProwlQuery.length >= 2 &&
-    originalProwlQuery !== localizedProwlQuery;
+  const localizedQuery = defaultSearchQuery?.trim() ?? "";
+  const originalQuery = searchQueryOriginal?.trim() ?? "";
+  const canToggleSearchTitle =
+    isSearchMode &&
+    originalQuery.length >= 2 &&
+    originalQuery !== localizedQuery;
 
   const buildInitialFilters = (): FilterState => ({
     filterQuery: "",
-    prowlarrApiQuery: localizedProwlQuery,
+    searchApiQuery: localizedQuery,
     showFilters: false,
     hideRejected: true,
     sortBy: libId ? "quality" : "seeders",
@@ -113,7 +113,7 @@ export function InteractiveSearchPanel({
 
   const {
     filterQuery,
-    prowlarrApiQuery,
+    searchApiQuery,
     showFilters,
     hideRejected,
     sortBy,
@@ -136,28 +136,30 @@ export function InteractiveSearchPanel({
       .sort((a, b) => a - b);
   }, [episodesQuery.data]);
 
-  const prowlarrSearchQuery = useProwlarrInteractiveSearch(prowlarrApiQuery, {
+  const interactiveSearchQuery = useInteractiveSearch(searchApiQuery, {
     enabled: isActive,
     library_media_id: libId,
     season: selectedSeason,
-    tmdb_id: selectedSeason != null ? mediaTmdbId : null,
+    tmdb_id: mediaTmdbId ?? null,
+    media_type:
+      media?.media_type === "series" ? "tv" : (media?.media_type ?? null),
   });
-  const prowlarrDownloadMutation = useProwlarrInteractiveDownload();
+  const interactiveDownloadMutation = useInteractiveDownload();
   const libraryGrabMutation = useLibraryGrabRelease(libId);
-  const activeQuery = prowlarrSearchQuery;
+  const activeQuery = interactiveSearchQuery;
   const grabBusy =
-    libraryGrabMutation.isPending || prowlarrDownloadMutation.isPending;
+    libraryGrabMutation.isPending || interactiveDownloadMutation.isPending;
 
   useLayoutEffect(() => {
     if (!isActive) return;
     setFilters(buildInitialFilters());
     setPendingReleaseKey(null);
-    // buildInitialFilters reads defaultProwlarrQuery, defaultSeason, libId from closure
+    // buildInitialFilters reads defaultSearchQuery, defaultSeason, libId from closure
   }, [
     isActive,
     media?.id,
-    defaultProwlarrQuery,
-    prowlarrQueryOriginal,
+    defaultSearchQuery,
+    searchQueryOriginal,
     defaultSeason,
     libId,
   ]);
@@ -168,21 +170,19 @@ export function InteractiveSearchPanel({
       searchInputRef.current?.focus();
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [isActive, media?.id, defaultProwlarrQuery, prowlarrQueryOriginal, libId]);
+  }, [isActive, media?.id, defaultSearchQuery, searchQueryOriginal, libId]);
 
-  const toggleProwlarrTitleVariant = () => {
-    if (!canToggleProwlarrTitle) return;
+  const toggleSearchTitleVariant = () => {
+    if (!canToggleSearchTitle) return;
     setFilters((prev) => ({
       ...prev,
-      prowlarrApiQuery:
-        prev.prowlarrApiQuery === originalProwlQuery
-          ? localizedProwlQuery
-          : originalProwlQuery,
+      searchApiQuery:
+        prev.searchApiQuery === originalQuery ? localizedQuery : originalQuery,
     }));
   };
 
   const isOriginalTitleQuery =
-    canToggleProwlarrTitle && prowlarrApiQuery === originalProwlQuery;
+    canToggleSearchTitle && searchApiQuery === originalQuery;
 
   const trackerOptions = useMemo<FilterOption[]>(() => {
     const options = new Map<string, string>();
@@ -238,8 +238,8 @@ export function InteractiveSearchPanel({
       includedLanguages,
       sortBy,
       sortDir,
-      isProwlarrMode: true,
-      mediaTitle: media?.title ?? defaultProwlarrQuery ?? null,
+      isSearchMode: true,
+      mediaTitle: media?.title ?? defaultSearchQuery ?? null,
       mediaYear: media?.year ?? null,
     });
     if (showPacksOnly || selectedSeason != null) {
@@ -248,7 +248,7 @@ export function InteractiveSearchPanel({
     return list;
   }, [
     activeQuery.data?.releases,
-    defaultProwlarrQuery,
+    defaultSearchQuery,
     excludedTrackers,
     filterQuery,
     hideRejected,
@@ -267,7 +267,7 @@ export function InteractiveSearchPanel({
     setPendingReleaseKey(releaseKey);
 
     try {
-      if (isProwlarrMode && libId != null && release.download_url) {
+      if (isSearchMode && libId != null && release.download_url) {
         // Library grab — records in DB and sends URL to qBittorrent
         if (libraryGrabMutation.isPending) return;
         await libraryGrabMutation.mutateAsync({
@@ -278,12 +278,23 @@ export function InteractiveSearchPanel({
           size_bytes: release.size_bytes,
           episode_id: episodeId,
         });
-      } else if (isProwlarrMode && release.download_token) {
-        // Token-based Prowlarr download (fallback when download_url unavailable)
-        if (prowlarrDownloadMutation.isPending) return;
-        await prowlarrDownloadMutation.mutateAsync({
+      } else if (isSearchMode && release.download_token) {
+        if (interactiveDownloadMutation.isPending) return;
+        const res = await interactiveDownloadMutation.mutateAsync({
           token: release.download_token,
         });
+        const resolvedUrl = res.magnet_url ?? res.download_url;
+        if (libId != null && resolvedUrl) {
+          if (libraryGrabMutation.isPending) return;
+          await libraryGrabMutation.mutateAsync({
+            download_url: resolvedUrl,
+            release_title: release.title,
+            indexer: release.indexer,
+            quality_parsed: release.parsed_quality ?? undefined,
+            size_bytes: release.size_bytes,
+            episode_id: episodeId,
+          });
+        }
       } else {
         return;
       }
@@ -315,7 +326,7 @@ export function InteractiveSearchPanel({
   const hiddenCount = Math.max(0, totalReleases - visibleCount);
   const errorMessage =
     activeQuery.error instanceof Error ? activeQuery.error.message : null;
-  const needsProwlarrQuery = prowlarrApiQuery.length < 2;
+  const needsSearchQuery = searchApiQuery.length < 2;
 
   if (!canRenderBody) return null;
 
@@ -483,7 +494,7 @@ export function InteractiveSearchPanel({
               <button
                 type="button"
                 onClick={() => void activeQuery.refetch()}
-                disabled={activeQuery.isFetching || needsProwlarrQuery}
+                disabled={activeQuery.isFetching || needsSearchQuery}
                 className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
               >
                 <RefreshCw
@@ -497,7 +508,7 @@ export function InteractiveSearchPanel({
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-              {!needsProwlarrQuery && (
+              {!needsSearchQuery && (
                 <span className="font-medium text-neutral-700 dark:text-neutral-200">
                   {t("medias.interactive.resultsVisible", {
                     visible: visibleCount,
@@ -505,16 +516,16 @@ export function InteractiveSearchPanel({
                   })}
                 </span>
               )}
-              {!needsProwlarrQuery && hiddenCount > 0 && (
+              {!needsSearchQuery && hiddenCount > 0 && (
                 <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] dark:bg-neutral-800">
                   {t("medias.interactive.hiddenCount", { count: hiddenCount })}
                 </span>
               )}
               <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] dark:bg-neutral-800 flex items-center gap-1 max-w-[min(100%,280px)]">
-                {canToggleProwlarrTitle ? (
+                {canToggleSearchTitle ? (
                   <button
                     type="button"
-                    onClick={toggleProwlarrTitleVariant}
+                    onClick={toggleSearchTitleVariant}
                     title={
                       isOriginalTitleQuery
                         ? t("medias.interactive.useLocalizedTitleHint")
@@ -522,12 +533,12 @@ export function InteractiveSearchPanel({
                     }
                     className="flex min-w-0 flex-1 items-center gap-1 text-left transition-colors hover:bg-neutral-200/80 dark:hover:bg-neutral-700/80 rounded-md -mx-0.5 px-0.5"
                   >
-                    <span className="text-neutral-400 shrink-0">Prowlarr:</span>
+                    <span className="text-neutral-400 shrink-0">Search:</span>
                     <span
                       className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                      title={prowlarrApiQuery}
+                      title={searchApiQuery}
                     >
-                      {prowlarrApiQuery || "…"}
+                      {searchApiQuery || "…"}
                     </span>
                     <span
                       className={`shrink-0 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wide ${
@@ -543,12 +554,12 @@ export function InteractiveSearchPanel({
                   </button>
                 ) : (
                   <>
-                    <span className="text-neutral-400 shrink-0">Prowlarr:</span>
+                    <span className="text-neutral-400 shrink-0">Search:</span>
                     <span
                       className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                      title={prowlarrApiQuery}
+                      title={searchApiQuery}
                     >
-                      {prowlarrApiQuery || "…"}
+                      {searchApiQuery || "…"}
                     </span>
                   </>
                 )}
@@ -702,7 +713,7 @@ export function InteractiveSearchPanel({
       </div>
 
       <div className="pt-4">
-        {needsProwlarrQuery ? (
+        {needsSearchQuery ? (
           <div className="flex h-full items-center justify-center py-8">
             <div className="max-w-md text-center text-sm text-neutral-500 dark:text-neutral-400">
               {t("medias.interactive.minQuery")}

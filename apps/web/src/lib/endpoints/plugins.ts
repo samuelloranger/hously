@@ -6,6 +6,7 @@ export const PLUGIN_ENDPOINTS = {
   SONARR: "/api/plugins/sonarr",
   SONARR_PROFILES: "/api/plugins/sonarr/profiles",
   PROWLARR: "/api/plugins/prowlarr",
+  JACKETT: "/api/plugins/jackett",
   QBITTORRENT: "/api/plugins/qbittorrent",
   SCRUTINY: "/api/plugins/scrutiny",
   BESZEL: "/api/plugins/beszel",

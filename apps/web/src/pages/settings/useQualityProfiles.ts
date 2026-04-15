@@ -110,12 +110,11 @@ export function profileToForm(p: QualityProfile): QualityProfileFormPayload {
   };
 }
 
-export function useProwlarrIndexers(enabled: boolean) {
+export function useIndexers(enabled: boolean) {
   const fetcher = useFetcher();
   return useQuery({
-    queryKey: queryKeys.prowlarr.indexers(),
-    queryFn: () =>
-      fetcher<ProwlarrIndexersResponse>(MEDIAS_ENDPOINTS.PROWLARR_INDEXERS),
+    queryKey: queryKeys.indexerManager.indexers(),
+    queryFn: () => fetcher<ProwlarrIndexersResponse>(MEDIAS_ENDPOINTS.INDEXERS),
     enabled,
     staleTime: 60_000,
   });

@@ -135,6 +135,7 @@ export function scoreRelease(
   sizeBytes: number | null,
   releaseTitleForFlags?: string | null,
   indexerName?: string | null,
+  freeleech?: boolean,
 ): number | string[] {
   const rejections: string[] = [];
 
@@ -199,6 +200,9 @@ export function scoreRelease(
 
   // PROPER/REPACK releases fix mastering errors — prefer them over the original at same quality
   if (parsed.isProper) score += 150;
+
+  // Freeleech releases don't count against ratio — prefer them on private trackers
+  if (freeleech) score += 200;
 
   if (profile.maxSizeGb == null && sizeBytes != null) {
     const gb = sizeBytes / 1e9;

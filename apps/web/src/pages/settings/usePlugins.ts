@@ -14,6 +14,8 @@ import type {
   BeszelPluginUpdateResponse,
   ProwlarrPlugin,
   ProwlarrPluginUpdateResponse,
+  JackettPlugin,
+  JackettPluginUpdateResponse,
   QbittorrentPlugin,
   QbittorrentPluginUpdateResponse,
   ScrutinyPlugin,
@@ -113,6 +115,16 @@ export function useProwlarrPlugin() {
     queryKey: queryKeys.plugins.prowlarr(),
     queryFn: () =>
       fetcher<{ plugin: ProwlarrPlugin }>(PLUGIN_ENDPOINTS.PROWLARR),
+    refetchOnMount: "always",
+    staleTime: 0,
+  });
+}
+
+export function useJackettPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.jackett(),
+    queryFn: () => fetcher<{ plugin: JackettPlugin }>(PLUGIN_ENDPOINTS.JACKETT),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -270,6 +282,25 @@ export function useUpdateProwlarrPlugin() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plugins.prowlarr() });
+    },
+  });
+}
+
+export function useUpdateJackettPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      website_url: string;
+      api_key: string;
+      enabled: boolean;
+    }) =>
+      fetcher<JackettPluginUpdateResponse>(PLUGIN_ENDPOINTS.JACKETT, {
+        method: "PUT",
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.plugins.jackett() });
     },
   });
 }

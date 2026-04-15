@@ -41,6 +41,7 @@ function mapSettings(row: {
   minSeedRatio: number;
   postProcessingEnabled: boolean;
   defaultQualityProfileId?: number | null;
+  activeIndexerManager?: string | null;
   updatedAt: Date;
 }) {
   return {
@@ -52,6 +53,7 @@ function mapSettings(row: {
     min_seed_ratio: row.minSeedRatio,
     post_processing_enabled: row.postProcessingEnabled,
     default_quality_profile_id: row.defaultQualityProfileId ?? null,
+    active_indexer_manager: row.activeIndexerManager ?? null,
     updated_at: row.updatedAt.toISOString(),
   };
 }
@@ -86,6 +88,7 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
           minSeedRatio?: number;
           postProcessingEnabled?: boolean;
           defaultQualityProfileId?: number | null;
+          activeIndexerManager?: string | null;
         } = {};
         if (body.movies_library_path !== undefined)
           update.moviesLibraryPath = body.movies_library_path;
@@ -110,6 +113,19 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
           update.postProcessingEnabled = body.post_processing_enabled;
         if (body.default_quality_profile_id !== undefined)
           update.defaultQualityProfileId = body.default_quality_profile_id;
+        if (body.active_indexer_manager !== undefined) {
+          if (
+            body.active_indexer_manager !== null &&
+            body.active_indexer_manager !== "prowlarr" &&
+            body.active_indexer_manager !== "jackett"
+          ) {
+            return badRequest(
+              set,
+              "active_indexer_manager must be prowlarr, jackett, or null",
+            );
+          }
+          update.activeIndexerManager = body.active_indexer_manager;
+        }
 
         let row = await prisma.mediaSettings.findUnique({ where: { id: 1 } });
         if (!row) {
@@ -139,6 +155,9 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
         min_seed_ratio: t.Optional(t.Number({ minimum: 0, maximum: 100 })),
         post_processing_enabled: t.Optional(t.Boolean()),
         default_quality_profile_id: t.Optional(t.Union([t.Number(), t.Null()])),
+        active_indexer_manager: t.Optional(
+          t.Union([t.Literal("prowlarr"), t.Literal("jackett"), t.Null()]),
+        ),
       }),
     },
   )

@@ -62,6 +62,8 @@ export interface ParsedQualityFields {
   hdr: string | null;
 }
 
+export type IndexerManagerType = "prowlarr" | "jackett";
+
 export interface InteractiveReleaseItem {
   guid: string;
   title: string;
@@ -76,7 +78,7 @@ export interface InteractiveReleaseItem {
   rejected: boolean;
   rejection_reason: string | null;
   info_url: string | null;
-  source: "prowlarr";
+  source: IndexerManagerType;
   download_token?: string | null;
   /** Resolved magnet or .torrent URL (Prowlarr); used for Hously library grabs */
   download_url?: string | null;
@@ -93,11 +95,13 @@ export interface InteractiveReleaseItem {
   is_season_pack?: boolean;
   /** True when the release is a complete series (intégrale, Complete Series, …) */
   is_complete_series?: boolean;
+  /** True when the release is freeleech on the tracker (Jackett-only) */
+  freeleech?: boolean;
 }
 
 export interface MediaInteractiveSearchResponse {
   success: boolean;
-  service: "prowlarr";
+  service: IndexerManagerType;
   releases: InteractiveReleaseItem[];
 }
 
@@ -120,7 +124,9 @@ export interface SimilarMediasResponse {
 
 export interface MediaInteractiveDownloadResponse {
   success: boolean;
-  service: "prowlarr";
+  service: IndexerManagerType;
+  download_url?: string | null;
+  magnet_url?: string | null;
 }
 
 export interface TmdbStreamingProvider {

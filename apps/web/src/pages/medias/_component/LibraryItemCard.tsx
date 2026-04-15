@@ -101,8 +101,7 @@ export function LibraryItemCard({
           )}
           {item.type === "movie" &&
             item.status === "wanted" &&
-            onMovieSearch &&
-            item.search_attempts < 5 && (
+            onMovieSearch && (
               <button
                 type="button"
                 onClick={(e) => {

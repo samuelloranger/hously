@@ -6,6 +6,7 @@ import {
   JellyfinPluginSection,
   BeszelPluginSection,
   ProwlarrPluginSection,
+  JackettPluginSection,
   QbittorrentPluginSection,
   ScrutinyPluginSection,
   TmdbPluginSection,
@@ -70,7 +71,15 @@ export function PluginsTab() {
             <div className="space-y-3">
               <JellyfinPluginSection />
               <TmdbPluginSection />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 px-1">
+              {t("settings.plugins.indexers")}
+            </h3>
+            <div className="space-y-3">
               <ProwlarrPluginSection />
+              <JackettPluginSection />
             </div>
           </div>
           <div className="space-y-3">

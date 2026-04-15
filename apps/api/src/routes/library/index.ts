@@ -629,19 +629,11 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         const media = await prisma.libraryMedia.findUnique({ where: { id } });
         if (!media) return notFound(set, "Library item not found");
         // For shows, episode-level status governs grabs — don't gate on media status
-        if (media.type === "movie") {
-          if (media.status === "downloading") {
-            return badRequest(
-              set,
-              "This item cannot be grabbed in its current state",
-            );
-          }
-          if (media.searchAttempts >= MAX_LIBRARY_GRAB_ATTEMPTS) {
-            return badRequest(
-              set,
-              "Maximum search attempts reached; item was skipped",
-            );
-          }
+        if (media.type === "movie" && media.status === "downloading") {
+          return badRequest(
+            set,
+            "This item cannot be grabbed in its current state",
+          );
         }
 
         const episodeId = body.episode_id ?? undefined;
@@ -713,11 +705,13 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
             "This item cannot be grabbed in its current state",
           );
         }
+
+        // Reset attempts on manual search so the user isn't blocked
         if (media.searchAttempts >= MAX_LIBRARY_GRAB_ATTEMPTS) {
-          return badRequest(
-            set,
-            "Maximum search attempts reached; item was skipped",
-          );
+          await prisma.libraryMedia.update({
+            where: { id },
+            data: { searchAttempts: 0, status: "wanted" },
+          });
         }
 
         const q =
@@ -790,11 +784,13 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
             "This episode cannot be grabbed in its current state",
           );
         }
+
+        // Reset attempts on manual search so the user isn't blocked
         if (ep.searchAttempts >= MAX_LIBRARY_GRAB_ATTEMPTS) {
-          return badRequest(
-            set,
-            "Maximum search attempts reached for this episode",
-          );
+          await prisma.libraryEpisode.update({
+            where: { id: episodeId },
+            data: { searchAttempts: 0, status: "wanted" },
+          });
         }
 
         const s = String(ep.season).padStart(2, "0");

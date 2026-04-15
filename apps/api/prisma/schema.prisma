@@ -669,6 +669,7 @@ model MediaSettings {
   minSeedRatio            Float    @default(1) @map("min_seed_ratio")
   postProcessingEnabled   Boolean  @default(false) @map("post_processing_enabled")
   defaultQualityProfileId Int?     @map("default_quality_profile_id")
+  activeIndexerManager    String?  @map("active_indexer_manager")
   updatedAt               DateTime @updatedAt @map("updated_at")
 
   defaultQualityProfile QualityProfile? @relation("DefaultQualityProfile", fields: [defaultQualityProfileId], references: [id], onDelete: SetNull)

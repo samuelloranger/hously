@@ -1,3 +1,5 @@
+import type { IndexerManagerType } from "./media";
+
 export type LibraryMediaStatus =
   | "wanted"
   | "downloading"
@@ -205,6 +207,7 @@ export interface MediaPostProcessingSettings {
   min_seed_ratio: number;
   post_processing_enabled: boolean;
   default_quality_profile_id: number | null;
+  active_indexer_manager: IndexerManagerType | null;
   updated_at: string;
 }
 
@@ -221,6 +224,7 @@ export interface UpdateMediaPostProcessingSettingsRequest {
   min_seed_ratio?: number;
   post_processing_enabled?: boolean;
   default_quality_profile_id?: number | null;
+  active_indexer_manager?: IndexerManagerType | null;
 }
 
 export interface LibraryScanRequest {

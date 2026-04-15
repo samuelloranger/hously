@@ -38,6 +38,13 @@ export interface ProwlarrPlugin {
   api_key: string;
 }
 
+export interface JackettPlugin {
+  type: "jackett";
+  enabled: boolean;
+  website_url: string;
+  api_key: string;
+}
+
 export interface QbittorrentPlugin {
   type: "qbittorrent";
   enabled: boolean;
@@ -145,6 +152,11 @@ export interface SonarrPluginUpdateResponse {
 export interface ProwlarrPluginUpdateResponse {
   success: boolean;
   plugin: ProwlarrPlugin;
+}
+
+export interface JackettPluginUpdateResponse {
+  success: boolean;
+  plugin: JackettPlugin;
 }
 
 export interface QbittorrentPluginUpdateResponse {

@@ -2,6 +2,7 @@ import type {
   AdguardPluginConfig,
   JellyfinPluginConfig,
   BeszelPluginConfig,
+  IndexerPluginConfig,
   NetdataPluginConfig,
   ProwlarrPluginConfig,
   RadarrPluginConfig,
@@ -132,6 +133,24 @@ export const normalizeSonarrConfig = (
 export const normalizeProwlarrConfig = (
   config: unknown,
 ): ProwlarrPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
+  const cfg = config as Record<string, unknown>;
+
+  const apiKey = normalizeSecret(cfg.api_key);
+  const websiteUrl =
+    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
+
+  if (!apiKey || !websiteUrl) return null;
+  return {
+    api_key: apiKey,
+    website_url: websiteUrl.replace(/\/+$/, ""),
+  };
+};
+
+export const normalizeJackettConfig = (
+  config: unknown,
+): IndexerPluginConfig | null => {
   if (!config || typeof config !== "object" || Array.isArray(config))
     return null;
   const cfg = config as Record<string, unknown>;

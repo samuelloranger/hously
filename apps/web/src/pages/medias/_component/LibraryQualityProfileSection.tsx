@@ -65,33 +65,29 @@ export function LibraryQualityProfileSection({
             </select>
           </div>
 
-          {mediaRow?.type === "movie" &&
-            mediaRow.status === "wanted" &&
-            mediaRow.search_attempts < 5 && (
-              <button
-                type="button"
-                onClick={() => {
-                  void searchMovieMut
-                    .mutateAsync({ id: libraryId })
-                    .then((r) => {
-                      if (r.grabbed)
-                        toast.success(t("library.management.grabbed"));
-                      else
-                        toast.error(
-                          r.reason ?? t("library.management.grabFailed"),
-                        );
-                    })
-                    .catch(() =>
-                      toast.error(t("library.management.grabFailed")),
-                    );
-                }}
-                disabled={searchMovieMut.isPending}
-                className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors shrink-0"
-              >
-                <Search size={10} />
-                {t("library.management.searchNow")}
-              </button>
-            )}
+          {mediaRow?.type === "movie" && mediaRow.status === "wanted" && (
+            <button
+              type="button"
+              onClick={() => {
+                void searchMovieMut
+                  .mutateAsync({ id: libraryId })
+                  .then((r) => {
+                    if (r.grabbed)
+                      toast.success(t("library.management.grabbed"));
+                    else
+                      toast.error(
+                        r.reason ?? t("library.management.grabFailed"),
+                      );
+                  })
+                  .catch(() => toast.error(t("library.management.grabFailed")));
+              }}
+              disabled={searchMovieMut.isPending}
+              className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors shrink-0"
+            >
+              <Search size={10} />
+              {t("library.management.searchNow")}
+            </button>
+          )}
         </div>
       </div>
     </Card>

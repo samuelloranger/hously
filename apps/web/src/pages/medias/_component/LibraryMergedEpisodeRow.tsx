@@ -116,7 +116,7 @@ export function MergedEpisodeRow({
               <Search size={11} />
             </button>
           )}
-          {ep.status === "wanted" && ep.search_attempts < 5 && (
+          {ep.status === "wanted" && (
             <button
               type="button"
               onClick={(e) => {
