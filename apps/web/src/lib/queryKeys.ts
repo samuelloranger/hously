@@ -146,6 +146,9 @@ export const queryKeys = {
     scheduledJobs: () => [...queryKeys.admin.all, "scheduled-jobs"] as const,
     testEmailTemplates: () =>
       [...queryKeys.admin.all, "test-email-templates"] as const,
+    queueJobs: (queue: string, status?: string) =>
+      [...queryKeys.admin.all, "queue-jobs", queue, status] as const,
+    jobHistory: () => [...queryKeys.admin.all, "job-history"] as const,
   },
 
   calendar: {

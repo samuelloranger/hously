@@ -12,6 +12,7 @@ import {
   notificationsQueue,
   defaultQueue,
   activityLogsQueue,
+  libraryMigrateQueue,
   QUEUE_NAMES,
   addJob,
   SCHEDULED_JOB_NAMES,
@@ -49,6 +50,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       await getStats("Notifications", notificationsQueue),
       await getStats("Activity Logs", activityLogsQueue),
       await getStats("Default", defaultQueue),
+      await getStats("Library Migrate", libraryMigrateQueue),
     ];
 
     // Map repeatable jobs to their current status if they have an active/waiting instance
@@ -155,6 +157,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       notifications: notificationsQueue,
       "activity-logs": activityLogsQueue,
       default: defaultQueue,
+      "library-migrate": libraryMigrateQueue,
     };
 
     const queue = queueMap[params.name];
@@ -206,7 +209,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       const adminUser = user!;
       const { action } = body;
 
-      // Map old action names to new BullMQ job names
+      // Map action names to BullMQ job names
       const actionMap: Record<string, string> = {
         check_reminders: SCHEDULED_JOB_NAMES.CHECK_REMINDERS,
         check_all_day_events: SCHEDULED_JOB_NAMES.CHECK_ALL_DAY_EVENTS,
@@ -217,6 +220,17 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         fetch_c411_stats: SCHEDULED_JOB_NAMES.FETCH_C411_STATS,
         fetch_torr9_stats: SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS,
         fetch_la_cale_stats: SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS,
+        check_habit_reminders: SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS,
+        check_movie_release_reminders:
+          SCHEDULED_JOB_NAMES.CHECK_MOVIE_RELEASE_REMINDERS,
+        check_library_movie_releases:
+          SCHEDULED_JOB_NAMES.CHECK_LIBRARY_MOVIE_RELEASES,
+        check_library_episode_releases:
+          SCHEDULED_JOB_NAMES.CHECK_LIBRARY_EPISODE_RELEASES,
+        sync_library_show_episodes:
+          SCHEDULED_JOB_NAMES.SYNC_LIBRARY_SHOW_EPISODES,
+        check_library_download_completion:
+          SCHEDULED_JOB_NAMES.CHECK_LIBRARY_DOWNLOAD_COMPLETION,
       };
 
       const jobName = actionMap[action] || action;
@@ -248,6 +262,186 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       }),
     },
   )
+
+  // POST /api/admin/queues/:name/jobs/:jobId/retry - Retry a single failed job
+  .post(
+    "/queues/:name/jobs/:jobId/retry",
+    async ({ params, set }) => {
+      const queueMap: Record<string, Queue> = {
+        "scheduled-tasks": scheduledTasksQueue,
+        notifications: notificationsQueue,
+        "activity-logs": activityLogsQueue,
+        default: defaultQueue,
+        "library-migrate": libraryMigrateQueue,
+      };
+
+      const queue = queueMap[params.name];
+      if (!queue) return badRequest(set, "Queue not found");
+
+      try {
+        const job = await queue.getJob(params.jobId);
+        if (!job) return notFound(set, "Job not found");
+
+        const state = await job.getState();
+        if (state !== "failed")
+          return badRequest(set, `Job is ${state}, not failed`);
+
+        await job.retry(state);
+        return {
+          success: true,
+          message: `Job ${params.jobId} queued for retry`,
+        };
+      } catch (error) {
+        console.error("Error retrying job:", error);
+        return serverError(set, "Failed to retry job");
+      }
+    },
+    { params: t.Object({ name: t.String(), jobId: t.String() }) },
+  )
+
+  // POST /api/admin/queues/:name/retry-failed - Retry all failed jobs in a queue
+  .post(
+    "/queues/:name/retry-failed",
+    async ({ params, set }) => {
+      const queueMap: Record<string, Queue> = {
+        "scheduled-tasks": scheduledTasksQueue,
+        notifications: notificationsQueue,
+        "activity-logs": activityLogsQueue,
+        default: defaultQueue,
+        "library-migrate": libraryMigrateQueue,
+      };
+
+      const queue = queueMap[params.name];
+      if (!queue) return badRequest(set, "Queue not found");
+
+      try {
+        const failed = await queue.getJobs(["failed"]);
+        let retried = 0;
+        for (const job of failed) {
+          await job.retry("failed");
+          retried++;
+        }
+        return {
+          success: true,
+          message: `Retried ${retried} failed jobs`,
+          retried,
+        };
+      } catch (error) {
+        console.error("Error retrying failed jobs:", error);
+        return serverError(set, "Failed to retry jobs");
+      }
+    },
+    { params: t.Object({ name: t.String() }) },
+  )
+
+  // DELETE /api/admin/queues/:name/clean - Clean completed/failed jobs from a queue
+  .delete(
+    "/queues/:name/clean",
+    async ({ params, query, set }) => {
+      const queueMap: Record<string, Queue> = {
+        "scheduled-tasks": scheduledTasksQueue,
+        notifications: notificationsQueue,
+        "activity-logs": activityLogsQueue,
+        default: defaultQueue,
+        "library-migrate": libraryMigrateQueue,
+      };
+
+      const queue = queueMap[params.name];
+      if (!queue) return badRequest(set, "Queue not found");
+
+      const status = (query.status as string) || "completed";
+      if (!["completed", "failed"].includes(status))
+        return badRequest(set, "Status must be completed or failed");
+
+      const grace = parseInt(query.grace as string) || 0;
+
+      try {
+        const cleaned = await queue.clean(
+          grace,
+          1000,
+          status as "completed" | "failed",
+        );
+        return {
+          success: true,
+          message: `Cleaned ${cleaned.length} ${status} jobs`,
+          cleaned: cleaned.length,
+        };
+      } catch (error) {
+        console.error("Error cleaning queue:", error);
+        return serverError(set, "Failed to clean queue");
+      }
+    },
+    { params: t.Object({ name: t.String() }) },
+  )
+
+  // GET /api/admin/jobs/history - Recent job history across all queues
+  .get("/jobs/history", async ({ query }) => {
+    const limit = parseInt(query.limit as string) || 50;
+
+    const allQueues: { name: string; queue: Queue }[] = [
+      { name: "scheduled-tasks", queue: scheduledTasksQueue },
+      { name: "notifications", queue: notificationsQueue },
+      { name: "activity-logs", queue: activityLogsQueue },
+      { name: "default", queue: defaultQueue },
+      { name: "library-migrate", queue: libraryMigrateQueue },
+    ];
+
+    const allJobs: Array<{
+      id: string;
+      name: string;
+      queue: string;
+      status: string;
+      timestamp: string;
+      processed_on: string | null;
+      finished_on: string | null;
+      duration: number | null;
+      failed_reason: string | null;
+      attempts_made: number;
+    }> = [];
+
+    for (const { name, queue } of allQueues) {
+      const jobs = await queue.getJobs(
+        ["completed", "failed"],
+        0,
+        limit - 1,
+        false,
+      );
+
+      for (const job of jobs) {
+        const state = await job.getState();
+        const duration =
+          job.finishedOn && job.processedOn
+            ? job.finishedOn - job.processedOn
+            : null;
+
+        allJobs.push({
+          id: job.id ?? "",
+          name: job.name,
+          queue: name,
+          status: state,
+          timestamp: new Date(job.timestamp).toISOString(),
+          processed_on: job.processedOn
+            ? new Date(job.processedOn).toISOString()
+            : null,
+          finished_on: job.finishedOn
+            ? new Date(job.finishedOn).toISOString()
+            : null,
+          duration,
+          failed_reason: job.failedReason ?? null,
+          attempts_made: job.attemptsMade,
+        });
+      }
+    }
+
+    // Sort by finished_on descending (most recent first)
+    allJobs.sort((a, b) => {
+      const aTime = a.finished_on ? new Date(a.finished_on).getTime() : 0;
+      const bTime = b.finished_on ? new Date(b.finished_on).getTime() : 0;
+      return bTime - aTime;
+    });
+
+    return { jobs: allJobs.slice(0, limit) };
+  })
 
   // GET /api/admin/users - List all users
   .get("/users", async ({ set }) => {

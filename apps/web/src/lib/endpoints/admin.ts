@@ -20,4 +20,11 @@ export const ADMIN_ENDPOINTS = {
   DELETE_PUSH_TOKEN: (id: number) => `/api/admin/push-tokens/${id}`,
   WEB_PUSH: "/api/admin/web-push",
   DELETE_WEB_PUSH: (id: number) => `/api/admin/web-push/${id}`,
+  RETRY_JOB: (queue: string, jobId: string) =>
+    `/api/admin/queues/${queue}/jobs/${jobId}/retry`,
+  RETRY_FAILED: (queue: string) => `/api/admin/queues/${queue}/retry-failed`,
+  CLEAN_QUEUE: (queue: string, status: string, grace?: number) =>
+    `/api/admin/queues/${queue}/clean?status=${status}&grace=${grace ?? 0}`,
+  JOB_HISTORY: (limit?: number) =>
+    `/api/admin/jobs/history?limit=${limit ?? 50}`,
 } as const;
