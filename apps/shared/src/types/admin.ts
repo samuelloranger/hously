@@ -220,3 +220,37 @@ export interface DeleteWebPushResponse {
   success: boolean;
   message: string;
 }
+
+export interface RetryJobResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface RetryFailedResponse {
+  success: boolean;
+  message: string;
+  retried: number;
+}
+
+export interface CleanQueueResponse {
+  success: boolean;
+  message: string;
+  cleaned: number;
+}
+
+export interface JobHistoryEntry {
+  id: string;
+  name: string;
+  queue: string;
+  status: string;
+  timestamp: string;
+  processed_on: string | null;
+  finished_on: string | null;
+  duration: number | null;
+  failed_reason: string | null;
+  attempts_made: number;
+}
+
+export interface JobHistoryResponse {
+  jobs: JobHistoryEntry[];
+}

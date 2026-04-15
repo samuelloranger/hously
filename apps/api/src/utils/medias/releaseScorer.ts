@@ -126,7 +126,8 @@ function languagePreferenceScore(title: string, preferred: string[]): number {
  * Score a parsed release against a quality profile.
  * @param releaseTitleForFlags raw indexer title (used for parseAudioFlags / language bonus)
  * @param indexerName name of the Prowlarr indexer (used for tracker priority bonus)
- * @returns null if the release fails hard requirements.
+ * @returns a numeric score on success, or a non-empty string[] listing the hard-requirement
+ *   failures (one entry per failed constraint) when the release is rejected.
  */
 export function scoreRelease(
   parsed: ParsedRelease,
@@ -135,18 +136,22 @@ export function scoreRelease(
   releaseTitleForFlags?: string | null,
   indexerName?: string | null,
   freeleech?: boolean,
-): number | null {
+): number | string[] {
+  const rejections: string[] = [];
+
   const pr = resolutionRank(parsed.resolution);
   const minR = minResolutionRank(profile.minResolution);
-  if (minR == null || pr == null) return null;
-  if (pr < minR) return null;
-
-  if (profile.cutoffResolution != null) {
-    const cutoffR = minResolutionRank(profile.cutoffResolution);
-    if (cutoffR != null && pr > cutoffR) return null;
+  if (minR == null || pr == null) {
+    rejections.push("Resolution");
+  } else {
+    if (pr < minR) rejections.push("Resolution");
+    else if (profile.cutoffResolution != null) {
+      const cutoffR = minResolutionRank(profile.cutoffResolution);
+      if (cutoffR != null && pr > cutoffR) rejections.push("Resolution");
+    }
   }
 
-  if (profile.requireHdr && !parsed.hdr) return null;
+  if (profile.requireHdr && !parsed.hdr) rejections.push("HDR");
 
   if (profile.preferredLanguages.length > 0) {
     const flags = new Set(
@@ -155,7 +160,7 @@ export function scoreRelease(
     const hasMatch = profile.preferredLanguages.some((p) =>
       flags.has(p.trim().toLowerCase()),
     );
-    if (!hasMatch) return null;
+    if (!hasMatch) rejections.push("Language");
   }
 
   if (
@@ -163,14 +168,16 @@ export function scoreRelease(
     sizeBytes != null &&
     sizeBytes > profile.maxSizeGb * 1e9
   ) {
-    return null;
+    rejections.push("Size");
   }
 
-  if (parsed.isSample) return null;
+  if (parsed.isSample) rejections.push("Sample");
+
+  if (rejections.length > 0) return rejections;
 
   let score = 0;
 
-  const tierDelta = pr - minR;
+  const tierDelta = pr! - minR!;
   score += tierDelta * 1000;
 
   const srcIdx = profile.preferredSources.findIndex((pref) =>

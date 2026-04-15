@@ -1130,8 +1130,8 @@
       "runAgain": "Run again"
     },
     "jobs": {
-      "title": "Jobs",
-      "description": "Manually trigger scheduled server jobs.",
+      "title": "Background Jobs",
+      "description": "Monitor and manage scheduled server jobs, queue health, and recent job history.",
       "run": "Run",
       "running": "Running...",
       "success": "Job executed successfully!",
@@ -1140,6 +1140,47 @@
       "noJobs": "No scheduled jobs found",
       "schedule": "Schedule:",
       "next": "Next:",
+      "queues": {
+        "title": "Queue Overview",
+        "waiting": "Waiting",
+        "active": "Active",
+        "completed": "Completed",
+        "failed": "Failed",
+        "delayed": "Delayed",
+        "clean": "Clean",
+        "cleanCompleted": "Clean Completed",
+        "cleanFailed": "Clean Failed",
+        "retryAll": "Retry All Failed",
+        "retryJob": "Retry",
+        "cleanConfirm": "Clean all {{status}} jobs from {{queue}}?",
+        "retryAllConfirm": "Retry all failed jobs in {{queue}}?",
+        "cleanSuccess": "Cleaned {{count}} jobs",
+        "retrySuccess": "Retried {{count}} jobs",
+        "retryJobSuccess": "Job queued for retry",
+        "viewJobs": "View Jobs",
+        "hideJobs": "Hide Jobs",
+        "noJobs": "No jobs in this state",
+        "failedReason": "Error:",
+        "attempts": "Attempts:",
+        "duration": "Duration:",
+        "processedOn": "Processed:",
+        "finishedOn": "Finished:",
+        "stacktrace": "Stacktrace",
+        "filterAll": "All",
+        "filterActive": "Active",
+        "filterWaiting": "Waiting",
+        "filterFailed": "Failed",
+        "filterCompleted": "Completed",
+        "totalJobs": "{{count}} total jobs"
+      },
+      "history": {
+        "title": "Recent Activity",
+        "description": "Last 50 completed and failed jobs across all queues.",
+        "noHistory": "No recent job history.",
+        "queue": "Queue:",
+        "duration": "{{ms}}ms",
+        "ago": "ago"
+      },
       "actions": {
         "checkReminders": {
           "label": "Check Reminders",
@@ -1176,6 +1217,26 @@
         "refreshHabitsStreaks": {
           "label": "Refresh Habits Streaks",
           "description": "Recalculate daily streaks for all user habits."
+        },
+        "checkMovieReleaseReminders": {
+          "label": "Check Movie Release Reminders",
+          "description": "Send notifications for movies releasing tomorrow (watchlist)."
+        },
+        "checkLibraryMovieReleases": {
+          "label": "Check Library Movie Releases",
+          "description": "Search for newly released movies in your library."
+        },
+        "checkLibraryEpisodeReleases": {
+          "label": "Check Library Episode Releases",
+          "description": "Search for newly released episodes in your library."
+        },
+        "syncLibraryShowEpisodes": {
+          "label": "Sync Show Episodes",
+          "description": "Sync episode metadata from TMDB for all library shows."
+        },
+        "checkLibraryDownloadCompletion": {
+          "label": "Check Download Completion",
+          "description": "Check grabbed items for completed downloads and post-process."
         }
       }
     },
@@ -1449,7 +1510,15 @@
       "unknownIndexer": "Unknown indexer",
       "unknownLanguage": "Unknown language",
       "age": "Age: {{age}}d",
-      "seedersLeechers": "S/L: {{seeders}}/{{leechers}}"
+      "seedersLeechers": "S/L: {{seeders}}/{{leechers}}",
+      "rejection": {
+        "generic": "Does not match quality profile",
+        "Resolution": "Resolution does not match quality profile",
+        "HDR": "HDR does not match quality profile",
+        "Language": "Language does not match quality profile",
+        "Size": "Size does not match quality profile",
+        "Sample": "Sample file rejected by quality profile"
+      }
     },
     "tmdb": {
       "title": "Search and add from TMDB",

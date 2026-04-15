@@ -146,7 +146,7 @@ export const mediasSearchRoutes = new Elysia()
                   r.indexer,
                   r.freeleech,
                 );
-                const qualityReject = score === null;
+                const qualityReject = Array.isArray(score);
                 const parsed_quality = {
                   resolution: parsed.resolution,
                   source: parsed.source,
@@ -154,16 +154,16 @@ export const mediasSearchRoutes = new Elysia()
                   hdr: parsed.hdr,
                 };
                 const rejected = r.rejected || qualityReject;
-                const qmsg = "Does not match quality profile";
                 let rejection_reason = r.rejection_reason;
                 if (qualityReject) {
+                  const qmsg = score.join(", ");
                   rejection_reason = rejection_reason
                     ? `${rejection_reason}; ${qmsg}`
                     : qmsg;
                 }
                 return {
                   ...r,
-                  quality_score: score,
+                  quality_score: qualityReject ? null : score,
                   parsed_quality,
                   rejected,
                   rejection_reason,

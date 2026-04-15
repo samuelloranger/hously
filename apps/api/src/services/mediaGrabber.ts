@@ -478,7 +478,7 @@ export async function searchAndGrab(opts: {
           release.indexer,
           release.freeleech,
         );
-        if (sc === null) continue;
+        if (Array.isArray(sc)) continue;
         rows.push({
           raw: {
             _downloadUrl: downloadUrl,

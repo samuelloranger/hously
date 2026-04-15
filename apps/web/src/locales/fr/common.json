@@ -1130,8 +1130,8 @@
       "runAgain": "Relancer"
     },
     "jobs": {
-      "title": "Tâches",
-      "description": "Déclencher manuellement les tâches planifiées du serveur.",
+      "title": "Tâches en arrière-plan",
+      "description": "Surveiller et gérer les tâches planifiées, la santé des files d'attente et l'historique récent.",
       "run": "Lancer",
       "running": "Exécution...",
       "success": "Tâche exécutée avec succès",
@@ -1140,6 +1140,47 @@
       "noJobs": "Aucune tâche planifiée trouvée",
       "schedule": "Planification :",
       "next": "Prochain :",
+      "queues": {
+        "title": "Aperçu des files d'attente",
+        "waiting": "En attente",
+        "active": "Actif",
+        "completed": "Terminé",
+        "failed": "Échoué",
+        "delayed": "Différé",
+        "clean": "Nettoyer",
+        "cleanCompleted": "Nettoyer terminés",
+        "cleanFailed": "Nettoyer échoués",
+        "retryAll": "Réessayer tous les échoués",
+        "retryJob": "Réessayer",
+        "cleanConfirm": "Nettoyer toutes les tâches {{status}} de {{queue}} ?",
+        "retryAllConfirm": "Réessayer toutes les tâches échouées de {{queue}} ?",
+        "cleanSuccess": "{{count}} tâches nettoyées",
+        "retrySuccess": "{{count}} tâches relancées",
+        "retryJobSuccess": "Tâche mise en file d'attente pour réessai",
+        "viewJobs": "Voir les tâches",
+        "hideJobs": "Masquer les tâches",
+        "noJobs": "Aucune tâche dans cet état",
+        "failedReason": "Erreur :",
+        "attempts": "Tentatives :",
+        "duration": "Durée :",
+        "processedOn": "Traité le :",
+        "finishedOn": "Terminé le :",
+        "stacktrace": "Trace d'appel",
+        "filterAll": "Tous",
+        "filterActive": "Actif",
+        "filterWaiting": "En attente",
+        "filterFailed": "Échoué",
+        "filterCompleted": "Terminé",
+        "totalJobs": "{{count}} tâches au total"
+      },
+      "history": {
+        "title": "Activité récente",
+        "description": "Les 50 dernières tâches terminées et échouées sur toutes les files.",
+        "noHistory": "Aucun historique de tâches récent.",
+        "queue": "File :",
+        "duration": "{{ms}}ms",
+        "ago": "il y a"
+      },
       "actions": {
         "checkReminders": {
           "label": "Vérifier les rappels",
@@ -1176,6 +1217,26 @@
         "refreshHabitsStreaks": {
           "label": "Actualiser les séries d'habitudes",
           "description": "Recalculer les séries quotidiennes pour toutes les habitudes utilisateur."
+        },
+        "checkMovieReleaseReminders": {
+          "label": "Vérifier les rappels de sortie de films",
+          "description": "Envoyer des notifications pour les films sortant demain (liste de suivi)."
+        },
+        "checkLibraryMovieReleases": {
+          "label": "Vérifier les sorties de films",
+          "description": "Rechercher les films nouvellement sortis dans votre bibliothèque."
+        },
+        "checkLibraryEpisodeReleases": {
+          "label": "Vérifier les sorties d'épisodes",
+          "description": "Rechercher les épisodes nouvellement sortis dans votre bibliothèque."
+        },
+        "syncLibraryShowEpisodes": {
+          "label": "Synchroniser les épisodes",
+          "description": "Synchroniser les métadonnées des épisodes depuis TMDB pour toutes les séries."
+        },
+        "checkLibraryDownloadCompletion": {
+          "label": "Vérifier les téléchargements terminés",
+          "description": "Vérifier les éléments récupérés pour les téléchargements terminés et post-traiter."
         }
       }
     },
@@ -1449,7 +1510,15 @@
       "unknownIndexer": "Indexer inconnu",
       "unknownLanguage": "Langue inconnue",
       "age": "Âge : {{age}}j",
-      "seedersLeechers": "S/L : {{seeders}}/{{leechers}}"
+      "seedersLeechers": "S/L : {{seeders}}/{{leechers}}",
+      "rejection": {
+        "generic": "Ne correspond pas au profil de qualité",
+        "Resolution": "La résolution ne correspond pas au profil de qualité",
+        "HDR": "Le HDR ne correspond pas au profil de qualité",
+        "Language": "La langue ne correspond pas au profil de qualité",
+        "Size": "La taille ne correspond pas au profil de qualité",
+        "Sample": "Fichier sample rejeté par le profil de qualité"
+      }
     },
     "tmdb": {
       "title": "Rechercher et ajouter depuis TMDB",
