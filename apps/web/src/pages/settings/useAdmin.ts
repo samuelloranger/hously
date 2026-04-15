@@ -20,6 +20,10 @@ import type {
   RevokeSessionResponse,
   ScheduledJobsResponse,
   TriggerActionResponse,
+  RetryJobResponse,
+  RetryFailedResponse,
+  CleanQueueResponse,
+  JobHistoryResponse,
 } from "@hously/shared/types";
 export function useExportData() {
   const fetcher = useFetcher();
@@ -248,5 +252,85 @@ export function useDeleteWebPush() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.webPush() });
     },
+  });
+}
+
+export function useQueueJobs(queue: string, status?: string) {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.admin.queueJobs(queue, status),
+    queryFn: () => {
+      const url = status
+        ? `${ADMIN_ENDPOINTS.QUEUE_JOBS(queue)}?status=${status}`
+        : ADMIN_ENDPOINTS.QUEUE_JOBS(queue);
+      return fetcher<import("@hously/shared/types").QueueJob[]>(url);
+    },
+    enabled: false,
+  });
+}
+
+export function useRetryJob() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ queue, jobId }: { queue: string; jobId: string }) =>
+      fetcher<RetryJobResponse>(ADMIN_ENDPOINTS.RETRY_JOB(queue, jobId), {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.all });
+    },
+  });
+}
+
+export function useRetryFailed() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (queue: string) =>
+      fetcher<RetryFailedResponse>(ADMIN_ENDPOINTS.RETRY_FAILED(queue), {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.all });
+    },
+  });
+}
+
+export function useCleanQueue() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      queue,
+      status,
+      grace,
+    }: {
+      queue: string;
+      status: string;
+      grace?: number;
+    }) =>
+      fetcher<CleanQueueResponse>(
+        ADMIN_ENDPOINTS.CLEAN_QUEUE(queue, status, grace),
+        { method: "DELETE" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.all });
+    },
+  });
+}
+
+export function useJobHistory(limit?: number) {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.admin.jobHistory(),
+    queryFn: () =>
+      fetcher<JobHistoryResponse>(ADMIN_ENDPOINTS.JOB_HISTORY(limit)),
+    refetchInterval: 10000,
   });
 }
