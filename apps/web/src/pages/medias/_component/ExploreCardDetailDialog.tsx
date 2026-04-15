@@ -46,12 +46,14 @@ interface ExploreCardDetailDialogProps {
   item: TmdbMediaSearchItem;
   isOpen: boolean;
   onClose: () => void;
+  onAdded?: () => void;
 }
 
 export function ExploreCardDetailDialog({
   item,
   isOpen,
   onClose,
+  onAdded,
 }: ExploreCardDetailDialogProps) {
   const { t, i18n } = useTranslation("common");
   const [activeTab, setActiveTab] = useState<TabKey>("info");
@@ -121,6 +123,7 @@ export function ExploreCardDetailDialog({
         type: item.media_type === "tv" ? "show" : "movie",
       });
       toast.success(t("medias.addSuccess", { title: item.title }));
+      onAdded?.();
     } catch {
       toast.error(t("medias.addFailed"));
     }
