@@ -193,11 +193,7 @@ export function LibraryItemPage() {
           }))}
           value={activeTab}
           onChange={setActiveTab}
-          containerClassName="w-fit border border-neutral-200 dark:border-neutral-700/60"
-          itemClassName="px-4 py-2.5 text-xs font-medium"
-          activeItemClassName="text-indigo-700 dark:text-indigo-300"
-          inactiveItemClassName="text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
-          activeIconClassName="text-indigo-600 dark:text-indigo-400"
+
         />
 
         {/* Tab panels */}
