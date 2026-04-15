@@ -29,7 +29,7 @@ interface QuickAction {
   id: string;
   title: string;
   description: string;
-  icon: string;
+  icon: string | React.ReactNode;
   section:
     | "actions"
     | "torrents"
@@ -75,7 +75,7 @@ export function QuickActionPalette({
         description: t("common.quickActionsOpenPage", {
           page: t(item.translationKey),
         }),
-        icon: item.mobileIcon,
+        icon: <item.icon size={20} />,
         section: "actions" as const,
         keywords: [item.path, item.translationKey, section.labelKey],
         action: () => {
