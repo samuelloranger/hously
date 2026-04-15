@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Clock } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
@@ -57,7 +58,7 @@ export function RecentActivityPage() {
   return (
     <PageLayout className="max-w-4xl">
       <PageHeader
-        icon="⏰"
+        icon={Clock}
         iconColor="text-blue-600"
         title={t("dashboard.activityPage.title")}
         subtitle={t("dashboard.activityPage.subtitle")}
@@ -185,7 +186,7 @@ export function RecentActivityPage() {
           ) : (
             <div className="p-6">
               <EmptyState
-                icon="⏰"
+                icon={Clock}
                 title={t("dashboard.activityPage.emptyTitle")}
                 description={
                   hasFilters

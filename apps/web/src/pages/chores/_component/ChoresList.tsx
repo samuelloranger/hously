@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Plus } from "lucide-react";
+import { Plus, ListChecks } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { ChoreRow } from "@/pages/chores/_component/ChoreRow";
@@ -48,7 +48,7 @@ export function ChoresList() {
   return (
     <PageLayout>
       <PageHeader
-        icon="✅"
+        icon={ListChecks}
         iconColor="text-green-600"
         title={t("chores.title")}
         subtitle={t("chores.subtitle")}
@@ -107,7 +107,7 @@ export function ChoresList() {
           </SortableList>
         ) : (
           <EmptyState
-            icon="✅"
+            icon={ListChecks}
             title={t("chores.noChores")}
             description={t("chores.addFirstChore")}
           />

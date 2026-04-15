@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
@@ -173,7 +174,7 @@ export function RecentActivityTab() {
         ) : (
           <div className="p-6">
             <EmptyState
-              icon="⏰"
+              icon={Clock}
               title={t("dashboard.activityPage.emptyTitle")}
               description={
                 hasFilters

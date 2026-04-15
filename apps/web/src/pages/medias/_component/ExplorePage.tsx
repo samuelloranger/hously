@@ -4,6 +4,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { MediasExplore } from "@/pages/medias/_component/MediasExplore";
+import { Compass } from "lucide-react";
 
 export function ExplorePage() {
   const { t } = useTranslation("common");
@@ -17,7 +18,7 @@ export function ExplorePage() {
   return (
     <PageLayout>
       <PageHeader
-        icon="🧭"
+        icon={Compass}
         iconColor="text-indigo-600"
         title={t("medias.explore.pageTitle")}
         subtitle={t("medias.explore.pageSubtitle")}

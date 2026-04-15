@@ -8,6 +8,7 @@ import { NotificationList } from "@/components/NotificationList";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
 import { clearBadge } from "@/lib/sw/registration";
+import { Bell } from "lucide-react";
 
 export function NotificationsPage() {
   const { t } = useTranslation("common");
@@ -34,7 +35,7 @@ export function NotificationsPage() {
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8">
       <PageHeader
-        icon="🔔"
+        icon={Bell}
         iconColor="text-blue-600"
         title={t("notifications.title")}
         subtitle={t("notifications.description")}

@@ -8,7 +8,7 @@ import {
   type WatchlistItem,
   type TmdbMediaSearchItem,
 } from "@hously/shared/types";
-import { BookmarkX, Clapperboard } from "lucide-react";
+import { BookmarkX, Clapperboard, Bookmark } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
@@ -143,7 +143,7 @@ export function WatchlistPage() {
   return (
     <PageLayout>
       <PageHeader
-        icon="🔖"
+        icon={Bookmark}
         iconColor="text-amber-500"
         title={t("medias.watchlist.pageTitle")}
         subtitle={t("medias.watchlist.pageSubtitle")}

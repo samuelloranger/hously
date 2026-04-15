@@ -5,7 +5,7 @@ import {
   type CollectionMovieItem,
   type MediaCollection,
 } from "@hously/shared/types";
-import { Check, Film } from "lucide-react";
+import { Check, Film, Clapperboard } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
@@ -145,7 +145,7 @@ export function CollectionsPage() {
   return (
     <PageLayout>
       <PageHeader
-        icon="🎬"
+        icon={Clapperboard}
         title={t("medias.collections.pageTitle", "Collections")}
         subtitle={t(
           "medias.collections.pageSubtitle",

@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { startOfDay } from "date-fns";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useSearch } from "@tanstack/react-router";
+import { CalendarIcon, Film } from "lucide-react";
 import {
   PlusIcon,
   ChevronLeft,
@@ -320,7 +321,7 @@ function CalendarBody({
     <PageLayout>
       <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <PageHeader
-          icon="📅"
+          icon={CalendarIcon}
           iconColor="text-blue-600"
           title={t("calendar.title")}
           subtitle={t("calendar.subtitle")}
@@ -470,10 +471,10 @@ function CalendarBody({
                             ) : (
                               <div
                                 key={item.id}
-                                className="flex h-7 w-[18px] sm:h-8 sm:w-[22px] shrink-0 items-center justify-center rounded-[3px] bg-neutral-200/80 dark:bg-neutral-700/80 text-[10px]"
+                                className="flex h-7 w-[18px] sm:h-8 sm:w-[22px] shrink-0 items-center justify-center rounded-[3px] bg-neutral-200/80 dark:bg-neutral-700/80"
                                 aria-hidden
                               >
-                                🎞️
+                                <Film className="w-2.5 h-2.5 text-neutral-500 dark:text-neutral-400" />
                               </div>
                             ),
                           )}
@@ -635,8 +636,8 @@ function CalendarBody({
                               className="h-14 w-10 shrink-0 rounded-md object-cover ring-1 ring-black/10 dark:ring-black/50"
                             />
                           ) : (
-                            <div className="flex h-14 w-10 shrink-0 items-center justify-center rounded-md bg-neutral-100 dark:bg-neutral-900 text-lg ring-1 ring-neutral-200 dark:ring-neutral-800">
-                              🎞️
+                            <div className="flex h-14 w-10 shrink-0 items-center justify-center rounded-md bg-neutral-100 dark:bg-neutral-900 ring-1 ring-neutral-200 dark:ring-neutral-800">
+                              <Film className="w-5 h-5 text-neutral-400 dark:text-neutral-500" />
                             </div>
                           )}
                           <div className="min-w-0 flex-1">

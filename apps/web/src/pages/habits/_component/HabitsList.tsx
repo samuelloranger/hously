@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Target } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { useHabits, useDeleteHabit } from "@/pages/habits/useHabits";
@@ -109,7 +109,7 @@ export const HabitsList: React.FC = () => {
       <PageHeader
         title={t("habits.title")}
         subtitle={t("habits.subtitle")}
-        icon="🎯"
+        icon={Target}
         iconColor="text-orange-600"
         onRefresh={refetch}
         isRefreshing={isRefetching || isLoading}
@@ -177,7 +177,7 @@ export const HabitsList: React.FC = () => {
             <EmptyState
               title={t("habits.noHabits")}
               description={t("habits.addFirstHabit")}
-              icon="🎯"
+              icon={Target}
             />
             <button
               onClick={() => setParams({ modal: "create" })}
