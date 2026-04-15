@@ -220,10 +220,6 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
         ]}
         value={mediaType}
         onChange={switchType}
-        containerClassName="flex w-full rounded-xl border border-neutral-200 bg-neutral-100 p-0.5 md:w-fit dark:border-neutral-800 dark:bg-neutral-900"
-        itemClassName="relative z-10 flex-1 px-4 py-2 text-sm transition-[background-color,color,box-shadow] duration-200 md:flex-none md:py-1.5"
-        activeItemClassName="dark:bg-white/10 dark:text-white"
-        inactiveItemClassName="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
       />
 
       {/* ── Streaming providers ─────────────────────────────── */}
@@ -299,24 +295,15 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
 
       {/* ── Sort + Language row ─────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Sort — full scrollable strip on mobile */}
-        <div
-          className="overflow-x-auto md:overflow-visible"
-          style={{ scrollbarWidth: "none" }}
-        >
-          <SegmentedTabs
-            items={visibleSorts.map((s) => ({
-              id: s.value,
-              label: t(s.labelKey),
-            }))}
-            value={sortBy}
-            onChange={changeSort}
-            containerClassName="w-max rounded-xl border border-neutral-200 bg-neutral-100 p-1 md:p-0.5 dark:border-neutral-800 dark:bg-neutral-900"
-            itemClassName="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs transition-[background-color,color] duration-150 md:px-2.5 md:py-1 md:text-[11px]"
-            activeItemClassName="dark:bg-white/10 dark:text-white"
-            inactiveItemClassName="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
-          />
-        </div>
+        {/* Sort — scrolls horizontally if too narrow to fit */}
+        <SegmentedTabs
+          items={visibleSorts.map((s) => ({
+            id: s.value,
+            label: t(s.labelKey),
+          }))}
+          value={sortBy}
+          onChange={changeSort}
+        />
 
         {/* Language pills */}
         <div className="flex items-center gap-1.5">

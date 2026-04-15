@@ -28,11 +28,7 @@ export function MediasExplore() {
           }))}
           value={activeTab}
           onChange={setActiveTab}
-          containerClassName="flex w-full rounded-2xl border border-neutral-200 bg-neutral-100/90 p-1 dark:border-white/[0.07] dark:bg-white/[0.03] backdrop-blur-sm"
-          itemClassName="flex-1 px-3 py-2.5 text-xs font-semibold duration-200"
-          inactiveItemClassName="text-neutral-600 hover:text-neutral-800 dark:text-neutral-500 dark:hover:text-neutral-300"
-          activeItemClassName="dark:bg-white/10 dark:text-white"
-          activeIconClassName="text-indigo-600 dark:text-indigo-300"
+
         />
       </div>
 

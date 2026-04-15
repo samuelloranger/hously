@@ -33,12 +33,15 @@ import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import {
+  SegmentedTabs,
+  type SegmentedTabItem,
+} from "@/components/ui/segmented-tabs";
+import {
   useLibrary,
   useSearchLibraryMovie,
 } from "@/features/medias/hooks/useLibrary";
 import { useLibraryEvents } from "@/features/medias/hooks/useLibraryEvents";
 import { useUrlState } from "@/lib/app/useUrlState";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { LibraryItemCard } from "./LibraryItemCard";
 import {
@@ -158,78 +161,54 @@ export function NativeLibraryPage() {
           </div>
 
           {/* Type filter */}
-          <div className="flex rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-            {(["all", "movie", "show"] as FilterType[]).map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setState({ type: f, page: 1 })}
-                className={cn(
-                  "px-3 py-1.5 text-xs font-medium transition-colors",
-                  typeFilter === f
-                    ? "bg-indigo-600 text-white"
-                    : "bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800",
-                )}
-              >
-                {f === "all" ? (
-                  t("medias.library.typeAll")
-                ) : f === "movie" ? (
-                  <span className="flex items-center gap-1">
-                    <Film size={12} />{" "}
-                    {t("medias.library.moviesWithCount", {
-                      count: movieCount,
-                    })}
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <Tv size={12} />{" "}
-                    {t("medias.library.showsWithCount", {
-                      count: showCount,
-                    })}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          <SegmentedTabs<FilterType>
+            ariaLabel={t("medias.library.typeAll")}
+            items={
+              [
+                { id: "all", label: t("medias.library.typeAll") },
+                {
+                  id: "movie",
+                  label: t("medias.library.moviesWithCount", {
+                    count: movieCount,
+                  }),
+                  icon: Film,
+                },
+                {
+                  id: "show",
+                  label: t("medias.library.showsWithCount", {
+                    count: showCount,
+                  }),
+                  icon: Tv,
+                },
+              ] satisfies SegmentedTabItem<FilterType>[]
+            }
+            value={typeFilter}
+            onChange={(f) => setState({ type: f, page: 1 })}
+          />
 
           {/* Status filter */}
-          <div className="flex rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-            {(["all", "downloaded", "wanted", "downloading"] as const).map(
-              (f) => (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() =>
-                    setState({
-                      status: f,
-                      page: 1,
-                    })
-                  }
-                  className={cn(
-                    "px-3 py-1.5 text-xs font-medium transition-colors",
-                    statusFilter === f
-                      ? "bg-indigo-600 text-white"
-                      : "bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800",
-                  )}
-                >
-                  {f === "all" ? (
-                    t("medias.library.statusAll")
-                  ) : f === "downloaded" ? (
-                    <span className="flex items-center gap-1">
-                      <CheckCircle2 size={12} />{" "}
-                      {t("medias.library.statusDownloaded")}
-                    </span>
-                  ) : f === "wanted" ? (
-                    <span className="flex items-center gap-1">
-                      <Clock size={12} /> {t("medias.library.statusWanted")}
-                    </span>
-                  ) : (
-                    t("medias.library.statusDownloading")
-                  )}
-                </button>
-              ),
-            )}
-          </div>
+          <SegmentedTabs<FilterStatus>
+            ariaLabel={t("medias.library.statusAll")}
+            items={[
+              { id: "all", label: t("medias.library.statusAll") },
+              {
+                id: "downloaded",
+                label: t("medias.library.statusDownloaded"),
+                icon: CheckCircle2,
+              },
+              {
+                id: "wanted",
+                label: t("medias.library.statusWanted"),
+                icon: Clock,
+              },
+              {
+                id: "downloading",
+                label: t("medias.library.statusDownloading"),
+              },
+            ]}
+            value={statusFilter}
+            onChange={(f) => setState({ status: f, page: 1 })}
+          />
 
           {/* Sort */}
           <div className="flex items-center gap-1.5 ml-auto">

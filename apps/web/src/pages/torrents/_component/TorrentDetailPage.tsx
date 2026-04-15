@@ -548,8 +548,7 @@ export function TorrentDetailPage() {
         }))}
         value={activeTab}
         onChange={setActiveTab}
-        containerClassName="mb-4 flex w-full overflow-x-auto bg-neutral-100 dark:bg-neutral-800/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        itemClassName="flex-1 shrink-0 px-3 py-2 whitespace-nowrap min-w-0"
+
       />
 
       {/* ── Tab panels ── */}

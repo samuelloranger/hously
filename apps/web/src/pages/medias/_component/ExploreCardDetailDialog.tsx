@@ -657,10 +657,7 @@ export function ExploreCardDetailDialog({
                   }))}
                   value={validTab}
                   onChange={setActiveTab}
-                  containerClassName="mb-3"
-                  itemClassName="rounded-full px-3 py-1.5 text-xs"
-                  activeItemClassName="bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
-                  inactiveItemClassName="text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
+
                 />
               )}
 
