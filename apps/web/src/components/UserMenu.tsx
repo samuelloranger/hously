@@ -121,11 +121,10 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
                             : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] active:bg-neutral-100 dark:active:bg-white/[0.08]"
                         }`}
                       >
-                        <span
-                          className={`text-lg leading-none transition-transform ${isActive ? "scale-110" : ""}`}
-                        >
-                          {item.mobileIcon}
-                        </span>
+                        <item.icon
+                          size={20}
+                          className={`transition-transform ${isActive ? "scale-110" : ""}`}
+                        />
                         <span className="text-[10px] font-medium leading-none text-center w-full truncate">
                           {t(item.translationKey)}
                         </span>
