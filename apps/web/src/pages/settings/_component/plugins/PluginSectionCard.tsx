@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Check } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface PluginSectionCardProps {
   children: ReactNode;
@@ -100,23 +101,7 @@ export function PluginSectionCard({
 
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Toggle switch */}
-          <button
-            type="button"
-            role="switch"
-            aria-checked={enabled}
-            onClick={() => onEnabledChange(!enabled)}
-            className={cn(
-              "relative inline-flex h-6 w-11 max-h-6 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 appearance-none",
-              enabled ? "bg-primary-600" : "bg-neutral-200 dark:bg-neutral-700",
-            )}
-          >
-            <span
-              className={cn(
-                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-                enabled ? "translate-x-5" : "translate-x-0",
-              )}
-            />
-          </button>
+          <Switch checked={enabled} onCheckedChange={onEnabledChange} />
 
           {/* Chevron */}
           <button

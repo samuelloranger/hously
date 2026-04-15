@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Info, Search, Settings2, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { useLibrary } from "@/features/medias/hooks/useLibrary";
 import { useLibraryEvents } from "@/features/medias/hooks/useLibraryEvents";
 import {
@@ -185,30 +185,20 @@ export function LibraryItemPage() {
         )}
 
         {/* Tabs */}
-        <div className="border-b border-neutral-200 dark:border-neutral-700/60">
-          <div className="flex -mb-px">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setActiveTab(tab.key)}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap",
-                    isActive
-                      ? "border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400"
-                      : "border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600",
-                  )}
-                >
-                  <Icon size={12} />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <SegmentedTabs
+          items={tabs.map((tab) => ({
+            id: tab.key,
+            label: tab.label,
+            icon: tab.icon,
+          }))}
+          value={activeTab}
+          onChange={setActiveTab}
+          containerClassName="w-fit border border-neutral-200 dark:border-neutral-700/60"
+          itemClassName="px-4 py-2.5 text-xs font-medium"
+          activeItemClassName="text-indigo-700 dark:text-indigo-300"
+          inactiveItemClassName="text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+          activeIconClassName="text-indigo-600 dark:text-indigo-400"
+        />
 
         {/* Tab panels */}
         <div>

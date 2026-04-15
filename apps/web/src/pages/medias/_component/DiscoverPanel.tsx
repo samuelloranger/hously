@@ -8,6 +8,7 @@ import {
 } from "@/features/medias/hooks/useMedias";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ExploreCard } from "@/pages/medias/_component/ExploreCard";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 
 // ─── Sort options ─────────────────────────────────────────────────────────────
 type SortOpt = {
@@ -212,25 +213,18 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
       </div>
 
       {/* ── Media-type toggle ───────────────────────────────── */}
-      <div className="flex w-full rounded-xl border border-neutral-800 bg-neutral-900 p-0.5 md:w-fit">
-        {(["movie", "tv"] as const).map((type) => (
-          <button
-            key={type}
-            type="button"
-            onClick={() => switchType(type)}
-            className={[
-              "relative z-10 flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-[background-color,color,box-shadow] duration-200 md:flex-none md:py-1.5",
-              mediaType === type
-                ? "bg-white/10 text-white shadow-sm"
-                : "text-neutral-500 hover:text-neutral-300",
-            ].join(" ")}
-          >
-            {type === "movie"
-              ? t("medias.movie_plural")
-              : t("medias.series_plural")}
-          </button>
-        ))}
-      </div>
+      <SegmentedTabs
+        items={[
+          { id: "movie", label: t("medias.movie_plural") },
+          { id: "tv", label: t("medias.series_plural") },
+        ]}
+        value={mediaType}
+        onChange={switchType}
+        containerClassName="flex w-full rounded-xl border border-neutral-200 bg-neutral-100 p-0.5 md:w-fit dark:border-neutral-800 dark:bg-neutral-900"
+        itemClassName="relative z-10 flex-1 px-4 py-2 text-sm transition-[background-color,color,box-shadow] duration-200 md:flex-none md:py-1.5"
+        activeItemClassName="dark:bg-white/10 dark:text-white"
+        inactiveItemClassName="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+      />
 
       {/* ── Streaming providers ─────────────────────────────── */}
       <div
@@ -307,24 +301,21 @@ export function DiscoverPanel({ onAdded }: { onAdded: () => void }) {
       <div className="flex flex-wrap items-center gap-3">
         {/* Sort — full scrollable strip on mobile */}
         <div
-          className="flex gap-1 overflow-x-auto rounded-xl border border-neutral-800 bg-neutral-900 p-1 md:overflow-visible md:p-0.5"
+          className="overflow-x-auto md:overflow-visible"
           style={{ scrollbarWidth: "none" }}
         >
-          {visibleSorts.map((s) => (
-            <button
-              key={s.value}
-              type="button"
-              onClick={() => changeSort(s.value)}
-              className={[
-                "shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-[background-color,color] duration-150 md:px-2.5 md:py-1 md:text-[11px]",
-                sortBy === s.value
-                  ? "bg-white/10 text-white"
-                  : "text-neutral-500 hover:text-neutral-300",
-              ].join(" ")}
-            >
-              {t(s.labelKey)}
-            </button>
-          ))}
+          <SegmentedTabs
+            items={visibleSorts.map((s) => ({
+              id: s.value,
+              label: t(s.labelKey),
+            }))}
+            value={sortBy}
+            onChange={changeSort}
+            containerClassName="w-max rounded-xl border border-neutral-200 bg-neutral-100 p-1 md:p-0.5 dark:border-neutral-800 dark:bg-neutral-900"
+            itemClassName="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs transition-[background-color,color] duration-150 md:px-2.5 md:py-1 md:text-[11px]"
+            activeItemClassName="dark:bg-white/10 dark:text-white"
+            inactiveItemClassName="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+          />
         </div>
 
         {/* Language pills */}

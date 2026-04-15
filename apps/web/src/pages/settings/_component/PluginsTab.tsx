@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import {
   AdguardPluginSection,
   JellyfinPluginSection,
@@ -34,32 +34,14 @@ export function PluginsTab() {
         </p>
       </div>
 
-      <div className="flex gap-1 p-1 rounded-xl bg-neutral-100 dark:bg-neutral-800 w-fit">
-        <button
-          type="button"
-          onClick={() => setSubTab("plugins")}
-          className={cn(
-            "px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-150",
-            subTab === "plugins"
-              ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm"
-              : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300",
-          )}
-        >
-          {t("settings.plugins.tabs.plugins")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubTab("trackers")}
-          className={cn(
-            "px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-150",
-            subTab === "trackers"
-              ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm"
-              : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300",
-          )}
-        >
-          {t("settings.plugins.tabs.trackers")}
-        </button>
-      </div>
+      <SegmentedTabs
+        items={[
+          { id: "plugins", label: t("settings.plugins.tabs.plugins") },
+          { id: "trackers", label: t("settings.plugins.tabs.trackers") },
+        ]}
+        value={subTab}
+        onChange={setSubTab}
+      />
 
       {subTab === "plugins" ? (
         <div className="space-y-6 animate-in fade-in duration-200">
