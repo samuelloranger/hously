@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Search } from "lucide-react";
+import { Search, Clapperboard } from "lucide-react";
 import { useTmdbMediaSearch } from "@/features/medias/hooks/useMedias";
 import { type TmdbMediaSearchItem } from "@hously/shared/types";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 
-interface TmdbMediaSearchPanelProps {
-  onAdded?: () => void;
-}
-
-export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
+export function TmdbMediaSearchPanel() {
   const { t, i18n } = useTranslation("common");
   const [input, setInput] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -90,8 +86,8 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-lg">
-                            🎬
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Clapperboard className="w-5 h-5 text-neutral-400 dark:text-neutral-500" />
                           </div>
                         )}
                       </div>
@@ -145,7 +141,6 @@ export function TmdbMediaSearchPanel({ onAdded }: TmdbMediaSearchPanelProps) {
           onAdded={() => {
             setSelectedItem(null);
             searchQuery.refetch();
-            onAdded?.();
           }}
         />
       )}

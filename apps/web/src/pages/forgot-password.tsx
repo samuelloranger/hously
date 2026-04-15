@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Mail, KeyRound } from "lucide-react";
 import { useForgotPassword } from "@/lib/auth/useAuth";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -46,9 +47,7 @@ function ForgotPasswordPage() {
         <div className="max-w-md w-full space-y-8">
           <div>
             <div className="mx-auto h-12 w-12 flex items-center justify-center">
-              <span className="text-4xl text-primary-600 dark:text-primary-400">
-                ✉️
-              </span>
+              <Mail className="w-10 h-10 text-primary-600 dark:text-primary-400" />
             </div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
               {t("forgotPassword.checkEmail")}
@@ -75,9 +74,7 @@ function ForgotPasswordPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto h-12 w-12 flex items-center justify-center">
-            <span className="text-4xl text-primary-600 dark:text-primary-400">
-              🔑
-            </span>
+            <KeyRound className="w-10 h-10 text-primary-600 dark:text-primary-400" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900 dark:text-white">
             {t("forgotPassword.title")}

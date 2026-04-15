@@ -1,9 +1,23 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  Sparkles,
+  Wrench,
+  SkipForward,
+  Plug,
+  XCircle,
+  CheckCircle,
+  Calendar,
+  Eraser,
+  ShoppingCart,
+  Download,
+} from "lucide-react";
 import type { Locale } from "date-fns";
 import type { TFunction } from "i18next";
 import type { Activity } from "@hously/shared/types";
 import { formatRelativeTime } from "@/lib/utils/relativeTime";
+
 export interface ActivityPresentation {
-  icon: string;
+  Icon: LucideIcon;
   description: string;
   time: string;
   type: string;
@@ -129,7 +143,7 @@ export function getActivityPresentation(
           })
         : t("dashboard.activity.appUpdatedGeneric");
     return {
-      icon: "✨",
+      Icon: Sparkles,
       description,
       time,
       type,
@@ -147,7 +161,7 @@ export function getActivityPresentation(
       activity.job_id ||
       t("dashboard.activity.unknownJob");
     return {
-      icon: "🛠️",
+      Icon: Wrench,
       description: t("dashboard.activity.adminTriggeredJob", { job: jobName }),
       time,
       type,
@@ -166,7 +180,7 @@ export function getActivityPresentation(
       t("dashboard.activity.unknownJob");
     const reason = activity.reason || t("dashboard.activity.unknownReason");
     return {
-      icon: "⏭️",
+      Icon: SkipForward,
       description: t("dashboard.activity.cronSkipped", {
         job: jobName,
         reason,
@@ -185,7 +199,7 @@ export function getActivityPresentation(
     const pluginType =
       activity.plugin_type || t("dashboard.activity.unknownPlugin");
     return {
-      icon: "🔌",
+      Icon: Plug,
       description: t("dashboard.activity.pluginUpdated", {
         plugin: pluginType,
       }),
@@ -217,7 +231,7 @@ export function getActivityPresentation(
             seconds: seconds ?? 0,
           });
     return {
-      icon: activity.success === false ? "❌" : "✅",
+      Icon: activity.success === false ? XCircle : CheckCircle,
       description,
       time,
       type,
@@ -243,7 +257,7 @@ export function getActivityPresentation(
           ? t("dashboard.activity.eventUpdated", { event: eventTitle })
           : t("dashboard.activity.eventDeleted", { event: eventTitle });
     return {
-      icon: "📅",
+      Icon: Calendar,
       description,
       time,
       type,
@@ -266,7 +280,7 @@ export function getActivityPresentation(
           ? activity.count
           : 0;
       return {
-        icon: "🧹",
+        Icon: Eraser,
         description: t("dashboard.activity.shoppingCleared", { count }),
         time,
         type,
@@ -282,7 +296,7 @@ export function getActivityPresentation(
         ? t("dashboard.activity.shoppingItemAdded", { item: itemName })
         : t("dashboard.activity.shoppingItemCompleted", { item: itemName });
     return {
-      icon: "🛒",
+      Icon: ShoppingCart,
       description,
       time,
       type,
@@ -299,7 +313,7 @@ export function getActivityPresentation(
       activity.release_title ?? t("dashboard.activity.unknownRelease");
     const svc = activity.service?.trim().toLowerCase() || "library";
     return {
-      icon: "⬇️",
+      Icon: Download,
       description: t("dashboard.activity.mediaGrab", { title }),
       time,
       type,
@@ -313,10 +327,10 @@ export function getActivityPresentation(
   const taskName = activity.task_name || t("dashboard.activity.unknownTask");
   const time =
     formatRelativeTime(activity.completed_at ?? null, { locale }) ?? "";
-  const icon = activity.task_type === "shopping" ? "🛒" : "✅";
+  const Icon = activity.task_type === "shopping" ? ShoppingCart : CheckCircle;
 
   return {
-    icon,
+    Icon,
     description: t("dashboard.activity.completed", {
       user: username,
       task: taskName,

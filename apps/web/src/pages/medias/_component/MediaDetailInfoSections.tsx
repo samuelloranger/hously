@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TmdbMediaDetailsResponse } from "@hously/shared/types";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, UserCircle } from "lucide-react";
 
 interface MediaDetailInfoSectionsProps {
   details: TmdbMediaDetailsResponse;
@@ -267,8 +267,8 @@ export function MediaDetailInfoSections({
                         className="h-9 w-9 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-xs dark:bg-neutral-700">
-                        👤
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700">
+                        <UserCircle className="w-5 h-5 text-neutral-400 dark:text-neutral-500" />
                       </div>
                     )}
                     <span className="font-medium text-neutral-800 dark:text-neutral-200">

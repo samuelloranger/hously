@@ -1,10 +1,11 @@
 import { RefreshCw } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 interface PageHeaderProps {
-  icon: string;
+  icon: LucideIcon;
   iconColor?: string;
   title: string;
   subtitle?: string;
@@ -24,7 +25,7 @@ function iconBg(iconColor: string) {
 }
 
 export function PageHeader({
-  icon,
+  icon: Icon,
   iconColor = "text-neutral-600",
   title,
   subtitle,
@@ -70,11 +71,11 @@ export function PageHeader({
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-xl text-lg",
+              "flex h-10 w-10 items-center justify-center rounded-xl",
               iconBg(iconColor),
             )}
           >
-            {icon}
+            <Icon className={cn("w-5 h-5", iconColor)} />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">

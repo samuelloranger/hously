@@ -1,4 +1,6 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+import { Film } from "lucide-react";
 
 /** Derives a tiny TMDB thumbnail URL (w92) from any TMDB image URL. */
 function toThumbnailUrl(url: string): string | null {
@@ -18,7 +20,7 @@ export type MediaPosterCardProps = {
   posterUrl?: string | null;
   title: string;
   id?: string;
-  fallbackEmoji?: string;
+  FallbackIcon?: LucideIcon;
 
   status?: MediaPosterCardStatus;
   statusLabel?: string;
@@ -46,7 +48,7 @@ export function MediaPosterCard({
   posterUrl,
   title,
   id,
-  fallbackEmoji = "🎞️",
+  FallbackIcon = Film,
   status,
   statusLabel,
   topLeftBadge,
@@ -116,8 +118,8 @@ export function MediaPosterCard({
 
       {/* Fallback */}
       {!showImage && (
-        <div className="absolute inset-0 flex items-center justify-center text-4xl text-white/40">
-          {fallbackEmoji}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <FallbackIcon className="w-10 h-10 text-white/30" />
         </div>
       )}
 

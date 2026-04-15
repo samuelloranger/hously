@@ -12,6 +12,8 @@ import {
   ArrowDownAZ,
   ChevronLeft,
   ChevronRight,
+  Download,
+  Clapperboard,
 } from "lucide-react";
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -131,7 +133,7 @@ export function NativeLibraryPage() {
   return (
     <PageLayout>
       <PageHeader
-        icon="🎞️"
+        icon={Film}
         iconColor="text-indigo-600"
         title={t("medias.library.pageTitle")}
         subtitle={t("medias.library.pageSubtitle")}
@@ -142,73 +144,82 @@ export function NativeLibraryPage() {
       <div className="space-y-4">
         {/* Filters + sort */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search
-              size={13}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
-            />
-            <input
-              value={search}
-              onChange={(e) =>
-                setState({
-                  search: e.target.value,
-                  page: 1,
-                })
-              }
-              placeholder={t("medias.library.searchPlaceholder")}
-              className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
-            />
+          <div className="flex flex-wrap flex-col justify-between gap-2 w-full">
+            <div className="relative">
+              <Search
+                size={13}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
+              />
+              <input
+                value={search}
+                onChange={(e) =>
+                  setState({
+                    search: e.target.value,
+                    page: 1,
+                  })
+                }
+                placeholder={t("medias.library.searchPlaceholder")}
+                className="w-full max-w-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
+              />
+            </div>
+
+            {/* Type filter */}
+            <div className="flex items-center flex-wrap flex-col lg:justify-between md:flex-row lg:w-full gap-4">
+              <div className="w-full max-w-sm flex items-center gap-2">
+                <SegmentedTabs<FilterType>
+                  ariaLabel={t("medias.library.typeAll")}
+                  items={
+                    [
+                      { id: "all", label: t("medias.library.typeAll") },
+                      {
+                        id: "movie",
+                        label: t("medias.library.moviesWithCount", {
+                          count: movieCount,
+                        }),
+                        icon: Film,
+                      },
+                      {
+                        id: "show",
+                        label: t("medias.library.showsWithCount", {
+                          count: showCount,
+                        }),
+                        icon: Tv,
+                      },
+                    ] satisfies SegmentedTabItem<FilterType>[]
+                  }
+                  value={typeFilter}
+                  onChange={(f) => setState({ type: f, page: 1 })}
+                />
+              </div>
+
+              {/* Status filter */}
+              <div className="w-full md:w-auto flex items-center gap-2 max-w-sm sm:max-w-none rounded-lg overflow-hidden">
+                <SegmentedTabs<FilterStatus>
+                  ariaLabel={t("medias.library.statusAll")}
+                  items={[
+                    { id: "all", label: t("medias.library.statusAll") },
+                    {
+                      id: "downloaded",
+                      label: t("medias.library.statusDownloaded"),
+                      icon: CheckCircle2,
+                    },
+                    {
+                      id: "wanted",
+                      label: t("medias.library.statusWanted"),
+                      icon: Clock,
+                    },
+                    {
+                      id: "downloading",
+                      label: t("medias.library.statusDownloading"),
+                      icon: Download,
+                    },
+                  ]}
+                  value={statusFilter}
+                  onChange={(f) => setState({ status: f, page: 1 })}
+                />
+              </div>
+            </div>
           </div>
-
-          {/* Type filter */}
-          <SegmentedTabs<FilterType>
-            ariaLabel={t("medias.library.typeAll")}
-            items={
-              [
-                { id: "all", label: t("medias.library.typeAll") },
-                {
-                  id: "movie",
-                  label: t("medias.library.moviesWithCount", {
-                    count: movieCount,
-                  }),
-                  icon: Film,
-                },
-                {
-                  id: "show",
-                  label: t("medias.library.showsWithCount", {
-                    count: showCount,
-                  }),
-                  icon: Tv,
-                },
-              ] satisfies SegmentedTabItem<FilterType>[]
-            }
-            value={typeFilter}
-            onChange={(f) => setState({ type: f, page: 1 })}
-          />
-
-          {/* Status filter */}
-          <SegmentedTabs<FilterStatus>
-            ariaLabel={t("medias.library.statusAll")}
-            items={[
-              { id: "all", label: t("medias.library.statusAll") },
-              {
-                id: "downloaded",
-                label: t("medias.library.statusDownloaded"),
-                icon: CheckCircle2,
-              },
-              {
-                id: "wanted",
-                label: t("medias.library.statusWanted"),
-                icon: Clock,
-              },
-              {
-                id: "downloading",
-                label: t("medias.library.statusDownloading"),
-              },
-            ]}
-            value={statusFilter}
-            onChange={(f) => setState({ status: f, page: 1 })}
-          />
 
           {/* Sort */}
           <div className="flex items-center gap-1.5 ml-auto">
@@ -271,7 +282,7 @@ export function NativeLibraryPage() {
               exit={{ opacity: 0 }}
             >
               <EmptyState
-                icon="🎬"
+                icon={Clapperboard}
                 title={t("medias.library.emptyTitle")}
                 description={t("medias.library.emptyDescription")}
               />

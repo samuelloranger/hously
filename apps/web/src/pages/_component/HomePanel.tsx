@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useChores } from "@/pages/chores/useChores";
 import { useHabits } from "@/pages/habits/useHabits";
-import { ChevronRight, Flame } from "lucide-react";
+import { CheckCircle, ChevronRight, Flame } from "lucide-react";
 
 // ─── Chores panel ─────────────────────────────────────────────────────────────
 
@@ -74,8 +74,9 @@ export function ChoresPanel() {
           </div>
         ) : pendingChores.length === 0 ? (
           <div className="py-6 text-center">
-            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-              ✅ {t("dashboard.home.choresAllCaughtUp")}
+            <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              <CheckCircle size={14} className="text-green-500" />
+              {t("dashboard.home.choresAllCaughtUp")}
             </p>
           </div>
         ) : (

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Search, X } from "lucide-react";
+import { Search, X, ShoppingCart } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { ShoppingItemRow } from "@/pages/shopping/_component/ShoppingItemRow";
@@ -142,7 +142,7 @@ export function ShoppingList() {
   return (
     <PageLayout>
       <PageHeader
-        icon="🛒"
+        icon={ShoppingCart}
         iconColor="text-blue-600"
         title={t("shopping.title")}
         subtitle={t("shopping.subtitle")}
@@ -214,7 +214,7 @@ export function ShoppingList() {
 
       {items.length === 0 ? (
         <EmptyState
-          icon="🛒"
+          icon={ShoppingCart}
           title={t("shopping.noItems")}
           description={t("shopping.addFirstItem")}
         />

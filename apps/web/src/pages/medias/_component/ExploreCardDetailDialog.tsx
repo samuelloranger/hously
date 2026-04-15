@@ -20,6 +20,7 @@ import {
   Plus,
   Sparkles,
   Star,
+  UserCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog } from "@/components/dialog";
@@ -45,7 +46,7 @@ interface ExploreCardDetailDialogProps {
   item: TmdbMediaSearchItem;
   isOpen: boolean;
   onClose: () => void;
-  onAdded: () => void;
+  onAdded?: () => void;
 }
 
 export function ExploreCardDetailDialog({
@@ -122,7 +123,7 @@ export function ExploreCardDetailDialog({
         type: item.media_type === "tv" ? "show" : "movie",
       });
       toast.success(t("medias.addSuccess", { title: item.title }));
-      onAdded();
+      onAdded?.();
     } catch {
       toast.error(t("medias.addFailed"));
     }
@@ -257,14 +258,14 @@ export function ExploreCardDetailDialog({
               ) : (
                 <div
                   className={cn(
-                    "flex h-32 w-[88px] items-center justify-center rounded-xl text-2xl transition-opacity duration-500 motion-reduce:transition-none",
+                    "flex h-32 w-[88px] items-center justify-center rounded-xl transition-opacity duration-500 motion-reduce:transition-none",
                     heroVisualReady ? "opacity-100" : "opacity-80",
                     heroBackdropUrl
                       ? "bg-white/15 ring-1 ring-white/20"
                       : "bg-neutral-200 dark:bg-neutral-700",
                   )}
                 >
-                  🎬
+                  <Film className="w-7 h-7 text-neutral-400 dark:text-neutral-500" />
                 </div>
               )}
             </div>
@@ -657,7 +658,6 @@ export function ExploreCardDetailDialog({
                   }))}
                   value={validTab}
                   onChange={setActiveTab}
-
                 />
               )}
 
@@ -723,8 +723,8 @@ export function ExploreCardDetailDialog({
                                 className="h-[54px] w-[54px] rounded-full object-cover ring-1 ring-neutral-200 dark:ring-neutral-700"
                               />
                             ) : (
-                              <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-lg">
-                                👤
+                              <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700">
+                                <UserCircle className="w-7 h-7 text-neutral-400 dark:text-neutral-500" />
                               </div>
                             )}
                             <p className="line-clamp-2 text-center text-[10px] font-medium leading-tight text-neutral-700 dark:text-neutral-300">
@@ -904,7 +904,6 @@ export function ExploreCardDetailDialog({
                     isActive={isOpen && validTab === "similar"}
                     tmdbId={item.tmdb_id}
                     mediaType={item.media_type}
-                    onAdded={onAdded}
                   />
                 </div>
               )}

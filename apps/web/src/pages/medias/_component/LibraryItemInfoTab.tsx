@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { UserCircle } from "lucide-react";
 import type {
   TmdbMediaDetailsResponse,
   TmdbCreditsResponse,
@@ -83,8 +84,8 @@ export function LibraryItemInfoTab({
                     className="h-[54px] w-[54px] rounded-full object-cover ring-1 ring-neutral-200 dark:ring-neutral-700"
                   />
                 ) : (
-                  <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 text-lg">
-                    👤
+                  <div className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700">
+                    <UserCircle className="w-7 h-7 text-neutral-400 dark:text-neutral-500" />
                   </div>
                 )}
                 <p className="line-clamp-2 text-center text-[10px] font-medium leading-tight text-neutral-700 dark:text-neutral-300">

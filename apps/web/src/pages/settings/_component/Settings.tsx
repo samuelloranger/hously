@@ -158,7 +158,7 @@ export function Settings() {
 
       {/* Desktop: sidebar */}
       <aside className="hidden md:block w-64 flex-shrink-0 relative border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-        <div className="sticky top-[64px] h-[calc(100vh-64px)] overflow-y-auto">
+        <div className="overflow-y-auto">
           <div className="px-6 py-5 border-b border-neutral-100 dark:border-neutral-800">
             <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
               {t("settings.title")}

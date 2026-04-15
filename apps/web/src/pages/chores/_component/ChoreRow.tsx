@@ -7,6 +7,7 @@ import { ImageModal } from "@/components/ImageModal";
 import { EmotionModal } from "@/components/EmotionModal";
 import { DragHandle } from "@/components/SortableList";
 import { SafeHtml } from "@/components/SafeHtml";
+import { CheckCircle, RefreshCw, Trash2, User, Users, Clock } from "lucide-react";
 import {
   useDeleteChore,
   useRemoveRecurrence,
@@ -87,7 +88,7 @@ export function ChoreRow({
   const actionMenuItems = [
     {
       label: chore.completed ? t("chores.undo") : t("chores.markDone"),
-      icon: "✓",
+      icon: <CheckCircle size={16} />,
       onClick: () => {
         void handleToggle();
       },
@@ -97,7 +98,7 @@ export function ChoreRow({
       ? [
           {
             label: t("chores.removeRecurrence") || "Retirer la récurrence",
-            icon: "🔁",
+            icon: <RefreshCw size={16} />,
             onClick: () => {
               if (
                 confirm(
@@ -114,7 +115,7 @@ export function ChoreRow({
       : []),
     {
       label: t("chores.delete"),
-      icon: "🗑️",
+      icon: <Trash2 size={16} />,
       onClick: () => {
         if (confirm(t("chores.deleteConfirm"))) {
           deleteMutation.mutate(chore.id);
@@ -201,8 +202,8 @@ export function ChoreRow({
                 {t("chores.on")} {formatDate(chore.created_at, i18n.language)}
               </p>
               {chore.assigned_to_username ? (
-                <p className="text-sm text-blue-600 dark:text-blue-400">
-                  <span className="mr-1">👤</span>
+                <p className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400">
+                  <User size={14} />
                   {t("chores.assignedTo")}{" "}
                   {formatUsername(
                     chore.assigned_to_username,
@@ -210,14 +211,14 @@ export function ChoreRow({
                   )}
                 </p>
               ) : (
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                  <span className="mr-1">👥</span>
+                <p className="flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400">
+                  <Users size={14} />
                   {t("chores.anyoneCanDoIt")}
                 </p>
               )}
               {!!chore.completed && !!chore.completed_by_username && (
-                <p className="text-sm text-green-600 dark:text-green-400">
-                  <span className="mr-1">✅</span>
+                <p className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+                  <CheckCircle size={14} />
                   {t("chores.completedBy")}{" "}
                   {formatUsername(
                     chore.completed_by_username,
@@ -227,13 +228,13 @@ export function ChoreRow({
               )}
               {hasReminder && (
                 <p
-                  className={`text-sm ${
+                  className={`flex items-center gap-1 text-sm ${
                     isOverdue
                       ? "text-red-600 dark:text-red-400"
                       : "text-neutral-500 dark:text-neutral-400"
                   }`}
                 >
-                  <span className="mr-1">⏰</span>
+                  <Clock size={14} />
                   {t("chores.reminder")}{" "}
                   {formatDateTime(chore.reminder_datetime, i18n.language)}
                 </p>

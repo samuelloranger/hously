@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NotificationPermissionModalProps {
@@ -61,7 +62,9 @@ export function NotificationPermissionModal({
         )}
       >
         <div className="flex items-start mb-4">
-          <div className="flex-shrink-0 text-3xl">🔔</div>
+          <div className="flex-shrink-0">
+            <Bell className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+          </div>
           <div className="ml-4 flex-1">
             <h3
               id="notification-modal-title"

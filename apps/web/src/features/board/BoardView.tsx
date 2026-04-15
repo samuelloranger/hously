@@ -529,7 +529,7 @@ export function BoardView() {
   return (
     <PageLayout>
       <PageHeader
-        icon="📋"
+        icon={LayoutGrid}
         iconColor="text-indigo-600"
         title={t("board.title")}
         subtitle={t("board.subtitle")}

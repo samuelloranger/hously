@@ -6,9 +6,9 @@ import {
   usePinnedQbittorrentTorrent,
   useSetPinnedQbittorrentTorrent,
   useDashboardQbittorrentTorrents,
-} from "@/pages/torrents/useDashboardQbittorrent";
+} from "@/pages/torrents/_hooks/useDashboardQbittorrent";
 import { useJsonEventSource } from "@/lib/realtime/useEventSource";
-import { useQbittorrentStatus } from "@/pages/torrents/useQbittorrentStatus";
+import { useQbittorrentStatus } from "@/pages/torrents/_hooks/useQbittorrentStatus";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   DASHBOARD_ENDPOINTS,
@@ -48,6 +48,7 @@ import {
   LayoutGrid,
   Columns3,
   SlidersHorizontal,
+  Magnet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddTorrentPanel } from "@/pages/torrents/_component/AddTorrentPanel";
@@ -334,7 +335,7 @@ export function TorrentsPage() {
   return (
     <PageLayout>
       <PageHeader
-        icon="🧲"
+        icon={Magnet}
         iconColor="text-blue-600"
         title={t("torrents.title")}
         subtitle={t("torrents.subtitle")}
@@ -342,13 +343,13 @@ export function TorrentsPage() {
 
       {isDisabled ? (
         <EmptyState
-          icon="🧲"
+          icon={Magnet}
           title={t("dashboard.qbittorrent.notConnectedTitle")}
           description={t("dashboard.qbittorrent.notConnectedDescription")}
         />
       ) : isDisconnected ? (
         <EmptyState
-          icon="🧲"
+          icon={Magnet}
           title={t("dashboard.qbittorrent.disconnected")}
           description={data.error ?? t("torrents.disconnectedDescription")}
         />
@@ -761,7 +762,7 @@ export function TorrentsPage() {
               )
             ) : filtered.length === 0 ? (
               <div className="py-16 flex flex-col items-center justify-center gap-3">
-                <span className="text-3xl opacity-20 select-none">🧲</span>
+                <Magnet className="w-8 h-8 opacity-20 select-none" />
                 <p className="text-sm text-neutral-400 dark:text-neutral-500">
                   {search || stateFilter !== "all"
                     ? t("torrents.noResults")

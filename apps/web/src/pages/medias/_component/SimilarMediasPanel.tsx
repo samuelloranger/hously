@@ -6,7 +6,7 @@ interface SimilarMediasPanelProps {
   isActive: boolean;
   tmdbId: number | null;
   mediaType: "movie" | "tv" | null;
-  onAdded: () => void;
+  onAdded?: () => void;
 }
 
 export function SimilarMediasPanel({

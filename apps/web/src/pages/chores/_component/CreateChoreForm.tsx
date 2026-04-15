@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from "react";
 import { useForm, useWatch, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateChore, useUploadChoreImage } from "@/pages/chores/useChores";
 import type { ChoreUser } from "@hously/shared/types";
@@ -449,7 +450,7 @@ export function CreateChoreForm({ users, onSuccess }: CreateChoreFormProps) {
           disabled={createMutation.isPending || isUploadingImage}
           className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 transition-colors disabled:opacity-50"
         >
-          <span className="mr-2">➕</span>
+          <Plus size={16} className="mr-1.5 inline" />
           {isUploadingImage ? t("chores.uploadingImage") : t("chores.addChore")}
         </button>
       </div>

@@ -28,18 +28,17 @@ export function MediasExplore() {
           }))}
           value={activeTab}
           onChange={setActiveTab}
-
         />
       </div>
 
       {/* ── Panels — TMDB search first (desktop + mobile priority) ─ */}
       <div className="space-y-6">
         <div className={activeTab !== "search" ? "hidden md:block" : ""}>
-          <TmdbMediaSearchPanel onAdded={() => {}} />
+          <TmdbMediaSearchPanel />
         </div>
 
         <div className={activeTab !== "discover" ? "hidden md:block" : ""}>
-          <DiscoverPanel onAdded={() => {}} />
+          <DiscoverPanel />
         </div>
       </div>
     </div>

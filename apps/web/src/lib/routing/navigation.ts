@@ -17,8 +17,6 @@ export interface NavItem {
   path: string;
   translationKey: string;
   icon: LucideIcon;
-  /** @deprecated Use `icon` instead — kept for QuickActionPalette compatibility */
-  mobileIcon?: string;
 }
 
 export interface NavSection {

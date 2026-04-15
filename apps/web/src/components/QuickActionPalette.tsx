@@ -8,7 +8,26 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { Search, Sparkles } from "lucide-react";
+import type { ReactNode } from "react";
+import {
+  Search,
+  Sparkles,
+  Bell,
+  Settings,
+  Sun,
+  Moon,
+  RefreshCw,
+  Magnet,
+  Clapperboard,
+  Tv,
+  CheckCircle,
+  ListChecks,
+  ShoppingCart,
+  User,
+  AlertCircle,
+  ArrowUpCircle,
+  ClipboardList,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useQuickSearch } from "@/lib/search/useSearch";
 import { formatBytes } from "@/lib/utils/format";
@@ -29,7 +48,7 @@ interface QuickAction {
   id: string;
   title: string;
   description: string;
-  icon: string | React.ReactNode;
+  icon: ReactNode;
   section:
     | "actions"
     | "torrents"
@@ -93,7 +112,7 @@ export function QuickActionPalette({
         description: t("common.quickActionsOpenPage", {
           page: t("notifications.title"),
         }),
-        icon: "🔔",
+        icon: <Bell size={20} />,
         section: "actions",
         keywords: ["notifications", "alerts"],
         action: () => {
@@ -107,7 +126,7 @@ export function QuickActionPalette({
         description: t("common.quickActionsOpenPage", {
           page: t("settings.title"),
         }),
-        icon: "⚙️",
+        icon: <Settings size={20} />,
         section: "actions",
         keywords: ["settings", "profile", "plugins"],
         action: () => {
@@ -119,7 +138,7 @@ export function QuickActionPalette({
         id: "theme",
         title: isDark ? t("common.switchToLight") : t("common.switchToDark"),
         description: t("common.quickActionsToggleTheme"),
-        icon: isDark ? "☀️" : "🌙",
+        icon: isDark ? <Sun size={20} /> : <Moon size={20} />,
         section: "actions",
         keywords: ["theme", "dark", "light"],
         shortcut: "T",
@@ -132,7 +151,7 @@ export function QuickActionPalette({
         id: "refresh",
         title: t("common.refetch"),
         description: t("common.quickActionsRefreshCurrentPage"),
-        icon: "↻",
+        icon: <RefreshCw size={20} />,
         section: "actions",
         shortcut: "R",
         keywords: ["refresh", "reload"],
@@ -187,7 +206,7 @@ export function QuickActionPalette({
       ]
         .filter(Boolean)
         .join(" • "),
-      icon: "🧲",
+      icon: <Magnet size={20} />,
       section: "torrents" as const,
       action: () => {
         navigate({ to: "/torrents/$hash", params: { hash: torrent.id } });
@@ -210,7 +229,7 @@ export function QuickActionPalette({
       ]
         .filter(Boolean)
         .join(" • "),
-      icon: item.type === "movie" ? "🎬" : "📺",
+      icon: item.type === "movie" ? <Clapperboard size={20} /> : <Tv size={20} />,
       section: "medias" as const,
       action: () => {
         navigate({
@@ -228,7 +247,7 @@ export function QuickActionPalette({
         [chore.description, chore.assigned_to_username]
           .filter(Boolean)
           .join(" • ") || t("chores.title"),
-      icon: chore.completed ? "✅" : "🧹",
+      icon: chore.completed ? <CheckCircle size={20} /> : <ListChecks size={20} />,
       section: "chores" as const,
       action: () => {
         navigate({ to: "/chores" });
@@ -240,7 +259,7 @@ export function QuickActionPalette({
       id: `shopping-${item.id}`,
       title: item.item_name,
       description: item.notes ?? t("shopping.title"),
-      icon: item.completed ? "✅" : "🛒",
+      icon: item.completed ? <CheckCircle size={20} /> : <ShoppingCart size={20} />,
       section: "shopping" as const,
       action: () => {
         navigate({ to: "/shopping" });
@@ -252,7 +271,7 @@ export function QuickActionPalette({
       id: `user-${user.id}`,
       title: user.name,
       description: user.email,
-      icon: "👤",
+      icon: <User size={20} />,
       section: "users" as const,
       action: () => {
         navigate({ to: "/settings", search: { tab: "profile" as const } });
@@ -273,13 +292,15 @@ export function QuickActionPalette({
           .filter(Boolean)
           .join(" • ") || t("nav.board"),
       icon:
-        task.status === "done"
-          ? "✅"
-          : task.priority === "urgent"
-            ? "🔴"
-            : task.priority === "high"
-              ? "🟠"
-              : "📋",
+        task.status === "done" ? (
+          <CheckCircle size={20} />
+        ) : task.priority === "urgent" ? (
+          <AlertCircle size={20} />
+        ) : task.priority === "high" ? (
+          <ArrowUpCircle size={20} />
+        ) : (
+          <ClipboardList size={20} />
+        ),
       section: "board_tasks" as const,
       action: () => {
         navigate({ to: "/board" });
@@ -456,7 +477,7 @@ export function QuickActionPalette({
                     : "hover:bg-neutral-100/80 dark:hover:bg-neutral-700/40",
                 )}
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-lg dark:bg-neutral-800">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
                   {action.icon}
                 </div>
                 <div className="min-w-0 flex-1">
