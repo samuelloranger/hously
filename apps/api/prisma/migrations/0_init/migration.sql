@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "users" (
+CREATE TABLE "users" (
     "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
     "password_hash" TEXT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS "users" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "notifications" (
+CREATE TABLE "notifications" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "title" TEXT NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS "notifications" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "notification_templates" (
+CREATE TABLE "notification_templates" (
     "id" SERIAL NOT NULL,
     "service_id" INTEGER NOT NULL,
     "event_type" TEXT NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS "notification_templates" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "external_notification_services" (
+CREATE TABLE "external_notification_services" (
     "id" SERIAL NOT NULL,
     "service_name" TEXT NOT NULL,
     "enabled" BOOLEAN NOT NULL DEFAULT false,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS "external_notification_services" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "external_notification_service_logs" (
+CREATE TABLE "external_notification_service_logs" (
     "id" SERIAL NOT NULL,
     "service_id" INTEGER NOT NULL,
     "event_type" TEXT NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS "external_notification_service_logs" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "custom_events" (
+CREATE TABLE "custom_events" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS "custom_events" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "recipes" (
+CREATE TABLE "recipes" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS "recipes" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "reminders" (
+CREATE TABLE "reminders" (
     "id" SERIAL NOT NULL,
     "chore_id" INTEGER NOT NULL,
     "reminder_datetime" TIMESTAMP(3) NOT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS "reminders" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "shopping_items" (
+CREATE TABLE "shopping_items" (
     "id" SERIAL NOT NULL,
     "item_name" TEXT NOT NULL,
     "completed" BOOLEAN,
@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS "shopping_items" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "user_subscriptions" (
+CREATE TABLE "user_subscriptions" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "subscription_info" TEXT NOT NULL,
@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS "user_subscriptions" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "task_completions" (
+CREATE TABLE "task_completions" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "task_type" VARCHAR(50) NOT NULL,
@@ -168,7 +168,7 @@ CREATE TABLE IF NOT EXISTS "task_completions" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "recipe_ingredients" (
+CREATE TABLE "recipe_ingredients" (
     "id" SERIAL NOT NULL,
     "recipe_id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS "recipe_ingredients" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "chores" (
+CREATE TABLE "chores" (
     "id" SERIAL NOT NULL,
     "chore_name" TEXT NOT NULL,
     "description" TEXT,
@@ -203,7 +203,7 @@ CREATE TABLE IF NOT EXISTS "chores" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "meal_plans" (
+CREATE TABLE "meal_plans" (
     "id" SERIAL NOT NULL,
     "recipe_id" INTEGER NOT NULL,
     "planned_date" DATE NOT NULL,
@@ -216,7 +216,7 @@ CREATE TABLE IF NOT EXISTS "meal_plans" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
+CREATE TABLE "password_reset_tokens" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "token" TEXT NOT NULL,
@@ -228,7 +228,7 @@ CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "refresh_tokens" (
+CREATE TABLE "refresh_tokens" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "token" TEXT NOT NULL,
@@ -240,7 +240,7 @@ CREATE TABLE IF NOT EXISTS "refresh_tokens" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "push_tokens" (
+CREATE TABLE "push_tokens" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "token" TEXT NOT NULL,
@@ -252,38 +252,38 @@ CREATE TABLE IF NOT EXISTS "push_tokens" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS "ix_users_email" ON "users"("email");
+CREATE UNIQUE INDEX "ix_users_email" ON "users"("email");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS "ix_notifications_created_at" ON "notifications"("created_at");
-CREATE INDEX IF NOT EXISTS "ix_notifications_user_id" ON "notifications"("user_id");
+CREATE INDEX "ix_notifications_created_at" ON "notifications"("created_at");
+CREATE INDEX "ix_notifications_user_id" ON "notifications"("user_id");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS "ix_notification_templates_event_type" ON "notification_templates"("event_type");
-CREATE INDEX IF NOT EXISTS "ix_notification_templates_language" ON "notification_templates"("language");
-CREATE INDEX IF NOT EXISTS "ix_notification_templates_service_id" ON "notification_templates"("service_id");
+CREATE INDEX "ix_notification_templates_event_type" ON "notification_templates"("event_type");
+CREATE INDEX "ix_notification_templates_language" ON "notification_templates"("language");
+CREATE INDEX "ix_notification_templates_service_id" ON "notification_templates"("service_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS "ix_external_notification_services_service_name" ON "external_notification_services"("service_name");
-CREATE UNIQUE INDEX IF NOT EXISTS "ix_external_notification_services_token" ON "external_notification_services"("token");
+CREATE UNIQUE INDEX "ix_external_notification_services_service_name" ON "external_notification_services"("service_name");
+CREATE UNIQUE INDEX "ix_external_notification_services_token" ON "external_notification_services"("token");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS "ix_external_notification_service_logs_service_id" ON "external_notification_service_logs"("service_id");
+CREATE INDEX "ix_external_notification_service_logs_service_id" ON "external_notification_service_logs"("service_id");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS "ix_user_subscriptions_endpoint" ON "user_subscriptions"("endpoint");
-CREATE INDEX IF NOT EXISTS "ix_user_subscriptions_user_id" ON "user_subscriptions"("user_id");
+CREATE INDEX "ix_user_subscriptions_endpoint" ON "user_subscriptions"("endpoint");
+CREATE INDEX "ix_user_subscriptions_user_id" ON "user_subscriptions"("user_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS "ix_password_reset_tokens_token" ON "password_reset_tokens"("token");
+CREATE UNIQUE INDEX "ix_password_reset_tokens_token" ON "password_reset_tokens"("token");
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS "ix_refresh_tokens_token" ON "refresh_tokens"("token");
-CREATE INDEX IF NOT EXISTS "ix_refresh_tokens_user_id" ON "refresh_tokens"("user_id");
+CREATE UNIQUE INDEX "ix_refresh_tokens_token" ON "refresh_tokens"("token");
+CREATE INDEX "ix_refresh_tokens_user_id" ON "refresh_tokens"("user_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS "ix_push_tokens_token" ON "push_tokens"("token");
-CREATE INDEX IF NOT EXISTS "ix_push_tokens_user_id" ON "push_tokens"("user_id");
+CREATE UNIQUE INDEX "ix_push_tokens_token" ON "push_tokens"("token");
+CREATE INDEX "ix_push_tokens_user_id" ON "push_tokens"("user_id");
 
 -- AddForeignKey
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
