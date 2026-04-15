@@ -1,8 +1,9 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import type { ReactNode } from "react";
 
 interface ActionMenuItem {
   label: string;
-  icon: string;
+  icon: ReactNode;
   onClick: () => void;
   variant?: "default" | "danger" | "success";
 }

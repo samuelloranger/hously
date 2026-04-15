@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Check, Plus, X } from "lucide-react";
+import { Check, Plus, X, Pencil, Undo2, Trash2 } from "lucide-react";
 import {
   useCompleteHabit,
   useSkipHabit,
@@ -74,14 +74,14 @@ export const HabitCard: React.FC<HabitCardProps> = ({
   const actionMenuItems = [
     {
       label: t("common.update"),
-      icon: "✏️",
+      icon: <Pencil size={16} />,
       onClick: () => onEdit(habit),
     },
     ...(habit.today_completions > 0
       ? [
           {
             label: t("shopping.undo"),
-            icon: "↩️",
+            icon: <Undo2 size={16} />,
             onClick: handleUncomplete,
           },
         ]
@@ -90,14 +90,14 @@ export const HabitCard: React.FC<HabitCardProps> = ({
       ? [
           {
             label: t("habits.undoNotDone"),
-            icon: "⤺",
+            icon: <Undo2 size={16} />,
             onClick: handleUnskip,
           },
         ]
       : []),
     {
       label: t("common.delete"),
-      icon: "🗑️",
+      icon: <Trash2 size={16} />,
       onClick: () => onDelete(habit),
       variant: "danger" as const,
     },

@@ -18,6 +18,7 @@ import {
 import type { ShoppingItem } from "@hously/shared/types";
 import { formatUsername } from "@/lib/utils/format";
 import { formatDate } from "@hously/shared/utils";
+import { CheckCircle, Trash2 } from "lucide-react";
 interface ShoppingItemRowProps {
   item: ShoppingItem;
   dragHandleProps?: {
@@ -150,13 +151,13 @@ export function ShoppingItemRow({
   const actionMenuItems = [
     {
       label: item.completed ? t("shopping.undo") : t("shopping.markDone"),
-      icon: "✓",
+      icon: <CheckCircle size={16} />,
       onClick: () => toggleMutation.mutate(item.id),
       variant: "success" as const,
     },
     {
       label: t("shopping.delete"),
-      icon: "🗑️",
+      icon: <Trash2 size={16} />,
       onClick: () => {
         if (confirm(t("shopping.deleteConfirm"))) {
           deleteMutation.mutate(item.id);
