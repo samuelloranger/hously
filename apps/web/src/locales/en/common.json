@@ -903,6 +903,7 @@
         "plugins": "Plugins",
         "trackers": "Trackers"
       },
+      "indexers": "Indexers",
       "groups": {
         "media": "Media",
         "infrastructure": "Infrastructure",
@@ -940,6 +941,12 @@
         "websiteUrl": "Prowlarr URL",
         "apiKey": "Prowlarr API Key",
         "apiKeyPlaceholder": "Paste your Prowlarr API key"
+      },
+      "jackett": {
+        "help": "Connect Jackett to run global release searches across your configured indexers.",
+        "websiteUrl": "Jackett URL",
+        "apiKey": "Jackett API Key",
+        "apiKeyPlaceholder": "Paste your Jackett API key"
       },
       "qbittorrent": {
         "help": "Connect qBittorrent to display live download queue stats on the dashboard.",
@@ -1070,6 +1077,9 @@
       "movieTemplate": "Movie filename template",
       "episodeTemplate": "Episode path template",
       "minSeedRatio": "Remove torrent from qBittorrent when ratio reaches (0 = immediately after processing)",
+      "activeIndexerManager": "Indexer Manager",
+      "noIndexerConfigured": "No indexer manager configured. Enable Prowlarr or Jackett in Plugins settings.",
+      "noIndexerSelected": "None selected",
       "defaultQualityProfile": "Default quality profile",
       "defaultQualityProfileNone": "None (no profile assigned on add)",
       "defaultQualityProfileHint": "Automatically assigned to new items added to the library.",

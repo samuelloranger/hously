@@ -19,10 +19,9 @@ export const MEDIAS_ENDPOINTS = {
     if (language) p.set("language", language);
     return `/api/medias/tmdb-search?${p.toString()}`;
   },
-  PROWLARR_INTERACTIVE_SEARCH: "/api/medias/prowlarr/interactive-search",
-  PROWLARR_INTERACTIVE_SEARCH_DOWNLOAD:
-    "/api/medias/prowlarr/interactive-search/download",
-  PROWLARR_INDEXERS: "/api/medias/prowlarr/indexers",
+  INTERACTIVE_SEARCH: "/api/medias/interactive-search",
+  INTERACTIVE_SEARCH_DOWNLOAD: "/api/medias/interactive-search/download",
+  INDEXERS: "/api/medias/indexers",
   STREAMING_PROVIDERS: (
     region?: string,
     type?: "movie" | "tv",

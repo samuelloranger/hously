@@ -55,15 +55,17 @@ export function useTmdbMediaSearch(
   });
 }
 
-export function useProwlarrInteractiveSearch(
+export function useInteractiveSearch(
   query: string,
   options?: {
     enabled?: boolean;
     library_media_id?: number | null;
     /** When set to a number, triggers tvsearch for that season. "complete" triggers full-series search. */
     season?: number | "complete" | null;
-    /** TMDB ID — used for tier-1 structured tvsearch */
+    /** TMDB ID — used for tier-1 structured tvsearch and result validation */
     tmdb_id?: number | null;
+    /** Media type — used for category filtering (movie vs TV) */
+    media_type?: "movie" | "tv" | null;
   },
 ) {
   const fetcher = useFetcher();
@@ -75,23 +77,18 @@ export function useProwlarrInteractiveSearch(
   const isCompleteSearch = season === "complete";
 
   return useQuery({
-    queryKey: queryKeys.medias.prowlarrInteractiveSearch(
-      trimmed,
-      libId,
-      season,
-    ),
+    queryKey: queryKeys.medias.interactiveSearch(trimmed, libId, season),
     queryFn: () =>
       fetcher<MediaInteractiveSearchResponse>(
-        MEDIAS_ENDPOINTS.PROWLARR_INTERACTIVE_SEARCH,
+        MEDIAS_ENDPOINTS.INTERACTIVE_SEARCH,
         {
           params: {
             q: trimmed,
             ...(libId != null && libId > 0 ? { library_media_id: libId } : {}),
             ...(isSeasonSearch ? { season } : {}),
             ...(isCompleteSearch ? { complete: "true" } : {}),
-            ...((isSeasonSearch || isCompleteSearch) && tmdbId != null
-              ? { tmdb_id: tmdbId }
-              : {}),
+            ...(tmdbId != null ? { tmdb_id: tmdbId } : {}),
+            ...(options?.media_type ? { media_type: options.media_type } : {}),
           },
         },
       ),
@@ -103,13 +100,13 @@ export function useProwlarrInteractiveSearch(
   });
 }
 
-export function useProwlarrInteractiveDownload() {
+export function useInteractiveDownload() {
   const fetcher = useFetcher();
 
   return useMutation({
     mutationFn: (params: { token: string }) =>
       fetcher<MediaInteractiveDownloadResponse>(
-        MEDIAS_ENDPOINTS.PROWLARR_INTERACTIVE_SEARCH_DOWNLOAD,
+        MEDIAS_ENDPOINTS.INTERACTIVE_SEARCH_DOWNLOAD,
         {
           method: "POST",
           body: {

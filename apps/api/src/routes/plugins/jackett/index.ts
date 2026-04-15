@@ -3,43 +3,43 @@ import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
 import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/plugins/utils";
-import { normalizeProwlarrConfig } from "@hously/api/utils/plugins/normalizers";
+import { normalizeJackettConfig } from "@hously/api/utils/plugins/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { encrypt } from "@hously/api/services/crypto";
 import { requireAdmin } from "@hously/api/middleware/auth";
 import { badRequest, serverError } from "@hously/api/errors";
 
-export const prowlarrPluginRoutes = new Elysia()
+export const jackettPluginRoutes = new Elysia()
   .use(auth)
   .use(requireAdmin)
-  .get("/prowlarr", async ({ user, set }) => {
+  .get("/jackett", async ({ set }) => {
     try {
       const plugin = await prisma.plugin.findFirst({
-        where: { type: "prowlarr" },
+        where: { type: "jackett" },
       });
 
-      const config = normalizeProwlarrConfig(plugin?.config);
+      const config = normalizeJackettConfig(plugin?.config);
       return {
         plugin: {
-          type: "prowlarr",
+          type: "jackett",
           enabled: plugin?.enabled || false,
           website_url: config?.website_url || "",
           api_key: "",
         },
       };
     } catch (error) {
-      console.error("Error fetching Prowlarr plugin config:", error);
-      return serverError(set, "Failed to fetch Prowlarr plugin config");
+      console.error("Error fetching Jackett plugin config:", error);
+      return serverError(set, "Failed to fetch Jackett plugin config");
     }
   })
   .put(
-    "/prowlarr",
+    "/jackett",
     async ({ user, body, set }) => {
       const websiteUrl = normalizeUrl(body.website_url);
       const existingPlugin = await prisma.plugin.findFirst({
-        where: { type: "prowlarr" },
+        where: { type: "jackett" },
       });
-      const existingConfig = normalizeProwlarrConfig(existingPlugin?.config);
+      const existingConfig = normalizeJackettConfig(existingPlugin?.config);
       const providedApiKey = body.api_key.trim();
       const apiKey = providedApiKey || existingConfig?.api_key || "";
       const enabled = body.enabled ?? true;
@@ -58,7 +58,7 @@ export const prowlarrPluginRoutes = new Elysia()
       try {
         const now = nowUtc();
         const plugin = await prisma.plugin.upsert({
-          where: { type: "prowlarr" },
+          where: { type: "jackett" },
           update: {
             enabled,
             config: {
@@ -68,7 +68,7 @@ export const prowlarrPluginRoutes = new Elysia()
             updatedAt: now,
           },
           create: {
-            type: "prowlarr",
+            type: "jackett",
             enabled,
             config: {
               website_url: websiteUrl,
@@ -85,19 +85,19 @@ export const prowlarrPluginRoutes = new Elysia()
         if (enabled && !settings?.activeIndexerManager) {
           await prisma.mediaSettings.upsert({
             where: { id: 1 },
-            update: { activeIndexerManager: "prowlarr" },
-            create: { id: 1, activeIndexerManager: "prowlarr" },
+            update: { activeIndexerManager: "jackett" },
+            create: { id: 1, activeIndexerManager: "jackett" },
           });
         }
 
-        if (!enabled && settings?.activeIndexerManager === "prowlarr") {
-          const jackett = await prisma.plugin.findFirst({
-            where: { type: "jackett", enabled: true },
+        if (!enabled && settings?.activeIndexerManager === "jackett") {
+          const prowlarr = await prisma.plugin.findFirst({
+            where: { type: "prowlarr", enabled: true },
           });
           await prisma.mediaSettings.update({
             where: { id: 1 },
             data: {
-              activeIndexerManager: jackett ? "jackett" : null,
+              activeIndexerManager: prowlarr ? "prowlarr" : null,
             },
           });
         }
@@ -105,7 +105,7 @@ export const prowlarrPluginRoutes = new Elysia()
         await logActivity({
           type: "plugin_updated",
           userId: user!.id,
-          payload: { plugin_type: "prowlarr" },
+          payload: { plugin_type: "jackett" },
         });
 
         return {
@@ -118,8 +118,8 @@ export const prowlarrPluginRoutes = new Elysia()
           },
         };
       } catch (error) {
-        console.error("Error saving Prowlarr plugin config:", error);
-        return serverError(set, "Failed to save Prowlarr plugin config");
+        console.error("Error saving Jackett plugin config:", error);
+        return serverError(set, "Failed to save Jackett plugin config");
       }
     },
     {

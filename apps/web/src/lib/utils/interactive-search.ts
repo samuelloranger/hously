@@ -22,7 +22,7 @@ export interface FilterParams {
   includedLanguages: string[];
   sortBy: InteractiveSortKey;
   sortDir: InteractiveSortDir;
-  isProwlarrMode?: boolean;
+  isSearchMode?: boolean;
   /** Expected media title — used for client-side title/year rejection in Prowlarr mode */
   mediaTitle?: string | null;
   /** Expected media year — used for client-side year mismatch rejection in Prowlarr mode */
@@ -113,7 +113,7 @@ export function filterAndSortReleases(
     includedLanguages,
     sortBy,
     sortDir,
-    isProwlarrMode = false,
+    isSearchMode = false,
     mediaTitle,
     mediaYear,
   } = params;
@@ -127,7 +127,7 @@ export function filterAndSortReleases(
     if (hideRejected) {
       if (release.rejected) return false;
       // Prowlarr results have no arr-side rejection — apply client-side title/year matching.
-      if (isProwlarrMode && mediaTitle) {
+      if (isSearchMode && mediaTitle) {
         if (isClientRejected(release.title, mediaTitle, mediaYear))
           return false;
       }

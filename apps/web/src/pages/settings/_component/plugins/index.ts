@@ -2,6 +2,7 @@ export { AdguardPluginSection } from "@/pages/settings/_component/plugins/Adguar
 export { JellyfinPluginSection } from "@/pages/settings/_component/plugins/JellyfinPluginSection";
 export { BeszelPluginSection } from "@/pages/settings/_component/plugins/BeszelPluginSection";
 export { ProwlarrPluginSection } from "@/pages/settings/_component/plugins/ProwlarrPluginSection";
+export { JackettPluginSection } from "@/pages/settings/_component/plugins/JackettPluginSection";
 export { QbittorrentPluginSection } from "@/pages/settings/_component/plugins/QbittorrentPluginSection";
 export { ScrutinyPluginSection } from "@/pages/settings/_component/plugins/ScrutinyPluginSection";
 export { TmdbPluginSection } from "@/pages/settings/_component/plugins/TmdbPluginSection";

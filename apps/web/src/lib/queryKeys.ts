@@ -126,6 +126,7 @@ export const queryKeys = {
     radarr: () => [...queryKeys.plugins.all, "radarr"] as const,
     sonarr: () => [...queryKeys.plugins.all, "sonarr"] as const,
     prowlarr: () => [...queryKeys.plugins.all, "prowlarr"] as const,
+    jackett: () => [...queryKeys.plugins.all, "jackett"] as const,
     qbittorrent: () => [...queryKeys.plugins.all, "qbittorrent"] as const,
     scrutiny: () => [...queryKeys.plugins.all, "scrutiny"] as const,
     beszel: () => [...queryKeys.plugins.all, "beszel"] as const,
@@ -173,7 +174,7 @@ export const queryKeys = {
         query,
         language ?? "en-US",
       ] as const,
-    prowlarrInteractiveSearch: (
+    interactiveSearch: (
       query: string,
       libraryMediaId?: number | null,
       season?: number | "complete" | null,
@@ -181,7 +182,6 @@ export const queryKeys = {
       [
         ...queryKeys.medias.all,
         "interactive-search",
-        "prowlarr",
         query,
         libraryMediaId ?? null,
         season ?? null,
@@ -342,9 +342,9 @@ export const queryKeys = {
     list: () => [...queryKeys.qualityProfiles.all, "list"] as const,
   },
 
-  prowlarr: {
-    all: ["prowlarr"] as const,
-    indexers: () => [...queryKeys.prowlarr.all, "indexers"] as const,
+  indexerManager: {
+    all: ["indexer-manager"] as const,
+    indexers: () => [...queryKeys.indexerManager.all, "indexers"] as const,
   },
 } as const;
 

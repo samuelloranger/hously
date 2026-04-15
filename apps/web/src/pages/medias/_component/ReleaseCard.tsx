@@ -2,6 +2,22 @@ import { Download } from "lucide-react";
 import type { InteractiveReleaseItem } from "@hously/shared/types";
 import { formatBytes } from "@/lib/utils/format";
 
+/** Insert <wbr> after dots so long release titles can wrap on mobile. */
+function BreakableTitle({ text }: { text: string }) {
+  const parts = text.split(".");
+  return (
+    <>
+      {parts.map((part, i) => (
+        <span key={i}>
+          {i > 0 && "."}
+          {i > 0 && <wbr />}
+          {part}
+        </span>
+      ))}
+    </>
+  );
+}
+
 export function ReleaseCard({
   release,
   onDownload,
@@ -35,10 +51,10 @@ export function ReleaseCard({
                 rel="noopener noreferrer"
                 className="transition-colors hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
               >
-                {release.title}
+                <BreakableTitle text={release.title} />
               </a>
             ) : (
-              release.title
+              <BreakableTitle text={release.title} />
             )}
           </p>
 
@@ -58,11 +74,6 @@ export function ReleaseCard({
                 {release.indexer}
               </span>
             )}
-            {release.protocol && (
-              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-[10px] font-medium uppercase text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                {release.protocol}
-              </span>
-            )}
             {release.size_bytes != null && (
               <span className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
                 {formatBytes(release.size_bytes)}
@@ -79,6 +90,16 @@ export function ReleaseCard({
                 ]
                   .filter(Boolean)
                   .join(" · ")}
+              </span>
+            )}
+            {release.parsed_quality?.hdr && (
+              <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                {release.parsed_quality.hdr}
+              </span>
+            )}
+            {release.freeleech && (
+              <span className="inline-flex items-center rounded-md bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-500/15 dark:text-green-300">
+                FL
               </span>
             )}
             {release.quality_score != null && (

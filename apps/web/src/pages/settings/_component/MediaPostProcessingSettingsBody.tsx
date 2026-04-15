@@ -7,6 +7,10 @@ import {
   useLibraryScan,
   useUpdateMediaPostProcessingSettings,
 } from "@/features/medias/hooks/useLibrary";
+import {
+  useProwlarrPlugin,
+  useJackettPlugin,
+} from "@/pages/settings/usePlugins";
 import type {
   MediaFileOperation,
   MediaPostProcessingSettings,
@@ -45,12 +49,24 @@ export function MediaPostProcessingSettingsBody({
   const [defaultQualityProfileId, setDefaultQualityProfileId] = useState<
     number | null
   >(settings.default_quality_profile_id);
+  const [activeIndexerManager, setActiveIndexerManager] = useState(
+    settings.active_indexer_manager,
+  );
   const [scanPath, setScanPath] = useState("");
   const [scanType, setScanType] = useState<"movie" | "show">("movie");
   const [lastScan, setLastScan] = useState<{
     matched: number;
     unmatched: string[];
   } | null>(null);
+
+  const { data: prowlarrData } = useProwlarrPlugin();
+  const { data: jackettData } = useJackettPlugin();
+  const prowlarrEnabled = Boolean(prowlarrData?.plugin?.enabled);
+  const jackettEnabled = Boolean(jackettData?.plugin?.enabled);
+  const indexerOptions = [
+    ...(prowlarrEnabled ? [{ value: "prowlarr", label: "Prowlarr" }] : []),
+    ...(jackettEnabled ? [{ value: "jackett", label: "Jackett" }] : []),
+  ];
 
   const onSave = async () => {
     try {
@@ -63,6 +79,7 @@ export function MediaPostProcessingSettingsBody({
         episode_template: episodeTemplate,
         min_seed_ratio: minSeedRatio,
         default_quality_profile_id: defaultQualityProfileId,
+        active_indexer_manager: activeIndexerManager,
       });
       toast.success(t("settings.mediaLibrary.saveSuccess"));
     } catch {
@@ -174,6 +191,37 @@ export function MediaPostProcessingSettingsBody({
           value={String(minSeedRatio)}
           onChange={(e) => setMinSeedRatio(Number(e.target.value))}
         />
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            {t("settings.mediaLibrary.activeIndexerManager")}
+          </label>
+          {indexerOptions.length === 0 ? (
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              {t("settings.mediaLibrary.noIndexerConfigured")}
+            </p>
+          ) : (
+            <select
+              value={activeIndexerManager ?? ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                setActiveIndexerManager(
+                  val === "prowlarr" || val === "jackett" ? val : null,
+                );
+              }}
+              className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+            >
+              <option value="">
+                {t("settings.mediaLibrary.noIndexerSelected")}
+              </option>
+              {indexerOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
 
         <div>
           <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1.5">

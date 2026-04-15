@@ -903,6 +903,7 @@
         "plugins": "Plugins",
         "trackers": "Trackers"
       },
+      "indexers": "Indexeurs",
       "groups": {
         "media": "Médias",
         "infrastructure": "Infrastructure",
@@ -940,6 +941,12 @@
         "websiteUrl": "URL Prowlarr",
         "apiKey": "Clé API Prowlarr",
         "apiKeyPlaceholder": "Collez votre clé API Prowlarr"
+      },
+      "jackett": {
+        "help": "Connectez Jackett pour effectuer des recherches globales de releases sur vos indexeurs configurés.",
+        "websiteUrl": "URL de Jackett",
+        "apiKey": "Clé API Jackett",
+        "apiKeyPlaceholder": "Collez votre clé API Jackett"
       },
       "qbittorrent": {
         "help": "Connectez qBittorrent pour afficher les statistiques de file de téléchargement en direct sur le tableau de bord.",
@@ -1070,6 +1077,9 @@
       "movieTemplate": "Modèle de nom de fichier (film)",
       "episodeTemplate": "Modèle de chemin (épisode)",
       "minSeedRatio": "Retirer le torrent de qBittorrent quand le ratio atteint (0 = juste après traitement)",
+      "activeIndexerManager": "Gestionnaire d'indexeurs",
+      "noIndexerConfigured": "Aucun gestionnaire d'indexeurs configuré. Activez Prowlarr ou Jackett dans les paramètres des Plugins.",
+      "noIndexerSelected": "Aucune sélection",
       "defaultQualityProfile": "Profil qualité par défaut",
       "defaultQualityProfileNone": "Aucun (pas de profil assigné à l'ajout)",
       "defaultQualityProfileHint": "Assigné automatiquement aux nouveaux éléments ajoutés à la bibliothèque.",

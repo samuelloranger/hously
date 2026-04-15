@@ -67,7 +67,11 @@ export function getExternalNotificationUrl(serviceName: string): string {
     return "/library";
   }
 
-  if (normalized === "prowlarr" || normalized === "cross-seed") {
+  if (
+    normalized === "prowlarr" ||
+    normalized === "jackett" ||
+    normalized === "cross-seed"
+  ) {
     return "/torrents";
   }
 

@@ -4,6 +4,7 @@ import type { QualityProfile } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@hously/api/db";
+import { getActiveIndexerManager } from "@hously/api/services/indexerManager";
 import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import {
   addQbittorrentMagnet,
@@ -15,15 +16,7 @@ import {
   parseReleaseTitle,
   type ParsedRelease,
 } from "@hously/api/utils/medias/filenameParser";
-import {
-  extractProwlarrDownloadTarget,
-  indexerNameFromRaw,
-  infoHashFromMagnet,
-  releaseTitleFromRaw,
-  sizeBytesFromRaw,
-  toBoolean,
-  toRecord,
-} from "@hously/api/utils/medias/prowlarrSearchUtils";
+import { infoHashFromMagnet } from "@hously/api/utils/medias/prowlarrSearchUtils";
 import {
   scoreRelease,
   type QualityProfileScoreInput,
@@ -72,7 +65,7 @@ function profileToScoreInput(p: QualityProfile): QualityProfileScoreInput {
 }
 
 type CandidateRow = {
-  raw: Record<string, unknown>;
+  raw: { _downloadUrl: string; _isMagnet: boolean };
   parsed: ParsedRelease;
   score: number;
   title: string;
@@ -439,39 +432,20 @@ export async function searchAndGrab(opts: {
     const qTrim = searchQuery.trim();
     if (!qTrim) return { grabbed: false, reason: "Empty search query" };
 
-    const prowPlugin = await getPluginConfigRecord("prowlarr");
-    if (!prowPlugin?.enabled) {
-      return { grabbed: false, reason: "Prowlarr not configured" };
+    const adapter = await getActiveIndexerManager();
+    if (!adapter) {
+      return { grabbed: false, reason: "No indexer manager configured" };
     }
-    const prowCfg = normalizeProwlarrConfig(prowPlugin.config);
-    if (!prowCfg) return { grabbed: false, reason: "Prowlarr not configured" };
 
-    const url = new URL("/api/v1/search", prowCfg.website_url);
-    url.searchParams.set("query", qTrim);
-    url.searchParams.set("type", "search");
-    url.searchParams.set("limit", "100");
-
-    const res = await fetch(url.toString(), {
-      headers: { "X-Api-Key": prowCfg.api_key, Accept: "application/json" },
-      signal: AbortSignal.timeout(60_000),
+    const releases = await adapter.search({
+      query: qTrim,
+      type: "freetext",
+      mediaType: episodeId != null ? "tv" : "movie",
+      limit: 100,
     });
-    if (!res.ok) {
-      return {
-        grabbed: false,
-        reason: `Prowlarr search failed (${res.status})`,
-      };
-    }
 
-    let rawList: unknown[];
-    try {
-      const body = await res.json();
-      if (!Array.isArray(body)) {
-        return { grabbed: false, reason: "Invalid Prowlarr response" };
-      }
-      rawList = body;
-    } catch (e) {
-      console.warn("[mediaGrabber] Prowlarr JSON parse failed:", e);
-      return { grabbed: false, reason: "Could not parse Prowlarr response" };
+    if (releases.length === 0) {
+      return { grabbed: false, reason: "No matching releases found" };
     }
 
     const rows: CandidateRow[] = [];
@@ -484,29 +458,48 @@ export async function searchAndGrab(opts: {
       if (prof) profileInput = profileToScoreInput(prof);
     }
 
-    const baseUrl = prowCfg.website_url.replace(/\/+$/, "");
-
-    for (const item of rawList) {
-      const row = toRecord(item);
-      if (!row) continue;
-      if (toBoolean(row.rejected)) continue;
-      const title = releaseTitleFromRaw(row);
+    for (const release of releases) {
+      if (release.rejected) continue;
+      const title = release.title;
       if (!title) continue;
-      const target = extractProwlarrDownloadTarget(row, baseUrl);
-      if (!target) continue;
+      const downloadUrl = release.magnetUrl ?? release.downloadUrl;
+      if (!downloadUrl) continue;
       const parsed = parseReleaseTitle(title);
-      const size = sizeBytesFromRaw(row);
-      const indexerName = indexerNameFromRaw(row);
+      const size = release.sizeBytes;
 
-      // Always reject samples regardless of profile
       if (parsed.isSample) continue;
 
       if (profileInput) {
-        const sc = scoreRelease(parsed, profileInput, size, title, indexerName);
+        const sc = scoreRelease(
+          parsed,
+          profileInput,
+          size,
+          title,
+          release.indexer,
+          release.freeleech,
+        );
         if (sc === null) continue;
-        rows.push({ raw: row, parsed, score: sc, title, size });
+        rows.push({
+          raw: {
+            _downloadUrl: downloadUrl,
+            _isMagnet: Boolean(release.magnetUrl),
+          },
+          parsed,
+          score: sc,
+          title,
+          size,
+        });
       } else {
-        rows.push({ raw: row, parsed, score: 0, title, size });
+        rows.push({
+          raw: {
+            _downloadUrl: downloadUrl,
+            _isMagnet: Boolean(release.magnetUrl),
+          },
+          parsed,
+          score: 0,
+          title,
+          size,
+        });
       }
     }
 
@@ -525,18 +518,15 @@ export async function searchAndGrab(opts: {
     for (const candidate of rows) {
       if (blocklistTitles.has(candidate.title.toLowerCase())) continue;
 
-      const downloadTarget = extractProwlarrDownloadTarget(
-        candidate.raw,
-        baseUrl,
-      );
-      if (!downloadTarget) continue;
+      const downloadUrl = candidate.raw._downloadUrl;
+      if (!downloadUrl) continue;
 
       const result = await grabRelease({
         mediaId,
         episodeId,
-        downloadUrl: downloadTarget.url,
+        downloadUrl,
         releaseTitle: candidate.title,
-        indexer: indexerNameFromRaw(candidate.raw),
+        indexer: null,
         qualityParsed: candidate.parsed,
       });
 

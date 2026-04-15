@@ -18,10 +18,14 @@ export interface SonarrPluginConfig {
   language_profile_id: number;
 }
 
-export interface ProwlarrPluginConfig {
+/** Shared config shape for indexer managers (Prowlarr, Jackett). */
+export interface IndexerPluginConfig {
   api_key: string;
   website_url: string;
 }
+
+/** @deprecated Use IndexerPluginConfig — kept as alias for existing references. */
+export type ProwlarrPluginConfig = IndexerPluginConfig;
 
 export interface ScrutinyPluginConfig {
   website_url: string;

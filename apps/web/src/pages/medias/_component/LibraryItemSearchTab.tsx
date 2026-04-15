@@ -67,7 +67,7 @@ export function LibraryItemSearchTab({
   const localizedQuery = `${item.title}${ctxSuffix}`;
 
   const orig = tmdbOriginalTitle?.trim() || null;
-  const prowlarrQueryOriginal =
+  const searchQueryOriginal =
     orig && orig.toLowerCase() !== item.title.trim().toLowerCase()
       ? `${orig}${ctxSuffix}`
       : null;
@@ -110,8 +110,8 @@ export function LibraryItemSearchTab({
         isActive
         media={mediaItem}
         libraryMediaId={item.id}
-        defaultProwlarrQuery={localizedQuery}
-        prowlarrQueryOriginal={prowlarrQueryOriginal}
+        defaultSearchQuery={localizedQuery}
+        searchQueryOriginal={searchQueryOriginal}
         episodeId={episodeSearchCtx?.id ?? null}
         defaultSeason={seasonSearchCtx}
       />

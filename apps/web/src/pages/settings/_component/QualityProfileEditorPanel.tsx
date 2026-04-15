@@ -20,7 +20,7 @@ import {
 import {
   profileToForm,
   useCreateQualityProfile,
-  useProwlarrIndexers,
+  useIndexers,
   useUpdateQualityProfile,
   type QualityProfileFormPayload,
 } from "@/pages/settings/useQualityProfiles";
@@ -238,7 +238,7 @@ function TrackerPrioritySection({
 }) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const { data, isFetching } = useProwlarrIndexers(popoverOpen);
+  const { data, isFetching } = useIndexers(popoverOpen);
 
   const indexers = data?.indexers ?? [];
   const available = indexers.filter(
