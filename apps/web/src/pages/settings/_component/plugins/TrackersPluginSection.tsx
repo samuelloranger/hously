@@ -9,8 +9,8 @@ import {
 } from "@/pages/settings/usePlugins";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
 import { PluginUrlInput } from "@/pages/settings/_component/plugins/PluginUrlInput";
+import { Switch } from "@/components/ui/switch";
 
 type TrackerFormState = {
   enabled: boolean;
@@ -109,27 +109,12 @@ function TrackerEditor({
             {title}
           </h4>
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={state.enabled}
-          onClick={() =>
-            setState((prev) => ({ ...prev, enabled: !prev.enabled }))
+        <Switch
+          checked={state.enabled}
+          onCheckedChange={(next) =>
+            setState((prev) => ({ ...prev, enabled: next }))
           }
-          className={cn(
-            "relative inline-flex h-6 w-11 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
-            state.enabled
-              ? "bg-primary-600"
-              : "bg-neutral-200 dark:bg-neutral-700",
-          )}
-        >
-          <span
-            className={cn(
-              "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-              state.enabled ? "translate-x-5" : "translate-x-0",
-            )}
-          />
-        </button>
+        />
       </div>
 
       {description && (

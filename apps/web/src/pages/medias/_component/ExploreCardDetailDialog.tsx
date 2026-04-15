@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { Dialog } from "@/components/dialog";
 import { cn } from "@/lib/utils";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { MediaDetailInfoSections } from "@/pages/medias/_component/MediaDetailInfoSections";
 import { SimilarMediasPanel } from "@/pages/medias/_component/SimilarMediasPanel";
 
@@ -648,24 +649,19 @@ export function ExploreCardDetailDialog({
 
               {/* ── Tab pills ─────────────────────────────────────────────── */}
               {tabs.length > 1 && (
-                <div className="flex gap-1 mb-3">
-                  {tabs.map(({ key, label, icon: Icon }) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setActiveTab(key)}
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-[background-color,color] duration-150",
-                        validTab === key
-                          ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
-                          : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-300",
-                      )}
-                    >
-                      <Icon size={14} />
-                      {label}
-                    </button>
-                  ))}
-                </div>
+                <SegmentedTabs
+                  items={tabs.map((tab) => ({
+                    id: tab.key,
+                    label: tab.label,
+                    icon: tab.icon,
+                  }))}
+                  value={validTab}
+                  onChange={setActiveTab}
+                  containerClassName="mb-3"
+                  itemClassName="rounded-full px-3 py-1.5 text-xs"
+                  activeItemClassName="bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
+                  inactiveItemClassName="text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
+                />
               )}
 
               {/* ── Info tab ─────────────────────────────────────────────── */}

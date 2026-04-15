@@ -3,6 +3,7 @@ import { Compass, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { TmdbMediaSearchPanel } from "@/pages/medias/_component/TmdbMediaSearchPanel";
 import { DiscoverPanel } from "@/pages/medias/_component/DiscoverPanel";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 
 type Tab = "discover" | "search";
 
@@ -19,31 +20,20 @@ export function MediasExplore() {
     <div className="pb-10">
       {/* ── Mobile tab bar (hidden md+) ─────────────────────── */}
       <div className="md:hidden mb-6 -mx-4 px-4">
-        <div className="flex gap-1 rounded-2xl border border-white/[0.07] bg-white/[0.03] p-1 backdrop-blur-sm">
-          {TABS.map(({ id, icon: Icon, labelKey }) => {
-            const active = activeTab === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setActiveTab(id)}
-                className={[
-                  "relative flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-200",
-                  active
-                    ? "bg-white/10 text-white shadow-sm"
-                    : "text-neutral-500 hover:text-neutral-300",
-                ].join(" ")}
-              >
-                <Icon
-                  size={13}
-                  className={active ? "text-indigo-300" : "text-current"}
-                  aria-hidden
-                />
-                <span className="truncate">{t(labelKey)}</span>
-              </button>
-            );
-          })}
-        </div>
+        <SegmentedTabs
+          items={TABS.map(({ id, icon, labelKey }) => ({
+            id,
+            icon,
+            label: t(labelKey),
+          }))}
+          value={activeTab}
+          onChange={setActiveTab}
+          containerClassName="flex w-full rounded-2xl border border-neutral-200 bg-neutral-100/90 p-1 dark:border-white/[0.07] dark:bg-white/[0.03] backdrop-blur-sm"
+          itemClassName="flex-1 px-3 py-2.5 text-xs font-semibold duration-200"
+          inactiveItemClassName="text-neutral-600 hover:text-neutral-800 dark:text-neutral-500 dark:hover:text-neutral-300"
+          activeItemClassName="dark:bg-white/10 dark:text-white"
+          activeIconClassName="text-indigo-600 dark:text-indigo-300"
+        />
       </div>
 
       {/* ── Panels — TMDB search first (desktop + mobile priority) ─ */}

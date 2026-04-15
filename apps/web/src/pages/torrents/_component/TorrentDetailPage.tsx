@@ -59,6 +59,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/dialog";
 import { cn } from "@/lib/utils";
+import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { TorrentPropertiesTab } from "@/pages/torrents/_component/TorrentPropertiesTab";
 import { TorrentFilesTab } from "@/pages/torrents/_component/TorrentFilesTab";
 import { TorrentTrackersTab } from "@/pages/torrents/_component/TorrentTrackersTab";
@@ -281,30 +282,30 @@ export function TorrentDetailPage() {
   const tabs: {
     id: TabId;
     label: string;
-    icon: React.ReactNode;
+    icon: React.ComponentType<{ size?: number; className?: string }>;
     count?: number;
   }[] = [
     {
       id: "properties",
       label: t("torrents.properties", "Properties"),
-      icon: <Settings2 size={13} />,
+      icon: Settings2,
     },
     {
       id: "files",
       label: t("torrents.filesTitle", "Files"),
-      icon: <FileText size={13} />,
+      icon: FileText,
       count: filesQuery.data?.files?.length,
     },
     {
       id: "trackers",
       label: t("dashboard.qbittorrent.trackers", "Trackers"),
-      icon: <Server size={13} />,
+      icon: Server,
       count: trackersQuery.data?.trackers?.length,
     },
     {
       id: "peers",
       label: t("torrents.peers", "Peers"),
-      icon: <Users size={13} />,
+      icon: Users,
       count: peersSnapshot?.peers?.length,
     },
   ];
@@ -538,35 +539,18 @@ export function TorrentDetailPage() {
       </div>
 
       {/* ── Pill tabs ── */}
-      <div className="bg-neutral-100 dark:bg-neutral-800/60 rounded-xl p-1 mb-4 flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              "flex-1 shrink-0 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 whitespace-nowrap min-w-0",
-              activeTab === tab.id
-                ? "bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm"
-                : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200",
-            )}
-          >
-            {tab.icon}
-            <span className="truncate">{tab.label}</span>
-            {tab.count != null && (
-              <span
-                className={cn(
-                  "shrink-0 px-1.5 py-px rounded-full text-[10px] font-bold tabular-nums leading-none",
-                  activeTab === tab.id
-                    ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300"
-                    : "bg-neutral-200 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400",
-                )}
-              >
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      <SegmentedTabs
+        items={tabs.map((tab) => ({
+          id: tab.id,
+          label: tab.label,
+          icon: tab.icon,
+          badge: tab.count,
+        }))}
+        value={activeTab}
+        onChange={setActiveTab}
+        containerClassName="mb-4 flex w-full overflow-x-auto bg-neutral-100 dark:bg-neutral-800/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        itemClassName="flex-1 shrink-0 px-3 py-2 whitespace-nowrap min-w-0"
+      />
 
       {/* ── Tab panels ── */}
       {activeTab === "properties" && (
