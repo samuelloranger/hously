@@ -21,7 +21,12 @@ import type {
 } from "@hously/shared/types";
 
 export function useLibrary(
-  filters?: { type?: string; status?: string; q?: string },
+  filters?: {
+    type?: string;
+    status?: string;
+    q?: string;
+    language?: string;
+  },
   options?: { staleTime?: number; gcTime?: number },
 ) {
   const fetcher = useFetcher();
@@ -30,6 +35,7 @@ export function useLibrary(
   if (filters?.type) params.set("type", filters.type);
   if (filters?.status) params.set("status", filters.status);
   if (filters?.q) params.set("q", filters.q);
+  if (filters?.language) params.set("language", filters.language);
   const qs = params.toString();
 
   return useQuery({
@@ -39,6 +45,70 @@ export function useLibrary(
         `${LIBRARY_ENDPOINTS.LIST}${qs ? `?${qs}` : ""}`,
       ),
     ...options,
+  });
+}
+
+export function useLibraryLanguageTags() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.library.languageTags(),
+    queryFn: () => fetcher<{ tags: string[] }>(LIBRARY_ENDPOINTS.LANGUAGE_TAGS),
+  });
+}
+
+export type ReindexLanguagesStatus = {
+  job_id: string | null;
+  state:
+    | "unknown"
+    | "active"
+    | "waiting"
+    | "completed"
+    | "failed"
+    | "delayed"
+    | "paused";
+  progress: {
+    current: number;
+    total: number;
+    current_file: string | null;
+    updated: number;
+    skipped: number;
+    errors: number;
+  } | null;
+  result: { updated: number; skipped: number; errors: number } | null;
+  error: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+};
+
+export function useReindexLanguages() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      fetcher<{ job_id: string }>(LIBRARY_ENDPOINTS.REINDEX_LANGUAGES, {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.reindexLanguagesStatus(),
+      });
+    },
+  });
+}
+
+export function useReindexLanguagesStatus(enabled = true) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.library.reindexLanguagesStatus(),
+    queryFn: () =>
+      fetcher<ReindexLanguagesStatus>(
+        LIBRARY_ENDPOINTS.REINDEX_LANGUAGES_STATUS,
+      ),
+    enabled,
+    refetchInterval: (query) => {
+      const state = query.state.data?.state;
+      return state === "active" || state === "waiting" ? 2000 : false;
+    },
   });
 }
 

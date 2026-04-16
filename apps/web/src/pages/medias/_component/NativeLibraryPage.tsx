@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/segmented-tabs";
 import {
   useLibrary,
+  useLibraryLanguageTags,
   useSearchLibraryMovie,
 } from "@/features/medias/hooks/useLibrary";
 import { useLibraryEvents } from "@/features/medias/hooks/useLibraryEvents";
@@ -60,6 +61,7 @@ const PAGE_SIZE = 48;
 const LIBRARY_DEFAULTS = {
   type: "all" as FilterType,
   status: "all" as FilterStatus,
+  language: "all" as string,
   search: "" as string,
   sortBy: "added_at" as SortKey,
   sortDir: "desc" as SortDir,
@@ -77,6 +79,7 @@ export function NativeLibraryPage() {
   const {
     type: typeFilter,
     status: statusFilter,
+    language: languageFilter,
     search,
     sortBy,
     sortDir,
@@ -91,7 +94,11 @@ export function NativeLibraryPage() {
     type: typeFilter !== "all" ? typeFilter : undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     q: search || undefined,
+    language: languageFilter !== "all" ? languageFilter : undefined,
   });
+
+  const { data: languageTagsData } = useLibraryLanguageTags();
+  const languageTags = languageTagsData?.tags ?? [];
 
   const allItems = data?.items ?? [];
 
@@ -218,6 +225,25 @@ export function NativeLibraryPage() {
                   onChange={(f) => setState({ status: f, page: 1 })}
                 />
               </div>
+
+              {/* Language filter */}
+              <div className="w-full md:w-auto flex items-center gap-2 max-w-sm sm:max-w-none">
+                <select
+                  aria-label={t("medias.library.languageAll")}
+                  value={languageFilter}
+                  onChange={(e) =>
+                    setState({ language: e.target.value, page: 1 })
+                  }
+                  className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
+                >
+                  <option value="all">{t("medias.library.languageAll")}</option>
+                  {languageTags.map((tag) => (
+                    <option key={tag} value={tag}>
+                      {tag}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -289,7 +315,7 @@ export function NativeLibraryPage() {
             </motion.div>
           ) : (
             <motion.div
-              key={`${typeFilter}-${statusFilter}-${sortBy}-${sortDir}-${safePage}`}
+              key={`${typeFilter}-${statusFilter}-${languageFilter}-${sortBy}-${sortDir}-${safePage}`}
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3"
               variants={gridContainerVariants}
               initial="hidden"

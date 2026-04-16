@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/ui/form-field";
 import {
   useLibraryScan,
+  useReindexLanguages,
+  useReindexLanguagesStatus,
   useUpdateMediaPostProcessingSettings,
 } from "@/features/medias/hooks/useLibrary";
 import {
@@ -315,6 +317,55 @@ export function MediaPostProcessingSettingsBody({
           </div>
         )}
       </section>
+
+      <ReindexLanguagesSection />
     </div>
+  );
+}
+
+function ReindexLanguagesSection() {
+  const { t } = useTranslation("common");
+  const reindexMut = useReindexLanguages();
+  const { data: status } = useReindexLanguagesStatus();
+  const isRunning = status?.state === "active" || status?.state === "waiting";
+
+  const onStart = async () => {
+    try {
+      await reindexMut.mutateAsync();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  return (
+    <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/40 p-5 space-y-4">
+      <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+        {t("medias.library.reindexLanguagesButton")}
+      </h3>
+      <Button
+        type="button"
+        variant="secondary"
+        onClick={() => void onStart()}
+        disabled={isRunning || reindexMut.isPending}
+      >
+        {isRunning && status?.progress
+          ? t("medias.library.reindexLanguagesRunning", {
+              current: status.progress.current,
+              total: status.progress.total,
+            })
+          : t("medias.library.reindexLanguagesButton")}
+      </Button>
+      {status?.state === "completed" && status.result && (
+        <p className="text-xs text-neutral-600 dark:text-neutral-400">
+          {t("medias.library.reindexLanguagesDone", {
+            updated: status.result.updated,
+            errors: status.result.errors,
+          })}
+        </p>
+      )}
+      {status?.state === "failed" && status.error && (
+        <p className="text-xs text-red-600 dark:text-red-400">{status.error}</p>
+      )}
+    </section>
   );
 }

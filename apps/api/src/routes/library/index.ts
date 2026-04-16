@@ -1,11 +1,16 @@
 import { Elysia, t } from "elysia";
+import { Prisma } from "@prisma/client";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
-import { libraryMigrateQueue } from "@hously/api/services/queueService";
+import {
+  libraryMigrateQueue,
+  libraryReindexLanguagesQueue,
+} from "@hously/api/services/queueService";
 import { createJsonSseResponse } from "@hously/api/utils/sse";
 import type { LibraryMigrateProgress } from "@hously/api/services/jobs/libraryMigrateWorker";
+import type { LibraryReindexLanguagesProgress } from "@hously/api/services/jobs/libraryReindexLanguagesWorker";
 import {
   QBIT_CATEGORY_HOUSLY_MOVIES,
   QBIT_CATEGORY_HOUSLY_SHOWS,
@@ -80,13 +85,16 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     "/",
     async ({ query, set }) => {
       try {
-        const { type, status, q } = query;
+        const { type, status, q, language } = query;
         const titleFilter = q
           ? { title: { contains: q, mode: "insensitive" as const } }
           : {};
-        const sharedWhere = {
+        const sharedWhere: Prisma.LibraryMediaWhereInput = {
           ...(status ? { status } : {}),
           ...titleFilter,
+          ...(language && language.length > 0
+            ? { files: { some: { languageTags: { has: language } } } }
+            : {}),
         };
         const [items, counts] = await Promise.all([
           prisma.libraryMedia.findMany({
@@ -116,9 +124,96 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         type: t.Optional(t.String()),
         status: t.Optional(t.String()),
         q: t.Optional(t.String()),
+        language: t.Optional(t.String()),
       }),
     },
   )
+
+  // GET /api/library/language-tags — distinct language tags present in the library
+  .get("/language-tags", async ({ set }) => {
+    try {
+      const rows = await prisma.$queryRaw<
+        { tag: string }[]
+      >`SELECT DISTINCT UNNEST(language_tags) AS tag FROM media_files`;
+      const tags = rows.map((r) => r.tag).filter(Boolean);
+      const order: Record<string, number> = { EN: 0, VFQ: 1, VFF: 2, FR: 3 };
+      tags.sort((a, b) => {
+        const ai = order[a] ?? 100;
+        const bi = order[b] ?? 100;
+        if (ai !== bi) return ai - bi;
+        return a.localeCompare(b);
+      });
+      return { tags };
+    } catch {
+      return serverError(set, "Failed to fetch language tags");
+    }
+  })
+
+  // POST /api/library/reindex-languages — enqueue background reindex (admin only)
+  .post("/reindex-languages", async ({ user, set }) => {
+    if (!user?.is_admin) return badRequest(set, "Admin access required");
+    try {
+      const job = await libraryReindexLanguagesQueue.add(
+        "library-reindex-languages",
+        {},
+        { jobId: "library-reindex-languages-singleton" },
+      );
+      const state = await job?.getState();
+      if (state === "active" || state === "waiting") {
+        return badRequest(set, "A language reindex job is already running");
+      }
+      return { job_id: job?.id };
+    } catch {
+      return serverError(set, "Failed to enqueue reindex job");
+    }
+  })
+
+  // GET /api/library/reindex-languages/status — current or latest reindex job
+  .get("/reindex-languages/status", async ({ set }) => {
+    try {
+      const [active, waiting, completed, failed] = await Promise.all([
+        libraryReindexLanguagesQueue.getJobs(["active"]),
+        libraryReindexLanguagesQueue.getJobs(["waiting"]),
+        libraryReindexLanguagesQueue.getJobs(["completed"], 0, 1, false),
+        libraryReindexLanguagesQueue.getJobs(["failed"], 0, 1, false),
+      ]);
+      const job = active[0] ?? waiting[0] ?? completed[0] ?? failed[0] ?? null;
+      if (!job) {
+        return {
+          state: "unknown",
+          job_id: null,
+          progress: null,
+          result: null,
+          error: null,
+          started_at: null,
+          finished_at: null,
+        };
+      }
+      const state = await job.getState();
+      const progress =
+        (job.progress as LibraryReindexLanguagesProgress | null | number) ??
+        null;
+      const typedProgress =
+        typeof progress === "object" && progress !== null
+          ? (progress as LibraryReindexLanguagesProgress)
+          : null;
+      return {
+        job_id: job.id ?? null,
+        state,
+        progress: typedProgress,
+        result: state === "completed" ? (job.returnvalue ?? null) : null,
+        error: state === "failed" ? (job.failedReason ?? null) : null,
+        started_at: job.processedOn
+          ? new Date(job.processedOn).toISOString()
+          : null,
+        finished_at: job.finishedOn
+          ? new Date(job.finishedOn).toISOString()
+          : null,
+      };
+    } catch {
+      return serverError(set, "Failed to fetch reindex status");
+    }
+  })
 
   // GET /api/library/events — SSE stream for real-time library updates
   .get("/events", ({ request, set }) => {
