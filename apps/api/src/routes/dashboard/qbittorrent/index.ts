@@ -24,6 +24,8 @@ import {
   setQbittorrentTorrentTags,
 } from "@hously/api/services/qbittorrent/torrents";
 import { fetchQbittorrentTorrentTrackers } from "@hously/api/services/qbittorrent/trackers";
+import { revertLibraryDownloadingIfNoOtherActiveGrabs } from "@hously/api/workers/checkDownloadCompletion";
+import { emitLibraryUpdate } from "@hously/api/services/libraryEvents";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { badRequest, serverError } from "@hously/api/errors";
@@ -535,6 +537,26 @@ export const dashboardQbittorrentRoutes = new Elysia()
         hash: params.hash,
         delete_files: deleteFiles,
       });
+
+      if (result.success) {
+        const normalizedHash = params.hash.toLowerCase().trim();
+        const pending = await prisma.downloadHistory.findMany({
+          where: {
+            torrentHash: normalizedHash,
+            completedAt: null,
+            failed: false,
+          },
+          select: { id: true, mediaId: true, episodeId: true },
+        });
+        const affectedMediaIds = new Set<number>();
+        for (const dh of pending) {
+          await revertLibraryDownloadingIfNoOtherActiveGrabs(dh);
+          await prisma.downloadHistory.delete({ where: { id: dh.id } });
+          if (dh.mediaId != null) affectedMediaIds.add(dh.mediaId);
+        }
+        for (const mediaId of affectedMediaIds) emitLibraryUpdate(mediaId);
+      }
+
       return applyQbittorrentMutationStatus(set, result);
     },
     {
