@@ -1529,6 +1529,7 @@
       "errorTitle": "Impossible de charger les releases.",
       "errorDescription": "Veuillez réessayer dans un instant.",
       "download": "Télécharger cette release",
+      "redownload": "Re-télécharger cette release",
       "downloading": "Démarrage...",
       "downloadStarted": "Téléchargement de la release lancé.",
       "downloadFailed": "Impossible de lancer le téléchargement de la release.",

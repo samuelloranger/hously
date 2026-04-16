@@ -23,12 +23,14 @@ export function ReleaseCard({
   onDownload,
   isDownloading,
   isBusy,
+  alreadyGrabbed = false,
   t,
 }: {
   release: InteractiveReleaseItem;
   onDownload: () => void;
   isDownloading: boolean;
   isBusy: boolean;
+  alreadyGrabbed?: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   const grabDisabled =
@@ -165,7 +167,9 @@ export function ReleaseCard({
           <Download size={11} strokeWidth={2.5} />
           {isDownloading
             ? t("medias.interactive.downloading")
-            : t("medias.interactive.download")}
+            : alreadyGrabbed
+              ? t("medias.interactive.redownload")
+              : t("medias.interactive.download")}
         </button>
       </div>
     </div>
