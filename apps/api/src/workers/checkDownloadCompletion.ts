@@ -101,6 +101,136 @@ export async function completeDownloadByHash(
   return dh.id;
 }
 
+export type PendingReconcileResult = {
+  completed: number;
+  failed: number;
+  missing: number;
+};
+
+/**
+ * Reconcile a set of pending (non-completed, non-failed) download_history rows
+ * against qBittorrent state. If `treatMissingAsFailed` is true, rows whose
+ * torrent is absent from qBittorrent are marked failed and the library status
+ * reverted — used by the rescan action so the UI isn't stuck on "downloading"
+ * when the user deleted the torrent out-of-band.
+ */
+export async function reconcilePendingDownloads(
+  pending: Array<{
+    id: number;
+    mediaId: number | null;
+    episodeId: number | null;
+    torrentHash: string | null;
+  }>,
+  opts: { treatMissingAsFailed?: boolean } = {},
+): Promise<PendingReconcileResult> {
+  const result: PendingReconcileResult = { completed: 0, failed: 0, missing: 0 };
+  if (!pending.length) return result;
+
+  const qb = await getQbittorrentPluginConfig();
+  if (!qb.enabled || !qb.config) return result;
+
+  resetMaindataState();
+  let torrents: Map<string, Record<string, unknown>>;
+  try {
+    ({ torrents } = await fetchMaindata(qb.config));
+  } catch (e) {
+    console.warn("[reconcilePendingDownloads] fetchMaindata failed:", e);
+    return result;
+  }
+
+  const byHash = new Map<string, Record<string, unknown>>();
+  for (const [h, raw] of torrents) byHash.set(h.toLowerCase(), raw);
+
+  for (let dh of pending) {
+    try {
+      let raw: Record<string, unknown> | undefined;
+      const tag = `hously-dh-${dh.id}`.toLowerCase();
+
+      if (dh.torrentHash) raw = byHash.get(dh.torrentHash.toLowerCase());
+      if (!raw) {
+        for (const [h, torrentRow] of torrents) {
+          const tStr =
+            typeof torrentRow.tags === "string" ? torrentRow.tags : "";
+          const tags = tStr
+            .split(",")
+            .map((x) => x.trim().toLowerCase())
+            .filter(Boolean);
+          if (tags.includes(tag)) {
+            raw = torrentRow;
+            if (!dh.torrentHash) {
+              const nh = h.toLowerCase();
+              await prisma.downloadHistory.update({
+                where: { id: dh.id },
+                data: { torrentHash: nh },
+              });
+              dh = { ...dh, torrentHash: nh };
+            }
+            break;
+          }
+        }
+      }
+
+      if (!raw) {
+        if (opts.treatMissingAsFailed) {
+          await prisma.downloadHistory.update({
+            where: { id: dh.id },
+            data: {
+              failed: true,
+              failReason: "torrent missing from qBittorrent",
+            },
+          });
+          await revertLibraryDownloadingIfNoOtherActiveGrabs(dh);
+          if (dh.mediaId != null) emitLibraryUpdate(dh.mediaId);
+          result.missing += 1;
+        }
+        continue;
+      }
+
+      const state = typeof raw.state === "string" ? raw.state : "";
+      const progress =
+        typeof raw.progress === "number" && Number.isFinite(raw.progress)
+          ? raw.progress
+          : 0;
+
+      if (isFailedState(state)) {
+        await prisma.downloadHistory.update({
+          where: { id: dh.id },
+          data: {
+            failed: true,
+            failReason: `qBittorrent state: ${state || "unknown"}`,
+          },
+        });
+        await revertLibraryDownloadingIfNoOtherActiveGrabs(dh);
+        if (dh.mediaId != null) emitLibraryUpdate(dh.mediaId);
+        result.failed += 1;
+        continue;
+      }
+
+      if (isCompletedDownloadState(state) || progress >= 1) {
+        let completedId: number | null = null;
+        if (dh.torrentHash) {
+          completedId = await completeDownloadByHash(dh.torrentHash);
+        }
+        if (completedId == null && !dh.torrentHash) {
+          await markDownloadHistoryComplete(dh);
+          completedId = dh.id;
+        }
+        if (completedId != null) {
+          enqueueLibraryPostProcess(completedId);
+          result.completed += 1;
+        }
+      }
+    } catch (e) {
+      console.warn(
+        `[reconcilePendingDownloads] Failed for download_history ${dh.id}:`,
+        e,
+      );
+    }
+  }
+
+  return result;
+}
+
 /**
  * Safety-net fallback: polls qBittorrent for all pending downloads.
  * Runs every 30 minutes to catch completions that the webhook may have missed
