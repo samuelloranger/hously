@@ -10,7 +10,13 @@ import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 import type { DashboardBeszelSummaryResponse } from "@hously/shared/types";
 import { useEventSourceState } from "@/lib/realtime/useEventSourceState";
 import { useAuth } from "@/lib/auth/useAuth";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Server,
+  HardDrive,
+  Shield,
+} from "lucide-react";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -119,6 +125,10 @@ function BeszelSection() {
     <div>
       <div className="flex items-center gap-2.5 mb-3">
         <span className="w-1 h-4 rounded-full bg-violet-500 shrink-0" />
+        <Server
+          className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+          strokeWidth={2}
+        />
         <SectionTitle>{t("dashboard.home.systemHeading")}</SectionTitle>
       </div>
 
@@ -230,6 +240,10 @@ function ScrutinySection() {
     <div>
       <div className="flex items-center gap-2.5 mb-3">
         <span className="w-1 h-4 rounded-full bg-rose-500 shrink-0" />
+        <HardDrive
+          className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+          strokeWidth={2}
+        />
         <SectionTitle>{t("dashboard.scrutiny.title")}</SectionTitle>
       </div>
       <MetricRow
@@ -283,6 +297,10 @@ function AdguardSection() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
+          <Shield
+            className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+            strokeWidth={2}
+          />
           <SectionTitle>{t("dashboard.home.adguardHeading")}</SectionTitle>
         </div>
         {isAdmin && (

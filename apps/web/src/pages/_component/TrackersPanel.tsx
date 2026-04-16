@@ -9,7 +9,7 @@ import {
 } from "@/lib/utils/relativeTime";
 import { formatGo, formatRatio } from "@hously/shared/utils";
 import { useTranslation } from "react-i18next";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TrackerInfo = {
@@ -198,6 +198,10 @@ export function TrackersPanel() {
       {/* Header */}
       <div className="flex items-center gap-2.5 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
         <span className="w-1 h-4 rounded-full bg-purple-500 shrink-0" />
+        <Radio
+          className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+          strokeWidth={2}
+        />
         <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
           {t("dashboard.home.privateTrackersTitle")}
         </h3>

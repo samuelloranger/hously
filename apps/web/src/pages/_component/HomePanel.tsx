@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useChores } from "@/pages/chores/useChores";
 import { useHabits } from "@/pages/habits/useHabits";
-import { CheckCircle, ChevronRight, Flame } from "lucide-react";
+import { CheckCircle, ChevronRight, ListChecks, Target } from "lucide-react";
 
 // ─── Chores panel ─────────────────────────────────────────────────────────────
 
@@ -42,6 +42,10 @@ export function ChoresPanel() {
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-emerald-500 shrink-0" />
+          <ListChecks
+            className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+            strokeWidth={2}
+          />
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
             {t("nav.chores")}
             {pendingChores.length > 0 && (
@@ -129,6 +133,10 @@ export function HabitsPanel() {
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-orange-500 shrink-0" />
+          <Target
+            className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+            strokeWidth={2}
+          />
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
             {t("dashboard.home.habitsToday")}
             {habits.length > 0 && (
@@ -140,9 +148,10 @@ export function HabitsPanel() {
         </div>
         <Link
           to="/habits"
-          className="text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+          className="flex items-center gap-0.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
         >
-          <Flame size={14} />
+          {t("dashboard.view")}
+          <ChevronRight size={12} />
         </Link>
       </div>
 

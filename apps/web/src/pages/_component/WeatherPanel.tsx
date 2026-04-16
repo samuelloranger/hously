@@ -122,6 +122,10 @@ export function WeatherPanel() {
         <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
+            <CloudSun
+              className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+              strokeWidth={2}
+            />
             <SectionTitle>{t("dashboard.weather.kicker")}</SectionTitle>
           </div>
           {weatherQuery.isFetching ? (
