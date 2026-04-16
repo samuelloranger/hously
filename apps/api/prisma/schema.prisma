@@ -698,6 +698,7 @@ model MediaFile {
   source         String?
   audioTracks    Json     @default("[]") @map("audio_tracks")
   subtitleTracks Json     @default("[]") @map("subtitle_tracks")
+  languageTags   String[] @default([]) @map("language_tags")
   scannedAt      DateTime @default(now()) @map("scanned_at")
 
   media   LibraryMedia?   @relation("MediaFileMedia",   fields: [mediaId],   references: [id], onDelete: Cascade)
@@ -705,5 +706,6 @@ model MediaFile {
 
   @@index([mediaId],   map: "ix_media_files_media_id")
   @@index([episodeId], map: "ix_media_files_episode_id")
+  @@index([languageTags], map: "ix_media_files_language_tags", type: Gin)
   @@map("media_files")
 }

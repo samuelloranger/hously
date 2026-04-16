@@ -14,6 +14,7 @@ export const QUEUE_NAMES = {
   SCHEDULED_TASKS: "scheduled-tasks",
   ACTIVITY_LOGS: "activity-logs",
   LIBRARY_MIGRATE: "library-migrate",
+  LIBRARY_REINDEX_LANGUAGES: "library-reindex-languages",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -83,12 +84,24 @@ export const libraryMigrateQueue = new Queue(QUEUE_NAMES.LIBRARY_MIGRATE, {
     removeOnFail: { age: 7 * 24 * 3600 },
   },
 });
+export const libraryReindexLanguagesQueue = new Queue(
+  QUEUE_NAMES.LIBRARY_REINDEX_LANGUAGES,
+  {
+    ...defaultQueueOptions,
+    defaultJobOptions: {
+      attempts: 1,
+      removeOnComplete: { age: 7 * 24 * 3600 },
+      removeOnFail: { age: 7 * 24 * 3600 },
+    },
+  },
+);
 const queues: Record<QueueName, Queue> = {
   [QUEUE_NAMES.DEFAULT]: defaultQueue,
   [QUEUE_NAMES.NOTIFICATIONS]: notificationsQueue,
   [QUEUE_NAMES.SCHEDULED_TASKS]: scheduledTasksQueue,
   [QUEUE_NAMES.ACTIVITY_LOGS]: activityLogsQueue,
   [QUEUE_NAMES.LIBRARY_MIGRATE]: libraryMigrateQueue,
+  [QUEUE_NAMES.LIBRARY_REINDEX_LANGUAGES]: libraryReindexLanguagesQueue,
 };
 
 /**
@@ -160,6 +173,17 @@ export function initWorkers() {
       const { processLibraryMigrateJob } =
         await import("./jobs/libraryMigrateWorker");
       return processLibraryMigrateJob(job);
+    },
+    { connection: redisConnection, concurrency: 1 },
+  );
+
+  // 6. Library Reindex Languages Worker (concurrency 1)
+  new Worker(
+    QUEUE_NAMES.LIBRARY_REINDEX_LANGUAGES,
+    async (job: Job) => {
+      const { processLibraryReindexLanguagesJob } =
+        await import("./jobs/libraryReindexLanguagesWorker");
+      return processLibraryReindexLanguagesJob(job);
     },
     { connection: redisConnection, concurrency: 1 },
   );

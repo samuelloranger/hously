@@ -28,4 +28,7 @@ export const LIBRARY_ENDPOINTS = {
   DELETE_FILE: (fileId: number) => `/api/library/files/${fileId}`,
   MIGRATE: "/api/library/migrate",
   MIGRATE_STATUS: "/api/library/migrate/status",
+  LANGUAGE_TAGS: "/api/library/language-tags",
+  REINDEX_LANGUAGES: "/api/library/reindex-languages",
+  REINDEX_LANGUAGES_STATUS: "/api/library/reindex-languages/status",
 } as const;

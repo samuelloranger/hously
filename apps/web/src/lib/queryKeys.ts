@@ -333,14 +333,21 @@ export const queryKeys = {
 
   library: {
     all: ["library"] as const,
-    list: (filters?: { type?: string; status?: string; q?: string }) =>
-      [...queryKeys.library.all, "list", filters] as const,
+    list: (filters?: {
+      type?: string;
+      status?: string;
+      q?: string;
+      language?: string;
+    }) => [...queryKeys.library.all, "list", filters] as const,
     episodes: (id: number) =>
       [...queryKeys.library.all, "episodes", id] as const,
     downloads: (id: number) =>
       [...queryKeys.library.all, "downloads", id] as const,
     postProcessingSettings: () =>
       [...queryKeys.library.all, "post-processing-settings"] as const,
+    languageTags: () => [...queryKeys.library.all, "language-tags"] as const,
+    reindexLanguagesStatus: () =>
+      [...queryKeys.library.all, "reindex-languages-status"] as const,
   },
 
   qualityProfiles: {

@@ -2,6 +2,7 @@ import { copyFile, link, mkdir, rename, stat, unlink } from "node:fs/promises";
 import { basename, dirname, extname, isAbsolute, join } from "node:path";
 
 import { prisma } from "@hously/api/db";
+import { classifyLanguageTags, type LibraryAudioTrack } from "@hously/shared";
 import {
   parseFilenameMetadata,
   parseReleaseTitle,
@@ -297,6 +298,10 @@ async function postProcessSeasonPack(
             source: mi.source ?? fnData.source,
             audioTracks: mi.audioTracks as object[],
             subtitleTracks: mi.subtitleTracks as object[],
+            languageTags: classifyLanguageTags(
+              mi.audioTracks as LibraryAudioTrack[],
+              dh.releaseTitle,
+            ),
           }
         : {
             mediaId: dh.media.id,
@@ -310,6 +315,7 @@ async function postProcessSeasonPack(
             hdrFormat: fnData.hdrFormat,
             audioTracks: [] as object[],
             subtitleTracks: [] as object[],
+            languageTags: [] as string[],
           };
       if (existingFile) {
         await prisma.mediaFile.update({
@@ -591,6 +597,10 @@ export async function postProcess(
           source: mi.source ?? fnData.source,
           audioTracks: mi.audioTracks as object[],
           subtitleTracks: mi.subtitleTracks as object[],
+          languageTags: classifyLanguageTags(
+            mi.audioTracks as LibraryAudioTrack[],
+            dh.releaseTitle,
+          ),
         }
       : {
           mediaId: dh.media!.id,
@@ -604,6 +614,7 @@ export async function postProcess(
           hdrFormat: fnData.hdrFormat,
           audioTracks: [] as object[],
           subtitleTracks: [] as object[],
+          languageTags: [] as string[],
         };
 
     if (existingFile) {
@@ -729,6 +740,10 @@ export async function scanAndImportLibraryFiles(media: {
               source: mi.source ?? fnData.source,
               audioTracks: mi.audioTracks as object[],
               subtitleTracks: mi.subtitleTracks as object[],
+              languageTags: classifyLanguageTags(
+                mi.audioTracks as LibraryAudioTrack[],
+                fn,
+              ),
             }
           : {
               mediaId: media.id,
@@ -742,6 +757,7 @@ export async function scanAndImportLibraryFiles(media: {
               hdrFormat: fnData.hdrFormat,
               audioTracks: [] as object[],
               subtitleTracks: [] as object[],
+              languageTags: [] as string[],
             };
         await prisma.mediaFile.create({ data: fileData });
         await prisma.libraryEpisode.update({
@@ -799,6 +815,10 @@ export async function scanAndImportLibraryFiles(media: {
               source: mi.source ?? fnData.source,
               audioTracks: mi.audioTracks as object[],
               subtitleTracks: mi.subtitleTracks as object[],
+              languageTags: classifyLanguageTags(
+                mi.audioTracks as LibraryAudioTrack[],
+                fn,
+              ),
             }
           : {
               mediaId: media.id,
@@ -812,6 +832,7 @@ export async function scanAndImportLibraryFiles(media: {
               hdrFormat: fnData.hdrFormat,
               audioTracks: [] as object[],
               subtitleTracks: [] as object[],
+              languageTags: [] as string[],
             };
         await prisma.mediaFile.create({ data: fileData });
         await prisma.libraryMedia.update({

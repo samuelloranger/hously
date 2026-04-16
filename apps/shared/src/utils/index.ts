@@ -8,3 +8,4 @@ export * from "./qbittorrent";
 export * from "./notifications";
 export * from "./recurrence";
 export * from "./trackers";
+export * from "./languageTags";
