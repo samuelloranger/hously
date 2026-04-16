@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getCurrentUser } from "@/lib/auth";
 import { prefetchRouteData } from "@/lib/routing/prefetch";
-import { BoardView } from "@/features/board/BoardView";
+import { BoardView } from "@/pages/board/BoardView";
 
 export const Route = createFileRoute("/board/")({
   beforeLoad: async () => {

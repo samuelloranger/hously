@@ -33,9 +33,9 @@ const STATUS_COLORS: Record<UptimekumaMonitorStatus, string> = {
 
 const STATUS_TINT: Record<UptimekumaMonitorStatus, string> = {
   down: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
-  pending: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
-  maintenance:
-    "bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300",
+  pending:
+    "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+  maintenance: "bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300",
   up: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
 };
 
@@ -54,7 +54,9 @@ function StatusDot({
           className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${color}`}
         />
       )}
-      <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${color}`} />
+      <span
+        className={`relative inline-flex h-2.5 w-2.5 rounded-full ${color}`}
+      />
     </span>
   );
 }

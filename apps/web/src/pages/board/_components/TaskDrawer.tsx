@@ -26,7 +26,7 @@ import {
   BOARD_TASK_STATUSES,
   BOARD_TASK_PRIORITIES,
 } from "@hously/shared/types";
-import { useBoardTags } from "@/features/board/hooks/useBoardTags";
+import { useBoardTags } from "@/pages/board/_hooks/useBoardTags";
 import { TagPicker } from "./TagPicker";
 import { ActivityLog } from "./ActivityLog";
 import { CommentInput } from "./CommentInput";
@@ -34,7 +34,7 @@ import { DependencySection } from "./DependencySection";
 import { TimeEstimateField } from "./TimeEstimateField";
 import { LogTimeForm } from "./LogTimeForm";
 import { TimeLogHistory } from "./TimeLogHistory";
-import { formatMinutes } from "../utils/time";
+import { formatMinutes } from "@/pages/board/_utils/time";
 import { cn } from "@/lib/utils";
 
 interface TaskDrawerProps {

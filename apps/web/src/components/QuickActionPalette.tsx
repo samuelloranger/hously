@@ -229,7 +229,8 @@ export function QuickActionPalette({
       ]
         .filter(Boolean)
         .join(" • "),
-      icon: item.type === "movie" ? <Clapperboard size={20} /> : <Tv size={20} />,
+      icon:
+        item.type === "movie" ? <Clapperboard size={20} /> : <Tv size={20} />,
       section: "medias" as const,
       action: () => {
         navigate({
@@ -247,7 +248,11 @@ export function QuickActionPalette({
         [chore.description, chore.assigned_to_username]
           .filter(Boolean)
           .join(" • ") || t("chores.title"),
-      icon: chore.completed ? <CheckCircle size={20} /> : <ListChecks size={20} />,
+      icon: chore.completed ? (
+        <CheckCircle size={20} />
+      ) : (
+        <ListChecks size={20} />
+      ),
       section: "chores" as const,
       action: () => {
         navigate({ to: "/chores" });
@@ -259,7 +264,11 @@ export function QuickActionPalette({
       id: `shopping-${item.id}`,
       title: item.item_name,
       description: item.notes ?? t("shopping.title"),
-      icon: item.completed ? <CheckCircle size={20} /> : <ShoppingCart size={20} />,
+      icon: item.completed ? (
+        <CheckCircle size={20} />
+      ) : (
+        <ShoppingCart size={20} />
+      ),
       section: "shopping" as const,
       action: () => {
         navigate({ to: "/shopping" });

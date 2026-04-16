@@ -53,9 +53,7 @@ describe("scoreRelease — hard rejections", () => {
 
   test("rejects null resolution", () => {
     expect(
-      isRejected(
-        scoreRelease(parsed({ resolution: null }), baseProfile, null),
-      ),
+      isRejected(scoreRelease(parsed({ resolution: null }), baseProfile, null)),
     ).toBe(true);
   });
 
@@ -203,7 +201,11 @@ describe("scoreRelease — PROPER/REPACK bonus", () => {
 describe("scoreRelease — HDR preferences", () => {
   test("preferHdr adds bonus when hdr present", () => {
     const no = numScore(
-      scoreRelease(parsed({ hdr: null }), { ...baseProfile, preferHdr: true }, null),
+      scoreRelease(
+        parsed({ hdr: null }),
+        { ...baseProfile, preferHdr: true },
+        null,
+      ),
     );
     const yes = numScore(
       scoreRelease(
@@ -279,9 +281,7 @@ describe("scoreRelease — language hard filter", () => {
       ),
     ).toBe(true);
     expect(
-      isRejected(
-        scoreRelease(parsed(), prof, null, "Movie.1080p.BluRay.x265"),
-      ),
+      isRejected(scoreRelease(parsed(), prof, null, "Movie.1080p.BluRay.x265")),
     ).toBe(true);
   });
 
@@ -311,7 +311,12 @@ describe("scoreRelease — language hard filter", () => {
   test("no preferred languages — all releases pass the language check", () => {
     expect(
       isRejected(
-        scoreRelease(parsed(), baseProfile, null, "Movie.VFF.1080p.BluRay.x265"),
+        scoreRelease(
+          parsed(),
+          baseProfile,
+          null,
+          "Movie.VFF.1080p.BluRay.x265",
+        ),
       ),
     ).toBe(false);
     expect(
@@ -362,11 +367,18 @@ describe("scoreRelease — language hard filter", () => {
   test("English preference rejects unlabelled release", () => {
     const enFirst = { ...baseProfile, preferredLanguages: ["en"] };
     expect(
-      isRejected(scoreRelease(parsed(), enFirst, null, "Movie.1080p.BluRay.x265")),
+      isRejected(
+        scoreRelease(parsed(), enFirst, null, "Movie.1080p.BluRay.x265"),
+      ),
     ).toBe(true);
     expect(
       isRejected(
-        scoreRelease(parsed(), enFirst, null, "Movie.1080p.BluRay.ENG.DTS.x265"),
+        scoreRelease(
+          parsed(),
+          enFirst,
+          null,
+          "Movie.1080p.BluRay.ENG.DTS.x265",
+        ),
       ),
     ).toBe(false);
   });

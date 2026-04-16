@@ -7,7 +7,14 @@ import { ImageModal } from "@/components/ImageModal";
 import { EmotionModal } from "@/components/EmotionModal";
 import { DragHandle } from "@/components/SortableList";
 import { SafeHtml } from "@/components/SafeHtml";
-import { CheckCircle, RefreshCw, Trash2, User, Users, Clock } from "lucide-react";
+import {
+  CheckCircle,
+  RefreshCw,
+  Trash2,
+  User,
+  Users,
+  Clock,
+} from "lucide-react";
 import {
   useDeleteChore,
   useRemoveRecurrence,

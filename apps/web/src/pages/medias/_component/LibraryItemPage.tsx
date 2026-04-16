@@ -193,7 +193,6 @@ export function LibraryItemPage() {
           }))}
           value={activeTab}
           onChange={setActiveTab}
-
         />
 
         {/* Tab panels */}

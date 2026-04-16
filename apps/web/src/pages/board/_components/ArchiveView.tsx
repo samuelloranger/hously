@@ -2,7 +2,7 @@ import { Archive, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { BoardTask } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
-import { PRIORITY_DOT, STATUS_STYLE } from "../utils/taskStatus";
+import { PRIORITY_DOT, STATUS_STYLE } from "@/pages/board/_utils/taskStatus";
 
 interface ArchiveViewProps {
   tasks: BoardTask[];

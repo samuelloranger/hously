@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, renderWithProviders } from "@/test-utils/render";
 import { fireEvent } from "@testing-library/react";
-import { TaskDrawer } from "@/features/board/components/TaskDrawer";
+import { TaskDrawer } from "@/pages/board/_components/TaskDrawer";
 import type { BoardTask } from "@hously/shared/types";
 // ── TipTap mock ──────────────────────────────────────────────────────────────
 vi.mock("@/components/ui/minimal-tiptap", () => ({
@@ -49,7 +49,7 @@ vi.mock("@/pages/settings/useUsers", () => ({
 const { mockCreateBoardTag } = vi.hoisted(() => ({
   mockCreateBoardTag: vi.fn(),
 }));
-vi.mock("@/features/board/hooks/useBoardTags", () => ({
+vi.mock("@/pages/board/_hooks/useBoardTags", () => ({
   useBoardTags: vi.fn().mockReturnValue({ data: { tags: [] } }),
   useCreateBoardTag: vi
     .fn()
@@ -63,7 +63,7 @@ vi.mock("@/features/board/hooks/useBoardTags", () => ({
 }));
 
 // ── Board tasks hook mock (for DependencySection, ActivityLog, TimeTracking) ──
-vi.mock("@/features/board/hooks/useBoardTasks", () => ({
+vi.mock("@/pages/board/_hooks/useBoardTasks", () => ({
   useAddDependency: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),

@@ -4,7 +4,7 @@ import { X, Plus, Lock } from "lucide-react";
 import {
   useAddDependency,
   useRemoveDependency,
-} from "@/features/board/hooks/useBoardTasks";
+} from "@/pages/board/_hooks/useBoardTasks";
 import type { BoardTask, TaskDependencyRef } from "@hously/shared/types";
 interface DependencySectionProps {
   task: BoardTask;

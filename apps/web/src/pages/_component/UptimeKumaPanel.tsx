@@ -182,10 +182,7 @@ export function UptimeKumaPanel() {
 
   return (
     <>
-      <UptimeKumaMonitorsModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-      />
+      <UptimeKumaMonitorsModal open={modalOpen} onOpenChange={setModalOpen} />
       <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
         <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -230,10 +227,7 @@ export function UptimeKumaPanel() {
           className="w-full flex items-center justify-between px-4 py-2.5 border-t border-zinc-100 dark:border-zinc-800 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
         >
           <span>{t("dashboard.uptimekuma.viewAll")}</span>
-          <ChevronRight
-            className="w-3.5 h-3.5 shrink-0"
-            strokeWidth={2}
-          />
+          <ChevronRight className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
         </button>
       </section>
     </>

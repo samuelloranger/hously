@@ -11,6 +11,7 @@
 **Design spec:** `docs/superpowers/specs/2026-04-15-uptimekuma-widget-design.md`
 
 **Key reference patterns:**
+
 - API plugin route model: `apps/api/src/routes/plugins/adguard/index.ts`
 - API config normalizer: `apps/api/src/utils/plugins/normalizers.ts` (`normalizeAdguardConfig`)
 - API-side plugin config type: `apps/api/src/utils/plugins/types.ts` (`AdguardPluginConfig`)
@@ -28,6 +29,7 @@
 Pure function, no I/O. Fully TDD.
 
 **Files:**
+
 - Create: `apps/api/src/utils/plugins/uptimekuma.ts`
 - Create: `apps/api/src/__tests__/uptimekumaMetrics.test.ts`
 
@@ -250,6 +252,7 @@ git commit -m "feat(api): add UptimeKuma Prometheus metrics parser"
 ## Task 2: Backend config type + normalizer
 
 **Files:**
+
 - Modify: `apps/api/src/utils/plugins/types.ts` (append)
 - Modify: `apps/api/src/utils/plugins/normalizers.ts` (import + append)
 
@@ -319,6 +322,7 @@ git commit -m "feat(api): add UptimekumaPluginConfig type and normalizer"
 ## Task 3: Shared plugin/monitor types
 
 **Files:**
+
 - Modify: `apps/shared/src/types/plugins.ts` (append)
 
 - [ ] **Step 1: Append the shared types**
@@ -338,11 +342,7 @@ export interface UptimekumaPluginUpdateResponse {
   plugin: UptimekumaPlugin;
 }
 
-export type UptimekumaMonitorStatus =
-  | "up"
-  | "down"
-  | "pending"
-  | "maintenance";
+export type UptimekumaMonitorStatus = "up" | "down" | "pending" | "maintenance";
 
 export interface UptimekumaMonitor {
   id: string;
@@ -387,6 +387,7 @@ git commit -m "feat(shared): add UptimeKuma plugin and monitor types"
 ## Task 4: Frontend endpoint + queryKey entries
 
 **Files:**
+
 - Modify: `apps/web/src/lib/endpoints/plugins.ts`
 - Modify: `apps/web/src/lib/queryKeys.ts`
 
@@ -435,6 +436,7 @@ git commit -m "feat(web): wire UptimeKuma endpoint constants and query keys"
 The route has three endpoints: admin GET/PUT of config, authenticated GET of monitors (with Redis cache).
 
 **Files:**
+
 - Create: `apps/api/src/routes/plugins/uptimekuma/index.ts`
 - Modify: `apps/api/src/routes/plugins/index.ts`
 
@@ -659,6 +661,7 @@ curl -sS -b "hously_session=<dev-session-cookie>" http://localhost:3000/api/plug
 ```
 
 Expected:
+
 ```json
 {
   "plugin": {
@@ -686,6 +689,7 @@ git commit -m "feat(api): add UptimeKuma plugin routes (config + cached monitors
 Deletes `plugin:uptimekuma:monitors` whenever a `MonitorUp` / `MonitorDown` webhook arrives, so the next frontend poll sees fresh data.
 
 **Files:**
+
 - Modify: `apps/api/src/routes/webhooks/index.ts` (add invalidation inside the success branch)
 
 - [ ] **Step 1: Add the invalidation side-effect**
@@ -737,6 +741,7 @@ git commit -m "feat(api): invalidate UptimeKuma cache on MonitorUp/Down webhooks
 ## Task 7: Frontend config hooks (useUptimekumaPlugin + useUpdateUptimekumaPlugin)
 
 **Files:**
+
 - Modify: `apps/web/src/pages/settings/usePlugins.ts`
 
 - [ ] **Step 1: Extend the type imports**
@@ -809,6 +814,7 @@ git commit -m "feat(web): add UptimeKuma plugin config hooks"
 ## Task 8: Frontend monitors hook
 
 **Files:**
+
 - Create: `apps/web/src/pages/_component/useUptimekumaMonitors.ts`
 
 - [ ] **Step 1: Create the hook**
@@ -825,9 +831,7 @@ export function useUptimekumaMonitors(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.plugins.uptimekumaMonitors(),
     queryFn: () =>
-      fetcher<UptimekumaMonitorsResponse>(
-        PLUGIN_ENDPOINTS.UPTIMEKUMA_MONITORS,
-      ),
+      fetcher<UptimekumaMonitorsResponse>(PLUGIN_ENDPOINTS.UPTIMEKUMA_MONITORS),
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
     staleTime: 30_000,
@@ -857,6 +861,7 @@ git commit -m "feat(web): add useUptimekumaMonitors query hook"
 ## Task 9: Settings plugin section
 
 **Files:**
+
 - Create: `apps/web/src/pages/settings/_component/plugins/UptimekumaPluginSection.tsx`
 - Modify: `apps/web/src/pages/settings/_component/plugins/index.ts`
 - Modify: `apps/web/src/pages/settings/_component/PluginsTab.tsx`
@@ -1021,6 +1026,7 @@ Follow the visual pattern from `apps/web/src/pages/_component/WeatherPanel.tsx` 
 - Renders a summary row + conditional unhealthy list + a "View all monitors" button.
 
 **Files:**
+
 - Create: `apps/web/src/pages/_component/UptimeKumaPanel.tsx`
 
 - [ ] **Step 1: Invoke the frontend-design skill**
@@ -1066,6 +1072,7 @@ git commit -m "feat(web): add UptimeKumaPanel dashboard widget"
 ## Task 11: Monitors modal (`UptimeKumaMonitorsModal`) — via frontend-design skill
 
 **Files:**
+
 - Create: `apps/web/src/pages/_component/UptimeKumaMonitorsModal.tsx`
 
 - [ ] **Step 1: Invoke the frontend-design skill**
@@ -1075,6 +1082,7 @@ git commit -m "feat(web): add UptimeKumaPanel dashboard widget"
 > Accepts `{ open: boolean; onOpenChange: (open: boolean) => void }`. Reads from `useUptimekumaMonitors()` — no extra fetch.
 >
 > Layout:
+>
 > 1. Title row: "All monitors" + muted subtitle "Updated Xs ago" derived from `fetched_at`.
 > 2. Four sections rendered in order — **Down** (red), **Pending** (amber), **Maintenance** (blue), **Up** (green). Each section header shows the count; sections with zero entries are hidden.
 > 3. Each row: colored status dot + monitor name (bold) + two lines of muted metadata (type on one line, URL on the next when present).
@@ -1111,6 +1119,7 @@ git commit -m "feat(web): add UptimeKumaMonitorsModal + wire panel"
 ## Task 12: Wire panel into the homepage
 
 **Files:**
+
 - Modify: `apps/web/src/pages/_component/HomePage.tsx`
 
 - [ ] **Step 1: Import and render**
@@ -1151,6 +1160,7 @@ git commit -m "feat(web): mount UptimeKumaPanel on the homepage"
 ## Task 13: i18n strings (en + fr)
 
 **Files:**
+
 - Modify: `apps/web/src/locales/en/common.json`
 - Modify: `apps/web/src/locales/fr/common.json`
 
@@ -1314,6 +1324,7 @@ EOF
 ## Self-review
 
 **Spec coverage**
+
 - Data source (Prometheus `/metrics`, Basic auth, status mapping): Task 1, Task 5.
 - Config storage (encrypted key, admin routes): Task 2, Task 5.
 - Cached monitors endpoint (60 s TTL, JSON shape): Task 5.
