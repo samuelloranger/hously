@@ -3,6 +3,7 @@ import { prisma } from "@hously/api/db";
 import { webhookHandlers } from "@hously/api/services/webhookHandlers";
 import { enrichArrWebhookNotification } from "@hously/api/services/webhookEnrichment";
 import { sendExternalNotification } from "@hously/api/services/externalNotificationService";
+import { deleteCache } from "@hously/api/services/cache";
 import {
   badRequest,
   forbidden,
@@ -318,6 +319,16 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
         }
 
         const eventType = parsed.event_type;
+
+        // Invalidate the UptimeKuma monitors cache so the homepage widget
+        // reflects MonitorUp/MonitorDown events on the next refetch.
+        if (
+          serviceName.toLowerCase() === "uptimekuma" &&
+          (eventType === "MonitorUp" || eventType === "MonitorDown")
+        ) {
+          await deleteCache("plugin:uptimekuma:monitors");
+        }
+
         const enrichment = await enrichArrWebhookNotification(
           serviceName.toLowerCase(),
           parsed,
