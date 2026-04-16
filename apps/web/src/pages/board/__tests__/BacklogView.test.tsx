@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor, renderWithProviders } from "@/test-utils/render";
 import { fireEvent } from "@testing-library/react";
-import { BacklogView } from "@/features/board/components/BacklogView";
+import { BacklogView } from "@/pages/board/_components/BacklogView";
 import type { BoardTask } from "@hously/shared/types";
 const makeTask = (overrides: Partial<BoardTask> = {}): BoardTask =>
   ({

@@ -7,7 +7,7 @@ import type {
 } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Clock, Lock } from "lucide-react";
-import { formatMinutes } from "../utils/time";
+import { formatMinutes } from "@/pages/board/_utils/time";
 
 interface BoardTaskCardProps {
   task: BoardTask;

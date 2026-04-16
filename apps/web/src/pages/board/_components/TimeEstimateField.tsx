@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pencil, Check, X } from "lucide-react";
-import { parseTimeInput, formatMinutes } from "../utils/time";
+import { parseTimeInput, formatMinutes } from "@/pages/board/_utils/time";
 
 interface TimeEstimateFieldProps {
   estimatedMinutes: number | null;
