@@ -153,15 +153,21 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
   .post("/reindex-languages", async ({ user, set }) => {
     if (!user?.is_admin) return badRequest(set, "Admin access required");
     try {
+      const jobId = "library-reindex-languages-singleton";
+      const existing = await libraryReindexLanguagesQueue.getJob(jobId);
+      if (existing) {
+        const state = await existing.getState();
+        if (state === "active" || state === "waiting" || state === "delayed") {
+          return badRequest(set, "A language reindex job is already running");
+        }
+        // Stale completed/failed singleton — remove before re-adding.
+        await existing.remove();
+      }
       const job = await libraryReindexLanguagesQueue.add(
         "library-reindex-languages",
         {},
-        { jobId: "library-reindex-languages-singleton" },
+        { jobId },
       );
-      const state = await job?.getState();
-      if (state === "active" || state === "waiting") {
-        return badRequest(set, "A language reindex job is already running");
-      }
       return { job_id: job?.id };
     } catch {
       return serverError(set, "Failed to enqueue reindex job");
