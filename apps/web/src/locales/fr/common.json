@@ -91,6 +91,24 @@
     "goodEvening": "Bonsoir",
     "pendingChores": "Tâches en attente",
     "view": "Voir",
+    "uptimekuma": {
+      "title": "UptimeKuma",
+      "summary": "{{up}} / {{total}} actifs",
+      "allHealthy": "Tous les moniteurs sont actifs",
+      "viewAll": "Voir tous les moniteurs",
+      "plusMore": "+{{count}} autres",
+      "updatedAgo": "Mis à jour {{relative}}",
+      "sections": {
+        "down": "Hors service",
+        "pending": "En attente",
+        "maintenance": "Maintenance",
+        "up": "Actifs"
+      },
+      "empty": "Aucun moniteur configuré",
+      "errors": {
+        "loadFailed": "Échec du chargement des moniteurs"
+      }
+    },
     "activityPage": {
       "title": "Activité récente",
       "subtitle": "Parcourez l’activité du foyer avec des filtres par service et par type.",
@@ -976,6 +994,13 @@
         "username": "Nom d'utilisateur AdGuard Home",
         "password": "Mot de passe AdGuard Home",
         "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel"
+      },
+      "uptimekuma": {
+        "help": "Connectez UptimeKuma pour afficher l'état des moniteurs sur votre page d'accueil.",
+        "websiteUrl": "URL UptimeKuma",
+        "apiKey": "Clé API",
+        "apiKeyPlaceholder": "uk1_...",
+        "apiKeyPlaceholderSet": "Laisser vide pour conserver la clé actuelle"
       },
       "homeAssistant": {
         "help": "Contrôlez les lumières et prises connectées depuis l'accueil. Utilisez un jeton d'accès à longue durée depuis votre profil Home Assistant.",

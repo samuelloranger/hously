@@ -91,6 +91,24 @@
     "goodEvening": "Good evening",
     "pendingChores": "Pending Chores",
     "view": "View",
+    "uptimekuma": {
+      "title": "UptimeKuma",
+      "summary": "{{up}} / {{total}} up",
+      "allHealthy": "All monitors are up",
+      "viewAll": "View all monitors",
+      "plusMore": "+{{count}} more",
+      "updatedAgo": "Updated {{relative}}",
+      "sections": {
+        "down": "Down",
+        "pending": "Pending",
+        "maintenance": "Maintenance",
+        "up": "Up"
+      },
+      "empty": "No monitors configured",
+      "errors": {
+        "loadFailed": "Failed to load monitors"
+      }
+    },
     "activityPage": {
       "title": "Recent Activity",
       "subtitle": "Browse the household activity feed with service and type filters.",
@@ -976,6 +994,13 @@
         "username": "AdGuard Home Username",
         "password": "AdGuard Home Password",
         "passwordPlaceholder": "Leave empty to keep existing password"
+      },
+      "uptimekuma": {
+        "help": "Connect UptimeKuma to display monitor health on your homepage.",
+        "websiteUrl": "UptimeKuma URL",
+        "apiKey": "API key",
+        "apiKeyPlaceholder": "uk1_...",
+        "apiKeyPlaceholderSet": "Leave blank to keep existing key"
       },
       "homeAssistant": {
         "help": "Control lights and smart plugs from the home dashboard. Use a long-lived access token from your Home Assistant profile.",
