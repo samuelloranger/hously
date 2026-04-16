@@ -121,7 +121,7 @@ export function MergedEpisodeRow({
   return (
     <div
       className={cn(
-        "border-b last:border-0 border-neutral-100 dark:border-neutral-800",
+        "border-b last:border-b-0 border-neutral-100 dark:border-neutral-800",
         "border-l-2",
         statusBorderColor[ep.status] ?? statusBorderColor.wanted,
       )}
