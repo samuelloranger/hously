@@ -19,4 +19,6 @@ export const PLUGIN_ENDPOINTS = {
   LA_CALE: "/api/plugins/la-cale",
   HOME_ASSISTANT: "/api/plugins/home-assistant",
   HOME_ASSISTANT_ENTITIES: "/api/plugins/home-assistant/entities",
+  UPTIMEKUMA: "/api/plugins/uptimekuma",
+  UPTIMEKUMA_MONITORS: "/api/plugins/uptimekuma/monitors",
 } as const;

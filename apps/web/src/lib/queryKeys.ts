@@ -134,6 +134,9 @@ export const queryKeys = {
     weather: () => [...queryKeys.plugins.all, "weather"] as const,
     tmdb: () => [...queryKeys.plugins.all, "tmdb"] as const,
     homeAssistant: () => [...queryKeys.plugins.all, "home-assistant"] as const,
+    uptimekuma: () => [...queryKeys.plugins.all, "uptimekuma"] as const,
+    uptimekumaMonitors: () =>
+      [...queryKeys.plugins.all, "uptimekuma", "monitors"] as const,
   },
 
   admin: {
