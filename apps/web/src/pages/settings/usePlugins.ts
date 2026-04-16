@@ -29,6 +29,8 @@ import type {
   WeatherPluginUpdateResponse,
   HomeAssistantPlugin,
   HomeAssistantPluginUpdateResponse,
+  UptimekumaPlugin,
+  UptimekumaPluginUpdateResponse,
   HomeAssistantDiscoverResponse,
 } from "@hously/shared/types";
 const TRACKER_PLUGIN_ENDPOINTS: Record<TrackerType, string> = {
@@ -470,3 +472,38 @@ export const useDashboardTorr9Stats = (options?: { enabled?: boolean }) =>
   useDashboardTrackerStats("torr9", options);
 export const useDashboardLaCaleStats = (options?: { enabled?: boolean }) =>
   useDashboardTrackerStats("la-cale", options);
+
+export function useUptimekumaPlugin() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.plugins.uptimekuma(),
+    queryFn: () =>
+      fetcher<{ plugin: UptimekumaPlugin }>(PLUGIN_ENDPOINTS.UPTIMEKUMA),
+    refetchOnMount: "always",
+    staleTime: 0,
+  });
+}
+
+export function useUpdateUptimekumaPlugin() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      website_url: string;
+      api_key?: string;
+      enabled: boolean;
+    }) =>
+      fetcher<UptimekumaPluginUpdateResponse>(PLUGIN_ENDPOINTS.UPTIMEKUMA, {
+        method: "PUT",
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.plugins.uptimekuma(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.plugins.uptimekumaMonitors(),
+      });
+    },
+  });
+}
