@@ -72,3 +72,8 @@ export interface HomeAssistantPluginConfig {
   /** Entity IDs allowed on the home dashboard widget (subset of `light.*` and `switch.*`). */
   enabled_entity_ids: string[];
 }
+
+export interface UptimekumaPluginConfig {
+  website_url: string;
+  api_key: string;
+}

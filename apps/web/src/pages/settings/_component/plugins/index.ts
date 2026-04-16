@@ -9,3 +9,4 @@ export { TmdbPluginSection } from "@/pages/settings/_component/plugins/TmdbPlugi
 export { TrackersPluginSection } from "@/pages/settings/_component/plugins/TrackersPluginSection";
 export { WeatherPluginSection } from "@/pages/settings/_component/plugins/WeatherPluginSection";
 export { HomeAssistantPluginSection } from "@/pages/settings/_component/plugins/HomeAssistantPluginSection";
+export { UptimekumaPluginSection } from "@/pages/settings/_component/plugins/UptimekumaPluginSection";

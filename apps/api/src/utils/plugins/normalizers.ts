@@ -10,6 +10,7 @@ import type {
   SonarrPluginConfig,
   TmdbPluginConfig,
   TrackerPluginConfig,
+  UptimekumaPluginConfig,
   WeatherPluginConfig,
   HomeAssistantPluginConfig,
 } from "./types";
@@ -323,5 +324,23 @@ export const normalizeHomeAssistantConfig = (
     base_url: baseUrl,
     access_token: accessToken,
     enabled_entity_ids: enabledEntityIds,
+  };
+};
+
+export const normalizeUptimekumaConfig = (
+  config: unknown,
+): UptimekumaPluginConfig | null => {
+  if (!config || typeof config !== "object" || Array.isArray(config))
+    return null;
+  const cfg = config as Record<string, unknown>;
+
+  const apiKey = normalizeSecret(cfg.api_key);
+  const websiteUrl =
+    typeof cfg.website_url === "string" ? cfg.website_url.trim() : "";
+
+  if (!apiKey || !websiteUrl) return null;
+  return {
+    api_key: apiKey,
+    website_url: websiteUrl.replace(/\/+$/, ""),
   };
 };
