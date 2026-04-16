@@ -127,6 +127,9 @@ mock.module("@hously/api/db", () => ({
         return Promise.resolve({ count: state.episodeUpdateManyCount });
       },
     },
+    downloadHistory: {
+      findMany: () => Promise.resolve([]),
+    },
   },
 }));
 
@@ -180,6 +183,8 @@ mock.module("@hously/api/services/qbittorrent/client", () => ({
 mock.module("@hously/api/workers/checkDownloadCompletion", () => ({
   isCompletedDownloadState: (s: string) =>
     ["uploading", "stalledUP", "forcedUP", "queuedUP"].includes(s),
+  reconcilePendingDownloads: () =>
+    Promise.resolve({ completed: 0, failed: 0, missing: 0 }),
 }));
 
 // ---------------------------------------------------------------------------
@@ -271,6 +276,7 @@ describe("rescanLibraryItem", () => {
       requeued: 0,
       episodesReset: 0,
       mediaReset: false,
+      pendingReconciled: { completed: 0, failed: 0, missing: 0 },
     });
     expect(state.mediaUpdateArgs).toBeNull();
   });

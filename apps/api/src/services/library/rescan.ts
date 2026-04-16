@@ -11,7 +11,10 @@ import {
 } from "@hously/api/services/postProcessor";
 import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
 import { fetchMaindata } from "@hously/api/services/qbittorrent/client";
-import { isCompletedDownloadState } from "@hously/api/workers/checkDownloadCompletion";
+import {
+  isCompletedDownloadState,
+  reconcilePendingDownloads,
+} from "@hously/api/workers/checkDownloadCompletion";
 
 export type RescanResult = {
   rescanned: number; // files whose MediaInfo was updated
@@ -21,6 +24,11 @@ export type RescanResult = {
   requeued: number; // post-process jobs queued (file in downloads, not yet hardlinked)
   episodesReset: number; // LibraryEpisode rows reset to "wanted"
   mediaReset: boolean; // whether LibraryMedia.status was reset to "wanted"
+  pendingReconciled: {
+    completed: number;
+    failed: number;
+    missing: number;
+  };
 };
 
 export async function rescanLibraryItem(
@@ -36,6 +44,19 @@ export async function rescanLibraryItem(
     },
   });
   if (!media) return null;
+
+  // ── Step 0: Reconcile pending download_history rows against qBittorrent ──
+  // If the item is stuck in "downloading" because the torrent was deleted or
+  // errored out, mark the download_history failed and revert status so the
+  // rescan can re-evaluate from "wanted". Missing torrents are treated as
+  // failed to unstick the UI.
+  const pendingDhs = await prisma.downloadHistory.findMany({
+    where: { mediaId, completedAt: null, failed: false },
+    select: { id: true, mediaId: true, episodeId: true, torrentHash: true },
+  });
+  const pendingReconciled = await reconcilePendingDownloads(pendingDhs, {
+    treatMissingAsFailed: true,
+  });
 
   // ── Step 1: Import files already in the library folder but missing DB records ──
   // Handles the case where post-processing ran but the record wasn't created,
@@ -182,5 +203,6 @@ export async function rescanLibraryItem(
     requeued,
     episodesReset,
     mediaReset,
+    pendingReconciled,
   };
 }
