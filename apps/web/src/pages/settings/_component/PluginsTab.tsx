@@ -13,6 +13,7 @@ import {
   TrackersPluginSection,
   WeatherPluginSection,
   HomeAssistantPluginSection,
+  UptimekumaPluginSection,
 } from "@/pages/settings/_component/plugins";
 
 type SubTab = "plugins" | "trackers";
@@ -73,6 +74,7 @@ export function PluginsTab() {
               <ScrutinyPluginSection />
               <BeszelPluginSection />
               <AdguardPluginSection />
+              <UptimekumaPluginSection />
             </div>
           </div>
           <div className="space-y-3">
