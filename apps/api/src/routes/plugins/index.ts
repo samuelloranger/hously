@@ -10,6 +10,7 @@ import { jackettPluginRoutes } from "./jackett";
 import { scrutinyPluginRoutes } from "./scrutiny";
 import { beszelPluginRoutes } from "./beszel";
 import { adguardPluginRoutes } from "./adguard";
+import { uptimekumaPluginRoutes } from "./uptimekuma";
 import { trackerPluginsRoutes } from "./trackers";
 
 export const pluginsRoutes = new Elysia({ prefix: "/api/plugins" })
@@ -24,4 +25,5 @@ export const pluginsRoutes = new Elysia({ prefix: "/api/plugins" })
   .use(scrutinyPluginRoutes)
   .use(beszelPluginRoutes)
   .use(adguardPluginRoutes)
+  .use(uptimekumaPluginRoutes)
   .use(trackerPluginsRoutes);
