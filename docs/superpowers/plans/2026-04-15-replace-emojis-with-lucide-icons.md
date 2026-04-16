@@ -13,9 +13,11 @@
 ## Verification command
 
 After each task run:
+
 ```bash
 cd /Users/samuelloranger/Sites/projets_perso/hously && make typecheck
 ```
+
 Expected output: no errors.
 
 ---
@@ -25,6 +27,7 @@ Expected output: no errors.
 `PageHeader` renders `{icon}` as raw text. We change its prop to a component reference and render `<Icon />`.
 
 **Files:**
+
 - Modify: `apps/web/src/components/PageHeader.tsx`
 - Modify: `apps/web/src/pages/chores/_component/ChoresList.tsx`
 - Modify: `apps/web/src/pages/shopping/_component/ShoppingList.tsx`
@@ -61,6 +64,7 @@ interface PageHeaderProps {
 ```
 
 In the desktop layout, replace `{icon}` (line 77) with:
+
 ```tsx
 <div
   className={cn(
@@ -73,6 +77,7 @@ In the desktop layout, replace `{icon}` (line 77) with:
 ```
 
 Rename the destructured prop `icon` → `icon: Icon` in the function signature:
+
 ```tsx
 export function PageHeader({
   icon: Icon,
@@ -84,6 +89,7 @@ export function PageHeader({
 - [ ] **Step 2: Update `ChoresList.tsx`**
 
 Add import and change `icon` prop:
+
 ```tsx
 import { ListChecks } from "lucide-react";
 // ...
@@ -146,6 +152,7 @@ Also replace `📋` (line 532) with `<LayoutGrid size={16} />` if it appears out
 - [ ] **Step 7: Update `torrents/index.tsx`**
 
 Add `Magnet` to existing lucide imports:
+
 ```tsx
 import { Magnet, /* other existing imports */ } from "lucide-react";
 // ...
@@ -156,6 +163,7 @@ import { Magnet, /* other existing imports */ } from "lucide-react";
 ```
 
 Replace the two other `icon="🧲"` props (lines 345, 351 — these are on non-PageHeader components, check context) with lucide icon renders. Replace the large empty-state `🧲` (line 764):
+
 ```tsx
 <Magnet className="w-8 h-8 opacity-20" />
 ```
@@ -200,6 +208,7 @@ import { Clock } from "lucide-react";
 ```bash
 cd /Users/samuelloranger/Sites/projets_perso/hously && make typecheck
 ```
+
 Expected: 0 errors.
 
 - [ ] **Step 12: Commit**
@@ -223,6 +232,7 @@ git commit -m "refactor(ui): replace emoji in PageHeader and all callers with lu
 ## Task 2: `ActionMenu` — change `icon` from `string` to `React.ReactNode`
 
 **Files:**
+
 - Modify: `apps/web/src/components/ActionMenu.tsx`
 - Modify: `apps/web/src/pages/chores/_component/ChoreRow.tsx`
 - Modify: `apps/web/src/pages/habits/_component/HabitCard.tsx`
@@ -231,6 +241,7 @@ git commit -m "refactor(ui): replace emoji in PageHeader and all callers with lu
 - [ ] **Step 1: Update `ActionMenu.tsx`**
 
 Change the interface (the render `{item.icon}` stays the same):
+
 ```tsx
 import type { ReactNode } from "react";
 
@@ -245,11 +256,20 @@ interface ActionMenuItem {
 - [ ] **Step 2: Update `ChoreRow.tsx`**
 
 Add lucide imports:
+
 ```tsx
-import { RefreshCw, Trash2, User, Users, CheckCircle, Clock } from "lucide-react";
+import {
+  RefreshCw,
+  Trash2,
+  User,
+  Users,
+  CheckCircle,
+  Clock,
+} from "lucide-react";
 ```
 
 Replace the menu items array (in the `menuItems` / actions array building):
+
 ```tsx
 {
   label: t("chores.complete"),
@@ -273,6 +293,7 @@ Replace the menu items array (in the `menuItems` / actions array building):
 ```
 
 Replace the inline emoji spans (lines ~205–236):
+
 ```tsx
 // 👤 assigned to one person
 <User size={14} className="mr-1 inline-block" />
@@ -292,11 +313,13 @@ Remove the old `<span className="mr-1">emoji</span>` wrappers.
 - [ ] **Step 3: Update `HabitCard.tsx`**
 
 Add lucide imports:
+
 ```tsx
 import { Pencil, Undo2, Trash2 } from "lucide-react";
 ```
 
 Replace menu items:
+
 ```tsx
 { label: t("habits.edit"), icon: <Pencil size={16} />, ... },
 { label: t("habits.undoToday"), icon: <Undo2 size={16} />, ..., variant: "default" as const },
@@ -306,11 +329,13 @@ Replace menu items:
 - [ ] **Step 4: Update `ShoppingItemRow.tsx`**
 
 Add lucide import:
+
 ```tsx
 import { Trash2 } from "lucide-react";
 ```
 
 Replace the delete menu item:
+
 ```tsx
 { label: t("shopping.delete"), icon: <Trash2 size={16} />, ..., variant: "danger" as const },
 ```
@@ -333,6 +358,7 @@ git commit -m "refactor(ui): replace emoji in ActionMenu and callers with lucide
 ## Task 3: `activityPresentation.ts` — change `icon: string` to `Icon: LucideIcon`
 
 **Files:**
+
 - Modify: `apps/web/src/pages/activity/_component/activityPresentation.ts`
 - Modify: `apps/web/src/pages/settings/_component/RecentActivityTab.tsx`
 - Modify: `apps/web/src/pages/activity/_component/RecentActivityPage.tsx`
@@ -370,6 +396,7 @@ export interface ActivityPresentation {
 ```
 
 Then replace every `icon: "emoji"` with `Icon: IconComponent` throughout the function:
+
 - `icon: "✨"` → `Icon: Sparkles`
 - `icon: "🛠️"` → `Icon: Wrench`
 - `icon: "⏭️"` → `Icon: SkipForward`
@@ -384,6 +411,7 @@ Then replace every `icon: "emoji"` with `Icon: IconComponent` throughout the fun
 - [ ] **Step 2: Update `RecentActivityTab.tsx`**
 
 Find `{activity.icon}` (line 137) and replace with:
+
 ```tsx
 <activity.Icon className="w-4 h-4" />
 ```
@@ -391,6 +419,7 @@ Find `{activity.icon}` (line 137) and replace with:
 - [ ] **Step 3: Update `RecentActivityPage.tsx`**
 
 Find `{activity.icon}` (line 149) and replace with:
+
 ```tsx
 <activity.Icon className="w-4 h-4" />
 ```
@@ -410,6 +439,7 @@ git commit -m "refactor(ui): replace emoji in activityPresentation with lucide i
 ## Task 4: `NotificationMenuRow.tsx` — replace emoji in `typeConfig`
 
 **Files:**
+
 - Modify: `apps/web/src/components/NotificationMenuRow.tsx`
 
 - [ ] **Step 1: Replace emoji in `typeConfig`**
@@ -431,23 +461,21 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { NotificationType } from "@hously/shared/types";
 
-const typeConfig: Record<
-  NotificationType,
-  { Icon: LucideIcon; bg: string }
-> = {
-  reminder:        { Icon: Clock,         bg: "bg-amber-100 dark:bg-amber-900/30" },
-  external:        { Icon: Radio,         bg: "bg-blue-100 dark:bg-blue-900/30" },
-  "app-update":    { Icon: Sparkles,      bg: "bg-violet-100 dark:bg-violet-900/30" },
-  service_monitor: { Icon: Monitor,       bg: "bg-indigo-100 dark:bg-indigo-900/30" },
-  chore:           { Icon: CheckCircle,   bg: "bg-emerald-100 dark:bg-emerald-900/30" },
-  shopping:        { Icon: ShoppingCart,  bg: "bg-sky-100 dark:bg-sky-900/30" },
-  event:           { Icon: Calendar,      bg: "bg-rose-100 dark:bg-rose-900/30" },
-  system:          { Icon: Settings,      bg: "bg-neutral-100 dark:bg-neutral-700/60" },
-  habit:           { Icon: Target,        bg: "bg-orange-100 dark:bg-orange-900/30" },
+const typeConfig: Record<NotificationType, { Icon: LucideIcon; bg: string }> = {
+  reminder: { Icon: Clock, bg: "bg-amber-100 dark:bg-amber-900/30" },
+  external: { Icon: Radio, bg: "bg-blue-100 dark:bg-blue-900/30" },
+  "app-update": { Icon: Sparkles, bg: "bg-violet-100 dark:bg-violet-900/30" },
+  service_monitor: { Icon: Monitor, bg: "bg-indigo-100 dark:bg-indigo-900/30" },
+  chore: { Icon: CheckCircle, bg: "bg-emerald-100 dark:bg-emerald-900/30" },
+  shopping: { Icon: ShoppingCart, bg: "bg-sky-100 dark:bg-sky-900/30" },
+  event: { Icon: Calendar, bg: "bg-rose-100 dark:bg-rose-900/30" },
+  system: { Icon: Settings, bg: "bg-neutral-100 dark:bg-neutral-700/60" },
+  habit: { Icon: Target, bg: "bg-orange-100 dark:bg-orange-900/30" },
 };
 ```
 
 Update `getTypeStyle` return type and the cross-seed special case:
+
 ```tsx
 export function getTypeStyle(notification: {
   type: NotificationType;
@@ -478,6 +506,7 @@ export function getTypeStyle(notification: {
 ```
 
 Update the render in `NotificationMenuRow` (line 99):
+
 ```tsx
 <div
   className={cn(
@@ -506,11 +535,13 @@ git commit -m "refactor(ui): replace emoji in NotificationMenuRow with lucide ic
 ## Task 5: `JobsTab.tsx` — replace emoji in `JOBS` config
 
 **Files:**
+
 - Modify: `apps/web/src/pages/settings/_component/JobsTab.tsx`
 
 - [ ] **Step 1: Add missing lucide imports**
 
 The file already imports some lucide icons. Add the missing ones:
+
 ```tsx
 import {
   ChevronDown,
@@ -541,6 +572,7 @@ import type { LucideIcon } from "lucide-react";
 - [ ] **Step 2: Update `JobConfig` type and `JOBS` array**
 
 Change the type:
+
 ```ts
 type JobConfig = {
   action: JobAction;
@@ -552,39 +584,130 @@ type JobConfig = {
 ```
 
 Replace the `JOBS` array:
+
 ```ts
 const JOBS: JobConfig[] = [
-  { action: "check_reminders",                jobNames: ["check-reminders"],                    Icon: Clock,        labelKey: "settings.jobs.actions.checkReminders.label",                  descriptionKey: "settings.jobs.actions.checkReminders.description" },
-  { action: "check_all_day_events",           jobNames: ["check-all-day-events"],               Icon: Calendar,     labelKey: "settings.jobs.actions.checkAllDayEvents.label",               descriptionKey: "settings.jobs.actions.checkAllDayEvents.description" },
-  { action: "check_habit_reminders",          jobNames: ["check-habit-reminders"],              Icon: Activity,     labelKey: "settings.jobs.actions.checkHabitReminders.label",             descriptionKey: "settings.jobs.actions.checkHabitReminders.description" },
-  { action: "cleanup_notifications",          jobNames: ["cleanup-notifications"],              Icon: Eraser,       labelKey: "settings.jobs.actions.cleanupNotifications.label",            descriptionKey: "settings.jobs.actions.cleanupNotifications.description" },
-  { action: "fetch_c411_stats",               jobNames: ["fetch-c411-stats"],                   Icon: FileText,     labelKey: "settings.jobs.actions.fetchC411Stats.label",                  descriptionKey: "settings.jobs.actions.fetchC411Stats.description" },
-  { action: "fetch_torr9_stats",              jobNames: ["fetch-torr9-stats"],                  Icon: FileText,     labelKey: "settings.jobs.actions.fetchTorr9Stats.label",                 descriptionKey: "settings.jobs.actions.fetchTorr9Stats.description" },
-  { action: "fetch_la_cale_stats",            jobNames: ["fetch-la-cale-stats"],                Icon: FileText,     labelKey: "settings.jobs.actions.fetchLaCaleStats.label",                descriptionKey: "settings.jobs.actions.fetchLaCaleStats.description" },
-  { action: "refresh_upcoming",               jobNames: ["refresh-upcoming"],                   Icon: Film,         labelKey: "settings.jobs.actions.refreshUpcoming.label",                 descriptionKey: "settings.jobs.actions.refreshUpcoming.description" },
-  { action: "refresh_habits_streaks",         jobNames: ["refresh-habits-streaks"],             Icon: Flame,        labelKey: "settings.jobs.actions.refreshHabitsStreaks.label",            descriptionKey: "settings.jobs.actions.refreshHabitsStreaks.description" },
-  { action: "check_movie_release_reminders",  jobNames: ["check-movie-release-reminders"],      Icon: Clapperboard, labelKey: "settings.jobs.actions.checkMovieReleaseReminders.label",      descriptionKey: "settings.jobs.actions.checkMovieReleaseReminders.description" },
-  { action: "check_library_movie_releases",   jobNames: ["check-library-movie-releases"],       Icon: Film,         labelKey: "settings.jobs.actions.checkLibraryMovieReleases.label",       descriptionKey: "settings.jobs.actions.checkLibraryMovieReleases.description" },
-  { action: "check_library_episode_releases", jobNames: ["check-library-episode-releases"],     Icon: Tv,           labelKey: "settings.jobs.actions.checkLibraryEpisodeReleases.label",     descriptionKey: "settings.jobs.actions.checkLibraryEpisodeReleases.description" },
-  { action: "sync_library_show_episodes",     jobNames: ["sync-library-show-episodes"],         Icon: RefreshCw,    labelKey: "settings.jobs.actions.syncLibraryShowEpisodes.label",          descriptionKey: "settings.jobs.actions.syncLibraryShowEpisodes.description" },
-  { action: "check_library_download_completion", jobNames: ["check-library-download-completion"], Icon: Download,   labelKey: "settings.jobs.actions.checkLibraryDownloadCompletion.label",  descriptionKey: "settings.jobs.actions.checkLibraryDownloadCompletion.description" },
+  {
+    action: "check_reminders",
+    jobNames: ["check-reminders"],
+    Icon: Clock,
+    labelKey: "settings.jobs.actions.checkReminders.label",
+    descriptionKey: "settings.jobs.actions.checkReminders.description",
+  },
+  {
+    action: "check_all_day_events",
+    jobNames: ["check-all-day-events"],
+    Icon: Calendar,
+    labelKey: "settings.jobs.actions.checkAllDayEvents.label",
+    descriptionKey: "settings.jobs.actions.checkAllDayEvents.description",
+  },
+  {
+    action: "check_habit_reminders",
+    jobNames: ["check-habit-reminders"],
+    Icon: Activity,
+    labelKey: "settings.jobs.actions.checkHabitReminders.label",
+    descriptionKey: "settings.jobs.actions.checkHabitReminders.description",
+  },
+  {
+    action: "cleanup_notifications",
+    jobNames: ["cleanup-notifications"],
+    Icon: Eraser,
+    labelKey: "settings.jobs.actions.cleanupNotifications.label",
+    descriptionKey: "settings.jobs.actions.cleanupNotifications.description",
+  },
+  {
+    action: "fetch_c411_stats",
+    jobNames: ["fetch-c411-stats"],
+    Icon: FileText,
+    labelKey: "settings.jobs.actions.fetchC411Stats.label",
+    descriptionKey: "settings.jobs.actions.fetchC411Stats.description",
+  },
+  {
+    action: "fetch_torr9_stats",
+    jobNames: ["fetch-torr9-stats"],
+    Icon: FileText,
+    labelKey: "settings.jobs.actions.fetchTorr9Stats.label",
+    descriptionKey: "settings.jobs.actions.fetchTorr9Stats.description",
+  },
+  {
+    action: "fetch_la_cale_stats",
+    jobNames: ["fetch-la-cale-stats"],
+    Icon: FileText,
+    labelKey: "settings.jobs.actions.fetchLaCaleStats.label",
+    descriptionKey: "settings.jobs.actions.fetchLaCaleStats.description",
+  },
+  {
+    action: "refresh_upcoming",
+    jobNames: ["refresh-upcoming"],
+    Icon: Film,
+    labelKey: "settings.jobs.actions.refreshUpcoming.label",
+    descriptionKey: "settings.jobs.actions.refreshUpcoming.description",
+  },
+  {
+    action: "refresh_habits_streaks",
+    jobNames: ["refresh-habits-streaks"],
+    Icon: Flame,
+    labelKey: "settings.jobs.actions.refreshHabitsStreaks.label",
+    descriptionKey: "settings.jobs.actions.refreshHabitsStreaks.description",
+  },
+  {
+    action: "check_movie_release_reminders",
+    jobNames: ["check-movie-release-reminders"],
+    Icon: Clapperboard,
+    labelKey: "settings.jobs.actions.checkMovieReleaseReminders.label",
+    descriptionKey:
+      "settings.jobs.actions.checkMovieReleaseReminders.description",
+  },
+  {
+    action: "check_library_movie_releases",
+    jobNames: ["check-library-movie-releases"],
+    Icon: Film,
+    labelKey: "settings.jobs.actions.checkLibraryMovieReleases.label",
+    descriptionKey:
+      "settings.jobs.actions.checkLibraryMovieReleases.description",
+  },
+  {
+    action: "check_library_episode_releases",
+    jobNames: ["check-library-episode-releases"],
+    Icon: Tv,
+    labelKey: "settings.jobs.actions.checkLibraryEpisodeReleases.label",
+    descriptionKey:
+      "settings.jobs.actions.checkLibraryEpisodeReleases.description",
+  },
+  {
+    action: "sync_library_show_episodes",
+    jobNames: ["sync-library-show-episodes"],
+    Icon: RefreshCw,
+    labelKey: "settings.jobs.actions.syncLibraryShowEpisodes.label",
+    descriptionKey: "settings.jobs.actions.syncLibraryShowEpisodes.description",
+  },
+  {
+    action: "check_library_download_completion",
+    jobNames: ["check-library-download-completion"],
+    Icon: Download,
+    labelKey: "settings.jobs.actions.checkLibraryDownloadCompletion.label",
+    descriptionKey:
+      "settings.jobs.actions.checkLibraryDownloadCompletion.description",
+  },
 ];
 ```
 
 - [ ] **Step 3: Update the render (line ~609–627)**
 
 Replace:
+
 ```tsx
 const icon = config?.icon ?? "⏱️";
 // ...
-<span className="text-xl">{icon}</span>
+<span className="text-xl">{icon}</span>;
 ```
 
 With:
+
 ```tsx
 const JobIcon = config?.Icon ?? Timer;
 // ...
-<JobIcon className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
+<JobIcon className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />;
 ```
 
 - [ ] **Step 4: Typecheck and commit**
@@ -600,6 +723,7 @@ git commit -m "refactor(ui): replace emoji in JobsTab job config with lucide ico
 ## Task 6: `navigation.ts` — remove deprecated `mobileIcon` field
 
 **Files:**
+
 - Modify: `apps/web/src/lib/routing/navigation.ts`
 
 - [ ] **Step 1: Remove `mobileIcon` from the interface**
@@ -629,28 +753,34 @@ git commit -m "refactor(ui): remove deprecated mobileIcon field from NavItem"
 ## Task 7: `Sidebar.tsx` and `QuickActionPalette.tsx` — inline emoji replacements
 
 **Files:**
+
 - Modify: `apps/web/src/components/Sidebar.tsx`
 - Modify: `apps/web/src/components/QuickActionPalette.tsx`
 
 - [ ] **Step 1: Update `Sidebar.tsx`**
 
 Add lucide imports:
+
 ```tsx
 import { Sun, Moon } from "lucide-react";
 ```
 
 Replace the theme toggle (line 257):
+
 ```tsx
 // Before:
-<span className="text-sm">{isDark ? "☀️" : "🌙"}</span>
+<span className="text-sm">{isDark ? "☀️" : "🌙"}</span>;
 
 // After:
-{isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+{
+  isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />;
+}
 ```
 
 - [ ] **Step 2: Update `QuickActionPalette.tsx`**
 
 Add lucide imports (file already imports `Search, Sparkles`):
+
 ```tsx
 import {
   Search,
@@ -729,6 +859,7 @@ git commit -m "refactor(ui): replace emoji in Sidebar and QuickActionPalette wit
 ## Task 8: `MediaPosterCard.tsx` and `MediaShelves.tsx` — poster fallback
 
 **Files:**
+
 - Modify: `apps/web/src/components/MediaPosterCard.tsx`
 - Modify: `apps/web/src/pages/_component/MediaShelves.tsx`
 
@@ -756,13 +887,18 @@ export function MediaPosterCard({
 ```
 
 Update the render (line 119):
+
 ```tsx
-{/* Fallback */}
-{!showImage && (
-  <div className="absolute inset-0 flex items-center justify-center text-white/40">
-    <FallbackIcon className="w-10 h-10" />
-  </div>
-)}
+{
+  /* Fallback */
+}
+{
+  !showImage && (
+    <div className="absolute inset-0 flex items-center justify-center text-white/40">
+      <FallbackIcon className="w-10 h-10" />
+    </div>
+  );
+}
 ```
 
 No callers pass `fallbackEmoji` explicitly, so no call sites need updating.
@@ -777,6 +913,7 @@ import type { LucideIcon } from "lucide-react";
 ```
 
 Change the `PosterCard` props interface:
+
 ```tsx
 {
   // ...
@@ -786,6 +923,7 @@ Change the `PosterCard` props interface:
 ```
 
 Change the fallback render (line 51):
+
 ```tsx
 <div className="flex h-full w-full items-center justify-center bg-zinc-200 dark:bg-zinc-700">
   <FallbackIcon className="w-8 h-8 text-zinc-400" />
@@ -795,6 +933,7 @@ Change the fallback render (line 51):
 Rename destructured prop `fallback` → `fallback: FallbackIcon` in PosterCard function signature.
 
 Update `mediaFallback` function:
+
 ```tsx
 const mediaFallback = (type: string | null): LucideIcon => {
   const map: Record<string, LucideIcon> = {
@@ -808,6 +947,7 @@ const mediaFallback = (type: string | null): LucideIcon => {
 ```
 
 Update the two `fallback={...}` call sites in the JSX:
+
 ```tsx
 // line ~196:
 fallback={mediaFallback(item.item_type)}
@@ -830,6 +970,7 @@ git commit -m "refactor(ui): replace fallback emoji in MediaPosterCard and Media
 ## Task 9: Media page components
 
 **Files:**
+
 - Modify: `apps/web/src/pages/medias/_component/ExploreCard.tsx`
 - Modify: `apps/web/src/pages/medias/_component/ExploreCardDetailDialog.tsx`
 - Modify: `apps/web/src/pages/medias/_component/LibraryItemHero.tsx`
@@ -844,6 +985,7 @@ git commit -m "refactor(ui): replace fallback emoji in MediaPosterCard and Media
 Add import: `import { Film } from "lucide-react";`
 
 Replace the inline `🎞️` fallback (line 111):
+
 ```tsx
 <div className="absolute inset-0 flex items-center justify-center text-white/10">
   <Film className="w-10 h-10" />
@@ -892,6 +1034,7 @@ Replace `🎬` collections link icon (line 295) with `<Clapperboard size={16} />
 - [ ] **Step 8: `DiscoverPanel.tsx`**
 
 Find the language array:
+
 ```tsx
 { code: "en", flag: "🇺🇸", label: "EN" },
 { code: "fr", flag: "🇫🇷", label: "FR" },
@@ -932,6 +1075,7 @@ git commit -m "refactor(ui): replace emoji in media page components with lucide 
 ## Task 10: Chores — `RecurrenceBadge` and remaining `ChoresList` emoji
 
 **Files:**
+
 - Modify: `apps/web/src/pages/chores/_component/RecurrenceBadge.tsx`
 - Modify: `apps/web/src/pages/chores/_component/ChoresList.tsx` (any remaining emoji not from PageHeader)
 
@@ -959,6 +1103,7 @@ git commit -m "refactor(ui): replace emoji in chore components with lucide icons
 ## Task 11: Habits — `StreakBadge` and `HabitsList`
 
 **Files:**
+
 - Modify: `apps/web/src/pages/habits/_component/StreakBadge.tsx`
 - Modify: `apps/web/src/pages/habits/_component/HabitsList.tsx`
 
@@ -967,6 +1112,7 @@ git commit -m "refactor(ui): replace emoji in chore components with lucide icons
 Add import: `import { Flame } from "lucide-react";`
 
 Replace:
+
 ```tsx
 // Before:
 <span role="img" aria-label="streak">
@@ -998,6 +1144,7 @@ git commit -m "refactor(ui): replace emoji in habit components with lucide icons
 ## Task 12: Auth, notifications, board, home — final inline replacements
 
 **Files:**
+
 - Modify: `apps/web/src/pages/forgot-password.tsx`
 - Modify: `apps/web/src/pages/reset-password.tsx`
 - Modify: `apps/web/src/components/NotificationPermissionModal.tsx`
@@ -1009,6 +1156,7 @@ git commit -m "refactor(ui): replace emoji in habit components with lucide icons
 Add imports: `import { Mail, Key } from "lucide-react";`
 
 Replace `✉️` (line 50):
+
 ```tsx
 <div className="mx-auto h-12 w-12 flex items-center justify-center">
   <Mail className="w-8 h-8 text-primary-600 dark:text-primary-400" />
@@ -1016,6 +1164,7 @@ Replace `✉️` (line 50):
 ```
 
 Replace `🔑` (line 79):
+
 ```tsx
 <div className="mx-auto h-12 w-12 flex items-center justify-center">
   <Key className="w-8 h-8 text-primary-600 dark:text-primary-400" />
@@ -1034,6 +1183,7 @@ Replace `🔐` (line 149) with `<Lock className="w-8 h-8 text-primary-600 dark:t
 Add import: `import { Bell } from "lucide-react";`
 
 Replace (line 64):
+
 ```tsx
 // Before:
 <div className="flex-shrink-0 text-3xl">🔔</div>
@@ -1057,9 +1207,11 @@ Line 217 has a `🛒` shopping list link icon outside PageHeader. Replace with `
 ```bash
 cd /Users/samuelloranger/Sites/projets_perso/hously && make typecheck
 ```
+
 Expected: 0 errors.
 
 Then verify no emoji remain in target files:
+
 ```bash
 grep -rn "🔔\|🚪\|⚙️\|☀️\|🌙\|🧲\|🎬\|🎞\|📺\|💿\|🎧\|🔖\|📋\|📊\|✅\|❌\|🗑️\|✏️\|↩️\|➕\|🔁\|🔥\|👤\|👥\|⏰\|⏱\|🛒\|📡\|✨\|🖥️\|🎯\|🌱\|🛠️\|⏭️\|🔌\|⬇️\|🧹\|🧾\|🎥\|🔄\|📅\|🇺🇸\|🇫🇷\|🔑\|🔐\|⚠️\|✉️\|🧭" \
   apps/web/src \

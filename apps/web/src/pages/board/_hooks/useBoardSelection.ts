@@ -27,18 +27,20 @@ export function useBoardSelection({
   const archiveMutation = useSetBoardTaskArchived();
   const deleteMutation = useDeleteBoardTask();
 
-  const [selectedTaskIds, setSelectedTaskIds] = useState<number[]>([]);
+  const [selectedTaskIdsState, setSelectedTaskIds] = useState<number[]>([]);
   const [deleteConfirmPending, setDeleteConfirmPending] = useState(false);
+  const validTaskIds = useMemo(
+    () => new Set(kanbanTasks.map((task) => task.id)),
+    [kanbanTasks],
+  );
+  const selectedTaskIds = useMemo(
+    () => selectedTaskIdsState.filter((id) => validTaskIds.has(id)),
+    [selectedTaskIdsState, validTaskIds],
+  );
   const selectedSet = useMemo(
     () => new Set(selectedTaskIds),
     [selectedTaskIds],
   );
-
-  // Prune stale selections when tasks change
-  useEffect(() => {
-    const valid = new Set(kanbanTasks.map((t) => t.id));
-    setSelectedTaskIds((prev) => prev.filter((id) => valid.has(id)));
-  }, [kanbanTasks]);
 
   // Escape clears selection
   useEffect(() => {
@@ -50,28 +52,33 @@ export function useBoardSelection({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const toggleTaskSelect = useCallback((taskId: number) => {
-    setSelectedTaskIds((prev) =>
-      prev.includes(taskId)
-        ? prev.filter((id) => id !== taskId)
-        : [...prev, taskId],
-    );
-  }, []);
+  const toggleTaskSelect = useCallback(
+    (taskId: number) => {
+      setSelectedTaskIds((prev) => {
+        const next = prev.filter((id) => validTaskIds.has(id));
+        return next.includes(taskId)
+          ? next.filter((id) => id !== taskId)
+          : [...next, taskId];
+      });
+    },
+    [validTaskIds],
+  );
 
   const handleBoardCardClick = useCallback(
     (task: BoardTask, e: React.MouseEvent | React.KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        setSelectedTaskIds((prev) =>
-          prev.includes(task.id)
-            ? prev.filter((id) => id !== task.id)
-            : [...prev, task.id],
-        );
+        setSelectedTaskIds((prev) => {
+          const next = prev.filter((id) => validTaskIds.has(id));
+          return next.includes(task.id)
+            ? next.filter((id) => id !== task.id)
+            : [...next, task.id];
+        });
         return true; // signal: selection handled, don't open drawer
       }
       return false;
     },
-    [],
+    [validTaskIds],
   );
 
   const handleBulkMoveToColumn = useCallback(

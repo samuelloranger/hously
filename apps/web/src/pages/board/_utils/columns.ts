@@ -39,9 +39,7 @@ export function normalizeColumns(
   return out;
 }
 
-export function toSyncPayload(
-  cols: Record<BoardKanbanStatusApi, BoardTask[]>,
-) {
+export function toSyncPayload(cols: Record<BoardKanbanStatusApi, BoardTask[]>) {
   return BOARD_KANBAN_STATUSES.flatMap((s) =>
     cols[s].map((task) => ({
       id: task.id,

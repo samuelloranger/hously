@@ -505,7 +505,11 @@ function FilterChip({
               className={active ? "text-indigo-500" : "text-neutral-400"}
               size={13}
             />
-            <span className={active ? "text-[11px] uppercase tracking-wide opacity-70" : ""}>
+            <span
+              className={
+                active ? "text-[11px] uppercase tracking-wide opacity-70" : ""
+              }
+            >
               {label}
             </span>
             {active && (

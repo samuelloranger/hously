@@ -1,8 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import type {
-  BoardTask,
-  UpdateBoardTaskRequest,
-} from "@hously/shared/types";
+import { useCallback, useMemo, useState } from "react";
+import type { BoardTask, UpdateBoardTaskRequest } from "@hously/shared/types";
 import {
   useDeleteBoardTask,
   useSetBoardTaskArchived,
@@ -14,22 +11,18 @@ export function useBoardDrawer(allTasks: BoardTask[]) {
   const deleteMutation = useDeleteBoardTask();
   const archiveMutation = useSetBoardTaskArchived();
 
-  const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null);
-
-  // Keep drawer in sync with server data
-  useEffect(() => {
-    if (selectedTask) {
-      const updated = allTasks.find((t) => t.id === selectedTask.id);
-      if (updated) setSelectedTask(updated);
-    }
-  }, [allTasks]);
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const selectedTask = useMemo(
+    () => allTasks.find((task) => task.id === selectedTaskId) ?? null,
+    [allTasks, selectedTaskId],
+  );
 
   const openTaskDrawer = useCallback((task: BoardTask) => {
-    setSelectedTask(task);
+    setSelectedTaskId(task.id);
   }, []);
 
   const closeTaskDrawer = useCallback(() => {
-    setSelectedTask(null);
+    setSelectedTaskId(null);
   }, []);
 
   const handleDrawerUpdate = useCallback(
@@ -45,7 +38,7 @@ export function useBoardDrawer(allTasks: BoardTask[]) {
   const handleDelete = useCallback(
     (id: number) => {
       deleteMutation.mutate(id);
-      setSelectedTask(null);
+      setSelectedTaskId(null);
     },
     [deleteMutation],
   );
@@ -55,14 +48,16 @@ export function useBoardDrawer(allTasks: BoardTask[]) {
       const archived = !selectedTask?.archived;
       archiveMutation.mutate(
         { id, archived },
-        { onSuccess: () => setSelectedTask(null) },
+        { onSuccess: () => setSelectedTaskId(null) },
       );
     },
     [archiveMutation, selectedTask?.archived],
   );
 
   const closeIfMatches = useCallback((ids: number[]) => {
-    setSelectedTask((cur) => (cur && ids.includes(cur.id) ? null : cur));
+    setSelectedTaskId((currentId) =>
+      currentId !== null && ids.includes(currentId) ? null : currentId,
+    );
   }, []);
 
   return {

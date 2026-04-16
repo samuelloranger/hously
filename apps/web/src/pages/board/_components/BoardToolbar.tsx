@@ -1,11 +1,5 @@
 import { useTranslation } from "react-i18next";
-import {
-  Archive,
-  Filter,
-  LayoutGrid,
-  List,
-  Plus,
-} from "lucide-react";
+import { Archive, Filter, LayoutGrid, List, Plus } from "lucide-react";
 import {
   BACKLOG_SORT_OPTIONS,
   type BacklogSortOption,

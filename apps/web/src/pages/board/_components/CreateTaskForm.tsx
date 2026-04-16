@@ -53,9 +53,7 @@ export function CreateTaskForm({
         </label>
         <select
           value={createStatus}
-          onChange={(e) =>
-            onStatusChange(e.target.value as BoardTaskStatusApi)
-          }
+          onChange={(e) => onStatusChange(e.target.value as BoardTaskStatusApi)}
           className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
         >
           {BOARD_TASK_STATUSES.map((s) => (

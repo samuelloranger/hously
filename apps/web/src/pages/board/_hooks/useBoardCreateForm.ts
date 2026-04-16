@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import type { BoardTaskStatusApi } from "@hously/shared/types";
 import { useCreateBoardTask } from "@/pages/board/_hooks/useBoardTasks";
 
@@ -8,11 +8,28 @@ export function useBoardCreateForm(viewMode: ViewMode) {
   const createMutation = useCreateBoardTask();
   const [showCreate, setShowCreate] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [createStatus, setCreateStatus] = useState<BoardTaskStatusApi>("todo");
+  const [createStatusByView, setCreateStatusByView] = useState<
+    Record<ViewMode, BoardTaskStatusApi>
+  >({
+    board: "todo",
+    backlog: "backlog",
+    archive: "todo",
+  });
+  const createStatus =
+    viewMode === "backlog" ? "backlog" : createStatusByView[viewMode];
+  const setCreateStatus = useCallback(
+    (nextStatus: BoardTaskStatusApi) => {
+      if (viewMode === "backlog") {
+        return;
+      }
 
-  useEffect(() => {
-    setCreateStatus(viewMode === "backlog" ? "backlog" : "todo");
-  }, [viewMode]);
+      setCreateStatusByView((prev) => ({
+        ...prev,
+        [viewMode]: nextStatus,
+      }));
+    },
+    [viewMode],
+  );
 
   const handleCreate = () => {
     const title = newTitle.trim();

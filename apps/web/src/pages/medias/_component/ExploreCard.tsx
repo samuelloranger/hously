@@ -13,7 +13,13 @@ import { Plus, Check, Film } from "lucide-react";
 import { toast } from "sonner";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 
-export function ExploreCard({ item, onAdded }: { item: TmdbMediaSearchItem; onAdded?: () => void }) {
+export function ExploreCard({
+  item,
+  onAdded,
+}: {
+  item: TmdbMediaSearchItem;
+  onAdded?: () => void;
+}) {
   const { t, i18n } = useTranslation("common");
   const [detailOpen, setDetailOpen] = useState(false);
   const [imgError, setImgError] = useState(false);

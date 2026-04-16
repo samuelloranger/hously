@@ -20,7 +20,7 @@ returns fresh data from UptimeKuma.
   refetch-on-focus + 60 s polling behaviour of TanStack Query is sufficient
   given that Redis is invalidated by the webhook.
 - No historical uptime ratio, response-time graphs, or certificate-expiry data.
-  Only *current status* is surfaced. These can be added later.
+  Only _current status_ is surfaced. These can be added later.
 - No configuration of monitors from Hously. UptimeKuma remains the source of
   truth.
 
@@ -60,11 +60,11 @@ New plugin type `uptimekuma` stored in the existing `plugin` table, mirroring
 Registered in `apps/api/src/routes/plugins/index.ts` alongside the other
 plugin routes.
 
-| Method | Path                              | Auth  | Purpose                                        |
-| ------ | --------------------------------- | ----- | ---------------------------------------------- |
-| GET    | `/api/plugins/uptimekuma`         | admin | Return `{ type, enabled, website_url, api_key_set }` |
-| PUT    | `/api/plugins/uptimekuma`         | admin | Save config; `api_key` is encrypted; logs `plugin_updated` |
-| GET    | `/api/plugins/uptimekuma/monitors`| user  | Return current monitor snapshot (cached)       |
+| Method | Path                               | Auth  | Purpose                                                    |
+| ------ | ---------------------------------- | ----- | ---------------------------------------------------------- |
+| GET    | `/api/plugins/uptimekuma`          | admin | Return `{ type, enabled, website_url, api_key_set }`       |
+| PUT    | `/api/plugins/uptimekuma`          | admin | Save config; `api_key` is encrypted; logs `plugin_updated` |
+| GET    | `/api/plugins/uptimekuma/monitors` | user  | Return current monitor snapshot (cached)                   |
 
 The config endpoints follow the exact shape of `adguard` (validation via
 `normalizeUrl` + `isValidHttpUrl`; keeps existing encrypted key if the request
@@ -79,8 +79,8 @@ type UptimekumaMonitor = {
   id: string;
   name: string;
   status: UptimekumaMonitorStatus;
-  type: string;        // "http" | "docker" | ...
-  url: string | null;  // empty/placeholder strings normalised to null
+  type: string; // "http" | "docker" | ...
+  url: string | null; // empty/placeholder strings normalised to null
 };
 
 type UptimekumaMonitorsResponse = {
@@ -165,7 +165,8 @@ export function useUptimekumaMonitors() {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: queryKeys.uptimekuma.monitors(),
-    queryFn: () => fetcher<UptimekumaMonitorsResponse>(UPTIMEKUMA_ENDPOINTS.MONITORS),
+    queryFn: () =>
+      fetcher<UptimekumaMonitorsResponse>(UPTIMEKUMA_ENDPOINTS.MONITORS),
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
     staleTime: 30_000,
@@ -194,8 +195,8 @@ Render rules:
    "View all monitors" button.
 5. **Any unhealthy** → headline `N / M up` with red dot (or yellow if only
    pending), then inline rows for each **down / pending** monitor (status dot
-   + name). Cap at 5 visible inline; if more, show `+K more` affordance that
-   opens the modal.
+   - name). Cap at 5 visible inline; if more, show `+K more` affordance that
+     opens the modal.
 
 Icons: `lucide-react` (`Activity` for header, `CircleDot` or a small coloured
 dot for status).
