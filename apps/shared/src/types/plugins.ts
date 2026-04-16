@@ -202,3 +202,39 @@ export interface TrackerPluginUpdateResponse {
 export interface HomeAssistantDiscoverResponse {
   entities: HomeAssistantDiscoverEntity[];
 }
+
+export interface UptimekumaPlugin {
+  type: "uptimekuma";
+  enabled: boolean;
+  website_url: string;
+  api_key_set: boolean;
+}
+
+export interface UptimekumaPluginUpdateResponse {
+  success: true;
+  plugin: UptimekumaPlugin;
+}
+
+export type UptimekumaMonitorStatus = "up" | "down" | "pending" | "maintenance";
+
+export interface UptimekumaMonitor {
+  id: string;
+  name: string;
+  status: UptimekumaMonitorStatus;
+  type: string;
+  url: string | null;
+}
+
+export interface UptimekumaSummary {
+  total: number;
+  up: number;
+  down: number;
+  pending: number;
+  maintenance: number;
+}
+
+export interface UptimekumaMonitorsResponse {
+  summary: UptimekumaSummary;
+  monitors: UptimekumaMonitor[];
+  fetched_at: string;
+}
