@@ -186,27 +186,29 @@ export function LibraryMediaSection({
 
               return (
                 <div key={s.season}>
-                  <div className="flex items-center">
+                  {/* ── Season header ── */}
+                  <div className="flex items-center gap-0 mobile-max:gap-0">
+                    {/* Expand toggle — takes available space */}
                     <button
                       type="button"
                       onClick={() => toggleSeason(s.season)}
-                      className="flex flex-1 items-center gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors text-left"
+                      className="flex flex-1 min-w-0 items-center gap-2.5 mobile-max:gap-3 px-3 py-3 mobile-max:px-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors text-left"
                     >
                       <ChevronRight
-                        size={12}
+                        size={14}
                         className={cn(
-                          "text-neutral-400 shrink-0 transition-transform duration-150",
+                          "text-neutral-400 shrink-0 transition-transform duration-150 mobile-max:size-3",
                           isExpanded && "rotate-90",
                         )}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-[11px] font-semibold text-neutral-800 dark:text-neutral-100">
+                          <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-100 mobile-max:text-[11px]">
                             {t("library.media.season")} {s.season}
                           </span>
                           <span
                             className={cn(
-                              "text-[10px] tabular-nums",
+                              "text-[11px] tabular-nums mobile-max:text-[10px]",
                               allDone
                                 ? "text-emerald-600 dark:text-emerald-400"
                                 : "text-neutral-400 dark:text-neutral-500",
@@ -217,7 +219,10 @@ export function LibraryMediaSection({
                           {sznBadges.slice(0, 2).map((b) => (
                             <Badge
                               key={b.label}
-                              className={cn(b.cls, "text-[9px] py-0")}
+                              className={cn(
+                                b.cls,
+                                "text-[10px] py-0 mobile-max:text-[9px]",
+                              )}
                             >
                               {b.label}
                             </Badge>
@@ -240,117 +245,128 @@ export function LibraryMediaSection({
                         </div>
                       </div>
                     </button>
-                    {packEligible && (
-                      <button
-                        type="button"
-                        title={t(
-                          "library.management.searchSeasonPack",
-                          "Search season pack",
-                        )}
-                        disabled={searchSeasonPackMut.isPending}
-                        onClick={() => {
-                          void searchSeasonPackMut
-                            .mutateAsync({
-                              mediaId: libraryId,
-                              season: s.season,
-                            })
-                            .then((r) => {
-                              if (r.grabbed) {
+
+                    {/* Action buttons — fixed to the right */}
+                    <div className="flex shrink-0 items-center">
+                      {packEligible && (
+                        <button
+                          type="button"
+                          title={t(
+                            "library.management.searchSeasonPack",
+                            "Search season pack",
+                          )}
+                          disabled={searchSeasonPackMut.isPending}
+                          onClick={() => {
+                            void searchSeasonPackMut
+                              .mutateAsync({
+                                mediaId: libraryId,
+                                season: s.season,
+                              })
+                              .then((r) => {
+                                if (r.grabbed) {
+                                  toast.success(
+                                    t(
+                                      "library.management.seasonPackGrabbed",
+                                      "Season pack grabbed!",
+                                    ),
+                                  );
+                                } else {
+                                  toast.info(
+                                    t(
+                                      "library.management.seasonPackNotFound",
+                                      "No season pack found — episodes will be searched individually.",
+                                    ),
+                                  );
+                                }
+                              })
+                              .catch(() =>
+                                toast.error(t("library.management.grabFailed")),
+                              );
+                          }}
+                          className="rounded-md p-2.5 mobile-max:px-3 mobile-max:py-3 text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 disabled:opacity-50 transition-colors"
+                        >
+                          <Layers size={14} className="mobile-max:size-3" />
+                        </button>
+                      )}
+                      {onSearchSeason && (
+                        <button
+                          type="button"
+                          onClick={() => onSearchSeason(s.season)}
+                          title={t(
+                            "library.management.searchSeasonManual",
+                            "Browse torrents for this season",
+                          )}
+                          className="rounded-md p-2.5 mobile-max:px-3 mobile-max:py-3 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                        >
+                          <Search size={14} className="mobile-max:size-3" />
+                        </button>
+                      )}
+                      {skippedCount > 0 && (
+                        <button
+                          type="button"
+                          title={t(
+                            "library.management.retrySkippedSeasonTitle",
+                            {
+                              count: skippedCount,
+                            },
+                          )}
+                          disabled={retrySeasonMut.isPending}
+                          onClick={() => {
+                            void retrySeasonMut
+                              .mutateAsync({
+                                mediaId: libraryId,
+                                season: s.season,
+                              })
+                              .then((r) =>
                                 toast.success(
                                   t(
-                                    "library.management.seasonPackGrabbed",
-                                    "Season pack grabbed!",
+                                    "library.management.retrySkippedSeasonQueued",
+                                    { count: r.retried },
                                   ),
-                                );
-                              } else {
-                                toast.info(
-                                  t(
-                                    "library.management.seasonPackNotFound",
-                                    "No season pack found — episodes will be searched individually.",
-                                  ),
-                                );
-                              }
-                            })
-                            .catch(() =>
-                              toast.error(t("library.management.grabFailed")),
-                            );
-                        }}
-                        className="px-3 py-3 text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 disabled:opacity-50 transition-colors"
-                      >
-                        <Layers size={12} />
-                      </button>
-                    )}
-                    {onSearchSeason && (
+                                ),
+                              )
+                              .catch(() =>
+                                toast.error(t("library.management.grabFailed")),
+                              );
+                          }}
+                          className="rounded-md p-2.5 mobile-max:px-3 mobile-max:py-3 text-neutral-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+                        >
+                          <RefreshCw size={14} className="mobile-max:size-3" />
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => onSearchSeason(s.season)}
-                        title={t(
-                          "library.management.searchSeasonManual",
-                          "Browse torrents for this season",
-                        )}
-                        className="px-3 py-3 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
-                      >
-                        <Search size={12} />
-                      </button>
-                    )}
-                    {skippedCount > 0 && (
-                      <button
-                        type="button"
-                        title={t("library.management.retrySkippedSeasonTitle", {
-                          count: skippedCount,
-                        })}
-                        disabled={retrySeasonMut.isPending}
+                        title={
+                          allMonitored
+                            ? t("library.management.unmonitorSeason")
+                            : t("library.management.monitorSeason")
+                        }
+                        disabled={toggleSeasonMonitoredMut.isPending}
                         onClick={() => {
-                          void retrySeasonMut
+                          void toggleSeasonMonitoredMut
                             .mutateAsync({
                               mediaId: libraryId,
                               season: s.season,
+                              monitored: !anyMonitored,
                             })
-                            .then((r) =>
-                              toast.success(
-                                t(
-                                  "library.management.retrySkippedSeasonQueued",
-                                  { count: r.retried },
-                                ),
-                              ),
-                            )
                             .catch(() =>
                               toast.error(t("library.management.grabFailed")),
                             );
                         }}
-                        className="px-3 py-3 text-neutral-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+                        className={cn(
+                          "rounded-md p-2.5 mobile-max:px-3 mobile-max:py-3 transition-colors disabled:opacity-50",
+                          anyMonitored
+                            ? "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
+                            : "text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800/40",
+                        )}
                       >
-                        <RefreshCw size={12} />
+                        {anyMonitored ? (
+                          <Eye size={14} className="mobile-max:size-3" />
+                        ) : (
+                          <EyeOff size={14} className="mobile-max:size-3" />
+                        )}
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      title={
-                        allMonitored
-                          ? t("library.management.unmonitorSeason")
-                          : t("library.management.monitorSeason")
-                      }
-                      disabled={toggleSeasonMonitoredMut.isPending}
-                      onClick={() => {
-                        void toggleSeasonMonitoredMut
-                          .mutateAsync({
-                            mediaId: libraryId,
-                            season: s.season,
-                            monitored: !anyMonitored,
-                          })
-                          .catch(() =>
-                            toast.error(t("library.management.grabFailed")),
-                          );
-                      }}
-                      className={cn(
-                        "px-3 py-3 transition-colors disabled:opacity-50",
-                        anyMonitored
-                          ? "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
-                          : "text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800/40",
-                      )}
-                    >
-                      {anyMonitored ? <Eye size={12} /> : <EyeOff size={12} />}
-                    </button>
+                    </div>
                   </div>
 
                   {isExpanded && (
