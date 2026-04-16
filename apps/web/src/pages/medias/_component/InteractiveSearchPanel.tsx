@@ -16,6 +16,7 @@ import {
 import {
   useLibraryGrabRelease,
   useLibraryEpisodes,
+  useLibraryDownloads,
 } from "@/features/medias/hooks/useLibrary";
 import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
 import {
@@ -149,6 +150,15 @@ export function InteractiveSearchPanel({
   const activeQuery = interactiveSearchQuery;
   const grabBusy =
     libraryGrabMutation.isPending || interactiveDownloadMutation.isPending;
+
+  const downloadsQuery = useLibraryDownloads(libId);
+  const grabbedTitles = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of downloadsQuery.data?.items ?? []) {
+      if (row.release_title) set.add(row.release_title.trim().toLowerCase());
+    }
+    return set;
+  }, [downloadsQuery.data]);
 
   useLayoutEffect(() => {
     if (!isActive) return;
@@ -778,6 +788,9 @@ export function InteractiveSearchPanel({
                     onDownload={() => void downloadRelease(release)}
                     isDownloading={pendingReleaseKey === releaseKey}
                     isBusy={grabBusy}
+                    alreadyGrabbed={grabbedTitles.has(
+                      release.title.trim().toLowerCase(),
+                    )}
                     t={t}
                   />
                 );

@@ -1524,6 +1524,7 @@
       "errorTitle": "Could not load releases.",
       "errorDescription": "Please try again in a moment.",
       "download": "Download this release",
+      "redownload": "Re-grab this release",
       "downloading": "Starting...",
       "downloadStarted": "Release download started.",
       "downloadFailed": "Failed to start release download.",
