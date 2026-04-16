@@ -19,6 +19,8 @@ import {
   Disc,
   Headphones,
   Film,
+  CalendarClock,
+  PlayCircle,
 } from "lucide-react";
 
 // ─── Poster card ──────────────────────────────────────────────────────────────
@@ -153,6 +155,10 @@ export function JellyfinShelf() {
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-4 rounded-full bg-blue-500 shrink-0" />
+          <PlayCircle
+            className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+            strokeWidth={2}
+          />
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
             {t("dashboard.home.jellyfinRecentlyAdded")}
           </h3>
@@ -261,6 +267,10 @@ export function UpcomingShelf() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
             <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
+            <CalendarClock
+              className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+              strokeWidth={2}
+            />
             <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
               {t("dashboard.home.upcomingShelfTitle")}
             </h3>
