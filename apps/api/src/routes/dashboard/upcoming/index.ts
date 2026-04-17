@@ -6,6 +6,10 @@ import {
   collectTmdbUpcoming,
   getTmdbUpcomingDateWindowIso,
 } from "@hously/api/utils/dashboard/tmdbUpcoming";
+import {
+  collectLibraryUpcoming,
+  mergeUpcomingById,
+} from "@hously/api/utils/dashboard/libraryUpcoming";
 import { prisma } from "@hously/api/db";
 import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
 import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
@@ -68,12 +72,20 @@ export const dashboardUpcomingRoutes = new Elysia()
         (item) => (item.popularity ?? 0) >= popularityThreshold,
       );
 
-      const sortedItems = [
-        ...moviesResult.items.filter(
-          (item) => (item.popularity ?? 0) >= popularityThreshold,
-        ),
-        ...filteredTv,
-      ]
+      const libraryItems = await collectLibraryUpcoming(
+        todayIso,
+        oneYearOutIso,
+      );
+
+      const sortedItems = mergeUpcomingById(
+        [
+          ...moviesResult.items.filter(
+            (item) => (item.popularity ?? 0) >= popularityThreshold,
+          ),
+          ...filteredTv,
+        ],
+        libraryItems,
+      )
         .filter((item) => {
           if (!item.release_date) return false;
           const releaseTime = Date.parse(item.release_date);
