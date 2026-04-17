@@ -6,10 +6,13 @@ import {
   fetchTmdbProviders,
   getTmdbUpcomingDateWindowIso,
   parseTmdbNumericId,
-  toIsoDate,
   TMDB_UPCOMING_CACHE_KEY,
   TMDB_UPCOMING_CACHE_TTL_SECONDS,
 } from "@hously/api/utils/dashboard/tmdbUpcoming";
+import {
+  collectLibraryUpcoming,
+  mergeUpcomingById,
+} from "@hously/api/utils/dashboard/libraryUpcoming";
 import { setJsonCache } from "@hously/api/services/cache";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import type { DashboardUpcomingItem } from "@hously/api/types/dashboardUpcoming";
@@ -97,28 +100,33 @@ export const refreshUpcoming = async (options?: {
       (item) => (item.popularity ?? 0) >= popularityThreshold,
     );
 
-    const mergedTv = filteredTv;
-
-    console.log(
-      `[cron:upcoming] After popularity filter: ${filteredMovies.length} movies, ${mergedTv.length} TV rows`,
+    const libraryItems = await collectLibraryUpcoming(todayIso, oneYearOutIso);
+    const baseItems = mergeUpcomingById(
+      [...filteredMovies, ...filteredTv],
+      libraryItems,
     );
 
-    const enrichedMovies = await processBatch(
-      filteredMovies,
+    console.log(
+      `[cron:upcoming] After popularity filter + library merge: ${filteredMovies.length} movies, ${filteredTv.length} TV rows, ${libraryItems.length} library items (${baseItems.length} total)`,
+    );
+
+    const enrichedItems = await processBatch(
+      baseItems,
       BATCH_SIZE,
-      async (movie) => {
-        const numericId = parseTmdbNumericId(movie.id);
-        if (!numericId) return movie;
+      async (item) => {
+        if (item.media_type !== "movie") return item;
+        const numericId = parseTmdbNumericId(item.id);
+        if (!numericId) return item;
 
         const digitalDate = await fetchMovieReleaseDates(numericId, tmdbApiKey);
         if (digitalDate) {
-          return { ...movie, release_date: digitalDate };
+          return { ...item, release_date: digitalDate };
         }
-        return movie;
+        return item;
       },
     );
 
-    const allItems = [...enrichedMovies, ...mergedTv].filter((item) => {
+    const allItems = enrichedItems.filter((item) => {
       if (!item.release_date) return false;
       const releaseTime = Date.parse(item.release_date);
       return (
