@@ -240,6 +240,17 @@ export function formatDateShort(
   });
 }
 
+/**
+ * Whole-day distance between two `YYYY-MM-DD` strings (`b - a`). Positive when
+ * `b` is later than `a`. Safe across DST — both are anchored at UTC noon.
+ */
+export function daysBetweenYmd(a: string, b: string): number {
+  const ma = parseDate(a);
+  const mb = parseDate(b);
+  if (!ma || !mb) return 0;
+  return Math.round((mb.getTime() - ma.getTime()) / 86_400_000);
+}
+
 /** Year from a DATE-only value, interpreted in the app's display timezone. */
 export function getDateYear(
   input: MaybeDate,

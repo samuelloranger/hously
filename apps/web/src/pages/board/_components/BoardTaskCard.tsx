@@ -5,6 +5,11 @@ import type {
   BoardTaskPriorityApi,
   BoardTaskStatusApi,
 } from "@hously/shared/types";
+import {
+  daysBetweenYmd,
+  formatDateShort,
+  localDateYmd,
+} from "@hously/shared/utils/date";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Clock, Lock } from "lucide-react";
 import { formatMinutes } from "@/pages/board/_utils/time";
@@ -36,7 +41,7 @@ export function BoardTaskCard({
   onToggleSelect,
   onCardClick,
 }: BoardTaskCardProps) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const { ref, handleRef, isDragging } = useSortable({
     id: task.id,
     index,
@@ -45,24 +50,21 @@ export function BoardTaskCard({
     accept: "item",
   });
 
-  const today = new Date(new Date().toDateString());
-  const dueDate = task.due_date ? new Date(task.due_date) : null;
-  const isOverdue = dueDate ? dueDate < today : false;
-  const isDueToday = dueDate ? dueDate.getTime() === today.getTime() : false;
+  const todayYmd = localDateYmd();
+  const dueYmd = task.due_date ?? null;
+  const isOverdue = dueYmd ? dueYmd < todayYmd : false;
+  const isDueToday = dueYmd === todayYmd;
   const isDueSoon =
-    dueDate && !isOverdue && !isDueToday
-      ? (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) <= 3
+    dueYmd && !isOverdue && !isDueToday
+      ? daysBetweenYmd(todayYmd, dueYmd) <= 3
       : false;
 
-  const dueDateLabel = dueDate
+  const dueDateLabel = dueYmd
     ? isOverdue
-      ? `Overdue · ${dueDate.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+      ? `Overdue · ${formatDateShort(dueYmd, i18n.language)}`
       : isDueToday
         ? "Due today"
-        : dueDate.toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-          })
+        : formatDateShort(dueYmd, i18n.language)
     : null;
 
   const initials = task.assignee_name

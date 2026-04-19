@@ -5,6 +5,7 @@ import type {
   BoardTaskPriorityApi,
   BoardTaskStatusApi,
 } from "@hously/shared/types";
+import { formatDateShort, localDateYmd } from "@hously/shared/utils/date";
 import { cn } from "@/lib/utils";
 
 const STATUS_STYLE: Partial<Record<BoardTaskStatusApi, string>> = {
@@ -36,8 +37,8 @@ const PRIORITY_LABEL: Record<BoardTaskPriorityApi, string> = {
 };
 
 export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
-  const { t } = useTranslation("common");
-  const today = new Date(new Date().toDateString());
+  const { t, i18n } = useTranslation("common");
+  const todayYmd = localDateYmd();
 
   if (tasks.length === 0) {
     return (
@@ -58,17 +59,12 @@ export function BacklogView({ tasks, onTaskClick }: BacklogViewProps) {
   return (
     <div className="flex flex-col gap-px overflow-hidden rounded-2xl border border-neutral-200/80 bg-neutral-200/40 dark:border-neutral-700/60 dark:bg-neutral-700/30">
       {tasks.map((task) => {
-        const dueDate = task.due_date ? new Date(task.due_date) : null;
-        const isOverdue = dueDate ? dueDate < today : false;
-        const isDueToday = dueDate
-          ? dueDate.getTime() === today.getTime()
-          : false;
+        const dueYmd = task.due_date ?? null;
+        const isOverdue = dueYmd ? dueYmd < todayYmd : false;
+        const isDueToday = dueYmd === todayYmd;
 
-        const dueDateLabel = dueDate
-          ? dueDate.toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-            })
+        const dueDateLabel = dueYmd
+          ? formatDateShort(dueYmd, i18n.language)
           : null;
 
         const initials = task.assignee_name
