@@ -319,6 +319,40 @@ export function parseReleaseIsSample(title: string): boolean {
 }
 
 /**
+ * Extract season/episode numbers from a scene release title.
+ * Matches SxxExx, xxXxx, and " Exx" forms. Returns null if neither is found.
+ */
+export function parseReleaseSeasonEpisode(
+  title: string,
+): { season: number; episode: number | null } | null {
+  const sxe = title.match(/S(\d{1,2})E(\d{1,3})/i);
+  if (sxe)
+    return { season: parseInt(sxe[1], 10), episode: parseInt(sxe[2], 10) };
+  const xForm = title.match(/(?:^|[\s._-])(\d{1,2})x(\d{1,3})(?!\d)/i);
+  if (xForm)
+    return { season: parseInt(xForm[1], 10), episode: parseInt(xForm[2], 10) };
+  const seasonOnly = title.match(
+    /(?:^|[\s._-])(?:S|Season|Saison|Stagione|Series)[\s._-]?(\d{1,2})(?![\s._-]?\d)/i,
+  );
+  if (seasonOnly) return { season: parseInt(seasonOnly[1], 10), episode: null };
+  return null;
+}
+
+/**
+ * Normalize a title for fuzzy equality: lowercase, strip diacritics, collapse
+ * any non-alphanumeric run to a single space, trim. Used to compare an
+ * indexer-returned release title against the expected media title.
+ */
+export function normalizeTitleForMatch(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
  * Parse a raw indexer release title (Prowlarr, etc.) into structured quality fields.
  */
 export function parseReleaseTitle(title: string): ParsedRelease {
