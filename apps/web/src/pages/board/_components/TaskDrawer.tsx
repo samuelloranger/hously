@@ -13,6 +13,7 @@ import {
   Hash,
   Clock,
 } from "lucide-react";
+import { localDateYmd } from "@hously/shared/utils/date";
 import { MinimalTiptap } from "@/components/ui/minimal-tiptap";
 import { Dialog } from "@/components/dialog";
 import { Button } from "@/components/ui/button";
@@ -129,9 +130,7 @@ export function TaskDrawer({
     [onClose],
   );
 
-  const isOverdue = task?.due_date
-    ? new Date(task.due_date) < new Date(new Date().toDateString())
-    : false;
+  const isOverdue = task?.due_date ? task.due_date < localDateYmd() : false;
 
   return (
     <>

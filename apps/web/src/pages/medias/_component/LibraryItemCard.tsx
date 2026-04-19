@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { MediaPosterCard } from "@/components/MediaPosterCard";
 import { cn } from "@/lib/utils";
+import { formatDate } from "@hously/shared/utils/date";
 import type { LibraryMedia } from "@hously/shared/types";
 import { usePrefetchLibraryItem } from "@/features/medias/hooks/usePrefetchLibraryItem";
 
@@ -50,16 +51,14 @@ export function LibraryItemCard({
   onMovieSearch,
   movieSearchPending,
 }: LibraryItemCardProps) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const navigate = useNavigate();
   const prefetchLibraryItem = usePrefetchLibraryItem();
   const statusInfo = STATUS_STYLES[item.status] ?? STATUS_STYLES.wanted;
   const statusLabel = t(statusInfo.labelKey);
   const digitalLabel =
     item.type === "movie" && item.digital_release_date
-      ? new Date(item.digital_release_date).toLocaleDateString(undefined, {
-          dateStyle: "medium",
-        })
+      ? formatDate(item.digital_release_date, i18n.language)
       : null;
 
   return (

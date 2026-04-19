@@ -174,3 +174,95 @@ export function formatDateOnly(date: MaybeDate): string {
   if (!dateObj) return "";
   return dateObj.toISOString().split("T")[0];
 }
+
+/**
+ * IANA timezone used to interpret calendar-date (`@db.Date`) values. Prisma
+ * reads `DATE` columns as UTC midnight, but logically an air/release date is
+ * a local calendar date. The zone is taken from the standard `TZ` env var so
+ * the backend runtime TZ is the single source of truth; falls back to
+ * `America/New_York` when unset (e.g. in the browser).
+ */
+function readEnvTz(): string | undefined {
+  const g = globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  };
+  return g.process?.env?.TZ;
+}
+
+export const APP_DISPLAY_TIMEZONE = readEnvTz() || "America/New_York";
+
+/** Current `YYYY-MM-DD` in the app's display timezone (defaults to NY). */
+export function localDateYmd(
+  timeZone: string = APP_DISPLAY_TIMEZONE,
+  at: Date = new Date(),
+): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(at);
+}
+
+/**
+ * Build the `Date` value that Prisma produces for a `@db.Date` column with
+ * the given `YYYY-MM-DD` calendar day — a UTC-midnight anchor. Use this when
+ * building a cutoff to compare against a DATE column.
+ */
+export function toUtcMidnightDate(ymd: string): Date {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+}
+
+/**
+ * Short-form date formatter for DATE-only values: `"Apr 20"` (or with year if
+ * the value's calendar year differs from today's, in the display timezone).
+ * Timezone-safe: `parseDate` anchors YMD strings at UTC noon, and formatting
+ * resolves in `timeZone` so the rendered day always matches the stored value.
+ */
+export function formatDateShort(
+  input: MaybeDate,
+  locale: string = "en",
+  timeZone: string = APP_DISPLAY_TIMEZONE,
+): string {
+  const date = parseDate(input);
+  if (!date) return "";
+  const yearFmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+  });
+  const includeYear = yearFmt.format(date) !== yearFmt.format(new Date());
+  return date.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
+    month: "short",
+    day: "numeric",
+    year: includeYear ? "numeric" : undefined,
+    timeZone,
+  });
+}
+
+/**
+ * Whole-day distance between two `YYYY-MM-DD` strings (`b - a`). Positive when
+ * `b` is later than `a`. Safe across DST — both are anchored at UTC noon.
+ */
+export function daysBetweenYmd(a: string, b: string): number {
+  const ma = parseDate(a);
+  const mb = parseDate(b);
+  if (!ma || !mb) return 0;
+  return Math.round((mb.getTime() - ma.getTime()) / 86_400_000);
+}
+
+/** Year from a DATE-only value, interpreted in the app's display timezone. */
+export function getDateYear(
+  input: MaybeDate,
+  timeZone: string = APP_DISPLAY_TIMEZONE,
+): number | null {
+  const date = parseDate(input);
+  if (!date) return null;
+  const ymd = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+  return Number(ymd.slice(0, 4));
+}

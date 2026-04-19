@@ -1,3 +1,4 @@
+import { localDateYmd } from "@hously/shared/utils/date";
 import type { BoardTask, BoardTaskPriorityApi } from "@hously/shared/types";
 
 export interface BoardFilters {
@@ -28,14 +29,16 @@ export function applyFilters(
     )
       return false;
     if (filters.dueDateFilter) {
-      const today = new Date(new Date().toDateString());
-      const dueDate = task.due_date ? new Date(task.due_date) : null;
+      const todayYmd = localDateYmd();
+      const dueYmd = task.due_date ?? null;
       if (filters.dueDateFilter === "overdue") {
-        if (!dueDate || dueDate >= today) return false;
+        if (!dueYmd || dueYmd >= todayYmd) return false;
       } else if (filters.dueDateFilter === "this_week") {
-        const nextWeek = new Date(today);
-        nextWeek.setDate(nextWeek.getDate() + 7);
-        if (!dueDate || dueDate < today || dueDate > nextWeek) return false;
+        const nextWeekYmd = localDateYmd(
+          undefined,
+          new Date(Date.now() + 7 * 86400000),
+        );
+        if (!dueYmd || dueYmd < todayYmd || dueYmd > nextWeekYmd) return false;
       }
     }
     return true;

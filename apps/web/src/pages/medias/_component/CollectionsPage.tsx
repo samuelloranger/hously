@@ -9,18 +9,7 @@ import { Check, Film, Clapperboard } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
-
-const TODAY = new Date();
-TODAY.setHours(0, 0, 0, 0);
-
-function formatReleaseDate(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { formatDate, localDateYmd } from "@hously/shared/utils/date";
 
 function CollectionCard({
   collection,
@@ -29,10 +18,11 @@ function CollectionCard({
   collection: MediaCollection;
   onRefetch: () => void;
 }) {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const [selectedItem, setSelectedItem] = useState<CollectionMovieItem | null>(
     null,
   );
+  const todayYmd = localDateYmd();
 
   return (
     <>
@@ -100,11 +90,10 @@ function CollectionCard({
                       <Check size={8} strokeWidth={3} className="text-white" />
                     </div>
                   </div>
-                ) : movie.release_date &&
-                  new Date(movie.release_date + "T00:00:00") > TODAY ? (
+                ) : movie.release_date && movie.release_date > todayYmd ? (
                   <div className="absolute inset-0 bg-black/60 flex items-end justify-center pb-1 px-0.5">
                     <span className="text-[7px] font-semibold text-white/90 leading-tight text-center">
-                      {formatReleaseDate(movie.release_date)}
+                      {formatDate(movie.release_date, i18n.language)}
                     </span>
                   </div>
                 ) : (

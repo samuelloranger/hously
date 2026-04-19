@@ -1,9 +1,16 @@
 import { prisma } from "@hously/api/db";
 import { searchAndGrab } from "@hously/api/services/mediaGrabber";
 import { refreshLibraryMovieDigitalDate } from "@hously/api/services/libraryTmdbRefresh";
+import {
+  APP_DISPLAY_TIMEZONE,
+  localDateYmd,
+  toUtcMidnightDate,
+} from "@hously/shared/utils/date";
 
 export async function checkMovieReleases(): Promise<void> {
-  const now = new Date();
+  // digitalReleaseDate is a DATE column — interpret it as a calendar day in
+  // the app's display timezone (TZ env var → NY fallback), not UTC.
+  const todayCutoff = toUtcMidnightDate(localDateYmd(APP_DISPLAY_TIMEZONE));
 
   const movies = await prisma.libraryMedia.findMany({
     where: {
@@ -39,7 +46,7 @@ export async function checkMovieReleases(): Promise<void> {
       }
 
       // Not yet released digitally — nothing to search.
-      if (digital > now) continue;
+      if (digital > todayCutoff) continue;
 
       const y = m.year ? ` ${m.year}` : "";
       const result = await searchAndGrab({
