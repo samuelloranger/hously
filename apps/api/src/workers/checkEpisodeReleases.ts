@@ -1,5 +1,10 @@
 import { prisma } from "@hously/api/db";
 import { searchAndGrab } from "@hously/api/services/mediaGrabber";
+import {
+  APP_DISPLAY_TIMEZONE,
+  localDateYmd,
+  toUtcMidnightDate,
+} from "@hously/shared/utils/date";
 
 function episodeSearchQuery(
   showTitle: string,
@@ -17,9 +22,13 @@ function seasonPackSearchQuery(showTitle: string, season: number): string {
 }
 
 export async function checkEpisodeReleases(): Promise<void> {
-  const now = new Date();
-  // Give indexers 60 min after air time before searching.
-  const cutoff = new Date(now.getTime() - 60 * 60 * 1000);
+  // airDate is a calendar day (Postgres DATE) meant to be read in the app's
+  // display timezone — NY, not UTC. Episodes are eligible once NY local time
+  // has passed that day's midnight, with a 60-min grace for indexers.
+  const nowMinusGrace = new Date(Date.now() - 60 * 60 * 1000);
+  const cutoff = toUtcMidnightDate(
+    localDateYmd(APP_DISPLAY_TIMEZONE, nowMinusGrace),
+  );
 
   const episodes = await prisma.libraryEpisode.findMany({
     where: {

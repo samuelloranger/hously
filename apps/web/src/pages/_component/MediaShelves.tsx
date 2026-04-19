@@ -2,6 +2,7 @@ import { useMemo, useState, type UIEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useDashboardJellyfinLatestInfinite } from "@/pages/_component/useDashboardJellyfin";
 import { useDashboardUpcoming } from "@/pages/_component/useDashboardUpcoming";
+import { getDateYear } from "@hously/shared/utils/date";
 import type {
   DashboardUpcomingItem,
   TmdbMediaSearchItem,
@@ -227,9 +228,7 @@ export function JellyfinShelf() {
 
 function toTmdbItem(item: DashboardUpcomingItem): TmdbMediaSearchItem {
   const tmdbId = parseInt(item.id.split("-")[1] || "", 10);
-  const releaseYear = item.release_date
-    ? new Date(item.release_date).getFullYear()
-    : null;
+  const releaseYear = getDateYear(item.release_date);
   return {
     id: item.id,
     tmdb_id: tmdbId,

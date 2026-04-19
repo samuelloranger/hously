@@ -9,6 +9,7 @@ import {
   useDeleteCustomEvent,
 } from "@/pages/calendar/useCalendar";
 import { useDashboardUpcoming } from "@/pages/_component/useDashboardUpcoming";
+import { getDateYear } from "@hously/shared/utils/date";
 import type {
   CalendarEvent,
   CalendarEventCustomEventMetadata,
@@ -84,9 +85,7 @@ function upcomingToDialogItem(
     tmdb_id: Number.isFinite(tmdbId) ? tmdbId : 0,
     media_type: item.media_type,
     title: item.title,
-    release_year: item.release_date
-      ? new Date(item.release_date).getUTCFullYear()
-      : null,
+    release_year: getDateYear(item.release_date),
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: item.vote_average ?? null,

@@ -12,6 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDateShort, localDateYmd } from "@hously/shared/utils/date";
 import type { LibraryFileInfo } from "@hously/shared/types";
 import type {
   useDeleteLibraryEpisode,
@@ -49,15 +50,6 @@ export interface MergedEpisodeRowProps {
   deleteEpisodeMut: ReturnType<typeof useDeleteLibraryEpisode>;
 }
 
-function formatAirDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: d.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
-  });
-}
-
 const statusBorderColor: Record<string, string> = {
   downloaded: "border-l-emerald-500/60 dark:border-l-emerald-500/40",
   downloading: "border-l-sky-400/60 dark:border-l-sky-400/40",
@@ -77,9 +69,10 @@ export function MergedEpisodeRow({
   toggleMonitoredMut,
   deleteEpisodeMut,
 }: MergedEpisodeRowProps) {
+  const { i18n } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const badges = file ? qualityBadges(file) : [];
-  const isFuture = ep.air_date != null && new Date(ep.air_date) > new Date();
+  const isFuture = ep.air_date != null && ep.air_date > localDateYmd();
 
   const handleSearch = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -183,7 +176,7 @@ export function MergedEpisodeRow({
             </span>
             {isFuture && ep.air_date && (
               <span className="ml-auto shrink-0 text-[11px] tabular-nums text-neutral-400 dark:text-neutral-500">
-                {formatAirDate(ep.air_date)}
+                {formatDateShort(ep.air_date, i18n.language)}
               </span>
             )}
           </div>
@@ -280,7 +273,7 @@ export function MergedEpisodeRow({
 
           {isFuture && ep.air_date && (
             <span className="shrink-0 text-[10px] tabular-nums text-neutral-400 dark:text-neutral-500">
-              {formatAirDate(ep.air_date)}
+              {formatDateShort(ep.air_date, i18n.language)}
             </span>
           )}
 
