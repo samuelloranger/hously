@@ -26,6 +26,8 @@ export const LIBRARY_ENDPOINTS = {
   FILES: (id: number) => `/api/library/${id}/files`,
   RESCAN: (id: number) => `/api/library/${id}/rescan`,
   DELETE_FILE: (fileId: number) => `/api/library/files/${fileId}`,
+  DELETE_EPISODE: (mediaId: number, episodeId: number) =>
+    `/api/library/${mediaId}/episodes/${episodeId}`,
   MIGRATE: "/api/library/migrate",
   MIGRATE_STATUS: "/api/library/migrate/status",
   LANGUAGE_TAGS: "/api/library/language-tags",

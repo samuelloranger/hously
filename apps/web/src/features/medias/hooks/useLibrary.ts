@@ -532,6 +532,36 @@ export function useDeleteLibraryFile(libraryId: number) {
   });
 }
 
+export function useDeleteLibraryEpisode(libraryId: number) {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      mediaId,
+      episodeId,
+      deleteFile,
+    }: {
+      mediaId: number;
+      episodeId: number;
+      deleteFile: boolean;
+    }) =>
+      fetcher<{ success: boolean }>(
+        `${LIBRARY_ENDPOINTS.DELETE_EPISODE(mediaId, episodeId)}${deleteFile ? "?delete_file=true" : ""}`,
+        { method: "DELETE" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.library.all, "files", libraryId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.library.all, "episodes", libraryId],
+      });
+    },
+  });
+}
+
 export function useStartMigration() {
   const fetcher = useFetcher();
 

@@ -9,10 +9,12 @@ import {
   EyeOff,
   RefreshCw,
   Search,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LibraryFileInfo } from "@hously/shared/types";
 import type {
+  useDeleteLibraryEpisode,
   useRetrySkippedMedia,
   useSearchLibraryEpisode,
   useToggleEpisodeMonitored,
@@ -44,6 +46,7 @@ export interface MergedEpisodeRowProps {
   searchEpMut: ReturnType<typeof useSearchLibraryEpisode>;
   retryEpMut: ReturnType<typeof useRetrySkippedMedia>;
   toggleMonitoredMut: ReturnType<typeof useToggleEpisodeMonitored>;
+  deleteEpisodeMut: ReturnType<typeof useDeleteLibraryEpisode>;
 }
 
 function formatAirDate(dateStr: string): string {
@@ -72,6 +75,7 @@ export function MergedEpisodeRow({
   searchEpMut,
   retryEpMut,
   toggleMonitoredMut,
+  deleteEpisodeMut,
 }: MergedEpisodeRowProps) {
   const [expanded, setExpanded] = useState(false);
   const badges = file ? qualityBadges(file) : [];
@@ -104,6 +108,32 @@ export function MergedEpisodeRow({
     void retryEpMut
       .mutateAsync({ mediaId: libraryId, episodeId: ep.id })
       .then(() => toast.success(t("library.management.retrySearchQueued")))
+      .catch(() => toast.error(t("library.management.grabFailed")));
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!file) return;
+    const confirmed = window.confirm(
+      t("library.media.deleteEpisodeConfirm", {
+        defaultValue:
+          "Delete this episode's downloaded file from disk and reset it to 'wanted'?",
+      }),
+    );
+    if (!confirmed) return;
+    void deleteEpisodeMut
+      .mutateAsync({
+        mediaId: libraryId,
+        episodeId: ep.id,
+        deleteFile: true,
+      })
+      .then(() =>
+        toast.success(
+          t("library.media.episodeDeleted", {
+            defaultValue: "Episode deleted",
+          }),
+        ),
+      )
       .catch(() => toast.error(t("library.management.grabFailed")));
   };
 
@@ -213,6 +243,19 @@ export function MergedEpisodeRow({
                 {ep.monitored ? <Eye size={14} /> : <EyeOff size={14} />}
               </button>
               {file && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleteEpisodeMut.isPending}
+                  title={t("library.media.deleteEpisode", {
+                    defaultValue: "Delete episode",
+                  })}
+                  className="rounded-md p-2.5 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-50 transition-colors"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+              {file && (
                 <span className="p-1.5 text-neutral-300 dark:text-neutral-600">
                   {expanded ? (
                     <ChevronDown size={12} />
@@ -292,6 +335,19 @@ export function MergedEpisodeRow({
             >
               {ep.monitored ? <Eye size={11} /> : <EyeOff size={11} />}
             </button>
+            {file && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleteEpisodeMut.isPending}
+                title={t("library.media.deleteEpisode", {
+                  defaultValue: "Delete episode",
+                })}
+                className="rounded p-1 text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-50 transition-colors"
+              >
+                <Trash2 size={11} />
+              </button>
+            )}
             {file && (
               <span className="rounded p-1 text-neutral-300 dark:text-neutral-600">
                 {expanded ? (
