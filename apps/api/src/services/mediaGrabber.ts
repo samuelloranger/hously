@@ -17,6 +17,8 @@ import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/con
 import { isCompletedDownloadState } from "@hously/api/workers/checkDownloadCompletion";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import {
+  normalizeTitleForMatch,
+  parseReleaseSeasonEpisode,
   parseReleaseTitle,
   type ParsedRelease,
 } from "@hously/api/utils/medias/filenameParser";
@@ -627,6 +629,28 @@ export async function searchAndGrab(opts: {
       return { grabbed: false, reason: "No matching releases found" };
     }
 
+    // Guard against indexers returning releases for a different show/episode
+    // when the freetext query contains a short/common word (e.g. "FROM").
+    const media = await prisma.libraryMedia.findUnique({
+      where: { id: mediaId },
+      select: { title: true },
+    });
+    const expectedTitle = media?.title
+      ? normalizeTitleForMatch(media.title)
+      : null;
+    let expectedSeason: number | null = null;
+    let expectedEpisode: number | null = null;
+    if (episodeId != null) {
+      const ep = await prisma.libraryEpisode.findUnique({
+        where: { id: episodeId },
+        select: { season: true, episode: true },
+      });
+      if (ep) {
+        expectedSeason = ep.season;
+        expectedEpisode = ep.episode;
+      }
+    }
+
     const rows: CandidateRow[] = [];
 
     let profileInput: QualityProfileScoreInput | null = null;
@@ -647,6 +671,21 @@ export async function searchAndGrab(opts: {
       const size = release.sizeBytes;
 
       if (parsed.isSample) continue;
+
+      // Reject releases whose title doesn't begin with the expected show/movie
+      // title (freetext indexer results are noisy for short titles like "FROM").
+      if (expectedTitle) {
+        const normalizedRelease = normalizeTitleForMatch(title);
+        if (!normalizedRelease.startsWith(`${expectedTitle} `)) continue;
+      }
+
+      // For episode grabs, require the release's SxxExx to match the episode.
+      if (expectedSeason != null && expectedEpisode != null) {
+        const se = parseReleaseSeasonEpisode(title);
+        if (!se) continue;
+        if (se.season !== expectedSeason) continue;
+        if (se.episode != null && se.episode !== expectedEpisode) continue;
+      }
 
       if (profileInput) {
         const sc = scoreRelease(

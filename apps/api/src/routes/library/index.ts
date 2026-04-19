@@ -1063,6 +1063,56 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     },
   )
 
+  // DELETE /api/library/:id/episodes/:episodeId — remove all files for an episode
+  // and reset it to "wanted". ?delete_file=true also removes files from disk.
+  .delete(
+    "/:id/episodes/:episodeId",
+    async ({ params, query, set }) => {
+      try {
+        const mediaId = parseInt(params.id, 10);
+        const episodeId = parseInt(params.episodeId, 10);
+        if (!Number.isFinite(mediaId) || !Number.isFinite(episodeId)) {
+          return badRequest(set, "Invalid id");
+        }
+
+        const ep = await prisma.libraryEpisode.findFirst({
+          where: { id: episodeId, mediaId },
+          include: { files: true },
+        });
+        if (!ep) return notFound(set, "Episode not found");
+
+        if (query.delete_file === "true" && ep.files.length > 0) {
+          const { rm } = await import("node:fs/promises");
+          for (const f of ep.files) {
+            try {
+              await rm(f.filePath);
+            } catch {
+              // ignore — file may already be gone
+            }
+          }
+        }
+
+        if (ep.files.length > 0) {
+          await prisma.mediaFile.deleteMany({ where: { episodeId } });
+        }
+
+        await prisma.libraryEpisode.update({
+          where: { id: episodeId },
+          data: { status: "wanted", searchAttempts: 0, downloadedAt: null },
+        });
+
+        return { success: true };
+      } catch {
+        return serverError(set, "Failed to delete episode");
+      }
+    },
+    {
+      query: t.Object({
+        delete_file: t.Optional(t.String()),
+      }),
+    },
+  )
+
   // GET /api/library/item/:id — single library item (integrations / c411-manager)
   .get("/item/:id", async ({ params, set }) => {
     try {

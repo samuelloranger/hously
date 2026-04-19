@@ -11,6 +11,7 @@ import {
   useRetrySkippedSeason,
   useToggleEpisodeMonitored,
   useToggleSeasonMonitored,
+  useDeleteLibraryEpisode,
   useDeleteLibraryFile,
 } from "@/features/medias/hooks/useLibrary";
 import type { LibraryFileInfo } from "@hously/shared/types";
@@ -54,6 +55,7 @@ export function LibraryMediaSection({
   const { data, isLoading } = useLibraryFiles(libraryId);
   const rescan = useRescanLibraryItem(libraryId);
   const deleteFile = useDeleteLibraryFile(libraryId);
+  const deleteEpisodeMut = useDeleteLibraryEpisode(libraryId);
   const searchEpMut = useSearchLibraryEpisode();
   const searchSeasonPackMut = useSearchSeasonPack();
   const retryEpMut = useRetrySkippedMedia();
@@ -385,6 +387,7 @@ export function LibraryMediaSection({
                           searchEpMut={searchEpMut}
                           retryEpMut={retryEpMut}
                           toggleMonitoredMut={toggleEpMonitoredMut}
+                          deleteEpisodeMut={deleteEpisodeMut}
                         />
                       ))}
                     </div>
