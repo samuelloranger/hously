@@ -16,8 +16,6 @@ import {
   QBIT_CATEGORY_HOUSLY_SHOWS,
 } from "@hously/api/constants/libraryGrab";
 import { grabRelease, searchAndGrab } from "@hously/api/services/mediaGrabber";
-import { notifyAdminsLibraryGrabSkipped } from "@hously/api/workers/notifyLibraryGrabSkipped";
-import { MAX_LIBRARY_GRAB_ATTEMPTS } from "@hously/api/constants/libraryGrab";
 import { libraryEventBus } from "@hously/api/services/libraryEvents";
 import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
 import { rescanLibraryItem } from "@hously/api/services/library/rescan";
@@ -465,6 +463,12 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           );
         }
 
+        // Manual search resets skipped episodes so users can retry without being blocked.
+        await prisma.libraryEpisode.updateMany({
+          where: { mediaId, season, status: "skipped" },
+          data: { status: "wanted", searchAttempts: 0 },
+        });
+
         const wantedEpisodes = await prisma.libraryEpisode.findMany({
           where: { mediaId, season, status: "wanted" },
         });
@@ -484,28 +488,6 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
         if (result.grabbed) {
           return { grabbed: true, release_title: result.releaseTitle };
-        }
-
-        for (const ep of wantedEpisodes) {
-          const next = ep.searchAttempts + 1;
-          await prisma.libraryEpisode.update({
-            where: { id: ep.id },
-            data: {
-              searchAttempts: next,
-              ...(next >= MAX_LIBRARY_GRAB_ATTEMPTS
-                ? { status: "skipped" }
-                : {}),
-            },
-          });
-        }
-
-        const allNowSkipped = wantedEpisodes.every(
-          (ep) => ep.searchAttempts + 1 >= MAX_LIBRARY_GRAB_ATTEMPTS,
-        );
-        if (allNowSkipped) {
-          await notifyAdminsLibraryGrabSkipped(
-            `Season pack "${media.title}" S${season} exceeded ${MAX_LIBRARY_GRAB_ATTEMPTS} failed grab attempts (${result.reason}). All episodes set to skipped.`,
-          );
         }
 
         return { grabbed: false, reason: result.reason };
@@ -746,25 +728,6 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           return { grabbed: true, release_title: result.releaseTitle };
         }
 
-        // Only increment media-level attempts for movies
-        if (media.type === "movie") {
-          const next = media.searchAttempts + 1;
-          await prisma.libraryMedia.update({
-            where: { id },
-            data: { searchAttempts: next },
-          });
-
-          if (next >= MAX_LIBRARY_GRAB_ATTEMPTS) {
-            await prisma.libraryMedia.update({
-              where: { id },
-              data: { status: "skipped" },
-            });
-            await notifyAdminsLibraryGrabSkipped(
-              `Movie "${media.title}" (${id}) exceeded ${MAX_LIBRARY_GRAB_ATTEMPTS} failed grab attempts (${result.reason}). Status set to skipped.`,
-            );
-          }
-        }
-
         return { grabbed: false, reason: result.reason };
       } catch (err) {
         console.error("Library grab error:", err);
@@ -801,13 +764,11 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           );
         }
 
-        // Reset attempts on manual search so the user isn't blocked
-        if (media.searchAttempts >= MAX_LIBRARY_GRAB_ATTEMPTS) {
-          await prisma.libraryMedia.update({
-            where: { id },
-            data: { searchAttempts: 0, status: "wanted" },
-          });
-        }
+        // Manual search resets counter + status so users can always retry.
+        await prisma.libraryMedia.update({
+          where: { id },
+          data: { searchAttempts: 0, status: "wanted" },
+        });
 
         const q =
           body.search_query?.trim() ||
@@ -821,22 +782,6 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
         if (result.grabbed) {
           return { grabbed: true, release_title: result.releaseTitle };
-        }
-
-        const next = media.searchAttempts + 1;
-        await prisma.libraryMedia.update({
-          where: { id },
-          data: { searchAttempts: next },
-        });
-
-        if (next >= MAX_LIBRARY_GRAB_ATTEMPTS) {
-          await prisma.libraryMedia.update({
-            where: { id },
-            data: { status: "skipped" },
-          });
-          await notifyAdminsLibraryGrabSkipped(
-            `Movie "${media.title}" (${id}) exceeded ${MAX_LIBRARY_GRAB_ATTEMPTS} failed grab attempts (${result.reason}). Status set to skipped.`,
-          );
         }
 
         return { grabbed: false, reason: result.reason };
@@ -880,13 +825,11 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           );
         }
 
-        // Reset attempts on manual search so the user isn't blocked
-        if (ep.searchAttempts >= MAX_LIBRARY_GRAB_ATTEMPTS) {
-          await prisma.libraryEpisode.update({
-            where: { id: episodeId },
-            data: { searchAttempts: 0, status: "wanted" },
-          });
-        }
+        // Manual search resets counter + status so users can always retry.
+        await prisma.libraryEpisode.update({
+          where: { id: episodeId },
+          data: { searchAttempts: 0, status: "wanted" },
+        });
 
         const s = String(ep.season).padStart(2, "0");
         const e = String(ep.episode).padStart(2, "0");
@@ -902,22 +845,6 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
         if (result.grabbed) {
           return { grabbed: true, release_title: result.releaseTitle };
-        }
-
-        const next = ep.searchAttempts + 1;
-        await prisma.libraryEpisode.update({
-          where: { id: episodeId },
-          data: { searchAttempts: next },
-        });
-
-        if (next >= MAX_LIBRARY_GRAB_ATTEMPTS) {
-          await prisma.libraryEpisode.update({
-            where: { id: episodeId },
-            data: { status: "skipped" },
-          });
-          await notifyAdminsLibraryGrabSkipped(
-            `Episode "${media.title}" S${ep.season}E${ep.episode} (${episodeId}) exceeded ${MAX_LIBRARY_GRAB_ATTEMPTS} failed grab attempts (${result.reason}). Status set to skipped.`,
-          );
         }
 
         return { grabbed: false, reason: result.reason };

@@ -1,5 +1,7 @@
 import { prisma } from "@hously/api/db";
 import { searchAndGrab } from "@hously/api/services/mediaGrabber";
+import { MAX_CRON_GRAB_ATTEMPTS } from "@hously/api/constants/libraryGrab";
+import { notifyAdminsLibraryGrabSkipped } from "@hously/api/workers/notifyLibraryGrabSkipped";
 import {
   APP_DISPLAY_TIMEZONE,
   localDateYmd,
@@ -37,6 +39,7 @@ export async function checkEpisodeReleases(): Promise<void> {
       airDate: { lte: cutoff },
       files: { none: {} },
       media: { type: "show", monitored: true },
+      searchAttempts: { lt: MAX_CRON_GRAB_ATTEMPTS },
     },
     include: {
       media: {
@@ -94,12 +97,25 @@ export async function checkEpisodeReleases(): Promise<void> {
 
       if (result.grabbed) continue;
 
-      // Increment searchAttempts on all episodes in the pack.
+      // Increment searchAttempts on all episodes in the pack; skip those at cap.
+      const skippedEpisodes: typeof groupEps = [];
       for (const ep of groupEps) {
+        const next = ep.searchAttempts + 1;
+        const reachedCap = next >= MAX_CRON_GRAB_ATTEMPTS;
         await prisma.libraryEpisode.update({
           where: { id: ep.id },
-          data: { searchAttempts: ep.searchAttempts + 1 },
+          data: {
+            searchAttempts: next,
+            ...(reachedCap ? { status: "skipped" } : {}),
+          },
         });
+        if (reachedCap) skippedEpisodes.push(ep);
+      }
+
+      if (skippedEpisodes.length > 0) {
+        await notifyAdminsLibraryGrabSkipped(
+          `Season pack "${media.title}" S${season} — ${skippedEpisodes.length} episode(s) exceeded ${MAX_CRON_GRAB_ATTEMPTS} failed cron grab attempts (${result.reason}). Status set to skipped.`,
+        );
       }
     } catch (e) {
       console.warn(
@@ -125,10 +141,21 @@ export async function checkEpisodeReleases(): Promise<void> {
 
       if (result.grabbed) continue;
 
+      const next = ep.searchAttempts + 1;
+      const reachedCap = next >= MAX_CRON_GRAB_ATTEMPTS;
       await prisma.libraryEpisode.update({
         where: { id: ep.id },
-        data: { searchAttempts: ep.searchAttempts + 1 },
+        data: {
+          searchAttempts: next,
+          ...(reachedCap ? { status: "skipped" } : {}),
+        },
       });
+
+      if (reachedCap) {
+        await notifyAdminsLibraryGrabSkipped(
+          `Episode "${ep.media.title}" S${ep.season}E${ep.episode} (${ep.id}) exceeded ${MAX_CRON_GRAB_ATTEMPTS} failed cron grab attempts (${result.reason}). Status set to skipped.`,
+        );
+      }
     } catch (e) {
       console.warn(`[checkEpisodeReleases] Failed for episode ${ep.id}:`, e);
     }

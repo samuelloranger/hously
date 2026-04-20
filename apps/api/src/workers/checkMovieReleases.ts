@@ -1,6 +1,8 @@
 import { prisma } from "@hously/api/db";
 import { searchAndGrab } from "@hously/api/services/mediaGrabber";
 import { refreshLibraryMovieDigitalDate } from "@hously/api/services/libraryTmdbRefresh";
+import { MAX_CRON_GRAB_ATTEMPTS } from "@hously/api/constants/libraryGrab";
+import { notifyAdminsLibraryGrabSkipped } from "@hously/api/workers/notifyLibraryGrabSkipped";
 import {
   APP_DISPLAY_TIMEZONE,
   localDateYmd,
@@ -18,6 +20,7 @@ export async function checkMovieReleases(): Promise<void> {
       status: "wanted",
       monitored: true,
       files: { none: {} },
+      searchAttempts: { lt: MAX_CRON_GRAB_ATTEMPTS },
     },
     select: {
       id: true,
@@ -57,10 +60,21 @@ export async function checkMovieReleases(): Promise<void> {
 
       if (result.grabbed) continue;
 
+      const next = m.searchAttempts + 1;
+      const reachedCap = next >= MAX_CRON_GRAB_ATTEMPTS;
       await prisma.libraryMedia.update({
         where: { id: m.id },
-        data: { searchAttempts: m.searchAttempts + 1 },
+        data: {
+          searchAttempts: next,
+          ...(reachedCap ? { status: "skipped" } : {}),
+        },
       });
+
+      if (reachedCap) {
+        await notifyAdminsLibraryGrabSkipped(
+          `Movie "${m.title}" (${m.id}) exceeded ${MAX_CRON_GRAB_ATTEMPTS} failed cron grab attempts (${result.reason}). Status set to skipped.`,
+        );
+      }
     } catch (e) {
       console.warn(`[checkMovieReleases] Failed for movie ${m.id}:`, e);
     }
