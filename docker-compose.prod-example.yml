@@ -48,43 +48,6 @@ services:
     networks:
       - hously-network
 
-  minio:
-    image: minio/minio:latest
-    container_name: hously-minio
-    restart: unless-stopped
-    volumes:
-      - minio_data:/data
-    environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-      - MINIO_REGION=us-east-1
-    command: server /data --console-address ":9001"
-    networks:
-      - hously-network
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  minio-init:
-    image: minio/mc:latest
-    container_name: hously-minio-init
-    depends_on:
-      minio:
-        condition: service_healthy
-    environment:
-      - MC_HOST_local=http://${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD}@minio:9000
-    entrypoint: /bin/sh
-    command:
-      - -c
-      - |
-        until mc ready local; do sleep 2; done;
-        mc mb --ignore-existing local/hously-images;
-        mc policy set private local/hously-images;
-    networks:
-      - hously-network
-
 networks:
   hously-network:
     driver: bridge
@@ -92,4 +55,3 @@ networks:
 volumes:
   db_data:
   redis_data:
-  minio_data:

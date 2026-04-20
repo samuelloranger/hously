@@ -24,8 +24,8 @@ build: ## Build frontend for production
 typecheck: ## Typecheck frontend
 	bun run typecheck
 
-dev-services: ## Start only database, MinIO, and Redis services
-	docker compose up db minio minio-init redis -d
+dev-services: ## Start only database and Redis services
+	docker compose up db redis -d
 
 dev-api: ## Start TypeScript/Bun API locally with hot reload
 	cd apps/api && bun run dev
@@ -41,7 +41,7 @@ dev: ## Show development setup instructions
 	@echo ""
 	@echo "Option 2: Local development (Faster iteration)"
 	@echo "  Run these commands in separate terminals:"
-	@echo "  1. make dev-services  # Start PostgreSQL + MinIO"
+	@echo "  1. make dev-services  # Start PostgreSQL + Redis"
 	@echo "  2. make dev-api       # Start TypeScript/Bun API"
 	@echo "  3. make dev-web       # Start React frontend"
 

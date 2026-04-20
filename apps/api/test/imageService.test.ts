@@ -1,4 +1,7 @@
-import { describe, expect, it, beforeEach, afterEach, mock } from "bun:test";
+import { describe, expect, it, beforeEach, afterEach } from "bun:test";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   isAllowedFile,
   getContentType,
@@ -54,7 +57,7 @@ describe("Image Service", () => {
     });
 
     it("should handle edge cases", () => {
-      expect(isAllowedFile(".jpg")).toBe(true); // Just extension
+      expect(isAllowedFile(".jpg")).toBe(true);
       expect(isAllowedFile("..jpg")).toBe(true);
     });
   });
@@ -90,35 +93,19 @@ describe("Image Service", () => {
   });
 
   describe("saveImageAndCreateThumbnail", () => {
-    const originalEnv = { ...Bun.env };
+    let dir: string;
 
-    beforeEach(() => {
-      // Clear S3 config to test error handling
-      Object.keys(Bun.env).forEach((key) => {
-        if (key.startsWith("S3_")) {
-          delete Bun.env[key];
-        }
-      });
+    beforeEach(async () => {
+      dir = await mkdtemp(join(tmpdir(), "hously-img-"));
+      process.env.IMAGE_STORAGE_DIR = dir;
     });
 
-    afterEach(() => {
-      Object.assign(Bun.env, originalEnv);
-    });
-
-    it("should throw error when S3 is not configured", async () => {
-      const mockFile = new File(["test"], "test.jpg", { type: "image/jpeg" });
-
-      await expect(saveImageAndCreateThumbnail(mockFile)).rejects.toThrow(
-        "S3 storage is not configured",
-      );
+    afterEach(async () => {
+      await rm(dir, { recursive: true, force: true });
+      delete process.env.IMAGE_STORAGE_DIR;
     });
 
     it("should throw error for invalid file type", async () => {
-      // Configure S3 first
-      Bun.env.S3_ENDPOINT_URL = "http://localhost:9000";
-      Bun.env.S3_ACCESS_KEY = "test-key";
-      Bun.env.S3_SECRET_KEY = "test-secret";
-
       const mockFile = new File(["test"], "test.pdf", {
         type: "application/pdf",
       });
@@ -130,77 +117,59 @@ describe("Image Service", () => {
   });
 
   describe("deleteImageFiles", () => {
+    let dir: string;
+
+    beforeEach(async () => {
+      dir = await mkdtemp(join(tmpdir(), "hously-img-"));
+      process.env.IMAGE_STORAGE_DIR = dir;
+    });
+
+    afterEach(async () => {
+      await rm(dir, { recursive: true, force: true });
+      delete process.env.IMAGE_STORAGE_DIR;
+    });
+
     it("should handle null/empty image name gracefully", async () => {
-      // Should not throw
       await deleteImageFiles("");
-      await deleteImageFiles(null as any);
+      await deleteImageFiles(null as unknown as string);
     });
   });
 
-  describe("getImage", () => {
-    const originalEnv = { ...Bun.env };
+  describe("getImage / getThumbnail", () => {
+    let dir: string;
 
-    beforeEach(() => {
-      Object.keys(Bun.env).forEach((key) => {
-        if (key.startsWith("S3_")) {
-          delete Bun.env[key];
-        }
-      });
+    beforeEach(async () => {
+      dir = await mkdtemp(join(tmpdir(), "hously-img-"));
+      process.env.IMAGE_STORAGE_DIR = dir;
     });
 
-    afterEach(() => {
-      Object.assign(Bun.env, originalEnv);
+    afterEach(async () => {
+      await rm(dir, { recursive: true, force: true });
+      delete process.env.IMAGE_STORAGE_DIR;
     });
 
-    it("should return null when S3 is not configured", async () => {
-      const result = await getImage("test.jpg");
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("getThumbnail", () => {
-    const originalEnv = { ...Bun.env };
-
-    beforeEach(() => {
-      Object.keys(Bun.env).forEach((key) => {
-        if (key.startsWith("S3_")) {
-          delete Bun.env[key];
-        }
-      });
-    });
-
-    afterEach(() => {
-      Object.assign(Bun.env, originalEnv);
-    });
-
-    it("should return null when S3 is not configured", async () => {
-      const result = await getThumbnail("test.jpg");
-      expect(result).toBeNull();
+    it("should return null when file does not exist", async () => {
+      expect(await getImage("missing.jpg")).toBeNull();
+      expect(await getThumbnail("missing.jpg")).toBeNull();
     });
   });
 });
 
-// Integration tests - require running S3/Minio and actual image files
+// Integration test — uses the real test image fixture and the tmp filesystem
 describe("Image Service Integration", () => {
-  const originalEnv = { ...Bun.env };
+  let dir: string;
 
-  const skipIfNoS3 = () => {
-    const hasS3 =
-      Bun.env.S3_ENDPOINT_URL && Bun.env.S3_ACCESS_KEY && Bun.env.S3_SECRET_KEY;
-    return !hasS3;
-  };
-
-  afterEach(() => {
-    Object.assign(Bun.env, originalEnv);
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), "hously-img-int-"));
+    process.env.IMAGE_STORAGE_DIR = dir;
   });
 
-  it("should upload image and create thumbnail", async () => {
-    if (skipIfNoS3()) {
-      console.log("Skipping image integration test - S3 not configured");
-      return;
-    }
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+    delete process.env.IMAGE_STORAGE_DIR;
+  });
 
-    // Load the test image from fixtures (copied from frontend icon)
+  it("should save image and create thumbnail on disk", async () => {
     const testImagePath = new URL("./fixtures/test-image.png", import.meta.url)
       .pathname;
     const imageFile = Bun.file(testImagePath);
@@ -210,29 +179,22 @@ describe("Image Service Integration", () => {
       type: "image/png",
     });
 
-    try {
-      const imagePath = await saveImageAndCreateThumbnail(mockFile);
-      expect(imagePath).toBeDefined();
-      expect(imagePath).toMatch(/\.png$/);
+    const imagePath = await saveImageAndCreateThumbnail(mockFile);
+    expect(imagePath).toBeDefined();
+    expect(imagePath).toMatch(/\.png$/);
 
-      // Verify image was uploaded
-      const image = await getImage(imagePath);
-      expect(image).not.toBeNull();
+    const image = await getImage(imagePath);
+    expect(image).not.toBeNull();
 
-      // Verify thumbnail was created
-      const thumbnail = await getThumbnail(imagePath);
-      expect(thumbnail).not.toBeNull();
+    const thumbnail = await getThumbnail(imagePath);
+    expect(thumbnail).not.toBeNull();
 
-      // Clean up
-      await deleteImageFiles(imagePath);
-    } catch (error) {
-      // If S3 upload fails, that's expected without real S3
-      console.log("Integration test skipped due to S3 error:", error);
-    }
+    await deleteImageFiles(imagePath);
+    expect(await getImage(imagePath)).toBeNull();
+    expect(await getThumbnail(imagePath)).toBeNull();
   });
 });
 
-// Unit tests that use the real test image file
 describe("Image Service with Test Fixture", () => {
   it("should load and validate test image file", async () => {
     const testImagePath = new URL("./fixtures/test-image.png", import.meta.url)
@@ -244,12 +206,11 @@ describe("Image Service with Test Fixture", () => {
     const imageBuffer = await imageFile.arrayBuffer();
     expect(imageBuffer.byteLength).toBeGreaterThan(0);
 
-    // Verify it's a valid PNG (starts with PNG signature)
     const bytes = new Uint8Array(imageBuffer);
-    expect(bytes[0]).toBe(0x89); // PNG signature
-    expect(bytes[1]).toBe(0x50); // P
-    expect(bytes[2]).toBe(0x4e); // N
-    expect(bytes[3]).toBe(0x47); // G
+    expect(bytes[0]).toBe(0x89);
+    expect(bytes[1]).toBe(0x50);
+    expect(bytes[2]).toBe(0x4e);
+    expect(bytes[3]).toBe(0x47);
   });
 
   it("should recognize test image as allowed file type", () => {

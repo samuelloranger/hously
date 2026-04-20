@@ -44,7 +44,7 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 | API framework  | [Elysia](https://elysiajs.com)              |
 | Database       | PostgreSQL 15 + [Prisma](https://prisma.io) |
 | Cache / Queues | Redis + BullMQ                              |
-| Object storage | MinIO (S3-compatible)                       |
+| Image storage  | Local filesystem (`IMAGE_STORAGE_DIR`)      |
 | Frontend       | React 19 + Vite                             |
 | Routing        | TanStack Router                             |
 | Data fetching  | TanStack Query                              |
@@ -83,7 +83,7 @@ make install
 # Copy and configure environment
 cp .env.example .env
 
-# Terminal 1 — Start PostgreSQL, MinIO, and Redis
+# Terminal 1 — Start PostgreSQL and Redis
 make dev-services
 
 # Terminal 2 — Start the API with hot reload
@@ -122,7 +122,7 @@ See `.env.example` for the full reference.
 
 ```bash
 make install           # Install dependencies
-make dev-services      # Start backing services (PostgreSQL, MinIO, Redis)
+make dev-services      # Start backing services (PostgreSQL, Redis)
 make dev-api           # Start API with hot reload
 make dev-web           # Start frontend with live reload
 make build             # Build frontend for production

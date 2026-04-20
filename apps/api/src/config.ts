@@ -40,17 +40,8 @@ const envSchema = z.object({
   REDIS_PASSWORD: z.string().optional(),
   REDIS_DB: z.coerce.number().int().min(0).optional().default(0),
 
-  // ── S3 / MinIO ────────────────────────────────────────
-  S3_ENDPOINT_URL: z.string().optional(),
-  S3_ACCESS_KEY: z.string().optional(),
-  S3_SECRET_KEY: z.string().optional(),
-  S3_BUCKET_NAME: z.string().optional().default("hously-images"),
-  S3_REGION: z.string().optional().default("us-east-1"),
-  S3_USE_SSL: z
-    .string()
-    .optional()
-    .default("true")
-    .transform((v) => v.toLowerCase() === "true"),
+  // ── Image Storage ─────────────────────────────────────
+  IMAGE_STORAGE_DIR: z.string().optional().default("./data/images"),
 
   // ── Access Control ────────────────────────────────────
   ALLOWED_EMAILS: commaSeparatedEmails,
@@ -108,30 +99,6 @@ export function loadConfig(): Env {
 
 export function getBaseUrl(): string {
   return loadConfig().BASE_URL;
-}
-
-export interface S3Config {
-  endpointUrl: string;
-  accessKey: string;
-  secretKey: string;
-  bucketName: string;
-  region: string;
-  useSsl: boolean;
-}
-
-export function getS3Config(): S3Config | null {
-  const endpointUrl = Bun.env.S3_ENDPOINT_URL;
-  const accessKey = Bun.env.S3_ACCESS_KEY;
-  const secretKey = Bun.env.S3_SECRET_KEY;
-  if (!endpointUrl || !accessKey || !secretKey) return null;
-  return {
-    endpointUrl,
-    accessKey,
-    secretKey,
-    bucketName: Bun.env.S3_BUCKET_NAME || "hously-images",
-    region: Bun.env.S3_REGION || "us-east-1",
-    useSsl: (Bun.env.S3_USE_SSL || "true").toLowerCase() === "true",
-  };
 }
 
 export function getRedisUrl(): string {
