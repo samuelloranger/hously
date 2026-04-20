@@ -1,15 +1,14 @@
 /**
- * Image service for handling image uploads and thumbnail generation
+ * Image service for handling image uploads and thumbnail generation.
+ * Backed by the local filesystem via storageService.
  */
 
 import sharp from "sharp";
 import {
-  uploadToS3,
-  deleteFromS3,
-  getFileFromS3,
-  isS3Configured,
-  getS3DirectUrl,
-} from "./s3Service";
+  saveToStorage,
+  deleteFromStorage,
+  readFromStorage,
+} from "./storageService";
 import { getBaseUrl } from "@hously/api/config";
 
 // Allowed image extensions
@@ -48,101 +47,80 @@ export function getContentType(filename: string): string {
 }
 
 /**
- * Save uploaded image and create thumbnail
- * Uploads to S3 if configured
+ * Save uploaded image and create thumbnail on local disk
  */
 export async function saveImageAndCreateThumbnail(file: File): Promise<string> {
   if (!file || !isAllowedFile(file.name)) {
     throw new Error("Invalid file type. Only images are allowed.");
   }
 
-  if (!isS3Configured()) {
-    throw new Error("S3 storage is not configured");
-  }
-
-  // Generate unique filename
   const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const uniqueFilename = `${crypto.randomUUID().replace(/-/g, "")}.${fileExt}`;
 
   try {
-    // Read file content
     const arrayBuffer = await file.arrayBuffer();
     const imageBuffer = Buffer.from(arrayBuffer);
 
-    // Get content type
-    const contentType = getContentType(file.name);
-
-    // Upload original image to S3
-    const uploadSuccess = await uploadToS3(
-      imageBuffer,
-      uniqueFilename,
-      contentType,
-    );
+    const uploadSuccess = await saveToStorage(imageBuffer, uniqueFilename);
     if (!uploadSuccess) {
-      throw new Error("Failed to upload image to S3");
+      throw new Error("Failed to save image");
     }
 
-    // Create thumbnail using sharp
     // Sharp automatically handles EXIF orientation
     const thumbnailBuffer = await sharp(imageBuffer)
-      .rotate() // Auto-rotate based on EXIF orientation
+      .rotate()
       .resize(THUMBNAIL_SIZE, THUMBNAIL_SIZE, {
         fit: "cover",
         position: "center",
       })
-      .flatten({ background: { r: 255, g: 255, b: 255 } }) // Convert transparency to white
+      .flatten({ background: { r: 255, g: 255, b: 255 } })
       .jpeg({ quality: 85 })
       .toBuffer();
 
-    // Upload thumbnail to S3
-    const thumbnailSuccess = await uploadToS3(
+    const thumbnailSuccess = await saveToStorage(
       thumbnailBuffer,
       `thumbnail-${uniqueFilename}`,
-      "image/jpeg",
     );
 
     if (!thumbnailSuccess) {
-      // If thumbnail upload fails, try to delete the original image
-      await deleteFromS3(uniqueFilename);
-      throw new Error("Failed to upload thumbnail to S3");
+      await deleteFromStorage(uniqueFilename);
+      throw new Error("Failed to save thumbnail");
     }
 
-    console.log(`Uploaded image and thumbnail to S3: ${uniqueFilename}`);
+    console.log(`Saved image and thumbnail: ${uniqueFilename}`);
     return uniqueFilename;
   } catch (error) {
-    console.error("Error uploading image:", error);
-    throw new Error(`Error uploading image: ${error}`);
+    console.error("Error saving image:", error);
+    throw new Error(`Error saving image: ${error}`);
   }
 }
 
 /**
- * Delete image and thumbnail files from S3
+ * Delete image and thumbnail files from disk
  */
 export async function deleteImageFiles(imageName: string): Promise<void> {
   if (!imageName) return;
 
-  // Delete original image
-  await deleteFromS3(imageName);
-  // Delete thumbnail
-  await deleteFromS3(`thumbnail-${imageName}`);
+  await deleteFromStorage(imageName);
+  await deleteFromStorage(`thumbnail-${imageName}`);
 }
 
 /**
- * Get image from S3
+ * Get image from disk
  */
 export async function getImage(filename: string): Promise<Buffer | null> {
-  return getFileFromS3(filename);
+  return readFromStorage(filename);
 }
 
 /**
- * Get thumbnail from S3
+ * Get thumbnail from disk
  */
 export async function getThumbnail(filename: string): Promise<Buffer | null> {
-  return getFileFromS3(`thumbnail-${filename}`);
+  return readFromStorage(`thumbnail-${filename}`);
 }
 
 /**
- * Get the full URL for an avatar image (served through API, not direct S3)
+ * Get the full URL for an avatar image (served through API)
  */
 export function getAvatarUrl(filename: string): string {
   const baseUrl = getBaseUrl();
