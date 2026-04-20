@@ -11,18 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: "1.3.11"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      - uses: ./.github/actions/setup
       - name: Prettier format check
         run: bun run formatCheck
 
@@ -30,20 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: ./.github/actions/setup
         with:
-          bun-version: "1.3.11"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
-      - name: Generate TanStack Router route tree
-        run: cd apps/web && bunx @tanstack/router-cli generate
+          generate-routes: "true"
       - name: Lint
         run: cd apps/web && bun run lint
 
@@ -51,20 +29,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: ./.github/actions/setup
         with:
-          bun-version: "1.3.11"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
-      - name: Generate TanStack Router route tree
-        run: cd apps/web && bunx @tanstack/router-cli generate
+          generate-routes: "true"
       - name: Typecheck
         run: bun run typecheck
 
@@ -72,20 +39,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: ./.github/actions/setup
         with:
-          bun-version: "1.3.11"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
-      - name: Generate TanStack Router route tree
-        run: cd apps/web && bunx @tanstack/router-cli generate
+          generate-routes: "true"
       - name: Test
         run: |
           cd apps/web && bun run test --run
