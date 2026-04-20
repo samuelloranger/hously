@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "bun --env-file=../../.env --watch src/index.ts",
-    "test": "bun test",
+    "test": "bun test test/ && bun test src/",
     "db:generate": "set -a && . ../../.env && set +a && bunx prisma generate",
     "db:migrate:dev": "set -a && . ../../.env && set +a && bunx prisma migrate dev && bunx prisma generate",
     "db:migrate": "set -a && . ../../.env && set +a && bunx prisma migrate deploy",
