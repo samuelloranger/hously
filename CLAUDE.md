@@ -42,7 +42,7 @@ A native companion app lives in a separate repository:
 make install           # Install all dependencies
 
 # Local development (recommended)
-make dev-services      # Start PostgreSQL + MinIO + Redis (Terminal 1)
+make dev-services      # Start PostgreSQL + Redis (Terminal 1)
 make dev-api           # Start Bun API with hot reload (Terminal 2)
 make dev-web           # Start React frontend with Vite (Terminal 3)
 
@@ -62,17 +62,17 @@ Copy `.env.example` to `.env` and configure at minimum:
 
 ### Backend (`apps/api`)
 
-**Stack**: Elysia, Prisma, PostgreSQL, Redis, MinIO
+**Stack**: Elysia, Prisma, PostgreSQL, Redis
 
-| Directory              | Purpose                                              |
-| ---------------------- | ---------------------------------------------------- |
-| `src/routes/`          | Feature-specific Elysia route plugins                |
-| `src/services/`        | Business logic (S3, images, notifications, webhooks) |
-| `src/jobs/`            | Cron jobs (`@elysiajs/cron`)                         |
-| `src/middleware/`      | Rate limiting, etc.                                  |
-| `src/db/`              | Prisma client                                        |
-| `src/auth.ts`          | JWT auth with HTTP-only cookies                      |
-| `prisma/schema.prisma` | Database schema                                      |
+| Directory              | Purpose                                                   |
+| ---------------------- | --------------------------------------------------------- |
+| `src/routes/`          | Feature-specific Elysia route plugins                     |
+| `src/services/`        | Business logic (storage, images, notifications, webhooks) |
+| `src/jobs/`            | Cron jobs (`@elysiajs/cron`)                              |
+| `src/middleware/`      | Rate limiting, etc.                                       |
+| `src/db/`              | Prisma client                                             |
+| `src/auth.ts`          | JWT auth with HTTP-only cookies                           |
+| `prisma/schema.prisma` | Database schema                                           |
 
 Route modules export Elysia plugins composed in `src/index.ts`. Webhook handlers integrate Radarr, Sonarr, Jellyfin, Plex, and others. Push notifications support Web Push (VAPID) and APNs.
 
@@ -155,6 +155,6 @@ Maintained in `../hously-ios`. Connects to this API with native push notificatio
 
 - **Unstable Project**: Early-stage, subject to breaking changes
 - **Access Control**: Users must be on `ALLOWED_EMAILS` to register; admins need `ADMIN_EMAILS`
-- **Image Storage**: MinIO (S3-compatible) for avatars, chores, recipes
+- **Image Storage**: Local filesystem under `IMAGE_STORAGE_DIR` (defaults to `./data/images`)
 - **Push Notifications**: Web Push (VAPID) + APNs (iOS)
 - **Rate Limiting**: 1000 requests/hour per IP

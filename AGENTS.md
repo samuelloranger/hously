@@ -26,7 +26,7 @@ In production, the frontend is built into `apps/api/public/` and served by the A
 
 ```bash
 make install           # Install all dependencies
-make dev-services      # Start PostgreSQL + MinIO + Redis (Terminal 1)
+make dev-services      # Start PostgreSQL + Redis (Terminal 1)
 make dev-api           # Start API with hot reload (Terminal 2)
 make dev-web           # Start Vite frontend (Terminal 3)
 ```
@@ -248,7 +248,7 @@ docker compose up -d   # Start all services
 - **Bun only** — do not use `npm`, `yarn`, or `pnpm` anywhere in this repo
 - **Unstable** — early-stage project, breaking changes are expected
 - **Access control** — `ALLOWED_EMAILS` gates registration; `ADMIN_EMAILS` gates admin routes
-- **Image storage** — MinIO (S3-compatible) for avatars, chore images, recipe photos
+- **Image storage** — Local filesystem under `IMAGE_STORAGE_DIR` (defaults to `./data/images`)
 - **Push notifications** — Web Push (VAPID) + APNs (iOS via `../hously-ios`)
 - **Rate limiting** — 1000 requests/hour per IP
 - **Production** — configs live in `~/servers/hously`, separate from the dev repo at `~/sites/hously`
