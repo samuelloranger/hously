@@ -84,7 +84,7 @@ export function ArchiveView({
                 <button
                   type="button"
                   onClick={() => onTaskClick(task)}
-                  className="line-clamp-1 text-left text-[13px] font-medium text-neutral-700 transition-colors hover:text-indigo-600 dark:text-neutral-200 dark:hover:text-indigo-400"
+                  className="line-clamp-1 text-left text-[13px] font-medium text-neutral-700 transition-colors hover:text-primary-600 dark:text-neutral-200 dark:hover:text-primary-400"
                 >
                   {task.title}
                 </button>
@@ -130,7 +130,7 @@ export function ArchiveView({
                     onRestore(task.id);
                   }}
                   disabled={restoringId === task.id}
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-neutral-500 transition-colors hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-40 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400"
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-neutral-500 transition-colors hover:bg-primary-50 hover:text-primary-600 disabled:opacity-40 dark:hover:bg-primary-900/20 dark:hover:text-primary-400"
                   title={t("board.restoreTask")}
                 >
                   <RotateCcw className="h-3 w-3" />

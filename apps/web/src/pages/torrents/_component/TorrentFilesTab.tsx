@@ -59,7 +59,7 @@ export function TorrentFilesTab({
                   <div className="mt-2 flex items-center gap-3">
                     <div className="flex-1 h-1 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 dark:from-indigo-400 dark:to-indigo-500"
+                        className="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500"
                         style={{ width: `${Math.round(file.progress * 100)}%` }}
                       />
                     </div>
@@ -87,14 +87,14 @@ export function TorrentFilesTab({
                       if (e.key === "Enter") submitRename();
                       if (e.key === "Escape") cancelRename();
                     }}
-                    className="flex-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2 text-sm font-mono text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition"
+                    className="flex-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2 text-sm font-mono text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 transition"
                     autoFocus
                   />
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={submitRename}
                       disabled={isRenamePending}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium disabled:opacity-40 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-medium disabled:opacity-40 transition-colors"
                     >
                       <Check size={12} />
                       {t("common.save", "Save")}

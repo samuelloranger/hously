@@ -54,7 +54,7 @@ export function TmdbMediaSearchPanel() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={t("medias.tmdb.placeholder")}
-              className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
+              className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-8 pr-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
             />
           </div>
 
@@ -114,7 +114,7 @@ export function TmdbMediaSearchPanel() {
                               {t("medias.tmdb.notConfigured")}
                             </span>
                           ) : (
-                            <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">
+                            <span className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-300">
                               {t("medias.tmdb.add")}
                             </span>
                           )}

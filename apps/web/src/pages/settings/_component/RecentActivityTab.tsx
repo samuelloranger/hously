@@ -2,7 +2,13 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { ListItemSkeleton } from "@/components/Skeleton";
 import { useDashboardActivityFeed } from "@/pages/_component/useDashboardStats";
@@ -57,19 +63,26 @@ export function RecentActivityTab() {
             </span>
             <Select
               value={service}
-              onChange={(event) => {
+              onValueChange={(value) => {
                 setLimit(PAGE_SIZE);
-                setService(event.target.value);
+                setService(value);
               }}
             >
-              <option value="">
-                {t("dashboard.activityPage.allServices")}
-              </option>
-              {(data?.available_services ?? []).map((value) => (
-                <option key={value} value={value}>
-                  {getActivityServiceLabel(t, value)}
-                </option>
-              ))}
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={t("dashboard.activityPage.allServices")}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">
+                  {t("dashboard.activityPage.allServices")}
+                </SelectItem>
+                {(data?.available_services ?? []).map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {getActivityServiceLabel(t, value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </label>
 
@@ -79,17 +92,26 @@ export function RecentActivityTab() {
             </span>
             <Select
               value={type}
-              onChange={(event) => {
+              onValueChange={(value) => {
                 setLimit(PAGE_SIZE);
-                setType(event.target.value);
+                setType(value);
               }}
             >
-              <option value="">{t("dashboard.activityPage.allTypes")}</option>
-              {(data?.available_types ?? []).map((value) => (
-                <option key={value} value={value}>
-                  {getActivityTypeLabel(t, value)}
-                </option>
-              ))}
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={t("dashboard.activityPage.allTypes")}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">
+                  {t("dashboard.activityPage.allTypes")}
+                </SelectItem>
+                {(data?.available_types ?? []).map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {getActivityTypeLabel(t, value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </label>
         </div>

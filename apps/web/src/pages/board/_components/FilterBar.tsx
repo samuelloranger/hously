@@ -102,7 +102,7 @@ export function FilterBar({
               className={cn(
                 "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
                 filters.tags.includes(tag.id)
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-primary-600 text-white"
                   : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600",
               )}
             >
@@ -125,7 +125,7 @@ export function FilterBar({
       {/* Manage tags link */}
       <button
         onClick={onManageTags}
-        className="ml-auto text-[11px] text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+        className="ml-auto text-[11px] text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400"
       >
         Manage tags
       </button>

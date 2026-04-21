@@ -75,8 +75,8 @@ export function LibraryItemSearchTab({
   return (
     <>
       {episodeSearchCtx && (
-        <div className="mb-3 flex items-center justify-between rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-2">
-          <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300">
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-950/30 px-3 py-2">
+          <span className="text-xs font-medium text-primary-700 dark:text-primary-300">
             {t("medias.detail.searchingEpisode", "Searching for")} S
             {String(episodeSearchCtx.season).padStart(2, "0")}E
             {String(episodeSearchCtx.episode).padStart(2, "0")}
@@ -85,7 +85,7 @@ export function LibraryItemSearchTab({
           <button
             type="button"
             onClick={onClearEpisodeCtx}
-            className="text-xs text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300"
+            className="text-xs text-primary-500 hover:text-primary-700 dark:hover:text-primary-300"
           >
             {t("common.clear", "Clear")}
           </button>

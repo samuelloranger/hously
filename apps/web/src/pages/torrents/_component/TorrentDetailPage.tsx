@@ -381,7 +381,7 @@ export function TorrentDetailPage() {
             className={cn(
               "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-colors disabled:opacity-40",
               isPinned
-                ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+                ? "bg-primary-50 dark:bg-primary-950/30 border-primary-200 dark:border-primary-800/60 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/40"
                 : "bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800",
             )}
           >
@@ -398,7 +398,7 @@ export function TorrentDetailPage() {
             <button
               onClick={handleResume}
               disabled={resumeTorrentMutation.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-600 transition-colors disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-primary-600 hover:bg-primary-500 text-white border border-primary-600 transition-colors disabled:opacity-40"
             >
               <Play size={13} />
               <span className="hidden sm:inline">

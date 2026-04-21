@@ -299,7 +299,7 @@ export function ExploreCardDetailDialog({
 
               {/* Type + year + runtime */}
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="rounded-md bg-indigo-600/80 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                <span className="rounded-md bg-primary-600/80 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
                   {item.media_type === "movie"
                     ? t("medias.movie")
                     : t("medias.series")}
@@ -529,7 +529,7 @@ export function ExploreCardDetailDialog({
                       "inline-flex min-w-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
                       heroBackdropUrl
                         ? "border-white/30 bg-white/10 text-white"
-                        : "border-indigo-500/25 bg-indigo-500/8 text-indigo-600 dark:text-indigo-400",
+                        : "border-primary-500/25 bg-primary-500/8 text-primary-600 dark:text-primary-400",
                     )}
                   >
                     <span className="shrink-0">
@@ -551,7 +551,7 @@ export function ExploreCardDetailDialog({
               aria-busy="true"
               aria-label={t("common.loading")}
             >
-              <div className="h-9 w-9 animate-spin rounded-full border-2 border-neutral-200 border-t-indigo-600 dark:border-neutral-600 dark:border-t-indigo-400" />
+              <div className="h-9 w-9 animate-spin rounded-full border-2 border-neutral-200 border-t-primary-600 dark:border-neutral-600 dark:border-t-primary-400" />
             </div>
           ) : (
             <div
@@ -618,7 +618,7 @@ export function ExploreCardDetailDialog({
                     <button
                       onClick={handleAdd}
                       disabled={addMutation.isPending}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color] hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color] hover:bg-primary-700 active:bg-primary-800 disabled:opacity-50"
                     >
                       {addMutation.isPending ? (
                         <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />

@@ -99,7 +99,7 @@ export const EventCard = ({
           ? "bg-neutral-50/60 dark:bg-neutral-800/40"
           : getEventBgClass(event.type),
         highlighted &&
-          "ring-2 ring-indigo-500/70 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900",
+          "ring-2 ring-primary-500/70 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900",
       )}
     >
       {/* Accent bar */}

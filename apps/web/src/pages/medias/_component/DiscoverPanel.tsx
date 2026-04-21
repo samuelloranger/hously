@@ -297,7 +297,7 @@ export function DiscoverPanel() {
                 className={[
                   "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
                   active
-                    ? "border-indigo-500/60 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300"
+                    ? "border-primary-500/60 bg-primary-500/15 text-primary-700 dark:text-primary-300"
                     : "border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-neutral-600 dark:text-neutral-400 hover:border-neutral-400 dark:hover:border-white/20",
                 ].join(" ")}
               >
@@ -491,7 +491,7 @@ function FilterChip({
       className={[
         "inline-flex items-center rounded-full border text-xs font-medium transition-colors",
         active
-          ? "border-indigo-500/50 bg-indigo-500/10 text-indigo-700 dark:text-indigo-200"
+          ? "border-primary-500/50 bg-primary-500/10 text-primary-700 dark:text-primary-200"
           : "border-neutral-200 dark:border-white/[0.09] bg-white dark:bg-white/[0.03] text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-white/20",
       ].join(" ")}
     >
@@ -499,10 +499,10 @@ function FilterChip({
         <PopoverTrigger asChild>
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
+            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
           >
             <Icon
-              className={active ? "text-indigo-500" : "text-neutral-400"}
+              className={active ? "text-primary-500" : "text-neutral-400"}
               size={13}
             />
             <span
@@ -567,7 +567,7 @@ function ServicePicker({
         className={[
           "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
           selectedId === null
-            ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200"
+            ? "bg-primary-50 dark:bg-primary-500/15 text-primary-700 dark:text-primary-200"
             : "text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5",
         ].join(" ")}
       >
@@ -587,7 +587,7 @@ function ServicePicker({
               className={[
                 "relative flex aspect-square items-center justify-center rounded-lg border p-1.5 transition-all",
                 active
-                  ? "border-indigo-500 ring-2 ring-indigo-500/30 bg-indigo-500/5"
+                  ? "border-primary-500 ring-2 ring-primary-500/30 bg-primary-500/5"
                   : "border-neutral-200 dark:border-white/[0.08] hover:border-neutral-400 dark:hover:border-white/20",
               ].join(" ")}
             >
@@ -597,7 +597,7 @@ function ServicePicker({
                 className="h-full w-full rounded-md object-contain"
               />
               {active && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-white ring-2 ring-white dark:ring-neutral-800">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-500 text-white ring-2 ring-white dark:ring-neutral-800">
                   <Check size={9} strokeWidth={3} />
                 </span>
               )}
@@ -629,7 +629,7 @@ function GenrePicker({
         className={[
           "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
           selectedId === null
-            ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200"
+            ? "bg-primary-50 dark:bg-primary-500/15 text-primary-700 dark:text-primary-200"
             : "text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5",
         ].join(" ")}
       >
@@ -647,7 +647,7 @@ function GenrePicker({
               className={[
                 "flex items-center justify-between rounded-md px-3 py-1.5 text-left text-sm transition-colors",
                 active
-                  ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200"
+                  ? "bg-primary-50 dark:bg-primary-500/15 text-primary-700 dark:text-primary-200"
                   : "text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5",
               ].join(" ")}
             >
@@ -683,7 +683,7 @@ function SortPicker({
             className={[
               "flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
               active
-                ? "bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200 font-medium"
+                ? "bg-primary-50 dark:bg-primary-500/15 text-primary-700 dark:text-primary-200 font-medium"
                 : "text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5",
             ].join(" ")}
           >
@@ -713,7 +713,7 @@ function PageDot({
       className={[
         "flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-medium transition-[background-color,border-color,color] duration-150",
         active
-          ? "bg-indigo-600/80 text-white"
+          ? "bg-primary-600/80 text-white"
           : "border border-white/[0.08] bg-white/[0.03] text-neutral-400 hover:border-white/20 hover:text-neutral-200",
       ].join(" ")}
     >

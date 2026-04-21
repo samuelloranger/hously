@@ -111,10 +111,10 @@ function MultiSelect({
             type="button"
             className={cn(
               "flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-lg border bg-white px-3 py-2 text-left text-sm transition-colors",
-              "border-neutral-200 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30",
+              "border-neutral-200 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30",
               "dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-600",
               open &&
-                "ring-2 ring-indigo-500/30 border-indigo-300 dark:border-indigo-600",
+                "ring-2 ring-primary-500/30 border-primary-300 dark:border-primary-600",
             )}
           >
             {selected.length === 0 ? (
@@ -128,13 +128,13 @@ function MultiSelect({
                   return (
                     <span
                       key={v}
-                      className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
+                      className="inline-flex items-center gap-1 rounded-md bg-primary-50 px-1.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-500/15 dark:text-primary-300"
                     >
                       {opt?.label ?? v}
                       <button
                         type="button"
                         onClick={(e) => remove(e, v)}
-                        className="rounded hover:text-indigo-900 dark:hover:text-indigo-100"
+                        className="rounded hover:text-primary-900 dark:hover:text-primary-100"
                       >
                         <X size={10} strokeWidth={2.5} />
                       </button>
@@ -168,7 +168,7 @@ function MultiSelect({
                 className={cn(
                   "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
                   isSelected
-                    ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
+                    ? "bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300"
                     : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-700/50",
                 )}
               >
@@ -176,7 +176,7 @@ function MultiSelect({
                   className={cn(
                     "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
                     isSelected
-                      ? "border-indigo-500 bg-indigo-500 text-white dark:border-indigo-400 dark:bg-indigo-400"
+                      ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
                       : "border-neutral-300 dark:border-neutral-600",
                   )}
                 >
@@ -283,7 +283,7 @@ function TrackerPrioritySection({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher un tracker…"
-              className="mb-2 w-full rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+              className="mb-2 w-full rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
             />
             {isFetching && available.length === 0 ? (
               <p className="px-2 py-3 text-center text-xs text-neutral-400">
@@ -343,7 +343,7 @@ function TrackerPrioritySection({
               <span className="flex-1 text-sm text-neutral-800 dark:text-neutral-200">
                 {name}
               </span>
-              <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+              <span className="text-xs font-medium text-primary-600 dark:text-primary-400">
                 {trackerBonus(i, preferOverQuality)}
               </span>
               <div className="flex items-center gap-0.5">
@@ -382,7 +382,7 @@ function TrackerPrioritySection({
             className={cn(
               "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
               preferOverQuality
-                ? "border-indigo-500 bg-indigo-500 text-white dark:border-indigo-400 dark:bg-indigo-400"
+                ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
                 : "border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400",
             )}
           >
@@ -426,7 +426,7 @@ const emptyPayload: QualityProfileFormPayload = {
 };
 
 const selectClass =
-  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-colors";
+  "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
 
 // ─── Editor (remounted via key when editing target / server row changes) ──────
 
@@ -483,7 +483,7 @@ export function QualityProfileEditorPanel({
       <div
         className={cn(
           "px-6 py-4 border-b border-neutral-100 dark:border-neutral-700/60",
-          isEditing && "bg-indigo-50/60 dark:bg-indigo-500/5",
+          isEditing && "bg-primary-50/60 dark:bg-primary-500/5",
         )}
       >
         <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
@@ -586,7 +586,7 @@ export function QualityProfileEditorPanel({
                   className={cn(
                     "flex h-4 w-4 items-center justify-center rounded border transition-colors",
                     form.prefer_hdr
-                      ? "border-indigo-500 bg-indigo-500 text-white dark:border-indigo-400 dark:bg-indigo-400"
+                      ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
                       : "border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400",
                   )}
                 >
@@ -607,7 +607,7 @@ export function QualityProfileEditorPanel({
                   className={cn(
                     "flex h-4 w-4 items-center justify-center rounded border transition-colors",
                     form.require_hdr
-                      ? "border-indigo-500 bg-indigo-500 text-white dark:border-indigo-400 dark:bg-indigo-400"
+                      ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
                       : "border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400",
                   )}
                 >

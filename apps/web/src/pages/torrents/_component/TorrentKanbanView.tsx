@@ -199,7 +199,7 @@ function KanbanCard({ torrent }: { torrent: QbittorrentTorrentListItem }) {
             pulse && "animate-pulse",
           )}
         />
-        <p className="text-[12px] font-medium text-neutral-900 dark:text-neutral-100 line-clamp-2 leading-snug min-w-0 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+        <p className="text-[12px] font-medium text-neutral-900 dark:text-neutral-100 line-clamp-2 leading-snug min-w-0 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
           {torrent.name}
         </p>
       </div>

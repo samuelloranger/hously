@@ -195,7 +195,7 @@ export function MergedEpisodeRow({
                   type="button"
                   onClick={handleSearch}
                   title={t("library.episodeInteractiveSearchTitle")}
-                  className="rounded-md p-2.5 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                  className="rounded-md p-2.5 text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/30 transition-colors"
                 >
                   <Search size={14} />
                 </button>
@@ -206,7 +206,7 @@ export function MergedEpisodeRow({
                   onClick={handleAutoSearch}
                   disabled={searchEpMut.isPending}
                   title={t("library.management.episodeSearch")}
-                  className="rounded-md p-2.5 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 disabled:opacity-50 transition-colors"
+                  className="rounded-md p-2.5 text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/30 disabled:opacity-50 transition-colors"
                 >
                   <Download size={14} />
                 </button>
@@ -289,7 +289,7 @@ export function MergedEpisodeRow({
                 type="button"
                 onClick={handleSearch}
                 title={t("library.episodeInteractiveSearchTitle")}
-                className="rounded p-1 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                className="rounded p-1 text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/30 transition-colors"
               >
                 <Search size={11} />
               </button>
@@ -299,7 +299,7 @@ export function MergedEpisodeRow({
                 type="button"
                 onClick={handleAutoSearch}
                 disabled={searchEpMut.isPending}
-                className="rounded-md bg-indigo-600/90 px-2 py-0.5 text-[9px] font-semibold text-white hover:bg-indigo-600 disabled:opacity-50 transition-colors"
+                className="rounded-md bg-primary-600/90 px-2 py-0.5 text-[9px] font-semibold text-white hover:bg-primary-600 disabled:opacity-50 transition-colors"
               >
                 {t("library.management.episodeSearch")}
               </button>

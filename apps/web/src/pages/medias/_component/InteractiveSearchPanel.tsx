@@ -387,7 +387,7 @@ export function InteractiveSearchPanel({
                 }
                 className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                   selectedSeason === null
-                    ? "bg-indigo-600 text-white"
+                    ? "bg-primary-600 text-white"
                     : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                 }`}
               >
@@ -405,7 +405,7 @@ export function InteractiveSearchPanel({
                   }
                   className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
                     selectedSeason === s
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-primary-600 text-white"
                       : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                   }`}
                 >
@@ -447,7 +447,7 @@ export function InteractiveSearchPanel({
                   }))
                 }
                 placeholder={t("medias.interactive.filterPlaceholder")}
-                className="w-full rounded-xl border border-neutral-200 bg-white py-2 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                className="w-full rounded-xl border border-neutral-200 bg-white py-2 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
               />
               {filterQuery && (
                 <button
@@ -474,13 +474,13 @@ export function InteractiveSearchPanel({
                 }
                 className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
                   showFilters || hasAdvancedFilters
-                    ? "border-indigo-500/40 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300"
+                    ? "border-primary-500/40 bg-primary-50 text-primary-700 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-300"
                     : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
                 }`}
               >
                 {t("medias.interactive.filtersButton")}
                 {totalActiveFilters > 0 && (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo-600 px-1.5 text-[10px] font-semibold text-white">
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1.5 text-[10px] font-semibold text-white">
                     {totalActiveFilters}
                   </span>
                 )}
@@ -554,7 +554,7 @@ export function InteractiveSearchPanel({
                       className={`shrink-0 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wide ${
                         isOriginalTitleQuery
                           ? "bg-amber-200/80 text-amber-900 dark:bg-amber-900/50 dark:text-amber-100"
-                          : "bg-indigo-200/70 text-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-100"
+                          : "bg-primary-200/70 text-primary-900 dark:bg-primary-900/40 dark:text-primary-100"
                       }`}
                     >
                       {isOriginalTitleQuery
@@ -581,7 +581,7 @@ export function InteractiveSearchPanel({
                 <button
                   type="button"
                   onClick={resetView}
-                  className="text-xs font-medium text-indigo-600 transition-colors hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200"
+                  className="text-xs font-medium text-primary-600 transition-colors hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
                 >
                   {t("medias.interactive.resetView")}
                 </button>
@@ -599,7 +599,7 @@ export function InteractiveSearchPanel({
                       sortBy: event.target.value as InteractiveSortKey,
                     }))
                   }
-                  className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                  className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500/40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                 >
                   <option value="seeders">
                     {t("medias.interactive.sortOptions.seeders")}
@@ -648,7 +648,7 @@ export function InteractiveSearchPanel({
                 <p className="flex items-center gap-1.5 text-xs font-semibold text-neutral-700 dark:text-neutral-200">
                   {t("medias.interactive.filtersTitle")}
                   {totalActiveFilters > 0 && (
-                    <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-[9px] font-bold text-white">
+                    <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-[9px] font-bold text-white">
                       {totalActiveFilters}
                     </span>
                   )}
@@ -664,7 +664,7 @@ export function InteractiveSearchPanel({
                         includedLanguages: [],
                       }))
                     }
-                    className="text-[11px] font-medium text-indigo-600 transition-colors hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200"
+                    className="text-[11px] font-medium text-primary-600 transition-colors hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
                   >
                     {t("medias.interactive.clearFilters")}
                   </button>
@@ -750,7 +750,7 @@ export function InteractiveSearchPanel({
               <button
                 type="button"
                 onClick={() => void activeQuery.refetch()}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500"
+                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-500"
               >
                 <RefreshCw size={14} />
                 {t("medias.interactive.retry")}
@@ -769,7 +769,7 @@ export function InteractiveSearchPanel({
                 <button
                   type="button"
                   onClick={resetView}
-                  className="mt-3 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200"
+                  className="mt-3 text-sm font-medium text-primary-600 transition-colors hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
                 >
                   {t("medias.interactive.resetView")}
                 </button>

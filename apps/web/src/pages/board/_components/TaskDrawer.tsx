@@ -51,7 +51,7 @@ const STATUS_COLORS: Record<BoardTaskStatusApi, string> = {
   backlog: "bg-neutral-400",
   on_hold: "bg-gray-400",
   todo: "bg-blue-500",
-  in_progress: "bg-indigo-500",
+  in_progress: "bg-primary-500",
   done: "bg-emerald-500",
 };
 
@@ -199,7 +199,7 @@ export function TaskDrawer({
                   className={cn(
                     "flex h-8 w-8 items-center justify-center rounded-md text-neutral-400 transition-colors",
                     task.archived
-                      ? "hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400"
+                      ? "hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-900/20 dark:hover:text-primary-400"
                       : "hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-900/20 dark:hover:text-amber-400",
                   )}
                   aria-label={task.archived ? "Restore task" : "Archive task"}

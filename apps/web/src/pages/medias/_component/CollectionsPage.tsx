@@ -68,7 +68,7 @@ function CollectionCard({
                 key={movie.tmdb_id}
                 type="button"
                 onClick={() => setSelectedItem(movie)}
-                className="group relative w-12 shrink-0 overflow-hidden rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="group relative w-12 shrink-0 overflow-hidden rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 style={{ aspectRatio: "2/3" }}
                 title={movie.title}
               >
@@ -98,7 +98,7 @@ function CollectionCard({
                   </div>
                 ) : (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 ring-1 ring-black/20 text-white text-xs font-bold">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 ring-1 ring-black/20 text-white text-xs font-bold">
                       +
                     </div>
                   </div>

@@ -24,13 +24,13 @@ export function CommentInput({ taskId }: { taskId: number }) {
         }}
         placeholder="Write a comment… (⌘↵ to submit)"
         rows={3}
-        className="w-full resize-none rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none placeholder-neutral-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-100 dark:placeholder-neutral-500"
+        className="w-full resize-none rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none placeholder-neutral-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-100 dark:placeholder-neutral-500"
       />
       <div className="flex justify-end">
         <Button
           onClick={submit}
           disabled={isPending || !body.trim()}
-          className="h-7 bg-indigo-600 px-3 text-xs hover:bg-indigo-700"
+          className="h-7 bg-primary-600 px-3 text-xs hover:bg-primary-700"
         >
           {t("board.comment")}
         </Button>

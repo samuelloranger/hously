@@ -38,7 +38,7 @@ function AudioTrackRow({ track }: { track: LibraryAudioTrack }) {
       </span>
       <div className="flex gap-1 shrink-0">
         {track.default && (
-          <Badge className="bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300">
+          <Badge className="bg-primary-50 dark:bg-primary-500/15 text-primary-600 dark:text-primary-300">
             {t("library.fileDetail.defaultTrack")}
           </Badge>
         )}

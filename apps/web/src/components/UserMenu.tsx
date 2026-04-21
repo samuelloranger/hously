@@ -117,7 +117,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
                         style={{ touchAction: "manipulation" }}
                         className={`flex flex-col items-center justify-center gap-1 py-2.5 px-1 rounded-xl transition-all duration-150 ${
                           isActive
-                            ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
+                            ? "bg-primary-50 dark:bg-primary-500/10 text-primary-700 dark:text-primary-300"
                             : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] active:bg-neutral-100 dark:active:bg-white/[0.08]"
                         }`}
                       >
@@ -129,7 +129,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
                           {t(item.translationKey)}
                         </span>
                         {isActive && (
-                          <span className="absolute bottom-1 w-1 h-1 rounded-full bg-indigo-500 opacity-0" />
+                          <span className="absolute bottom-1 w-1 h-1 rounded-full bg-primary-500 opacity-0" />
                         )}
                       </Link>
                     );

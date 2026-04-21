@@ -39,7 +39,7 @@ export function LibraryItemInfoTab({
   if (isPending && !detailsData) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="h-7 w-7 animate-spin rounded-full border-2 border-neutral-200 border-t-indigo-600 dark:border-neutral-700 dark:border-t-indigo-400" />
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-neutral-200 border-t-primary-600 dark:border-neutral-700 dark:border-t-primary-400" />
       </div>
     );
   }

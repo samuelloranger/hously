@@ -52,7 +52,7 @@ export function LibraryQualityProfileSection({
                 });
               }}
               disabled={updateProfile.isPending || !mediaRow}
-              className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/80 px-2.5 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+              className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/80 px-2.5 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
             >
               <option value="">
                 {t("library.management.qualityProfileNone")}
@@ -82,7 +82,7 @@ export function LibraryQualityProfileSection({
                   .catch(() => toast.error(t("library.management.grabFailed")));
               }}
               disabled={searchMovieMut.isPending}
-              className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors shrink-0"
+              className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-primary-500 disabled:opacity-50 transition-colors shrink-0"
             >
               <Search size={10} />
               {t("library.management.searchNow")}

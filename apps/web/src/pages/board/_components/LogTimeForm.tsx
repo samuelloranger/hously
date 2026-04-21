@@ -87,13 +87,13 @@ export function LogTimeForm({ taskId }: { taskId: number }) {
         value={note}
         onChange={(e) => setNote(e.target.value)}
         placeholder="Note (optional)"
-        className="rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-sm outline-none placeholder-neutral-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-100"
+        className="rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-sm outline-none placeholder-neutral-400 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-100"
       />
       <div className="flex justify-end">
         <Button
           onClick={submit}
           disabled={isPending || !timeInput.trim()}
-          className="h-7 bg-indigo-600 px-3 text-xs hover:bg-indigo-700"
+          className="h-7 bg-primary-600 px-3 text-xs hover:bg-primary-700"
         >
           Log time
         </Button>

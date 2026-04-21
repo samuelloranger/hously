@@ -178,7 +178,7 @@ export function TagPicker({
                 handleCreate();
               }}
               className={cn(
-                "flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20",
+                "flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20",
                 matches.length > 0 &&
                   "border-t border-neutral-100 dark:border-neutral-700/60",
               )}

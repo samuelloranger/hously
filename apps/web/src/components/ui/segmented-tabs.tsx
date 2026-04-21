@@ -147,7 +147,7 @@ export function SegmentedTabs<T extends string>({
                   className={cn(
                     "shrink-0 px-1.5 py-px rounded-full text-[10px] font-bold tabular-nums leading-none",
                     isActive
-                      ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300"
+                      ? "bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300"
                       : "bg-neutral-200 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400",
                     badgeClassName,
                     isActive && activeBadgeClassName,

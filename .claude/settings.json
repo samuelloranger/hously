@@ -1,7 +1,4 @@
 {
-  "enabledPlugins": {
-    "context7@claude-plugins-official": true
-  },
   "hooks": {
     "PostToolUse": [
       {
@@ -15,5 +12,9 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true
   }
 }

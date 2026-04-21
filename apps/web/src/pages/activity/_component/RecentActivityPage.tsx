@@ -6,7 +6,13 @@ import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { ListItemSkeleton } from "@/components/Skeleton";
 import { useDashboardActivityFeed } from "@/pages/_component/useDashboardStats";
 import { resolveDateFnsLocale } from "@/lib/utils/relativeTime";
@@ -73,19 +79,27 @@ export function RecentActivityPage() {
               </span>
               <Select
                 value={service ?? ""}
-                onChange={(event) =>
-                  updateFilters({ service: event.target.value, type })
+                onValueChange={(value) =>
+                  updateFilters({ service: value, type })
                 }
-                aria-label={t("dashboard.activityPage.serviceFilter")}
               >
-                <option value="">
-                  {t("dashboard.activityPage.allServices")}
-                </option>
-                {(data?.available_services ?? []).map((value) => (
-                  <option key={value} value={value}>
-                    {getActivityServiceLabel(t, value)}
-                  </option>
-                ))}
+                <SelectTrigger
+                  aria-label={t("dashboard.activityPage.serviceFilter")}
+                >
+                  <SelectValue
+                    placeholder={t("dashboard.activityPage.allServices")}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    {t("dashboard.activityPage.allServices")}
+                  </SelectItem>
+                  {(data?.available_services ?? []).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {getActivityServiceLabel(t, value)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </label>
 
@@ -95,17 +109,27 @@ export function RecentActivityPage() {
               </span>
               <Select
                 value={type ?? ""}
-                onChange={(event) =>
-                  updateFilters({ service, type: event.target.value })
+                onValueChange={(value) =>
+                  updateFilters({ service, type: value })
                 }
-                aria-label={t("dashboard.activityPage.typeFilter")}
               >
-                <option value="">{t("dashboard.activityPage.allTypes")}</option>
-                {(data?.available_types ?? []).map((value) => (
-                  <option key={value} value={value}>
-                    {getActivityTypeLabel(t, value)}
-                  </option>
-                ))}
+                <SelectTrigger
+                  aria-label={t("dashboard.activityPage.typeFilter")}
+                >
+                  <SelectValue
+                    placeholder={t("dashboard.activityPage.allTypes")}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    {t("dashboard.activityPage.allTypes")}
+                  </SelectItem>
+                  {(data?.available_types ?? []).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {getActivityTypeLabel(t, value)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </label>
           </div>
