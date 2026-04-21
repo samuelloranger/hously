@@ -5,6 +5,7 @@ import {
   type PushSubscription,
 } from "@hously/api/utils/webpush";
 import { sendApnNotifications } from "@hously/api/utils/apnPush";
+import { dispatchToChannel } from "@hously/api/utils/notifications/channelDispatchers";
 import { NOTIFICATION_JOB_NAMES } from "@hously/api/services/queueService";
 
 export interface SilentPushJobData {
@@ -145,6 +146,23 @@ async function processRegularNotificationJob(job: Job<NotificationJobData>) {
           `Deleted ${invalidTokens.length} invalid APNs push tokens for user ${userId}`,
         );
       }
+    }
+  }
+
+  // Dispatch to user-configured channels (provider-agnostic — routed by
+  // dispatchToChannel, which parses `config` at the boundary)
+  const channels = await prisma.notificationChannel.findMany({
+    where: { userId, enabled: true },
+    select: { id: true, type: true, label: true, config: true },
+  });
+  for (const channel of channels) {
+    try {
+      await dispatchToChannel(channel, { title, body, url });
+    } catch (err) {
+      console.error(
+        `[NotificationWorker] Channel ${channel.id} (${channel.type}) failed:`,
+        err,
+      );
     }
   }
 
