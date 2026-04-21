@@ -4,6 +4,7 @@ import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
 import { dispatchToChannel } from "@hously/api/utils/notifications/channelDispatchers";
+import { getBaseUrl } from "@hously/api/config";
 import type { NotificationChannel } from "@hously/shared";
 
 // Add new provider keys here when implementing them.
@@ -142,6 +143,7 @@ export const notificationChannelsRoutes = new Elysia({ prefix: "/channels" })
       await dispatchToChannel(mapChannel(channel), {
         title: "Hously test notification",
         body: "If you see this, your notification channel is working.",
+        url: `${getBaseUrl().replace(/\/$/, "")}/settings?tab=notifications`,
       });
       return { success: true };
     } catch (err) {
