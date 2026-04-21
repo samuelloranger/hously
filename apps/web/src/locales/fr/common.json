@@ -1624,7 +1624,6 @@
     "filters": "Filtres",
     "listView": "Liste",
     "gridView": "Grille",
-    "kanbanView": "Kanban",
     "clearFilters": "Effacer les filtres",
     "sortRatio": "Ratio",
     "sortSize": "Taille",

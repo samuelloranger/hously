@@ -46,7 +46,6 @@ import {
   X,
   List,
   LayoutGrid,
-  Columns3,
   SlidersHorizontal,
   Magnet,
 } from "lucide-react";
@@ -54,7 +53,6 @@ import { cn } from "@/lib/utils";
 import { AddTorrentPanel } from "@/pages/torrents/_component/AddTorrentPanel";
 import { TorrentRow } from "@/pages/torrents/_component/TorrentRow";
 import { TorrentGridCard } from "@/pages/torrents/_component/TorrentGridCard";
-import { TorrentKanbanView } from "@/pages/torrents/_component/TorrentKanbanView";
 import { TorrentFilterSheet } from "@/pages/torrents/_component/TorrentFilterSheet";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUrlState } from "@/lib/app/useUrlState";
@@ -145,9 +143,10 @@ export function TorrentsPage() {
 
   const [searchInput, setSearchInput] = useState(urlState.search);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-  const [viewMode, setViewMode] = usePersistentState<
-    "list" | "grid" | "kanban"
-  >("torrents-view-mode", "list");
+  const [viewMode, setViewMode] = usePersistentState<"list" | "grid">(
+    "torrents-view-mode",
+    "list",
+  );
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const search = urlState.search;
@@ -463,12 +462,7 @@ export function TorrentsPage() {
           <AddTorrentPanel />
 
           {/* List card */}
-          <div
-            className={cn(
-              "rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900",
-              viewMode !== "kanban" && "overflow-hidden",
-            )}
-          >
+          <div className="rounded-2xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 overflow-hidden">
             {/* Row 1: Search (full-width on mobile) + controls */}
             <div className="px-3 pt-3 pb-2.5 flex flex-col sm:flex-row sm:items-center gap-2">
               {/* Search — always full width on mobile */}
@@ -536,11 +530,6 @@ export function TorrentsPage() {
                         mode: "grid",
                         icon: <LayoutGrid size={13} />,
                         title: t("torrents.gridView"),
-                      },
-                      {
-                        mode: "kanban",
-                        icon: <Columns3 size={13} />,
-                        title: t("torrents.kanbanView"),
                       },
                     ] as const
                   ).map(({ mode, icon, title }) => (
@@ -692,7 +681,7 @@ export function TorrentsPage() {
               </div>
             </div>
 
-            {/* Content — switches between list/compact/grid/kanban */}
+            {/* Content — switches between list and grid */}
             {isPending ? (
               /* Skeleton — adapts to current view mode */
               viewMode === "grid" ? (
@@ -709,29 +698,6 @@ export function TorrentsPage() {
                         <div className="h-3 bg-neutral-100 dark:bg-neutral-800 rounded w-1/2" />
                         <div className="h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full mt-3" />
                         <div className="h-2.5 bg-neutral-100 dark:bg-neutral-800 rounded w-2/3" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : viewMode === "kanban" ? (
-                <div className="p-3 flex gap-3 overflow-x-auto">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-64 flex-shrink-0 rounded-2xl border border-neutral-200 dark:border-neutral-700/60 overflow-hidden animate-pulse"
-                      style={{ animationDelay: `${i * 60}ms` }}
-                    >
-                      <div className="h-9 bg-neutral-100 dark:bg-neutral-800" />
-                      <div className="p-2 space-y-2">
-                        {Array.from({ length: 3 }).map((_, j) => (
-                          <div
-                            key={j}
-                            className="rounded-xl border border-neutral-200 dark:border-neutral-700/60 p-2.5 space-y-1.5"
-                          >
-                            <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-4/5" />
-                            <div className="h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full" />
-                          </div>
-                        ))}
                       </div>
                     </div>
                   ))}
@@ -790,17 +756,6 @@ export function TorrentsPage() {
                         />
                       </motion.div>
                     ))}
-                  </motion.div>
-                ) : viewMode === "kanban" ? (
-                  <motion.div
-                    key="kanban"
-                    className="p-3"
-                    initial={{ opacity: 0, x: 16 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -16 }}
-                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                    <TorrentKanbanView torrents={filtered} />
                   </motion.div>
                 ) : (
                   <motion.div
