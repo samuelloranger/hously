@@ -2,7 +2,6 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select } from "@/components/ui/select";
 
 interface FormFieldProps {
   label?: string;
@@ -80,29 +79,3 @@ export const FormTextarea = React.forwardRef<
   );
 });
 FormTextarea.displayName = "FormTextarea";
-
-interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label?: string;
-  error?: string;
-  required?: boolean;
-}
-
-const FormSelect = React.forwardRef<HTMLSelectElement, FormSelectProps>(
-  ({ label, error, required, className, children, ...props }, ref) => {
-    return (
-      <FormField label={label} error={error} required={required}>
-        <Select
-          ref={ref}
-          className={cn(
-            error && "border-red-500 focus:ring-red-500",
-            className,
-          )}
-          {...props}
-        >
-          {children}
-        </Select>
-      </FormField>
-    );
-  },
-);
-FormSelect.displayName = "FormSelect";

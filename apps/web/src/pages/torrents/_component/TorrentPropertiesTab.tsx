@@ -2,7 +2,13 @@ import { useTranslation } from "react-i18next";
 import { Settings2, Check, Tag, X as XIcon } from "lucide-react";
 import type { DashboardQbittorrentTorrentPropertiesResponse } from "@hously/shared/types";
 import { formatBytes } from "@/lib/utils/format";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface TorrentPropertiesTabProps {
   propertiesQuery: {
@@ -155,7 +161,7 @@ export function TorrentPropertiesTab({
                 value={draftName}
                 onChange={(e) => onDraftNameChange(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && onSaveName()}
-                className="flex-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2.5 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
+                className="flex-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 px-3 py-2.5 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-l-primary-500 transition"
               />
               <button
                 onClick={onSaveName}
@@ -175,17 +181,23 @@ export function TorrentPropertiesTab({
             <div className="flex items-center gap-2">
               <Select
                 value={draftCategory}
-                onChange={(e) => onDraftCategoryChange(e.target.value)}
-                className="flex-1"
+                onValueChange={onDraftCategoryChange}
               >
-                <option value="">
-                  {t("torrents.noCategory", "No category")}
-                </option>
-                {categories.map((category) => (
-                  <option key={category.name} value={category.name}>
-                    {category.name}
-                  </option>
-                ))}
+                <SelectTrigger className="flex-1">
+                  <SelectValue
+                    placeholder={t("torrents.noCategory", "No category")}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    {t("torrents.noCategory", "No category")}
+                  </SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.name} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
               <button
                 onClick={onSaveCategory}
@@ -227,24 +239,28 @@ export function TorrentPropertiesTab({
               {availableTags.length > 0 && (
                 <Select
                   value=""
-                  onChange={(e) => {
-                    const selected = e.target.value;
-                    if (!selected) return;
+                  onValueChange={(selected) => {
                     const currentTags = selectedTorrent?.tags ?? [];
                     if (currentTags.includes(selected)) return;
                     onSaveTags([...currentTags, selected]);
                   }}
                 >
-                  <option value="">+ {t("torrents.tags", "Tags")}</option>
-                  {availableTags
-                    .filter(
-                      (tag) => !(selectedTorrent?.tags ?? []).includes(tag),
-                    )
-                    .map((tag) => (
-                      <option key={tag} value={tag}>
-                        {tag}
-                      </option>
-                    ))}
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={`+ ${t("torrents.tags", "Tags")}`}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTags
+                      .filter(
+                        (tag) => !(selectedTorrent?.tags ?? []).includes(tag),
+                      )
+                      .map((tag) => (
+                        <SelectItem key={tag} value={tag}>
+                          {tag}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
                 </Select>
               )}
             </div>
