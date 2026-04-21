@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import type { Prisma } from "@prisma/client";
+import { notificationChannelsRoutes } from "./channels";
 import { normalizeNotificationUrl } from "@hously/shared/utils";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
@@ -719,4 +720,5 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         token: t.String(),
       }),
     },
-  );
+  )
+  .use(notificationChannelsRoutes);
