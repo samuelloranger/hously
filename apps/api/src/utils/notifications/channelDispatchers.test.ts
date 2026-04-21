@@ -1,6 +1,10 @@
 import { describe, it, expect, mock, beforeEach } from "bun:test";
-import { dispatchNtfy, dispatchToChannel } from "./channelDispatchers";
-import type { NtfyChannelConfig, NotificationChannel } from "@hously/shared";
+import {
+  dispatchNtfy,
+  dispatchToChannel,
+  parseNtfyConfig,
+} from "./channelDispatchers";
+import type { NotificationChannel, NtfyChannelConfig } from "@hously/shared";
 
 const payload = {
   title: "Test Title",
@@ -85,17 +89,66 @@ describe("dispatchToChannel", () => {
   });
 
   it("throws on unknown channel type", async () => {
-    const channel = {
-      id: 1,
-      type: "unknown",
-      label: "Bad",
-      config: {},
-      enabled: true,
-      created_at: "",
-      updated_at: "",
-    } as unknown as NotificationChannel;
-    await expect(dispatchToChannel(channel, payload)).rejects.toThrow(
-      "Unknown notification channel type: unknown",
+    await expect(
+      dispatchToChannel({ type: "unknown", label: "Bad", config: {} }, payload),
+    ).rejects.toThrow("Unknown notification channel type: unknown");
+  });
+
+  it("throws when ntfy config is malformed", async () => {
+    await expect(
+      dispatchToChannel(
+        { type: "ntfy", label: "Broken", config: { topic: "x" } },
+        payload,
+      ),
+    ).rejects.toThrow("ntfy config: url is required");
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("parseNtfyConfig", () => {
+  it("returns a typed config when url + topic are present", () => {
+    const parsed = parseNtfyConfig({
+      url: "https://ntfy.example.com",
+      topic: "hously",
+    });
+    expect(parsed).toEqual({
+      url: "https://ntfy.example.com",
+      topic: "hously",
+    });
+  });
+
+  it("carries token and priority through when provided", () => {
+    const parsed = parseNtfyConfig({
+      url: "https://ntfy.example.com",
+      topic: "hously",
+      token: "abc",
+      priority: 4,
+    });
+    expect(parsed).toEqual({
+      url: "https://ntfy.example.com",
+      topic: "hously",
+      token: "abc",
+      priority: 4,
+    });
+  });
+
+  it("rejects non-object input", () => {
+    expect(() => parseNtfyConfig("not an object")).toThrow(
+      "ntfy config must be an object",
     );
+    expect(() => parseNtfyConfig(null)).toThrow(
+      "ntfy config must be an object",
+    );
+    expect(() => parseNtfyConfig([])).toThrow("ntfy config must be an object");
+  });
+
+  it("rejects out-of-range priority", () => {
+    expect(() =>
+      parseNtfyConfig({
+        url: "https://ntfy.example.com",
+        topic: "hously",
+        priority: 9,
+      }),
+    ).toThrow("priority must be an integer from 1 to 5");
   });
 });
