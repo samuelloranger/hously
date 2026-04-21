@@ -5,6 +5,7 @@ export * from "./chores";
 export * from "./calendar";
 export * from "./dashboard";
 export * from "./notification";
+export * from "./notificationChannel";
 export * from "./admin";
 export * from "./integrations";
 export * from "./externalNotifications";
