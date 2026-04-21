@@ -189,7 +189,7 @@ export function TorrentRow({
         {/* Main content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <p className="font-medium text-sm text-neutral-900 dark:text-neutral-100 truncate leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+            <p className="font-medium text-sm text-neutral-900 dark:text-neutral-100 truncate leading-snug group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
               {torrent.name}
             </p>
 

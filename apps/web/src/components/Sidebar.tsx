@@ -160,7 +160,7 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
                         size={18}
                         className={cn(
                           "relative z-10",
-                          isActive && "text-indigo-600 dark:text-indigo-400",
+                          isActive && "text-primary-600 dark:text-primary-400",
                         )}
                       />
                       <span className="relative z-10">

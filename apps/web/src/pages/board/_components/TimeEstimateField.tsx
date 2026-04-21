@@ -39,7 +39,7 @@ export function TimeEstimateField({
             if (e.key === "Escape") cancel();
           }}
           placeholder="e.g. 2h 30m"
-          className="w-28 rounded border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs outline-none focus:border-indigo-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+          className="w-28 rounded border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs outline-none focus:border-primary-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
         />
         <button
           onClick={commit}
@@ -60,7 +60,7 @@ export function TimeEstimateField({
   return (
     <button
       onClick={startEdit}
-      className="flex items-center gap-1.5 text-sm text-neutral-700 hover:text-indigo-600 dark:text-neutral-300 dark:hover:text-indigo-400"
+      className="flex items-center gap-1.5 text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral-300 dark:hover:text-primary-400"
     >
       {estimatedMinutes ? (
         formatMinutes(estimatedMinutes)

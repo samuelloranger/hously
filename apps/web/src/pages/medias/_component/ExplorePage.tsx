@@ -19,7 +19,7 @@ export function ExplorePage() {
     <PageLayout>
       <PageHeader
         icon={Compass}
-        iconColor="text-indigo-600"
+        iconColor="text-primary-600"
         title={t("medias.explore.pageTitle")}
         subtitle={t("medias.explore.pageSubtitle")}
         onRefresh={handleRefresh}

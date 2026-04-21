@@ -238,7 +238,7 @@ export function LibraryMediaSection({
                                 ? "bg-emerald-500"
                                 : noneDone
                                   ? "bg-neutral-300 dark:bg-neutral-700"
-                                  : "bg-indigo-500",
+                                  : "bg-primary-500",
                             )}
                             style={{
                               width: `${Math.max(progress * 100, noneDone ? 0 : 4)}%`,
@@ -298,7 +298,7 @@ export function LibraryMediaSection({
                             "library.management.searchSeasonManual",
                             "Browse torrents for this season",
                           )}
-                          className="rounded-md p-2.5 mobile-max:px-3 mobile-max:py-3 text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                          className="rounded-md p-2.5 mobile-max:px-3 mobile-max:py-3 text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/30 transition-colors"
                         >
                           <Search size={14} className="mobile-max:size-3" />
                         </button>

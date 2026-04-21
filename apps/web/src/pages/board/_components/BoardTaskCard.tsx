@@ -93,7 +93,7 @@ export function BoardTaskCard({
       className={cn(
         "group cursor-pointer rounded-lg border bg-white p-3 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing dark:bg-neutral-800",
         isSelected
-          ? "border-indigo-400 ring-1 ring-indigo-300/80 dark:border-indigo-500 dark:ring-indigo-600/50"
+          ? "border-primary-400 ring-1 ring-primary-300/80 dark:border-primary-500 dark:ring-primary-600/50"
           : "border-neutral-200/90 dark:border-neutral-600/60 dark:hover:border-neutral-500/60",
       )}
     >
@@ -109,7 +109,7 @@ export function BoardTaskCard({
             }}
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
-            className="h-3.5 w-3.5 shrink-0 rounded border-neutral-300 text-indigo-600 focus:ring-indigo-500 dark:border-neutral-600"
+            className="h-3.5 w-3.5 shrink-0 rounded border-neutral-300 text-primary-600 focus:ring-primary-500 dark:border-neutral-600"
             aria-label={t("board.bulk.selectTask")}
           />
           <span className="truncate font-mono text-[10px] font-semibold text-neutral-400 dark:text-neutral-500">
@@ -224,7 +224,7 @@ export function BoardTaskCard({
           ) : initials ? (
             <span
               title={task.assignee_name ?? ""}
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-[9px] font-bold text-indigo-600 ring-1 ring-white dark:bg-indigo-900/40 dark:text-indigo-400 dark:ring-neutral-800"
+              className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-600 ring-1 ring-white dark:bg-primary-900/40 dark:text-primary-400 dark:ring-neutral-800"
             >
               {initials}
             </span>

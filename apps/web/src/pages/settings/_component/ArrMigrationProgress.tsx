@@ -37,7 +37,7 @@ export function ArrMigrationProgress({
         </div>
         <div className="h-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
           <div
-            className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+            className="h-full rounded-full bg-primary-500 transition-all duration-500"
             style={{ width: `${pct}%` }}
           />
         </div>

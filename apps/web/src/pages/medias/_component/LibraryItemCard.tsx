@@ -109,7 +109,7 @@ export function LibraryItemCard({
                   onMovieSearch(item.id);
                 }}
                 disabled={movieSearchPending}
-                className="mt-0.5 w-full rounded-lg bg-indigo-600/90 hover:bg-indigo-600 disabled:opacity-50 text-white text-[10px] font-medium py-1 flex items-center justify-center gap-1 transition-colors"
+                className="mt-0.5 w-full rounded-lg bg-primary-600/90 hover:bg-primary-600 disabled:opacity-50 text-white text-[10px] font-medium py-1 flex items-center justify-center gap-1 transition-colors"
               >
                 <Search size={10} />
                 {t("library.management.searchNow")}

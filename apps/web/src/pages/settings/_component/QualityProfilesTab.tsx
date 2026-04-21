@@ -94,7 +94,7 @@ export function QualityProfilesTab() {
                   className={cn(
                     "rounded-lg border px-4 py-3 flex items-start justify-between gap-4 transition-colors",
                     editingId === p.id
-                      ? "border-indigo-200 bg-indigo-50/50 dark:border-indigo-700/50 dark:bg-indigo-500/5"
+                      ? "border-primary-200 bg-primary-50/50 dark:border-primary-700/50 dark:bg-primary-500/5"
                       : "border-neutral-100 dark:border-neutral-700/60 hover:border-neutral-200 dark:hover:border-neutral-600",
                   )}
                 >
@@ -122,7 +122,7 @@ export function QualityProfilesTab() {
                       {p.preferred_sources.map((s) => (
                         <span
                           key={s}
-                          className="rounded-md bg-indigo-50 dark:bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-medium text-indigo-600 dark:text-indigo-400"
+                          className="rounded-md bg-primary-50 dark:bg-primary-500/10 px-1.5 py-0.5 text-[10px] font-medium text-primary-600 dark:text-primary-400"
                         >
                           {s}
                         </span>
@@ -160,7 +160,7 @@ export function QualityProfilesTab() {
                       className={cn(
                         "rounded-md p-1.5 transition-colors",
                         editingId === p.id
-                          ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400"
+                          ? "bg-primary-100 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400"
                           : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300",
                       )}
                       title={t("settings.qualityProfiles.edit")}

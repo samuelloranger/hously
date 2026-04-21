@@ -44,7 +44,7 @@ export function CreateTaskForm({
             if (e.key === "Escape") onClose();
           }}
           placeholder={t("board.newTaskPlaceholder")}
-          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
         />
       </div>
       <div className="w-full sm:w-44">
@@ -67,7 +67,7 @@ export function CreateTaskForm({
         <Button
           onClick={onCreate}
           disabled={isPending || !newTitle.trim()}
-          className="shrink-0 bg-indigo-600 hover:bg-indigo-700"
+          className="shrink-0 bg-primary-600 hover:bg-primary-700"
         >
           <Plus className="mr-1.5 h-4 w-4" />
           {t("board.addTask")}

@@ -104,7 +104,7 @@ export function TagManagerModal({ isOpen, onClose }: TagManagerModalProps) {
             return (
               <div
                 key={tag.id}
-                className="flex flex-col gap-2 rounded-lg border border-indigo-200 bg-indigo-50/50 p-3 dark:border-indigo-700/40 dark:bg-indigo-900/10"
+                className="flex flex-col gap-2 rounded-lg border border-primary-200 bg-primary-50/50 p-3 dark:border-primary-700/40 dark:bg-primary-900/10"
               >
                 <input
                   autoFocus
@@ -114,7 +114,7 @@ export function TagManagerModal({ isOpen, onClose }: TagManagerModalProps) {
                     if (e.key === "Enter") commitEdit(tag.id);
                     if (e.key === "Escape") cancelEdit();
                   }}
-                  className="rounded-md border border-neutral-200 bg-white px-2 py-1 text-sm outline-none focus:border-indigo-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
+                  className="rounded-md border border-neutral-200 bg-white px-2 py-1 text-sm outline-none focus:border-primary-400 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white"
                 />
                 {/* Color swatches */}
                 <div className="flex flex-wrap gap-1.5">
@@ -148,7 +148,7 @@ export function TagManagerModal({ isOpen, onClose }: TagManagerModalProps) {
                     size="sm"
                     onClick={() => commitEdit(tag.id)}
                     disabled={updateTag.isPending}
-                    className="h-7 bg-indigo-600 px-3 text-xs hover:bg-indigo-700"
+                    className="h-7 bg-primary-600 px-3 text-xs hover:bg-primary-700"
                   >
                     <Check className="mr-1 h-3 w-3" /> Save
                   </Button>

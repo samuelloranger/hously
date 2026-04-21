@@ -125,14 +125,14 @@ export function BoardToolbar({
         className={cn(
           "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
           hasActiveFilters
-            ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-700/60 dark:bg-indigo-900/20 dark:text-indigo-300"
+            ? "border-primary-300 bg-primary-50 text-primary-700 dark:border-primary-700/60 dark:bg-primary-900/20 dark:text-primary-300"
             : "border-neutral-200/80 bg-white text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700/60 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700/60",
         )}
       >
         <Filter className="h-3.5 w-3.5" />
         Filters
         {hasActiveFilters && (
-          <span className="rounded-full bg-indigo-600 px-1.5 py-px text-[10px] text-white">
+          <span className="rounded-full bg-primary-600 px-1.5 py-px text-[10px] text-white">
             {activeFilterCount}
           </span>
         )}
@@ -141,7 +141,7 @@ export function BoardToolbar({
       {/* Add task */}
       <Button
         onClick={onCreateToggle}
-        className="h-8 gap-1.5 bg-indigo-600 px-3 text-xs hover:bg-indigo-700"
+        className="h-8 gap-1.5 bg-primary-600 px-3 text-xs hover:bg-primary-700"
       >
         <Plus className="h-3.5 w-3.5" />
         {t("board.newTask", "New task")}

@@ -51,7 +51,7 @@ export function ReleaseCard({
                 href={release.info_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition-colors hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
+                className="transition-colors hover:text-primary-600 hover:underline dark:hover:text-primary-400"
               >
                 <BreakableTitle text={release.title} />
               </a>
@@ -82,7 +82,7 @@ export function ReleaseCard({
               </span>
             )}
             {release.parsed_quality && (
-              <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200">
+              <span className="inline-flex items-center rounded-md bg-primary-50 px-2 py-0.5 text-[10px] font-medium text-primary-800 dark:bg-primary-950/40 dark:text-primary-200">
                 {[
                   release.parsed_quality.resolution
                     ? `${release.parsed_quality.resolution}p`
@@ -162,7 +162,7 @@ export function ReleaseCard({
           onClick={onDownload}
           disabled={grabDisabled}
           style={{ touchAction: "manipulation" }}
-          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-primary-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           <Download size={11} strokeWidth={2.5} />
           {isDownloading

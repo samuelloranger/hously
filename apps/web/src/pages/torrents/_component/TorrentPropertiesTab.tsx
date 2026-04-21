@@ -166,7 +166,7 @@ export function TorrentPropertiesTab({
               <button
                 onClick={onSaveName}
                 disabled={isRenamePending || draftName.trim().length === 0}
-                className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:pointer-events-none transition-colors shrink-0"
+                className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-primary-600 hover:bg-primary-500 text-white disabled:opacity-40 disabled:pointer-events-none transition-colors shrink-0"
               >
                 <Check size={14} />
               </button>
@@ -202,7 +202,7 @@ export function TorrentPropertiesTab({
               <button
                 onClick={onSaveCategory}
                 disabled={isCategoryPending}
-                className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:pointer-events-none transition-colors shrink-0"
+                className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-primary-600 hover:bg-primary-500 text-white disabled:opacity-40 disabled:pointer-events-none transition-colors shrink-0"
               >
                 <Check size={14} />
               </button>

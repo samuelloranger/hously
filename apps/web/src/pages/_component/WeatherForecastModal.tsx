@@ -234,7 +234,7 @@ export function WeatherForecastModal({
   const condKey = getWeatherConditionKey(dominantCode);
   const headerGradient =
     condKey === "clearSky" || condKey === "partlyCloudy"
-      ? "from-sky-400 via-blue-500 to-indigo-600"
+      ? "from-sky-400 via-blue-500 to-primary-600"
       : condKey === "rain" ||
           condKey === "drizzle" ||
           condKey === "freezingRain"
@@ -245,7 +245,7 @@ export function WeatherForecastModal({
             ? "from-sky-200 via-blue-300 to-slate-400"
             : condKey === "foggy"
               ? "from-zinc-400 via-zinc-500 to-zinc-600"
-              : "from-sky-500 via-blue-600 to-indigo-700";
+              : "from-sky-500 via-blue-600 to-primary-700";
 
   const PORTAL_ID = "hously-dialog-root";
 

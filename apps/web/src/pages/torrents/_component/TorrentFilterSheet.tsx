@@ -108,7 +108,7 @@ export function TorrentFilterSheet({
               <button
                 type="button"
                 onClick={onClearAll}
-                className="text-xs text-indigo-600 dark:text-indigo-400 font-medium"
+                className="text-xs text-primary-600 dark:text-primary-400 font-medium"
               >
                 {t("torrents.clearFilters", "Clear all")}
               </button>
@@ -146,7 +146,7 @@ export function TorrentFilterSheet({
                     className={cn(
                       "flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all border",
                       active
-                        ? "bg-indigo-600 text-white border-indigo-600"
+                        ? "bg-primary-600 text-white border-primary-600"
                         : "bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700",
                     )}
                   >
@@ -217,7 +217,7 @@ export function TorrentFilterSheet({
                       className={cn(
                         "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-all",
                         selected
-                          ? "bg-indigo-600 text-white border-indigo-600"
+                          ? "bg-primary-600 text-white border-primary-600"
                           : "bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700",
                       )}
                     >
@@ -247,7 +247,7 @@ export function TorrentFilterSheet({
                       className={cn(
                         "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-all",
                         selected
-                          ? "bg-indigo-600 text-white border-indigo-600"
+                          ? "bg-primary-600 text-white border-primary-600"
                           : "bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700",
                       )}
                     >
@@ -266,7 +266,7 @@ export function TorrentFilterSheet({
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-3.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-500 active:bg-indigo-700 transition-colors"
+            className="w-full py-3.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-500 active:bg-primary-700 transition-colors"
           >
             {t("torrents.applyFilters", "Show results")}
           </button>

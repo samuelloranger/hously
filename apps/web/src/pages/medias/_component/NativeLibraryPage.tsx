@@ -141,7 +141,7 @@ export function NativeLibraryPage() {
     <PageLayout>
       <PageHeader
         icon={Film}
-        iconColor="text-indigo-600"
+        iconColor="text-primary-600"
         title={t("medias.library.pageTitle")}
         subtitle={t("medias.library.pageSubtitle")}
         onRefresh={() => refetch()}
@@ -166,7 +166,7 @@ export function NativeLibraryPage() {
                   })
                 }
                 placeholder={t("medias.library.searchPlaceholder")}
-                className="w-full max-w-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
+                className="w-full max-w-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
               />
             </div>
 
@@ -234,7 +234,7 @@ export function NativeLibraryPage() {
                   onChange={(e) =>
                     setState({ language: e.target.value, page: 1 })
                   }
-                  className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-500 transition"
+                  className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
                 >
                   <option value="all">{t("medias.library.languageAll")}</option>
                   {languageTags.map((tag) => (
@@ -254,7 +254,7 @@ export function NativeLibraryPage() {
               onChange={(e) =>
                 setState({ sortBy: e.target.value as SortKey, page: 1 })
               }
-              className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition"
+              className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition"
             >
               {LIBRARY_SORT_KEYS.map((key) => (
                 <option key={key} value={key}>

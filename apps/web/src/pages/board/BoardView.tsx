@@ -124,7 +124,7 @@ export function BoardView() {
     <PageLayout>
       <PageHeader
         icon={LayoutGrid}
-        iconColor="text-indigo-600"
+        iconColor="text-primary-600"
         title={t("board.title")}
         subtitle={t("board.subtitle")}
       />

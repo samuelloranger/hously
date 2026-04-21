@@ -25,7 +25,7 @@ export function TimeLogHistory({ taskId }: { taskId: number }) {
                 className="h-5 w-5 shrink-0 rounded-full object-cover"
               />
             ) : (
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[9px] font-bold text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-600 dark:bg-primary-900/40 dark:text-primary-400">
                 {initials}
               </span>
             )}

@@ -38,7 +38,7 @@ function CredentialInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoComplete="off"
-        className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:ring-1 focus:ring-primary-500"
       />
     </div>
   );
@@ -96,7 +96,7 @@ export function ArrLibraryImportPanel() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-              <Download size={14} className="text-indigo-500" />
+              <Download size={14} className="text-primary-500" />
               {t("settings.arrImport.title")}
             </p>
             <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
@@ -106,7 +106,7 @@ export function ArrLibraryImportPanel() {
           {isRunning && (
             <Loader2
               size={16}
-              className="text-indigo-500 animate-spin shrink-0"
+              className="text-primary-500 animate-spin shrink-0"
             />
           )}
           {isDone && !isRunning && (
@@ -135,7 +135,7 @@ export function ArrLibraryImportPanel() {
                     className={cn(
                       "flex-1 px-3 py-1.5 text-xs font-medium transition-colors capitalize",
                       source === s
-                        ? "bg-indigo-600 text-white"
+                        ? "bg-primary-600 text-white"
                         : "bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800",
                     )}
                   >
@@ -197,7 +197,7 @@ export function ArrLibraryImportPanel() {
               type="button"
               onClick={() => void handleStart()}
               disabled={startMigration.isPending || !canStart}
-              className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2.5 transition-colors"
+              className="w-full rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white text-xs font-semibold py-2.5 transition-colors"
             >
               {startMigration.isPending
                 ? t("settings.arrImport.starting")
@@ -225,7 +225,7 @@ export function ArrLibraryImportPanel() {
             <button
               type="button"
               onClick={() => void handleStart()}
-              className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2.5 transition-colors"
+              className="w-full rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold py-2.5 transition-colors"
             >
               {t("settings.arrImport.retry")}
             </button>

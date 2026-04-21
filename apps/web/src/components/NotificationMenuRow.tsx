@@ -29,7 +29,7 @@ const typeConfig: Record<NotificationType, { icon: ReactNode; bg: string }> = {
   },
   service_monitor: {
     icon: <Monitor size={16} />,
-    bg: "bg-indigo-100 dark:bg-indigo-900/30",
+    bg: "bg-primary-100 dark:bg-primary-900/30",
   },
   chore: {
     icon: <CheckCircle size={16} />,
