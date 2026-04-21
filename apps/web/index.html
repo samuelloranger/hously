@@ -21,11 +21,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Hously" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#4F46E5" />
-    <meta name="msapplication-navbutton-color" content="#4F46E5" />
+    <meta name="theme-color" content="#22C55E" />
+    <meta name="msapplication-navbutton-color" content="#22C55E" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
     />
 
     <!-- Apple Touch Icons for iOS and macOS -->
@@ -46,14 +54,11 @@
     <script>
       (function () {
         const theme = localStorage.getItem("theme");
-        if (
-          theme === "dark" ||
-          (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)
-        ) {
+        if (theme === "light") {
+          document.documentElement.style.colorScheme = "light";
+        } else {
           document.documentElement.classList.add("dark");
           document.documentElement.style.colorScheme = "dark";
-        } else {
-          document.documentElement.style.colorScheme = "light";
         }
       })();
     </script>
@@ -61,11 +66,10 @@
     <!-- Prevent flash of unstyled content -->
     <style>
       html {
-        background-color: #f9fafb;
+        background-color: #0f172a;
       }
       html.dark {
-        /* background-color: #111827; */
-        background-color: oklch(0.205 0 0);
+        background-color: #0f172a;
       }
     </style>
 

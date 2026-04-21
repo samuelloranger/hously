@@ -6,10 +6,10 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: "#eef2ff",
-          500: "#6366f1",
-          600: "#4f46e5",
-          700: "#4338ca",
+          50: "#f0fdf4",
+          500: "#22c55e",
+          600: "#16a34a",
+          700: "#15803d",
         },
       },
       screens: {
