@@ -42,6 +42,8 @@ export interface SlackChannelConfig {
 
 export interface WebhookChannelConfig {
   url: string;
+  method?: "GET" | "POST";
+  body_template?: string;
 }
 
 // Discriminated union of all supported provider configs. When adding a new

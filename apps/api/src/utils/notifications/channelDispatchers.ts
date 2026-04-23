@@ -330,28 +330,68 @@ export function parseWebhookConfig(raw: unknown): WebhookChannelConfig {
   if (!isRecord(raw)) {
     throw new Error("webhook config must be an object");
   }
-  const { url } = raw;
+  const { url, method, body_template } = raw;
 
   if (typeof url !== "string" || url.length === 0) {
     throw new Error("webhook config: url is required");
   }
+  if (method !== undefined && method !== "GET" && method !== "POST") {
+    throw new Error("webhook config: method must be GET or POST");
+  }
+  if (body_template !== undefined) {
+    if (
+      typeof body_template !== "string" ||
+      body_template.trim().length === 0
+    ) {
+      throw new Error(
+        "webhook config: body_template must be a non-empty string",
+      );
+    }
+    // Replace {{...}} placeholders with a bare word to validate JSON structure.
+    // Using "" would double-quote vars already inside strings ("{{x}}" → """""").
+    const sanitized = body_template.replace(/\{\{[^}]+\}\}/g, "placeholder");
+    try {
+      JSON.parse(sanitized);
+    } catch {
+      throw new Error("webhook config: body_template must be valid JSON");
+    }
+  }
 
-  return { url };
+  const parsed: WebhookChannelConfig = { url };
+  if (method !== undefined) parsed.method = method as "GET" | "POST";
+  if (body_template !== undefined) parsed.body_template = body_template;
+  return parsed;
+}
+
+function substituteVars(
+  template: string,
+  vars: Record<string, string>,
+): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? "");
 }
 
 export async function dispatchWebhook(
   config: WebhookChannelConfig,
   { title, body, url }: DispatchPayload,
 ): Promise<void> {
-  const payload: Record<string, unknown> = { title, body };
-  if (url) payload.url = url;
+  const vars = { title, body, url: url ?? "" };
+  const method = config.method ?? "POST";
+  const resolvedUrl = substituteVars(config.url, vars);
 
-  const res = await fetch(config.url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(10_000),
-  });
+  const init: RequestInit = { method, signal: AbortSignal.timeout(10_000) };
+
+  if (method === "POST") {
+    init.headers = { "Content-Type": "application/json" };
+    if (config.body_template) {
+      init.body = substituteVars(config.body_template, vars);
+    } else {
+      const payload: Record<string, unknown> = { title, body };
+      if (url) payload.url = url;
+      init.body = JSON.stringify(payload);
+    }
+  }
+
+  const res = await fetch(resolvedUrl, init);
   if (!res.ok) throw new Error(`webhook ${res.status}: ${await res.text()}`);
 }
 

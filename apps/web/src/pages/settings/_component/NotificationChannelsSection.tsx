@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -61,7 +62,7 @@ function emptyConfig(type: NotificationChannelType): NotificationChannelConfig {
     case "slack":
       return { webhook_url: "" };
     case "webhook":
-      return { url: "" };
+      return { url: "", method: "POST" as const, body_template: undefined };
     default: {
       const _exhaustive: never = type;
       throw new Error(`Unknown channel type: ${_exhaustive}`);
@@ -234,15 +235,66 @@ function ConfigFields({ type, config, onChange }: ConfigFieldsProps) {
     case "webhook": {
       const cfg = config as WebhookChannelConfig;
       return (
-        <div>
-          <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-            URL
-          </h3>
-          <Input
-            value={cfg.url}
-            onChange={(e) => onChange({ ...cfg, url: e.target.value })}
-            placeholder="https://your-server.example.com/webhook"
-          />
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              URL{" "}
+              <span className="font-normal text-neutral-500">
+                (supports <code>{"{{title}}"}</code>, <code>{"{{body}}"}</code>,{" "}
+                <code>{"{{url}}"}</code>)
+              </span>
+            </h3>
+            <Input
+              value={cfg.url}
+              onChange={(e) => onChange({ ...cfg, url: e.target.value })}
+              placeholder="https://your-server.example.com/webhook?msg={{body}}"
+            />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              Method
+            </h3>
+            <Select
+              value={cfg.method ?? "POST"}
+              onValueChange={(v) =>
+                onChange({
+                  ...cfg,
+                  method: v as "GET" | "POST",
+                  body_template: v === "GET" ? undefined : cfg.body_template,
+                })
+              }
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="POST">POST</SelectItem>
+                <SelectItem value="GET">GET</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {(cfg.method ?? "POST") === "POST" && (
+            <div>
+              <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                Body template{" "}
+                <span className="font-normal text-neutral-500">
+                  (optional — must be valid JSON)
+                </span>
+              </h3>
+              <Textarea
+                value={cfg.body_template ?? ""}
+                onChange={(e) =>
+                  onChange({
+                    ...cfg,
+                    body_template: e.target.value || undefined,
+                  })
+                }
+                placeholder={'{"message": "{{body}}", "subject": "{{title}}"}'}
+                rows={3}
+                className="font-mono text-xs"
+              />
+            </div>
+          )}
         </div>
       );
     }

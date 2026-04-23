@@ -704,15 +704,15 @@ describe("parsePushoverConfig", () => {
   });
 
   it("rejects empty token", () => {
-    expect(() =>
-      parsePushoverConfig({ token: "", user: "usr" }),
-    ).toThrow("pushover config: token is required");
+    expect(() => parsePushoverConfig({ token: "", user: "usr" })).toThrow(
+      "pushover config: token is required",
+    );
   });
 
   it("rejects missing user", () => {
-    expect(() =>
-      parsePushoverConfig({ token: "tok" }),
-    ).toThrow("pushover config: user is required");
+    expect(() => parsePushoverConfig({ token: "tok" })).toThrow(
+      "pushover config: user is required",
+    );
   });
 
   it("rejects out-of-range priority", () => {
@@ -814,7 +814,7 @@ describe("dispatchWebhook", () => {
     url: "https://my-server.example.com/notify",
   };
 
-  it("POSTs to the configured URL", async () => {
+  it("defaults to POST and sends title/body/url as JSON", async () => {
     await dispatchWebhook(config, payload);
     const [url, init] = mockFetch.mock.calls[0] as unknown as [
       string,
@@ -822,30 +822,13 @@ describe("dispatchWebhook", () => {
     ];
     expect(url).toBe("https://my-server.example.com/notify");
     expect(init.method).toBe("POST");
-  });
-
-  it("sends title and body in JSON payload", async () => {
-    await dispatchWebhook(config, payload);
-    const [, init] = mockFetch.mock.calls[0] as unknown as [
-      string,
-      RequestInit,
-    ];
     const body = JSON.parse(init.body as string);
     expect(body.title).toBe("Test Title");
     expect(body.body).toBe("Test body");
-  });
-
-  it("includes url when click URL is provided", async () => {
-    await dispatchWebhook(config, payload);
-    const [, init] = mockFetch.mock.calls[0] as unknown as [
-      string,
-      RequestInit,
-    ];
-    const body = JSON.parse(init.body as string);
     expect(body.url).toBe("https://example.com");
   });
 
-  it("omits url when no click URL is provided", async () => {
+  it("omits url field in body when no click URL provided", async () => {
     await dispatchWebhook(config, { title: "T", body: "B" });
     const [, init] = mockFetch.mock.calls[0] as unknown as [
       string,
@@ -853,6 +836,83 @@ describe("dispatchWebhook", () => {
     ];
     const body = JSON.parse(init.body as string);
     expect(body.url).toBeUndefined();
+  });
+
+  it("sends GET with no body and substitutes URL template vars", async () => {
+    await dispatchWebhook(
+      {
+        url: "https://my-server.example.com/alert?msg={{body}}&title={{title}}",
+        method: "GET",
+      },
+      payload,
+    );
+    const [url, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe(
+      "https://my-server.example.com/alert?msg=Test+body&title=Test+Title"
+        // template substitution is literal, not URL-encoded
+        .replace("Test+body", "Test body")
+        .replace("Test+Title", "Test Title"),
+    );
+    expect(init.method).toBe("GET");
+    expect(init.body).toBeUndefined();
+  });
+
+  it("substitutes URL template vars for GET requests", async () => {
+    await dispatchWebhook(
+      { url: "https://example.com/ping?msg={{body}}", method: "GET" },
+      { title: "T", body: "Hello world" },
+    );
+    const [url] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://example.com/ping?msg=Hello world");
+  });
+
+  it("uses body_template for POST when provided", async () => {
+    await dispatchWebhook(
+      {
+        ...config,
+        body_template: '{"message": "{{body}}", "subject": "{{title}}"}',
+      },
+      payload,
+    );
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.message).toBe("Test body");
+    expect(body.subject).toBe("Test Title");
+  });
+
+  it("substitutes {{url}} in body_template", async () => {
+    await dispatchWebhook(
+      {
+        ...config,
+        body_template: '{"text": "{{body}}", "link": "{{url}}"}',
+      },
+      payload,
+    );
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.link).toBe("https://example.com");
+  });
+
+  it("substitutes {{url}} as empty string when no click URL provided", async () => {
+    await dispatchWebhook(
+      { ...config, body_template: '{"link": "{{url}}"}' },
+      { title: "T", body: "B" },
+    );
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.link).toBe("");
   });
 
   it("throws on non-ok HTTP response", async () => {
@@ -873,6 +933,16 @@ describe("parseWebhookConfig", () => {
     expect(parsed).toEqual({ url: "https://my-server.example.com/notify" });
   });
 
+  it("carries method and body_template through when provided", () => {
+    const parsed = parseWebhookConfig({
+      url: "https://example.com/hook",
+      method: "GET",
+      body_template: '{"msg": "{{body}}"}',
+    });
+    expect(parsed.method).toBe("GET");
+    expect(parsed.body_template).toBe('{"msg": "{{body}}"}');
+  });
+
   it("rejects non-object input", () => {
     expect(() => parseWebhookConfig(null)).toThrow(
       "webhook config must be an object",
@@ -889,5 +959,29 @@ describe("parseWebhookConfig", () => {
     expect(() => parseWebhookConfig({ url: "" })).toThrow(
       "webhook config: url is required",
     );
+  });
+
+  it("rejects invalid method", () => {
+    expect(() =>
+      parseWebhookConfig({ url: "https://example.com", method: "DELETE" }),
+    ).toThrow("webhook config: method must be GET or POST");
+  });
+
+  it("rejects body_template that is not valid JSON", () => {
+    expect(() =>
+      parseWebhookConfig({
+        url: "https://example.com",
+        body_template: "not json {{body}}",
+      }),
+    ).toThrow("webhook config: body_template must be valid JSON");
+  });
+
+  it("accepts body_template with {{...}} placeholders in valid JSON structure", () => {
+    expect(() =>
+      parseWebhookConfig({
+        url: "https://example.com",
+        body_template: '{"message": "{{body}}", "title": "{{title}}"}',
+      }),
+    ).not.toThrow();
   });
 });
