@@ -4,9 +4,9 @@
  */
 
 import { prisma } from "@hously/api/db";
-import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
+import { normalizeTmdbConfig } from "@hously/api/utils/integrations/normalizers";
 import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdbFetchers";
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -15,9 +15,9 @@ export function sortTitleFromName(name: string): string {
 }
 
 export async function getLibraryTmdbApiKey(): Promise<string | null> {
-  const plugin = await getPluginConfigRecord("tmdb");
-  if (!plugin?.enabled) return null;
-  const cfg = normalizeTmdbConfig(plugin.config);
+  const integration = await getIntegrationConfigRecord("tmdb");
+  if (!integration?.enabled) return null;
+  const cfg = normalizeTmdbConfig(integration.config);
   return cfg?.api_key ?? null;
 }
 

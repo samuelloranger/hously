@@ -3,7 +3,7 @@ import {
   parseMonitorStatus,
   summariseMonitors,
   type UptimekumaMonitor,
-} from "../utils/plugins/uptimekuma";
+} from "../utils/integrations/uptimekuma";
 
 const SAMPLE = `
 # HELP monitor_cert_is_valid Is the certificate still valid? (1 = Yes, 0= No)

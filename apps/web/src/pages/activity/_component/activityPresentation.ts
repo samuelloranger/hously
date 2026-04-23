@@ -54,7 +54,7 @@ const TYPE_LABEL_KEYS: Record<string, string> = {
   chore_completed: "dashboard.activityPage.types.chore_completed",
   shopping_completed: "dashboard.activityPage.types.shopping_completed",
   habit_completed: "dashboard.activityPage.types.habit_completed",
-  plugin_updated: "dashboard.activityPage.types.plugin_updated",
+  integration_updated: "dashboard.activityPage.types.integration_updated",
   cron_job_ended: "dashboard.activityPage.types.cron_job_ended",
   cron_job_skipped: "dashboard.activityPage.types.cron_job_skipped",
   app_updated: "dashboard.activityPage.types.app_updated",
@@ -193,15 +193,15 @@ export function getActivityPresentation(
     };
   }
 
-  if (type === "plugin_updated") {
+  if (type === "integration_updated") {
     const time =
       formatRelativeTime(activity.completed_at ?? null, { locale }) ?? "";
-    const pluginType =
-      activity.plugin_type || t("dashboard.activity.unknownPlugin");
+    const integrationType =
+      activity.integration_type || t("dashboard.activity.unknownIntegration");
     return {
       Icon: Plug,
-      description: t("dashboard.activity.pluginUpdated", {
-        plugin: pluginType,
+      description: t("dashboard.activity.integrationUpdated", {
+        integration: integrationType,
       }),
       time,
       type,

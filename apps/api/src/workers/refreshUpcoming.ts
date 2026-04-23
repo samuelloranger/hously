@@ -1,5 +1,5 @@
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
-import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
+import { normalizeTmdbConfig } from "@hously/api/utils/integrations/normalizers";
 import {
   collectTmdbUpcoming,
   fetchMovieReleaseDates,
@@ -45,14 +45,14 @@ export const refreshUpcoming = async (options?: {
   const startedAt = Date.now();
 
   try {
-    const tmdbPlugin = await getPluginConfigRecord("tmdb");
-    const tmdbConfig = tmdbPlugin?.enabled
-      ? normalizeTmdbConfig(tmdbPlugin.config)
+    const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
+    const tmdbConfig = tmdbIntegration?.enabled
+      ? normalizeTmdbConfig(tmdbIntegration.config)
       : null;
     const tmdbApiKey = tmdbConfig?.api_key ?? null;
 
     if (!tmdbApiKey) {
-      console.log("[cron:upcoming] TMDB plugin not configured, skipping");
+      console.log("[cron:upcoming] TMDB integration not configured, skipping");
       return;
     }
 

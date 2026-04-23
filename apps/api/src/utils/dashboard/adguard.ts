@@ -1,5 +1,5 @@
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
-import { normalizeAdguardConfig } from "@hously/api/utils/plugins/normalizers";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
+import { normalizeAdguardConfig } from "@hously/api/utils/integrations/normalizers";
 import { toNumberOrNull, toRecord, toStringOrNull } from "@hously/shared/utils";
 import type {
   DashboardAdguardSummaryResponse,
@@ -76,17 +76,17 @@ const parseTopEntries = (value: unknown): DashboardAdguardTopEntry[] => {
 
 export const fetchAdguardSummary =
   async (): Promise<DashboardAdguardSummaryResponse> => {
-    const plugin = await getPluginConfigRecord("adguard");
+    const integration = await getIntegrationConfigRecord("adguard");
 
-    if (!plugin?.enabled) {
+    if (!integration?.enabled) {
       return buildAdguardDisabledSummary();
     }
 
-    const config = normalizeAdguardConfig(plugin.config);
+    const config = normalizeAdguardConfig(integration.config);
     if (!config) {
       return {
         ...buildAdguardDisabledSummary(
-          "AdGuard Home plugin is enabled but not configured",
+          "AdGuard Home integration is enabled but not configured",
         ),
         enabled: true,
       };

@@ -1,9 +1,9 @@
-import { isValidHttpUrl } from "@hously/api/utils/plugins/utils";
+import { isValidHttpUrl } from "@hously/api/utils/integrations/utils";
 import {
   haDomainFromEntityId,
   normalizeHaBaseUrl,
   type HaAllowedDomain,
-} from "@hously/api/utils/plugins/homeAssistantUtils";
+} from "@hously/api/utils/integrations/homeAssistantUtils";
 
 export type HaStateObject = {
   entity_id: string;

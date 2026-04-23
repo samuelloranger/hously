@@ -1,14 +1,14 @@
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 import { toRecord, toStringOrNull } from "@hously/shared/utils";
 import type {
-  ArrPluginStatus,
+  ArrIntegrationStatus,
   DashboardUpcomingItem,
   DashboardUpcomingProvider,
 } from "@hously/api/types/dashboardUpcoming";
 import {
   normalizeJellyfinConfig,
   normalizeSonarrConfig,
-} from "@hously/api/utils/plugins/normalizers";
+} from "@hously/api/utils/integrations/normalizers";
 import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w342";
@@ -21,15 +21,15 @@ export const TMDB_UPCOMING_CACHE_KEY = "dashboard:tmdb:upcoming:v7";
 const JELLYFIN_TMDB_IDS_CACHE_TTL_SECONDS = 60 * 60;
 const JELLYFIN_TMDB_IDS_CACHE_KEY = "dashboard:jellyfin:tmdb-ids:v1";
 
-export const getArrPluginStatus = async (): Promise<ArrPluginStatus> => {
-  const [radarrPlugin, sonarrPlugin] = await Promise.all([
-    getPluginConfigRecord("radarr"),
-    getPluginConfigRecord("sonarr"),
+export const getArrIntegrationStatus = async (): Promise<ArrIntegrationStatus> => {
+  const [radarrIntegration, sonarrIntegration] = await Promise.all([
+    getIntegrationConfigRecord("radarr"),
+    getIntegrationConfigRecord("sonarr"),
   ]);
 
   return {
-    radarr_enabled: Boolean(radarrPlugin?.enabled),
-    sonarr_enabled: Boolean(sonarrPlugin?.enabled),
+    radarr_enabled: Boolean(radarrIntegration?.enabled),
+    sonarr_enabled: Boolean(sonarrIntegration?.enabled),
   };
 };
 
@@ -198,11 +198,11 @@ export const collectTmdbUpcoming = async (
 };
 
 const fetchJellyfinTmdbIds = async (): Promise<Set<number>> => {
-  const jellyfinPlugin = await getPluginConfigRecord("jellyfin");
+  const jellyfinIntegration = await getIntegrationConfigRecord("jellyfin");
 
-  if (!jellyfinPlugin?.enabled) return new Set<number>();
+  if (!jellyfinIntegration?.enabled) return new Set<number>();
 
-  const config = normalizeJellyfinConfig(jellyfinPlugin.config);
+  const config = normalizeJellyfinConfig(jellyfinIntegration.config);
   if (!config) return new Set<number>();
 
   const cached = await getJsonCache<{ ids: number[] }>(
@@ -335,10 +335,10 @@ export const fetchSonarrUpcoming = async (
   toDateIso: string,
 ): Promise<DashboardUpcomingItem[]> => {
   try {
-    const sonarrPlugin = await getPluginConfigRecord("sonarr");
-    if (!sonarrPlugin?.enabled) return [];
+    const sonarrIntegration = await getIntegrationConfigRecord("sonarr");
+    if (!sonarrIntegration?.enabled) return [];
 
-    const config = normalizeSonarrConfig(sonarrPlugin.config);
+    const config = normalizeSonarrConfig(sonarrIntegration.config);
     if (!config) return [];
 
     const url = new URL("/api/v3/calendar", config.website_url);

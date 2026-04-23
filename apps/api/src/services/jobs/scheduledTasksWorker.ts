@@ -1,5 +1,5 @@
 import type { Job } from "bullmq";
-import type { TrackerType } from "@hously/api/utils/plugins/types";
+import type { TrackerType } from "@hously/api/utils/integrations/types";
 import { SCHEDULED_JOB_NAMES } from "@hously/api/services/queueService";
 
 /**

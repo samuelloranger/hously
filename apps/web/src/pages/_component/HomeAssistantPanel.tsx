@@ -25,10 +25,12 @@ export function HomeAssistantPanel() {
   const query = useHomeAssistantWidget();
   const control = useHomeAssistantControl();
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const prefetchIntent = usePrefetchIntent("/settings", { tab: "plugins" });
+  const prefetchIntent = usePrefetchIntent("/settings", {
+    tab: "integrations",
+  });
 
   if (!query.data || query.isError) return null;
-  if (!query.data.plugin_enabled) return null;
+  if (!query.data.integration_enabled) return null;
 
   const entities = query.data.entities ?? [];
 

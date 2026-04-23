@@ -2,7 +2,7 @@ import {
   useDashboardC411Stats,
   useDashboardLaCaleStats,
   useDashboardTorr9Stats,
-} from "@/pages/settings/usePlugins";
+} from "@/pages/settings/useIntegrations";
 import {
   formatRelativeTime,
   resolveDateFnsLocale,

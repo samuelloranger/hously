@@ -3,7 +3,7 @@ import { prisma } from "@hously/api/db";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { serverError } from "@hously/api/errors";
-import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
+import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import {
   fetchMaindata,
   toTorrentListItem,
@@ -110,7 +110,7 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
           progress: number;
         }[] = [];
         try {
-          const { enabled, config } = await getQbittorrentPluginConfig();
+          const { enabled, config } = await getQbittorrentIntegrationConfig();
           if (enabled && config) {
             const { torrents: torrentMap } = await fetchMaindata(config);
             const matched: typeof torrents = [];

@@ -149,7 +149,6 @@
         "chore_completed": "Chore completed",
         "shopping_completed": "Shopping task completed",
         "habit_completed": "Habit completed",
-        "plugin_updated": "Plugin updated",
         "cron_job_ended": "Cron job ended",
         "cron_job_skipped": "Cron job skipped",
         "app_updated": "App updated",
@@ -160,7 +159,8 @@
         "shopping_item_added": "Shopping item added",
         "shopping_item_completed": "Shopping item completed",
         "shopping_list_cleared": "Shopping list cleared",
-        "media_grab": "Media grab"
+        "media_grab": "Media grab",
+        "integration_updated": "Integration updated"
       }
     },
     "activity": {
@@ -169,8 +169,6 @@
       "appUpdatedGeneric": "App updated",
       "unknownUser": "Someone",
       "unknownTask": "a task",
-      "pluginUpdated": "Plugin updated: {{plugin}}",
-      "unknownPlugin": "Unknown plugin",
       "adminTriggeredJob": "Admin triggered job: {{job}}",
       "cronEnded": "Cron job ended: {{job}} ({{seconds}}s)",
       "cronFailed": "Cron job failed: {{job}}",
@@ -186,7 +184,9 @@
       "shoppingCleared": "Cleared {{count}} completed shopping item(s)",
       "unknownItem": "Unknown item",
       "unknownRelease": "Unknown release",
-      "mediaGrab": "Grabbed release: {{title}}"
+      "mediaGrab": "Grabbed release: {{title}}",
+      "integrationUpdated": "Integration updated: {{integration}}",
+      "unknownIntegration": "Unknown integration"
     },
     "weather": {
       "kicker": "Weather",
@@ -205,7 +205,7 @@
       "kicker": "Home Assistant",
       "toggle": "Toggle",
       "emptyTitle": "No devices on the widget",
-      "emptyDescription": "Choose lights and plugs under Settings → Plugins → Home Assistant.",
+      "emptyDescription": "Choose lights and plugs under Settings → Integrations → Home Assistant.",
       "domainLight": "Light",
       "domainSwitch": "Plug / switch"
     },
@@ -220,7 +220,7 @@
     },
     "qbittorrent": {
       "notConnectedTitle": "qBittorrent is not connected yet",
-      "notConnectedDescription": "Open Settings > Plugins and connect qBittorrent to see live activity here.",
+      "notConnectedDescription": "Open Settings > Integrations and connect qBittorrent to see live activity here.",
       "emptyTitle": "No active torrent activity right now",
       "live": "Live",
       "polling": "Polling",
@@ -914,128 +914,6 @@
         "refetch": "Refresh"
       }
     },
-    "plugins": {
-      "title": "Plugins",
-      "description": "Connect third-party plugins used by the dashboard.",
-      "tabs": {
-        "plugins": "Plugins",
-        "trackers": "Trackers"
-      },
-      "indexers": "Indexers",
-      "groups": {
-        "media": "Media",
-        "infrastructure": "Infrastructure",
-        "other": "Other"
-      },
-      "save": "Save Plugin",
-      "saveSuccess": "Plugin saved successfully",
-      "saveError": "Failed to save plugin settings",
-      "unsavedChanges": "Unsaved changes",
-      "invalidUrl": "Please enter a valid URL (e.g. https://example.com)",
-      "jellyfin": {
-        "help": "Connect Jellyfin to fetch the latest items added to your media server.",
-        "websiteUrl": "Jellyfin Website URL",
-        "apiKey": "Jellyfin API Key",
-        "apiKeyPlaceholder": "Paste your Jellyfin API key"
-      },
-      "tmdb": {
-        "help": "Configure TMDB so upcoming releases and media search can query TMDB from the server.",
-        "apiKey": "TMDB API Key",
-        "apiKeyPlaceholder": "Paste your TMDB API key",
-        "popularityThreshold": "Popularity threshold",
-        "popularityThresholdHelp": "Minimum TMDB popularity score (0–100) for upcoming releases. Higher values show only mainstream titles."
-      },
-      "weather": {
-        "title": "Weather",
-        "help": "Configure the dashboard weather location and preferred temperature unit.",
-        "address": "Address",
-        "addressPlaceholder": "Enter address for dashboard weather",
-        "temperatureUnit": "Temperature unit",
-        "fahrenheit": "Fahrenheit (°F)",
-        "celsius": "Celsius (°C)"
-      },
-      "prowlarr": {
-        "help": "Connect Prowlarr to run global release searches and send results to your configured download client.",
-        "websiteUrl": "Prowlarr URL",
-        "apiKey": "Prowlarr API Key",
-        "apiKeyPlaceholder": "Paste your Prowlarr API key"
-      },
-      "jackett": {
-        "help": "Connect Jackett to run global release searches across your configured indexers.",
-        "websiteUrl": "Jackett URL",
-        "apiKey": "Jackett API Key",
-        "apiKeyPlaceholder": "Paste your Jackett API key"
-      },
-      "qbittorrent": {
-        "help": "Connect qBittorrent to display live download queue stats on the dashboard.",
-        "websiteUrl": "qBittorrent URL",
-        "username": "qBittorrent Username",
-        "password": "qBittorrent Password",
-        "passwordPlaceholder": "Leave empty to keep existing password",
-        "pollInterval": "Poll Interval (seconds)",
-        "maxItems": "Max Active Torrents",
-        "setupNote": "To enable automatic post-processing when a torrent completes, qBittorrent must be configured with a webhook autorun command.",
-        "setupLink": "View setup guide"
-      },
-      "scrutiny": {
-        "help": "Connect Scrutiny to show disk health and SMART temperatures on the dashboard.",
-        "websiteUrl": "Scrutiny URL"
-      },
-      "beszel": {
-        "help": "Connect Beszel to show live system metrics and per-disk usage on the dashboard.",
-        "websiteUrl": "Beszel URL",
-        "email": "Beszel Email",
-        "password": "Beszel Password",
-        "passwordSet": "Password already set — leave blank to keep"
-      },
-      "adguard": {
-        "help": "Connect AdGuard Home to show DNS filtering and turn AdGuard on or off from Hously.",
-        "websiteUrl": "AdGuard Home URL",
-        "username": "AdGuard Home Username",
-        "password": "AdGuard Home Password",
-        "passwordPlaceholder": "Leave empty to keep existing password"
-      },
-      "uptimekuma": {
-        "help": "Connect UptimeKuma to display monitor health on your homepage.",
-        "websiteUrl": "UptimeKuma URL",
-        "apiKey": "API key",
-        "apiKeyPlaceholder": "uk1_...",
-        "apiKeyPlaceholderSet": "Leave blank to keep existing key"
-      },
-      "homeAssistant": {
-        "help": "Control lights and smart plugs from the home dashboard. Use a long-lived access token from your Home Assistant profile.",
-        "baseUrl": "Home Assistant URL",
-        "baseUrlPlaceholder": "https://homeassistant.local:8123",
-        "accessToken": "Long-lived access token",
-        "accessTokenPlaceholder": "Paste token — leave empty to keep the saved token",
-        "loadDevices": "Load lights & plugs",
-        "loadingDevices": "Loading…",
-        "devicesHint": "Select which entities appear on the home widget (only lights and switches).",
-        "noDevicesFound": "No lights or switches found. Check your token and that HA is reachable from the Hously server."
-      },
-      "trackers": {
-        "title": "Trackers",
-        "description": "Configure C411, Torr9 and La Cale in one place.",
-        "disclaimer": "These integrations scrape private tracker websites and may violate their Terms of Service. Use at your own risk.",
-        "flaresolverrUrl": "FlareSolverr URL",
-        "username": "Username",
-        "password": "Password",
-        "passwordPlaceholder": "Leave empty to keep existing password",
-        "trackerUrl": "Tracker URL",
-        "usernamePlaceholder": "username",
-        "providerHelp": {
-          "c411": "C411 uses your site credentials for search and sync, plus your private announce URL for release publishing."
-        },
-        "usernameHelp": {
-          "c411": "Used as the uploader name when syncing your releases back from C411."
-        },
-        "providers": {
-          "c411": "C411",
-          "torr9": "Torr9",
-          "la-cale": "La Cale"
-        }
-      }
-    },
     "dataExport": {
       "title": "Export/Import",
       "description": "Export and import application data. User IDs are replaced with emails for portability.",
@@ -1103,7 +981,7 @@
       "episodeTemplate": "Episode path template",
       "minSeedRatio": "Remove torrent from qBittorrent when ratio reaches (0 = immediately after processing)",
       "activeIndexerManager": "Indexer Manager",
-      "noIndexerConfigured": "No indexer manager configured. Enable Prowlarr or Jackett in Plugins settings.",
+      "noIndexerConfigured": "No indexer manager configured. Enable Prowlarr or Jackett in Integrations settings.",
       "noIndexerSelected": "None selected",
       "defaultQualityProfile": "Default quality profile",
       "defaultQualityProfileNone": "None (no profile assigned on add)",
@@ -1349,6 +1227,128 @@
       "revokeConfirm": "Are you sure you want to revoke the invitation for {{email}}?",
       "revokeSuccess": "Invitation revoked",
       "revokeError": "Failed to revoke invitation"
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Connect third-party integrations used by the dashboard.",
+      "tabs": {
+        "integrations": "Integrations",
+        "trackers": "Trackers"
+      },
+      "indexers": "Indexers",
+      "groups": {
+        "media": "Media",
+        "infrastructure": "Infrastructure",
+        "other": "Other"
+      },
+      "save": "Save Integration",
+      "saveSuccess": "Integration saved successfully",
+      "saveError": "Failed to save integration settings",
+      "unsavedChanges": "Unsaved changes",
+      "invalidUrl": "Please enter a valid URL (e.g. https://example.com)",
+      "jellyfin": {
+        "help": "Connect Jellyfin to fetch the latest items added to your media server.",
+        "websiteUrl": "Jellyfin Website URL",
+        "apiKey": "Jellyfin API Key",
+        "apiKeyPlaceholder": "Paste your Jellyfin API key"
+      },
+      "tmdb": {
+        "help": "Configure TMDB so upcoming releases and media search can query TMDB from the server.",
+        "apiKey": "TMDB API Key",
+        "apiKeyPlaceholder": "Paste your TMDB API key",
+        "popularityThreshold": "Popularity threshold",
+        "popularityThresholdHelp": "Minimum TMDB popularity score (0–100) for upcoming releases. Higher values show only mainstream titles."
+      },
+      "weather": {
+        "title": "Weather",
+        "help": "Configure the dashboard weather location and preferred temperature unit.",
+        "address": "Address",
+        "addressPlaceholder": "Enter address for dashboard weather",
+        "temperatureUnit": "Temperature unit",
+        "fahrenheit": "Fahrenheit (°F)",
+        "celsius": "Celsius (°C)"
+      },
+      "prowlarr": {
+        "help": "Connect Prowlarr to run global release searches and send results to your configured download client.",
+        "websiteUrl": "Prowlarr URL",
+        "apiKey": "Prowlarr API Key",
+        "apiKeyPlaceholder": "Paste your Prowlarr API key"
+      },
+      "jackett": {
+        "help": "Connect Jackett to run global release searches across your configured indexers.",
+        "websiteUrl": "Jackett URL",
+        "apiKey": "Jackett API Key",
+        "apiKeyPlaceholder": "Paste your Jackett API key"
+      },
+      "qbittorrent": {
+        "help": "Connect qBittorrent to display live download queue stats on the dashboard.",
+        "websiteUrl": "qBittorrent URL",
+        "username": "qBittorrent Username",
+        "password": "qBittorrent Password",
+        "passwordPlaceholder": "Leave empty to keep existing password",
+        "pollInterval": "Poll Interval (seconds)",
+        "maxItems": "Max Active Torrents",
+        "setupNote": "To enable automatic post-processing when a torrent completes, qBittorrent must be configured with a webhook autorun command.",
+        "setupLink": "View setup guide"
+      },
+      "scrutiny": {
+        "help": "Connect Scrutiny to show disk health and SMART temperatures on the dashboard.",
+        "websiteUrl": "Scrutiny URL"
+      },
+      "beszel": {
+        "help": "Connect Beszel to show live system metrics and per-disk usage on the dashboard.",
+        "websiteUrl": "Beszel URL",
+        "email": "Beszel Email",
+        "password": "Beszel Password",
+        "passwordSet": "Password already set — leave blank to keep"
+      },
+      "adguard": {
+        "help": "Connect AdGuard Home to show DNS filtering and turn AdGuard on or off from Hously.",
+        "websiteUrl": "AdGuard Home URL",
+        "username": "AdGuard Home Username",
+        "password": "AdGuard Home Password",
+        "passwordPlaceholder": "Leave empty to keep existing password"
+      },
+      "uptimekuma": {
+        "help": "Connect UptimeKuma to display monitor health on your homepage.",
+        "websiteUrl": "UptimeKuma URL",
+        "apiKey": "API key",
+        "apiKeyPlaceholder": "uk1_...",
+        "apiKeyPlaceholderSet": "Leave blank to keep existing key"
+      },
+      "homeAssistant": {
+        "help": "Control lights and smart plugs from the home dashboard. Use a long-lived access token from your Home Assistant profile.",
+        "baseUrl": "Home Assistant URL",
+        "baseUrlPlaceholder": "https://homeassistant.local:8123",
+        "accessToken": "Long-lived access token",
+        "accessTokenPlaceholder": "Paste token — leave empty to keep the saved token",
+        "loadDevices": "Load lights & plugs",
+        "loadingDevices": "Loading…",
+        "devicesHint": "Select which entities appear on the home widget (only lights and switches).",
+        "noDevicesFound": "No lights or switches found. Check your token and that HA is reachable from the Hously server."
+      },
+      "trackers": {
+        "title": "Trackers",
+        "description": "Configure C411, Torr9 and La Cale in one place.",
+        "disclaimer": "These integrations scrape private tracker websites and may violate their Terms of Service. Use at your own risk.",
+        "flaresolverrUrl": "FlareSolverr URL",
+        "username": "Username",
+        "password": "Password",
+        "passwordPlaceholder": "Leave empty to keep existing password",
+        "trackerUrl": "Tracker URL",
+        "usernamePlaceholder": "username",
+        "providerHelp": {
+          "c411": "C411 uses your site credentials for search and sync, plus your private announce URL for release publishing."
+        },
+        "usernameHelp": {
+          "c411": "Used as the uploader name when syncing your releases back from C411."
+        },
+        "providers": {
+          "c411": "C411",
+          "torr9": "Torr9",
+          "la-cale": "La Cale"
+        }
+      }
     }
   },
   "medias": {

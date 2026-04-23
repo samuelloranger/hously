@@ -1,7 +1,7 @@
 import type { Job } from "bullmq";
 import { prisma } from "@hously/api/db";
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
-import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
+import { normalizeTmdbConfig } from "@hously/api/utils/integrations/normalizers";
 import {
   scanMediaInfo,
   remapPath,
@@ -310,9 +310,9 @@ export async function processLibraryMigrateJob(
   const { source, radarr_url, radarr_api_key, sonarr_url, sonarr_api_key } =
     job.data;
 
-  const tmdbPlugin = await getPluginConfigRecord("tmdb");
-  const tmdbConfig = tmdbPlugin?.enabled
-    ? normalizeTmdbConfig(tmdbPlugin.config)
+  const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
+  const tmdbConfig = tmdbIntegration?.enabled
+    ? normalizeTmdbConfig(tmdbIntegration.config)
     : null;
 
   const mediaSettings = await prisma.mediaSettings.findUnique({

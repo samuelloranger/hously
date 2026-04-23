@@ -1,4 +1,4 @@
-export interface ArrPluginStatus {
+export interface ArrIntegrationStatus {
   radarr_enabled: boolean;
   sonarr_enabled: boolean;
 }

@@ -2,8 +2,8 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
-import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
+import { normalizeTmdbConfig } from "@hously/api/utils/integrations/normalizers";
 import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 import { badGateway, badRequest, serverError } from "@hously/api/errors";
 import {
@@ -47,10 +47,10 @@ export const mediasTmdbRoutes = new Elysia()
       };
 
       try {
-        const tmdbPlugin = await getPluginConfigRecord("tmdb");
+        const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
 
-        const tmdbConfig = tmdbPlugin?.enabled
-          ? normalizeTmdbConfig(tmdbPlugin.config)
+        const tmdbConfig = tmdbIntegration?.enabled
+          ? normalizeTmdbConfig(tmdbIntegration.config)
           : null;
         if (!tmdbConfig) {
           return badRequest(set, "TMDB is not configured");
@@ -119,10 +119,10 @@ export const mediasTmdbRoutes = new Elysia()
   )
   .get("/explore", async ({ user, set, query }) => {
     try {
-      const tmdbPlugin = await getPluginConfigRecord("tmdb");
+      const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
 
-      const tmdbConfig = tmdbPlugin?.enabled
-        ? normalizeTmdbConfig(tmdbPlugin.config)
+      const tmdbConfig = tmdbIntegration?.enabled
+        ? normalizeTmdbConfig(tmdbIntegration.config)
         : null;
       if (!tmdbConfig) {
         return badRequest(set, "TMDB is not configured");
@@ -313,10 +313,10 @@ export const mediasTmdbRoutes = new Elysia()
     }
 
     try {
-      const tmdbPlugin = await getPluginConfigRecord("tmdb");
+      const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
 
-      const tmdbConfig = tmdbPlugin?.enabled
-        ? normalizeTmdbConfig(tmdbPlugin.config)
+      const tmdbConfig = tmdbIntegration?.enabled
+        ? normalizeTmdbConfig(tmdbIntegration.config)
         : null;
       if (!tmdbConfig) {
         return badRequest(set, "TMDB is not configured");
@@ -410,10 +410,10 @@ export const mediasTmdbRoutes = new Elysia()
           return { items: cached };
         }
 
-        const tmdbPlugin = await getPluginConfigRecord("tmdb");
+        const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
 
-        const tmdbConfig = tmdbPlugin?.enabled
-          ? normalizeTmdbConfig(tmdbPlugin.config)
+        const tmdbConfig = tmdbIntegration?.enabled
+          ? normalizeTmdbConfig(tmdbIntegration.config)
           : null;
         if (!tmdbConfig) {
           return badRequest(set, "TMDB is not configured");
@@ -488,9 +488,9 @@ export const mediasTmdbRoutes = new Elysia()
       );
     if (cached) return { providers: cached };
 
-    const tmdbPlugin = await getPluginConfigRecord("tmdb");
-    const tmdbConfig = tmdbPlugin?.enabled
-      ? normalizeTmdbConfig(tmdbPlugin.config)
+    const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
+    const tmdbConfig = tmdbIntegration?.enabled
+      ? normalizeTmdbConfig(tmdbIntegration.config)
       : null;
     if (!tmdbConfig) return { providers: [] };
 
@@ -546,9 +546,9 @@ export const mediasTmdbRoutes = new Elysia()
         await getJsonCache<{ id: number; name: string }[]>(cacheKey);
       if (cached) return { genres: cached };
 
-      const tmdbPlugin = await getPluginConfigRecord("tmdb");
-      const tmdbConfig = tmdbPlugin?.enabled
-        ? normalizeTmdbConfig(tmdbPlugin.config)
+      const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
+      const tmdbConfig = tmdbIntegration?.enabled
+        ? normalizeTmdbConfig(tmdbIntegration.config)
         : null;
       if (!tmdbConfig) return badRequest(set, "TMDB is not configured");
 
@@ -616,10 +616,10 @@ export const mediasTmdbRoutes = new Elysia()
     const tmdbEndPage = Math.floor(endIdx / TMDB_PAGE_SIZE) + 1;
 
     try {
-      const tmdbPlugin = await getPluginConfigRecord("tmdb");
+      const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
 
-      const tmdbConfig = tmdbPlugin?.enabled
-        ? normalizeTmdbConfig(tmdbPlugin.config)
+      const tmdbConfig = tmdbIntegration?.enabled
+        ? normalizeTmdbConfig(tmdbIntegration.config)
         : null;
       if (!tmdbConfig) return badRequest(set, "TMDB is not configured");
 

@@ -1,7 +1,7 @@
 import { prisma } from "@hously/api/db";
 import {
-  getQbittorrentPluginConfig,
-  invalidateQbittorrentPluginConfigCache,
+  getQbittorrentIntegrationConfig,
+  invalidateQbittorrentIntegrationConfigCache,
 } from "@hously/api/services/qbittorrent/config";
 import {
   fetchMaindata,
@@ -136,7 +136,7 @@ const runClientMode = async (
   iterations: number,
   delayMs: number,
   config: NonNullable<
-    Awaited<ReturnType<typeof getQbittorrentPluginConfig>>["config"]
+    Awaited<ReturnType<typeof getQbittorrentIntegrationConfig>>["config"]
   >,
 ) => {
   console.log("\nClient mode: fetchMaindata()");
@@ -163,7 +163,7 @@ const runRawMode = async (
   iterations: number,
   delayMs: number,
   config: NonNullable<
-    Awaited<ReturnType<typeof getQbittorrentPluginConfig>>["config"]
+    Awaited<ReturnType<typeof getQbittorrentIntegrationConfig>>["config"]
   >,
 ) => {
   console.log("\nRaw mode: qbFetchJson(/api/v2/sync/maindata?rid=...)");
@@ -199,11 +199,11 @@ const runRawMode = async (
 const options = parseArgs();
 const startedAt = new Date();
 
-await invalidateQbittorrentPluginConfigCache();
-const { enabled, config } = await getQbittorrentPluginConfig();
+await invalidateQbittorrentIntegrationConfigCache();
+const { enabled, config } = await getQbittorrentIntegrationConfig();
 
 if (!enabled || !config) {
-  console.error("qBittorrent plugin is disabled or not configured");
+  console.error("qBittorrent integration is disabled or not configured");
   process.exitCode = 1;
 } else {
   console.log(

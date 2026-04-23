@@ -15,7 +15,7 @@ import {
   LIBRARY_ENDPOINTS,
   MEDIAS_ENDPOINTS,
   NOTIFICATION_ENDPOINTS,
-  PLUGIN_ENDPOINTS,
+  INTEGRATION_ENDPOINTS,
   QUALITY_PROFILES_ENDPOINTS,
   SHOPPING_ENDPOINTS,
   HABIT_ENDPOINTS,
@@ -362,30 +362,30 @@ const routeQueryDefinitions = {
       });
     }
 
-    if (tab === "plugins") {
+    if (tab === "integrations") {
       queries.push({
-        queryKey: queryKeys.plugins.weather(),
-        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.WEATHER),
+        queryKey: queryKeys.integrations.weather(),
+        queryFn: () => webFetcher(INTEGRATION_ENDPOINTS.WEATHER),
       });
       queries.push({
-        queryKey: queryKeys.plugins.tmdb(),
-        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.TMDB),
+        queryKey: queryKeys.integrations.tmdb(),
+        queryFn: () => webFetcher(INTEGRATION_ENDPOINTS.TMDB),
       });
       queries.push({
-        queryKey: queryKeys.plugins.jellyfin(),
-        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.JELLYFIN),
+        queryKey: queryKeys.integrations.jellyfin(),
+        queryFn: () => webFetcher(INTEGRATION_ENDPOINTS.JELLYFIN),
       });
       queries.push({
-        queryKey: queryKeys.plugins.qbittorrent(),
-        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.QBITTORRENT),
+        queryKey: queryKeys.integrations.qbittorrent(),
+        queryFn: () => webFetcher(INTEGRATION_ENDPOINTS.QBITTORRENT),
       });
       queries.push({
-        queryKey: queryKeys.plugins.scrutiny(),
-        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.SCRUTINY),
+        queryKey: queryKeys.integrations.scrutiny(),
+        queryFn: () => webFetcher(INTEGRATION_ENDPOINTS.SCRUTINY),
       });
       queries.push({
-        queryKey: queryKeys.plugins.beszel(),
-        queryFn: () => webFetcher(PLUGIN_ENDPOINTS.BESZEL),
+        queryKey: queryKeys.integrations.beszel(),
+        queryFn: () => webFetcher(INTEGRATION_ENDPOINTS.BESZEL),
       });
     }
 

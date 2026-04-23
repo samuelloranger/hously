@@ -5,20 +5,20 @@ import type { DashboardBeszelSummaryResponse } from "@hously/api/types/dashboard
 
 /**
  * Unified system monitoring summary.
- * Checks which monitoring plugin is enabled (beszel or netdata) and returns
+ * Checks which monitoring integration is enabled (beszel or netdata) and returns
  * a single response. Beszel is preferred when both are enabled.
  *
  * The response always uses the Beszel shape — netdata results are mapped
  * to match (cpu_name and disk model are null for netdata).
  */
 export async function fetchSystemSummary(): Promise<DashboardBeszelSummaryResponse> {
-  const plugins = await prisma.plugin.findMany({
+  const integrations = await prisma.integration.findMany({
     where: { type: { in: ["beszel", "netdata"] } },
     select: { type: true, enabled: true },
   });
 
-  const beszelEnabled = plugins.some((p) => p.type === "beszel" && p.enabled);
-  const netdataEnabled = plugins.some((p) => p.type === "netdata" && p.enabled);
+  const beszelEnabled = integrations.some((p) => p.type === "beszel" && p.enabled);
+  const netdataEnabled = integrations.some((p) => p.type === "netdata" && p.enabled);
 
   // Prefer Beszel when both are enabled
   if (beszelEnabled) {

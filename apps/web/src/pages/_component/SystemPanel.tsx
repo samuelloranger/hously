@@ -5,7 +5,7 @@ import {
   useDashboardScrutinySummary,
   useDashboardAdguardSummary,
 } from "@/pages/_component/useDashboardSystem";
-import { useSetAdguardProtection } from "@/pages/settings/usePlugins";
+import { useSetAdguardProtection } from "@/pages/settings/useIntegrations";
 import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 import type { DashboardBeszelSummaryResponse } from "@hously/shared/types";
 import { useEventSourceState } from "@/lib/realtime/useEventSourceState";

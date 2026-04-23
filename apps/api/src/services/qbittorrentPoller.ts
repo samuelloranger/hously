@@ -1,5 +1,5 @@
 import { QBITTORRENT_TORRENTS_PAGE_SIZE } from "@hously/shared";
-import { getQbittorrentPluginConfig } from "./qbittorrent/config";
+import { getQbittorrentIntegrationConfig } from "./qbittorrent/config";
 import {
   fetchMaindata,
   resetMaindataState,
@@ -103,7 +103,7 @@ const pollOnce = async () => {
   if (!running) return;
 
   try {
-    const { enabled, config } = await getQbittorrentPluginConfig();
+    const { enabled, config } = await getQbittorrentIntegrationConfig();
 
     if (!enabled || !config) {
       // Notify dashboard subscribers with disabled snapshot

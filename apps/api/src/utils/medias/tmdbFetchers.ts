@@ -1,6 +1,6 @@
 import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
-import { normalizeTmdbConfig } from "@hously/api/utils/plugins/normalizers";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
+import { normalizeTmdbConfig } from "@hously/api/utils/integrations/normalizers";
 import type {
   TmdbCreator,
   TmdbExternalIds,
@@ -186,8 +186,8 @@ function languageLabel(
 // ── Config loader ────────────────────────────────────────────────────────────
 
 export async function loadTmdbConfig() {
-  const plugin = await getPluginConfigRecord("tmdb");
-  return plugin?.enabled ? normalizeTmdbConfig(plugin.config) : null;
+  const integration = await getIntegrationConfigRecord("tmdb");
+  return integration?.enabled ? normalizeTmdbConfig(integration.config) : null;
 }
 
 // ── Low-level TMDB fetch ─────────────────────────────────────────────────────

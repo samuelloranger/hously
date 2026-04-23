@@ -1,5 +1,5 @@
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
-import { normalizeNetdataConfig } from "@hously/api/utils/plugins/normalizers";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
+import { normalizeNetdataConfig } from "@hously/api/utils/integrations/normalizers";
 import { toNumberOrNull, toRecord } from "@hously/shared/utils";
 import type {
   DashboardNetdataDiskUsage,
@@ -122,17 +122,17 @@ const fetchNetdataChartLatest = async (
 
 export const fetchNetdataSummary =
   async (): Promise<DashboardNetdataSummaryResponse> => {
-    const plugin = await getPluginConfigRecord("netdata");
+    const integration = await getIntegrationConfigRecord("netdata");
 
-    if (!plugin?.enabled) {
+    if (!integration?.enabled) {
       return buildNetdataDisabledSummary();
     }
 
-    const config = normalizeNetdataConfig(plugin.config);
+    const config = normalizeNetdataConfig(integration.config);
     if (!config) {
       return {
         ...buildNetdataDisabledSummary(
-          "Netdata plugin is enabled but not configured",
+          "Netdata integration is enabled but not configured",
         ),
         enabled: true,
       };

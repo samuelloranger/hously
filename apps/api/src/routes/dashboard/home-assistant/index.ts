@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 import { requireUser } from "@hously/api/middleware/auth";
-import { normalizeHomeAssistantConfig } from "@hously/api/utils/plugins/normalizers";
+import { normalizeHomeAssistantConfig } from "@hously/api/utils/integrations/normalizers";
 import {
   haCallService,
   haGetStatesForEntities,
@@ -12,7 +12,7 @@ import {
   haDomainFromEntityId,
   haServiceNameForAction,
   type HaAllowedDomain,
-} from "@hously/api/utils/plugins/homeAssistantUtils";
+} from "@hously/api/utils/integrations/homeAssistantUtils";
 import { badRequest, serverError } from "@hously/api/errors";
 
 function friendlyNameFromState(
@@ -34,14 +34,14 @@ export const homeAssistantRoutes = new Elysia({ prefix: "/api/home-assistant" })
   .use(requireUser)
   .get("/widget", async ({ user: _user, set }) => {
     try {
-      const plugin = await getPluginConfigRecord("home-assistant");
-      if (!plugin?.enabled) {
-        return { plugin_enabled: false, entities: [] as const };
+      const integration = await getIntegrationConfigRecord("home-assistant");
+      if (!integration?.enabled) {
+        return { integration_enabled: false, entities: [] as const };
       }
 
-      const cfg = normalizeHomeAssistantConfig(plugin.config);
+      const cfg = normalizeHomeAssistantConfig(integration.config);
       if (!cfg || cfg.enabled_entity_ids.length === 0) {
-        return { plugin_enabled: true, entities: [] as const };
+        return { integration_enabled: true, entities: [] as const };
       }
 
       const states = await haGetStatesForEntities(
@@ -69,7 +69,7 @@ export const homeAssistantRoutes = new Elysia({ prefix: "/api/home-assistant" })
         };
       });
 
-      return { plugin_enabled: true, entities };
+      return { integration_enabled: true, entities };
     } catch (error) {
       console.error("Home Assistant widget:", error);
       return serverError(set, "Failed to load Home Assistant");
@@ -79,12 +79,12 @@ export const homeAssistantRoutes = new Elysia({ prefix: "/api/home-assistant" })
     "/control",
     async ({ body, user: _user, set }) => {
       try {
-        const plugin = await getPluginConfigRecord("home-assistant");
-        if (!plugin?.enabled) {
-          return badRequest(set, "Home Assistant plugin is not enabled");
+        const integration = await getIntegrationConfigRecord("home-assistant");
+        if (!integration?.enabled) {
+          return badRequest(set, "Home Assistant integration is not enabled");
         }
 
-        const cfg = normalizeHomeAssistantConfig(plugin.config);
+        const cfg = normalizeHomeAssistantConfig(integration.config);
         if (!cfg) {
           return badRequest(set, "Home Assistant is not configured");
         }

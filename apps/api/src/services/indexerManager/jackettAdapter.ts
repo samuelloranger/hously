@@ -5,7 +5,7 @@ import type {
   NormalizedIndexer,
   GrabResult,
 } from "./types";
-import type { IndexerPluginConfig } from "../../utils/plugins/types";
+import type { IndexerIntegrationConfig } from "../../utils/integrations/types";
 import { randomUUID } from "crypto";
 
 const RELEASE_TTL_MS = 10 * 60 * 1000;
@@ -45,9 +45,9 @@ function takeDownloadUrl(
 
 export class JackettAdapter implements IndexerManagerAdapter {
   readonly name = "jackett" as const;
-  private readonly config: IndexerPluginConfig;
+  private readonly config: IndexerIntegrationConfig;
 
-  constructor(config: IndexerPluginConfig) {
+  constructor(config: IndexerIntegrationConfig) {
     this.config = config;
   }
 

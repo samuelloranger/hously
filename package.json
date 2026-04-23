@@ -17,6 +17,8 @@
     "formatCheck": "bun run --workspaces format -- --check",
     "typecheck": "bun run --workspaces --if-present typecheck",
     "typecheck:build": "tsc -b tsconfig.build.json --pretty false",
+    "typecheck:native": "bun run --workspaces --if-present typecheck:native",
+    "typecheck:native:build": "tsgo -b tsconfig.build.json --pretty false",
     "lint": "bun run --workspaces --if-present lint",
     "knip": "knip",
     "clean": "rm -rf apps/web/dist node_modules apps/*/node_modules packages/*/node_modules && docker compose down -v",
@@ -33,12 +35,13 @@
   ],
   "devDependencies": {
     "@types/react": "~19.2.14",
+    "@typescript/native-preview": "^7.0.0-dev.20260421.2",
     "elysia": "^1.4.28",
     "eslint-plugin-no-hardcoded-strings": "^1.0.0",
     "husky": "^9.1.7",
     "knip": "^6.1.1",
     "prettier": "^3.8.1",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "@prisma/client": "^7.6.0",

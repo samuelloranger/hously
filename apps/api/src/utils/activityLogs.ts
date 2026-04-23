@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { addJob, QUEUE_NAMES } from "@hously/api/services/queueService";
 
 export type ActivityLogType =
-  | "plugin_updated"
+  | "integration_updated"
   | "cron_job_ended"
   | "cron_job_skipped"
   | "app_updated"

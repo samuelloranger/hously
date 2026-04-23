@@ -5,7 +5,7 @@ import type {
   NormalizedIndexer,
   GrabResult,
 } from "./types";
-import type { IndexerPluginConfig } from "../../utils/plugins/types";
+import type { IndexerIntegrationConfig } from "../../utils/integrations/types";
 import {
   toRecord,
   toStringOrNull,
@@ -50,9 +50,9 @@ function takePayload(token: string): Record<string, unknown> | null {
 
 export class ProwlarrAdapter implements IndexerManagerAdapter {
   readonly name = "prowlarr" as const;
-  private readonly config: IndexerPluginConfig;
+  private readonly config: IndexerIntegrationConfig;
 
-  constructor(config: IndexerPluginConfig) {
+  constructor(config: IndexerIntegrationConfig) {
     this.config = config;
   }
 

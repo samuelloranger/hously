@@ -1,4 +1,4 @@
-import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
+import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import {
   isValidQbittorrentUploadFile,
   normalizeQbittorrentUploadTags,
@@ -8,13 +8,13 @@ import {
 import { badRequest } from "@hously/api/errors";
 
 const QBITTORRENT_CONFIG_ERROR =
-  "qBittorrent plugin is disabled or not configured";
+  "qBittorrent integration is disabled or not configured";
 
 /** Elysia may type `set.status` as HTTP status unions; allow both. */
 export type MutableStatus = { status?: number | string };
 
 export async function getQbittorrentConfigOrError(set: MutableStatus) {
-  const { enabled, config } = await getQbittorrentPluginConfig();
+  const { enabled, config } = await getQbittorrentIntegrationConfig();
   if (!enabled || !config) {
     set.status = 400;
     return null;

@@ -16,6 +16,7 @@
   "scripts": {
     "test": "bun test",
     "typecheck": "tsc --noEmit",
+    "typecheck:native": "tsgo --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,json,md}\" \"*.{ts,js,json,md}\""
   },
   "peerDependencies": {

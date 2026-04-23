@@ -1,5 +1,5 @@
 import type { Page } from "playwright";
-import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
+import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
 
 const C411_LOGIN_FORM = "form.space-y-4";
 const C411_USERNAME_INPUT = 'form.space-y-4 input[name="username"]';
@@ -58,7 +58,7 @@ const parseSizeToGo = (text: string): number | null => {
 
 export const loginToC411 = async (
   page: Page,
-  config: TrackerPluginConfig,
+  config: TrackerIntegrationConfig,
 ): Promise<void> => {
   const loginForm = page.locator(C411_LOGIN_FORM);
   const usernameInput = page.locator(C411_USERNAME_INPUT);

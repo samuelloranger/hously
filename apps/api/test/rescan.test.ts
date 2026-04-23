@@ -163,7 +163,7 @@ mock.module("@hously/api/services/postProcessor", () => ({
 }));
 
 mock.module("@hously/api/services/qbittorrent/config", () => ({
-  getQbittorrentPluginConfig: () =>
+  getQbittorrentIntegrationConfig: () =>
     Promise.resolve({
       enabled: qbCompleteHashes.size > 0,
       config: qbCompleteHashes.size > 0 ? { url: "http://qb" } : null,

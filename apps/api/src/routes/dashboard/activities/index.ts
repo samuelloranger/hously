@@ -25,7 +25,7 @@ type ActivityRecord = {
   shopping_item_id?: number;
   item_name?: string;
   count?: number;
-  plugin_type?: string;
+  integration_type?: string;
   job_id?: string;
   job_name?: string;
   success?: boolean;
@@ -85,8 +85,8 @@ function getLogService(
   type: string,
   payload: Record<string, unknown> | null,
 ): string {
-  if (type === "plugin_updated") {
-    return parseString(payload?.plugin_type)?.trim().toLowerCase() || "system";
+  if (type === "integration_updated") {
+    return parseString(payload?.integration_type)?.trim().toLowerCase() || "system";
   }
 
   if (type === "admin_triggered_job") return "admin";
@@ -152,7 +152,7 @@ function mapActivityLogToActivity(log: {
     shopping_item_id: parseIntNumber(payload?.shopping_item_id),
     item_name: parseString(payload?.item_name),
     count: parseNumber(payload?.count),
-    plugin_type: parseString(payload?.plugin_type),
+    integration_type: parseString(payload?.integration_type),
     job_id: parseString(payload?.job_id),
     job_name: parseString(payload?.job_name),
     success: parseBoolean(payload?.success),

@@ -2,10 +2,10 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 import { toPositiveInt } from "@hously/shared/utils";
 import { mapJellyfinApiItem } from "@hously/api/utils/dashboard/jellyfin";
-import { normalizeJellyfinConfig } from "@hously/api/utils/plugins/normalizers";
+import { normalizeJellyfinConfig } from "@hously/api/utils/integrations/normalizers";
 import { badGateway, notFound, serverError } from "@hously/api/errors";
 
 export const dashboardJellyfinRoutes = new Elysia()
@@ -15,15 +15,15 @@ export const dashboardJellyfinRoutes = new Elysia()
     "/jellyfin/image",
     async ({ user, query, set }) => {
       try {
-        const jellyfinPlugin = await getPluginConfigRecord("jellyfin");
+        const jellyfinIntegration = await getIntegrationConfigRecord("jellyfin");
 
-        if (!jellyfinPlugin?.enabled) {
-          return notFound(set, "Jellyfin plugin not enabled");
+        if (!jellyfinIntegration?.enabled) {
+          return notFound(set, "Jellyfin integration not enabled");
         }
 
-        const config = normalizeJellyfinConfig(jellyfinPlugin.config);
+        const config = normalizeJellyfinConfig(jellyfinIntegration.config);
         if (!config) {
-          return notFound(set, "Jellyfin plugin not configured");
+          return notFound(set, "Jellyfin integration not configured");
         }
 
         const candidates =
@@ -126,13 +126,13 @@ export const dashboardJellyfinRoutes = new Elysia()
         const limit = Math.max(1, Math.min(30, requestedLimit));
         const startIndex = (page - 1) * limit;
 
-        const jellyfinPlugin = await getPluginConfigRecord("jellyfin");
+        const jellyfinIntegration = await getIntegrationConfigRecord("jellyfin");
 
-        if (!jellyfinPlugin?.enabled) {
+        if (!jellyfinIntegration?.enabled) {
           return { enabled: false, items: [], page, limit, has_more: false };
         }
 
-        const config = normalizeJellyfinConfig(jellyfinPlugin.config);
+        const config = normalizeJellyfinConfig(jellyfinIntegration.config);
         if (!config) {
           return { enabled: false, items: [], page, limit, has_more: false };
         }

@@ -12,7 +12,7 @@ export type ActivityType =
   | "chore_added"
   | "chore_completed"
   | "habit_completed"
-  | "plugin_updated"
+  | "integration_updated"
   | "cron_job_ended"
   | "cron_job_skipped"
   | "app_updated"
@@ -40,7 +40,7 @@ export interface Activity {
   icon?: string;
   type?: ActivityType;
   service?: string;
-  plugin_type?: string;
+  integration_type?: string;
   job_id?: string;
   job_name?: string;
   action?: string;

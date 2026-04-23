@@ -1,4 +1,4 @@
-import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
+import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
 import type { FlareSolverrSolution, HttpTrackerStats } from "./httpScraper";
 
 /**
@@ -7,7 +7,7 @@ import type { FlareSolverrSolution, HttpTrackerStats } from "./httpScraper";
  * No HTML scraping or FlareSolverr cookies needed for the API domain.
  */
 export async function scrapeTorr9(
-  config: TrackerPluginConfig,
+  config: TrackerIntegrationConfig,
   solution?: FlareSolverrSolution,
 ): Promise<HttpTrackerStats> {
   if (!solution)

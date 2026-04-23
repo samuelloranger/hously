@@ -57,9 +57,9 @@ export const mockActivity: Activity = {
   type: "shopping_added",
 };
 
-export const mockPluginUpdatedActivity: Activity = {
-  type: "plugin_updated",
-  plugin_type: "c411",
+export const mockIntegrationUpdatedActivity: Activity = {
+  type: "integration_updated",
+  integration_type: "c411",
   completed_at: "2024-01-01T00:00:00Z",
 };
 

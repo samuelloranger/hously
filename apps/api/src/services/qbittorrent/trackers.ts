@@ -1,12 +1,12 @@
 import {
-  type QbittorrentPluginConfig,
+  type QbittorrentIntegrationConfig,
   type QbittorrentTorrentTracker,
   qbFetchJson,
   toTorrentTracker,
 } from "./client";
 
 export const fetchQbittorrentTorrentTrackers = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   hash: string,
 ): Promise<{

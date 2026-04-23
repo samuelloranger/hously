@@ -1,16 +1,16 @@
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
-import { normalizeJellyfinConfig } from "@hously/api/utils/plugins/normalizers";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
+import { normalizeJellyfinConfig } from "@hously/api/utils/integrations/normalizers";
 
 /**
  * Fires a POST /Library/Refresh to Jellyfin so it picks up newly post-processed files.
- * Silently no-ops if the plugin is disabled or not configured.
+ * Silently no-ops if the integration is disabled or not configured.
  */
 export async function triggerJellyfinLibraryScan(): Promise<void> {
   try {
-    const plugin = await getPluginConfigRecord("jellyfin");
-    if (!plugin?.enabled) return;
+    const integration = await getIntegrationConfigRecord("jellyfin");
+    if (!integration?.enabled) return;
 
-    const config = normalizeJellyfinConfig(plugin.config);
+    const config = normalizeJellyfinConfig(integration.config);
     if (!config?.website_url || !config?.api_key) return;
 
     const url = `${config.website_url}/Library/Refresh`;

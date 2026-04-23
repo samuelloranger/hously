@@ -21,7 +21,7 @@ import { libraryRoutes } from "./routes/library";
 import { qualityProfilesRoutes } from "./routes/quality-profiles";
 import { mediasRoutes } from "./routes/medias";
 import { notificationsRoutes } from "./routes/notifications";
-import { pluginsRoutes } from "./routes/plugins";
+import { integrationsRoutes } from "./routes/integrations";
 import { remindersRoutes } from "./routes/reminders";
 import { searchRoutes } from "./routes/search";
 import { shoppingRoutes } from "./routes/shopping";
@@ -79,7 +79,7 @@ export const app = new Elysia()
   .use(remindersRoutes)
   .use(adminRoutes)
   .use(analyticsRoutes)
-  .use(pluginsRoutes)
+  .use(integrationsRoutes)
   .use(homeAssistantRoutes)
   .use(libraryMediaAdminRoutes)
   .use(libraryRoutes)

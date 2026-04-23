@@ -1,0 +1,12 @@
+export { AdguardIntegrationSection } from "@/pages/settings/_component/integrations/AdguardIntegrationSection";
+export { JellyfinIntegrationSection } from "@/pages/settings/_component/integrations/JellyfinIntegrationSection";
+export { BeszelIntegrationSection } from "@/pages/settings/_component/integrations/BeszelIntegrationSection";
+export { ProwlarrIntegrationSection } from "@/pages/settings/_component/integrations/ProwlarrIntegrationSection";
+export { JackettIntegrationSection } from "@/pages/settings/_component/integrations/JackettIntegrationSection";
+export { QbittorrentIntegrationSection } from "@/pages/settings/_component/integrations/QbittorrentIntegrationSection";
+export { ScrutinyIntegrationSection } from "@/pages/settings/_component/integrations/ScrutinyIntegrationSection";
+export { TmdbIntegrationSection } from "@/pages/settings/_component/integrations/TmdbIntegrationSection";
+export { TrackersIntegrationSection } from "@/pages/settings/_component/integrations/TrackersIntegrationSection";
+export { WeatherIntegrationSection } from "@/pages/settings/_component/integrations/WeatherIntegrationSection";
+export { HomeAssistantIntegrationSection } from "@/pages/settings/_component/integrations/HomeAssistantIntegrationSection";
+export { UptimekumaIntegrationSection } from "@/pages/settings/_component/integrations/UptimekumaIntegrationSection";

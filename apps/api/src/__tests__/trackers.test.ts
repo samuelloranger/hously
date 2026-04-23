@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
-import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
+import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
 
 const mockFetch = mock(async (_url: string, _opts?: RequestInit) => {
   return new Response("", { status: 200 });
 });
 
-const baseConfig: TrackerPluginConfig = {
+const baseConfig: TrackerIntegrationConfig = {
   tracker_url: "https://tracker.example.com",
   username: "testuser",
   password: "testpass",
