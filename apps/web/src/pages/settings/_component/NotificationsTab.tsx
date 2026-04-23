@@ -368,7 +368,9 @@ export function NotificationsTab() {
           </div>
         )}
       </div>
-      <NotificationChannelsSection />
+      <div className="mt-6">
+        <NotificationChannelsSection />
+      </div>
     </div>
   );
 }
