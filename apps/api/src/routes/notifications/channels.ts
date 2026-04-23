@@ -3,7 +3,10 @@ import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
-import { dispatchToChannel } from "@hously/api/utils/notifications/channelDispatchers";
+import {
+  dispatchToChannel,
+  parseNtfyConfig,
+} from "@hously/api/utils/notifications/channelDispatchers";
 import { getBaseUrl } from "@hously/api/config";
 import type { NotificationChannel } from "@hously/shared";
 
@@ -30,6 +33,22 @@ function mapChannel(row: {
   };
 }
 
+function parseId(raw: string): number | null {
+  const id = parseInt(raw, 10);
+  return isNaN(id) ? null : id;
+}
+
+function validateConfig(type: string, config: unknown): string | null {
+  if (type === "ntfy") {
+    try {
+      parseNtfyConfig(config);
+    } catch (err) {
+      return err instanceof Error ? err.message : "Invalid config";
+    }
+  }
+  return null;
+}
+
 export const notificationChannelsRoutes = new Elysia({ prefix: "/channels" })
   .use(auth)
   .use(requireUser)
@@ -52,11 +71,10 @@ export const notificationChannelsRoutes = new Elysia({ prefix: "/channels" })
     "/",
     async ({ user, body, set }) => {
       if (!VALID_TYPES.includes(body.type as (typeof VALID_TYPES)[number])) {
-        return badRequest(
-          set,
-          `type must be one of: ${VALID_TYPES.join(", ")}`,
-        );
+        return badRequest(set, `type must be one of: ${VALID_TYPES.join(", ")}`);
       }
+      const configErr = validateConfig(body.type, body.config);
+      if (configErr) return badRequest(set, configErr);
       try {
         const channel = await prisma.notificationChannel.create({
           data: {
@@ -75,8 +93,8 @@ export const notificationChannelsRoutes = new Elysia({ prefix: "/channels" })
     {
       body: t.Object({
         type: t.String(),
-        label: t.String({ maxLength: 100 }),
-        config: t.Any(),
+        label: t.String({ minLength: 1, maxLength: 100 }),
+        config: t.Record(t.String(), t.Unknown()),
       }),
     },
   )
@@ -85,12 +103,18 @@ export const notificationChannelsRoutes = new Elysia({ prefix: "/channels" })
   .patch(
     "/:id",
     async ({ user, params, body, set }) => {
+      const id = parseId(params.id);
+      if (id === null) return badRequest(set, "Invalid channel id");
       try {
-        const id = parseInt(params.id, 10);
         const existing = await prisma.notificationChannel.findFirst({
           where: { id, userId: user!.id },
         });
         if (!existing) return notFound(set, "Channel not found");
+
+        if (body.config !== undefined) {
+          const configErr = validateConfig(existing.type, body.config);
+          if (configErr) return badRequest(set, configErr);
+        }
 
         const channel = await prisma.notificationChannel.update({
           where: { id },
@@ -109,17 +133,18 @@ export const notificationChannelsRoutes = new Elysia({ prefix: "/channels" })
     },
     {
       body: t.Object({
-        label: t.Optional(t.String({ maxLength: 100 })),
+        label: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
         enabled: t.Optional(t.Boolean()),
-        config: t.Optional(t.Any()),
+        config: t.Optional(t.Record(t.String(), t.Unknown())),
       }),
     },
   )
 
   // DELETE /api/notifications/channels/:id
   .delete("/:id", async ({ user, params, set }) => {
+    const id = parseId(params.id);
+    if (id === null) return badRequest(set, "Invalid channel id");
     try {
-      const id = parseInt(params.id, 10);
       const existing = await prisma.notificationChannel.findFirst({
         where: { id, userId: user!.id },
       });
@@ -133,8 +158,9 @@ export const notificationChannelsRoutes = new Elysia({ prefix: "/channels" })
 
   // POST /api/notifications/channels/:id/test
   .post("/:id/test", async ({ user, params, set }) => {
+    const id = parseId(params.id);
+    if (id === null) return badRequest(set, "Invalid channel id");
     try {
-      const id = parseInt(params.id, 10);
       const channel = await prisma.notificationChannel.findFirst({
         where: { id, userId: user!.id },
       });
