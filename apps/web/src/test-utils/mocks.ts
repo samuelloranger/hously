@@ -59,7 +59,7 @@ export const mockActivity: Activity = {
 
 export const mockIntegrationUpdatedActivity: Activity = {
   type: "integration_updated",
-  plugin_type: "c411",
+  integration_type: "c411",
   completed_at: "2024-01-01T00:00:00Z",
 };
 

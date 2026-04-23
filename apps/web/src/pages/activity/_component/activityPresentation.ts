@@ -197,7 +197,7 @@ export function getActivityPresentation(
     const time =
       formatRelativeTime(activity.completed_at ?? null, { locale }) ?? "";
     const integrationType =
-      activity.plugin_type || t("dashboard.activity.unknownIntegration");
+      activity.integration_type || t("dashboard.activity.unknownIntegration");
     return {
       Icon: Plug,
       description: t("dashboard.activity.integrationUpdated", {

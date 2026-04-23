@@ -21,7 +21,6 @@ export const integrationsRoutes = new Elysia({ prefix: "/api/integrations" })
   .use(jellyfinIntegrationRoutes)
   .use(prowlarrIntegrationRoutes)
   .use(jackettIntegrationRoutes)
-
   .use(scrutinyIntegrationRoutes)
   .use(beszelIntegrationRoutes)
   .use(adguardIntegrationRoutes)

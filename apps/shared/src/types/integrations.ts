@@ -123,7 +123,7 @@ export interface HomeAssistantWidgetEntity {
 }
 
 export interface HomeAssistantWidgetResponse {
-  plugin_enabled: boolean;
+  integration_enabled: boolean;
   entities: HomeAssistantWidgetEntity[];
 }
 

@@ -40,7 +40,7 @@ export interface Activity {
   icon?: string;
   type?: ActivityType;
   service?: string;
-  plugin_type?: string;
+  integration_type?: string;
   job_id?: string;
   job_name?: string;
   action?: string;

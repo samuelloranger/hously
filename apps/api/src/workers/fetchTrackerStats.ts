@@ -109,7 +109,7 @@ const sendTrackerWidgetRefreshSilentPush = async (): Promise<void> => {
 
 export const fetchTrackerStats = async (
   trackerType: TrackerType,
-  options?: { trigger?: "cron" | "manual" | "plugin" | "queue" },
+  options?: { trigger?: "cron" | "manual" | "integration" | "queue" },
 ): Promise<{
   uploadedGo: number | null;
   downloadedGo: number | null;
@@ -256,7 +256,7 @@ export const fetchTrackerStats = async (
 };
 
 export const fetchAllTrackerStats = async (options?: {
-  trigger?: "cron" | "manual" | "plugin" | "queue";
+  trigger?: "cron" | "manual" | "integration" | "queue";
 }): Promise<void> => {
   const trigger = options?.trigger ?? "cron";
   const startedAt = Date.now();
