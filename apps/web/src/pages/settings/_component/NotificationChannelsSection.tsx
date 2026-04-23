@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Trash2, Send, Plus, ChevronUp, Pencil } from "lucide-react";
+import { Trash2, Send, Plus, Pencil } from "lucide-react";
 import type {
   NotificationChannel,
   NotificationChannelType,
@@ -20,6 +20,7 @@ import {
   useDeleteNotificationChannel,
   useTestNotificationChannel,
 } from "@/lib/notifications/useNotificationChannels";
+import { Dialog } from "@/components/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -317,16 +318,17 @@ export function NotificationChannelsSection() {
 
   const channels = data?.channels ?? [];
 
-  // Add form state
-  const [showForm, setShowForm] = useState(false);
+  // Add modal state
+  const [addModalOpen, setAddModalOpen] = useState(false);
   const [formType, setFormType] = useState<NotificationChannelType>("ntfy");
   const [formLabel, setFormLabel] = useState("");
   const [formConfig, setFormConfig] = useState<NotificationChannelConfig>(
     emptyConfig("ntfy"),
   );
 
-  // Edit form state
-  const [editingId, setEditingId] = useState<number | null>(null);
+  // Edit modal state
+  const [editingChannel, setEditingChannel] =
+    useState<NotificationChannel | null>(null);
   const [editLabel, setEditLabel] = useState("");
   const [editConfig, setEditConfig] = useState<NotificationChannelConfig>(
     emptyConfig("ntfy"),
@@ -337,21 +339,21 @@ export function NotificationChannelsSection() {
     setFormConfig(emptyConfig(value));
   }
 
-  function resetForm() {
+  function resetAddForm() {
     setFormType("ntfy");
     setFormLabel("");
     setFormConfig(emptyConfig("ntfy"));
-    setShowForm(false);
+    setAddModalOpen(false);
   }
 
   function handleEdit(channel: NotificationChannel) {
-    setEditingId(channel.id);
+    setEditingChannel(channel);
     setEditLabel(channel.label);
     setEditConfig(channel.config);
   }
 
-  function cancelEdit() {
-    setEditingId(null);
+  function closeEditModal() {
+    setEditingChannel(null);
     setEditLabel("");
     setEditConfig(emptyConfig("ntfy"));
   }
@@ -374,7 +376,7 @@ export function NotificationChannelsSection() {
       {
         onSuccess: () => {
           toast.success("Channel added.");
-          resetForm();
+          resetAddForm();
         },
         onError: (err) => {
           toast.error(
@@ -386,17 +388,17 @@ export function NotificationChannelsSection() {
   }
 
   async function handleSaveEdit() {
-    if (editingId === null) return;
+    if (!editingChannel) return;
     if (!editLabel.trim()) {
       toast.error("Label cannot be empty.");
       return;
     }
     updateMutation.mutate(
-      { id: editingId, label: editLabel.trim(), config: editConfig },
+      { id: editingChannel.id, label: editLabel.trim(), config: editConfig },
       {
         onSuccess: () => {
           toast.success("Channel updated.");
-          cancelEdit();
+          closeEditModal();
         },
         onError: (err) => {
           toast.error(
@@ -447,149 +449,40 @@ export function NotificationChannelsSection() {
   }
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-            Notification Channels
-          </h2>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
-            Push notifications to external services.
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => setShowForm((v) => !v)}
-          aria-expanded={showForm}
-          className="whitespace-nowrap"
-        >
-          {showForm ? (
-            <>
-              <ChevronUp className="w-4 h-4" />
-              Cancel
-            </>
-          ) : (
-            <>
-              <Plus className="w-4 h-4" />
-              Add Channel
-            </>
-          )}
-        </Button>
-      </div>
-
-      {/* Add form */}
-      {showForm && (
-        <div className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 space-y-4 bg-neutral-50 dark:bg-neutral-700/30">
+    <>
+      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Type
-            </h3>
-            <Select
-              value={formType}
-              onValueChange={(v) =>
-                handleTypeChange(v as NotificationChannelType)
-              }
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CHANNEL_TYPES.map((ct) => (
-                  <SelectItem key={ct.value} value={ct.value}>
-                    {ct.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+              Notification Channels
+            </h2>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
+              Push notifications to external services.
+            </p>
           </div>
+          <Button
+            variant="outline"
+            onClick={() => setAddModalOpen(true)}
+            className="whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            Add Channel
+          </Button>
+        </div>
 
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Label
-            </h3>
-            <Input
-              value={formLabel}
-              onChange={(e) => setFormLabel(e.target.value)}
-              placeholder="My ntfy channel"
-            />
+        {/* Channel list */}
+        {isLoading ? (
+          <div className="p-4 text-center text-neutral-500 dark:text-neutral-400 text-sm">
+            Loading channels…
           </div>
-
-          <ConfigFields
-            type={formType}
-            config={formConfig}
-            onChange={setFormConfig}
-          />
-
-          <div className="flex gap-2 pt-1">
-            <Button
-              onClick={handleAdd}
-              disabled={createMutation.isPending}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {createMutation.isPending ? "Adding…" : "Add Channel"}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={resetForm}
-              disabled={createMutation.isPending}
-            >
-              Cancel
-            </Button>
+        ) : channels.length === 0 ? (
+          <div className="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg text-neutral-500 dark:text-neutral-400 text-sm">
+            No channels configured.
           </div>
-        </div>
-      )}
-
-      {/* Channel list */}
-      {isLoading ? (
-        <div className="p-4 text-center text-neutral-500 dark:text-neutral-400 text-sm">
-          Loading channels…
-        </div>
-      ) : channels.length === 0 ? (
-        <div className="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg text-neutral-500 dark:text-neutral-400 text-sm">
-          No channels configured.
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {channels.map((channel) =>
-            editingId === channel.id ? (
-              <div
-                key={channel.id}
-                className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 space-y-4 bg-neutral-50 dark:bg-neutral-700/30"
-              >
-                <div>
-                  <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                    Label
-                  </h3>
-                  <Input
-                    value={editLabel}
-                    onChange={(e) => setEditLabel(e.target.value)}
-                    placeholder="My ntfy channel"
-                  />
-                </div>
-                <ConfigFields
-                  type={channel.type}
-                  config={editConfig}
-                  onChange={setEditConfig}
-                />
-                <div className="flex gap-2 pt-1">
-                  <Button
-                    onClick={handleSaveEdit}
-                    disabled={updateMutation.isPending}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {updateMutation.isPending ? "Saving…" : "Save"}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={cancelEdit}
-                    disabled={updateMutation.isPending}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            ) : (
+        ) : (
+          <div className="space-y-2">
+            {channels.map((channel) => (
               <div
                 key={channel.id}
                 className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg"
@@ -642,10 +535,121 @@ export function NotificationChannelsSection() {
                   </Button>
                 </div>
               </div>
-            ),
-          )}
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add channel modal */}
+      <Dialog
+        isOpen={addModalOpen}
+        onClose={resetAddForm}
+        title="Add Channel"
+        panelClassName="max-w-lg"
+      >
+        <div className="space-y-4 pt-2">
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              Type
+            </h3>
+            <Select
+              value={formType}
+              onValueChange={(v) =>
+                handleTypeChange(v as NotificationChannelType)
+              }
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CHANNEL_TYPES.map((ct) => (
+                  <SelectItem key={ct.value} value={ct.value}>
+                    {ct.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              Label
+            </h3>
+            <Input
+              value={formLabel}
+              onChange={(e) => setFormLabel(e.target.value)}
+              placeholder="My channel"
+            />
+          </div>
+
+          <ConfigFields
+            type={formType}
+            config={formConfig}
+            onChange={setFormConfig}
+          />
+
+          <div className="flex gap-2 pt-1">
+            <Button
+              onClick={handleAdd}
+              disabled={createMutation.isPending}
+            >
+              {createMutation.isPending ? "Adding…" : "Add Channel"}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={resetAddForm}
+              disabled={createMutation.isPending}
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
-      )}
-    </div>
+      </Dialog>
+
+      {/* Edit channel modal */}
+      <Dialog
+        isOpen={editingChannel !== null}
+        onClose={closeEditModal}
+        title={`Edit — ${editingChannel?.label ?? ""}`}
+        panelClassName="max-w-lg"
+      >
+        <div className="space-y-4 pt-2">
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              Label
+            </h3>
+            <Input
+              value={editLabel}
+              onChange={(e) => setEditLabel(e.target.value)}
+              placeholder="My channel"
+            />
+          </div>
+
+          {editingChannel && (
+            <ConfigFields
+              type={editingChannel.type}
+              config={editConfig}
+              onChange={setEditConfig}
+            />
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <Button
+              onClick={handleSaveEdit}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? "Saving…" : "Save"}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={closeEditModal}
+              disabled={updateMutation.isPending}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+    </>
   );
 }
