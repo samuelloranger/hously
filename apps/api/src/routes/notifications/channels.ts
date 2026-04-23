@@ -6,12 +6,15 @@ import { badRequest, notFound, serverError } from "@hously/api/errors";
 import {
   dispatchToChannel,
   parseNtfyConfig,
+  parseTelegramConfig,
+  parseDiscordConfig,
+  parseGotifyConfig,
 } from "@hously/api/utils/notifications/channelDispatchers";
 import { getBaseUrl } from "@hously/api/config";
 import type { NotificationChannel } from "@hously/shared";
 
 // Add new provider keys here when implementing them.
-const VALID_TYPES = ["ntfy", "telegram", "discord"] as const;
+const VALID_TYPES = ["ntfy", "telegram", "discord", "gotify"] as const;
 
 function mapChannel(row: {
   id: number;
@@ -39,9 +42,16 @@ function parseId(raw: string): number | null {
 }
 
 function validateConfig(type: string, config: unknown): string | null {
-  if (type === "ntfy") {
+  const parsers: Record<string, (c: unknown) => unknown> = {
+    ntfy: parseNtfyConfig,
+    telegram: parseTelegramConfig,
+    discord: parseDiscordConfig,
+    gotify: parseGotifyConfig,
+  };
+  const parse = parsers[type];
+  if (parse) {
     try {
-      parseNtfyConfig(config);
+      parse(config);
     } catch (err) {
       return err instanceof Error ? err.message : "Invalid config";
     }

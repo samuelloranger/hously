@@ -8,6 +8,7 @@ import type {
   NtfyChannelConfig,
   TelegramChannelConfig,
   DiscordChannelConfig,
+  GotifyChannelConfig,
 } from "@hously/shared/types";
 import {
   useNotificationChannels,
@@ -34,6 +35,7 @@ const CHANNEL_TYPES: { value: NotificationChannelType; label: string }[] = [
   { value: "ntfy", label: "ntfy" },
   { value: "telegram", label: "Telegram" },
   { value: "discord", label: "Discord" },
+  { value: "gotify", label: "Gotify" },
 ];
 
 // Returns an empty config object for the given type.
@@ -46,6 +48,8 @@ function emptyConfig(type: NotificationChannelType): NotificationChannelConfig {
       return { bot_token: "", chat_id: "" };
     case "discord":
       return { webhook_url: "" };
+    case "gotify":
+      return { url: "", token: "", priority: undefined };
     default: {
       const _exhaustive: never = type;
       throw new Error(`Unknown channel type: ${_exhaustive}`);
@@ -143,6 +147,33 @@ function ConfigFields({ type, config, onChange }: ConfigFieldsProps) {
             onChange={(e) => onChange({ ...cfg, webhook_url: e.target.value })}
             placeholder="https://discord.com/api/webhooks/..."
           />
+        </div>
+      );
+    }
+    case "gotify": {
+      const cfg = config as GotifyChannelConfig;
+      return (
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              Server URL
+            </h3>
+            <Input
+              value={cfg.url}
+              onChange={(e) => onChange({ ...cfg, url: e.target.value })}
+              placeholder="https://gotify.example.com"
+            />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              App Token
+            </h3>
+            <Input
+              value={cfg.token}
+              onChange={(e) => onChange({ ...cfg, token: e.target.value })}
+              placeholder="A_z..."
+            />
+          </div>
         </div>
       );
     }

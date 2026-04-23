@@ -3,6 +3,7 @@ import type {
   NtfyChannelConfig,
   TelegramChannelConfig,
   DiscordChannelConfig,
+  GotifyChannelConfig,
 } from "@hously/shared";
 
 export interface DispatchPayload {
@@ -166,6 +167,55 @@ export async function dispatchDiscord(
 }
 
 // ---------------------------------------------------------------------------
+// Gotify
+// ---------------------------------------------------------------------------
+
+export function parseGotifyConfig(raw: unknown): GotifyChannelConfig {
+  if (!isRecord(raw)) {
+    throw new Error("gotify config must be an object");
+  }
+  const { url, token, priority } = raw;
+
+  if (typeof url !== "string" || url.length === 0) {
+    throw new Error("gotify config: url is required");
+  }
+  if (typeof token !== "string" || token.length === 0) {
+    throw new Error("gotify config: token is required");
+  }
+  if (
+    priority !== undefined &&
+    (typeof priority !== "number" ||
+      !Number.isInteger(priority) ||
+      priority < 1 ||
+      priority > 10)
+  ) {
+    throw new Error("gotify config: priority must be an integer from 1 to 10");
+  }
+
+  const parsed: GotifyChannelConfig = { url, token };
+  if (priority !== undefined) parsed.priority = priority as number;
+  return parsed;
+}
+
+export async function dispatchGotify(
+  config: GotifyChannelConfig,
+  { title, body, url }: DispatchPayload,
+): Promise<void> {
+  const message = url ? `${body}\n\n${url}` : body;
+  const payload: Record<string, unknown> = { title, message };
+  if (config.priority !== undefined) payload.priority = config.priority;
+
+  const endpoint = `${config.url.replace(/\/$/, "")}/message?token=${config.token}`;
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`gotify ${res.status}: ${await res.text()}`);
+}
+
+// ---------------------------------------------------------------------------
 // Orchestrator
 // ---------------------------------------------------------------------------
 
@@ -187,6 +237,8 @@ export async function dispatchToChannel(
       return dispatchTelegram(parseTelegramConfig(channel.config), payload);
     case "discord":
       return dispatchDiscord(parseDiscordConfig(channel.config), payload);
+    case "gotify":
+      return dispatchGotify(parseGotifyConfig(channel.config), payload);
     default: {
       const _exhaustive: never = type;
       void _exhaustive;

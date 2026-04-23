@@ -1,5 +1,9 @@
 // Provider key. Add new members when implementing a new provider.
-export type NotificationChannelType = "ntfy" | "telegram" | "discord";
+export type NotificationChannelType =
+  | "ntfy"
+  | "telegram"
+  | "discord"
+  | "gotify";
 
 export interface NtfyChannelConfig {
   url: string;
@@ -17,12 +21,19 @@ export interface DiscordChannelConfig {
   webhook_url: string;
 }
 
+export interface GotifyChannelConfig {
+  url: string;
+  token: string;
+  priority?: number;
+}
+
 // Discriminated union of all supported provider configs. When adding a new
 // provider, add its *ChannelConfig interface to this union.
 export type NotificationChannelConfig =
   | NtfyChannelConfig
   | TelegramChannelConfig
-  | DiscordChannelConfig;
+  | DiscordChannelConfig
+  | GotifyChannelConfig;
 
 export interface NotificationChannel {
   id: number;

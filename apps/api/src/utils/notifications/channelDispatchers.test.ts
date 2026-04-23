@@ -3,16 +3,19 @@ import {
   dispatchNtfy,
   dispatchTelegram,
   dispatchDiscord,
+  dispatchGotify,
   dispatchToChannel,
   parseNtfyConfig,
   parseTelegramConfig,
   parseDiscordConfig,
+  parseGotifyConfig,
 } from "./channelDispatchers";
 import type {
   NotificationChannel,
   NtfyChannelConfig,
   TelegramChannelConfig,
   DiscordChannelConfig,
+  GotifyChannelConfig,
 } from "@hously/shared";
 
 const payload = {
@@ -211,6 +214,36 @@ describe("dispatchToChannel", () => {
     ).rejects.toThrow("telegram config: chat_id is required");
     expect(mockFetch).not.toHaveBeenCalled();
   });
+
+  it("routes to gotify dispatcher based on channel type", async () => {
+    const channel: NotificationChannel = {
+      id: 3,
+      type: "gotify",
+      label: "My Gotify",
+      config: { url: "https://gotify.example.com", token: "A_abc123" },
+      enabled: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    await dispatchToChannel(channel, payload);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [url] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://gotify.example.com/message?token=A_abc123");
+  });
+
+  it("throws when gotify config is malformed", async () => {
+    await expect(
+      dispatchToChannel(
+        {
+          type: "gotify",
+          label: "Broken",
+          config: { url: "https://gotify.example.com" },
+        },
+        payload,
+      ),
+    ).rejects.toThrow("gotify config: token is required");
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
 });
 
 describe("parseNtfyConfig", () => {
@@ -387,5 +420,162 @@ describe("parseDiscordConfig", () => {
     expect(() => parseDiscordConfig({ webhook_url: "" })).toThrow(
       "discord config: webhook_url is required",
     );
+  });
+});
+
+describe("dispatchGotify", () => {
+  const config: GotifyChannelConfig = {
+    url: "https://gotify.example.com",
+    token: "A_abc123",
+  };
+
+  it("POSTs to {url}/message?token={token}", async () => {
+    await dispatchGotify(config, payload);
+    const [url, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe("https://gotify.example.com/message?token=A_abc123");
+    expect(init.method).toBe("POST");
+  });
+
+  it("sends title and message in JSON body", async () => {
+    await dispatchGotify(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.title).toBe("Test Title");
+    expect(body.message).toBe("Test body\n\nhttps://example.com");
+  });
+
+  it("appends click URL to message body when provided", async () => {
+    await dispatchGotify(config, {
+      title: "T",
+      body: "B",
+      url: "https://x.com",
+    });
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.message).toBe("B\n\nhttps://x.com");
+  });
+
+  it("omits URL suffix when no click URL provided", async () => {
+    await dispatchGotify(config, { title: "T", body: "B" });
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.message).toBe("B");
+  });
+
+  it("includes priority when set", async () => {
+    await dispatchGotify({ ...config, priority: 7 }, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.priority).toBe(7);
+  });
+
+  it("omits priority when not set", async () => {
+    await dispatchGotify(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.priority).toBeUndefined();
+  });
+
+  it("strips trailing slash from server URL", async () => {
+    await dispatchGotify(
+      { ...config, url: "https://gotify.example.com/" },
+      payload,
+    );
+    const [url] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://gotify.example.com/message?token=A_abc123");
+  });
+
+  it("throws on non-ok HTTP response", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response("Unauthorized", { status: 401 }),
+    );
+    await expect(dispatchGotify(config, payload)).rejects.toThrow("gotify 401");
+  });
+});
+
+describe("parseGotifyConfig", () => {
+  it("returns a typed config when url and token are present", () => {
+    const parsed = parseGotifyConfig({
+      url: "https://gotify.example.com",
+      token: "A_abc123",
+    });
+    expect(parsed).toEqual({
+      url: "https://gotify.example.com",
+      token: "A_abc123",
+    });
+  });
+
+  it("carries priority through when provided", () => {
+    const parsed = parseGotifyConfig({
+      url: "https://gotify.example.com",
+      token: "A_abc123",
+      priority: 5,
+    });
+    expect(parsed).toEqual({
+      url: "https://gotify.example.com",
+      token: "A_abc123",
+      priority: 5,
+    });
+  });
+
+  it("rejects non-object input", () => {
+    expect(() => parseGotifyConfig(null)).toThrow(
+      "gotify config must be an object",
+    );
+    expect(() => parseGotifyConfig("string")).toThrow(
+      "gotify config must be an object",
+    );
+  });
+
+  it("rejects missing url", () => {
+    expect(() => parseGotifyConfig({ token: "A_abc123" })).toThrow(
+      "gotify config: url is required",
+    );
+  });
+
+  it("rejects empty url", () => {
+    expect(() => parseGotifyConfig({ url: "", token: "A_abc123" })).toThrow(
+      "gotify config: url is required",
+    );
+  });
+
+  it("rejects missing token", () => {
+    expect(() =>
+      parseGotifyConfig({ url: "https://gotify.example.com" }),
+    ).toThrow("gotify config: token is required");
+  });
+
+  it("rejects empty token", () => {
+    expect(() =>
+      parseGotifyConfig({ url: "https://gotify.example.com", token: "" }),
+    ).toThrow("gotify config: token is required");
+  });
+
+  it("rejects out-of-range priority", () => {
+    expect(() =>
+      parseGotifyConfig({
+        url: "https://gotify.example.com",
+        token: "A_abc123",
+        priority: 11,
+      }),
+    ).toThrow("priority must be an integer from 1 to 10");
   });
 });
