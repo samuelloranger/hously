@@ -13,7 +13,7 @@ import type { DashboardWeatherResponse } from "@hously/api/types/dashboardWeathe
 import type { WeatherForecastData } from "@hously/shared/types";
 import { badGateway, notFound, serverError } from "@hously/api/errors";
 
-interface WeatherPluginConfig {
+interface WeatherIntegrationConfig {
   address?: string;
   temperature_unit?: "fahrenheit" | "celsius";
 }
@@ -23,17 +23,17 @@ export const dashboardWeatherRoutes = new Elysia()
   .use(requireUser)
   .get("/weather", async ({ user, set }) => {
     try {
-      const weatherPlugin = await prisma.plugin.findFirst({
+      const weatherIntegration = await prisma.integration.findFirst({
         where: { type: "weather" },
       });
       const config =
-        (weatherPlugin?.config as WeatherPluginConfig | null) || null;
+        (weatherIntegration?.config as WeatherIntegrationConfig | null) || null;
       const address = (config?.address || "").trim();
       const temperatureUnit =
         config?.temperature_unit === "celsius" ? "celsius" : "fahrenheit";
 
       if (!address) {
-        return notFound(set, "Weather plugin is not configured.");
+        return notFound(set, "Weather integration is not configured.");
       }
 
       const normalizedAddress = normalizeWeatherAddress(address);
@@ -54,17 +54,17 @@ export const dashboardWeatherRoutes = new Elysia()
   })
   .get("/weather/forecast", async ({ set }) => {
     try {
-      const weatherPlugin = await prisma.plugin.findFirst({
+      const weatherIntegration = await prisma.integration.findFirst({
         where: { type: "weather" },
       });
       const config =
-        (weatherPlugin?.config as WeatherPluginConfig | null) || null;
+        (weatherIntegration?.config as WeatherIntegrationConfig | null) || null;
       const address = (config?.address || "").trim();
       const temperatureUnit =
         config?.temperature_unit === "celsius" ? "celsius" : "fahrenheit";
 
       if (!address) {
-        return notFound(set, "Weather plugin is not configured.");
+        return notFound(set, "Weather integration is not configured.");
       }
 
       const normalizedAddress = normalizeWeatherAddress(address);

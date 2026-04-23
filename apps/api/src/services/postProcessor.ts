@@ -21,7 +21,7 @@ import {
   sanitizeFilenamePart,
   sanitizePathTemplateOutput,
 } from "@hously/api/utils/medias/fileTemplate";
-import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
+import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import {
   deleteQbittorrentTorrent,
   fetchQbittorrentTorrent,
@@ -177,7 +177,7 @@ async function postProcessSeasonPack(
   const hash = dh.torrentHash?.trim();
   if (!hash) return { success: false, reason: "Torrent hash unknown" };
 
-  const qb = await getQbittorrentPluginConfig();
+  const qb = await getQbittorrentIntegrationConfig();
   if (!qb.enabled || !qb.config)
     return { success: false, reason: "qBittorrent not configured" };
 
@@ -479,7 +479,7 @@ export async function postProcess(
     return { success: false, reason: "Torrent hash unknown" };
   }
 
-  const qb = await getQbittorrentPluginConfig();
+  const qb = await getQbittorrentIntegrationConfig();
   if (!qb.enabled || !qb.config) {
     return { success: false, reason: "qBittorrent not configured" };
   }

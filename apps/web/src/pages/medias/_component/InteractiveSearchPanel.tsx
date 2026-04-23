@@ -372,7 +372,7 @@ export function InteractiveSearchPanel({
 
   return (
     <div className="flex flex-col">
-      <div className="md:sticky md:top-0 md:z-10 border-b border-neutral-200 pt-1 pb-4 dark:border-neutral-700 bg-white dark:bg-neutral-900">
+      <div className="md:sticky md:top-0 md:z-10 border-b border-neutral-200 pt-1 pb-4 dark:border-neutral-700 bg-white dark:bg-[#020617]">
         <div className="flex flex-col gap-3">
           {/* Season pack search — shows only */}
           {isShow && availableSeasons.length > 0 && (

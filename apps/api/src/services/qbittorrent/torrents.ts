@@ -1,6 +1,6 @@
 import { QBITTORRENT_TORRENTS_PAGE_SIZE } from "@hously/shared";
 import {
-  type QbittorrentPluginConfig,
+  type QbittorrentIntegrationConfig,
   type QbittorrentDashboardTorrent,
   type QbittorrentTorrentListItem,
   type QbittorrentTorrentProperties,
@@ -167,7 +167,7 @@ export const buildQbittorrentDisabledSnapshot = (
 });
 
 export const fetchQbittorrentSnapshot = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
 ): Promise<QbittorrentDashboardSnapshot> => {
   if (!enabled) return buildQbittorrentDisabledSnapshot();
@@ -245,7 +245,7 @@ export const fetchQbittorrentSnapshot = async (
 // --- Torrent list operations ---
 
 export const fetchQbittorrentTorrents = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   params: QbittorrentListTorrentsParams = {},
 ): Promise<{
@@ -335,7 +335,7 @@ export const fetchQbittorrentTorrents = async (
 };
 
 export const fetchQbittorrentTorrent = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   hash: string,
 ): Promise<{
@@ -394,7 +394,7 @@ export const fetchQbittorrentTorrent = async (
 };
 
 export const fetchQbittorrentTorrentProperties = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   hash: string,
 ): Promise<{
@@ -440,7 +440,7 @@ export const fetchQbittorrentTorrentProperties = async (
 };
 
 export const fetchQbittorrentTorrentFiles = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   hash: string,
 ): Promise<{
@@ -482,7 +482,7 @@ export const fetchQbittorrentTorrentFiles = async (
 };
 
 export const fetchQbittorrentTorrentPeers = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   hash: string,
   rid?: number,
@@ -548,7 +548,7 @@ export const fetchQbittorrentTorrentPeers = async (
 };
 
 export const fetchQbittorrentCategories = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
 ): Promise<{
   enabled: boolean;
@@ -590,7 +590,7 @@ export const fetchQbittorrentCategories = async (
 };
 
 export const fetchQbittorrentTags = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
 ): Promise<{
   enabled: boolean;
@@ -626,7 +626,7 @@ export const fetchQbittorrentTags = async (
 // --- Torrent mutation operations ---
 
 export const renameQbittorrentTorrent = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   payload: { hash: string; name: string },
 ): Promise<{
@@ -676,7 +676,7 @@ export const renameQbittorrentTorrent = async (
 };
 
 export const renameQbittorrentTorrentFile = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   payload: { hash: string; old_path: string; new_path: string },
 ): Promise<{
@@ -730,7 +730,7 @@ export const renameQbittorrentTorrentFile = async (
 };
 
 export const setQbittorrentTorrentCategory = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   payload: { hash: string; category: string | null },
 ): Promise<{
@@ -773,7 +773,7 @@ export const setQbittorrentTorrentCategory = async (
 };
 
 export const setQbittorrentTorrentTags = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   payload: { hash: string; tags: string[]; previous_tags?: string[] | null },
 ): Promise<{
@@ -838,7 +838,7 @@ export const setQbittorrentTorrentTags = async (
 };
 
 export const pauseQbittorrentTorrent = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   payload: { hash: string },
 ): Promise<{
@@ -878,7 +878,7 @@ export const pauseQbittorrentTorrent = async (
 };
 
 export const resumeQbittorrentTorrent = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   payload: { hash: string },
 ): Promise<{
@@ -919,7 +919,7 @@ export const resumeQbittorrentTorrent = async (
 };
 
 export const reannounceQbittorrentTorrent = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   payload: { hash: string },
 ): Promise<{
@@ -960,7 +960,7 @@ export const reannounceQbittorrentTorrent = async (
 };
 
 export const deleteQbittorrentTorrent = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   payload: { hash: string; delete_files: boolean },
 ): Promise<{
@@ -1002,7 +1002,7 @@ export const deleteQbittorrentTorrent = async (
 };
 
 export const addQbittorrentMagnet = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   payload: {
     magnet: string;
@@ -1066,7 +1066,7 @@ export const addQbittorrentMagnet = async (
 };
 
 export const addQbittorrentTorrentFile = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   enabled: boolean,
   payload: {
     torrent: File;

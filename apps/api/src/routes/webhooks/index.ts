@@ -14,7 +14,7 @@ import { timingSafeEqual } from "node:crypto";
 import { completeDownloadByHash } from "@hously/api/workers/checkDownloadCompletion";
 import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessor";
 import { qbFetchJson } from "@hously/api/services/qbittorrent/client";
-import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
+import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import { parseReleaseTitle } from "@hously/api/utils/medias/filenameParser";
 import {
   QBIT_CATEGORY_HOUSLY_MOVIES,
@@ -37,7 +37,7 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
   // (inside a VPN network_mode container) reaches Hously directly without going
   // through the VPN tunnel or Cloudflare.
   .post("/qbittorrent/completed", async ({ body, query, request, set }) => {
-    const qb = await getQbittorrentPluginConfig();
+    const qb = await getQbittorrentIntegrationConfig();
     const secret = qb.config?.webhook_secret;
     if (!secret) return forbidden(set, "Webhook not configured");
 
@@ -86,7 +86,7 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
   // matches it against the library by title and creates a DownloadHistory entry
   // so the item's status switches to "downloading" immediately.
   .post("/qbittorrent/added", async ({ body, query, request, set }) => {
-    const qb = await getQbittorrentPluginConfig();
+    const qb = await getQbittorrentIntegrationConfig();
     const secret = qb.config?.webhook_secret;
     if (!secret) return forbidden(set, "Webhook not configured");
 
@@ -326,7 +326,7 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
           serviceName.toLowerCase() === "uptimekuma" &&
           (eventType === "MonitorUp" || eventType === "MonitorDown")
         ) {
-          await deleteCache("plugin:uptimekuma:monitors");
+          await deleteCache("integration:uptimekuma:monitors");
         }
 
         const enrichment = await enrichArrWebhookNotification(

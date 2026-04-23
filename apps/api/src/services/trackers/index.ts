@@ -1,15 +1,15 @@
 import { scrapeC411 } from "./httpC411";
 import { scrapeTorr9 } from "./httpTorr9";
 import type {
-  TrackerPluginConfig,
+  TrackerIntegrationConfig,
   TrackerType,
-} from "@hously/api/utils/plugins/types";
+} from "@hously/api/utils/integrations/types";
 import type { FlareSolverrSolution, HttpTrackerStats } from "./httpScraper";
 import { scrapeLaCale } from "./httpLaCale";
 
 export type TrackerScraper = {
   scrape: (
-    config: TrackerPluginConfig,
+    config: TrackerIntegrationConfig,
     solution?: FlareSolverrSolution,
   ) => Promise<HttpTrackerStats>;
   needsFlaresolverr: boolean;

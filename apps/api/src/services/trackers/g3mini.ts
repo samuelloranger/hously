@@ -1,5 +1,5 @@
 import type { Page } from "playwright";
-import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
+import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
 
 const G3MINI_LOGIN_FORM = "form.auth-form__form";
 const G3MINI_USERNAME_INPUT = 'form.auth-form__form input[name="username"]';
@@ -58,7 +58,7 @@ const parseSizeToGo = (text: string): number | null => {
 
 export const loginToG3mini = async (
   page: Page,
-  config: TrackerPluginConfig,
+  config: TrackerIntegrationConfig,
 ): Promise<void> => {
   const loginForm = page.locator(G3MINI_LOGIN_FORM);
   const usernameInput = page.locator(G3MINI_USERNAME_INPUT);

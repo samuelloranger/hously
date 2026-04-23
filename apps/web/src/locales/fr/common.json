@@ -149,7 +149,6 @@
         "chore_completed": "Tâche complétée",
         "shopping_completed": "Tâche de courses complétée",
         "habit_completed": "Habitude complétée",
-        "plugin_updated": "Plugin mis à jour",
         "cron_job_ended": "Cron terminé",
         "cron_job_skipped": "Cron ignoré",
         "app_updated": "Application mise à jour",
@@ -160,7 +159,8 @@
         "shopping_item_added": "Article ajouté",
         "shopping_item_completed": "Article complété",
         "shopping_list_cleared": "Liste de courses vidée",
-        "media_grab": "Téléchargement média"
+        "media_grab": "Téléchargement média",
+        "integration_updated": "Intégration mise à jour"
       }
     },
     "activity": {
@@ -169,8 +169,6 @@
       "appUpdatedGeneric": "Application mise à jour",
       "unknownUser": "Quelqu’un",
       "unknownTask": "une tâche",
-      "pluginUpdated": "Plugin mis à jour : {{plugin}}",
-      "unknownPlugin": "Plugin inconnu",
       "adminTriggeredJob": "Job lancé par un admin : {{job}}",
       "cronEnded": "Cron terminé : {{job}} ({{seconds}}s)",
       "cronFailed": "Cron échoué : {{job}}",
@@ -186,7 +184,9 @@
       "shoppingCleared": "{{count}} article(s) complété(s) supprimé(s)",
       "unknownItem": "Article inconnu",
       "unknownRelease": "Release inconnue",
-      "mediaGrab": "Release ajoutée : {{title}}"
+      "mediaGrab": "Release ajoutée : {{title}}",
+      "integrationUpdated": "Intégration mise à jour : {{integration}}",
+      "unknownIntegration": "Intégration inconnue"
     },
     "weather": {
       "kicker": "Météo",
@@ -205,7 +205,7 @@
       "kicker": "Home Assistant",
       "toggle": "Basculer",
       "emptyTitle": "Aucun appareil sur le widget",
-      "emptyDescription": "Choisissez les lumières et prises dans Paramètres → Plugins → Home Assistant.",
+      "emptyDescription": "Choisissez les lumières et prises dans Paramètres → Intégrations → Home Assistant.",
       "domainLight": "Lumière",
       "domainSwitch": "Prise / interrupteur"
     },
@@ -220,7 +220,7 @@
     },
     "qbittorrent": {
       "notConnectedTitle": "qBittorrent n'est pas encore connecté",
-      "notConnectedDescription": "Allez dans Paramètres > Plugins et connectez qBittorrent pour voir l'activité en direct ici.",
+      "notConnectedDescription": "Allez dans Paramètres > Intégrations et connectez qBittorrent pour voir l'activité en direct ici.",
       "emptyTitle": "Aucune activité torrent en cours",
       "live": "En direct",
       "polling": "Actualisation",
@@ -914,128 +914,6 @@
         "refetch": "Actualiser"
       }
     },
-    "plugins": {
-      "title": "Plugins",
-      "description": "Connectez des plugins tiers utilisés par le tableau de bord.",
-      "tabs": {
-        "plugins": "Plugins",
-        "trackers": "Trackers"
-      },
-      "indexers": "Indexeurs",
-      "groups": {
-        "media": "Médias",
-        "infrastructure": "Infrastructure",
-        "other": "Autre"
-      },
-      "save": "Enregistrer le plugin",
-      "saveSuccess": "Plugin enregistré avec succès",
-      "saveError": "Échec de l'enregistrement du plugin",
-      "unsavedChanges": "Modifications non enregistrées",
-      "invalidUrl": "Veuillez entrer une URL valide (ex. https://example.com)",
-      "jellyfin": {
-        "help": "Connectez Jellyfin pour récupérer les derniers éléments ajoutés sur votre serveur média.",
-        "websiteUrl": "URL du site Jellyfin",
-        "apiKey": "Clé API Jellyfin",
-        "apiKeyPlaceholder": "Collez votre clé API Jellyfin"
-      },
-      "tmdb": {
-        "help": "Configurez TMDB pour que les sorties à venir et la recherche médias interrogent TMDB depuis le serveur.",
-        "apiKey": "Clé API TMDB",
-        "apiKeyPlaceholder": "Collez votre clé API TMDB",
-        "popularityThreshold": "Seuil de popularité",
-        "popularityThresholdHelp": "Score de popularité TMDB minimum (0–100) pour les sorties à venir. Les valeurs élevées n'affichent que les titres populaires."
-      },
-      "weather": {
-        "title": "Météo",
-        "help": "Configurez la localisation météo du tableau de bord et l'unité de température préférée.",
-        "address": "Adresse",
-        "addressPlaceholder": "Entrez une adresse pour la météo",
-        "temperatureUnit": "Unité de température",
-        "fahrenheit": "Fahrenheit (°F)",
-        "celsius": "Celsius (°C)"
-      },
-      "prowlarr": {
-        "help": "Connectez Prowlarr pour lancer des recherches globales de releases et envoyer les résultats à votre client de téléchargement configuré.",
-        "websiteUrl": "URL Prowlarr",
-        "apiKey": "Clé API Prowlarr",
-        "apiKeyPlaceholder": "Collez votre clé API Prowlarr"
-      },
-      "jackett": {
-        "help": "Connectez Jackett pour effectuer des recherches globales de releases sur vos indexeurs configurés.",
-        "websiteUrl": "URL de Jackett",
-        "apiKey": "Clé API Jackett",
-        "apiKeyPlaceholder": "Collez votre clé API Jackett"
-      },
-      "qbittorrent": {
-        "help": "Connectez qBittorrent pour afficher les statistiques de file de téléchargement en direct sur le tableau de bord.",
-        "websiteUrl": "URL qBittorrent",
-        "username": "Nom d'utilisateur qBittorrent",
-        "password": "Mot de passe qBittorrent",
-        "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel",
-        "pollInterval": "Intervalle de rafraîchissement (secondes)",
-        "maxItems": "Nombre max de torrents actifs",
-        "setupNote": "Pour activer le post-traitement automatique à la fin d'un téléchargement, qBittorrent doit être configuré avec une commande autorun webhook.",
-        "setupLink": "Voir le guide de configuration"
-      },
-      "scrutiny": {
-        "help": "Connectez Scrutiny pour afficher la santé des disques et les températures SMART sur l'accueil.",
-        "websiteUrl": "URL Scrutiny"
-      },
-      "beszel": {
-        "help": "Connectez Beszel pour afficher les métriques système en direct et l'usage par disque sur l'accueil.",
-        "websiteUrl": "URL Beszel",
-        "email": "Courriel Beszel",
-        "password": "Mot de passe Beszel",
-        "passwordSet": "Mot de passe déjà configuré — laissez vide pour conserver"
-      },
-      "adguard": {
-        "help": "Connectez AdGuard Home pour afficher le filtrage DNS et activer ou désactiver AdGuard depuis Hously.",
-        "websiteUrl": "URL AdGuard Home",
-        "username": "Nom d'utilisateur AdGuard Home",
-        "password": "Mot de passe AdGuard Home",
-        "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel"
-      },
-      "uptimekuma": {
-        "help": "Connectez UptimeKuma pour afficher l'état des moniteurs sur votre page d'accueil.",
-        "websiteUrl": "URL UptimeKuma",
-        "apiKey": "Clé API",
-        "apiKeyPlaceholder": "uk1_...",
-        "apiKeyPlaceholderSet": "Laisser vide pour conserver la clé actuelle"
-      },
-      "homeAssistant": {
-        "help": "Contrôlez les lumières et prises connectées depuis l'accueil. Utilisez un jeton d'accès à longue durée depuis votre profil Home Assistant.",
-        "baseUrl": "URL Home Assistant",
-        "baseUrlPlaceholder": "https://homeassistant.local:8123",
-        "accessToken": "Jeton d'accès à longue durée",
-        "accessTokenPlaceholder": "Collez le jeton — laissez vide pour conserver le jeton enregistré",
-        "loadDevices": "Charger lumières et prises",
-        "loadingDevices": "Chargement…",
-        "devicesHint": "Choisissez les entités affichées sur le widget d'accueil (lumières et interrupteurs uniquement).",
-        "noDevicesFound": "Aucune lumière ou interrupteur trouvé. Vérifiez le jeton et que HA est joignable depuis le serveur Hously."
-      },
-      "trackers": {
-        "title": "Trackers",
-        "description": "Configurez C411, Torr9 et La Cale au même endroit.",
-        "disclaimer": "Ces intégrations extraient des données de trackers privés et peuvent enfreindre leurs conditions d'utilisation. Utilisation à vos risques.",
-        "flaresolverrUrl": "URL FlareSolverr",
-        "username": "Nom d'utilisateur",
-        "password": "Mot de passe",
-        "passwordPlaceholder": "Laisser vide pour conserver le mot de passe existant",
-        "trackerUrl": "URL du tracker",
-        "usernamePlaceholder": "nom d'utilisateur",
-        "providerHelp": {
-          "c411": "C411 utilise vos identifiants du site pour la recherche et la synchronisation, ainsi que votre URL d'annonce privée pour la publication des releases."
-        },
-        "usernameHelp": {
-          "c411": "Utilisé comme nom d'uploader lors de la synchronisation de vos releases depuis C411."
-        },
-        "providers": {
-          "c411": "C411",
-          "torr9": "Torr9",
-          "la-cale": "La Cale"
-        }
-      }
-    },
     "dataExport": {
       "title": "Export/Import",
       "description": "Exporter et importer les données de l'application. Les identifiants utilisateur sont remplacés par des e-mails pour la portabilité.",
@@ -1103,7 +981,7 @@
       "episodeTemplate": "Modèle de chemin (épisode)",
       "minSeedRatio": "Retirer le torrent de qBittorrent quand le ratio atteint (0 = juste après traitement)",
       "activeIndexerManager": "Gestionnaire d'indexeurs",
-      "noIndexerConfigured": "Aucun gestionnaire d'indexeurs configuré. Activez Prowlarr ou Jackett dans les paramètres des Plugins.",
+      "noIndexerConfigured": "Aucun gestionnaire d'indexeurs configuré. Activez Prowlarr ou Jackett dans les paramètres des Intégrations.",
       "noIndexerSelected": "Aucune sélection",
       "defaultQualityProfile": "Profil qualité par défaut",
       "defaultQualityProfileNone": "Aucun (pas de profil assigné à l'ajout)",
@@ -1349,6 +1227,128 @@
       "revokeConfirm": "Êtes-vous sûr de vouloir révoquer l'invitation pour {{email}} ?",
       "revokeSuccess": "Invitation révoquée",
       "revokeError": "Échec de la révocation de l'invitation"
+    },
+    "integrations": {
+      "title": "Intégrations",
+      "description": "Connectez des intégrations tierces utilisées par le tableau de bord.",
+      "tabs": {
+        "integrations": "Intégrations",
+        "trackers": "Trackers"
+      },
+      "indexers": "Indexeurs",
+      "groups": {
+        "media": "Médias",
+        "infrastructure": "Infrastructure",
+        "other": "Autre"
+      },
+      "save": "Enregistrer l'intégration",
+      "saveSuccess": "Intégration enregistrée avec succès",
+      "saveError": "Échec de l'enregistrement de l'intégration",
+      "unsavedChanges": "Modifications non enregistrées",
+      "invalidUrl": "Veuillez entrer une URL valide (ex. https://example.com)",
+      "jellyfin": {
+        "help": "Connectez Jellyfin pour récupérer les derniers éléments ajoutés sur votre serveur média.",
+        "websiteUrl": "URL du site Jellyfin",
+        "apiKey": "Clé API Jellyfin",
+        "apiKeyPlaceholder": "Collez votre clé API Jellyfin"
+      },
+      "tmdb": {
+        "help": "Configurez TMDB pour que les sorties à venir et la recherche médias interrogent TMDB depuis le serveur.",
+        "apiKey": "Clé API TMDB",
+        "apiKeyPlaceholder": "Collez votre clé API TMDB",
+        "popularityThreshold": "Seuil de popularité",
+        "popularityThresholdHelp": "Score de popularité TMDB minimum (0–100) pour les sorties à venir. Les valeurs élevées n'affichent que les titres populaires."
+      },
+      "weather": {
+        "title": "Météo",
+        "help": "Configurez la localisation météo du tableau de bord et l'unité de température préférée.",
+        "address": "Adresse",
+        "addressPlaceholder": "Entrez une adresse pour la météo",
+        "temperatureUnit": "Unité de température",
+        "fahrenheit": "Fahrenheit (°F)",
+        "celsius": "Celsius (°C)"
+      },
+      "prowlarr": {
+        "help": "Connectez Prowlarr pour lancer des recherches globales de releases et envoyer les résultats à votre client de téléchargement configuré.",
+        "websiteUrl": "URL Prowlarr",
+        "apiKey": "Clé API Prowlarr",
+        "apiKeyPlaceholder": "Collez votre clé API Prowlarr"
+      },
+      "jackett": {
+        "help": "Connectez Jackett pour effectuer des recherches globales de releases sur vos indexeurs configurés.",
+        "websiteUrl": "URL de Jackett",
+        "apiKey": "Clé API Jackett",
+        "apiKeyPlaceholder": "Collez votre clé API Jackett"
+      },
+      "qbittorrent": {
+        "help": "Connectez qBittorrent pour afficher les statistiques de file de téléchargement en direct sur le tableau de bord.",
+        "websiteUrl": "URL qBittorrent",
+        "username": "Nom d'utilisateur qBittorrent",
+        "password": "Mot de passe qBittorrent",
+        "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel",
+        "pollInterval": "Intervalle de rafraîchissement (secondes)",
+        "maxItems": "Nombre max de torrents actifs",
+        "setupNote": "Pour activer le post-traitement automatique à la fin d'un téléchargement, qBittorrent doit être configuré avec une commande autorun webhook.",
+        "setupLink": "Voir le guide de configuration"
+      },
+      "scrutiny": {
+        "help": "Connectez Scrutiny pour afficher la santé des disques et les températures SMART sur l'accueil.",
+        "websiteUrl": "URL Scrutiny"
+      },
+      "beszel": {
+        "help": "Connectez Beszel pour afficher les métriques système en direct et l'usage par disque sur l'accueil.",
+        "websiteUrl": "URL Beszel",
+        "email": "Courriel Beszel",
+        "password": "Mot de passe Beszel",
+        "passwordSet": "Mot de passe déjà configuré — laissez vide pour conserver"
+      },
+      "adguard": {
+        "help": "Connectez AdGuard Home pour afficher le filtrage DNS et activer ou désactiver AdGuard depuis Hously.",
+        "websiteUrl": "URL AdGuard Home",
+        "username": "Nom d'utilisateur AdGuard Home",
+        "password": "Mot de passe AdGuard Home",
+        "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel"
+      },
+      "uptimekuma": {
+        "help": "Connectez UptimeKuma pour afficher l'état des moniteurs sur votre page d'accueil.",
+        "websiteUrl": "URL UptimeKuma",
+        "apiKey": "Clé API",
+        "apiKeyPlaceholder": "uk1_...",
+        "apiKeyPlaceholderSet": "Laisser vide pour conserver la clé actuelle"
+      },
+      "homeAssistant": {
+        "help": "Contrôlez les lumières et prises connectées depuis l'accueil. Utilisez un jeton d'accès à longue durée depuis votre profil Home Assistant.",
+        "baseUrl": "URL Home Assistant",
+        "baseUrlPlaceholder": "https://homeassistant.local:8123",
+        "accessToken": "Jeton d'accès à longue durée",
+        "accessTokenPlaceholder": "Collez le jeton — laissez vide pour conserver le jeton enregistré",
+        "loadDevices": "Charger lumières et prises",
+        "loadingDevices": "Chargement…",
+        "devicesHint": "Choisissez les entités affichées sur le widget d'accueil (lumières et interrupteurs uniquement).",
+        "noDevicesFound": "Aucune lumière ou interrupteur trouvé. Vérifiez le jeton et que HA est joignable depuis le serveur Hously."
+      },
+      "trackers": {
+        "title": "Trackers",
+        "description": "Configurez C411, Torr9 et La Cale au même endroit.",
+        "disclaimer": "Ces intégrations extraient des données de trackers privés et peuvent enfreindre leurs conditions d'utilisation. Utilisation à vos risques.",
+        "flaresolverrUrl": "URL FlareSolverr",
+        "username": "Nom d'utilisateur",
+        "password": "Mot de passe",
+        "passwordPlaceholder": "Laisser vide pour conserver le mot de passe existant",
+        "trackerUrl": "URL du tracker",
+        "usernamePlaceholder": "nom d'utilisateur",
+        "providerHelp": {
+          "c411": "C411 utilise vos identifiants du site pour la recherche et la synchronisation, ainsi que votre URL d'annonce privée pour la publication des releases."
+        },
+        "usernameHelp": {
+          "c411": "Utilisé comme nom d'uploader lors de la synchronisation de vos releases depuis C411."
+        },
+        "providers": {
+          "c411": "C411",
+          "torr9": "Torr9",
+          "la-cale": "La Cale"
+        }
+      }
     }
   },
   "medias": {

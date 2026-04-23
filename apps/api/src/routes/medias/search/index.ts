@@ -91,7 +91,7 @@ export const mediasSearchRoutes = new Elysia()
         if (!adapter) {
           return badRequest(
             set,
-            "No indexer manager configured. Enable Prowlarr or Jackett in plugin settings.",
+            "No indexer manager configured. Enable Prowlarr or Jackett in integration settings.",
           );
         }
 
@@ -209,7 +209,7 @@ export const mediasSearchRoutes = new Elysia()
       if (!adapter) {
         return badRequest(
           set,
-          "No indexer manager configured. Enable Prowlarr or Jackett in plugin settings.",
+          "No indexer manager configured. Enable Prowlarr or Jackett in integration settings.",
         );
       }
       const indexers = await adapter.getIndexers();
@@ -231,7 +231,7 @@ export const mediasSearchRoutes = new Elysia()
         if (!adapter) {
           return badRequest(
             set,
-            "No indexer manager configured. Enable Prowlarr or Jackett in plugin settings.",
+            "No indexer manager configured. Enable Prowlarr or Jackett in integration settings.",
           );
         }
 

@@ -1,9 +1,9 @@
 import { prisma } from "@hously/api/db";
-import { normalizeTrackerConfig } from "@hously/api/utils/plugins/normalizers";
+import { normalizeTrackerConfig } from "@hously/api/utils/integrations/normalizers";
 import { cacheKey } from "@hously/api/utils/dashboard/trackers";
 import { setJsonCache } from "@hously/api/services/cache";
 import { TRACKER_SCRAPERS } from "@hously/api/services/trackers";
-import type { TrackerType } from "@hously/api/utils/plugins/types";
+import type { TrackerType } from "@hously/api/utils/integrations/types";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { decrypt } from "@hously/api/services/crypto";
 import { sendApnNotifications } from "@hously/api/utils/apnPush";
@@ -149,29 +149,29 @@ export const fetchTrackerStats = async (
       return;
     }
 
-    const plugin = await prisma.plugin.findFirst({
+    const integration = await prisma.integration.findFirst({
       where: { type: trackerType },
     });
-    if (!plugin || !plugin.enabled) {
+    if (!integration || !integration.enabled) {
       console.log(
-        `[warn] ${trackerName(trackerType)} plugin not found or disabled, skipping stats fetch`,
+        `[warn] ${trackerName(trackerType)} integration not found or disabled, skipping stats fetch`,
       );
       await logActivity({
         type: "cron_job_skipped",
         payload: {
           job_id: jobId,
           job_name: jobName,
-          reason: !plugin ? "plugin_missing" : "plugin_disabled",
+          reason: !integration ? "integration_missing" : "integration_disabled",
           trigger,
         },
       });
       return;
     }
 
-    const config = normalizeTrackerConfig(plugin.config);
+    const config = normalizeTrackerConfig(integration.config);
     if (!config) {
       console.log(
-        `[warn] ${trackerName(trackerType)} plugin config is invalid, skipping stats fetch`,
+        `[warn] ${trackerName(trackerType)} integration config is invalid, skipping stats fetch`,
       );
       await logActivity({
         type: "cron_job_skipped",
@@ -194,7 +194,7 @@ export const fetchTrackerStats = async (
     if (scraper.needsFlaresolverr !== false) {
       if (!config.flaresolverr_url) {
         console.log(
-          `[warn] ${trackerName(trackerType)} plugin config missing flaresolverr_url, skipping stats fetch`,
+          `[warn] ${trackerName(trackerType)} integration config missing flaresolverr_url, skipping stats fetch`,
         );
         await logActivity({
           type: "cron_job_skipped",

@@ -6,7 +6,7 @@ export * from "./calendar";
 export * from "./dashboard";
 export * from "./notification";
 export * from "./admin";
-export * from "./plugins";
+export * from "./integrations";
 export * from "./externalNotifications";
 export * from "./weather";
 export * from "./media";

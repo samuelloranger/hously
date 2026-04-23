@@ -1,5 +1,5 @@
 import { buildNotificationUrl } from "@hously/shared/utils";
-import { getQbittorrentPluginConfig } from "./qbittorrent/config";
+import { getQbittorrentIntegrationConfig } from "./qbittorrent/config";
 import { fetchQbittorrentTorrentTrackers } from "./qbittorrent/trackers";
 import { setQbittorrentTorrentTags } from "./qbittorrent/torrents";
 import type { WebhookResult } from "./webhookHandlers/types";
@@ -103,7 +103,7 @@ export async function enrichArrWebhookNotification(
     qbittorrent_url: torrentUrl,
   };
 
-  const { enabled, config } = await getQbittorrentPluginConfig();
+  const { enabled, config } = await getQbittorrentIntegrationConfig();
   if (!enabled || !config) {
     return {
       template_variables: templateVariables,

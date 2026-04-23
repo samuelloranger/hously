@@ -9,7 +9,7 @@ import {
   scanAndImportLibraryFiles,
   enqueueLibraryPostProcess,
 } from "@hously/api/services/postProcessor";
-import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
+import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import { fetchMaindata } from "@hously/api/services/qbittorrent/client";
 import {
   isCompletedDownloadState,
@@ -127,7 +127,7 @@ export async function rescanLibraryItem(
   if (completedDhs.length > 0) {
     const qbCompleteHashes = new Set<string>();
     try {
-      const qbCfg = await getQbittorrentPluginConfig();
+      const qbCfg = await getQbittorrentIntegrationConfig();
       if (qbCfg.enabled && qbCfg.config) {
         const { torrents } = await fetchMaindata(qbCfg.config);
         for (const [hash, raw] of torrents) {

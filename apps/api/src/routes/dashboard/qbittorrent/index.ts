@@ -114,7 +114,7 @@ const getPinnedTorrentResponse = async (userId: number) => {
       connected: false,
       pinned_hash: pinnedHash,
       torrent: null,
-      error: "qBittorrent plugin is not configured",
+      error: "qBittorrent integration is not configured",
     };
   }
 
@@ -595,7 +595,7 @@ export const dashboardQbittorrentRoutes = new Elysia()
       const config = await getQbittorrentConfigOrError(set);
       if (!config) {
         console.warn(
-          `${logPrefix} plugin disabled or misconfigured for user id=${user!.id}`,
+          `${logPrefix} integration disabled or misconfigured for user id=${user!.id}`,
         );
         return getQbittorrentConfigErrorResponse();
       }

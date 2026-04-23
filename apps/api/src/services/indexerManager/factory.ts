@@ -1,9 +1,9 @@
 import { prisma } from "../../db";
-import { getPluginConfigRecord } from "../pluginConfigCache";
+import { getIntegrationConfigRecord } from "../integrationConfigCache";
 import {
   normalizeProwlarrConfig,
   normalizeJackettConfig,
-} from "../../utils/plugins/normalizers";
+} from "../../utils/integrations/normalizers";
 import { ProwlarrAdapter } from "./prowlarrAdapter";
 import { JackettAdapter } from "./jackettAdapter";
 import type { IndexerManagerAdapter } from "./types";
@@ -12,7 +12,7 @@ import type { IndexerManagerAdapter } from "./types";
  * Return the currently active IndexerManagerAdapter based on
  * MediaSettings.activeIndexerManager.
  *
- * Returns null if no indexer is configured or the selected plugin is disabled.
+ * Returns null if no indexer is configured or the selected integration is disabled.
  */
 export async function getActiveIndexerManager(): Promise<IndexerManagerAdapter | null> {
   let row = await prisma.mediaSettings.findUnique({ where: { id: 1 } });
@@ -24,17 +24,17 @@ export async function getActiveIndexerManager(): Promise<IndexerManagerAdapter |
   if (!active) return null;
 
   if (active === "prowlarr") {
-    const plugin = await getPluginConfigRecord("prowlarr");
-    if (!plugin?.enabled) return null;
-    const config = normalizeProwlarrConfig(plugin.config);
+    const integration = await getIntegrationConfigRecord("prowlarr");
+    if (!integration?.enabled) return null;
+    const config = normalizeProwlarrConfig(integration.config);
     if (!config) return null;
     return new ProwlarrAdapter(config);
   }
 
   if (active === "jackett") {
-    const plugin = await getPluginConfigRecord("jackett");
-    if (!plugin?.enabled) return null;
-    const config = normalizeJackettConfig(plugin.config);
+    const integration = await getIntegrationConfigRecord("jackett");
+    if (!integration?.enabled) return null;
+    const config = normalizeJackettConfig(integration.config);
     if (!config) return null;
     return new JackettAdapter(config);
   }

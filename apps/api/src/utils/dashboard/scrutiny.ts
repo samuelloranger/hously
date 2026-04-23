@@ -1,5 +1,5 @@
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
-import { normalizeScrutinyConfig } from "@hously/api/utils/plugins/normalizers";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
+import { normalizeScrutinyConfig } from "@hously/api/utils/integrations/normalizers";
 import { toNumberOrNull, toRecord, toStringOrNull } from "@hously/shared/utils";
 import type {
   DashboardScrutinyDrive,
@@ -26,17 +26,17 @@ const buildScrutinyDisabledSummary = (
 
 export const fetchScrutinySummary =
   async (): Promise<DashboardScrutinySummaryResponse> => {
-    const plugin = await getPluginConfigRecord("scrutiny");
+    const integration = await getIntegrationConfigRecord("scrutiny");
 
-    if (!plugin?.enabled) {
+    if (!integration?.enabled) {
       return buildScrutinyDisabledSummary();
     }
 
-    const config = normalizeScrutinyConfig(plugin.config);
+    const config = normalizeScrutinyConfig(integration.config);
     if (!config) {
       return {
         ...buildScrutinyDisabledSummary(
-          "Scrutiny plugin is enabled but not configured",
+          "Scrutiny integration is enabled but not configured",
         ),
         enabled: true,
       };

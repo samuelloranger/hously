@@ -4,7 +4,7 @@ import { ProfileTab } from "@/pages/settings/_component/ProfileTab";
 import { NotificationsTab } from "@/pages/settings/_component/NotificationsTab";
 import { CalendarTab } from "@/pages/settings/_component/CalendarTab";
 import { ExternalNotificationsTab } from "@/pages/settings/_component/ExternalNotificationsTab";
-import { PluginsTab } from "@/pages/settings/_component/PluginsTab";
+import { IntegrationsTab } from "@/pages/settings/_component/IntegrationsTab";
 import { DataExportTab } from "@/pages/settings/_component/DataExportTab";
 import { UsersTab } from "@/pages/settings/_component/UsersTab";
 import { JobsTab } from "@/pages/settings/_component/JobsTab";
@@ -37,7 +37,7 @@ export type Tab =
   | "profile"
   | "calendar"
   | "external-notifications"
-  | "plugins"
+  | "integrations"
   | "data-export"
   | "jobs"
   | "users"
@@ -76,7 +76,7 @@ export function Settings() {
 
   const adminTabs: TabItem[] = currentUser?.is_admin
     ? [
-        { id: "plugins", label: t("settings.plugins.title"), icon: Puzzle },
+        { id: "integrations", label: t("settings.integrations.title"), icon: Puzzle },
         {
           id: "external-notifications",
           label: t("settings.externalNotifications.title"),
@@ -193,7 +193,7 @@ export function Settings() {
           {activeTab === "external-notifications" && currentUser?.is_admin && (
             <ExternalNotificationsTab />
           )}
-          {activeTab === "plugins" && currentUser?.is_admin && <PluginsTab />}
+          {activeTab === "integrations" && currentUser?.is_admin && <IntegrationsTab />}
           {activeTab === "data-export" && currentUser?.is_admin && (
             <DataExportTab />
           )}

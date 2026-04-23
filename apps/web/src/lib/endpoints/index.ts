@@ -10,7 +10,7 @@ export * from "./habits";
 export * from "./library";
 export * from "./medias";
 export * from "./notifications";
-export * from "./plugins";
+export * from "./integrations";
 export * from "./qualityProfiles";
 export * from "./qbittorrent";
 export * from "./search";

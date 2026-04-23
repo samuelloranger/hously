@@ -1,4 +1,4 @@
-import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
+import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import {
   buildQbittorrentDisabledSnapshot,
   fetchQbittorrentSnapshot,
@@ -7,12 +7,12 @@ import type { QbittorrentDashboardSnapshot } from "@hously/api/services/qbittorr
 
 export const getQbittorrentSnapshot =
   async (): Promise<QbittorrentDashboardSnapshot> => {
-    const { enabled, config } = await getQbittorrentPluginConfig();
+    const { enabled, config } = await getQbittorrentIntegrationConfig();
 
     if (!enabled || !config) {
       const snapshot = buildQbittorrentDisabledSnapshot(
         enabled && !config
-          ? "qBittorrent plugin is enabled but not configured"
+          ? "qBittorrent integration is enabled but not configured"
           : undefined,
       );
       return enabled ? { ...snapshot, enabled: true } : snapshot;

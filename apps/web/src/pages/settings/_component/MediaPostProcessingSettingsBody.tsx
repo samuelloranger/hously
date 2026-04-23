@@ -10,9 +10,9 @@ import {
   useUpdateMediaPostProcessingSettings,
 } from "@/features/medias/hooks/useLibrary";
 import {
-  useProwlarrPlugin,
-  useJackettPlugin,
-} from "@/pages/settings/usePlugins";
+  useProwlarrIntegration,
+  useJackettIntegration,
+} from "@/pages/settings/useIntegrations";
 import type {
   MediaFileOperation,
   MediaPostProcessingSettings,
@@ -61,10 +61,10 @@ export function MediaPostProcessingSettingsBody({
     unmatched: string[];
   } | null>(null);
 
-  const { data: prowlarrData } = useProwlarrPlugin();
-  const { data: jackettData } = useJackettPlugin();
-  const prowlarrEnabled = Boolean(prowlarrData?.plugin?.enabled);
-  const jackettEnabled = Boolean(jackettData?.plugin?.enabled);
+  const { data: prowlarrData } = useProwlarrIntegration();
+  const { data: jackettData } = useJackettIntegration();
+  const prowlarrEnabled = Boolean(prowlarrData?.integration?.enabled);
+  const jackettEnabled = Boolean(jackettData?.integration?.enabled);
   const indexerOptions = [
     ...(prowlarrEnabled ? [{ value: "prowlarr", label: "Prowlarr" }] : []),
     ...(jackettEnabled ? [{ value: "jackett", label: "Jackett" }] : []),

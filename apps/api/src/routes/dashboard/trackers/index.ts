@@ -3,13 +3,13 @@ import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { getJsonCache } from "@hously/api/services/cache";
-import { normalizeTrackerConfig } from "@hously/api/utils/plugins/normalizers";
+import { normalizeTrackerConfig } from "@hously/api/utils/integrations/normalizers";
 import type { CachedTrackerStats } from "@hously/api/utils/dashboard/trackers";
 import {
   cacheKey,
   parseCachedTrackerStats,
 } from "@hously/api/utils/dashboard/trackers";
-import type { TrackerType } from "@hously/api/utils/plugins/types";
+import type { TrackerType } from "@hously/api/utils/integrations/types";
 import { serverError } from "@hously/api/errors";
 
 const trackerLabel = (type: TrackerType): string => {
@@ -22,16 +22,16 @@ const trackerLabel = (type: TrackerType): string => {
 
 async function getTrackerStatsHandler(type: TrackerType) {
   // Check Redis first. Stats are cached for 24 h, so if we have a cache hit the
-  // plugin is enabled by definition — no DB query needed on every dashboard load.
+  // integration is enabled by definition — no DB query needed on every dashboard load.
   const cached = await getJsonCache<CachedTrackerStats>(cacheKey(type));
   const parsed = parseCachedTrackerStats(cached);
   if (parsed) {
     return { enabled: true, connected: true, ...parsed };
   }
 
-  // Cache miss — fall back to DB to determine plugin state.
-  const plugin = await prisma.plugin.findFirst({ where: { type } });
-  const enabled = Boolean(plugin?.enabled);
+  // Cache miss — fall back to DB to determine integration state.
+  const integration = await prisma.integration.findFirst({ where: { type } });
+  const enabled = Boolean(integration?.enabled);
 
   if (!enabled) {
     return {
@@ -44,7 +44,7 @@ async function getTrackerStatsHandler(type: TrackerType) {
     };
   }
 
-  const config = normalizeTrackerConfig(plugin?.config);
+  const config = normalizeTrackerConfig(integration?.config);
   if (!config) {
     return {
       enabled: true,
@@ -53,7 +53,7 @@ async function getTrackerStatsHandler(type: TrackerType) {
       uploaded_go: null,
       downloaded_go: null,
       ratio: null,
-      error: `${trackerLabel(type)} plugin is not configured`,
+      error: `${trackerLabel(type)} integration is not configured`,
     };
   }
 

@@ -1,5 +1,5 @@
 import { parse } from "node-html-parser";
-import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
+import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
 import {
   CookieJar,
   httpFetch,
@@ -14,7 +14,7 @@ interface C411UserResponse {
 }
 
 export async function scrapeC411(
-  config: TrackerPluginConfig,
+  config: TrackerIntegrationConfig,
   solution?: FlareSolverrSolution,
 ): Promise<HttpTrackerStats> {
   if (!solution) throw new Error("C411 scraper requires FlareSolverr solution");

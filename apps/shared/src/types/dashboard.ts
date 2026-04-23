@@ -12,7 +12,7 @@ export type ActivityType =
   | "chore_added"
   | "chore_completed"
   | "habit_completed"
-  | "plugin_updated"
+  | "integration_updated"
   | "cron_job_ended"
   | "cron_job_skipped"
   | "app_updated"

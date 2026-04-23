@@ -12,11 +12,11 @@ import {
   DEFAULT_POLL_INTERVAL_SECONDS,
   DEFAULT_MAX_ITEMS,
 } from "./client";
-import type { QbittorrentPluginConfig } from "./client";
+import type { QbittorrentIntegrationConfig } from "./client";
 
 export const normalizeQbittorrentConfig = (
   config: unknown,
-): QbittorrentPluginConfig | null => {
+): QbittorrentIntegrationConfig | null => {
   const cfg = toRecord(config);
   if (!cfg) return null;
 
@@ -56,37 +56,37 @@ export const normalizeQbittorrentConfig = (
   };
 };
 
-// --- Plugin config cache (Redis, 24h TTL) ---
+// --- Integration config cache (Redis, 24h TTL) ---
 
-const PLUGIN_CONFIG_CACHE_KEY = "qbittorrent:plugin_config";
-const PLUGIN_CONFIG_CACHE_TTL_SECONDS = 86400; // 24h -- invalidated on settings save
+const INTEGRATION_CONFIG_CACHE_KEY = "qbittorrent:integration_config";
+const INTEGRATION_CONFIG_CACHE_TTL_SECONDS = 86400; // 24h -- invalidated on settings save
 
-export const getQbittorrentPluginConfig = async (): Promise<{
+export const getQbittorrentIntegrationConfig = async (): Promise<{
   enabled: boolean;
-  config: QbittorrentPluginConfig | null;
+  config: QbittorrentIntegrationConfig | null;
 }> => {
   const cached = await getJsonCache<{
     enabled: boolean;
-    config: QbittorrentPluginConfig | null;
-  }>(PLUGIN_CONFIG_CACHE_KEY);
+    config: QbittorrentIntegrationConfig | null;
+  }>(INTEGRATION_CONFIG_CACHE_KEY);
   if (cached) return cached;
 
-  const plugin = await prisma.plugin.findFirst({
+  const integration = await prisma.integration.findFirst({
     where: { type: "qbittorrent" },
     select: { enabled: true, config: true },
   });
 
-  const enabled = plugin?.enabled ?? false;
-  const config = enabled ? normalizeQbittorrentConfig(plugin?.config) : null;
+  const enabled = integration?.enabled ?? false;
+  const config = enabled ? normalizeQbittorrentConfig(integration?.config) : null;
   const result = { enabled, config };
   await setJsonCache(
-    PLUGIN_CONFIG_CACHE_KEY,
+    INTEGRATION_CONFIG_CACHE_KEY,
     result,
-    PLUGIN_CONFIG_CACHE_TTL_SECONDS,
+    INTEGRATION_CONFIG_CACHE_TTL_SECONDS,
   );
   return result;
 };
 
-export const invalidateQbittorrentPluginConfigCache = async () => {
-  await deleteCache(PLUGIN_CONFIG_CACHE_KEY);
+export const invalidateQbittorrentIntegrationConfigCache = async () => {
+  await deleteCache(INTEGRATION_CONFIG_CACHE_KEY);
 };

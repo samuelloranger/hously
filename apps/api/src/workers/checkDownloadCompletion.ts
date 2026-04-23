@@ -1,5 +1,5 @@
 import { prisma } from "@hously/api/db";
-import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
+import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import { emitLibraryUpdate } from "@hously/api/services/libraryEvents";
 import {
   fetchMaindata,
@@ -126,7 +126,7 @@ export async function reconcilePendingDownloads(
   const result: PendingReconcileResult = { completed: 0, failed: 0, missing: 0 };
   if (!pending.length) return result;
 
-  const qb = await getQbittorrentPluginConfig();
+  const qb = await getQbittorrentIntegrationConfig();
   if (!qb.enabled || !qb.config) return result;
 
   resetMaindataState();
@@ -237,7 +237,7 @@ export async function reconcilePendingDownloads(
  * (e.g. Hously was down when the torrent finished, or hash was not yet known).
  */
 export async function checkDownloadCompletion(): Promise<void> {
-  const qb = await getQbittorrentPluginConfig();
+  const qb = await getQbittorrentIntegrationConfig();
   if (!qb.enabled || !qb.config) return;
 
   const pending = await prisma.downloadHistory.findMany({

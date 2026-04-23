@@ -155,7 +155,7 @@ export function UptimeKumaPanel() {
   const query = useUptimekumaMonitors();
   const [modalOpen, setModalOpen] = useState(false);
 
-  // 400 — plugin disabled or not configured — hide silently.
+  // 400 — integration disabled or not configured — hide silently.
   if (query.isError) {
     const message =
       query.error instanceof Error ? query.error.message : String(query.error);

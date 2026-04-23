@@ -1,5 +1,5 @@
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
-import { normalizeBeszelConfig } from "@hously/api/utils/plugins/normalizers";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
+import { normalizeBeszelConfig } from "@hously/api/utils/integrations/normalizers";
 import type {
   DashboardBeszelDiskUsage,
   DashboardBeszelSummaryResponse,
@@ -62,17 +62,17 @@ type PocketBaseList<T> = {
 
 export const fetchBeszelSummary =
   async (): Promise<DashboardBeszelSummaryResponse> => {
-    const plugin = await getPluginConfigRecord("beszel");
+    const integration = await getIntegrationConfigRecord("beszel");
 
-    if (!plugin?.enabled) {
+    if (!integration?.enabled) {
       return buildBeszelDisabledSummary();
     }
 
-    const config = normalizeBeszelConfig(plugin.config);
+    const config = normalizeBeszelConfig(integration.config);
     if (!config) {
       return {
         ...buildBeszelDisabledSummary(
-          "Beszel plugin is enabled but not configured",
+          "Beszel integration is enabled but not configured",
         ),
         enabled: true,
       };

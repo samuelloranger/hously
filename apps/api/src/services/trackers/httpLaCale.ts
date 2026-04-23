@@ -1,4 +1,4 @@
-import type { TrackerPluginConfig } from "@hously/api/utils/plugins/types";
+import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
 import type { HttpTrackerStats } from "./httpScraper";
 
 /**
@@ -7,7 +7,7 @@ import type { HttpTrackerStats } from "./httpScraper";
  * using the session cookies returned by login.
  */
 export async function scrapeLaCale(
-  config: TrackerPluginConfig,
+  config: TrackerIntegrationConfig,
 ): Promise<HttpTrackerStats> {
   const trackerUrl = new URL(config.tracker_url);
   const apiBase = `${trackerUrl.protocol}//${trackerUrl.host}/api/internal`;

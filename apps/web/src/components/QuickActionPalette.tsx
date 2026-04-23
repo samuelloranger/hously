@@ -128,7 +128,7 @@ export function QuickActionPalette({
         }),
         icon: <Settings size={20} />,
         section: "actions",
-        keywords: ["settings", "profile", "plugins"],
+        keywords: ["settings", "profile", "integrations"],
         action: () => {
           navigate({ to: "/settings", search: { tab: "profile" as const } });
           handleClose();

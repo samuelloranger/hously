@@ -20,7 +20,7 @@ export interface QbittorrentTorrentRaw {
   completed_on?: number;
 }
 
-export interface QbittorrentPluginConfig {
+export interface QbittorrentIntegrationConfig {
   website_url: string;
   username: string;
   password: string;
@@ -394,7 +394,7 @@ type QbRequestResult = {
 
 // --- HTTP client ---
 
-const buildConfigKey = (config: QbittorrentPluginConfig): string =>
+const buildConfigKey = (config: QbittorrentIntegrationConfig): string =>
   `${config.website_url}|${config.username}|${config.password}`;
 
 const parseSidCookie = (response: Response): string | null => {
@@ -408,7 +408,7 @@ const parseSidCookie = (response: Response): string | null => {
   return sidPart.split(";")[0] || null;
 };
 
-const resetSessionIfConfigChanged = (config: QbittorrentPluginConfig) => {
+const resetSessionIfConfigChanged = (config: QbittorrentIntegrationConfig) => {
   const key = buildConfigKey(config);
   if (qbSession.key === key) return;
   qbSession.key = key;
@@ -416,7 +416,7 @@ const resetSessionIfConfigChanged = (config: QbittorrentPluginConfig) => {
   maindataState = null;
 };
 
-const login = async (config: QbittorrentPluginConfig): Promise<boolean> => {
+const login = async (config: QbittorrentIntegrationConfig): Promise<boolean> => {
   const loginUrl = new URL("/api/v2/auth/login", config.website_url);
   const body = new URLSearchParams({
     username: config.username,
@@ -475,7 +475,7 @@ const login = async (config: QbittorrentPluginConfig): Promise<boolean> => {
 };
 
 const qbRequest = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   path: string,
   init?: RequestInit,
 ): Promise<QbRequestResult> => {
@@ -560,7 +560,7 @@ const qbRequest = async (
 };
 
 export const qbFetchJson = async <T>(
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   path: string,
 ): Promise<T> => {
   const result = await qbRequest(config, path, {
@@ -608,7 +608,7 @@ export const qbFetchJson = async <T>(
 };
 
 export const qbFetchText = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
   path: string,
   init?: RequestInit,
 ): Promise<string> => {
@@ -641,7 +641,7 @@ export const qbFetchText = async (
 // --- Maindata fetch & merge ---
 
 export const fetchMaindata = async (
-  config: QbittorrentPluginConfig,
+  config: QbittorrentIntegrationConfig,
 ): Promise<{
   serverState: Record<string, unknown>;
   torrents: Map<string, Record<string, unknown>>;

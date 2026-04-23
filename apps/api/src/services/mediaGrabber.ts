@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
 
 import { prisma } from "@hously/api/db";
 import { getActiveIndexerManager } from "@hously/api/services/indexerManager";
-import { getPluginConfigRecord } from "@hously/api/services/pluginConfigCache";
+import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 import {
   addQbittorrentMagnet,
   addQbittorrentTorrentFile,
@@ -13,7 +13,7 @@ import {
   setQbittorrentTorrentCategory,
   setQbittorrentTorrentTags,
 } from "@hously/api/services/qbittorrent/torrents";
-import { getQbittorrentPluginConfig } from "@hously/api/services/qbittorrent/config";
+import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import { isCompletedDownloadState } from "@hously/api/workers/checkDownloadCompletion";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import {
@@ -27,7 +27,7 @@ import {
   scoreRelease,
   type QualityProfileScoreInput,
 } from "@hously/api/utils/medias/releaseScorer";
-import { normalizeProwlarrConfig } from "@hously/api/utils/plugins/normalizers";
+import { normalizeProwlarrConfig } from "@hously/api/utils/integrations/normalizers";
 import {
   MAX_TORRENT_FILE_BYTES,
   QBIT_CATEGORY_HOUSLY_MOVIES,
@@ -98,9 +98,9 @@ function qualityJsonValue(
 async function prowlarrHeadersForTorrentUrl(
   downloadUrl: string,
 ): Promise<Record<string, string>> {
-  const prowPlugin = await getPluginConfigRecord("prowlarr");
-  if (!prowPlugin?.enabled) return {};
-  const prowCfg = normalizeProwlarrConfig(prowPlugin.config);
+  const prowIntegration = await getIntegrationConfigRecord("prowlarr");
+  if (!prowIntegration?.enabled) return {};
+  const prowCfg = normalizeProwlarrConfig(prowIntegration.config);
   if (!prowCfg) return {};
   try {
     const pu = new URL(prowCfg.website_url);
@@ -199,7 +199,7 @@ async function tryAdoptQbDuplicate(ctx: {
   } = ctx;
   if (!torrentHash) return null;
 
-  const qb = await getQbittorrentPluginConfig();
+  const qb = await getQbittorrentIntegrationConfig();
   if (!qb.enabled || !qb.config) return null;
 
   const info = await fetchQbittorrentTorrent(
@@ -350,7 +350,7 @@ export async function grabRelease(opts: {
       };
     }
 
-    const qb = await getQbittorrentPluginConfig();
+    const qb = await getQbittorrentIntegrationConfig();
     if (!qb.enabled || !qb.config) {
       return { grabbed: false, reason: "qBittorrent not configured" };
     }
