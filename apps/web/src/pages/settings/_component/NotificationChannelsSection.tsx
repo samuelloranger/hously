@@ -6,6 +6,7 @@ import type {
   NotificationChannelType,
   NotificationChannelConfig,
   NtfyChannelConfig,
+  TelegramChannelConfig,
 } from "@hously/shared/types";
 import {
   useNotificationChannels,
@@ -30,6 +31,7 @@ import {
 // ---------------------------------------------------------------------------
 const CHANNEL_TYPES: { value: NotificationChannelType; label: string }[] = [
   { value: "ntfy", label: "ntfy" },
+  { value: "telegram", label: "Telegram" },
 ];
 
 // Returns an empty config object for the given type.
@@ -38,6 +40,8 @@ function emptyConfig(type: NotificationChannelType): NotificationChannelConfig {
   switch (type) {
     case "ntfy":
       return { url: "", topic: "", token: "", priority: undefined };
+    case "telegram":
+      return { bot_token: "", chat_id: "" };
     default: {
       const _exhaustive: never = type;
       throw new Error(`Unknown channel type: ${_exhaustive}`);
@@ -91,6 +95,33 @@ function ConfigFields({ type, config, onChange }: ConfigFieldsProps) {
                 onChange({ ...cfg, token: e.target.value || undefined })
               }
               placeholder="tk_..."
+            />
+          </div>
+        </div>
+      );
+    }
+    case "telegram": {
+      const cfg = config as TelegramChannelConfig;
+      return (
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              Bot Token
+            </h3>
+            <Input
+              value={cfg.bot_token}
+              onChange={(e) => onChange({ ...cfg, bot_token: e.target.value })}
+              placeholder="123456:ABC-DEF..."
+            />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              Chat ID
+            </h3>
+            <Input
+              value={cfg.chat_id}
+              onChange={(e) => onChange({ ...cfg, chat_id: e.target.value })}
+              placeholder="-1001234567890"
             />
           </div>
         </div>
@@ -163,8 +194,7 @@ export function NotificationChannelsSection() {
       formType === "ntfy"
         ? {
             ...(formConfig as NtfyChannelConfig),
-            token:
-              (formConfig as NtfyChannelConfig).token?.trim() || undefined,
+            token: (formConfig as NtfyChannelConfig).token?.trim() || undefined,
           }
         : formConfig;
 
@@ -176,7 +206,9 @@ export function NotificationChannelsSection() {
           resetForm();
         },
         onError: (err) => {
-          toast.error(err instanceof Error ? err.message : "Failed to add channel.");
+          toast.error(
+            err instanceof Error ? err.message : "Failed to add channel.",
+          );
         },
       },
     );
@@ -196,7 +228,9 @@ export function NotificationChannelsSection() {
           cancelEdit();
         },
         onError: (err) => {
-          toast.error(err instanceof Error ? err.message : "Failed to update channel.");
+          toast.error(
+            err instanceof Error ? err.message : "Failed to update channel.",
+          );
         },
       },
     );
@@ -206,7 +240,8 @@ export function NotificationChannelsSection() {
     updateMutation.mutate(
       { id, enabled },
       {
-        onSuccess: () => toast.success(enabled ? "Channel enabled." : "Channel disabled."),
+        onSuccess: () =>
+          toast.success(enabled ? "Channel enabled." : "Channel disabled."),
         onError: (err) => {
           toast.error(
             err instanceof Error ? err.message : "Failed to update channel.",
@@ -221,7 +256,9 @@ export function NotificationChannelsSection() {
       onSuccess: () => toast.success("Test notification sent."),
       onError: (err) => {
         toast.error(
-          err instanceof Error ? err.message : "Failed to send test notification.",
+          err instanceof Error
+            ? err.message
+            : "Failed to send test notification.",
         );
       },
     });

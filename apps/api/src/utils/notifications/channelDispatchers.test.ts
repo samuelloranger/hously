@@ -1,10 +1,16 @@
 import { describe, it, expect, mock, beforeEach } from "bun:test";
 import {
   dispatchNtfy,
+  dispatchTelegram,
   dispatchToChannel,
   parseNtfyConfig,
+  parseTelegramConfig,
 } from "./channelDispatchers";
-import type { NotificationChannel, NtfyChannelConfig } from "@hously/shared";
+import type {
+  NotificationChannel,
+  NtfyChannelConfig,
+  TelegramChannelConfig,
+} from "@hously/shared";
 
 const payload = {
   title: "Test Title",
@@ -71,6 +77,79 @@ describe("dispatchNtfy", () => {
   });
 });
 
+describe("dispatchTelegram", () => {
+  const config: TelegramChannelConfig = {
+    bot_token: "123456:ABC-DEF",
+    chat_id: "-1001234567890",
+  };
+
+  it("POSTs to the correct Telegram API URL", async () => {
+    await dispatchTelegram(config, payload);
+    const [url] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe(
+      "https://api.telegram.org/bot123456:ABC-DEF/sendMessage",
+    );
+  });
+
+  it("sends HTML-formatted text with bold title", async () => {
+    await dispatchTelegram(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.chat_id).toBe("-1001234567890");
+    expect(body.parse_mode).toBe("HTML");
+    expect(body.text).toBe("<b>Test Title</b>\nTest body");
+  });
+
+  it("includes inline keyboard button with click URL when url is provided", async () => {
+    await dispatchTelegram(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.reply_markup).toEqual({
+      inline_keyboard: [[{ text: "Open in Hously", url: "https://example.com" }]],
+    });
+  });
+
+  it("omits reply_markup when no url is provided", async () => {
+    await dispatchTelegram(config, { title: "T", body: "B" });
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.reply_markup).toBeUndefined();
+  });
+
+  it("escapes HTML special characters in title and body", async () => {
+    await dispatchTelegram(config, {
+      title: "Chore <Kitchen> & Bath",
+      body: "Don't forget: clean <sink> & floor",
+    });
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.text).toBe(
+      "<b>Chore &lt;Kitchen&gt; &amp; Bath</b>\nDon't forget: clean &lt;sink&gt; &amp; floor",
+    );
+  });
+
+  it("throws on non-ok HTTP response", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response("Unauthorized", { status: 401 }),
+    );
+    await expect(dispatchTelegram(config, payload)).rejects.toThrow(
+      "telegram 401",
+    );
+  });
+});
+
 describe("dispatchToChannel", () => {
   it("routes to ntfy dispatcher based on channel type", async () => {
     const channel: NotificationChannel = {
@@ -88,6 +167,22 @@ describe("dispatchToChannel", () => {
     expect(url).toBe("https://ntfy.example.com/hously");
   });
 
+  it("routes to telegram dispatcher based on channel type", async () => {
+    const channel: NotificationChannel = {
+      id: 2,
+      type: "telegram",
+      label: "My Telegram",
+      config: { bot_token: "123:ABC", chat_id: "42" },
+      enabled: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    await dispatchToChannel(channel, payload);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [url] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.telegram.org/bot123:ABC/sendMessage");
+  });
+
   it("throws on unknown channel type", async () => {
     await expect(
       dispatchToChannel({ type: "unknown", label: "Bad", config: {} }, payload),
@@ -101,6 +196,16 @@ describe("dispatchToChannel", () => {
         payload,
       ),
     ).rejects.toThrow("ntfy config: url is required");
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("throws when telegram config is malformed", async () => {
+    await expect(
+      dispatchToChannel(
+        { type: "telegram", label: "Broken", config: { bot_token: "123" } },
+        payload,
+      ),
+    ).rejects.toThrow("telegram config: chat_id is required");
     expect(mockFetch).not.toHaveBeenCalled();
   });
 });
@@ -150,5 +255,51 @@ describe("parseNtfyConfig", () => {
         priority: 9,
       }),
     ).toThrow("priority must be an integer from 1 to 5");
+  });
+});
+
+describe("parseTelegramConfig", () => {
+  it("returns a typed config when bot_token and chat_id are present", () => {
+    const parsed = parseTelegramConfig({
+      bot_token: "123456:ABC-DEF",
+      chat_id: "-1001234567890",
+    });
+    expect(parsed).toEqual({
+      bot_token: "123456:ABC-DEF",
+      chat_id: "-1001234567890",
+    });
+  });
+
+  it("rejects non-object input", () => {
+    expect(() => parseTelegramConfig("not an object")).toThrow(
+      "telegram config must be an object",
+    );
+    expect(() => parseTelegramConfig(null)).toThrow(
+      "telegram config must be an object",
+    );
+  });
+
+  it("rejects missing bot_token", () => {
+    expect(() => parseTelegramConfig({ chat_id: "42" })).toThrow(
+      "telegram config: bot_token is required",
+    );
+  });
+
+  it("rejects empty bot_token", () => {
+    expect(() =>
+      parseTelegramConfig({ bot_token: "", chat_id: "42" }),
+    ).toThrow("telegram config: bot_token is required");
+  });
+
+  it("rejects missing chat_id", () => {
+    expect(() =>
+      parseTelegramConfig({ bot_token: "123:ABC" }),
+    ).toThrow("telegram config: chat_id is required");
+  });
+
+  it("rejects empty chat_id", () => {
+    expect(() =>
+      parseTelegramConfig({ bot_token: "123:ABC", chat_id: "" }),
+    ).toThrow("telegram config: chat_id is required");
   });
 });

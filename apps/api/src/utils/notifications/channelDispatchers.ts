@@ -1,6 +1,7 @@
 import type {
   NotificationChannelType,
   NtfyChannelConfig,
+  TelegramChannelConfig,
 } from "@hously/shared";
 
 export interface DispatchPayload {
@@ -13,8 +14,17 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
-// Validates a raw (JSON) value into an NtfyChannelConfig. Throws with a
-// user-facing message if the shape is wrong.
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// ---------------------------------------------------------------------------
+// ntfy
+// ---------------------------------------------------------------------------
+
 export function parseNtfyConfig(raw: unknown): NtfyChannelConfig {
   if (!isRecord(raw)) {
     throw new Error("ntfy config must be an object");
@@ -69,13 +79,64 @@ export async function dispatchNtfy(
   if (!res.ok) throw new Error(`ntfy ${res.status}: ${await res.text()}`);
 }
 
-// Orchestrator: routes a channel to its provider-specific dispatcher and
-// parses the raw config at the boundary. Accepts raw Prisma rows (where
-// `config` is a JsonValue/unknown) — callers don't need to cast.
+// ---------------------------------------------------------------------------
+// Telegram
+// ---------------------------------------------------------------------------
+
+export function parseTelegramConfig(raw: unknown): TelegramChannelConfig {
+  if (!isRecord(raw)) {
+    throw new Error("telegram config must be an object");
+  }
+  const { bot_token, chat_id } = raw;
+
+  if (typeof bot_token !== "string" || bot_token.length === 0) {
+    throw new Error("telegram config: bot_token is required");
+  }
+  if (typeof chat_id !== "string" || chat_id.length === 0) {
+    throw new Error("telegram config: chat_id is required");
+  }
+
+  return { bot_token, chat_id };
+}
+
+export async function dispatchTelegram(
+  config: TelegramChannelConfig,
+  { title, body, url }: DispatchPayload,
+): Promise<void> {
+  const text = `<b>${escapeHtml(title)}</b>\n${escapeHtml(body)}`;
+  const payload: Record<string, unknown> = {
+    chat_id: config.chat_id,
+    text,
+    parse_mode: "HTML",
+  };
+  if (url) {
+    payload.reply_markup = {
+      inline_keyboard: [[{ text: "Open in Hously", url }]],
+    };
+  }
+
+  const res = await fetch(
+    `https://api.telegram.org/bot${config.bot_token}/sendMessage`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10_000),
+    },
+  );
+  if (!res.ok) throw new Error(`telegram ${res.status}: ${await res.text()}`);
+}
+
+// ---------------------------------------------------------------------------
+// Orchestrator
+// ---------------------------------------------------------------------------
+
+// Routes a channel to its provider-specific dispatcher and parses the raw
+// config at the boundary. Accepts raw Prisma rows (config is unknown).
 //
 // To add a new provider: add a `case` that parses + dispatches. The
 // `never` in the default branch forces a compile error when a new
-// NotificationChannelType member is added without a case here.
+// NotificationChannelType member is added without a matching case.
 export async function dispatchToChannel(
   channel: { type: string; label: string; config: unknown },
   payload: DispatchPayload,
@@ -84,6 +145,8 @@ export async function dispatchToChannel(
   switch (type) {
     case "ntfy":
       return dispatchNtfy(parseNtfyConfig(channel.config), payload);
+    case "telegram":
+      return dispatchTelegram(parseTelegramConfig(channel.config), payload);
     default: {
       const _exhaustive: never = type;
       void _exhaustive;

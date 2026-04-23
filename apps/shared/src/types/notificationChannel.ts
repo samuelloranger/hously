@@ -1,5 +1,5 @@
 // Provider key. Add new members when implementing a new provider.
-export type NotificationChannelType = "ntfy";
+export type NotificationChannelType = "ntfy" | "telegram";
 
 export interface NtfyChannelConfig {
   url: string;
@@ -8,9 +8,16 @@ export interface NtfyChannelConfig {
   priority?: 1 | 2 | 3 | 4 | 5;
 }
 
+export interface TelegramChannelConfig {
+  bot_token: string;
+  chat_id: string;
+}
+
 // Discriminated union of all supported provider configs. When adding a new
 // provider, add its *ChannelConfig interface to this union.
-export type NotificationChannelConfig = NtfyChannelConfig;
+export type NotificationChannelConfig =
+  | NtfyChannelConfig
+  | TelegramChannelConfig;
 
 export interface NotificationChannel {
   id: number;

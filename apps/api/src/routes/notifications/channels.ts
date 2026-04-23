@@ -11,7 +11,7 @@ import { getBaseUrl } from "@hously/api/config";
 import type { NotificationChannel } from "@hously/shared";
 
 // Add new provider keys here when implementing them.
-const VALID_TYPES = ["ntfy"] as const;
+const VALID_TYPES = ["ntfy", "telegram"] as const;
 
 function mapChannel(row: {
   id: number;
@@ -71,7 +71,10 @@ export const notificationChannelsRoutes = new Elysia({ prefix: "/channels" })
     "/",
     async ({ user, body, set }) => {
       if (!VALID_TYPES.includes(body.type as (typeof VALID_TYPES)[number])) {
-        return badRequest(set, `type must be one of: ${VALID_TYPES.join(", ")}`);
+        return badRequest(
+          set,
+          `type must be one of: ${VALID_TYPES.join(", ")}`,
+        );
       }
       const configErr = validateConfig(body.type, body.config);
       if (configErr) return badRequest(set, configErr);
