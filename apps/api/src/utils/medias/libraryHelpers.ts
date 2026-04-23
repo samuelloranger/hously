@@ -56,45 +56,43 @@ export async function upsertLibraryShowEpisodesFromTmdb(opts: {
 
   const regularSeasons = details.seasons.filter((s) => s.season_number > 0);
 
-  await Promise.all(
-    regularSeasons.map(async (s) => {
-      const seasonData = await tmdbApiFetch<{
-        episodes: Array<{
-          id: number;
-          episode_number: number;
-          name: string;
-          air_date: string | null;
-        }>;
-      }>(`tv/${tmdbShowId}/season/${s.season_number}`, apiKey, lang);
+  for (const s of regularSeasons) {
+    const seasonData = await tmdbApiFetch<{
+      episodes: Array<{
+        id: number;
+        episode_number: number;
+        name: string;
+        air_date: string | null;
+      }>;
+    }>(`tv/${tmdbShowId}/season/${s.season_number}`, apiKey, lang);
 
-      await Promise.all(
-        seasonData.episodes.map((ep) =>
-          prisma.libraryEpisode.upsert({
-            where: {
-              mediaId_season_episode: {
-                mediaId,
-                season: s.season_number,
-                episode: ep.episode_number,
-              },
-            },
-            create: {
+    await Promise.all(
+      seasonData.episodes.map((ep) =>
+        prisma.libraryEpisode.upsert({
+          where: {
+            mediaId_season_episode: {
               mediaId,
               season: s.season_number,
               episode: ep.episode_number,
-              title: ep.name || null,
-              airDate: ep.air_date ? new Date(ep.air_date) : null,
-              tmdbEpisodeId: ep.id,
             },
-            update: {
-              title: ep.name || null,
-              airDate: ep.air_date ? new Date(ep.air_date) : null,
-              tmdbEpisodeId: ep.id,
-            },
-          }),
-        ),
-      );
-    }),
-  );
+          },
+          create: {
+            mediaId,
+            season: s.season_number,
+            episode: ep.episode_number,
+            title: ep.name || null,
+            airDate: ep.air_date ? new Date(ep.air_date) : null,
+            tmdbEpisodeId: ep.id,
+          },
+          update: {
+            title: ep.name || null,
+            airDate: ep.air_date ? new Date(ep.air_date) : null,
+            tmdbEpisodeId: ep.id,
+          },
+        }),
+      ),
+    );
+  }
 }
 
 export function pickDigitalRelease(

@@ -11,10 +11,6 @@ import {
 import { createJsonSseResponse } from "@hously/api/utils/sse";
 import type { LibraryMigrateProgress } from "@hously/api/services/jobs/libraryMigrateWorker";
 import type { LibraryReindexLanguagesProgress } from "@hously/api/services/jobs/libraryReindexLanguagesWorker";
-import {
-  QBIT_CATEGORY_HOUSLY_MOVIES,
-  QBIT_CATEGORY_HOUSLY_SHOWS,
-} from "@hously/api/constants/libraryGrab";
 import { grabRelease, searchAndGrab } from "@hously/api/services/mediaGrabber";
 import { libraryEventBus } from "@hously/api/services/libraryEvents";
 import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
@@ -350,18 +346,6 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     async ({ params, body, set }) => {
       try {
         const id = parseInt(params.id, 10);
-        const validStatuses = [
-          "wanted",
-          "downloading",
-          "downloaded",
-          "skipped",
-        ];
-        if (!validStatuses.includes(body.status)) {
-          return badRequest(
-            set,
-            `status must be one of: ${validStatuses.join(", ")}`,
-          );
-        }
         const item = await prisma.libraryMedia.update({
           where: { id },
           data: {
@@ -376,7 +360,14 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       }
     },
     {
-      body: t.Object({ status: t.String() }),
+      body: t.Object({
+        status: t.Union([
+          t.Literal("wanted"),
+          t.Literal("downloading"),
+          t.Literal("downloaded"),
+          t.Literal("skipped"),
+        ]),
+      }),
     },
   )
 
@@ -387,18 +378,6 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       try {
         const mediaId = parseInt(params.id, 10);
         const episodeId = parseInt(params.episodeId, 10);
-        const validStatuses = [
-          "wanted",
-          "downloading",
-          "downloaded",
-          "skipped",
-        ];
-        if (!validStatuses.includes(body.status)) {
-          return badRequest(
-            set,
-            `status must be one of: ${validStatuses.join(", ")}`,
-          );
-        }
         const ep = await prisma.libraryEpisode.update({
           where: { id: episodeId, mediaId },
           data: {
@@ -418,7 +397,14 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       }
     },
     {
-      body: t.Object({ status: t.String() }),
+      body: t.Object({
+        status: t.Union([
+          t.Literal("wanted"),
+          t.Literal("downloading"),
+          t.Literal("downloaded"),
+          t.Literal("skipped"),
+        ]),
+      }),
     },
   )
 
@@ -1027,6 +1013,19 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           where: { id: episodeId },
           data: { status: "wanted", searchAttempts: 0, downloadedAt: null },
         });
+
+        const remainingFiles = await prisma.mediaFile.count({
+          where: { mediaId },
+        });
+        if (remainingFiles === 0) {
+          await prisma.libraryMedia.updateMany({
+            where: {
+              id: mediaId,
+              status: { notIn: ["wanted", "skipped"] },
+            },
+            data: { status: "wanted", searchAttempts: 0 },
+          });
+        }
 
         return { success: true };
       } catch {
