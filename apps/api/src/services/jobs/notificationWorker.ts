@@ -5,7 +5,17 @@ import {
   type PushSubscription,
 } from "@hously/api/utils/webpush";
 import { sendApnNotifications } from "@hously/api/utils/apnPush";
+import { dispatchToChannel } from "@hously/api/utils/notifications/channelDispatchers";
+import { getBaseUrl } from "@hously/api/config";
 import { NOTIFICATION_JOB_NAMES } from "@hously/api/services/queueService";
+
+function toAbsoluteUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(url)) return url;
+  const base = getBaseUrl().replace(/\/$/, "");
+  const path = url.startsWith("/") ? url : `/${url}`;
+  return `${base}${path}`;
+}
 
 export interface SilentPushJobData {
   userId: number;
@@ -145,6 +155,24 @@ async function processRegularNotificationJob(job: Job<NotificationJobData>) {
           `Deleted ${invalidTokens.length} invalid APNs push tokens for user ${userId}`,
         );
       }
+    }
+  }
+
+  // Dispatch to user-configured channels (provider-agnostic — routed by
+  // dispatchToChannel, which parses `config` at the boundary)
+  const channels = await prisma.notificationChannel.findMany({
+    where: { userId, enabled: true },
+    select: { id: true, type: true, label: true, config: true },
+  });
+  const absoluteUrl = toAbsoluteUrl(url);
+  for (const channel of channels) {
+    try {
+      await dispatchToChannel(channel, { title, body, url: absoluteUrl });
+    } catch (err) {
+      console.error(
+        `[NotificationWorker] Channel ${channel.id} (${channel.type}) failed:`,
+        err,
+      );
     }
   }
 

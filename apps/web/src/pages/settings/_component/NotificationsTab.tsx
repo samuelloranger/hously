@@ -12,6 +12,7 @@ import {
 import { queryKeys } from "@/lib/queryKeys";
 import { getDeviceInfo } from "@/lib/device";
 import { useAuth } from "@/lib/auth/useAuth";
+import { NotificationChannelsSection } from "@/pages/settings/_component/NotificationChannelsSection";
 
 export function NotificationsTab() {
   const { t } = useTranslation("common");
@@ -366,6 +367,9 @@ export function NotificationsTab() {
             )}
           </div>
         )}
+      </div>
+      <div className="mt-6">
+        <NotificationChannelsSection />
       </div>
     </div>
   );

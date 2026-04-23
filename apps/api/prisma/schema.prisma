@@ -36,6 +36,7 @@ model User {
   passwordResetTokens    PasswordResetToken[]
   refreshTokens          RefreshToken[]
   pushTokens             PushToken[]
+  notificationChannels   NotificationChannel[]
   habits                 Habit[]
   liveActivityTokens     LiveActivityToken[]
   invitationsSent        Invitation[]         @relation("InvitationInviter")
@@ -425,6 +426,22 @@ model PushToken {
 
   @@index([userId], map: "ix_push_tokens_user_id")
   @@map("push_tokens")
+}
+
+model NotificationChannel {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  type      String   @db.VarChar(20)
+  label     String   @db.VarChar(100)
+  config    Json
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "ix_notification_channels_user_id")
+  @@map("notification_channels")
 }
 
 model LiveActivityToken {

@@ -110,6 +110,7 @@ export const queryKeys = {
       [...queryKeys.notifications.all, "list", page, limit, read] as const,
     unreadCount: () =>
       [...queryKeys.notifications.all, "unread-count"] as const,
+    channels: () => [...queryKeys.notifications.all, "channels"] as const,
   },
 
   externalNotifications: {
