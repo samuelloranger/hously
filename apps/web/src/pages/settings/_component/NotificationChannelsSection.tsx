@@ -458,10 +458,11 @@ export function NotificationChannelsSection() {
             Push notifications to external services.
           </p>
         </div>
-        <button
+        <Button
+          variant="outline"
           onClick={() => setShowForm((v) => !v)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-600 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors whitespace-nowrap"
           aria-expanded={showForm}
+          className="whitespace-nowrap"
         >
           {showForm ? (
             <>
@@ -474,7 +475,7 @@ export function NotificationChannelsSection() {
               Add Channel
             </>
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Add form */}
@@ -612,29 +613,33 @@ export function NotificationChannelsSection() {
                 </div>
 
                 <div className="flex items-center gap-1 ml-3 flex-shrink-0">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleEdit(channel)}
                     title="Edit channel"
-                    className="p-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-lg transition-colors"
                   >
                     <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleTest(channel.id)}
                     disabled={testMutation.isPending}
                     title="Send test notification"
-                    className="p-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Send className="w-4 h-4" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleDelete(channel.id)}
                     disabled={deleteMutation.isPending}
                     title="Delete channel"
-                    className="p-2 text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10"
                   >
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             ),
