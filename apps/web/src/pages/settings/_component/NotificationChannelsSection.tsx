@@ -1,413 +1,29 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Trash2, Send, Plus, Pencil } from "lucide-react";
-import type {
-  NotificationChannel,
-  NotificationChannelType,
-  NotificationChannelConfig,
-  NtfyChannelConfig,
-  TelegramChannelConfig,
-  DiscordChannelConfig,
-  GotifyChannelConfig,
-  PushoverChannelConfig,
-  SlackChannelConfig,
-  WebhookChannelConfig,
-} from "@hously/shared/types";
+import type { NotificationChannel } from "@hously/shared/types";
 import {
   useNotificationChannels,
-  useCreateNotificationChannel,
   useUpdateNotificationChannel,
   useDeleteNotificationChannel,
   useTestNotificationChannel,
 } from "@/lib/notifications/useNotificationChannels";
-import { Dialog } from "@/components/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { AddNotificationChannelModal } from "./AddNotificationChannelModal";
+import { EditNotificationChannelModal } from "./EditNotificationChannelModal";
 
-// ---------------------------------------------------------------------------
-// Channel type registry — add new entries here when adding a provider
-// ---------------------------------------------------------------------------
-const CHANNEL_TYPES: { value: NotificationChannelType; label: string }[] = [
-  { value: "ntfy", label: "ntfy" },
-  { value: "telegram", label: "Telegram" },
-  { value: "discord", label: "Discord" },
-  { value: "gotify", label: "Gotify" },
-  { value: "pushover", label: "Pushover" },
-  { value: "slack", label: "Slack" },
-  { value: "webhook", label: "Webhook" },
-];
-
-// Returns an empty config object for the given type.
-// Add a new case when adding a provider — TS will error via the `never` guard.
-function emptyConfig(type: NotificationChannelType): NotificationChannelConfig {
-  switch (type) {
-    case "ntfy":
-      return { url: "", topic: "", token: "", priority: undefined };
-    case "telegram":
-      return { bot_token: "", chat_id: "" };
-    case "discord":
-      return { webhook_url: "" };
-    case "gotify":
-      return { url: "", token: "", priority: undefined };
-    case "pushover":
-      return { token: "", user: "", priority: undefined };
-    case "slack":
-      return { webhook_url: "" };
-    case "webhook":
-      return { url: "", method: "POST" as const, body_template: undefined };
-    default: {
-      const _exhaustive: never = type;
-      throw new Error(`Unknown channel type: ${_exhaustive}`);
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Type-specific config form fields
-// ---------------------------------------------------------------------------
-interface ConfigFieldsProps {
-  type: NotificationChannelType;
-  config: NotificationChannelConfig;
-  onChange: (config: NotificationChannelConfig) => void;
-}
-
-function ConfigFields({ type, config, onChange }: ConfigFieldsProps) {
-  switch (type) {
-    case "ntfy": {
-      const cfg = config as NtfyChannelConfig;
-      return (
-        <div className="space-y-3">
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Server URL
-            </h3>
-            <Input
-              value={cfg.url}
-              onChange={(e) => onChange({ ...cfg, url: e.target.value })}
-              placeholder="https://ntfy.sh"
-            />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Topic
-            </h3>
-            <Input
-              value={cfg.topic}
-              onChange={(e) => onChange({ ...cfg, topic: e.target.value })}
-              placeholder="my-topic"
-            />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Access token{" "}
-              <span className="font-normal text-neutral-500">(optional)</span>
-            </h3>
-            <Input
-              value={cfg.token ?? ""}
-              onChange={(e) =>
-                onChange({ ...cfg, token: e.target.value || undefined })
-              }
-              placeholder="tk_..."
-            />
-          </div>
-        </div>
-      );
-    }
-    case "telegram": {
-      const cfg = config as TelegramChannelConfig;
-      return (
-        <div className="space-y-3">
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Bot Token
-            </h3>
-            <Input
-              value={cfg.bot_token}
-              onChange={(e) => onChange({ ...cfg, bot_token: e.target.value })}
-              placeholder="123456:ABC-DEF..."
-            />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Chat ID
-            </h3>
-            <Input
-              value={cfg.chat_id}
-              onChange={(e) => onChange({ ...cfg, chat_id: e.target.value })}
-              placeholder="-1001234567890"
-            />
-          </div>
-        </div>
-      );
-    }
-    case "discord": {
-      const cfg = config as DiscordChannelConfig;
-      return (
-        <div>
-          <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-            Webhook URL
-          </h3>
-          <Input
-            value={cfg.webhook_url}
-            onChange={(e) => onChange({ ...cfg, webhook_url: e.target.value })}
-            placeholder="https://discord.com/api/webhooks/..."
-          />
-        </div>
-      );
-    }
-    case "gotify": {
-      const cfg = config as GotifyChannelConfig;
-      return (
-        <div className="space-y-3">
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Server URL
-            </h3>
-            <Input
-              value={cfg.url}
-              onChange={(e) => onChange({ ...cfg, url: e.target.value })}
-              placeholder="https://gotify.example.com"
-            />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              App Token
-            </h3>
-            <Input
-              value={cfg.token}
-              onChange={(e) => onChange({ ...cfg, token: e.target.value })}
-              placeholder="A_z..."
-            />
-          </div>
-        </div>
-      );
-    }
-    case "pushover": {
-      const cfg = config as PushoverChannelConfig;
-      return (
-        <div className="space-y-3">
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              API Token
-            </h3>
-            <Input
-              value={cfg.token}
-              onChange={(e) => onChange({ ...cfg, token: e.target.value })}
-              placeholder="azGDORePK8gMaC0QOYAMyEEuzJnyUi"
-            />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              User Key
-            </h3>
-            <Input
-              value={cfg.user}
-              onChange={(e) => onChange({ ...cfg, user: e.target.value })}
-              placeholder="uQiRzpo4DXghDmr9QzzfQu27cmVRsG"
-            />
-          </div>
-        </div>
-      );
-    }
-    case "slack": {
-      const cfg = config as SlackChannelConfig;
-      return (
-        <div>
-          <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-            Webhook URL
-          </h3>
-          <Input
-            value={cfg.webhook_url}
-            onChange={(e) => onChange({ ...cfg, webhook_url: e.target.value })}
-            placeholder="https://hooks.slack.com/services/..."
-          />
-        </div>
-      );
-    }
-    case "webhook": {
-      const cfg = config as WebhookChannelConfig;
-      return (
-        <div className="space-y-3">
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              URL{" "}
-              <span className="font-normal text-neutral-500">
-                (supports <code>{"{{title}}"}</code>, <code>{"{{body}}"}</code>,{" "}
-                <code>{"{{url}}"}</code>)
-              </span>
-            </h3>
-            <Input
-              value={cfg.url}
-              onChange={(e) => onChange({ ...cfg, url: e.target.value })}
-              placeholder="https://your-server.example.com/webhook?msg={{body}}"
-            />
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Method
-            </h3>
-            <Select
-              value={cfg.method ?? "POST"}
-              onValueChange={(v) =>
-                onChange({
-                  ...cfg,
-                  method: v as "GET" | "POST",
-                  body_template: v === "GET" ? undefined : cfg.body_template,
-                })
-              }
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="POST">POST</SelectItem>
-                <SelectItem value="GET">GET</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {(cfg.method ?? "POST") === "POST" && (
-            <div>
-              <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                Body template{" "}
-                <span className="font-normal text-neutral-500">
-                  (optional — must be valid JSON)
-                </span>
-              </h3>
-              <Textarea
-                value={cfg.body_template ?? ""}
-                onChange={(e) =>
-                  onChange({
-                    ...cfg,
-                    body_template: e.target.value || undefined,
-                  })
-                }
-                placeholder={'{"message": "{{body}}", "subject": "{{title}}"}'}
-                rows={3}
-                className="font-mono text-xs"
-              />
-            </div>
-          )}
-        </div>
-      );
-    }
-    default: {
-      const _exhaustive: never = type;
-      throw new Error(`Unknown channel type: ${_exhaustive}`);
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Main section component
-// ---------------------------------------------------------------------------
 export function NotificationChannelsSection() {
   const { data, isLoading } = useNotificationChannels();
-  const createMutation = useCreateNotificationChannel();
   const updateMutation = useUpdateNotificationChannel();
   const deleteMutation = useDeleteNotificationChannel();
   const testMutation = useTestNotificationChannel();
 
   const channels = data?.channels ?? [];
 
-  // Add modal state
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [formType, setFormType] = useState<NotificationChannelType>("ntfy");
-  const [formLabel, setFormLabel] = useState("");
-  const [formConfig, setFormConfig] = useState<NotificationChannelConfig>(
-    emptyConfig("ntfy"),
-  );
-
-  // Edit modal state
   const [editingChannel, setEditingChannel] =
     useState<NotificationChannel | null>(null);
-  const [editLabel, setEditLabel] = useState("");
-  const [editConfig, setEditConfig] = useState<NotificationChannelConfig>(
-    emptyConfig("ntfy"),
-  );
-
-  function handleTypeChange(value: NotificationChannelType) {
-    setFormType(value);
-    setFormConfig(emptyConfig(value));
-  }
-
-  function resetAddForm() {
-    setFormType("ntfy");
-    setFormLabel("");
-    setFormConfig(emptyConfig("ntfy"));
-    setAddModalOpen(false);
-  }
-
-  function handleEdit(channel: NotificationChannel) {
-    setEditingChannel(channel);
-    setEditLabel(channel.label);
-    setEditConfig(channel.config);
-  }
-
-  function closeEditModal() {
-    setEditingChannel(null);
-    setEditLabel("");
-    setEditConfig(emptyConfig("ntfy"));
-  }
-
-  async function handleAdd() {
-    if (!formLabel.trim()) {
-      toast.error("Please enter a label for the channel.");
-      return;
-    }
-    const config =
-      formType === "ntfy"
-        ? {
-            ...(formConfig as NtfyChannelConfig),
-            token: (formConfig as NtfyChannelConfig).token?.trim() || undefined,
-          }
-        : formConfig;
-
-    createMutation.mutate(
-      { type: formType, label: formLabel.trim(), config },
-      {
-        onSuccess: () => {
-          toast.success("Channel added.");
-          resetAddForm();
-        },
-        onError: (err) => {
-          toast.error(
-            err instanceof Error ? err.message : "Failed to add channel.",
-          );
-        },
-      },
-    );
-  }
-
-  async function handleSaveEdit() {
-    if (!editingChannel) return;
-    if (!editLabel.trim()) {
-      toast.error("Label cannot be empty.");
-      return;
-    }
-    updateMutation.mutate(
-      { id: editingChannel.id, label: editLabel.trim(), config: editConfig },
-      {
-        onSuccess: () => {
-          toast.success("Channel updated.");
-          closeEditModal();
-        },
-        onError: (err) => {
-          toast.error(
-            err instanceof Error ? err.message : "Failed to update channel.",
-          );
-        },
-      },
-    );
-  }
 
   async function handleToggle(id: number, enabled: boolean) {
     updateMutation.mutate(
@@ -451,7 +67,6 @@ export function NotificationChannelsSection() {
   return (
     <>
       <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 space-y-4">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
@@ -471,7 +86,6 @@ export function NotificationChannelsSection() {
           </Button>
         </div>
 
-        {/* Channel list */}
         {isLoading ? (
           <div className="p-4 text-center text-neutral-500 dark:text-neutral-400 text-sm">
             Loading channels…
@@ -509,7 +123,7 @@ export function NotificationChannelsSection() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleEdit(channel)}
+                    onClick={() => setEditingChannel(channel)}
                     title="Edit channel"
                   >
                     <Pencil className="w-4 h-4" />
@@ -540,116 +154,15 @@ export function NotificationChannelsSection() {
         )}
       </div>
 
-      {/* Add channel modal */}
-      <Dialog
+      <AddNotificationChannelModal
         isOpen={addModalOpen}
-        onClose={resetAddForm}
-        title="Add Channel"
-        panelClassName="max-w-lg"
-      >
-        <div className="space-y-4 pt-2">
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Type
-            </h3>
-            <Select
-              value={formType}
-              onValueChange={(v) =>
-                handleTypeChange(v as NotificationChannelType)
-              }
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CHANNEL_TYPES.map((ct) => (
-                  <SelectItem key={ct.value} value={ct.value}>
-                    {ct.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        onClose={() => setAddModalOpen(false)}
+      />
 
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Label
-            </h3>
-            <Input
-              value={formLabel}
-              onChange={(e) => setFormLabel(e.target.value)}
-              placeholder="My channel"
-            />
-          </div>
-
-          <ConfigFields
-            type={formType}
-            config={formConfig}
-            onChange={setFormConfig}
-          />
-
-          <div className="flex gap-2 pt-1">
-            <Button
-              onClick={handleAdd}
-              disabled={createMutation.isPending}
-            >
-              {createMutation.isPending ? "Adding…" : "Add Channel"}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={resetAddForm}
-              disabled={createMutation.isPending}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </Dialog>
-
-      {/* Edit channel modal */}
-      <Dialog
-        isOpen={editingChannel !== null}
-        onClose={closeEditModal}
-        title={`Edit — ${editingChannel?.label ?? ""}`}
-        panelClassName="max-w-lg"
-      >
-        <div className="space-y-4 pt-2">
-          <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Label
-            </h3>
-            <Input
-              value={editLabel}
-              onChange={(e) => setEditLabel(e.target.value)}
-              placeholder="My channel"
-            />
-          </div>
-
-          {editingChannel && (
-            <ConfigFields
-              type={editingChannel.type}
-              config={editConfig}
-              onChange={setEditConfig}
-            />
-          )}
-
-          <div className="flex gap-2 pt-1">
-            <Button
-              onClick={handleSaveEdit}
-              disabled={updateMutation.isPending}
-            >
-              {updateMutation.isPending ? "Saving…" : "Save"}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={closeEditModal}
-              disabled={updateMutation.isPending}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </Dialog>
+      <EditNotificationChannelModal
+        channel={editingChannel}
+        onClose={() => setEditingChannel(null)}
+      />
     </>
   );
 }
