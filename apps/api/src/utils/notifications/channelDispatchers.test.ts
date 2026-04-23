@@ -4,11 +4,17 @@ import {
   dispatchTelegram,
   dispatchDiscord,
   dispatchGotify,
+  dispatchPushover,
+  dispatchSlack,
+  dispatchWebhook,
   dispatchToChannel,
   parseNtfyConfig,
   parseTelegramConfig,
   parseDiscordConfig,
   parseGotifyConfig,
+  parsePushoverConfig,
+  parseSlackConfig,
+  parseWebhookConfig,
 } from "./channelDispatchers";
 import type {
   NotificationChannel,
@@ -16,6 +22,9 @@ import type {
   TelegramChannelConfig,
   DiscordChannelConfig,
   GotifyChannelConfig,
+  PushoverChannelConfig,
+  SlackChannelConfig,
+  WebhookChannelConfig,
 } from "@hously/shared";
 
 const payload = {
@@ -577,5 +586,308 @@ describe("parseGotifyConfig", () => {
         priority: 11,
       }),
     ).toThrow("priority must be an integer from 1 to 10");
+  });
+});
+
+describe("dispatchPushover", () => {
+  const config: PushoverChannelConfig = {
+    token: "azGDORePK8gMaC0QOYAMyEEuzJnyUi",
+    user: "uQiRzpo4DXghDmr9QzzfQu27cmVRsG",
+  };
+
+  it("POSTs to the Pushover API URL", async () => {
+    await dispatchPushover(config, payload);
+    const [url, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe("https://api.pushover.net/1/messages.json");
+    expect(init.method).toBe("POST");
+  });
+
+  it("sends token, user, title, and message in JSON body", async () => {
+    await dispatchPushover(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.token).toBe("azGDORePK8gMaC0QOYAMyEEuzJnyUi");
+    expect(body.user).toBe("uQiRzpo4DXghDmr9QzzfQu27cmVRsG");
+    expect(body.title).toBe("Test Title");
+    expect(body.message).toBe("Test body");
+  });
+
+  it("defaults priority to 0", async () => {
+    await dispatchPushover(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.priority).toBe(0);
+  });
+
+  it("respects custom priority", async () => {
+    await dispatchPushover({ ...config, priority: 1 }, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.priority).toBe(1);
+  });
+
+  it("includes url and url_title when click URL is provided", async () => {
+    await dispatchPushover(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.url).toBe("https://example.com");
+    expect(body.url_title).toBe("Open in Hously");
+  });
+
+  it("omits url and url_title when no click URL is provided", async () => {
+    await dispatchPushover(config, { title: "T", body: "B" });
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.url).toBeUndefined();
+    expect(body.url_title).toBeUndefined();
+  });
+
+  it("throws on non-ok HTTP response", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response("Bad Request", { status: 400 }),
+    );
+    await expect(dispatchPushover(config, payload)).rejects.toThrow(
+      "pushover 400",
+    );
+  });
+});
+
+describe("parsePushoverConfig", () => {
+  it("returns a typed config when token and user are present", () => {
+    const parsed = parsePushoverConfig({
+      token: "azGDORePK8gMaC0QOYAMyEEuzJnyUi",
+      user: "uQiRzpo4DXghDmr9QzzfQu27cmVRsG",
+    });
+    expect(parsed).toEqual({
+      token: "azGDORePK8gMaC0QOYAMyEEuzJnyUi",
+      user: "uQiRzpo4DXghDmr9QzzfQu27cmVRsG",
+    });
+  });
+
+  it("carries priority through when provided", () => {
+    const parsed = parsePushoverConfig({
+      token: "tok",
+      user: "usr",
+      priority: -1,
+    });
+    expect(parsed.priority).toBe(-1);
+  });
+
+  it("rejects non-object input", () => {
+    expect(() => parsePushoverConfig(null)).toThrow(
+      "pushover config must be an object",
+    );
+  });
+
+  it("rejects missing token", () => {
+    expect(() =>
+      parsePushoverConfig({ user: "uQiRzpo4DXghDmr9QzzfQu27cmVRsG" }),
+    ).toThrow("pushover config: token is required");
+  });
+
+  it("rejects empty token", () => {
+    expect(() =>
+      parsePushoverConfig({ token: "", user: "usr" }),
+    ).toThrow("pushover config: token is required");
+  });
+
+  it("rejects missing user", () => {
+    expect(() =>
+      parsePushoverConfig({ token: "tok" }),
+    ).toThrow("pushover config: user is required");
+  });
+
+  it("rejects out-of-range priority", () => {
+    expect(() =>
+      parsePushoverConfig({ token: "tok", user: "usr", priority: 2 }),
+    ).toThrow("pushover config: priority must be -2, -1, 0, or 1");
+  });
+});
+
+describe("dispatchSlack", () => {
+  const config: SlackChannelConfig = {
+    webhook_url: "https://hooks.slack.com/services/T000/B000/XXXX",
+  };
+
+  it("POSTs to the webhook URL", async () => {
+    await dispatchSlack(config, payload);
+    const [url, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe("https://hooks.slack.com/services/T000/B000/XXXX");
+    expect(init.method).toBe("POST");
+  });
+
+  it("sends mrkdwn text with bold title", async () => {
+    await dispatchSlack(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.text).toBe("*Test Title*\nTest body");
+    expect(body.blocks[0].text.text).toBe("*Test Title*\nTest body");
+    expect(body.blocks[0].text.type).toBe("mrkdwn");
+  });
+
+  it("includes action button when click URL is provided", async () => {
+    await dispatchSlack(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.blocks).toHaveLength(2);
+    expect(body.blocks[1].type).toBe("actions");
+    expect(body.blocks[1].elements[0].url).toBe("https://example.com");
+    expect(body.blocks[1].elements[0].text.text).toBe("Open in Hously");
+  });
+
+  it("omits action block when no click URL is provided", async () => {
+    await dispatchSlack(config, { title: "T", body: "B" });
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.blocks).toHaveLength(1);
+  });
+
+  it("throws on non-ok HTTP response", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response("channel_not_found", { status: 404 }),
+    );
+    await expect(dispatchSlack(config, payload)).rejects.toThrow("slack 404");
+  });
+});
+
+describe("parseSlackConfig", () => {
+  it("returns a typed config when webhook_url is present", () => {
+    const parsed = parseSlackConfig({
+      webhook_url: "https://hooks.slack.com/services/T000/B000/XXXX",
+    });
+    expect(parsed).toEqual({
+      webhook_url: "https://hooks.slack.com/services/T000/B000/XXXX",
+    });
+  });
+
+  it("rejects non-object input", () => {
+    expect(() => parseSlackConfig(null)).toThrow(
+      "slack config must be an object",
+    );
+  });
+
+  it("rejects missing webhook_url", () => {
+    expect(() => parseSlackConfig({})).toThrow(
+      "slack config: webhook_url is required",
+    );
+  });
+
+  it("rejects empty webhook_url", () => {
+    expect(() => parseSlackConfig({ webhook_url: "" })).toThrow(
+      "slack config: webhook_url is required",
+    );
+  });
+});
+
+describe("dispatchWebhook", () => {
+  const config: WebhookChannelConfig = {
+    url: "https://my-server.example.com/notify",
+  };
+
+  it("POSTs to the configured URL", async () => {
+    await dispatchWebhook(config, payload);
+    const [url, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe("https://my-server.example.com/notify");
+    expect(init.method).toBe("POST");
+  });
+
+  it("sends title and body in JSON payload", async () => {
+    await dispatchWebhook(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.title).toBe("Test Title");
+    expect(body.body).toBe("Test body");
+  });
+
+  it("includes url when click URL is provided", async () => {
+    await dispatchWebhook(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.url).toBe("https://example.com");
+  });
+
+  it("omits url when no click URL is provided", async () => {
+    await dispatchWebhook(config, { title: "T", body: "B" });
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.url).toBeUndefined();
+  });
+
+  it("throws on non-ok HTTP response", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response("Internal Server Error", { status: 500 }),
+    );
+    await expect(dispatchWebhook(config, payload)).rejects.toThrow(
+      "webhook 500",
+    );
+  });
+});
+
+describe("parseWebhookConfig", () => {
+  it("returns a typed config when url is present", () => {
+    const parsed = parseWebhookConfig({
+      url: "https://my-server.example.com/notify",
+    });
+    expect(parsed).toEqual({ url: "https://my-server.example.com/notify" });
+  });
+
+  it("rejects non-object input", () => {
+    expect(() => parseWebhookConfig(null)).toThrow(
+      "webhook config must be an object",
+    );
+  });
+
+  it("rejects missing url", () => {
+    expect(() => parseWebhookConfig({})).toThrow(
+      "webhook config: url is required",
+    );
+  });
+
+  it("rejects empty url", () => {
+    expect(() => parseWebhookConfig({ url: "" })).toThrow(
+      "webhook config: url is required",
+    );
   });
 });

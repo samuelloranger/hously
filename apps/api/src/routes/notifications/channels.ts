@@ -9,12 +9,23 @@ import {
   parseTelegramConfig,
   parseDiscordConfig,
   parseGotifyConfig,
+  parsePushoverConfig,
+  parseSlackConfig,
+  parseWebhookConfig,
 } from "@hously/api/utils/notifications/channelDispatchers";
 import { getBaseUrl } from "@hously/api/config";
 import type { NotificationChannel } from "@hously/shared";
 
 // Add new provider keys here when implementing them.
-const VALID_TYPES = ["ntfy", "telegram", "discord", "gotify"] as const;
+const VALID_TYPES = [
+  "ntfy",
+  "telegram",
+  "discord",
+  "gotify",
+  "pushover",
+  "slack",
+  "webhook",
+] as const;
 
 function mapChannel(row: {
   id: number;
@@ -47,6 +58,9 @@ function validateConfig(type: string, config: unknown): string | null {
     telegram: parseTelegramConfig,
     discord: parseDiscordConfig,
     gotify: parseGotifyConfig,
+    pushover: parsePushoverConfig,
+    slack: parseSlackConfig,
+    webhook: parseWebhookConfig,
   };
   const parse = parsers[type];
   if (parse) {

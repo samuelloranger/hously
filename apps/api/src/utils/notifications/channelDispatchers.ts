@@ -4,6 +4,9 @@ import type {
   TelegramChannelConfig,
   DiscordChannelConfig,
   GotifyChannelConfig,
+  PushoverChannelConfig,
+  SlackChannelConfig,
+  WebhookChannelConfig,
 } from "@hously/shared";
 
 export interface DispatchPayload {
@@ -216,6 +219,143 @@ export async function dispatchGotify(
 }
 
 // ---------------------------------------------------------------------------
+// Pushover
+// ---------------------------------------------------------------------------
+
+export function parsePushoverConfig(raw: unknown): PushoverChannelConfig {
+  if (!isRecord(raw)) {
+    throw new Error("pushover config must be an object");
+  }
+  const { token, user, priority } = raw;
+
+  if (typeof token !== "string" || token.length === 0) {
+    throw new Error("pushover config: token is required");
+  }
+  if (typeof user !== "string" || user.length === 0) {
+    throw new Error("pushover config: user is required");
+  }
+  if (
+    priority !== undefined &&
+    (typeof priority !== "number" ||
+      !Number.isInteger(priority) ||
+      priority < -2 ||
+      priority > 1)
+  ) {
+    throw new Error("pushover config: priority must be -2, -1, 0, or 1");
+  }
+
+  const parsed: PushoverChannelConfig = { token, user };
+  if (priority !== undefined)
+    parsed.priority = priority as PushoverChannelConfig["priority"];
+  return parsed;
+}
+
+export async function dispatchPushover(
+  config: PushoverChannelConfig,
+  { title, body, url }: DispatchPayload,
+): Promise<void> {
+  const payload: Record<string, unknown> = {
+    token: config.token,
+    user: config.user,
+    title,
+    message: body,
+    priority: config.priority ?? 0,
+  };
+  if (url) {
+    payload.url = url;
+    payload.url_title = "Open in Hously";
+  }
+
+  const res = await fetch("https://api.pushover.net/1/messages.json", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`pushover ${res.status}: ${await res.text()}`);
+}
+
+// ---------------------------------------------------------------------------
+// Slack
+// ---------------------------------------------------------------------------
+
+export function parseSlackConfig(raw: unknown): SlackChannelConfig {
+  if (!isRecord(raw)) {
+    throw new Error("slack config must be an object");
+  }
+  const { webhook_url } = raw;
+
+  if (typeof webhook_url !== "string" || webhook_url.length === 0) {
+    throw new Error("slack config: webhook_url is required");
+  }
+
+  return { webhook_url };
+}
+
+export async function dispatchSlack(
+  config: SlackChannelConfig,
+  { title, body, url }: DispatchPayload,
+): Promise<void> {
+  const text = `*${title}*\n${body}`;
+  const blocks: unknown[] = [
+    { type: "section", text: { type: "mrkdwn", text } },
+  ];
+  if (url) {
+    blocks.push({
+      type: "actions",
+      elements: [
+        {
+          type: "button",
+          text: { type: "plain_text", text: "Open in Hously" },
+          url,
+        },
+      ],
+    });
+  }
+
+  const res = await fetch(config.webhook_url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, blocks }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`slack ${res.status}: ${await res.text()}`);
+}
+
+// ---------------------------------------------------------------------------
+// Generic Webhook
+// ---------------------------------------------------------------------------
+
+export function parseWebhookConfig(raw: unknown): WebhookChannelConfig {
+  if (!isRecord(raw)) {
+    throw new Error("webhook config must be an object");
+  }
+  const { url } = raw;
+
+  if (typeof url !== "string" || url.length === 0) {
+    throw new Error("webhook config: url is required");
+  }
+
+  return { url };
+}
+
+export async function dispatchWebhook(
+  config: WebhookChannelConfig,
+  { title, body, url }: DispatchPayload,
+): Promise<void> {
+  const payload: Record<string, unknown> = { title, body };
+  if (url) payload.url = url;
+
+  const res = await fetch(config.url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`webhook ${res.status}: ${await res.text()}`);
+}
+
+// ---------------------------------------------------------------------------
 // Orchestrator
 // ---------------------------------------------------------------------------
 
@@ -239,6 +379,12 @@ export async function dispatchToChannel(
       return dispatchDiscord(parseDiscordConfig(channel.config), payload);
     case "gotify":
       return dispatchGotify(parseGotifyConfig(channel.config), payload);
+    case "pushover":
+      return dispatchPushover(parsePushoverConfig(channel.config), payload);
+    case "slack":
+      return dispatchSlack(parseSlackConfig(channel.config), payload);
+    case "webhook":
+      return dispatchWebhook(parseWebhookConfig(channel.config), payload);
     default: {
       const _exhaustive: never = type;
       void _exhaustive;

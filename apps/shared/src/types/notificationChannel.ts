@@ -3,7 +3,10 @@ export type NotificationChannelType =
   | "ntfy"
   | "telegram"
   | "discord"
-  | "gotify";
+  | "gotify"
+  | "pushover"
+  | "slack"
+  | "webhook";
 
 export interface NtfyChannelConfig {
   url: string;
@@ -27,13 +30,30 @@ export interface GotifyChannelConfig {
   priority?: number;
 }
 
+export interface PushoverChannelConfig {
+  token: string;
+  user: string;
+  priority?: -2 | -1 | 0 | 1;
+}
+
+export interface SlackChannelConfig {
+  webhook_url: string;
+}
+
+export interface WebhookChannelConfig {
+  url: string;
+}
+
 // Discriminated union of all supported provider configs. When adding a new
 // provider, add its *ChannelConfig interface to this union.
 export type NotificationChannelConfig =
   | NtfyChannelConfig
   | TelegramChannelConfig
   | DiscordChannelConfig
-  | GotifyChannelConfig;
+  | GotifyChannelConfig
+  | PushoverChannelConfig
+  | SlackChannelConfig
+  | WebhookChannelConfig;
 
 export interface NotificationChannel {
   id: number;

@@ -9,6 +9,9 @@ import type {
   TelegramChannelConfig,
   DiscordChannelConfig,
   GotifyChannelConfig,
+  PushoverChannelConfig,
+  SlackChannelConfig,
+  WebhookChannelConfig,
 } from "@hously/shared/types";
 import {
   useNotificationChannels,
@@ -36,6 +39,9 @@ const CHANNEL_TYPES: { value: NotificationChannelType; label: string }[] = [
   { value: "telegram", label: "Telegram" },
   { value: "discord", label: "Discord" },
   { value: "gotify", label: "Gotify" },
+  { value: "pushover", label: "Pushover" },
+  { value: "slack", label: "Slack" },
+  { value: "webhook", label: "Webhook" },
 ];
 
 // Returns an empty config object for the given type.
@@ -50,6 +56,12 @@ function emptyConfig(type: NotificationChannelType): NotificationChannelConfig {
       return { webhook_url: "" };
     case "gotify":
       return { url: "", token: "", priority: undefined };
+    case "pushover":
+      return { token: "", user: "", priority: undefined };
+    case "slack":
+      return { webhook_url: "" };
+    case "webhook":
+      return { url: "" };
     default: {
       const _exhaustive: never = type;
       throw new Error(`Unknown channel type: ${_exhaustive}`);
@@ -174,6 +186,63 @@ function ConfigFields({ type, config, onChange }: ConfigFieldsProps) {
               placeholder="A_z..."
             />
           </div>
+        </div>
+      );
+    }
+    case "pushover": {
+      const cfg = config as PushoverChannelConfig;
+      return (
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              API Token
+            </h3>
+            <Input
+              value={cfg.token}
+              onChange={(e) => onChange({ ...cfg, token: e.target.value })}
+              placeholder="azGDORePK8gMaC0QOYAMyEEuzJnyUi"
+            />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              User Key
+            </h3>
+            <Input
+              value={cfg.user}
+              onChange={(e) => onChange({ ...cfg, user: e.target.value })}
+              placeholder="uQiRzpo4DXghDmr9QzzfQu27cmVRsG"
+            />
+          </div>
+        </div>
+      );
+    }
+    case "slack": {
+      const cfg = config as SlackChannelConfig;
+      return (
+        <div>
+          <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            Webhook URL
+          </h3>
+          <Input
+            value={cfg.webhook_url}
+            onChange={(e) => onChange({ ...cfg, webhook_url: e.target.value })}
+            placeholder="https://hooks.slack.com/services/..."
+          />
+        </div>
+      );
+    }
+    case "webhook": {
+      const cfg = config as WebhookChannelConfig;
+      return (
+        <div>
+          <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            URL
+          </h3>
+          <Input
+            value={cfg.url}
+            onChange={(e) => onChange({ ...cfg, url: e.target.value })}
+            placeholder="https://your-server.example.com/webhook"
+          />
         </div>
       );
     }
