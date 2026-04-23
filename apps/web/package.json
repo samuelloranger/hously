@@ -16,6 +16,7 @@
     "clean": "rm -rf dist node_modules",
     "generate-icons": "node scripts/generate-icons.js",
     "typecheck": "tsc --noEmit",
+    "typecheck:native": "tsgo --noEmit",
     "format": "prettier --write \"{src,scripts}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{ts,js,json,md}\""
   },
   "dependencies": {

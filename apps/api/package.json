@@ -22,7 +22,8 @@
     "library:refresh-titles:apply": "bun --env-file=../../.env src/scripts/refreshLibraryTitlesFromTmdb.ts --apply",
     "postinstall": "prisma generate",
     "format": "prettier --write \"{src,prisma}/**/*.{ts,js,json,md}\" \"*.{ts,js,json,md}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typecheck:native": "tsgo --noEmit"
   },
   "dependencies": {
     "@elysiajs/cookie": "^0.8.0",
@@ -51,8 +52,5 @@
     "@types/web-push": "^3.6.4",
     "bun-types": "^1.3.11",
     "prisma": "7.6.0"
-  },
-  "peerDependencies": {
-    "typescript": "^5.9.3"
   }
 }

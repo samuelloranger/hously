@@ -46,7 +46,9 @@
       "Bash(npx @tanstack/router-cli generate)",
       "Bash(npx @tanstack/router-cli generate --routesDirectory src/pages --generatedRouteTree src/routeTree.gen.ts)",
       "Bash(gh api:*)",
-      "mcp__plugin_claude-mem_mcp-search__smart_outline"
+      "mcp__plugin_claude-mem_mcp-search__smart_outline",
+      "mcp__plugin_claude-mem_mcp-search__smart_unfold",
+      "Read(//home/samuelloranger/sites/hously-ios/Hously/Sources/App/**)"
     ],
     "deny": [],
     "ask": []
