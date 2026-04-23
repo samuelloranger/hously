@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import type {
   NotificationChannel,
@@ -8,7 +8,10 @@ import { useUpdateNotificationChannel } from "@/lib/notifications/useNotificatio
 import { Dialog } from "@/components/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { emptyConfig, NotificationChannelConfigFields } from "./NotificationChannelConfigFields";
+import {
+  emptyConfig,
+  NotificationChannelConfigFields,
+} from "./NotificationChannelConfigFields";
 
 interface Props {
   channel: NotificationChannel | null;
@@ -18,17 +21,12 @@ interface Props {
 export function EditNotificationChannelModal({ channel, onClose }: Props) {
   const updateMutation = useUpdateNotificationChannel();
 
-  const [editLabel, setEditLabel] = useState("");
+  // Initialized from props on mount — parent passes key={channel.id} to remount
+  // when the target channel changes, so useState always starts with fresh values.
+  const [editLabel, setEditLabel] = useState(channel?.label ?? "");
   const [editConfig, setEditConfig] = useState<NotificationChannelConfig>(
-    emptyConfig("ntfy"),
+    channel?.config ?? emptyConfig("ntfy"),
   );
-
-  useEffect(() => {
-    if (channel) {
-      setEditLabel(channel.label);
-      setEditConfig(channel.config);
-    }
-  }, [channel]);
 
   async function handleSave() {
     if (!channel) return;

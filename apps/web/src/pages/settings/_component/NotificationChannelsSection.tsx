@@ -160,6 +160,7 @@ export function NotificationChannelsSection() {
       />
 
       <EditNotificationChannelModal
+        key={editingChannel?.id ?? "none"}
         channel={editingChannel}
         onClose={() => setEditingChannel(null)}
       />
