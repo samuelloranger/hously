@@ -2,14 +2,17 @@ import { describe, it, expect, mock, beforeEach } from "bun:test";
 import {
   dispatchNtfy,
   dispatchTelegram,
+  dispatchDiscord,
   dispatchToChannel,
   parseNtfyConfig,
   parseTelegramConfig,
+  parseDiscordConfig,
 } from "./channelDispatchers";
 import type {
   NotificationChannel,
   NtfyChannelConfig,
   TelegramChannelConfig,
+  DiscordChannelConfig,
 } from "@hously/shared";
 
 const payload = {
@@ -86,9 +89,7 @@ describe("dispatchTelegram", () => {
   it("POSTs to the correct Telegram API URL", async () => {
     await dispatchTelegram(config, payload);
     const [url] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe(
-      "https://api.telegram.org/bot123456:ABC-DEF/sendMessage",
-    );
+    expect(url).toBe("https://api.telegram.org/bot123456:ABC-DEF/sendMessage");
   });
 
   it("sends HTML-formatted text with bold title", async () => {
@@ -111,7 +112,9 @@ describe("dispatchTelegram", () => {
     ];
     const body = JSON.parse(init.body as string);
     expect(body.reply_markup).toEqual({
-      inline_keyboard: [[{ text: "Open in Hously", url: "https://example.com" }]],
+      inline_keyboard: [
+        [{ text: "Open in Hously", url: "https://example.com" }],
+      ],
     });
   });
 
@@ -286,20 +289,103 @@ describe("parseTelegramConfig", () => {
   });
 
   it("rejects empty bot_token", () => {
-    expect(() =>
-      parseTelegramConfig({ bot_token: "", chat_id: "42" }),
-    ).toThrow("telegram config: bot_token is required");
+    expect(() => parseTelegramConfig({ bot_token: "", chat_id: "42" })).toThrow(
+      "telegram config: bot_token is required",
+    );
   });
 
   it("rejects missing chat_id", () => {
-    expect(() =>
-      parseTelegramConfig({ bot_token: "123:ABC" }),
-    ).toThrow("telegram config: chat_id is required");
+    expect(() => parseTelegramConfig({ bot_token: "123:ABC" })).toThrow(
+      "telegram config: chat_id is required",
+    );
   });
 
   it("rejects empty chat_id", () => {
     expect(() =>
       parseTelegramConfig({ bot_token: "123:ABC", chat_id: "" }),
     ).toThrow("telegram config: chat_id is required");
+  });
+});
+
+describe("dispatchDiscord", () => {
+  const config: DiscordChannelConfig = {
+    webhook_url: "https://discord.com/api/webhooks/123/abc",
+  };
+
+  it("POSTs to the webhook URL with an embed", async () => {
+    await dispatchDiscord(config, payload);
+    const [url, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe("https://discord.com/api/webhooks/123/abc");
+    expect(init.method).toBe("POST");
+    const body = JSON.parse(init.body as string);
+    expect(body.username).toBe("Hously");
+    expect(body.embeds).toHaveLength(1);
+    expect(body.embeds[0].title).toBe("Test Title");
+    expect(body.embeds[0].description).toBe("Test body");
+    expect(body.embeds[0].color).toBe(0x5865f2);
+  });
+
+  it("sets embed url when click URL is provided", async () => {
+    await dispatchDiscord(config, payload);
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.embeds[0].url).toBe("https://example.com");
+  });
+
+  it("omits embed url when no click URL is provided", async () => {
+    await dispatchDiscord(config, { title: "T", body: "B" });
+    const [, init] = mockFetch.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(init.body as string);
+    expect(body.embeds[0].url).toBeUndefined();
+  });
+
+  it("throws on non-ok HTTP response", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response("Bad Request", { status: 400 }),
+    );
+    await expect(dispatchDiscord(config, payload)).rejects.toThrow(
+      "discord 400",
+    );
+  });
+});
+
+describe("parseDiscordConfig", () => {
+  it("returns a typed config when webhook_url is present", () => {
+    const parsed = parseDiscordConfig({
+      webhook_url: "https://discord.com/api/webhooks/123/abc",
+    });
+    expect(parsed).toEqual({
+      webhook_url: "https://discord.com/api/webhooks/123/abc",
+    });
+  });
+
+  it("rejects non-object input", () => {
+    expect(() => parseDiscordConfig(null)).toThrow(
+      "discord config must be an object",
+    );
+    expect(() => parseDiscordConfig("string")).toThrow(
+      "discord config must be an object",
+    );
+  });
+
+  it("rejects missing webhook_url", () => {
+    expect(() => parseDiscordConfig({})).toThrow(
+      "discord config: webhook_url is required",
+    );
+  });
+
+  it("rejects empty webhook_url", () => {
+    expect(() => parseDiscordConfig({ webhook_url: "" })).toThrow(
+      "discord config: webhook_url is required",
+    );
   });
 });

@@ -7,6 +7,7 @@ import type {
   NotificationChannelConfig,
   NtfyChannelConfig,
   TelegramChannelConfig,
+  DiscordChannelConfig,
 } from "@hously/shared/types";
 import {
   useNotificationChannels,
@@ -32,6 +33,7 @@ import {
 const CHANNEL_TYPES: { value: NotificationChannelType; label: string }[] = [
   { value: "ntfy", label: "ntfy" },
   { value: "telegram", label: "Telegram" },
+  { value: "discord", label: "Discord" },
 ];
 
 // Returns an empty config object for the given type.
@@ -42,6 +44,8 @@ function emptyConfig(type: NotificationChannelType): NotificationChannelConfig {
       return { url: "", topic: "", token: "", priority: undefined };
     case "telegram":
       return { bot_token: "", chat_id: "" };
+    case "discord":
+      return { webhook_url: "" };
     default: {
       const _exhaustive: never = type;
       throw new Error(`Unknown channel type: ${_exhaustive}`);
@@ -124,6 +128,21 @@ function ConfigFields({ type, config, onChange }: ConfigFieldsProps) {
               placeholder="-1001234567890"
             />
           </div>
+        </div>
+      );
+    }
+    case "discord": {
+      const cfg = config as DiscordChannelConfig;
+      return (
+        <div>
+          <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            Webhook URL
+          </h3>
+          <Input
+            value={cfg.webhook_url}
+            onChange={(e) => onChange({ ...cfg, webhook_url: e.target.value })}
+            placeholder="https://discord.com/api/webhooks/..."
+          />
         </div>
       );
     }

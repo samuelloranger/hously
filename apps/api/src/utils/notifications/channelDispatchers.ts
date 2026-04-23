@@ -2,6 +2,7 @@ import type {
   NotificationChannelType,
   NtfyChannelConfig,
   TelegramChannelConfig,
+  DiscordChannelConfig,
 } from "@hously/shared";
 
 export interface DispatchPayload {
@@ -128,6 +129,43 @@ export async function dispatchTelegram(
 }
 
 // ---------------------------------------------------------------------------
+// Discord
+// ---------------------------------------------------------------------------
+
+export function parseDiscordConfig(raw: unknown): DiscordChannelConfig {
+  if (!isRecord(raw)) {
+    throw new Error("discord config must be an object");
+  }
+  const { webhook_url } = raw;
+
+  if (typeof webhook_url !== "string" || webhook_url.length === 0) {
+    throw new Error("discord config: webhook_url is required");
+  }
+
+  return { webhook_url };
+}
+
+export async function dispatchDiscord(
+  config: DiscordChannelConfig,
+  { title, body, url }: DispatchPayload,
+): Promise<void> {
+  const embed: Record<string, unknown> = {
+    title,
+    description: body,
+    color: 0x5865f2, // Discord blurple
+  };
+  if (url) embed.url = url;
+
+  const res = await fetch(config.webhook_url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "Hously", embeds: [embed] }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`discord ${res.status}: ${await res.text()}`);
+}
+
+// ---------------------------------------------------------------------------
 // Orchestrator
 // ---------------------------------------------------------------------------
 
@@ -147,6 +185,8 @@ export async function dispatchToChannel(
       return dispatchNtfy(parseNtfyConfig(channel.config), payload);
     case "telegram":
       return dispatchTelegram(parseTelegramConfig(channel.config), payload);
+    case "discord":
+      return dispatchDiscord(parseDiscordConfig(channel.config), payload);
     default: {
       const _exhaustive: never = type;
       void _exhaustive;

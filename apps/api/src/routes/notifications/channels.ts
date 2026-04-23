@@ -11,7 +11,7 @@ import { getBaseUrl } from "@hously/api/config";
 import type { NotificationChannel } from "@hously/shared";
 
 // Add new provider keys here when implementing them.
-const VALID_TYPES = ["ntfy", "telegram"] as const;
+const VALID_TYPES = ["ntfy", "telegram", "discord"] as const;
 
 function mapChannel(row: {
   id: number;
