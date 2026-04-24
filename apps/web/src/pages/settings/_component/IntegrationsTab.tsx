@@ -38,7 +38,10 @@ export function IntegrationsTab() {
 
       <SegmentedTabs
         items={[
-          { id: "integrations", label: t("settings.integrations.tabs.integrations") },
+          {
+            id: "integrations",
+            label: t("settings.integrations.tabs.integrations"),
+          },
           { id: "trackers", label: t("settings.integrations.tabs.trackers") },
         ]}
         value={subTab}

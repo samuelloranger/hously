@@ -112,7 +112,14 @@ export function useReindexLanguagesStatus(enabled = true) {
   });
 }
 
-type JobState = "unknown" | "active" | "waiting" | "completed" | "failed" | "delayed" | "paused";
+type JobState =
+  | "unknown"
+  | "active"
+  | "waiting"
+  | "completed"
+  | "failed"
+  | "delayed"
+  | "paused";
 
 export type RemuxFileStatus = {
   job_id: string | null;
@@ -125,7 +132,10 @@ export function useRemuxFile(fileId: number) {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { keep_audio_track_indices: number[]; keep_subtitle_track_indices: number[] }) =>
+    mutationFn: (body: {
+      keep_audio_track_indices: number[];
+      keep_subtitle_track_indices: number[];
+    }) =>
       fetcher<{ job_id: string }>(LIBRARY_ENDPOINTS.FILE_REMUX(fileId), {
         method: "POST",
         body,

@@ -132,7 +132,13 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         { tag: string }[]
       >`SELECT DISTINCT UNNEST(language_tags) AS tag FROM media_files`;
       const tags = rows.map((r) => r.tag).filter(Boolean);
-      const order: Record<string, number> = { EN: 0, VFQ: 1, VFF: 2, FR: 3 };
+      const order: Record<string, number> = {
+        EN: 0,
+        VFQ: 1,
+        VFF: 2,
+        VFI: 3,
+        FR: 4,
+      };
       tags.sort((a, b) => {
         const ai = order[a] ?? 100;
         const bi = order[b] ?? 100;

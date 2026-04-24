@@ -8,10 +8,15 @@ type IntegrationConfigRow = {
   config: Prisma.JsonValue | null;
 };
 
-const cache = new Map<string, { at: number; row: IntegrationConfigRow | null }>();
+const cache = new Map<
+  string,
+  { at: number; row: IntegrationConfigRow | null }
+>();
 
 /** Drop cached integration row(s). Call after admin updates integration settings if immediate consistency is required. */
-export function invalidateIntegrationConfigCache(integrationType?: string): void {
+export function invalidateIntegrationConfigCache(
+  integrationType?: string,
+): void {
   if (integrationType) {
     cache.delete(integrationType);
   } else {

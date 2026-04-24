@@ -20,6 +20,8 @@ import {
 } from "@/pages/activity/_component/activityPresentation";
 
 const PAGE_SIZE = 25;
+const ALL_SERVICES_VALUE = "__all_services__";
+const ALL_TYPES_VALUE = "__all_types__";
 
 export function RecentActivityTab() {
   const { t, i18n } = useTranslation("common");
@@ -62,10 +64,10 @@ export function RecentActivityTab() {
               {t("dashboard.activityPage.serviceFilter")}
             </span>
             <Select
-              value={service}
+              value={service || ALL_SERVICES_VALUE}
               onValueChange={(value) => {
                 setLimit(PAGE_SIZE);
-                setService(value);
+                setService(value === ALL_SERVICES_VALUE ? "" : value);
               }}
             >
               <SelectTrigger>
@@ -74,7 +76,7 @@ export function RecentActivityTab() {
                 />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">
+                <SelectItem value={ALL_SERVICES_VALUE}>
                   {t("dashboard.activityPage.allServices")}
                 </SelectItem>
                 {(data?.available_services ?? []).map((value) => (
@@ -91,10 +93,10 @@ export function RecentActivityTab() {
               {t("dashboard.activityPage.typeFilter")}
             </span>
             <Select
-              value={type}
+              value={type || ALL_TYPES_VALUE}
               onValueChange={(value) => {
                 setLimit(PAGE_SIZE);
-                setType(value);
+                setType(value === ALL_TYPES_VALUE ? "" : value);
               }}
             >
               <SelectTrigger>
@@ -103,7 +105,7 @@ export function RecentActivityTab() {
                 />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">
+                <SelectItem value={ALL_TYPES_VALUE}>
                   {t("dashboard.activityPage.allTypes")}
                 </SelectItem>
                 {(data?.available_types ?? []).map((value) => (

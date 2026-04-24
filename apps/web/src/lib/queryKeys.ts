@@ -122,7 +122,8 @@ export const queryKeys = {
 
   integrations: {
     all: ["integrations"] as const,
-    tracker: (type: TrackerType) => [...queryKeys.integrations.all, type] as const,
+    tracker: (type: TrackerType) =>
+      [...queryKeys.integrations.all, type] as const,
     jellyfin: () => [...queryKeys.integrations.all, "jellyfin"] as const,
     radarr: () => [...queryKeys.integrations.all, "radarr"] as const,
     sonarr: () => [...queryKeys.integrations.all, "sonarr"] as const,
@@ -134,7 +135,8 @@ export const queryKeys = {
     adguard: () => [...queryKeys.integrations.all, "adguard"] as const,
     weather: () => [...queryKeys.integrations.all, "weather"] as const,
     tmdb: () => [...queryKeys.integrations.all, "tmdb"] as const,
-    homeAssistant: () => [...queryKeys.integrations.all, "home-assistant"] as const,
+    homeAssistant: () =>
+      [...queryKeys.integrations.all, "home-assistant"] as const,
     uptimekuma: () => [...queryKeys.integrations.all, "uptimekuma"] as const,
     uptimekumaMonitors: () =>
       [...queryKeys.integrations.all, "uptimekuma", "monitors"] as const,

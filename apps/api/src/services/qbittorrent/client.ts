@@ -416,7 +416,9 @@ const resetSessionIfConfigChanged = (config: QbittorrentIntegrationConfig) => {
   maindataState = null;
 };
 
-const login = async (config: QbittorrentIntegrationConfig): Promise<boolean> => {
+const login = async (
+  config: QbittorrentIntegrationConfig,
+): Promise<boolean> => {
   const loginUrl = new URL("/api/v2/auth/login", config.website_url);
   const body = new URLSearchParams({
     username: config.username,

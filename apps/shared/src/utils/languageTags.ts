@@ -7,11 +7,14 @@ const FR_CODES = new Set(["fr", "fre", "fra", "french"]);
 
 const VFQ_KEYWORDS = [
   "vfq",
+  "vqc",
   "truefrench",
+  "queb",
   "quebec",
   "québec",
   "québécois",
   "quebecois",
+  "canadien",
   "canadian",
   "canada",
   "fr-ca",
@@ -24,11 +27,14 @@ const VFF_KEYWORDS = [
   "vf2",
   "parisian",
   "parisien",
+  "european",
   "france",
   "fr-fr",
   "fr_fr",
   "frfr",
 ];
+
+const VFI_KEYWORDS = ["vfi", "international"];
 
 function normalize(value: string | null | undefined): string {
   if (!value) return "";
@@ -38,6 +44,12 @@ function normalize(value: string | null | undefined): string {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+export function normalizeLanguageCode(value: string | null | undefined): string {
+  const normalized = normalize(value).trim();
+  if (!normalized) return "";
+  return normalized.split(/[^a-z]+/).find(Boolean) ?? "";
+}
+
 function containsAny(haystack: string, needles: string[]): boolean {
   return needles.some((n) => haystack.includes(n));
 }
@@ -45,16 +57,18 @@ function containsAny(haystack: string, needles: string[]): boolean {
 function classifyFrenchTrack(
   trackTitle: string | null,
   releaseName: string | null,
-): "VFQ" | "VFF" | "FR" {
+): "VFQ" | "VFF" | "VFI" | "FR" {
   const trackHaystack = normalize(trackTitle);
   if (trackHaystack) {
     if (containsAny(trackHaystack, VFQ_KEYWORDS)) return "VFQ";
     if (containsAny(trackHaystack, VFF_KEYWORDS)) return "VFF";
+    if (containsAny(trackHaystack, VFI_KEYWORDS)) return "VFI";
   }
   const releaseHaystack = normalize(releaseName);
   if (releaseHaystack) {
     if (containsAny(releaseHaystack, VFQ_KEYWORDS)) return "VFQ";
     if (containsAny(releaseHaystack, VFF_KEYWORDS)) return "VFF";
+    if (containsAny(releaseHaystack, VFI_KEYWORDS)) return "VFI";
   }
   return "FR";
 }
@@ -63,9 +77,24 @@ function classifyTrack(
   track: LibraryAudioTrack,
   releaseName: string | null,
 ): LanguageTag {
-  const code = normalize(track.language);
+  const rawCode = normalize(track.language);
+  const code = normalizeLanguageCode(track.language);
   if (EN_CODES.has(code)) return "EN";
   if (FR_CODES.has(code)) {
+    if (
+      rawCode.includes("fr-ca") ||
+      rawCode.includes("fr_ca") ||
+      rawCode.includes("frca")
+    ) {
+      return "VFQ";
+    }
+    if (
+      rawCode.includes("fr-fr") ||
+      rawCode.includes("fr_fr") ||
+      rawCode.includes("frfr")
+    ) {
+      return "VFF";
+    }
     return classifyFrenchTrack(track.title, releaseName);
   }
   if (!code || code === "und" || code === "zxx") return "UND";
@@ -93,7 +122,8 @@ const TAG_ORDER: Record<string, number> = {
   EN: 0,
   VFQ: 1,
   VFF: 2,
-  FR: 3,
+  VFI: 3,
+  FR: 4,
 };
 
 export function compareTags(a: LanguageTag, b: LanguageTag): number {

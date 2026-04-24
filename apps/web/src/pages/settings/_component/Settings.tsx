@@ -76,7 +76,11 @@ export function Settings() {
 
   const adminTabs: TabItem[] = currentUser?.is_admin
     ? [
-        { id: "integrations", label: t("settings.integrations.title"), icon: Puzzle },
+        {
+          id: "integrations",
+          label: t("settings.integrations.title"),
+          icon: Puzzle,
+        },
         {
           id: "external-notifications",
           label: t("settings.externalNotifications.title"),
@@ -193,7 +197,9 @@ export function Settings() {
           {activeTab === "external-notifications" && currentUser?.is_admin && (
             <ExternalNotificationsTab />
           )}
-          {activeTab === "integrations" && currentUser?.is_admin && <IntegrationsTab />}
+          {activeTab === "integrations" && currentUser?.is_admin && (
+            <IntegrationsTab />
+          )}
           {activeTab === "data-export" && currentUser?.is_admin && (
             <DataExportTab />
           )}

@@ -19,16 +19,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const CHANNEL_TYPES: { value: NotificationChannelType; label: string }[] =
-  [
-    { value: "ntfy", label: "ntfy" },
-    { value: "telegram", label: "Telegram" },
-    { value: "discord", label: "Discord" },
-    { value: "gotify", label: "Gotify" },
-    { value: "pushover", label: "Pushover" },
-    { value: "slack", label: "Slack" },
-    { value: "webhook", label: "Webhook" },
-  ];
+export const CHANNEL_TYPES: {
+  value: NotificationChannelType;
+  label: string;
+}[] = [
+  { value: "ntfy", label: "ntfy" },
+  { value: "telegram", label: "Telegram" },
+  { value: "discord", label: "Discord" },
+  { value: "gotify", label: "Gotify" },
+  { value: "pushover", label: "Pushover" },
+  { value: "slack", label: "Slack" },
+  { value: "webhook", label: "Webhook" },
+];
 
 export function emptyConfig(
   type: NotificationChannelType,
@@ -209,8 +211,8 @@ export function NotificationChannelConfigFields({
             <h3 className={fieldClass}>
               URL{" "}
               <span className="font-normal text-neutral-500">
-                (supports <code>{"{{title}}"}</code>,{" "}
-                <code>{"{{body}}"}</code>, <code>{"{{url}}"}</code>)
+                (supports <code>{"{{title}}"}</code>, <code>{"{{body}}"}</code>,{" "}
+                <code>{"{{url}}"}</code>)
               </span>
             </h3>
             <Input

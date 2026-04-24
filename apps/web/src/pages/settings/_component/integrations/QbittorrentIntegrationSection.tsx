@@ -29,7 +29,9 @@ function QbittorrentIntegrationSectionImpl({
   const { t } = useTranslation("common");
   const saveMutation = useUpdateQbittorrentIntegration();
 
-  const [websiteUrl, setWebsiteUrl] = useState(data?.integration?.website_url || "");
+  const [websiteUrl, setWebsiteUrl] = useState(
+    data?.integration?.website_url || "",
+  );
   const [username, setUsername] = useState(data?.integration?.username || "");
   const [password, setPassword] = useState("");
   const [pollInterval, setPollInterval] = useState(
@@ -119,7 +121,9 @@ function QbittorrentIntegrationSectionImpl({
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          placeholder={t("settings.integrations.qbittorrent.passwordPlaceholder")}
+          placeholder={t(
+            "settings.integrations.qbittorrent.passwordPlaceholder",
+          )}
           className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
         />
       </div>

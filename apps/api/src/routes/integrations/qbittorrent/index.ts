@@ -175,7 +175,10 @@ export const qbittorrentIntegrationRoutes = new Elysia()
         };
       } catch (error) {
         console.error("Error saving qBittorrent integration config:", error);
-        return serverError(set, "Failed to save qBittorrent integration config");
+        return serverError(
+          set,
+          "Failed to save qBittorrent integration config",
+        );
       }
     },
     {

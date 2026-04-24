@@ -1,4 +1,5 @@
 import path from "path";
+import { normalizeLanguageCode } from "@hously/shared";
 import {
   parseFilenameMetadata,
   refineFrenchAudioLabel,
@@ -266,12 +267,13 @@ export async function scanMediaInfo(
     const audioTracks: AudioTrack[] = tracks
       .filter((t) => t["@type"] === "Audio")
       .map((t, i) => {
-        const rawLang = t.Language ?? "und";
+        const sourceLang = t.Language ?? "und";
+        const rawLang = normalizeLanguageCode(sourceLang) || "und";
         const isFrench =
           /^(fre|fra|fr)$/i.test(rawLang) || /french/i.test(rawLang);
         const refined = isFrench
           ? refineFrenchAudioLabel(
-              rawLang,
+              sourceLang,
               t.Title ?? null,
               fnData.audioFlags,
               frenchTrackIndex++,
@@ -313,15 +315,18 @@ export async function scanMediaInfo(
     // Subtitle tracks
     const subtitleTracks: SubtitleTrack[] = tracks
       .filter((t) => t["@type"] === "Text")
-      .map((t, i) => ({
-        index: i,
-        language: t.Language ?? "und",
-        language_name: expandLanguageCode(t.Language ?? "und"),
-        title: t.Title ?? null,
-        format: t.Format ?? null,
-        forced: t.Forced?.toLowerCase() === "yes",
-        hearing_impaired: t.HearingImpaired?.toLowerCase() === "yes",
-      }));
+      .map((t, i) => {
+        const rawLang = normalizeLanguageCode(t.Language) || "und";
+        return {
+          index: i,
+          language: rawLang,
+          language_name: expandLanguageCode(rawLang),
+          title: t.Title ?? null,
+          format: t.Format ?? null,
+          forced: t.Forced?.toLowerCase() === "yes",
+          hearing_impaired: t.HearingImpaired?.toLowerCase() === "yes",
+        };
+      });
 
     return {
       filePath,

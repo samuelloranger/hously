@@ -13,6 +13,7 @@
 ## File Map
 
 **Create:**
+
 - `apps/api/src/utils/notifications/channelDispatchers.ts` — `dispatchNtfy` + `dispatchToChannel` orchestrator (switch-based, ready to extend)
 - `apps/api/src/utils/notifications/channelDispatchers.test.ts` — Unit tests with mocked fetch (ntfy + orchestrator)
 - `apps/api/src/routes/notifications/channels.ts` — CRUD + test-send route (`/api/notifications/channels`)
@@ -21,6 +22,7 @@
 - `apps/web/src/pages/settings/_component/NotificationChannelsSection.tsx` — Settings UI card
 
 **Modify:**
+
 - `apps/api/prisma/schema.prisma` — Add `NotificationChannel` model + `User.notificationChannels` relation
 - `apps/api/src/routes/notifications/index.ts` — Mount `notificationChannelsRoutes`
 - `apps/api/src/services/jobs/notificationWorker.ts` — Add channel dispatch loop in `processRegularNotificationJob`
@@ -48,6 +50,7 @@ No DB migration or worker change is needed — the model's `config` is `Json`, a
 ## Task 1: Prisma schema — NotificationChannel model
 
 **Files:**
+
 - Modify: `apps/api/prisma/schema.prisma`
 
 - [ ] **Step 1: Add the model**
@@ -103,6 +106,7 @@ git commit -m "feat(notifications): add NotificationChannel model"
 ## Task 2: Shared types
 
 **Files:**
+
 - Create: `apps/shared/src/types/notificationChannel.ts`
 - Modify: `apps/shared/src/index.ts`
 
@@ -166,6 +170,7 @@ git commit -m "feat(notifications): add NotificationChannel shared types"
 ## Task 3: Channel dispatcher functions + tests
 
 **Files:**
+
 - Create: `apps/api/src/utils/notifications/channelDispatchers.test.ts`
 - Create: `apps/api/src/utils/notifications/channelDispatchers.ts`
 
@@ -176,10 +181,7 @@ Create `apps/api/src/utils/notifications/channelDispatchers.test.ts`:
 ```typescript
 import { describe, it, expect, mock, beforeEach } from "bun:test";
 import { dispatchNtfy, dispatchToChannel } from "./channelDispatchers";
-import type {
-  NtfyChannelConfig,
-  NotificationChannel,
-} from "@hously/shared";
+import type { NtfyChannelConfig, NotificationChannel } from "@hously/shared";
 
 const payload = {
   title: "Test Title",
@@ -188,9 +190,7 @@ const payload = {
 };
 
 const mockFetch = mock(() =>
-  Promise.resolve(
-    new Response(JSON.stringify({ ok: true }), { status: 200 }),
-  ),
+  Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200 })),
 );
 
 // @ts-ignore
@@ -361,6 +361,7 @@ git commit -m "feat(notifications): add channel dispatcher functions with tests"
 ## Task 4: API routes — channel CRUD + test-send
 
 **Files:**
+
 - Create: `apps/api/src/routes/notifications/channels.ts`
 - Modify: `apps/api/src/routes/notifications/index.ts`
 
@@ -557,6 +558,7 @@ git commit -m "feat(notifications): add channel CRUD and test-send API routes"
 ## Task 5: Wire channels into notificationWorker
 
 **Files:**
+
 - Modify: `apps/api/src/services/jobs/notificationWorker.ts`
 
 - [ ] **Step 1: Add the import**
@@ -573,31 +575,31 @@ import type { NotificationChannel } from "@hously/shared";
 In `processRegularNotificationJob`, find the closing `}` of the `if (pushTokens.length > 0)` block. Directly after it, add:
 
 ```typescript
-  // Dispatch to user-configured channels (provider-agnostic — routed by dispatchToChannel)
-  const channels = await prisma.notificationChannel.findMany({
-    where: { userId, enabled: true },
-  });
-  for (const channel of channels) {
-    try {
-      await dispatchToChannel(
-        {
-          id: channel.id,
-          type: channel.type as NotificationChannel["type"],
-          label: channel.label,
-          config: channel.config as NotificationChannel["config"],
-          enabled: channel.enabled,
-          created_at: channel.createdAt.toISOString(),
-          updated_at: channel.updatedAt.toISOString(),
-        },
-        { title, body, url },
-      );
-    } catch (err) {
-      console.error(
-        `[NotificationWorker] Channel ${channel.id} (${channel.type}) failed:`,
-        err,
-      );
-    }
+// Dispatch to user-configured channels (provider-agnostic — routed by dispatchToChannel)
+const channels = await prisma.notificationChannel.findMany({
+  where: { userId, enabled: true },
+});
+for (const channel of channels) {
+  try {
+    await dispatchToChannel(
+      {
+        id: channel.id,
+        type: channel.type as NotificationChannel["type"],
+        label: channel.label,
+        config: channel.config as NotificationChannel["config"],
+        enabled: channel.enabled,
+        created_at: channel.createdAt.toISOString(),
+        updated_at: channel.updatedAt.toISOString(),
+      },
+      { title, body, url },
+    );
+  } catch (err) {
+    console.error(
+      `[NotificationWorker] Channel ${channel.id} (${channel.type}) failed:`,
+      err,
+    );
   }
+}
 ```
 
 - [ ] **Step 3: Run the full test suite**
@@ -620,6 +622,7 @@ git commit -m "feat(notifications): dispatch to user channels in notification wo
 ## Task 6: Frontend endpoints, query keys, and hooks
 
 **Files:**
+
 - Modify: `apps/web/src/lib/endpoints/notifications.ts`
 - Modify: `apps/web/src/lib/queryKeys.ts`
 - Create: `apps/web/src/lib/notifications/useNotificationChannels.ts`
@@ -676,10 +679,13 @@ export function useCreateNotificationChannel() {
       label: string;
       config: NotificationChannelConfig;
     }) =>
-      fetcher<{ channel: NotificationChannel }>(NOTIFICATION_ENDPOINTS.CHANNELS, {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+      fetcher<{ channel: NotificationChannel }>(
+        NOTIFICATION_ENDPOINTS.CHANNELS,
+        {
+          method: "POST",
+          body: JSON.stringify(data),
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.notifications.channels(),
@@ -762,6 +768,7 @@ git commit -m "feat(notifications): add channel hooks and query keys"
 ## Task 7: Settings UI — NotificationChannelsSection
 
 **Files:**
+
 - Create: `apps/web/src/pages/settings/_component/NotificationChannelsSection.tsx`
 - Modify: `apps/web/src/pages/settings/_component/NotificationsTab.tsx`
 
@@ -1079,7 +1086,7 @@ import { NotificationChannelsSection } from "@/pages/settings/_component/Notific
 Find the end of the JSX returned by `NotificationsTab` — just before the last closing `</div>` — and append:
 
 ```tsx
-      <NotificationChannelsSection />
+<NotificationChannelsSection />
 ```
 
 - [ ] **Step 3: Full typecheck and test suite**

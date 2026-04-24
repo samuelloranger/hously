@@ -29,7 +29,9 @@ function UptimekumaIntegrationSectionImpl({
   const { t } = useTranslation("common");
   const saveMutation = useUpdateUptimekumaIntegration();
 
-  const [websiteUrl, setWebsiteUrl] = useState(data?.integration?.website_url || "");
+  const [websiteUrl, setWebsiteUrl] = useState(
+    data?.integration?.website_url || "",
+  );
   const [apiKey, setApiKey] = useState("");
   const [enabled, setEnabled] = useState(Boolean(data?.integration?.enabled));
 

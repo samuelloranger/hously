@@ -123,7 +123,11 @@ export async function reconcilePendingDownloads(
   }>,
   opts: { treatMissingAsFailed?: boolean } = {},
 ): Promise<PendingReconcileResult> {
-  const result: PendingReconcileResult = { completed: 0, failed: 0, missing: 0 };
+  const result: PendingReconcileResult = {
+    completed: 0,
+    failed: 0,
+    missing: 0,
+  };
   if (!pending.length) return result;
 
   const qb = await getQbittorrentIntegrationConfig();

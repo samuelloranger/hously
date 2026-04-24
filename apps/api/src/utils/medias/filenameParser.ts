@@ -1,3 +1,5 @@
+import { normalizeLanguageCode } from "@hously/shared";
+
 // ─── Output type ─────────────────────────────────────────────────────────────
 
 export interface FilenameMetadata {
@@ -379,14 +381,38 @@ export function refineFrenchAudioLabel(
   audioFlags: string[],
   trackIndex: number,
 ): { language: string; language_name: string } {
-  const isFrench = /^(fre|fra|fr)$/i.test(language) || /french/i.test(language);
+  const normalizedLanguage = normalizeLanguageCode(language);
+  const rawLanguage = language.toLowerCase();
+  const isFrench =
+    normalizedLanguage === "fr" ||
+    normalizedLanguage === "fre" ||
+    normalizedLanguage === "fra" ||
+    normalizedLanguage === "french";
   if (!isFrench)
-    return { language, language_name: expandLanguageCode(language) };
+    return {
+      language: normalizedLanguage || "und",
+      language_name: expandLanguageCode(normalizedLanguage || "und"),
+    };
+
+  if (
+    rawLanguage.includes("fr-ca") ||
+    rawLanguage.includes("fr_ca") ||
+    rawLanguage.includes("frca")
+  ) {
+    return { language: "VFQ", language_name: "French (Québec)" };
+  }
+  if (
+    rawLanguage.includes("fr-fr") ||
+    rawLanguage.includes("fr_fr") ||
+    rawLanguage.includes("frfr")
+  ) {
+    return { language: "VFF", language_name: "French (France)" };
+  }
 
   const t = (title ?? "").toLowerCase();
 
   // Track title is the most reliable source
-  if (/vfq|qu[eé]bec|qu[eé]b|canadien|canadian/i.test(t))
+  if (/vfq|vqc|qu[eé]bec|qu[eé]b|canadien|canadian/i.test(t))
     return { language: "VFQ", language_name: "French (Québec)" };
   if (/vff|france|truefrench|europ/i.test(t))
     return { language: "VFF", language_name: "French (France)" };
@@ -413,48 +439,83 @@ export function refineFrenchAudioLabel(
 }
 
 const ISO_639_2_NAMES: Record<string, string> = {
+  en: "English",
   eng: "English",
+  fr: "French",
   fra: "French",
   fre: "French",
+  es: "Spanish",
   spa: "Spanish",
+  de: "German",
   deu: "German",
   ger: "German",
+  it: "Italian",
   ita: "Italian",
+  pt: "Portuguese",
   por: "Portuguese",
+  ja: "Japanese",
   jpn: "Japanese",
+  zh: "Chinese",
   chi: "Chinese",
   zho: "Chinese",
+  ko: "Korean",
   kor: "Korean",
+  ru: "Russian",
   rus: "Russian",
+  ar: "Arabic",
   ara: "Arabic",
+  hi: "Hindi",
   hin: "Hindi",
+  nl: "Dutch",
   nld: "Dutch",
+  sv: "Swedish",
   swe: "Swedish",
+  no: "Norwegian",
   nor: "Norwegian",
+  da: "Danish",
   dan: "Danish",
+  fi: "Finnish",
   fin: "Finnish",
+  pl: "Polish",
   pol: "Polish",
+  tr: "Turkish",
   tur: "Turkish",
+  he: "Hebrew",
   heb: "Hebrew",
+  th: "Thai",
   tha: "Thai",
+  vi: "Vietnamese",
   vie: "Vietnamese",
+  id: "Indonesian",
   ind: "Indonesian",
+  ms: "Malay",
   msa: "Malay",
+  cs: "Czech",
   ces: "Czech",
   cze: "Czech",
+  sk: "Slovak",
   slk: "Slovak",
+  hu: "Hungarian",
   hun: "Hungarian",
+  ro: "Romanian",
   ron: "Romanian",
   rum: "Romanian",
+  bg: "Bulgarian",
   bul: "Bulgarian",
+  hr: "Croatian",
   hrv: "Croatian",
+  sr: "Serbian",
   srp: "Serbian",
+  uk: "Ukrainian",
   ukr: "Ukrainian",
+  el: "Greek",
   ell: "Greek",
+  ca: "Catalan",
   cat: "Catalan",
   und: "Unknown",
 };
 
 export function expandLanguageCode(code: string): string {
-  return ISO_639_2_NAMES[code.toLowerCase()] ?? code;
+  const normalized = normalizeLanguageCode(code) || "und";
+  return ISO_639_2_NAMES[normalized] ?? normalized;
 }

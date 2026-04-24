@@ -3,7 +3,10 @@ import { Prisma } from "@prisma/client";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/integrations/utils";
+import {
+  isValidHttpUrl,
+  normalizeUrl,
+} from "@hously/api/utils/integrations/utils";
 import { normalizeTrackerConfig } from "@hously/api/utils/integrations/normalizers";
 import {
   addJob,
@@ -40,7 +43,10 @@ async function getTrackerIntegrationHandler(
       },
     };
   } catch (error) {
-    console.error(`Error fetching ${trackerLabel(type)} integration config:`, error);
+    console.error(
+      `Error fetching ${trackerLabel(type)} integration config:`,
+      error,
+    );
     return serverError(
       set,
       `Failed to fetch ${trackerLabel(type)} integration config`,
@@ -144,7 +150,10 @@ async function updateTrackerIntegrationHandler(
       },
     };
   } catch (error) {
-    console.error(`Error saving ${trackerLabel(type)} integration config:`, error);
+    console.error(
+      `Error saving ${trackerLabel(type)} integration config:`,
+      error,
+    );
     return serverError(
       set,
       `Failed to save ${trackerLabel(type)} integration config`,
@@ -163,7 +172,9 @@ const trackerBody = t.Object({
 export const trackerIntegrationsRoutes = new Elysia()
   .use(auth)
   .use(requireAdmin)
-  .get("/c411", ({ user, set }) => getTrackerIntegrationHandler("c411", user, set))
+  .get("/c411", ({ user, set }) =>
+    getTrackerIntegrationHandler("c411", user, set),
+  )
   .put(
     "/c411",
     ({ user, body, set }) =>
@@ -172,7 +183,9 @@ export const trackerIntegrationsRoutes = new Elysia()
       body: trackerBody,
     },
   )
-  .get("/torr9", ({ user, set }) => getTrackerIntegrationHandler("torr9", user, set))
+  .get("/torr9", ({ user, set }) =>
+    getTrackerIntegrationHandler("torr9", user, set),
+  )
   .put(
     "/torr9",
     ({ user, body, set }) =>

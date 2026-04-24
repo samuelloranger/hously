@@ -2,7 +2,10 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/integrations/utils";
+import {
+  isValidHttpUrl,
+  normalizeUrl,
+} from "@hously/api/utils/integrations/utils";
 import { normalizeScrutinyConfig } from "@hously/api/utils/integrations/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { requireAdmin } from "@hously/api/middleware/auth";

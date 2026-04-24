@@ -17,8 +17,12 @@ export async function fetchSystemSummary(): Promise<DashboardBeszelSummaryRespon
     select: { type: true, enabled: true },
   });
 
-  const beszelEnabled = integrations.some((p) => p.type === "beszel" && p.enabled);
-  const netdataEnabled = integrations.some((p) => p.type === "netdata" && p.enabled);
+  const beszelEnabled = integrations.some(
+    (p) => p.type === "beszel" && p.enabled,
+  );
+  const netdataEnabled = integrations.some(
+    (p) => p.type === "netdata" && p.enabled,
+  );
 
   // Prefer Beszel when both are enabled
   if (beszelEnabled) {

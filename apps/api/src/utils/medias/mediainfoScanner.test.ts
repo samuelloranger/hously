@@ -236,6 +236,58 @@ const SUBTITLES_HEAVY = {
   },
 };
 
+const MALFORMED_LANGUAGE_CODES = {
+  media: {
+    track: [
+      {
+        "@type": "General",
+        FileSize: "2147483648",
+        Duration: "5400.0",
+      },
+      {
+        "@type": "Video",
+        Format: "AVC",
+        Format_Profile: "High",
+        Width: "1920",
+        Height: "1080",
+        FrameRate: "23.976",
+        BitDepth: "8",
+        BitRate: "2000000",
+      },
+      {
+        "@type": "Audio",
+        Language: "en-",
+        Title: "English",
+        Format: "AAC LC",
+        Channels: "2",
+        ChannelLayout: "L R",
+        BitRate: "192000",
+        Default: "Yes",
+        Forced: "No",
+      },
+      {
+        "@type": "Audio",
+        Language: "fr-CA",
+        Title: "French",
+        Format: "AC-3",
+        Channels: "6",
+        ChannelLayout: "L R C LFE Ls Rs",
+        BitRate: "640000",
+        Default: "No",
+        Forced: "No",
+      },
+      {
+        "@type": "Text",
+        Language: "en-US",
+        Title: "English",
+        Format: "SRT",
+        Forced: "No",
+        HearingImpaired: "No",
+      },
+    ],
+  },
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function mockSpawnWithFixture(fixture: object) {
@@ -368,6 +420,19 @@ describe("scanMediaInfo", () => {
     expect(sdh!.language).toBe("eng");
 
     expect(result!.subtitleTracks[0].format).toBe("ASS");
+  });
+
+  it("normalizes malformed language codes before storing tracks", async () => {
+    mockSpawnWithFixture(MALFORMED_LANGUAGE_CODES);
+    const result = await scanMediaInfo("/media/Send.Help.2026.1080p-GROUP.mkv");
+
+    expect(result).not.toBeNull();
+    expect(result!.audioTracks[0].language).toBe("en");
+    expect(result!.audioTracks[0].language_name).toBe("English");
+    expect(result!.audioTracks[1].language).toBe("VFQ");
+    expect(result!.audioTracks[1].language_name).toBe("French (Québec)");
+    expect(result!.subtitleTracks[0].language).toBe("en");
+    expect(result!.subtitleTracks[0].language_name).toBe("English");
   });
 
   it("returns null when mediainfo binary is not found", async () => {

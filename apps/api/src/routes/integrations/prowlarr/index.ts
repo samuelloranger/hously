@@ -2,7 +2,10 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/integrations/utils";
+import {
+  isValidHttpUrl,
+  normalizeUrl,
+} from "@hously/api/utils/integrations/utils";
 import { normalizeProwlarrConfig } from "@hously/api/utils/integrations/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { encrypt } from "@hously/api/services/crypto";
@@ -39,7 +42,9 @@ export const prowlarrIntegrationRoutes = new Elysia()
       const existingIntegration = await prisma.integration.findFirst({
         where: { type: "prowlarr" },
       });
-      const existingConfig = normalizeProwlarrConfig(existingIntegration?.config);
+      const existingConfig = normalizeProwlarrConfig(
+        existingIntegration?.config,
+      );
       const providedApiKey = body.api_key.trim();
       const apiKey = providedApiKey || existingConfig?.api_key || "";
       const enabled = body.enabled ?? true;

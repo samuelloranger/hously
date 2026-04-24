@@ -1,4 +1,5 @@
 import type { Job } from "bullmq";
+import { normalizeLanguageCode } from "@hously/shared";
 import { prisma } from "@hously/api/db";
 import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 import { normalizeTmdbConfig } from "@hously/api/utils/integrations/normalizers";
@@ -210,7 +211,7 @@ function buildAudioTracksFromArr(
 
   let frenchIdx = 0;
   return languages.map((lang, i) => {
-    const isoLang = lang.toLowerCase().slice(0, 3); // crude 3-letter code
+    const isoLang = normalizeLanguageCode(lang) || "und";
     const isFrench =
       /^(fre|fra|fr|french)$/i.test(isoLang) || /french/i.test(lang);
 
@@ -218,7 +219,7 @@ function buildAudioTracksFromArr(
     let finalName = lang;
     if (isFrench) {
       const refined = refineFrenchAudioLabel(
-        isoLang,
+        lang,
         null,
         fnData.audioFlags,
         frenchIdx++,
@@ -257,15 +258,18 @@ function buildSubtitleTracksFromArr(mediaInfo: {
     .split("/")
     .map((s) => s.trim())
     .filter(Boolean)
-    .map((lang, i) => ({
-      index: i,
-      language: lang.toLowerCase().slice(0, 3),
-      language_name: expandLanguageCode(lang.toLowerCase().slice(0, 3)) || lang,
-      title: null,
-      format: null,
-      forced: false,
-      hearing_impaired: false,
-    }));
+    .map((lang, i) => {
+      const normalized = normalizeLanguageCode(lang) || "und";
+      return {
+        index: i,
+        language: normalized,
+        language_name: expandLanguageCode(normalized) || lang,
+        title: null,
+        format: null,
+        forced: false,
+        hearing_impaired: false,
+      };
+    });
 }
 
 // ─── TMDB helpers ─────────────────────────────────────────────────────────────

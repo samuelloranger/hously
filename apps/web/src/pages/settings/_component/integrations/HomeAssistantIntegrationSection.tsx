@@ -146,7 +146,9 @@ function HomeAssistantIntegrationSectionImpl({
             type="url"
             value={baseUrl}
             onChange={(e) => setBaseUrl(e.target.value)}
-            placeholder={t("settings.integrations.homeAssistant.baseUrlPlaceholder")}
+            placeholder={t(
+              "settings.integrations.homeAssistant.baseUrlPlaceholder",
+            )}
             autoComplete="off"
             className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono text-sm"
           />

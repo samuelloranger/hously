@@ -26,11 +26,11 @@ interface MkvTrack {
   };
 }
 
-
 export async function processLibraryRemuxFileJob(
   job: Job<LibraryRemuxJobData>,
 ): Promise<LibraryRemuxResult> {
-  const { file_id, keep_audio_track_indices, keep_subtitle_track_indices } = job.data;
+  const { file_id, keep_audio_track_indices, keep_subtitle_track_indices } =
+    job.data;
   const keepAudioIndexSet = new Set(keep_audio_track_indices);
   const keepSubIndexSet = new Set(keep_subtitle_track_indices);
 
@@ -87,13 +87,19 @@ export async function processLibraryRemuxFileJob(
   }
 
   if (keptAudioIds.length === 0) {
-    return { status: "error", message: "Selection would remove all audio tracks" };
+    return {
+      status: "error",
+      message: "Selection would remove all audio tracks",
+    };
   }
 
   const tmpPath = `${resolvedPath}.remux.tmp.mkv`;
   const args = [
-    bin, "-o", tmpPath,
-    "--audio-tracks", keptAudioIds.join(","),
+    bin,
+    "-o",
+    tmpPath,
+    "--audio-tracks",
+    keptAudioIds.join(","),
     ...(keptSubIds.length > 0
       ? ["--subtitle-tracks", keptSubIds.join(",")]
       : ["--no-subtitles"]),
@@ -112,19 +118,30 @@ export async function processLibraryRemuxFileJob(
         await rm.exited;
       }
     } catch {}
-    return { status: "error", message: `mkvmerge exited with code ${remuxExit}` };
+    return {
+      status: "error",
+      message: `mkvmerge exited with code ${remuxExit}`,
+    };
   }
 
   // Atomically replace the original
-  const mv = Bun.spawn(["mv", "-f", tmpPath, resolvedPath], { stderr: "ignore" });
+  const mv = Bun.spawn(["mv", "-f", tmpPath, resolvedPath], {
+    stderr: "ignore",
+  });
   if ((await mv.exited) !== 0) {
-    return { status: "error", message: "Failed to replace original file after remux" };
+    return {
+      status: "error",
+      message: "Failed to replace original file after remux",
+    };
   }
 
   // Re-scan and update DB
   const mi = await scanMediaInfo(file.filePath);
   if (mi) {
-    const tags = classifyLanguageTags(mi.audioTracks as LibraryAudioTrack[], null);
+    const tags = classifyLanguageTags(
+      mi.audioTracks as LibraryAudioTrack[],
+      null,
+    );
     await prisma.mediaFile.update({
       where: { id: file.id },
       data: {

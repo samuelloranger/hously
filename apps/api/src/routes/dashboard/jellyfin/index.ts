@@ -15,7 +15,8 @@ export const dashboardJellyfinRoutes = new Elysia()
     "/jellyfin/image",
     async ({ user, query, set }) => {
       try {
-        const jellyfinIntegration = await getIntegrationConfigRecord("jellyfin");
+        const jellyfinIntegration =
+          await getIntegrationConfigRecord("jellyfin");
 
         if (!jellyfinIntegration?.enabled) {
           return notFound(set, "Jellyfin integration not enabled");
@@ -126,7 +127,8 @@ export const dashboardJellyfinRoutes = new Elysia()
         const limit = Math.max(1, Math.min(30, requestedLimit));
         const startIndex = (page - 1) * limit;
 
-        const jellyfinIntegration = await getIntegrationConfigRecord("jellyfin");
+        const jellyfinIntegration =
+          await getIntegrationConfigRecord("jellyfin");
 
         if (!jellyfinIntegration?.enabled) {
           return { enabled: false, items: [], page, limit, has_more: false };
