@@ -349,6 +349,8 @@ export const queryKeys = {
     languageTags: () => [...queryKeys.library.all, "language-tags"] as const,
     reindexLanguagesStatus: () =>
       [...queryKeys.library.all, "reindex-languages-status"] as const,
+    remuxFileStatus: (fileId: number) =>
+      [...queryKeys.library.all, "remux-file-status", fileId] as const,
   },
 
   qualityProfiles: {

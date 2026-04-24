@@ -15,6 +15,7 @@ export const QUEUE_NAMES = {
   ACTIVITY_LOGS: "activity-logs",
   LIBRARY_MIGRATE: "library-migrate",
   LIBRARY_REINDEX_LANGUAGES: "library-reindex-languages",
+  LIBRARY_REMUX: "library-remux",
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
@@ -95,6 +96,14 @@ export const libraryReindexLanguagesQueue = new Queue(
     },
   },
 );
+export const libraryRemuxQueue = new Queue(QUEUE_NAMES.LIBRARY_REMUX, {
+  ...defaultQueueOptions,
+  defaultJobOptions: {
+    attempts: 1,
+    removeOnComplete: { age: 7 * 24 * 3600 },
+    removeOnFail: { age: 7 * 24 * 3600 },
+  },
+});
 const queues: Record<QueueName, Queue> = {
   [QUEUE_NAMES.DEFAULT]: defaultQueue,
   [QUEUE_NAMES.NOTIFICATIONS]: notificationsQueue,
@@ -102,6 +111,7 @@ const queues: Record<QueueName, Queue> = {
   [QUEUE_NAMES.ACTIVITY_LOGS]: activityLogsQueue,
   [QUEUE_NAMES.LIBRARY_MIGRATE]: libraryMigrateQueue,
   [QUEUE_NAMES.LIBRARY_REINDEX_LANGUAGES]: libraryReindexLanguagesQueue,
+  [QUEUE_NAMES.LIBRARY_REMUX]: libraryRemuxQueue,
 };
 
 /**
@@ -184,6 +194,17 @@ export function initWorkers() {
       const { processLibraryReindexLanguagesJob } =
         await import("./jobs/libraryReindexLanguagesWorker");
       return processLibraryReindexLanguagesJob(job);
+    },
+    { connection: redisConnection, concurrency: 1 },
+  );
+
+  // 7. Library Remux Worker (concurrency 1 — one file at a time)
+  new Worker(
+    QUEUE_NAMES.LIBRARY_REMUX,
+    async (job: Job) => {
+      const { processLibraryRemuxFileJob } =
+        await import("./jobs/libraryRemuxWorker");
+      return processLibraryRemuxFileJob(job);
     },
     { connection: redisConnection, concurrency: 1 },
   );

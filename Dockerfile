@@ -35,7 +35,7 @@ WORKDIR /app
 ENV LANG=C.UTF-8
 
 # Prisma runtime requires OpenSSL, APNs needs curl, mediainfo for file scanning
-RUN apt-get update -y && apt-get install -y openssl curl mediainfo \
+RUN apt-get update -y && apt-get install -y openssl curl mediainfo mkvtoolnix \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only what's needed for the runtime
