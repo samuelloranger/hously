@@ -39,6 +39,7 @@ mock.module("../src/services/queueService", () => ({
     ACTIVITY_LOGS: "activity-logs",
     LIBRARY_MIGRATE: "library-migrate",
     LIBRARY_REINDEX_LANGUAGES: "library-reindex-languages",
+    LIBRARY_REMUX: "library-remux",
   },
   SCHEDULED_JOB_NAMES: {
     CHECK_REMINDERS: "check-reminders",
@@ -56,6 +57,7 @@ mock.module("../src/services/queueService", () => ({
   activityLogsQueue: mockQueue,
   libraryMigrateQueue: mockQueue,
   libraryReindexLanguagesQueue: mockQueue,
+  libraryRemuxQueue: mockQueue,
   addJob: async () => null,
   initWorkers: () => {},
   setupScheduledJobs: async () => {},

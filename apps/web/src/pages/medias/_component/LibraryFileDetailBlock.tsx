@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Clock, Film, HardDrive, Music, Shuffle, Subtitles } from "lucide-react";
+import {
+  Clock,
+  Film,
+  HardDrive,
+  Music,
+  Shuffle,
+  Subtitles,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { formatBytes } from "@/lib/utils/format";
@@ -15,7 +22,10 @@ import {
   formatResolution,
   frenchLabel,
 } from "@/utils/libraryDisplayUtils";
-import { useRemuxFile, useRemuxFileStatus } from "@/features/medias/hooks/useLibrary";
+import {
+  useRemuxFile,
+  useRemuxFileStatus,
+} from "@/features/medias/hooks/useLibrary";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -122,8 +132,18 @@ function TrackToggleRow({
         )}
       >
         {kept && (
-          <svg className="w-2 h-2 text-white dark:text-neutral-900" viewBox="0 0 8 8" fill="none">
-            <path d="M1.5 4L3 5.5L6.5 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            className="w-2 h-2 text-white dark:text-neutral-900"
+            viewBox="0 0 8 8"
+            fill="none"
+          >
+            <path
+              d="M1.5 4L3 5.5L6.5 2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         )}
       </span>
@@ -161,7 +181,9 @@ function RemuxPanel({
   const isRunning = status?.state === "active" || status?.state === "waiting";
   const wasRunningRef = useRef(false);
 
-  if (isRunning) wasRunningRef.current = true;
+  useEffect(() => {
+    if (isRunning) wasRunningRef.current = true;
+  }, [isRunning]);
 
   useEffect(() => {
     if (!wasRunningRef.current) return;
@@ -172,7 +194,9 @@ function RemuxPanel({
       } else if (status.result?.status === "skipped") {
         toast.info(t("library.fileDetail.remux.skipped"));
       } else {
-        toast.error(status.result?.message ?? t("library.fileDetail.remux.error"));
+        toast.error(
+          status.result?.message ?? t("library.fileDetail.remux.error"),
+        );
       }
       onClose();
     } else if (status?.state === "failed") {
@@ -180,8 +204,7 @@ function RemuxPanel({
       toast.error(status.error ?? t("library.fileDetail.remux.error"));
       onClose();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status?.state]);
+  }, [onClose, queryClient, status, t]);
 
   const toggleAudio = (index: number) => {
     setKeptIndices((prev) => {
@@ -228,7 +251,8 @@ function RemuxPanel({
             {t("library.fileDetail.remux.keepAudioTracks")}
           </p>
           {audioTracks.map((tr) => {
-            const langDisplay = frenchLabel(tr.language) ?? tr.language_name ?? tr.language;
+            const langDisplay =
+              frenchLabel(tr.language) ?? tr.language_name ?? tr.language;
             const details = [
               tr.codec,
               tr.channel_layout ?? (tr.channels ? `${tr.channels}ch` : null),
@@ -255,11 +279,14 @@ function RemuxPanel({
               {t("library.fileDetail.remux.keepSubtitleTracks")}
             </p>
             {subtitleTracks.map((tr) => {
-              const langDisplay = frenchLabel(tr.language) ?? tr.language_name ?? tr.language;
+              const langDisplay =
+                frenchLabel(tr.language) ?? tr.language_name ?? tr.language;
               const details = [
                 tr.format,
                 tr.forced ? t("library.fileDetail.forced") : null,
-                tr.hearing_impaired ? t("library.fileDetail.hearingImpaired") : null,
+                tr.hearing_impaired
+                  ? t("library.fileDetail.hearingImpaired")
+                  : null,
               ]
                 .filter(Boolean)
                 .join(" · ");
@@ -304,7 +331,6 @@ function RemuxPanel({
           </>
         )}
       </div>
-
     </div>
   );
 }
