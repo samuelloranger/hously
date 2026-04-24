@@ -13,10 +13,12 @@
 ## File Structure
 
 **New:**
+
 - `apps/api/src/services/storageService.ts` — fs-based CRUD for image files
 - `apps/api/test/storageService.test.ts` — unit tests against a temp dir
 
 **Modified:**
+
 - `apps/api/src/services/imageService.ts` — swap S3 calls for storage calls; drop `getS3DirectUrl` import
 - `apps/api/src/config.ts` — remove S3 schema/parse, add `IMAGE_STORAGE_DIR`
 - `apps/api/package.json` — drop `@aws-sdk/client-s3` dependency
@@ -28,10 +30,12 @@
 - `CLAUDE.md` — update "Image Storage" line under Important Notes
 
 **Deleted:**
+
 - `apps/api/src/services/s3Service.ts`
 - `apps/api/test/s3Service.test.ts`
 
 **Unchanged (verify still work):**
+
 - `apps/api/src/routes/users/index.ts:180-195` — avatar serve route
 - `apps/api/src/routes/chores/index.ts:861-930` — chore image/thumbnail serve routes
 - `apps/api/src/services/userProfileService.ts` — uses `getAvatarUrl` which returns a proxied API path, no change needed
@@ -41,6 +45,7 @@
 ## Task 1: Storage service skeleton and tests
 
 **Files:**
+
 - Create: `apps/api/src/services/storageService.ts`
 - Create: `apps/api/test/storageService.test.ts`
 
@@ -195,6 +200,7 @@ git commit -m "feat(storage): add local filesystem image storage service"
 ## Task 2: Switch imageService to use storageService
 
 **Files:**
+
 - Modify: `apps/api/src/services/imageService.ts` (all S3 imports and calls)
 - Modify: `apps/api/test/imageService.test.ts` (mock storageService instead of s3Service)
 
@@ -215,6 +221,7 @@ import { getBaseUrl } from "@hously/api/config";
 Remove the entire `isS3Configured()` check inside `saveImageAndCreateThumbnail`. Local fs is always available — no configuration gate needed.
 
 Replace the function body's upload/delete/get calls:
+
 - `uploadToS3(buf, name, contentType)` → `saveToStorage(buf, name)` (drop contentType — fs doesn't need it; we set the Content-Type header in the serve routes based on filename)
 - `deleteFromS3(name)` → `deleteFromStorage(name)`
 - `getFileFromS3(name)` → `readFromStorage(name)`
@@ -321,6 +328,7 @@ make dev-api
 - [ ] **Step 2: Upload a chore image via the web UI**
 
 Start the web app (`make dev-web`), create a chore with an image attached. Confirm:
+
 - The image appears in the chore list.
 - A file appears under `apps/api/data/images/` (or wherever `IMAGE_STORAGE_DIR` resolves).
 - A `thumbnail-<uuid>.<ext>` sibling file exists.
@@ -341,6 +349,7 @@ No commit — verification only.
 ## Task 4: Remove s3Service, AWS SDK dep, and S3 config
 
 **Files:**
+
 - Delete: `apps/api/src/services/s3Service.ts`
 - Delete: `apps/api/test/s3Service.test.ts`
 - Modify: `apps/api/src/config.ts` (lines 44–49 schema + 123–133 parse block)
@@ -361,6 +370,7 @@ Expected: no results.
 - [ ] **Step 3: Remove S3 fields from config schema and parse**
 
 In `apps/api/src/config.ts`:
+
 - Delete lines 44–49 (the six `S3_*` fields in the Zod schema).
 - Delete lines 120–134 (the `getS3Config` function and related parse block — open the file to confirm boundaries before editing).
 
@@ -383,10 +393,12 @@ cd apps/api && bun remove @aws-sdk/client-s3
 - [ ] **Step 6: Typecheck and test**
 
 Run:
+
 ```bash
 cd apps/api && bun test
 make typecheck
 ```
+
 Expected: green.
 
 - [ ] **Step 7: Commit**
@@ -401,6 +413,7 @@ git commit -m "chore(storage): remove s3Service, aws-sdk, and S3 config"
 ## Task 5: Remove MinIO from Docker Compose files
 
 **Files:**
+
 - Modify: `docker-compose.yml`
 - Modify: `docker-compose.prod-example.yml`
 
@@ -421,6 +434,7 @@ docker compose -f docker-compose.yml down
 docker compose -f docker-compose.yml up -d
 docker compose ps
 ```
+
 Expected: three containers running healthy.
 
 - [ ] **Step 4: Commit**
@@ -435,6 +449,7 @@ git commit -m "chore(docker): remove minio and minio-init services"
 ## Task 6: Update .env.example and docs
 
 **Files:**
+
 - Modify: `.env.example`
 - Modify: `CLAUDE.md` (one line under "Important Notes")
 - Modify: `README.md` (if it references MinIO — grep first)
@@ -451,10 +466,13 @@ IMAGE_STORAGE_DIR=./data/images
 - [ ] **Step 2: Update CLAUDE.md**
 
 Change the bullet under "Important Notes" from:
+
 ```
 - **Image Storage**: MinIO (S3-compatible) for avatars, chores, recipes
 ```
+
 to:
+
 ```
 - **Image Storage**: Local filesystem under `IMAGE_STORAGE_DIR` (defaults to `./data/images`)
 ```

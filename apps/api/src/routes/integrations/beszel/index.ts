@@ -2,7 +2,10 @@ import { Elysia, t } from "elysia";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/integrations/utils";
+import {
+  isValidHttpUrl,
+  normalizeUrl,
+} from "@hously/api/utils/integrations/utils";
 import { normalizeBeszelConfig } from "@hously/api/utils/integrations/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { encrypt } from "@hously/api/services/crypto";
@@ -64,7 +67,9 @@ export const beszelIntegrationRoutes = new Elysia()
         const existingIntegration = await prisma.integration.findFirst({
           where: { type: "beszel" },
         });
-        const existingConfig = normalizeBeszelConfig(existingIntegration?.config);
+        const existingConfig = normalizeBeszelConfig(
+          existingIntegration?.config,
+        );
         const providedPassword = body.password?.trim() || "";
         const password = providedPassword || existingConfig?.password || "";
 

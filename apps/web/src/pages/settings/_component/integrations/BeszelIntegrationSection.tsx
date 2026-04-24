@@ -29,7 +29,9 @@ function BeszelIntegrationSectionImpl({
   const { t } = useTranslation("common");
   const saveMutation = useUpdateBeszelIntegration();
 
-  const [websiteUrl, setWebsiteUrl] = useState(data?.integration?.website_url || "");
+  const [websiteUrl, setWebsiteUrl] = useState(
+    data?.integration?.website_url || "",
+  );
   const [email, setEmail] = useState(data?.integration?.email || "");
   const [password, setPassword] = useState("");
   const [enabled, setEnabled] = useState(Boolean(data?.integration?.enabled));

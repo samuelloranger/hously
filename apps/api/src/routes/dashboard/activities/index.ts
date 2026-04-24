@@ -86,7 +86,9 @@ function getLogService(
   payload: Record<string, unknown> | null,
 ): string {
   if (type === "integration_updated") {
-    return parseString(payload?.integration_type)?.trim().toLowerCase() || "system";
+    return (
+      parseString(payload?.integration_type)?.trim().toLowerCase() || "system"
+    );
   }
 
   if (type === "admin_triggered_job") return "admin";

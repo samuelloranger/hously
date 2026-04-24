@@ -78,7 +78,9 @@ function weatherStatusIcon(weather: WeatherData): LucideIcon {
 export function WeatherPanel() {
   const { t } = useTranslation("common");
   const weatherQuery = useDashboardWeather();
-  const prefetchIntent = usePrefetchIntent("/settings", { tab: "integrations" });
+  const prefetchIntent = usePrefetchIntent("/settings", {
+    tab: "integrations",
+  });
   const [forecastOpen, setForecastOpen] = useState(false);
 
   if (!weatherQuery.data || weatherQuery.isError) return null;

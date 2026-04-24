@@ -29,7 +29,9 @@ function JackettIntegrationSectionImpl({
   const { t } = useTranslation("common");
   const saveMutation = useUpdateJackettIntegration();
 
-  const [websiteUrl, setWebsiteUrl] = useState(data?.integration?.website_url || "");
+  const [websiteUrl, setWebsiteUrl] = useState(
+    data?.integration?.website_url || "",
+  );
   const [apiKey, setApiKey] = useState(data?.integration?.api_key || "");
   const [enabled, setEnabled] = useState(Boolean(data?.integration?.enabled));
 

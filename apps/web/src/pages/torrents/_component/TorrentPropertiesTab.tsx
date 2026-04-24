@@ -10,6 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const NO_CATEGORY_VALUE = "__no_category__";
+
 interface TorrentPropertiesTabProps {
   propertiesQuery: {
     isLoading: boolean;
@@ -180,8 +182,12 @@ export function TorrentPropertiesTab({
             </label>
             <div className="flex items-center gap-2">
               <Select
-                value={draftCategory}
-                onValueChange={onDraftCategoryChange}
+                value={draftCategory || NO_CATEGORY_VALUE}
+                onValueChange={(value) =>
+                  onDraftCategoryChange(
+                    value === NO_CATEGORY_VALUE ? "" : value,
+                  )
+                }
               >
                 <SelectTrigger className="flex-1">
                   <SelectValue
@@ -189,7 +195,7 @@ export function TorrentPropertiesTab({
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value={NO_CATEGORY_VALUE}>
                     {t("torrents.noCategory", "No category")}
                   </SelectItem>
                   {categories.map((category) => (

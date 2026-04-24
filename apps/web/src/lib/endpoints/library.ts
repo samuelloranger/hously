@@ -33,4 +33,7 @@ export const LIBRARY_ENDPOINTS = {
   LANGUAGE_TAGS: "/api/library/language-tags",
   REINDEX_LANGUAGES: "/api/library/reindex-languages",
   REINDEX_LANGUAGES_STATUS: "/api/library/reindex-languages/status",
+  FILE_REMUX: (fileId: number) => `/api/library/files/${fileId}/remux`,
+  FILE_REMUX_STATUS: (fileId: number) =>
+    `/api/library/files/${fileId}/remux/status`,
 } as const;

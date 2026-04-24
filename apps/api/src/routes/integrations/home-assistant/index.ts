@@ -76,7 +76,10 @@ export const homeAssistantIntegrationRoutes = new Elysia()
       };
     } catch (error) {
       console.error("Error fetching Home Assistant integration config:", error);
-      return serverError(set, "Failed to fetch Home Assistant integration config");
+      return serverError(
+        set,
+        "Failed to fetch Home Assistant integration config",
+      );
     }
   })
   .put(
@@ -99,14 +102,19 @@ export const homeAssistantIntegrationRoutes = new Elysia()
       const existingIntegration = await prisma.integration.findFirst({
         where: { type: "home-assistant" },
       });
-      const existingCfg = normalizeHomeAssistantConfig(existingIntegration?.config);
+      const existingCfg = normalizeHomeAssistantConfig(
+        existingIntegration?.config,
+      );
       const providedToken = body.access_token.trim();
 
       let accessTokenEncrypted: string;
       if (providedToken) {
         accessTokenEncrypted = encrypt(providedToken);
       } else if (existingCfg) {
-        const raw = existingIntegration?.config as Record<string, unknown> | null;
+        const raw = existingIntegration?.config as Record<
+          string,
+          unknown
+        > | null;
         const prev =
           typeof raw?.access_token === "string" ? raw.access_token : "";
         if (!prev) {
@@ -163,7 +171,10 @@ export const homeAssistantIntegrationRoutes = new Elysia()
         };
       } catch (error) {
         console.error("Error saving Home Assistant integration config:", error);
-        return serverError(set, "Failed to save Home Assistant integration config");
+        return serverError(
+          set,
+          "Failed to save Home Assistant integration config",
+        );
       }
     },
     {

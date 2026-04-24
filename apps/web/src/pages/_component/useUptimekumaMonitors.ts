@@ -9,7 +9,9 @@ export function useUptimekumaMonitors(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.integrations.uptimekumaMonitors(),
     queryFn: () =>
-      fetcher<UptimekumaMonitorsResponse>(INTEGRATION_ENDPOINTS.UPTIMEKUMA_MONITORS),
+      fetcher<UptimekumaMonitorsResponse>(
+        INTEGRATION_ENDPOINTS.UPTIMEKUMA_MONITORS,
+      ),
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
     staleTime: 30_000,

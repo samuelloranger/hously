@@ -261,7 +261,9 @@ export function TrackersIntegrationSection() {
       description: t("settings.integrations.trackers.providerHelp.c411"),
       usernameLabel: t("settings.integrations.trackers.username"),
       usernameHelp: t("settings.integrations.trackers.usernameHelp.c411"),
-      usernamePlaceholder: t("settings.integrations.trackers.usernamePlaceholder"),
+      usernamePlaceholder: t(
+        "settings.integrations.trackers.usernamePlaceholder",
+      ),
       websiteLabel: t("settings.integrations.trackers.trackerUrl"),
       websitePlaceholder: "https://c411.org",
       loading: c411Query.isLoading,
@@ -276,7 +278,9 @@ export function TrackersIntegrationSection() {
       integrationId: torr9Query.data?.integration?.type ?? "pending",
       title: t("settings.integrations.trackers.providers.torr9"),
       logoUrl: "/icons/torr9.png",
-      usernamePlaceholder: t("settings.integrations.trackers.usernamePlaceholder"),
+      usernamePlaceholder: t(
+        "settings.integrations.trackers.usernamePlaceholder",
+      ),
       websiteLabel: t("settings.integrations.trackers.trackerUrl"),
       websitePlaceholder: "https://www.torr9.com",
       loading: torr9Query.isLoading,
@@ -291,7 +295,9 @@ export function TrackersIntegrationSection() {
       integrationId: laCaleQuery.data?.integration?.type ?? "pending",
       title: t("settings.integrations.trackers.providers.la-cale"),
       logoUrl: "/icons/la-cale.png",
-      usernamePlaceholder: t("settings.integrations.trackers.usernamePlaceholder"),
+      usernamePlaceholder: t(
+        "settings.integrations.trackers.usernamePlaceholder",
+      ),
       websiteLabel: t("settings.integrations.trackers.trackerUrl"),
       websitePlaceholder: "https://la-cale.space",
       loading: laCaleQuery.isLoading,

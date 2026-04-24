@@ -1371,6 +1371,14 @@
       "reindexLanguagesButton": "Re-index languages",
       "reindexLanguagesRunning": "Indexing {{current}}/{{total}}…",
       "reindexLanguagesDone": "Indexed {{updated}} files ({{errors}} errors)",
+      "remux": {
+        "title": "Remux Files",
+        "description": "Strip audio and subtitle tracks from all .mkv files, keeping only the selected languages. Files are modified in place.",
+        "keepLanguages": "Languages to keep",
+        "startButton": "Start remux",
+        "running": "Remuxing {{current}}/{{total}}…",
+        "done": "Remuxed {{processed}} files ({{skipped}} skipped, {{errors}} errors)"
+      },
       "emptyTitle": "No items in library",
       "emptyDescription": "Search for movies or shows in the panel on the right and add them to your library.",
       "paginationRange": "{{start}}–{{end}} of {{total}}",
@@ -1671,7 +1679,18 @@
       "defaultTrack": "Default",
       "forced": "Forced",
       "hearingImpaired": "HI",
-      "scanned": "Scanned {{date}}"
+      "scanned": "Scanned {{date}}",
+      "remux": {
+        "openButton": "Remux",
+        "title": "Remux file",
+        "keepAudioTracks": "Audio tracks to keep:",
+        "keepSubtitleTracks": "Subtitle tracks to keep:",
+        "startButton": "Start remux",
+        "running": "Remux in progress…",
+        "done": "Remux complete.",
+        "skipped": "No changes needed — file already matches selection.",
+        "error": "Remux failed."
+      }
     },
     "episodeInteractiveSearchTitle": "Open interactive search for this episode",
     "download": {

@@ -23,6 +23,8 @@ import {
 } from "@/pages/activity/_component/activityPresentation";
 
 const PAGE_SIZE = 25;
+const ALL_SERVICES_VALUE = "__all_services__";
+const ALL_TYPES_VALUE = "__all_types__";
 
 export function RecentActivityPage() {
   const { t, i18n } = useTranslation("common");
@@ -78,9 +80,12 @@ export function RecentActivityPage() {
                 {t("dashboard.activityPage.serviceFilter")}
               </span>
               <Select
-                value={service ?? ""}
+                value={service || ALL_SERVICES_VALUE}
                 onValueChange={(value) =>
-                  updateFilters({ service: value, type })
+                  updateFilters({
+                    service: value === ALL_SERVICES_VALUE ? "" : value,
+                    type,
+                  })
                 }
               >
                 <SelectTrigger
@@ -91,7 +96,7 @@ export function RecentActivityPage() {
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value={ALL_SERVICES_VALUE}>
                     {t("dashboard.activityPage.allServices")}
                   </SelectItem>
                   {(data?.available_services ?? []).map((value) => (
@@ -108,9 +113,12 @@ export function RecentActivityPage() {
                 {t("dashboard.activityPage.typeFilter")}
               </span>
               <Select
-                value={type ?? ""}
+                value={type || ALL_TYPES_VALUE}
                 onValueChange={(value) =>
-                  updateFilters({ service, type: value })
+                  updateFilters({
+                    service,
+                    type: value === ALL_TYPES_VALUE ? "" : value,
+                  })
                 }
               >
                 <SelectTrigger
@@ -121,7 +129,7 @@ export function RecentActivityPage() {
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value={ALL_TYPES_VALUE}>
                     {t("dashboard.activityPage.allTypes")}
                   </SelectItem>
                   {(data?.available_types ?? []).map((value) => (

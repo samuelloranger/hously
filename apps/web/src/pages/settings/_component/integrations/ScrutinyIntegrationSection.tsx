@@ -29,7 +29,9 @@ function ScrutinyIntegrationSectionImpl({
   const { t } = useTranslation("common");
   const saveMutation = useUpdateScrutinyIntegration();
 
-  const [websiteUrl, setWebsiteUrl] = useState(data?.integration?.website_url || "");
+  const [websiteUrl, setWebsiteUrl] = useState(
+    data?.integration?.website_url || "",
+  );
   const [enabled, setEnabled] = useState(Boolean(data?.integration?.enabled));
 
   const isDirty = useMemo(() => {

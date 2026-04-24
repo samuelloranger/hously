@@ -7,7 +7,10 @@ import {
   invalidateIntegrationConfigCache,
 } from "@hously/api/services/integrationConfigCache";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/integrations/utils";
+import {
+  isValidHttpUrl,
+  normalizeUrl,
+} from "@hously/api/utils/integrations/utils";
 import { normalizeAdguardConfig } from "@hously/api/utils/integrations/normalizers";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { encrypt } from "@hously/api/services/crypto";
@@ -67,7 +70,10 @@ export const adguardIntegrationRoutes = new Elysia()
       };
     } catch (error) {
       console.error("Error fetching AdGuard Home integration config:", error);
-      return serverError(set, "Failed to fetch AdGuard Home integration config");
+      return serverError(
+        set,
+        "Failed to fetch AdGuard Home integration config",
+      );
     }
   })
   .put(
@@ -89,7 +95,9 @@ export const adguardIntegrationRoutes = new Elysia()
 
       try {
         const existingIntegration = await getIntegrationConfigRecord("adguard");
-        const existingConfig = normalizeAdguardConfig(existingIntegration?.config);
+        const existingConfig = normalizeAdguardConfig(
+          existingIntegration?.config,
+        );
         const providedPassword = body.password?.trim() || "";
         const password = providedPassword || existingConfig?.password || "";
 
@@ -140,7 +148,10 @@ export const adguardIntegrationRoutes = new Elysia()
         };
       } catch (error) {
         console.error("Error saving AdGuard Home integration config:", error);
-        return serverError(set, "Failed to save AdGuard Home integration config");
+        return serverError(
+          set,
+          "Failed to save AdGuard Home integration config",
+        );
       }
     },
     {
@@ -158,7 +169,9 @@ export const adguardIntegrationRoutes = new Elysia()
       try {
         const { config, error } = await getAdguardApiConfig(set);
         if (!config) {
-          return { error: error || "AdGuard Home integration is not configured" };
+          return {
+            error: error || "AdGuard Home integration is not configured",
+          };
         }
 
         const authHeader = `Basic ${Buffer.from(`${config.username}:${config.password}`).toString("base64")}`;

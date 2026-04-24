@@ -21,17 +21,18 @@ export const TMDB_UPCOMING_CACHE_KEY = "dashboard:tmdb:upcoming:v7";
 const JELLYFIN_TMDB_IDS_CACHE_TTL_SECONDS = 60 * 60;
 const JELLYFIN_TMDB_IDS_CACHE_KEY = "dashboard:jellyfin:tmdb-ids:v1";
 
-export const getArrIntegrationStatus = async (): Promise<ArrIntegrationStatus> => {
-  const [radarrIntegration, sonarrIntegration] = await Promise.all([
-    getIntegrationConfigRecord("radarr"),
-    getIntegrationConfigRecord("sonarr"),
-  ]);
+export const getArrIntegrationStatus =
+  async (): Promise<ArrIntegrationStatus> => {
+    const [radarrIntegration, sonarrIntegration] = await Promise.all([
+      getIntegrationConfigRecord("radarr"),
+      getIntegrationConfigRecord("sonarr"),
+    ]);
 
-  return {
-    radarr_enabled: Boolean(radarrIntegration?.enabled),
-    sonarr_enabled: Boolean(sonarrIntegration?.enabled),
+    return {
+      radarr_enabled: Boolean(radarrIntegration?.enabled),
+      sonarr_enabled: Boolean(sonarrIntegration?.enabled),
+    };
   };
-};
 
 export const toIsoDate = (date: Date): string => {
   const year = date.getUTCFullYear();

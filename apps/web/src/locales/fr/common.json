@@ -1371,6 +1371,14 @@
       "reindexLanguagesButton": "Réindexer les langues",
       "reindexLanguagesRunning": "Indexation {{current}}/{{total}}…",
       "reindexLanguagesDone": "{{updated}} fichiers indexés ({{errors}} erreurs)",
+      "remux": {
+        "title": "Remuxer les fichiers",
+        "description": "Supprime les pistes audio et sous-titres de tous les fichiers .mkv en ne conservant que les langues sélectionnées. Les fichiers sont modifiés sur place.",
+        "keepLanguages": "Langues à conserver",
+        "startButton": "Démarrer le remux",
+        "running": "Remux {{current}}/{{total}}…",
+        "done": "{{processed}} fichiers remuxés ({{skipped}} ignorés, {{errors}} erreurs)"
+      },
       "emptyTitle": "Aucun élément dans la bibliothèque",
       "emptyDescription": "Recherchez des films ou séries dans le panneau de droite et ajoutez-les à votre bibliothèque.",
       "paginationRange": "{{start}}–{{end}} sur {{total}}",
@@ -1671,7 +1679,18 @@
       "defaultTrack": "Par défaut",
       "forced": "Forcé",
       "hearingImpaired": "Sourd et malentendant",
-      "scanned": "Analysé le {{date}}"
+      "scanned": "Analysé le {{date}}",
+      "remux": {
+        "openButton": "Remuxer",
+        "title": "Remuxer le fichier",
+        "keepAudioTracks": "Pistes audio à conserver :",
+        "keepSubtitleTracks": "Pistes de sous-titres à conserver :",
+        "startButton": "Démarrer le remuxage",
+        "running": "Remuxage en cours…",
+        "done": "Remuxage terminé.",
+        "skipped": "Aucune modification nécessaire — le fichier correspond déjà à la sélection.",
+        "error": "Le remuxage a échoué."
+      }
     },
     "episodeInteractiveSearchTitle": "Ouvrir la recherche interactive pour cet épisode",
     "download": {

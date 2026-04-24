@@ -12,7 +12,10 @@ import {
   setJsonCache,
 } from "@hously/api/services/cache";
 import { nowUtc } from "@hously/api/utils";
-import { isValidHttpUrl, normalizeUrl } from "@hously/api/utils/integrations/utils";
+import {
+  isValidHttpUrl,
+  normalizeUrl,
+} from "@hously/api/utils/integrations/utils";
 import { normalizeUptimekumaConfig } from "@hously/api/utils/integrations/normalizers";
 import {
   parseMonitorStatus,
@@ -66,7 +69,8 @@ const adminRoutes = new Elysia()
       }
 
       try {
-        const existingIntegration = await getIntegrationConfigRecord("uptimekuma");
+        const existingIntegration =
+          await getIntegrationConfigRecord("uptimekuma");
         const existingConfig = normalizeUptimekumaConfig(
           existingIntegration?.config,
         );

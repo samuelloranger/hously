@@ -7,10 +7,12 @@ import { badRequest, notFound, serverError } from "@hously/api/errors";
 import {
   libraryMigrateQueue,
   libraryReindexLanguagesQueue,
+  libraryRemuxQueue,
 } from "@hously/api/services/queueService";
 import { createJsonSseResponse } from "@hously/api/utils/sse";
 import type { LibraryMigrateProgress } from "@hously/api/services/jobs/libraryMigrateWorker";
 import type { LibraryReindexLanguagesProgress } from "@hously/api/services/jobs/libraryReindexLanguagesWorker";
+import type { LibraryRemuxJobData } from "@hously/api/services/jobs/libraryRemuxWorker";
 import { grabRelease, searchAndGrab } from "@hously/api/services/mediaGrabber";
 import { libraryEventBus } from "@hously/api/services/libraryEvents";
 import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
@@ -130,7 +132,13 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         { tag: string }[]
       >`SELECT DISTINCT UNNEST(language_tags) AS tag FROM media_files`;
       const tags = rows.map((r) => r.tag).filter(Boolean);
-      const order: Record<string, number> = { EN: 0, VFQ: 1, VFF: 2, FR: 3 };
+      const order: Record<string, number> = {
+        EN: 0,
+        VFQ: 1,
+        VFF: 2,
+        VFI: 3,
+        FR: 4,
+      };
       tags.sort((a, b) => {
         const ai = order[a] ?? 100;
         const bi = order[b] ?? 100;
@@ -206,6 +214,65 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       };
     } catch {
       return serverError(set, "Failed to fetch reindex status");
+    }
+  })
+
+  // POST /api/library/files/:fileId/remux — enqueue a per-file remux job
+  .post(
+    "/files/:fileId/remux",
+    async ({ params, set, body }) => {
+      const fileId = parseInt(params.fileId, 10);
+      if (!Number.isFinite(fileId)) return badRequest(set, "Invalid file id");
+      if (!body.keep_audio_track_indices.length)
+        return badRequest(set, "At least one audio track must be kept");
+      try {
+        const jobId = `library-remux-file-${fileId}`;
+        const existing = await libraryRemuxQueue.getJob(jobId);
+        const existingState = existing ? await existing.getState() : null;
+        if (existingState === "active" || existingState === "waiting") {
+          return badRequest(set, "A remux job for this file is already queued");
+        }
+        const job = await libraryRemuxQueue.add(
+          "library-remux-file",
+          {
+            file_id: fileId,
+            keep_audio_track_indices: body.keep_audio_track_indices,
+            keep_subtitle_track_indices: body.keep_subtitle_track_indices,
+          } satisfies LibraryRemuxJobData,
+          { jobId },
+        );
+        return { job_id: job?.id };
+      } catch {
+        return serverError(set, "Failed to enqueue remux job");
+      }
+    },
+    {
+      body: t.Object({
+        keep_audio_track_indices: t.Array(t.Number(), { minItems: 1 }),
+        keep_subtitle_track_indices: t.Array(t.Number()),
+      }),
+    },
+  )
+
+  // GET /api/library/files/:fileId/remux/status — status of that file's remux job
+  .get("/files/:fileId/remux/status", async ({ params, set }) => {
+    const fileId = parseInt(params.fileId, 10);
+    if (!Number.isFinite(fileId)) return badRequest(set, "Invalid file id");
+    try {
+      const jobId = `library-remux-file-${fileId}`;
+      const job = await libraryRemuxQueue.getJob(jobId);
+      if (!job) {
+        return { state: "unknown", job_id: null, result: null, error: null };
+      }
+      const state = await job.getState();
+      return {
+        job_id: job.id ?? null,
+        state,
+        result: state === "completed" ? (job.returnvalue ?? null) : null,
+        error: state === "failed" ? (job.failedReason ?? null) : null,
+      };
+    } catch {
+      return serverError(set, "Failed to fetch remux status");
     }
   })
 

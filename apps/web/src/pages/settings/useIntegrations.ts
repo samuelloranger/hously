@@ -74,10 +74,13 @@ function useUpdateTrackerIntegration(type: TrackerType) {
       password?: string;
       enabled: boolean;
     }) =>
-      fetcher<TrackerIntegrationUpdateResponse>(TRACKER_INTEGRATION_ENDPOINTS[type], {
-        method: "PUT",
-        body: data,
-      }),
+      fetcher<TrackerIntegrationUpdateResponse>(
+        TRACKER_INTEGRATION_ENDPOINTS[type],
+        {
+          method: "PUT",
+          body: data,
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.integrations.tracker(type),
@@ -105,7 +108,9 @@ export function useJellyfinIntegration() {
   return useQuery({
     queryKey: queryKeys.integrations.jellyfin(),
     queryFn: () =>
-      fetcher<{ integration: JellyfinIntegration }>(INTEGRATION_ENDPOINTS.JELLYFIN),
+      fetcher<{ integration: JellyfinIntegration }>(
+        INTEGRATION_ENDPOINTS.JELLYFIN,
+      ),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -116,7 +121,9 @@ export function useProwlarrIntegration() {
   return useQuery({
     queryKey: queryKeys.integrations.prowlarr(),
     queryFn: () =>
-      fetcher<{ integration: ProwlarrIntegration }>(INTEGRATION_ENDPOINTS.PROWLARR),
+      fetcher<{ integration: ProwlarrIntegration }>(
+        INTEGRATION_ENDPOINTS.PROWLARR,
+      ),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -126,7 +133,10 @@ export function useJackettIntegration() {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: queryKeys.integrations.jackett(),
-    queryFn: () => fetcher<{ integration: JackettIntegration }>(INTEGRATION_ENDPOINTS.JACKETT),
+    queryFn: () =>
+      fetcher<{ integration: JackettIntegration }>(
+        INTEGRATION_ENDPOINTS.JACKETT,
+      ),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -137,7 +147,9 @@ export function useQbittorrentIntegration() {
   return useQuery({
     queryKey: queryKeys.integrations.qbittorrent(),
     queryFn: () =>
-      fetcher<{ integration: QbittorrentIntegration }>(INTEGRATION_ENDPOINTS.QBITTORRENT),
+      fetcher<{ integration: QbittorrentIntegration }>(
+        INTEGRATION_ENDPOINTS.QBITTORRENT,
+      ),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -148,7 +160,9 @@ export function useScrutinyIntegration() {
   return useQuery({
     queryKey: queryKeys.integrations.scrutiny(),
     queryFn: () =>
-      fetcher<{ integration: ScrutinyIntegration }>(INTEGRATION_ENDPOINTS.SCRUTINY),
+      fetcher<{ integration: ScrutinyIntegration }>(
+        INTEGRATION_ENDPOINTS.SCRUTINY,
+      ),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -158,7 +172,8 @@ export function useBeszelIntegration() {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: queryKeys.integrations.beszel(),
-    queryFn: () => fetcher<{ integration: BeszelIntegration }>(INTEGRATION_ENDPOINTS.BESZEL),
+    queryFn: () =>
+      fetcher<{ integration: BeszelIntegration }>(INTEGRATION_ENDPOINTS.BESZEL),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -168,7 +183,10 @@ export function useAdguardIntegration() {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: queryKeys.integrations.adguard(),
-    queryFn: () => fetcher<{ integration: AdguardIntegration }>(INTEGRATION_ENDPOINTS.ADGUARD),
+    queryFn: () =>
+      fetcher<{ integration: AdguardIntegration }>(
+        INTEGRATION_ENDPOINTS.ADGUARD,
+      ),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -178,7 +196,10 @@ export function useWeatherIntegration() {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: queryKeys.integrations.weather(),
-    queryFn: () => fetcher<{ integration: WeatherIntegration }>(INTEGRATION_ENDPOINTS.WEATHER),
+    queryFn: () =>
+      fetcher<{ integration: WeatherIntegration }>(
+        INTEGRATION_ENDPOINTS.WEATHER,
+      ),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -189,7 +210,9 @@ export function useHomeAssistantIntegration() {
   return useQuery({
     queryKey: queryKeys.integrations.homeAssistant(),
     queryFn: () =>
-      fetcher<{ integration: HomeAssistantIntegration }>(INTEGRATION_ENDPOINTS.HOME_ASSISTANT),
+      fetcher<{ integration: HomeAssistantIntegration }>(
+        INTEGRATION_ENDPOINTS.HOME_ASSISTANT,
+      ),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -237,7 +260,8 @@ export function useTmdbIntegration() {
   const fetcher = useFetcher();
   return useQuery({
     queryKey: queryKeys.integrations.tmdb(),
-    queryFn: () => fetcher<{ integration: TmdbIntegration }>(INTEGRATION_ENDPOINTS.TMDB),
+    queryFn: () =>
+      fetcher<{ integration: TmdbIntegration }>(INTEGRATION_ENDPOINTS.TMDB),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -256,12 +280,17 @@ export function useUpdateJellyfinIntegration() {
       api_key: string;
       enabled: boolean;
     }) =>
-      fetcher<JellyfinIntegrationUpdateResponse>(INTEGRATION_ENDPOINTS.JELLYFIN, {
-        method: "PUT",
-        body: data,
-      }),
+      fetcher<JellyfinIntegrationUpdateResponse>(
+        INTEGRATION_ENDPOINTS.JELLYFIN,
+        {
+          method: "PUT",
+          body: data,
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.integrations.jellyfin() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.jellyfin(),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.dashboard.jellyfinLatest(),
       });
@@ -278,12 +307,17 @@ export function useUpdateProwlarrIntegration() {
       api_key: string;
       enabled: boolean;
     }) =>
-      fetcher<ProwlarrIntegrationUpdateResponse>(INTEGRATION_ENDPOINTS.PROWLARR, {
-        method: "PUT",
-        body: data,
-      }),
+      fetcher<ProwlarrIntegrationUpdateResponse>(
+        INTEGRATION_ENDPOINTS.PROWLARR,
+        {
+          method: "PUT",
+          body: data,
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.integrations.prowlarr() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.prowlarr(),
+      });
     },
   });
 }
@@ -302,7 +336,9 @@ export function useUpdateJackettIntegration() {
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.integrations.jackett() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.jackett(),
+      });
     },
   });
 }
@@ -319,10 +355,13 @@ export function useUpdateQbittorrentIntegration() {
       max_items?: number;
       enabled: boolean;
     }) =>
-      fetcher<QbittorrentIntegrationUpdateResponse>(INTEGRATION_ENDPOINTS.QBITTORRENT, {
-        method: "PUT",
-        body: data,
-      }),
+      fetcher<QbittorrentIntegrationUpdateResponse>(
+        INTEGRATION_ENDPOINTS.QBITTORRENT,
+        {
+          method: "PUT",
+          body: data,
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.integrations.qbittorrent(),
@@ -339,12 +378,17 @@ export function useUpdateScrutinyIntegration() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { website_url: string; enabled: boolean }) =>
-      fetcher<ScrutinyIntegrationUpdateResponse>(INTEGRATION_ENDPOINTS.SCRUTINY, {
-        method: "PUT",
-        body: data,
-      }),
+      fetcher<ScrutinyIntegrationUpdateResponse>(
+        INTEGRATION_ENDPOINTS.SCRUTINY,
+        {
+          method: "PUT",
+          body: data,
+        },
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.integrations.scrutiny() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.scrutiny(),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.dashboard.scrutinySummary(),
       });
@@ -367,7 +411,9 @@ export function useUpdateBeszelIntegration() {
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.integrations.beszel() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.beszel(),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.dashboard.systemSummary(),
       });
@@ -390,7 +436,9 @@ export function useUpdateAdguardIntegration() {
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.integrations.adguard() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.adguard(),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.dashboard.adguardSummary(),
       });
@@ -411,7 +459,9 @@ export function useSetAdguardProtection() {
         },
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.integrations.adguard() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.adguard(),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.dashboard.adguardSummary(),
       });
@@ -433,7 +483,9 @@ export function useUpdateWeatherIntegration() {
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.integrations.weather() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.weather(),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.weather.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.weather.current() });
     },
@@ -454,7 +506,9 @@ export function useUpdateTmdbIntegration() {
         body: data,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.integrations.tmdb() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.tmdb(),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.dashboard.upcoming(),
       });
@@ -462,9 +516,12 @@ export function useUpdateTmdbIntegration() {
   });
 }
 
-export const useUpdateC411Integration = () => useUpdateTrackerIntegration("c411");
-export const useUpdateTorr9Integration = () => useUpdateTrackerIntegration("torr9");
-export const useUpdateLaCaleIntegration = () => useUpdateTrackerIntegration("la-cale");
+export const useUpdateC411Integration = () =>
+  useUpdateTrackerIntegration("c411");
+export const useUpdateTorr9Integration = () =>
+  useUpdateTrackerIntegration("torr9");
+export const useUpdateLaCaleIntegration = () =>
+  useUpdateTrackerIntegration("la-cale");
 
 export const useDashboardC411Stats = (options?: { enabled?: boolean }) =>
   useDashboardTrackerStats("c411", options);
@@ -478,7 +535,9 @@ export function useUptimekumaIntegration() {
   return useQuery({
     queryKey: queryKeys.integrations.uptimekuma(),
     queryFn: () =>
-      fetcher<{ integration: UptimekumaIntegration }>(INTEGRATION_ENDPOINTS.UPTIMEKUMA),
+      fetcher<{ integration: UptimekumaIntegration }>(
+        INTEGRATION_ENDPOINTS.UPTIMEKUMA,
+      ),
     refetchOnMount: "always",
     staleTime: 0,
   });
@@ -493,10 +552,13 @@ export function useUpdateUptimekumaIntegration() {
       api_key?: string;
       enabled: boolean;
     }) =>
-      fetcher<UptimekumaIntegrationUpdateResponse>(INTEGRATION_ENDPOINTS.UPTIMEKUMA, {
-        method: "PUT",
-        body: data,
-      }),
+      fetcher<UptimekumaIntegrationUpdateResponse>(
+        INTEGRATION_ENDPOINTS.UPTIMEKUMA,
+        {
+          method: "PUT",
+          body: data,
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.integrations.uptimekuma(),

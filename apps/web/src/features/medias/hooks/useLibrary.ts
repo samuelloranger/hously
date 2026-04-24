@@ -112,6 +112,59 @@ export function useReindexLanguagesStatus(enabled = true) {
   });
 }
 
+type JobState =
+  | "unknown"
+  | "active"
+  | "waiting"
+  | "completed"
+  | "failed"
+  | "delayed"
+  | "paused";
+
+export type RemuxFileStatus = {
+  job_id: string | null;
+  state: JobState;
+  result: { status: "remuxed" | "skipped" | "error"; message?: string } | null;
+  error: string | null;
+};
+
+export function useRemuxFile(fileId: number) {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: {
+      keep_audio_track_indices: number[];
+      keep_subtitle_track_indices: number[];
+    }) =>
+      fetcher<{ job_id: string }>(LIBRARY_ENDPOINTS.FILE_REMUX(fileId), {
+        method: "POST",
+        body,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.remuxFileStatus(fileId),
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+    },
+  });
+}
+
+export function useRemuxFileStatus(fileId: number, enabled = true) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.library.remuxFileStatus(fileId),
+    queryFn: () =>
+      fetcher<RemuxFileStatus>(LIBRARY_ENDPOINTS.FILE_REMUX_STATUS(fileId)),
+    enabled,
+    refetchInterval: (query) => {
+      const state = query.state.data?.state;
+      return state === "active" || state === "waiting" ? 2000 : false;
+    },
+  });
+}
+
 export function useAddToLibrary() {
   const fetcher = useFetcher();
   const queryClient = useQueryClient();

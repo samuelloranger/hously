@@ -30,6 +30,7 @@ describe("classifyLanguageTags", () => {
   it("tags English-only as EN", () => {
     expect(classifyLanguageTags([track("eng")])).toEqual(["EN"]);
     expect(classifyLanguageTags([track("en")])).toEqual(["EN"]);
+    expect(classifyLanguageTags([track("en-")])).toEqual(["EN"]);
   });
 
   it("tags French with VFQ keyword in track title", () => {
@@ -37,6 +38,10 @@ describe("classifyLanguageTags", () => {
       "VFQ",
     ]);
     expect(classifyLanguageTags([track("fre", "Québécois")])).toEqual(["VFQ"]);
+    expect(classifyLanguageTags([track("fra", "VQC")])).toEqual(["VFQ"]);
+    expect(classifyLanguageTags([track("fra", "Version canadienne")])).toEqual([
+      "VFQ",
+    ]);
     expect(classifyLanguageTags([track("fr", "French Canada")])).toEqual([
       "VFQ",
     ]);
@@ -44,9 +49,22 @@ describe("classifyLanguageTags", () => {
 
   it("tags French with VFF keyword in track title", () => {
     expect(classifyLanguageTags([track("fra", "VFF")])).toEqual(["VFF"]);
+    expect(classifyLanguageTags([track("fra", "European French")])).toEqual([
+      "VFF",
+    ]);
     expect(classifyLanguageTags([track("fre", "Parisian French")])).toEqual([
       "VFF",
     ]);
+  });
+
+  it("tags French with VFI keyword in track or release name", () => {
+    expect(classifyLanguageTags([track("fra", "VFI")])).toEqual(["VFI"]);
+    expect(classifyLanguageTags([track("fra", "International")])).toEqual([
+      "VFI",
+    ]);
+    expect(
+      classifyLanguageTags([track("fra", null)], "Movie.2024.VFI.1080p"),
+    ).toEqual(["VFI"]);
   });
 
   it("falls back to release name when track title silent", () => {
@@ -61,6 +79,12 @@ describe("classifyLanguageTags", () => {
   it("tags generic French when no regional signal", () => {
     expect(classifyLanguageTags([track("fra", null)])).toEqual(["FR"]);
     expect(classifyLanguageTags([track("fra", "Main audio")])).toEqual(["FR"]);
+  });
+
+  it("maps regional French codes to the right variant", () => {
+    expect(classifyLanguageTags([track("fr-CA", null)])).toEqual(["VFQ"]);
+    expect(classifyLanguageTags([track("fr-FR", null)])).toEqual(["VFF"]);
+    expect(classifyLanguageTags([track("fr-", null)])).toEqual(["FR"]);
   });
 
   it("combines multiple distinct tags", () => {
@@ -87,15 +111,16 @@ describe("classifyLanguageTags", () => {
     expect(classifyLanguageTags([track("")])).toEqual(["UND"]);
   });
 
-  it("orders tags EN, VFQ, VFF, FR, then alpha", () => {
+  it("orders tags EN, VFQ, VFF, VFI, FR, then alpha", () => {
     const tags = classifyLanguageTags([
       track("spa"),
+      track("fra", "VFI"),
       track("fra", "VFF"),
       track("fra", "VFQ"),
       track("eng"),
       track("deu"),
     ]);
-    expect(tags).toEqual(["EN", "VFQ", "VFF", "DEU", "SPA"]);
+    expect(tags).toEqual(["EN", "VFQ", "VFF", "VFI", "DEU", "SPA"]);
   });
 
   it("normalizes accented characters when matching", () => {

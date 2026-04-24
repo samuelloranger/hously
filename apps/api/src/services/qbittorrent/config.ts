@@ -77,7 +77,9 @@ export const getQbittorrentIntegrationConfig = async (): Promise<{
   });
 
   const enabled = integration?.enabled ?? false;
-  const config = enabled ? normalizeQbittorrentConfig(integration?.config) : null;
+  const config = enabled
+    ? normalizeQbittorrentConfig(integration?.config)
+    : null;
   const result = { enabled, config };
   await setJsonCache(
     INTEGRATION_CONFIG_CACHE_KEY,

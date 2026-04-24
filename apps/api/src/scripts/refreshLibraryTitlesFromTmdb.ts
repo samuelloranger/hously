@@ -71,7 +71,9 @@ async function main() {
     : undefined;
 
   const integration = await getIntegrationConfigRecord("tmdb");
-  const cfg = integration?.enabled ? normalizeTmdbConfig(integration.config) : null;
+  const cfg = integration?.enabled
+    ? normalizeTmdbConfig(integration.config)
+    : null;
   const apiKey = cfg?.api_key ?? null;
   if (!apiKey) {
     console.error("TMDB integration is not configured or disabled.");
