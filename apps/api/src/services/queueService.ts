@@ -236,11 +236,11 @@ export async function setupScheduledJobs() {
     }, // hourly :20 — day-before movie (watchlist)
     {
       name: SCHEDULED_JOB_NAMES.CHECK_LIBRARY_MOVIE_RELEASES,
-      pattern: "0 */2 * * *",
+      pattern: "0 */6 * * *",
     },
     {
       name: SCHEDULED_JOB_NAMES.CHECK_LIBRARY_EPISODE_RELEASES,
-      pattern: "0 */2 * * *",
+      pattern: "0 */6 * * *",
     },
     {
       name: SCHEDULED_JOB_NAMES.SYNC_LIBRARY_SHOW_EPISODES,
