@@ -1268,6 +1268,12 @@
         "fahrenheit": "Fahrenheit (°F)",
         "celsius": "Celsius (°C)"
       },
+      "rssPolling": {
+        "label": "RSS Polling",
+        "help": "Select indexers to poll every 15 minutes for new releases. Matched items are grabbed immediately without waiting for the scheduled search.",
+        "noIndexers": "No indexers found. Save your credentials first.",
+        "offline": "offline"
+      },
       "prowlarr": {
         "help": "Connect Prowlarr to run global release searches and send results to your configured download client.",
         "websiteUrl": "Prowlarr URL",

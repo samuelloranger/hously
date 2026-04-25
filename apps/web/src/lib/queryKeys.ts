@@ -128,7 +128,11 @@ export const queryKeys = {
     radarr: () => [...queryKeys.integrations.all, "radarr"] as const,
     sonarr: () => [...queryKeys.integrations.all, "sonarr"] as const,
     prowlarr: () => [...queryKeys.integrations.all, "prowlarr"] as const,
+    prowlarrIndexers: () =>
+      [...queryKeys.integrations.all, "prowlarr", "indexers"] as const,
     jackett: () => [...queryKeys.integrations.all, "jackett"] as const,
+    jackettIndexers: () =>
+      [...queryKeys.integrations.all, "jackett", "indexers"] as const,
     qbittorrent: () => [...queryKeys.integrations.all, "qbittorrent"] as const,
     scrutiny: () => [...queryKeys.integrations.all, "scrutiny"] as const,
     beszel: () => [...queryKeys.integrations.all, "beszel"] as const,

@@ -22,6 +22,7 @@ export interface SonarrIntegrationConfig {
 export interface IndexerIntegrationConfig {
   api_key: string;
   website_url: string;
+  rss_indexers: string[];
 }
 
 /** @deprecated Use IndexerIntegrationConfig — kept as alias for existing references. */

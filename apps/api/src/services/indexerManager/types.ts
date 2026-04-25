@@ -34,6 +34,8 @@ export interface NormalizedRelease {
 
 export interface NormalizedIndexer {
   id: number;
+  /** String identifier used in adapter-specific URLs/params (Jackett slug or Prowlarr numeric ID as string). */
+  slug: string;
   name: string;
   protocol: string;
   enabled: boolean;
@@ -68,4 +70,10 @@ export interface IndexerManagerAdapter {
    * Returns null if the release has no downloadable target.
    */
   storeReleaseToken(release: NormalizedRelease): string | null;
+
+  /**
+   * Fetch recent releases from specific indexers without a search query (RSS-style).
+   * @param indexerIds - Jackett: string slugs (e.g. "c411"); Prowlarr: numeric IDs as strings (e.g. "1")
+   */
+  fetchRss(indexerIds: string[]): Promise<NormalizedRelease[]>;
 }

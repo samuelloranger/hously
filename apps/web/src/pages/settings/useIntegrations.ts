@@ -142,6 +142,40 @@ export function useJackettIntegration() {
   });
 }
 
+export interface IndexerItem {
+  id: number;
+  slug: string;
+  name: string;
+  enabled: boolean;
+  privacy: string;
+}
+
+export function useJackettIndexers(enabled: boolean) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.integrations.jackettIndexers(),
+    queryFn: () =>
+      fetcher<{ indexers: IndexerItem[] }>(
+        INTEGRATION_ENDPOINTS.JACKETT_INDEXERS,
+      ),
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
+export function useProwlarrIndexers(enabled: boolean) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.integrations.prowlarrIndexers(),
+    queryFn: () =>
+      fetcher<{ indexers: IndexerItem[] }>(
+        INTEGRATION_ENDPOINTS.PROWLARR_INDEXERS,
+      ),
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
 export function useQbittorrentIntegration() {
   const fetcher = useFetcher();
   return useQuery({
@@ -306,6 +340,7 @@ export function useUpdateProwlarrIntegration() {
       website_url: string;
       api_key: string;
       enabled: boolean;
+      rss_indexers?: string[];
     }) =>
       fetcher<ProwlarrIntegrationUpdateResponse>(
         INTEGRATION_ENDPOINTS.PROWLARR,
@@ -330,6 +365,7 @@ export function useUpdateJackettIntegration() {
       website_url: string;
       api_key: string;
       enabled: boolean;
+      rss_indexers?: string[];
     }) =>
       fetcher<JackettIntegrationUpdateResponse>(INTEGRATION_ENDPOINTS.JACKETT, {
         method: "PUT",
