@@ -127,17 +127,57 @@ export class JackettAdapter implements IndexerManagerAdapter {
 
     if (rawIndexers.length === 0) return [];
 
-    const indexers: NormalizedIndexer[] = rawIndexers.map((item, idx) => ({
-      id: typeof item.ID === "string" ? idx : Number(item.ID ?? idx),
-      name: String(item.Name ?? ""),
-      protocol: "torrent",
-      enabled: item.Status === 2, // 2 = OK in Jackett
-      privacy: "private", // Jackett doesn't expose privacy; assume private
-    }));
+    const indexers: NormalizedIndexer[] = rawIndexers.map((item, idx) => {
+      const slug =
+        typeof item.ID === "string" ? item.ID : String(item.ID ?? idx);
+      return {
+        id: idx,
+        slug,
+        name: String(item.Name ?? ""),
+        protocol: "torrent",
+        enabled: item.Status === 2, // 2 = OK in Jackett
+        privacy: "private",
+      };
+    });
 
     indexers.sort((a, b) => a.name.localeCompare(b.name));
 
     return indexers;
+  }
+
+  async fetchRss(slugs: string[]): Promise<NormalizedRelease[]> {
+    const results = await Promise.all(
+      slugs.map((slug) => this.fetchOneRss(slug)),
+    );
+    return results.flat();
+  }
+
+  private async fetchOneRss(slug: string): Promise<NormalizedRelease[]> {
+    try {
+      const url = new URL(
+        `/api/v2.0/indexers/${slug}/results`,
+        this.config.website_url,
+      );
+      url.searchParams.set("apikey", this.config.api_key);
+      url.searchParams.append("Category[]", "2000");
+      url.searchParams.append("Category[]", "5000");
+      const res = await fetch(url.toString(), {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(20_000),
+      }).catch(() => null);
+      if (!res?.ok) return [];
+      const body = (await res.json().catch(() => null)) as unknown;
+      const record =
+        body && typeof body === "object" && !Array.isArray(body)
+          ? (body as Record<string, unknown>)
+          : null;
+      const results = Array.isArray(record?.Results) ? record.Results : [];
+      return (results as Record<string, unknown>[])
+        .map((raw) => this.normalizeRelease(raw))
+        .filter((r): r is NormalizedRelease => r !== null);
+    } catch {
+      return [];
+    }
   }
 
   async grabRelease(token: string): Promise<GrabResult> {

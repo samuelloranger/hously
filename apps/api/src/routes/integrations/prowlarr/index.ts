@@ -11,11 +11,12 @@ import { logActivity } from "@hously/api/utils/activityLogs";
 import { encrypt } from "@hously/api/services/crypto";
 import { requireAdmin } from "@hously/api/middleware/auth";
 import { badRequest, serverError } from "@hously/api/errors";
+import { ProwlarrAdapter } from "@hously/api/services/indexerManager/prowlarrAdapter";
 
 export const prowlarrIntegrationRoutes = new Elysia()
   .use(auth)
   .use(requireAdmin)
-  .get("/prowlarr", async ({ user, set }) => {
+  .get("/prowlarr", async ({ set }) => {
     try {
       const integration = await prisma.integration.findFirst({
         where: { type: "prowlarr" },
@@ -28,6 +29,7 @@ export const prowlarrIntegrationRoutes = new Elysia()
           enabled: integration?.enabled || false,
           website_url: config?.website_url || "",
           api_key: "",
+          rss_indexers: config?.rss_indexers ?? [],
         },
       };
     } catch (error) {
@@ -62,6 +64,10 @@ export const prowlarrIntegrationRoutes = new Elysia()
 
       try {
         const now = nowUtc();
+        const rssIndexers = Array.isArray(body.rss_indexers)
+          ? body.rss_indexers
+          : (existingConfig?.rss_indexers ?? []);
+
         const integration = await prisma.integration.upsert({
           where: { type: "prowlarr" },
           update: {
@@ -69,6 +75,7 @@ export const prowlarrIntegrationRoutes = new Elysia()
             config: {
               website_url: websiteUrl,
               api_key: encrypt(apiKey),
+              rss_indexers: rssIndexers,
             },
             updatedAt: now,
           },
@@ -78,6 +85,7 @@ export const prowlarrIntegrationRoutes = new Elysia()
             config: {
               website_url: websiteUrl,
               api_key: encrypt(apiKey),
+              rss_indexers: rssIndexers,
             },
             createdAt: now,
             updatedAt: now,
@@ -132,6 +140,22 @@ export const prowlarrIntegrationRoutes = new Elysia()
         website_url: t.String(),
         api_key: t.String(),
         enabled: t.Optional(t.Boolean()),
+        rss_indexers: t.Optional(t.Array(t.String({ minLength: 1 }))),
       }),
     },
-  );
+  )
+  .get("/prowlarr/indexers", async ({ set }) => {
+    try {
+      const integration = await prisma.integration.findFirst({
+        where: { type: "prowlarr", enabled: true },
+      });
+      const config = normalizeProwlarrConfig(integration?.config);
+      if (!config) return { indexers: [] };
+      const adapter = new ProwlarrAdapter(config);
+      const indexers = await adapter.getIndexers();
+      return { indexers };
+    } catch (error) {
+      console.error("Error fetching Prowlarr indexers:", error);
+      return serverError(set, "Failed to fetch Prowlarr indexers");
+    }
+  });

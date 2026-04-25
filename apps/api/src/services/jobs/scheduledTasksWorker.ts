@@ -113,6 +113,11 @@ export async function processScheduledJob(job: Job) {
         await checkDownloadCompletion();
         break;
       }
+      case SCHEDULED_JOB_NAMES.POLL_INDEXER_RSS: {
+        const { pollIndexerRss } = await import("../../workers/pollIndexerRss");
+        await pollIndexerRss();
+        break;
+      }
       default:
         console.warn(`[ScheduledTasksWorker] Unknown job name: ${job.name}`);
         return { success: false, error: "Unknown job name" };

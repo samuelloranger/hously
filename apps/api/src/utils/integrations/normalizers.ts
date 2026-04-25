@@ -146,6 +146,11 @@ export const normalizeProwlarrConfig = (
   return {
     api_key: apiKey,
     website_url: websiteUrl.replace(/\/+$/, ""),
+    rss_indexers: Array.isArray(cfg.rss_indexers)
+      ? (cfg.rss_indexers as unknown[]).filter(
+          (v): v is string => typeof v === "string",
+        )
+      : [],
   };
 };
 
@@ -164,6 +169,11 @@ export const normalizeJackettConfig = (
   return {
     api_key: apiKey,
     website_url: websiteUrl.replace(/\/+$/, ""),
+    rss_indexers: Array.isArray(cfg.rss_indexers)
+      ? (cfg.rss_indexers as unknown[]).filter(
+          (v): v is string => typeof v === "string",
+        )
+      : [],
   };
 };
 

@@ -36,6 +36,7 @@ export interface ProwlarrIntegration {
   enabled: boolean;
   website_url: string;
   api_key: string;
+  rss_indexers: string[];
 }
 
 export interface JackettIntegration {
@@ -43,6 +44,7 @@ export interface JackettIntegration {
   enabled: boolean;
   website_url: string;
   api_key: string;
+  rss_indexers: string[];
 }
 
 export interface QbittorrentIntegration {

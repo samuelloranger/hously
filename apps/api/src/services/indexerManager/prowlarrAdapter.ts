@@ -125,6 +125,7 @@ export class ProwlarrAdapter implements IndexerManagerAdapter {
 
     const indexers = raw.map((item) => ({
       id: Number(item.id),
+      slug: String(item.id),
       name: String(item.name ?? ""),
       protocol: String(item.protocol ?? "torrent"),
       enabled: Boolean(item.enable),
@@ -168,6 +169,28 @@ export class ProwlarrAdapter implements IndexerManagerAdapter {
   storeReleaseToken(release: NormalizedRelease): string | null {
     if (!release.rawPayload) return null;
     return storePayload(release.rawPayload);
+  }
+
+  async fetchRss(indexerIds: string[]): Promise<NormalizedRelease[]> {
+    const url = new URL("/api/v1/search", this.config.website_url);
+    url.searchParams.set("type", "search");
+    url.searchParams.set("query", "");
+    url.searchParams.set("categories", "2000,5000");
+    url.searchParams.set("limit", "100");
+    for (const id of indexerIds) {
+      url.searchParams.append("indexerIds", id);
+    }
+    const res = await fetch(url.toString(), {
+      headers: this.headers(),
+      signal: AbortSignal.timeout(25_000),
+    }).catch(() => null);
+    if (!res?.ok) return [];
+    const body = await res.json().catch(() => null);
+    if (!Array.isArray(body)) return [];
+    const base = this.baseUrl();
+    return body
+      .map((raw: unknown) => this.normalizeRelease(raw, base))
+      .filter((r): r is NormalizedRelease => r !== null);
   }
 
   private normalizeRelease(

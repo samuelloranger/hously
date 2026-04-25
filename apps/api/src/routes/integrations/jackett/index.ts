@@ -11,6 +11,7 @@ import { logActivity } from "@hously/api/utils/activityLogs";
 import { encrypt } from "@hously/api/services/crypto";
 import { requireAdmin } from "@hously/api/middleware/auth";
 import { badRequest, serverError } from "@hously/api/errors";
+import { JackettAdapter } from "@hously/api/services/indexerManager/jackettAdapter";
 
 export const jackettIntegrationRoutes = new Elysia()
   .use(auth)
@@ -28,6 +29,7 @@ export const jackettIntegrationRoutes = new Elysia()
           enabled: integration?.enabled || false,
           website_url: config?.website_url || "",
           api_key: "",
+          rss_indexers: config?.rss_indexers ?? [],
         },
       };
     } catch (error) {
@@ -62,6 +64,10 @@ export const jackettIntegrationRoutes = new Elysia()
 
       try {
         const now = nowUtc();
+        const rssIndexers = Array.isArray(body.rss_indexers)
+          ? body.rss_indexers
+          : (existingConfig?.rss_indexers ?? []);
+
         const integration = await prisma.integration.upsert({
           where: { type: "jackett" },
           update: {
@@ -69,6 +75,7 @@ export const jackettIntegrationRoutes = new Elysia()
             config: {
               website_url: websiteUrl,
               api_key: encrypt(apiKey),
+              rss_indexers: rssIndexers,
             },
             updatedAt: now,
           },
@@ -78,6 +85,7 @@ export const jackettIntegrationRoutes = new Elysia()
             config: {
               website_url: websiteUrl,
               api_key: encrypt(apiKey),
+              rss_indexers: rssIndexers,
             },
             createdAt: now,
             updatedAt: now,
@@ -132,6 +140,22 @@ export const jackettIntegrationRoutes = new Elysia()
         website_url: t.String(),
         api_key: t.String(),
         enabled: t.Optional(t.Boolean()),
+        rss_indexers: t.Optional(t.Array(t.String({ minLength: 1 }))),
       }),
     },
-  );
+  )
+  .get("/jackett/indexers", async ({ set }) => {
+    try {
+      const integration = await prisma.integration.findFirst({
+        where: { type: "jackett", enabled: true },
+      });
+      const config = normalizeJackettConfig(integration?.config);
+      if (!config) return { indexers: [] };
+      const adapter = new JackettAdapter(config);
+      const indexers = await adapter.getIndexers();
+      return { indexers };
+    } catch (error) {
+      console.error("Error fetching Jackett indexers:", error);
+      return serverError(set, "Failed to fetch Jackett indexers");
+    }
+  });
