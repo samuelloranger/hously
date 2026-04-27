@@ -47,7 +47,6 @@ export function DataExportTab() {
         const summary = t("settings.dataExport.importSummary", {
           chores: counts.chores,
           reminders: counts.reminders,
-          shoppingItems: counts.shopping_items,
           taskCompletions: counts.task_completions,
         });
 

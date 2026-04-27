@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 interface GreetingCardProps {
   userName: string;
   pendingChores: number;
-  shoppingItems: number;
   eventsToday: number;
 }
 
@@ -13,7 +12,6 @@ type GreetingContext = {
   dayOfWeek: number;
   isWeekend: boolean;
   pendingChores: number;
-  shoppingItems: number;
   eventsToday: number;
 };
 
@@ -27,7 +25,6 @@ function getTimeOfDay(hour: number): GreetingContext["timeOfDay"] {
 export function GreetingCard({
   userName,
   pendingChores,
-  shoppingItems,
   eventsToday,
 }: GreetingCardProps) {
   const { t } = useTranslation("common");
@@ -42,7 +39,6 @@ export function GreetingCard({
       dayOfWeek,
       isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
       pendingChores,
-      shoppingItems,
       eventsToday,
     };
 
@@ -93,7 +89,7 @@ export function GreetingCard({
       subtext = t("dashboard.subtexts.friday", {
         defaultValue: "Almost there! Finish strong.",
       });
-    } else if (pendingChores === 0 && shoppingItems === 0) {
+    } else if (pendingChores === 0) {
       subtext = t("dashboard.subtexts.allClear", {
         defaultValue: "Everything's in order. Nice work!",
       });
@@ -101,10 +97,6 @@ export function GreetingCard({
       subtext = t("dashboard.subtexts.manyChores", {
         count: pendingChores,
         defaultValue: `${pendingChores} tasks waiting. One step at a time!`,
-      });
-    } else if (shoppingItems > 5) {
-      subtext = t("dashboard.subtexts.shoppingNeeded", {
-        defaultValue: "Shopping list is growing. Time to plan a trip?",
       });
     } else {
       switch (context.timeOfDay) {
@@ -132,7 +124,7 @@ export function GreetingCard({
     }
 
     return { greeting: baseGreeting, subtext };
-  }, [pendingChores, shoppingItems, eventsToday, t]);
+  }, [pendingChores, eventsToday, t]);
 
   return (
     <div>

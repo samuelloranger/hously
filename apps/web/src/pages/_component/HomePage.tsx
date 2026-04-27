@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { CalendarDays, ShoppingCart, CheckSquare2, Flame } from "lucide-react";
+import { CalendarDays, CheckSquare2, Flame } from "lucide-react";
 import { motion, type Variants } from "motion/react";
 import { PageLayout } from "@/components/PageLayout";
 import { useCurrentUser } from "@/lib/auth/useAuth";
@@ -56,13 +56,6 @@ function StatsRow({ stats }: { stats?: DashboardStats }) {
       value: stats.chores_count,
       label: t("dashboard.home.statsChores", { count: stats.chores_count }),
       color: "hover:text-emerald-600 dark:hover:text-emerald-400",
-    },
-    {
-      href: "/shopping" as const,
-      icon: <ShoppingCart size={11} />,
-      value: stats.shopping_count,
-      label: t("dashboard.home.statsShopping", { count: stats.shopping_count }),
-      color: "hover:text-blue-600 dark:hover:text-blue-400",
     },
   ].filter((c) => c.value > 0);
 
@@ -122,7 +115,6 @@ export function HomePage() {
               <GreetingCard
                 userName={getUserFirstName(user, t("dashboard.user"))}
                 pendingChores={stats?.chores_count || 0}
-                shoppingItems={stats?.shopping_count || 0}
                 eventsToday={stats?.events_today || 0}
               />
               <StatsRow stats={stats} />
