@@ -26,7 +26,7 @@ function PrivacyPage() {
             <p>
               Hously is a self-hosted homelab command center. It stores the
               information you enter so you can manage your infrastructure, media
-              pipeline, chores, shopping, and reminders across your devices.
+              pipeline, chores, and reminders across your devices.
             </p>
             <h2>Information We Collect</h2>
             <ul>
@@ -35,8 +35,8 @@ function PrivacyPage() {
                 optional name, locale, and avatar URL.
               </li>
               <li>
-                <strong>User content</strong>: chores, shopping items, calendar
-                events, reminders, notifications, and task completion history.
+                <strong>User content</strong>: chores, calendar events,
+                reminders, notifications, and task completion history.
               </li>
               <li>
                 <strong>Notification data</strong>: push subscription details,

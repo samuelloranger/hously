@@ -8,7 +8,6 @@ import {
   Library,
   ListChecks,
   Magnet,
-  ShoppingCart,
   Target,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -47,11 +46,6 @@ export const navSections: NavSection[] = [
         path: "/habits",
         translationKey: "nav.habits",
         icon: Target,
-      },
-      {
-        path: "/shopping",
-        translationKey: "nav.shopping",
-        icon: ShoppingCart,
       },
       {
         path: "/calendar",

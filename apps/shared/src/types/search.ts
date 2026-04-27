@@ -22,13 +22,6 @@ export interface QuickSearchChore {
   completed: boolean;
 }
 
-export interface QuickSearchShoppingItem {
-  id: number;
-  item_name: string;
-  notes?: string;
-  completed: boolean;
-}
-
 export interface QuickSearchUser {
   id: number;
   name: string;
@@ -48,7 +41,6 @@ export interface QuickSearchResponse {
   torrents: QuickSearchTorrent[];
   medias: QuickSearchMedia[];
   chores: QuickSearchChore[];
-  shopping: QuickSearchShoppingItem[];
   users: QuickSearchUser[];
   board_tasks: QuickSearchBoardTask[];
 }

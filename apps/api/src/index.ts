@@ -25,7 +25,6 @@ import { notificationsRoutes } from "./routes/notifications";
 import { integrationsRoutes } from "./routes/integrations";
 import { remindersRoutes } from "./routes/reminders";
 import { searchRoutes } from "./routes/search";
-import { shoppingRoutes } from "./routes/shopping";
 import { systemRoutes } from "./routes/system";
 import { usersRoutes } from "./routes/users";
 import { webhooksRoutes } from "./routes/webhooks";
@@ -75,7 +74,6 @@ export const app = new Elysia()
   .use(webhooksRoutes)
   .use(externalNotificationsRoutes)
   .use(choresRoutes)
-  .use(shoppingRoutes)
   .use(calendarRoutes)
   .use(customEventsRoutes)
   .use(remindersRoutes)

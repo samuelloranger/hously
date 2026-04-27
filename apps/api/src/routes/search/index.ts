@@ -27,7 +27,6 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
           torrents: [],
           medias: [],
           chores: [],
-          shopping: [],
           users: [],
           board_tasks: [],
         };
@@ -37,7 +36,7 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
         }
 
         // Parallel DB queries
-        const [chores, shopping, users, boardTasks] = await Promise.all([
+        const [chores, users, boardTasks] = await Promise.all([
           prisma.chore.findMany({
             where: {
               completed: false,
@@ -52,16 +51,6 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
               assignedToUser: {
                 select: { firstName: true, email: true },
               },
-            },
-          }),
-          prisma.shoppingItem.findMany({
-            where: { itemName: { contains: q, mode: "insensitive" } },
-            take: limit,
-            select: {
-              id: true,
-              itemName: true,
-              notes: true,
-              completed: true,
             },
           }),
           prisma.user.findMany({
@@ -169,12 +158,6 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
               c.assignedToUser?.email ||
               undefined,
             completed: c.completed ?? false,
-          })),
-          shopping: shopping.map((s) => ({
-            id: s.id,
-            item_name: s.itemName,
-            notes: s.notes ?? undefined,
-            completed: s.completed ?? false,
           })),
           users: users.map((u) => ({
             id: u.id,

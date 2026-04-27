@@ -24,13 +24,6 @@ export const dashboardStatsRoutes = new Elysia()
         },
       });
 
-      const shoppingCount = await prisma.shoppingItem.count({
-        where: {
-          OR: [{ completed: false }, { completed: null }],
-          deletedAt: null,
-        },
-      });
-
       const choresCount = await prisma.chore.count({
         where: {
           OR: [{ completed: false }, { completed: null }],
@@ -42,7 +35,6 @@ export const dashboardStatsRoutes = new Elysia()
       return {
         stats: {
           events_today: eventsTodayCount,
-          shopping_count: shoppingCount,
           chores_count: choresCount,
           habits_streak: habitsStreak,
         },

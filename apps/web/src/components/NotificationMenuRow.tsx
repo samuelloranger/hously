@@ -5,7 +5,6 @@ import {
   Sparkles,
   Monitor,
   CheckCircle,
-  ShoppingCart,
   Calendar,
   Settings,
   Target,
@@ -34,10 +33,6 @@ const typeConfig: Record<NotificationType, { icon: ReactNode; bg: string }> = {
   chore: {
     icon: <CheckCircle size={16} />,
     bg: "bg-emerald-100 dark:bg-emerald-900/30",
-  },
-  shopping: {
-    icon: <ShoppingCart size={16} />,
-    bg: "bg-sky-100 dark:bg-sky-900/30",
   },
   event: {
     icon: <Calendar size={16} />,

@@ -14,6 +14,5 @@ export * from "./integrations";
 export * from "./qualityProfiles";
 export * from "./qbittorrent";
 export * from "./search";
-export * from "./shopping";
 export * from "./system";
 export * from "./users";

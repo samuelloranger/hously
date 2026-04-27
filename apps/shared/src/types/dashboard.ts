@@ -1,14 +1,11 @@
 export interface DashboardStats {
   events_today: number;
-  shopping_count: number;
   chores_count: number;
   habits_streak: number;
 }
 
 export type ActivityType =
   | "task_completed"
-  | "shopping_added"
-  | "shopping_completed"
   | "chore_added"
   | "chore_completed"
   | "habit_completed"
@@ -20,16 +17,13 @@ export type ActivityType =
   | "event_created"
   | "event_updated"
   | "event_deleted"
-  | "shopping_item_added"
-  | "shopping_item_completed"
-  | "shopping_list_cleared"
   | "media_grab"
   | (string & {});
 
 export interface Activity {
   id?: number;
   user_id?: number;
-  task_type?: "chore" | "shopping";
+  task_type?: "chore";
   task_id?: number;
   completed_at?: string;
   task_name?: string;
@@ -53,7 +47,6 @@ export interface Activity {
   to_version?: string;
   event_id?: number;
   event_title?: string;
-  shopping_item_id?: number;
   item_name?: string;
   count?: number;
   media_id?: number;

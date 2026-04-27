@@ -7,8 +7,6 @@ import {
   XCircle,
   CheckCircle,
   Calendar,
-  Eraser,
-  ShoppingCart,
   Download,
 } from "lucide-react";
 import type { Locale } from "date-fns";
@@ -28,7 +26,6 @@ export interface ActivityPresentation {
 
 const SERVICE_LABEL_KEYS: Record<string, string> = {
   chores: "dashboard.activityPage.services.chores",
-  shopping: "dashboard.activityPage.services.shopping",
   calendar: "dashboard.activityPage.services.calendar",
   habits: "dashboard.activityPage.services.habits",
   system: "dashboard.activityPage.services.system",
@@ -52,7 +49,6 @@ const SERVICE_LABEL_KEYS: Record<string, string> = {
 const TYPE_LABEL_KEYS: Record<string, string> = {
   task_completed: "dashboard.activityPage.types.task_completed",
   chore_completed: "dashboard.activityPage.types.chore_completed",
-  shopping_completed: "dashboard.activityPage.types.shopping_completed",
   habit_completed: "dashboard.activityPage.types.habit_completed",
   integration_updated: "dashboard.activityPage.types.integration_updated",
   cron_job_ended: "dashboard.activityPage.types.cron_job_ended",
@@ -62,10 +58,6 @@ const TYPE_LABEL_KEYS: Record<string, string> = {
   event_created: "dashboard.activityPage.types.event_created",
   event_updated: "dashboard.activityPage.types.event_updated",
   event_deleted: "dashboard.activityPage.types.event_deleted",
-  shopping_item_added: "dashboard.activityPage.types.shopping_item_added",
-  shopping_item_completed:
-    "dashboard.activityPage.types.shopping_item_completed",
-  shopping_list_cleared: "dashboard.activityPage.types.shopping_list_cleared",
   media_grab: "dashboard.activityPage.types.media_grab",
 };
 
@@ -83,8 +75,6 @@ function getActivityType(activity: Activity): string {
   switch (activity.task_type) {
     case "chore":
       return "chore_completed";
-    case "shopping":
-      return "shopping_completed";
     default:
       return "task_completed";
   }
@@ -96,8 +86,6 @@ function getActivityService(activity: Activity): string {
   switch (activity.task_type) {
     case "chore":
       return "chores";
-    case "shopping":
-      return "shopping";
     default:
       return "system";
   }
@@ -267,45 +255,6 @@ export function getActivityPresentation(
     };
   }
 
-  if (
-    type === "shopping_item_added" ||
-    type === "shopping_item_completed" ||
-    type === "shopping_list_cleared"
-  ) {
-    const time =
-      formatRelativeTime(activity.completed_at ?? null, { locale }) ?? "";
-    if (type === "shopping_list_cleared") {
-      const count =
-        typeof activity.count === "number" && Number.isFinite(activity.count)
-          ? activity.count
-          : 0;
-      return {
-        Icon: Eraser,
-        description: t("dashboard.activity.shoppingCleared", { count }),
-        time,
-        type,
-        typeLabel: getActivityTypeLabel(t, type),
-        service,
-        serviceLabel: getActivityServiceLabel(t, service),
-      };
-    }
-
-    const itemName = activity.item_name || t("dashboard.activity.unknownItem");
-    const description =
-      type === "shopping_item_added"
-        ? t("dashboard.activity.shoppingItemAdded", { item: itemName })
-        : t("dashboard.activity.shoppingItemCompleted", { item: itemName });
-    return {
-      Icon: ShoppingCart,
-      description,
-      time,
-      type,
-      typeLabel: getActivityTypeLabel(t, type),
-      service,
-      serviceLabel: getActivityServiceLabel(t, service),
-    };
-  }
-
   if (type === "media_grab") {
     const time =
       formatRelativeTime(activity.completed_at ?? null, { locale }) ?? "";
@@ -327,7 +276,7 @@ export function getActivityPresentation(
   const taskName = activity.task_name || t("dashboard.activity.unknownTask");
   const time =
     formatRelativeTime(activity.completed_at ?? null, { locale }) ?? "";
-  const Icon = activity.task_type === "shopping" ? ShoppingCart : CheckCircle;
+  const Icon = CheckCircle;
 
   return {
     Icon,
