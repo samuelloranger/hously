@@ -13,6 +13,7 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 - **Torrents** — qBittorrent management with real-time activity streaming (SSE)
 - **Tracker Stats** — Private tracker statistics (C411, Torr9, La Cale)
 - **Jellyfin/Plex** — Latest additions and webhook notifications
+- **Collections** — Manage and complete your media collections
 
 **Infrastructure**
 
@@ -26,7 +27,6 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 - **Calendar** — Shared calendar with reminders and iCal export
 - **Chores** — Assignment, tracking, and recurring schedules
 - **Habits** — Habit tracking with completion history
-- **Collections** — Organize and track personal collections
 
 **Platform**
 
