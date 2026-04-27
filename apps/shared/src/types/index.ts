@@ -1,6 +1,5 @@
 export * from "./api";
 export * from "./user";
-export * from "./shopping";
 export * from "./chores";
 export * from "./calendar";
 export * from "./dashboard";
