@@ -19,18 +19,21 @@ export function getUserDisplayName(
   return user?.firstName || user?.email || null;
 }
 
-export const mapUser = (user: {
-  id: number;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  isAdmin: boolean | null;
-  locale: string | null;
-  lastLogin: Date | null;
-  createdAt: Date | null;
-  lastActivity: Date | null;
-  avatarUrl: string | null;
-}) => ({
+export const mapUser = (
+  user: {
+    id: number;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    isAdmin: boolean | null;
+    locale: string | null;
+    lastLogin: Date | null;
+    createdAt: Date | null;
+    lastActivity: Date | null;
+    avatarUrl: string | null;
+  },
+  options?: { hasPasskey?: boolean },
+) => ({
   id: user.id,
   email: user.email,
   first_name: user.firstName,
@@ -41,4 +44,8 @@ export const mapUser = (user: {
   created_at: user.createdAt?.toISOString() ?? new Date().toISOString(),
   last_activity: user.lastActivity?.toISOString() ?? null,
   avatar_url: user.avatarUrl || null,
+  has_passkey:
+    typeof options === "object" && options
+      ? (options.hasPasskey ?? false)
+      : false,
 });

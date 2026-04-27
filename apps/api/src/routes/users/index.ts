@@ -30,7 +30,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
       const users = await prisma.user.findMany({
         orderBy: [{ firstName: "asc" }, { email: "asc" }],
       });
-      return { users: users.map(mapUser) };
+      return { users: users.map((u) => mapUser(u)) };
     } catch (error) {
       console.error("Error listing users:", error);
       return serverError(set, "Failed to list users");
@@ -123,6 +123,13 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
 
         if (!dbUser) {
           return unauthorized(set, "User not found");
+        }
+
+        if (!dbUser.passwordHash) {
+          return badRequest(
+            set,
+            "This account uses passkey authentication and has no password.",
+          );
         }
 
         // Verify current password

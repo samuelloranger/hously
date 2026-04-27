@@ -1,9 +1,14 @@
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate, Link } from "@tanstack/react-router";
+import { KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { setUser } from "@/lib/auth";
 import { useLogin } from "@/lib/auth/useAuth";
+import {
+  browserSupportsWebAuthn,
+  usePasskeyAuthenticate,
+} from "@/lib/auth/usePasskey";
 
 interface FormData {
   email: string;
@@ -14,6 +19,7 @@ export function LoginForm() {
   const { t } = useTranslation("common");
   const navigate = useNavigate();
   const loginMutation = useLogin();
+  const passkeyMutation = usePasskeyAuthenticate();
 
   const {
     register,
@@ -47,6 +53,21 @@ export function LoginForm() {
     }
   };
 
+  const onPasskeyLogin = async () => {
+    try {
+      const response = await passkeyMutation.mutateAsync();
+      if (response.user) {
+        setUser(response.user);
+      }
+      navigate({ to: "/" });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : null;
+      if (message && !message.toLowerCase().includes("cancel")) {
+        toast.error(message || t("login.passkeyFailed"));
+      }
+    }
+  };
+
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
       <div className="rounded-md shadow-sm -space-y-px">
@@ -57,7 +78,7 @@ export function LoginForm() {
           <input
             id="email"
             type="email"
-            autoComplete="email"
+            autoComplete="email webauthn"
             {...register("email", {
               required: true,
               pattern: {
@@ -104,7 +125,7 @@ export function LoginForm() {
         </Link>
       </div>
 
-      <div>
+      <div className="space-y-3">
         <button
           type="submit"
           disabled={loginMutation.isPending}
@@ -114,6 +135,29 @@ export function LoginForm() {
             ? t("login.loading")
             : t("login.signInButton")}
         </button>
+
+        {browserSupportsWebAuthn() && (
+          <>
+            <div className="relative flex items-center">
+              <div className="flex-1 border-t border-neutral-300 dark:border-neutral-600" />
+              <span className="px-3 text-xs text-neutral-500 dark:text-neutral-400">
+                {t("login.or")}
+              </span>
+              <div className="flex-1 border-t border-neutral-300 dark:border-neutral-600" />
+            </div>
+            <button
+              type="button"
+              onClick={onPasskeyLogin}
+              disabled={passkeyMutation.isPending}
+              className="group relative w-full flex justify-center items-center gap-2 py-2 px-4 border border-neutral-300 dark:border-neutral-600 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <KeyRound className="w-4 h-4" />
+              {passkeyMutation.isPending
+                ? t("login.loading")
+                : t("login.signInWithPasskey")}
+            </button>
+          </>
+        )}
       </div>
     </form>
   );

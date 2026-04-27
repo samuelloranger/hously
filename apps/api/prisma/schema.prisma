@@ -9,7 +9,7 @@ datasource db {
 model User {
   id              Int       @id @default(autoincrement())
   email           String    @unique(map: "ix_users_email")
-  passwordHash    String    @map("password_hash")
+  passwordHash    String?   @map("password_hash")
   authVersion     Int       @default(1) @map("auth_version")
   isAdmin         Boolean?  @map("is_admin")
   lastLogin       DateTime? @map("last_login")
@@ -35,6 +35,7 @@ model User {
   choresCompleted        Chore[]              @relation("ChoreCompletedBy")
   passwordResetTokens    PasswordResetToken[]
   refreshTokens          RefreshToken[]
+  passkeyCredentials     WebAuthnCredential[]
   pushTokens             PushToken[]
   notificationChannels   NotificationChannel[]
   habits                 Habit[]
@@ -394,6 +395,24 @@ model RefreshToken {
 
   @@index([userId], map: "ix_refresh_tokens_user_id")
   @@map("refresh_tokens")
+}
+
+model WebAuthnCredential {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  credentialId String   @unique @map("credential_id")
+  publicKey    Bytes    @map("public_key")
+  counter      BigInt   @default(0)
+  transports   String[] @default([])
+  deviceType   String   @default("singleDevice") @map("device_type")
+  backedUp     Boolean  @default(false) @map("backed_up")
+  name         String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "ix_webauthn_credentials_user_id")
+  @@map("webauthn_credentials")
 }
 
 model Invitation {

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { PasskeysSection } from "@/pages/settings/_component/PasskeysSection";
 import { ProfileForm } from "@/pages/settings/_component/ProfileForm";
 
 export function ProfileTab() {
@@ -19,6 +20,7 @@ export function ProfileTab() {
 
         <ProfileForm />
       </div>
+      <PasskeysSection />
     </div>
   );
 }

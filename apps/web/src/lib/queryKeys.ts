@@ -4,6 +4,7 @@ export const queryKeys = {
     all: ["auth"] as const,
     me: ["auth", "me"] as const,
     user: ["auth", "user"] as const,
+    passkeyCredentials: ["auth", "passkey-credentials"] as const,
     validateInvitation: (token: string) =>
       [...queryKeys.auth.all, "validate-invitation", token] as const,
   },
