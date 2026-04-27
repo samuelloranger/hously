@@ -1,6 +1,5 @@
 import type {
   User,
-  ShoppingItem,
   Chore,
   Activity,
   DashboardStats,
@@ -14,19 +13,6 @@ export const mockUser: User = {
   last_login: "2024-01-01T00:00:00Z",
   created_at: "2024-01-01T00:00:00Z",
   last_activity: null,
-};
-
-export const mockShoppingItem: ShoppingItem = {
-  id: 1,
-  position: 1,
-  item_name: "Milk",
-  notes: null,
-  completed: false,
-  added_by: 1,
-  completed_by: null,
-  created_at: "2024-01-01T00:00:00Z",
-  completed_at: null,
-  added_by_username: "testuser",
 };
 
 export const mockChore: Chore = {
@@ -44,17 +30,9 @@ export const mockChore: Chore = {
 };
 
 export const mockDashboardStats: DashboardStats = {
-  shopping_count: 5,
   events_today: 10,
   chores_count: 3,
   habits_streak: 5,
-};
-
-export const mockActivity: Activity = {
-  description: "testuser added shopping item: Milk",
-  time: "2 hours ago",
-  icon: "🛒",
-  type: "shopping_added",
 };
 
 export const mockIntegrationUpdatedActivity: Activity = {
@@ -91,12 +69,5 @@ export const mockEventCreatedActivity: Activity = {
   type: "event_created",
   event_id: 1,
   event_title: "Dentist",
-  completed_at: "2024-01-01T00:00:00Z",
-};
-
-export const mockShoppingItemCompletedActivity: Activity = {
-  type: "shopping_item_completed",
-  shopping_item_id: 1,
-  item_name: "Milk",
   completed_at: "2024-01-01T00:00:00Z",
 };
