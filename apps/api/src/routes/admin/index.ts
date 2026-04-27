@@ -889,7 +889,6 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
       const allChores = await prisma.chore.findMany();
       const allReminders = await prisma.reminder.findMany();
-      const allShoppingItems = await prisma.shoppingItem.findMany();
       const allTaskCompletions = await prisma.taskCompletion.findMany();
 
       return {
@@ -907,13 +906,6 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         reminders: allReminders.map((reminder) => ({
           ...reminder,
           user_email: reminder.userId ? idToEmail.get(reminder.userId) : null,
-        })),
-        shopping_items: allShoppingItems.map((item) => ({
-          ...item,
-          added_by_email: item.addedBy ? idToEmail.get(item.addedBy) : null,
-          completed_by_email: item.completedBy
-            ? idToEmail.get(item.completedBy)
-            : null,
         })),
         task_completions: allTaskCompletions.map((completion) => ({
           ...completion,
@@ -939,7 +931,6 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       body: t.Object({
         chores: t.Optional(t.Array(t.Any())),
         reminders: t.Optional(t.Array(t.Any())),
-        shopping_items: t.Optional(t.Array(t.Any())),
         task_completions: t.Optional(t.Array(t.Any())),
       }),
     },
