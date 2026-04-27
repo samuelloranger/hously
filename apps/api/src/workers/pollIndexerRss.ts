@@ -1,10 +1,16 @@
 import { prisma } from "@hously/api/db";
 import { getActiveIndexerManager } from "@hously/api/services/indexerManager/factory";
-import { searchAndGrab } from "@hously/api/services/mediaGrabber";
+import type { NormalizedRelease } from "@hously/api/services/indexerManager/types";
+import { grabRelease } from "@hously/api/services/mediaGrabber";
 import {
   normalizeTitleForMatch,
   parseReleaseSeasonEpisode,
+  parseReleaseTitle,
 } from "@hously/api/utils/medias/filenameParser";
+import {
+  scoreRelease,
+  type QualityProfileScoreInput,
+} from "@hously/api/utils/medias/releaseScorer";
 import {
   APP_DISPLAY_TIMEZONE,
   localDateYmd,
@@ -81,8 +87,22 @@ export async function pollIndexerRss(): Promise<void> {
     normalizedTitle: normalizeTitleForMatch(ep.media.title),
   }));
 
-  const triggeredMediaIds = new Set<number>();
-  const triggeredEpisodeIds = new Set<number>();
+  // Collect all matching RSS releases per episode/movie before scoring.
+  // Multiple releases across indexers may match the same item.
+  const episodeCandidates = new Map<
+    number,
+    {
+      match: (typeof normalizedEpisodes)[number];
+      releases: NormalizedRelease[];
+    }
+  >();
+  const movieCandidates = new Map<
+    number,
+    {
+      match: (typeof normalizedMovies)[number];
+      releases: NormalizedRelease[];
+    }
+  >();
 
   for (const release of releases) {
     const parsed = extractTitleFromRelease(release.title);
@@ -100,22 +120,13 @@ export async function pollIndexerRss(): Promise<void> {
           ep.season === parsed.season &&
           ep.episode === parsed.episode,
       );
-      if (match && !triggeredEpisodeIds.has(match.id)) {
-        triggeredEpisodeIds.add(match.id);
-        console.log(
-          `[pollIndexerRss] Match: "${release.title}" → ${match.media.title} S${match.season}E${match.episode}`,
-        );
-        searchAndGrab({
-          mediaId: match.media.id,
-          episodeId: match.id,
-          searchQuery: `${match.media.title} S${String(match.season).padStart(2, "0")}E${String(match.episode).padStart(2, "0")}`,
-          qualityProfileId: match.media.qualityProfileId,
-        }).catch((e) =>
-          console.warn(
-            `[pollIndexerRss] grab failed for episode ${match.id}:`,
-            e,
-          ),
-        );
+      if (match) {
+        const entry = episodeCandidates.get(match.id);
+        if (entry) {
+          entry.releases.push(release);
+        } else {
+          episodeCandidates.set(match.id, { match, releases: [release] });
+        }
       }
     } else {
       const match = normalizedMovies.find((m) => {
@@ -124,30 +135,160 @@ export async function pollIndexerRss(): Promise<void> {
           return m.year === parsed.year;
         return true;
       });
-      if (match && !triggeredMediaIds.has(match.id)) {
-        triggeredMediaIds.add(match.id);
-        console.log(
-          `[pollIndexerRss] Match: "${release.title}" → ${match.title} (${match.year})`,
-        );
-        const yearSuffix = match.year ? ` ${match.year}` : "";
-        searchAndGrab({
-          mediaId: match.id,
-          searchQuery: `${match.title}${yearSuffix}`,
-          qualityProfileId: match.qualityProfileId,
-        }).catch((e) =>
-          console.warn(
-            `[pollIndexerRss] grab failed for movie ${match.id}:`,
-            e,
-          ),
-        );
+      if (match) {
+        const entry = movieCandidates.get(match.id);
+        if (entry) {
+          entry.releases.push(release);
+        } else {
+          movieCandidates.set(match.id, { match, releases: [release] });
+        }
       }
     }
   }
 
-  const total = triggeredMediaIds.size + triggeredEpisodeIds.size;
+  // Batch-load all quality profiles needed across both episodes and movies.
+  const profileIds = new Set<number>();
+  for (const { match } of episodeCandidates.values()) {
+    if (match.media.qualityProfileId != null)
+      profileIds.add(match.media.qualityProfileId);
+  }
+  for (const { match } of movieCandidates.values()) {
+    if (match.qualityProfileId != null) profileIds.add(match.qualityProfileId);
+  }
+
+  const profiles = await prisma.qualityProfile.findMany({
+    where: { id: { in: [...profileIds] } },
+  });
+  const profileMap = new Map(profiles.map((p) => [p.id, p]));
+
+  let grabbed = 0;
+
+  for (const { match, releases: candidates } of episodeCandidates.values()) {
+    const profile = match.media.qualityProfileId
+      ? profileMap.get(match.media.qualityProfileId)
+      : null;
+    const profileInput = profile ? toScoreInput(profile) : null;
+
+    const best = pickBest(candidates, profileInput);
+    if (!best) {
+      console.log(
+        `[pollIndexerRss] No qualifying release for ${match.media.title} S${match.season}E${match.episode} (${candidates.length} candidate(s) rejected by profile)`,
+      );
+      continue;
+    }
+
+    console.log(
+      `[pollIndexerRss] Match: "${best.release.title}" → ${match.media.title} S${match.season}E${match.episode} (score: ${best.score})`,
+    );
+
+    grabRelease({
+      mediaId: match.media.id,
+      episodeId: match.id,
+      downloadUrl: best.downloadUrl,
+      releaseTitle: best.release.title,
+      indexer: best.release.indexer,
+    }).catch((e) =>
+      console.warn(`[pollIndexerRss] grab failed for episode ${match.id}:`, e),
+    );
+
+    grabbed++;
+  }
+
+  for (const { match, releases: candidates } of movieCandidates.values()) {
+    const profile = match.qualityProfileId
+      ? profileMap.get(match.qualityProfileId)
+      : null;
+    const profileInput = profile ? toScoreInput(profile) : null;
+
+    const best = pickBest(candidates, profileInput);
+    if (!best) {
+      console.log(
+        `[pollIndexerRss] No qualifying release for ${match.title} (${match.year}) (${candidates.length} candidate(s) rejected by profile)`,
+      );
+      continue;
+    }
+
+    console.log(
+      `[pollIndexerRss] Match: "${best.release.title}" → ${match.title} (${match.year}) (score: ${best.score})`,
+    );
+
+    grabRelease({
+      mediaId: match.id,
+      downloadUrl: best.downloadUrl,
+      releaseTitle: best.release.title,
+      indexer: best.release.indexer,
+    }).catch((e) =>
+      console.warn(`[pollIndexerRss] grab failed for movie ${match.id}:`, e),
+    );
+
+    grabbed++;
+  }
+
   console.log(
-    `[pollIndexerRss] Triggered ${total} grab(s) from ${releases.length} RSS release(s)`,
+    `[pollIndexerRss] Triggered ${grabbed} grab(s) from ${releases.length} RSS release(s)`,
   );
+}
+
+function toScoreInput(p: {
+  minResolution: number;
+  cutoffResolution: number | null;
+  preferredSources: string[];
+  preferredCodecs: string[];
+  preferredLanguages: string[] | null;
+  prioritizedTrackers: string[] | null;
+  preferTrackerOverQuality: boolean | null;
+  maxSizeGb: number | null;
+  requireHdr: boolean;
+  preferHdr: boolean;
+}): QualityProfileScoreInput {
+  return {
+    minResolution: p.minResolution,
+    cutoffResolution: p.cutoffResolution,
+    preferredSources: p.preferredSources,
+    preferredCodecs: p.preferredCodecs,
+    preferredLanguages: p.preferredLanguages ?? [],
+    prioritizedTrackers: p.prioritizedTrackers ?? [],
+    preferTrackerOverQuality: p.preferTrackerOverQuality ?? false,
+    maxSizeGb: p.maxSizeGb,
+    requireHdr: p.requireHdr,
+    preferHdr: p.preferHdr,
+  };
+}
+
+function pickBest(
+  candidates: NormalizedRelease[],
+  profile: QualityProfileScoreInput | null,
+): { release: NormalizedRelease; downloadUrl: string; score: number } | null {
+  const scored: {
+    release: NormalizedRelease;
+    downloadUrl: string;
+    score: number;
+  }[] = [];
+
+  for (const release of candidates) {
+    const downloadUrl = release.magnetUrl ?? release.downloadUrl;
+    if (!downloadUrl) continue;
+
+    if (profile) {
+      const parsed = parseReleaseTitle(release.title);
+      const result = scoreRelease(
+        parsed,
+        profile,
+        release.sizeBytes,
+        release.title,
+        release.indexer,
+        release.freeleech,
+      );
+      if (Array.isArray(result)) continue; // rejected by profile
+      scored.push({ release, downloadUrl, score: result });
+    } else {
+      scored.push({ release, downloadUrl, score: 0 });
+    }
+  }
+
+  if (!scored.length) return null;
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0]!;
 }
 
 function extractTitleFromRelease(title: string): {
