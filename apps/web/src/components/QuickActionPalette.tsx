@@ -22,7 +22,6 @@ import {
   Tv,
   CheckCircle,
   ListChecks,
-  ShoppingCart,
   User,
   AlertCircle,
   ArrowUpCircle,
@@ -54,7 +53,6 @@ interface QuickAction {
     | "torrents"
     | "medias"
     | "chores"
-    | "shopping"
     | "users"
     | "board_tasks";
   keywords?: string[];
@@ -191,7 +189,6 @@ export function QuickActionPalette({
       torrents = [],
       medias = [],
       chores = [],
-      shopping = [],
       users = [],
       board_tasks = [],
     } = searchQuery.data;
@@ -260,22 +257,6 @@ export function QuickActionPalette({
       },
     }));
 
-    const shoppingActions: QuickAction[] = shopping.map((item) => ({
-      id: `shopping-${item.id}`,
-      title: item.item_name,
-      description: item.notes ?? t("shopping.title"),
-      icon: item.completed ? (
-        <CheckCircle size={20} />
-      ) : (
-        <ShoppingCart size={20} />
-      ),
-      section: "shopping" as const,
-      action: () => {
-        navigate({ to: "/shopping" });
-        handleClose();
-      },
-    }));
-
     const userActions: QuickAction[] = users.map((user) => ({
       id: `user-${user.id}`,
       title: user.name,
@@ -321,7 +302,6 @@ export function QuickActionPalette({
       ...torrentActions,
       ...mediaActions,
       ...choreActions,
-      ...shoppingActions,
       ...userActions,
       ...boardTaskActions,
     ];
@@ -339,7 +319,6 @@ export function QuickActionPalette({
       torrents: t("common.quickActionsSectionTorrents"),
       medias: t("common.quickActionsSectionMedias"),
       chores: t("chores.title"),
-      shopping: t("shopping.title"),
       users: t("common.quickActionsSectionUsers"),
       actions: t("common.quickActionsSectionActions"),
       board_tasks: t("nav.board"),

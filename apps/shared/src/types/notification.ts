@@ -4,7 +4,6 @@ export type NotificationType =
   | "app-update"
   | "service_monitor"
   | "chore"
-  | "shopping"
   | "event"
   | "system"
   | "habit";
