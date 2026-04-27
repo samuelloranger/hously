@@ -80,7 +80,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
     ...(habit.today_completions > 0
       ? [
           {
-            label: t("shopping.undo"),
+            label: t("chores.undo"),
             icon: <Undo2 size={16} />,
             onClick: handleUncomplete,
           },

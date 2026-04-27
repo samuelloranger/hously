@@ -2,7 +2,6 @@ export interface ExportDataResponse {
   exported_at: string;
   chores: Array<Record<string, unknown>>;
   reminders: Array<Record<string, unknown>>;
-  shopping_items: Array<Record<string, unknown>>;
   task_completions: Array<Record<string, unknown>>;
 }
 
@@ -11,7 +10,6 @@ export interface ImportDataResponse {
   imported: {
     chores: number;
     reminders: number;
-    shopping_items: number;
     task_completions: number;
   };
   warnings?: string[] | null;

@@ -52,7 +52,6 @@ describe("Dashboard API", () => {
     const json = (await response.json()) as any;
     expect(json.stats).toBeDefined();
     expect(typeof json.stats.events_today).toBe("number");
-    expect(typeof json.stats.shopping_count).toBe("number");
     expect(typeof json.stats.chores_count).toBe("number");
     expect(Array.isArray(json.activities)).toBe(true);
   });

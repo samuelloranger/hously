@@ -26,7 +26,6 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 - **Calendar** — Shared calendar with reminders and iCal export
 - **Chores** — Assignment, tracking, and recurring schedules
 - **Habits** — Habit tracking with completion history
-- **Shopping List** — Collaborative list with real-time updates
 - **Collections** — Organize and track personal collections
 
 **Platform**

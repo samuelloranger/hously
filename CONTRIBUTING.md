@@ -57,7 +57,7 @@ CI runs typecheck, lint, format check, and tests on every push and PR.
 | Hooks               | camelCase with `use` prefix | `useChores.ts`     |
 | API route plugins   | camelCase + `Routes`        | `choresRoutes`     |
 | API response fields | snake_case                  | `created_at`       |
-| URL paths           | kebab-case                  | `/api/shopping`    |
+| URL paths           | kebab-case                  | `/api/chores`      |
 | Endpoint constants  | UPPER_SNAKE_CASE            | `CHORES_ENDPOINTS` |
 
 ### Imports

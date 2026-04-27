@@ -59,15 +59,15 @@ Routes are composed in `src/index.ts` via `.use()`.
 
 ### Web (`apps/web/src/`)
 
-| Directory         | Purpose                                                       |
-| ----------------- | ------------------------------------------------------------- |
-| `features/`       | Feature modules (auth, chores, shopping, medias, torrents, …) |
-| `components/`     | Shared components; `ui/` for Radix/CVA primitives             |
-| `routes/`         | File-based routing (TanStack Router)                          |
-| `hooks/<domain>/` | App-specific TanStack Query hooks grouped by domain           |
-| `lib/`            | API client, query client, utilities                           |
-| `locales/`        | i18next translation files                                     |
-| `sw/`             | Service Worker (PWA)                                          |
+| Directory         | Purpose                                             |
+| ----------------- | --------------------------------------------------- |
+| `features/`       | Feature modules (auth, chores, medias, torrents, …) |
+| `components/`     | Shared components; `ui/` for Radix/CVA primitives   |
+| `routes/`         | File-based routing (TanStack Router)                |
+| `hooks/<domain>/` | App-specific TanStack Query hooks grouped by domain |
+| `lib/`            | API client, query client, utilities                 |
+| `locales/`        | i18next translation files                           |
+| `sw/`             | Service Worker (PWA)                                |
 
 ### Shared (`apps/shared/src/`)
 
@@ -106,17 +106,17 @@ import { cn } from "../../lib/utils";
 
 ### Naming
 
-| Context                     | Convention           | Example                                 |
-| --------------------------- | -------------------- | --------------------------------------- |
-| React components            | PascalCase           | `ChoreRow.tsx`, `CreateChoreModal.tsx`  |
-| Hooks                       | `use` + PascalCase   | `useChores.ts`, `useDeleteChore.ts`     |
-| Utilities                   | camelCase            | `formatDate.ts`                         |
-| API route modules           | camelCase + `Routes` | `choresRoutes`, `shoppingRoutes`        |
-| TypeScript types/interfaces | PascalCase           | `Chore`, `CreateChoreRequest`           |
-| Endpoint constants          | UPPER_SNAKE_CASE     | `CHORES_ENDPOINTS`                      |
-| Database columns (Prisma)   | camelCase            | `choreName`, `addedBy`                  |
-| API response fields         | snake_case           | `chore_name`, `added_by`, `created_at`  |
-| URL paths                   | kebab-case           | `/api/shopping`, `/api/clear-completed` |
+| Context                     | Convention           | Example                                |
+| --------------------------- | -------------------- | -------------------------------------- |
+| React components            | PascalCase           | `ChoreRow.tsx`, `CreateChoreModal.tsx` |
+| Hooks                       | `use` + PascalCase   | `useChores.ts`, `useDeleteChore.ts`    |
+| Utilities                   | camelCase            | `formatDate.ts`                        |
+| API route modules           | camelCase + `Routes` | `choresRoutes`, `calendarRoutes`       |
+| TypeScript types/interfaces | PascalCase           | `Chore`, `CreateChoreRequest`          |
+| Endpoint constants          | UPPER_SNAKE_CASE     | `CHORES_ENDPOINTS`                     |
+| Database columns (Prisma)   | camelCase            | `choreName`, `addedBy`                 |
+| API response fields         | snake_case           | `chore_name`, `added_by`, `created_at` |
+| URL paths                   | kebab-case           | `/api/chores`, `/api/clear-completed`  |
 
 The API always maps Prisma's camelCase fields to snake_case in responses:
 
