@@ -25,8 +25,6 @@ model User {
   notifications          Notification[]
   customEvents           CustomEvent[]
   reminders              Reminder[]
-  shoppingItemsAdded     ShoppingItem[]       @relation("ShoppingItemAddedBy")
-  shoppingItemsCompleted ShoppingItem[]       @relation("ShoppingItemCompletedBy")
   userSubscriptions      UserSubscription[]
   taskCompletions        TaskCompletion[]
   activityLogs           ActivityLog[]
@@ -270,24 +268,6 @@ model Reminder {
   user  User  @relation(fields: [userId], references: [id])
 
   @@map("reminders")
-}
-
-model ShoppingItem {
-  id          Int       @id @default(autoincrement())
-  itemName    String    @map("item_name")
-  completed   Boolean?
-  addedBy     Int       @map("added_by")
-  completedBy Int?      @map("completed_by")
-  createdAt   DateTime? @map("created_at")
-  completedAt DateTime? @map("completed_at")
-  notes       String?
-  position    Int
-  deletedAt   DateTime? @map("deleted_at")
-
-  addedByUser     User  @relation("ShoppingItemAddedBy", fields: [addedBy], references: [id])
-  completedByUser User? @relation("ShoppingItemCompletedBy", fields: [completedBy], references: [id])
-
-  @@map("shopping_items")
 }
 
 model UserSubscription {
