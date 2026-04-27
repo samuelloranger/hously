@@ -183,8 +183,17 @@ export class ProwlarrAdapter implements IndexerManagerAdapter {
     const res = await fetch(url.toString(), {
       headers: this.headers(),
       signal: AbortSignal.timeout(25_000),
-    }).catch(() => null);
-    if (!res?.ok) return [];
+    }).catch((err: unknown) => {
+      console.warn(
+        `[ProwlarrAdapter] fetchRss failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return null;
+    });
+    if (!res) return [];
+    if (!res.ok) {
+      console.warn(`[ProwlarrAdapter] fetchRss non-OK response: ${res.status}`);
+      return [];
+    }
     const body = await res.json().catch(() => null);
     if (!Array.isArray(body)) return [];
     const base = this.baseUrl();

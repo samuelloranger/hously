@@ -164,8 +164,19 @@ export class JackettAdapter implements IndexerManagerAdapter {
       const res = await fetch(url.toString(), {
         headers: { Accept: "application/json" },
         signal: AbortSignal.timeout(20_000),
-      }).catch(() => null);
-      if (!res?.ok) return [];
+      }).catch((err: unknown) => {
+        console.warn(
+          `[JackettAdapter] fetchRss failed for indexer "${slug}": ${err instanceof Error ? err.message : String(err)}`,
+        );
+        return null;
+      });
+      if (!res) return [];
+      if (!res.ok) {
+        console.warn(
+          `[JackettAdapter] fetchRss non-OK response for indexer "${slug}": ${res.status}`,
+        );
+        return [];
+      }
       const body = (await res.json().catch(() => null)) as unknown;
       const record =
         body && typeof body === "object" && !Array.isArray(body)
@@ -175,7 +186,10 @@ export class JackettAdapter implements IndexerManagerAdapter {
       return (results as Record<string, unknown>[])
         .map((raw) => this.normalizeRelease(raw))
         .filter((r): r is NormalizedRelease => r !== null);
-    } catch {
+    } catch (err) {
+      console.warn(
+        `[JackettAdapter] fetchRss unexpected error for indexer "${slug}": ${err instanceof Error ? err.message : String(err)}`,
+      );
       return [];
     }
   }

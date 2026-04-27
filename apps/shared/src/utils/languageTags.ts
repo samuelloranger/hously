@@ -44,7 +44,9 @@ function normalize(value: string | null | undefined): string {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-export function normalizeLanguageCode(value: string | null | undefined): string {
+export function normalizeLanguageCode(
+  value: string | null | undefined,
+): string {
   const normalized = normalize(value).trim();
   if (!normalized) return "";
   return normalized.split(/[^a-z]+/).find(Boolean) ?? "";
