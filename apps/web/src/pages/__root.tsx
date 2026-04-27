@@ -34,7 +34,7 @@ function RootLayout() {
       )}
       <div className={shouldShowNav ? "lg:pl-60" : ""}>
         <main
-          className={`user min-h-full flex-1 flex flex-col ${isSettings ? "pb-0" : "pb-10"}`}
+          className={`user min-h-full flex-1 flex flex-col ${isSettings ? "pb-0 min-h-screen" : "pb-10"}`}
         >
           <RouteDataRefetcher />
           <PageTransition />

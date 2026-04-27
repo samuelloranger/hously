@@ -45,6 +45,8 @@
   },
   "dependencies": {
     "@prisma/client": "^7.6.0",
+    "@simplewebauthn/browser": "^13.3.0",
+    "@simplewebauthn/server": "^13.3.0",
     "@tanstack/react-query": "^5.96.0",
     "date-fns": "^4.1.0",
     "i18next": "^26.0.3",

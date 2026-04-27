@@ -19,6 +19,7 @@ import { homeAssistantRoutes } from "./routes/dashboard/home-assistant";
 import { libraryMediaAdminRoutes } from "./routes/library/libraryMediaAdmin";
 import { libraryRoutes } from "./routes/library";
 import { qualityProfilesRoutes } from "./routes/quality-profiles";
+import { passkeyRoutes } from "./routes/passkey";
 import { mediasRoutes } from "./routes/medias";
 import { notificationsRoutes } from "./routes/notifications";
 import { integrationsRoutes } from "./routes/integrations";
@@ -66,6 +67,7 @@ export const app = new Elysia()
     return { error: "Internal server error" };
   })
   .use(auth)
+  .use(passkeyRoutes)
   .use(globalRateLimit) // Global rate limiting for unauthenticated requests
   .use(dashboardRoutes)
   .use(usersRoutes)

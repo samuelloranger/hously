@@ -24,6 +24,9 @@ const envSchema = z.object({
   NODE_ENV: z.string().optional().default("development"),
   API_PORT: portNumber.optional().default(3000),
   SECRET_KEY: z.string().min(1, "SECRET_KEY is required"),
+  WEBAUTHN_RP_ID: z.string().optional(),
+  WEBAUTHN_RP_NAME: z.string().optional().default("Hously"),
+  WEBAUTHN_ORIGIN: z.string().optional(),
   BASE_URL: z.url().optional().default("http://localhost:3000"),
   CORS_ORIGIN: z.string().optional().default("http://localhost:5173"),
   SERVE_STATIC: booleanString,
@@ -120,5 +123,21 @@ export function getSmtpConfig() {
     pass: env.SMTP_PASS,
     from: env.SMTP_FROM,
     fromName: env.SMTP_FROM_NAME,
+  };
+}
+
+export function getWebAuthnConfig(): {
+  rpID: string;
+  rpName: string;
+  origin: string;
+} {
+  const config = loadConfig();
+  const baseUrl = config.BASE_URL;
+  const parsedBase = new URL(baseUrl);
+
+  return {
+    rpID: config.WEBAUTHN_RP_ID ?? parsedBase.hostname,
+    rpName: config.WEBAUTHN_RP_NAME,
+    origin: config.WEBAUTHN_ORIGIN ?? baseUrl,
   };
 }

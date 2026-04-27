@@ -13,6 +13,11 @@ import {
 import { sendPasswordResetEmail } from "./services/emailService";
 import { mapUser } from "./utils/mappers";
 import {
+  ACCESS_TOKEN_TTL_SECONDS,
+  createRefreshToken,
+  signAccessToken,
+} from "./utils/session";
+import {
   updateUserAvatarFromUpload,
   updateUserProfileFields,
 } from "./services/userProfileService";
@@ -25,40 +30,6 @@ const getJwtSecret = (): string => {
     );
   }
   return secret || "dev-key-change-in-production";
-};
-
-const ACCESS_TOKEN_TTL_SECONDS = 7 * 86400;
-
-const signAccessToken = async (
-  jwt: {
-    sign: (value: { id: number; ver: number; exp: number }) => Promise<string>;
-  },
-  userId: number,
-  authVersion: number,
-): Promise<string> =>
-  jwt.sign({
-    id: userId,
-    ver: authVersion,
-    exp: Math.floor(Date.now() / 1000) + ACCESS_TOKEN_TTL_SECONDS,
-  });
-
-// Create and store a refresh token for a user, returns the raw token string
-const createRefreshToken = async (userId: number): Promise<string> => {
-  const token = generateOpaqueToken();
-  const expiresAt = new Date(
-    Date.now() + 30 * 24 * 60 * 60 * 1000,
-  ).toISOString(); // 30 days
-
-  await prisma.refreshToken.create({
-    data: {
-      userId,
-      token: hashOpaqueToken(token),
-      expiresAt,
-      revoked: false,
-    },
-  });
-
-  return token;
 };
 
 const revokeAllRefreshTokens = async (userId: number): Promise<void> => {
@@ -138,6 +109,15 @@ export const auth = (app: Elysia) =>
                 return { success: false, error: "Invalid credentials" };
               }
 
+              if (!user.passwordHash) {
+                set.status = 400;
+                return {
+                  success: false,
+                  error:
+                    "This account uses passkey authentication. Please sign in with your passkey.",
+                };
+              }
+
               try {
                 const isValid = await verifyPassword(
                   password,
@@ -167,7 +147,7 @@ export const auth = (app: Elysia) =>
               auth.set({
                 value: accessToken,
                 httpOnly: true,
-                maxAge: 7 * 86400, // 7 days
+                maxAge: ACCESS_TOKEN_TTL_SECONDS,
                 path: "/",
                 sameSite: "lax",
                 secure: process.env.NODE_ENV === "production",
@@ -179,11 +159,14 @@ export const auth = (app: Elysia) =>
                 data: { lastLogin: new Date().toISOString() },
               });
 
-              // Generate refresh token for mobile clients
-              const refreshToken = await createRefreshToken(user.id);
+              // Generate refresh token and check passkey status in parallel
+              const [refreshToken, passkeyCount] = await Promise.all([
+                createRefreshToken(user.id),
+                prisma.webAuthnCredential.count({ where: { userId: user.id } }),
+              ]);
 
               return {
-                user: mapUser(user),
+                user: mapUser(user, { hasPasskey: passkeyCount > 0 }),
                 token: accessToken,
                 refreshToken,
               };
@@ -308,7 +291,7 @@ export const auth = (app: Elysia) =>
               auth.set({
                 value: accessToken,
                 httpOnly: true,
-                maxAge: 7 * 86400, // 7 days
+                maxAge: ACCESS_TOKEN_TTL_SECONDS,
                 path: "/",
                 sameSite: "lax",
                 secure: process.env.NODE_ENV === "production",
@@ -323,7 +306,7 @@ export const auth = (app: Elysia) =>
 
               set.status = 201;
               return {
-                user: mapUser(newUser),
+                user: mapUser(newUser, { hasPasskey: false }),
                 token: accessToken,
                 refreshToken,
               };
@@ -558,16 +541,19 @@ export const auth = (app: Elysia) =>
           }
 
           // Fetch fresh user data (including avatar_url)
-          const dbUser = await prisma.user.findFirst({
-            where: { id: user.id },
-          });
+          const [dbUser, passkeyCount] = await Promise.all([
+            prisma.user.findFirst({
+              where: { id: user.id },
+            }),
+            prisma.webAuthnCredential.count({ where: { userId: user.id } }),
+          ]);
 
           if (!dbUser) {
             set.status = 401;
             return { user: null };
           }
 
-          return { user: mapUser(dbUser) };
+          return { user: mapUser(dbUser, { hasPasskey: passkeyCount > 0 }) };
         })
         .put(
           "/me",
@@ -640,6 +626,14 @@ export const auth = (app: Elysia) =>
               if (!dbUser) {
                 set.status = 401;
                 return { error: "User not found" };
+              }
+
+              if (!dbUser.passwordHash) {
+                set.status = 400;
+                return {
+                  error:
+                    "This account uses passkey authentication. Add a password before changing it.",
+                };
               }
 
               const isCurrentValid = await verifyPassword(

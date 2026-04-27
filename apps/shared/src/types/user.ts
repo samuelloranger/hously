@@ -9,6 +9,7 @@ export interface User {
   created_at: string;
   last_activity: string | null;
   avatar_url?: string | null;
+  has_passkey?: boolean;
 }
 
 export interface UserResponse {
