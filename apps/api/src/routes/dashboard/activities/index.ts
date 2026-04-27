@@ -8,7 +8,7 @@ import { serverError } from "@hously/api/errors";
 type ActivityRecord = {
   id: number;
   user_id?: number;
-  task_type?: "chore" | "shopping";
+  task_type?: "chore";
   task_id?: number;
   completed_at?: string;
   task_name?: string;
@@ -22,7 +22,6 @@ type ActivityRecord = {
   to_version?: string;
   event_id?: number;
   event_title?: string;
-  shopping_item_id?: number;
   item_name?: string;
   count?: number;
   integration_type?: string;
@@ -59,8 +58,6 @@ function getTaskCompletionType(taskType: string): string {
   switch (taskType) {
     case "chore":
       return "chore_completed";
-    case "shopping":
-      return "shopping_completed";
     case "habit":
       return "habit_completed";
     default:
@@ -72,8 +69,6 @@ function getTaskCompletionService(taskType: string): string {
   switch (taskType) {
     case "chore":
       return "chores";
-    case "shopping":
-      return "shopping";
     case "habit":
       return "habits";
     default:
@@ -93,7 +88,6 @@ function getLogService(
 
   if (type === "admin_triggered_job") return "admin";
   if (type.startsWith("event_")) return "calendar";
-  if (type.startsWith("shopping_")) return "shopping";
   if (type === "media_grab") return "library";
 
   return "system";
@@ -112,7 +106,7 @@ function mapTaskCompletionToActivity(completion: {
   return {
     id: completion.id,
     user_id: completion.userId,
-    task_type: completion.taskType as "chore" | "shopping",
+    task_type: completion.taskType as "chore",
     task_id: completion.taskId,
     completed_at: formatIso(completion.completedAt) ?? undefined,
     task_name: completion.taskName,
@@ -151,7 +145,6 @@ function mapActivityLogToActivity(log: {
     to_version: parseString(payload?.to_version),
     event_id: parseIntNumber(payload?.event_id),
     event_title: parseString(payload?.event_title),
-    shopping_item_id: parseIntNumber(payload?.shopping_item_id),
     item_name: parseString(payload?.item_name),
     count: parseNumber(payload?.count),
     integration_type: parseString(payload?.integration_type),
