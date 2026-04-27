@@ -17,7 +17,6 @@ import {
   NOTIFICATION_ENDPOINTS,
   INTEGRATION_ENDPOINTS,
   QUALITY_PROFILES_ENDPOINTS,
-  SHOPPING_ENDPOINTS,
   HABIT_ENDPOINTS,
   BOARD_TASKS_ENDPOINTS,
 } from "@/lib/endpoints";
@@ -208,13 +207,6 @@ function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
  * Returns array of {queryKey, queryFn} objects
  */
 const routeQueryDefinitions = {
-  "/shopping": () => [
-    {
-      queryKey: queryKeys.shopping.items(),
-      queryFn: () => webFetcher(SHOPPING_ENDPOINTS.LIST),
-    },
-  ],
-
   "/chores": () => [
     {
       queryKey: queryKeys.chores.list(),

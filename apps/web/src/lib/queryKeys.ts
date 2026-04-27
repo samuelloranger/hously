@@ -8,12 +8,6 @@ export const queryKeys = {
       [...queryKeys.auth.all, "validate-invitation", token] as const,
   },
 
-  shopping: {
-    all: ["shopping"] as const,
-    items: () => [...queryKeys.shopping.all, "items"] as const,
-    syncStatus: () => [...queryKeys.shopping.all, "sync-status"] as const,
-  },
-
   chores: {
     all: ["chores"] as const,
     list: () => [...queryKeys.chores.all, "list"] as const,
