@@ -9,6 +9,7 @@ import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdb
 import { listVideoFilesUnder } from "@hously/api/utils/medias/fileIdentifier";
 import {
   getLibraryTmdbApiKey,
+  resolveDownloadedStatus,
   sortTitleFromName,
   tmdbApiFetch,
 } from "@hously/api/utils/medias/libraryHelpers";
@@ -263,6 +264,7 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
               first_air_date: string;
               poster_path: string | null;
               overview: string;
+              status: string | null;
             }>(`tv/${top.id}`, key, {
               language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE,
             });
@@ -281,7 +283,8 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
                 title: details.name,
                 sortTitle: sortTitleFromName(details.name),
                 year: y,
-                status: "downloaded",
+                status: resolveDownloadedStatus("show", details.status ?? null),
+                tmdbStatus: details.status ?? null,
                 posterUrl,
                 overview: details.overview || null,
               },

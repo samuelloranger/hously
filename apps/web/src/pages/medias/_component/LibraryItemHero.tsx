@@ -38,6 +38,18 @@ const STATUS_BADGE: Record<
     labelKey: "medias.library.itemStatus.skipped",
     cls: "bg-neutral-500/20 text-neutral-400 ring-1 ring-neutral-500/30",
   },
+  returning: {
+    labelKey: "medias.library.itemStatus.returning",
+    cls: "bg-violet-500/20 text-violet-400 ring-1 ring-violet-500/30",
+  },
+  in_production: {
+    labelKey: "medias.library.itemStatus.in_production",
+    cls: "bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/30",
+  },
+  planned: {
+    labelKey: "medias.library.itemStatus.planned",
+    cls: "bg-teal-500/20 text-teal-400 ring-1 ring-teal-500/30",
+  },
 };
 
 type Props = {

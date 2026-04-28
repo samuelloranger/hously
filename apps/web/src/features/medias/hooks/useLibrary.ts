@@ -1,5 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { LIBRARY_ENDPOINTS } from "@/lib/endpoints";
@@ -44,6 +49,7 @@ export function useLibrary(
       fetcher<LibraryListResponse>(
         `${LIBRARY_ENDPOINTS.LIST}${qs ? `?${qs}` : ""}`,
       ),
+    placeholderData: keepPreviousData,
     ...options,
   });
 }

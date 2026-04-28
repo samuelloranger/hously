@@ -1330,7 +1330,7 @@
     },
     "library": {
       "pageTitle": "Bibliothèque",
-      "pageSubtitle": "Bibliothèque fusionnée Radarr et Sonarr",
+      "pageSubtitle": "Films, séries et suivi des téléchargements",
       "searchPlaceholder": "Rechercher dans la bibliothèque…",
       "typeAll": "Tout",
       "moviesWithCount": "Films ({{count}})",
@@ -1366,7 +1366,10 @@
         "wanted": "Voulu",
         "downloading": "Téléchargement",
         "downloaded": "Téléchargé",
-        "skipped": "Ignoré"
+        "skipped": "Ignoré",
+        "returning": "En cours",
+        "in_production": "En production",
+        "planned": "Planifié"
       }
     },
     "watchlist": {
