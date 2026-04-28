@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Download,
   Clapperboard,
+  History,
 } from "lucide-react";
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -47,6 +48,7 @@ import { useLibraryEvents } from "@/features/medias/hooks/useLibraryEvents";
 import { useUrlState } from "@/lib/app/useUrlState";
 import { toast } from "sonner";
 import { LibraryItemCard } from "./LibraryItemCard";
+import { LibraryHistoryTab } from "./LibraryHistoryTab";
 import {
   type FilterType,
   type FilterStatus,
@@ -59,6 +61,7 @@ import {
 const PAGE_SIZE = 48;
 
 const LIBRARY_DEFAULTS = {
+  view: "library" as "library" | "history",
   type: "all" as FilterType,
   status: "all" as FilterStatus,
   language: "all" as string,
@@ -77,6 +80,7 @@ export function NativeLibraryPage() {
     LIBRARY_DEFAULTS,
   );
   const {
+    view,
     type: typeFilter,
     status: statusFilter,
     language: languageFilter,
@@ -149,227 +153,254 @@ export function NativeLibraryPage() {
       />
 
       <div className="space-y-4">
-        {/* Filters + sort */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex flex-wrap flex-col justify-between gap-2 w-full">
-            <div className="relative">
-              <Search
-                size={13}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
-              />
-              <input
-                value={search}
-                onChange={(e) =>
-                  setState({
-                    search: e.target.value,
-                    page: 1,
-                  })
-                }
-                placeholder={t("medias.library.searchPlaceholder")}
-                className="w-full max-w-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
-              />
-            </div>
+        {/* View switcher */}
+        <SegmentedTabs<"library" | "history">
+          ariaLabel={t("medias.history.tabLibrary")}
+          items={[
+            {
+              id: "library",
+              label: t("medias.history.tabLibrary"),
+              icon: Film,
+            },
+            {
+              id: "history",
+              label: t("medias.history.tabHistory"),
+              icon: History,
+            },
+          ]}
+          value={view}
+          onChange={(v) => setState({ view: v })}
+        />
 
-            {/* Type filter */}
-            <div className="flex items-center flex-wrap flex-col lg:justify-between md:flex-row lg:w-full gap-4">
-              <div className="w-full max-w-sm flex items-center gap-2">
-                <SegmentedTabs<FilterType>
-                  ariaLabel={t("medias.library.typeAll")}
-                  items={
-                    [
-                      { id: "all", label: t("medias.library.typeAll") },
-                      {
-                        id: "movie",
-                        label: t("medias.library.moviesWithCount", {
-                          count: movieCount,
-                        }),
-                        icon: Film,
-                      },
-                      {
-                        id: "show",
-                        label: t("medias.library.showsWithCount", {
-                          count: showCount,
-                        }),
-                        icon: Tv,
-                      },
-                    ] satisfies SegmentedTabItem<FilterType>[]
-                  }
-                  value={typeFilter}
-                  onChange={(f) => setState({ type: f, page: 1 })}
-                />
+        {view === "history" ? (
+          <LibraryHistoryTab />
+        ) : (
+          <>
+            {/* Filters + sort */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap flex-col justify-between gap-2 w-full">
+                <div className="relative">
+                  <Search
+                    size={13}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
+                  />
+                  <input
+                    value={search}
+                    onChange={(e) =>
+                      setState({
+                        search: e.target.value,
+                        page: 1,
+                      })
+                    }
+                    placeholder={t("medias.library.searchPlaceholder")}
+                    className="w-full max-w-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
+                  />
+                </div>
+
+                {/* Type filter */}
+                <div className="flex items-center flex-wrap flex-col lg:justify-between md:flex-row lg:w-full gap-4">
+                  <div className="w-full max-w-sm flex items-center gap-2">
+                    <SegmentedTabs<FilterType>
+                      ariaLabel={t("medias.library.typeAll")}
+                      items={
+                        [
+                          { id: "all", label: t("medias.library.typeAll") },
+                          {
+                            id: "movie",
+                            label: t("medias.library.moviesWithCount", {
+                              count: movieCount,
+                            }),
+                            icon: Film,
+                          },
+                          {
+                            id: "show",
+                            label: t("medias.library.showsWithCount", {
+                              count: showCount,
+                            }),
+                            icon: Tv,
+                          },
+                        ] satisfies SegmentedTabItem<FilterType>[]
+                      }
+                      value={typeFilter}
+                      onChange={(f) => setState({ type: f, page: 1 })}
+                    />
+                  </div>
+
+                  {/* Status filter */}
+                  <div className="w-full md:w-auto flex items-center gap-2 max-w-sm sm:max-w-none rounded-lg overflow-hidden">
+                    <SegmentedTabs<FilterStatus>
+                      ariaLabel={t("medias.library.statusAll")}
+                      items={[
+                        { id: "all", label: t("medias.library.statusAll") },
+                        {
+                          id: "downloaded",
+                          label: t("medias.library.statusDownloaded"),
+                          icon: CheckCircle2,
+                        },
+                        {
+                          id: "wanted",
+                          label: t("medias.library.statusWanted"),
+                          icon: Clock,
+                        },
+                        {
+                          id: "downloading",
+                          label: t("medias.library.statusDownloading"),
+                          icon: Download,
+                        },
+                      ]}
+                      value={statusFilter}
+                      onChange={(f) => setState({ status: f, page: 1 })}
+                    />
+                  </div>
+
+                  {/* Language filter */}
+                  <div className="w-full md:w-auto flex items-center gap-2 max-w-sm sm:max-w-none">
+                    <select
+                      aria-label={t("medias.library.languageAll")}
+                      value={languageFilter}
+                      onChange={(e) =>
+                        setState({ language: e.target.value, page: 1 })
+                      }
+                      className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
+                    >
+                      <option value="all">
+                        {t("medias.library.languageAll")}
+                      </option>
+                      {languageTags.map((tag) => (
+                        <option key={tag} value={tag}>
+                          {tag}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              {/* Status filter */}
-              <div className="w-full md:w-auto flex items-center gap-2 max-w-sm sm:max-w-none rounded-lg overflow-hidden">
-                <SegmentedTabs<FilterStatus>
-                  ariaLabel={t("medias.library.statusAll")}
-                  items={[
-                    { id: "all", label: t("medias.library.statusAll") },
-                    {
-                      id: "downloaded",
-                      label: t("medias.library.statusDownloaded"),
-                      icon: CheckCircle2,
-                    },
-                    {
-                      id: "wanted",
-                      label: t("medias.library.statusWanted"),
-                      icon: Clock,
-                    },
-                    {
-                      id: "downloading",
-                      label: t("medias.library.statusDownloading"),
-                      icon: Download,
-                    },
-                  ]}
-                  value={statusFilter}
-                  onChange={(f) => setState({ status: f, page: 1 })}
-                />
-              </div>
-
-              {/* Language filter */}
-              <div className="w-full md:w-auto flex items-center gap-2 max-w-sm sm:max-w-none">
+              {/* Sort */}
+              <div className="flex items-center gap-1.5 ml-auto">
                 <select
-                  aria-label={t("medias.library.languageAll")}
-                  value={languageFilter}
+                  value={sortBy}
                   onChange={(e) =>
-                    setState({ language: e.target.value, page: 1 })
+                    setState({ sortBy: e.target.value as SortKey, page: 1 })
                   }
-                  className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
+                  className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition"
                 >
-                  <option value="all">{t("medias.library.languageAll")}</option>
-                  {languageTags.map((tag) => (
-                    <option key={tag} value={tag}>
-                      {tag}
+                  {LIBRARY_SORT_KEYS.map((key) => (
+                    <option key={key} value={key}>
+                      {t(`medias.library.sort.${key}`)}
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setState({
+                      sortDir: sortDir === "asc" ? "desc" : "asc",
+                      page: 1,
+                    })
+                  }
+                  className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+                  title={
+                    sortDir === "asc"
+                      ? t("medias.sortDirectionAsc")
+                      : t("medias.sortDirectionDesc")
+                  }
+                >
+                  {sortDir === "asc" ? (
+                    <ArrowUpAZ size={14} />
+                  ) : (
+                    <ArrowDownAZ size={14} />
+                  )}
+                </button>
               </div>
             </div>
-          </div>
 
-          {/* Sort */}
-          <div className="flex items-center gap-1.5 ml-auto">
-            <select
-              value={sortBy}
-              onChange={(e) =>
-                setState({ sortBy: e.target.value as SortKey, page: 1 })
-              }
-              className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition"
-            >
-              {LIBRARY_SORT_KEYS.map((key) => (
-                <option key={key} value={key}>
-                  {t(`medias.library.sort.${key}`)}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() =>
-                setState({
-                  sortDir: sortDir === "asc" ? "desc" : "asc",
-                  page: 1,
-                })
-              }
-              className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
-              title={
-                sortDir === "asc"
-                  ? t("medias.sortDirectionAsc")
-                  : t("medias.sortDirectionDesc")
-              }
-            >
-              {sortDir === "asc" ? (
-                <ArrowUpAZ size={14} />
-              ) : (
-                <ArrowDownAZ size={14} />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Grid */}
-        <AnimatePresence mode="wait">
-          {isLoading ? (
-            <div
-              key="skeleton"
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3"
-            >
-              {Array.from({ length: 12 }).map((_, i) => (
+            {/* Grid */}
+            <AnimatePresence mode="wait">
+              {isLoading ? (
                 <div
-                  key={i}
-                  className="aspect-[2/3] rounded-2xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : pagedItems.length === 0 ? (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <EmptyState
-                icon={Clapperboard}
-                title={t("medias.library.emptyTitle")}
-                description={t("medias.library.emptyDescription")}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={`${typeFilter}-${statusFilter}-${languageFilter}-${sortBy}-${sortDir}-${safePage}`}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3"
-              variants={gridContainerVariants}
-              initial="hidden"
-              animate="show"
-              exit={{ opacity: 0, transition: { duration: 0.12 } }}
-            >
-              {pagedItems.map((item) => (
-                <motion.div key={item.id} variants={gridItemVariants}>
-                  <LibraryItemCard
-                    item={item}
-                    onMovieSearch={handleMovieSearch}
-                    movieSearchPending={
-                      searchMovie.isPending &&
-                      searchMovie.variables?.id === item.id
-                    }
+                  key="skeleton"
+                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3"
+                >
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="aspect-[2/3] rounded-2xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                    />
+                  ))}
+                </div>
+              ) : pagedItems.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <EmptyState
+                    icon={Clapperboard}
+                    title={t("medias.library.emptyTitle")}
+                    description={t("medias.library.emptyDescription")}
                   />
                 </motion.div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+              ) : (
+                <motion.div
+                  key={`${typeFilter}-${statusFilter}-${languageFilter}-${sortBy}-${sortDir}-${safePage}`}
+                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3"
+                  variants={gridContainerVariants}
+                  initial="hidden"
+                  animate="show"
+                  exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                >
+                  {pagedItems.map((item) => (
+                    <motion.div key={item.id} variants={gridItemVariants}>
+                      <LibraryItemCard
+                        item={item}
+                        onMovieSearch={handleMovieSearch}
+                        movieSearchPending={
+                          searchMovie.isPending &&
+                          searchMovie.variables?.id === item.id
+                        }
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between pt-2">
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              {t("medias.library.paginationRange", {
-                start: (safePage - 1) * PAGE_SIZE + 1,
-                end: Math.min(safePage * PAGE_SIZE, sorted.length),
-                total: sorted.length,
-              })}
-            </p>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setState({ page: safePage - 1 })}
-                disabled={safePage <= 1}
-                className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-40 transition-colors"
-              >
-                <ChevronLeft size={15} />
-              </button>
-              <span className="text-xs text-neutral-600 dark:text-neutral-400 min-w-[60px] text-center">
-                {safePage} / {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => setState({ page: safePage + 1 })}
-                disabled={safePage >= totalPages}
-                className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-40 transition-colors"
-              >
-                <ChevronRight size={15} />
-              </button>
-            </div>
-          </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-2">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {t("medias.library.paginationRange", {
+                    start: (safePage - 1) * PAGE_SIZE + 1,
+                    end: Math.min(safePage * PAGE_SIZE, sorted.length),
+                    total: sorted.length,
+                  })}
+                </p>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setState({ page: safePage - 1 })}
+                    disabled={safePage <= 1}
+                    className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-40 transition-colors"
+                  >
+                    <ChevronLeft size={15} />
+                  </button>
+                  <span className="text-xs text-neutral-600 dark:text-neutral-400 min-w-[60px] text-center">
+                    {safePage} / {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setState({ page: safePage + 1 })}
+                    disabled={safePage >= totalPages}
+                    className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-40 transition-colors"
+                  >
+                    <ChevronRight size={15} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </PageLayout>

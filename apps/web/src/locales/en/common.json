@@ -1559,6 +1559,27 @@
       "inLibrary": "Already in library",
       "notConfigured": "Service not configured",
       "add": "Click to add"
+    },
+    "history": {
+      "tabLibrary": "Library",
+      "tabHistory": "History",
+      "statTotal": "Total Grabs",
+      "statSuccessRate": "Success Rate",
+      "statFailed": "Failed",
+      "statActive": "Active",
+      "topIndexers": "Top Indexers",
+      "last14Days": "Last 14 Days",
+      "grabsInPeriod": "grabs in period",
+      "statusAll": "All",
+      "statusCompleted": "Completed",
+      "statusFailed": "Failed",
+      "statusActive": "Active",
+      "days7": "Last 7 days",
+      "days30": "Last 30 days",
+      "days90": "Last 90 days",
+      "daysAll": "All time",
+      "empty": "No download history found.",
+      "paginationRange": "{{start}}–{{end}} of {{total}}"
     }
   },
   "torrents": {
