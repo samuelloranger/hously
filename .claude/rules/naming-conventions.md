@@ -21,7 +21,7 @@ globs: ["apps/**/*.ts", "apps/**/*.tsx", "apps/api/prisma/**"]
 | ------------------------- | -------------------- | ---------------------------------------- |
 | Types / Interfaces        | PascalCase           | `Chore`, `CreateChoreRequest`            |
 | Hooks                     | `use` + PascalCase   | `useChores()`, `useDeleteChore()`        |
-| Endpoint constants        | UPPER_SNAKE_CASE     | `CHORES_ENDPOINTS`, `SHOPPING_ENDPOINTS` |
+| Endpoint constants        | UPPER_SNAKE_CASE     | `CHORES_ENDPOINTS`, `CALENDAR_ENDPOINTS` |
 | Route plugins             | camelCase + `Routes` | `choresRoutes`, `calendarRoutes`         |
 | Database columns (Prisma) | camelCase            | `choreName`, `addedBy`                   |
 | API response fields       | snake_case           | `chore_name`, `added_by`, `created_at`   |

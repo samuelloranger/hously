@@ -95,6 +95,18 @@ export async function upsertLibraryShowEpisodesFromTmdb(opts: {
   }
 }
 
+export function resolveDownloadedStatus(
+  type: string,
+  tmdbStatus: string | null,
+): string {
+  if (type === "show" && tmdbStatus) {
+    if (tmdbStatus === "Returning Series") return "returning";
+    if (tmdbStatus === "In Production") return "in_production";
+    if (tmdbStatus === "Planned") return "planned";
+  }
+  return "downloaded";
+}
+
 export function pickDigitalRelease(
   results: Array<{
     iso_3166_1: string;

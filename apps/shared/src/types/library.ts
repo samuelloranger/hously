@@ -4,7 +4,10 @@ export type LibraryMediaStatus =
   | "wanted"
   | "downloading"
   | "downloaded"
-  | "skipped";
+  | "skipped"
+  | "returning"
+  | "in_production"
+  | "planned";
 
 export interface LibraryAudioTrack {
   index: number;

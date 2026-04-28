@@ -585,7 +585,8 @@ model LibraryMedia {
   title              String
   sortTitle          String?   @map("sort_title")
   year               Int?
-  status             String    @default("wanted") // wanted | downloading | downloaded | skipped
+  status             String    @default("wanted") // wanted | downloading | downloaded | skipped | returning | in_production | planned
+  tmdbStatus         String?   @map("tmdb_status")
   monitored          Boolean   @default(true)
   posterUrl          String?   @map("poster_url")
   overview           String?

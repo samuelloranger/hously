@@ -3,6 +3,7 @@ import { TMDB_LANGUAGE_LIBRARY_PERSISTENCE } from "@hously/api/utils/medias/tmdb
 import {
   getLibraryTmdbApiKey,
   pickDigitalRelease,
+  resolveDownloadedStatus,
   tmdbApiFetch,
   upsertLibraryShowEpisodesFromTmdb,
 } from "@hously/api/utils/medias/libraryHelpers";
@@ -43,6 +44,28 @@ export async function syncLibraryShowEpisodes(mediaId: number): Promise<void> {
     where: { id: mediaId },
   });
   if (!media || media.type !== "show") return;
+
+  const details = await tmdbApiFetch<{ status: string | null }>(
+    `tv/${media.tmdbId}`,
+    key,
+    { language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE },
+  );
+  const newTmdbStatus = details.status ?? null;
+  const PRODUCTION_STATUSES = [
+    "returning",
+    "in_production",
+    "planned",
+    "downloaded",
+  ];
+  await prisma.libraryMedia.update({
+    where: { id: mediaId },
+    data: {
+      tmdbStatus: newTmdbStatus,
+      ...(PRODUCTION_STATUSES.includes(media.status)
+        ? { status: resolveDownloadedStatus("show", newTmdbStatus) }
+        : {}),
+    },
+  });
 
   await upsertLibraryShowEpisodesFromTmdb({
     mediaId: media.id,

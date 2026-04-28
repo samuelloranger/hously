@@ -1,7 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
-import { MediaPosterCard } from "@/components/MediaPosterCard";
+import {
+  MediaPosterCard,
+  type MediaPosterCardStatus,
+} from "@/components/MediaPosterCard";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@hously/shared/utils/date";
 import type { LibraryMedia } from "@hously/shared/types";
@@ -30,14 +33,41 @@ const STATUS_STYLES: Record<
     className:
       "bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400",
   },
+  returning: {
+    labelKey: "medias.library.itemStatus.returning",
+    className:
+      "bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300",
+  },
+  in_production: {
+    labelKey: "medias.library.itemStatus.in_production",
+    className:
+      "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300",
+  },
+  planned: {
+    labelKey: "medias.library.itemStatus.planned",
+    className:
+      "bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300",
+  },
 };
 
-type CardStatus = "downloaded" | "downloading" | "missing";
+type CardStatus = MediaPosterCardStatus;
 
 function toCardStatus(status: LibraryMedia["status"]): CardStatus {
-  if (status === "downloaded") return "downloaded";
-  if (status === "downloading") return "downloading";
-  return "missing";
+  switch (status) {
+    case "downloaded":
+      return "downloaded";
+    case "returning":
+      return "returning";
+    case "in_production":
+      return "in_production";
+    case "planned":
+      return "planned";
+    case "downloading":
+      return "downloading";
+    case "wanted":
+    case "skipped":
+      return "missing";
+  }
 }
 
 interface LibraryItemCardProps {

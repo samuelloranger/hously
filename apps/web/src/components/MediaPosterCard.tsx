@@ -8,12 +8,21 @@ function toThumbnailUrl(url: string): string | null {
   return m ? `${m[1]}w92${m[3]}` : null;
 }
 
-export type MediaPosterCardStatus = "downloaded" | "downloading" | "missing";
+export type MediaPosterCardStatus =
+  | "downloaded"
+  | "downloading"
+  | "missing"
+  | "returning"
+  | "in_production"
+  | "planned";
 
 const STATUS_BORDER_COLORS: Record<MediaPosterCardStatus, string> = {
   downloaded: "bg-emerald-400",
   downloading: "bg-sky-400",
   missing: "bg-amber-400",
+  returning: "bg-violet-400",
+  in_production: "bg-indigo-400",
+  planned: "bg-teal-400",
 };
 
 export type MediaPosterCardProps = {

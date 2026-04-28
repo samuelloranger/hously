@@ -95,6 +95,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
     first_air_date: string;
     poster_path: string | null;
     overview: string;
+    status: string | null;
     seasons: Array<{ season_number: number; episode_count: number }>;
   }>(`tv/${tmdb_id}`, key, lang);
 
@@ -114,6 +115,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
       sortTitle: sortTitleFromName(details.name),
       year,
       status: "wanted",
+      tmdbStatus: details.status ?? null,
       posterUrl,
       overview: details.overview || null,
       ...(defaultQualityProfileId != null
@@ -124,6 +126,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
       title: details.name,
       sortTitle: sortTitleFromName(details.name),
       year,
+      tmdbStatus: details.status ?? null,
       posterUrl,
       overview: details.overview || null,
     },

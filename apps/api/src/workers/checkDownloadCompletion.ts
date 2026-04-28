@@ -6,6 +6,7 @@ import {
   resetMaindataState,
 } from "@hously/api/services/qbittorrent/client";
 import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessor";
+import { resolveDownloadedStatus } from "@hously/api/utils/medias/libraryHelpers";
 
 /** qBittorrent states that indicate the torrent finished downloading */
 export function isCompletedDownloadState(state: string): boolean {
@@ -73,9 +74,18 @@ export async function markDownloadHistoryComplete(dh: {
       data: { status: "downloaded", downloadedAt: completedAt },
     });
   } else if (dh.mediaId != null) {
+    const media = await prisma.libraryMedia.findUnique({
+      where: { id: dh.mediaId },
+      select: { type: true, tmdbStatus: true },
+    });
     await prisma.libraryMedia.update({
       where: { id: dh.mediaId },
-      data: { status: "downloaded" },
+      data: {
+        status: resolveDownloadedStatus(
+          media?.type ?? "movie",
+          media?.tmdbStatus ?? null,
+        ),
+      },
     });
   }
 }

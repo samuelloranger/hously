@@ -31,6 +31,7 @@ import { notifyAdminsPostProcessFailed } from "@hously/api/workers/notifyPostPro
 import { notifyAdminsMediaDownloaded } from "@hously/api/workers/notifyMediaDownloaded";
 import { emitLibraryUpdate } from "@hously/api/services/libraryEvents";
 import { triggerJellyfinLibraryScan } from "@hously/api/services/jellyfinLibraryRefresh";
+import { resolveDownloadedStatus } from "@hously/api/utils/medias/libraryHelpers";
 
 function qualityStringsFromParsed(
   qualityParsed: unknown,
@@ -124,7 +125,7 @@ async function placeFile(
 }
 
 async function markItemDownloaded(dh: {
-  media: { id: number; type: string };
+  media: { id: number; type: string; tmdbStatus: string | null };
   episode: { id: number } | null;
 }): Promise<void> {
   if (dh.episode) {
@@ -135,7 +136,9 @@ async function markItemDownloaded(dh: {
   } else {
     await prisma.libraryMedia.update({
       where: { id: dh.media.id },
-      data: { status: "downloaded" },
+      data: {
+        status: resolveDownloadedStatus(dh.media.type, dh.media.tmdbStatus),
+      },
     });
   }
 }
@@ -157,7 +160,13 @@ async function postProcessSeasonPack(
   downloadHistoryId: number,
   dh: {
     id: number;
-    media: { id: number; type: string; title: string; year: number | null };
+    media: {
+      id: number;
+      type: string;
+      title: string;
+      year: number | null;
+      tmdbStatus: string | null;
+    };
     episode: null;
     torrentHash: string | null;
     releaseTitle: string;
@@ -351,7 +360,9 @@ async function postProcessSeasonPack(
   // Mark the show as downloaded and update the DH record
   await prisma.libraryMedia.update({
     where: { id: dh.media.id },
-    data: { status: "downloaded" },
+    data: {
+      status: resolveDownloadedStatus(dh.media.type, dh.media.tmdbStatus),
+    },
   });
   await prisma.downloadHistory.update({
     where: { id: downloadHistoryId },
@@ -666,6 +677,7 @@ export async function scanAndImportLibraryFiles(media: {
   type: string;
   title: string;
   year: number | null;
+  tmdbStatus?: string | null;
 }): Promise<number> {
   const settings = await prisma.mediaSettings.findUnique({ where: { id: 1 } });
   if (!settings?.postProcessingEnabled) return 0;
@@ -777,7 +789,9 @@ export async function scanAndImportLibraryFiles(media: {
     if (imported > 0) {
       await prisma.libraryMedia.update({
         where: { id: media.id },
-        data: { status: "downloaded" },
+        data: {
+          status: resolveDownloadedStatus(media.type, media.tmdbStatus ?? null),
+        },
       });
     }
   } else if (media.type === "movie") {
@@ -837,7 +851,12 @@ export async function scanAndImportLibraryFiles(media: {
         await prisma.mediaFile.create({ data: fileData });
         await prisma.libraryMedia.update({
           where: { id: media.id },
-          data: { status: "downloaded" },
+          data: {
+            status: resolveDownloadedStatus(
+              media.type,
+              media.tmdbStatus ?? null,
+            ),
+          },
         });
         imported++;
         console.log(
