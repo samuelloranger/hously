@@ -339,6 +339,20 @@
       "afternoon": "Gardez le rythme",
       "evening": "Fin de journée ? Vérifiez vos progrès.",
       "night": "Vous planifiez pour demain ?"
+    },
+    "rss": {
+      "title": "Statut RSS",
+      "neverRan": "Jamais exécuté",
+      "lastRun": "Dernière vérification",
+      "nextRun": "Prochaine vérification",
+      "releasesFound_one": "{{count}} release trouvée",
+      "releasesFound_other": "{{count}} releases trouvées",
+      "releasesGrabbed_one": "{{count}} récupérée",
+      "releasesGrabbed_other": "{{count}} récupérées",
+      "statusOk": "OK",
+      "statusError": "Erreur",
+      "indexers": "Indexeurs",
+      "openLibraryLink": "Ouvrir la médiathèque"
     }
   },
   "login": {

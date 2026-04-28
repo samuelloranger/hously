@@ -14,6 +14,14 @@ import type { LibraryMigrateProgress } from "@hously/api/services/jobs/libraryMi
 import type { LibraryReindexLanguagesProgress } from "@hously/api/services/jobs/libraryReindexLanguagesWorker";
 import type { LibraryRemuxJobData } from "@hously/api/services/jobs/libraryRemuxWorker";
 import { grabRelease, searchAndGrab } from "@hously/api/services/mediaGrabber";
+import {
+  getLastRssRun,
+  getRssRunHistory,
+} from "@hously/api/services/rssRunStatus";
+import {
+  scheduledTasksQueue,
+  SCHEDULED_JOB_NAMES,
+} from "@hously/api/services/queueService";
 import { libraryEventBus } from "@hously/api/services/libraryEvents";
 import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
 import { rescanLibraryItem } from "@hously/api/services/library/rescan";
@@ -1119,6 +1127,26 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       return { item: mapLibraryMedia(item) };
     } catch {
       return serverError(set, "Failed to fetch library item");
+    }
+  })
+
+  // GET /api/library/rss-status — last RSS run result + next scheduled run
+  .get("/rss-status", async ({ set }) => {
+    try {
+      const [lastRun, history, repeatableJobs] = await Promise.all([
+        getLastRssRun(),
+        getRssRunHistory(),
+        scheduledTasksQueue.getRepeatableJobs(),
+      ]);
+      const rssJob = repeatableJobs.find(
+        (j) => j.name === SCHEDULED_JOB_NAMES.POLL_INDEXER_RSS,
+      );
+      const nextRunAt = rssJob?.next
+        ? new Date(rssJob.next).toISOString()
+        : null;
+      return { last_run: lastRun, history, next_run_at: nextRunAt };
+    } catch {
+      return serverError(set, "Failed to fetch RSS status");
     }
   })
 

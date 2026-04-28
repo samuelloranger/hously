@@ -1,6 +1,7 @@
 import { prisma } from "@hously/api/db";
 import { getActiveIndexerManager } from "@hously/api/services/indexerManager/factory";
 import type { NormalizedRelease } from "@hously/api/services/indexerManager/types";
+import type { RssRunStats } from "@hously/api/services/rssRunStatus";
 import { grabRelease } from "@hously/api/services/mediaGrabber";
 import {
   normalizeTitleForMatch,
@@ -17,14 +18,14 @@ import {
   toUtcMidnightDate,
 } from "@hously/shared/utils/date";
 
-export async function pollIndexerRss(): Promise<void> {
+export async function pollIndexerRss(): Promise<RssRunStats | null> {
   const adapter = await getActiveIndexerManager();
-  if (!adapter) return;
+  if (!adapter) return null;
 
   const integration = await prisma.integration.findFirst({
     where: { type: adapter.name, enabled: true },
   });
-  if (!integration) return;
+  if (!integration) return null;
 
   const rawConfig = integration.config as Record<string, unknown>;
   const rssIndexers = Array.isArray(rawConfig?.rss_indexers)
@@ -33,7 +34,7 @@ export async function pollIndexerRss(): Promise<void> {
       )
     : [];
 
-  if (!rssIndexers.length) return;
+  if (!rssIndexers.length) return null;
 
   console.log(
     `[pollIndexerRss] Polling ${adapter.name} RSS for indexers: ${rssIndexers.join(", ")}`,
@@ -42,7 +43,13 @@ export async function pollIndexerRss(): Promise<void> {
   const releases = await adapter.fetchRss(rssIndexers);
   if (!releases.length) {
     console.log("[pollIndexerRss] No releases in RSS feed");
-    return;
+    return { releases_found: 0, releases_grabbed: 0, indexers: [] };
+  }
+
+  const indexerCounts = new Map<string, number>();
+  for (const r of releases) {
+    const name = r.indexer ?? "Unknown";
+    indexerCounts.set(name, (indexerCounts.get(name) ?? 0) + 1);
   }
 
   const todayCutoff = toUtcMidnightDate(localDateYmd(APP_DISPLAY_TIMEZONE));
@@ -227,6 +234,17 @@ export async function pollIndexerRss(): Promise<void> {
   console.log(
     `[pollIndexerRss] Triggered ${grabbed} grab(s) from ${releases.length} RSS release(s)`,
   );
+
+  return {
+    releases_found: releases.length,
+    releases_grabbed: grabbed,
+    indexers: Array.from(indexerCounts.entries()).map(
+      ([name, releases_found]) => ({
+        name,
+        releases_found,
+      }),
+    ),
+  };
 }
 
 function toScoreInput(p: {

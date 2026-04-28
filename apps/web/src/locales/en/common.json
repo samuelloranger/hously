@@ -339,6 +339,20 @@
       "afternoon": "Keep the momentum going!",
       "evening": "Wrapping up the day? Check your progress.",
       "night": "Planning for tomorrow?"
+    },
+    "rss": {
+      "title": "RSS Status",
+      "neverRan": "Never ran",
+      "lastRun": "Last check",
+      "nextRun": "Next check",
+      "releasesFound_one": "{{count}} release found",
+      "releasesFound_other": "{{count}} releases found",
+      "releasesGrabbed_one": "{{count}} grabbed",
+      "releasesGrabbed_other": "{{count}} grabbed",
+      "statusOk": "OK",
+      "statusError": "Error",
+      "indexers": "Indexers",
+      "openLibraryLink": "Open media library"
     }
   },
   "login": {

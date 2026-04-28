@@ -36,4 +36,5 @@ export const LIBRARY_ENDPOINTS = {
   FILE_REMUX: (fileId: number) => `/api/library/files/${fileId}/remux`,
   FILE_REMUX_STATUS: (fileId: number) =>
     `/api/library/files/${fileId}/remux/status`,
+  RSS_STATUS: "/api/library/rss-status",
 } as const;
