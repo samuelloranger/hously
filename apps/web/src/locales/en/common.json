@@ -352,6 +352,7 @@
       "statusOk": "OK",
       "statusError": "Error",
       "indexers": "Indexers",
+      "executing": "Executing...",
       "openLibraryLink": "Open media library"
     }
   },

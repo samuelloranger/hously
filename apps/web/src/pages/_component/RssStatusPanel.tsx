@@ -1,6 +1,7 @@
+import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Rss, CheckCircle2, XCircle } from "lucide-react";
+import { Rss, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
@@ -21,8 +22,8 @@ function useRssStatus() {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatRelative(isoString: string): string {
-  const diff = Math.round((Date.now() - new Date(isoString).getTime()) / 1000);
+function formatRelative(isoString: string, now: number): string {
+  const diff = Math.round((now - new Date(isoString).getTime()) / 1000);
   if (diff < 60) return `${diff}s ago`;
   const mins = Math.floor(diff / 60);
   if (mins < 60) return `${mins}m ago`;
@@ -30,14 +31,13 @@ function formatRelative(isoString: string): string {
   return `${hrs}h ago`;
 }
 
-function formatCountdown(isoString: string): string {
-  const diff = Math.round((new Date(isoString).getTime() - Date.now()) / 1000);
-  if (diff <= 0) return "now";
+function formatCountdown(isoString: string, now: number): string {
+  const diff = Math.round((new Date(isoString).getTime() - now) / 1000);
+  if (diff <= 0) return "";
   const mins = Math.floor(diff / 60);
-  if (mins < 1) return `${diff}s`;
-  if (mins < 60) return `in ${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  return `in ${hrs}h`;
+  const secs = diff % 60;
+  if (mins === 0) return `${secs}s`;
+  return `in ${mins}m ${String(secs).padStart(2, "0")}s`;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -57,6 +57,14 @@ export function RssStatusPanel() {
   const { data, isLoading } = useRssStatus();
   const lastRun = data?.last_run ?? null;
   const nextRunAt = data?.next_run_at ?? null;
+
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const isExecuting = nextRunAt ? now >= new Date(nextRunAt).getTime() : false;
 
   return (
     <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
@@ -88,7 +96,7 @@ export function RssStatusPanel() {
             <div className="mt-1.5 space-y-1">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm text-zinc-700 dark:text-zinc-200 font-mono tabular-nums">
-                  {formatRelative(lastRun.completed_at)}
+                  {formatRelative(lastRun.completed_at, now)}
                 </span>
                 {lastRun.status === "success" ? (
                   <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 rounded-full px-2 py-0.5">
@@ -157,9 +165,16 @@ export function RssStatusPanel() {
         {nextRunAt && (
           <div>
             <Kicker>{t("dashboard.rss.nextRun")}</Kicker>
-            <p className="mt-1 text-sm font-mono tabular-nums text-zinc-700 dark:text-zinc-200">
-              {formatCountdown(nextRunAt)}
-            </p>
+            {isExecuting ? (
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-orange-500 dark:text-orange-400 font-medium">
+                <Loader2 size={13} className="animate-spin" />
+                {t("dashboard.rss.executing")}
+              </p>
+            ) : (
+              <p className="mt-1 text-sm font-mono tabular-nums text-zinc-700 dark:text-zinc-200">
+                {formatCountdown(nextRunAt, now)}
+              </p>
+            )}
           </div>
         )}
       </div>
