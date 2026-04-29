@@ -1283,9 +1283,29 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       const rssJob = repeatableJobs.find(
         (j) => j.name === SCHEDULED_JOB_NAMES.POLL_INDEXER_RSS,
       );
-      const nextRunAt = rssJob?.next
-        ? new Date(rssJob.next).toISOString()
-        : null;
+      const bullNext = rssJob?.next ? new Date(rssJob.next) : null;
+      const now = new Date();
+      // BullMQ's sorted set can hold stale timestamps after restarts.
+      // If the stored next-run is in the past, compute the real next
+      // */15 boundary from the current time.
+      const nextRunAt =
+        bullNext && bullNext > now
+          ? bullNext.toISOString()
+          : (() => {
+              const mins = now.getUTCMinutes();
+              const nextMins = Math.ceil((mins + 1) / 15) * 15;
+              return new Date(
+                Date.UTC(
+                  now.getUTCFullYear(),
+                  now.getUTCMonth(),
+                  now.getUTCDate(),
+                  now.getUTCHours() + Math.floor(nextMins / 60),
+                  nextMins % 60,
+                  0,
+                  0,
+                ),
+              ).toISOString();
+            })();
       return { last_run: lastRun, history, next_run_at: nextRunAt };
     } catch {
       return serverError(set, "Failed to fetch RSS status");
