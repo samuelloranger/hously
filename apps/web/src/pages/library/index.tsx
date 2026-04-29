@@ -12,6 +12,7 @@ export type LibrarySearchParams = {
   sortBy?: string;
   sortDir?: "asc" | "desc";
   scrollToMedia?: string;
+  view?: string;
 };
 
 const parseOptionalInt = (val: unknown): number | undefined =>
@@ -23,6 +24,8 @@ const parseOptionalInt = (val: unknown): number | undefined =>
 
 export const Route = createFileRoute("/library/")({
   validateSearch: (search: Record<string, unknown>): LibrarySearchParams => ({
+    view:
+      typeof search.view === "string" && search.view ? search.view : undefined,
     page: parseOptionalInt(search.page),
     pageSize: parseOptionalInt(search.pageSize),
     search:

@@ -115,7 +115,31 @@ export async function processScheduledJob(job: Job) {
       }
       case SCHEDULED_JOB_NAMES.POLL_INDEXER_RSS: {
         const { pollIndexerRss } = await import("../../workers/pollIndexerRss");
-        await pollIndexerRss();
+        const { saveRssRunResult } = await import("../rssRunStatus");
+        const startedAt = new Date().toISOString();
+        try {
+          const stats = await pollIndexerRss();
+          if (stats) {
+            await saveRssRunResult({
+              ...stats,
+              status: "success",
+              started_at: startedAt,
+              completed_at: new Date().toISOString(),
+              error: null,
+            });
+          }
+        } catch (e) {
+          await saveRssRunResult({
+            status: "error",
+            started_at: startedAt,
+            completed_at: new Date().toISOString(),
+            releases_found: 0,
+            releases_grabbed: 0,
+            indexers: [],
+            error: e instanceof Error ? e.message : String(e),
+          });
+          throw e;
+        }
         break;
       }
       default:

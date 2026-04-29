@@ -423,3 +423,24 @@ export type DashboardTrackersStatsResponse = Record<
   "c411" | "torr9" | "la-cale",
   DashboardTrackerStatsResponse
 >;
+
+export interface RssIndexerStat {
+  name: string;
+  releases_found: number;
+}
+
+export interface RssRunResult {
+  status: "success" | "error";
+  started_at: string;
+  completed_at: string;
+  releases_found: number;
+  releases_grabbed: number;
+  indexers: RssIndexerStat[];
+  error: string | null;
+}
+
+export interface RssStatusResponse {
+  last_run: RssRunResult | null;
+  history: RssRunResult[];
+  next_run_at: string | null;
+}

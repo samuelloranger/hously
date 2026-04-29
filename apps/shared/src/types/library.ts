@@ -249,3 +249,41 @@ export interface LibrarySearchResponse {
   release_title?: string;
   reason?: string;
 }
+
+export interface GlobalDownloadHistoryItem extends LibraryDownloadHistoryItem {
+  media_id: number | null;
+  media_title: string | null;
+  media_type: "movie" | "show" | null;
+}
+
+export interface GlobalDownloadHistoryResponse {
+  items: GlobalDownloadHistoryItem[];
+  total: number;
+  page: number;
+  limit: number;
+  has_more: boolean;
+}
+
+export interface DownloadHistoryTopIndexer {
+  name: string;
+  count: number;
+}
+
+export interface DownloadHistoryDayStat {
+  date: string;
+  count: number;
+}
+
+export interface DownloadHistoryStats {
+  total_grabs: number;
+  completed_grabs: number;
+  failed_grabs: number;
+  active_grabs: number;
+  success_rate: number | null;
+  top_indexers: DownloadHistoryTopIndexer[];
+  grabs_by_day: DownloadHistoryDayStat[];
+}
+
+export interface DownloadHistoryStatsResponse {
+  stats: DownloadHistoryStats;
+}

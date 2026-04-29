@@ -15,7 +15,7 @@ export const redisConnection = {
   maxRetriesPerRequest: null,
 };
 
-const redis = new Redis(redisConnection);
+export const redis = new Redis(redisConnection);
 
 redis.on("error", (err) => {
   console.error("Redis error:", err);

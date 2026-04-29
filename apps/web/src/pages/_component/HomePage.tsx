@@ -16,6 +16,7 @@ import { SystemPanel } from "@/pages/_component/SystemPanel";
 import { UptimeKumaPanel } from "@/pages/_component/UptimeKumaPanel";
 import { JellyfinShelf, UpcomingShelf } from "@/pages/_component/MediaShelves";
 import { TrackersPanel } from "@/pages/_component/TrackersPanel";
+import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
 import { ChoresPanel, HabitsPanel } from "@/pages/_component/HomePanel";
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
@@ -185,6 +186,12 @@ export function HomePage() {
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <TrackersPanel />
+              </CardErrorBoundary>
+            </motion.div>
+
+            <motion.div variants={panelVariants}>
+              <CardErrorBoundary>
+                <RssStatusPanel />
               </CardErrorBoundary>
             </motion.div>
           </motion.div>

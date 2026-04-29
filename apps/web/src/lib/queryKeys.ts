@@ -352,6 +352,14 @@ export const queryKeys = {
       [...queryKeys.library.all, "reindex-languages-status"] as const,
     remuxFileStatus: (fileId: number) =>
       [...queryKeys.library.all, "remux-file-status", fileId] as const,
+    rssStatus: () => [...queryKeys.library.all, "rss-status"] as const,
+    downloadHistory: (params?: {
+      page?: number;
+      status?: string;
+      days?: number;
+    }) => [...queryKeys.library.all, "download-history", params] as const,
+    downloadHistoryStats: () =>
+      [...queryKeys.library.all, "download-history-stats"] as const,
   },
 
   qualityProfiles: {

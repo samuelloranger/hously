@@ -339,6 +339,20 @@
       "afternoon": "Keep the momentum going!",
       "evening": "Wrapping up the day? Check your progress.",
       "night": "Planning for tomorrow?"
+    },
+    "rss": {
+      "title": "RSS Status",
+      "neverRan": "Never ran",
+      "lastRun": "Last check",
+      "nextRun": "Next check",
+      "releasesFound_one": "{{count}} release found",
+      "releasesFound_other": "{{count}} releases found",
+      "releasesGrabbed_one": "{{count}} grabbed",
+      "releasesGrabbed_other": "{{count}} grabbed",
+      "statusOk": "OK",
+      "statusError": "Error",
+      "indexers": "Indexers",
+      "openLibraryLink": "Open media library"
     }
   },
   "login": {
@@ -1545,6 +1559,27 @@
       "inLibrary": "Already in library",
       "notConfigured": "Service not configured",
       "add": "Click to add"
+    },
+    "history": {
+      "tabLibrary": "Library",
+      "tabHistory": "History",
+      "statTotal": "Total Grabs",
+      "statSuccessRate": "Success Rate",
+      "statFailed": "Failed",
+      "statActive": "Active",
+      "topIndexers": "Top Indexers",
+      "last14Days": "Last 14 Days",
+      "grabsInPeriod": "grabs in period",
+      "statusAll": "All",
+      "statusCompleted": "Completed",
+      "statusFailed": "Failed",
+      "statusActive": "Active",
+      "days7": "Last 7 days",
+      "days30": "Last 30 days",
+      "days90": "Last 90 days",
+      "daysAll": "All time",
+      "empty": "No download history found.",
+      "paginationRange": "{{start}}–{{end}} of {{total}}"
     }
   },
   "torrents": {

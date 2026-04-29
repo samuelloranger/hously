@@ -339,6 +339,20 @@
       "afternoon": "Gardez le rythme",
       "evening": "Fin de journée ? Vérifiez vos progrès.",
       "night": "Vous planifiez pour demain ?"
+    },
+    "rss": {
+      "title": "Statut RSS",
+      "neverRan": "Jamais exécuté",
+      "lastRun": "Dernière vérification",
+      "nextRun": "Prochaine vérification",
+      "releasesFound_one": "{{count}} release trouvée",
+      "releasesFound_other": "{{count}} releases trouvées",
+      "releasesGrabbed_one": "{{count}} récupérée",
+      "releasesGrabbed_other": "{{count}} récupérées",
+      "statusOk": "OK",
+      "statusError": "Erreur",
+      "indexers": "Indexeurs",
+      "openLibraryLink": "Ouvrir la médiathèque"
     }
   },
   "login": {
@@ -1545,6 +1559,27 @@
       "inLibrary": "Déjà dans la bibliothèque",
       "notConfigured": "Service non configuré",
       "add": "Cliquer pour ajouter"
+    },
+    "history": {
+      "tabLibrary": "Bibliothèque",
+      "tabHistory": "Historique",
+      "statTotal": "Téléchargements",
+      "statSuccessRate": "Taux de succès",
+      "statFailed": "Échecs",
+      "statActive": "En cours",
+      "topIndexers": "Top indexeurs",
+      "last14Days": "14 derniers jours",
+      "grabsInPeriod": "téléchargements sur la période",
+      "statusAll": "Tous",
+      "statusCompleted": "Terminés",
+      "statusFailed": "Échoués",
+      "statusActive": "En cours",
+      "days7": "7 derniers jours",
+      "days30": "30 derniers jours",
+      "days90": "90 derniers jours",
+      "daysAll": "Tout le temps",
+      "empty": "Aucun historique de téléchargement.",
+      "paginationRange": "{{start}}–{{end}} sur {{total}}"
     }
   },
   "torrents": {

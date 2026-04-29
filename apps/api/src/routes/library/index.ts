@@ -14,6 +14,14 @@ import type { LibraryMigrateProgress } from "@hously/api/services/jobs/libraryMi
 import type { LibraryReindexLanguagesProgress } from "@hously/api/services/jobs/libraryReindexLanguagesWorker";
 import type { LibraryRemuxJobData } from "@hously/api/services/jobs/libraryRemuxWorker";
 import { grabRelease, searchAndGrab } from "@hously/api/services/mediaGrabber";
+import {
+  getLastRssRun,
+  getRssRunHistory,
+} from "@hously/api/services/rssRunStatus";
+import {
+  scheduledTasksQueue,
+  SCHEDULED_JOB_NAMES,
+} from "@hously/api/services/queueService";
 import { libraryEventBus } from "@hously/api/services/libraryEvents";
 import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
 import { rescanLibraryItem } from "@hously/api/services/library/rescan";
@@ -1119,6 +1127,168 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       return { item: mapLibraryMedia(item) };
     } catch {
       return serverError(set, "Failed to fetch library item");
+    }
+  })
+
+  // GET /api/library/download-history — global paginated download history
+  .get(
+    "/download-history",
+    async ({ query, set }) => {
+      try {
+        const page = Math.max(1, query.page ?? 1);
+        const limit = Math.min(100, Math.max(1, query.limit ?? 25));
+        const { status, days } = query;
+
+        const where: Record<string, unknown> = {};
+        if (status === "completed") {
+          Object.assign(where, { completedAt: { not: null }, failed: false });
+        } else if (status === "failed") {
+          where.failed = true;
+        } else if (status === "active") {
+          Object.assign(where, { completedAt: null, failed: false });
+        }
+        if (days && days > 0) {
+          where.grabbedAt = {
+            gte: new Date(Date.now() - days * 86_400_000),
+          };
+        }
+
+        const [items, total] = await Promise.all([
+          prisma.downloadHistory.findMany({
+            where,
+            skip: (page - 1) * limit,
+            take: limit,
+            orderBy: { grabbedAt: "desc" },
+            include: {
+              media: { select: { id: true, title: true, type: true } },
+            },
+          }),
+          prisma.downloadHistory.count({ where }),
+        ]);
+
+        return {
+          items: items.map((h) => ({
+            id: h.id,
+            release_title: h.releaseTitle,
+            indexer: h.indexer,
+            torrent_hash: h.torrentHash,
+            grabbed_at: h.grabbedAt.toISOString(),
+            completed_at: h.completedAt?.toISOString() ?? null,
+            failed: h.failed,
+            fail_reason: h.failReason,
+            episode_id: h.episodeId,
+            post_process_error: h.postProcessError,
+            post_process_destination_path: h.postProcessDestinationPath,
+            media_id: h.mediaId,
+            media_title: h.media?.title ?? null,
+            media_type: h.media?.type ?? null,
+          })),
+          total,
+          page,
+          limit,
+          has_more: page * limit < total,
+        };
+      } catch {
+        return serverError(set, "Failed to fetch download history");
+      }
+    },
+    {
+      query: t.Object({
+        page: t.Optional(t.Number()),
+        limit: t.Optional(t.Number()),
+        status: t.Optional(
+          t.Union([
+            t.Literal("all"),
+            t.Literal("completed"),
+            t.Literal("failed"),
+            t.Literal("active"),
+          ]),
+        ),
+        days: t.Optional(t.Number()),
+      }),
+    },
+  )
+
+  // GET /api/library/download-history/stats — aggregate grab analytics
+  .get("/download-history/stats", async ({ set }) => {
+    try {
+      const fourteenDaysAgo = new Date(Date.now() - 14 * 86_400_000);
+
+      const [total, completed, failed, byIndexer, recentGrabs] =
+        await Promise.all([
+          prisma.downloadHistory.count(),
+          prisma.downloadHistory.count({
+            where: { completedAt: { not: null }, failed: false },
+          }),
+          prisma.downloadHistory.count({ where: { failed: true } }),
+          prisma.downloadHistory.groupBy({
+            by: ["indexer"],
+            _count: { id: true },
+            orderBy: { _count: { id: "desc" } },
+            take: 5,
+          }),
+          prisma.downloadHistory.findMany({
+            where: { grabbedAt: { gte: fourteenDaysAgo } },
+            select: { grabbedAt: true },
+          }),
+        ]);
+
+      const active = Math.max(0, total - completed - failed);
+      const successRate =
+        completed + failed > 0
+          ? Math.round((completed / (completed + failed)) * 100)
+          : null;
+
+      // Build last-14-days sparkline
+      const dayMap = new Map<string, number>();
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 86_400_000);
+        dayMap.set(d.toISOString().slice(0, 10), 0);
+      }
+      for (const g of recentGrabs) {
+        const key = g.grabbedAt.toISOString().slice(0, 10);
+        if (dayMap.has(key)) dayMap.set(key, (dayMap.get(key) ?? 0) + 1);
+      }
+
+      return {
+        stats: {
+          total_grabs: total,
+          completed_grabs: completed,
+          failed_grabs: failed,
+          active_grabs: active,
+          success_rate: successRate,
+          top_indexers: byIndexer.map((r) => ({
+            name: r.indexer ?? "Unknown",
+            count: r._count.id,
+          })),
+          grabs_by_day: Array.from(dayMap.entries()).map(([date, count]) => ({
+            date,
+            count,
+          })),
+        },
+      };
+    } catch {
+      return serverError(set, "Failed to fetch download history stats");
+    }
+  })
+
+  // GET /api/library/rss-status — last RSS run result + next scheduled run
+  .get("/rss-status", async ({ set }) => {
+    try {
+      const [lastRun, history, repeatableJobs] = await Promise.all([
+        getLastRssRun(),
+        getRssRunHistory(),
+        scheduledTasksQueue.getRepeatableJobs(),
+      ]);
+      const rssJob = repeatableJobs.find(
+        (j) => j.name === SCHEDULED_JOB_NAMES.POLL_INDEXER_RSS,
+      );
+      const nextRunAt = rssJob?.next
+        ? new Date(rssJob.next).toISOString()
+        : null;
+      return { last_run: lastRun, history, next_run_at: nextRunAt };
+    } catch {
+      return serverError(set, "Failed to fetch RSS status");
     }
   })
 
