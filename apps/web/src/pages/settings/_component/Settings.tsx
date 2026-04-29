@@ -12,6 +12,7 @@ import { QualityProfilesTab } from "@/pages/settings/_component/QualityProfilesT
 import { MediaPostProcessingTab } from "@/pages/settings/_component/MediaPostProcessingTab";
 import { SessionsTab } from "@/pages/settings/_component/SessionsTab";
 import { RecentActivityTab } from "@/pages/settings/_component/RecentActivityTab";
+import { LibraryHistoryTab } from "@/pages/medias/_component/LibraryHistoryTab";
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { cn } from "@/lib/utils";
 import {
@@ -27,6 +28,7 @@ import {
   History,
   SlidersHorizontal,
   FolderTree,
+  Film,
   type LucideIcon,
 } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
@@ -43,7 +45,8 @@ export type Tab =
   | "users"
   | "sessions"
   | "quality-profiles"
-  | "media-library";
+  | "media-library"
+  | "media-history";
 
 interface TabItem {
   id: Tab;
@@ -102,6 +105,11 @@ export function Settings() {
           id: "media-library",
           label: t("settings.mediaLibrary.title"),
           icon: FolderTree,
+        },
+        {
+          id: "media-history",
+          label: t("settings.mediaHistory.title"),
+          icon: Film,
         },
         {
           id: "data-export",
@@ -211,6 +219,9 @@ export function Settings() {
           )}
           {activeTab === "media-library" && currentUser?.is_admin && (
             <MediaPostProcessingTab />
+          )}
+          {activeTab === "media-history" && currentUser?.is_admin && (
+            <LibraryHistoryTab />
           )}
         </div>
       </div>

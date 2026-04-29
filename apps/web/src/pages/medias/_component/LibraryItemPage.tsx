@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
+import { useLibraryNavigation } from "@/features/medias/context/LibraryNavigationContext";
 import { useTranslation } from "react-i18next";
 import { Info, Search, Settings2, Sparkles } from "lucide-react";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
@@ -28,6 +29,9 @@ type PageTab = "info" | "similar" | "search" | "management";
 export function LibraryItemPage() {
   const { libraryId } = useParams({ from: "/library/$libraryId" });
   const navigate = useNavigate({ from: "/library/$libraryId" });
+  const { librarySearch } = useLibraryNavigation();
+  const goBack = () =>
+    navigate({ to: "/library", search: librarySearch ?? {} });
   const { t, i18n } = useTranslation("common");
   const search = useSearch({
     from: "/library/$libraryId",
@@ -147,7 +151,7 @@ export function LibraryItemPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <button
           type="button"
-          onClick={() => navigate({ to: "/library" })}
+          onClick={() => goBack()}
           className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 mb-8 transition-colors"
         >
           {t("medias.library.pageTitle", "Library")}
@@ -171,7 +175,7 @@ export function LibraryItemPage() {
           addToWatchlist.isPending || removeFromWatchlist.isPending
         }
         mediaType={mediaType}
-        onBack={() => navigate({ to: "/library" })}
+        onBack={() => goBack()}
         onWatchlistToggle={handleWatchlistToggle}
       />
 
@@ -241,7 +245,7 @@ export function LibraryItemPage() {
                 libraryId={item.id}
                 itemStatus={item.status}
                 itemMonitored={item.monitored}
-                onDeleted={() => navigate({ to: "/library" })}
+                onDeleted={() => goBack()}
                 onSearchEpisode={(ep) => {
                   setEpisodeSearchCtx(ep);
                   setSeasonSearchCtx(null);

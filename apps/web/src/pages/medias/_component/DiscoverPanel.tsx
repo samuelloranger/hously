@@ -17,7 +17,6 @@ import {
   ArrowDownUp,
 } from "lucide-react";
 import { ExploreCard } from "@/pages/medias/_component/ExploreCard";
-import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import {
   Popover,
   PopoverContent,
@@ -195,15 +194,14 @@ export function DiscoverPanel() {
       </div>
 
       {/* ── Media-type toggle ───────────────────────────────── */}
-      <SegmentedTabs
-        items={[
-          { id: "movie", label: t("medias.movie_plural") },
-          { id: "tv", label: t("medias.series_plural") },
-        ]}
+      <select
         value={mediaType}
-        onChange={switchType}
-        containerClassName="max-w-sm"
-      />
+        onChange={(e) => switchType(e.target.value as "movie" | "tv")}
+        className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
+      >
+        <option value="movie">{t("medias.movie_plural")}</option>
+        <option value="tv">{t("medias.series_plural")}</option>
+      </select>
 
       {/* ── Filter toolbar: Service · Genre · Sort · Language ── */}
       <div className="flex flex-wrap items-center gap-2">
