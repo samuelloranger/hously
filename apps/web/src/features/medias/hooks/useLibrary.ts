@@ -25,6 +25,7 @@ import type {
   UpdateMediaPostProcessingSettingsRequest,
   GlobalDownloadHistoryResponse,
   DownloadHistoryStatsResponse,
+  LibraryStatsResponse,
 } from "@hously/shared/types";
 
 export function useLibrary(
@@ -736,8 +737,7 @@ export function useGlobalDownloadHistory(params?: {
 }) {
   const fetcher = useFetcher();
   const search = new URLSearchParams();
-  if (params?.page && params.page > 1)
-    search.set("page", String(params.page));
+  if (params?.page && params.page > 1) search.set("page", String(params.page));
   if (params?.status && params.status !== "all")
     search.set("status", params.status);
   if (params?.days && params.days > 0) search.set("days", String(params.days));
@@ -761,6 +761,16 @@ export function useDownloadHistoryStats() {
       fetcher<DownloadHistoryStatsResponse>(
         LIBRARY_ENDPOINTS.DOWNLOAD_HISTORY_STATS,
       ),
+    staleTime: 60_000,
+  });
+}
+
+export function useLibraryStats() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.library.stats(),
+    queryFn: () =>
+      fetcher<LibraryStatsResponse>(LIBRARY_ENDPOINTS.LIBRARY_STATS),
     staleTime: 60_000,
   });
 }

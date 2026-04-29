@@ -25,6 +25,7 @@ import {
 import { libraryEventBus } from "@hously/api/services/libraryEvents";
 import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
 import { rescanLibraryItem } from "@hously/api/services/library/rescan";
+import { buildLibraryStatsResponse } from "./libraryStats";
 
 function mapLibraryMedia(item: {
   id: number;
@@ -132,6 +133,48 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       }),
     },
   )
+
+  // GET /api/library/stats — aggregate KPIs for dashboard
+  .get("/stats", async ({ set }) => {
+    try {
+      const [typeStatusRows, tmdbStatusRows, files] = await Promise.all([
+        prisma.libraryMedia.groupBy({
+          by: ["type", "status"],
+          _count: true,
+        }),
+        prisma.libraryMedia.groupBy({
+          by: ["tmdbStatus"],
+          where: { type: "show" },
+          _count: true,
+        }),
+        prisma.$queryRaw<{ resolution: number | null; size_bytes: bigint }[]>`
+          SELECT resolution, SUM(size_bytes) AS size_bytes
+          FROM media_files
+          GROUP BY resolution
+        `,
+      ]);
+
+      const stats = buildLibraryStatsResponse({
+        byTypeStatus: typeStatusRows.map((r) => ({
+          type: r.type,
+          status: r.status,
+          count: r._count,
+        })),
+        byTmdbStatus: tmdbStatusRows.map((r) => ({
+          tmdb_status: r.tmdbStatus,
+          count: r._count,
+        })),
+        files: files.map((f) => ({
+          resolution: f.resolution,
+          size_bytes: f.size_bytes,
+        })),
+      });
+
+      return { stats };
+    } catch {
+      return serverError(set, "Failed to fetch library stats");
+    }
+  })
 
   // GET /api/library/language-tags — distinct language tags present in the library
   .get("/language-tags", async ({ set }) => {

@@ -47,10 +47,8 @@ function ratioBarGradient(ratio: number | null) {
 
 function ratioCardTint(ratio: number | null) {
   if (ratio == null) return "";
-  if (ratio >= 1.5)
-    return "bg-emerald-500/[0.04] dark:bg-emerald-500/[0.07]";
-  if (ratio >= 1.0)
-    return "bg-amber-500/[0.04] dark:bg-amber-500/[0.07]";
+  if (ratio >= 1.5) return "bg-emerald-500/[0.04] dark:bg-emerald-500/[0.07]";
+  if (ratio >= 1.0) return "bg-amber-500/[0.04] dark:bg-amber-500/[0.07]";
   return "bg-rose-500/[0.04] dark:bg-rose-500/[0.07]";
 }
 
@@ -153,7 +151,11 @@ function TrackerCard({
           </div>
         ) : (
           <div className="flex items-center gap-2 py-1">
-            <WifiOff size={13} className="text-rose-400 shrink-0" strokeWidth={2} />
+            <WifiOff
+              size={13}
+              className="text-rose-400 shrink-0"
+              strokeWidth={2}
+            />
             <span className="text-xs italic text-rose-400 dark:text-rose-500">
               {tracker.error ?? t("dashboard.home.trackerNotConnected")}
             </span>
