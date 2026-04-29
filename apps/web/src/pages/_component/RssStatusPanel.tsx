@@ -80,18 +80,22 @@ export function RssStatusPanel() {
     };
   }, []);
 
-  // Detect job completion by watching for a new completed_at
+  // Detect job completion by watching for a new completed_at.
+  // setState is deferred into a setTimeout callback to satisfy react-hooks/set-state-in-effect.
   useEffect(() => {
     if (!isPolling || !snapshotRef.current) return;
-    if (completedAt && completedAt !== snapshotRef.current) {
+    if (!completedAt || completedAt === snapshotRef.current) return;
+    if (pollingTimeoutRef.current) clearTimeout(pollingTimeoutRef.current);
+    const count = releasesFound;
+    const id = setTimeout(() => {
       setIsPolling(false);
-      if (pollingTimeoutRef.current) clearTimeout(pollingTimeoutRef.current);
-      if (releasesFound > 0) {
-        toast.success(t("dashboard.rss.toastFound", { count: releasesFound }));
+      if (count > 0) {
+        toast.success(t("dashboard.rss.toastFound", { count }));
       } else {
         toast(t("dashboard.rss.toastNone"));
       }
-    }
+    }, 0);
+    return () => clearTimeout(id);
   }, [completedAt, releasesFound, isPolling, t]);
 
   const triggerRss = useMutation({
