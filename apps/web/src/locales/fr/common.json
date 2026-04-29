@@ -353,6 +353,11 @@
       "statusError": "Erreur",
       "indexers": "Indexeurs",
       "executing": "En cours...",
+      "checkNow": "Vérifier maintenant",
+      "checking": "Vérification…",
+      "toastFound_one": "RSS : {{count}} release trouvée",
+      "toastFound_other": "RSS : {{count}} releases trouvées",
+      "toastNone": "RSS : aucune nouvelle release",
       "openLibraryLink": "Ouvrir la médiathèque"
     }
   },

@@ -191,7 +191,7 @@ export function HomePage() {
 
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
-                <RssStatusPanel />
+                {user?.is_admin && <RssStatusPanel />}
               </CardErrorBoundary>
             </motion.div>
           </motion.div>
