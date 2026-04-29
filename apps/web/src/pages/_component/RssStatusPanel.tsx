@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Rss, CheckCircle2, XCircle, Loader2, RefreshCw } from "lucide-react";
@@ -71,23 +71,25 @@ export function RssStatusPanel() {
   const completedAt = lastRun?.completed_at ?? null;
   const releasesFound = lastRun?.releases_found ?? 0;
 
-  const [clockOffsetMs, setClockOffsetMs] = useState(0);
   const clockOffsetRef = useRef(0);
-  clockOffsetRef.current = clockOffsetMs;
+  const [alignedNow, setAlignedNow] = useState(0);
+
+  useLayoutEffect(() => {
+    const tick = () => {
+      setAlignedNow(Date.now() + clockOffsetRef.current);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!data?.server_time) return;
-    setClockOffsetMs(new Date(data.server_time).getTime() - Date.now());
+    clockOffsetRef.current = new Date(data.server_time).getTime() - Date.now();
+    setAlignedNow(Date.now() + clockOffsetRef.current);
   }, [data?.server_time]);
 
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setTick((n) => n + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
-  void tick;
-
-  const now = Date.now() + clockOffsetMs;
+  const now = alignedNow;
 
   useEffect(() => {
     return () => {
