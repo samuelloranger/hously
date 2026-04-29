@@ -16,7 +16,7 @@ function useRssStatus() {
     queryKey: queryKeys.library.rssStatus(),
     queryFn: () => fetcher<RssStatusResponse>(LIBRARY_ENDPOINTS.RSS_STATUS),
     staleTime: 0,
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
   });
 }
 
