@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Activity, AlertCircle, ChevronRight } from "lucide-react";
-import { useUptimekumaMonitors } from "@/pages/_component/useUptimekumaMonitors";
-import { UptimeKumaMonitorsModal } from "@/pages/_component/UptimeKumaMonitorsModal";
+import { Activity, ChevronRight } from "lucide-react";
 import type {
   UptimekumaMonitor,
   UptimekumaMonitorStatus,
   UptimekumaSummary,
 } from "@hously/shared/types";
+import { useUptimekumaMonitors } from "@/pages/_component/useUptimekumaMonitors";
+import { UptimeKumaMonitorsModal } from "@/pages/_component/UptimeKumaMonitorsModal";
+import { SectionTitle } from "./shared";
 
 const MAX_INLINE_ROWS = 5;
 
@@ -19,25 +20,7 @@ function deriveOverallStatus(summary: UptimekumaSummary): OverallStatus {
   return "healthy";
 }
 
-function AccentBar({ status }: { status: OverallStatus }) {
-  const color =
-    status === "degraded"
-      ? "bg-rose-500"
-      : status === "pending"
-        ? "bg-amber-500"
-        : "bg-emerald-500";
-  return <span className={`w-1 h-4 rounded-full shrink-0 ${color}`} />;
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-      {children}
-    </h3>
-  );
-}
-
-function StatusDot({
+function MonitorStatusDot({
   status,
   pulse,
 }: {
@@ -93,7 +76,10 @@ function SummaryPill({
 function MonitorRow({ monitor }: { monitor: UptimekumaMonitor }) {
   return (
     <div className="flex items-center gap-2.5 py-1.5">
-      <StatusDot status={monitor.status} pulse={monitor.status === "down"} />
+      <MonitorStatusDot
+        status={monitor.status}
+        pulse={monitor.status === "down"}
+      />
       <span className="min-w-0 flex-1 truncate text-xs font-medium text-zinc-800 dark:text-zinc-100">
         {monitor.name}
       </span>
@@ -106,74 +92,29 @@ function MonitorRow({ monitor }: { monitor: UptimekumaMonitor }) {
   );
 }
 
-function PanelSkeleton() {
-  return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-        <div className="flex items-center gap-2.5">
-          <span className="w-1 h-4 rounded-full bg-zinc-200 dark:bg-zinc-700" />
-          <span className="h-3 w-24 rounded bg-zinc-200 dark:bg-zinc-700" />
-        </div>
-        <span className="h-5 w-14 rounded-full bg-zinc-100 dark:bg-zinc-800" />
-      </div>
-      <div className="px-4 py-4">
-        <div className="h-3 w-32 rounded bg-zinc-100 dark:bg-zinc-800" />
-      </div>
-    </section>
-  );
-}
-
-function ErrorState({ onRetry }: { onRetry: () => void }) {
-  const { t } = useTranslation("common");
-  return (
-    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-        <div className="flex items-center gap-2.5">
-          <AccentBar status="degraded" />
-          <SectionTitle>{t("dashboard.uptimekuma.title")}</SectionTitle>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 px-4 py-3">
-        <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-        <span className="text-xs text-zinc-600 dark:text-zinc-300 flex-1">
-          {t("dashboard.uptimekuma.errors.loadFailed")}
-        </span>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100"
-        >
-          ↻
-        </button>
-      </div>
-    </section>
-  );
-}
-
-export function UptimeKumaPanel() {
+export function UptimekumaSection() {
   const { t } = useTranslation("common");
   const query = useUptimekumaMonitors();
   const [modalOpen, setModalOpen] = useState(false);
 
-  // 400 — integration disabled or not configured — hide silently.
+  if (query.isLoading || !query.data) return null;
   if (query.isError) {
     const message =
       query.error instanceof Error ? query.error.message : String(query.error);
-    if (/400|not enabled|not configured/i.test(message)) {
-      return null;
-    }
-    return <ErrorState onRetry={() => query.refetch()} />;
-  }
-
-  if (query.isLoading || !query.data) {
-    return <PanelSkeleton />;
+    if (/400|not enabled|not configured/i.test(message)) return null;
+    return null;
   }
 
   const { summary, monitors } = query.data;
-  if (summary.total === 0) {
-    return null;
-  }
+  if (summary.total === 0) return null;
+
   const overallStatus = deriveOverallStatus(summary);
+  const accentColor =
+    overallStatus === "degraded"
+      ? "bg-rose-500"
+      : overallStatus === "pending"
+        ? "bg-amber-500"
+        : "bg-emerald-500";
   const unhealthy = monitors.filter(
     (m) => m.status === "down" || m.status === "pending",
   );
@@ -183,10 +124,10 @@ export function UptimeKumaPanel() {
   return (
     <>
       <UptimeKumaMonitorsModal open={modalOpen} onOpenChange={setModalOpen} />
-      <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <AccentBar status={overallStatus} />
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <span className={`w-1 h-4 rounded-full shrink-0 ${accentColor}`} />
             <Activity
               className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
               strokeWidth={2}
@@ -197,7 +138,7 @@ export function UptimeKumaPanel() {
         </div>
 
         {unhealthy.length > 0 ? (
-          <div className="px-4 py-2 divide-y divide-zinc-100 dark:divide-zinc-800/60">
+          <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
             {visible.map((m) => (
               <MonitorRow key={m.id} monitor={m} />
             ))}
@@ -213,8 +154,8 @@ export function UptimeKumaPanel() {
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-4 py-3">
-            <StatusDot status="up" />
+          <div className="flex items-center gap-2">
+            <MonitorStatusDot status="up" />
             <span className="text-xs text-zinc-600 dark:text-zinc-300">
               {t("dashboard.uptimekuma.allHealthy")}
             </span>
@@ -224,12 +165,12 @@ export function UptimeKumaPanel() {
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="w-full flex items-center justify-between px-4 py-2.5 border-t border-zinc-100 dark:border-zinc-800 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+          className="mt-2 flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 transition-colors font-medium"
         >
-          <span>{t("dashboard.uptimekuma.viewAll")}</span>
-          <ChevronRight className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+          <ChevronRight size={12} />
+          {t("dashboard.uptimekuma.viewAll")}
         </button>
-      </section>
+      </div>
     </>
   );
 }
