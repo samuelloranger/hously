@@ -135,6 +135,12 @@ export function HomePage() {
 
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
+                <TrackersPanel />
+              </CardErrorBoundary>
+            </motion.div>
+
+            <motion.div variants={panelVariants}>
+              <CardErrorBoundary>
                 <HabitsPanel />
               </CardErrorBoundary>
             </motion.div>
@@ -180,12 +186,6 @@ export function HomePage() {
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <DownloadsPanel />
-              </CardErrorBoundary>
-            </motion.div>
-
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <TrackersPanel />
               </CardErrorBoundary>
             </motion.div>
 
