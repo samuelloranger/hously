@@ -56,11 +56,9 @@ function RatioProgressBar({ ratio }: { ratio: number }) {
 function TrackerRow({
   tracker,
   locale,
-  isLast,
 }: {
   tracker: TrackerInfo;
   locale: Parameters<typeof formatRelativeTime>[1]["locale"];
-  isLast: boolean;
 }) {
   const { t } = useTranslation("common");
 
@@ -137,9 +135,6 @@ function TrackerRow({
           <RatioProgressBar ratio={tracker.ratio} />
         </div>
       )}
-
-      {/* Row divider */}
-      {!isLast && <div className="mx-4 h-px bg-zinc-100 dark:bg-zinc-800" />}
     </>
   );
 }
@@ -224,14 +219,9 @@ export function TrackersPanel() {
       </div>
 
       {/* Rows */}
-      <div>
-        {enabledTrackers.map((tracker, i) => (
-          <TrackerRow
-            key={tracker.key}
-            tracker={tracker}
-            locale={locale}
-            isLast={i === enabledTrackers.length - 1}
-          />
+      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-100 dark:divide-zinc-800">
+        {enabledTrackers.map((tracker) => (
+          <TrackerRow key={tracker.key} tracker={tracker} locale={locale} />
         ))}
       </div>
     </section>
