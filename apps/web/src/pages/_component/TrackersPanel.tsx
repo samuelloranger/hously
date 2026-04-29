@@ -233,10 +233,17 @@ export function TrackersPanel() {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Cards: 3-col on desktop, stacked on mobile */}
       <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-100 dark:divide-zinc-800">
         {enabledTrackers.map((tracker) => (
           <TrackerCard key={tracker.key} tracker={tracker} locale={locale} />
+=======
+      {/* Rows */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-100 dark:divide-zinc-800">
+        {enabledTrackers.map((tracker) => (
+          <TrackerRow key={tracker.key} tracker={tracker} locale={locale} />
+>>>>>>> origin/main
         ))}
       </div>
     </section>
