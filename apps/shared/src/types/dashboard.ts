@@ -440,6 +440,8 @@ export interface RssRunResult {
 }
 
 export interface RssStatusResponse {
+  /** Server clock (ISO) — align client-relative math so wrong OS time does not skew RSS UI */
+  server_time: string;
   last_run: RssRunResult | null;
   history: RssRunResult[];
   next_run_at: string | null;

@@ -24,7 +24,10 @@ function useRssStatus(refetchInterval = 15_000) {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatRelative(isoString: string, now: number): string {
-  const diff = Math.round((now - new Date(isoString).getTime()) / 1000);
+  const diff = Math.max(
+    0,
+    Math.round((now - new Date(isoString).getTime()) / 1000),
+  );
   if (diff < 60) return `${diff}s ago`;
   const mins = Math.floor(diff / 60);
   if (mins < 60) return `${mins}m ago`;
@@ -68,11 +71,23 @@ export function RssStatusPanel() {
   const completedAt = lastRun?.completed_at ?? null;
   const releasesFound = lastRun?.releases_found ?? 0;
 
-  const [now, setNow] = useState(() => Date.now());
+  const [clockOffsetMs, setClockOffsetMs] = useState(0);
+  const clockOffsetRef = useRef(0);
+  clockOffsetRef.current = clockOffsetMs;
+
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
+    if (!data?.server_time) return;
+    setClockOffsetMs(new Date(data.server_time).getTime() - Date.now());
+  }, [data?.server_time]);
+
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(id);
   }, []);
+  void tick;
+
+  const now = Date.now() + clockOffsetMs;
 
   useEffect(() => {
     return () => {
@@ -106,7 +121,7 @@ export function RssStatusPanel() {
       }),
     onSuccess: () => {
       setIsPolling(true);
-      setTriggeredAt(Date.now());
+      setTriggeredAt(Date.now() + clockOffsetRef.current);
       pollingTimeoutRef.current = setTimeout(() => setIsPolling(false), 60_000);
     },
   });
