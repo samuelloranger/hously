@@ -45,6 +45,15 @@ function ratioBarGradient(ratio: number | null) {
   return "from-rose-400 to-rose-500";
 }
 
+function ratioCardTint(ratio: number | null) {
+  if (ratio == null) return "";
+  if (ratio >= 1.5)
+    return "bg-emerald-500/[0.04] dark:bg-emerald-500/[0.07]";
+  if (ratio >= 1.0)
+    return "bg-amber-500/[0.04] dark:bg-amber-500/[0.07]";
+  return "bg-rose-500/[0.04] dark:bg-rose-500/[0.07]";
+}
+
 function TrackerCard({
   tracker,
   locale,
@@ -53,13 +62,19 @@ function TrackerCard({
   locale: Parameters<typeof formatRelativeTime>[1]["locale"];
 }) {
   const { t } = useTranslation("common");
-  const barFill = tracker.ratio != null
-    ? `${Math.max(Math.min((tracker.ratio / 3.0) * 100, 100), 2)}%`
-    : "0%";
+  const barFill =
+    tracker.ratio != null
+      ? `${Math.max(Math.min((tracker.ratio / 3.0) * 100, 100), 2)}%`
+      : "0%";
 
   return (
-    <div className="relative flex flex-col overflow-hidden">
-      {/* Health stripe — left edge, full height */}
+    <div
+      className={cn(
+        "relative flex flex-col overflow-hidden",
+        tracker.connected && ratioCardTint(tracker.ratio),
+      )}
+    >
+      {/* Left health stripe */}
       <div
         className={cn(
           "absolute left-0 inset-y-0 w-[3px]",
@@ -68,7 +83,7 @@ function TrackerCard({
       />
 
       {/* Content */}
-      <div className="flex flex-col gap-3 pl-[18px] pr-4 pt-4 pb-3">
+      <div className="flex flex-col gap-2.5 pl-[18px] pr-4 pt-3.5 pb-3">
         {/* Row 1: tracker label + sync time + status dot */}
         <div className="flex items-center justify-between gap-2">
           <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-zinc-400 dark:text-zinc-500">
@@ -92,48 +107,50 @@ function TrackerCard({
         </div>
 
         {tracker.connected ? (
-          <>
-            {/* Row 2: ratio hero */}
-            <div className="flex items-baseline gap-2 leading-none">
+          /* Row 2: ratio (left) + divider + dl/ul (right) */
+          <div className="flex items-stretch gap-0">
+            {/* Ratio */}
+            <div className="flex flex-col justify-center min-w-0">
               <span
                 className={cn(
-                  "font-mono text-[2rem] font-bold tabular-nums leading-none",
+                  "font-mono text-[1.75rem] font-bold tabular-nums leading-none",
                   ratioTextColor(tracker.ratio),
                 )}
               >
                 {formatRatio(tracker.ratio)}
               </span>
-              <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-zinc-400 dark:text-zinc-600 pb-0.5">
+              <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-zinc-400 dark:text-zinc-600 mt-1">
                 ratio
               </span>
             </div>
 
-            {/* Row 3: transfer stats */}
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1">
-                  <ArrowDown size={9} className="text-sky-400" strokeWidth={2.5} />
-                  <span className="text-[8px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
-                    dl
-                  </span>
-                </div>
-                <span className="font-mono text-[11px] font-semibold tabular-nums text-zinc-700 dark:text-zinc-200">
+            {/* Vertical divider */}
+            <div className="w-px bg-zinc-100 dark:bg-zinc-800 mx-3.5 shrink-0" />
+
+            {/* dl / ul */}
+            <div className="flex flex-col justify-center gap-1.5">
+              <div className="flex items-center gap-1.5">
+                <ArrowDown
+                  size={10}
+                  className="text-sky-400 shrink-0"
+                  strokeWidth={2.5}
+                />
+                <span className="font-mono text-[12px] font-semibold tabular-nums text-zinc-700 dark:text-zinc-200">
                   {formatGo(tracker.downloaded_go)}
                 </span>
               </div>
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1">
-                  <ArrowUp size={9} className="text-emerald-400" strokeWidth={2.5} />
-                  <span className="text-[8px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
-                    ul
-                  </span>
-                </div>
-                <span className="font-mono text-[11px] font-semibold tabular-nums text-zinc-700 dark:text-zinc-200">
+              <div className="flex items-center gap-1.5">
+                <ArrowUp
+                  size={10}
+                  className="text-emerald-400 shrink-0"
+                  strokeWidth={2.5}
+                />
+                <span className="font-mono text-[12px] font-semibold tabular-nums text-zinc-700 dark:text-zinc-200">
                   {formatGo(tracker.uploaded_go)}
                 </span>
               </div>
             </div>
-          </>
+          </div>
         ) : (
           <div className="flex items-center gap-2 py-1">
             <WifiOff size={13} className="text-rose-400 shrink-0" strokeWidth={2} />
@@ -144,11 +161,14 @@ function TrackerCard({
         )}
       </div>
 
-      {/* Health bar — flush bottom, no padding */}
-      <div className="h-[3px] bg-zinc-100 dark:bg-zinc-800">
+      {/* Bottom health bar */}
+      <div className="h-1 bg-zinc-100 dark:bg-zinc-800">
         {tracker.connected && tracker.ratio != null && (
           <div
-            className={cn("h-full bg-gradient-to-r", ratioBarGradient(tracker.ratio))}
+            className={cn(
+              "h-full bg-gradient-to-r transition-[width] duration-700 ease-out",
+              ratioBarGradient(tracker.ratio),
+            )}
             style={{ width: barFill }}
           />
         )}
@@ -211,7 +231,10 @@ export function TrackersPanel() {
       {/* Header */}
       <div className="flex items-center gap-2.5 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
         <span className="w-1 h-4 rounded-full bg-purple-500 shrink-0" />
-        <Radio className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400" strokeWidth={2} />
+        <Radio
+          className="w-4 h-4 shrink-0 text-zinc-500 dark:text-zinc-400"
+          strokeWidth={2}
+        />
         <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
           {t("dashboard.home.privateTrackersTitle")}
         </h3>
@@ -233,17 +256,10 @@ export function TrackersPanel() {
         </div>
       </div>
 
-<<<<<<< HEAD
       {/* Cards: 3-col on desktop, stacked on mobile */}
       <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-100 dark:divide-zinc-800">
         {enabledTrackers.map((tracker) => (
           <TrackerCard key={tracker.key} tracker={tracker} locale={locale} />
-=======
-      {/* Rows */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-100 dark:divide-zinc-800">
-        {enabledTrackers.map((tracker) => (
-          <TrackerRow key={tracker.key} tracker={tracker} locale={locale} />
->>>>>>> origin/main
         ))}
       </div>
     </section>
