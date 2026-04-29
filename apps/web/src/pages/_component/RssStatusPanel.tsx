@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Rss, CheckCircle2, XCircle } from "lucide-react";
@@ -14,6 +15,7 @@ function useRssStatus() {
   return useQuery({
     queryKey: queryKeys.library.rssStatus(),
     queryFn: () => fetcher<RssStatusResponse>(LIBRARY_ENDPOINTS.RSS_STATUS),
+    staleTime: 0,
     refetchInterval: 60_000,
   });
 }
@@ -56,6 +58,12 @@ export function RssStatusPanel() {
   const { data, isLoading } = useRssStatus();
   const lastRun = data?.last_run ?? null;
   const nextRunAt = data?.next_run_at ?? null;
+
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((n) => n + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
