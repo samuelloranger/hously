@@ -324,7 +324,18 @@
       "queriesOf": "{{blocked}} sur {{total}}",
       "privateTrackersTitle": "Trackers privés",
       "trackerNotConnected": "Non connecté",
-      "torrentsLower": "torrents"
+      "torrentsLower": "torrents",
+      "libraryStats": {
+        "title": "Bibliothèque",
+        "openLibrary": "Bibliothèque",
+        "totalMovies": "Films au total",
+        "totalShows": "Séries au total",
+        "downloaded": "Téléchargés",
+        "wanted": "Recherchés",
+        "returningSeries": "Séries en cours",
+        "storageUsed": "Stockage utilisé",
+        "loadError": "Échec du chargement des statistiques"
+      }
     },
     "subtexts": {
       "busyDay": "Vous avez {{count}} événements aujourd'hui. Restez organisé",

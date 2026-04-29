@@ -287,3 +287,42 @@ export interface DownloadHistoryStats {
 export interface DownloadHistoryStatsResponse {
   stats: DownloadHistoryStats;
 }
+
+export type LibraryStatsResolution =
+  | "unknown"
+  | "480p"
+  | "720p"
+  | "1080p"
+  | "4k";
+
+export interface LibraryStatusTypeCount {
+  type: "movie" | "show";
+  status: string;
+  count: number;
+}
+
+export interface LibraryResolutionStorage {
+  resolution: LibraryStatsResolution;
+  size_bytes: number;
+}
+
+export interface LibraryTmdbStatusCount {
+  tmdb_status: string;
+  count: number;
+}
+
+export interface LibraryStats {
+  total_movies: number;
+  total_shows: number;
+  downloaded: number;
+  wanted: number;
+  returning_series: number;
+  storage_used_bytes: number;
+  counts_by_status_type: LibraryStatusTypeCount[];
+  storage_by_resolution: LibraryResolutionStorage[];
+  shows_by_tmdb_status: LibraryTmdbStatusCount[];
+}
+
+export interface LibraryStatsResponse {
+  stats: LibraryStats;
+}

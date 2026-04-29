@@ -324,7 +324,18 @@
       "queriesOf": "{{blocked}} of {{total}}",
       "privateTrackersTitle": "Private trackers",
       "trackerNotConnected": "Not connected",
-      "torrentsLower": "torrents"
+      "torrentsLower": "torrents",
+      "libraryStats": {
+        "title": "Library stats",
+        "openLibrary": "Library",
+        "totalMovies": "Total Movies",
+        "totalShows": "Total Shows",
+        "downloaded": "Downloaded",
+        "wanted": "Wanted",
+        "returningSeries": "Returning Series",
+        "storageUsed": "Storage Used",
+        "loadError": "Failed to load library stats"
+      }
     },
     "subtexts": {
       "busyDay": "You have {{count}} events today. Stay organized!",

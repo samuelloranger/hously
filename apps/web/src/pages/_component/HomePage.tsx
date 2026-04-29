@@ -15,6 +15,7 @@ import { HomeAssistantPanel } from "@/pages/_component/HomeAssistantPanel";
 import { SystemPanel } from "@/pages/_component/SystemPanel";
 import { UptimeKumaPanel } from "@/pages/_component/UptimeKumaPanel";
 import { JellyfinShelf, UpcomingShelf } from "@/pages/_component/MediaShelves";
+import { LibraryStatsPanel } from "@/pages/_component/LibraryStatsPanel";
 import { TrackersPanel } from "@/pages/_component/TrackersPanel";
 import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
 import { ChoresPanel, HabitsPanel } from "@/pages/_component/HomePanel";
@@ -130,6 +131,12 @@ export function HomePage() {
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <UpcomingShelf />
+              </CardErrorBoundary>
+            </motion.div>
+
+            <motion.div variants={panelVariants}>
+              <CardErrorBoundary>
+                <LibraryStatsPanel />
               </CardErrorBoundary>
             </motion.div>
 

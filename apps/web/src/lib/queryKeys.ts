@@ -360,6 +360,7 @@ export const queryKeys = {
     }) => [...queryKeys.library.all, "download-history", params] as const,
     downloadHistoryStats: () =>
       [...queryKeys.library.all, "download-history-stats"] as const,
+    stats: () => [...queryKeys.library.all, "stats"] as const,
   },
 
   qualityProfiles: {

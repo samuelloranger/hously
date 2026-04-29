@@ -1,5 +1,6 @@
 export const LIBRARY_ENDPOINTS = {
   LIST: "/api/library",
+  LIBRARY_STATS: "/api/library/stats",
   ADD: "/api/library",
   POST_PROCESSING_SETTINGS: "/api/library/post-processing/settings",
   SCAN: "/api/library/scan",
