@@ -352,6 +352,7 @@
       "statusOk": "OK",
       "statusError": "Erreur",
       "indexers": "Indexeurs",
+      "executing": "En cours...",
       "openLibraryLink": "Ouvrir la médiathèque"
     }
   },
