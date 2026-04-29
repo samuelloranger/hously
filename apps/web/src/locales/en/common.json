@@ -964,6 +964,9 @@
       "hdrPreferred": "HDR preferred",
       "deselectAll": "Deselect all"
     },
+    "mediaHistory": {
+      "title": "Media history"
+    },
     "mediaLibrary": {
       "title": "Media library",
       "loading": "Loading…",

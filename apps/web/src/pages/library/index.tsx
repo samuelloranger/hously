@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getCurrentUser } from "@/lib/auth";
 import { prefetchRouteData } from "@/lib/routing/prefetch";
-import { NativeLibraryPage } from "@/pages/medias/_component/NativeLibraryPage";
+import { LibraryPage } from "@/pages/medias/_component/LibraryPage";
 
 export type LibrarySearchParams = {
   page?: number;
@@ -12,7 +12,6 @@ export type LibrarySearchParams = {
   sortBy?: string;
   sortDir?: "asc" | "desc";
   scrollToMedia?: string;
-  view?: string;
 };
 
 const parseOptionalInt = (val: unknown): number | undefined =>
@@ -24,8 +23,6 @@ const parseOptionalInt = (val: unknown): number | undefined =>
 
 export const Route = createFileRoute("/library/")({
   validateSearch: (search: Record<string, unknown>): LibrarySearchParams => ({
-    view:
-      typeof search.view === "string" && search.view ? search.view : undefined,
     page: parseOptionalInt(search.page),
     pageSize: parseOptionalInt(search.pageSize),
     search:
@@ -64,5 +61,5 @@ export const Route = createFileRoute("/library/")({
   loader: async ({ context }) => {
     await prefetchRouteData(context.queryClient, "/library");
   },
-  component: NativeLibraryPage,
+  component: LibraryPage,
 });

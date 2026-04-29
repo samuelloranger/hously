@@ -336,6 +336,7 @@ export function LibraryHistoryTab() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-0">
           <SegmentedTabs<StatusFilter>
+            variant="chips"
             ariaLabel={t("medias.history.statusAll")}
             items={statusTabs}
             value={status}

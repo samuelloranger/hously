@@ -12,6 +12,7 @@ import { NotificationPermissionModal } from "@/components/NotificationPermission
 import { QuickActionPalette } from "@/components/QuickActionPalette";
 import { RouteDataRefetcher } from "@/components/RouteDataRefetcher";
 import { useAutoSubscribeNotifications } from "@/lib/notifications/useAutoSubscribeNotifications";
+import { LibraryNavigationProvider } from "@/features/medias/context/LibraryNavigationContext";
 
 export interface RouterContext {
   queryClient: QueryClient;
@@ -27,7 +28,7 @@ function RootLayout() {
   const shouldShowNav = !["/login"].includes(router.location.pathname);
 
   return (
-    <>
+    <LibraryNavigationProvider>
       <ScrollRestoration />
       {shouldShowNav && (
         <Sidebar onOpenQuickActions={() => setIsQuickActionsOpen(true)} />
@@ -51,7 +52,7 @@ function RootLayout() {
         onDismiss={handleDismiss}
       />
       <Toaster position="top-center" richColors />
-    </>
+    </LibraryNavigationProvider>
   );
 }
 

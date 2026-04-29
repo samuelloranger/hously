@@ -13,9 +13,12 @@ interface SegmentedTabsProps<T extends string> {
   items: SegmentedTabItem<T>[];
   value: T;
   onChange: (value: T) => void;
-  /** Classes applied to the outer scroll container. */
+  /**
+   * "underline" — navigation tabs with a bottom-border indicator (default).
+   * "chips"     — filter toggle chips; no shared background track.
+   */
+  variant?: "underline" | "chips";
   containerClassName?: string;
-  /** Classes applied to the inner track (the pill background). */
   trackClassName?: string;
   itemClassName?: string;
   activeItemClassName?: string;
@@ -25,22 +28,59 @@ interface SegmentedTabsProps<T extends string> {
   badgeClassName?: string;
   activeBadgeClassName?: string;
   inactiveBadgeClassName?: string;
-  /** Optional accessible label for the tablist. */
   ariaLabel?: string;
 }
 
-/**
- * SegmentedTabs
- * - Always fills 100% of its parent's width.
- * - Items share space evenly when they fit.
- * - When the combined natural width of items exceeds the container, the row
- *   scrolls horizontally (scrollbar hidden). Active item is scrolled into
- *   view when the selection changes.
- */
+function TabIcon({
+  icon: Icon,
+  className,
+}: {
+  icon: ElementType<{ size?: number; className?: string }> | ReactElement;
+  className?: string;
+}) {
+  if (isValidElement(Icon)) {
+    return (
+      <span
+        className={cn("inline-flex shrink-0 text-current", className)}
+        aria-hidden
+      >
+        {Icon}
+      </span>
+    );
+  }
+  const Component = Icon as ElementType<{
+    size?: number;
+    className?: string;
+  }>;
+  return (
+    <Component size={13} className={cn("shrink-0 text-current", className)} aria-hidden />
+  );
+}
+
+function TabBadge({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "shrink-0 px-1.5 py-px rounded-full text-[10px] font-bold tabular-nums leading-none",
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function SegmentedTabs<T extends string>({
   items,
   value,
   onChange,
+  variant = "underline",
   containerClassName,
   trackClassName,
   itemClassName,
@@ -60,7 +100,6 @@ export function SegmentedTabs<T extends string>({
     const viewport = viewportRef.current;
     const active = activeItemRef.current;
     if (!viewport || !active) return;
-    // Only scroll when the row actually overflows.
     if (viewport.scrollWidth <= viewport.clientWidth) return;
 
     const viewportRect = viewport.getBoundingClientRect();
@@ -69,83 +108,117 @@ export function SegmentedTabs<T extends string>({
       activeRect.left - viewportRect.left + viewport.scrollLeft;
     const target = offsetLeft - (viewport.clientWidth - active.offsetWidth) / 2;
 
-    viewport.scrollTo({
-      left: Math.max(0, target),
-      behavior: "smooth",
-    });
+    viewport.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
   }, [value]);
 
+  if (variant === "chips") {
+    return (
+      <div
+        ref={viewportRef}
+        className={cn(
+          "w-full overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          containerClassName,
+        )}
+      >
+        <div
+          role="tablist"
+          aria-label={ariaLabel}
+          className={cn("flex min-w-max gap-1.5", trackClassName)}
+        >
+          {items.map((item) => {
+            const isActive = value === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => onChange(item.id)}
+                ref={isActive ? activeItemRef : undefined}
+                className={cn(
+                  "flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-all duration-150",
+                  isActive
+                    ? "border-primary-500/30 bg-primary-500/10 text-primary-600 dark:border-primary-500/30 dark:bg-primary-500/15 dark:text-primary-400"
+                    : "border-neutral-200 bg-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-neutral-600 dark:hover:text-neutral-200",
+                  isActive && activeItemClassName,
+                  !isActive && inactiveItemClassName,
+                  itemClassName,
+                )}
+              >
+                {item.icon && (
+                  <TabIcon
+                    icon={item.icon}
+                    className={cn(iconClassName, isActive && activeIconClassName)}
+                  />
+                )}
+                <span>{item.label}</span>
+                {item.badge != null && (
+                  <TabBadge
+                    className={cn(
+                      isActive
+                        ? "bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300"
+                        : "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400",
+                      badgeClassName,
+                      isActive && activeBadgeClassName,
+                      !isActive && inactiveBadgeClassName,
+                    )}
+                  >
+                    {item.badge}
+                  </TabBadge>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // underline variant (default)
   return (
     <div
       ref={viewportRef}
       className={cn(
-        // Full-width scroll viewport; hide native scrollbars across browsers
-        "w-full overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        "w-full overflow-x-auto border-b border-neutral-200 dark:border-neutral-800 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         containerClassName,
       )}
     >
       <div
         role="tablist"
         aria-label={ariaLabel}
-        className={cn(
-          // Track fills the viewport minimum; grows with content when crowded
-          "flex w-full min-w-max gap-1 rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800",
-          trackClassName,
-        )}
+        className={cn("flex min-w-max", trackClassName)}
       >
         {items.map((item) => {
           const isActive = value === item.id;
-          const Icon = item.icon;
-
           return (
             <button
               key={item.id}
               type="button"
               role="tab"
               aria-selected={isActive}
-              aria-pressed={isActive}
               onClick={() => onChange(item.id)}
               ref={isActive ? activeItemRef : undefined}
               className={cn(
-                // flex-1 distributes free space; min-w-max prevents shrinking
-                // below content width (pushing overflow onto the viewport).
-                "flex flex-1 min-w-max items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-6 py-1.5 text-sm font-medium transition-all duration-150",
+                "relative flex items-center gap-1.5 whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors duration-150",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-1 rounded-t-sm",
                 isActive
-                  ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-neutral-100"
+                  ? "text-neutral-900 dark:text-neutral-100"
                   : "text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300",
                 isActive && activeItemClassName,
                 !isActive && inactiveItemClassName,
                 itemClassName,
               )}
             >
-              {Icon &&
-                (isValidElement(Icon) ? (
-                  <span
-                    className={cn(
-                      "inline-flex shrink-0 text-current",
-                      iconClassName,
-                      isActive && activeIconClassName,
-                    )}
-                    aria-hidden
-                  >
-                    {Icon}
-                  </span>
-                ) : (
-                  <Icon
-                    size={13}
-                    className={cn(
-                      "shrink-0 text-current",
-                      iconClassName,
-                      isActive && activeIconClassName,
-                    )}
-                    aria-hidden
-                  />
-                ))}
+              {item.icon && (
+                <TabIcon
+                  icon={item.icon}
+                  className={cn(iconClassName, isActive && activeIconClassName)}
+                />
+              )}
               <span>{item.label}</span>
               {item.badge != null && (
-                <span
+                <TabBadge
                   className={cn(
-                    "shrink-0 px-1.5 py-px rounded-full text-[10px] font-bold tabular-nums leading-none",
                     isActive
                       ? "bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300"
                       : "bg-neutral-200 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400",
@@ -155,7 +228,13 @@ export function SegmentedTabs<T extends string>({
                   )}
                 >
                   {item.badge}
-                </span>
+                </TabBadge>
+              )}
+              {isActive && (
+                <span
+                  aria-hidden
+                  className="absolute bottom-0 inset-x-0 h-0.5 bg-primary-500 rounded-t-full"
+                />
               )}
             </button>
           );
