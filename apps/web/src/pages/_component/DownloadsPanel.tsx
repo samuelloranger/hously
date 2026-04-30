@@ -22,12 +22,12 @@ const SPEED_RING_SIZE = 60;
 
 type SpeedSample = { dl: number; ul: number };
 
-type PayloadEntry = { dataKey?: string; value?: number };
+type PayloadEntry = { dataKey?: string | number; value?: number };
 
 function SpeedTooltip({
   active,
   payload,
-}: { active?: boolean; payload?: readonly any[] }) {
+}: { active?: boolean; payload?: ReadonlyArray<PayloadEntry> }) {
   if (!active || !payload?.length) return null;
   const dl = payload.find((p: PayloadEntry) => p.dataKey === "dl");
   const ul = payload.find((p: PayloadEntry) => p.dataKey === "ul");

@@ -52,10 +52,12 @@ function formatDateShort(iso: string): string {
 
 // ─── Shared chart tooltip ─────────────────────────────────────────────────────
 
+type ChartEntry = { name?: string | number; value?: number; color?: string; fill?: string; payload?: { label?: string } };
+
 function ChartTooltip({
   active,
   payload,
-}: { active?: boolean; payload?: readonly any[] }) {
+}: { active?: boolean; payload?: ReadonlyArray<ChartEntry> }) {
   if (!active || !payload?.length) return null;
   const label = payload[0]?.payload?.label as string | undefined;
   return (
@@ -65,7 +67,7 @@ function ChartTooltip({
       )}
       {payload.map(
         (
-          p: { name?: string; value?: number; color?: string; fill?: string },
+          p: ChartEntry,
           i: number,
         ) => (
           <p

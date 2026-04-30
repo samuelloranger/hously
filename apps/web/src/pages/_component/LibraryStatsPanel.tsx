@@ -26,10 +26,12 @@ function KpiRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+type ChartEntry = { name?: string | number; value?: number; color?: string; fill?: string; payload?: { name?: string | number } };
+
 function LibraryChartTooltip({
   active,
   payload,
-}: { active?: boolean; payload?: readonly any[] }) {
+}: { active?: boolean; payload?: ReadonlyArray<ChartEntry> }) {
   if (!active || !payload?.length) return null;
   const label = (payload[0]?.payload?.name ?? payload[0]?.name) as
     | string
@@ -41,7 +43,7 @@ function LibraryChartTooltip({
       )}
       {payload.map(
         (
-          p: { name?: string; value?: number; color?: string; fill?: string },
+          p: ChartEntry,
           i: number,
         ) => (
           <p

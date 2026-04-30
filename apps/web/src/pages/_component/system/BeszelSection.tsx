@@ -13,9 +13,19 @@ const SYS_RING_SIZE = 60;
 
 type SysSample = { cpu: number; ram: number };
 
-type SysPayloadEntry = { name?: string; value?: number; color?: string };
+type SysPayloadEntry = {
+  name?: string | number;
+  value?: number;
+  color?: string;
+};
 
-function SysTooltip({ active, payload }: { active?: boolean; payload?: readonly any[] }) {
+function SysTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: ReadonlyArray<SysPayloadEntry>;
+}) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5">
