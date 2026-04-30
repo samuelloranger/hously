@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Film, ChevronRight } from "lucide-react";
+import type { TooltipContentProps } from "recharts";
 import {
   BarChart,
   Bar,
@@ -26,12 +27,7 @@ function KpiRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-type ChartEntry = { name?: string | number; value?: number; color?: string; fill?: string; payload?: { name?: string | number } };
-
-function LibraryChartTooltip({
-  active,
-  payload,
-}: { active?: boolean; payload?: ReadonlyArray<ChartEntry> }) {
+function LibraryChartTooltip({ active, payload }: TooltipContentProps<number | string | ReadonlyArray<number | string>, number | string>) {
   if (!active || !payload?.length) return null;
   const label = (payload[0]?.payload?.name ?? payload[0]?.name) as
     | string
@@ -42,10 +38,7 @@ function LibraryChartTooltip({
         <p className="text-zinc-500 dark:text-zinc-400 mb-0.5">{label}</p>
       )}
       {payload.map(
-        (
-          p: ChartEntry,
-          i: number,
-        ) => (
+        (p, i) => (
           <p
             key={i}
             className="font-semibold tabular-nums"

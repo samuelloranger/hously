@@ -12,6 +12,7 @@ import {
   Tv,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import type { TooltipContentProps } from "recharts";
 import {
   AreaChart,
   Area,
@@ -52,12 +53,7 @@ function formatDateShort(iso: string): string {
 
 // ─── Shared chart tooltip ─────────────────────────────────────────────────────
 
-type ChartEntry = { name?: string | number; value?: number; color?: string; fill?: string; payload?: { label?: string } };
-
-function ChartTooltip({
-  active,
-  payload,
-}: { active?: boolean; payload?: ReadonlyArray<ChartEntry> }) {
+function ChartTooltip({ active, payload }: TooltipContentProps<number | string | ReadonlyArray<number | string>, number | string>) {
   if (!active || !payload?.length) return null;
   const label = payload[0]?.payload?.label as string | undefined;
   return (
@@ -66,10 +62,7 @@ function ChartTooltip({
         <p className="text-neutral-500 dark:text-neutral-400 mb-0.5">{label}</p>
       )}
       {payload.map(
-        (
-          p: ChartEntry,
-          i: number,
-        ) => (
+        (p, i) => (
           <p
             key={i}
             className="font-semibold tabular-nums"

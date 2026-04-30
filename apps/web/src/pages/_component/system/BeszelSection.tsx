@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, Server } from "lucide-react";
+import type { TooltipContentProps } from "recharts";
 import { AreaChart, Area, Tooltip, ResponsiveContainer } from "recharts";
 
 import { useDashboardSystemSummary } from "@/pages/_component/useDashboardSystem";
@@ -13,23 +14,12 @@ const SYS_RING_SIZE = 60;
 
 type SysSample = { cpu: number; ram: number };
 
-type SysPayloadEntry = {
-  name?: string | number;
-  value?: number;
-  color?: string;
-};
 
-function SysTooltip({
-  active,
-  payload,
-}: {
-  active?: boolean;
-  payload?: ReadonlyArray<SysPayloadEntry>;
-}) {
+function SysTooltip({ active, payload }: TooltipContentProps<number | string | ReadonlyArray<number | string>, number | string>) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5">
-      {payload.map((p: SysPayloadEntry, i: number) => (
+      {payload.map((p, i) => (
         <p
           key={i}
           className="font-semibold tabular-nums"

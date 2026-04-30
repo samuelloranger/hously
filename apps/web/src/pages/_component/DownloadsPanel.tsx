@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Pin, PinOff, ArrowDown, ArrowUp, Clock, Download } from "lucide-react";
+import type { TooltipContentProps } from "recharts";
 import { AreaChart, Area, Tooltip, ResponsiveContainer } from "recharts";
 
 import {
@@ -22,15 +23,11 @@ const SPEED_RING_SIZE = 60;
 
 type SpeedSample = { dl: number; ul: number };
 
-type PayloadEntry = { dataKey?: string | number; value?: number };
 
-function SpeedTooltip({
-  active,
-  payload,
-}: { active?: boolean; payload?: ReadonlyArray<PayloadEntry> }) {
+function SpeedTooltip({ active, payload }: TooltipContentProps<number | string | ReadonlyArray<number | string>, number | string>) {
   if (!active || !payload?.length) return null;
-  const dl = payload.find((p: PayloadEntry) => p.dataKey === "dl");
-  const ul = payload.find((p: PayloadEntry) => p.dataKey === "ul");
+  const dl = payload.find((p) => p.dataKey === "dl");
+  const ul = payload.find((p) => p.dataKey === "ul");
   return (
     <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5">
       {dl && (
