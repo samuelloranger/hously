@@ -8,7 +8,7 @@ import {
 } from "@headlessui/react";
 import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
-import { EditChoreForm } from "@/pages/chores/_component/EditChoreForm";
+import { ChoreForm } from "@/pages/chores/_component/ChoreForm";
 import { ImageModal } from "@/components/ImageModal";
 import type { Chore, ChoreUser } from "@hously/shared/types";
 import { getChoreImageUrl } from "@/lib/utils/media";
@@ -78,7 +78,7 @@ export function EditChoreModal({
                   </button>
                 </div>
 
-                <EditChoreForm
+                <ChoreForm
                   chore={chore}
                   users={users}
                   onClose={onClose}

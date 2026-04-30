@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
-import { CreateHabitRequest } from "@hously/shared/types";
+import {
+  CreateHabitRequest,
+  Habit,
+  UpdateHabitRequest,
+} from "@hously/shared/types";
 import { EmojiPicker } from "@/pages/habits/_component/EmojiPicker";
 import { ScheduleTimePicker } from "@/pages/habits/_component/ScheduleTimePicker";
 import {
@@ -11,34 +15,65 @@ import {
 } from "@/components/ui/popover";
 import { FormInput, FormTextarea } from "@/components/ui/form-field";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-interface CreateHabitFormProps {
-  onSubmit: (data: CreateHabitRequest) => void;
-  isLoading?: boolean;
+type HabitFormProps =
+  | {
+      habit?: undefined;
+      onSubmit: (data: CreateHabitRequest) => void;
+      isLoading?: boolean;
+    }
+  | {
+      habit: Habit;
+      onSubmit: (data: UpdateHabitRequest) => void;
+      isLoading?: boolean;
+    };
+
+interface HabitFormFields {
+  name: string;
+  description?: string;
 }
 
-export const CreateHabitForm: React.FC<CreateHabitFormProps> = ({
+export const HabitForm: React.FC<HabitFormProps> = ({
+  habit,
   onSubmit,
   isLoading,
 }) => {
   const { t } = useTranslation("common");
-  const [selectedEmoji, setSelectedEmoji] = useState("💧");
-  const [times, setTimes] = useState<string[]>(["08:00"]);
+  const isEdit = habit !== undefined;
+
+  const [selectedEmoji, setSelectedEmoji] = useState(habit?.emoji ?? "💧");
+  const [times, setTimes] = useState<string[]>(
+    habit ? habit.schedules.map((s) => s.time) : ["08:00"],
+  );
+  const [isActive, setIsActive] = useState(habit?.active ?? true);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<Omit<CreateHabitRequest, "emoji" | "schedules">>();
+  } = useForm<HabitFormFields>({
+    defaultValues: {
+      name: habit?.name ?? "",
+      description: habit?.description ?? "",
+    },
+  });
 
-  const handleFormSubmit = (
-    data: Omit<CreateHabitRequest, "emoji" | "schedules">,
-  ) => {
-    onSubmit({
-      ...data,
-      emoji: selectedEmoji,
-      schedules: times,
-    });
+  const handleFormSubmit = (data: HabitFormFields) => {
+    if (isEdit) {
+      (onSubmit as (data: UpdateHabitRequest) => void)({
+        ...data,
+        emoji: selectedEmoji,
+        schedules: times,
+        active: isActive,
+      });
+    } else {
+      (onSubmit as (data: CreateHabitRequest) => void)({
+        ...data,
+        emoji: selectedEmoji,
+        schedules: times,
+      });
+    }
   };
 
   return (
@@ -97,9 +132,32 @@ export const CreateHabitForm: React.FC<CreateHabitFormProps> = ({
         </div>
       </div>
 
+      {isEdit && (
+        <div className="flex items-center gap-3 py-2 px-1">
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div
+              className={cn(
+                "w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-neutral-600 peer-checked:bg-primary-600",
+              )}
+            />
+          </label>
+          <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            {isActive ? t("habits.active") : t("habits.inactive")}
+          </span>
+        </div>
+      )}
+
       <div className="flex justify-end pt-2">
         <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-          {isLoading ? t("common.creating") : t("habits.addHabit")}
+          {isLoading
+            ? t(isEdit ? "common.updating" : "common.creating")
+            : t(isEdit ? "habits.editHabit" : "habits.addHabit")}
         </Button>
       </div>
     </form>

@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/dialog";
-import { EditHabitForm } from "@/pages/habits/_component/EditHabitForm";
+import { HabitForm } from "@/pages/habits/_component/HabitForm";
 import { useUpdateHabit } from "@/pages/habits/useHabits";
 import type { Habit, UpdateHabitRequest } from "@hously/shared/types";
 import { toast } from "sonner";
@@ -43,7 +43,7 @@ export const EditHabitModal: React.FC<EditHabitModalProps> = ({
       showCloseButton
     >
       <div className="p-1">
-        <EditHabitForm
+        <HabitForm
           habit={habit}
           onSubmit={handleSubmit}
           isLoading={updateHabit.isPending}
