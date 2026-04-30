@@ -12,6 +12,18 @@ import {
   Tv,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import type { TooltipContentProps } from "recharts";
+import {
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  XAxis,
+} from "recharts";
+
 import {
   useGlobalDownloadHistory,
   useDownloadHistoryStats,
@@ -34,7 +46,38 @@ function formatRelativeShort(isoString: string): string {
   return `${Math.floor(hrs / 24)}d`;
 }
 
-// ─── Stats section ─────────────────────────────────────────────────────────────
+function formatDateShort(iso: string): string {
+  const d = new Date(iso);
+  return `${d.toLocaleString("default", { month: "short" })} ${d.getDate()}`;
+}
+
+// ─── Shared chart tooltip ─────────────────────────────────────────────────────
+
+function ChartTooltip({ active, payload }: TooltipContentProps<number | string | ReadonlyArray<number | string>, number | string>) {
+  if (!active || !payload?.length) return null;
+  const label = payload[0]?.payload?.label as string | undefined;
+  return (
+    <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 shadow-sm text-[11px]">
+      {label && (
+        <p className="text-neutral-500 dark:text-neutral-400 mb-0.5">{label}</p>
+      )}
+      {payload.map(
+        (p, i) => (
+          <p
+            key={i}
+            className="font-semibold tabular-nums"
+            style={{ color: String(p.color ?? p.fill) }}
+          >
+            {p.name ? `${p.name}: ` : ""}
+            {p.value}
+          </p>
+        ),
+      )}
+    </div>
+  );
+}
+
+// ─── Stats section components ─────────────────────────────────────────────────
 
 function StatCard({
   label,
@@ -85,23 +128,127 @@ function IndexerBar({
   );
 }
 
-function DaySparkline({ data }: { data: { date: string; count: number }[] }) {
-  const max = Math.max(...data.map((d) => d.count), 1);
+function GrabsAreaChart({ data }: { data: { date: string; count: number }[] }) {
+  const chartData = data.map((d) => ({ ...d, label: formatDateShort(d.date) }));
   return (
-    <div className="flex items-end gap-0.5 h-8">
-      {data.map((d) => (
-        <div
-          key={d.date}
-          className="flex-1 rounded-sm bg-sky-400 dark:bg-sky-500 transition-all duration-300 min-h-[2px]"
-          style={{
-            height: `${Math.max(4, Math.round((d.count / max) * 32))}px`,
-          }}
-          title={`${d.date}: ${d.count}`}
-        />
-      ))}
+    <div className="h-14 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={chartData}
+          margin={{ top: 4, right: 0, left: 0, bottom: 0 }}
+        >
+          <defs>
+            <linearGradient id="grabGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.35} />
+              <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="label" hide />
+          <Tooltip
+            content={ChartTooltip}
+            cursor={{
+              stroke: "#38bdf8",
+              strokeWidth: 1,
+              strokeDasharray: "3 3",
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey="count"
+            name="Grabs"
+            stroke="#38bdf8"
+            fill="url(#grabGradient)"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 3, fill: "#38bdf8", strokeWidth: 0 }}
+            isAnimationActive={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }
+
+function GrabStatusDonut({
+  completed,
+  failed,
+  active,
+}: {
+  completed: number;
+  failed: number;
+  active: number;
+}) {
+  const { t } = useTranslation("common");
+  const segments = [
+    {
+      name: t("medias.history.grabStatusCompleted"),
+      value: completed,
+      color: "#10b981",
+    },
+    {
+      name: t("medias.history.grabStatusFailed"),
+      value: failed,
+      color: "#f43f5e",
+    },
+    {
+      name: t("medias.history.grabStatusActive"),
+      value: active,
+      color: "#38bdf8",
+    },
+  ].filter((s) => s.value > 0);
+
+  if (segments.length === 0) return null;
+
+  return (
+    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3">
+      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400 mb-3">
+        {t("medias.history.grabStatus")}
+      </p>
+      <div className="flex items-center gap-4">
+        <div className="h-20 w-20 shrink-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={segments}
+                dataKey="value"
+                innerRadius="55%"
+                outerRadius="85%"
+                strokeWidth={0}
+                paddingAngle={2}
+                startAngle={90}
+                endAngle={-270}
+                isAnimationActive={false}
+              >
+                {segments.map((s, i) => (
+                  <Cell key={i} fill={s.color} />
+                ))}
+              </Pie>
+              <Tooltip content={ChartTooltip} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="space-y-1.5 min-w-0">
+          {segments.map((s) => (
+            <div key={s.name} className="flex items-center gap-2">
+              <span
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: s.color }}
+              />
+              <span className="text-xs text-neutral-600 dark:text-neutral-300 truncate">
+                {s.name}
+              </span>
+              <span className="ml-auto font-mono text-xs font-semibold tabular-nums text-neutral-800 dark:text-neutral-100 pl-2">
+                {s.value.toLocaleString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Stats section ─────────────────────────────────────────────────────────────
 
 function StatsSection() {
   const { t } = useTranslation("common");
@@ -110,37 +257,49 @@ function StatsSection() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-20 rounded-xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
-          />
-        ))}
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-20 rounded-xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+            />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="h-28 rounded-xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+            />
+          ))}
+        </div>
       </div>
     );
   }
   if (!stats) return null;
 
   const maxIndexerCount = stats.top_indexers[0]?.count ?? 1;
+  const totalForChart =
+    stats.completed_grabs + stats.failed_grabs + stats.active_grabs;
 
   return (
     <div className="space-y-4">
-      {/* Key metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* Key metrics — 5 cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <StatCard
           label={t("medias.history.statTotal")}
-          value={stats.total_grabs}
+          value={stats.total_grabs.toLocaleString()}
           color="text-neutral-800 dark:text-neutral-100"
         />
         <StatCard
-          label={t("medias.history.statSuccessRate")}
-          value={stats.success_rate !== null ? `${stats.success_rate}%` : "—"}
+          label={t("medias.history.statCompleted")}
+          value={stats.completed_grabs.toLocaleString()}
           color="text-emerald-600 dark:text-emerald-400"
         />
         <StatCard
           label={t("medias.history.statFailed")}
-          value={stats.failed_grabs}
+          value={stats.failed_grabs.toLocaleString()}
           color={
             stats.failed_grabs > 0
               ? "text-rose-600 dark:text-rose-400"
@@ -149,14 +308,27 @@ function StatsSection() {
         />
         <StatCard
           label={t("medias.history.statActive")}
-          value={stats.active_grabs}
+          value={stats.active_grabs.toLocaleString()}
           color="text-sky-600 dark:text-sky-400"
+        />
+        <StatCard
+          label={t("medias.history.statSuccessRate")}
+          value={stats.success_rate !== null ? `${stats.success_rate}%` : "—"}
+          color={
+            stats.success_rate != null && stats.success_rate >= 80
+              ? "text-emerald-600 dark:text-emerald-400"
+              : stats.success_rate != null && stats.success_rate >= 50
+                ? "text-amber-600 dark:text-amber-400"
+                : "text-neutral-800 dark:text-neutral-100"
+          }
         />
       </div>
 
-      {/* Top indexers + sparkline */}
-      {(stats.top_indexers.length > 0 || stats.grabs_by_day.length > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* Charts row */}
+      {(stats.top_indexers.length > 0 ||
+        stats.grabs_by_day.length > 0 ||
+        totalForChart > 0) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {stats.top_indexers.length > 0 && (
             <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 space-y-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
@@ -181,12 +353,21 @@ function StatsSection() {
                 <Activity size={10} />
                 {t("medias.history.last14Days")}
               </p>
-              <DaySparkline data={stats.grabs_by_day} />
+              <GrabsAreaChart data={stats.grabs_by_day} />
               <p className="text-[10px] text-neutral-400 dark:text-neutral-500">
-                {stats.grabs_by_day.reduce((s, d) => s + d.count, 0)}{" "}
+                {stats.grabs_by_day
+                  .reduce((s, d) => s + d.count, 0)
+                  .toLocaleString()}{" "}
                 {t("medias.history.grabsInPeriod")}
               </p>
             </div>
+          )}
+          {totalForChart > 0 && (
+            <GrabStatusDonut
+              completed={stats.completed_grabs}
+              failed={stats.failed_grabs}
+              active={stats.active_grabs}
+            />
           )}
         </div>
       )}
@@ -237,7 +418,6 @@ function HistoryRow({
 
   return (
     <div className="px-4 py-3 flex items-start gap-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
-      {/* Media info */}
       <div className="min-w-0 flex-1 space-y-0.5">
         {item.media_title && (
           <div className="flex items-center gap-1.5">
@@ -274,7 +454,6 @@ function HistoryRow({
         )}
       </div>
 
-      {/* Right side */}
       <div className="flex flex-col items-end gap-1 shrink-0">
         {statusEl}
         <div className="flex items-center gap-2 text-[10px] text-neutral-400 dark:text-neutral-500">
