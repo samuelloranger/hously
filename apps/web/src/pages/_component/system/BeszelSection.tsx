@@ -1,11 +1,81 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, Server } from "lucide-react";
+import { AreaChart, Area, Tooltip, ResponsiveContainer } from "recharts";
+
 import { useDashboardSystemSummary } from "@/pages/_component/useDashboardSystem";
 import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 import type { DashboardBeszelSummaryResponse } from "@hously/shared/types";
 import { useEventSourceState } from "@/lib/realtime/useEventSourceState";
 import { SectionTitle, MetricRow, MiniBar, pctFmt, mbps, gb } from "./shared";
+
+const SYS_RING_SIZE = 60;
+
+type SysSample = { cpu: number; ram: number };
+
+type SysPayloadEntry = { name?: string; value?: number; color?: string };
+
+function SysTooltip({ active, payload }: { active?: boolean; payload?: readonly any[] }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5">
+      {payload.map((p: SysPayloadEntry, i: number) => (
+        <p
+          key={i}
+          className="font-semibold tabular-nums"
+          style={{ color: String(p.color) }}
+        >
+          {p.name}: {Number(p.value).toFixed(0)}%
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function TrendChart({
+  data,
+  dataKey,
+  color,
+  gradientId,
+}: {
+  data: SysSample[];
+  dataKey: keyof SysSample;
+  color: string;
+  gradientId: string;
+}) {
+  if (data.length < 3) return null;
+  return (
+    <div className="h-8 w-full mt-0.5 mb-1">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={data}
+          margin={{ top: 2, right: 0, left: 0, bottom: 0 }}
+        >
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.25} />
+              <stop offset="95%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Tooltip
+            content={SysTooltip}
+            cursor={{ stroke: color, strokeWidth: 1, strokeDasharray: "3 3" }}
+          />
+          <Area
+            type="monotone"
+            dataKey={dataKey}
+            name={dataKey === "cpu" ? "CPU" : "RAM"}
+            stroke={color}
+            fill={`url(#${gradientId})`}
+            strokeWidth={1.5}
+            dot={false}
+            isAnimationActive={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 export function BeszelSection() {
   const { t } = useTranslation("common");
@@ -16,6 +86,21 @@ export function BeszelSection() {
     initialData: fallback,
     onParseError: (err) => console.error("beszel stream", err),
   });
+
+  const ringRef = useRef<SysSample[]>([]);
+  const [sysHistory, setSysHistory] = useState<SysSample[]>([]);
+
+  useEffect(() => {
+    if (!data?.summary) return;
+    const s = data.summary;
+    if (s.cpu_percent == null && s.ram_used_percent == null) return;
+    const next = [
+      ...ringRef.current.slice(-(SYS_RING_SIZE - 1)),
+      { cpu: s.cpu_percent ?? 0, ram: s.ram_used_percent ?? 0 },
+    ];
+    ringRef.current = next;
+    setSysHistory(next);
+  }, [data]);
 
   if (!data?.enabled || !data?.connected) return null;
   const s = data.summary;
@@ -47,6 +132,12 @@ export function BeszelSection() {
             status={s.cpu_percent > 85 ? "warn" : "ok"}
           />
           <MiniBar pct={s.cpu_percent} accent="bg-violet-500" />
+          <TrendChart
+            data={sysHistory}
+            dataKey="cpu"
+            color="#8b5cf6"
+            gradientId="cpuGradient"
+          />
           {s.cpu_name && (
             <p className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate -mt-0.5 mb-1">
               {s.cpu_name}
@@ -68,6 +159,12 @@ export function BeszelSection() {
             status={s.ram_used_percent > 90 ? "warn" : "ok"}
           />
           <MiniBar pct={s.ram_used_percent} accent="bg-violet-400" />
+          <TrendChart
+            data={sysHistory}
+            dataKey="ram"
+            color="#a78bfa"
+            gradientId="ramGradient"
+          />
         </>
       )}
 

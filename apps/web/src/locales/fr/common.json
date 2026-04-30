@@ -334,7 +334,12 @@
         "wanted": "Recherchés",
         "returningSeries": "Séries en cours",
         "storageUsed": "Stockage utilisé",
-        "loadError": "Échec du chargement des statistiques"
+        "loadError": "Échec du chargement des statistiques",
+        "mediaTypeSplit": "Films & Séries",
+        "storageByQuality": "Stockage par qualité",
+        "movies": "Films",
+        "shows": "Séries",
+        "downloadedVsWanted": "Téléchargés vs recherchés"
       }
     },
     "subtexts": {
@@ -370,6 +375,19 @@
       "toastFound_other": "RSS : {{count}} releases trouvées",
       "toastNone": "RSS : aucune nouvelle release",
       "openLibraryLink": "Ouvrir la médiathèque"
+    },
+    "libraryStats": {
+      "title": "Bibliothèque",
+      "openLibrary": "Ouvrir la bibliothèque",
+      "downloaded": "Téléchargé",
+      "wanted": "Recherché",
+      "returningSeries": "Séries en cours",
+      "storageUsed": "Stockage utilisé",
+      "loadError": "Impossible de charger les stats",
+      "mediaTypeSplit": "Type de média",
+      "movies": "Films",
+      "shows": "Séries",
+      "storageByQuality": "Stockage par qualité"
     }
   },
   "login": {
@@ -1584,12 +1602,17 @@
       "tabLibrary": "Bibliothèque",
       "tabHistory": "Historique",
       "statTotal": "Téléchargements",
+      "statCompleted": "Complétés",
       "statSuccessRate": "Taux de succès",
       "statFailed": "Échecs",
       "statActive": "En cours",
       "topIndexers": "Top indexeurs",
       "last14Days": "14 derniers jours",
       "grabsInPeriod": "téléchargements sur la période",
+      "grabStatus": "Statut des téléchargements",
+      "grabStatusCompleted": "Complétés",
+      "grabStatusFailed": "Échoués",
+      "grabStatusActive": "En cours",
       "statusAll": "Tous",
       "statusCompleted": "Terminés",
       "statusFailed": "Échoués",

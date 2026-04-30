@@ -334,7 +334,12 @@
         "wanted": "Wanted",
         "returningSeries": "Returning Series",
         "storageUsed": "Storage Used",
-        "loadError": "Failed to load library stats"
+        "loadError": "Failed to load library stats",
+        "mediaTypeSplit": "Movies & Shows",
+        "storageByQuality": "Storage by Quality",
+        "movies": "Movies",
+        "shows": "Shows",
+        "downloadedVsWanted": "Downloaded vs Wanted"
       }
     },
     "subtexts": {
@@ -370,6 +375,19 @@
       "toastFound_other": "RSS: {{count}} releases found",
       "toastNone": "RSS: no new releases",
       "openLibraryLink": "Open media library"
+    },
+    "libraryStats": {
+      "title": "Library",
+      "openLibrary": "Open library",
+      "downloaded": "Downloaded",
+      "wanted": "Wanted",
+      "returningSeries": "Returning series",
+      "storageUsed": "Storage used",
+      "loadError": "Failed to load library stats",
+      "mediaTypeSplit": "Media type",
+      "movies": "Movies",
+      "shows": "Shows",
+      "storageByQuality": "Storage by quality"
     }
   },
   "login": {
@@ -1584,12 +1602,17 @@
       "tabLibrary": "Library",
       "tabHistory": "History",
       "statTotal": "Total Grabs",
+      "statCompleted": "Completed",
       "statSuccessRate": "Success Rate",
       "statFailed": "Failed",
       "statActive": "Active",
       "topIndexers": "Top Indexers",
       "last14Days": "Last 14 Days",
       "grabsInPeriod": "grabs in period",
+      "grabStatus": "Grab Status",
+      "grabStatusCompleted": "Completed",
+      "grabStatusFailed": "Failed",
+      "grabStatusActive": "Active",
       "statusAll": "All",
       "statusCompleted": "Completed",
       "statusFailed": "Failed",

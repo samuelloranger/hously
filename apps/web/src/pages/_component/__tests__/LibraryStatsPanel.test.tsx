@@ -12,16 +12,17 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => {
       const labels: Record<string, string> = {
-        "dashboard.home.libraryStats.title": "Library stats",
-        "dashboard.home.libraryStats.openLibrary": "Library",
-        "dashboard.home.libraryStats.totalMovies": "Total Movies",
-        "dashboard.home.libraryStats.totalShows": "Total Shows",
-        "dashboard.home.libraryStats.downloaded": "Downloaded",
-        "dashboard.home.libraryStats.wanted": "Wanted",
-
-        "dashboard.home.libraryStats.returningSeries": "Returning Series",
-        "dashboard.home.libraryStats.storageUsed": "Storage Used",
-        "dashboard.home.libraryStats.loadError": "Failed to load library stats",
+        "dashboard.libraryStats.title": "Library stats",
+        "dashboard.libraryStats.openLibrary": "Library",
+        "dashboard.libraryStats.downloaded": "Downloaded",
+        "dashboard.libraryStats.wanted": "Wanted",
+        "dashboard.libraryStats.returningSeries": "Returning Series",
+        "dashboard.libraryStats.storageUsed": "Storage Used",
+        "dashboard.libraryStats.loadError": "Failed to load library stats",
+        "dashboard.libraryStats.mediaTypeSplit": "Media type",
+        "dashboard.libraryStats.movies": "Movies",
+        "dashboard.libraryStats.shows": "Shows",
+        "dashboard.libraryStats.storageByQuality": "Storage by quality",
       };
       return labels[key] ?? key;
     },
@@ -49,9 +50,7 @@ describe("LibraryStatsPanel", () => {
           wanted: 7,
           returning_series: 3,
           storage_used_bytes: 1099511627776,
-          counts_by_status_type: [],
           storage_by_resolution: [],
-          shows_by_tmdb_status: [],
         },
       },
       isLoading: false,
@@ -59,11 +58,13 @@ describe("LibraryStatsPanel", () => {
     });
 
     renderWithProviders(<LibraryStatsPanel />);
-    expect(screen.getByText("Total Movies")).toBeInTheDocument();
+    expect(screen.getByText("Downloaded")).toBeInTheDocument();
+    expect(screen.getByText("Wanted")).toBeInTheDocument();
+    expect(screen.getByText("Returning Series")).toBeInTheDocument();
     expect(screen.getByText("Storage Used")).toBeInTheDocument();
-    expect(screen.getByText("10")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("8")).toBeInTheDocument();
     expect(screen.getByText("7")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
   });
 
   it("shows loading placeholders", () => {
