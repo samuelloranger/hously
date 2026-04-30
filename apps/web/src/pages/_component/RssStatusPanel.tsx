@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Rss, CheckCircle2, XCircle, Loader2, RefreshCw } from "lucide-react";
@@ -24,7 +24,10 @@ function useRssStatus(refetchInterval = 15_000) {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatRelative(isoString: string, now: number): string {
-  const diff = Math.round((now - new Date(isoString).getTime()) / 1000);
+  const diff = Math.max(
+    0,
+    Math.round((now - new Date(isoString).getTime()) / 1000),
+  );
   if (diff < 60) return `${diff}s ago`;
   const mins = Math.floor(diff / 60);
   if (mins < 60) return `${mins}m ago`;
@@ -68,11 +71,25 @@ export function RssStatusPanel() {
   const completedAt = lastRun?.completed_at ?? null;
   const releasesFound = lastRun?.releases_found ?? 0;
 
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
+  const clockOffsetRef = useRef(0);
+  const [alignedNow, setAlignedNow] = useState(0);
+
+  useLayoutEffect(() => {
+    const tick = () => {
+      setAlignedNow(Date.now() + clockOffsetRef.current);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (!data?.server_time) return;
+    clockOffsetRef.current = new Date(data.server_time).getTime() - Date.now();
+    setAlignedNow(Date.now() + clockOffsetRef.current);
+  }, [data?.server_time]);
+
+  const now = alignedNow;
 
   useEffect(() => {
     return () => {
@@ -106,7 +123,7 @@ export function RssStatusPanel() {
       }),
     onSuccess: () => {
       setIsPolling(true);
-      setTriggeredAt(Date.now());
+      setTriggeredAt(Date.now() + clockOffsetRef.current);
       pollingTimeoutRef.current = setTimeout(() => setIsPolling(false), 60_000);
     },
   });

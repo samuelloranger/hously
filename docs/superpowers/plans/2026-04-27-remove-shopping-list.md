@@ -12,44 +12,45 @@
 
 ## File Map
 
-| Action | Path |
-|--------|------|
-| Delete | `apps/api/src/routes/shopping/index.ts` |
-| Delete | `apps/api/test/shopping.test.ts` |
-| Delete | `apps/shared/src/types/shopping.ts` |
-| Delete | `apps/web/src/pages/shopping/` (whole directory) |
-| Delete | `apps/web/src/lib/endpoints/shopping.ts` |
-| Modify | `apps/api/src/index.ts` |
-| Modify | `apps/api/src/utils/activityLogs.ts` |
-| Modify | `apps/api/src/routes/analytics/index.ts` |
-| Modify | `apps/api/src/routes/admin/index.ts` |
-| Modify | `apps/api/src/routes/dashboard/stats/index.ts` |
-| Modify | `apps/api/src/routes/dashboard/activities/index.ts` |
-| Modify | `apps/api/src/routes/search/index.ts` |
-| Modify | `apps/shared/src/types/dashboard.ts` |
-| Modify | `apps/web/src/lib/endpoints/index.ts` |
-| Modify | `apps/web/src/lib/queryKeys.ts` |
-| Modify | `apps/web/src/lib/routing/navigation.ts` |
-| Modify | `apps/web/src/lib/routing/prefetch.ts` |
-| Modify | `apps/web/src/components/RouteDataRefetcher.tsx` |
-| Modify | `apps/web/src/components/NotificationMenuRow.tsx` |
-| Modify | `apps/web/src/components/QuickActionPalette.tsx` |
-| Modify | `apps/web/src/pages/_component/HomePage.tsx` |
-| Modify | `apps/web/src/pages/_component/GreetingCard.tsx` |
-| Modify | `apps/web/src/pages/settings/_component/DataExportTab.tsx` |
-| Modify | `apps/web/src/pages/privacy.tsx` |
-| Modify | `apps/web/src/pages/settings/useAdmin.ts` |
-| Modify | `apps/web/src/test-utils/mocks.ts` |
-| Modify | `apps/web/src/locales/en/common.json` |
-| Modify | `apps/web/src/locales/fr/common.json` |
-| Modify | `apps/api/prisma/schema.prisma` |
-| Generate | `apps/web/src/routeTree.gen.ts` (auto via `bun run dev`) |
+| Action   | Path                                                       |
+| -------- | ---------------------------------------------------------- |
+| Delete   | `apps/api/src/routes/shopping/index.ts`                    |
+| Delete   | `apps/api/test/shopping.test.ts`                           |
+| Delete   | `apps/shared/src/types/shopping.ts`                        |
+| Delete   | `apps/web/src/pages/shopping/` (whole directory)           |
+| Delete   | `apps/web/src/lib/endpoints/shopping.ts`                   |
+| Modify   | `apps/api/src/index.ts`                                    |
+| Modify   | `apps/api/src/utils/activityLogs.ts`                       |
+| Modify   | `apps/api/src/routes/analytics/index.ts`                   |
+| Modify   | `apps/api/src/routes/admin/index.ts`                       |
+| Modify   | `apps/api/src/routes/dashboard/stats/index.ts`             |
+| Modify   | `apps/api/src/routes/dashboard/activities/index.ts`        |
+| Modify   | `apps/api/src/routes/search/index.ts`                      |
+| Modify   | `apps/shared/src/types/dashboard.ts`                       |
+| Modify   | `apps/web/src/lib/endpoints/index.ts`                      |
+| Modify   | `apps/web/src/lib/queryKeys.ts`                            |
+| Modify   | `apps/web/src/lib/routing/navigation.ts`                   |
+| Modify   | `apps/web/src/lib/routing/prefetch.ts`                     |
+| Modify   | `apps/web/src/components/RouteDataRefetcher.tsx`           |
+| Modify   | `apps/web/src/components/NotificationMenuRow.tsx`          |
+| Modify   | `apps/web/src/components/QuickActionPalette.tsx`           |
+| Modify   | `apps/web/src/pages/_component/HomePage.tsx`               |
+| Modify   | `apps/web/src/pages/_component/GreetingCard.tsx`           |
+| Modify   | `apps/web/src/pages/settings/_component/DataExportTab.tsx` |
+| Modify   | `apps/web/src/pages/privacy.tsx`                           |
+| Modify   | `apps/web/src/pages/settings/useAdmin.ts`                  |
+| Modify   | `apps/web/src/test-utils/mocks.ts`                         |
+| Modify   | `apps/web/src/locales/en/common.json`                      |
+| Modify   | `apps/web/src/locales/fr/common.json`                      |
+| Modify   | `apps/api/prisma/schema.prisma`                            |
+| Generate | `apps/web/src/routeTree.gen.ts` (auto via `bun run dev`)   |
 
 ---
 
 ### Task 1: Delete shopping files
 
 **Files:**
+
 - Delete: `apps/api/src/routes/shopping/index.ts`
 - Delete: `apps/api/test/shopping.test.ts`
 - Delete: `apps/shared/src/types/shopping.ts`
@@ -78,6 +79,7 @@ git commit -m "chore(shopping): delete shopping route, types, page, and endpoint
 ### Task 2: Clean up API entry point and routes
 
 **Files:**
+
 - Modify: `apps/api/src/index.ts`
 - Modify: `apps/api/src/routes/analytics/index.ts`
 - Modify: `apps/api/src/routes/admin/index.ts`
@@ -87,10 +89,13 @@ git commit -m "chore(shopping): delete shopping route, types, page, and endpoint
 - [ ] **Step 1: Remove shoppingRoutes from `apps/api/src/index.ts`**
 
 Remove the import line:
+
 ```typescript
 import { shoppingRoutes } from "./routes/shopping";
 ```
+
 And remove the usage:
+
 ```typescript
   .use(shoppingRoutes)
 ```
@@ -102,10 +107,13 @@ Delete the entire block starting with the comment `// GET /api/analytics/shoppin
 - [ ] **Step 3: Remove shopping from the admin export/import in `apps/api/src/routes/admin/index.ts`**
 
 In the export handler, remove:
+
 ```typescript
 const allShoppingItems = await prisma.shoppingItem.findMany();
 ```
+
 And remove from the return object:
+
 ```typescript
 shopping_items: allShoppingItems.map((item) => ({
   ...item,
@@ -115,7 +123,9 @@ shopping_items: allShoppingItems.map((item) => ({
     : null,
 })),
 ```
+
 In the import body schema, remove:
+
 ```typescript
 shopping_items: t.Optional(t.Array(t.Any())),
 ```
@@ -123,6 +133,7 @@ shopping_items: t.Optional(t.Array(t.Any())),
 - [ ] **Step 4: Remove shoppingCount from `apps/api/src/routes/dashboard/stats/index.ts`**
 
 Remove:
+
 ```typescript
 const shoppingCount = await prisma.shoppingItem.count({
   where: {
@@ -131,7 +142,9 @@ const shoppingCount = await prisma.shoppingItem.count({
   },
 });
 ```
+
 And remove from the return object:
+
 ```typescript
 shopping_count: shoppingCount,
 ```
@@ -152,12 +165,14 @@ git commit -m "chore(shopping): remove shopping from API routes and analytics"
 ### Task 3: Clean up activityLogs utility and dashboard activities
 
 **Files:**
+
 - Modify: `apps/api/src/utils/activityLogs.ts`
 - Modify: `apps/api/src/routes/dashboard/activities/index.ts`
 
 - [ ] **Step 1: Remove shopping from `apps/api/src/utils/activityLogs.ts`**
 
 In the `ActivityType` union, remove all shopping variants:
+
 ```typescript
 | "shopping_item_added"
 | "shopping_item_completed"
@@ -170,50 +185,62 @@ In the `ActivityType` union, remove all shopping variants:
 ```
 
 In the `task_type` union on `ActivityRecord`, change:
+
 ```typescript
 task_type?: "chore" | "shopping";
 ```
+
 to:
+
 ```typescript
 task_type?: "chore";
 ```
 
 Remove `shopping_item_id` from `ActivityRecord`:
+
 ```typescript
 shopping_item_id?: number;
 ```
 
 In the `getActivityType` switch, remove:
+
 ```typescript
 case "shopping":
   return "shopping_completed";
 ```
 
 In the `getActivityCategory` switch, remove:
+
 ```typescript
 case "shopping":
   return "shopping";
 ```
 
 Remove the routing shortcut:
+
 ```typescript
 if (type.startsWith("shopping_")) return "shopping";
 ```
 
 In `mapTaskCompletion`, change the type cast:
+
 ```typescript
 task_type: completion.taskType as "chore" | "shopping",
 ```
+
 to:
+
 ```typescript
 task_type: completion.taskType as "chore",
 ```
 
 Remove from `parseActivityPayload`:
+
 ```typescript
 shopping_item_id: parseIntNumber(payload?.shopping_item_id),
 item_name: parseString(payload?.item_name),
 ```
+
 Only remove `shopping_item_id` — keep `item_name` if it is used by other activity types (verify before removing).
 
 - [ ] **Step 2: Remove shopping from `apps/api/src/routes/dashboard/activities/index.ts`**
@@ -232,16 +259,19 @@ git commit -m "chore(shopping): remove shopping activity types and log entries"
 ### Task 4: Clean up shared types
 
 **Files:**
+
 - Modify: `apps/shared/src/types/dashboard.ts`
 
 - [ ] **Step 1: Remove `shopping_count` from `DashboardStats` in `apps/shared/src/types/dashboard.ts`**
 
 Remove:
+
 ```typescript
 shopping_count: number;
 ```
 
 Also remove shopping activity type variants from the `ActivityType` union (lines ~10–11, ~23–25):
+
 ```typescript
 | "shopping_added"
 | "shopping_completed"
@@ -251,15 +281,19 @@ Also remove shopping activity type variants from the `ActivityType` union (lines
 ```
 
 Remove `shopping_item_id` from the activity payload type:
+
 ```typescript
 shopping_item_id?: number;
 ```
 
 Remove `"shopping"` from the `task_type` union:
+
 ```typescript
 task_type?: "chore" | "shopping";
 ```
+
 becomes:
+
 ```typescript
 task_type?: "chore";
 ```
@@ -276,6 +310,7 @@ git commit -m "chore(shopping): remove shopping types from shared dashboard type
 ### Task 5: Clean up web endpoints, query keys, and routing
 
 **Files:**
+
 - Modify: `apps/web/src/lib/endpoints/index.ts`
 - Modify: `apps/web/src/lib/queryKeys.ts`
 - Modify: `apps/web/src/lib/routing/navigation.ts`
@@ -284,6 +319,7 @@ git commit -m "chore(shopping): remove shopping types from shared dashboard type
 - [ ] **Step 1: Remove shopping export from `apps/web/src/lib/endpoints/index.ts`**
 
 Remove:
+
 ```typescript
 export * from "./shopping";
 ```
@@ -291,6 +327,7 @@ export * from "./shopping";
 - [ ] **Step 2: Remove shopping query keys from `apps/web/src/lib/queryKeys.ts`**
 
 Remove the entire `shopping` block:
+
 ```typescript
 shopping: {
   all: ["shopping"] as const,
@@ -302,6 +339,7 @@ shopping: {
 - [ ] **Step 3: Remove shopping from `apps/web/src/lib/routing/navigation.ts`**
 
 Remove the nav entry:
+
 ```typescript
 {
   path: "/shopping",
@@ -309,6 +347,7 @@ Remove the nav entry:
   icon: ShoppingCart,
 },
 ```
+
 Remove the `ShoppingCart` import from `lucide-react` (only if it's not used elsewhere in this file).
 
 - [ ] **Step 4: Remove shopping from `apps/web/src/lib/routing/prefetch.ts`**
@@ -316,6 +355,7 @@ Remove the `ShoppingCart` import from `lucide-react` (only if it's not used else
 Remove `SHOPPING_ENDPOINTS` from the import at the top of the file.
 
 Remove the route query definition:
+
 ```typescript
 "/shopping": () => [
   {
@@ -337,6 +377,7 @@ git commit -m "chore(shopping): remove shopping from web endpoints, query keys, 
 ### Task 6: Clean up shared web components
 
 **Files:**
+
 - Modify: `apps/web/src/components/RouteDataRefetcher.tsx`
 - Modify: `apps/web/src/components/NotificationMenuRow.tsx`
 - Modify: `apps/web/src/components/QuickActionPalette.tsx`
@@ -344,6 +385,7 @@ git commit -m "chore(shopping): remove shopping from web endpoints, query keys, 
 - [ ] **Step 1: Remove shopping case from `apps/web/src/components/RouteDataRefetcher.tsx`**
 
 Remove:
+
 ```typescript
 case "/shopping":
   // Shopping list
@@ -356,27 +398,32 @@ case "/shopping":
 - [ ] **Step 2: Remove shopping icon from `apps/web/src/components/NotificationMenuRow.tsx`**
 
 Remove from the icon map object:
+
 ```typescript
 shopping: {
   icon: <ShoppingCart size={16} />,
   bg: "bg-sky-100 dark:bg-sky-900/30",
 },
 ```
+
 Remove `ShoppingCart` from the `lucide-react` import if unused elsewhere.
 
 - [ ] **Step 3: Remove shopping from `apps/web/src/components/QuickActionPalette.tsx`**
 
 Remove `"shopping"` from the result type union:
+
 ```typescript
 | "shopping"
 ```
 
 Remove the destructured `shopping` variable from `searchQuery.data`:
+
 ```typescript
 shopping = [],
 ```
 
 Remove the `shoppingActions` block:
+
 ```typescript
 const shoppingActions: QuickAction[] = shopping.map((item) => ({
   id: `shopping-${item.id}`,
@@ -398,6 +445,7 @@ const shoppingActions: QuickAction[] = shopping.map((item) => ({
 Remove `...shoppingActions,` from the `allActions` array.
 
 Remove from the section labels object:
+
 ```typescript
 shopping: t("shopping.title"),
 ```
@@ -416,6 +464,7 @@ git commit -m "chore(shopping): remove shopping from shared web components"
 ### Task 7: Clean up pages — GreetingCard, HomePage, settings, privacy
 
 **Files:**
+
 - Modify: `apps/web/src/pages/_component/GreetingCard.tsx`
 - Modify: `apps/web/src/pages/_component/HomePage.tsx`
 - Modify: `apps/web/src/pages/settings/_component/DataExportTab.tsx`
@@ -425,40 +474,54 @@ git commit -m "chore(shopping): remove shopping from shared web components"
 - [ ] **Step 1: Remove `shoppingItems` from `GreetingCard.tsx`**
 
 Remove from the `GreetingCardProps` interface:
+
 ```typescript
 shoppingItems: number;
 ```
+
 Remove from the internal context type:
+
 ```typescript
 shoppingItems: number;
 ```
+
 Remove from the destructured props:
+
 ```typescript
 shoppingItems,
 ```
+
 Remove from the context object:
+
 ```typescript
 shoppingItems,
 ```
+
 Remove the condition that references it:
+
 ```typescript
 } else if (pendingChores === 0 && shoppingItems === 0) {
   subtext = t("dashboard.subtexts.allClear", { ... });
 ```
+
 Replace with a simpler condition (e.g. just `pendingChores === 0`):
+
 ```typescript
 } else if (pendingChores === 0) {
   subtext = t("dashboard.subtexts.allClear", {
     defaultValue: "Everything's in order. Nice work!",
   });
 ```
+
 Remove:
+
 ```typescript
 } else if (shoppingItems > 5) {
   subtext = t("dashboard.subtexts.shoppingNeeded", {
     defaultValue: "Shopping list is growing. Time to plan a trip?",
   });
 ```
+
 Remove `shoppingItems` from the `useMemo` dependency array.
 
 Remove `ShoppingCart` from the `lucide-react` import if unused.
@@ -466,6 +529,7 @@ Remove `ShoppingCart` from the `lucide-react` import if unused.
 - [ ] **Step 2: Remove shopping from `HomePage.tsx`**
 
 In the stat card array, remove:
+
 ```typescript
 {
   href: "/shopping" as const,
@@ -475,9 +539,11 @@ In the stat card array, remove:
   color: "hover:text-blue-600 dark:hover:text-blue-400",
 },
 ```
+
 Remove `ShoppingCart` from the `lucide-react` import if unused.
 
 Remove from the `GreetingCard` call:
+
 ```typescript
 shoppingItems={stats?.shopping_count || 0}
 ```
@@ -489,18 +555,23 @@ In the import summary translation call, remove `shoppingItems: counts.shopping_i
 - [ ] **Step 4: Remove shopping from `privacy.tsx`**
 
 Change:
+
 ```
 chores, shopping, and reminders
 ```
+
 to:
+
 ```
 chores and reminders
 ```
+
 Also update the user content list item to remove `shopping items,`.
 
 - [ ] **Step 5: Remove shopping invalidation from `useAdmin.ts`**
 
 Remove:
+
 ```typescript
 queryClient.invalidateQueries({ queryKey: queryKeys.shopping.all });
 ```
@@ -517,6 +588,7 @@ git commit -m "chore(shopping): remove shopping from pages and admin utilities"
 ### Task 8: Clean up test mocks and locales
 
 **Files:**
+
 - Modify: `apps/web/src/test-utils/mocks.ts`
 - Modify: `apps/web/src/locales/en/common.json`
 - Modify: `apps/web/src/locales/fr/common.json`
@@ -526,6 +598,7 @@ git commit -m "chore(shopping): remove shopping from pages and admin utilities"
 Remove the `ShoppingItem` import from `@hously/shared` (or wherever it imports from).
 
 Remove:
+
 ```typescript
 export const mockShoppingItem: ShoppingItem = {
   id: 1,
@@ -538,6 +611,7 @@ export const mockShoppingItem: ShoppingItem = {
 Remove `shopping_count: 5` from `mockDashboardStats` — replace with remaining fields only.
 
 Remove the shopping activity mock:
+
 ```typescript
 export const mockActivity: Activity = {
   description: "testuser added shopping item: Milk",
@@ -548,6 +622,7 @@ export const mockActivity: Activity = {
 ```
 
 Remove:
+
 ```typescript
 export const mockShoppingItemCompletedActivity: Activity = {
   type: "shopping_item_completed",
@@ -587,11 +662,13 @@ git commit -m "chore(shopping): remove shopping from test mocks and locales"
 ### Task 9: Prisma schema — remove ShoppingItem model and User relations
 
 **Files:**
+
 - Modify: `apps/api/prisma/schema.prisma`
 
 - [ ] **Step 1: Remove `ShoppingItem` model from `apps/api/prisma/schema.prisma`**
 
 Delete the entire model block (lines ~275–290):
+
 ```prisma
 model ShoppingItem {
   id          Int       @id @default(autoincrement())
@@ -603,6 +680,7 @@ model ShoppingItem {
 - [ ] **Step 2: Remove shopping relations from the `User` model**
 
 Remove from the `User` model:
+
 ```prisma
 shoppingItemsAdded     ShoppingItem[]       @relation("ShoppingItemAddedBy")
 shoppingItemsCompleted ShoppingItem[]       @relation("ShoppingItemCompletedBy")

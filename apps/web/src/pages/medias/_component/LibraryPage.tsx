@@ -179,65 +179,63 @@ export function LibraryPage() {
             </div>
 
             {/* Type filter */}
-            <div className="flex items-center flex-wrap flex-col lg:justify-between md:flex-row lg:w-full gap-4">
-              <div className="w-full max-w-sm flex items-center gap-2">
-                <SegmentedTabs<FilterType>
-                  variant="chips"
-                  ariaLabel={t("medias.library.typeAll")}
-                  items={
-                    [
-                      { id: "all", label: t("medias.library.typeAll") },
-                      {
-                        id: "movie",
-                        label: t("medias.library.moviesWithCount", {
-                          count: movieCount,
-                        }),
-                        icon: Film,
-                      },
-                      {
-                        id: "show",
-                        label: t("medias.library.showsWithCount", {
-                          count: showCount,
-                        }),
-                        icon: Tv,
-                      },
-                    ] satisfies SegmentedTabItem<FilterType>[]
-                  }
-                  value={typeFilter}
-                  onChange={(f) => setState({ type: f, page: 1 })}
-                />
-              </div>
+            <div className="flex flex-col gap-3 w-full">
+              <SegmentedTabs<FilterType>
+                variant="chips"
+                fullWidth
+                ariaLabel={t("medias.library.typeAll")}
+                items={
+                  [
+                    { id: "all", label: t("medias.library.typeAll") },
+                    {
+                      id: "movie",
+                      label: t("medias.library.moviesWithCount", {
+                        count: movieCount,
+                      }),
+                      icon: Film,
+                    },
+                    {
+                      id: "show",
+                      label: t("medias.library.showsWithCount", {
+                        count: showCount,
+                      }),
+                      icon: Tv,
+                    },
+                  ] satisfies SegmentedTabItem<FilterType>[]
+                }
+                value={typeFilter}
+                onChange={(f) => setState({ type: f, page: 1 })}
+              />
 
               {/* Status filter */}
-              <div className="w-full md:w-auto flex items-center gap-2 max-w-sm sm:max-w-none rounded-lg overflow-hidden">
-                <SegmentedTabs<FilterStatus>
-                  variant="chips"
-                  ariaLabel={t("medias.library.statusAll")}
-                  items={[
-                    { id: "all", label: t("medias.library.statusAll") },
-                    {
-                      id: "downloaded",
-                      label: t("medias.library.statusDownloaded"),
-                      icon: CheckCircle2,
-                    },
-                    {
-                      id: "wanted",
-                      label: t("medias.library.statusWanted"),
-                      icon: Clock,
-                    },
-                    {
-                      id: "downloading",
-                      label: t("medias.library.statusDownloading"),
-                      icon: Download,
-                    },
-                  ]}
-                  value={statusFilter}
-                  onChange={(f) => setState({ status: f, page: 1 })}
-                />
-              </div>
+              <SegmentedTabs<FilterStatus>
+                variant="chips"
+                fullWidth
+                ariaLabel={t("medias.library.statusAll")}
+                items={[
+                  { id: "all", label: t("medias.library.statusAll") },
+                  {
+                    id: "downloaded",
+                    label: t("medias.library.statusDownloaded"),
+                    icon: CheckCircle2,
+                  },
+                  {
+                    id: "wanted",
+                    label: t("medias.library.statusWanted"),
+                    icon: Clock,
+                  },
+                  {
+                    id: "downloading",
+                    label: t("medias.library.statusDownloading"),
+                    icon: Download,
+                  },
+                ]}
+                value={statusFilter}
+                onChange={(f) => setState({ status: f, page: 1 })}
+              />
 
               {/* Language filter */}
-              <div className="w-full md:w-auto flex items-center gap-2 max-w-sm sm:max-w-none">
+              <div className="flex items-center gap-2">
                 <select
                   aria-label={t("medias.library.languageAll")}
                   value={languageFilter}

@@ -29,6 +29,7 @@ interface SegmentedTabsProps<T extends string> {
   activeBadgeClassName?: string;
   inactiveBadgeClassName?: string;
   ariaLabel?: string;
+  fullWidth?: boolean;
 }
 
 function TabIcon({
@@ -53,7 +54,11 @@ function TabIcon({
     className?: string;
   }>;
   return (
-    <Component size={13} className={cn("shrink-0 text-current", className)} aria-hidden />
+    <Component
+      size={13}
+      className={cn("shrink-0 text-current", className)}
+      aria-hidden
+    />
   );
 }
 
@@ -92,6 +97,7 @@ export function SegmentedTabs<T extends string>({
   activeBadgeClassName,
   inactiveBadgeClassName,
   ariaLabel,
+  fullWidth = false,
 }: SegmentedTabsProps<T>) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const activeItemRef = useRef<HTMLButtonElement | null>(null);
@@ -123,7 +129,11 @@ export function SegmentedTabs<T extends string>({
         <div
           role="tablist"
           aria-label={ariaLabel}
-          className={cn("flex min-w-max gap-1.5", trackClassName)}
+          className={cn(
+            "flex gap-1.5",
+            fullWidth ? "w-full" : "min-w-max",
+            trackClassName,
+          )}
         >
           {items.map((item) => {
             const isActive = value === item.id;
@@ -137,6 +147,7 @@ export function SegmentedTabs<T extends string>({
                 ref={isActive ? activeItemRef : undefined}
                 className={cn(
                   "flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-all duration-150",
+                  fullWidth && "flex-1 justify-center",
                   isActive
                     ? "border-primary-500/30 bg-primary-500/10 text-primary-600 dark:border-primary-500/30 dark:bg-primary-500/15 dark:text-primary-400"
                     : "border-neutral-200 bg-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-neutral-600 dark:hover:text-neutral-200",
@@ -148,7 +159,10 @@ export function SegmentedTabs<T extends string>({
                 {item.icon && (
                   <TabIcon
                     icon={item.icon}
-                    className={cn(iconClassName, isActive && activeIconClassName)}
+                    className={cn(
+                      iconClassName,
+                      isActive && activeIconClassName,
+                    )}
                   />
                 )}
                 <span>{item.label}</span>

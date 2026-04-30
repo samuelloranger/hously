@@ -1349,7 +1349,12 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
                 ),
               ).toISOString();
             })();
-      return { last_run: lastRun, history, next_run_at: nextRunAt };
+      return {
+        server_time: new Date().toISOString(),
+        last_run: lastRun,
+        history,
+        next_run_at: nextRunAt,
+      };
     } catch {
       return serverError(set, "Failed to fetch RSS status");
     }
