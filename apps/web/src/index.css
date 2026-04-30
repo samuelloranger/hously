@@ -67,12 +67,12 @@ body {
   --z-popover: 250;
   --z-tooltip: 300;
 
-  /* OLED dark surface palette */
-  --surface-base: #020617;
-  --surface-1: #0f172a;
-  --surface-2: #1e293b;
-  --surface-border: #334155;
-  --surface-muted-fg: #94a3b8;
+  /* Dark surfaces — neutral palette (aligned with settings + body) */
+  --surface-base: #171717;
+  --surface-1: #262626;
+  --surface-2: #404040;
+  --surface-border: #404040;
+  --surface-muted-fg: #a3a3a3;
 }
 
 @keyframes discover-in {
