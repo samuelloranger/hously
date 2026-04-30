@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { CreateChoreForm } from "@/pages/chores/_component/CreateChoreForm";
+import { ChoreForm } from "@/pages/chores/_component/ChoreForm";
 import type { ChoreUser } from "@hously/shared/types";
 import { Dialog } from "@/components/dialog";
 
@@ -23,7 +23,7 @@ export function CreateChoreModal({
       title={t("chores.addNewChore")}
       showCloseButton
     >
-      <CreateChoreForm users={users} onSuccess={onClose} />
+      <ChoreForm users={users} onClose={onClose} />
     </Dialog>
   );
 }
