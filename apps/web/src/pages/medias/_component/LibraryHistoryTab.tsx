@@ -16,12 +16,16 @@ import type { TooltipContentProps } from "recharts";
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
+  LabelList,
   PieChart,
   Pie,
   Cell,
   Tooltip,
   ResponsiveContainer,
   XAxis,
+  YAxis,
 } from "recharts";
 
 import {
@@ -53,7 +57,13 @@ function formatDateShort(iso: string): string {
 
 // ─── Shared chart tooltip ─────────────────────────────────────────────────────
 
-function ChartTooltip({ active, payload }: TooltipContentProps<number | string | ReadonlyArray<number | string>, number | string>) {
+function ChartTooltip({
+  active,
+  payload,
+}: TooltipContentProps<
+  number | string | ReadonlyArray<number | string>,
+  number | string
+>) {
   if (!active || !payload?.length) return null;
   const label = payload[0]?.payload?.label as string | undefined;
   return (
@@ -61,18 +71,16 @@ function ChartTooltip({ active, payload }: TooltipContentProps<number | string |
       {label && (
         <p className="text-neutral-500 dark:text-neutral-400 mb-0.5">{label}</p>
       )}
-      {payload.map(
-        (p, i) => (
-          <p
-            key={i}
-            className="font-semibold tabular-nums"
-            style={{ color: String(p.color ?? p.fill) }}
-          >
-            {p.name ? `${p.name}: ` : ""}
-            {p.value}
-          </p>
-        ),
-      )}
+      {payload.map((p, i) => (
+        <p
+          key={i}
+          className="font-semibold tabular-nums"
+          style={{ color: String(p.color ?? p.fill) }}
+        >
+          {p.name ? `${p.name}: ` : ""}
+          {p.value}
+        </p>
+      ))}
     </div>
   );
 }
@@ -100,30 +108,42 @@ function StatCard({
   );
 }
 
-function IndexerBar({
-  name,
-  count,
-  max,
+function IndexersBarChart({
+  indexers,
 }: {
-  name: string;
-  count: number;
-  max: number;
+  indexers: { name: string; count: number }[];
 }) {
-  const pct = max > 0 ? Math.round((count / max) * 100) : 0;
+  const h = Math.min(indexers.length * 28, 210);
   return (
-    <div className="flex items-center gap-2.5 min-w-0">
-      <span className="text-xs text-neutral-600 dark:text-neutral-300 w-28 truncate shrink-0">
-        {name}
-      </span>
-      <div className="flex-1 h-[5px] rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-        <div
-          className="h-full rounded-full bg-sky-500 transition-all duration-500"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="text-xs font-mono tabular-nums text-neutral-500 dark:text-neutral-400 w-8 text-right shrink-0">
-        {count}
-      </span>
+    <div style={{ height: h }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          layout="vertical"
+          data={indexers}
+          margin={{ top: 0, right: 36, left: 0, bottom: 0 }}
+        >
+          <XAxis type="number" hide />
+          <YAxis
+            type="category"
+            dataKey="name"
+            width={96}
+            tick={{ fontSize: 11, fill: "#737373" }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <Bar dataKey="count" fill="#0ea5e9" radius={[0, 3, 3, 0]} barSize={6}>
+            <LabelList
+              dataKey="count"
+              position="right"
+              style={{
+                fontSize: 11,
+                fill: "#737373",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
@@ -279,7 +299,6 @@ function StatsSection() {
   }
   if (!stats) return null;
 
-  const maxIndexerCount = stats.top_indexers[0]?.count ?? 1;
   const totalForChart =
     stats.completed_grabs + stats.failed_grabs + stats.active_grabs;
 
@@ -335,16 +354,7 @@ function StatsSection() {
                 <TrendingUp size={10} />
                 {t("medias.history.topIndexers")}
               </p>
-              <div className="space-y-1.5">
-                {stats.top_indexers.map((idx) => (
-                  <IndexerBar
-                    key={idx.name}
-                    name={idx.name}
-                    count={idx.count}
-                    max={maxIndexerCount}
-                  />
-                ))}
-              </div>
+              <IndexersBarChart indexers={stats.top_indexers} />
             </div>
           )}
           {stats.grabs_by_day.length > 0 && (
