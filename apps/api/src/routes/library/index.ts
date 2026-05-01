@@ -586,6 +586,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
         const result = await searchAndGrab({
           mediaId,
+          mediaType: "tv",
           searchQuery: q,
           qualityProfileId: media.qualityProfileId,
         });
@@ -880,6 +881,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
 
         const result = await searchAndGrab({
           mediaId: id,
+          mediaType: "movie",
           searchQuery: q,
           qualityProfileId: media.qualityProfileId,
         });
@@ -943,6 +945,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         const result = await searchAndGrab({
           mediaId,
           episodeId,
+          mediaType: "tv",
           searchQuery: q,
           qualityProfileId: media.qualityProfileId,
         });

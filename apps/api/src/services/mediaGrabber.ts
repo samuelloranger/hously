@@ -603,13 +603,15 @@ export async function grabRelease(opts: {
 export async function searchAndGrab(opts: {
   mediaId: number;
   episodeId?: number;
+  mediaType: "tv" | "movie";
   searchQuery: string;
   qualityProfileId: number | null;
 }): Promise<
   { grabbed: true; releaseTitle: string } | { grabbed: false; reason: string }
 > {
   try {
-    const { mediaId, episodeId, searchQuery, qualityProfileId } = opts;
+    const { mediaId, episodeId, mediaType, searchQuery, qualityProfileId } =
+      opts;
     const qTrim = searchQuery.trim();
     if (!qTrim) return { grabbed: false, reason: "Empty search query" };
 
@@ -621,7 +623,7 @@ export async function searchAndGrab(opts: {
     const releases = await adapter.search({
       query: qTrim,
       type: "freetext",
-      mediaType: episodeId != null ? "tv" : "movie",
+      mediaType,
       limit: 100,
     });
 

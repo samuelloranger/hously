@@ -54,6 +54,7 @@ export async function checkMovieReleases(): Promise<void> {
       const y = m.year ? ` ${m.year}` : "";
       const result = await searchAndGrab({
         mediaId: m.id,
+        mediaType: "movie",
         searchQuery: `${m.title}${y}`,
         qualityProfileId: m.qualityProfileId,
       });

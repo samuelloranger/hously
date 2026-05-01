@@ -91,6 +91,7 @@ export async function checkEpisodeReleases(): Promise<void> {
     try {
       const result = await searchAndGrab({
         mediaId,
+        mediaType: "tv",
         searchQuery: seasonPackSearchQuery(media.title, season),
         qualityProfileId: media.qualityProfileId,
       });
@@ -135,6 +136,7 @@ export async function checkEpisodeReleases(): Promise<void> {
       const result = await searchAndGrab({
         mediaId: ep.media.id,
         episodeId: ep.id,
+        mediaType: "tv",
         searchQuery: episodeSearchQuery(ep.media.title, ep.season, ep.episode),
         qualityProfileId: ep.media.qualityProfileId,
       });
