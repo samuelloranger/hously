@@ -94,8 +94,46 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
     normalizedTitle: normalizeTitleForMatch(ep.media.title),
   }));
 
-  // Collect all matching RSS releases per episode/movie before scoring.
+  // Build season-pack eligibility map: seasons where every monitored episode
+  // is wanted + aired + no files (same invariant as checkEpisodeReleases).
+  type PackEligibleSeason = {
+    mediaId: number;
+    season: number;
+    media: { id: number; title: string; qualityProfileId: number | null };
+  };
+  const packEligibleSeasons = new Map<string, PackEligibleSeason>();
+  {
+    const seasonGroups = new Map<
+      string,
+      (typeof normalizedEpisodes)[number][]
+    >();
+    for (const ep of normalizedEpisodes) {
+      const key = `${ep.mediaId}:${ep.season}`;
+      const list = seasonGroups.get(key) ?? [];
+      list.push(ep);
+      seasonGroups.set(key, list);
+    }
+    for (const [, groupEps] of seasonGroups) {
+      const ep0 = groupEps[0]!;
+      const totalMonitored = await prisma.libraryEpisode.count({
+        where: { mediaId: ep0.mediaId, season: ep0.season, monitored: true },
+      });
+      if (groupEps.length === totalMonitored) {
+        packEligibleSeasons.set(`${ep0.normalizedTitle}:${ep0.season}`, {
+          mediaId: ep0.mediaId,
+          season: ep0.season,
+          media: ep0.media,
+        });
+      }
+    }
+  }
+
+  // Collect all matching RSS releases per episode/movie/season-pack before scoring.
   // Multiple releases across indexers may match the same item.
+  const seasonPackCandidates = new Map<
+    string,
+    { match: PackEligibleSeason; releases: NormalizedRelease[] }
+  >();
   const episodeCandidates = new Map<
     number,
     {
@@ -116,7 +154,14 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
     if (!parsed) continue;
 
     if (parsed.season !== null && parsed.episode === null) {
-      // Season pack — skip, we don't grab whole seasons via RSS
+      // Season pack — match against pack-eligible seasons
+      const packKey = `${parsed.normalizedTitle}:${parsed.season}`;
+      const pack = packEligibleSeasons.get(packKey);
+      if (!pack) continue;
+      const key = `${pack.mediaId}:${pack.season}`;
+      const entry = seasonPackCandidates.get(key);
+      if (entry) entry.releases.push(release);
+      else seasonPackCandidates.set(key, { match: pack, releases: [release] });
       continue;
     }
 
@@ -153,7 +198,7 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
     }
   }
 
-  // Batch-load all quality profiles needed across both episodes and movies.
+  // Batch-load all quality profiles needed across episodes, movies, and season packs.
   const profileIds = new Set<number>();
   for (const { match } of episodeCandidates.values()) {
     if (match.media.qualityProfileId != null)
@@ -161,6 +206,10 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
   }
   for (const { match } of movieCandidates.values()) {
     if (match.qualityProfileId != null) profileIds.add(match.qualityProfileId);
+  }
+  for (const { match } of seasonPackCandidates.values()) {
+    if (match.media.qualityProfileId != null)
+      profileIds.add(match.media.qualityProfileId);
   }
 
   const profiles = await prisma.qualityProfile.findMany({
@@ -226,6 +275,39 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       indexer: best.release.indexer,
     }).catch((e) =>
       console.warn(`[pollIndexerRss] grab failed for movie ${match.id}:`, e),
+    );
+
+    grabbed++;
+  }
+
+  for (const { match, releases: candidates } of seasonPackCandidates.values()) {
+    const profile = match.media.qualityProfileId
+      ? profileMap.get(match.media.qualityProfileId)
+      : null;
+    const profileInput = profile ? toScoreInput(profile) : null;
+
+    const best = pickBest(candidates, profileInput);
+    if (!best) {
+      console.log(
+        `[pollIndexerRss] No qualifying release for season pack ${match.media.title} S${match.season} (${candidates.length} candidate(s) rejected by profile)`,
+      );
+      continue;
+    }
+
+    console.log(
+      `[pollIndexerRss] Season pack match: "${best.release.title}" → ${match.media.title} S${match.season} (score: ${best.score})`,
+    );
+
+    grabRelease({
+      mediaId: match.media.id,
+      downloadUrl: best.downloadUrl,
+      releaseTitle: best.release.title,
+      indexer: best.release.indexer,
+    }).catch((e) =>
+      console.warn(
+        `[pollIndexerRss] grab failed for season pack ${match.mediaId} S${match.season}:`,
+        e,
+      ),
     );
 
     grabbed++;
