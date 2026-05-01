@@ -86,6 +86,7 @@ export interface LibraryMedia {
   added_at: string;
   updated_at: string;
   last_grabbed_at: string | null;
+  total_size_bytes: string | null;
 }
 
 export interface LibraryListResponse {
