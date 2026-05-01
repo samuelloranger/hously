@@ -27,6 +27,16 @@ import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb
 import { rescanLibraryItem } from "@hously/api/services/library/rescan";
 import { buildLibraryStatsResponse } from "./libraryStats";
 
+function computeTotalSizeBytes(
+  files: { sizeBytes: bigint }[],
+  episodes: { files: { sizeBytes: bigint }[] }[],
+): string | null {
+  let total = 0n;
+  for (const f of files) total += f.sizeBytes;
+  for (const ep of episodes) for (const f of ep.files) total += f.sizeBytes;
+  return total === 0n ? null : total.toString();
+}
+
 function mapLibraryMedia(item: {
   id: number;
   tmdbId: number;
@@ -45,6 +55,8 @@ function mapLibraryMedia(item: {
   downloadHistories?: { grabbedAt: Date }[];
   addedAt: Date;
   updatedAt: Date;
+  files?: { sizeBytes: bigint }[];
+  episodes?: { files: { sizeBytes: bigint }[] }[];
 }) {
   return {
     id: item.id,
@@ -67,6 +79,10 @@ function mapLibraryMedia(item: {
     updated_at: item.updatedAt.toISOString(),
     last_grabbed_at:
       item.downloadHistories?.[0]?.grabbedAt.toISOString() ?? null,
+    total_size_bytes: computeTotalSizeBytes(
+      item.files ?? [],
+      item.episodes ?? [],
+    ),
   };
 }
 
@@ -76,6 +92,12 @@ const libraryMediaInclude = {
     orderBy: { grabbedAt: "desc" as const },
     take: 1,
     select: { grabbedAt: true },
+  },
+  files: { select: { sizeBytes: true } },
+  episodes: {
+    include: {
+      files: { select: { sizeBytes: true } },
+    },
   },
 } as const;
 
