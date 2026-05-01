@@ -1412,7 +1412,9 @@
         "last_grabbed_at": "Last grab",
         "title": "Title",
         "year": "Year",
-        "status": "Status"
+        "status": "Status",
+        "digital_release_date": "Release Date",
+        "file_size": "File Size"
       },
       "itemStatus": {
         "wanted": "Wanted",
