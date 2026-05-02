@@ -1435,7 +1435,8 @@
         "autoSearch": "Recherche automatique",
         "manualSearch": "Rechercher manuellement",
         "keepCurrent": "Conserver le fichier actuel",
-        "autoSearchStarted": "Recherche de mise à niveau lancée"
+        "autoSearchStarted": "Recherche de mise à niveau lancée",
+        "autoSearchFailed": "Échec de la recherche de mise à niveau"
       }
     },
     "watchlist": {
@@ -1530,7 +1531,8 @@
       "inWatchlist": "Watchlist ✓",
       "cast": "Casting",
       "searchingEpisode": "Recherche de",
-      "searchingSeasonPack": "Recherche du pack saison"
+      "searchingSeasonPack": "Recherche du pack saison",
+      "upgradeMode": "Mode mise à niveau — le fichier existant sera remplacé"
     },
     "addSuccess": "{{title}} ajouté à la bibliothèque.",
     "addFailed": "Échec de l'ajout du média à la bibliothèque.",
@@ -1780,6 +1782,8 @@
     "management": {
       "qualityProfile": "Profil qualité",
       "qualityProfileNone": "Aucun",
+      "qualityProfileUpdated": "Profil de qualité mis à jour",
+      "qualityProfileUpdateFailed": "Échec de la mise à jour du profil de qualité",
       "downloads": "Historique des téléchargements",
       "noDownloads": "Aucun grab pour ce titre.",
       "searchNow": "Rechercher maintenant",

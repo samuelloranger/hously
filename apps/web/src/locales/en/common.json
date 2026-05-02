@@ -1435,7 +1435,8 @@
         "autoSearch": "Auto Search",
         "manualSearch": "Search Manually",
         "keepCurrent": "Keep Current File",
-        "autoSearchStarted": "Upgrade search started"
+        "autoSearchStarted": "Upgrade search started",
+        "autoSearchFailed": "Upgrade search failed"
       }
     },
     "watchlist": {
@@ -1530,7 +1531,8 @@
       "inWatchlist": "Watchlist ✓",
       "cast": "Cast",
       "searchingEpisode": "Searching for",
-      "searchingSeasonPack": "Searching season pack"
+      "searchingSeasonPack": "Searching season pack",
+      "upgradeMode": "Upgrade mode — grab will replace the existing file"
     },
     "addSuccess": "Added {{title}} to library.",
     "addFailed": "Failed to add media to library.",
@@ -1780,6 +1782,8 @@
     "management": {
       "qualityProfile": "Quality profile",
       "qualityProfileNone": "None",
+      "qualityProfileUpdated": "Quality profile updated",
+      "qualityProfileUpdateFailed": "Failed to update quality profile",
       "downloads": "Download history",
       "noDownloads": "No grabs yet for this title.",
       "searchNow": "Search now",
