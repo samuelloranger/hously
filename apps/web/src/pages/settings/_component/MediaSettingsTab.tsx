@@ -12,9 +12,9 @@ type MediaSubTab = "quality-profiles" | "library-settings" | "history" | "import
 export function MediaSettingsTab() {
   const { t } = useTranslation("common");
   const navigate = useNavigate();
-  const search = useSearch({ from: "/settings/" }) as { subtab?: string };
+  const { subtab } = useSearch({ from: "/settings/" });
   const activeSubTab: MediaSubTab =
-    (search.subtab as MediaSubTab) ?? "quality-profiles";
+    (subtab as MediaSubTab | undefined) ?? "quality-profiles";
 
   const setSubTab = (subtab: MediaSubTab) => {
     navigate({ to: "/settings", search: { tab: "media", subtab }, replace: true });

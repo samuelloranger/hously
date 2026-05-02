@@ -6,6 +6,7 @@ import { Settings, type Tab } from "@/pages/settings/_component/Settings";
 export const Route = createFileRoute("/settings/")({
   validateSearch: (search: Record<string, unknown>) => ({
     tab: (search.tab as Tab) || "profile",
+    subtab: (search.subtab as string) || undefined,
   }),
   beforeLoad: async () => {
     try {
