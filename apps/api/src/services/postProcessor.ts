@@ -656,17 +656,23 @@ export async function postProcess(
       });
 
       for (const oldFile of oldFiles) {
+        let shouldDelete = false;
         try {
           await unlink(oldFile.filePath);
+          shouldDelete = true;
         } catch (e) {
-          if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
+          if ((e as NodeJS.ErrnoException).code === "ENOENT") {
+            shouldDelete = true; // file already gone, clean up DB row
+          } else {
             console.warn(
               `[postProcess/upgrade] Failed to delete old file ${oldFile.filePath}:`,
               e,
             );
           }
         }
-        await prisma.mediaFile.delete({ where: { id: oldFile.id } });
+        if (shouldDelete) {
+          await prisma.mediaFile.delete({ where: { id: oldFile.id } });
+        }
       }
 
       if (oldFiles.length > 0) {

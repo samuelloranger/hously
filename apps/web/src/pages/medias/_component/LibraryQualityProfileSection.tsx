@@ -77,7 +77,7 @@ export function LibraryQualityProfileSection({
                   })
                   .then((result) => {
                     if (result.item.needs_upgrade) {
-                      setUpgradeEpisodes(undefined);
+                      setUpgradeEpisodes(result.item.affected_episodes);
                       setUpgradeModalOpen(true);
                     } else {
                       toast.success(

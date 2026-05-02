@@ -49,10 +49,18 @@ export async function revertLibraryDownloadingIfNoOtherActiveGrabs(dh: {
       where: { id: dh.episodeId, status: "downloading" },
       data: { status: "wanted" },
     });
+    await prisma.libraryEpisode.updateMany({
+      where: { id: dh.episodeId, status: "upgrading" },
+      data: { status: "downloaded" },
+    });
   } else if (dh.mediaId != null) {
     await prisma.libraryMedia.updateMany({
       where: { id: dh.mediaId, status: "downloading" },
       data: { status: "wanted" },
+    });
+    await prisma.libraryMedia.updateMany({
+      where: { id: dh.mediaId, status: "upgrading" },
+      data: { status: "downloaded" },
     });
   }
 }
