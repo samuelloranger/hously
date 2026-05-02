@@ -479,26 +479,58 @@ git commit -m "feat(upgrades): register upgrade-media-search BullMQ job"
 
 **Files:**
 
+- Create: `apps/api/src/services/upgradeDetection.ts`
+- Create: `apps/api/src/services/upgradeDetection.test.ts`
 - Modify: `apps/api/src/routes/library/index.ts`
 
 This task adds the scoring logic that decides whether to return `needs_upgrade: true`.
+Scoring reads `MediaFile` rows directly — the table already has `resolution`, `source`,
+`videoCodec`, `hdrFormat`, `sizeBytes`, and `languageTags` populated by the post-processor
+from Jellyfin/file metadata. No `DownloadHistory` reads needed.
 
-- [ ] **Step 1: Write a unit test for the detection helper**
+`ParsedRelease` (from `filenameParser.ts`) shape:
 
-The detection logic is best extracted as a pure helper function. Create `apps/api/src/services/upgradeDetection.ts` first (Task 6 step 3 implements it), then write the test now.
+```typescript
+interface ParsedRelease {
+  resolution: 480 | 720 | 1080 | 2160 | null;
+  source: string | null;
+  codec: string | null;
+  hdr: string | null; // string, NOT boolean — e.g. "HDR10", "DV"
+  audio: string | null;
+  group: string | null;
+  streaming: string | null;
+  isSample: boolean;
+  isProper: boolean;
+}
+```
+
+`scoreRelease` signature:
+
+```typescript
+scoreRelease(
+  parsed: ParsedRelease,
+  profile: QualityProfileScoreInput,
+  sizeBytes: number | null,
+  releaseTitleForFlags?: string | null,   // used for language flag parsing
+  indexerName?: string | null,
+  freeleech?: boolean,
+): number | string[]   // string[] = rejected (fails profile)
+```
+
+- [ ] **Step 1: Write the failing test**
 
 Create `apps/api/src/services/upgradeDetection.test.ts`:
 
 ```typescript
 import { describe, it, expect } from "bun:test";
 import { filesFailProfile } from "./upgradeDetection";
-import type { QualityProfileScoreInput } from "@hously/api/utils/medias/releaseScorer";
+import type { QualityProfileScoreInput } from "../../utils/medias/releaseScorer";
 
 const profile: QualityProfileScoreInput = {
   minResolution: 1080,
   cutoffResolution: null,
-  preferredSources: ["BluRay"],
-  preferredCodecs: ["hevc"],
+  preferredSources: [],
+  preferredCodecs: [],
   preferredLanguages: [],
   prioritizedTrackers: [],
   preferTrackerOverQuality: false,
@@ -508,49 +540,68 @@ const profile: QualityProfileScoreInput = {
 };
 
 describe("filesFailProfile", () => {
-  it("returns true when qualityParsed resolution is below minResolution", () => {
-    const rows = [
+  it("returns true when resolution is below minResolution", () => {
+    const files = [
       {
-        qualityParsed: {
-          resolution: 720,
-          source: "WEB-DL",
-          codec: "x264",
-          hdr: false,
-          isSample: false,
-          isProper: false,
-        },
-        sizeBytes: null,
-        releaseTitle: "Movie.2024.720p.WEB-DL.x264",
+        resolution: 720,
+        source: "WEB-DL",
+        videoCodec: "x264",
+        hdrFormat: null,
+        sizeBytes: null as bigint | null,
+        languageTags: [] as string[],
       },
     ];
-    expect(filesFailProfile(rows, profile)).toBe(true);
+    expect(filesFailProfile(files, profile)).toBe(true);
   });
 
-  it("returns false when qualityParsed resolution meets minResolution", () => {
-    const rows = [
+  it("returns false when resolution meets minResolution", () => {
+    const files = [
       {
-        qualityParsed: {
-          resolution: 1080,
-          source: "BluRay",
-          codec: "hevc",
-          hdr: false,
-          isSample: false,
-          isProper: false,
-        },
-        sizeBytes: null,
-        releaseTitle: "Movie.2024.1080p.BluRay.x265",
+        resolution: 1080,
+        source: "BluRay",
+        videoCodec: "x265",
+        hdrFormat: null,
+        sizeBytes: null as bigint | null,
+        languageTags: [] as string[],
       },
     ];
-    expect(filesFailProfile(rows, profile)).toBe(false);
+    expect(filesFailProfile(files, profile)).toBe(false);
   });
 
-  it("returns true when qualityParsed is null", () => {
-    const rows = [{ qualityParsed: null, sizeBytes: null, releaseTitle: "" }];
-    expect(filesFailProfile(rows, profile)).toBe(true);
+  it("returns true when resolution is null (unknown quality)", () => {
+    const files = [
+      {
+        resolution: null,
+        source: null,
+        videoCodec: null,
+        hdrFormat: null,
+        sizeBytes: null as bigint | null,
+        languageTags: [] as string[],
+      },
+    ];
+    expect(filesFailProfile(files, profile)).toBe(true);
   });
 
-  it("returns false for empty rows (nothing to upgrade)", () => {
+  it("returns false for empty files (nothing downloaded = nothing to upgrade)", () => {
     expect(filesFailProfile([], profile)).toBe(false);
+  });
+
+  it("requires HDR when profile.requireHdr is true", () => {
+    const hdrProfile: QualityProfileScoreInput = {
+      ...profile,
+      requireHdr: true,
+    };
+    const files = [
+      {
+        resolution: 1080,
+        source: "BluRay",
+        videoCodec: "x265",
+        hdrFormat: null, // no HDR
+        sizeBytes: null as bigint | null,
+        languageTags: [] as string[],
+      },
+    ];
+    expect(filesFailProfile(files, hdrProfile)).toBe(true);
   });
 });
 ```
@@ -561,7 +612,7 @@ describe("filesFailProfile", () => {
 cd apps/api && bun test src/services/upgradeDetection.test.ts 2>&1 | tail -5
 ```
 
-Expected: Module not found.
+Expected: Module not found error.
 
 - [ ] **Step 3: Create `upgradeDetection.ts`**
 
@@ -571,49 +622,58 @@ Create `apps/api/src/services/upgradeDetection.ts`:
 import {
   scoreRelease,
   type QualityProfileScoreInput,
-} from "@hously/api/utils/medias/releaseScorer";
-import { parseReleaseTitle } from "@hously/api/utils/medias/filenameParser";
+} from "../../utils/medias/releaseScorer";
+import type { ParsedRelease } from "../../utils/medias/filenameParser";
 
-type FileRow = {
-  qualityParsed: unknown;
-  sizeBytes: number | null;
-  releaseTitle: string;
+type MediaFileRow = {
+  resolution: number | null;
+  source: string | null;
+  videoCodec: string | null;
+  hdrFormat: string | null;
+  sizeBytes: bigint | null;
+  languageTags: string[];
 };
 
 /**
- * Returns true if any row's quality fails the given profile.
- * Empty rows → false (nothing downloaded = nothing to upgrade).
+ * Returns true if any MediaFile row fails the given quality profile.
+ * Empty array → false (nothing downloaded = nothing to upgrade).
  */
 export function filesFailProfile(
-  rows: FileRow[],
+  files: MediaFileRow[],
   profile: QualityProfileScoreInput,
 ): boolean {
-  if (rows.length === 0) return false;
+  if (files.length === 0) return false;
 
-  for (const row of rows) {
-    let parsed: ReturnType<typeof parseReleaseTitle>;
-    if (
-      row.qualityParsed != null &&
-      typeof row.qualityParsed === "object" &&
-      "resolution" in (row.qualityParsed as object)
-    ) {
-      parsed = row.qualityParsed as ReturnType<typeof parseReleaseTitle>;
-    } else if (row.releaseTitle) {
-      parsed = parseReleaseTitle(row.releaseTitle);
-    } else {
-      return true; // unknown quality → assume upgrade needed
-    }
+  for (const f of files) {
+    const parsed: ParsedRelease = {
+      resolution: f.resolution as 480 | 720 | 1080 | 2160 | null,
+      source: f.source,
+      codec: f.videoCodec,
+      hdr: f.hdrFormat, // string | null — e.g. "HDR10", "DV", or null
+      audio: null,
+      group: null,
+      streaming: null,
+      isSample: false,
+      isProper: false,
+    };
+
+    // BigInt → number is safe for file sizes (max ~9 PB fits in Number)
+    const sizeNum = f.sizeBytes != null ? Number(f.sizeBytes) : null;
+
+    // Pass languageTags joined as a pseudo-title so scoreRelease can extract
+    // ISO codes (parseAudioFlags recognises \bENG\b → "en", \bFRE\b → "fr", etc.)
+    const langString = f.languageTags.join(" ");
 
     const result = scoreRelease(
       parsed,
       profile,
-      row.sizeBytes,
-      row.releaseTitle,
+      sizeNum,
+      langString,
       null,
       false,
     );
 
-    if (Array.isArray(result)) return true; // rejected = fails profile
+    if (Array.isArray(result)) return true; // rejected → fails profile
   }
 
   return false;
@@ -626,11 +686,31 @@ export function filesFailProfile(
 cd apps/api && bun test src/services/upgradeDetection.test.ts 2>&1 | tail -10
 ```
 
-Expected: 4 tests pass.
+Expected: 5 tests pass.
 
-- [ ] **Step 5: Enhance `PATCH /:id/quality-profile` in `library/index.ts`**
+- [ ] **Step 5: Export `profileToScoreInput` from `mediaGrabber.ts`**
 
-Find the handler (around line 695) and replace the body with:
+In `apps/api/src/services/mediaGrabber.ts`, find:
+
+```typescript
+function profileToScoreInput(p: QualityProfile): QualityProfileScoreInput {
+```
+
+Change to:
+
+```typescript
+export function profileToScoreInput(p: QualityProfile): QualityProfileScoreInput {
+```
+
+This was already noted as required in Task 3 — verify it is exported before proceeding.
+
+- [ ] **Step 6: Enhance `PATCH /:id/quality-profile` in `library/index.ts`**
+
+Find the quality-profile PATCH handler. The handler body must be replaced to add upgrade detection.
+
+First, read the file to find the exact current handler body (look for `"/:id/quality-profile"` or similar). The handler currently just updates `qualityProfileId` and returns the mapped item.
+
+Replace it with:
 
 ```typescript
 async ({ params, body, set }) => {
@@ -664,50 +744,38 @@ async ({ params, body, set }) => {
     let affectedEpisodes: number | undefined;
 
     if (profileChanged && isDownloaded && newProfile) {
-      const { filesFailProfile } = await import(
-        "../../services/upgradeDetection"
-      );
-      const {
-        profileToScoreInput,
-      } = await import("../../services/mediaGrabber");
-
+      const { filesFailProfile } = await import("../../services/upgradeDetection");
+      const { profileToScoreInput } = await import("../../services/mediaGrabber");
       const profileInput = profileToScoreInput(newProfile);
 
+      const fileSelect = {
+        resolution: true,
+        source: true,
+        videoCodec: true,
+        hdrFormat: true,
+        sizeBytes: true,
+        languageTags: true,
+      } as const;
+
       if (existing.type === "movie") {
-        const dh = await prisma.downloadHistory.findFirst({
-          where: { mediaId: id, failed: false, qualityParsed: { not: Prisma.JsonNull } },
-          orderBy: { grabbedAt: "desc" },
-          select: { qualityParsed: true, releaseTitle: true },
-        });
-        const mf = await prisma.mediaFile.findFirst({
+        const files = await prisma.mediaFile.findMany({
           where: { mediaId: id, episodeId: null },
-          select: { sizeBytes: true },
+          select: fileSelect,
         });
-        const rows = dh
-          ? [{ qualityParsed: dh.qualityParsed, sizeBytes: mf?.sizeBytes ?? null, releaseTitle: dh.releaseTitle }]
-          : [];
-        needsUpgrade = filesFailProfile(rows, profileInput);
+        needsUpgrade = filesFailProfile(files, profileInput);
       } else {
-        // Show: check all downloaded episodes
+        // Show: check each downloaded episode independently
         const episodes = await prisma.libraryEpisode.findMany({
           where: { libraryMediaId: id, status: "downloaded" },
           select: { id: true },
         });
         let failCount = 0;
         for (const ep of episodes) {
-          const dh = await prisma.downloadHistory.findFirst({
-            where: { episodeId: ep.id, failed: false, qualityParsed: { not: Prisma.JsonNull } },
-            orderBy: { grabbedAt: "desc" },
-            select: { qualityParsed: true, releaseTitle: true },
-          });
-          const mf = await prisma.mediaFile.findFirst({
+          const files = await prisma.mediaFile.findMany({
             where: { episodeId: ep.id },
-            select: { sizeBytes: true },
+            select: fileSelect,
           });
-          const rows = dh
-            ? [{ qualityParsed: dh.qualityParsed, sizeBytes: mf?.sizeBytes ?? null, releaseTitle: dh.releaseTitle }]
-            : [];
-          if (filesFailProfile(rows, profileInput)) failCount++;
+          if (filesFailProfile(files, profileInput)) failCount++;
         }
         if (failCount > 0) {
           needsUpgrade = true;
@@ -728,22 +796,6 @@ async ({ params, body, set }) => {
     return serverError(set, "Failed to update quality profile");
   }
 },
-```
-
-Also add `import { Prisma } from "@prisma/client";` to the top of the file if not already present, and export `profileToScoreInput` from `mediaGrabber.ts` (currently it is not exported — add `export` to its declaration).
-
-- [ ] **Step 6: Export `profileToScoreInput` from `mediaGrabber.ts`**
-
-Find the function declaration:
-
-```typescript
-function profileToScoreInput(p: QualityProfile): QualityProfileScoreInput {
-```
-
-Change to:
-
-```typescript
-export function profileToScoreInput(p: QualityProfile): QualityProfileScoreInput {
 ```
 
 - [ ] **Step 7: Run all API tests**
