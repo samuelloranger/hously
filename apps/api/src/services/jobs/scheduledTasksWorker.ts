@@ -147,7 +147,7 @@ export async function processScheduledJob(job: Job) {
           await import("../../workers/upgradeMediaSearch");
         const { mediaId, episodeId } = job.data as {
           mediaId: number;
-          episodeId?: number;
+          episodeId?: number | null;
         };
         await upgradeMediaSearch({ mediaId, episodeId });
         break;
