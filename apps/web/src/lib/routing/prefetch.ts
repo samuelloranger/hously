@@ -381,17 +381,10 @@ const routeQueryDefinitions = {
       });
     }
 
-    if (tab === "quality-profiles") {
+    if (tab === "media") {
       queries.push({
         queryKey: queryKeys.qualityProfiles.list(),
         queryFn: () => webFetcher(QUALITY_PROFILES_ENDPOINTS.LIST),
-      });
-    }
-
-    if (tab === "media-library") {
-      queries.push({
-        queryKey: queryKeys.library.postProcessingSettings(),
-        queryFn: () => webFetcher(LIBRARY_ENDPOINTS.POST_PROCESSING_SETTINGS),
       });
     }
 

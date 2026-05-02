@@ -946,6 +946,15 @@
       "importSummary": "Imported: {{chores}} chores, {{reminders}} reminders, {{taskCompletions}} task completions.",
       "importWarnings": "{{count}} warning(s) occurred during import. Check console for details."
     },
+    "media": {
+      "title": "Media",
+      "tabs": {
+        "qualityProfiles": "Quality Profiles",
+        "librarySettings": "Library Settings",
+        "history": "History",
+        "import": "Import"
+      }
+    },
     "qualityProfiles": {
       "title": "Quality profiles",
       "listTitle": "Profiles",
