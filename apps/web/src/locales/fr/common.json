@@ -946,6 +946,15 @@
       "importSummary": "Importé : {{chores}} tâches, {{reminders}} rappels, {{taskCompletions}} complétions de tâches.",
       "importWarnings": "{{count}} avertissement(s) survenu(s) lors de l'importation. Consultez la console pour plus de détails."
     },
+    "media": {
+      "title": "Médias",
+      "tabs": {
+        "qualityProfiles": "Profils de qualité",
+        "librarySettings": "Paramètres de la bibliothèque",
+        "history": "Historique",
+        "import": "Importation"
+      }
+    },
     "qualityProfiles": {
       "title": "Profils qualité",
       "listTitle": "Profils",

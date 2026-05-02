@@ -8,11 +8,9 @@ import { IntegrationsTab } from "@/pages/settings/_component/IntegrationsTab";
 import { DataExportTab } from "@/pages/settings/_component/DataExportTab";
 import { UsersTab } from "@/pages/settings/_component/UsersTab";
 import { JobsTab } from "@/pages/settings/_component/JobsTab";
-import { QualityProfilesTab } from "@/pages/settings/_component/QualityProfilesTab";
-import { MediaPostProcessingTab } from "@/pages/settings/_component/MediaPostProcessingTab";
+import { MediaSettingsTab } from "@/pages/settings/_component/MediaSettingsTab";
 import { SessionsTab } from "@/pages/settings/_component/SessionsTab";
 import { RecentActivityTab } from "@/pages/settings/_component/RecentActivityTab";
-import { LibraryHistoryTab } from "@/pages/medias/_component/LibraryHistoryTab";
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { cn } from "@/lib/utils";
 import {
@@ -26,9 +24,7 @@ import {
   Clock,
   ShieldCheck,
   History,
-  SlidersHorizontal,
-  FolderTree,
-  Film,
+  Clapperboard,
   type LucideIcon,
 } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
@@ -44,9 +40,7 @@ export type Tab =
   | "jobs"
   | "users"
   | "sessions"
-  | "quality-profiles"
-  | "media-library"
-  | "media-history";
+  | "media";
 
 interface TabItem {
   id: Tab;
@@ -97,19 +91,9 @@ export function Settings() {
         },
         { id: "jobs", label: t("settings.jobs.title"), icon: Clock },
         {
-          id: "quality-profiles",
-          label: t("settings.qualityProfiles.title"),
-          icon: SlidersHorizontal,
-        },
-        {
-          id: "media-library",
-          label: t("settings.mediaLibrary.title"),
-          icon: FolderTree,
-        },
-        {
-          id: "media-history",
-          label: t("settings.mediaHistory.title"),
-          icon: Film,
+          id: "media",
+          label: t("settings.media.title"),
+          icon: Clapperboard,
         },
         {
           id: "data-export",
@@ -214,14 +198,8 @@ export function Settings() {
           {activeTab === "users" && currentUser?.is_admin && <UsersTab />}
           {activeTab === "sessions" && currentUser?.is_admin && <SessionsTab />}
           {activeTab === "jobs" && currentUser?.is_admin && <JobsTab />}
-          {activeTab === "quality-profiles" && currentUser?.is_admin && (
-            <QualityProfilesTab />
-          )}
-          {activeTab === "media-library" && currentUser?.is_admin && (
-            <MediaPostProcessingTab />
-          )}
-          {activeTab === "media-history" && currentUser?.is_admin && (
-            <LibraryHistoryTab />
+          {activeTab === "media" && currentUser?.is_admin && (
+            <MediaSettingsTab />
           )}
         </div>
       </div>
