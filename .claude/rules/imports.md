@@ -22,12 +22,17 @@ import { useAuth } from "../../../hooks/auth/useAuth";
 
 ## API App (`apps/api`)
 
-The API does **not** have path aliases. Use relative imports.
+Use the `@hously/api/` alias for internal imports within `apps/api`. This alias is configured in `tsconfig.json` and `bunfig.toml` and resolves to `apps/api/src/`.
 
 ```typescript
 // Correct
+import { prisma } from "@hously/api/db";
+import { searchAndGrab } from "@hously/api/services/mediaGrabber";
+import { badRequest } from "@hously/api/utils/errors";
+
+// Wrong — do not use relative paths
 import { prisma } from "../db";
-import { badRequest } from "../utils/errors";
+import { badRequest } from "../../utils/errors";
 ```
 
 ## Shared Package (`@hously/shared`)
