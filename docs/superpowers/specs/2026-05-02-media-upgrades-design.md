@@ -30,11 +30,11 @@ Stamps upgrade grabs so the post-processor knows to delete old files after placi
 
 Added to both `LibraryMedia.status` and `LibraryEpisode.status`.
 
-| Entity | Transition |
-|---|---|
-| Movie | `downloaded → upgrading` (grab in flight) → `downloaded` (post-process complete) |
-| Episode | `downloaded → upgrading` (grab in flight) → `downloaded` (post-process complete) |
-| Show (LibraryMedia) | Stays `downloaded` throughout — old files remain playable |
+| Entity              | Transition                                                                       |
+| ------------------- | -------------------------------------------------------------------------------- |
+| Movie               | `downloaded → upgrading` (grab in flight) → `downloaded` (post-process complete) |
+| Episode             | `downloaded → upgrading` (grab in flight) → `downloaded` (post-process complete) |
+| Show (LibraryMedia) | Stays `downloaded` throughout — old files remain playable                        |
 
 The `LibraryMediaStatus` shared type in `apps/shared/src/types/library.ts` must include `"upgrading"`.
 
@@ -46,10 +46,10 @@ No changes to `QualityProfile` schema. Existing fields (`minResolution`, `prefer
 
 When `quality_profile_id` changes and the item's current `status` is `"downloaded"`:
 
-1. Fetch the most recent successful `DownloadHistory` row(s) carrying `qualityParsed`.
+1. Fetch the most recent `DownloadHistory` row(s) where `failed: false` and `qualityParsed IS NOT NULL`, joined with the linked `MediaFile` to get `sizeBytes`.
    - Movie: one row for the item.
    - Show: one row per episode with `status: "downloaded"`.
-2. Run `scoreRelease(qualityParsed, newProfile, sizeBytes)` for each.
+2. Run `scoreRelease(qualityParsed, newProfile, mediaFile.sizeBytes ?? null)` for each. If no `MediaFile` is linked, pass `null` for `sizeBytes` (skips the size rejection check).
 3. Count failures (where `scoreRelease` returns `string[]`).
 
 Response gains two optional fields:
@@ -69,17 +69,20 @@ The profile is saved regardless. The upgrade prompt is always opt-in. If the ite
 Request body:
 
 ```ts
-{ mode: "auto" | "manual" }
+{
+  mode: "auto" | "manual";
+}
 ```
 
 **`mode: "auto"`**
-- Movie: calls `searchAndGrab()` with `is_upgrade: true`, sets `LibraryMedia.status = "upgrading"`.
-- Show: queues `searchAndGrab()` for each episode with `status: "downloaded"`, sets each episode to `status: "upgrading"`.
-- If no releases found: status reverts to `"downloaded"` immediately. No data loss.
+
+- Movie: sets `LibraryMedia.status = "upgrading"` immediately, then enqueues a `searchAndGrab()` job (BullMQ `scheduled-tasks` queue) with `is_upgrade: true`. Running inline would time out for large shows.
+- Show: sets each `status: "downloaded"` episode to `"upgrading"`, then enqueues one `searchAndGrab()` job per episode.
+- If a job finds no releases: status reverts to `"downloaded"` immediately. No data loss.
 
 **`mode: "manual"`**
-- Returns 200 with no side effects.
-- The frontend uses this as the signal to open the interactive search tab.
+
+- Not a real API endpoint — the "Search Manually" button navigates the frontend directly to the interactive search tab carrying upgrade context in React state. No server round-trip needed. The `POST /api/library/{id}/upgrade` endpoint only handles `mode: "auto"`.
 
 ### `POST /api/medias/interactive-download` — extended
 
@@ -94,6 +97,7 @@ When `true`, `grabRelease()` stamps `DownloadHistory.is_upgrade = true` and sets
 ### `grabRelease()` — extended
 
 Accepts `is_upgrade?: boolean` in its opts. When true:
+
 - Sets `DownloadHistory.is_upgrade = true`.
 - Sets `LibraryMedia.status` (or `LibraryEpisode.status`) to `"upgrading"` instead of `"downloading"`.
 
@@ -116,23 +120,26 @@ When processing a completed `DownloadHistory` row where `is_upgrade: true`:
 Triggered when `PATCH /api/library/{id}` returns `needs_upgrade: true`. Shown instead of the normal success toast.
 
 **Movie copy:**
+
 > Your current file doesn't meet the new profile. How would you like to find an upgrade?
 
 **Show copy:**
+
 > {N} downloaded episodes don't meet the new profile. How would you like to find upgrades?
-> *(Note: Manual search lets you search episode by episode in the search tab.)*
+> _(Note: Manual search lets you search episode by episode in the search tab.)_
 
 **Actions:**
 
-| Button | Behaviour |
-|---|---|
-| Auto Search | `POST /api/library/{id}/upgrade { mode: "auto" }` → toast "Upgrade search started" |
-| Search Manually | `POST /api/library/{id}/upgrade { mode: "manual" }` → opens interactive search tab with `is_upgrade: true` context |
-| Keep Current File | Dismiss modal. Profile already saved, no further action. |
+| Button            | Behaviour                                                                                |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| Auto Search       | `POST /api/library/{id}/upgrade { mode: "auto" }` → toast "Upgrade search started"       |
+| Search Manually   | Navigates to interactive search tab with `is_upgrade: true` in React state — no API call |
+| Keep Current File | Dismiss modal. Profile already saved, no further action.                                 |
 
 ### `upgrading` status badge
 
 Reuses the existing `downloading` visual treatment (spinner/indicator). Requires:
+
 - A new label string for `"upgrading"` in the status badge component.
 - New i18n keys in both `en` and `fr` locale files.
 
