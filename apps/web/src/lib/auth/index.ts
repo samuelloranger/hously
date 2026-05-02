@@ -1,10 +1,10 @@
-import { AUTH_ENDPOINTS } from "@/lib/endpoints";
 import type { User } from "@hously/shared/types";
 import { getQueryClient, invalidateAuthCache } from "@/lib/api/queryClient";
 import { queryKeys } from "@/lib/queryKeys";
 import { webFetcher } from "@/lib/api/fetcher";
 import { ApiError } from "@/lib/api/client";
 import { toast } from "sonner";
+import { fetchAuthMeUser } from "@/lib/auth/fetchAuthMeUser";
 
 let currentUser: User | null = null;
 let userPromise: Promise<User | null> | null = null;
@@ -23,24 +23,14 @@ export async function getCurrentUser(): Promise<User | null> {
 
   userPromise = (async () => {
     try {
-      const response = await webFetcher<{ user: User | null }>(
-        AUTH_ENDPOINTS.ME,
-      );
-      currentUser = response.user;
-      // Seed the React Query cache so useCurrentUser() picks up the data
-      // without needing its own fetch — prevents the "user not loaded" state
-      getQueryClient()?.setQueryData(queryKeys.auth.me, currentUser);
+      currentUser = await fetchAuthMeUser(webFetcher);
+      if (currentUser === null) {
+        invalidateAuthCache();
+      } else {
+        getQueryClient()?.setQueryData(queryKeys.auth.me, currentUser);
+      }
       return currentUser;
     } catch (error: unknown) {
-      // If 401, user is not authenticated - clear cache
-      if (error instanceof ApiError && error.status === 401) {
-        currentUser = null;
-        userPromise = null;
-        // Invalidate React Query cache to ensure UI updates
-        invalidateAuthCache();
-        return null;
-      }
-
       // If 429, show toast and re-throw so the router can avoid redirect
       if (error instanceof ApiError && error.status === 429) {
         toast.error("Too many requests. Please slow down.");

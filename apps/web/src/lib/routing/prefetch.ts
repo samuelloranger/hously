@@ -5,7 +5,6 @@ import type {
 import { queryKeys } from "@/lib/queryKeys";
 import {
   ADMIN_ENDPOINTS,
-  AUTH_ENDPOINTS,
   CALENDAR_ENDPOINTS,
   CHORES_ENDPOINTS,
   DASHBOARD_ENDPOINTS,
@@ -24,9 +23,9 @@ import type {
   DashboardJellyfinLatestResponse,
   HomeAssistantWidgetResponse,
   LibraryListResponse,
-  UserResponse,
 } from "@hously/shared/types";
 import { webFetcher } from "@/lib/api/fetcher";
+import { fetchAuthMeUser } from "@/lib/auth/fetchAuthMeUser";
 
 /** Jellyfin shelf page size — must match `useDashboardJellyfinLatestInfinite` on the home page. */
 const HOME_JELLYFIN_LIMIT = 10;
@@ -47,10 +46,7 @@ async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
   const standard = [
     {
       queryKey: queryKeys.auth.me,
-      queryFn: async () => {
-        const response = await webFetcher<UserResponse>(AUTH_ENDPOINTS.ME);
-        return response.user;
-      },
+      queryFn: () => fetchAuthMeUser(webFetcher),
     },
     {
       queryKey: queryKeys.dashboard.stats(),
@@ -131,10 +127,7 @@ function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
 
   void queryClient.prefetchQuery({
     queryKey: queryKeys.auth.me,
-    queryFn: async () => {
-      const response = await webFetcher<UserResponse>(AUTH_ENDPOINTS.ME);
-      return response.user;
-    },
+    queryFn: () => fetchAuthMeUser(webFetcher),
   });
   void queryClient.prefetchQuery({
     queryKey: queryKeys.dashboard.stats(),
@@ -326,7 +319,7 @@ const routeQueryDefinitions = {
     // Always prefetch user profile for settings
     queries.push({
       queryKey: queryKeys.auth.me,
-      queryFn: () => webFetcher("/api/auth/me"),
+      queryFn: () => fetchAuthMeUser(webFetcher),
     });
 
     if (tab === "notifications") {

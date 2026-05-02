@@ -1,8 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { HttpError } from "@/lib/api/httpClient";
 import { queryKeys } from "@/lib/queryKeys";
 import { AUTH_ENDPOINTS } from "@/lib/endpoints";
+import { fetchAuthMeUser } from "@/lib/auth/fetchAuthMeUser";
 import type {
   UserResponse,
   ValidateInvitationResponse,
@@ -26,26 +32,16 @@ export function useCurrentUser() {
 
   return useQuery({
     queryKey: queryKeys.auth.me,
-    queryFn: async () => {
-      try {
-        const response = await fetcher<UserResponse>(AUTH_ENDPOINTS.ME);
-        return response.user;
-      } catch (error: unknown) {
-        // Only return null for 401 (actually not authenticated)
-        if (error instanceof HttpError && error.status === 401) {
-          return null;
-        }
-        // Re-throw other errors (network, 429, 500) so TanStack Query
-        // keeps the previous cached data instead of wiping the user
-        throw error;
-      }
-    },
+    queryFn: () => fetchAuthMeUser(fetcher),
     retry: (failureCount, error: unknown) => {
-      // Don't retry auth failures, but retry transient errors once
+      // 401 is handled inside fetchAuthMeUser (double fetch); avoid stacking retries
       if (error instanceof HttpError && error.status === 401) return false;
       return failureCount < 1;
     },
-    staleTime: 5 * 60 * 1000,
+    // Identity rarely changes without explicit invalidation (login/logout/passkey/profile mutations).
+    staleTime: 30 * 60 * 1000,
+    gcTime: Infinity,
+    placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
