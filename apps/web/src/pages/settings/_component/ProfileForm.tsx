@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -15,11 +15,17 @@ import {
   useUploadAvatar,
 } from "@/pages/settings/useUsers";
 import { Dialog } from "@/components/dialog";
+import { useCalendarAvailableCountries } from "@/hooks/calendar/useCalendarAvailableCountries";
+import { useHolidaySubdivisions } from "@/hooks/calendar/useHolidaySubdivisions";
+import { localizedCountryName } from "@/lib/countriesDisplay";
+import type { UpdateProfileRequest } from "@hously/shared/types";
 import "react-image-crop/dist/ReactCrop.css";
 
 interface ProfileFormData {
   first_name: string;
   last_name: string;
+  country_code: string;
+  calendar_subdivision_code: string;
 }
 
 interface PasswordFormData {
@@ -52,7 +58,7 @@ function centerAspectCrop(
 }
 
 export function ProfileForm() {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const { data: currentUser } = useCurrentUser();
   const updateProfileMutation = useUpdateProfile();
   const changePasswordMutation = useChangePassword();
@@ -68,12 +74,39 @@ export function ProfileForm() {
     register: registerProfile,
     handleSubmit: handleProfileSubmit,
     reset: resetProfile,
+    setValue,
+    watch: watchProfile,
   } = useForm<ProfileFormData>({
     defaultValues: {
       first_name: "",
       last_name: "",
+      country_code: "",
+      calendar_subdivision_code: "",
     },
   });
+
+  const selectedCountry = watchProfile("country_code");
+  const { data: countriesPayload } = useCalendarAvailableCountries();
+  const { data: subdivisionsPayload, isLoading: subdivisionsLoading } =
+    useHolidaySubdivisions(
+      selectedCountry && selectedCountry.length === 2
+        ? selectedCountry
+        : undefined,
+    );
+
+  const sortedCountryOptions = useMemo(() => {
+    const list = countriesPayload?.countries ?? [];
+    return [...list]
+      .map((c) => ({
+        code: c.country_code,
+        label: localizedCountryName(
+          c.country_code,
+          i18n.language,
+          c.default_name,
+        ),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [countriesPayload?.countries, i18n.language]);
 
   // Password form
   const {
@@ -97,16 +130,14 @@ export function ProfileForm() {
       resetProfile({
         first_name: currentUser.first_name || "",
         last_name: currentUser.last_name || "",
+        country_code: currentUser.country_code || "",
+        calendar_subdivision_code: currentUser.calendar_subdivision_code || "",
       });
     }
   }, [currentUser, resetProfile]);
 
   const onProfileSubmit = async (data: ProfileFormData) => {
-    // Build update payload - only include fields that changed
-    const updates: {
-      first_name?: string;
-      last_name?: string;
-    } = {};
+    const updates: UpdateProfileRequest = {};
 
     if (data.first_name !== (currentUser?.first_name || "")) {
       updates.first_name = data.first_name;
@@ -116,7 +147,21 @@ export function ProfileForm() {
       updates.last_name = data.last_name;
     }
 
-    // Check if there are any updates
+    const nextCountry = data.country_code === "" ? null : data.country_code;
+    const prevCountry = currentUser?.country_code ?? null;
+    if (nextCountry !== prevCountry) {
+      updates.country_code = nextCountry;
+    }
+
+    const nextSub =
+      data.calendar_subdivision_code === ""
+        ? null
+        : data.calendar_subdivision_code;
+    const prevSub = currentUser?.calendar_subdivision_code ?? null;
+    if (nextSub !== prevSub) {
+      updates.calendar_subdivision_code = nextSub;
+    }
+
     if (Object.keys(updates).length === 0) {
       toast.info(t("settings.profile.noChanges") || "No changes to save");
       return;
@@ -356,6 +401,57 @@ export function ProfileForm() {
             placeholder={t("settings.profile.lastNamePlaceholder")}
             className="w-full px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
+        </div>
+
+        {/* Country (public holidays) */}
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            {t("settings.profile.countryCode")}
+          </label>
+          <select
+            {...registerProfile("country_code", {
+              onChange: () => setValue("calendar_subdivision_code", ""),
+            })}
+            className="w-full px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          >
+            <option value="">{t("settings.profile.countryPlaceholder")}</option>
+            {sortedCountryOptions.map(({ code, label }) => (
+              <option key={code} value={code}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            {t("settings.profile.countryCodeHint")}
+          </p>
+        </div>
+
+        {/* Province / state (optional) */}
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            {t("settings.profile.subdivisionCode")}
+          </label>
+          <select
+            {...registerProfile("calendar_subdivision_code")}
+            disabled={
+              !selectedCountry ||
+              subdivisionsLoading ||
+              (subdivisionsPayload?.subdivisions.length ?? 0) === 0
+            }
+            className="w-full px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <option value="">
+              {t("settings.profile.subdivisionPlaceholder")}
+            </option>
+            {(subdivisionsPayload?.subdivisions ?? []).map((s) => (
+              <option key={s.subdivision_code} value={s.subdivision_code}>
+                {s.default_name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            {t("settings.profile.subdivisionHint")}
+          </p>
         </div>
 
         {/* Submit Button */}

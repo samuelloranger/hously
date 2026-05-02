@@ -19,8 +19,8 @@ import {
 } from "./utils/session";
 import {
   updateUserAvatarFromUpload,
-  updateUserProfileFields,
-} from "./services/userProfileService";
+  updateUserProfile,
+} from "@hously/api/services/userProfileService";
 
 const getJwtSecret = (): string => {
   const secret = process.env.SECRET_KEY;
@@ -563,30 +563,14 @@ export const auth = (app: Elysia) =>
               return { error: "Unauthorized" };
             }
 
-            const { first_name, last_name, locale } = body;
-
-            if (
-              first_name === undefined &&
-              last_name === undefined &&
-              locale === undefined
-            ) {
-              set.status = 400;
-              return { error: "At least one field must be provided" };
-            }
-
-            if (locale && locale.length > 10) {
-              set.status = 400;
-              return { error: "Locale must be 10 characters or less" };
-            }
-
             try {
-              const updatedUser = await updateUserProfileFields(user.id, {
-                first_name,
-                last_name,
-                locale,
-              });
+              const result = await updateUserProfile(user.id, body);
+              if (!result.ok) {
+                set.status = result.status;
+                return { error: result.error };
+              }
 
-              return { user: mapUser(updatedUser) };
+              return { user: mapUser(result.user) };
             } catch (error) {
               console.error("Error updating user profile:", error);
               set.status = 500;
@@ -598,6 +582,10 @@ export const auth = (app: Elysia) =>
               first_name: t.Optional(t.Union([t.String(), t.Null()])),
               last_name: t.Optional(t.Union([t.String(), t.Null()])),
               locale: t.Optional(t.Union([t.String(), t.Null()])),
+              country_code: t.Optional(t.Union([t.String(), t.Null()])),
+              calendar_subdivision_code: t.Optional(
+                t.Union([t.String(), t.Null()]),
+              ),
             }),
           },
         )

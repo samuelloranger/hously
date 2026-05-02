@@ -74,6 +74,8 @@ export const icalFeedRoutes = new Elysia()
       }
 
       // Window: 30 days past → 90 days future
+      // Intentionally excludes date-holidays / public holidays — those stay in-app only;
+      // subscribed calendars should not receive third-party holiday data from Hously.
       const now = new Date();
       const startDate = new Date(now);
       startDate.setDate(startDate.getDate() - 30);

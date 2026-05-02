@@ -17,6 +17,7 @@ import {
   type CustomEventData,
 } from "@hously/api/utils/calendar/recurrence";
 import { fetchRecurringChoresForCalendar } from "@hously/api/utils/calendar/choreCalendarQueries";
+import { getPublicHolidaysForCalendarRange } from "@hously/api/services/holidayCalendar";
 
 export const calendarEventsRoutes = new Elysia()
   .use(auth)
@@ -291,8 +292,44 @@ export const calendarEventsRoutes = new Elysia()
           }
         }
 
-        // Sort events by date
-        events.sort((a, b) => a.date.localeCompare(b.date));
+        const holidayCountry = user?.country_code?.trim().toUpperCase();
+        if (holidayCountry && /^[A-Z]{2}$/.test(holidayCountry)) {
+          try {
+            const holidayRows = getPublicHolidaysForCalendarRange(
+              holidayCountry,
+              user?.calendar_subdivision_code,
+              startDate,
+              endDate,
+              user?.locale,
+            );
+            const subKey = user?.calendar_subdivision_code?.trim() || "national";
+            holidayRows.forEach((h, index) => {
+              events.push({
+                id: `public-holiday-${holidayCountry}-${subKey}-${h.date}-${index}`,
+                type: "public_holiday",
+                date: h.date,
+                title: h.title,
+                description: null,
+                metadata: {
+                  country_code: holidayCountry,
+                  subdivision_code: user?.calendar_subdivision_code ?? null,
+                  types: h.types,
+                  rule: h.rule,
+                  substitute: h.substitute ?? false,
+                },
+              });
+            });
+          } catch (error) {
+            console.error("Error resolving public holidays:", error);
+          }
+        }
+
+        // Sort events by date, then title
+        events.sort((a, b) => {
+          const byDate = a.date.localeCompare(b.date);
+          if (byDate !== 0) return byDate;
+          return a.title.localeCompare(b.title);
+        });
 
         return { events };
       } catch (error) {

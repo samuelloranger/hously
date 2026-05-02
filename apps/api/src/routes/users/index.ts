@@ -10,7 +10,7 @@ import {
 } from "@hously/api/services/imageService";
 import {
   updateUserAvatarFromUpload,
-  updateUserProfileFields,
+  updateUserProfile,
 } from "@hously/api/services/userProfileService";
 import {
   badRequest,
@@ -61,30 +61,16 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         return unauthorized(set, "Unauthorized");
       }
 
-      const { first_name, last_name, locale } = body;
-
-      // Check if at least one field is provided
-      if (
-        first_name === undefined &&
-        last_name === undefined &&
-        locale === undefined
-      ) {
-        return badRequest(set, "At least one field must be provided");
-      }
-
-      // Validate locale if provided
-      if (locale && locale.length > 10) {
-        return badRequest(set, "Locale must be 10 characters or less");
-      }
-
       try {
-        const updatedUser = await updateUserProfileFields(user.id, {
-          first_name,
-          last_name,
-          locale,
-        });
+        const result = await updateUserProfile(user.id, body);
+        if (!result.ok) {
+          if (result.status === 401) {
+            return unauthorized(set, result.error);
+          }
+          return badRequest(set, result.error);
+        }
 
-        return { user: mapUser(updatedUser) };
+        return { user: mapUser(result.user) };
       } catch (error) {
         console.error("Error updating user profile:", error);
         return serverError(set, "Failed to update profile");
@@ -95,6 +81,8 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         first_name: t.Optional(t.Union([t.String(), t.Null()])),
         last_name: t.Optional(t.Union([t.String(), t.Null()])),
         locale: t.Optional(t.Union([t.String(), t.Null()])),
+        country_code: t.Optional(t.Union([t.String(), t.Null()])),
+        calendar_subdivision_code: t.Optional(t.Union([t.String(), t.Null()])),
       }),
     },
   )

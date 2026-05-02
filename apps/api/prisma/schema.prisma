@@ -18,6 +18,10 @@ model User {
   firstName       String?   @map("first_name")
   lastName        String?   @map("last_name")
   locale          String?
+  /// ISO 3166-1 alpha-2; used with date-holidays for public holidays on the calendar
+  countryCode              String?   @map("country_code") @db.VarChar(2)
+  /// Province/state code from date-holidays (e.g. QC for Canada-Quebec); null = country-level rules only
+  calendarSubdivisionCode  String?   @map("calendar_subdivision_code") @db.VarChar(16)
   avatarUrl       String?   @map("avatar_url")
   dashboardConfig Json?     @map("dashboard_config")
   calendarToken   String?   @unique(map: "ix_users_calendar_token") @map("calendar_token")

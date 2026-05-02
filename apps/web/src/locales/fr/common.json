@@ -68,6 +68,7 @@
     "customEventDeleteError": "Erreur lors de la suppression",
     "customEventDeleteConfirm": "Êtes-vous sûr de vouloir supprimer cet événement ?",
     "chores": "Tâches",
+    "publicHoliday": "Jours fériés",
     "mealPlans": "Repas",
     "event": "événement",
     "events": "événements",
@@ -792,7 +793,13 @@
       "saving": "Enregistrement...",
       "cancel": "Annuler",
       "updateSuccess": "Profil mis à jour avec succès",
-      "updateError": "Échec de la mise à jour du profil. Veuillez réessayer."
+      "updateError": "Échec de la mise à jour du profil. Veuillez réessayer.",
+      "countryCode": "Pays (jours fériés du calendrier)",
+      "countryPlaceholder": "Non défini",
+      "countryCodeHint": "Sert aux jours fériés et jours de congé sur votre calendrier. Choisissez une province ou un État si les règles diffèrent (ex. Québec).",
+      "subdivisionCode": "Province / État / région",
+      "subdivisionPlaceholder": "Par défaut du pays",
+      "subdivisionHint": "Facultatif. Les jours fériés suivent cette subdivision (données date-holidays)."
     },
     "passkeys": {
       "title": "Clés d'accès",

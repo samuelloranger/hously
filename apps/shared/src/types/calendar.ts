@@ -63,8 +63,42 @@ export interface CalendarEventCustomEventMetadata {
   };
 }
 
+export interface CalendarEventPublicHolidayMetadata {
+  type: "public_holiday";
+  metadata: {
+    country_code: string;
+    subdivision_code?: string | null;
+    types: string[];
+    rule: string;
+    substitute?: boolean;
+  };
+}
+
 export type CalendarEvent = CalendarEventBase &
-  (CalendarEventChoreMetadata | CalendarEventCustomEventMetadata);
+  (
+    | CalendarEventChoreMetadata
+    | CalendarEventCustomEventMetadata
+    | CalendarEventPublicHolidayMetadata
+  );
+
+export interface CalendarCountryOption {
+  country_code: string;
+  /** Display name from date-holidays data (often English); UI may localize via i18n-iso-countries. */
+  default_name: string;
+}
+
+export interface CalendarAvailableCountriesResponse {
+  countries: CalendarCountryOption[];
+}
+
+export interface CalendarHolidaySubdivisionOption {
+  subdivision_code: string;
+  default_name: string;
+}
+
+export interface CalendarHolidaySubdivisionsResponse {
+  subdivisions: CalendarHolidaySubdivisionOption[];
+}
 
 export interface CalendarEventsResponse {
   events: CalendarEvent[];
