@@ -1423,7 +1423,20 @@
         "skipped": "Skipped",
         "returning": "Returning",
         "in_production": "In Production",
-        "planned": "Planned"
+        "planned": "Planned",
+        "upgrading": "Upgrading"
+      },
+      "upgradeModal": {
+        "title": "Upgrade Quality",
+        "movieDescription": "Your current file doesn't meet the new profile. How would you like to find an upgrade?",
+        "showDescription_one": "{{count}} downloaded episode doesn't meet the new profile. How would you like to find upgrades?",
+        "showDescription_other": "{{count}} downloaded episodes don't meet the new profile. How would you like to find upgrades?",
+        "showManualNote": "You'll be able to search episode by episode in the search tab.",
+        "autoSearch": "Auto Search",
+        "manualSearch": "Search Manually",
+        "keepCurrent": "Keep Current File",
+        "autoSearchStarted": "Upgrade search started",
+        "autoSearchFailed": "Upgrade search failed"
       }
     },
     "watchlist": {
@@ -1518,7 +1531,8 @@
       "inWatchlist": "Watchlist ✓",
       "cast": "Cast",
       "searchingEpisode": "Searching for",
-      "searchingSeasonPack": "Searching season pack"
+      "searchingSeasonPack": "Searching season pack",
+      "upgradeMode": "Upgrade mode — grab will replace the existing file"
     },
     "addSuccess": "Added {{title}} to library.",
     "addFailed": "Failed to add media to library.",
@@ -1768,6 +1782,8 @@
     "management": {
       "qualityProfile": "Quality profile",
       "qualityProfileNone": "None",
+      "qualityProfileUpdated": "Quality profile updated",
+      "qualityProfileUpdateFailed": "Failed to update quality profile",
       "downloads": "Download history",
       "noDownloads": "No grabs yet for this title.",
       "searchNow": "Search now",

@@ -40,4 +40,5 @@ export const LIBRARY_ENDPOINTS = {
   RSS_STATUS: "/api/library/rss-status",
   DOWNLOAD_HISTORY: "/api/library/download-history",
   DOWNLOAD_HISTORY_STATS: "/api/library/download-history/stats",
+  UPGRADE: (id: number) => `/api/library/${id}/upgrade`,
 } as const;

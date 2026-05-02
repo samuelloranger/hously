@@ -453,7 +453,8 @@ export async function postProcess(
   // ── Pre-scan: check if a MediaFile already exists on disk for this item ──────
   // This handles cases where files were placed manually or by a previous run.
   // If found, register the file and mark as downloaded without touching qBittorrent.
-  {
+  // Skipped for upgrade grabs — the old file is still present and should not short-circuit.
+  if (!dh.isUpgrade) {
     const existingFiles = await prisma.mediaFile.findMany({
       where: dh.episode
         ? { episodeId: dh.episode.id }
@@ -628,13 +629,57 @@ export async function postProcess(
           languageTags: [] as string[],
         };
 
+    let newMediaFileId: number | null = null;
     if (existingFile) {
       await prisma.mediaFile.update({
         where: { id: existingFile.id },
         data: fileData,
       });
+      newMediaFileId = existingFile.id;
     } else {
-      await prisma.mediaFile.create({ data: fileData });
+      const created = await prisma.mediaFile.create({ data: fileData });
+      newMediaFileId = created.id;
+    }
+
+    // Delete old files after a successful upgrade placement.
+    if (dh.isUpgrade && newMediaFileId != null) {
+      const oldFiles = await prisma.mediaFile.findMany({
+        where:
+          dh.episode != null
+            ? { episodeId: dh.episode.id, id: { not: newMediaFileId } }
+            : {
+                mediaId: dh.media!.id,
+                episodeId: null,
+                id: { not: newMediaFileId },
+              },
+        select: { id: true, filePath: true },
+      });
+
+      for (const oldFile of oldFiles) {
+        let shouldDelete = false;
+        try {
+          await unlink(oldFile.filePath);
+          shouldDelete = true;
+        } catch (e) {
+          if ((e as NodeJS.ErrnoException).code === "ENOENT") {
+            shouldDelete = true; // file already gone, clean up DB row
+          } else {
+            console.warn(
+              `[postProcess/upgrade] Failed to delete old file ${oldFile.filePath}:`,
+              e,
+            );
+          }
+        }
+        if (shouldDelete) {
+          await prisma.mediaFile.delete({ where: { id: oldFile.id } });
+        }
+      }
+
+      if (oldFiles.length > 0) {
+        console.log(
+          `[postProcess/upgrade] Deleted ${oldFiles.length} old file(s) for media=${dh.media!.id}`,
+        );
+      }
     }
   } catch (e) {
     // Non-fatal: file is on disk, the record can be recovered via manual rescan.

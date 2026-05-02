@@ -142,6 +142,16 @@ export async function processScheduledJob(job: Job) {
         }
         break;
       }
+      case SCHEDULED_JOB_NAMES.UPGRADE_MEDIA_SEARCH: {
+        const { upgradeMediaSearch } =
+          await import("../../workers/upgradeMediaSearch");
+        const { mediaId, episodeId } = job.data as {
+          mediaId: number;
+          episodeId?: number | null;
+        };
+        await upgradeMediaSearch({ mediaId, episodeId });
+        break;
+      }
       default:
         console.warn(`[ScheduledTasksWorker] Unknown job name: ${job.name}`);
         return { success: false, error: "Unknown job name" };

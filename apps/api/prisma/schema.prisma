@@ -585,7 +585,7 @@ model LibraryMedia {
   title              String
   sortTitle          String?   @map("sort_title")
   year               Int?
-  status             String    @default("wanted") // wanted | downloading | downloaded | skipped | returning | in_production | planned
+  status             String    @default("wanted") // wanted | downloading | downloaded | skipped | returning | in_production | planned | upgrading
   tmdbStatus         String?   @map("tmdb_status")
   monitored          Boolean   @default(true)
   posterUrl          String?   @map("poster_url")
@@ -615,7 +615,7 @@ model LibraryEpisode {
   episode        Int
   title          String?
   airDate        DateTime? @map("air_date") @db.Date
-  status         String    @default("wanted") // wanted | downloading | downloaded | skipped
+  status         String    @default("wanted") // wanted | downloading | downloaded | skipped | upgrading
   monitored      Boolean   @default(true)
   tmdbEpisodeId  Int?      @map("tmdb_episode_id")
   downloadedAt   DateTime? @map("downloaded_at")
@@ -644,6 +644,7 @@ model DownloadHistory {
   completedAt   DateTime? @map("completed_at")
   failed        Boolean   @default(false)
   failReason    String?   @map("fail_reason")
+  isUpgrade           Boolean   @default(false) @map("is_upgrade")
   /// Set when post-processing fails after the torrent completed
   postProcessError           String? @map("post_process_error") @db.Text
   /// Final library path after successful post-processing

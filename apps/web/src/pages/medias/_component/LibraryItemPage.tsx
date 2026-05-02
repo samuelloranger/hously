@@ -63,6 +63,7 @@ export function LibraryItemPage() {
   const [episodeSearchCtx, setEpisodeSearchCtx] =
     useState<EpisodeSearchCtx | null>(null);
   const [seasonSearchCtx, setSeasonSearchCtx] = useState<number | null>(null);
+  const [upgradeSearchMode, setUpgradeSearchMode] = useState(false);
 
   const detailsData = modalData?.details ?? null;
   const ratingsData = modalData?.ratings ?? null;
@@ -235,6 +236,8 @@ export function LibraryItemPage() {
                 onClearEpisodeCtx={() => setEpisodeSearchCtx(null)}
                 onClearSeasonCtx={() => setSeasonSearchCtx(null)}
                 tmdbOriginalTitle={detailsData?.original_title ?? null}
+                isUpgradeMode={upgradeSearchMode}
+                onClearUpgradeMode={() => setUpgradeSearchMode(false)}
               />
             </div>
           )}
@@ -254,6 +257,10 @@ export function LibraryItemPage() {
                 onSearchSeason={(season) => {
                   setSeasonSearchCtx(season);
                   setEpisodeSearchCtx(null);
+                  setActiveTab("search");
+                }}
+                onUpgradeManualSearch={() => {
+                  setUpgradeSearchMode(true);
                   setActiveTab("search");
                 }}
               />
