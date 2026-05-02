@@ -7,7 +7,8 @@ export type LibraryMediaStatus =
   | "skipped"
   | "returning"
   | "in_production"
-  | "planned";
+  | "planned"
+  | "upgrading";
 
 export interface LibraryAudioTrack {
   index: number;
@@ -83,6 +84,8 @@ export interface LibraryMedia {
   quality_profile_id: number | null;
   search_attempts: number;
   quality_profile: LibraryQualityProfileRef | null;
+  needs_upgrade?: boolean;
+  affected_episodes?: number;
   added_at: string;
   updated_at: string;
   last_grabbed_at: string | null;
