@@ -13,7 +13,12 @@ import { createJsonSseResponse } from "@hously/api/utils/sse";
 import type { LibraryMigrateProgress } from "@hously/api/services/jobs/libraryMigrateWorker";
 import type { LibraryReindexLanguagesProgress } from "@hously/api/services/jobs/libraryReindexLanguagesWorker";
 import type { LibraryRemuxJobData } from "@hously/api/services/jobs/libraryRemuxWorker";
-import { grabRelease, searchAndGrab } from "@hously/api/services/mediaGrabber";
+import {
+  grabRelease,
+  searchAndGrab,
+  profileToScoreInput,
+} from "@hously/api/services/mediaGrabber";
+import { filesFailProfile } from "@hously/api/services/upgradeDetection";
 import {
   getLastRssRun,
   getRssRunHistory,
@@ -732,23 +737,22 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           existing.status === "downloaded" &&
           newProfile != null
         ) {
-          const { filesFailProfile } =
-            await import("@hously/api/services/upgradeDetection");
-          const { profileToScoreInput } =
-            await import("@hously/api/services/mediaGrabber");
           const profileInput = profileToScoreInput(newProfile);
+
+          const fileSelect = {
+            episodeId: true,
+            resolution: true,
+            source: true,
+            videoCodec: true,
+            hdrFormat: true,
+            sizeBytes: true,
+            languageTags: true,
+          } as const;
 
           if (existing.type === "movie") {
             const files = await prisma.mediaFile.findMany({
               where: { mediaId: id, episodeId: null },
-              select: {
-                resolution: true,
-                source: true,
-                videoCodec: true,
-                hdrFormat: true,
-                sizeBytes: true,
-                languageTags: true,
-              },
+              select: fileSelect,
             });
             needs_upgrade = filesFailProfile(files, profileInput);
           } else {
@@ -758,22 +762,26 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
               select: { id: true },
             });
 
+            // Bulk fetch all files for these episodes in one query
+            const episodeIds = episodes.map((ep) => ep.id);
+            const allFiles = await prisma.mediaFile.findMany({
+              where: { episodeId: { in: episodeIds } },
+              select: fileSelect,
+            });
+
+            // Group files by episodeId
+            const byEpisode = new Map<number, typeof allFiles>();
+            for (const f of allFiles) {
+              if (f.episodeId == null) continue;
+              const bucket = byEpisode.get(f.episodeId) ?? [];
+              bucket.push(f);
+              byEpisode.set(f.episodeId, bucket);
+            }
+
             let failCount = 0;
             for (const ep of episodes) {
-              const files = await prisma.mediaFile.findMany({
-                where: { episodeId: ep.id },
-                select: {
-                  resolution: true,
-                  source: true,
-                  videoCodec: true,
-                  hdrFormat: true,
-                  sizeBytes: true,
-                  languageTags: true,
-                },
-              });
-              if (filesFailProfile(files, profileInput)) {
-                failCount++;
-              }
+              const files = byEpisode.get(ep.id) ?? [];
+              if (filesFailProfile(files, profileInput)) failCount++;
             }
 
             if (failCount > 0) {
