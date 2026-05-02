@@ -2,8 +2,9 @@ import Holidays from "date-holidays";
 
 const countriesCatalog = new Holidays();
 
-const supportedCountryCodes = (): Set<string> =>
-  new Set(Object.keys(countriesCatalog.getCountries()));
+const SUPPORTED_COUNTRY_CODES = new Set(
+  Object.keys(countriesCatalog.getCountries()),
+);
 
 /**
  * Normalize and validate a country code against date-holidays supported countries.
@@ -15,7 +16,7 @@ export function normalizeUserCountryCode(
   const t = input.trim().toUpperCase();
   if (!t) return null;
   if (!/^[A-Z]{2}$/.test(t)) return null;
-  if (!supportedCountryCodes().has(t)) return null;
+  if (!SUPPORTED_COUNTRY_CODES.has(t)) return null;
   return t;
 }
 
@@ -31,7 +32,7 @@ export function normalizeCalendarSubdivision(
   if (!raw) return null;
 
   const cc = countryCode.trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(cc) || !supportedCountryCodes().has(cc)) return null;
+  if (!/^[A-Z]{2}$/.test(cc) || !SUPPORTED_COUNTRY_CODES.has(cc)) return null;
 
   const hd = new Holidays(cc);
   const states = hd.getStates(cc) as Record<string, string> | undefined;
@@ -65,7 +66,7 @@ export function listHolidaySubdivisionsForApi(countryCode: string): Array<{
   default_name: string;
 }> {
   const cc = countryCode.trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(cc) || !supportedCountryCodes().has(cc)) {
+  if (!/^[A-Z]{2}$/.test(cc) || !SUPPORTED_COUNTRY_CODES.has(cc)) {
     return [];
   }
   const hd = new Holidays(cc);
@@ -118,7 +119,7 @@ export function getPublicHolidaysForCalendarRange(
   locale: string | null | undefined,
 ): HolidayCalendarRow[] {
   const cc = countryCode.trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(cc) || !supportedCountryCodes().has(cc)) {
+  if (!/^[A-Z]{2}$/.test(cc) || !SUPPORTED_COUNTRY_CODES.has(cc)) {
     return [];
   }
 

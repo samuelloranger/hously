@@ -292,26 +292,17 @@ export const calendarEventsRoutes = new Elysia()
           }
         }
 
-        const profileUser = await prisma.user.findFirst({
-          where: { id: user!.id },
-          select: {
-            countryCode: true,
-            calendarSubdivisionCode: true,
-            locale: true,
-          },
-        });
-        const holidayCountry = profileUser?.countryCode?.trim().toUpperCase();
+        const holidayCountry = user?.country_code?.trim().toUpperCase();
         if (holidayCountry && /^[A-Z]{2}$/.test(holidayCountry)) {
           try {
             const holidayRows = getPublicHolidaysForCalendarRange(
               holidayCountry,
-              profileUser?.calendarSubdivisionCode,
+              user?.calendar_subdivision_code,
               startDate,
               endDate,
-              profileUser?.locale,
+              user?.locale,
             );
-            const subKey =
-              profileUser?.calendarSubdivisionCode?.trim() || "national";
+            const subKey = user?.calendar_subdivision_code?.trim() || "national";
             holidayRows.forEach((h, index) => {
               events.push({
                 id: `public-holiday-${holidayCountry}-${subKey}-${h.date}-${index}`,
@@ -321,8 +312,7 @@ export const calendarEventsRoutes = new Elysia()
                 description: null,
                 metadata: {
                   country_code: holidayCountry,
-                  subdivision_code:
-                    profileUser?.calendarSubdivisionCode ?? null,
+                  subdivision_code: user?.calendar_subdivision_code ?? null,
                   types: h.types,
                   rule: h.rule,
                   substitute: h.substitute ?? false,

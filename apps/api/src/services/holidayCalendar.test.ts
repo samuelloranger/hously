@@ -30,6 +30,24 @@ describe("holidayCalendar", () => {
     expect(localeToHolidayLanguages("fr")).toEqual(["fr", "en"]);
   });
 
+  it("localeToHolidayLanguages handles empty locale input", () => {
+    expect(localeToHolidayLanguages(null)).toEqual(["en"]);
+    expect(localeToHolidayLanguages(undefined)).toEqual(["en"]);
+    expect(localeToHolidayLanguages("")).toEqual(["en"]);
+  });
+
+  it("normalizeCalendarSubdivision rejects countries with no subdivisions", () => {
+    expect(normalizeCalendarSubdivision("LU", "L")).toBeNull();
+  });
+
+  it("getPublicHolidaysForCalendarRange returns [] for invalid country codes", () => {
+    const start = new Date(2026, 0, 1);
+    const end = new Date(2026, 0, 31);
+    expect(
+      getPublicHolidaysForCalendarRange("ZZ", null, start, end, "en"),
+    ).toEqual([]);
+  });
+
   it("getPublicHolidaysForCalendarRange returns rows in range (national)", () => {
     const start = new Date(2026, 0, 1);
     const end = new Date(2026, 0, 31);
@@ -54,5 +72,22 @@ describe("holidayCalendar", () => {
     expect(qc.length).toBeGreaterThan(0);
     expect(qc.some((r) => r.date === "2026-06-24")).toBe(true);
     expect(nat.length).toBe(0);
+  });
+
+  it("getPublicHolidaysForCalendarRange handles cross-year ranges", () => {
+    const start = new Date(2025, 11, 20);
+    const end = new Date(2026, 0, 5);
+    const rows = getPublicHolidaysForCalendarRange(
+      "CA",
+      null,
+      start,
+      end,
+      "en",
+    );
+    expect(rows.some((r) => r.date === "2025-12-25")).toBe(true);
+    expect(rows.some((r) => r.date === "2026-01-01")).toBe(true);
+    expect(
+      rows.every((r) => r.date >= "2025-12-20" && r.date <= "2026-01-05"),
+    ).toBe(true);
   });
 });
