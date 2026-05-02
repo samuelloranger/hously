@@ -49,6 +49,8 @@ export interface InteractiveSearchPanelProps {
   episodeId?: number | null;
   /** Pre-select a season (number) or complete series ("complete") when opening */
   defaultSeason?: number | "complete" | null;
+  /** When true, grabs are sent with is_upgrade: true */
+  isUpgradeMode?: boolean;
   onDownloadSuccess?: () => void;
 }
 
@@ -76,6 +78,7 @@ export function InteractiveSearchPanel({
   searchQueryOriginal = null,
   episodeId = null,
   defaultSeason = null,
+  isUpgradeMode = false,
   onDownloadSuccess,
 }: InteractiveSearchPanelProps) {
   const { t } = useTranslation("common");
@@ -287,6 +290,7 @@ export function InteractiveSearchPanel({
           quality_parsed: release.parsed_quality ?? undefined,
           size_bytes: release.size_bytes,
           episode_id: episodeId,
+          ...(isUpgradeMode ? { is_upgrade: true } : {}),
         });
       } else if (isSearchMode && release.download_token) {
         if (interactiveDownloadMutation.isPending) return;
@@ -303,6 +307,7 @@ export function InteractiveSearchPanel({
             quality_parsed: release.parsed_quality ?? undefined,
             size_bytes: release.size_bytes,
             episode_id: episodeId,
+            ...(isUpgradeMode ? { is_upgrade: true } : {}),
           });
         }
       } else {

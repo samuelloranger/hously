@@ -15,6 +15,7 @@ interface LibraryManagementPanelProps {
     title: string | null;
   }) => void;
   onSearchSeason?: (season: number) => void;
+  onUpgradeManualSearch?: () => void;
 }
 
 export function LibraryManagementPanel({
@@ -24,10 +25,14 @@ export function LibraryManagementPanel({
   onDeleted,
   onSearchEpisode,
   onSearchSeason,
+  onUpgradeManualSearch,
 }: LibraryManagementPanelProps) {
   return (
     <div className="px-3 pb-5 pt-2 space-y-3">
-      <LibraryQualityProfileSection libraryId={libraryId} />
+      <LibraryQualityProfileSection
+        libraryId={libraryId}
+        onUpgradeManualSearch={onUpgradeManualSearch}
+      />
       <LibraryMediaSection
         libraryId={libraryId}
         onSearchEpisode={onSearchEpisode}

@@ -40,6 +40,9 @@ type Props = {
   onClearSeasonCtx: () => void;
   /** From TMDB details — original-language title (movies + TV) */
   tmdbOriginalTitle: string | null;
+  /** When true, grabs are marked as upgrades */
+  isUpgradeMode?: boolean;
+  onClearUpgradeMode?: () => void;
 };
 
 export function LibraryItemSearchTab({
@@ -49,6 +52,8 @@ export function LibraryItemSearchTab({
   onClearEpisodeCtx,
   onClearSeasonCtx,
   tmdbOriginalTitle,
+  isUpgradeMode = false,
+  onClearUpgradeMode,
 }: Props) {
   const mediaItem = libraryToMediaItem(item);
   const { t } = useTranslation("common");
@@ -106,6 +111,23 @@ export function LibraryItemSearchTab({
           </button>
         </div>
       )}
+      {isUpgradeMode && (
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-2">
+          <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+            {t(
+              "medias.detail.upgradeMode",
+              "Upgrade mode — grab will replace the existing file",
+            )}
+          </span>
+          <button
+            type="button"
+            onClick={onClearUpgradeMode}
+            className="text-xs text-amber-500 hover:text-amber-700 dark:hover:text-amber-300"
+          >
+            {t("common.clear", "Clear")}
+          </button>
+        </div>
+      )}
       <InteractiveSearchPanel
         isActive
         media={mediaItem}
@@ -114,6 +136,7 @@ export function LibraryItemSearchTab({
         searchQueryOriginal={searchQueryOriginal}
         episodeId={episodeSearchCtx?.id ?? null}
         defaultSeason={seasonSearchCtx}
+        isUpgradeMode={isUpgradeMode}
       />
     </>
   );
