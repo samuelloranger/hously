@@ -618,12 +618,19 @@ export async function searchAndGrab(opts: {
   mediaType: "tv" | "movie";
   searchQuery: string;
   qualityProfileId: number | null;
+  isUpgrade?: boolean;
 }): Promise<
   { grabbed: true; releaseTitle: string } | { grabbed: false; reason: string }
 > {
   try {
-    const { mediaId, episodeId, mediaType, searchQuery, qualityProfileId } =
-      opts;
+    const {
+      mediaId,
+      episodeId,
+      mediaType,
+      searchQuery,
+      qualityProfileId,
+      isUpgrade,
+    } = opts;
     const qTrim = searchQuery.trim();
     if (!qTrim) return { grabbed: false, reason: "Empty search query" };
 
@@ -760,6 +767,7 @@ export async function searchAndGrab(opts: {
         releaseTitle: candidate.title,
         indexer: null,
         qualityParsed: candidate.parsed,
+        isUpgrade,
       });
 
       if (result.grabbed) return result;
