@@ -817,6 +817,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     async ({ params, body, set }) => {
       try {
         const id = parseInt(params.id, 10);
+        if (isNaN(id)) return badRequest(set, "Invalid library id");
 
         if (body.mode === "manual") {
           return { queued: false, mode: "manual" as const };
