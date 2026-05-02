@@ -703,11 +703,14 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         });
         if (!existing) return notFound(set, "Library item not found");
 
+        let newProfile: Awaited<
+          ReturnType<typeof prisma.qualityProfile.findUnique>
+        > | null = null;
         if (body.quality_profile_id != null) {
-          const prof = await prisma.qualityProfile.findUnique({
+          newProfile = await prisma.qualityProfile.findUnique({
             where: { id: body.quality_profile_id },
           });
-          if (!prof) {
+          if (!newProfile) {
             return badRequest(set, "Quality profile not found");
           }
         }
@@ -717,7 +720,76 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           data: { qualityProfileId: body.quality_profile_id },
           include: libraryMediaInclude,
         });
-        return { item: mapLibraryMedia(item) };
+
+        // Detect whether existing files fail the new profile
+        let needs_upgrade = false;
+        let affected_episodes: number | undefined = undefined;
+
+        const profileChanged =
+          body.quality_profile_id !== existing.qualityProfileId;
+        if (
+          profileChanged &&
+          existing.status === "downloaded" &&
+          newProfile != null
+        ) {
+          const { filesFailProfile } =
+            await import("@hously/api/services/upgradeDetection");
+          const { profileToScoreInput } =
+            await import("@hously/api/services/mediaGrabber");
+          const profileInput = profileToScoreInput(newProfile);
+
+          if (existing.type === "movie") {
+            const files = await prisma.mediaFile.findMany({
+              where: { mediaId: id, episodeId: null },
+              select: {
+                resolution: true,
+                source: true,
+                videoCodec: true,
+                hdrFormat: true,
+                sizeBytes: true,
+                languageTags: true,
+              },
+            });
+            needs_upgrade = filesFailProfile(files, profileInput);
+          } else {
+            // show — check each downloaded episode
+            const episodes = await prisma.libraryEpisode.findMany({
+              where: { mediaId: id, status: "downloaded" },
+              select: { id: true },
+            });
+
+            let failCount = 0;
+            for (const ep of episodes) {
+              const files = await prisma.mediaFile.findMany({
+                where: { episodeId: ep.id },
+                select: {
+                  resolution: true,
+                  source: true,
+                  videoCodec: true,
+                  hdrFormat: true,
+                  sizeBytes: true,
+                  languageTags: true,
+                },
+              });
+              if (filesFailProfile(files, profileInput)) {
+                failCount++;
+              }
+            }
+
+            if (failCount > 0) {
+              needs_upgrade = true;
+              affected_episodes = failCount;
+            }
+          }
+        }
+
+        return {
+          item: {
+            ...mapLibraryMedia(item),
+            ...(needs_upgrade ? { needs_upgrade: true } : {}),
+            ...(affected_episodes !== undefined ? { affected_episodes } : {}),
+          },
+        };
       } catch {
         return serverError(set, "Failed to update quality profile");
       }
