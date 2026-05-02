@@ -1000,6 +1000,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           releaseTitle: body.release_title,
           indexer: body.indexer ?? null,
           qualityParsed: body.quality_parsed,
+          isUpgrade: body.is_upgrade ?? false,
         });
 
         if (result.grabbed) {
@@ -1020,6 +1021,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         quality_parsed: t.Optional(t.Any()),
         size_bytes: t.Optional(t.Union([t.Number(), t.Null()])),
         episode_id: t.Optional(t.Union([t.Number(), t.Null()])),
+        is_upgrade: t.Optional(t.Boolean()),
       }),
     },
   )
