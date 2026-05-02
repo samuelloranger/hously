@@ -1059,6 +1059,27 @@
       "error": "Échec de l'exécution de la tâche. Veuillez réessayer.",
       "loadError": "Échec du chargement des tâches planifiées",
       "noJobs": "Aucune tâche planifiée trouvée",
+      "libraryHealth": {
+        "title": "Santé de la bibliothèque",
+        "lastRun": "Dernière vérification : {{count}} problème(s) le {{date}}.",
+        "noRuns": "Aucune vérification d'intégrité de la bibliothèque n'a encore été enregistrée.",
+        "showIssues": "Afficher {{count}} problème(s)",
+        "hideIssues": "Masquer les problèmes",
+        "metrics": {
+          "downloaded_media_without_files": "Médias téléchargés sans fichier",
+          "downloaded_episodes_without_files": "Épisodes téléchargés sans fichier",
+          "missing_file_paths": "Chemins de fichiers manquants",
+          "stale_tmdb_statuses": "Statuts TMDB obsolètes",
+          "episode_number_mismatches": "Épisodes incohérents"
+        },
+        "kinds": {
+          "downloaded_media_without_files": "Média téléchargé sans fichier",
+          "downloaded_episode_without_files": "Épisode téléchargé sans fichier",
+          "missing_file_path": "Chemin de fichier manquant",
+          "stale_tmdb_status": "Statut TMDB obsolète",
+          "episode_number_mismatch": "Numéro d'épisode incohérent"
+        }
+      },
       "schedule": "Planification :",
       "next": "Prochain :",
       "queues": {
@@ -1158,6 +1179,10 @@
         "checkLibraryDownloadCompletion": {
           "label": "Vérifier les téléchargements terminés",
           "description": "Vérifier les éléments récupérés pour les téléchargements terminés et post-traiter."
+        },
+        "checkLibraryIntegrity": {
+          "label": "Vérifier l'intégrité de la bibliothèque",
+          "description": "Détecter les enregistrements qui divergent de l'état du disque et de TMDB."
         }
       }
     },

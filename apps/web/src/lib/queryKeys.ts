@@ -150,6 +150,7 @@ export const queryKeys = {
     pushTokens: () => [...queryKeys.admin.all, "push-tokens"] as const,
     webPush: () => [...queryKeys.admin.all, "web-push"] as const,
     scheduledJobs: () => [...queryKeys.admin.all, "scheduled-jobs"] as const,
+    libraryHealth: () => [...queryKeys.admin.all, "library-health"] as const,
     testEmailTemplates: () =>
       [...queryKeys.admin.all, "test-email-templates"] as const,
     queueJobs: (queue: string, status?: string) =>

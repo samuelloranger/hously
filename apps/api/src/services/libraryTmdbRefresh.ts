@@ -66,6 +66,11 @@ export async function syncLibraryShowEpisodes(mediaId: number): Promise<void> {
         : {}),
     },
   });
+  await prisma.$executeRaw`
+    UPDATE "library_media"
+    SET "tmdb_status_refreshed_at" = NOW()
+    WHERE "id" = ${mediaId}
+  `;
 
   await upsertLibraryShowEpisodesFromTmdb({
     mediaId: media.id,

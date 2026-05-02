@@ -585,16 +585,17 @@ model LibraryMedia {
   title              String
   sortTitle          String?   @map("sort_title")
   year               Int?
-  status             String    @default("wanted") // wanted | downloading | downloaded | skipped | returning | in_production | planned
-  tmdbStatus         String?   @map("tmdb_status")
-  monitored          Boolean   @default(true)
-  posterUrl          String?   @map("poster_url")
-  overview           String?
-  digitalReleaseDate DateTime? @map("digital_release_date")
-  qualityProfileId   Int?      @map("quality_profile_id")
-  searchAttempts     Int       @default(0) @map("search_attempts")
-  addedAt            DateTime  @default(now()) @map("added_at")
-  updatedAt          DateTime  @updatedAt @map("updated_at")
+  status                String    @default("wanted") // wanted | downloading | downloaded | skipped | returning | in_production | planned
+  tmdbStatus            String?   @map("tmdb_status")
+  tmdbStatusRefreshedAt DateTime? @map("tmdb_status_refreshed_at")
+  monitored             Boolean   @default(true)
+  posterUrl             String?   @map("poster_url")
+  overview              String?
+  digitalReleaseDate    DateTime? @map("digital_release_date")
+  qualityProfileId      Int?      @map("quality_profile_id")
+  searchAttempts        Int       @default(0) @map("search_attempts")
+  addedAt               DateTime  @default(now()) @map("added_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   qualityProfile    QualityProfile?   @relation(fields: [qualityProfileId], references: [id], onDelete: SetNull)
   episodes          LibraryEpisode[]
@@ -725,4 +726,20 @@ model MediaFile {
   @@index([episodeId], map: "ix_media_files_episode_id")
   @@index([languageTags], map: "ix_media_files_language_tags", type: Gin)
   @@map("media_files")
+}
+
+model LibraryHealthLog {
+  id          Int      @id @default(autoincrement())
+  status      String
+  trigger     String   @default("manual")
+  startedAt   DateTime @default(now()) @map("started_at")
+  completedAt DateTime @map("completed_at")
+  durationMs  Int      @map("duration_ms")
+  summary     Json
+  issues      Json
+  warnings    String[] @default([])
+  error       String?  @db.Text
+
+  @@index([startedAt], map: "ix_library_health_log_started_at")
+  @@map("library_health_log")
 }

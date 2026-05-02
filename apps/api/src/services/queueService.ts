@@ -38,6 +38,7 @@ export const SCHEDULED_JOB_NAMES = {
   CHECK_LIBRARY_EPISODE_RELEASES: "check-library-episode-releases",
   SYNC_LIBRARY_SHOW_EPISODES: "sync-library-show-episodes",
   CHECK_LIBRARY_DOWNLOAD_COMPLETION: "check-library-download-completion",
+  CHECK_LIBRARY_INTEGRITY: "check-library-integrity",
   POLL_INDEXER_RSS: "poll-indexer-rss",
 } as const;
 
@@ -249,6 +250,10 @@ export async function setupScheduledJobs() {
     {
       name: SCHEDULED_JOB_NAMES.CHECK_LIBRARY_DOWNLOAD_COMPLETION,
       pattern: "*/30 * * * *",
+    },
+    {
+      name: SCHEDULED_JOB_NAMES.CHECK_LIBRARY_INTEGRITY,
+      pattern: "0 3 * * 0",
     },
     {
       name: SCHEDULED_JOB_NAMES.POLL_INDEXER_RSS,

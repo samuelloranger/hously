@@ -289,6 +289,12 @@ export const libraryMediaAdminRoutes = new Elysia({ prefix: "/api/library" })
                 overview: details.overview || null,
               },
             });
+            await prisma.$executeRaw`
+              UPDATE "library_media"
+              SET "tmdb_status_refreshed_at" = NOW()
+              WHERE "tmdb_id" = ${top.id}
+                AND "type" = 'show'
+            `;
             matched++;
           }
         } catch {

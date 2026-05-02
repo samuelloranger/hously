@@ -44,6 +44,70 @@ export interface ScheduledJobsResponse {
   message?: string;
 }
 
+export interface LibraryHealthSummary {
+  downloaded_media_without_files: number;
+  downloaded_episodes_without_files: number;
+  missing_file_paths: number;
+  stale_tmdb_statuses: number;
+  episode_number_mismatches: number;
+  total_issues: number;
+}
+
+export interface LibraryHealthIssue {
+  kind:
+    | "downloaded_media_without_files"
+    | "downloaded_episode_without_files"
+    | "missing_file_path"
+    | "stale_tmdb_status"
+    | "episode_number_mismatch";
+  media_id?: number;
+  episode_id?: number;
+  media_file_id?: number;
+  tmdb_id?: number;
+  tmdb_episode_id?: number;
+  title?: string;
+  media_type?: string;
+  season?: number;
+  episode?: number;
+  expected_season?: number;
+  expected_episode?: number;
+  path?: string;
+  tmdb_status?: string | null;
+  tmdb_status_refreshed_at?: string | null;
+  detail: string;
+}
+
+export interface LibraryHealthLog {
+  id: number;
+  status: "success" | "failed" | string;
+  trigger: string;
+  started_at: string;
+  completed_at: string;
+  duration_ms: number;
+  summary: LibraryHealthSummary;
+  issues: LibraryHealthIssue[];
+  warnings: string[];
+  error: string | null;
+}
+
+export interface LibraryHealthHistoryEntry {
+  id: number;
+  status: string;
+  trigger: string;
+  started_at: string;
+  completed_at: string;
+  duration_ms: number;
+  summary: LibraryHealthSummary;
+  issue_count: number;
+  warnings: string[];
+  error: string | null;
+}
+
+export interface LibraryHealthResponse {
+  latest: LibraryHealthLog | null;
+  history: LibraryHealthHistoryEntry[];
+}
+
 export interface QueueJob {
   id: string;
   name: string;
