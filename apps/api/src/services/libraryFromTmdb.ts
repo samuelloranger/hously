@@ -133,6 +133,13 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
     include: libraryMediaInclude,
   });
 
+  await prisma.$executeRaw`
+    UPDATE "library_media"
+    SET "tmdb_status_refreshed_at" = NOW()
+    WHERE "id" = ${media.id}
+      AND "type" = 'show'
+  `;
+
   await upsertLibraryShowEpisodesFromTmdb({
     mediaId: media.id,
     tmdbShowId: tmdb_id,

@@ -113,6 +113,13 @@ export async function processScheduledJob(job: Job) {
         await checkDownloadCompletion();
         break;
       }
+      case SCHEDULED_JOB_NAMES.CHECK_LIBRARY_INTEGRITY: {
+        const { runLibraryIntegrityCheck } =
+          await import("../libraryIntegrity");
+        const { trigger } = job.data as { trigger?: string };
+        await runLibraryIntegrityCheck({ trigger: trigger ?? "cron" });
+        break;
+      }
       case SCHEDULED_JOB_NAMES.POLL_INDEXER_RSS: {
         const { pollIndexerRss } = await import("../../workers/pollIndexerRss");
         const { saveRssRunResult } = await import("../rssRunStatus");

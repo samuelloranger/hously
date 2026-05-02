@@ -1059,6 +1059,32 @@
       "error": "Failed to execute job. Please try again.",
       "loadError": "Failed to load scheduled jobs",
       "noJobs": "No scheduled jobs found",
+      "libraryHealth": {
+        "title": "Library Health",
+        "runStatus": {
+          "success": "Success",
+          "failed": "Failed",
+          "skipped": "Skipped"
+        },
+        "lastRun": "Last check found {{count}} issue(s) on {{date}}.",
+        "noRuns": "No library integrity check has been recorded yet.",
+        "showIssues": "Show {{count}} issue(s)",
+        "hideIssues": "Hide issues",
+        "metrics": {
+          "downloaded_media_without_files": "Downloaded media missing files",
+          "downloaded_episodes_without_files": "Downloaded episodes missing files",
+          "missing_file_paths": "Missing file paths",
+          "stale_tmdb_statuses": "Stale TMDB statuses",
+          "episode_number_mismatches": "Episode mismatches"
+        },
+        "kinds": {
+          "downloaded_media_without_files": "Downloaded media without files",
+          "downloaded_episode_without_files": "Downloaded episode without files",
+          "missing_file_path": "Missing file path",
+          "stale_tmdb_status": "Stale TMDB status",
+          "episode_number_mismatch": "Episode number mismatch"
+        }
+      },
       "schedule": "Schedule:",
       "next": "Next:",
       "queues": {
@@ -1158,6 +1184,10 @@
         "checkLibraryDownloadCompletion": {
           "label": "Check Download Completion",
           "description": "Check grabbed items for completed downloads and post-process."
+        },
+        "checkLibraryIntegrity": {
+          "label": "Check Library Integrity",
+          "description": "Detect library records that have drifted from disk and TMDB state."
         }
       }
     },

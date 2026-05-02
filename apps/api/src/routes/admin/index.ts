@@ -231,6 +231,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           SCHEDULED_JOB_NAMES.SYNC_LIBRARY_SHOW_EPISODES,
         check_library_download_completion:
           SCHEDULED_JOB_NAMES.CHECK_LIBRARY_DOWNLOAD_COMPLETION,
+        check_library_integrity: SCHEDULED_JOB_NAMES.CHECK_LIBRARY_INTEGRITY,
         poll_indexer_rss: SCHEDULED_JOB_NAMES.POLL_INDEXER_RSS,
       };
 
@@ -263,6 +264,60 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       }),
     },
   )
+
+  // GET /api/admin/library-health - Latest persisted library integrity checks
+  .get("/library-health", async ({ query, set }) => {
+    try {
+      const limit = Math.min(
+        25,
+        Math.max(1, parseInt((query.limit as string) || "5", 10) || 5),
+      );
+      const logs = await prisma.libraryHealthLog.findMany({
+        orderBy: { startedAt: "desc" },
+        take: limit,
+      });
+
+      const getIssueCount = (summary: unknown) => {
+        if (typeof summary !== "object" || summary === null) return 0;
+        const total = (summary as { total_issues?: unknown }).total_issues;
+        return typeof total === "number" ? total : 0;
+      };
+
+      const latest = logs[0]
+        ? {
+            id: logs[0].id,
+            status: logs[0].status,
+            trigger: logs[0].trigger,
+            started_at: formatIso(logs[0].startedAt),
+            completed_at: formatIso(logs[0].completedAt),
+            duration_ms: logs[0].durationMs,
+            summary: logs[0].summary,
+            issues: logs[0].issues,
+            warnings: logs[0].warnings,
+            error: logs[0].error,
+          }
+        : null;
+
+      return {
+        latest,
+        history: logs.slice(1).map((log) => ({
+          id: log.id,
+          status: log.status,
+          trigger: log.trigger,
+          started_at: formatIso(log.startedAt),
+          completed_at: formatIso(log.completedAt),
+          duration_ms: log.durationMs,
+          summary: log.summary,
+          issue_count: getIssueCount(log.summary),
+          warnings: log.warnings,
+          error: log.error,
+        })),
+      };
+    } catch (error) {
+      console.error("Error fetching library health:", error);
+      return serverError(set, "Failed to fetch library health");
+    }
+  })
 
   // POST /api/admin/queues/:name/jobs/:jobId/retry - Retry a single failed job
   .post(

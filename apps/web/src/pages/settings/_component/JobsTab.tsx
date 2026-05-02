@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import {
   useScheduledJobs,
   useTriggerAction,
+  useLibraryHealth,
   useJobHistory,
   useRetryJob,
   useRetryFailed,
@@ -34,8 +35,13 @@ import {
   Tv,
   RefreshCw,
   Download,
+  ShieldAlert,
 } from "lucide-react";
-import type { QueueStat, QueueJob } from "@hously/shared/types";
+import type {
+  QueueStat,
+  QueueJob,
+  LibraryHealthLog,
+} from "@hously/shared/types";
 import { ADMIN_ENDPOINTS } from "@/lib/endpoints";
 import { useFetcher } from "@/lib/api/context";
 import { useQuery } from "@tanstack/react-query";
@@ -59,7 +65,8 @@ type JobAction =
   | "check_library_movie_releases"
   | "check_library_episode_releases"
   | "sync_library_show_episodes"
-  | "check_library_download_completion";
+  | "check_library_download_completion"
+  | "check_library_integrity";
 
 type JobConfig = {
   action: JobAction;
@@ -172,6 +179,13 @@ const JOBS: JobConfig[] = [
     descriptionKey:
       "settings.jobs.actions.checkLibraryDownloadCompletion.description",
   },
+  {
+    action: "check_library_integrity",
+    jobNames: ["check-library-integrity"],
+    Icon: ShieldAlert,
+    labelKey: "settings.jobs.actions.checkLibraryIntegrity.label",
+    descriptionKey: "settings.jobs.actions.checkLibraryIntegrity.description",
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -204,6 +218,19 @@ const getStatusColor = (status: string | null) => {
       return "text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/30";
   }
 };
+
+function getLibraryHealthRunStatusColor(status: string) {
+  switch (status) {
+    case "success":
+      return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30";
+    case "failed":
+      return "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30";
+    case "skipped":
+      return "text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30";
+    default:
+      return "text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/30";
+  }
+}
 
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -534,6 +561,147 @@ function QueueJobRow({
   );
 }
 
+function LibraryHealthCard({
+  latest,
+  t,
+}: {
+  latest: LibraryHealthLog | null;
+  t: (key: string, opts?: Record<string, unknown>) => string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const issueCount = latest?.summary.total_issues ?? 0;
+  const metrics: Array<[string, number]> = latest
+    ? [
+        [
+          "downloaded_media_without_files",
+          latest.summary.downloaded_media_without_files,
+        ],
+        [
+          "downloaded_episodes_without_files",
+          latest.summary.downloaded_episodes_without_files,
+        ],
+        ["missing_file_paths", latest.summary.missing_file_paths],
+        ["stale_tmdb_statuses", latest.summary.stale_tmdb_statuses],
+        ["episode_number_mismatches", latest.summary.episode_number_mismatches],
+      ]
+    : [];
+
+  const shieldTone =
+    latest?.status === "failed"
+      ? "text-red-600 dark:text-red-400"
+      : latest?.status === "skipped"
+        ? "text-amber-600 dark:text-amber-400"
+        : issueCount > 0
+          ? "text-amber-600 dark:text-amber-400"
+          : "text-green-600 dark:text-green-400";
+
+  return (
+    <section className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-neutral-50 dark:bg-neutral-900/50">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <ShieldAlert className={`size-5 mt-0.5 ${shieldTone}`} />
+          <div>
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+              {t("settings.jobs.libraryHealth.title")}
+            </h3>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+              {latest
+                ? t("settings.jobs.libraryHealth.lastRun", {
+                    count: issueCount,
+                    date: new Date(latest.completed_at).toLocaleString(),
+                  })
+                : t("settings.jobs.libraryHealth.noRuns")}
+            </p>
+            {latest?.error && (
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+                {latest.error}
+              </p>
+            )}
+          </div>
+        </div>
+        {latest && (
+          <span
+            className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${getLibraryHealthRunStatusColor(
+              latest.status,
+            )}`}
+          >
+            {t(`settings.jobs.libraryHealth.runStatus.${latest.status}`, {
+              defaultValue: latest.status,
+            })}
+          </span>
+        )}
+      </div>
+
+      {latest && (
+        <div className="mt-4 space-y-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+            {metrics.map(([key, value]) => (
+              <div
+                key={key}
+                className="rounded-md bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3"
+              >
+                <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                  {value}
+                </div>
+                <div className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-tight">
+                  {t(`settings.jobs.libraryHealth.metrics.${key}`)}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {latest.warnings.length > 0 && (
+            <div className="rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-xs text-amber-800 dark:text-amber-300 space-y-1">
+              {latest.warnings.map((warning, i) => (
+                <p key={i}>{warning}</p>
+              ))}
+            </div>
+          )}
+
+          {latest.issues.length > 0 && (
+            <div>
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
+              >
+                {expanded
+                  ? t("settings.jobs.libraryHealth.hideIssues")
+                  : t("settings.jobs.libraryHealth.showIssues", {
+                      count: latest.issues.length,
+                    })}
+              </button>
+              {expanded && (
+                <>
+                  <div className="mt-2 space-y-1.5 max-h-72 overflow-y-auto">
+                    {latest.issues.slice(0, 100).map((issue, index) => (
+                      <div
+                        key={`${issue.kind}-${issue.media_id ?? ""}-${issue.episode_id ?? ""}-${issue.media_file_id ?? ""}-${index}`}
+                        className="rounded-md bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-xs"
+                      >
+                        <div className="font-medium text-neutral-900 dark:text-neutral-100">
+                          {t(`settings.jobs.libraryHealth.kinds.${issue.kind}`)}
+                        </div>
+                        <div className="text-neutral-600 dark:text-neutral-400 mt-0.5 break-words">
+                          {issue.detail}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {latest.issues.length > 100 && (
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 pt-1">
+                      Showing 100 of {latest.issues.length} issues.
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main JobsTab
 // ---------------------------------------------------------------------------
@@ -542,6 +710,7 @@ export function JobsTab() {
   const { t, i18n } = useTranslation("common");
   const { data: currentUser } = useCurrentUser();
   const { data: scheduledJobsData, isLoading, error } = useScheduledJobs();
+  const { data: libraryHealthData } = useLibraryHealth();
   const { data: historyData } = useJobHistory(50);
   const { mutateAsync: triggerAction } = useTriggerAction();
   const [executing, setExecuting] = useState<JobAction | null>(null);
@@ -593,6 +762,11 @@ export function JobsTab() {
           </div>
         ) : (
           <div className="space-y-6">
+            <LibraryHealthCard
+              latest={libraryHealthData?.latest ?? null}
+              t={t}
+            />
+
             {/* Queue Overview */}
             {scheduledJobsData?.queues && (
               <section>

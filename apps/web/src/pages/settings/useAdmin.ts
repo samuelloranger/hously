@@ -24,6 +24,7 @@ import type {
   RetryFailedResponse,
   CleanQueueResponse,
   JobHistoryResponse,
+  LibraryHealthResponse,
 } from "@hously/shared/types";
 export function useExportData() {
   const fetcher = useFetcher();
@@ -53,6 +54,7 @@ export function useImportData() {
 
 export function useTriggerAction() {
   const fetcher = useFetcher();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (action: string) =>
@@ -60,6 +62,13 @@ export function useTriggerAction() {
         method: "POST",
         body: { action },
       }),
+    onSuccess: (_data, action) => {
+      if (action === "check_library_integrity") {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.admin.libraryHealth(),
+        });
+      }
+    },
   });
 }
 
@@ -75,6 +84,18 @@ export function useScheduledJobs() {
     refetchOnMount: true,
     refetchOnReconnect: true,
     refetchIntervalInBackground: true,
+  });
+}
+
+export function useLibraryHealth() {
+  const fetcher = useFetcher();
+
+  return useQuery({
+    queryKey: queryKeys.admin.libraryHealth(),
+    queryFn: () =>
+      fetcher<LibraryHealthResponse>(ADMIN_ENDPOINTS.LIBRARY_HEALTH),
+    refetchInterval: 45_000,
+    refetchOnWindowFocus: true,
   });
 }
 
