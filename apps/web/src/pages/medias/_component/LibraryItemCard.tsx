@@ -48,6 +48,10 @@ const STATUS_STYLES: Record<
     className:
       "bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300",
   },
+  upgrading: {
+    labelKey: "medias.library.itemStatus.upgrading",
+    className: "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300",
+  },
 };
 
 type CardStatus = MediaPosterCardStatus;
@@ -63,6 +67,7 @@ function toCardStatus(status: LibraryMedia["status"]): CardStatus {
     case "planned":
       return "planned";
     case "downloading":
+    case "upgrading":
       return "downloading";
     case "wanted":
     case "skipped":

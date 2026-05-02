@@ -1423,7 +1423,8 @@
         "skipped": "Ignoré",
         "returning": "En cours",
         "in_production": "En production",
-        "planned": "Planifié"
+        "planned": "Planifié",
+        "upgrading": "Mise à niveau"
       }
     },
     "watchlist": {

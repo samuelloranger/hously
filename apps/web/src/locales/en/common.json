@@ -1423,7 +1423,8 @@
         "skipped": "Skipped",
         "returning": "Returning",
         "in_production": "In Production",
-        "planned": "Planned"
+        "planned": "Planned",
+        "upgrading": "Upgrading"
       }
     },
     "watchlist": {
