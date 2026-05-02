@@ -1061,6 +1061,11 @@
       "noJobs": "No scheduled jobs found",
       "libraryHealth": {
         "title": "Library Health",
+        "runStatus": {
+          "success": "Success",
+          "failed": "Failed",
+          "skipped": "Skipped"
+        },
         "lastRun": "Last check found {{count}} issue(s) on {{date}}.",
         "noRuns": "No library integrity check has been recorded yet.",
         "showIssues": "Show {{count}} issue(s)",

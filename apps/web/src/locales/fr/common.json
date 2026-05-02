@@ -1061,6 +1061,11 @@
       "noJobs": "Aucune tâche planifiée trouvée",
       "libraryHealth": {
         "title": "Santé de la bibliothèque",
+        "runStatus": {
+          "success": "Réussi",
+          "failed": "Échec",
+          "skipped": "Ignoré"
+        },
         "lastRun": "Dernière vérification : {{count}} problème(s) le {{date}}.",
         "noRuns": "Aucune vérification d'intégrité de la bibliothèque n'a encore été enregistrée.",
         "showIssues": "Afficher {{count}} problème(s)",

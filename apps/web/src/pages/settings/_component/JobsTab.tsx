@@ -219,6 +219,19 @@ const getStatusColor = (status: string | null) => {
   }
 };
 
+function getLibraryHealthRunStatusColor(status: string) {
+  switch (status) {
+    case "success":
+      return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30";
+    case "failed":
+      return "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30";
+    case "skipped":
+      return "text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30";
+    default:
+      return "text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/30";
+  }
+}
+
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
   if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
@@ -557,7 +570,6 @@ function LibraryHealthCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const issueCount = latest?.summary.total_issues ?? 0;
-  const hasIssues = issueCount > 0 || latest?.status === "failed";
   const metrics: Array<[string, number]> = latest
     ? [
         [
@@ -574,17 +586,20 @@ function LibraryHealthCard({
       ]
     : [];
 
+  const shieldTone =
+    latest?.status === "failed"
+      ? "text-red-600 dark:text-red-400"
+      : latest?.status === "skipped"
+        ? "text-amber-600 dark:text-amber-400"
+        : issueCount > 0
+          ? "text-amber-600 dark:text-amber-400"
+          : "text-green-600 dark:text-green-400";
+
   return (
     <section className="border border-neutral-200 dark:border-neutral-700 rounded-lg p-4 bg-neutral-50 dark:bg-neutral-900/50">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <ShieldAlert
-            className={`size-5 mt-0.5 ${
-              hasIssues
-                ? "text-amber-600 dark:text-amber-400"
-                : "text-green-600 dark:text-green-400"
-            }`}
-          />
+          <ShieldAlert className={`size-5 mt-0.5 ${shieldTone}`} />
           <div>
             <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
               {t("settings.jobs.libraryHealth.title")}
@@ -606,11 +621,13 @@ function LibraryHealthCard({
         </div>
         {latest && (
           <span
-            className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${getStatusColor(
+            className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${getLibraryHealthRunStatusColor(
               latest.status,
             )}`}
           >
-            {latest.status}
+            {t(`settings.jobs.libraryHealth.runStatus.${latest.status}`, {
+              defaultValue: latest.status,
+            })}
           </span>
         )}
       </div>

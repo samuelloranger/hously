@@ -26,6 +26,9 @@ async function main() {
   console.log(
     `Library integrity check ${result.status} in ${result.duration_ms}ms`,
   );
+  if (result.status === "skipped") {
+    console.log("(Concurrent run in progress — see warnings.)");
+  }
   console.log(`Started:   ${result.started_at}`);
   console.log(`Completed: ${result.completed_at}`);
   console.log(`Persisted: ${persist ? "yes" : "no"}`);

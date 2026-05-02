@@ -44,6 +44,8 @@ export interface ScheduledJobsResponse {
   message?: string;
 }
 
+export type LibraryHealthRunStatus = "success" | "failed" | "skipped";
+
 export interface LibraryHealthSummary {
   downloaded_media_without_files: number;
   downloaded_episodes_without_files: number;
@@ -79,7 +81,7 @@ export interface LibraryHealthIssue {
 
 export interface LibraryHealthLog {
   id: number;
-  status: "success" | "failed" | string;
+  status: LibraryHealthRunStatus | string;
   trigger: string;
   started_at: string;
   completed_at: string;
@@ -97,7 +99,8 @@ export interface LibraryHealthHistoryEntry {
   started_at: string;
   completed_at: string;
   duration_ms: number;
-  summary: LibraryHealthSummary;
+  /** JSON from DB — use `issue_count` for list display */
+  summary: unknown;
   issue_count: number;
   warnings: string[];
   error: string | null;

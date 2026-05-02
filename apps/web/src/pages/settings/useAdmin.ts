@@ -94,6 +94,8 @@ export function useLibraryHealth() {
     queryKey: queryKeys.admin.libraryHealth(),
     queryFn: () =>
       fetcher<LibraryHealthResponse>(ADMIN_ENDPOINTS.LIBRARY_HEALTH),
+    refetchInterval: 45_000,
+    refetchOnWindowFocus: true,
   });
 }
 
