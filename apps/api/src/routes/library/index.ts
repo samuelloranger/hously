@@ -5,9 +5,11 @@ import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
 import {
+  addJob,
   libraryMigrateQueue,
   libraryReindexLanguagesQueue,
   libraryRemuxQueue,
+  QUEUE_NAMES,
 } from "@hously/api/services/queueService";
 import { createJsonSseResponse } from "@hously/api/utils/sse";
 import type { LibraryMigrateProgress } from "@hously/api/services/jobs/libraryMigrateWorker";
@@ -805,6 +807,74 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     {
       body: t.Object({
         quality_profile_id: t.Union([t.Number(), t.Null()]),
+      }),
+    },
+  )
+
+  // POST /api/library/:id/upgrade
+  .post(
+    "/:id/upgrade",
+    async ({ params, body, set }) => {
+      try {
+        const id = parseInt(params.id, 10);
+
+        if (body.mode === "manual") {
+          return { queued: false, mode: "manual" as const };
+        }
+
+        // mode === "auto"
+        const media = await prisma.libraryMedia.findUnique({
+          where: { id },
+          select: { id: true, type: true, status: true },
+        });
+        if (!media) return notFound(set, "Library item not found");
+
+        if (media.type === "movie") {
+          await prisma.libraryMedia.update({
+            where: { id },
+            data: { status: "upgrading" },
+          });
+          await addJob(
+            QUEUE_NAMES.SCHEDULED_TASKS,
+            SCHEDULED_JOB_NAMES.UPGRADE_MEDIA_SEARCH,
+            { mediaId: id, episodeId: null },
+          );
+          return { queued: true, mode: "auto" as const, count: 1 };
+        } else {
+          // show — upgrade all downloaded episodes
+          const episodes = await prisma.libraryEpisode.findMany({
+            where: { mediaId: id, status: "downloaded" },
+            select: { id: true },
+          });
+
+          await prisma.libraryEpisode.updateMany({
+            where: { id: { in: episodes.map((ep) => ep.id) } },
+            data: { status: "upgrading" },
+          });
+
+          await Promise.all(
+            episodes.map((ep) =>
+              addJob(
+                QUEUE_NAMES.SCHEDULED_TASKS,
+                SCHEDULED_JOB_NAMES.UPGRADE_MEDIA_SEARCH,
+                { mediaId: id, episodeId: ep.id },
+              ),
+            ),
+          );
+
+          return {
+            queued: true,
+            mode: "auto" as const,
+            count: episodes.length,
+          };
+        }
+      } catch {
+        return serverError(set, "Failed to enqueue upgrade");
+      }
+    },
+    {
+      body: t.Object({
+        mode: t.Union([t.Literal("auto"), t.Literal("manual")]),
       }),
     },
   )
