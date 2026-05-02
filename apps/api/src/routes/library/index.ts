@@ -5,15 +5,22 @@ import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
 import {
+  addJob,
   libraryMigrateQueue,
   libraryReindexLanguagesQueue,
   libraryRemuxQueue,
+  QUEUE_NAMES,
 } from "@hously/api/services/queueService";
 import { createJsonSseResponse } from "@hously/api/utils/sse";
 import type { LibraryMigrateProgress } from "@hously/api/services/jobs/libraryMigrateWorker";
 import type { LibraryReindexLanguagesProgress } from "@hously/api/services/jobs/libraryReindexLanguagesWorker";
 import type { LibraryRemuxJobData } from "@hously/api/services/jobs/libraryRemuxWorker";
-import { grabRelease, searchAndGrab } from "@hously/api/services/mediaGrabber";
+import {
+  grabRelease,
+  searchAndGrab,
+  profileToScoreInput,
+} from "@hously/api/services/mediaGrabber";
+import { filesFailProfile } from "@hously/api/services/upgradeDetection";
 import {
   getLastRssRun,
   getRssRunHistory,
@@ -703,11 +710,14 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         });
         if (!existing) return notFound(set, "Library item not found");
 
+        let newProfile: Awaited<
+          ReturnType<typeof prisma.qualityProfile.findUnique>
+        > | null = null;
         if (body.quality_profile_id != null) {
-          const prof = await prisma.qualityProfile.findUnique({
+          newProfile = await prisma.qualityProfile.findUnique({
             where: { id: body.quality_profile_id },
           });
-          if (!prof) {
+          if (!newProfile) {
             return badRequest(set, "Quality profile not found");
           }
         }
@@ -717,7 +727,79 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           data: { qualityProfileId: body.quality_profile_id },
           include: libraryMediaInclude,
         });
-        return { item: mapLibraryMedia(item) };
+
+        // Detect whether existing files fail the new profile
+        let needs_upgrade = false;
+        let affected_episodes: number | undefined = undefined;
+
+        const profileChanged =
+          body.quality_profile_id !== existing.qualityProfileId;
+        if (
+          profileChanged &&
+          existing.status === "downloaded" &&
+          newProfile != null
+        ) {
+          const profileInput = profileToScoreInput(newProfile);
+
+          const fileSelect = {
+            episodeId: true,
+            resolution: true,
+            source: true,
+            videoCodec: true,
+            hdrFormat: true,
+            sizeBytes: true,
+            languageTags: true,
+          } as const;
+
+          if (existing.type === "movie") {
+            const files = await prisma.mediaFile.findMany({
+              where: { mediaId: id, episodeId: null },
+              select: fileSelect,
+            });
+            needs_upgrade = filesFailProfile(files, profileInput);
+          } else {
+            // show — check each downloaded episode
+            const episodes = await prisma.libraryEpisode.findMany({
+              where: { mediaId: id, status: "downloaded" },
+              select: { id: true },
+            });
+
+            // Bulk fetch all files for these episodes in one query
+            const episodeIds = episodes.map((ep) => ep.id);
+            const allFiles = await prisma.mediaFile.findMany({
+              where: { episodeId: { in: episodeIds } },
+              select: fileSelect,
+            });
+
+            // Group files by episodeId
+            const byEpisode = new Map<number, typeof allFiles>();
+            for (const f of allFiles) {
+              if (f.episodeId == null) continue;
+              const bucket = byEpisode.get(f.episodeId) ?? [];
+              bucket.push(f);
+              byEpisode.set(f.episodeId, bucket);
+            }
+
+            let failCount = 0;
+            for (const ep of episodes) {
+              const files = byEpisode.get(ep.id) ?? [];
+              if (filesFailProfile(files, profileInput)) failCount++;
+            }
+
+            if (failCount > 0) {
+              needs_upgrade = true;
+              affected_episodes = failCount;
+            }
+          }
+        }
+
+        return {
+          item: {
+            ...mapLibraryMedia(item),
+            ...(needs_upgrade ? { needs_upgrade: true } : {}),
+            ...(affected_episodes !== undefined ? { affected_episodes } : {}),
+          },
+        };
       } catch {
         return serverError(set, "Failed to update quality profile");
       }
@@ -725,6 +807,75 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
     {
       body: t.Object({
         quality_profile_id: t.Union([t.Number(), t.Null()]),
+      }),
+    },
+  )
+
+  // POST /api/library/:id/upgrade
+  .post(
+    "/:id/upgrade",
+    async ({ params, body, set }) => {
+      try {
+        const id = parseInt(params.id, 10);
+        if (isNaN(id)) return badRequest(set, "Invalid library id");
+
+        if (body.mode === "manual") {
+          return { queued: false, mode: "manual" as const };
+        }
+
+        // mode === "auto"
+        const media = await prisma.libraryMedia.findUnique({
+          where: { id },
+          select: { id: true, type: true, status: true },
+        });
+        if (!media) return notFound(set, "Library item not found");
+
+        if (media.type === "movie") {
+          await prisma.libraryMedia.update({
+            where: { id },
+            data: { status: "upgrading" },
+          });
+          await addJob(
+            QUEUE_NAMES.SCHEDULED_TASKS,
+            SCHEDULED_JOB_NAMES.UPGRADE_MEDIA_SEARCH,
+            { mediaId: id, episodeId: null },
+          );
+          return { queued: true, mode: "auto" as const, count: 1 };
+        } else {
+          // show — upgrade all downloaded episodes
+          const episodes = await prisma.libraryEpisode.findMany({
+            where: { mediaId: id, status: "downloaded" },
+            select: { id: true },
+          });
+
+          await prisma.libraryEpisode.updateMany({
+            where: { id: { in: episodes.map((ep) => ep.id) } },
+            data: { status: "upgrading" },
+          });
+
+          await Promise.all(
+            episodes.map((ep) =>
+              addJob(
+                QUEUE_NAMES.SCHEDULED_TASKS,
+                SCHEDULED_JOB_NAMES.UPGRADE_MEDIA_SEARCH,
+                { mediaId: id, episodeId: ep.id },
+              ),
+            ),
+          );
+
+          return {
+            queued: true,
+            mode: "auto" as const,
+            count: episodes.length,
+          };
+        }
+      } catch {
+        return serverError(set, "Failed to enqueue upgrade");
+      }
+    },
+    {
+      body: t.Object({
+        mode: t.Union([t.Literal("auto"), t.Literal("manual")]),
       }),
     },
   )
@@ -849,6 +1000,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           releaseTitle: body.release_title,
           indexer: body.indexer ?? null,
           qualityParsed: body.quality_parsed,
+          isUpgrade: body.is_upgrade ?? false,
         });
 
         if (result.grabbed) {
@@ -869,6 +1021,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         quality_parsed: t.Optional(t.Any()),
         size_bytes: t.Optional(t.Union([t.Number(), t.Null()])),
         episode_id: t.Optional(t.Union([t.Number(), t.Null()])),
+        is_upgrade: t.Optional(t.Boolean()),
       }),
     },
   )

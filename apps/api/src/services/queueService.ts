@@ -40,6 +40,7 @@ export const SCHEDULED_JOB_NAMES = {
   CHECK_LIBRARY_DOWNLOAD_COMPLETION: "check-library-download-completion",
   CHECK_LIBRARY_INTEGRITY: "check-library-integrity",
   POLL_INDEXER_RSS: "poll-indexer-rss",
+  UPGRADE_MEDIA_SEARCH: "upgrade-media-search",
 } as const;
 
 // Job names for Notifications queue

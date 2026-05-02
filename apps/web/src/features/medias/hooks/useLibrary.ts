@@ -286,6 +286,7 @@ export function useLibraryGrabRelease(libraryMediaId: number | null) {
       quality_parsed?: unknown;
       size_bytes?: number | null;
       episode_id?: number | null;
+      is_upgrade?: boolean;
     }) => {
       if (libraryMediaId == null || libraryMediaId <= 0) {
         throw new Error("Library context required");
@@ -305,6 +306,7 @@ export function useLibraryGrabRelease(libraryMediaId: number | null) {
               : {}),
             ...(body.size_bytes != null ? { size_bytes: body.size_bytes } : {}),
             ...(body.episode_id != null ? { episode_id: body.episode_id } : {}),
+            ...(body.is_upgrade ? { is_upgrade: true } : {}),
           },
         },
       );
@@ -544,6 +546,22 @@ export function useUpdateLibraryQualityProfile() {
       fetcher<{ item: LibraryMedia }>(
         LIBRARY_ENDPOINTS.UPDATE_QUALITY_PROFILE(id),
         { method: "PATCH", body },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+    },
+  });
+}
+
+export function useUpgradeLibraryMedia() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, mode }: { id: number; mode: "auto" | "manual" }) =>
+      fetcher<{ queued: boolean; mode: string; count?: number }>(
+        LIBRARY_ENDPOINTS.UPGRADE(id),
+        { method: "POST", body: { mode } },
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });

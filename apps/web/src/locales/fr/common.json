@@ -1453,7 +1453,20 @@
         "skipped": "Ignoré",
         "returning": "En cours",
         "in_production": "En production",
-        "planned": "Planifié"
+        "planned": "Planifié",
+        "upgrading": "Mise à niveau"
+      },
+      "upgradeModal": {
+        "title": "Améliorer la qualité",
+        "movieDescription": "Votre fichier actuel ne correspond pas au nouveau profil. Comment souhaitez-vous trouver une mise à niveau ?",
+        "showDescription_one": "{{count}} épisode téléchargé ne correspond pas au nouveau profil. Comment souhaitez-vous trouver des mises à niveau ?",
+        "showDescription_other": "{{count}} épisodes téléchargés ne correspondent pas au nouveau profil. Comment souhaitez-vous trouver des mises à niveau ?",
+        "showManualNote": "Vous pourrez rechercher épisode par épisode dans l'onglet de recherche.",
+        "autoSearch": "Recherche automatique",
+        "manualSearch": "Rechercher manuellement",
+        "keepCurrent": "Conserver le fichier actuel",
+        "autoSearchStarted": "Recherche de mise à niveau lancée",
+        "autoSearchFailed": "Échec de la recherche de mise à niveau"
       }
     },
     "watchlist": {
@@ -1548,7 +1561,8 @@
       "inWatchlist": "Watchlist ✓",
       "cast": "Casting",
       "searchingEpisode": "Recherche de",
-      "searchingSeasonPack": "Recherche du pack saison"
+      "searchingSeasonPack": "Recherche du pack saison",
+      "upgradeMode": "Mode mise à niveau — le fichier existant sera remplacé"
     },
     "addSuccess": "{{title}} ajouté à la bibliothèque.",
     "addFailed": "Échec de l'ajout du média à la bibliothèque.",
@@ -1798,6 +1812,8 @@
     "management": {
       "qualityProfile": "Profil qualité",
       "qualityProfileNone": "Aucun",
+      "qualityProfileUpdated": "Profil de qualité mis à jour",
+      "qualityProfileUpdateFailed": "Échec de la mise à jour du profil de qualité",
       "downloads": "Historique des téléchargements",
       "noDownloads": "Aucun grab pour ce titre.",
       "searchNow": "Rechercher maintenant",

@@ -55,7 +55,9 @@ async function checkBlocklist(
   return entry.reason ?? "Release is blocklisted";
 }
 
-function profileToScoreInput(p: QualityProfile): QualityProfileScoreInput {
+export function profileToScoreInput(
+  p: QualityProfile,
+): QualityProfileScoreInput {
   return {
     minResolution: p.minResolution,
     cutoffResolution: p.cutoffResolution ?? null,
@@ -187,6 +189,7 @@ async function tryAdoptQbDuplicate(ctx: {
   torrentHash: string | null;
   releaseTitle: string;
   qJson: Prisma.InputJsonValue;
+  isUpgrade?: boolean;
 }): Promise<{ adopted: true; completed: boolean } | null> {
   const {
     dhRowId,
@@ -196,6 +199,7 @@ async function tryAdoptQbDuplicate(ctx: {
     torrentHash,
     releaseTitle,
     qJson,
+    isUpgrade,
   } = ctx;
   if (!torrentHash) return null;
 
@@ -255,9 +259,11 @@ async function tryAdoptQbDuplicate(ctx: {
   });
 
   try {
-    const nextStatus: "downloading" | "downloaded" = completed
+    const nextStatus: "downloading" | "downloaded" | "upgrading" = completed
       ? "downloaded"
-      : "downloading";
+      : isUpgrade
+        ? "upgrading"
+        : "downloading";
     if (episodeId != null) {
       await prisma.libraryEpisode.update({
         where: { id: episodeId },
@@ -310,6 +316,7 @@ export async function grabRelease(opts: {
   releaseTitle: string;
   indexer?: string | null;
   qualityParsed?: unknown;
+  isUpgrade?: boolean;
 }): Promise<
   { grabbed: true; releaseTitle: string } | { grabbed: false; reason: string }
 > {
@@ -373,6 +380,7 @@ export async function grabRelease(opts: {
         torrentHash: null,
         downloadUrl,
         qualityParsed: qJson,
+        isUpgrade: opts.isUpgrade ?? false,
       },
     });
     pendingDownloadHistoryId = dhRow.id;
@@ -396,6 +404,7 @@ export async function grabRelease(opts: {
           torrentHash,
           releaseTitle,
           qJson,
+          isUpgrade: opts.isUpgrade,
         });
         if (adopted) {
           grabCommittedOk = true;
@@ -471,6 +480,7 @@ export async function grabRelease(opts: {
             torrentHash,
             releaseTitle,
             qJson,
+            isUpgrade: opts.isUpgrade,
           });
           if (adopted) {
             grabCommittedOk = true;
@@ -504,6 +514,7 @@ export async function grabRelease(opts: {
             torrentHash,
             releaseTitle,
             qJson,
+            isUpgrade: opts.isUpgrade,
           });
           if (adopted) {
             grabCommittedOk = true;
@@ -531,15 +542,16 @@ export async function grabRelease(opts: {
     });
 
     try {
+      const nextStatus = opts.isUpgrade ? "upgrading" : "downloading";
       if (episodeId != null) {
         await prisma.libraryEpisode.update({
           where: { id: episodeId },
-          data: { status: "downloading", searchAttempts: 0 },
+          data: { status: nextStatus, searchAttempts: 0 },
         });
       } else {
         await prisma.libraryMedia.update({
           where: { id: mediaId },
-          data: { status: "downloading", searchAttempts: 0 },
+          data: { status: nextStatus, searchAttempts: 0 },
         });
       }
     } catch (e) {
@@ -606,12 +618,19 @@ export async function searchAndGrab(opts: {
   mediaType: "tv" | "movie";
   searchQuery: string;
   qualityProfileId: number | null;
+  isUpgrade?: boolean;
 }): Promise<
   { grabbed: true; releaseTitle: string } | { grabbed: false; reason: string }
 > {
   try {
-    const { mediaId, episodeId, mediaType, searchQuery, qualityProfileId } =
-      opts;
+    const {
+      mediaId,
+      episodeId,
+      mediaType,
+      searchQuery,
+      qualityProfileId,
+      isUpgrade,
+    } = opts;
     const qTrim = searchQuery.trim();
     if (!qTrim) return { grabbed: false, reason: "Empty search query" };
 
@@ -748,6 +767,7 @@ export async function searchAndGrab(opts: {
         releaseTitle: candidate.title,
         indexer: null,
         qualityParsed: candidate.parsed,
+        isUpgrade,
       });
 
       if (result.grabbed) return result;

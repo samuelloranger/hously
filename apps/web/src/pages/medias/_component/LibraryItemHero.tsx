@@ -50,6 +50,10 @@ const STATUS_BADGE: Record<
     labelKey: "medias.library.itemStatus.planned",
     cls: "bg-teal-500/20 text-teal-400 ring-1 ring-teal-500/30",
   },
+  upgrading: {
+    labelKey: "medias.library.itemStatus.upgrading",
+    cls: "bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/30",
+  },
 };
 
 type Props = {
