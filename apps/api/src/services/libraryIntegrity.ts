@@ -284,7 +284,7 @@ async function collectStaleTmdbStatuses(): Promise<LibraryHealthIssue[]> {
       take: DB_PAGE_SIZE,
       ...(cursor ? { cursor, skip: 1 } : {}),
       where: {
-        type: { in: ["show", "movie"] },
+        type: "show",
         OR: [
           { tmdbStatusRefreshedAt: null },
           { tmdbStatusRefreshedAt: { lt: cutoff } },
