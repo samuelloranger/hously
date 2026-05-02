@@ -1425,6 +1425,17 @@
         "in_production": "In Production",
         "planned": "Planned",
         "upgrading": "Upgrading"
+      },
+      "upgradeModal": {
+        "title": "Upgrade Quality",
+        "movieDescription": "Your current file doesn't meet the new profile. How would you like to find an upgrade?",
+        "showDescription_one": "{{count}} downloaded episode doesn't meet the new profile. How would you like to find upgrades?",
+        "showDescription_other": "{{count}} downloaded episodes don't meet the new profile. How would you like to find upgrades?",
+        "showManualNote": "You'll be able to search episode by episode in the search tab.",
+        "autoSearch": "Auto Search",
+        "manualSearch": "Search Manually",
+        "keepCurrent": "Keep Current File",
+        "autoSearchStarted": "Upgrade search started"
       }
     },
     "watchlist": {
