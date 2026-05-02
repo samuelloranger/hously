@@ -13,13 +13,23 @@ export async function updateUserProfileFields(
     first_name?: string | null;
     last_name?: string | null;
     locale?: string | null;
+    country_code?: string | null;
+    calendar_subdivision_code?: string | null;
   },
 ): Promise<User> {
+  const existing = await prisma.user.findUnique({ where: { id: userId } });
+  if (!existing) {
+    throw new Error("User not found");
+  }
+
   const updateData: Partial<{
     firstName: string | null;
     lastName: string | null;
     locale: string | null;
+    countryCode: string | null;
+    calendarSubdivisionCode: string | null;
   }> = {};
+
   if (input.first_name !== undefined) {
     updateData.firstName = input.first_name;
   }
@@ -28,6 +38,37 @@ export async function updateUserProfileFields(
   }
   if (input.locale !== undefined) {
     updateData.locale = input.locale;
+  }
+
+  let nextCountry = existing.countryCode;
+  let nextSub = existing.calendarSubdivisionCode;
+
+  if (input.country_code !== undefined) {
+    nextCountry = input.country_code;
+    if (
+      input.country_code !== existing.countryCode &&
+      input.calendar_subdivision_code === undefined
+    ) {
+      nextSub = null;
+    }
+  }
+
+  if (input.calendar_subdivision_code !== undefined) {
+    nextSub = input.calendar_subdivision_code;
+  }
+
+  if (!nextCountry) {
+    nextSub = null;
+  }
+
+  if (input.country_code !== undefined) {
+    updateData.countryCode = nextCountry;
+  }
+  if (
+    input.country_code !== undefined ||
+    input.calendar_subdivision_code !== undefined
+  ) {
+    updateData.calendarSubdivisionCode = nextSub;
   }
 
   return prisma.user.update({

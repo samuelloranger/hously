@@ -288,6 +288,7 @@ function CalendarBody({
       return event.metadata.color;
     }
     if (event.type === "chore") return "#3b82f6";
+    if (event.type === "public_holiday") return "#f59e0b";
     return "#6b7280";
   };
 
@@ -300,6 +301,7 @@ function CalendarBody({
         ) {
           return -1;
         }
+        if (event.type === "public_holiday") return -1;
         if (event.type === "custom_event") {
           const start = parseDate(event.metadata.start_datetime);
           if (!start) return 24;
@@ -497,6 +499,10 @@ function CalendarBody({
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-blue-500" />
                 <span>{t("calendar.chores")}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-amber-500" />
+                <span>{t("calendar.publicHoliday")}</span>
               </div>
             </div>
           </div>

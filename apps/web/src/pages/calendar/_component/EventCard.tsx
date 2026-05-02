@@ -1,7 +1,4 @@
-import type {
-  CalendarEvent,
-  CalendarEventCustomEventMetadata,
-} from "@hously/shared/types";
+import type { CalendarEvent } from "@hously/shared/types";
 import {
   formatTime,
   formatDateTime,
@@ -32,19 +29,26 @@ export const EventCard = ({
   onDeleteEvent,
   highlighted = false,
 }: Props) => {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation("common");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const getEventAccentColor = (
     type: CalendarEvent["type"],
-    metadata?: CalendarEventCustomEventMetadata["metadata"],
+    metadata?: CalendarEvent["metadata"],
   ) => {
-    if (type === "custom_event" && metadata?.color) {
+    if (
+      type === "custom_event" &&
+      metadata &&
+      "color" in metadata &&
+      metadata.color
+    ) {
       return metadata.color;
     }
     switch (type) {
       case "chore":
         return "#3b82f6";
+      case "public_holiday":
+        return "#f59e0b";
       default:
         return "#6b7280";
     }
@@ -54,6 +58,8 @@ export const EventCard = ({
     switch (type) {
       case "chore":
         return "bg-blue-50/60 dark:bg-blue-950/20";
+      case "public_holiday":
+        return "bg-amber-50/50 dark:bg-amber-950/20";
       default:
         return "bg-neutral-50/60 dark:bg-neutral-800/40";
     }
@@ -115,11 +121,15 @@ export const EventCard = ({
             wrapper={(children) => (
               <div className="flex-1 min-w-0">{children}</div>
             )}
-            elseWrapper={(children) => (
-              <Link to={getEventLink(event)} className="flex-1 min-w-0">
-                {children}
-              </Link>
-            )}
+            elseWrapper={(children) =>
+              event.type === "public_holiday" ? (
+                <div className="flex-1 min-w-0">{children}</div>
+              ) : (
+                <Link to={getEventLink(event)} className="flex-1 min-w-0">
+                  {children}
+                </Link>
+              )
+            }
           >
             <div className="flex-1 min-w-0">
               {/* Title row */}
@@ -209,6 +219,10 @@ export const EventCard = ({
                 </>
               )}
             </div>
+          ) : event.type === "public_holiday" ? (
+            <span className="text-[10px] font-medium uppercase tracking-wider text-amber-600 dark:text-amber-400/90 shrink-0 mt-0.5">
+              {t("calendar.publicHoliday")}
+            </span>
           ) : (
             <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500 shrink-0 mt-0.5">
               {t("calendar.chores")}

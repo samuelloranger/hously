@@ -162,6 +162,10 @@ export const queryKeys = {
     all: ["calendar"] as const,
     events: (year?: number, month?: number) =>
       [...queryKeys.calendar.all, "events", year, month] as const,
+    availableCountries: () =>
+      [...queryKeys.calendar.all, "available-countries"] as const,
+    holidaySubdivisions: (countryCode: string | undefined) =>
+      [...queryKeys.calendar.all, "holiday-subdivisions", countryCode] as const,
     icalToken: () => [...queryKeys.calendar.all, "ical-token"] as const,
   },
 

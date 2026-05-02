@@ -21,6 +21,10 @@ import {
   updateUserAvatarFromUpload,
   updateUserProfileFields,
 } from "./services/userProfileService";
+import {
+  normalizeUserCountryCode,
+  normalizeCalendarSubdivision,
+} from "./services/holidayCalendar";
 
 const getJwtSecret = (): string => {
   const secret = process.env.SECRET_KEY;
@@ -563,12 +567,20 @@ export const auth = (app: Elysia) =>
               return { error: "Unauthorized" };
             }
 
-            const { first_name, last_name, locale } = body;
+            const {
+              first_name,
+              last_name,
+              locale,
+              country_code,
+              calendar_subdivision_code,
+            } = body;
 
             if (
               first_name === undefined &&
               last_name === undefined &&
-              locale === undefined
+              locale === undefined &&
+              country_code === undefined &&
+              calendar_subdivision_code === undefined
             ) {
               set.status = 400;
               return { error: "At least one field must be provided" };
@@ -579,11 +591,69 @@ export const auth = (app: Elysia) =>
               return { error: "Locale must be 10 characters or less" };
             }
 
+            const profileRow = await prisma.user.findFirst({
+              where: { id: user.id },
+            });
+            if (!profileRow) {
+              set.status = 401;
+              return { error: "User not found" };
+            }
+
+            let normalizedCountry: string | null | undefined;
+            if (country_code !== undefined) {
+              if (country_code === null || country_code === "") {
+                normalizedCountry = null;
+              } else {
+                normalizedCountry = normalizeUserCountryCode(country_code);
+                if (!normalizedCountry) {
+                  set.status = 400;
+                  return {
+                    error:
+                      "country_code must be a supported 2-letter ISO code or empty",
+                  };
+                }
+              }
+            }
+
+            const effectiveCountry =
+              normalizedCountry !== undefined
+                ? normalizedCountry
+                : profileRow.countryCode;
+
+            let normalizedSubdivision: string | null | undefined;
+            if (calendar_subdivision_code !== undefined) {
+              if (
+                calendar_subdivision_code === null ||
+                calendar_subdivision_code === ""
+              ) {
+                normalizedSubdivision = null;
+              } else if (!effectiveCountry) {
+                set.status = 400;
+                return {
+                  error: "Set a country before choosing a province or state",
+                };
+              } else {
+                const sub = normalizeCalendarSubdivision(
+                  effectiveCountry,
+                  calendar_subdivision_code,
+                );
+                if (!sub) {
+                  set.status = 400;
+                  return {
+                    error: "Invalid province or state for selected country",
+                  };
+                }
+                normalizedSubdivision = sub;
+              }
+            }
+
             try {
               const updatedUser = await updateUserProfileFields(user.id, {
                 first_name,
                 last_name,
                 locale,
+                country_code: normalizedCountry,
+                calendar_subdivision_code: normalizedSubdivision,
               });
 
               return { user: mapUser(updatedUser) };
@@ -598,6 +668,10 @@ export const auth = (app: Elysia) =>
               first_name: t.Optional(t.Union([t.String(), t.Null()])),
               last_name: t.Optional(t.Union([t.String(), t.Null()])),
               locale: t.Optional(t.Union([t.String(), t.Null()])),
+              country_code: t.Optional(t.Union([t.String(), t.Null()])),
+              calendar_subdivision_code: t.Optional(
+                t.Union([t.String(), t.Null()]),
+              ),
             }),
           },
         )

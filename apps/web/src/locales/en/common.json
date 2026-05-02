@@ -68,6 +68,7 @@
     "customEventDeleteError": "Error deleting event",
     "customEventDeleteConfirm": "Are you sure you want to delete this event?",
     "chores": "Chores",
+    "publicHoliday": "Public holidays",
     "mealPlans": "Meal plans",
     "event": "event",
     "events": "events",
@@ -792,7 +793,13 @@
       "saving": "Saving...",
       "cancel": "Cancel",
       "updateSuccess": "Profile updated successfully!",
-      "updateError": "Failed to update profile. Please try again."
+      "updateError": "Failed to update profile. Please try again.",
+      "countryCode": "Country (calendar holidays)",
+      "countryPlaceholder": "Not set",
+      "countryCodeHint": "Used for public and bank holidays on your calendar. Pick a province or state when yours has different holidays (e.g. Quebec).",
+      "subdivisionCode": "Province / state / region",
+      "subdivisionPlaceholder": "Use country default",
+      "subdivisionHint": "Optional. When set, holiday rules follow this subdivision (date-holidays data)."
     },
     "passkeys": {
       "title": "Passkeys",

@@ -19,6 +19,10 @@ import {
   unauthorized,
 } from "@hously/api/errors";
 import { mapUser } from "@hously/api/utils/mappers";
+import {
+  normalizeUserCountryCode,
+  normalizeCalendarSubdivision,
+} from "@hously/api/services/holidayCalendar";
 export const usersRoutes = new Elysia({ prefix: "/api/users" })
   .use(auth)
   // GET /api/users - List all users (for assignee pickers, etc.)
@@ -61,13 +65,21 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         return unauthorized(set, "Unauthorized");
       }
 
-      const { first_name, last_name, locale } = body;
+      const {
+        first_name,
+        last_name,
+        locale,
+        country_code,
+        calendar_subdivision_code,
+      } = body;
 
       // Check if at least one field is provided
       if (
         first_name === undefined &&
         last_name === undefined &&
-        locale === undefined
+        locale === undefined &&
+        country_code === undefined &&
+        calendar_subdivision_code === undefined
       ) {
         return badRequest(set, "At least one field must be provided");
       }
@@ -77,11 +89,67 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         return badRequest(set, "Locale must be 10 characters or less");
       }
 
+      const dbUser = await prisma.user.findFirst({
+        where: { id: user.id },
+      });
+      if (!dbUser) {
+        return unauthorized(set, "User not found");
+      }
+
+      let normalizedCountry: string | null | undefined;
+      if (country_code !== undefined) {
+        if (country_code === null || country_code === "") {
+          normalizedCountry = null;
+        } else {
+          normalizedCountry = normalizeUserCountryCode(country_code);
+          if (!normalizedCountry) {
+            return badRequest(
+              set,
+              "country_code must be a supported 2-letter ISO code or empty",
+            );
+          }
+        }
+      }
+
+      const effectiveCountry =
+        normalizedCountry !== undefined
+          ? normalizedCountry
+          : dbUser.countryCode;
+
+      let normalizedSubdivision: string | null | undefined;
+      if (calendar_subdivision_code !== undefined) {
+        if (
+          calendar_subdivision_code === null ||
+          calendar_subdivision_code === ""
+        ) {
+          normalizedSubdivision = null;
+        } else if (!effectiveCountry) {
+          return badRequest(
+            set,
+            "Set a country before choosing a province or state",
+          );
+        } else {
+          const sub = normalizeCalendarSubdivision(
+            effectiveCountry,
+            calendar_subdivision_code,
+          );
+          if (!sub) {
+            return badRequest(
+              set,
+              "Invalid province or state for selected country",
+            );
+          }
+          normalizedSubdivision = sub;
+        }
+      }
+
       try {
         const updatedUser = await updateUserProfileFields(user.id, {
           first_name,
           last_name,
           locale,
+          country_code: normalizedCountry,
+          calendar_subdivision_code: normalizedSubdivision,
         });
 
         return { user: mapUser(updatedUser) };
@@ -95,6 +163,8 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         first_name: t.Optional(t.Union([t.String(), t.Null()])),
         last_name: t.Optional(t.Union([t.String(), t.Null()])),
         locale: t.Optional(t.Union([t.String(), t.Null()])),
+        country_code: t.Optional(t.Union([t.String(), t.Null()])),
+        calendar_subdivision_code: t.Optional(t.Union([t.String(), t.Null()])),
       }),
     },
   )

@@ -1,5 +1,8 @@
 export const CALENDAR_ENDPOINTS = {
   EVENTS: "/api/calendar",
+  AVAILABLE_COUNTRIES: "/api/calendar/available-countries",
+  HOLIDAY_SUBDIVISIONS: (countryCode: string) =>
+    `/api/calendar/holiday-subdivisions/${encodeURIComponent(countryCode)}`,
   CUSTOM_EVENTS: {
     LIST: "/api/custom-events",
     CREATE: "/api/custom-events",
