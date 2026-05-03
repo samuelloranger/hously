@@ -33,12 +33,19 @@ import {
   useDownloadHistoryStats,
 } from "@/features/medias/hooks/useLibrary";
 import {
-  SegmentedTabs,
-  type SegmentedTabItem,
-} from "@/components/ui/segmented-tabs";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { Card } from "./LibrarySharedUI";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const panelClassName =
+  "rounded-lg border border-neutral-100 bg-neutral-50/70 dark:border-neutral-700/60 dark:bg-neutral-900/50";
 
 function formatRelativeShort(isoString: string): string {
   const diff = Math.round((Date.now() - new Date(isoString).getTime()) / 1000);
@@ -97,14 +104,14 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3">
+    <Card className={cn(panelClassName, "px-4 py-3")}>
       <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400">
         {label}
       </p>
       <p className={cn("mt-1 text-2xl font-bold tabular-nums", color)}>
         {value}
       </p>
-    </div>
+    </Card>
   );
 }
 
@@ -220,7 +227,7 @@ function GrabStatusDonut({
   if (segments.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3">
+    <Card className={cn(panelClassName, "px-4 py-3")}>
       <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400 mb-3">
         {t("medias.history.grabStatus")}
       </p>
@@ -264,7 +271,7 @@ function GrabStatusDonut({
           ))}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -282,7 +289,7 @@ function StatsSection() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="h-20 rounded-xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+              className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
             />
           ))}
         </div>
@@ -290,7 +297,7 @@ function StatsSection() {
           {[0, 1].map((i) => (
             <div
               key={i}
-              className="h-28 rounded-xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+              className="h-28 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
             />
           ))}
         </div>
@@ -349,16 +356,16 @@ function StatsSection() {
         totalForChart > 0) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {stats.top_indexers.length > 0 && (
-            <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 space-y-2">
+            <Card className={cn(panelClassName, "px-4 py-3 space-y-2")}>
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
                 <TrendingUp size={10} />
                 {t("medias.history.topIndexers")}
               </p>
               <IndexersBarChart indexers={stats.top_indexers} />
-            </div>
+            </Card>
           )}
           {stats.grabs_by_day.length > 0 && (
-            <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 space-y-2">
+            <Card className={cn(panelClassName, "px-4 py-3 space-y-2")}>
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
                 <Activity size={10} />
                 {t("medias.history.last14Days")}
@@ -370,7 +377,7 @@ function StatsSection() {
                   .toLocaleString()}{" "}
                 {t("medias.history.grabsInPeriod")}
               </p>
-            </div>
+            </Card>
           )}
           {totalForChart > 0 && (
             <GrabStatusDonut
@@ -497,15 +504,11 @@ export function LibraryHistoryTab() {
   const limit = data?.limit ?? 25;
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  const statusTabs: SegmentedTabItem<StatusFilter>[] = [
+  const statusOptions: { id: StatusFilter; label: string }[] = [
     { id: "all", label: t("medias.history.statusAll") },
-    {
-      id: "completed",
-      label: t("medias.history.statusCompleted"),
-      icon: CheckCircle2,
-    },
-    { id: "failed", label: t("medias.history.statusFailed"), icon: XCircle },
-    { id: "active", label: t("medias.history.statusActive"), icon: Clock },
+    { id: "completed", label: t("medias.history.statusCompleted") },
+    { id: "failed", label: t("medias.history.statusFailed") },
+    { id: "active", label: t("medias.history.statusActive") },
   ];
 
   const handleStatusChange = (s: StatusFilter) => {
@@ -518,92 +521,115 @@ export function LibraryHistoryTab() {
   };
 
   return (
-    <div className="space-y-4">
-      <StatsSection />
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex-1 min-w-0">
-          <SegmentedTabs<StatusFilter>
-            variant="chips"
-            ariaLabel={t("medias.history.statusAll")}
-            items={statusTabs}
-            value={status}
-            onChange={handleStatusChange}
-          />
-        </div>
-        <select
-          value={days}
-          onChange={(e) => handleDaysChange(Number(e.target.value))}
-          className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition shrink-0"
-        >
-          <option value={7}>{t("medias.history.days7")}</option>
-          <option value={30}>{t("medias.history.days30")}</option>
-          <option value={90}>{t("medias.history.days90")}</option>
-          <option value={0}>{t("medias.history.daysAll")}</option>
-        </select>
+    <Card className="animate-in fade-in slide-in-from-right-4 duration-300 border-neutral-200 dark:border-neutral-700 dark:bg-neutral-800">
+      <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-700/60">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          {t("settings.mediaHistory.title")}
+        </h2>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+          {t("settings.mediaHistory.description")}
+        </p>
       </div>
 
-      {/* List */}
-      <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden divide-y divide-neutral-100 dark:divide-neutral-800">
-        {isLoading ? (
-          <div className="space-y-px">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="px-4 py-3 flex items-center gap-3">
-                <div className="flex-1 space-y-1.5">
-                  <div className="h-3 w-32 rounded bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
-                  <div className="h-2.5 w-56 rounded bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+      <div className="p-4 space-y-4">
+        <StatsSection />
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Select
+            value={status}
+            onValueChange={(value) => handleStatusChange(value as StatusFilter)}
+          >
+            <SelectTrigger className="w-40 shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={String(days)}
+            onValueChange={(value) => handleDaysChange(Number(value))}
+          >
+            <SelectTrigger className="w-40 shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">{t("medias.history.days7")}</SelectItem>
+              <SelectItem value="30">{t("medias.history.days30")}</SelectItem>
+              <SelectItem value="90">{t("medias.history.days90")}</SelectItem>
+              <SelectItem value="0">{t("medias.history.daysAll")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Card
+          className={cn(
+            panelClassName,
+            "overflow-hidden divide-y divide-neutral-100 dark:divide-neutral-800",
+          )}
+        >
+          {isLoading ? (
+            <div className="space-y-px">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="px-4 py-3 flex items-center gap-3">
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 w-32 rounded bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+                    <div className="h-2.5 w-56 rounded bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+                  </div>
+                  <div className="h-5 w-14 rounded-full bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
                 </div>
-                <div className="h-5 w-14 rounded-full bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
-              </div>
-            ))}
-          </div>
-        ) : items.length === 0 ? (
-          <div className="px-4 py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
-            {t("medias.history.empty")}
-          </div>
-        ) : (
-          <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-            {items.map((item) => (
-              <HistoryRow key={item.id} item={item} />
-            ))}
+              ))}
+            </div>
+          ) : items.length === 0 ? (
+            <div className="px-4 py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
+              {t("medias.history.empty")}
+            </div>
+          ) : (
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+              {items.map((item) => (
+                <HistoryRow key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t("medias.history.paginationRange", {
+                start: (page - 1) * limit + 1,
+                end: Math.min(page * limit, total),
+                total,
+              })}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page <= 1}
+                className="rounded-lg p-1.5 text-neutral-500 transition-colors hover:text-neutral-700 disabled:opacity-40 dark:hover:text-neutral-300"
+              >
+                <ChevronLeft size={15} />
+              </button>
+              <span className="min-w-[60px] text-center text-xs text-neutral-600 dark:text-neutral-400">
+                {page} / {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={!hasMore}
+                className="rounded-lg p-1.5 text-neutral-500 transition-colors hover:text-neutral-700 disabled:opacity-40 dark:hover:text-neutral-300"
+              >
+                <ChevronRight size={15} />
+              </button>
+            </div>
           </div>
         )}
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("medias.history.paginationRange", {
-              start: (page - 1) * limit + 1,
-              end: Math.min(page * limit, total),
-              total,
-            })}
-          </p>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setPage((p) => p - 1)}
-              disabled={page <= 1}
-              className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-40 transition-colors"
-            >
-              <ChevronLeft size={15} />
-            </button>
-            <span className="text-xs text-neutral-600 dark:text-neutral-400 min-w-[60px] text-center">
-              {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={!hasMore}
-              className="rounded-lg p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 disabled:opacity-40 transition-colors"
-            >
-              <ChevronRight size={15} />
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+    </Card>
   );
 }

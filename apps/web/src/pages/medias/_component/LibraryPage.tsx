@@ -40,6 +40,13 @@ import {
   type SegmentedTabItem,
 } from "@/components/ui/segmented-tabs";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   useLibrary,
   useLibraryLanguageTags,
   useSearchLibraryMovie,
@@ -144,6 +151,41 @@ export function LibraryPage() {
 
   const movieCount = data?.movie_count ?? 0;
   const showCount = data?.show_count ?? 0;
+  const typeItems = [
+    { id: "all", label: t("medias.library.typeAll") },
+    {
+      id: "movie",
+      label: t("medias.library.moviesWithCount", {
+        count: movieCount,
+      }),
+      icon: Film,
+    },
+    {
+      id: "show",
+      label: t("medias.library.showsWithCount", {
+        count: showCount,
+      }),
+      icon: Tv,
+    },
+  ] satisfies SegmentedTabItem<FilterType>[];
+  const statusItems = [
+    { id: "all", label: t("medias.library.statusAll") },
+    {
+      id: "downloaded",
+      label: t("medias.library.statusDownloaded"),
+      icon: CheckCircle2,
+    },
+    {
+      id: "wanted",
+      label: t("medias.library.statusWanted"),
+      icon: Clock,
+    },
+    {
+      id: "downloading",
+      label: t("medias.library.statusDownloading"),
+      icon: Download,
+    },
+  ] satisfies SegmentedTabItem<FilterStatus>[];
 
   return (
     <PageLayout>
@@ -158,9 +200,9 @@ export function LibraryPage() {
 
       <div className="space-y-4">
         {/* Filters + sort */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex flex-wrap flex-col justify-between gap-2 w-full">
-            <div className="relative">
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="relative w-full sm:w-auto">
               <Search
                 size={13}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
@@ -174,35 +216,154 @@ export function LibraryPage() {
                   })
                 }
                 placeholder={t("medias.library.searchPlaceholder")}
-                className="w-full max-w-sm rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
+                className="w-full sm:w-80 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
               />
             </div>
 
+            {/* Sort */}
+            <div className="hidden sm:flex items-center gap-1.5 ml-auto">
+              <select
+                value={sortBy}
+                onChange={(e) =>
+                  setState({ sortBy: e.target.value as SortKey, page: 1 })
+                }
+                className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition"
+              >
+                {LIBRARY_SORT_KEYS.map((key) => (
+                  <option key={key} value={key}>
+                    {t(`medias.library.sort.${key}`)}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() =>
+                  setState({
+                    sortDir: sortDir === "asc" ? "desc" : "asc",
+                    page: 1,
+                  })
+                }
+                className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+                title={
+                  sortDir === "asc"
+                    ? t("medias.sortDirectionAsc")
+                    : t("medias.sortDirectionDesc")
+                }
+              >
+                {sortDir === "asc" ? (
+                  <ArrowUpAZ size={14} />
+                ) : (
+                  <ArrowDownAZ size={14} />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 sm:hidden">
+            <Select
+              value={typeFilter}
+              onValueChange={(value) =>
+                setState({ type: value as FilterType, page: 1 })
+              }
+            >
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {typeItems.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={statusFilter}
+              onValueChange={(value) =>
+                setState({ status: value as FilterStatus, page: 1 })
+              }
+            >
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statusItems.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={languageFilter}
+              onValueChange={(value) => setState({ language: value, page: 1 })}
+            >
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  {t("medias.library.languageAll")}
+                </SelectItem>
+                {languageTags.map((tag) => (
+                  <SelectItem key={tag} value={tag}>
+                    {tag}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="flex min-w-0 items-center gap-1.5">
+              <Select
+                value={sortBy}
+                onValueChange={(value) =>
+                  setState({ sortBy: value as SortKey, page: 1 })
+                }
+              >
+                <SelectTrigger className="h-9 min-w-0 flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LIBRARY_SORT_KEYS.map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {t(`medias.library.sort.${key}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <button
+                type="button"
+                onClick={() =>
+                  setState({
+                    sortDir: sortDir === "asc" ? "desc" : "asc",
+                    page: 1,
+                  })
+                }
+                className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition-colors hover:text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:text-neutral-300"
+                title={
+                  sortDir === "asc"
+                    ? t("medias.sortDirectionAsc")
+                    : t("medias.sortDirectionDesc")
+                }
+              >
+                {sortDir === "asc" ? (
+                  <ArrowUpAZ size={14} />
+                ) : (
+                  <ArrowDownAZ size={14} />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="hidden sm:flex sm:flex-col sm:gap-3">
             {/* Type filter */}
-            <div className="flex flex-col gap-3 w-full">
+            <div className="flex flex-col gap-3">
               <SegmentedTabs<FilterType>
                 variant="chips"
-                fullWidth
                 ariaLabel={t("medias.library.typeAll")}
-                items={
-                  [
-                    { id: "all", label: t("medias.library.typeAll") },
-                    {
-                      id: "movie",
-                      label: t("medias.library.moviesWithCount", {
-                        count: movieCount,
-                      }),
-                      icon: Film,
-                    },
-                    {
-                      id: "show",
-                      label: t("medias.library.showsWithCount", {
-                        count: showCount,
-                      }),
-                      icon: Tv,
-                    },
-                  ] satisfies SegmentedTabItem<FilterType>[]
-                }
+                items={typeItems}
                 value={typeFilter}
                 onChange={(f) => setState({ type: f, page: 1 })}
               />
@@ -210,26 +371,8 @@ export function LibraryPage() {
               {/* Status filter */}
               <SegmentedTabs<FilterStatus>
                 variant="chips"
-                fullWidth
                 ariaLabel={t("medias.library.statusAll")}
-                items={[
-                  { id: "all", label: t("medias.library.statusAll") },
-                  {
-                    id: "downloaded",
-                    label: t("medias.library.statusDownloaded"),
-                    icon: CheckCircle2,
-                  },
-                  {
-                    id: "wanted",
-                    label: t("medias.library.statusWanted"),
-                    icon: Clock,
-                  },
-                  {
-                    id: "downloading",
-                    label: t("medias.library.statusDownloading"),
-                    icon: Download,
-                  },
-                ]}
+                items={statusItems}
                 value={statusFilter}
                 onChange={(f) => setState({ status: f, page: 1 })}
               />
@@ -253,44 +396,6 @@ export function LibraryPage() {
                 </select>
               </div>
             </div>
-          </div>
-
-          {/* Sort */}
-          <div className="flex items-center gap-1.5 ml-auto">
-            <select
-              value={sortBy}
-              onChange={(e) =>
-                setState({ sortBy: e.target.value as SortKey, page: 1 })
-              }
-              className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2.5 py-1.5 text-xs text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/40 transition"
-            >
-              {LIBRARY_SORT_KEYS.map((key) => (
-                <option key={key} value={key}>
-                  {t(`medias.library.sort.${key}`)}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() =>
-                setState({
-                  sortDir: sortDir === "asc" ? "desc" : "asc",
-                  page: 1,
-                })
-              }
-              className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-1.5 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
-              title={
-                sortDir === "asc"
-                  ? t("medias.sortDirectionAsc")
-                  : t("medias.sortDirectionDesc")
-              }
-            >
-              {sortDir === "asc" ? (
-                <ArrowUpAZ size={14} />
-              ) : (
-                <ArrowDownAZ size={14} />
-              )}
-            </button>
           </div>
         </div>
 
