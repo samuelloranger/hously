@@ -159,6 +159,11 @@ export async function processScheduledJob(job: Job) {
         await upgradeMediaSearch({ mediaId, episodeId });
         break;
       }
+      case SCHEDULED_JOB_NAMES.REFRESH_GITHUB_RELEASES: {
+        const { refreshGitHubReleases } = await import("../githubReleases");
+        await refreshGitHubReleases({ notifyAdmins: true });
+        break;
+      }
       default:
         console.warn(`[ScheduledTasksWorker] Unknown job name: ${job.name}`);
         return { success: false, error: "Unknown job name" };

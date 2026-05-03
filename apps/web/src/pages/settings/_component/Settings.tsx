@@ -9,6 +9,7 @@ import { DataExportTab } from "@/pages/settings/_component/DataExportTab";
 import { UsersTab } from "@/pages/settings/_component/UsersTab";
 import { JobsTab } from "@/pages/settings/_component/JobsTab";
 import { MediaSettingsTab } from "@/pages/settings/_component/MediaSettingsTab";
+import { ReleasesTab } from "@/pages/settings/_component/ReleasesTab";
 import { SessionsTab } from "@/pages/settings/_component/SessionsTab";
 import { RecentActivityTab } from "@/pages/settings/_component/RecentActivityTab";
 import { useCurrentUser } from "@/lib/auth/useAuth";
@@ -25,6 +26,7 @@ import {
   ShieldCheck,
   History,
   Clapperboard,
+  Package,
   type LucideIcon,
 } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
@@ -40,7 +42,8 @@ export type Tab =
   | "jobs"
   | "users"
   | "sessions"
-  | "media";
+  | "media"
+  | "releases";
 
 interface TabItem {
   id: Tab;
@@ -99,6 +102,11 @@ export function Settings() {
           id: "data-export",
           label: t("settings.dataExport.title"),
           icon: Database,
+        },
+        {
+          id: "releases",
+          label: t("settings.releases.title"),
+          icon: Package,
         },
       ]
     : [];
@@ -201,6 +209,7 @@ export function Settings() {
           {activeTab === "media" && currentUser?.is_admin && (
             <MediaSettingsTab />
           )}
+          {activeTab === "releases" && currentUser?.is_admin && <ReleasesTab />}
         </div>
       </div>
     </div>

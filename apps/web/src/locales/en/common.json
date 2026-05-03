@@ -687,6 +687,19 @@
       "account": "Account",
       "admin": "Admin"
     },
+    "releases": {
+      "title": "Releases",
+      "description": "Public GitHub releases for this Hously project, refreshed every 6 hours.",
+      "repo": "Repository",
+      "lastSynced": "Last synced",
+      "cached": "Cached releases",
+      "emptyTitle": "No releases cached",
+      "emptyDescription": "Refresh releases to load the latest public GitHub data.",
+      "loadError": "Failed to load releases.",
+      "refreshComplete": "Releases refreshed.",
+      "refreshFound": "{{count}} new release(s) found.",
+      "refreshError": "Failed to refresh releases."
+    },
     "notifications": {
       "title": "Notifications",
       "description": "Manage your push notifications for chore reminders.",
@@ -1205,6 +1218,10 @@
         "checkLibraryIntegrity": {
           "label": "Check Library Integrity",
           "description": "Detect library records that have drifted from disk and TMDB state."
+        },
+        "refreshGithubReleases": {
+          "label": "Refresh GitHub Releases",
+          "description": "Fetch public GitHub releases, update the Redis cache, and notify admins for new app versions."
         }
       }
     },
