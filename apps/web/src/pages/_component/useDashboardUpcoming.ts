@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
@@ -16,6 +16,7 @@ export function useDashboardUpcoming(options?: { enabled?: boolean }) {
 
 export function useAddUpcomingToLibrary() {
   const fetcher = useFetcher();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: { media_type: "movie" | "tv"; tmdb_id: number }) =>
@@ -27,5 +28,25 @@ export function useAddUpcomingToLibrary() {
         method: "POST",
         body: data,
       }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboard.upcoming(),
+      });
+    },
+  });
+}
+
+export function useRefreshDashboardUpcoming() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      fetcher<DashboardUpcomingResponse>(DASHBOARD_ENDPOINTS.UPCOMING.REFRESH, {
+        method: "POST",
+      }),
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.dashboard.upcoming(), data);
+    },
   });
 }

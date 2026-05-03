@@ -7,16 +7,91 @@ import {
   getTmdbUpcomingDateWindowIso,
 } from "@hously/api/utils/dashboard/tmdbUpcoming";
 import {
+  attachLibraryIds,
   collectLibraryUpcoming,
   mergeUpcomingById,
 } from "@hously/api/utils/dashboard/libraryUpcoming";
 import { prisma } from "@hously/api/db";
 import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
-import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
+import {
+  deleteCache,
+  getJsonCache,
+  setJsonCache,
+} from "@hously/api/services/cache";
 import { normalizeTmdbConfig } from "@hously/api/utils/integrations/normalizers";
 import type { DashboardUpcomingItem } from "@hously/api/types/dashboardUpcoming";
 import { badGateway, badRequest, serverError } from "@hously/api/errors";
 import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
+
+const buildUpcomingPayload = async (
+  tmdbApiKey: string,
+  popularityThreshold: number,
+): Promise<{ enabled: true; items: DashboardUpcomingItem[] } | null> => {
+  const { todayIso, oneYearOutIso } = getTmdbUpcomingDateWindowIso();
+
+  const POOL_SIZE_PER_TYPE = 40;
+  const [moviesResult, tvResult] = await Promise.all([
+    collectTmdbUpcoming(
+      "movie",
+      POOL_SIZE_PER_TYPE,
+      tmdbApiKey,
+      todayIso,
+      oneYearOutIso,
+    ),
+    collectTmdbUpcoming(
+      "tv",
+      POOL_SIZE_PER_TYPE,
+      tmdbApiKey,
+      todayIso,
+      oneYearOutIso,
+    ),
+  ]);
+
+  if (!moviesResult || !tvResult) return null;
+
+  const filteredTv = tvResult.items.filter(
+    (item) => (item.popularity ?? 0) >= popularityThreshold,
+  );
+
+  const libraryItems = await collectLibraryUpcoming(todayIso, oneYearOutIso);
+  const mergedItems = mergeUpcomingById(
+    [
+      ...moviesResult.items.filter(
+        (item) => (item.popularity ?? 0) >= popularityThreshold,
+      ),
+      ...filteredTv,
+    ],
+    libraryItems,
+  );
+
+  const sortedItems = (await attachLibraryIds(mergedItems))
+    .filter((item) => {
+      if (!item.release_date) return false;
+      const releaseTime = Date.parse(item.release_date);
+      const todayTime = Date.parse(todayIso);
+      const oneYearOutTime = Date.parse(oneYearOutIso);
+      return (
+        Number.isFinite(releaseTime) &&
+        releaseTime >= todayTime &&
+        releaseTime <= oneYearOutTime
+      );
+    })
+    .sort((a, b) => {
+      const aTime = a.release_date
+        ? Date.parse(a.release_date)
+        : Number.POSITIVE_INFINITY;
+      const bTime = b.release_date
+        ? Date.parse(b.release_date)
+        : Number.POSITIVE_INFINITY;
+      return aTime - bTime;
+    });
+
+  const cleanItems: DashboardUpcomingItem[] = sortedItems.map(
+    ({ popularity: _, ...rest }) => rest,
+  );
+
+  return { enabled: true, items: cleanItems };
+};
 
 export const dashboardUpcomingRoutes = new Elysia()
   .use(auth)
@@ -43,80 +118,45 @@ export const dashboardUpcomingRoutes = new Elysia()
       }
 
       console.log("[upcoming] Cache miss, running inline fallback");
-      const { todayIso, oneYearOutIso } = getTmdbUpcomingDateWindowIso();
-
-      const POOL_SIZE_PER_TYPE = 40;
-      const [moviesResult, tvResult] = await Promise.all([
-        collectTmdbUpcoming(
-          "movie",
-          POOL_SIZE_PER_TYPE,
-          tmdbApiKey,
-          todayIso,
-          oneYearOutIso,
-        ),
-        collectTmdbUpcoming(
-          "tv",
-          POOL_SIZE_PER_TYPE,
-          tmdbApiKey,
-          todayIso,
-          oneYearOutIso,
-        ),
-      ]);
-
-      if (!moviesResult || !tvResult) {
-        return badGateway(set, "TMDB request failed");
-      }
-
       const popularityThreshold = tmdbConfig?.popularity_threshold ?? 15;
-      const filteredTv = tvResult.items.filter(
-        (item) => (item.popularity ?? 0) >= popularityThreshold,
+      const responsePayload = await buildUpcomingPayload(
+        tmdbApiKey,
+        popularityThreshold,
       );
-
-      const libraryItems = await collectLibraryUpcoming(
-        todayIso,
-        oneYearOutIso,
-      );
-
-      const sortedItems = mergeUpcomingById(
-        [
-          ...moviesResult.items.filter(
-            (item) => (item.popularity ?? 0) >= popularityThreshold,
-          ),
-          ...filteredTv,
-        ],
-        libraryItems,
-      )
-        .filter((item) => {
-          if (!item.release_date) return false;
-          const releaseTime = Date.parse(item.release_date);
-          const todayTime = Date.parse(todayIso);
-          const oneYearOutTime = Date.parse(oneYearOutIso);
-          return (
-            Number.isFinite(releaseTime) &&
-            releaseTime >= todayTime &&
-            releaseTime <= oneYearOutTime
-          );
-        })
-        .sort((a, b) => {
-          const aTime = a.release_date
-            ? Date.parse(a.release_date)
-            : Number.POSITIVE_INFINITY;
-          const bTime = b.release_date
-            ? Date.parse(b.release_date)
-            : Number.POSITIVE_INFINITY;
-          return aTime - bTime;
-        });
-
-      const cleanItems: DashboardUpcomingItem[] = sortedItems.map(
-        ({ popularity: _, ...rest }) => rest,
-      );
-
-      const responsePayload = { enabled: true, items: cleanItems };
+      if (!responsePayload) return badGateway(set, "TMDB request failed");
       await setJsonCache(TMDB_UPCOMING_CACHE_KEY, responsePayload, 60 * 60);
       return responsePayload;
     } catch (error) {
       console.error("Error getting TMDB upcoming items:", error);
       return serverError(set, "Failed to get TMDB upcoming items");
+    }
+  })
+  .post("/upcoming/refresh", async ({ set }) => {
+    try {
+      const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
+      const tmdbConfig = tmdbIntegration?.enabled
+        ? normalizeTmdbConfig(tmdbIntegration.config)
+        : null;
+      const tmdbApiKey = tmdbConfig?.api_key ?? null;
+
+      await deleteCache(TMDB_UPCOMING_CACHE_KEY);
+
+      if (!tmdbApiKey) {
+        return { enabled: false, items: [] };
+      }
+
+      const popularityThreshold = tmdbConfig?.popularity_threshold ?? 15;
+      const responsePayload = await buildUpcomingPayload(
+        tmdbApiKey,
+        popularityThreshold,
+      );
+      if (!responsePayload) return badGateway(set, "TMDB request failed");
+
+      await setJsonCache(TMDB_UPCOMING_CACHE_KEY, responsePayload, 60 * 60);
+      return responsePayload;
+    } catch (error) {
+      console.error("Error refreshing TMDB upcoming items:", error);
+      return serverError(set, "Failed to refresh TMDB upcoming items");
     }
   })
   .post(
@@ -129,6 +169,7 @@ export const dashboardUpcomingRoutes = new Elysia()
           where: { tmdbId: tmdbId },
         });
         if (existing) {
+          await deleteCache(TMDB_UPCOMING_CACHE_KEY);
           return {
             success: true,
             added: false,
@@ -141,6 +182,7 @@ export const dashboardUpcomingRoutes = new Elysia()
           tmdb_id: tmdbId,
           type: libType,
         });
+        await deleteCache(TMDB_UPCOMING_CACHE_KEY);
 
         return {
           success: true,
