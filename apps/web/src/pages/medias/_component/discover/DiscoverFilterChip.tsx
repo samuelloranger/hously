@@ -1,0 +1,86 @@
+import { useState } from "react";
+import { ChevronDown, X } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+/**
+ * Compact pill with icon + label, optional value, chevron, clear (X) when active.
+ */
+export function DiscoverFilterChip({
+  icon: Icon,
+  label,
+  value,
+  onClear,
+  popoverContent,
+}: {
+  icon: React.ComponentType<{ className?: string; size?: number }>;
+  label: string;
+  value: React.ReactNode | null;
+  onClear?: () => void;
+  popoverContent: (close: () => void) => React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const active = value !== null && value !== undefined;
+  return (
+    <div
+      className={[
+        "inline-flex items-center rounded-full border text-xs font-medium transition-colors",
+        active
+          ? "border-primary-500/50 bg-primary-500/10 text-primary-700 dark:text-primary-200"
+          : "border-neutral-200 dark:border-white/[0.09] bg-white dark:bg-white/[0.03] text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-white/20",
+      ].join(" ")}
+    >
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+          >
+            <Icon
+              className={active ? "text-primary-500" : "text-neutral-400"}
+              size={13}
+            />
+            <span
+              className={
+                active ? "text-[11px] uppercase tracking-wide opacity-70" : ""
+              }
+            >
+              {label}
+            </span>
+            {active && (
+              <>
+                <span className="opacity-40">·</span>
+                <span className="font-semibold">{value}</span>
+              </>
+            )}
+            <ChevronDown size={12} className="opacity-50" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          sideOffset={6}
+          className="w-80 p-0 overflow-hidden"
+        >
+          {popoverContent(() => setOpen(false))}
+        </PopoverContent>
+      </Popover>
+
+      {active && onClear && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClear();
+          }}
+          aria-label="Clear filter"
+          className="mr-1 flex h-5 w-5 items-center justify-center rounded-full text-neutral-400 hover:bg-black/5 hover:text-neutral-700 dark:hover:bg-white/10 dark:hover:text-neutral-200"
+        >
+          <X size={12} />
+        </button>
+      )}
+    </div>
+  );
+}
