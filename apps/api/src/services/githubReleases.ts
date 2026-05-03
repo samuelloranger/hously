@@ -193,8 +193,7 @@ export async function refreshGitHubReleases(options?: {
   const previousState =
     (await getJsonCache<CachedSyncState>(
       cacheKey("sync-state", repoFullName),
-    )) ??
-    emptySyncState(repoFullName);
+    )) ?? emptySyncState(repoFullName);
 
   try {
     const releases = await fetchPublicGitHubReleases();

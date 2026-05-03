@@ -23,8 +23,13 @@ const SPEED_RING_SIZE = 60;
 
 type SpeedSample = { dl: number; ul: number };
 
-
-function SpeedTooltip({ active, payload }: TooltipContentProps<number | string | ReadonlyArray<number | string>, number | string>) {
+function SpeedTooltip({
+  active,
+  payload,
+}: TooltipContentProps<
+  number | string | ReadonlyArray<number | string>,
+  number | string
+>) {
   if (!active || !payload?.length) return null;
   const dl = payload.find((p) => p.dataKey === "dl");
   const ul = payload.find((p) => p.dataKey === "ul");

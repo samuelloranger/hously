@@ -12,20 +12,21 @@
 
 ## File Map
 
-| File | Change |
-|------|--------|
-| `apps/shared/src/types/library.ts` | Add `total_size_bytes: string \| null` to `LibraryMedia` |
-| `apps/api/src/routes/library/index.ts` | Extend `libraryMediaInclude`, add `computeTotalSizeBytes`, update `mapLibraryMedia` |
-| `apps/web/src/utils/libraryUtils.ts` | Add two new `SortKey` values and their sort logic |
-| `apps/web/src/utils/libraryUtils.test.ts` | New — unit tests for the two new sort cases |
-| `apps/web/src/locales/en/common.json` | Two new sort label keys |
-| `apps/web/src/locales/fr/common.json` | Two new sort label keys (French) |
+| File                                      | Change                                                                              |
+| ----------------------------------------- | ----------------------------------------------------------------------------------- |
+| `apps/shared/src/types/library.ts`        | Add `total_size_bytes: string \| null` to `LibraryMedia`                            |
+| `apps/api/src/routes/library/index.ts`    | Extend `libraryMediaInclude`, add `computeTotalSizeBytes`, update `mapLibraryMedia` |
+| `apps/web/src/utils/libraryUtils.ts`      | Add two new `SortKey` values and their sort logic                                   |
+| `apps/web/src/utils/libraryUtils.test.ts` | New — unit tests for the two new sort cases                                         |
+| `apps/web/src/locales/en/common.json`     | Two new sort label keys                                                             |
+| `apps/web/src/locales/fr/common.json`     | Two new sort label keys (French)                                                    |
 
 ---
 
 ## Task 1: Add `total_size_bytes` to the shared `LibraryMedia` type
 
 **Files:**
+
 - Modify: `apps/shared/src/types/library.ts:71-89`
 
 - [ ] **Step 1: Add the field**
@@ -67,6 +68,7 @@
 ## Task 2: Compute and return `total_size_bytes` from the API
 
 **Files:**
+
 - Modify: `apps/api/src/routes/library/index.ts:30-80`
 
 - [ ] **Step 1: Add `computeTotalSizeBytes` helper**
@@ -162,6 +164,7 @@
 ## Task 3: Add sort logic for the two new keys
 
 **Files:**
+
 - Modify: `apps/web/src/utils/libraryUtils.ts`
 - Create: `apps/web/src/utils/libraryUtils.test.ts`
 
@@ -385,6 +388,7 @@
 ## Task 4: Add i18n labels for the two new sort keys
 
 **Files:**
+
 - Modify: `apps/web/src/locales/en/common.json:1410-1416`
 - Modify: `apps/web/src/locales/fr/common.json:1410-1416`
 

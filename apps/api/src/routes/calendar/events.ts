@@ -302,7 +302,8 @@ export const calendarEventsRoutes = new Elysia()
               endDate,
               user?.locale,
             );
-            const subKey = user?.calendar_subdivision_code?.trim() || "national";
+            const subKey =
+              user?.calendar_subdivision_code?.trim() || "national";
             holidayRows.forEach((h, index) => {
               events.push({
                 id: `public-holiday-${holidayCountry}-${subKey}-${h.date}-${index}`,

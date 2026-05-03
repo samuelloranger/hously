@@ -10,7 +10,9 @@ const UNAUTHORIZED_RETRY_DELAY_MS = 300;
  * Fetches `/api/auth/me` for TanStack Query + router loaders.
  * Retries once on 401 so a transient failure after tab wake does not wipe `null` into cache.
  */
-export async function fetchAuthMeUser(fetcher: Fetcher): Promise<UserResponse["user"]> {
+export async function fetchAuthMeUser(
+  fetcher: Fetcher,
+): Promise<UserResponse["user"]> {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const response = await fetcher<UserResponse>(AUTH_ENDPOINTS.ME);

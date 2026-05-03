@@ -27,7 +27,13 @@ function KpiRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function LibraryChartTooltip({ active, payload }: TooltipContentProps<number | string | ReadonlyArray<number | string>, number | string>) {
+function LibraryChartTooltip({
+  active,
+  payload,
+}: TooltipContentProps<
+  number | string | ReadonlyArray<number | string>,
+  number | string
+>) {
   if (!active || !payload?.length) return null;
   const label = (payload[0]?.payload?.name ?? payload[0]?.name) as
     | string
@@ -37,18 +43,16 @@ function LibraryChartTooltip({ active, payload }: TooltipContentProps<number | s
       {label && (
         <p className="text-zinc-500 dark:text-zinc-400 mb-0.5">{label}</p>
       )}
-      {payload.map(
-        (p, i) => (
-          <p
-            key={i}
-            className="font-semibold tabular-nums"
-            style={{ color: String(p.color ?? p.fill) }}
-          >
-            {p.name ? `${p.name}: ` : ""}
-            {p.value}
-          </p>
-        ),
-      )}
+      {payload.map((p, i) => (
+        <p
+          key={i}
+          className="font-semibold tabular-nums"
+          style={{ color: String(p.color ?? p.fill) }}
+        >
+          {p.name ? `${p.name}: ` : ""}
+          {p.value}
+        </p>
+      ))}
     </div>
   );
 }
