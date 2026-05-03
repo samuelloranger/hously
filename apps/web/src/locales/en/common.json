@@ -1012,7 +1012,8 @@
       "deselectAll": "Deselect all"
     },
     "mediaHistory": {
-      "title": "Media history"
+      "title": "Media history",
+      "description": "Review recent grabs, indexer activity, and completion outcomes from the media pipeline."
     },
     "mediaLibrary": {
       "title": "Media library",
