@@ -428,9 +428,9 @@ const emptyPayload: QualityProfileFormPayload = {
 const selectClass =
   "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors";
 
-// ─── Editor (remounted via key when editing target / server row changes) ──────
+// ─── Form (remounted via key when editing target / server row changes) ─────────
 
-export function QualityProfileEditorPanel({
+export function QualityProfileForm({
   editingId,
   initialProfile,
   onDismiss,
@@ -479,181 +479,162 @@ export function QualityProfileEditorPanel({
   };
 
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 overflow-hidden">
-      <div
-        className={cn(
-          "px-6 py-4 border-b border-neutral-100 dark:border-neutral-700/60",
-          isEditing && "bg-primary-50/60 dark:bg-primary-500/5",
-        )}
-      >
-        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-          {isEditing
-            ? t("settings.qualityProfiles.editTitle")
-            : t("settings.qualityProfiles.createTitle")}
-        </h2>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-          {t("settings.qualityProfiles.formDescription")}
-        </p>
-      </div>
+    <form onSubmit={onSave} className="space-y-5">
+      <FormInput
+        label={t("settings.qualityProfiles.name")}
+        value={form.name}
+        onChange={(e) => set("name", e.target.value)}
+        placeholder="ex. Cinéma 1080p FR"
+      />
 
-      <form onSubmit={onSave} className="p-6 space-y-5">
-        <FormInput
-          label={t("settings.qualityProfiles.name")}
-          value={form.name}
-          onChange={(e) => set("name", e.target.value)}
-          placeholder="ex. Cinéma 1080p FR"
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>
-              {t("settings.qualityProfiles.minResolution")}
-            </FieldLabel>
-            <select
-              value={form.min_resolution}
-              onChange={(e) => set("min_resolution", Number(e.target.value))}
-              className={selectClass}
-            >
-              <option value={480}>480p</option>
-              <option value={720}>720p</option>
-              <option value={1080}>1080p</option>
-              <option value={2160}>2160p / 4K</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>
-              {t("settings.qualityProfiles.cutoffResolution")}
-            </FieldLabel>
-            <select
-              value={form.cutoff_resolution ?? ""}
-              onChange={(e) =>
-                set(
-                  "cutoff_resolution",
-                  e.target.value ? Number(e.target.value) : null,
-                )
-              }
-              className={selectClass}
-            >
-              <option value="">{t("settings.qualityProfiles.noCutoff")}</option>
-              <option value={480}>480p</option>
-              <option value={720}>720p</option>
-              <option value={1080}>1080p</option>
-              <option value={2160}>2160p / 4K</option>
-            </select>
-          </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <FieldLabel>{t("settings.qualityProfiles.minResolution")}</FieldLabel>
+          <select
+            value={form.min_resolution}
+            onChange={(e) => set("min_resolution", Number(e.target.value))}
+            className={selectClass}
+          >
+            <option value={480}>480p</option>
+            <option value={720}>720p</option>
+            <option value={1080}>1080p</option>
+            <option value={2160}>2160p / 4K</option>
+          </select>
         </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <MultiSelect
-            label={t("settings.qualityProfiles.preferredSources")}
-            placeholder="Sélectionner des sources…"
-            options={SOURCE_OPTIONS}
-            selected={form.preferred_sources}
-            onChange={(v) => set("preferred_sources", v)}
-          />
-          <MultiSelect
-            label={t("settings.qualityProfiles.preferredCodecs")}
-            placeholder="Sélectionner des codecs…"
-            options={CODEC_OPTIONS}
-            selected={form.preferred_codecs}
-            onChange={(v) => set("preferred_codecs", v)}
-          />
-        </div>
-
-        <MultiSelect
-          label={t("settings.qualityProfiles.preferredLanguages")}
-          placeholder="Sélectionner des langues…"
-          options={LANGUAGE_OPTIONS}
-          selected={form.preferred_languages}
-          onChange={(v) => set("preferred_languages", v)}
-        />
-
-        <TrackerPrioritySection
-          trackers={form.prioritized_trackers}
-          preferOverQuality={form.prefer_tracker_over_quality}
-          onTrackersChange={(v) => set("prioritized_trackers", v)}
-          onPreferOverQualityChange={(v) =>
-            set("prefer_tracker_over_quality", v)
-          }
-        />
-
-        <div className="grid grid-cols-2 gap-4 items-start">
-          <div className="flex flex-col gap-1.5">
-            <FieldLabel>HDR</FieldLabel>
-            <div className="space-y-2 pt-0.5">
-              <label className="flex items-center gap-2.5 cursor-pointer select-none group">
-                <span
-                  className={cn(
-                    "flex h-4 w-4 items-center justify-center rounded border transition-colors",
-                    form.prefer_hdr
-                      ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
-                      : "border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400",
-                  )}
-                >
-                  {form.prefer_hdr && <Check size={10} strokeWidth={3} />}
-                </span>
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={form.prefer_hdr}
-                  onChange={(e) => set("prefer_hdr", e.target.checked)}
-                />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                  {t("settings.qualityProfiles.preferHdr")}
-                </span>
-              </label>
-              <label className="flex items-center gap-2.5 cursor-pointer select-none group">
-                <span
-                  className={cn(
-                    "flex h-4 w-4 items-center justify-center rounded border transition-colors",
-                    form.require_hdr
-                      ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
-                      : "border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400",
-                  )}
-                >
-                  {form.require_hdr && <Check size={10} strokeWidth={3} />}
-                </span>
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={form.require_hdr}
-                  onChange={(e) => set("require_hdr", e.target.checked)}
-                />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                  {t("settings.qualityProfiles.requireHdr")}
-                </span>
-              </label>
-            </div>
-          </div>
-          <FormInput
-            label={t("settings.qualityProfiles.maxSizeGb")}
-            type="number"
-            step="0.1"
-            min="0"
-            value={form.max_size_gb ?? ""}
+        <div className="flex flex-col gap-1.5">
+          <FieldLabel>
+            {t("settings.qualityProfiles.cutoffResolution")}
+          </FieldLabel>
+          <select
+            value={form.cutoff_resolution ?? ""}
             onChange={(e) =>
               set(
-                "max_size_gb",
-                e.target.value ? parseFloat(e.target.value) : null,
+                "cutoff_resolution",
+                e.target.value ? Number(e.target.value) : null,
               )
             }
-            placeholder={t("settings.qualityProfiles.maxSizeGbPlaceholder")}
-          />
+            className={selectClass}
+          >
+            <option value="">{t("settings.qualityProfiles.noCutoff")}</option>
+            <option value={480}>480p</option>
+            <option value={720}>720p</option>
+            <option value={1080}>1080p</option>
+            <option value={2160}>2160p / 4K</option>
+          </select>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2 pt-1 border-t border-neutral-100 dark:border-neutral-700/60">
-          <Button type="submit" disabled={busy} size="sm">
-            {isEditing
-              ? t("settings.qualityProfiles.save")
-              : t("settings.qualityProfiles.create")}
-          </Button>
-          {isEditing && (
-            <Button type="button" variant="ghost" size="sm" onClick={onDismiss}>
-              {t("settings.qualityProfiles.cancelEdit")}
-            </Button>
-          )}
+      <div className="grid grid-cols-2 gap-4">
+        <MultiSelect
+          label={t("settings.qualityProfiles.preferredSources")}
+          placeholder="Sélectionner des sources…"
+          options={SOURCE_OPTIONS}
+          selected={form.preferred_sources}
+          onChange={(v) => set("preferred_sources", v)}
+        />
+        <MultiSelect
+          label={t("settings.qualityProfiles.preferredCodecs")}
+          placeholder="Sélectionner des codecs…"
+          options={CODEC_OPTIONS}
+          selected={form.preferred_codecs}
+          onChange={(v) => set("preferred_codecs", v)}
+        />
+      </div>
+
+      <MultiSelect
+        label={t("settings.qualityProfiles.preferredLanguages")}
+        placeholder="Sélectionner des langues…"
+        options={LANGUAGE_OPTIONS}
+        selected={form.preferred_languages}
+        onChange={(v) => set("preferred_languages", v)}
+      />
+
+      <TrackerPrioritySection
+        trackers={form.prioritized_trackers}
+        preferOverQuality={form.prefer_tracker_over_quality}
+        onTrackersChange={(v) => set("prioritized_trackers", v)}
+        onPreferOverQualityChange={(v) => set("prefer_tracker_over_quality", v)}
+      />
+
+      <div className="grid grid-cols-2 gap-4 items-start">
+        <div className="flex flex-col gap-1.5">
+          <FieldLabel>HDR</FieldLabel>
+          <div className="space-y-2 pt-0.5">
+            <label className="flex items-center gap-2.5 cursor-pointer select-none group">
+              <span
+                className={cn(
+                  "flex h-4 w-4 items-center justify-center rounded border transition-colors",
+                  form.prefer_hdr
+                    ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
+                    : "border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400",
+                )}
+              >
+                {form.prefer_hdr && <Check size={10} strokeWidth={3} />}
+              </span>
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={form.prefer_hdr}
+                onChange={(e) => set("prefer_hdr", e.target.checked)}
+              />
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                {t("settings.qualityProfiles.preferHdr")}
+              </span>
+            </label>
+            <label className="flex items-center gap-2.5 cursor-pointer select-none group">
+              <span
+                className={cn(
+                  "flex h-4 w-4 items-center justify-center rounded border transition-colors",
+                  form.require_hdr
+                    ? "border-primary-500 bg-primary-500 text-white dark:border-primary-400 dark:bg-primary-400"
+                    : "border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400",
+                )}
+              >
+                {form.require_hdr && <Check size={10} strokeWidth={3} />}
+              </span>
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={form.require_hdr}
+                onChange={(e) => set("require_hdr", e.target.checked)}
+              />
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                {t("settings.qualityProfiles.requireHdr")}
+              </span>
+            </label>
+          </div>
         </div>
-      </form>
-    </div>
+        <FormInput
+          label={t("settings.qualityProfiles.maxSizeGb")}
+          type="number"
+          step="0.1"
+          min="0"
+          value={form.max_size_gb ?? ""}
+          onChange={(e) =>
+            set(
+              "max_size_gb",
+              e.target.value ? parseFloat(e.target.value) : null,
+            )
+          }
+          placeholder={t("settings.qualityProfiles.maxSizeGbPlaceholder")}
+        />
+      </div>
+
+      <div className="flex items-center gap-2 pt-1 border-t border-neutral-100 dark:border-neutral-700/60">
+        <Button type="submit" disabled={busy}>
+          {isEditing
+            ? t("settings.qualityProfiles.save")
+            : t("settings.qualityProfiles.create")}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={busy}
+          onClick={onDismiss}
+        >
+          {t("settings.qualityProfiles.cancelEdit")}
+        </Button>
+      </div>
+    </form>
   );
 }

@@ -3,22 +3,24 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
 import { LoadingState } from "@/components/LoadingState";
+import { Button } from "@/components/ui/button";
 import {
   useDeleteQualityProfile,
   useQualityProfilesList,
 } from "@/pages/settings/useQualityProfiles";
 import type { QualityProfile } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
+import { LANGUAGE_OPTIONS } from "./QualityProfileForm";
 import {
-  QualityProfileEditorPanel,
-  LANGUAGE_OPTIONS,
-} from "./QualityProfileEditorPanel";
+  QualityProfileEditorModal,
+  type QualityProfileDraft,
+} from "./QualityProfileEditorModal";
 
 export function QualityProfilesTab() {
   const { t } = useTranslation("common");
   const { data, isLoading, error } = useQualityProfilesList();
   const deleteMut = useDeleteQualityProfile();
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [draft, setDraft] = useState<QualityProfileDraft>(null);
 
   const onDelete = async (p: QualityProfile) => {
     if (!confirm(t("settings.qualityProfiles.deleteConfirm", { name: p.name })))
@@ -26,8 +28,8 @@ export function QualityProfilesTab() {
     try {
       await deleteMut.mutateAsync(p.id);
       toast.success(t("settings.qualityProfiles.deleteSuccess"));
-      if (editingId === p.id) {
-        setEditingId(null);
+      if (draft?.kind === "edit" && draft.id === p.id) {
+        setDraft(null);
       }
     } catch (err: unknown) {
       const msg =
@@ -39,27 +41,18 @@ export function QualityProfilesTab() {
   };
 
   const profiles = data?.profiles ?? [];
-  const editingProfile =
-    editingId != null ? profiles.find((x) => x.id === editingId) : undefined;
-  const editorKey =
-    editingId == null
-      ? "new"
-      : editingProfile
-        ? `${editingId}-${editingProfile.updated_at}`
-        : `${editingId}-pending`;
 
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
-      <QualityProfileEditorPanel
-        key={editorKey}
-        editingId={editingId}
-        initialProfile={editingProfile}
-        onDismiss={() => setEditingId(null)}
+      <QualityProfileEditorModal
+        draft={draft}
+        profiles={profiles}
+        onClose={() => setDraft(null)}
       />
 
       {/* ── List ───────────────────────────────────────────────────────────── */}
       <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 overflow-hidden">
-        <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-700/60 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-neutral-100 dark:border-neutral-700/60 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
               {t("settings.qualityProfiles.listTitle")}
@@ -68,11 +61,16 @@ export function QualityProfilesTab() {
               {t("settings.qualityProfiles.listDescription")}
             </p>
           </div>
-          {profiles.length > 0 && (
-            <span className="rounded-full bg-neutral-100 dark:bg-neutral-700 px-2.5 py-0.5 text-xs font-medium text-neutral-600 dark:text-neutral-300">
-              {profiles.length}
-            </span>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            <Button size="sm" onClick={() => setDraft({ kind: "create" })}>
+              {t("settings.qualityProfiles.create")}
+            </Button>
+            {profiles.length > 0 && (
+              <span className="rounded-full bg-neutral-100 dark:bg-neutral-700 px-2.5 py-0.5 text-xs font-medium text-neutral-600 dark:text-neutral-300 tabular-nums">
+                {profiles.length}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="p-4">
@@ -93,7 +91,7 @@ export function QualityProfilesTab() {
                   key={p.id}
                   className={cn(
                     "rounded-lg border px-4 py-3 flex items-start justify-between gap-4 transition-colors",
-                    editingId === p.id
+                    draft?.kind === "edit" && draft.id === p.id
                       ? "border-primary-200 bg-primary-50/50 dark:border-primary-700/50 dark:bg-primary-500/5"
                       : "border-neutral-100 dark:border-neutral-700/60 hover:border-neutral-200 dark:hover:border-neutral-600",
                   )}
@@ -155,11 +153,15 @@ export function QualityProfilesTab() {
                     <button
                       type="button"
                       onClick={() =>
-                        setEditingId(editingId === p.id ? null : p.id)
+                        setDraft(
+                          draft?.kind === "edit" && draft.id === p.id
+                            ? null
+                            : { kind: "edit", id: p.id },
+                        )
                       }
                       className={cn(
                         "rounded-md p-1.5 transition-colors",
-                        editingId === p.id
+                        draft?.kind === "edit" && draft.id === p.id
                           ? "bg-primary-100 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400"
                           : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-300",
                       )}

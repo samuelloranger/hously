@@ -993,7 +993,7 @@
       "updateSuccess": "Profil mis à jour",
       "saveError": "Impossible d'enregistrer le profil",
       "loadError": "Impossible de charger les profils",
-      "empty": "Aucun profil. Créez-en un ci-dessus.",
+      "empty": "Aucun profil pour l'instant. Utilisez « Créer un profil » pour en ajouter un.",
       "hdrRequired": "HDR requis ✦",
       "hdrPreferred": "HDR préféré",
       "deselectAll": "Tout désélectionner"

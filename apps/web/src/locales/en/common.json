@@ -993,7 +993,7 @@
       "updateSuccess": "Profile updated",
       "saveError": "Could not save profile",
       "loadError": "Could not load profiles",
-      "empty": "No profiles yet. Create one above.",
+      "empty": "No profiles yet. Use Create profile to add one.",
       "hdrRequired": "HDR ✦",
       "hdrPreferred": "HDR preferred",
       "deselectAll": "Deselect all"
