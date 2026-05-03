@@ -22,6 +22,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 // ─── Sort options ─────────────────────────────────────────────────────────────
 type SortOpt = {
@@ -99,15 +100,15 @@ export function DiscoverPanel() {
 
   const topRef = useRef<HTMLDivElement>(null);
 
-  /** Run before pagination state updates so scroll finishes before the fetching layout swap. */
+  /** Run before pagination state updates; smooth scroll is safe while previous grid stays mounted (see placeholderData). */
   function scrollPagingAnchorToTop() {
-    topRef.current?.scrollIntoView({ block: "start", behavior: "auto" });
+    topRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
   const { data: providersData } = useStreamingProviders("CA", mediaType, lang);
   const { data: genresData } = useMediaGenres(mediaType, lang);
 
-  const { data, isLoading, isFetching } = useDiscoverMedias({
+  const { data, isFetching, isPlaceholderData } = useDiscoverMedias({
     type: mediaType,
     provider_id: providerId,
     genre_id: genreId,
@@ -171,7 +172,11 @@ export function DiscoverPanel() {
 
   const totalPages = data?.total_pages ?? 1;
   const totalResults = data?.total_results;
-  const gridKey = `${mediaType}-${providerId}-${genreId}-${sortBy}-${originalLanguage}-${page}`;
+  /** Logical page size from API — skeleton rows must match for stable height. */
+  const discoverPageSize = 48;
+  const gridKey = `${mediaType}-${providerId}-${genreId}-${sortBy}-${originalLanguage}-${data?.page ?? page}`;
+  const showSkeletonGrid = !data && isFetching;
+  const hasItems = (data?.items.length ?? 0) > 0;
 
   return (
     <section className="relative space-y-5">
@@ -182,7 +187,7 @@ export function DiscoverPanel() {
         <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
           {t("medias.discover.title")}
         </h2>
-        {totalResults != null && !isLoading && (
+        {totalResults != null && data != null && (
           <span className="text-xs tabular-nums text-neutral-400">
             {totalResults.toLocaleString()} {t("medias.discover.titles")}
           </span>
@@ -304,19 +309,19 @@ export function DiscoverPanel() {
 
       {/* ── Results grid ────────────────────────────────────── */}
       <div className="relative min-h-48">
-        {isFetching && (
+        {showSkeletonGrid && (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {Array.from({ length: 36 }).map((_, i) => (
+            {Array.from({ length: discoverPageSize }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[2/3] animate-pulse rounded-2xl bg-white/[0.06]"
+                className="aspect-[2/3] animate-pulse rounded-xl bg-white/[0.06] ring-1 ring-white/[0.06]"
                 style={{ animationDelay: `${i * 20}ms` }}
               />
             ))}
           </div>
         )}
 
-        {!isFetching && data?.items.length === 0 && (
+        {!showSkeletonGrid && data?.items.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-2 py-16">
             <p className="text-sm text-neutral-500">
               {t("medias.discover.noResults")}
@@ -325,10 +330,13 @@ export function DiscoverPanel() {
         )}
 
         <AnimatePresence mode="wait">
-          {!isFetching && (data?.items.length ?? 0) > 0 && (
+          {!showSkeletonGrid && hasItems && (
             <motion.div
               key={gridKey}
-              className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+              className={cn(
+                "grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+                isPlaceholderData && "pointer-events-none opacity-60",
+              )}
               variants={gridContainerVariants}
               initial="hidden"
               animate="show"
