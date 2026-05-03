@@ -15,3 +15,4 @@ export * from "./search";
 export * from "./boardTasks";
 export * from "./qualityProfiles";
 export * from "./library";
+export * from "./releases";

@@ -687,6 +687,19 @@
       "account": "Compte",
       "admin": "Admin"
     },
+    "releases": {
+      "title": "Releases",
+      "description": "Releases GitHub publiques de ce projet Hously, actualisées toutes les 6 heures.",
+      "repo": "Dépôt",
+      "lastSynced": "Dernière synchro",
+      "cached": "Releases en cache",
+      "emptyTitle": "Aucune release en cache",
+      "emptyDescription": "Actualisez les releases pour charger les dernières données publiques de GitHub.",
+      "loadError": "Échec du chargement des releases.",
+      "refreshComplete": "Releases actualisées.",
+      "refreshFound": "{{count}} nouvelle(s) release(s) trouvée(s).",
+      "refreshError": "Échec de l’actualisation des releases."
+    },
     "notifications": {
       "title": "Notifications",
       "description": "Gérez vos notifications push pour les rappels de tâches.",
@@ -999,8 +1012,7 @@
       "deselectAll": "Tout désélectionner"
     },
     "mediaHistory": {
-      "title": "Historique média",
-      "description": "Consultez les téléchargements récents, l'activité des indexeurs et les résultats du pipeline média."
+      "title": "Historique média"
     },
     "mediaLibrary": {
       "title": "Bibliothèque média",
@@ -1205,6 +1217,10 @@
         "checkLibraryIntegrity": {
           "label": "Vérifier l'intégrité de la bibliothèque",
           "description": "Détecter les enregistrements qui divergent de l'état du disque et de TMDB."
+        },
+        "refreshGithubReleases": {
+          "label": "Actualiser les releases GitHub",
+          "description": "Récupérer les releases GitHub publiques, mettre à jour le cache Redis et notifier les admins pour les nouvelles versions."
         }
       }
     },

@@ -36,6 +36,7 @@ import {
   RefreshCw,
   Download,
   ShieldAlert,
+  Package,
 } from "lucide-react";
 import type {
   QueueStat,
@@ -66,7 +67,8 @@ type JobAction =
   | "check_library_episode_releases"
   | "sync_library_show_episodes"
   | "check_library_download_completion"
-  | "check_library_integrity";
+  | "check_library_integrity"
+  | "refresh_github_releases";
 
 type JobConfig = {
   action: JobAction;
@@ -185,6 +187,13 @@ const JOBS: JobConfig[] = [
     Icon: ShieldAlert,
     labelKey: "settings.jobs.actions.checkLibraryIntegrity.label",
     descriptionKey: "settings.jobs.actions.checkLibraryIntegrity.description",
+  },
+  {
+    action: "refresh_github_releases",
+    jobNames: ["refresh-github-releases"],
+    Icon: Package,
+    labelKey: "settings.jobs.actions.refreshGithubReleases.label",
+    descriptionKey: "settings.jobs.actions.refreshGithubReleases.description",
   },
 ];
 

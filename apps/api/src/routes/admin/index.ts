@@ -233,6 +233,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
           SCHEDULED_JOB_NAMES.CHECK_LIBRARY_DOWNLOAD_COMPLETION,
         check_library_integrity: SCHEDULED_JOB_NAMES.CHECK_LIBRARY_INTEGRITY,
         poll_indexer_rss: SCHEDULED_JOB_NAMES.POLL_INDEXER_RSS,
+        refresh_github_releases: SCHEDULED_JOB_NAMES.REFRESH_GITHUB_RELEASES,
       };
 
       const jobName = actionMap[action] || action;

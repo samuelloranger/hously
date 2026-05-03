@@ -115,6 +115,11 @@ export const queryKeys = {
     logs: () => [...queryKeys.externalNotifications.all, "logs"] as const,
   },
 
+  releases: {
+    all: ["releases"] as const,
+    list: () => [...queryKeys.releases.all, "list"] as const,
+  },
+
   integrations: {
     all: ["integrations"] as const,
     tracker: (type: TrackerType) =>

@@ -24,10 +24,12 @@ RUN cd apps/web && bun run build
 # Final production stage (using a slim Bun image)
 FROM oven/bun:1.3.11-slim
 
-# Baked in at build time by the CI pipeline (--build-arg APP_VERSION=<git-tag>).
-# Falls back to "0.0.0-dev" for local builds without the arg.
+# Baked in at build time by the CI pipeline.
+# Falls back to local development values when build args are not provided.
 ARG APP_VERSION=0.0.0-dev
+ARG GITHUB_RELEASES_REPO=samuelloranger/hously
 ENV APP_VERSION=$APP_VERSION
+ENV GITHUB_RELEASES_REPO=$GITHUB_RELEASES_REPO
 
 WORKDIR /app
 

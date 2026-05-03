@@ -18,6 +18,12 @@ const booleanString = z
   .transform((v) => v.toLowerCase() === "true");
 
 const portNumber = z.coerce.number().int().min(1).max(65535);
+const githubRepoFullName = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/)
+  .optional()
+  .default("samuelloranger/hously");
 
 const envSchema = z.object({
   // ── Core ──────────────────────────────────────────────
@@ -69,6 +75,9 @@ const envSchema = z.object({
   APNS_AUTH_KEY: z.string().optional(),
   APNS_TOPIC: z.string().optional(),
   APNS_PRODUCTION: booleanString,
+
+  // ── GitHub Releases ───────────────────────────────────
+  GITHUB_RELEASES_REPO: githubRepoFullName,
 });
 
 export type Env = z.infer<typeof envSchema>;

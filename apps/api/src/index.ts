@@ -24,6 +24,7 @@ import { mediasRoutes } from "./routes/medias";
 import { notificationsRoutes } from "./routes/notifications";
 import { integrationsRoutes } from "./routes/integrations";
 import { remindersRoutes } from "./routes/reminders";
+import { releasesRoutes } from "./routes/releases";
 import { searchRoutes } from "./routes/search";
 import { systemRoutes } from "./routes/system";
 import { usersRoutes } from "./routes/users";
@@ -77,6 +78,7 @@ export const app = new Elysia()
   .use(calendarRoutes)
   .use(customEventsRoutes)
   .use(remindersRoutes)
+  .use(releasesRoutes)
   .use(adminRoutes)
   .use(analyticsRoutes)
   .use(integrationsRoutes)
