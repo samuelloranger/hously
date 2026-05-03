@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { useTranslation } from "react-i18next";
 import {
@@ -98,15 +98,11 @@ export function DiscoverPanel() {
     filters;
 
   const topRef = useRef<HTMLDivElement>(null);
-  const isFirstRender = useRef(true);
 
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [page]);
+  /** Run before pagination state updates so scroll finishes before the fetching layout swap. */
+  function scrollPagingAnchorToTop() {
+    topRef.current?.scrollIntoView({ block: "start", behavior: "auto" });
+  }
 
   const { data: providersData } = useStreamingProviders("CA", mediaType, lang);
   const { data: genresData } = useMediaGenres(mediaType, lang);
@@ -355,12 +351,13 @@ export function DiscoverPanel() {
           <div className="flex items-center justify-between gap-3 md:hidden">
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
+                scrollPagingAnchorToTop();
                 setFilters((prev) => ({
                   ...prev,
                   page: Math.max(1, prev.page - 1),
-                }))
-              }
+                }));
+              }}
               disabled={page === 1 || isFetching}
               className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-neutral-300 transition-colors hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-30"
             >
@@ -374,12 +371,13 @@ export function DiscoverPanel() {
 
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
+                scrollPagingAnchorToTop();
                 setFilters((prev) => ({
                   ...prev,
                   page: Math.min(totalPages, prev.page + 1),
-                }))
-              }
+                }));
+              }}
               disabled={page === totalPages || isFetching}
               className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-neutral-300 transition-colors hover:border-white/20 disabled:cursor-not-allowed disabled:opacity-30"
             >
@@ -392,12 +390,13 @@ export function DiscoverPanel() {
           <div className="hidden items-center justify-center gap-2 md:flex">
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
+                scrollPagingAnchorToTop();
                 setFilters((prev) => ({
                   ...prev,
                   page: Math.max(1, prev.page - 1),
-                }))
-              }
+                }));
+              }}
               disabled={page === 1 || isFetching}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
             >
@@ -410,7 +409,10 @@ export function DiscoverPanel() {
                   <PageDot
                     n={1}
                     current={page}
-                    onClick={() => setFilters((prev) => ({ ...prev, page: 1 }))}
+                    onClick={() => {
+                      scrollPagingAnchorToTop();
+                      setFilters((prev) => ({ ...prev, page: 1 }));
+                    }}
                   />
                   {page > 4 && (
                     <span className="px-0.5 text-xs text-neutral-600">…</span>
@@ -425,7 +427,10 @@ export function DiscoverPanel() {
                   key={n}
                   n={n}
                   current={page}
-                  onClick={() => setFilters((prev) => ({ ...prev, page: n }))}
+                  onClick={() => {
+                    scrollPagingAnchorToTop();
+                    setFilters((prev) => ({ ...prev, page: n }));
+                  }}
                 />
               ))}
               {page < totalPages - 2 && (
@@ -436,9 +441,10 @@ export function DiscoverPanel() {
                   <PageDot
                     n={totalPages}
                     current={page}
-                    onClick={() =>
-                      setFilters((prev) => ({ ...prev, page: totalPages }))
-                    }
+                    onClick={() => {
+                      scrollPagingAnchorToTop();
+                      setFilters((prev) => ({ ...prev, page: totalPages }));
+                    }}
                   />
                 </>
               )}
@@ -446,12 +452,13 @@ export function DiscoverPanel() {
 
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
+                scrollPagingAnchorToTop();
                 setFilters((prev) => ({
                   ...prev,
                   page: Math.min(totalPages, prev.page + 1),
-                }))
-              }
+                }));
+              }}
               disabled={page === totalPages || isFetching}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-neutral-400 transition-colors hover:border-white/20 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-30"
             >
