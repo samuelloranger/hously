@@ -10,6 +10,7 @@ import {
   TMDB_UPCOMING_CACHE_TTL_SECONDS,
 } from "@hously/api/utils/dashboard/tmdbUpcoming";
 import {
+  attachLibraryIds,
   collectLibraryUpcoming,
   mergeUpcomingById,
 } from "@hously/api/utils/dashboard/libraryUpcoming";
@@ -101,9 +102,8 @@ export const refreshUpcoming = async (options?: {
     );
 
     const libraryItems = await collectLibraryUpcoming(todayIso, oneYearOutIso);
-    const baseItems = mergeUpcomingById(
-      [...filteredMovies, ...filteredTv],
-      libraryItems,
+    const baseItems = await attachLibraryIds(
+      mergeUpcomingById([...filteredMovies, ...filteredTv], libraryItems),
     );
 
     console.log(

@@ -33,6 +33,8 @@ import { libraryEventBus } from "@hously/api/services/libraryEvents";
 import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
 import { rescanLibraryItem } from "@hously/api/services/library/rescan";
 import { buildLibraryStatsResponse } from "./libraryStats";
+import { deleteCache } from "@hously/api/services/cache";
+import { TMDB_UPCOMING_CACHE_KEY } from "@hously/api/utils/dashboard/tmdbUpcoming";
 
 function computeTotalSizeBytes(
   files: { sizeBytes: bigint }[],
@@ -419,6 +421,7 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
         }
         try {
           const item = await addOrUpdateLibraryFromTmdb({ tmdb_id, type });
+          await deleteCache(TMDB_UPCOMING_CACHE_KEY);
           return { item: mapLibraryMedia(item) };
         } catch (e) {
           const msg = e instanceof Error ? e.message : "";

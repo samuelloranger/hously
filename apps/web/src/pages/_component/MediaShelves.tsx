@@ -1,7 +1,11 @@
 import { useMemo, useState, type UIEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
 import { useDashboardJellyfinLatestInfinite } from "@/pages/_component/useDashboardJellyfin";
-import { useDashboardUpcoming } from "@/pages/_component/useDashboardUpcoming";
+import {
+  useDashboardUpcoming,
+  useRefreshDashboardUpcoming,
+} from "@/pages/_component/useDashboardUpcoming";
 import { getDateYear } from "@hously/shared/utils/date";
 import type {
   DashboardUpcomingItem,
@@ -227,26 +231,33 @@ export function JellyfinShelf() {
 // ─── Upcoming shelf ───────────────────────────────────────────────────────────
 
 function toTmdbItem(item: DashboardUpcomingItem): TmdbMediaSearchItem {
-  const tmdbId = parseInt(item.id.split("-")[1] || "", 10);
+  const [source, numericPart] = item.id.split("-", 2);
+  const tmdbId =
+    source === "movie" || source === "tv"
+      ? parseInt(numericPart || "", 10)
+      : Number.NaN;
   const releaseYear = getDateYear(item.release_date);
   return {
     id: item.id,
-    tmdb_id: tmdbId,
+    tmdb_id: Number.isFinite(tmdbId) ? tmdbId : 0,
     media_type: item.media_type,
     title: item.title,
     release_year: releaseYear && !isNaN(releaseYear) ? releaseYear : null,
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: item.vote_average ?? null,
-    already_exists: false,
-    can_add: true,
+    already_exists: item.library_id != null,
+    can_add: item.library_id == null && Number.isFinite(tmdbId) && tmdbId > 0,
     source_id: null,
+    library_id: item.library_id,
   };
 }
 
 export function UpcomingShelf() {
   const { t } = useTranslation("common");
-  const { data, isLoading, isFetching, refetch } = useDashboardUpcoming();
+  const navigate = useNavigate();
+  const { data, isLoading, isFetching } = useDashboardUpcoming();
+  const refreshUpcoming = useRefreshDashboardUpcoming();
   const [selected, setSelected] = useState<TmdbMediaSearchItem | null>(null);
 
   const formatDate = (value: string | null) => {
@@ -258,6 +269,39 @@ export function UpcomingShelf() {
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const formatEpisodeLabel = (item: DashboardUpcomingItem) => {
+    if (
+      item.media_type !== "tv" ||
+      item.season_number == null ||
+      item.episode_number == null
+    ) {
+      return null;
+    }
+
+    return `S${String(item.season_number).padStart(2, "0")}E${String(
+      item.episode_number,
+    ).padStart(2, "0")}`;
+  };
+
+  const formatUpcomingSubtitle = (item: DashboardUpcomingItem) => {
+    const dateLabel =
+      formatDate(item.release_date) ?? t("dashboard.upcoming.unknownDate");
+    const episodeLabel = formatEpisodeLabel(item);
+    return episodeLabel ? `${episodeLabel} · ${dateLabel}` : dateLabel;
+  };
+
+  const handleUpcomingClick = (item: DashboardUpcomingItem) => {
+    if (item.library_id != null) {
+      navigate({
+        to: "/library/$libraryId",
+        params: { libraryId: String(item.library_id) },
+      });
+      return;
+    }
+
+    setSelected(toTmdbItem(item));
   };
 
   return (
@@ -276,12 +320,17 @@ export function UpcomingShelf() {
           </div>
           <button
             type="button"
-            onClick={() => refetch()}
-            disabled={!data?.enabled || isFetching}
+            onClick={() => refreshUpcoming.mutate()}
+            disabled={!data?.enabled || isFetching || refreshUpcoming.isPending}
             className="text-zinc-400 hover:text-amber-500 transition-colors disabled:opacity-40"
             title={t("dashboard.upcoming.refresh")}
           >
-            <RefreshCw size={13} className={isFetching ? "animate-spin" : ""} />
+            <RefreshCw
+              size={13}
+              className={
+                isFetching || refreshUpcoming.isPending ? "animate-spin" : ""
+              }
+            />
           </button>
         </div>
 
@@ -309,10 +358,7 @@ export function UpcomingShelf() {
                 <PosterCard
                   key={item.id}
                   title={item.title}
-                  subtitle={
-                    formatDate(item.release_date) ??
-                    t("dashboard.upcoming.unknownDate")
-                  }
+                  subtitle={formatUpcomingSubtitle(item)}
                   posterUrl={item.poster_url}
                   FallbackIcon={item.media_type === "movie" ? Clapperboard : Tv}
                   type={
@@ -320,7 +366,7 @@ export function UpcomingShelf() {
                       ? t("dashboard.upcoming.movie")
                       : t("dashboard.upcoming.tv")
                   }
-                  onClick={() => setSelected(toTmdbItem(item))}
+                  onClick={() => handleUpcomingClick(item)}
                   delayMs={i * 40}
                 />
               ))}
@@ -336,7 +382,7 @@ export function UpcomingShelf() {
           onClose={() => setSelected(null)}
           onAdded={() => {
             setSelected(null);
-            refetch();
+            refreshUpcoming.mutate();
           }}
         />
       )}

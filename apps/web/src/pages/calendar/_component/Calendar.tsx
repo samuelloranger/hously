@@ -33,7 +33,7 @@ import { EventCard } from "@/pages/calendar/_component/EventCard";
 import { cn } from "@/lib/utils";
 import { startOfDay } from "date-fns";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { CalendarIcon, Film } from "lucide-react";
 import {
   PlusIcon,
@@ -78,8 +78,11 @@ function localDateKey(date: Date): string {
 function upcomingToDialogItem(
   item: DashboardUpcomingItem,
 ): TmdbMediaSearchItem {
-  const numericPart = item.id.split("-").pop() ?? "";
-  const tmdbId = parseInt(numericPart, 10);
+  const [source, numericPart] = item.id.split("-", 2);
+  const tmdbId =
+    source === "movie" || source === "tv"
+      ? parseInt(numericPart || "", 10)
+      : Number.NaN;
   return {
     id: item.id,
     tmdb_id: Number.isFinite(tmdbId) ? tmdbId : 0,
@@ -89,9 +92,10 @@ function upcomingToDialogItem(
     poster_url: item.poster_url,
     overview: item.overview,
     vote_average: item.vote_average ?? null,
-    already_exists: false,
-    can_add: true,
+    already_exists: item.library_id != null,
+    can_add: item.library_id == null && Number.isFinite(tmdbId) && tmdbId > 0,
     source_id: null,
+    library_id: item.library_id,
   };
 }
 
@@ -113,6 +117,7 @@ function CalendarBody({
   searchParams: CalendarSearchParams;
 }) {
   const { t, i18n } = useTranslation("common");
+  const navigate = useNavigate();
   const { setParams, resetParams } = useModalSearchParams(
     "/calendar",
     searchParams,
@@ -141,6 +146,18 @@ function CalendarBody({
   const targetedEventId = searchParams.eventId;
   const [releaseDialogItem, setReleaseDialogItem] =
     useState<TmdbMediaSearchItem | null>(null);
+
+  const handleReleaseClick = (item: DashboardUpcomingItem) => {
+    if (item.library_id != null) {
+      navigate({
+        to: "/library/$libraryId",
+        params: { libraryId: String(item.library_id) },
+      });
+      return;
+    }
+
+    setReleaseDialogItem(upcomingToDialogItem(item));
+  };
 
   const releasesByDate = useMemo(() => {
     const map = new Map<string, DashboardUpcomingItem[]>();
@@ -629,9 +646,7 @@ function CalendarBody({
                         <button
                           key={item.id}
                           type="button"
-                          onClick={() =>
-                            setReleaseDialogItem(upcomingToDialogItem(item))
-                          }
+                          onClick={() => handleReleaseClick(item)}
                           className="flex items-center gap-3 rounded-xl p-2 text-left ring-1 ring-neutral-200/80 dark:ring-neutral-700/80 transition-[background-color] hover:bg-neutral-50 dark:hover:bg-neutral-700/40"
                         >
                           {item.poster_url ? (

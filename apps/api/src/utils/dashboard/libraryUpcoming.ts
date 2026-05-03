@@ -5,18 +5,33 @@ import { toIsoDate } from "@hously/api/utils/dashboard/tmdbUpcoming";
 const TMDB_WEB_BASE_URL = "https://www.themoviedb.org";
 
 type LibraryMediaBase = {
+  id: number;
   tmdbId: number;
   title: string;
   posterUrl: string | null;
   overview: string | null;
 };
 
+const buildUpcomingId = (
+  media: LibraryMediaBase,
+  mediaType: "movie" | "tv",
+  releaseDateIso?: string,
+  episode?: { season: number; episode: number } | null,
+): string => {
+  if (mediaType === "movie" || !releaseDateIso) {
+    return `${mediaType}-${media.tmdbId}`;
+  }
+  if (!episode) return `${mediaType}-${media.tmdbId}-${releaseDateIso}`;
+  return `${mediaType}-${media.tmdbId}-${releaseDateIso}-s${episode.season}e${episode.episode}`;
+};
+
 const mapToItem = (
   media: LibraryMediaBase,
   mediaType: "movie" | "tv",
   releaseDateIso: string,
+  episode?: { season: number; episode: number } | null,
 ): DashboardUpcomingItem => ({
-  id: `${mediaType}-${media.tmdbId}`,
+  id: buildUpcomingId(media, mediaType, releaseDateIso, episode),
   title: media.title,
   media_type: mediaType,
   release_date: releaseDateIso,
@@ -25,6 +40,9 @@ const mapToItem = (
   overview: media.overview,
   tmdb_url: `${TMDB_WEB_BASE_URL}/${mediaType}/${media.tmdbId}`,
   providers: [],
+  library_id: media.id,
+  season_number: episode?.season ?? null,
+  episode_number: episode?.episode ?? null,
   vote_average: null,
 });
 
@@ -52,6 +70,7 @@ export const collectLibraryUpcoming = async (
         media: {
           select: {
             tmdbId: true,
+            id: true,
             title: true,
             posterUrl: true,
             overview: true,
@@ -67,6 +86,7 @@ export const collectLibraryUpcoming = async (
       },
       select: {
         tmdbId: true,
+        id: true,
         title: true,
         posterUrl: true,
         overview: true,
@@ -75,18 +95,40 @@ export const collectLibraryUpcoming = async (
     }),
   ]);
 
-  const byMediaId = new Map<number, DashboardUpcomingItem>();
+  const byMediaDate = new Map<
+    string,
+    {
+      item: DashboardUpcomingItem;
+      episodeCountOnDate: number;
+    }
+  >();
   for (const ep of episodes) {
     if (!ep.airDate) continue;
-    if (byMediaId.has(ep.mediaId)) continue; // earliest wins (already sorted)
-    byMediaId.set(ep.mediaId, mapToItem(ep.media, "tv", toIsoDate(ep.airDate)));
+    const releaseDateIso = toIsoDate(ep.airDate);
+    const groupKey = `${ep.mediaId}:${releaseDateIso}`;
+    const existing = byMediaDate.get(groupKey);
+    if (existing) {
+      existing.episodeCountOnDate += 1;
+      existing.item.id = buildUpcomingId(ep.media, "tv", releaseDateIso, null);
+      existing.item.season_number = null;
+      existing.item.episode_number = null;
+      continue;
+    }
+
+    byMediaDate.set(groupKey, {
+      item: mapToItem(ep.media, "tv", releaseDateIso, {
+        season: ep.season,
+        episode: ep.episode,
+      }),
+      episodeCountOnDate: 1,
+    });
   }
 
   const movieItems = movies
     .filter((m) => m.digitalReleaseDate)
     .map((m) => mapToItem(m, "movie", toIsoDate(m.digitalReleaseDate!)));
 
-  return [...byMediaId.values(), ...movieItems];
+  return [...Array.from(byMediaDate.values(), ({ item }) => item), ...movieItems];
 };
 
 /**
@@ -106,4 +148,42 @@ export const mergeUpcomingById = (
     merged.push(item);
   }
   return merged;
+};
+
+export const attachLibraryIds = async (
+  items: DashboardUpcomingItem[],
+): Promise<DashboardUpcomingItem[]> => {
+  const tmdbIds = [
+    ...new Set(
+      items
+        .map((item) => {
+          const [source, numericPart] = item.id.split("-", 2);
+          if (source !== "movie" && source !== "tv") return null;
+          const id = numericPart ? parseInt(numericPart, 10) : Number.NaN;
+          return Number.isFinite(id) && id > 0 ? id : null;
+        })
+        .filter((id): id is number => id != null),
+    ),
+  ];
+
+  if (tmdbIds.length === 0) return items;
+
+  const libraryRows = await prisma.libraryMedia.findMany({
+    where: { tmdbId: { in: tmdbIds } },
+    select: { id: true, tmdbId: true },
+  });
+  const libraryIdByTmdbId = new Map(
+    libraryRows.map((row) => [row.tmdbId, row.id]),
+  );
+
+  return items.map((item) => {
+    if (item.library_id != null) return item;
+    const [source, numericPart] = item.id.split("-", 2);
+    if (source !== "movie" && source !== "tv") return item;
+    const tmdbId = numericPart ? parseInt(numericPart, 10) : Number.NaN;
+    const libraryId = Number.isFinite(tmdbId)
+      ? (libraryIdByTmdbId.get(tmdbId) ?? null)
+      : null;
+    return libraryId == null ? item : { ...item, library_id: libraryId };
+  });
 };

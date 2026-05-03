@@ -17,7 +17,7 @@ const TMDB_PROVIDER_LOGO_BASE_URL = "https://image.tmdb.org/t/p/w92";
 const TMDB_WEB_BASE_URL = "https://www.themoviedb.org";
 
 export const TMDB_UPCOMING_CACHE_TTL_SECONDS = 24 * 60 * 60;
-export const TMDB_UPCOMING_CACHE_KEY = "dashboard:tmdb:upcoming:v7";
+export const TMDB_UPCOMING_CACHE_KEY = "dashboard:tmdb:upcoming:v8";
 const JELLYFIN_TMDB_IDS_CACHE_TTL_SECONDS = 60 * 60;
 const JELLYFIN_TMDB_IDS_CACHE_KEY = "dashboard:jellyfin:tmdb-ids:v1";
 
@@ -105,15 +105,30 @@ const mapTmdbItem = (
     overview,
     tmdb_url: `${TMDB_WEB_BASE_URL}/${mediaType}/${numericId}`,
     providers: [],
+    library_id: null,
+    season_number: null,
+    episode_number: null,
     vote_average: voteAverage,
     popularity,
   };
 };
 
 export const parseTmdbNumericId = (itemId: string): number | null => {
-  const [, numericPart] = itemId.split("-", 2);
+  const [source, numericPart] = itemId.split("-", 2);
+  if (source !== "movie" && source !== "tv") return null;
   const numericId = numericPart ? parseInt(numericPart, 10) : Number.NaN;
   return Number.isFinite(numericId) ? numericId : null;
+};
+
+const buildTvUpcomingId = (
+  tmdbId: number | null,
+  seriesId: number,
+  airDate: string,
+  episode?: { season: number; episode: number } | null,
+): string => {
+  const prefix = tmdbId ? `tv-${tmdbId}` : `sonarr-${seriesId}`;
+  if (!episode) return `${prefix}-${airDate}`;
+  return `${prefix}-${airDate}-s${episode.season}e${episode.episode}`;
 };
 
 const fetchTmdbDiscoverPage = async (
@@ -356,8 +371,15 @@ export const fetchSonarrUpcoming = async (
     const episodes = (await response.json()) as unknown[];
     if (!Array.isArray(episodes)) return [];
 
-    // Group episodes by series, keep earliest per series
-    const seriesMap = new Map<number, DashboardUpcomingItem>();
+    // Group episodes by series/date. Show every upcoming date, but only expose
+    // S/E numbers when exactly one episode airs on that date.
+    const seriesMap = new Map<
+      string,
+      {
+        item: DashboardUpcomingItem;
+        episodeCountOnDate: number;
+      }
+    >();
 
     for (const rawEpisode of episodes) {
       const ep = toRecord(rawEpisode);
@@ -377,10 +399,25 @@ export const fetchSonarrUpcoming = async (
 
       const airDate = toStringOrNull(ep.airDate); // YYYY-MM-DD
       if (!airDate) continue;
+      const seasonNumber =
+        typeof ep.seasonNumber === "number" && Number.isFinite(ep.seasonNumber)
+          ? Math.trunc(ep.seasonNumber)
+          : null;
+      const episodeNumber =
+        typeof ep.episodeNumber === "number" &&
+        Number.isFinite(ep.episodeNumber)
+          ? Math.trunc(ep.episodeNumber)
+          : null;
 
-      // If we already have an entry for this series, keep the earliest episode date
-      const existing = seriesMap.get(seriesId);
-      if (existing?.release_date && existing.release_date <= airDate) continue;
+      const groupKey = `${seriesId}:${airDate}`;
+      const existing = seriesMap.get(groupKey);
+      if (existing) {
+        existing.episodeCountOnDate += 1;
+        existing.item.id = buildTvUpcomingId(tmdbId, seriesId, airDate, null);
+        existing.item.season_number = null;
+        existing.item.episode_number = null;
+        continue;
+      }
 
       const images = Array.isArray(series.images) ? series.images : [];
       let posterUrl: string | null = null;
@@ -406,21 +443,34 @@ export const fetchSonarrUpcoming = async (
             })()
           : null;
 
-      seriesMap.set(seriesId, {
-        id: tmdbId ? `tv-${tmdbId}` : `sonarr-${seriesId}`,
-        title,
-        media_type: "tv",
-        release_date: airDate,
-        poster_url: posterUrl,
-        backdrop_url: backdropUrl,
-        overview,
-        tmdb_url: tmdbId ? `${TMDB_WEB_BASE_URL}/tv/${tmdbId}` : "",
-        providers: [],
-        vote_average: voteAverage,
+      seriesMap.set(groupKey, {
+        item: {
+          id: buildTvUpcomingId(
+            tmdbId,
+            seriesId,
+            airDate,
+            seasonNumber != null && episodeNumber != null
+              ? { season: seasonNumber, episode: episodeNumber }
+              : null,
+          ),
+          title,
+          media_type: "tv",
+          release_date: airDate,
+          poster_url: posterUrl,
+          backdrop_url: backdropUrl,
+          overview,
+          tmdb_url: tmdbId ? `${TMDB_WEB_BASE_URL}/tv/${tmdbId}` : "",
+          providers: [],
+          library_id: null,
+          season_number: seasonNumber,
+          episode_number: episodeNumber,
+          vote_average: voteAverage,
+        },
+        episodeCountOnDate: 1,
       });
     }
 
-    return Array.from(seriesMap.values());
+    return Array.from(seriesMap.values(), ({ item }) => item);
   } catch (error) {
     console.error("[upcoming] Failed to fetch Sonarr calendar:", error);
     return [];
