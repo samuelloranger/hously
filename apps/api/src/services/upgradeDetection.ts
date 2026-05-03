@@ -39,7 +39,14 @@ export function filesFailProfile(
     const sizeNum = f.sizeBytes != null ? Number(f.sizeBytes) : null;
     const langString = f.languageTags.join(" ");
 
-    const result = scoreRelease(parsed, profile, sizeNum, langString, null, false);
+    const result = scoreRelease(
+      parsed,
+      profile,
+      sizeNum,
+      langString,
+      null,
+      false,
+    );
 
     if (Array.isArray(result)) return true;
   }

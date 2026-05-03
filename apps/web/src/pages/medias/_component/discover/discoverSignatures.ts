@@ -10,9 +10,11 @@ export type DiscoverScrollFields = Pick<
   | "originalLanguage"
 > & { lang: string };
 
-/** Same inputs as `queryKeys.medias.discover` (identity for scroll + cache). */
-export function buildDiscoverScrollSignature(f: DiscoverScrollFields): string {
-  return `${f.lang}|${f.mediaType}|${f.providerId}|${f.genreId}|${f.sortBy}|${f.page}|${f.originalLanguage ?? ""}`;
+/** Discover query identity excluding page (service, genre, sort, language, type, i18n). */
+export function buildDiscoverFilterSignature(
+  f: Omit<DiscoverScrollFields, "page">,
+): string {
+  return `${f.lang}|${f.mediaType}|${f.providerId}|${f.genreId}|${f.sortBy}|${f.originalLanguage ?? ""}`;
 }
 
 export function buildDiscoverGridKey(

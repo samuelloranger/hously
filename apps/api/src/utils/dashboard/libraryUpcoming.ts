@@ -128,7 +128,10 @@ export const collectLibraryUpcoming = async (
     .filter((m) => m.digitalReleaseDate)
     .map((m) => mapToItem(m, "movie", toIsoDate(m.digitalReleaseDate!)));
 
-  return [...Array.from(byMediaDate.values(), ({ item }) => item), ...movieItems];
+  return [
+    ...Array.from(byMediaDate.values(), ({ item }) => item),
+    ...movieItems,
+  ];
 };
 
 /**

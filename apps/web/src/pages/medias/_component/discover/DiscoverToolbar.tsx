@@ -8,6 +8,14 @@ import {
   DiscoverServicePicker,
   DiscoverSortPicker,
 } from "./DiscoverPickers";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 export function DiscoverToolbar({
   mediaType,
@@ -47,91 +55,114 @@ export function DiscoverToolbar({
   const { t } = useTranslation("common");
 
   return (
-    <>
-      <select
+    <div className="flex w-full min-w-0 max-w-full flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
+      <Select
         value={mediaType}
-        onChange={(e) => onMediaTypeChange(e.target.value as "movie" | "tv")}
-        className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
+        onValueChange={(value) => onMediaTypeChange(value as "movie" | "tv")}
       >
-        <option value="movie">{t("medias.movie_plural")}</option>
-        <option value="tv">{t("medias.series_plural")}</option>
-      </select>
+        <SelectTrigger className="h-9 w-full shrink-0 md:w-auto">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="movie">{t("medias.movie_plural")}</SelectItem>
+          <SelectItem value="tv">{t("medias.series_plural")}</SelectItem>
+        </SelectContent>
+      </Select>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <DiscoverFilterChip
-          icon={Tv}
-          label={t("medias.discover.service", { defaultValue: "Service" })}
-          value={
-            activeProvider ? (
-              <span className="flex items-center gap-1.5">
-                <img
-                  src={activeProvider.logo_url}
-                  alt=""
-                  className="h-4 w-4 rounded-sm object-contain"
-                />
-                <span className="truncate max-w-[8rem]">
-                  {activeProvider.name}
+      <div className="flex w-full min-w-0 max-w-full flex-nowrap items-stretch gap-2 md:w-auto md:max-w-none md:flex-none">
+        <div className="min-w-0 flex-1 basis-0 md:flex-none md:min-w-0">
+          <DiscoverFilterChip
+            icon={Tv}
+            label={t("medias.discover.service", { defaultValue: "Service" })}
+            value={
+              activeProvider ? (
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <img
+                    src={activeProvider.logo_url}
+                    alt=""
+                    className="h-4 w-4 shrink-0 rounded-sm object-contain"
+                  />
+                  <span className="min-w-0 truncate">
+                    {activeProvider.name}
+                  </span>
                 </span>
-              </span>
-            ) : null
-          }
-          onClear={activeProvider ? () => onProviderChange(null) : undefined}
-          popoverContent={(close) => (
-            <DiscoverServicePicker
-              providers={providers.slice(0, 18)}
-              selectedId={providerId}
-              onSelect={(id) => {
-                onProviderChange(id);
-                close();
-              }}
-              allLabel={t("medias.discover.allServices", {
-                defaultValue: "All services",
-              })}
-            />
-          )}
-        />
+              ) : null
+            }
+            onClear={activeProvider ? () => onProviderChange(null) : undefined}
+            popoverContent={(close) => (
+              <DiscoverServicePicker
+                providers={providers.slice(0, 18)}
+                selectedId={providerId}
+                onSelect={(id) => {
+                  onProviderChange(id);
+                  close();
+                }}
+                allLabel={t("medias.discover.allServices", {
+                  defaultValue: "All services",
+                })}
+              />
+            )}
+          />
+        </div>
 
-        <DiscoverFilterChip
-          icon={Tag}
-          label={t("medias.discover.genre", { defaultValue: "Genre" })}
-          value={activeGenre?.name ?? null}
-          onClear={activeGenre ? () => onGenreChange(null) : undefined}
-          popoverContent={(close) => (
-            <DiscoverGenrePicker
-              genres={genres}
-              selectedId={genreId}
-              onSelect={(id) => {
-                onGenreChange(id);
-                close();
-              }}
-              allLabel={t("medias.discover.allGenres", {
-                defaultValue: "All genres",
-              })}
-            />
-          )}
-        />
+        <div className="min-w-0 flex-1 basis-0 md:flex-none md:min-w-0">
+          <DiscoverFilterChip
+            icon={Tag}
+            label={t("medias.discover.genre", { defaultValue: "Genre" })}
+            value={activeGenre?.name ?? null}
+            onClear={activeGenre ? () => onGenreChange(null) : undefined}
+            popoverContent={(close) => (
+              <DiscoverGenrePicker
+                genres={genres}
+                selectedId={genreId}
+                onSelect={(id) => {
+                  onGenreChange(id);
+                  close();
+                }}
+                allLabel={t("medias.discover.allGenres", {
+                  defaultValue: "All genres",
+                })}
+              />
+            )}
+          />
+        </div>
+      </div>
 
-        <DiscoverFilterChip
-          icon={ArrowDownUp}
-          label={t("medias.discover.sort", { defaultValue: "Sort" })}
-          value={activeSort ? t(activeSort.labelKey) : null}
-          popoverContent={(close) => (
-            <DiscoverSortPicker
-              options={visibleSorts.map((s) => ({
-                value: s.value,
-                label: t(s.labelKey),
-              }))}
-              selected={sortBy}
-              onSelect={(value) => {
-                onSortChange(value);
-                close();
-              }}
-            />
-          )}
-        />
+      <div
+        className={cn(
+          "flex min-w-0 max-w-full shrink-0 flex-nowrap items-center gap-2",
+          "w-full basis-full justify-between",
+          "md:ml-auto md:w-auto md:basis-auto md:max-w-none md:justify-start",
+        )}
+      >
+        <div className="min-w-0 max-w-[min(100%,55vw)] md:max-w-none">
+          <DiscoverFilterChip
+            icon={ArrowDownUp}
+            label={t("medias.discover.sort", { defaultValue: "Sort" })}
+            value={activeSort ? t(activeSort.labelKey) : null}
+            popoverContent={(close) => (
+              <DiscoverSortPicker
+                options={visibleSorts.map((s) => ({
+                  value: s.value,
+                  label: t(s.labelKey),
+                }))}
+                selected={sortBy}
+                onSelect={(value) => {
+                  onSortChange(value);
+                  close();
+                }}
+              />
+            )}
+          />
+        </div>
 
-        <div className="ml-auto flex items-center gap-1.5">
-          <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-600 dark:text-neutral-500">
+        <div
+          className={cn(
+            "flex shrink-0 items-center gap-1.5",
+            "md:border-l md:border-neutral-200/80 md:pl-2 dark:md:border-white/10",
+          )}
+        >
+          <span className="shrink-0 text-[10px] font-medium uppercase tracking-widest text-neutral-600 dark:text-neutral-500">
             {t("medias.discover.lang")}
           </span>
           {DISCOVER_LANGUAGE_FILTERS.map((lf) => {
@@ -154,6 +185,6 @@ export function DiscoverToolbar({
           })}
         </div>
       </div>
-    </>
+    </div>
   );
 }

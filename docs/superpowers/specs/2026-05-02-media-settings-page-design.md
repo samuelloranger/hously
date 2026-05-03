@@ -9,13 +9,13 @@ Consolidate the four media-related admin settings (quality profiles, library/pos
 
 ## URL Shape
 
-| State | URL |
-|---|---|
+| State                    | URL                                                           |
+| ------------------------ | ------------------------------------------------------------- |
 | First visit to Media tab | `/settings?tab=media` → defaults to `subtab=quality-profiles` |
-| Quality Profiles sub-tab | `/settings?tab=media&subtab=quality-profiles` |
-| Library Settings sub-tab | `/settings?tab=media&subtab=library-settings` |
-| History sub-tab | `/settings?tab=media&subtab=history` |
-| Import sub-tab | `/settings?tab=media&subtab=import` |
+| Quality Profiles sub-tab | `/settings?tab=media&subtab=quality-profiles`                 |
+| Library Settings sub-tab | `/settings?tab=media&subtab=library-settings`                 |
+| History sub-tab          | `/settings?tab=media&subtab=history`                          |
+| Import sub-tab           | `/settings?tab=media&subtab=import`                           |
 
 Sub-tab navigation uses `navigate({ to: "/settings", search: { tab: "media", subtab }, replace: true })` to avoid polluting browser history with sub-tab switches.
 
@@ -32,6 +32,7 @@ Sub-tab navigation uses `navigate({ to: "/settings", search: { tab: "media", sub
 **File:** `apps/web/src/pages/settings/_component/MediaSettingsTab.tsx`
 
 **Responsibilities:**
+
 - Read `subtab` from `useSearch`; default to `"quality-profiles"` when absent
 - Render a horizontal sub-tab strip (4 buttons) at the top of the content area
 - Render the active sub-tab's component below the strip
@@ -39,12 +40,12 @@ Sub-tab navigation uses `navigate({ to: "/settings", search: { tab: "media", sub
 
 **Sub-tab map:**
 
-| `subtab` value | Component rendered | Label key |
-|---|---|---|
-| `quality-profiles` | `<QualityProfilesTab />` | `settings.media.tabs.qualityProfiles` |
+| `subtab` value     | Component rendered           | Label key                             |
+| ------------------ | ---------------------------- | ------------------------------------- |
+| `quality-profiles` | `<QualityProfilesTab />`     | `settings.media.tabs.qualityProfiles` |
 | `library-settings` | `<MediaPostProcessingTab />` | `settings.media.tabs.librarySettings` |
-| `history` | `<LibraryHistoryTab />` | `settings.media.tabs.history` |
-| `import` | `<ArrLibraryImportPanel />` | `settings.media.tabs.import` |
+| `history`          | `<LibraryHistoryTab />`      | `settings.media.tabs.history`         |
+| `import`           | `<ArrLibraryImportPanel />`  | `settings.media.tabs.import`          |
 
 The sub-tab strip style follows existing horizontal tab patterns in the codebase (underline or pill — match whatever `LibraryItemPage` or similar uses).
 
@@ -71,6 +72,7 @@ Add to `apps/web/src/locales/en/common.json` and `fr/common.json` under `setting
 ```
 
 French equivalents:
+
 ```json
 "media": {
   "title": "Médias",
@@ -85,13 +87,13 @@ French equivalents:
 
 ## Files Changed
 
-| File | Change |
-|---|---|
-| `Settings.tsx` | Remove 3 tab entries + render branches, add `media` tab + `<MediaSettingsTab />` |
-| `MediaSettingsTab.tsx` | **New** — sub-tab strip + content switching |
-| `DataExportTab.tsx` | Remove `ArrLibraryImportPanel` usage |
-| `en/common.json` | Add `settings.media.*` keys |
-| `fr/common.json` | Add `settings.media.*` keys |
+| File                   | Change                                                                           |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| `Settings.tsx`         | Remove 3 tab entries + render branches, add `media` tab + `<MediaSettingsTab />` |
+| `MediaSettingsTab.tsx` | **New** — sub-tab strip + content switching                                      |
+| `DataExportTab.tsx`    | Remove `ArrLibraryImportPanel` usage                                             |
+| `en/common.json`       | Add `settings.media.*` keys                                                      |
+| `fr/common.json`       | Add `settings.media.*` keys                                                      |
 
 ## Out of Scope
 

@@ -11,8 +11,8 @@ import {
   DISCOVER_SORTS,
 } from "@/pages/medias/_component/discover/discoverConfig";
 import {
+  buildDiscoverFilterSignature,
   buildDiscoverGridKey,
-  buildDiscoverScrollSignature,
 } from "@/pages/medias/_component/discover/discoverSignatures";
 import { useDiscoverScrollToAnchor } from "@/hooks/medias/useDiscoverScrollToAnchor";
 import { DiscoverPagination } from "@/pages/medias/_component/discover/DiscoverPagination";
@@ -37,16 +37,15 @@ export function DiscoverPanel() {
 
   const topRef = useRef<HTMLDivElement>(null);
 
-  const scrollSig = buildDiscoverScrollSignature({
+  const filterSignature = buildDiscoverFilterSignature({
     lang,
     mediaType,
     providerId,
     genreId,
     sortBy,
-    page,
     originalLanguage,
   });
-  useDiscoverScrollToAnchor(topRef, scrollSig);
+  useDiscoverScrollToAnchor(topRef, filterSignature, page);
 
   const { data: providersData } = useStreamingProviders("CA", mediaType, lang);
   const { data: genresData } = useMediaGenres(mediaType, lang);
@@ -142,7 +141,7 @@ export function DiscoverPanel() {
         )}
       </div>
 
-      <div className="space-y-5">
+      <div className="min-w-0 space-y-5">
         <DiscoverToolbar
           mediaType={mediaType}
           providerId={providerId}

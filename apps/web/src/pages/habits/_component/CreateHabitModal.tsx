@@ -38,10 +38,7 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({
       showCloseButton
     >
       <div className="p-1">
-        <HabitForm
-          onSubmit={handleSubmit}
-          isLoading={createHabit.isPending}
-        />
+        <HabitForm onSubmit={handleSubmit} isLoading={createHabit.isPending} />
       </div>
     </Dialog>
   );

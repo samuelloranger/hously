@@ -14,8 +14,13 @@ const SYS_RING_SIZE = 60;
 
 type SysSample = { cpu: number; ram: number };
 
-
-function SysTooltip({ active, payload }: TooltipContentProps<number | string | ReadonlyArray<number | string>, number | string>) {
+function SysTooltip({
+  active,
+  payload,
+}: TooltipContentProps<
+  number | string | ReadonlyArray<number | string>,
+  number | string
+>) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5">

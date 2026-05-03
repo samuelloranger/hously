@@ -7,7 +7,11 @@ import { LibraryHistoryTab } from "@/pages/medias/_component/LibraryHistoryTab";
 import { ArrLibraryImportPanel } from "@/pages/settings/_component/ArrLibraryImportPanel";
 import { SlidersHorizontal, FolderTree, Film, Download } from "lucide-react";
 
-type MediaSubTab = "quality-profiles" | "library-settings" | "history" | "import";
+type MediaSubTab =
+  | "quality-profiles"
+  | "library-settings"
+  | "history"
+  | "import";
 
 export function MediaSettingsTab() {
   const { t } = useTranslation("common");
@@ -17,7 +21,11 @@ export function MediaSettingsTab() {
     (subtab as MediaSubTab | undefined) ?? "quality-profiles";
 
   const setSubTab = (subtab: MediaSubTab) => {
-    navigate({ to: "/settings", search: { tab: "media", subtab }, replace: true });
+    navigate({
+      to: "/settings",
+      search: { tab: "media", subtab },
+      replace: true,
+    });
   };
 
   const subTabs = [
