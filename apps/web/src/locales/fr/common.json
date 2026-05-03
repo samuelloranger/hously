@@ -999,7 +999,8 @@
       "deselectAll": "Tout désélectionner"
     },
     "mediaHistory": {
-      "title": "Historique média"
+      "title": "Historique média",
+      "description": "Consultez les téléchargements récents, l'activité des indexeurs et les résultats du pipeline média."
     },
     "mediaLibrary": {
       "title": "Bibliothèque média",

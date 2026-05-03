@@ -51,7 +51,7 @@ function RootLayout() {
         onAllow={handleAllow}
         onDismiss={handleDismiss}
       />
-      <Toaster position="top-center" richColors />
+      <Toaster position="bottom-center" richColors />
     </LibraryNavigationProvider>
   );
 }
