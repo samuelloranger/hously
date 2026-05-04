@@ -109,7 +109,7 @@ jobs:
           git checkout -b "$BRANCH"
           git add apps/jellyfin-plugin/manifest.json
           git commit -m "chore(plugin): update manifest for ${{ github.event.release.tag_name }}" || exit 0
-          git push origin "$BRANCH"
+          git push origin "$BRANCH" --force
           gh pr create \
             --title "chore(plugin): update manifest for ${{ github.event.release.tag_name }}" \
             --body "Automated manifest update from CD pipeline." \
