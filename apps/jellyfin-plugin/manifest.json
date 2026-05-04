@@ -11,6 +11,14 @@
     "timestamp": "2026-05-04T00:00:00Z",
     "versions": [
       {
+        "version": "1.38.2",
+        "changelog": "v1.38.2 \u2014 Rename collection, clean config page, improve logging",
+        "targetAbi": "10.11.7.0",
+        "sourceUrl": "https://github.com/samuelloranger/hously/releases/download/v1.38.2/Jellyfin.Plugin.HouslyWatchlist_v1.38.2.zip",
+        "checksum": "30cee4a81365ad85d2aaa7202fc7fb99",
+        "timestamp": "2026-05-04T12:23:28Z"
+      },
+      {
         "version": "1.38.1",
         "changelog": "v1.38.1",
         "targetAbi": "10.11.7.0",
