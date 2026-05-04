@@ -99,7 +99,28 @@ function classifyTrack(
     }
     return classifyFrenchTrack(track.title, releaseName);
   }
-  if (!code || code === "und" || code === "zxx") return "UND";
+  if (!code || code === "und" || code === "zxx") {
+    // Language code is unknown — try to recover from the track title.
+    const titleHaystack = normalize(track.title);
+    if (titleHaystack) {
+      if (
+        containsAny(titleHaystack, VFQ_KEYWORDS) ||
+        containsAny(titleHaystack, VFF_KEYWORDS) ||
+        containsAny(titleHaystack, VFI_KEYWORDS) ||
+        titleHaystack.includes("french") ||
+        titleHaystack.includes("francais")
+      ) {
+        return classifyFrenchTrack(track.title, releaseName);
+      }
+      if (
+        titleHaystack.includes("english") ||
+        titleHaystack.includes("anglais")
+      ) {
+        return "EN";
+      }
+    }
+    return "UND";
+  }
   return code.slice(0, 3).toUpperCase();
 }
 
