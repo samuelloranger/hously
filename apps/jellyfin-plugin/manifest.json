@@ -11,6 +11,14 @@
     "timestamp": "2026-05-04T00:00:00Z",
     "versions": [
       {
+        "version": "1.38.3",
+        "changelog": "v1.38.3 \u2014 Fix user ID format for watchlist matching",
+        "targetAbi": "10.11.7.0",
+        "sourceUrl": "https://github.com/samuelloranger/hously/releases/download/v1.38.3/Jellyfin.Plugin.HouslyWatchlist_v1.38.3.zip",
+        "checksum": "b68fd0fe0e530c38b9140d1b5f3ff0f2",
+        "timestamp": "2026-05-04T12:27:41Z"
+      },
+      {
         "version": "1.38.2",
         "changelog": "v1.38.2 \u2014 Rename collection, clean config page, improve logging",
         "targetAbi": "10.11.7.0",
