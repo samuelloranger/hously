@@ -1,0 +1,6 @@
+---
+version: 1.0.0.0
+projects:
+  - name: Jellyfin.Plugin.HouslyWatchlist
+    url: https://github.com/samuelloranger/hously
+    artifact: Jellyfin.Plugin.HouslyWatchlist/bin/Release/net9.0/Jellyfin.Plugin.HouslyWatchlist.dll

@@ -10,6 +10,7 @@ import type {
   DashboardTrackersStatsResponse,
   JellyfinIntegration,
   JellyfinIntegrationUpdateResponse,
+  JellyfinUserMappingConfig,
   BeszelIntegration,
   BeszelIntegrationUpdateResponse,
   ProwlarrIntegration,
@@ -313,6 +314,7 @@ export function useUpdateJellyfinIntegration() {
       website_url: string;
       api_key: string;
       enabled: boolean;
+      user_mappings?: JellyfinUserMappingConfig[];
     }) =>
       fetcher<JellyfinIntegrationUpdateResponse>(
         INTEGRATION_ENDPOINTS.JELLYFIN,
@@ -329,6 +331,33 @@ export function useUpdateJellyfinIntegration() {
         queryKey: queryKeys.dashboard.jellyfinLatest(),
       });
     },
+  });
+}
+
+export function useRegenerateJellyfinSyncToken() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      fetcher<{ sync_token: string }>("/api/integrations/jellyfin/sync-token", {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.jellyfin(),
+      });
+    },
+  });
+}
+
+export function useJellyfinSyncTrigger() {
+  const fetcher = useFetcher();
+  return useMutation({
+    mutationFn: (jellyfinUserId?: string | null) =>
+      fetcher<{ success: boolean }>("/api/sync/jellyfin/trigger", {
+        method: "POST",
+        body: jellyfinUserId ? { jellyfin_user_id: jellyfinUserId } : {},
+      }),
   });
 }
 
