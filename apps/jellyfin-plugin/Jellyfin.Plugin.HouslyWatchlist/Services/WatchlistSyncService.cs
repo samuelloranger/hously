@@ -13,7 +13,7 @@ namespace Jellyfin.Plugin.HouslyWatchlist.Services;
 
 public class WatchlistSyncService : IHostedService, IDisposable
 {
-    private const string CollectionPrefix = "What's Next";
+    private const string CollectionName = "What's Next from Hously";
 
     private readonly ILibraryManager _libraryManager;
     private readonly ICollectionManager _collectionManager;
@@ -60,6 +60,10 @@ public class WatchlistSyncService : IHostedService, IDisposable
             TimeSpan.FromMinutes(1),
             TimeSpan.FromMinutes(interval));
 
+        _logger.LogInformation(
+            "[HouslyWatchlist] Started. Sync interval: {Interval} min. First sync in 1 min.",
+            interval);
+
         return Task.CompletedTask;
     }
 
@@ -67,15 +71,23 @@ public class WatchlistSyncService : IHostedService, IDisposable
     {
         _userDataManager.UserDataSaved -= OnUserDataSaved;
         _timer?.Change(Timeout.Infinite, 0);
+        _logger.LogInformation("[HouslyWatchlist] Stopped.");
         return Task.CompletedTask;
     }
 
     public async Task SyncAllUsersAsync(CancellationToken cancellationToken)
     {
-        foreach (var user in _userManager.Users)
+        _logger.LogInformation("[HouslyWatchlist] Starting full sync for all users");
+        var users = _userManager.Users.ToList();
+        var synced = 0;
+
+        foreach (var user in users)
         {
             await SyncUserAsync(user.Id.ToString("D"), cancellationToken).ConfigureAwait(false);
+            synced++;
         }
+
+        _logger.LogInformation("[HouslyWatchlist] Full sync complete ({Count} users processed)", synced);
     }
 
     public async Task SyncUserAsync(string jellyfinUserId, CancellationToken cancellationToken)
@@ -85,10 +97,25 @@ public class WatchlistSyncService : IHostedService, IDisposable
             return;
         }
 
+        _logger.LogInformation("[HouslyWatchlist] Syncing user {UserId}", jellyfinUserId);
+
         try
         {
             var watchlistItems = await _apiClient.GetWatchlistAsync(jellyfinUserId, cancellationToken)
                 .ConfigureAwait(false);
+
+            if (watchlistItems.Count == 0)
+            {
+                _logger.LogInformation(
+                    "[HouslyWatchlist] No watchlist items for user {UserId} (unmapped or empty watchlist)",
+                    jellyfinUserId);
+                return;
+            }
+
+            _logger.LogInformation(
+                "[HouslyWatchlist] {Count} watchlist items fetched for user {UserId}",
+                watchlistItems.Count,
+                jellyfinUserId);
 
             var matchedItemIds = new List<Guid>();
             foreach (var watchlistItem in watchlistItems)
@@ -100,8 +127,13 @@ public class WatchlistSyncService : IHostedService, IDisposable
                 }
             }
 
-            await UpsertCollectionAsync(jellyfinUserId, matchedItemIds, cancellationToken)
-                .ConfigureAwait(false);
+            _logger.LogInformation(
+                "[HouslyWatchlist] {Matched}/{Total} watchlist items found in library for user {UserId}",
+                matchedItemIds.Count,
+                watchlistItems.Count,
+                jellyfinUserId);
+
+            await UpsertCollectionAsync(matchedItemIds, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -117,11 +149,10 @@ public class WatchlistSyncService : IHostedService, IDisposable
     {
         try
         {
-            var collectionName = $"{CollectionPrefix} - {jellyfinUserId}";
             var collection = _libraryManager.GetItemList(new InternalItemsQuery
             {
                 IncludeItemTypes = [BaseItemKind.BoxSet],
-                Name = collectionName,
+                Name = CollectionName,
             }).OfType<BoxSet>().FirstOrDefault();
 
             if (collection is null)
@@ -137,6 +168,11 @@ public class WatchlistSyncService : IHostedService, IDisposable
 
             await _collectionManager.RemoveFromCollectionAsync(collection.Id, [item.Id])
                 .ConfigureAwait(false);
+
+            _logger.LogInformation(
+                "[HouslyWatchlist] Removed item tmdb:{TmdbId} from collection (watched by user {UserId})",
+                tmdbId,
+                jellyfinUserId);
         }
         catch (Exception ex)
         {
@@ -168,15 +204,13 @@ public class WatchlistSyncService : IHostedService, IDisposable
     }
 
     private async Task UpsertCollectionAsync(
-        string jellyfinUserId,
         IReadOnlyCollection<Guid> itemIds,
         CancellationToken cancellationToken)
     {
-        var collectionName = $"{CollectionPrefix} - {jellyfinUserId}";
         var existing = _libraryManager.GetItemList(new InternalItemsQuery
         {
             IncludeItemTypes = [BaseItemKind.BoxSet],
-            Name = collectionName,
+            Name = CollectionName,
         }).OfType<BoxSet>().FirstOrDefault();
 
         if (existing is null)
@@ -188,10 +222,15 @@ public class WatchlistSyncService : IHostedService, IDisposable
 
             await _collectionManager.CreateCollectionAsync(new CollectionCreationOptions
             {
-                Name = collectionName,
+                Name = CollectionName,
                 ItemIdList = itemIds.Select(id => id.ToString()).ToArray(),
                 IsLocked = false,
             }).ConfigureAwait(false);
+
+            _logger.LogInformation(
+                "[HouslyWatchlist] Created collection '{Name}' with {Count} items",
+                CollectionName,
+                itemIds.Count);
             return;
         }
 
@@ -212,6 +251,13 @@ public class WatchlistSyncService : IHostedService, IDisposable
             await _collectionManager.AddToCollectionAsync(existing.Id, toAdd)
                 .ConfigureAwait(false);
         }
+
+        _logger.LogInformation(
+            "[HouslyWatchlist] Updated collection '{Name}': +{Added} added, -{Removed} removed, {Total} total",
+            CollectionName,
+            toAdd.Count,
+            toRemove.Count,
+            targetIds.Count);
     }
 
     private async void OnUserDataSaved(object? sender, UserDataSaveEventArgs e)
@@ -234,6 +280,12 @@ public class WatchlistSyncService : IHostedService, IDisposable
 
         var jellyfinUserId = e.UserId.ToString("D");
         var mediaType = e.Item is Movie ? "movie" : "tv";
+
+        _logger.LogInformation(
+            "[HouslyWatchlist] Item watched: tmdb:{TmdbId} ({MediaType}) by user {UserId} — removing from watchlist",
+            tmdbId,
+            mediaType,
+            jellyfinUserId);
 
         try
         {
