@@ -11,6 +11,14 @@
     "timestamp": "2026-05-04T00:00:00Z",
     "versions": [
       {
+        "version": "1.38.1",
+        "changelog": "v1.38.1",
+        "targetAbi": "10.11.7.0",
+        "sourceUrl": "https://github.com/samuelloranger/hously/releases/download/v1.38.1/Jellyfin.Plugin.HouslyWatchlist_v1.38.1.zip",
+        "checksum": "8d793a41412c8ca1e3a214620b2e1bae",
+        "timestamp": "2026-05-04T11:54:47Z"
+      },
+      {
         "version": "1.38.0",
         "changelog": "feat: Jellyfin watchlist sync \u2014 two-way sync between Hously watchlist and Jellyfin 'What's Next' collection",
         "targetAbi": "10.11.7.0",
