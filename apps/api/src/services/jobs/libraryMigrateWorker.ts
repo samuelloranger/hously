@@ -1,5 +1,9 @@
 import type { Job } from "bullmq";
-import { normalizeLanguageCode } from "@hously/shared";
+import {
+  normalizeLanguageCode,
+  classifyLanguageTags,
+  type LibraryAudioTrack,
+} from "@hously/shared";
 import { prisma } from "@hously/api/db";
 import { getIntegrationConfigRecord } from "@hously/api/services/integrationConfigCache";
 import { normalizeTmdbConfig } from "@hously/api/utils/integrations/normalizers";
@@ -495,6 +499,10 @@ export async function processLibraryMigrateJob(
                   source: mi.source ?? fnData.source,
                   audioTracks: mi.audioTracks as object[],
                   subtitleTracks: mi.subtitleTracks as object[],
+                  languageTags: classifyLanguageTags(
+                    mi.audioTracks as LibraryAudioTrack[],
+                    null,
+                  ),
                 };
                 if (existingFile) {
                   await prisma.mediaFile.update({
@@ -509,6 +517,11 @@ export async function processLibraryMigrateJob(
               } else {
                 // Fall back to Radarr's flat mediaInfo
                 const arrMi = mf.mediaInfo ?? {};
+                const arrAudioTracks = buildAudioTracksFromArr(
+                  arrMi,
+                  fileName,
+                  mf.languages,
+                );
                 const arrData = {
                   filePath,
                   fileName,
@@ -523,12 +536,12 @@ export async function processLibraryMigrateJob(
                     fnData.hdrFormat,
                   resolution: fnData.resolution,
                   source: fnData.source,
-                  audioTracks: buildAudioTracksFromArr(
-                    arrMi,
-                    fileName,
-                    mf.languages,
-                  ),
+                  audioTracks: arrAudioTracks,
                   subtitleTracks: buildSubtitleTracksFromArr(arrMi),
+                  languageTags: classifyLanguageTags(
+                    arrAudioTracks as LibraryAudioTrack[],
+                    null,
+                  ),
                 };
                 if (existingFile) {
                   await prisma.mediaFile.update({
@@ -764,6 +777,10 @@ export async function processLibraryMigrateJob(
                     source: mi.source ?? fnData.source,
                     audioTracks: mi.audioTracks as object[],
                     subtitleTracks: mi.subtitleTracks as object[],
+                    languageTags: classifyLanguageTags(
+                      mi.audioTracks as LibraryAudioTrack[],
+                      null,
+                    ),
                   };
                   if (existingFile) {
                     await prisma.mediaFile.update({
@@ -775,6 +792,11 @@ export async function processLibraryMigrateJob(
                   }
                 } else {
                   const arrMi = file.mediaInfo ?? {};
+                  const arrAudioTracks = buildAudioTracksFromArr(
+                    arrMi,
+                    fileName,
+                    file.languages,
+                  );
                   const arrData = {
                     episodeId: epRow?.id ?? null,
                     mediaId: mediaRow.id,
@@ -791,12 +813,12 @@ export async function processLibraryMigrateJob(
                       fnData.hdrFormat,
                     resolution: fnData.resolution,
                     source: fnData.source,
-                    audioTracks: buildAudioTracksFromArr(
-                      arrMi,
-                      fileName,
-                      file.languages,
-                    ),
+                    audioTracks: arrAudioTracks,
                     subtitleTracks: buildSubtitleTracksFromArr(arrMi),
+                    languageTags: classifyLanguageTags(
+                      arrAudioTracks as LibraryAudioTrack[],
+                      null,
+                    ),
                   };
                   if (existingFile) {
                     await prisma.mediaFile.update({
