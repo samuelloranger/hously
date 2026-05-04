@@ -11,6 +11,14 @@
     "timestamp": "2026-05-04T00:00:00Z",
     "versions": [
       {
+        "version": "1.38.6",
+        "changelog": "v1.38.6",
+        "targetAbi": "10.11.7.0",
+        "sourceUrl": "https://github.com/samuelloranger/hously/releases/download/v1.38.6/Jellyfin.Plugin.HouslyWatchlist_v1.38.6.zip",
+        "checksum": "563d2ed550c020f559f66ca47fb4b107",
+        "timestamp": "2026-05-04T22:09:08Z"
+      },
+      {
         "version": "1.38.5",
         "changelog": "v1.38.5 \u2014 Fix qBittorrent 5.2.0 session cookie compatibility",
         "targetAbi": "10.11.7.0",
