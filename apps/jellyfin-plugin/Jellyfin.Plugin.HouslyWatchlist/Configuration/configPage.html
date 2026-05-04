@@ -47,22 +47,6 @@
                 max="1440"
               />
             </div>
-            <div class="detailSection">
-              <h2>User mappings</h2>
-              <div class="fieldDescription">
-                Map Jellyfin user IDs to Hously user IDs. These must match the
-                mappings saved in Hously.
-              </div>
-              <div id="mappingRows"></div>
-              <button
-                is="emby-button"
-                type="button"
-                id="addMappingBtn"
-                class="raised emby-button"
-              >
-                Add mapping
-              </button>
-            </div>
             <br />
             <div>
               <button
@@ -89,57 +73,9 @@
       (function () {
         var pluginUniqueId = "a3f4e2c1-8d6b-4f9a-b2e7-1c5d9f3a7e2b";
         var page = document.querySelector("#HouslyWatchlistConfigPage");
-        var mappingRows = document.querySelector("#mappingRows");
         var savedToken = "";
 
-        function createMappingRow(mapping) {
-          var row = document.createElement("div");
-          row.className = "mappingRow";
-          row.style.display = "grid";
-          row.style.gridTemplateColumns = "1fr 160px auto";
-          row.style.gap = "0.75rem";
-          row.style.alignItems = "end";
-          row.style.marginBottom = "0.75rem";
-          row.innerHTML =
-            '<div class="inputContainer">' +
-            '<label class="inputLabel">Jellyfin User ID</label>' +
-            '<input class="jellyfinUserId" type="text" />' +
-            "</div>" +
-            '<div class="inputContainer">' +
-            '<label class="inputLabel">Hously User ID</label>' +
-            '<input class="houslyUserId" type="number" min="1" />' +
-            "</div>" +
-            '<button is="emby-button" type="button" class="raised emby-button removeMappingBtn">Remove</button>';
-          row.querySelector(".jellyfinUserId").value =
-            mapping && mapping.JellyfinUserId ? mapping.JellyfinUserId : "";
-          row.querySelector(".houslyUserId").value =
-            mapping && mapping.HouslyUserId ? mapping.HouslyUserId : "";
-          row
-            .querySelector(".removeMappingBtn")
-            .addEventListener("click", function () {
-              row.remove();
-            });
-          mappingRows.appendChild(row);
-        }
-
-        function readMappings() {
-          return Array.prototype.slice
-            .call(mappingRows.querySelectorAll(".mappingRow"))
-            .map(function (row) {
-              return {
-                JellyfinUserId: row
-                  .querySelector(".jellyfinUserId")
-                  .value.trim(),
-                HouslyUserId:
-                  parseInt(row.querySelector(".houslyUserId").value, 10) || 0,
-              };
-            })
-            .filter(function (mapping) {
-              return mapping.JellyfinUserId && mapping.HouslyUserId > 0;
-            });
-        }
-
-        page.addEventListener("pageshow", function () {
+        page.addEventListener("viewshow", function () {
           ApiClient.getPluginConfiguration(pluginUniqueId).then(
             function (config) {
               document.querySelector("#houslyBaseUrl").value =
@@ -148,20 +84,9 @@
               document.querySelector("#syncIntervalMinutes").value =
                 config.SyncIntervalMinutes || 15;
               savedToken = config.AdminToken || "";
-              mappingRows.innerHTML = "";
-              (config.UserMappings || []).forEach(createMappingRow);
-              if (!config.UserMappings || config.UserMappings.length === 0) {
-                createMappingRow();
-              }
             },
           );
         });
-
-        document
-          .querySelector("#addMappingBtn")
-          .addEventListener("click", function () {
-            createMappingRow();
-          });
 
         document
           .querySelector("#HouslyWatchlistConfigForm")
@@ -183,7 +108,6 @@
                     document.querySelector("#syncIntervalMinutes").value,
                     10,
                   ) || 15;
-                config.UserMappings = readMappings();
                 ApiClient.updatePluginConfiguration(
                   pluginUniqueId,
                   config,
@@ -199,12 +123,15 @@
           .addEventListener("click", function () {
             var token =
               document.querySelector("#adminToken").value || savedToken;
-            if (!token) {
-              Dashboard.alert("Save the sync token first.");
+            var baseUrl = (document.querySelector("#houslyBaseUrl").value || "")
+              .trim()
+              .replace(/\/+$/, "");
+            if (!token || !baseUrl) {
+              Dashboard.alert("Save your settings first.");
               return;
             }
 
-            fetch("/hously/webhook/sync", {
+            fetch(baseUrl + "/api/sync/jellyfin/trigger", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -214,12 +141,12 @@
             })
               .then(function (response) {
                 if (!response.ok) {
-                  throw new Error("Sync failed");
+                  throw new Error("HTTP " + response.status);
                 }
                 Dashboard.alert("Sync queued.");
               })
-              .catch(function () {
-                Dashboard.alert("Sync failed.");
+              .catch(function (err) {
+                Dashboard.alert("Sync failed: " + err.message);
               });
           });
       })();
