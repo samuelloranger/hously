@@ -115,7 +115,7 @@ jobs:
             --body "Automated manifest update from CD pipeline." \
             --base main \
             --head "$BRANCH"
-          gh pr merge "$BRANCH" --squash --auto --delete-branch
+          gh pr merge "$BRANCH" --squash --delete-branch
 
       - name: Upload release asset
         if: steps.changes.outputs.changed == 'true'
