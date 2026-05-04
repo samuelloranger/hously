@@ -2,6 +2,232 @@
 <html>
   <head>
     <title>Hously Watchlist</title>
+    <style>
+      :root {
+        --hw-accent: #00a4dc;
+        --hw-accent-dim: rgba(0, 164, 220, 0.1);
+        --hw-accent-glow: rgba(0, 164, 220, 0.22);
+        --hw-accent-border: rgba(0, 164, 220, 0.28);
+        --hw-surface: #1c1c1c;
+        --hw-border: rgba(255, 255, 255, 0.07);
+        --hw-text: rgba(255, 255, 255, 0.87);
+        --hw-text-secondary: rgba(255, 255, 255, 0.48);
+        --hw-success: #4db36f;
+        --hw-success-dim: rgba(77, 179, 111, 0.1);
+        --hw-error-dim: rgba(229, 115, 115, 0.1);
+        --hw-error: #e57373;
+        --hw-radius: 8px;
+      }
+
+      @keyframes hw-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .hw-page {
+        max-width: 620px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 3rem;
+      }
+
+      /* ── Header ── */
+      .hw-header {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #162028 0%, #111c22 55%, #141414 100%);
+        border: 1px solid var(--hw-accent-border);
+        border-radius: var(--hw-radius);
+        padding: 1.375rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.125rem;
+        margin-bottom: 1rem;
+        animation: hw-in 0.3s ease both;
+      }
+
+      .hw-header::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 220px 120px at 95% 10%, var(--hw-accent-glow), transparent);
+        pointer-events: none;
+      }
+
+      .hw-icon-wrap {
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        background: var(--hw-accent-dim);
+        border: 1px solid var(--hw-accent-border);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--hw-accent);
+        position: relative;
+        z-index: 1;
+      }
+
+      .hw-header-text {
+        flex: 1;
+        min-width: 0;
+        position: relative;
+        z-index: 1;
+      }
+
+      .hw-header-title {
+        margin: 0 0 0.2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--hw-text);
+        letter-spacing: 0.01em;
+      }
+
+      .hw-header-sub {
+        margin: 0;
+        font-size: 0.775rem;
+        color: var(--hw-text-secondary);
+        line-height: 1.4;
+      }
+
+      /* ── Status badge ── */
+      #hwStatusBadge {
+        position: relative;
+        z-index: 1;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 100px;
+        font-size: 0.67rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        transition: background 0.3s, color 0.3s, border-color 0.3s;
+      }
+
+      #hwStatusBadge::before {
+        content: '';
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: currentColor;
+        flex-shrink: 0;
+      }
+
+      #hwStatusBadge.hw-unconfigured {
+        background: rgba(255,255,255,0.05);
+        color: var(--hw-text-secondary);
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+
+      #hwStatusBadge.hw-configured {
+        background: var(--hw-success-dim);
+        color: var(--hw-success);
+        border: 1px solid rgba(77, 179, 111, 0.22);
+      }
+
+      /* ── Cards ── */
+      .hw-card {
+        background: var(--hw-surface);
+        border: 1px solid var(--hw-border);
+        border-radius: var(--hw-radius);
+        padding: 1.375rem 1.5rem;
+        margin-bottom: 0.75rem;
+        animation: hw-in 0.35s ease both;
+      }
+
+      .hw-card:nth-child(1) { animation-delay: 0.05s; }
+      .hw-card:nth-child(2) { animation-delay: 0.10s; }
+      .hw-card:nth-child(3) { animation-delay: 0.15s; }
+
+      .hw-section-label {
+        margin: 0 0 1.125rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--hw-accent);
+        padding-bottom: 0.6rem;
+        border-bottom: 1px solid var(--hw-border);
+      }
+
+      /* ── Token hint line ── */
+      .hw-token-hint {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-top: 0.375rem;
+        font-size: 0.73rem;
+        color: var(--hw-text-secondary);
+        transition: color 0.25s;
+      }
+
+      .hw-token-hint.hw-token-set {
+        color: var(--hw-success);
+      }
+
+      .hw-token-hint svg {
+        width: 13px;
+        height: 13px;
+        flex-shrink: 0;
+        opacity: 0;
+        transition: opacity 0.25s;
+      }
+
+      .hw-token-hint.hw-token-set svg {
+        opacity: 1;
+      }
+
+      /* ── Actions row ── */
+      .hw-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .hw-actions .emby-button {
+        flex: 1;
+        min-width: 130px;
+        margin: 0 !important;
+      }
+
+      /* ── Inline feedback ── */
+      .hw-feedback {
+        margin-top: 0.875rem;
+        padding: 0.55rem 0.875rem;
+        border-radius: 6px;
+        font-size: 0.775rem;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 0.22s ease, transform 0.22s ease;
+        pointer-events: none;
+      }
+
+      .hw-feedback.hw-show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .hw-feedback.hw-success {
+        background: var(--hw-success-dim);
+        color: var(--hw-success);
+        border: 1px solid rgba(77, 179, 111, 0.2);
+      }
+
+      .hw-feedback.hw-error {
+        background: var(--hw-error-dim);
+        color: var(--hw-error);
+        border: 1px solid rgba(229, 115, 115, 0.2);
+      }
+
+      /* spacing between inputContainers inside our cards */
+      .hw-card .inputContainer + .inputContainer {
+        margin-top: 1rem;
+      }
+    </style>
   </head>
   <body>
     <div
@@ -12,216 +238,190 @@
     >
       <div data-role="content">
         <div class="content-primary">
-          <form id="HouslyWatchlistConfigForm">
-            <div class="inputContainer">
-              <label class="inputLabel" for="houslyBaseUrl"
-                >Hously Base URL</label
-              >
-              <input id="houslyBaseUrl" name="HouslyBaseUrl" type="url" />
-              <div class="fieldDescription">
-                Example: https://hously.example.com
+          <div class="hw-page">
+
+            <!-- Branded header -->
+            <div class="hw-header">
+              <div class="hw-icon-wrap">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
               </div>
-            </div>
-            <div class="inputContainer">
-              <label class="inputLabel" for="adminToken">Sync Token</label>
-              <input
-                id="adminToken"
-                name="AdminToken"
-                type="password"
-                autocomplete="new-password"
-              />
-              <div class="fieldDescription">
-                Paste the sync token generated in Hously's Jellyfin integration
-                settings.
+              <div class="hw-header-text">
+                <h2 class="hw-header-title">Hously Watchlist</h2>
+                <p class="hw-header-sub">Syncs your watchlist as a "What's Next" collection</p>
               </div>
+              <span id="hwStatusBadge" class="hw-unconfigured">Not configured</span>
             </div>
-            <div class="inputContainer">
-              <label class="inputLabel" for="syncIntervalMinutes"
-                >Sync Interval (minutes)</label
-              >
-              <input
-                id="syncIntervalMinutes"
-                name="SyncIntervalMinutes"
-                type="number"
-                min="5"
-                max="1440"
-              />
-            </div>
-            <div class="detailSection">
-              <h2>User mappings</h2>
-              <div class="fieldDescription">
-                Map Jellyfin user IDs to Hously user IDs. These must match the
-                mappings saved in Hously.
+
+            <form id="HouslyWatchlistConfigForm">
+
+              <!-- Connection -->
+              <div class="hw-card">
+                <p class="hw-section-label">Connection</p>
+
+                <div class="inputContainer">
+                  <label class="inputLabel inputLabel--float" for="houslyBaseUrl">Hously Base URL</label>
+                  <input
+                    is="emby-input"
+                    id="houslyBaseUrl"
+                    name="HouslyBaseUrl"
+                    type="url"
+                    class="emby-input"
+                    placeholder="https://hously.example.com"
+                  />
+                  <div class="fieldDescription">The root URL of your Hously instance.</div>
+                </div>
+
+                <div class="inputContainer">
+                  <label class="inputLabel inputLabel--float" for="adminToken">Sync Token</label>
+                  <input
+                    id="adminToken"
+                    name="AdminToken"
+                    type="password"
+                    class="emby-input"
+                    autocomplete="new-password"
+                    placeholder="Paste token from Hously settings"
+                  />
+                  <div class="fieldDescription">
+                    Generate in Hously → Settings → Integrations → Jellyfin.
+                    Leave blank to keep the existing token.
+                  </div>
+                  <p class="hw-token-hint" id="hwTokenHint">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    <span id="hwTokenHintText">No token saved</span>
+                  </p>
+                </div>
               </div>
-              <div id="mappingRows"></div>
-              <button
-                is="emby-button"
-                type="button"
-                id="addMappingBtn"
-                class="raised emby-button"
-              >
-                Add mapping
-              </button>
-            </div>
-            <br />
-            <div>
-              <button
-                is="emby-button"
-                type="submit"
-                class="raised button-submit block emby-button"
-              >
-                Save
-              </button>
-              <button
-                is="emby-button"
-                type="button"
-                id="syncNowBtn"
-                class="raised block emby-button"
-              >
-                Sync Now
-              </button>
-            </div>
-          </form>
+
+              <!-- Schedule -->
+              <div class="hw-card">
+                <p class="hw-section-label">Schedule</p>
+                <div class="inputContainer">
+                  <label class="inputLabel inputLabel--float" for="syncIntervalMinutes">Sync Interval (minutes)</label>
+                  <input
+                    is="emby-input"
+                    id="syncIntervalMinutes"
+                    name="SyncIntervalMinutes"
+                    type="number"
+                    class="emby-input"
+                    min="5"
+                    max="1440"
+                  />
+                  <div class="fieldDescription">How often to sync watchlists for all users. Minimum 5 minutes.</div>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="hw-card">
+                <p class="hw-section-label">Actions</p>
+                <div class="hw-actions">
+                  <button is="emby-button" type="submit" class="raised button-submit emby-button">
+                    Save Settings
+                  </button>
+                  <button is="emby-button" type="button" id="syncNowBtn" class="raised emby-button">
+                    Sync Now
+                  </button>
+                </div>
+                <div id="hwFeedback" class="hw-feedback"></div>
+              </div>
+
+            </form>
+          </div>
         </div>
       </div>
     </div>
+
     <script type="text/javascript">
       (function () {
         var pluginUniqueId = "a3f4e2c1-8d6b-4f9a-b2e7-1c5d9f3a7e2b";
         var page = document.querySelector("#HouslyWatchlistConfigPage");
-        var mappingRows = document.querySelector("#mappingRows");
         var savedToken = "";
+        var feedbackTimer = null;
 
-        function createMappingRow(mapping) {
-          var row = document.createElement("div");
-          row.className = "mappingRow";
-          row.style.display = "grid";
-          row.style.gridTemplateColumns = "1fr 160px auto";
-          row.style.gap = "0.75rem";
-          row.style.alignItems = "end";
-          row.style.marginBottom = "0.75rem";
-          row.innerHTML =
-            '<div class="inputContainer">' +
-            '<label class="inputLabel">Jellyfin User ID</label>' +
-            '<input class="jellyfinUserId" type="text" />' +
-            "</div>" +
-            '<div class="inputContainer">' +
-            '<label class="inputLabel">Hously User ID</label>' +
-            '<input class="houslyUserId" type="number" min="1" />' +
-            "</div>" +
-            '<button is="emby-button" type="button" class="raised emby-button removeMappingBtn">Remove</button>';
-          row.querySelector(".jellyfinUserId").value =
-            mapping && mapping.JellyfinUserId ? mapping.JellyfinUserId : "";
-          row.querySelector(".houslyUserId").value =
-            mapping && mapping.HouslyUserId ? mapping.HouslyUserId : "";
-          row
-            .querySelector(".removeMappingBtn")
-            .addEventListener("click", function () {
-              row.remove();
-            });
-          mappingRows.appendChild(row);
+        function setStatus(hasUrl, hasToken) {
+          var badge = document.querySelector("#hwStatusBadge");
+          var hint  = document.querySelector("#hwTokenHint");
+          var hintText = document.querySelector("#hwTokenHintText");
+
+          if (hasUrl && hasToken) {
+            badge.className = "hw-configured";
+            badge.textContent = "Configured";
+          } else {
+            badge.className = "hw-unconfigured";
+            badge.textContent = "Not configured";
+          }
+
+          if (hasToken) {
+            hint.className = "hw-token-hint hw-token-set";
+            hintText.textContent = "Token is saved";
+          } else {
+            hint.className = "hw-token-hint";
+            hintText.textContent = "No token saved";
+          }
         }
 
-        function readMappings() {
-          return Array.prototype.slice
-            .call(mappingRows.querySelectorAll(".mappingRow"))
-            .map(function (row) {
-              return {
-                JellyfinUserId: row
-                  .querySelector(".jellyfinUserId")
-                  .value.trim(),
-                HouslyUserId:
-                  parseInt(row.querySelector(".houslyUserId").value, 10) || 0,
-              };
-            })
-            .filter(function (mapping) {
-              return mapping.JellyfinUserId && mapping.HouslyUserId > 0;
-            });
+        function showFeedback(msg, type) {
+          var el = document.querySelector("#hwFeedback");
+          clearTimeout(feedbackTimer);
+          el.textContent = msg;
+          el.className = "hw-feedback hw-show hw-" + type;
+          feedbackTimer = setTimeout(function () {
+            el.className = "hw-feedback";
+          }, 4500);
         }
 
-        page.addEventListener("pageshow", function () {
-          ApiClient.getPluginConfiguration(pluginUniqueId).then(
-            function (config) {
-              document.querySelector("#houslyBaseUrl").value =
-                config.HouslyBaseUrl || "";
-              document.querySelector("#adminToken").value = "";
-              document.querySelector("#syncIntervalMinutes").value =
-                config.SyncIntervalMinutes || 15;
-              savedToken = config.AdminToken || "";
-              mappingRows.innerHTML = "";
-              (config.UserMappings || []).forEach(createMappingRow);
-              if (!config.UserMappings || config.UserMappings.length === 0) {
-                createMappingRow();
-              }
-            },
-          );
+        page.addEventListener("viewshow", function () {
+          ApiClient.getPluginConfiguration(pluginUniqueId).then(function (config) {
+            document.querySelector("#houslyBaseUrl").value = config.HouslyBaseUrl || "";
+            document.querySelector("#adminToken").value = "";
+            document.querySelector("#syncIntervalMinutes").value = config.SyncIntervalMinutes || 15;
+            savedToken = config.AdminToken || "";
+            setStatus(!!config.HouslyBaseUrl, !!savedToken);
+          });
         });
 
-        document
-          .querySelector("#addMappingBtn")
-          .addEventListener("click", function () {
-            createMappingRow();
+        document.querySelector("#HouslyWatchlistConfigForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+          ApiClient.getPluginConfiguration(pluginUniqueId).then(function (config) {
+            var token = document.querySelector("#adminToken").value;
+            var url   = document.querySelector("#houslyBaseUrl").value.trim().replace(/\/+$/, "");
+            config.HouslyBaseUrl = url;
+            if (token) { config.AdminToken = token; savedToken = token; }
+            config.SyncIntervalMinutes = parseInt(document.querySelector("#syncIntervalMinutes").value, 10) || 15;
+            ApiClient.updatePluginConfiguration(pluginUniqueId, config).then(function () {
+              setStatus(!!url, !!(savedToken));
+              showFeedback("Settings saved.", "success");
+            });
           });
+        });
 
-        document
-          .querySelector("#HouslyWatchlistConfigForm")
-          .addEventListener("submit", function (e) {
-            e.preventDefault();
-            ApiClient.getPluginConfiguration(pluginUniqueId).then(
-              function (config) {
-                var token = document.querySelector("#adminToken").value;
-                config.HouslyBaseUrl = document
-                  .querySelector("#houslyBaseUrl")
-                  .value.trim()
-                  .replace(/\/+$/, "");
-                if (token) {
-                  config.AdminToken = token;
-                  savedToken = token;
-                }
-                config.SyncIntervalMinutes =
-                  parseInt(
-                    document.querySelector("#syncIntervalMinutes").value,
-                    10,
-                  ) || 15;
-                config.UserMappings = readMappings();
-                ApiClient.updatePluginConfiguration(
-                  pluginUniqueId,
-                  config,
-                ).then(function (result) {
-                  Dashboard.processPluginConfigurationUpdateResult(result);
-                });
-              },
-            );
-          });
-
-        document
-          .querySelector("#syncNowBtn")
-          .addEventListener("click", function () {
-            var token =
-              document.querySelector("#adminToken").value || savedToken;
-            if (!token) {
-              Dashboard.alert("Save the sync token first.");
-              return;
-            }
-
-            fetch("/hously/webhook/sync", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + token,
-              },
-              body: JSON.stringify({ jellyfin_user_id: null }),
+        document.querySelector("#syncNowBtn").addEventListener("click", function () {
+          var token   = document.querySelector("#adminToken").value || savedToken;
+          var baseUrl = (document.querySelector("#houslyBaseUrl").value || "").trim().replace(/\/+$/, "");
+          if (!token || !baseUrl) {
+            showFeedback("Save your settings first.", "error");
+            return;
+          }
+          fetch(baseUrl + "/api/sync/jellyfin/trigger", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ jellyfin_user_id: null }),
+          })
+            .then(function (r) {
+              if (!r.ok) throw new Error("HTTP " + r.status);
+              showFeedback("Sync queued — watchlists will update shortly.", "success");
             })
-              .then(function (response) {
-                if (!response.ok) {
-                  throw new Error("Sync failed");
-                }
-                Dashboard.alert("Sync queued.");
-              })
-              .catch(function () {
-                Dashboard.alert("Sync failed.");
-              });
-          });
+            .catch(function (err) {
+              showFeedback("Sync failed: " + err.message, "error");
+            });
+        });
       })();
     </script>
   </body>

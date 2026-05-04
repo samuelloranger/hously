@@ -8,6 +8,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Querying;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Jellyfin.Data.Entities;
 
 namespace Jellyfin.Plugin.HouslyWatchlist.Services;
 
@@ -18,6 +19,7 @@ public class WatchlistSyncService : IHostedService, IDisposable
     private readonly ILibraryManager _libraryManager;
     private readonly ICollectionManager _collectionManager;
     private readonly IUserDataManager _userDataManager;
+    private readonly IUserManager _userManager;
     private readonly HouslyApiClient _apiClient;
     private readonly ILogger<WatchlistSyncService> _logger;
     private Timer? _timer;
@@ -26,12 +28,14 @@ public class WatchlistSyncService : IHostedService, IDisposable
         ILibraryManager libraryManager,
         ICollectionManager collectionManager,
         IUserDataManager userDataManager,
+        IUserManager userManager,
         HouslyApiClient apiClient,
         ILogger<WatchlistSyncService> logger)
     {
         _libraryManager = libraryManager;
         _collectionManager = collectionManager;
         _userDataManager = userDataManager;
+        _userManager = userManager;
         _apiClient = apiClient;
         _logger = logger;
     }
@@ -69,9 +73,9 @@ public class WatchlistSyncService : IHostedService, IDisposable
 
     public async Task SyncAllUsersAsync(CancellationToken cancellationToken)
     {
-        foreach (var mapping in GetConfiguredMappings())
+        foreach (var user in _userManager.Users)
         {
-            await SyncUserAsync(mapping.JellyfinUserId, cancellationToken).ConfigureAwait(false);
+            await SyncUserAsync(user.Id.ToString("D"), cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -230,11 +234,6 @@ public class WatchlistSyncService : IHostedService, IDisposable
         }
 
         var jellyfinUserId = e.UserId.ToString("D");
-        if (!GetConfiguredMappings().Any(mapping => mapping.JellyfinUserId == jellyfinUserId))
-        {
-            return;
-        }
-
         var mediaType = e.Item is Movie ? "movie" : "tv";
 
         try
@@ -247,11 +246,6 @@ public class WatchlistSyncService : IHostedService, IDisposable
         {
             _logger.LogWarning(ex, "[HouslyWatchlist] Failed to remove watched item {TmdbId}", tmdbId);
         }
-    }
-
-    private static List<UserMapping> GetConfiguredMappings()
-    {
-        return Plugin.Instance?.Configuration.UserMappings ?? [];
     }
 
     public void Dispose()
