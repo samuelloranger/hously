@@ -11,6 +11,14 @@
     "timestamp": "2026-05-04T00:00:00Z",
     "versions": [
       {
+        "version": "1.38.4",
+        "changelog": "v1.38.4 \u2014 Auto-write Hously banner on collection creation",
+        "targetAbi": "10.11.7.0",
+        "sourceUrl": "https://github.com/samuelloranger/hously/releases/download/v1.38.4/Jellyfin.Plugin.HouslyWatchlist_v1.38.4.zip",
+        "checksum": "f59396c8628f47b520403e7e9832c308",
+        "timestamp": "2026-05-04T12:34:39Z"
+      },
+      {
         "version": "1.38.3",
         "changelog": "v1.38.3 \u2014 Fix user ID format for watchlist matching",
         "targetAbi": "10.11.7.0",
