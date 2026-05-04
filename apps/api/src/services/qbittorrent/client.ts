@@ -403,7 +403,7 @@ const parseSidCookie = (response: Response): string | null => {
   const sidPart = raw
     .split(",")
     .map((part) => part.trim())
-    .find((part) => part.startsWith("SID="));
+    .find((part) => /^SID(_\d+)?=/.test(part));
   if (!sidPart) return null;
   return sidPart.split(";")[0] || null;
 };
