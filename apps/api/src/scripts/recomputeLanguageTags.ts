@@ -14,10 +14,10 @@ import { prisma } from "@hously/api/db";
 const dryRun = process.argv.includes("--dry-run");
 
 async function main() {
-  // Only target files whose stored audio tracks contain BCP-47 codes (e.g.
-  // "en-US", "fr-CA", "fr-FR"). Generic ISO codes like "fra" or "en" are
-  // already handled correctly; re-classifying them risks downgrading VFF/VFQ
-  // tags that were computed from richer data (title fields) during a prior scan.
+  // Target files whose stored audio tracks contain BCP-47 codes (e.g. "en-US",
+  // "fr-CA", "fr-FR") or "und" language with a non-empty title that may now be
+  // recoverable. Generic ISO codes on files without those patterns are left alone
+  // to avoid downgrading VFF/VFQ computed from richer data during a prior scan.
   const files = await prisma.$queryRaw<
     { id: number; audio_tracks: unknown; language_tags: string[] }[]
   >`
@@ -26,6 +26,7 @@ async function main() {
     WHERE EXISTS (
       SELECT 1 FROM jsonb_array_elements(audio_tracks) AS t
       WHERE t->>'language' ~ '-'
+         OR (t->>'language' = 'und' AND coalesce(t->>'title', '') != '')
     )
     ORDER BY id
   `;
