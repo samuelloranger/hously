@@ -19,6 +19,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Resources\backdrop.png" />
+    <EmbeddedResource Include="Resources\folder.png" />
   </ItemGroup>
 
 </Project>

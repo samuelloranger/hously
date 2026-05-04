@@ -1,4 +1,5 @@
 using Jellyfin.Data.Enums;
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Collections;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
@@ -19,6 +20,7 @@ public class WatchlistSyncService : IHostedService, IDisposable
     private readonly ICollectionManager _collectionManager;
     private readonly IUserDataManager _userDataManager;
     private readonly IUserManager _userManager;
+    private readonly IApplicationPaths _appPaths;
     private readonly HouslyApiClient _apiClient;
     private readonly ILogger<WatchlistSyncService> _logger;
     private Timer? _timer;
@@ -28,6 +30,7 @@ public class WatchlistSyncService : IHostedService, IDisposable
         ICollectionManager collectionManager,
         IUserDataManager userDataManager,
         IUserManager userManager,
+        IApplicationPaths appPaths,
         HouslyApiClient apiClient,
         ILogger<WatchlistSyncService> logger)
     {
@@ -35,6 +38,7 @@ public class WatchlistSyncService : IHostedService, IDisposable
         _collectionManager = collectionManager;
         _userDataManager = userDataManager;
         _userManager = userManager;
+        _appPaths = appPaths;
         _apiClient = apiClient;
         _logger = logger;
     }
@@ -227,6 +231,8 @@ public class WatchlistSyncService : IHostedService, IDisposable
                 IsLocked = false,
             }).ConfigureAwait(false);
 
+            WriteBannerImages();
+
             _logger.LogInformation(
                 "[HouslyWatchlist] Created collection '{Name}' with {Count} items",
                 CollectionName,
@@ -258,6 +264,47 @@ public class WatchlistSyncService : IHostedService, IDisposable
             toAdd.Count,
             toRemove.Count,
             targetIds.Count);
+    }
+
+    private void WriteBannerImages()
+    {
+        try
+        {
+            var collectionDir = Path.Combine(
+                _appPaths.DataPath,
+                "collections",
+                $"{CollectionName} [boxset]");
+
+            if (!Directory.Exists(collectionDir))
+            {
+                return;
+            }
+
+            var assembly = GetType().Assembly;
+            var ns = GetType().Namespace!;
+
+            foreach (var (resource, file) in new[]
+            {
+                ($"{ns}.Resources.backdrop.png", "backdrop.png"),
+                ($"{ns}.Resources.folder.png", "folder.png"),
+            })
+            {
+                using var stream = assembly.GetManifestResourceStream(resource);
+                if (stream is null)
+                {
+                    continue;
+                }
+
+                using var fs = File.Create(Path.Combine(collectionDir, file));
+                stream.CopyTo(fs);
+            }
+
+            _logger.LogInformation("[HouslyWatchlist] Wrote banner images for collection '{Name}'", CollectionName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "[HouslyWatchlist] Failed to write banner images");
+        }
     }
 
     private async void OnUserDataSaved(object? sender, UserDataSaveEventArgs e)
