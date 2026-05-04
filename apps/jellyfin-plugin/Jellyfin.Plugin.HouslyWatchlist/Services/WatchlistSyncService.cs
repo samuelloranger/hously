@@ -83,7 +83,7 @@ public class WatchlistSyncService : IHostedService, IDisposable
 
         foreach (var user in users)
         {
-            await SyncUserAsync(user.Id.ToString("D"), cancellationToken).ConfigureAwait(false);
+            await SyncUserAsync(user.Id.ToString("N"), cancellationToken).ConfigureAwait(false);
             synced++;
         }
 
@@ -278,7 +278,7 @@ public class WatchlistSyncService : IHostedService, IDisposable
             return;
         }
 
-        var jellyfinUserId = e.UserId.ToString("D");
+        var jellyfinUserId = e.UserId.ToString("N");
         var mediaType = e.Item is Movie ? "movie" : "tv";
 
         _logger.LogInformation(
