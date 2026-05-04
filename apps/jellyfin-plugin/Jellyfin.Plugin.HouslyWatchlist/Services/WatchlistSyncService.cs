@@ -8,7 +8,6 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Querying;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Jellyfin.Data.Entities;
 
 namespace Jellyfin.Plugin.HouslyWatchlist.Services;
 
