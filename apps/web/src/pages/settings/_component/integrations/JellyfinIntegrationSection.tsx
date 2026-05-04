@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   useJellyfinIntegration,
@@ -55,12 +55,6 @@ function JellyfinIntegrationSectionImpl({
     data?.integration?.user_mappings ?? [],
   );
   const [displayedToken, setDisplayedToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (data?.integration?.user_mappings) {
-      setUserMappings(data.integration.user_mappings);
-    }
-  }, [data]);
 
   const isDirty = useMemo(() => {
     if (!data?.integration) return false;
@@ -182,9 +176,7 @@ function JellyfinIntegrationSectionImpl({
           {userMappings.map((mapping, idx) => (
             <div key={idx} className="flex gap-2 items-center">
               <Input
-                placeholder={t(
-                  "settings.integrations.jellyfin.jellyfinUserId",
-                )}
+                placeholder={t("settings.integrations.jellyfin.jellyfinUserId")}
                 value={mapping.jellyfin_user_id}
                 onChange={(e) => {
                   const updated = [...userMappings];
@@ -213,9 +205,7 @@ function JellyfinIntegrationSectionImpl({
               >
                 <SelectTrigger className="w-48">
                   <SelectValue
-                    placeholder={t(
-                      "settings.integrations.jellyfin.selectUser",
-                    )}
+                    placeholder={t("settings.integrations.jellyfin.selectUser")}
                   />
                 </SelectTrigger>
                 <SelectContent>
