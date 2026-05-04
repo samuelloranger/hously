@@ -187,8 +187,8 @@
                 ApiClient.updatePluginConfiguration(
                   pluginUniqueId,
                   config,
-                ).then(function (result) {
-                  Dashboard.processPluginConfigurationUpdateResult(result);
+                ).then(function () {
+                  Dashboard.alert("Settings saved.");
                 });
               },
             );
