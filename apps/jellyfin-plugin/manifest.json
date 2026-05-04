@@ -1,0 +1,14 @@
+[
+  {
+    "category": "General",
+    "guid": "a3f4e2c1-8d6b-4f9a-b2e7-1c5d9f3a7e2b",
+    "imageUrl": "",
+    "name": "Hously Watchlist",
+    "description": "Syncs your Hously watchlist with a Jellyfin collection.",
+    "overview": "Maintains a per-user What's Next collection from your Hously watchlist.",
+    "owner": "Hously",
+    "targetAbi": "10.11.7.0",
+    "timestamp": "2026-05-04T00:00:00Z",
+    "versions": []
+  }
+]
