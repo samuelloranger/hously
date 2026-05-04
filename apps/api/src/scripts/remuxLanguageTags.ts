@@ -276,7 +276,7 @@ async function main() {
 
     // Build corrected audio tracks from the existing stored tracks,
     // overriding the language fields with the new assignments.
-    const existingTracks = file.audioTracks as LibraryAudioTrack[];
+    const existingTracks = file.audioTracks as unknown as LibraryAudioTrack[];
     const updatedTracks = existingTracks.map((track, i) => {
       const tag = langs[i] ?? langs[langs.length - 1];
       const meta = LANG_META[tag];
