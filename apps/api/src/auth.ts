@@ -140,10 +140,16 @@ export const ssoProvidersRoute = new Elysia({ name: "auth/sso-providers" }).get(
   async () => {
     const providers = await prisma.oidcProvider.findMany({
       where: { enabled: true },
-      select: { slug: true, name: true },
+      select: { slug: true, name: true, iconUrl: true },
       orderBy: { createdAt: "asc" },
     });
-    return { providers };
+    return {
+      providers: providers.map((p) => ({
+        slug: p.slug,
+        name: p.name,
+        icon_url: p.iconUrl ?? null,
+      })),
+    };
   },
 );
 
