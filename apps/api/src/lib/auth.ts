@@ -151,8 +151,8 @@ export const auth = betterAuth({
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
       const locale =
-        typeof (user as { locale?: unknown }).locale === "string"
-          ? (user as { locale: string }).locale
+        typeof (user as unknown as { locale?: unknown }).locale === "string"
+          ? (user as unknown as { locale: string }).locale
           : "en";
       await sendPasswordResetEmail(user.email, url, locale);
     },
