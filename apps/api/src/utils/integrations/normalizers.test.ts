@@ -17,8 +17,8 @@ describe("normalizeJellyfinSyncConfig", () => {
       website_url: "http://jf.local/",
       sync_token: "abc123",
       user_mappings: [
-        { jellyfin_user_id: "jf-user-1", hously_user_id: 42 },
-        { jellyfin_user_id: "", hously_user_id: 0 }, // filtered out
+        { jellyfin_user_id: "jf-user-1", hously_user_id: "42" },
+        { jellyfin_user_id: "", hously_user_id: "0" }, // filtered out
       ],
     });
     expect(result).not.toBeNull();
@@ -27,7 +27,7 @@ describe("normalizeJellyfinSyncConfig", () => {
     expect(result!.user_mappings).toHaveLength(1);
     expect(result!.user_mappings[0]).toEqual({
       jellyfin_user_id: "jf-user-1",
-      hously_user_id: 42,
+      hously_user_id: "42",
     });
   });
 

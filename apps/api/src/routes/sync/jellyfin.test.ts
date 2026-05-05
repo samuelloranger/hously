@@ -4,10 +4,10 @@ import { resolveSyncUser, validateSyncToken } from "./jellyfin";
 describe("resolveSyncUser", () => {
   it("returns hously_user_id for a matching jellyfin_user_id", () => {
     const mappings = [
-      { jellyfin_user_id: "jf-123", hously_user_id: 7 },
-      { jellyfin_user_id: "jf-456", hously_user_id: 9 },
+      { jellyfin_user_id: "jf-123", hously_user_id: "7" },
+      { jellyfin_user_id: "jf-456", hously_user_id: "9" },
     ];
-    expect(resolveSyncUser("jf-123", mappings)).toBe(7);
+    expect(resolveSyncUser("jf-123", mappings)).toBe("7");
   });
 
   it("returns null when no match", () => {

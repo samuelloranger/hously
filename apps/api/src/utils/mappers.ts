@@ -1,9 +1,9 @@
 export type UserLookup = { firstName: string | null; email: string };
 
 export function buildUserMap(
-  users: Array<{ id: number; firstName: string | null; email: string }>,
-): Map<number, UserLookup> {
-  const map = new Map<number, UserLookup>();
+  users: Array<{ id: string; firstName: string | null; email: string }>,
+): Map<string, UserLookup> {
+  const map = new Map<string, UserLookup>();
   for (const u of users) {
     map.set(u.id, { firstName: u.firstName, email: u.email });
   }
@@ -11,8 +11,8 @@ export function buildUserMap(
 }
 
 export function getUserDisplayName(
-  userId: number | null | undefined,
-  map: Map<number, UserLookup>,
+  userId: string | null | undefined,
+  map: Map<string, UserLookup>,
 ): string | null {
   if (!userId) return null;
   const user = map.get(userId);
@@ -21,7 +21,7 @@ export function getUserDisplayName(
 
 export const mapUser = (
   user: {
-    id: number;
+    id: string;
     email: string;
     firstName: string | null;
     lastName: string | null;

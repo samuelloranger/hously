@@ -5,7 +5,7 @@ import type {
   DashboardStats,
 } from "@hously/shared/types";
 export const mockUser: User = {
-  id: 1,
+  id: "1",
   email: "test@example.com",
   first_name: "Test",
   last_name: "User",

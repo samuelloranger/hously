@@ -115,7 +115,7 @@ export interface UpdateBoardTaskRequest {
 export interface BoardTimeLog {
   id: number;
   task_id: number;
-  user_id: number;
+  user_id: string;
   user_name: string;
   user_avatar: string | null;
   minutes: number;
@@ -144,7 +144,7 @@ export type BoardTaskActivityType =
 export interface BoardTaskActivity {
   id: number;
   task_id: number;
-  user_id: number;
+  user_id: string;
   user_name: string;
   user_avatar: string | null;
   type: BoardTaskActivityType;

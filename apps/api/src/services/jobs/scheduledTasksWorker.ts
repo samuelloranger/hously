@@ -79,7 +79,7 @@ export async function processScheduledJob(job: Job) {
       case SCHEDULED_JOB_NAMES.REFRESH_HABITS_STREAK_FOR_USER: {
         const { refreshHabitsStreakForUser } =
           await import("../../utils/dashboard/habitsStreak");
-        const { userId } = job.data as { userId: number };
+        const { userId } = job.data as { userId: string };
         await refreshHabitsStreakForUser(userId);
         break;
       }

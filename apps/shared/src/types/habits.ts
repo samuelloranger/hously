@@ -5,7 +5,7 @@ export interface ScheduleStatus {
 
 export interface Habit {
   id: number;
-  user_id: number;
+  user_id: string;
   name: string;
   emoji: string;
   description: string | null;

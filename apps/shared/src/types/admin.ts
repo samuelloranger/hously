@@ -80,7 +80,7 @@ export interface LibraryHealthIssue {
 }
 
 export interface LibraryHealthLog {
-  id: number;
+  id: string;
   status: LibraryHealthRunStatus | string;
   trigger: string;
   started_at: string;
@@ -93,7 +93,7 @@ export interface LibraryHealthLog {
 }
 
 export interface LibraryHealthHistoryEntry {
-  id: number;
+  id: string;
   status: string;
   trigger: string;
   started_at: string;
@@ -200,7 +200,7 @@ export interface TestEmailTemplatesResponse {
 }
 
 export interface AdminUser {
-  id: number;
+  id: string;
   email: string;
   first_name: string | null;
   last_name: string | null;
@@ -221,8 +221,8 @@ export interface DeleteUserResponse {
 }
 
 export interface AdminSession {
-  id: number;
-  user_id: number;
+  id: string;
+  user_id: string;
   user_email: string;
   user_name: string | null;
   expires_at: string;
@@ -241,7 +241,7 @@ export interface RevokeSessionResponse {
 
 export interface AdminWebPushSubscription {
   id: number;
-  user_id: number;
+  user_id: string;
   user_email: string;
   user_name: string | null;
   endpoint: string | null;

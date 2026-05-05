@@ -55,7 +55,7 @@ export function SessionsTab() {
 
   if (!currentUser?.is_admin) return null;
 
-  const handleRevokeSession = async (id: number) => {
+  const handleRevokeSession = async (id: string) => {
     if (!confirm(t("settings.sessions.revokeConfirm"))) return;
     try {
       await revokeSession.mutateAsync(id);
@@ -66,7 +66,7 @@ export function SessionsTab() {
   };
 
   const handleRevokeUserSessions = async (
-    userId: number,
+    userId: string,
     userEmail: string,
   ) => {
     if (!confirm(t("settings.sessions.revokeAllConfirm", { email: userEmail })))
@@ -91,7 +91,7 @@ export function SessionsTab() {
 
   // Group sessions by user for the "revoke all" action
   const sessionsByUser = (sessionsData?.sessions ?? []).reduce<
-    Record<number, { email: string; count: number }>
+    Record<string, { email: string; count: number }>
   >((acc, s) => {
     if (!acc[s.user_id]) acc[s.user_id] = { email: s.user_email, count: 0 };
     acc[s.user_id].count++;

@@ -1,42 +1,38 @@
 import { Elysia } from "elysia";
-import { auth } from "@hously/api/auth";
+import { auth as betterAuth } from "@hously/api/lib/auth";
+import { prisma } from "@hously/api/db";
+import { mapUser } from "@hously/api/utils/mappers";
 
-/**
- * Middleware that requires an authenticated user.
- * Returns 401 Unauthorized if no user is present in the request context.
- *
- * Usage: new Elysia().use(requireUser).get('/path', handler)
- *   or inside a .group(): app.use(requireUser).get(...)
- *
- * Note: includes the auth plugin to ensure the `user` derive is available.
- */
-export const requireUser = new Elysia({ name: "middleware/requireUser" })
-  .use(auth)
-  .onBeforeHandle(({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: "Unauthorized" };
-    }
-  });
+export const resolveUser = async (request: Request) => {
+  const session = await betterAuth.api.getSession({ headers: request.headers });
+  if (!session) return null;
 
-/**
- * Middleware that requires an authenticated admin user.
- * Returns 401 if not authenticated, 403 if authenticated but not admin.
- *
- * Usage: new Elysia().use(requireAdmin).get('/path', handler)
- *   or inside a .group(): app.use(requireAdmin).get(...)
- *
- * Note: includes the auth plugin to ensure the `user` derive is available.
- */
-export const requireAdmin = new Elysia({ name: "middleware/requireAdmin" })
-  .use(auth)
-  .onBeforeHandle(({ user, set }) => {
-    if (!user) {
-      set.status = 401;
-      return { error: "Unauthorized" };
-    }
-    if (!user.is_admin) {
-      set.status = 403;
-      return { error: "Forbidden" };
-    }
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
   });
+  return user ? mapUser(user) : null;
+};
+
+export const requireUser = (app: Elysia) =>
+  app
+    .resolve(async ({ request }) => ({ user: await resolveUser(request) }))
+    .onBeforeHandle(({ user, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+    });
+
+export const requireAdmin = (app: Elysia) =>
+  app
+    .resolve(async ({ request }) => ({ user: await resolveUser(request) }))
+    .onBeforeHandle(({ user, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+      if (!user.is_admin) {
+        set.status = 403;
+        return { error: "Forbidden" };
+      }
+    });

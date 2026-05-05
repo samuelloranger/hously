@@ -19,7 +19,7 @@ import type { TrackerType } from "@hously/api/utils/integrations/types";
 import { requireAdmin } from "@hously/api/middleware/auth";
 import { badRequest, serverError } from "@hously/api/errors";
 
-type AdminUser = { id: number; is_admin: boolean };
+type AdminUser = { id: string; is_admin: boolean };
 
 const trackerLabel = (type: TrackerType): string => type.toUpperCase();
 

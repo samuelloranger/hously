@@ -20,6 +20,7 @@
     "format": "prettier --write \"{src,scripts}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{ts,js,json,md}\""
   },
   "dependencies": {
+    "@better-auth/passkey": "^1.6.9",
     "@dnd-kit/abstract": "^0.3.2",
     "@dnd-kit/dom": "^0.3.2",
     "@dnd-kit/helpers": "^0.3.2",
@@ -39,6 +40,7 @@
     "@tiptap/pm": "^3.21.0",
     "@tiptap/react": "^3.21.0",
     "@tiptap/starter-kit": "^3.21.0",
+    "better-auth": "^1.6.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "color": "^5.0.3",

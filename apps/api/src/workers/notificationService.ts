@@ -42,7 +42,7 @@ interface NotificationMetadata {
  * Create a notification record and enqueue a push delivery job
  */
 export async function createAndQueueNotification(
-  userId: number,
+  userId: string,
   title: string,
   body: string,
   notificationType: string,
@@ -104,7 +104,7 @@ export async function createAndQueueNotification(
  * Get all users (for sending broadcast notifications)
  */
 export async function getAllUsers(): Promise<
-  Array<{ id: number; locale: string | null }>
+  Array<{ id: string; locale: string | null }>
 > {
   return prisma.user.findMany({
     select: { id: true, locale: true },

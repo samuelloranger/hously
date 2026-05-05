@@ -134,7 +134,7 @@ export async function sendExternalNotification(
     }
 
     // Get user IDs based on notify_admins_only setting
-    let targetUserIds: number[] = [];
+    let targetUserIds: string[] = [];
 
     if (service.notifyAdminsOnly) {
       // Get only admin users

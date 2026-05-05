@@ -7,7 +7,7 @@ export type TrackerType = "c411" | "torr9" | "la-cale";
 
 export interface JellyfinUserMappingConfig {
   jellyfin_user_id: string;
-  hously_user_id: number;
+  hously_user_id: string;
 }
 
 export interface JellyfinIntegration {
@@ -246,4 +246,17 @@ export interface UptimekumaMonitorsResponse {
   summary: UptimekumaSummary;
   monitors: UptimekumaMonitor[];
   fetched_at: string;
+}
+
+export interface AuthentikIntegration {
+  type: "authentik";
+  enabled: boolean;
+  issuer_url: string;
+  client_id: string;
+  client_secret_set: boolean;
+}
+
+export interface AuthentikIntegrationUpdateResponse {
+  success: boolean;
+  integration: AuthentikIntegration;
 }

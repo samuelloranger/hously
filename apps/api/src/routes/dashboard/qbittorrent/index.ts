@@ -59,7 +59,7 @@ const getPinnedTorrentHashFromConfig = (value: unknown): string | null => {
 };
 
 const savePinnedTorrentHashForUser = async (
-  userId: number,
+  userId: string,
   hash: string | null,
 ): Promise<UserDashboardConfig> => {
   const currentUser = await prisma.user.findUnique({
@@ -88,7 +88,7 @@ const savePinnedTorrentHashForUser = async (
   return getDashboardConfigObject(updatedUser.dashboardConfig);
 };
 
-const getPinnedTorrentResponse = async (userId: number) => {
+const getPinnedTorrentResponse = async (userId: string) => {
   const currentUser = await prisma.user.findUnique({
     where: { id: userId },
     select: { dashboardConfig: true },

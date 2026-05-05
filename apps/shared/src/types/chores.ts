@@ -110,7 +110,7 @@ export interface Reminder {
   id: number;
   chore_id: number;
   reminder_datetime: string;
-  user_id: number;
+  user_id: string;
   subscription_info: string | object;
   active: boolean;
   last_notification_sent: string | null;

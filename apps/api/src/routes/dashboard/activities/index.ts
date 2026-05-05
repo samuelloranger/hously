@@ -7,7 +7,7 @@ import { serverError } from "@hously/api/errors";
 
 type ActivityRecord = {
   id: number;
-  user_id?: number;
+  user_id?: string;
   task_type?: "chore";
   task_id?: number;
   completed_at?: string;
@@ -95,7 +95,7 @@ function getLogService(
 
 function mapTaskCompletionToActivity(completion: {
   id: number;
-  userId: number;
+  userId: string;
   taskType: string;
   taskId: number;
   completedAt: Date;
@@ -119,7 +119,7 @@ function mapTaskCompletionToActivity(completion: {
 
 function mapActivityLogToActivity(log: {
   id: number;
-  userId: number | null;
+  userId: string | null;
   type: string;
   payload: unknown;
   createdAt: Date;

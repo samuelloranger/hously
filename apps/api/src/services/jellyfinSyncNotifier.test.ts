@@ -4,12 +4,12 @@ import type { JellyfinUserMapping } from "@hously/api/utils/integrations/types";
 
 describe("buildSyncPayload", () => {
   const mappings: JellyfinUserMapping[] = [
-    { jellyfin_user_id: "jf-abc", hously_user_id: 3 },
+    { jellyfin_user_id: "jf-abc", hously_user_id: "3" },
   ];
 
   it("returns payload when hously user is mapped", () => {
     const result = buildSyncPayload(
-      { houslyUserId: 3, tmdbId: 100, mediaType: "movie", action: "added" },
+      { houslyUserId: "3", tmdbId: 100, mediaType: "movie", action: "added" },
       mappings,
     );
     expect(result).toEqual({
@@ -22,7 +22,7 @@ describe("buildSyncPayload", () => {
 
   it("returns null when hously user has no mapping", () => {
     const result = buildSyncPayload(
-      { houslyUserId: 99, tmdbId: 100, mediaType: "movie", action: "added" },
+      { houslyUserId: "99", tmdbId: 100, mediaType: "movie", action: "added" },
       mappings,
     );
     expect(result).toBeNull();

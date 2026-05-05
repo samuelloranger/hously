@@ -411,7 +411,8 @@
     "passwordNeedsUppercase": "Password must contain at least one uppercase letter",
     "passwordNeedsLowercase": "Password must contain at least one lowercase letter",
     "passwordNeedsNumber": "Password must contain at least one number",
-    "passwordNeedsSpecialChar": "Password must contain at least one special character"
+    "passwordNeedsSpecialChar": "Password must contain at least one special character",
+    "signInWithAuthentik": "Sign in with Authentik"
   },
   "acceptInvitation": {
     "title": "Accept Your Invitation",
@@ -1316,7 +1317,8 @@
       "groups": {
         "media": "Media",
         "infrastructure": "Infrastructure",
-        "other": "Other"
+        "other": "Other",
+        "authentication": "Authentication"
       },
       "save": "Save Integration",
       "saveSuccess": "Integration saved successfully",
@@ -1441,6 +1443,17 @@
           "torr9": "Torr9",
           "la-cale": "La Cale"
         }
+      },
+      "authentik": {
+        "help": "Connect Authentik as an OpenID Connect provider to allow SSO login.",
+        "issuerUrl": "Issuer URL",
+        "clientId": "Client ID",
+        "clientIdPlaceholder": "my-hously-app",
+        "clientSecret": "Client Secret",
+        "clientSecretPlaceholder": "Enter client secret",
+        "clientSecretPlaceholderSet": "Leave blank to keep existing secret",
+        "redirectUri": "Redirect URI",
+        "redirectUriHelp": "Add this URL as an allowed redirect URI in your Authentik application."
       }
     }
   },

@@ -3,7 +3,7 @@ import { normalizeJellyfinSyncConfig } from "@hously/api/utils/integrations/norm
 import type { JellyfinUserMapping } from "@hously/api/utils/integrations/types";
 
 interface SyncParams {
-  houslyUserId: number;
+  houslyUserId: string;
   tmdbId: number;
   mediaType: string;
   action: "added" | "removed";

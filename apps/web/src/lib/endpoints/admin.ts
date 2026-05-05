@@ -6,7 +6,7 @@ export const ADMIN_ENDPOINTS = {
   LIBRARY_HEALTH: "/api/admin/library-health",
   QUEUE_JOBS: (name: string) => `/api/admin/queues/${name}/jobs`,
   USERS: "/api/admin/users",
-  DELETE_USER: (userId: number) => `/api/admin/users/${userId}`,
+  DELETE_USER: (userId: string) => `/api/admin/users/${userId}`,
   INVITATIONS: "/api/admin/invitations",
   INVITE_USER: "/api/admin/invitations",
   RESEND_INVITATION: (id: number) => `/api/admin/invitations/${id}/resend`,
@@ -14,8 +14,8 @@ export const ADMIN_ENDPOINTS = {
   TEST_EMAIL_TEMPLATES: "/api/admin/test-email-templates",
   TEST_EMAIL: "/api/admin/test-email",
   SESSIONS: "/api/admin/sessions",
-  REVOKE_SESSION: (id: number) => `/api/admin/sessions/${id}`,
-  REVOKE_USER_SESSIONS: (userId: number) =>
+  REVOKE_SESSION: (id: string) => `/api/admin/sessions/${id}`,
+  REVOKE_USER_SESSIONS: (userId: string) =>
     `/api/admin/sessions/user/${userId}`,
   WEB_PUSH: "/api/admin/web-push",
   DELETE_WEB_PUSH: (id: number) => `/api/admin/web-push/${id}`,

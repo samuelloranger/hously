@@ -24,7 +24,7 @@ export type UserProfileUpdateResult =
   | { ok: false; status: 400 | 401; error: string };
 
 export async function updateUserProfile(
-  userId: number,
+  userId: string,
   input: UserProfileUpdateInput,
 ): Promise<UserProfileUpdateResult> {
   const {
@@ -126,7 +126,7 @@ export async function updateUserProfile(
 }
 
 export async function updateUserProfileFields(
-  userId: number,
+  userId: string,
   input: UserProfileUpdateInput,
   existingUser?: User,
 ): Promise<User> {
@@ -192,7 +192,7 @@ export async function updateUserProfileFields(
 }
 
 export async function updateUserAvatarFromUpload(
-  userId: number,
+  userId: string,
   avatar: unknown,
 ): Promise<{ ok: true; avatarUrl: string } | { ok: false; message: string }> {
   const validationError = validateImageMimeAndSize(
