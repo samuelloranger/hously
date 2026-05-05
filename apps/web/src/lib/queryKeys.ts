@@ -8,6 +8,7 @@ export const queryKeys = {
     validateInvitation: (token: string) =>
       [...queryKeys.auth.all, "validate-invitation", token] as const,
     ssoProviders: () => [...queryKeys.auth.all, "sso-providers"] as const,
+    oidcProviders: () => [...queryKeys.auth.all, "oidc-providers"] as const,
   },
 
   chores: {
@@ -147,7 +148,6 @@ export const queryKeys = {
     uptimekuma: () => [...queryKeys.integrations.all, "uptimekuma"] as const,
     uptimekumaMonitors: () =>
       [...queryKeys.integrations.all, "uptimekuma", "monitors"] as const,
-    authentik: () => [...queryKeys.integrations.all, "authentik"] as const,
   },
 
   admin: {

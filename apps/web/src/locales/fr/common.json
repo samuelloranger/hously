@@ -412,7 +412,7 @@
     "passwordNeedsLowercase": "Le mot de passe doit contenir au moins une lettre minuscule",
     "passwordNeedsNumber": "Le mot de passe doit contenir au moins un chiffre",
     "passwordNeedsSpecialChar": "Le mot de passe doit contenir au moins un caractère spécial",
-    "signInWithAuthentik": "Se connecter avec Authentik"
+    "signInWith": "Se connecter avec {{provider}}"
   },
   "acceptInvitation": {
     "title": "Accepter votre invitation",
@@ -1444,16 +1444,33 @@
           "la-cale": "La Cale"
         }
       },
-      "authentik": {
-        "help": "Connectez Authentik comme fournisseur OpenID Connect pour permettre la connexion SSO.",
-        "issuerUrl": "URL de l'émetteur",
+      "sso": {
+        "title": "Fournisseurs SSO / OIDC",
+        "help": "Ajoutez n'importe quel fournisseur OpenID Connect (Authentik, Authelia, Keycloak, etc.) pour activer la connexion SSO.",
+        "addProvider": "Ajouter un fournisseur",
+        "noProviders": "Aucun fournisseur configuré.",
+        "enabled": "Activé",
+        "disabled": "Désactivé",
+        "providerName": "Nom d'affichage",
+        "providerNamePlaceholder": "Authentik",
+        "providerSlug": "Slug",
+        "providerSlugPlaceholder": "authentik",
+        "providerSlugHelp": "Lettres minuscules, chiffres et tirets uniquement. Ne peut pas être modifié après la création.",
+        "discoveryUrl": "URL de découverte",
+        "discoveryUrlPlaceholder": "https://auth.example.com/application/o/hously/.well-known/openid-configuration",
         "clientId": "Client ID",
         "clientIdPlaceholder": "my-hously-app",
         "clientSecret": "Secret client",
         "clientSecretPlaceholder": "Entrez le secret client",
         "clientSecretPlaceholderSet": "Laissez vide pour conserver le secret actuel",
         "redirectUri": "URI de redirection",
-        "redirectUriHelp": "Ajoutez cette URL comme URI de redirection autorisée dans votre application Authentik."
+        "redirectUriHelp": "Ajoutez cette URL comme URI de redirection autorisée dans votre fournisseur d'identité.",
+        "deleteConfirm": "Supprimer {{name}} ?",
+        "deleteConfirmHelp": "Cela supprimera le fournisseur et les utilisateurs connectés via celui-ci perdront l'accès SSO.",
+        "editProvider": "Modifier le fournisseur",
+        "saveProvider": "Enregistrer",
+        "cancel": "Annuler",
+        "delete": "Supprimer"
       }
     }
   },

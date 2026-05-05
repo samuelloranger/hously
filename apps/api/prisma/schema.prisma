@@ -241,6 +241,20 @@ model Integration {
   @@map("integrations")
 }
 
+model OidcProvider {
+  id           String   @id @default(uuid())
+  slug         String   @unique
+  name         String
+  discoveryUrl String   @map("discovery_url")
+  clientId     String   @map("client_id")
+  clientSecret String   @map("client_secret")
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("oidc_providers")
+}
+
 model CustomEvent {
   id                          Int       @id @default(autoincrement())
   title                       String

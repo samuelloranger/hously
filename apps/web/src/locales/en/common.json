@@ -412,7 +412,7 @@
     "passwordNeedsLowercase": "Password must contain at least one lowercase letter",
     "passwordNeedsNumber": "Password must contain at least one number",
     "passwordNeedsSpecialChar": "Password must contain at least one special character",
-    "signInWithAuthentik": "Sign in with Authentik"
+    "signInWith": "Sign in with {{provider}}"
   },
   "acceptInvitation": {
     "title": "Accept Your Invitation",
@@ -1444,16 +1444,33 @@
           "la-cale": "La Cale"
         }
       },
-      "authentik": {
-        "help": "Connect Authentik as an OpenID Connect provider to allow SSO login.",
-        "issuerUrl": "Issuer URL",
+      "sso": {
+        "title": "SSO / OIDC Providers",
+        "help": "Add any OpenID Connect provider (Authentik, Authelia, Keycloak, etc.) to enable SSO login.",
+        "addProvider": "Add provider",
+        "noProviders": "No providers configured yet.",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "providerName": "Display name",
+        "providerNamePlaceholder": "Authentik",
+        "providerSlug": "Slug",
+        "providerSlugPlaceholder": "authentik",
+        "providerSlugHelp": "Lowercase letters, numbers, and hyphens only. Cannot be changed after creation.",
+        "discoveryUrl": "Discovery URL",
+        "discoveryUrlPlaceholder": "https://auth.example.com/application/o/hously/.well-known/openid-configuration",
         "clientId": "Client ID",
         "clientIdPlaceholder": "my-hously-app",
         "clientSecret": "Client Secret",
         "clientSecretPlaceholder": "Enter client secret",
         "clientSecretPlaceholderSet": "Leave blank to keep existing secret",
         "redirectUri": "Redirect URI",
-        "redirectUriHelp": "Add this URL as an allowed redirect URI in your Authentik application."
+        "redirectUriHelp": "Add this URL as an allowed redirect URI in your identity provider.",
+        "deleteConfirm": "Delete {{name}}?",
+        "deleteConfirmHelp": "This will remove the provider and any users who signed in through it will lose SSO access.",
+        "editProvider": "Edit provider",
+        "saveProvider": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete"
       }
     }
   },

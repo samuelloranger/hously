@@ -130,7 +130,8 @@ export function LoginForm() {
             : t("login.signInButton")}
         </button>
 
-        {(browserSupportsWebAuthn() || ssoProviders?.authentik) && (
+        {(browserSupportsWebAuthn() ||
+          (ssoProviders?.providers?.length ?? 0) > 0) && (
           <div className="relative flex items-center">
             <div className="flex-1 border-t border-neutral-300 dark:border-neutral-600" />
             <span className="px-3 text-xs text-neutral-500 dark:text-neutral-400">
@@ -154,25 +155,21 @@ export function LoginForm() {
           </button>
         )}
 
-        {ssoProviders?.authentik && (
+        {ssoProviders?.providers?.map((provider) => (
           <button
+            key={provider.slug}
             type="button"
             onClick={() =>
               authClient.signIn.oauth2({
-                providerId: "authentik",
+                providerId: provider.slug,
                 callbackURL: "/",
               })
             }
             className="group relative w-full flex justify-center items-center gap-2 py-2 px-4 border border-neutral-300 dark:border-neutral-600 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-neutral-900 transition-colors"
           >
-            <img
-              src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/authentik.png"
-              alt="Authentik"
-              className="w-4 h-4 object-contain"
-            />
-            {t("login.signInWithAuthentik")}
+            {t("login.signInWith", { provider: provider.name })}
           </button>
-        )}
+        ))}
       </div>
     </form>
   );

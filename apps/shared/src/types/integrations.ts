@@ -248,15 +248,12 @@ export interface UptimekumaMonitorsResponse {
   fetched_at: string;
 }
 
-export interface AuthentikIntegration {
-  type: "authentik";
-  enabled: boolean;
-  issuer_url: string;
+export interface OidcProvider {
+  id: string;
+  slug: string;
+  name: string;
+  discovery_url: string;
   client_id: string;
   client_secret_set: boolean;
-}
-
-export interface AuthentikIntegrationUpdateResponse {
-  success: boolean;
-  integration: AuthentikIntegration;
+  enabled: boolean;
 }

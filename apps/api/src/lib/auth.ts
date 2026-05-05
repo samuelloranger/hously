@@ -2,7 +2,6 @@ import { betterAuth } from "better-auth";
 import { genericOAuth } from "better-auth/plugins";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { passkey } from "@better-auth/passkey";
-import type { Prisma } from "@prisma/client";
 import { prisma } from "@hously/api/db";
 import { getBaseUrl } from "@hously/api/config";
 import { decrypt } from "@hously/api/services/crypto";
@@ -20,8 +19,8 @@ if (!authSecret) {
   process.exit(1);
 }
 
-type AuthentikConfig = {
-  providerId: "authentik";
+type OidcConfig = {
+  providerId: string;
   clientId: string;
   clientSecret: string;
   discoveryUrl: string;
@@ -35,78 +34,60 @@ type AuthentikConfig = {
   };
 };
 
-function isRecord(value: Prisma.JsonValue | null): value is Prisma.JsonObject {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+function mapProfileToUser(profile: Record<string, unknown>) {
+  const name = typeof profile.name === "string" ? profile.name : "";
+  const firstName =
+    typeof profile.given_name === "string"
+      ? profile.given_name
+      : name.split(" ")[0] || "";
+  const lastName =
+    typeof profile.family_name === "string"
+      ? profile.family_name
+      : name.split(" ").slice(1).join(" ");
+  return {
+    name: name || [firstName, lastName].filter(Boolean).join(" "),
+    firstName,
+    lastName,
+  };
 }
 
-async function loadAuthentikConfig(): Promise<AuthentikConfig | null> {
+async function loadOidcProviders(): Promise<OidcConfig[]> {
   try {
-    const integration = await prisma.integration.findFirst({
-      where: { type: "authentik", enabled: true },
-      select: { config: true },
+    const providers = await prisma.oidcProvider.findMany({
+      where: { enabled: true },
     });
-    if (!integration?.config || !isRecord(integration.config)) return null;
-
-    const issuerUrl =
-      typeof integration.config.issuer_url === "string"
-        ? integration.config.issuer_url.replace(/\/$/, "")
-        : "";
-    const clientId =
-      typeof integration.config.client_id === "string"
-        ? integration.config.client_id
-        : "";
-    const encryptedSecret =
-      typeof integration.config.client_secret === "string"
-        ? integration.config.client_secret
-        : "";
-    const clientSecret = encryptedSecret ? decrypt(encryptedSecret) : "";
-
-    if (!issuerUrl || !clientId || !clientSecret) return null;
-
-    return {
-      providerId: "authentik",
-      clientId,
-      clientSecret,
-      discoveryUrl: `${issuerUrl}/.well-known/openid-configuration`,
-      scopes: ["openid", "email", "profile"],
-      pkce: true,
-      disableSignUp: true as const,
-      mapProfileToUser: (profile) => {
-        const name = typeof profile.name === "string" ? profile.name : "";
-        const firstName =
-          typeof profile.given_name === "string"
-            ? profile.given_name
-            : name.split(" ")[0] || "";
-        const lastName =
-          typeof profile.family_name === "string"
-            ? profile.family_name
-            : name.split(" ").slice(1).join(" ");
+    return providers
+      .map((p) => {
+        const clientSecret = p.clientSecret ? decrypt(p.clientSecret) : "";
+        if (!clientSecret) return null;
         return {
-          name: name || [firstName, lastName].filter(Boolean).join(" "),
-          firstName,
-          lastName,
+          providerId: p.slug,
+          clientId: p.clientId,
+          clientSecret,
+          discoveryUrl: p.discoveryUrl,
+          scopes: ["openid", "email", "profile"],
+          pkce: true as const,
+          disableSignUp: true as const,
+          mapProfileToUser,
         };
-      },
-    };
+      })
+      .filter((c): c is OidcConfig => c !== null);
   } catch (error) {
-    console.error("[auth] Failed to load Authentik integration config:", error);
-    return null;
+    console.error("[auth] Failed to load OIDC providers:", error);
+    return [];
   }
 }
 
-const initialAuthentikConfig = await loadAuthentikConfig();
-const authentikConfigs: AuthentikConfig[] = initialAuthentikConfig
-  ? [initialAuthentikConfig]
-  : [];
+const oidcProviderConfigs: OidcConfig[] = await loadOidcProviders();
 
-export function refreshAuthentikConfig(): void {
-  loadAuthentikConfig()
-    .then((config) => {
-      authentikConfigs.length = 0;
-      if (config) authentikConfigs.push(config);
+export function refreshOidcProviders(): void {
+  loadOidcProviders()
+    .then((configs) => {
+      oidcProviderConfigs.length = 0;
+      oidcProviderConfigs.push(...configs);
     })
     .catch((err) => {
-      console.error("[auth] Failed to refresh Authentik config:", err);
+      console.error("[auth] Failed to refresh OIDC providers:", err);
     });
 }
 
@@ -171,7 +152,7 @@ export const auth = betterAuth({
         passkey: { modelName: "BaPasskey" },
       },
     }),
-    genericOAuth({ config: authentikConfigs }),
+    genericOAuth({ config: oidcProviderConfigs }),
   ],
   trustedOrigins: [process.env.CORS_ORIGIN || "http://localhost:5173", baseURL],
   advanced: {
