@@ -133,10 +133,7 @@ export function useToggleExternalNotificationTemplate() {
         queryKey: queryKeys.externalNotifications.services(),
       });
       queryClient.invalidateQueries({
-        queryKey: [
-          ...queryKeys.externalNotifications.all,
-          "templates",
-        ] as const,
+        queryKey: queryKeys.externalNotifications.templates(),
       });
     },
   });
@@ -168,10 +165,7 @@ export function useUpdateExternalNotificationTemplate() {
         queryKey: queryKeys.externalNotifications.logs(),
       });
       queryClient.invalidateQueries({
-        queryKey: [
-          ...queryKeys.externalNotifications.all,
-          "templates",
-        ] as const,
+        queryKey: queryKeys.externalNotifications.templates(),
       });
     },
   });

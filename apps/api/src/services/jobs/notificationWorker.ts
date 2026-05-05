@@ -17,7 +17,7 @@ function toAbsoluteUrl(url: string | undefined): string | undefined {
 
 export interface NotificationJobData {
   notificationId: number;
-  userId: number;
+  userId: string;
   title: string;
   body: string;
   notificationType: string;

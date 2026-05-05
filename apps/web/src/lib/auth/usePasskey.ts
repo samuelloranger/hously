@@ -1,37 +1,46 @@
-import {
-  browserSupportsWebAuthn,
-  type PublicKeyCredentialCreationOptionsJSON,
-  type PublicKeyCredentialRequestOptionsJSON,
-  startAuthentication,
-  startRegistration,
-} from "@simplewebauthn/browser";
-import type { User } from "@hously/shared/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { setUser } from "@/lib/auth";
+import { authClient } from "@/lib/auth/betterAuthClient";
 import { useFetcher } from "@/lib/api/context";
-import { AUTH_ENDPOINTS } from "@/lib/endpoints";
 import { queryKeys } from "@/lib/queryKeys";
 
-export { browserSupportsWebAuthn };
+export function browserSupportsWebAuthn(): boolean {
+  return typeof window !== "undefined" && "PublicKeyCredential" in window;
+}
 
 interface PasskeyCredential {
-  id: number;
-  credential_id: string;
-  name: string | null;
-  device_type: string;
-  backed_up: boolean;
-  transports: string[];
-  created_at: string;
+  id: string;
+  credentialID: string;
+  name?: string | null;
+  deviceType: string;
+  backedUp: boolean;
+  transports?: string | null;
+  createdAt?: string | Date | null;
 }
 
 interface CredentialsResponse {
-  credentials: PasskeyCredential[];
+  credentials: Array<{
+    id: string;
+    credential_id: string;
+    name: string | null;
+    device_type: string;
+    backed_up: boolean;
+    transports: string[];
+    created_at: string | null;
+  }>;
 }
 
-interface AuthResponse {
-  user: User;
-  token: string;
-  refreshToken: string;
+function mapPasskey(passkey: PasskeyCredential) {
+  return {
+    id: passkey.id,
+    credential_id: passkey.credentialID,
+    name: passkey.name ?? null,
+    device_type: passkey.deviceType,
+    backed_up: passkey.backedUp,
+    transports: passkey.transports ? passkey.transports.split(",") : [],
+    created_at: passkey.createdAt
+      ? new Date(passkey.createdAt).toISOString()
+      : null,
+  };
 }
 
 export function usePasskeyCredentials() {
@@ -39,31 +48,23 @@ export function usePasskeyCredentials() {
 
   return useQuery({
     queryKey: queryKeys.auth.passkeyCredentials,
-    queryFn: () =>
-      fetcher<CredentialsResponse>(AUTH_ENDPOINTS.PASSKEY_CREDENTIALS),
+    queryFn: async (): Promise<CredentialsResponse> => {
+      const passkeys = await fetcher<PasskeyCredential[]>(
+        "/api/auth/passkey/list-user-passkeys",
+      );
+      return { credentials: passkeys.map(mapPasskey) };
+    },
   });
 }
 
 export function usePasskeyRegister() {
-  const fetcher = useFetcher();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (name?: string) => {
-      const options = await fetcher<PublicKeyCredentialCreationOptionsJSON>(
-        AUTH_ENDPOINTS.PASSKEY_REGISTER_OPTIONS,
-        { method: "POST" },
-      );
-
-      const attestation = await startRegistration({ optionsJSON: options });
-
-      return fetcher<{ verified: boolean }>(
-        AUTH_ENDPOINTS.PASSKEY_REGISTER_VERIFY,
-        {
-          method: "POST",
-          body: { ...attestation, name: name ?? null },
-        },
-      );
+      const result = await authClient.passkey.addPasskey({ name });
+      if (result.error) throw new Error(result.error.message);
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -79,11 +80,11 @@ export function useDeletePasskey() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (credentialId: number) =>
-      fetcher<{ success: boolean }>(
-        `${AUTH_ENDPOINTS.PASSKEY_CREDENTIALS}/${credentialId}`,
-        { method: "DELETE" },
-      ),
+    mutationFn: (credentialId: string) =>
+      fetcher<{ success: boolean }>("/api/auth/passkey/delete-passkey", {
+        method: "POST",
+        body: { id: credentialId },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.auth.passkeyCredentials,
@@ -94,27 +95,15 @@ export function useDeletePasskey() {
 }
 
 export function usePasskeyAuthenticate() {
-  const fetcher = useFetcher();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
-      const options = await fetcher<PublicKeyCredentialRequestOptionsJSON>(
-        AUTH_ENDPOINTS.PASSKEY_AUTHENTICATE_OPTIONS,
-        { method: "POST" },
-      );
-
-      const assertion = await startAuthentication({ optionsJSON: options });
-
-      return fetcher<AuthResponse>(AUTH_ENDPOINTS.PASSKEY_AUTHENTICATE_VERIFY, {
-        method: "POST",
-        body: assertion,
-      });
+      const result = await authClient.signIn.passkey();
+      if (result.error) throw new Error(result.error.message);
+      return result.data;
     },
-    onSuccess: (data) => {
-      if (data.user) {
-        setUser(data.user);
-      }
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
     },
   });

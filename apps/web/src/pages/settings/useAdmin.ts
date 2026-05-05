@@ -173,7 +173,7 @@ export function useDeleteUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userId: number) =>
+    mutationFn: (userId: string) =>
       fetcher<DeleteUserResponse>(ADMIN_ENDPOINTS.DELETE_USER(userId), {
         method: "DELETE",
       }),
@@ -198,7 +198,7 @@ export function useRevokeSession() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       fetcher<RevokeSessionResponse>(ADMIN_ENDPOINTS.REVOKE_SESSION(id), {
         method: "DELETE",
       }),
@@ -213,7 +213,7 @@ export function useRevokeUserSessions() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userId: number) =>
+    mutationFn: (userId: string) =>
       fetcher<RevokeSessionResponse>(
         ADMIN_ENDPOINTS.REVOKE_USER_SESSIONS(userId),
         { method: "DELETE" },

@@ -61,7 +61,7 @@ cp docker-compose.prod-example.yml docker-compose.prod.yml
 
 # 2. Create your .env from the example
 cp .env.example .env
-# Edit .env — at minimum set SECRET_KEY, ALLOWED_EMAILS, ADMIN_EMAILS, DATABASE_URL
+# Edit .env — at minimum set SECRET_KEY, BETTER_AUTH_SECRET, ALLOWED_EMAILS, ADMIN_EMAILS, DATABASE_URL
 
 # 3. Start everything
 docker compose -f docker-compose.prod.yml up -d
@@ -99,21 +99,22 @@ The API runs on `http://localhost:3001` and the frontend on `http://localhost:51
 
 Copy `.env.example` to `.env`. Required variables:
 
-| Variable         | Description                                               |
-| ---------------- | --------------------------------------------------------- |
-| `SECRET_KEY`     | JWT signing secret — change from default                  |
-| `DATABASE_URL`   | PostgreSQL connection string                              |
-| `ALLOWED_EMAILS` | Comma-separated list of emails allowed to register        |
-| `ADMIN_EMAILS`   | Comma-separated list of admin emails                      |
-| `BASE_URL`       | Public URL of the app (e.g. `https://hously.example.com`) |
+| Variable             | Description                                                              |
+| -------------------- | ------------------------------------------------------------------------ |
+| `SECRET_KEY`         | Encryption key for stored secrets — change from default                  |
+| `BETTER_AUTH_SECRET` | Session signing secret — min 32 random chars (`openssl rand -base64 32`) |
+| `DATABASE_URL`       | PostgreSQL connection string                                             |
+| `ALLOWED_EMAILS`     | Comma-separated list of emails allowed to register                       |
+| `ADMIN_EMAILS`       | Comma-separated list of admin emails                                     |
+| `BASE_URL`           | Public URL of the app (e.g. `https://hously.example.com`)                |
 
 Optional integrations:
 
-| Variable                                 | Description                    |
-| ---------------------------------------- | ------------------------------ |
-| `TMDB_API_KEY`                           | Required for media discovery   |
-| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web push notifications         |
-| `SMTP_*`                                 | Email delivery                 |
+| Variable                                 | Description                  |
+| ---------------------------------------- | ---------------------------- |
+| `TMDB_API_KEY`                           | Required for media discovery |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web push notifications       |
+| `SMTP_*`                                 | Email delivery               |
 
 See `.env.example` for the full reference.
 

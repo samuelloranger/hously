@@ -71,7 +71,7 @@ export function UsersTab() {
     }
   };
 
-  const handleDeleteUser = async (userId: number, userEmail: string) => {
+  const handleDeleteUser = async (userId: string, userEmail: string) => {
     if (!confirm(t("settings.users.deleteConfirm", { email: userEmail }))) {
       return;
     }

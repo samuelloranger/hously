@@ -12,6 +12,7 @@ import { beszelIntegrationRoutes } from "./beszel";
 import { adguardIntegrationRoutes } from "./adguard";
 import { uptimekumaIntegrationRoutes } from "./uptimekuma";
 import { trackerIntegrationsRoutes } from "./trackers";
+import { authentikIntegrationRoutes } from "./authentik";
 
 export const integrationsRoutes = new Elysia({ prefix: "/api/integrations" })
   .use(weatherIntegrationRoutes)
@@ -25,4 +26,5 @@ export const integrationsRoutes = new Elysia({ prefix: "/api/integrations" })
   .use(beszelIntegrationRoutes)
   .use(adguardIntegrationRoutes)
   .use(uptimekumaIntegrationRoutes)
-  .use(trackerIntegrationsRoutes);
+  .use(trackerIntegrationsRoutes)
+  .use(authentikIntegrationRoutes);

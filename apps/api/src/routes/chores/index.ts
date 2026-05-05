@@ -210,19 +210,13 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
       }
 
       // Handle assigned_to
-      let assignedTo: number | null = null;
+      let assignedTo: string | null = null;
       if (
         assigned_to !== undefined &&
         assigned_to !== null &&
         assigned_to !== ""
       ) {
-        const parsedAssignedTo =
-          typeof assigned_to === "string"
-            ? parseInt(assigned_to, 10)
-            : assigned_to;
-        if (isNaN(parsedAssignedTo)) {
-          return badRequest(set, "Invalid assigned user");
-        }
+        const parsedAssignedTo = String(assigned_to);
         // Validate user exists
         const assignedUser = await prisma.user.findFirst({
           where: { id: parsedAssignedTo },
@@ -503,13 +497,7 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           if (body.assigned_to === null || body.assigned_to === "") {
             updateData.assignedTo = null;
           } else {
-            const parsedAssignedTo =
-              typeof body.assigned_to === "string"
-                ? parseInt(body.assigned_to, 10)
-                : body.assigned_to;
-            if (isNaN(parsedAssignedTo)) {
-              return badRequest(set, "Invalid assigned user");
-            }
+            const parsedAssignedTo = String(body.assigned_to);
             const assignedUser = await prisma.user.findFirst({
               where: { id: parsedAssignedTo },
             });
@@ -531,18 +519,12 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
             // Delete existing reminders and create new one
             await deactivateRemindersForChore(choreId);
 
-            let reminderUserId: number;
+            let reminderUserId: string;
             if (body.assigned_to !== undefined) {
               if (body.assigned_to === null || body.assigned_to === "") {
                 reminderUserId = user!.id;
               } else {
-                const parsed =
-                  typeof body.assigned_to === "string"
-                    ? parseInt(body.assigned_to, 10)
-                    : body.assigned_to;
-                reminderUserId = isNaN(parsed as number)
-                  ? user!.id
-                  : (parsed as number);
+                reminderUserId = String(body.assigned_to);
               }
             } else {
               reminderUserId = chore.assignedTo || user!.id;

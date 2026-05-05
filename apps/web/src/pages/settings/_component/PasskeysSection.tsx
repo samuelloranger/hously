@@ -13,7 +13,7 @@ import {
 export function PasskeysSection() {
   const { t, i18n } = useTranslation("common");
   const [registerName, setRegisterName] = useState("");
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const { data, isLoading } = usePasskeyCredentials();
   const register = usePasskeyRegister();
   const deletePasskey = useDeletePasskey();
@@ -43,7 +43,7 @@ export function PasskeysSection() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
       await deletePasskey.mutateAsync(id);
       toast.success(t("settings.passkeys.deleteSuccess"));

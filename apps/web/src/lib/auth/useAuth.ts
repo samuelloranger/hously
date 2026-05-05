@@ -14,18 +14,7 @@ import type {
   ValidateInvitationResponse,
   AcceptInvitationRequest,
 } from "@hously/shared/types";
-type AuthResponse = UserResponse & { token?: string; refreshToken?: string };
-
-function defaultLocale(): string {
-  if (
-    typeof navigator !== "undefined" &&
-    typeof navigator.language === "string" &&
-    navigator.language.length > 0
-  ) {
-    return navigator.language.split("-")[0] || "en";
-  }
-  return "en";
-}
+type AuthResponse = UserResponse;
 
 export function useCurrentUser() {
   const fetcher = useFetcher();
@@ -53,13 +42,10 @@ export function useLogin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { email: string; password: string; locale?: string }) =>
-      fetcher<AuthResponse>(AUTH_ENDPOINTS.LOGIN, {
+    mutationFn: (data: { email: string; password: string }) =>
+      fetcher<{ user: unknown; session: unknown }>(AUTH_ENDPOINTS.LOGIN, {
         method: "POST",
-        body: {
-          ...data,
-          locale: data.locale || defaultLocale(),
-        },
+        body: { email: data.email, password: data.password },
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
@@ -103,15 +89,10 @@ export function useLogout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (subscriptionEndpoint?: string) =>
-      fetcher<{ message: string }>(AUTH_ENDPOINTS.LOGOUT, {
-        method: "POST",
-        body: subscriptionEndpoint
-          ? { subscription: { endpoint: subscriptionEndpoint } }
-          : {},
-      }),
+    mutationFn: (_subscriptionEndpoint?: string) =>
+      fetcher<{ success: boolean }>(AUTH_ENDPOINTS.LOGOUT, { method: "POST" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
+      queryClient.clear();
     },
   });
 }
@@ -120,12 +101,12 @@ export function useForgotPassword() {
   const fetcher = useFetcher();
 
   return useMutation({
-    mutationFn: (data: { email: string; locale?: string }) =>
-      fetcher<{ message: string }>(AUTH_ENDPOINTS.FORGOT_PASSWORD, {
+    mutationFn: (data: { email: string }) =>
+      fetcher<{ status: boolean }>(AUTH_ENDPOINTS.FORGOT_PASSWORD, {
         method: "POST",
         body: {
-          ...data,
-          locale: data.locale || defaultLocale(),
+          email: data.email,
+          redirectTo: `${window.location.origin}/reset-password`,
         },
       }),
   });
@@ -135,12 +116,12 @@ export function useResetPassword() {
   const fetcher = useFetcher();
 
   return useMutation({
-    mutationFn: (data: { token: string; password: string; locale?: string }) =>
-      fetcher<{ message: string }>(AUTH_ENDPOINTS.RESET_PASSWORD, {
+    mutationFn: (data: { token: string; password: string }) =>
+      fetcher<{ status: boolean }>(AUTH_ENDPOINTS.RESET_PASSWORD, {
         method: "POST",
         body: {
-          ...data,
-          locale: data.locale || defaultLocale(),
+          token: data.token,
+          newPassword: data.password,
         },
       }),
   });
@@ -159,4 +140,13 @@ export function useAuth() {
       return result.data;
     },
   };
+}
+export function useSSOProviders() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.auth.ssoProviders(),
+    queryFn: () =>
+      fetcher<{ authentik: boolean }>(AUTH_ENDPOINTS.SSO_PROVIDERS),
+    staleTime: 60_000,
+  });
 }

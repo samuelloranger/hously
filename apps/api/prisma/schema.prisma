@@ -7,45 +7,47 @@ datasource db {
 }
 
 model User {
-  id              Int       @id @default(autoincrement())
-  email           String    @unique(map: "ix_users_email")
-  passwordHash    String?   @map("password_hash")
-  authVersion     Int       @default(1) @map("auth_version")
-  isAdmin         Boolean?  @map("is_admin")
-  lastLogin       DateTime? @map("last_login")
-  createdAt       DateTime? @map("created_at")
-  lastActivity    DateTime? @map("last_activity")
-  firstName       String?   @map("first_name")
-  lastName        String?   @map("last_name")
-  locale          String?
+  id                      String    @id @default(uuid())
+  name                    String    @default("")
+  email                   String    @unique(map: "ix_users_email")
+  emailVerified           Boolean   @default(false) @map("email_verified")
+  passwordHash            String?   @map("password_hash")
+  isAdmin                 Boolean?  @map("is_admin")
+  lastLogin               DateTime? @map("last_login")
+  createdAt               DateTime? @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+  lastActivity            DateTime? @map("last_activity")
+  firstName               String?   @map("first_name")
+  lastName                String?   @map("last_name")
+  locale                  String?
   /// ISO 3166-1 alpha-2; used with date-holidays for public holidays on the calendar
-  countryCode              String?   @map("country_code") @db.VarChar(2)
+  countryCode             String?   @map("country_code") @db.VarChar(2)
   /// Province/state code from date-holidays (e.g. QC for Canada-Quebec); null = country-level rules only
-  calendarSubdivisionCode  String?   @map("calendar_subdivision_code") @db.VarChar(16)
-  avatarUrl       String?   @map("avatar_url")
-  dashboardConfig Json?     @map("dashboard_config")
-  calendarToken   String?   @unique(map: "ix_users_calendar_token") @map("calendar_token")
+  calendarSubdivisionCode String?   @map("calendar_subdivision_code") @db.VarChar(16)
+  avatarUrl               String?   @map("avatar_url")
+  dashboardConfig         Json?     @map("dashboard_config")
+  calendarToken           String?   @unique(map: "ix_users_calendar_token") @map("calendar_token")
 
-  notifications          Notification[]
-  customEvents           CustomEvent[]
-  reminders              Reminder[]
-  userSubscriptions      UserSubscription[]
-  taskCompletions        TaskCompletion[]
-  activityLogs           ActivityLog[]
-  choresAdded            Chore[]              @relation("ChoreAddedBy")
-  choresAssigned         Chore[]              @relation("ChoreAssignedTo")
-  choresCompleted        Chore[]              @relation("ChoreCompletedBy")
-  passwordResetTokens    PasswordResetToken[]
-  refreshTokens          RefreshToken[]
-  passkeyCredentials     WebAuthnCredential[]
-  notificationChannels   NotificationChannel[]
-  habits                 Habit[]
-  invitationsSent        Invitation[]         @relation("InvitationInviter")
-  watchlistItems         WatchlistItem[]
-  createdBoardTasks      BoardTask[]          @relation("BoardTaskCreatedBy")
-  assignedBoardTasks     BoardTask[]          @relation("BoardTaskAssignee")
-  boardTaskActivities    BoardTaskActivity[]
-  boardTimeLogs          BoardTimeLog[]
+  notifications        Notification[]
+  customEvents         CustomEvent[]
+  reminders            Reminder[]
+  userSubscriptions    UserSubscription[]
+  taskCompletions      TaskCompletion[]
+  activityLogs         ActivityLog[]
+  choresAdded          Chore[]               @relation("ChoreAddedBy")
+  choresAssigned       Chore[]               @relation("ChoreAssignedTo")
+  choresCompleted      Chore[]               @relation("ChoreCompletedBy")
+  notificationChannels NotificationChannel[]
+  habits               Habit[]
+  invitationsSent      Invitation[]          @relation("InvitationInviter")
+  watchlistItems       WatchlistItem[]
+  createdBoardTasks    BoardTask[]           @relation("BoardTaskCreatedBy")
+  assignedBoardTasks   BoardTask[]           @relation("BoardTaskAssignee")
+  boardTaskActivities  BoardTaskActivity[]
+  boardTimeLogs        BoardTimeLog[]
+  baSessions           BaSession[]
+  baAccounts           BaAccount[]
+  baPasskeys           BaPasskey[]
 
   @@map("users")
 }
@@ -74,18 +76,18 @@ model BoardTask {
   priority         BoardTaskPriority @default(MEDIUM)
   startDate        DateTime?         @map("start_date") @db.Date
   dueDate          DateTime?         @map("due_date") @db.Date
-  assigneeId       Int?              @map("assignee_id")
+  assigneeId       String?           @map("assignee_id")
   tags             String[]
-  createdBy        Int               @map("created_by")
+  createdBy        String            @map("created_by")
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   estimatedMinutes Int?              @map("estimated_minutes")
   loggedMinutes    Int               @default(0) @map("logged_minutes")
   archived         Boolean           @default(false) @map("archived")
 
-  createdByUser        User              @relation("BoardTaskCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
-  assignee             User?             @relation("BoardTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
-  boardTags            BoardTag[]        @relation("BoardTaskTags")
+  createdByUser        User                  @relation("BoardTaskCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+  assignee             User?                 @relation("BoardTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  boardTags            BoardTag[]            @relation("BoardTaskTags")
   activities           BoardTaskActivity[]
   blockingDependencies BoardTaskDependency[] @relation("BlockingTask")
   blockedDependencies  BoardTaskDependency[] @relation("BlockedTask")
@@ -98,7 +100,7 @@ model BoardTask {
 model BoardTimeLog {
   id       Int      @id @default(autoincrement())
   taskId   Int      @map("task_id")
-  userId   Int      @map("user_id")
+  userId   String   @map("user_id")
   minutes  Int
   note     String?
   loggedAt DateTime @default(now()) @map("logged_at")
@@ -125,10 +127,10 @@ model BoardTaskDependency {
 }
 
 model BoardTag {
-  id        Int        @id @default(autoincrement())
-  name      String     @unique
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
   color     String?
-  createdAt DateTime   @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   tasks BoardTask[] @relation("BoardTaskTags")
 
@@ -148,7 +150,7 @@ enum BoardTaskActivityType {
 model BoardTaskActivity {
   id        Int                   @id @default(autoincrement())
   taskId    Int                   @map("task_id")
-  userId    Int                   @map("user_id")
+  userId    String                @map("user_id")
   type      BoardTaskActivityType
   body      String?
   metadata  Json?
@@ -163,7 +165,7 @@ model BoardTaskActivity {
 
 model Notification {
   id                   Int       @id @default(autoincrement())
-  userId               Int       @map("user_id")
+  userId               String    @map("user_id")
   title                String
   body                 String
   type                 String
@@ -247,7 +249,7 @@ model CustomEvent {
   endDatetime                 DateTime  @map("end_datetime")
   allDay                      Boolean?  @map("all_day")
   color                       String
-  userId                      Int       @map("user_id")
+  userId                      String    @map("user_id")
   recurrenceType              String?   @map("recurrence_type")
   recurrenceIntervalDays      Int?      @map("recurrence_interval_days")
   recurrenceOriginalCreatedAt DateTime? @map("recurrence_original_created_at")
@@ -262,7 +264,7 @@ model Reminder {
   id                   Int       @id @default(autoincrement())
   choreId              Int       @map("chore_id")
   reminderDatetime     DateTime  @map("reminder_datetime")
-  userId               Int       @map("user_id")
+  userId               String    @map("user_id")
   active               Boolean?
   lastNotificationSent DateTime? @map("last_notification_sent")
   createdAt            DateTime? @map("created_at")
@@ -275,7 +277,7 @@ model Reminder {
 
 model UserSubscription {
   id               Int       @id @default(autoincrement())
-  userId           Int       @map("user_id")
+  userId           String    @map("user_id")
   subscriptionInfo String    @map("subscription_info")
   endpoint         String?
   createdAt        DateTime? @map("created_at")
@@ -296,7 +298,7 @@ model UserSubscription {
 
 model TaskCompletion {
   id          Int      @id @default(autoincrement())
-  userId      Int      @map("user_id")
+  userId      String   @map("user_id")
   taskType    String   @map("task_type") @db.VarChar(50)
   taskId      Int      @map("task_id")
   completedAt DateTime @map("completed_at")
@@ -311,7 +313,7 @@ model TaskCompletion {
 model ActivityLog {
   id        Int      @id @default(autoincrement())
   type      String   @db.VarChar(50)
-  userId    Int?     @map("user_id")
+  userId    String?  @map("user_id")
   payload   Json?
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -327,10 +329,10 @@ model Chore {
   id                          Int       @id @default(autoincrement())
   choreName                   String    @map("chore_name")
   description                 String?
-  assignedTo                  Int?      @map("assigned_to")
+  assignedTo                  String?   @map("assigned_to")
   completed                   Boolean?
-  addedBy                     Int       @map("added_by")
-  completedBy                 Int?      @map("completed_by")
+  addedBy                     String    @map("added_by")
+  completedBy                 String?   @map("completed_by")
   reminderEnabled             Boolean?  @map("reminder_enabled")
   createdAt                   DateTime? @map("created_at")
   completedAt                 DateTime? @map("completed_at")
@@ -352,58 +354,13 @@ model Chore {
   @@map("chores")
 }
 
-model PasswordResetToken {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  token     String   @unique(map: "ix_password_reset_tokens_token")
-  expiresAt DateTime @map("expires_at")
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("password_reset_tokens")
-}
-
-model RefreshToken {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  token     String   @unique(map: "ix_refresh_tokens_token")
-  expiresAt DateTime @map("expires_at")
-  revoked   Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId], map: "ix_refresh_tokens_user_id")
-  @@map("refresh_tokens")
-}
-
-model WebAuthnCredential {
-  id           Int      @id @default(autoincrement())
-  userId       Int      @map("user_id")
-  credentialId String   @unique @map("credential_id")
-  publicKey    Bytes    @map("public_key")
-  counter      BigInt   @default(0)
-  transports   String[] @default([])
-  deviceType   String   @default("singleDevice") @map("device_type")
-  backedUp     Boolean  @default(false) @map("backed_up")
-  name         String?
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId], map: "ix_webauthn_credentials_user_id")
-  @@map("webauthn_credentials")
-}
-
 model Invitation {
   id         Int       @id @default(autoincrement())
   email      String
   token      String    @unique(map: "ix_invitations_token")
   status     String    @default("pending") @db.VarChar(20)
   expiresAt  DateTime  @map("expires_at")
-  invitedBy  Int       @map("invited_by")
+  invitedBy  String    @map("invited_by")
   locale     String    @default("en")
   isAdmin    Boolean   @default(false) @map("is_admin")
   createdAt  DateTime  @default(now()) @map("created_at")
@@ -415,10 +372,9 @@ model Invitation {
   @@map("invitations")
 }
 
-
 model NotificationChannel {
   id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
+  userId    String   @map("user_id")
   type      String   @db.VarChar(20)
   label     String   @db.VarChar(100)
   config    Json
@@ -432,19 +388,18 @@ model NotificationChannel {
   @@map("notification_channels")
 }
 
-
 model Habit {
   id          Int       @id @default(autoincrement())
-  userId      Int       @map("user_id")
+  userId      String    @map("user_id")
   name        String
   emoji       String
   description String?
-  timesPerDay Int       @map("times_per_day") @default(1)
+  timesPerDay Int       @default(1) @map("times_per_day")
   active      Boolean   @default(true)
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @map("updated_at")
 
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   schedules   HabitSchedule[]
   completions HabitCompletion[]
 
@@ -460,7 +415,7 @@ enum HabitCompletionStatus {
 model HabitSchedule {
   id                   Int       @id @default(autoincrement())
   habitId              Int       @map("habit_id")
-  time                 String    // "HH:mm" format (e.g. "08:00", "14:30")
+  time                 String // "HH:mm" format (e.g. "08:00", "14:30")
   lastNotificationSent DateTime? @map("last_notification_sent")
 
   habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
@@ -470,10 +425,10 @@ model HabitSchedule {
 }
 
 model HabitCompletion {
-  id          Int      @id @default(autoincrement())
-  habitId     Int      @map("habit_id")
+  id          Int                   @id @default(autoincrement())
+  habitId     Int                   @map("habit_id")
   date        DateTime // Date-only (start of day UTC) for grouping
-  completedAt DateTime @default(now()) @map("completed_at")
+  completedAt DateTime              @default(now()) @map("completed_at")
   status      HabitCompletionStatus @default(done)
 
   habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
@@ -483,22 +438,22 @@ model HabitCompletion {
 }
 
 model QbittorrentRequestLog {
-  id           Int      @id @default(autoincrement())
-  method       String   @db.VarChar(10)
-  endpoint     String   @db.VarChar(255)
-  requestPath  String   @map("request_path") @db.VarChar(512)
-  statusCode   Int?     @map("status_code")
-  ok           Boolean  @default(false)
-  durationMs   Int      @map("duration_ms")
-  responseBytes Int?    @map("response_bytes")
-  authRetried  Boolean  @default(false) @map("auth_retried")
-  rid          Int?
-  fullUpdate   Boolean? @map("full_update")
-  itemCount    Int?     @map("item_count")
-  removedCount Int?     @map("removed_count")
-  errorMessage String?  @map("error_message") @db.Text
-  meta         Json?
-  createdAt    DateTime @default(now()) @map("created_at")
+  id            Int      @id @default(autoincrement())
+  method        String   @db.VarChar(10)
+  endpoint      String   @db.VarChar(255)
+  requestPath   String   @map("request_path") @db.VarChar(512)
+  statusCode    Int?     @map("status_code")
+  ok            Boolean  @default(false)
+  durationMs    Int      @map("duration_ms")
+  responseBytes Int?     @map("response_bytes")
+  authRetried   Boolean  @default(false) @map("auth_retried")
+  rid           Int?
+  fullUpdate    Boolean? @map("full_update")
+  itemCount     Int?     @map("item_count")
+  removedCount  Int?     @map("removed_count")
+  errorMessage  String?  @map("error_message") @db.Text
+  meta          Json?
+  createdAt     DateTime @default(now()) @map("created_at")
 
   @@index([createdAt], map: "ix_qbittorrent_request_logs_created_at")
   @@index([endpoint, createdAt], map: "ix_qbittorrent_request_logs_endpoint_created_at")
@@ -508,7 +463,7 @@ model QbittorrentRequestLog {
 
 model WatchlistItem {
   id          Int      @id @default(autoincrement())
-  userId      Int      @map("user_id")
+  userId      String   @map("user_id")
   tmdbId      Int      @map("tmdb_id")
   mediaType   String   @map("media_type")
   title       String
@@ -519,9 +474,9 @@ model WatchlistItem {
   addedAt     DateTime @default(now()) @map("added_at")
 
   /// Cached TMDB theatrical release date (movies only). Used for day-before reminders.
-  movieReleaseDate DateTime? @map("movie_release_date") @db.Date
+  movieReleaseDate       DateTime? @map("movie_release_date") @db.Date
   /// YYYY-MM-DD release date we already sent a day-before reminder for (movies only).
-  releaseReminderSentFor String? @map("release_reminder_sent_for") @db.VarChar(10)
+  releaseReminderSentFor String?   @map("release_reminder_sent_for") @db.VarChar(10)
 
   user User @relation(fields: [userId], references: [id])
 
@@ -531,45 +486,113 @@ model WatchlistItem {
 }
 
 model QualityProfile {
-  id                 Int      @id @default(autoincrement())
-  name               String   @unique
-  minResolution      Int      @default(1080) @map("min_resolution") // 480 | 720 | 1080 | 2160
-  preferredSources    String[] @map("preferred_sources")
-  preferredCodecs     String[] @map("preferred_codecs")
-  preferredLanguages  String[] @default([]) @map("preferred_languages")
-  prioritizedTrackers String[] @default([]) @map("prioritized_trackers")
-  preferTrackerOverQuality Boolean @default(false) @map("prefer_tracker_over_quality")
-  maxSizeGb           Float?   @map("max_size_gb")
-  requireHdr         Boolean  @default(false) @map("require_hdr")
-  preferHdr          Boolean  @default(false) @map("prefer_hdr")
-  cutoffResolution   Int?     @map("cutoff_resolution")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
+  id                       Int      @id @default(autoincrement())
+  name                     String   @unique
+  minResolution            Int      @default(1080) @map("min_resolution") // 480 | 720 | 1080 | 2160
+  preferredSources         String[] @map("preferred_sources")
+  preferredCodecs          String[] @map("preferred_codecs")
+  preferredLanguages       String[] @default([]) @map("preferred_languages")
+  prioritizedTrackers      String[] @default([]) @map("prioritized_trackers")
+  preferTrackerOverQuality Boolean  @default(false) @map("prefer_tracker_over_quality")
+  maxSizeGb                Float?   @map("max_size_gb")
+  requireHdr               Boolean  @default(false) @map("require_hdr")
+  preferHdr                Boolean  @default(false) @map("prefer_hdr")
+  cutoffResolution         Int?     @map("cutoff_resolution")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
 
-  media            LibraryMedia[]
+  media              LibraryMedia[]
   defaultForSettings MediaSettings[] @relation("DefaultQualityProfile")
 
   @@map("quality_profiles")
 }
 
+model BaSession {
+  id        String   @id @default(uuid())
+  expiresAt DateTime @map("expires_at")
+  token     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String   @map("user_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "ix_ba_sessions_user_id")
+  @@map("ba_sessions")
+}
+
+model BaAccount {
+  id                    String    @id @default(uuid())
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
+  accessToken           String?   @map("access_token") @db.Text
+  refreshToken          String?   @map("refresh_token") @db.Text
+  idToken               String?   @map("id_token") @db.Text
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "ix_ba_accounts_user_id")
+  @@map("ba_accounts")
+}
+
+model BaVerification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String   @db.Text
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("ba_verifications")
+}
+
+model BaPasskey {
+  id           String    @id @default(uuid())
+  name         String?
+  publicKey    String    @map("public_key") @db.Text
+  userId       String    @map("user_id")
+  credentialID String    @map("credential_id")
+  counter      Int
+  deviceType   String    @map("device_type")
+  backedUp     Boolean   @map("backed_up")
+  transports   String?
+  createdAt    DateTime? @map("created_at")
+  aaguid       String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([credentialID], map: "ix_ba_passkeys_credential_id")
+  @@index([userId], map: "ix_ba_passkeys_user_id")
+  @@map("ba_passkeys")
+}
+
 model LibraryMedia {
-  id                 Int       @id @default(autoincrement())
-  tmdbId             Int       @unique @map("tmdb_id")
-  type               String    // "movie" | "show"
-  title              String
-  sortTitle          String?   @map("sort_title")
-  year               Int?
-  status             String    @default("wanted") // wanted | downloading | downloaded | skipped | returning | in_production | planned | upgrading
-  tmdbStatus         String?   @map("tmdb_status")
+  id                    Int       @id @default(autoincrement())
+  tmdbId                Int       @unique @map("tmdb_id")
+  type                  String // "movie" | "show"
+  title                 String
+  sortTitle             String?   @map("sort_title")
+  year                  Int?
+  status                String    @default("wanted") // wanted | downloading | downloaded | skipped | returning | in_production | planned | upgrading
+  tmdbStatus            String?   @map("tmdb_status")
   tmdbStatusRefreshedAt DateTime? @map("tmdb_status_refreshed_at")
-  monitored          Boolean   @default(true)
-  posterUrl          String?   @map("poster_url")
-  overview           String?
-  digitalReleaseDate DateTime? @map("digital_release_date")
-  qualityProfileId   Int?      @map("quality_profile_id")
-  searchAttempts     Int       @default(0) @map("search_attempts")
-  addedAt            DateTime  @default(now()) @map("added_at")
-  updatedAt          DateTime  @updatedAt @map("updated_at")
+  monitored             Boolean   @default(true)
+  posterUrl             String?   @map("poster_url")
+  overview              String?
+  digitalReleaseDate    DateTime? @map("digital_release_date")
+  qualityProfileId      Int?      @map("quality_profile_id")
+  searchAttempts        Int       @default(0) @map("search_attempts")
+  addedAt               DateTime  @default(now()) @map("added_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   qualityProfile    QualityProfile?   @relation(fields: [qualityProfileId], references: [id], onDelete: SetNull)
   episodes          LibraryEpisode[]
@@ -596,10 +619,10 @@ model LibraryEpisode {
   downloadedAt   DateTime? @map("downloaded_at")
   searchAttempts Int       @default(0) @map("search_attempts")
 
-  media               LibraryMedia      @relation(fields: [mediaId], references: [id], onDelete: Cascade)
-  files               MediaFile[]       @relation("MediaFileEpisode")
-  downloadHistories   DownloadHistory[]
-  blocklistEntries    GrabBlocklist[]
+  media             LibraryMedia      @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  files             MediaFile[]       @relation("MediaFileEpisode")
+  downloadHistories DownloadHistory[]
+  blocklistEntries  GrabBlocklist[]
 
   @@unique([mediaId, season, episode])
   @@index([mediaId], map: "ix_library_episodes_media_id")
@@ -607,23 +630,23 @@ model LibraryEpisode {
 }
 
 model DownloadHistory {
-  id            Int       @id @default(autoincrement())
-  mediaId       Int?      @map("media_id")
-  episodeId     Int?      @map("episode_id")
-  releaseTitle  String    @map("release_title")
-  indexer       String?
-  torrentHash   String?   @map("torrent_hash")
-  downloadUrl   String?   @map("download_url")
-  qualityParsed Json?     @map("quality_parsed")
-  grabbedAt     DateTime  @default(now()) @map("grabbed_at")
-  completedAt   DateTime? @map("completed_at")
-  failed        Boolean   @default(false)
-  failReason    String?   @map("fail_reason")
-  isUpgrade           Boolean   @default(false) @map("is_upgrade")
+  id                         Int       @id @default(autoincrement())
+  mediaId                    Int?      @map("media_id")
+  episodeId                  Int?      @map("episode_id")
+  releaseTitle               String    @map("release_title")
+  indexer                    String?
+  torrentHash                String?   @map("torrent_hash")
+  downloadUrl                String?   @map("download_url")
+  qualityParsed              Json?     @map("quality_parsed")
+  grabbedAt                  DateTime  @default(now()) @map("grabbed_at")
+  completedAt                DateTime? @map("completed_at")
+  failed                     Boolean   @default(false)
+  failReason                 String?   @map("fail_reason")
+  isUpgrade                  Boolean   @default(false) @map("is_upgrade")
   /// Set when post-processing fails after the torrent completed
-  postProcessError           String? @map("post_process_error") @db.Text
+  postProcessError           String?   @map("post_process_error") @db.Text
   /// Final library path after successful post-processing
-  postProcessDestinationPath String? @map("post_process_destination_path") @db.Text
+  postProcessDestinationPath String?   @map("post_process_destination_path") @db.Text
 
   media   LibraryMedia?   @relation(fields: [mediaId], references: [id], onDelete: SetNull)
   episode LibraryEpisode? @relation(fields: [episodeId], references: [id], onDelete: SetNull)
@@ -694,10 +717,10 @@ model MediaFile {
   languageTags   String[] @default([]) @map("language_tags")
   scannedAt      DateTime @default(now()) @map("scanned_at")
 
-  media   LibraryMedia?   @relation("MediaFileMedia",   fields: [mediaId],   references: [id], onDelete: Cascade)
+  media   LibraryMedia?   @relation("MediaFileMedia", fields: [mediaId], references: [id], onDelete: Cascade)
   episode LibraryEpisode? @relation("MediaFileEpisode", fields: [episodeId], references: [id], onDelete: Cascade)
 
-  @@index([mediaId],   map: "ix_media_files_media_id")
+  @@index([mediaId], map: "ix_media_files_media_id")
   @@index([episodeId], map: "ix_media_files_episode_id")
   @@index([languageTags], map: "ix_media_files_language_tags", type: Gin)
   @@map("media_files")

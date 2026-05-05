@@ -102,7 +102,9 @@ export async function sendPasswordResetEmail(
   locale: string = "en",
 ): Promise<boolean> {
   const baseUrl = getBaseUrl();
-  const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+  const resetUrl = /^https?:\/\//.test(token)
+    ? token
+    : `${baseUrl}/reset-password?token=${token}`;
 
   if (!isEmailConfigured()) {
     console.log(

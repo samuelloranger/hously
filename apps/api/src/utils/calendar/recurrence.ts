@@ -12,7 +12,7 @@ export interface ChoreData {
   completed: boolean | null;
   completedAt: string | null;
   createdAt: string | null;
-  assignedTo: number | null;
+  assignedTo: string | null;
 }
 
 export const calculateRecurringChoreDates = (

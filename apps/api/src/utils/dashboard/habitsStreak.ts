@@ -3,9 +3,9 @@ import { getJsonCache, setJsonCache } from "@hously/api/services/cache";
 
 const CACHE_TTL_SECONDS = 15 * 60; // 15 minutes
 
-const cacheKey = (userId: number) => `dashboard:habits-streak:user:${userId}`;
+const cacheKey = (userId: string) => `dashboard:habits-streak:user:${userId}`;
 
-const calculateHabitsStreak = async (userId: number): Promise<number> => {
+const calculateHabitsStreak = async (userId: string): Promise<number> => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -77,14 +77,14 @@ const calculateHabitsStreak = async (userId: number): Promise<number> => {
 };
 
 export const getCachedHabitsStreak = async (
-  userId: number,
+  userId: string,
 ): Promise<number> => {
   const cached = await getJsonCache<{ streak: number }>(cacheKey(userId));
   return cached?.streak ?? 0;
 };
 
 export const refreshHabitsStreakForUser = async (
-  userId: number,
+  userId: string,
 ): Promise<number> => {
   const streak = await calculateHabitsStreak(userId);
   await setJsonCache(cacheKey(userId), { streak }, CACHE_TTL_SECONDS);

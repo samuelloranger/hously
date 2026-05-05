@@ -33,6 +33,8 @@ import type {
   UptimekumaIntegration,
   UptimekumaIntegrationUpdateResponse,
   HomeAssistantDiscoverResponse,
+  AuthentikIntegration,
+  AuthentikIntegrationUpdateResponse,
 } from "@hously/shared/types";
 const TRACKER_INTEGRATION_ENDPOINTS: Record<TrackerType, string> = {
   c411: INTEGRATION_ENDPOINTS.C411,
@@ -630,6 +632,44 @@ export function useUpdateUptimekumaIntegration() {
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.integrations.uptimekumaMonitors(),
+      });
+    },
+  });
+}
+
+export function useAuthentikIntegration() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.integrations.authentik(),
+    queryFn: () =>
+      fetcher<{ integration: AuthentikIntegration }>(
+        INTEGRATION_ENDPOINTS.AUTHENTIK,
+      ),
+    refetchOnMount: "always",
+    staleTime: 0,
+  });
+}
+
+export function useUpdateAuthentikIntegration() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      issuer_url: string;
+      client_id: string;
+      client_secret?: string;
+      enabled: boolean;
+    }) =>
+      fetcher<AuthentikIntegrationUpdateResponse>(
+        INTEGRATION_ENDPOINTS.AUTHENTIK,
+        {
+          method: "PUT",
+          body: data,
+        },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.authentik(),
       });
     },
   });

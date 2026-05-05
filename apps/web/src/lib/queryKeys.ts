@@ -7,6 +7,7 @@ export const queryKeys = {
     passkeyCredentials: ["auth", "passkey-credentials"] as const,
     validateInvitation: (token: string) =>
       [...queryKeys.auth.all, "validate-invitation", token] as const,
+    ssoProviders: () => [...queryKeys.auth.all, "sso-providers"] as const,
   },
 
   chores: {
@@ -113,6 +114,8 @@ export const queryKeys = {
     services: () =>
       [...queryKeys.externalNotifications.all, "services"] as const,
     logs: () => [...queryKeys.externalNotifications.all, "logs"] as const,
+    templates: () =>
+      [...queryKeys.externalNotifications.all, "templates"] as const,
   },
 
   releases: {
@@ -144,6 +147,7 @@ export const queryKeys = {
     uptimekuma: () => [...queryKeys.integrations.all, "uptimekuma"] as const,
     uptimekumaMonitors: () =>
       [...queryKeys.integrations.all, "uptimekuma", "monitors"] as const,
+    authentik: () => [...queryKeys.integrations.all, "authentik"] as const,
   },
 
   admin: {

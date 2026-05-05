@@ -10,7 +10,7 @@ import type { JellyfinUserMapping } from "@hously/api/utils/integrations/types";
 export function resolveSyncUser(
   jellyfinUserId: string,
   mappings: JellyfinUserMapping[],
-): number | null {
+): string | null {
   return (
     mappings.find((m) => m.jellyfin_user_id === jellyfinUserId)
       ?.hously_user_id ?? null

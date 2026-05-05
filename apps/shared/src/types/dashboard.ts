@@ -22,7 +22,7 @@ export type ActivityType =
 
 export interface Activity {
   id?: number;
-  user_id?: number;
+  user_id?: string;
   task_type?: "chore";
   task_id?: number;
   completed_at?: string;

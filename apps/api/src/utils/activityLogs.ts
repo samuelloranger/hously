@@ -28,7 +28,7 @@ export type ActivityLogType =
  */
 export async function logActivity(input: {
   type: ActivityLogType;
-  userId?: number | null;
+  userId?: string | null;
   payload?: Prisma.InputJsonValue;
   createdAt?: Date;
 }): Promise<void> {

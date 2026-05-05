@@ -74,9 +74,11 @@ export const normalizeJellyfinSyncConfig = (
       jellyfin_user_id:
         typeof m.jellyfin_user_id === "string" ? m.jellyfin_user_id.trim() : "",
       hously_user_id:
-        typeof m.hously_user_id === "number" ? m.hously_user_id : 0,
+        typeof m.hously_user_id === "string" ? m.hously_user_id : "",
     }))
-    .filter((m) => m.jellyfin_user_id.length > 0 && m.hously_user_id > 0);
+    .filter(
+      (m) => m.jellyfin_user_id.length > 0 && m.hously_user_id.length > 0,
+    );
 
   return {
     sync_token: syncToken,

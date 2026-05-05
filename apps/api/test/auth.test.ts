@@ -12,20 +12,37 @@ describe("Authentication", () => {
 
   beforeAll(async () => {
     if (!hasDb) return;
+
     const existing = await prisma.user.findFirst({
       where: { email: testEmail },
     });
 
     if (!existing) {
       const pwdHash = await hashPassword(testPassword);
-      await prisma.user.create({
+      const user = await prisma.user.create({
         data: {
           email: testEmail,
+          name: "Test User",
+          emailVerified: false,
           passwordHash: pwdHash,
           firstName: "Test",
           lastName: "User",
           isAdmin: false,
           createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+
+      // better-auth requires a ba_accounts credential row to authenticate
+      await prisma.baAccount.create({
+        data: {
+          id: crypto.randomUUID(),
+          accountId: testEmail,
+          providerId: "credential",
+          userId: user.id,
+          password: pwdHash,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       });
     }
@@ -34,7 +51,7 @@ describe("Authentication", () => {
   it("should login successfully with correct credentials", async () => {
     if (!hasDb) return;
     const response = await app.handle(
-      new Request("http://localhost/api/auth/login", {
+      new Request("http://localhost/api/auth/sign-in/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: testEmail, password: testPassword }),
@@ -47,7 +64,7 @@ describe("Authentication", () => {
     expect(json.user.email).toBe(testEmail);
 
     cookies = response.headers.get("set-cookie") || "";
-    expect(cookies).toContain("auth=");
+    expect(cookies).toContain("better-auth.session_token=");
   });
 
   it("should get current user with valid cookie", async () => {
@@ -67,7 +84,7 @@ describe("Authentication", () => {
   it("should fail login with wrong password", async () => {
     if (!hasDb) return;
     const response = await app.handle(
-      new Request("http://localhost/api/auth/login", {
+      new Request("http://localhost/api/auth/sign-in/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: testEmail, password: "WrongPassword" }),

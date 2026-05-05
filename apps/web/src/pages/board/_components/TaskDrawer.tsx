@@ -323,10 +323,7 @@ export function TaskDrawer({
                   <select
                     value={task.assignee_id ?? ""}
                     onChange={(e) =>
-                      handleFieldChange(
-                        "assignee_id",
-                        e.target.value ? Number(e.target.value) : null,
-                      )
+                      handleFieldChange("assignee_id", e.target.value || null)
                     }
                     className="w-full bg-transparent text-sm text-neutral-800 outline-none dark:text-neutral-100"
                   >

@@ -68,7 +68,8 @@ export const jellyfinIntegrationRoutes = new Elysia()
 
       const userMappings = (body.user_mappings ?? [])
         .filter(
-          (m) => m.jellyfin_user_id.trim().length > 0 && m.hously_user_id > 0,
+          (m) =>
+            m.jellyfin_user_id.trim().length > 0 && m.hously_user_id.length > 0,
         )
         .map((m) => ({
           jellyfin_user_id: m.jellyfin_user_id.trim(),
@@ -136,7 +137,7 @@ export const jellyfinIntegrationRoutes = new Elysia()
           t.Array(
             t.Object({
               jellyfin_user_id: t.String(),
-              hously_user_id: t.Number(),
+              hously_user_id: t.String(),
             }),
           ),
         ),

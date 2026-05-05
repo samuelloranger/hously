@@ -36,23 +36,6 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
       return serverError(set, "Failed to list users");
     }
   })
-  // GET /api/users/me - Get current user profile
-  .get("/me", async ({ user, set }) => {
-    if (!user) {
-      return unauthorized(set, "Unauthorized");
-    }
-
-    // Fetch fresh user data from database (including locale)
-    const dbUser = await prisma.user.findFirst({
-      where: { id: user.id },
-    });
-
-    if (!dbUser) {
-      return unauthorized(set, "User not found");
-    }
-
-    return { user: mapUser(dbUser) };
-  })
   // PUT /api/users/me - Update user profile
   .put(
     "/me",
@@ -89,7 +72,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
   // POST /api/users/me/password - Change password
   .post(
     "/me/password",
-    async ({ user, body, set, jwt, cookie: { auth } }) => {
+    async ({ user, body, set }) => {
       if (!user) {
         return unauthorized(set, "Unauthorized");
       }
@@ -106,7 +89,7 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         // Fetch user with password hash
         const dbUser = await prisma.user.findFirst({
           where: { id: user.id },
-          select: { id: true, passwordHash: true, authVersion: true },
+          select: { id: true, passwordHash: true },
         });
 
         if (!dbUser) {
@@ -131,35 +114,21 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
 
         // Hash new password and update
         const passwordHash = await hashPassword(new_password);
-        const updatedUser = await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            passwordHash,
-            authVersion: { increment: 1 },
-          },
-          select: { id: true, authVersion: true },
-        });
-        await prisma.refreshToken.updateMany({
-          where: { userId: user.id, revoked: false },
-          data: { revoked: true },
-        });
+        await prisma.$transaction([
+          prisma.user.update({
+            where: { id: user.id },
+            data: { passwordHash },
+          }),
+          prisma.baAccount.updateMany({
+            where: { userId: user.id, providerId: "credential" },
+            data: { password: passwordHash },
+          }),
+          prisma.baSession.deleteMany({
+            where: { userId: user.id },
+          }),
+        ]);
 
-        const accessToken = await jwt.sign({
-          id: updatedUser.id,
-          ver: updatedUser.authVersion,
-          exp: Math.floor(Date.now() / 1000) + 7 * 86400,
-        });
-
-        auth.set({
-          value: accessToken,
-          httpOnly: true,
-          maxAge: 7 * 86400,
-          path: "/",
-          sameSite: "lax",
-          secure: process.env.NODE_ENV === "production",
-        });
-
-        return { message: "Password updated successfully", token: accessToken };
+        return { message: "Password updated successfully" };
       } catch (error) {
         console.error("Error changing password:", error);
         return serverError(set, "Failed to change password");

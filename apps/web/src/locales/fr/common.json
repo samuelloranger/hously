@@ -411,7 +411,8 @@
     "passwordNeedsUppercase": "Le mot de passe doit contenir au moins une lettre majuscule",
     "passwordNeedsLowercase": "Le mot de passe doit contenir au moins une lettre minuscule",
     "passwordNeedsNumber": "Le mot de passe doit contenir au moins un chiffre",
-    "passwordNeedsSpecialChar": "Le mot de passe doit contenir au moins un caractère spécial"
+    "passwordNeedsSpecialChar": "Le mot de passe doit contenir au moins un caractère spécial",
+    "signInWithAuthentik": "Se connecter avec Authentik"
   },
   "acceptInvitation": {
     "title": "Accepter votre invitation",
@@ -1316,7 +1317,8 @@
       "groups": {
         "media": "Médias",
         "infrastructure": "Infrastructure",
-        "other": "Autre"
+        "other": "Autre",
+        "authentication": "Authentification"
       },
       "save": "Enregistrer l'intégration",
       "saveSuccess": "Intégration enregistrée avec succès",
@@ -1441,6 +1443,17 @@
           "torr9": "Torr9",
           "la-cale": "La Cale"
         }
+      },
+      "authentik": {
+        "help": "Connectez Authentik comme fournisseur OpenID Connect pour permettre la connexion SSO.",
+        "issuerUrl": "URL de l'émetteur",
+        "clientId": "Client ID",
+        "clientIdPlaceholder": "my-hously-app",
+        "clientSecret": "Secret client",
+        "clientSecretPlaceholder": "Entrez le secret client",
+        "clientSecretPlaceholderSet": "Laissez vide pour conserver le secret actuel",
+        "redirectUri": "URI de redirection",
+        "redirectUriHelp": "Ajoutez cette URL comme URI de redirection autorisée dans votre application Authentik."
       }
     }
   },

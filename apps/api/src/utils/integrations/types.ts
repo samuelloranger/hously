@@ -5,7 +5,7 @@ export interface JellyfinIntegrationConfig {
 
 export interface JellyfinUserMapping {
   jellyfin_user_id: string;
-  hously_user_id: number;
+  hously_user_id: string;
 }
 
 export interface JellyfinSyncConfig {

@@ -4,7 +4,12 @@ import { staticPlugin } from "@elysiajs/static";
 
 import { cors } from "@elysiajs/cors";
 import { checkAndNotifyVersionChange } from "./services/versionService";
-import { auth } from "./auth";
+import { auth as betterAuthInstance } from "@hously/api/lib/auth";
+import {
+  protectedAuthRoutes,
+  publicAuthRoutes,
+  ssoProvidersRoute,
+} from "./auth";
 import { adminRoutes } from "./routes/admin";
 import { analyticsRoutes } from "./routes/analytics";
 import { boardTagsRoutes } from "./routes/board-tags";
@@ -19,7 +24,6 @@ import { homeAssistantRoutes } from "./routes/dashboard/home-assistant";
 import { libraryMediaAdminRoutes } from "./routes/library/libraryMediaAdmin";
 import { libraryRoutes } from "./routes/library";
 import { qualityProfilesRoutes } from "./routes/quality-profiles";
-import { passkeyRoutes } from "./routes/passkey";
 import { mediasRoutes } from "./routes/medias";
 import { jellyfinSyncRoutes } from "./routes/sync/jellyfin";
 import { notificationsRoutes } from "./routes/notifications";
@@ -30,7 +34,7 @@ import { searchRoutes } from "./routes/search";
 import { systemRoutes } from "./routes/system";
 import { usersRoutes } from "./routes/users";
 import { webhooksRoutes } from "./routes/webhooks";
-import { globalRateLimit } from "./middleware/rateLimit";
+import { authRateLimit, globalRateLimit } from "./middleware/rateLimit";
 import { initWorkers, setupScheduledJobs } from "./services/queueService";
 
 const serveStatic = Bun.env.SERVE_STATIC === "true";
@@ -67,8 +71,11 @@ export const app = new Elysia()
     set.status = 500;
     return { error: "Internal server error" };
   })
-  .use(auth)
-  .use(passkeyRoutes)
+  .use(publicAuthRoutes)
+  .use(ssoProvidersRoute)
+  .use(protectedAuthRoutes)
+  .use(authRateLimit)
+  .all("/api/auth/*", ({ request }) => betterAuthInstance.handler(request))
   .use(globalRateLimit) // Global rate limiting for unauthenticated requests
   .use(dashboardRoutes)
   .use(usersRoutes)

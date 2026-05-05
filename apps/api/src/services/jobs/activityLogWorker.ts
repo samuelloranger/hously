@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 
 export interface ActivityLogJobData {
   type: string;
-  userId?: number | null;
+  userId?: string | null;
   payload?: Prisma.InputJsonValue;
   createdAt?: string; // ISO string for serialization
 }

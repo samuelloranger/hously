@@ -54,7 +54,7 @@ const getScheduleTimes = (body: {
   schedule_times?: string[];
 }) => body.schedules ?? body.schedule_times ?? [];
 
-const getUserId = (user: { id: number } | null | undefined) => {
+const getUserId = (user: { id: string } | null | undefined) => {
   if (!user) {
     throw new Error("Unauthorized");
   }
@@ -106,7 +106,7 @@ const getDayRange = (date = todayLocal()) => {
 /** Shared POST /complete and POST /skip body: add one done/skipped slot for the day. */
 const recordHabitSlotAction = async (params: {
   habit: { id: number; timesPerDay: number };
-  userId: number;
+  userId: string;
   bodyDate: string | undefined;
   status: typeof DONE_STATUS | typeof SKIPPED_STATUS;
 }) => {
@@ -174,7 +174,7 @@ const recordHabitSlotAction = async (params: {
 /** Shared DELETE /complete and DELETE /skip body: remove the last slot of the given status for the day. */
 const removeHabitSlotAction = async (params: {
   habit: { id: number; timesPerDay: number };
-  userId: number;
+  userId: string;
   queryDate: string | undefined;
   status: typeof DONE_STATUS | typeof SKIPPED_STATUS;
 }) => {

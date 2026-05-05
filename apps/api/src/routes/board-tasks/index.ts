@@ -284,7 +284,8 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
             priority,
             startDate: body.start_date ? new Date(body.start_date) : null,
             dueDate: body.due_date ? new Date(body.due_date) : null,
-            assigneeId: body.assignee_id ?? null,
+            assigneeId:
+              body.assignee_id == null ? null : String(body.assignee_id),
             tags: [],
             boardTags:
               tagIds.length > 0
@@ -313,7 +314,7 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
         priority: t.Optional(t.String()),
         start_date: t.Optional(t.Nullable(t.String())),
         due_date: t.Optional(t.Nullable(t.String())),
-        assignee_id: t.Optional(t.Nullable(t.Number())),
+        assignee_id: t.Optional(t.Nullable(t.String())),
         tag_ids: t.Optional(t.Array(t.Number())),
       }),
     },
@@ -367,7 +368,7 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
           priority?: BoardTaskPriority;
           startDate?: Date | null;
           dueDate?: Date | null;
-          assigneeId?: number | null;
+          assigneeId?: string | null;
           boardTags?: { set: { id: number }[] };
           estimatedMinutes?: number | null;
           archived?: boolean;
@@ -441,7 +442,8 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
         }
 
         if ("assignee_id" in body) {
-          const newAssigneeId = body.assignee_id ?? null;
+          const newAssigneeId =
+            body.assignee_id == null ? null : String(body.assignee_id);
           if (newAssigneeId !== existing.assigneeId) {
             activityInserts.push({
               taskId: id,
@@ -504,7 +506,7 @@ export const boardTasksRoutes = new Elysia({ prefix: "/api/board-tasks" })
         priority: t.Optional(t.String()),
         start_date: t.Optional(t.Nullable(t.String())),
         due_date: t.Optional(t.Nullable(t.String())),
-        assignee_id: t.Optional(t.Nullable(t.Number())),
+        assignee_id: t.Optional(t.Nullable(t.String())),
         tag_ids: t.Optional(t.Array(t.Number())),
         estimated_minutes: t.Optional(t.Nullable(t.Number())),
         archived: t.Optional(t.Boolean()),

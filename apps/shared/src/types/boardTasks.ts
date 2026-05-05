@@ -69,14 +69,14 @@ export interface BoardTask {
   priority: BoardTaskPriorityApi;
   start_date: string | null;
   due_date: string | null;
-  assignee_id: number | null;
+  assignee_id: string | null;
   assignee_name: string | null;
   assignee_avatar: string | null;
   tags: BoardTag[];
   estimated_minutes: number | null;
   logged_minutes: number;
   archived: boolean;
-  created_by: number;
+  created_by: string;
   created_at: string | null;
   updated_at: string | null;
   created_by_username?: string;
@@ -95,7 +95,7 @@ export interface CreateBoardTaskRequest {
   priority?: BoardTaskPriorityApi;
   start_date?: string | null;
   due_date?: string | null;
-  assignee_id?: number | null;
+  assignee_id?: string | null;
   tag_ids?: number[];
 }
 
@@ -106,7 +106,7 @@ export interface UpdateBoardTaskRequest {
   priority?: BoardTaskPriorityApi;
   start_date?: string | null;
   due_date?: string | null;
-  assignee_id?: number | null;
+  assignee_id?: string | null;
   tag_ids?: number[];
   estimated_minutes?: number | null;
   archived?: boolean;
@@ -115,7 +115,7 @@ export interface UpdateBoardTaskRequest {
 export interface BoardTimeLog {
   id: number;
   task_id: number;
-  user_id: number;
+  user_id: string;
   user_name: string;
   user_avatar: string | null;
   minutes: number;
@@ -144,7 +144,7 @@ export type BoardTaskActivityType =
 export interface BoardTaskActivity {
   id: number;
   task_id: number;
-  user_id: number;
+  user_id: string;
   user_name: string;
   user_avatar: string | null;
   type: BoardTaskActivityType;

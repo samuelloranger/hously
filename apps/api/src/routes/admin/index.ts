@@ -729,8 +729,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   .delete(
     "/users/:id",
     async ({ user, params, set }) => {
-      const userId = parseInt(params.id, 10);
-      if (isNaN(userId)) return badRequest(set, "Invalid user ID");
+      const userId = params.id;
 
       try {
         if (userId === user!.id)
@@ -756,11 +755,11 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
     { params: t.Object({ id: t.String() }) },
   )
 
-  // GET /api/admin/sessions - List all active refresh tokens (sessions)
+  // GET /api/admin/sessions - List all active Better Auth sessions
   .get("/sessions", async ({ set }) => {
     try {
-      const tokens = await prisma.refreshToken.findMany({
-        where: { revoked: false, expiresAt: { gt: new Date() } },
+      const sessions = await prisma.baSession.findMany({
+        where: { expiresAt: { gt: new Date() } },
         include: {
           user: {
             select: { id: true, email: true, firstName: true, lastName: true },
@@ -771,15 +770,16 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
       return {
         success: true,
-        sessions: tokens.map((t) => ({
-          id: t.id,
-          user_id: t.userId,
-          user_email: t.user.email,
+        sessions: sessions.map((session) => ({
+          id: session.id,
+          user_id: session.userId,
+          user_email: session.user.email,
           user_name:
-            [t.user.firstName, t.user.lastName].filter(Boolean).join(" ") ||
-            null,
-          expires_at: t.expiresAt.toISOString(),
-          created_at: t.createdAt.toISOString(),
+            [session.user.firstName, session.user.lastName]
+              .filter(Boolean)
+              .join(" ") || null,
+          expires_at: session.expiresAt.toISOString(),
+          created_at: session.createdAt.toISOString(),
         })),
       };
     } catch (error) {
@@ -792,13 +792,9 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   .delete(
     "/sessions/:id",
     async ({ params, set }) => {
-      const id = parseInt(params.id, 10);
-      if (isNaN(id)) return badRequest(set, "Invalid session ID");
-
       try {
-        await prisma.refreshToken.update({
-          where: { id },
-          data: { revoked: true },
+        await prisma.baSession.deleteMany({
+          where: { id: params.id },
         });
         return { success: true, message: "Session revoked" };
       } catch (error) {
@@ -813,13 +809,11 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   .delete(
     "/sessions/user/:userId",
     async ({ params, set }) => {
-      const userId = parseInt(params.userId, 10);
-      if (isNaN(userId)) return badRequest(set, "Invalid user ID");
+      const userId = params.userId;
 
       try {
-        await prisma.refreshToken.updateMany({
-          where: { userId, revoked: false },
-          data: { revoked: true },
+        await prisma.baSession.deleteMany({
+          where: { userId },
         });
         return { success: true, message: "All sessions revoked" };
       } catch (error) {
@@ -890,7 +884,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   .get("/export", async ({ set }) => {
     try {
       const allUsers = await prisma.user.findMany();
-      const idToEmail = new Map<number, string>();
+      const idToEmail = new Map<string, string>();
       for (const u of allUsers) idToEmail.set(u.id, u.email);
 
       const allChores = await prisma.chore.findMany();

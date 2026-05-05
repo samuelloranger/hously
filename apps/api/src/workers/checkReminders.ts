@@ -69,7 +69,7 @@ export async function checkAndSendReminders(): Promise<void> {
       const allUsers = await getAllUsers();
 
       // Determine who should receive the notification
-      let targetUsers: Array<{ id: number; locale: string | null }>;
+      let targetUsers: Array<{ id: string; locale: string | null }>;
       if (assignedTo) {
         // Chore is assigned: send only to assigned user
         targetUsers = allUsers.filter((user) => user.id === assignedTo);

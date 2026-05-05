@@ -190,7 +190,7 @@ function JellyfinIntegrationSectionImpl({
               />
               <Select
                 value={
-                  mapping.hously_user_id > 0
+                  mapping.hously_user_id.length > 0
                     ? String(mapping.hously_user_id)
                     : ""
                 }
@@ -198,7 +198,7 @@ function JellyfinIntegrationSectionImpl({
                   const updated = [...userMappings];
                   updated[idx] = {
                     ...updated[idx],
-                    hously_user_id: Number(val),
+                    hously_user_id: val,
                   };
                   setUserMappings(updated);
                 }}
@@ -244,7 +244,7 @@ function JellyfinIntegrationSectionImpl({
             onClick={() =>
               setUserMappings([
                 ...userMappings,
-                { jellyfin_user_id: "", hously_user_id: 0 },
+                { jellyfin_user_id: "", hously_user_id: "" },
               ])
             }
           >
