@@ -26,6 +26,7 @@ export function useCreateOidcProvider() {
       client_id: string;
       client_secret: string;
       enabled?: boolean;
+      icon_url?: string | null;
     }) =>
       fetcher<{ provider: OidcProvider }>(INTEGRATION_ENDPOINTS.OIDC, {
         method: "POST",
@@ -53,6 +54,7 @@ export function useUpdateOidcProvider() {
       client_id?: string;
       client_secret?: string;
       enabled?: boolean;
+      icon_url?: string | null;
     }) =>
       fetcher<{ provider: OidcProvider }>(
         `${INTEGRATION_ENDPOINTS.OIDC}/${id}`,
