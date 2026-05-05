@@ -165,8 +165,18 @@ export function LoginForm() {
                 callbackURL: "/",
               })
             }
-            className="group relative w-full flex justify-center items-center gap-2 py-2 px-4 border border-neutral-300 dark:border-neutral-600 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-neutral-900 transition-colors"
+            className="group relative w-full flex justify-center items-center gap-2.5 py-2 px-4 border border-neutral-300 dark:border-neutral-600 text-sm font-medium rounded-md text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-neutral-900 transition-colors"
           >
+            {provider.icon_url && (
+              <img
+                src={provider.icon_url}
+                alt=""
+                className="size-5 rounded object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+            )}
             {t("login.signInWith", { provider: provider.name })}
           </button>
         ))}
