@@ -209,6 +209,11 @@ export function useRemoveFromLibrary() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      // Search results (already_exists / library_id flags), watchlist, explore
+      // modal data, and discover card statuses all become stale after a delete.
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.all });
+      // Dashboard upcoming and stats may reference the deleted item.
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
   });
 }
