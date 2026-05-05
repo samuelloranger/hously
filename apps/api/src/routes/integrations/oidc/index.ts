@@ -31,6 +31,7 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
           client_id: p.clientId,
           client_secret_set: Boolean(p.clientSecret),
           enabled: p.enabled,
+          icon_url: p.iconUrl ?? null,
         })),
       };
     } catch {
@@ -42,7 +43,10 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
     async ({ user, body, set }) => {
       const slug = sanitizeSlug(body.slug);
       if (!SLUG_RE.test(slug)) {
-        return badRequest(set, "slug must only contain lowercase letters, numbers, and hyphens");
+        return badRequest(
+          set,
+          "slug must only contain lowercase letters, numbers, and hyphens",
+        );
       }
 
       const discoveryUrl = body.discovery_url.trim();
@@ -56,7 +60,9 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
         return badRequest(set, "client_id and client_secret are required");
       }
 
-      const existing = await prisma.oidcProvider.findUnique({ where: { slug } });
+      const existing = await prisma.oidcProvider.findUnique({
+        where: { slug },
+      });
       if (existing) {
         return badRequest(set, `A provider with slug "${slug}" already exists`);
       }
@@ -71,6 +77,7 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
             clientId,
             clientSecret: encrypt(clientSecret),
             enabled: body.enabled ?? true,
+            iconUrl: body.icon_url?.trim() || null,
             createdAt: now,
             updatedAt: now,
           },
@@ -93,6 +100,7 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
             client_id: provider.clientId,
             client_secret_set: true,
             enabled: provider.enabled,
+            icon_url: provider.iconUrl ?? null,
           },
         };
       } catch {
@@ -107,6 +115,7 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
         client_id: t.String(),
         client_secret: t.String(),
         enabled: t.Optional(t.Boolean()),
+        icon_url: t.Optional(t.String()),
       }),
     },
   )
@@ -119,14 +128,16 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
       if (!existing) return notFound(set, "OIDC provider not found");
 
       const discoveryUrl = body.discovery_url?.trim() ?? existing.discoveryUrl;
-      if (body.discovery_url !== undefined && !/^https?:\/\//.test(discoveryUrl)) {
+      if (
+        body.discovery_url !== undefined &&
+        !/^https?:\/\//.test(discoveryUrl)
+      ) {
         return badRequest(set, "discovery_url must be a valid http(s) URL");
       }
 
-      const clientSecret =
-        body.client_secret?.trim()
-          ? encrypt(body.client_secret.trim())
-          : existing.clientSecret;
+      const clientSecret = body.client_secret?.trim()
+        ? encrypt(body.client_secret.trim())
+        : existing.clientSecret;
 
       try {
         const updated = await prisma.oidcProvider.update({
@@ -137,6 +148,9 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
             clientId: body.client_id?.trim() ?? existing.clientId,
             clientSecret,
             enabled: body.enabled ?? existing.enabled,
+            ...(body.icon_url !== undefined
+              ? { iconUrl: body.icon_url?.trim() || null }
+              : {}),
             updatedAt: nowUtc(),
           },
         });
@@ -158,6 +172,7 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
             client_id: updated.clientId,
             client_secret_set: true,
             enabled: updated.enabled,
+            icon_url: updated.iconUrl ?? null,
           },
         };
       } catch {
@@ -171,6 +186,7 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
         client_id: t.Optional(t.String()),
         client_secret: t.Optional(t.String()),
         enabled: t.Optional(t.Boolean()),
+        icon_url: t.Optional(t.String()),
       }),
     },
   )
@@ -187,7 +203,11 @@ export const oidcIntegrationRoutes = new Elysia({ prefix: "/oidc" })
       await logActivity({
         type: "integration_updated",
         userId: user!.id,
-        payload: { integration_type: "oidc", slug: existing.slug, action: "deleted" },
+        payload: {
+          integration_type: "oidc",
+          slug: existing.slug,
+          action: "deleted",
+        },
       });
 
       return { success: true };
