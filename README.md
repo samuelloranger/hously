@@ -113,7 +113,6 @@ Optional integrations:
 | ---------------------------------------- | ------------------------------ |
 | `TMDB_API_KEY`                           | Required for media discovery   |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Web push notifications         |
-| `APNS_*`                                 | Apple Push Notifications (iOS) |
 | `SMTP_*`                                 | Email delivery                 |
 
 See `.env.example` for the full reference.

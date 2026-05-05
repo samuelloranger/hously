@@ -16,7 +16,8 @@ export const ADMIN_ENDPOINTS = {
   SESSIONS: "/api/admin/sessions",
   REVOKE_SESSION: (id: number) => `/api/admin/sessions/${id}`,
   REVOKE_USER_SESSIONS: (userId: number) =>
-    `/api/admin/sessions/user/${userId}`,  WEB_PUSH: "/api/admin/web-push",
+    `/api/admin/sessions/user/${userId}`,
+  WEB_PUSH: "/api/admin/web-push",
   DELETE_WEB_PUSH: (id: number) => `/api/admin/web-push/${id}`,
   RETRY_JOB: (queue: string, jobId: string) =>
     `/api/admin/queues/${queue}/jobs/${jobId}/retry`,

@@ -171,7 +171,10 @@ export const jellyfinIntegrationRoutes = new Elysia()
       await logActivity({
         type: "integration_updated",
         userId: user!.id,
-        payload: { integration_type: "jellyfin", action: "sync_token_regenerated" },
+        payload: {
+          integration_type: "jellyfin",
+          action: "sync_token_regenerated",
+        },
       });
 
       return { sync_token: newToken };

@@ -22,8 +22,6 @@ import {
   removeChoreRecurrence,
 } from "@hously/api/services/choreService";
 import {
-} from "@hously/api/services/queueService";
-import {
   badRequest,
   forbidden,
   notFound,
