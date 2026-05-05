@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import {
   AdguardIntegrationSection,
-  AuthentikIntegrationSection,
   JellyfinIntegrationSection,
   BeszelIntegrationSection,
   ProwlarrIntegrationSection,
@@ -88,14 +87,6 @@ export function IntegrationsTab() {
             <div className="space-y-3">
               <WeatherIntegrationSection />
               <HomeAssistantIntegrationSection />
-            </div>
-          </div>
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 px-1">
-              {t("settings.integrations.groups.authentication")}
-            </h3>
-            <div className="space-y-3">
-              <AuthentikIntegrationSection />
             </div>
           </div>
         </div>

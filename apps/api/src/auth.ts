@@ -138,11 +138,12 @@ export const publicAuthRoutes = new Elysia({ name: "auth/public" })
 export const ssoProvidersRoute = new Elysia({ name: "auth/sso-providers" }).get(
   "/api/auth/sso-providers",
   async () => {
-    const authentik = await prisma.integration.findFirst({
-      where: { type: "authentik", enabled: true },
-      select: { id: true },
+    const providers = await prisma.oidcProvider.findMany({
+      where: { enabled: true },
+      select: { slug: true, name: true },
+      orderBy: { createdAt: "asc" },
     });
-    return { authentik: Boolean(authentik) };
+    return { providers };
   },
 );
 

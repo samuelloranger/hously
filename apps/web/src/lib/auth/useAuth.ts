@@ -146,7 +146,9 @@ export function useSSOProviders() {
   return useQuery({
     queryKey: queryKeys.auth.ssoProviders(),
     queryFn: () =>
-      fetcher<{ authentik: boolean }>(AUTH_ENDPOINTS.SSO_PROVIDERS),
+      fetcher<{ providers: { slug: string; name: string }[] }>(
+        AUTH_ENDPOINTS.SSO_PROVIDERS,
+      ),
     staleTime: 60_000,
   });
 }

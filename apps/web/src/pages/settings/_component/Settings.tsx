@@ -12,6 +12,7 @@ import { MediaSettingsTab } from "@/pages/settings/_component/MediaSettingsTab";
 import { ReleasesTab } from "@/pages/settings/_component/ReleasesTab";
 import { SessionsTab } from "@/pages/settings/_component/SessionsTab";
 import { RecentActivityTab } from "@/pages/settings/_component/RecentActivityTab";
+import { OidcProvidersTab } from "@/pages/settings/_component/OidcProvidersTab";
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { cn } from "@/lib/utils";
 import {
@@ -38,6 +39,7 @@ export type Tab =
   | "calendar"
   | "external-notifications"
   | "integrations"
+  | "sso"
   | "data-export"
   | "jobs"
   | "users"
@@ -80,6 +82,11 @@ export function Settings() {
           id: "integrations",
           label: t("settings.integrations.title"),
           icon: Puzzle,
+        },
+        {
+          id: "sso",
+          label: t("settings.integrations.sso.title"),
+          icon: ShieldCheck,
         },
         {
           id: "external-notifications",
@@ -200,6 +207,7 @@ export function Settings() {
           {activeTab === "integrations" && currentUser?.is_admin && (
             <IntegrationsTab />
           )}
+          {activeTab === "sso" && currentUser?.is_admin && <OidcProvidersTab />}
           {activeTab === "data-export" && currentUser?.is_admin && (
             <DataExportTab />
           )}

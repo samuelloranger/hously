@@ -23,5 +23,5 @@ export const INTEGRATION_ENDPOINTS = {
   HOME_ASSISTANT_ENTITIES: "/api/integrations/home-assistant/entities",
   UPTIMEKUMA: "/api/integrations/uptimekuma",
   UPTIMEKUMA_MONITORS: "/api/integrations/uptimekuma/monitors",
-  AUTHENTIK: "/api/integrations/authentik",
+  OIDC: "/api/integrations/oidc",
 } as const;
