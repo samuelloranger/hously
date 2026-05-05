@@ -36,23 +36,6 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
       return serverError(set, "Failed to list users");
     }
   })
-  // GET /api/users/me - Get current user profile
-  .get("/me", async ({ user, set }) => {
-    if (!user) {
-      return unauthorized(set, "Unauthorized");
-    }
-
-    // Fetch fresh user data from database (including locale)
-    const dbUser = await prisma.user.findFirst({
-      where: { id: user.id },
-    });
-
-    if (!dbUser) {
-      return unauthorized(set, "User not found");
-    }
-
-    return { user: mapUser(dbUser) };
-  })
   // PUT /api/users/me - Update user profile
   .put(
     "/me",

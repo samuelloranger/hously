@@ -3,7 +3,7 @@ import type { BoardTask, BoardTaskPriorityApi } from "@hously/shared/types";
 
 export interface BoardFilters {
   tags: number[];
-  assigneeId: number | null;
+  assigneeId: string | null;
   priority: BoardTaskPriorityApi | null;
   dueDateFilter: "overdue" | "this_week" | null;
 }

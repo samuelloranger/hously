@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 BEGIN;
 
 ALTER TABLE board_tasks           DROP CONSTRAINT IF EXISTS board_tasks_assignee_id_fkey;

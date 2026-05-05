@@ -52,9 +52,7 @@ export function FilterBar({
         <FilterSelect
           label="Assignee"
           value={filters.assigneeId?.toString() ?? ""}
-          onChange={(v) =>
-            onChange({ ...filters, assigneeId: v ? Number(v) : null })
-          }
+          onChange={(v) => onChange({ ...filters, assigneeId: v || null })}
         >
           <option value="">Any assignee</option>
           {users.map((u) => (

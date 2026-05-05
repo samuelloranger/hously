@@ -34,7 +34,7 @@ import { searchRoutes } from "./routes/search";
 import { systemRoutes } from "./routes/system";
 import { usersRoutes } from "./routes/users";
 import { webhooksRoutes } from "./routes/webhooks";
-import { globalRateLimit } from "./middleware/rateLimit";
+import { authRateLimit, globalRateLimit } from "./middleware/rateLimit";
 import { initWorkers, setupScheduledJobs } from "./services/queueService";
 
 const serveStatic = Bun.env.SERVE_STATIC === "true";
@@ -74,7 +74,7 @@ export const app = new Elysia()
   .use(publicAuthRoutes)
   .use(ssoProvidersRoute)
   .use(protectedAuthRoutes)
-  .get("/api/auth/*", ({ request }) => betterAuthInstance.handler(request))
+  .use(authRateLimit)
   .all("/api/auth/*", ({ request }) => betterAuthInstance.handler(request))
   .use(globalRateLimit) // Global rate limiting for unauthenticated requests
   .use(dashboardRoutes)

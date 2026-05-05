@@ -38,7 +38,8 @@ function AuthentikIntegrationSectionImpl({
   const [enabled, setEnabled] = useState(Boolean(data?.integration?.enabled));
 
   const secretIsSet = Boolean(data?.integration?.client_secret_set);
-  const redirectUri = `${window.location.origin}/api/auth/oauth2/callback/authentik`;
+  const apiBase = import.meta.env.VITE_API_URL || window.location.origin;
+  const redirectUri = `${apiBase}/api/auth/oauth2/callback/authentik`;
 
   const isDirty = useMemo(() => {
     if (!data?.integration) return false;

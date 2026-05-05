@@ -27,6 +27,7 @@ type AuthentikConfig = {
   discoveryUrl: string;
   scopes: string[];
   pkce: true;
+  disableSignUp: true;
   mapProfileToUser: (profile: Record<string, unknown>) => {
     name: string;
     firstName: string;
@@ -69,6 +70,7 @@ async function loadAuthentikConfig(): Promise<AuthentikConfig | null> {
       discoveryUrl: `${issuerUrl}/.well-known/openid-configuration`,
       scopes: ["openid", "email", "profile"],
       pkce: true,
+      disableSignUp: true as const,
       mapProfileToUser: (profile) => {
         const name = typeof profile.name === "string" ? profile.name : "";
         const firstName =
@@ -98,10 +100,14 @@ const authentikConfigs: AuthentikConfig[] = initialAuthentikConfig
   : [];
 
 export function refreshAuthentikConfig(): void {
-  loadAuthentikConfig().then((config) => {
-    authentikConfigs.length = 0;
-    if (config) authentikConfigs.push(config);
-  });
+  loadAuthentikConfig()
+    .then((config) => {
+      authentikConfigs.length = 0;
+      if (config) authentikConfigs.push(config);
+    })
+    .catch((err) => {
+      console.error("[auth] Failed to refresh Authentik config:", err);
+    });
 }
 
 const baseURL = getBaseUrl();
@@ -144,7 +150,11 @@ export const auth = betterAuth({
     disableSignUp: true,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
-      await sendPasswordResetEmail(user.email, url, "en");
+      const locale =
+        typeof (user as { locale?: unknown }).locale === "string"
+          ? (user as { locale: string }).locale
+          : "en";
+      await sendPasswordResetEmail(user.email, url, locale);
     },
     resetPasswordTokenExpiresIn: 60 * 60,
     password: {
@@ -154,9 +164,9 @@ export const auth = betterAuth({
   },
   plugins: [
     passkey({
-      rpID: process.env.WEBAUTHN_RP_ID || "localhost",
+      rpID: process.env.WEBAUTHN_RP_ID || new URL(baseURL).hostname,
       rpName: process.env.WEBAUTHN_RP_NAME || "Hously",
-      origin: process.env.BASE_URL || baseURL,
+      origin: baseURL,
       schema: {
         passkey: { modelName: "BaPasskey" },
       },
