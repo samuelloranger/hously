@@ -11,6 +11,14 @@
     "timestamp": "2026-05-04T00:00:00Z",
     "versions": [
       {
+        "version": "2.0.2",
+        "changelog": "v2.0.2 \u2014 Fix authenticated requests hitting 1000/hr rate limit",
+        "targetAbi": "10.11.7.0",
+        "sourceUrl": "https://github.com/samuelloranger/hously/releases/download/v2.0.2/Jellyfin.Plugin.HouslyWatchlist_v2.0.2.zip",
+        "checksum": "3e07786012f645f381cbeaabd4117325",
+        "timestamp": "2026-05-05T18:19:08Z"
+      },
+      {
         "version": "2.0.1",
         "changelog": "v2.0.1 \u2014 Fix auth rate limit breaking page load",
         "targetAbi": "10.11.7.0",
