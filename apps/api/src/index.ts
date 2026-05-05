@@ -74,6 +74,7 @@ export const app = new Elysia()
   .use(publicAuthRoutes)
   .use(ssoProvidersRoute)
   .use(protectedAuthRoutes)
+  .get("/api/auth/*", ({ request }) => betterAuthInstance.handler(request))
   .all("/api/auth/*", ({ request }) => betterAuthInstance.handler(request))
   .use(globalRateLimit) // Global rate limiting for unauthenticated requests
   .use(dashboardRoutes)
