@@ -34,7 +34,6 @@
     "@elysiajs/static": "^1.4.7",
     "@elysiajs/swagger": "^1.3.1",
     "@hously/shared": "workspace:*",
-    "@parse/node-apn": "^8.0.0",
     "@prisma/adapter-pg": "7.6.0",
     "@prisma/client": "7.6.0",
     "@react-email/components": "^1.0.10",

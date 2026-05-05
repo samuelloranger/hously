@@ -61,7 +61,7 @@ async function sendAppUpdateNotifications(newVersion?: string): Promise<void> {
     // Get all users who have at least one delivery channel
     const userIds = await prisma.user.findMany({
       where: {
-        OR: [{ userSubscriptions: { some: {} } }, { pushTokens: { some: {} } }],
+        OR: [{ userSubscriptions: { some: {} } }],
       },
       select: { id: true },
     });

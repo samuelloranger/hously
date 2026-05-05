@@ -47,7 +47,6 @@ export const SCHEDULED_JOB_NAMES = {
 // Job names for Notifications queue
 export const NOTIFICATION_JOB_NAMES = {
   SEND_NOTIFICATION: "send-notification",
-  SILENT_PUSH: "silent-push",
 } as const;
 
 const defaultQueueOptions: QueueOptions = {

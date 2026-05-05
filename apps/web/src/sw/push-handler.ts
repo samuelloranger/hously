@@ -73,7 +73,6 @@ export function handlePush(event: PushEvent): void {
     syncBadgeCount(),
   ];
 
-  // 💡 Ici on remet handleAppUpdate dans la game, SANS faire de silent push
   if (data.data?.notification_type === "app-update") {
     promises.push(handleAppUpdate());
   }

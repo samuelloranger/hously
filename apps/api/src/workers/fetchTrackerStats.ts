@@ -6,7 +6,6 @@ import { TRACKER_SCRAPERS } from "@hously/api/services/trackers";
 import type { TrackerType } from "@hously/api/utils/integrations/types";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { decrypt } from "@hously/api/services/crypto";
-import { sendApnNotifications } from "@hously/api/utils/apnPush";
 import type {
   FlareSolverrCookie,
   FlareSolverrSolution,
@@ -63,49 +62,6 @@ function validateFlareSolverrResponse(
 
 const TRACKER_ORDER: TrackerType[] = ["torr9", "c411", "la-cale"];
 const trackerName = (type: TrackerType): string => type.toUpperCase();
-
-const sendTrackerWidgetRefreshSilentPush = async (): Promise<void> => {
-  try {
-    const pushTokens = await prisma.pushToken.findMany({
-      where: { platform: "ios" },
-      select: { token: true },
-    });
-
-    const iosTokens = [
-      ...new Set(pushTokens.map((t) => t.token).filter(Boolean)),
-    ];
-    if (iosTokens.length === 0) return;
-
-    const { successCount, invalidTokens } = await sendApnNotifications(
-      iosTokens,
-      {
-        contentAvailable: true,
-        sound: null,
-        data: { type: "TRACKER_WIDGET_REFRESH" },
-      },
-    );
-
-    if (successCount > 0) {
-      console.log(
-        `[cron:trackers] sent widget refresh silent push to ${successCount} iOS devices`,
-      );
-    }
-
-    if (invalidTokens.length > 0) {
-      await prisma.pushToken.deleteMany({
-        where: { token: { in: invalidTokens } },
-      });
-      console.log(
-        `[cron:trackers] deleted ${invalidTokens.length} invalid APNs tokens`,
-      );
-    }
-  } catch (error) {
-    console.error(
-      "[cron:trackers] failed to send widget refresh silent push:",
-      error,
-    );
-  }
-};
 
 export const fetchTrackerStats = async (
   trackerType: TrackerType,
@@ -273,10 +229,6 @@ export const fetchAllTrackerStats = async (options?: {
           message,
         );
       }
-    }
-
-    if (trigger === "cron") {
-      await sendTrackerWidgetRefreshSilentPush();
     }
 
     await logActivity({

@@ -152,7 +152,6 @@ export const queryKeys = {
     invitations: () => [...queryKeys.admin.all, "invitations"] as const,
     export: () => [...queryKeys.admin.all, "export"] as const,
     sessions: () => [...queryKeys.admin.all, "sessions"] as const,
-    pushTokens: () => [...queryKeys.admin.all, "push-tokens"] as const,
     webPush: () => [...queryKeys.admin.all, "web-push"] as const,
     scheduledJobs: () => [...queryKeys.admin.all, "scheduled-jobs"] as const,
     libraryHealth: () => [...queryKeys.admin.all, "library-health"] as const,

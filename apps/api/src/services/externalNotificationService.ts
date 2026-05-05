@@ -1,7 +1,6 @@
 import { prisma } from "@hously/api/db";
 import { createAndQueueNotification } from "@hously/api/workers/notificationService";
 import { getExternalNotificationUrl } from "@hously/shared/utils";
-import { sendApnNotifications } from "@hously/api/utils/apnPush";
 
 /**
  * Generate a secure random token for webhook authentication
@@ -76,48 +75,6 @@ async function getTemplateForEvent(
   }
 
   return template;
-}
-
-/**
- * Send a silent background push notification to all user's iOS devices
- * This is used for background synchronization (e.g., calendar sync)
- */
-export async function sendSilentPushToUser(
-  userId: number,
-  type: string,
-): Promise<boolean> {
-  const pushTokens = await prisma.pushToken.findMany({
-    where: { userId, platform: "ios" },
-    select: { token: true },
-  });
-
-  const iosTokens = [
-    ...new Set(pushTokens.map((t) => t.token).filter(Boolean)),
-  ];
-  if (iosTokens.length === 0) {
-    return false;
-  }
-
-  const { successCount, invalidTokens } = await sendApnNotifications(
-    iosTokens,
-    {
-      contentAvailable: true,
-      sound: null,
-      data: {
-        type,
-        notification_type: type,
-        silent: true,
-      },
-    },
-  );
-
-  if (invalidTokens.length > 0) {
-    await prisma.pushToken.deleteMany({
-      where: { token: { in: invalidTokens } },
-    });
-  }
-
-  return successCount > 0;
 }
 
 /**
@@ -198,15 +155,7 @@ export async function sendExternalNotification(
       const allSubscriptions = await prisma.userSubscription.findMany({
         select: { userId: true },
       });
-      const allPushTokens = await prisma.pushToken.findMany({
-        select: { userId: true },
-      });
-      targetUserIds = [
-        ...new Set([
-          ...allSubscriptions.map((s) => s.userId),
-          ...allPushTokens.map((t) => t.userId),
-        ]),
-      ];
+      targetUserIds = [...new Set(allSubscriptions.map((s) => s.userId))];
     }
 
     if (targetUserIds.length === 0) {

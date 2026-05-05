@@ -69,13 +69,6 @@ const envSchema = z.object({
   VAPID_PRIVATE_KEY: z.string().optional(),
   VAPID_CONTACT_EMAIL: z.string().optional().default("mailto:admin@localhost"),
 
-  // ── APNs (iOS Push) ───────────────────────────────────
-  APNS_TEAM_ID: z.string().optional(),
-  APNS_KEY_ID: z.string().optional(),
-  APNS_AUTH_KEY: z.string().optional(),
-  APNS_TOPIC: z.string().optional(),
-  APNS_PRODUCTION: booleanString,
-
   // ── GitHub Releases ───────────────────────────────────
   GITHUB_RELEASES_REPO: githubRepoFullName,
 });

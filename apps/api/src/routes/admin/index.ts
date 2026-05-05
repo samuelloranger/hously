@@ -830,57 +830,6 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
     { params: t.Object({ userId: t.String() }) },
   )
 
-  // GET /api/admin/push-tokens - List all iOS/mobile push tokens
-  .get("/push-tokens", async ({ set }) => {
-    try {
-      const tokens = await prisma.pushToken.findMany({
-        include: {
-          user: {
-            select: { id: true, email: true, firstName: true, lastName: true },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
-      return {
-        success: true,
-        push_tokens: tokens.map((t) => ({
-          id: t.id,
-          user_id: t.userId,
-          user_email: t.user.email,
-          user_name:
-            [t.user.firstName, t.user.lastName].filter(Boolean).join(" ") ||
-            null,
-          token: t.token.slice(0, 12) + "...",
-          platform: t.platform,
-          created_at: t.createdAt.toISOString(),
-          updated_at: t.updatedAt?.toISOString() ?? null,
-        })),
-      };
-    } catch (error) {
-      console.error("Error listing push tokens:", error);
-      return serverError(set, "Failed to list push tokens");
-    }
-  })
-
-  // DELETE /api/admin/push-tokens/:id - Delete a push token
-  .delete(
-    "/push-tokens/:id",
-    async ({ params, set }) => {
-      const id = parseInt(params.id, 10);
-      if (isNaN(id)) return badRequest(set, "Invalid token ID");
-
-      try {
-        await prisma.pushToken.delete({ where: { id } });
-        return { success: true, message: "Push token deleted" };
-      } catch (error) {
-        console.error("Error deleting push token:", error);
-        return serverError(set, "Failed to delete push token");
-      }
-    },
-    { params: t.Object({ id: t.String() }) },
-  )
-
   // GET /api/admin/web-push - List all web push subscriptions
   .get("/web-push", async ({ set }) => {
     try {

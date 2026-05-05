@@ -241,37 +241,7 @@ export const habitsRoutes = new Elysia()
   .use(requireUser)
   .group("/api/habits", (app) =>
     app
-      .post(
-        "/live-activity/register",
-        async ({ body, user }) => {
-          const userId = getUserId(user);
 
-          await prisma.liveActivityToken.upsert({
-            where: { token: body.token },
-            update: {
-              userId,
-              platform: body.platform || "ios",
-              updatedAt: new Date(),
-            },
-            create: {
-              userId,
-              token: body.token,
-              platform: body.platform || "ios",
-            },
-          });
-
-          console.log(
-            `[LiveActivity] Registered push-to-start token for user ${userId}`,
-          );
-          return { success: true };
-        },
-        {
-          body: t.Object({
-            token: t.String({ minLength: 1 }),
-            platform: t.Optional(t.String()),
-          }),
-        },
-      )
       .get("/", async ({ user, query: { date: queryDate } }) => {
         const userId = getUserId(user);
         const targetDay = queryDate ? midnightOf(queryDate) : todayLocal();
