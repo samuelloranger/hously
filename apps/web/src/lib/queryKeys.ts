@@ -114,6 +114,8 @@ export const queryKeys = {
     services: () =>
       [...queryKeys.externalNotifications.all, "services"] as const,
     logs: () => [...queryKeys.externalNotifications.all, "logs"] as const,
+    templates: () =>
+      [...queryKeys.externalNotifications.all, "templates"] as const,
   },
 
   releases: {
