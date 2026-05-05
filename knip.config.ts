@@ -8,10 +8,8 @@ const config: KnipConfig = {
     },
     "apps/api": {
       project: ["src/**/*.ts"],
-      // @parse/node-apn: used via raw HTTP/crypto (no JS import), types pkg still needed
       // @react-email/*: JSX imports in emailService — knip misses JSX-only deps
       ignoreDependencies: [
-        "@parse/node-apn",
         "@react-email/components",
         "@react-email/tailwind",
       ],

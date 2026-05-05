@@ -79,7 +79,6 @@ export function SessionsTab() {
     }
   };
 
-
   const handleDeleteWebPush = async (id: number) => {
     if (!confirm(t("settings.sessions.deleteWebPushConfirm"))) return;
     try {
@@ -187,7 +186,6 @@ export function SessionsTab() {
           </div>
         )}
       </SectionCard>
-
 
       {/* Web Push Subscriptions */}
       <SectionCard
