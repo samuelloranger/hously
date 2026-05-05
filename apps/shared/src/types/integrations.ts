@@ -256,4 +256,5 @@ export interface OidcProvider {
   client_id: string;
   client_secret_set: boolean;
   enabled: boolean;
+  icon_url: string | null;
 }
