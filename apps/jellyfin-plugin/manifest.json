@@ -11,6 +11,14 @@
     "timestamp": "2026-05-04T00:00:00Z",
     "versions": [
       {
+        "version": "2.1.0",
+        "changelog": "v2.1.0",
+        "targetAbi": "10.11.7.0",
+        "sourceUrl": "https://github.com/samuelloranger/hously/releases/download/v2.1.0/Jellyfin.Plugin.HouslyWatchlist_v2.1.0.zip",
+        "checksum": "78b10494424ec11acc405984304476ae",
+        "timestamp": "2026-05-05T22:49:09Z"
+      },
+      {
         "version": "2.0.3",
         "changelog": "v2.0.3 \u2014 Fix passkey and auth GET routes intercepted by SPA handler",
         "targetAbi": "10.11.7.0",
