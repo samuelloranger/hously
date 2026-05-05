@@ -9,7 +9,6 @@ import {
   sendWebPushNotification,
   type PushSubscription,
 } from "@hously/api/utils/webpush";
-import { sendApnNotifications } from "@hously/api/utils/apnPush";
 import {
   createAndQueueNotification,
   getAllUsers,
@@ -22,55 +21,6 @@ import {
   unauthorized,
 } from "@hously/api/errors";
 import { logActivity } from "@hously/api/utils/activityLogs";
-
-const getUnreadCountForUser = async (userId: number): Promise<number> =>
-  prisma.notification.count({
-    where: { userId, read: false },
-  });
-
-const syncBadgesForUser = async (
-  userId: number,
-  unreadCount: number,
-  readNotificationIds?: number[],
-): Promise<void> => {
-  const pushTokens = await prisma.pushToken.findMany({
-    where: { userId },
-    select: { token: true, platform: true },
-  });
-
-  if (pushTokens.length === 0) {
-    return;
-  }
-
-  const iosTokens = pushTokens
-    .filter((t) => t.platform === "ios")
-    .map((t) => t.token);
-
-  if (iosTokens.length > 0) {
-    const data: Record<string, unknown> = {
-      notification_type: "badge-sync",
-      unread_count: unreadCount,
-      silent: true,
-    };
-
-    if (readNotificationIds && readNotificationIds.length > 0) {
-      data.read_notification_ids = readNotificationIds;
-    }
-
-    const { invalidTokens } = await sendApnNotifications(iosTokens, {
-      data,
-      sound: null,
-      badge: unreadCount,
-      contentAvailable: true,
-    });
-
-    if (invalidTokens.length > 0) {
-      await prisma.pushToken.deleteMany({
-        where: { token: { in: invalidTokens } },
-      });
-    }
-  }
-};
 
 export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
   .use(auth)
@@ -87,7 +37,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
       const readFilter = query.read;
 
       try {
-        // Build where conditions
         const where: Prisma.NotificationWhereInput = { userId: user.id };
 
         if (readFilter === "true") {
@@ -96,10 +45,8 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
           where.read = false;
         }
 
-        // Get total count
         const total = await prisma.notification.count({ where });
 
-        // Get paginated notifications
         const notificationsList = await prisma.notification.findMany({
           where,
           orderBy: { createdAt: "desc" },
@@ -157,7 +104,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     }
   })
   // GET /api/notifications/unread-ids - Lightweight endpoint for the SW to check read status
-  // Returns only the IDs of unread notifications so the SW can skip showing already-read ones.
   .get("/unread-ids", async ({ user, set }) => {
     if (!user) {
       return unauthorized(set, "Unauthorized");
@@ -187,7 +133,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     }
 
     try {
-      // Check if notification exists and belongs to user
       const notification = await prisma.notification.findFirst({
         where: {
           id: notificationId,
@@ -207,9 +152,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
             readAt: new Date().toISOString(),
           },
         });
-
-        const unreadCount = await getUnreadCountForUser(user.id);
-        await syncBadgesForUser(user.id, unreadCount, [notificationId]);
       }
 
       return { success: true, message: "Notification marked as read" };
@@ -225,13 +167,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     }
 
     try {
-      // Get IDs of unread notifications before marking them
-      const unreadNotifications = await prisma.notification.findMany({
-        where: { userId: user.id, read: false },
-        select: { id: true },
-      });
-      const readIds = unreadNotifications.map((n) => n.id);
-
       const result = await prisma.notification.updateMany({
         where: { userId: user.id, read: false },
         data: {
@@ -240,14 +175,10 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         },
       });
 
-      const count = result.count;
-
-      await syncBadgesForUser(user.id, 0, readIds);
-
       return {
         success: true,
-        message: `Marked ${count} notifications as read`,
-        count,
+        message: `Marked ${result.count} notifications as read`,
+        count: result.count,
       };
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
@@ -266,7 +197,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     }
 
     try {
-      // Check if notification exists and belongs to user
       const notification = await prisma.notification.findFirst({
         where: {
           id: notificationId,
@@ -281,10 +211,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
       await prisma.notification.delete({
         where: { id: notificationId },
       });
-
-      // Always sync badges and remove from lock screen (even if already read)
-      const unreadCount = await getUnreadCountForUser(user.id);
-      await syncBadgesForUser(user.id, unreadCount, [notificationId]);
 
       return { success: true, message: "Notification deleted" };
     } catch (error) {
@@ -332,7 +258,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
     const deviceId = parseInt(params.id, 10);
 
     try {
-      // Check if device exists and belongs to user
       const device = await prisma.userSubscription.findFirst({
         where: {
           id: deviceId,
@@ -390,7 +315,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         const browserVersion = device_info?.browserVersion || null;
         const platform = device_info?.platform || null;
 
-        // Check if subscription already exists for this user
         const existingSubscription = await prisma.userSubscription.findFirst({
           where: {
             userId: user.id,
@@ -402,7 +326,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         let isNewSubscription = false;
 
         if (existingSubscription) {
-          // Update existing subscription
           await prisma.userSubscription.update({
             where: { id: existingSubscription.id },
             data: {
@@ -423,7 +346,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
             payload: { action: "updated" },
           });
         } else {
-          // Create new subscription
           await prisma.userSubscription.create({
             data: {
               userId: user.id,
@@ -448,7 +370,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
           });
         }
 
-        // Send welcome notification for new subscriptions
         if (isNewSubscription) {
           try {
             await sendWebPushNotification(subscription as PushSubscription, {
@@ -509,7 +430,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         const subscription = body?.subscription;
 
         if (subscription && subscription.endpoint) {
-          // Unsubscribe specific device by endpoint
           await prisma.userSubscription.deleteMany({
             where: {
               userId: user.id,
@@ -523,13 +443,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
               endpoint_prefix: subscription.endpoint.slice(0, 50),
             },
           });
-        } else {
-          // No endpoint provided - do nothing rather than deleting all subscriptions.
-          // iOS push tokens should use /unregister-device instead.
-          return {
-            success: true,
-            message: "No endpoint provided, nothing to unsubscribe",
-          };
         }
 
         return { success: true, message: "Unsubscribed successfully" };
@@ -587,7 +500,7 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
         } else {
           return badRequest(
             set,
-            "No valid push subscriptions or tokens found in the system.",
+            "No valid push subscriptions found in the system.",
           );
         }
       } catch (error) {
@@ -609,116 +522,6 @@ export const notificationsRoutes = new Elysia({ prefix: "/api/notifications" })
           ),
         }),
       ),
-    },
-  )
-  // POST /api/notifications/register-device - Register mobile push token (Expo/APNs/FCM)
-  .post(
-    "/register-device",
-    async ({ user, body, set }) => {
-      if (!user) {
-        return unauthorized(set, "Unauthorized");
-      }
-
-      const { token, platform } = body;
-
-      if (!token || !platform) {
-        return badRequest(set, "Token and platform are required");
-      }
-
-      try {
-        const now = new Date().toISOString();
-
-        // Check if this token is already registered
-        const existing = await prisma.pushToken.findFirst({
-          where: { token },
-        });
-
-        if (existing) {
-          // Update: reassign to current user if needed, refresh timestamp
-          await prisma.pushToken.update({
-            where: { id: existing.id },
-            data: {
-              userId: user.id,
-              platform,
-              updatedAt: now,
-            },
-          });
-
-          await logActivity({
-            type: "notification_register_device",
-            userId: user.id,
-            payload: { platform, action: "updated" },
-          });
-        } else {
-          // Insert new push token
-          await prisma.pushToken.create({
-            data: {
-              userId: user.id,
-              token,
-              platform,
-              createdAt: now,
-              updatedAt: now,
-            },
-          });
-
-          await logActivity({
-            type: "notification_register_device",
-            userId: user.id,
-            payload: { platform, action: "created" },
-          });
-        }
-
-        return { success: true, message: "Device registered successfully" };
-      } catch (error) {
-        console.error("Error registering push token:", error);
-        return serverError(set, "Failed to register device");
-      }
-    },
-    {
-      body: t.Object({
-        token: t.String(),
-        platform: t.String(),
-      }),
-    },
-  )
-  // POST /api/notifications/unregister-device - Unregister a mobile push token
-  .post(
-    "/unregister-device",
-    async ({ user, body, set }) => {
-      if (!user) {
-        return unauthorized(set, "Unauthorized");
-      }
-
-      const { token } = body;
-
-      if (!token) {
-        return badRequest(set, "Token is required");
-      }
-
-      try {
-        const deleted = await prisma.pushToken.deleteMany({
-          where: {
-            userId: user.id,
-            token,
-          },
-        });
-
-        await logActivity({
-          type: "notification_unregister_device",
-          userId: user.id,
-          payload: { deleted: deleted.count },
-        });
-
-        return { success: true, message: "Device unregistered successfully" };
-      } catch (error) {
-        console.error("Error unregistering push token:", error);
-        return serverError(set, "Failed to unregister device");
-      }
-    },
-    {
-      body: t.Object({
-        token: t.String(),
-      }),
     },
   )
   .use(notificationChannelsRoutes);

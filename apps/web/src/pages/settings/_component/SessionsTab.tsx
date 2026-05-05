@@ -1,12 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Smartphone, Monitor, Trash2, LogOut } from "lucide-react";
+import { Monitor, Trash2, LogOut } from "lucide-react";
 import {
   useAdminSessions,
   useRevokeSession,
   useRevokeUserSessions,
-  useAdminPushTokens,
-  useDeletePushToken,
   useAdminWebPush,
   useDeleteWebPush,
 } from "@/pages/settings/useAdmin";
@@ -49,13 +47,10 @@ export function SessionsTab() {
   const { data: currentUser } = useCurrentUser();
 
   const { data: sessionsData, isLoading: loadingSessions } = useAdminSessions();
-  const { data: pushTokensData, isLoading: loadingPushTokens } =
-    useAdminPushTokens();
   const { data: webPushData, isLoading: loadingWebPush } = useAdminWebPush();
 
   const revokeSession = useRevokeSession();
   const revokeUserSessions = useRevokeUserSessions();
-  const deletePushToken = useDeletePushToken();
   const deleteWebPush = useDeleteWebPush();
 
   if (!currentUser?.is_admin) return null;
@@ -84,15 +79,6 @@ export function SessionsTab() {
     }
   };
 
-  const handleDeletePushToken = async (id: number) => {
-    if (!confirm(t("settings.sessions.deleteTokenConfirm"))) return;
-    try {
-      await deletePushToken.mutateAsync(id);
-      toast.success(t("settings.sessions.deleteTokenSuccess"));
-    } catch {
-      toast.error(t("settings.sessions.deleteTokenError"));
-    }
-  };
 
   const handleDeleteWebPush = async (id: number) => {
     if (!confirm(t("settings.sessions.deleteWebPushConfirm"))) return;
@@ -202,80 +188,6 @@ export function SessionsTab() {
         )}
       </SectionCard>
 
-      {/* iOS / Mobile Push Tokens */}
-      <SectionCard
-        title={t("settings.sessions.pushTokensTitle")}
-        description={t("settings.sessions.pushTokensDescription")}
-      >
-        {loadingPushTokens ? (
-          <LoadingState />
-        ) : !pushTokensData?.push_tokens?.length ? (
-          <EmptyState message={t("settings.sessions.noPushTokens")} />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-neutral-200 dark:border-neutral-700">
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
-                    {t("settings.sessions.user")}
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
-                    {t("settings.sessions.platform")}
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
-                    {t("settings.sessions.token")}
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
-                    {t("settings.sessions.createdAt")}
-                  </th>
-                  <th className="text-right py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
-                    {t("settings.sessions.actions")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {pushTokensData.push_tokens.map((token) => (
-                  <tr
-                    key={token.id}
-                    className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
-                  >
-                    <td className="py-3 px-4">
-                      <div className="font-medium text-neutral-900 dark:text-neutral-100">
-                        {token.user_name || token.user_email}
-                      </div>
-                      <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {token.user_email}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                        <Smartphone className="w-3 h-3" />
-                        {token.platform}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-xs text-neutral-600 dark:text-neutral-400">
-                      {token.token}
-                    </td>
-                    <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400">
-                      {formatDateTime(token.created_at, i18n.language)}
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={() => handleDeletePushToken(token.id)}
-                        disabled={deletePushToken.isPending}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50 transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        {t("settings.sessions.delete")}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </SectionCard>
 
       {/* Web Push Subscriptions */}
       <SectionCard

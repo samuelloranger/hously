@@ -38,10 +38,8 @@ model User {
   passwordResetTokens    PasswordResetToken[]
   refreshTokens          RefreshToken[]
   passkeyCredentials     WebAuthnCredential[]
-  pushTokens             PushToken[]
   notificationChannels   NotificationChannel[]
   habits                 Habit[]
-  liveActivityTokens     LiveActivityToken[]
   invitationsSent        Invitation[]         @relation("InvitationInviter")
   watchlistItems         WatchlistItem[]
   createdBoardTasks      BoardTask[]          @relation("BoardTaskCreatedBy")
@@ -417,19 +415,6 @@ model Invitation {
   @@map("invitations")
 }
 
-model PushToken {
-  id        Int       @id @default(autoincrement())
-  userId    Int       @map("user_id")
-  token     String    @unique(map: "ix_push_tokens_token")
-  platform  String
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId], map: "ix_push_tokens_user_id")
-  @@map("push_tokens")
-}
 
 model NotificationChannel {
   id        Int      @id @default(autoincrement())
@@ -447,21 +432,6 @@ model NotificationChannel {
   @@map("notification_channels")
 }
 
-model LiveActivityToken {
-  id        Int       @id @default(autoincrement())
-  userId    Int       @map("user_id")
-  token     String    @unique(map: "ix_live_activity_tokens_token")
-  type      String    @default("habit_start") // "habit_start"
-  platform  String    @default("ios")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId], map: "ix_live_activity_tokens_user_id")
-  @@index([type], map: "ix_live_activity_tokens_type")
-  @@map("live_activity_tokens")
-}
 
 model Habit {
   id          Int       @id @default(autoincrement())

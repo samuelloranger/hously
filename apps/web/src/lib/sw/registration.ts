@@ -1,12 +1,3 @@
-/**
- * Service Worker registration and badge management
- * Handles registration of the service worker for push notifications
- * and manages badge syncing, update notifications, and background sync
- */
-
-/**
- * Sync badge count by sending a message to the service worker
- */
 export function syncBadge(): void {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.ready.then((registration) => {

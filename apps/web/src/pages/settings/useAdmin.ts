@@ -3,7 +3,6 @@ import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { ADMIN_ENDPOINTS } from "@/lib/endpoints";
 import type {
-  AdminPushTokensResponse,
   AdminSessionsResponse,
   AdminWebPushResponse,
   InviteUserRequest,
@@ -11,7 +10,6 @@ import type {
   ListInvitationsResponse,
   ResendInvitationResponse,
   RevokeInvitationResponse,
-  DeletePushTokenResponse,
   DeleteUserResponse,
   DeleteWebPushResponse,
   ExportDataResponse,
@@ -226,30 +224,7 @@ export function useRevokeUserSessions() {
   });
 }
 
-export function useAdminPushTokens() {
-  const fetcher = useFetcher();
 
-  return useQuery({
-    queryKey: queryKeys.admin.pushTokens(),
-    queryFn: () =>
-      fetcher<AdminPushTokensResponse>(ADMIN_ENDPOINTS.PUSH_TOKENS),
-  });
-}
-
-export function useDeletePushToken() {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) =>
-      fetcher<DeletePushTokenResponse>(ADMIN_ENDPOINTS.DELETE_PUSH_TOKEN(id), {
-        method: "DELETE",
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.pushTokens() });
-    },
-  });
-}
 
 export function useAdminWebPush() {
   const fetcher = useFetcher();

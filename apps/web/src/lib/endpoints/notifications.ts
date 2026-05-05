@@ -10,10 +10,7 @@ export const NOTIFICATION_ENDPOINTS = {
   SUBSCRIBE: "/api/notifications/subscribe",
   UNSUBSCRIBE: "/api/notifications/unsubscribe",
   VAPID_PUBLIC_KEY: "/api/notifications/vapid-public-key",
-  TEST: "/api/notifications/test",
-  REGISTER_DEVICE: "/api/notifications/register-device",
-  UNREGISTER_DEVICE: "/api/notifications/unregister-device",
-  CHANNELS: "/api/notifications/channels",
+  TEST: "/api/notifications/test",  CHANNELS: "/api/notifications/channels",
   CHANNEL: (id: number) => `/api/notifications/channels/${id}`,
   CHANNEL_TEST: (id: number) => `/api/notifications/channels/${id}/test`,
 } as const;

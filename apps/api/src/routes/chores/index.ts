@@ -22,9 +22,6 @@ import {
   removeChoreRecurrence,
 } from "@hously/api/services/choreService";
 import {
-  addJob,
-  QUEUE_NAMES,
-  NOTIFICATION_JOB_NAMES,
 } from "@hously/api/services/queueService";
 import {
   badRequest,
@@ -325,11 +322,6 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           userId: user!.id,
           payload: { chore_id: newChore.id },
         });
-        // Trigger calendar sync on iOS
-        addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, {
-          userId: user!.id,
-          type: "CALENDAR_SYNC",
-        }).catch(() => {});
         return {
           success: true,
           id: newChore.id,
@@ -443,11 +435,6 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
             completed: newStatus,
           },
         });
-        // Trigger calendar sync on iOS
-        addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, {
-          userId: user!.id,
-          type: "CALENDAR_SYNC",
-        }).catch(() => {});
         return { success: true, completed: newStatus };
       } catch (error) {
         console.error("Error toggling chore:", error);
@@ -745,11 +732,6 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
         userId: user!.id,
         payload: { count },
       });
-      // Trigger calendar sync on iOS
-      addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, {
-        userId: user!.id,
-        type: "CALENDAR_SYNC",
-      }).catch(() => {});
       return {
         success: true,
         message: `Deleted ${count} completed chores`,
@@ -800,11 +782,6 @@ export const choresRoutes = new Elysia({ prefix: "/api/chores" })
           userId: user!.id,
           payload: { chore_id: choreId },
         });
-        // Trigger calendar sync on iOS
-        addJob(QUEUE_NAMES.NOTIFICATIONS, NOTIFICATION_JOB_NAMES.SILENT_PUSH, {
-          userId: user!.id,
-          type: "CALENDAR_SYNC",
-        }).catch(() => {});
         return { success: true, message: "Chore deleted successfully" };
       } catch (error) {
         console.error(`Error deleting chore ${choreId}:`, error);

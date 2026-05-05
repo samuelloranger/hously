@@ -21,8 +21,6 @@ export type ActivityLogType =
   | "notification_push_subscription_saved"
   | "notification_welcome_sent"
   | "notification_unsubscribed"
-  | "notification_register_device"
-  | "notification_unregister_device"
   | "media_grab";
 
 /**

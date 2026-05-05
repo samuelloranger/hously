@@ -239,27 +239,6 @@ export interface RevokeSessionResponse {
   message: string;
 }
 
-export interface AdminPushToken {
-  id: number;
-  user_id: number;
-  user_email: string;
-  user_name: string | null;
-  token: string;
-  platform: string;
-  created_at: string;
-  updated_at: string | null;
-}
-
-export interface AdminPushTokensResponse {
-  success: boolean;
-  push_tokens: AdminPushToken[];
-}
-
-export interface DeletePushTokenResponse {
-  success: boolean;
-  message: string;
-}
-
 export interface AdminWebPushSubscription {
   id: number;
   user_id: number;

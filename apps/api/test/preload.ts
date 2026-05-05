@@ -49,7 +49,6 @@ mock.module("../src/services/queueService", () => ({
   },
   NOTIFICATION_JOB_NAMES: {
     SEND_NOTIFICATION: "send-notification",
-    SILENT_PUSH: "silent-push",
   },
   defaultQueue: mockQueue,
   notificationsQueue: mockQueue,
