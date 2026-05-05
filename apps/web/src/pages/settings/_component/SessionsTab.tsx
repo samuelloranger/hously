@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Monitor, Trash2, LogOut } from "lucide-react";
+import { Monitor, Trash2, LogOut, Key, ShieldCheck } from "lucide-react";
 import {
   useAdminSessions,
   useRevokeSession,
@@ -9,8 +9,16 @@ import {
   useDeleteWebPush,
 } from "@/pages/settings/useAdmin";
 import { useCurrentUser } from "@/lib/auth/useAuth";
+import { useOidcProviders } from "@/lib/auth/useOidcProviders";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
+
+const toFlag = (countryCode: string) =>
+  countryCode
+    .toUpperCase()
+    .split("")
+    .map((c) => String.fromCodePoint(c.charCodeAt(0) + 127397))
+    .join("");
 
 function SectionCard({
   title,
@@ -48,6 +56,10 @@ export function SessionsTab() {
 
   const { data: sessionsData, isLoading: loadingSessions } = useAdminSessions();
   const { data: webPushData, isLoading: loadingWebPush } = useAdminWebPush();
+  const { data: oidcData } = useOidcProviders();
+  const providerIconMap = Object.fromEntries(
+    (oidcData?.providers ?? []).map((p) => [p.slug, p.icon_url]),
+  );
 
   const revokeSession = useRevokeSession();
   const revokeUserSessions = useRevokeUserSessions();
@@ -144,6 +156,49 @@ export function SessionsTab() {
                       <div className="text-xs text-neutral-500 dark:text-neutral-400">
                         {session.user_email}
                       </div>
+                      {session.provider_id && (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {session.provider_id === "credential" ? (
+                            <span className="inline-flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+                              <Key className="size-3" />
+                              {t("settings.sessions.providerCredential")}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+                              {providerIconMap[session.provider_id] ? (
+                                <img
+                                  src={providerIconMap[session.provider_id]!}
+                                  alt=""
+                                  className="size-3.5 rounded"
+                                />
+                              ) : (
+                                <ShieldCheck className="size-3" />
+                              )}
+                              {session.provider_id}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {(session.location || session.ip_address) && (
+                        <div className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5 font-mono">
+                          {session.location?.country &&
+                            toFlag(session.location.country)}{" "}
+                          {session.location?.city ?? ""}
+                          {session.ip_address && (
+                            <span className="ml-1 opacity-60">
+                              {session.ip_address}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {session.device &&
+                        (session.device.browser || session.device.os) && (
+                          <div className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">
+                            {[session.device.browser, session.device.os]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </div>
+                        )}
                     </td>
                     <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400">
                       {formatDateTime(session.created_at, i18n.language)}
