@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Monitor, Trash2, LogOut, Key, ShieldCheck } from "lucide-react";
+import { Monitor, Trash2, LogOut, Key } from "lucide-react";
 import {
   useAdminSessions,
   useRevokeSession,
@@ -165,14 +165,12 @@ export function SessionsTab() {
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
-                              {providerIconMap[session.provider_id] ? (
+                              {providerIconMap[session.provider_id] && (
                                 <img
                                   src={providerIconMap[session.provider_id]!}
                                   alt=""
                                   className="size-3.5 rounded"
                                 />
-                              ) : (
-                                <ShieldCheck className="size-3" />
                               )}
                               {session.provider_id}
                             </span>
