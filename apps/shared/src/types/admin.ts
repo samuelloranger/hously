@@ -229,7 +229,6 @@ export interface AdminSession {
   created_at: string;
   ip_address: string | null;
   provider_id: string | null;
-  location: { city: string | null; country: string | null } | null;
   device: { browser: string | null; os: string | null } | null;
 }
 

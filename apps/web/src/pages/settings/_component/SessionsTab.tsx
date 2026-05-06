@@ -16,13 +16,6 @@ import {
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 
-const toFlag = (countryCode: string) =>
-  countryCode
-    .toUpperCase()
-    .split("")
-    .map((c) => String.fromCodePoint(c.charCodeAt(0) + 127397))
-    .join("");
-
 function SectionCard({
   title,
   description,
@@ -183,16 +176,9 @@ export function SessionsTab() {
                           )}
                         </div>
                       )}
-                      {(session.location || session.ip_address) && (
+                      {session.ip_address && (
                         <div className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5 font-mono">
-                          {session.location?.country &&
-                            toFlag(session.location.country)}{" "}
-                          {session.location?.city ?? ""}
-                          {session.ip_address && (
-                            <span className="ml-1 opacity-60">
-                              {session.ip_address}
-                            </span>
-                          )}
+                          {session.ip_address}
                         </div>
                       )}
                       {session.device &&

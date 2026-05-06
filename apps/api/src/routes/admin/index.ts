@@ -1,5 +1,4 @@
 import { Elysia, t } from "elysia";
-import geoip from "geoip-lite";
 import { UAParser } from "ua-parser-js";
 import { prisma } from "@hously/api/db";
 import { auth } from "@hously/api/auth";
@@ -773,9 +772,6 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
       return {
         success: true,
         sessions: sessions.map((session) => {
-          const geo = session.ipAddress
-            ? geoip.lookup(session.ipAddress)
-            : null;
           const ua = session.userAgent
             ? new UAParser(session.userAgent).getResult()
             : null;
@@ -791,9 +787,6 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
             created_at: session.createdAt.toISOString(),
             ip_address: session.ipAddress ?? null,
             provider_id: session.providerId ?? null,
-            location: geo
-              ? { city: geo.city || null, country: geo.country || null }
-              : null,
             device: ua
               ? { browser: ua.browser.name ?? null, os: ua.os.name ?? null }
               : null,
