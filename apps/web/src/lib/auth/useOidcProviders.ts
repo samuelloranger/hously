@@ -4,6 +4,16 @@ import { queryKeys } from "@/lib/queryKeys";
 import { INTEGRATION_ENDPOINTS } from "@/lib/endpoints";
 import type { OidcProvider } from "@hously/shared/types";
 
+export function oidcProviderIconUrl(
+  slug: string,
+  iconUrl: string | null,
+): string {
+  return (
+    iconUrl ??
+    `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/${slug}.png`
+  );
+}
+
 export function useOidcProviders() {
   const fetcher = useFetcher();
   return useQuery({
@@ -26,6 +36,7 @@ export function useCreateOidcProvider() {
       client_id: string;
       client_secret: string;
       enabled?: boolean;
+      icon_url?: string | null;
     }) =>
       fetcher<{ provider: OidcProvider }>(INTEGRATION_ENDPOINTS.OIDC, {
         method: "POST",
@@ -53,6 +64,7 @@ export function useUpdateOidcProvider() {
       client_id?: string;
       client_secret?: string;
       enabled?: boolean;
+      icon_url?: string | null;
     }) =>
       fetcher<{ provider: OidcProvider }>(
         `${INTEGRATION_ENDPOINTS.OIDC}/${id}`,

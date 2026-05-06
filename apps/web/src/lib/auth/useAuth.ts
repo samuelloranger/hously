@@ -146,9 +146,9 @@ export function useSSOProviders() {
   return useQuery({
     queryKey: queryKeys.auth.ssoProviders(),
     queryFn: () =>
-      fetcher<{ providers: { slug: string; name: string }[] }>(
-        AUTH_ENDPOINTS.SSO_PROVIDERS,
-      ),
+      fetcher<{
+        providers: { slug: string; name: string; icon_url: string | null }[];
+      }>(AUTH_ENDPOINTS.SSO_PROVIDERS),
     staleTime: 60_000,
   });
 }

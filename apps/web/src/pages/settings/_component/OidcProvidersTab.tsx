@@ -9,6 +9,7 @@ import {
   useCreateOidcProvider,
   useUpdateOidcProvider,
   useDeleteOidcProvider,
+  oidcProviderIconUrl,
 } from "@/lib/auth/useOidcProviders";
 
 const INPUT_CLASS =
@@ -20,6 +21,7 @@ interface FormState {
   name: string;
   slug: string;
   discovery_url: string;
+  icon_url: string;
   client_id: string;
   client_secret: string;
   enabled: boolean;
@@ -29,6 +31,7 @@ const emptyForm = (): FormState => ({
   name: "",
   slug: "",
   discovery_url: "",
+  icon_url: "",
   client_id: "",
   client_secret: "",
   enabled: true,
@@ -136,6 +139,34 @@ function ProviderForm({
         />
       </div>
 
+      <div>
+        <label className={LABEL_CLASS}>
+          {t("settings.integrations.sso.iconUrl")}
+        </label>
+        <div className="flex items-center gap-3">
+          <input
+            type="url"
+            value={form.icon_url}
+            onChange={set("icon_url")}
+            placeholder={t("settings.integrations.sso.iconUrlPlaceholder")}
+            className="flex-1 px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono text-sm"
+          />
+          {form.icon_url && (
+            <img
+              src={form.icon_url}
+              alt=""
+              className="size-8 rounded object-contain bg-neutral-100 dark:bg-neutral-800 p-0.5"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          )}
+        </div>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+          {t("settings.integrations.sso.iconUrlHelp")}
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={LABEL_CLASS}>
@@ -213,6 +244,14 @@ function ProviderRow({
   return (
     <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
       <div className="flex items-center gap-3 min-w-0">
+        <img
+          src={oidcProviderIconUrl(provider.slug, provider.icon_url)}
+          alt=""
+          className="size-6 rounded object-contain shrink-0"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
         <div className="min-w-0">
           <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">
             {provider.name}
@@ -275,6 +314,7 @@ export function OidcProvidersTab() {
         client_id: form.client_id,
         client_secret: form.client_secret,
         enabled: form.enabled,
+        icon_url: form.icon_url.trim() || null,
       })
       .then(() => {
         setAdding(false);
@@ -292,6 +332,7 @@ export function OidcProvidersTab() {
         client_id: form.client_id,
         ...(form.client_secret ? { client_secret: form.client_secret } : {}),
         enabled: form.enabled,
+        icon_url: form.icon_url.trim() || null,
       })
       .then(() => {
         setEditingId(null);
@@ -361,6 +402,7 @@ export function OidcProvidersTab() {
                     name: provider.name,
                     slug: provider.slug,
                     discovery_url: provider.discovery_url,
+                    icon_url: provider.icon_url ?? "",
                     client_id: provider.client_id,
                     client_secret: "",
                     enabled: provider.enabled,

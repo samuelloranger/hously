@@ -249,6 +249,7 @@ model OidcProvider {
   clientId     String   @map("client_id")
   clientSecret String   @map("client_secret")
   enabled      Boolean  @default(true)
+  iconUrl      String?  @map("icon_url")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -528,8 +529,9 @@ model BaSession {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   ipAddress String?  @map("ip_address")
-  userAgent String?  @map("user_agent")
-  userId    String   @map("user_id")
+  userAgent  String?  @map("user_agent")
+  providerId String?  @map("provider_id")
+  userId     String   @map("user_id")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

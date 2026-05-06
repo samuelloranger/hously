@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Monitor, Trash2, LogOut } from "lucide-react";
+import { Monitor, Trash2, LogOut, Key, Wifi } from "lucide-react";
 import {
   useAdminSessions,
   useRevokeSession,
@@ -9,6 +9,10 @@ import {
   useDeleteWebPush,
 } from "@/pages/settings/useAdmin";
 import { useCurrentUser } from "@/lib/auth/useAuth";
+import {
+  useOidcProviders,
+  oidcProviderIconUrl,
+} from "@/lib/auth/useOidcProviders";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 
@@ -42,12 +46,29 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
+function getInitials(name: string | null, email: string): string {
+  if (name) {
+    const parts = name.trim().split(" ");
+    return parts.length >= 2
+      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+      : parts[0].slice(0, 2).toUpperCase();
+  }
+  return email.slice(0, 2).toUpperCase();
+}
+
 export function SessionsTab() {
   const { t, i18n } = useTranslation("common");
   const { data: currentUser } = useCurrentUser();
 
   const { data: sessionsData, isLoading: loadingSessions } = useAdminSessions();
   const { data: webPushData, isLoading: loadingWebPush } = useAdminWebPush();
+  const { data: oidcData } = useOidcProviders();
+  const providerIconMap = Object.fromEntries(
+    (oidcData?.providers ?? []).map((p) => [
+      p.slug,
+      oidcProviderIconUrl(p.slug, p.icon_url),
+    ]),
+  );
 
   const revokeSession = useRevokeSession();
   const revokeUserSessions = useRevokeUserSessions();
@@ -89,7 +110,6 @@ export function SessionsTab() {
     }
   };
 
-  // Group sessions by user for the "revoke all" action
   const sessionsByUser = (sessionsData?.sessions ?? []).reduce<
     Record<string, { email: string; count: number }>
   >((acc, s) => {
@@ -120,10 +140,10 @@ export function SessionsTab() {
                   <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
                     {t("settings.sessions.user")}
                   </th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
                     {t("settings.sessions.createdAt")}
                   </th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
                     {t("settings.sessions.expiresAt")}
                   </th>
                   <th className="text-right py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
@@ -132,55 +152,115 @@ export function SessionsTab() {
                 </tr>
               </thead>
               <tbody>
-                {sessionsData.sessions.map((session) => (
-                  <tr
-                    key={session.id}
-                    className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
-                  >
-                    <td className="py-3 px-4">
-                      <div className="font-medium text-neutral-900 dark:text-neutral-100">
-                        {session.user_name || session.user_email}
-                      </div>
-                      <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                        {session.user_email}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400">
-                      {formatDateTime(session.created_at, i18n.language)}
-                    </td>
-                    <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400">
-                      {formatDateTime(session.expires_at, i18n.language)}
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {sessionsByUser[session.user_id]?.count > 1 && (
+                {sessionsData.sessions.map((session) => {
+                  const initials = getInitials(
+                    session.user_name,
+                    session.user_email,
+                  );
+                  const isCredential =
+                    !session.provider_id ||
+                    session.provider_id === "credential";
+                  const providerIcon = !isCredential
+                    ? (providerIconMap[session.provider_id!] ?? null)
+                    : null;
+
+                  return (
+                    <tr
+                      key={session.id}
+                      className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
+                    >
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-400 text-xs font-semibold shrink-0">
+                            {initials}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                              {session.user_name || session.user_email}
+                            </div>
+                            {session.user_name && (
+                              <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                                {session.user_email}
+                              </div>
+                            )}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
+                              {session.provider_id && (
+                                <span className="inline-flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
+                                  {isCredential ? (
+                                    <Key className="size-3 shrink-0" />
+                                  ) : providerIcon ? (
+                                    <img
+                                      src={providerIcon}
+                                      alt=""
+                                      className="size-3.5 rounded shrink-0"
+                                      onError={(e) => {
+                                        (
+                                          e.target as HTMLImageElement
+                                        ).style.display = "none";
+                                      }}
+                                    />
+                                  ) : null}
+                                  {isCredential
+                                    ? t("settings.sessions.providerCredential")
+                                    : session.provider_id}
+                                </span>
+                              )}
+                              {session.device &&
+                                (session.device.browser ||
+                                  session.device.os) && (
+                                  <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500">
+                                    <Monitor className="size-3 shrink-0" />
+                                    {[session.device.browser, session.device.os]
+                                      .filter(Boolean)
+                                      .join(" · ")}
+                                  </span>
+                                )}
+                              {session.ip_address && (
+                                <span className="font-mono text-xs text-neutral-400 dark:text-neutral-500">
+                                  {session.ip_address}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
+                        {formatDateTime(session.created_at, i18n.language)}
+                      </td>
+                      <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
+                        {formatDateTime(session.expires_at, i18n.language)}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="inline-flex flex-col items-end gap-1">
+                          {sessionsByUser[session.user_id]?.count > 1 && (
+                            <button
+                              onClick={() =>
+                                handleRevokeUserSessions(
+                                  session.user_id,
+                                  session.user_email,
+                                )
+                              }
+                              disabled={revokeUserSessions.isPending}
+                              title={t("settings.sessions.revokeAll")}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-md hover:bg-orange-200 dark:hover:bg-orange-900/50 disabled:opacity-50 transition-colors whitespace-nowrap"
+                            >
+                              <LogOut className="w-3 h-3" />
+                              {t("settings.sessions.revokeAll")}
+                            </button>
+                          )}
                           <button
-                            onClick={() =>
-                              handleRevokeUserSessions(
-                                session.user_id,
-                                session.user_email,
-                              )
-                            }
-                            disabled={revokeUserSessions.isPending}
-                            title={t("settings.sessions.revokeAll")}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/50 disabled:opacity-50 transition-colors"
+                            onClick={() => handleRevokeSession(session.id)}
+                            disabled={revokeSession.isPending}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50 transition-colors whitespace-nowrap"
                           >
-                            <LogOut className="w-3 h-3" />
-                            {t("settings.sessions.revokeAll")}
+                            <Trash2 className="w-3 h-3" />
+                            {t("settings.sessions.revoke")}
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleRevokeSession(session.id)}
-                          disabled={revokeSession.isPending}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50 transition-colors"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          {t("settings.sessions.revoke")}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -210,7 +290,7 @@ export function SessionsTab() {
                   <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
                     {t("settings.sessions.endpoint")}
                   </th>
-                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
+                  <th className="text-left py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
                     {t("settings.sessions.createdAt")}
                   </th>
                   <th className="text-right py-3 px-4 font-medium text-neutral-700 dark:text-neutral-300">
@@ -223,32 +303,45 @@ export function SessionsTab() {
                   const deviceLabel =
                     [sub.browser_name, sub.os_name]
                       .filter(Boolean)
-                      .join(" / ") ||
+                      .join(" · ") ||
                     sub.device_name ||
                     t("settings.sessions.unknownDevice");
+                  const initials = getInitials(
+                    sub.user_name ?? null,
+                    sub.user_email,
+                  );
                   return (
                     <tr
                       key={sub.id}
                       className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
                     >
                       <td className="py-3 px-4">
-                        <div className="font-medium text-neutral-900 dark:text-neutral-100">
-                          {sub.user_name || sub.user_email}
-                        </div>
-                        <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                          {sub.user_email}
+                        <div className="flex items-center gap-2.5">
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-400 text-xs font-semibold shrink-0">
+                            {initials}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                              {sub.user_name || sub.user_email}
+                            </div>
+                            {sub.user_name && (
+                              <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                                {sub.user_email}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="py-3 px-4">
                         <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-                          <Monitor className="w-3 h-3" />
+                          <Wifi className="w-3 h-3" />
                           {deviceLabel}
                         </span>
                       </td>
                       <td className="py-3 px-4 font-mono text-xs text-neutral-600 dark:text-neutral-400 max-w-[200px] truncate">
                         {sub.endpoint ?? "—"}
                       </td>
-                      <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400">
+                      <td className="py-3 px-4 text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
                         {sub.created_at
                           ? formatDateTime(sub.created_at, i18n.language)
                           : "—"}

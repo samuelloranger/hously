@@ -155,6 +155,35 @@ export const auth = betterAuth({
     genericOAuth({ config: oidcProviderConfigs }),
   ],
   trustedOrigins: [process.env.CORS_ORIGIN || "http://localhost:5173", baseURL],
+  databaseHooks: {
+    session: {
+      create: {
+        after: async (session, ctx) => {
+          if (!ctx?.path) return;
+          let providerId: string | null = null;
+          if (ctx.path === "/sign-in/email") {
+            providerId = "credential";
+          } else if (ctx.path.startsWith("/oauth2/callback/")) {
+            const params = (ctx as { params?: { providerId?: string } }).params;
+            providerId =
+              params?.providerId ??
+              ctx.path.split("/oauth2/callback/")[1] ??
+              null;
+          }
+          if (providerId) {
+            await prisma.baSession
+              .update({
+                where: { id: session.id },
+                data: { providerId },
+              })
+              .catch(() => {
+                // Non-fatal: session exists, provider tracking is best-effort
+              });
+          }
+        },
+      },
+    },
+  },
   advanced: {
     database: {
       generateId: "uuid",

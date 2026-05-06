@@ -227,6 +227,9 @@ export interface AdminSession {
   user_name: string | null;
   expires_at: string;
   created_at: string;
+  ip_address: string | null;
+  provider_id: string | null;
+  device: { browser: string | null; os: string | null } | null;
 }
 
 export interface AdminSessionsResponse {
