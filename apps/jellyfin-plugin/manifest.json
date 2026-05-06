@@ -11,6 +11,14 @@
     "timestamp": "2026-05-04T00:00:00Z",
     "versions": [
       {
+        "version": "2.2.1",
+        "changelog": "v2.2.1",
+        "targetAbi": "10.11.7.0",
+        "sourceUrl": "https://github.com/samuelloranger/hously/releases/download/v2.2.1/Jellyfin.Plugin.HouslyWatchlist_v2.2.1.zip",
+        "checksum": "42b17dc1181ba45c691448bda7b8c107",
+        "timestamp": "2026-05-06T02:42:10Z"
+      },
+      {
         "version": "2.2.0",
         "changelog": "v2.2.0",
         "targetAbi": "10.11.7.0",
