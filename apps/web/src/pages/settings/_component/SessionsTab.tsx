@@ -90,9 +90,7 @@ export function SessionsTab() {
     userId: string,
     userEmail: string,
   ) => {
-    if (
-      !confirm(t("settings.sessions.revokeAllConfirm", { email: userEmail }))
-    )
+    if (!confirm(t("settings.sessions.revokeAllConfirm", { email: userEmail })))
       return;
     try {
       await revokeUserSessions.mutateAsync(userId);
@@ -196,7 +194,9 @@ export function SessionsTab() {
                                       alt=""
                                       className="size-3.5 rounded shrink-0"
                                       onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = "none";
+                                        (
+                                          e.target as HTMLImageElement
+                                        ).style.display = "none";
                                       }}
                                     />
                                   ) : null}
@@ -210,10 +210,7 @@ export function SessionsTab() {
                                   session.device.os) && (
                                   <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500">
                                     <Monitor className="size-3 shrink-0" />
-                                    {[
-                                      session.device.browser,
-                                      session.device.os,
-                                    ]
+                                    {[session.device.browser, session.device.os]
                                       .filter(Boolean)
                                       .join(" · ")}
                                   </span>
@@ -234,7 +231,7 @@ export function SessionsTab() {
                         {formatDateTime(session.expires_at, i18n.language)}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="inline-flex flex-col items-end gap-1">
                           {sessionsByUser[session.user_id]?.count > 1 && (
                             <button
                               onClick={() =>
@@ -245,7 +242,7 @@ export function SessionsTab() {
                               }
                               disabled={revokeUserSessions.isPending}
                               title={t("settings.sessions.revokeAll")}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/50 disabled:opacity-50 transition-colors"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-md hover:bg-orange-200 dark:hover:bg-orange-900/50 disabled:opacity-50 transition-colors whitespace-nowrap"
                             >
                               <LogOut className="w-3 h-3" />
                               {t("settings.sessions.revokeAll")}
@@ -254,7 +251,7 @@ export function SessionsTab() {
                           <button
                             onClick={() => handleRevokeSession(session.id)}
                             disabled={revokeSession.isPending}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50 transition-colors"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50 transition-colors whitespace-nowrap"
                           >
                             <Trash2 className="w-3 h-3" />
                             {t("settings.sessions.revoke")}
