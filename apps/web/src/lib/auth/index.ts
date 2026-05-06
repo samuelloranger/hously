@@ -1,4 +1,5 @@
 import type { User } from "@hously/shared/types";
+import type { QueryClient } from "@tanstack/react-query";
 import { getQueryClient, invalidateAuthCache } from "@/lib/api/queryClient";
 import { queryKeys } from "@/lib/queryKeys";
 import { webFetcher } from "@/lib/api/fetcher";
@@ -6,15 +7,23 @@ import { ApiError } from "@/lib/api/client";
 import { toast } from "sonner";
 import { fetchAuthMeUser } from "@/lib/auth/fetchAuthMeUser";
 
-let currentUser: User | null = null;
+let currentUser: User | null | undefined = undefined;
 let userPromise: Promise<User | null> | null = null;
 
 export async function getCurrentUser(): Promise<User | null> {
-  if (currentUser) {
+  if (currentUser !== undefined) {
     // Always re-seed the TQ cache on the fast path so components that mount
     // after navigation always find data and never flash a loading state.
     getQueryClient()?.setQueryData(queryKeys.auth.me, currentUser);
     return currentUser;
+  }
+
+  const cachedUser = getQueryClient()?.getQueryData<User | null>(
+    queryKeys.auth.me,
+  );
+  if (cachedUser !== undefined) {
+    currentUser = cachedUser;
+    return cachedUser;
   }
 
   if (userPromise) {
@@ -66,4 +75,15 @@ export function clearUser(): void {
 export function setUser(user: User | null): void {
   currentUser = user;
   getQueryClient()?.setQueryData(queryKeys.auth.me, user);
+}
+
+export function bootstrapAuthFromWindow(queryClient?: QueryClient): User | null {
+  if (typeof window === "undefined") return null;
+
+  const bootUser = window.__HOUSLY_BOOTSTRAP__?.user;
+  if (bootUser === undefined) return null;
+
+  currentUser = bootUser;
+  queryClient?.setQueryData(queryKeys.auth.me, bootUser);
+  return bootUser;
 }

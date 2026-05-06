@@ -35,9 +35,22 @@ import { systemRoutes } from "./routes/system";
 import { usersRoutes } from "./routes/users";
 import { webhooksRoutes } from "./routes/webhooks";
 import { globalRateLimit } from "./middleware/rateLimit";
+import { resolveUser } from "./middleware/auth";
 import { initWorkers, setupScheduledJobs } from "./services/queueService";
 
 const serveStatic = Bun.env.SERVE_STATIC === "true";
+const spaIndexHtmlPromise: Promise<string> = serveStatic
+  ? Bun.file("./public/index.html").text()
+  : Promise.resolve("");
+
+function escapeInlineScriptJson(value: unknown): string {
+  return JSON.stringify(value)
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e")
+    .replaceAll("&", "\\u0026")
+    .replaceAll("\u2028", "\\u2028")
+    .replaceAll("\u2029", "\\u2029");
+}
 
 export const app = new Elysia()
   .use(
@@ -115,7 +128,22 @@ export const app = new Elysia()
             ignorePatterns: [/\.html$/],
           }),
         )
-        .get("*", () => Bun.file("./public/index.html"));
+        .get("*", async ({ request }) => {
+          const [indexHtml, user] = await Promise.all([
+            spaIndexHtmlPromise,
+            resolveUser(request).catch(() => null),
+          ]);
+
+          const bootScript = `<script>window.__HOUSLY_BOOTSTRAP__=${escapeInlineScriptJson({ user })};</script>`;
+          const html = indexHtml.replace(
+            "</body>",
+            `${bootScript}\n</body>`,
+          );
+
+          return new Response(html, {
+            headers: { "Content-Type": "text/html; charset=utf-8" },
+          });
+        });
     }
     return app;
   });
