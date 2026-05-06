@@ -9,7 +9,10 @@ import {
   useDeleteWebPush,
 } from "@/pages/settings/useAdmin";
 import { useCurrentUser } from "@/lib/auth/useAuth";
-import { useOidcProviders } from "@/lib/auth/useOidcProviders";
+import {
+  useOidcProviders,
+  oidcProviderIconUrl,
+} from "@/lib/auth/useOidcProviders";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 
@@ -58,7 +61,10 @@ export function SessionsTab() {
   const { data: webPushData, isLoading: loadingWebPush } = useAdminWebPush();
   const { data: oidcData } = useOidcProviders();
   const providerIconMap = Object.fromEntries(
-    (oidcData?.providers ?? []).map((p) => [p.slug, p.icon_url]),
+    (oidcData?.providers ?? []).map((p) => [
+      p.slug,
+      oidcProviderIconUrl(p.slug, p.icon_url),
+    ]),
   );
 
   const revokeSession = useRevokeSession();

@@ -9,6 +9,7 @@ import {
   useCreateOidcProvider,
   useUpdateOidcProvider,
   useDeleteOidcProvider,
+  oidcProviderIconUrl,
 } from "@/lib/auth/useOidcProviders";
 
 const INPUT_CLASS =
@@ -243,16 +244,14 @@ function ProviderRow({
   return (
     <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
       <div className="flex items-center gap-3 min-w-0">
-        {provider.icon_url && (
-          <img
-            src={provider.icon_url}
-            alt=""
-            className="size-6 rounded object-contain shrink-0"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-        )}
+        <img
+          src={oidcProviderIconUrl(provider.slug, provider.icon_url)}
+          alt=""
+          className="size-6 rounded object-contain shrink-0"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
         <div className="min-w-0">
           <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">
             {provider.name}
