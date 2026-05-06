@@ -28,6 +28,13 @@ export function getAppVersion(): string {
   return getCurrentAppVersion();
 }
 
+// True only when APP_VERSION came from a real build-time tag.
+// The boot-time fallback (`0.0.0-dev+<ts>`) is for client cache busting only —
+// it changes every restart and would otherwise spam "App Updated" notifications.
+function isReleaseVersion(version: string): boolean {
+  return !version.startsWith("0.0.0-dev");
+}
+
 async function getStoredAppVersion(): Promise<string | null> {
   return await getJsonCache<string>(APP_VERSION_KEY);
 }
@@ -110,6 +117,15 @@ async function sendAppUpdateNotifications(newVersion?: string): Promise<void> {
 export async function checkAndNotifyVersionChange(): Promise<void> {
   try {
     const currentVersion = getAppVersion();
+
+    // Dev builds (no APP_VERSION build-arg) get a fresh boot-time stamp every
+    // restart. Comparing those against Redis would log activity and notify all
+    // subscribers on every container restart — skip the whole path.
+    if (!isReleaseVersion(currentVersion)) {
+      console.log(`Dev build (${currentVersion}); skipping version notify`);
+      return;
+    }
+
     const storedVersion = await getStoredAppVersion();
 
     if (storedVersion === null) {
