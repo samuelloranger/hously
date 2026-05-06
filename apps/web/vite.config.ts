@@ -2,6 +2,7 @@ import { defineConfig } from "vitest/config";
 import { loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
+import { compression } from "vite-plugin-compression2";
 import path from "path";
 import type { ServerResponse } from "node:http";
 import type { Plugin } from "vite";
@@ -107,6 +108,10 @@ export default defineConfig(({ mode }) => {
     chunkSplittingPlugin,
     excludeTestFiles(),
     serviceWorkerPlugin(),
+    compression({
+      algorithm: "gzip",
+      exclude: [/\.(png|jpe?g|gif|webp|ico|woff2?|ttf|eot|map)$/i],
+    }),
   ];
   const apiPort = env.API_PORT || "5001";
   const apiHost = env.API_HOST || `http://localhost:${apiPort}`;
