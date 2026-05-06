@@ -1,7 +1,11 @@
+import { lazy } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getCurrentUser } from "@/lib/auth";
 import { prefetchRouteData } from "@/lib/routing/prefetch";
-import { BoardView } from "@/pages/board/BoardView";
+
+const BoardView = lazy(() =>
+  import("@/pages/board/BoardView").then((m) => ({ default: m.BoardView })),
+);
 
 export const Route = createFileRoute("/board/")({
   beforeLoad: async () => {

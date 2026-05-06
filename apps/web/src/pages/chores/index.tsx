@@ -1,8 +1,14 @@
+import { lazy } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getCurrentUser } from "@/lib/auth";
 import { prefetchRouteData } from "@/lib/routing/prefetch";
-import { ChoresList } from "@/pages/chores/_component/ChoresList";
 import type { ChoresSearchParams } from "@/pages/chores/_component/ChoreRow";
+
+const ChoresList = lazy(() =>
+  import("@/pages/chores/_component/ChoresList").then((m) => ({
+    default: m.ChoresList,
+  })),
+);
 
 export { type ChoresSearchParams };
 

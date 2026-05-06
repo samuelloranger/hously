@@ -173,67 +173,84 @@ export function RssStatusPanel() {
       </div>
 
       <div className="px-4 py-3 space-y-3">
-        {/* Last run */}
-        <div>
-          <Kicker>{t("dashboard.rss.lastRun")}</Kicker>
-          {isLoading && (
-            <div className="mt-1.5 h-4 w-32 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
-          )}
-          {!isLoading && !lastRun && (
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              {t("dashboard.rss.neverRan")}
-            </p>
-          )}
-          {lastRun && (
-            <div className="mt-1.5 space-y-1">
+        {/* Loading skeleton */}
+        {isLoading && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="h-2 w-16 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-zinc-700 dark:text-zinc-200 font-mono tabular-nums">
-                  {formatRelative(lastRun.completed_at, now)}
-                </span>
-                {lastRun.status === "success" ? (
-                  <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 rounded-full px-2 py-0.5">
-                    <CheckCircle2 size={10} />
-                    {t("dashboard.rss.statusOk")}
+                <div className="h-3.5 w-20 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+                <div className="h-5 w-14 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+              </div>
+              <div className="h-2.5 w-40 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-2 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+              <div className="h-3.5 w-16 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+            </div>
+          </div>
+        )}
+
+        {/* Last run */}
+        {!isLoading && (
+          <div>
+            <Kicker>{t("dashboard.rss.lastRun")}</Kicker>
+            {!lastRun && (
+              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                {t("dashboard.rss.neverRan")}
+              </p>
+            )}
+            {lastRun && (
+              <div className="mt-1.5 space-y-1">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm text-zinc-700 dark:text-zinc-200 font-mono tabular-nums">
+                    {formatRelative(lastRun.completed_at, now)}
                   </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-900/30 rounded-full px-2 py-0.5">
-                    <XCircle size={10} />
-                    {t("dashboard.rss.statusError")}
-                  </span>
+                  {lastRun.status === "success" ? (
+                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 rounded-full px-2 py-0.5">
+                      <CheckCircle2 size={10} />
+                      {t("dashboard.rss.statusOk")}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-900/30 rounded-full px-2 py-0.5">
+                      <XCircle size={10} />
+                      {t("dashboard.rss.statusError")}
+                    </span>
+                  )}
+                </div>
+                {lastRun.status === "error" && lastRun.error && (
+                  <p
+                    className="text-xs text-rose-600 dark:text-rose-400 truncate"
+                    title={lastRun.error}
+                  >
+                    {lastRun.error}
+                  </p>
+                )}
+                {lastRun.status === "success" && (
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {t("dashboard.rss.releasesFound", {
+                      count: lastRun.releases_found,
+                    })}
+                    {lastRun.releases_grabbed > 0 && (
+                      <>
+                        {" "}
+                        ·{" "}
+                        <span className="text-sky-600 dark:text-sky-400 font-medium">
+                          {t("dashboard.rss.releasesGrabbed", {
+                            count: lastRun.releases_grabbed,
+                          })}
+                        </span>
+                      </>
+                    )}
+                  </p>
                 )}
               </div>
-              {lastRun.status === "error" && lastRun.error && (
-                <p
-                  className="text-xs text-rose-600 dark:text-rose-400 truncate"
-                  title={lastRun.error}
-                >
-                  {lastRun.error}
-                </p>
-              )}
-              {lastRun.status === "success" && (
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {t("dashboard.rss.releasesFound", {
-                    count: lastRun.releases_found,
-                  })}
-                  {lastRun.releases_grabbed > 0 && (
-                    <>
-                      {" "}
-                      ·{" "}
-                      <span className="text-sky-600 dark:text-sky-400 font-medium">
-                        {t("dashboard.rss.releasesGrabbed", {
-                          count: lastRun.releases_grabbed,
-                        })}
-                      </span>
-                    </>
-                  )}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Per-indexer breakdown */}
-        {lastRun && lastRun.indexers.length > 0 && (
+        {!isLoading && lastRun && lastRun.indexers.length > 0 && (
           <div>
             <Kicker>{t("dashboard.rss.indexers")}</Kicker>
             <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
@@ -254,7 +271,7 @@ export function RssStatusPanel() {
         )}
 
         {/* Next run */}
-        {nextRunAt && (
+        {!isLoading && nextRunAt && (
           <div>
             <Kicker>{t("dashboard.rss.nextRun")}</Kicker>
             {isExecuting ? (

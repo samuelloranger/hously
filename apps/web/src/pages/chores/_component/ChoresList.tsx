@@ -14,7 +14,6 @@ import {
   useClearAllCompletedChores,
   useReorderChores,
 } from "@/pages/chores/useChores";
-import { HouseLoader } from "@/components/HouseLoader";
 import { useSearch } from "@tanstack/react-router";
 import { useModalSearchParams } from "@/lib/routing/useModalSearchParams";
 import type { ChoresSearchParams } from "@/pages/chores/_component/ChoreRow";
@@ -83,7 +82,28 @@ export function ChoresList() {
         </div>
 
         {isFetching && chores.length === 0 ? (
-          <HouseLoader size="md" />
+          <div className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 pl-6 pr-6">
+                <div className="w-4 h-4 rounded bg-neutral-100 dark:bg-neutral-800 animate-pulse shrink-0" />
+                <div className="w-5 h-5 rounded-full border-2 border-neutral-200 dark:border-neutral-700 shrink-0" />
+                <div className="flex-1 space-y-1.5 min-w-0">
+                  <div
+                    className="h-3.5 w-3/4 rounded-full bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                    style={{ animationDelay: `${i * 40}ms` }}
+                  />
+                  <div
+                    className="h-2.5 w-1/3 rounded-full bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                    style={{ animationDelay: `${i * 40 + 20}ms` }}
+                  />
+                </div>
+                <div
+                  className="h-7 w-7 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse shrink-0"
+                  style={{ animationDelay: `${i * 40}ms` }}
+                />
+              </div>
+            ))}
+          </div>
         ) : pendingChores.length > 0 ? (
           <SortableList
             items={pendingChores}

@@ -10,14 +10,29 @@ import { createAndQueueNotification } from "@hously/api/workers/notificationServ
 
 const APP_VERSION_KEY = "hously:app_version";
 
+// APP_VERSION is injected at Docker build time via --build-arg APP_VERSION=<git-tag>.
+// When absent or left at the default "0.0.0-dev", we stamp the process boot time so
+// each container restart bumps the version — that way client-side cache busting fires
+// on every redeploy (otherwise iOS Safari sticks on a stale service worker forever).
+const APP_VERSION_RUNTIME = (() => {
+  const fromEnv = process.env.APP_VERSION;
+  if (fromEnv && fromEnv !== "0.0.0-dev") return fromEnv;
+  return `0.0.0-dev+${Date.now()}`;
+})();
+
 function getCurrentAppVersion(): string {
-  // APP_VERSION is injected at Docker build time via --build-arg APP_VERSION=<git-tag>.
-  // Falls back to "0.0.0-dev" in local dev where the env var is absent.
-  return process.env.APP_VERSION ?? "0.0.0-dev";
+  return APP_VERSION_RUNTIME;
 }
 
 export function getAppVersion(): string {
   return getCurrentAppVersion();
+}
+
+// True only when APP_VERSION came from a real build-time tag.
+// The boot-time fallback (`0.0.0-dev+<ts>`) is for client cache busting only —
+// it changes every restart and would otherwise spam "App Updated" notifications.
+function isReleaseVersion(version: string): boolean {
+  return !version.startsWith("0.0.0-dev");
 }
 
 async function getStoredAppVersion(): Promise<string | null> {
@@ -102,6 +117,15 @@ async function sendAppUpdateNotifications(newVersion?: string): Promise<void> {
 export async function checkAndNotifyVersionChange(): Promise<void> {
   try {
     const currentVersion = getAppVersion();
+
+    // Dev builds (no APP_VERSION build-arg) get a fresh boot-time stamp every
+    // restart. Comparing those against Redis would log activity and notify all
+    // subscribers on every container restart — skip the whole path.
+    if (!isReleaseVersion(currentVersion)) {
+      console.log(`Dev build (${currentVersion}); skipping version notify`);
+      return;
+    }
+
     const storedVersion = await getStoredAppVersion();
 
     if (storedVersion === null) {

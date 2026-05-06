@@ -1,3 +1,4 @@
+import * as nodePath from "node:path";
 import { Elysia } from "elysia";
 import { swagger } from "@elysiajs/swagger";
 import { staticPlugin } from "@elysiajs/static";
@@ -53,6 +54,34 @@ function escapeInlineScriptJson(value: unknown): string {
 }
 
 export const app = new Elysia()
+  // Serve pre-compressed .gz assets built by vite-plugin-compression2 when client accepts gzip.
+  .onAfterHandle({ as: "global" }, async ({ request, response, path }) => {
+    if (!(response instanceof Response)) return;
+    if (!path.startsWith("/assets/")) return;
+    // Re-check after normalizing so paths like /assets/../../etc/passwd don't
+    // resolve outside ./public when interpolated into the file path below.
+    const safePath = nodePath.posix.normalize(path);
+    if (!safePath.startsWith("/assets/")) return;
+    const ext = safePath.split(".").pop() ?? "";
+    if (ext !== "js" && ext !== "css") return;
+    if ((request.headers.get("accept-encoding") ?? "").indexOf("gzip") === -1)
+      return;
+    if (response.headers.get("content-encoding")) return;
+
+    const gzFile = Bun.file(`./public${safePath}.gz`);
+    if (!(await gzFile.exists())) return;
+
+    const ct =
+      response.headers.get("content-type") ?? "application/octet-stream";
+    return new Response(gzFile, {
+      headers: {
+        "Content-Type": ct,
+        "Content-Encoding": "gzip",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        Vary: "Accept-Encoding",
+      },
+    });
+  })
   .use(
     cors({
       origin: Bun.env.CORS_ORIGIN || "http://localhost:5173", // Frontend URL
@@ -125,6 +154,7 @@ export const app = new Elysia()
           staticPlugin({
             assets: "./public",
             prefix: "/",
+            // html served below with bootstrap injection
             ignorePatterns: [/\.html$/],
           }),
         )
@@ -135,10 +165,7 @@ export const app = new Elysia()
           ]);
 
           const bootScript = `<script>window.__HOUSLY_BOOTSTRAP__=${escapeInlineScriptJson({ user })};</script>`;
-          const html = indexHtml.replace(
-            "</body>",
-            `${bootScript}\n</body>`,
-          );
+          const html = indexHtml.replace("</body>", `${bootScript}\n</body>`);
 
           return new Response(html, {
             headers: { "Content-Type": "text/html; charset=utf-8" },

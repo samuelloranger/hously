@@ -135,6 +135,21 @@ export function DownloadsPanel() {
       </div>
 
       <div className="px-4 py-3 space-y-4">
+        {/* Loading skeleton */}
+        {isLoading && (
+          <div className="space-y-3">
+            <div className="h-2 w-16 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+            <div className="flex gap-6">
+              <div className="h-5 w-20 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+              <div
+                className="h-5 w-20 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+                style={{ animationDelay: "80ms" }}
+              />
+            </div>
+            <div className="h-10 w-full rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+          </div>
+        )}
+
         {/* Not connected */}
         {!enabled && !isLoading && (
           <p className="py-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">

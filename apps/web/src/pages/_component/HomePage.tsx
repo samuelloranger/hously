@@ -37,8 +37,27 @@ const panelVariants: Variants = {
 
 // ─── Stats row ────────────────────────────────────────────────────────────────
 
-function StatsRow({ stats }: { stats?: DashboardStats }) {
+function StatsRow({
+  stats,
+  isLoading,
+}: {
+  stats?: DashboardStats;
+  isLoading?: boolean;
+}) {
   const { t } = useTranslation("common");
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-4">
+        <div className="h-4 w-24 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+        <div
+          className="h-4 w-20 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+          style={{ animationDelay: "80ms" }}
+        />
+      </div>
+    );
+  }
+
   if (!stats) return null;
 
   const chips = [
@@ -97,7 +116,7 @@ function StatsRow({ stats }: { stats?: DashboardStats }) {
 export function HomePage() {
   const { t } = useTranslation("common");
   const { data: user } = useCurrentUser();
-  const { data: statsData } = useDashboardStats();
+  const { data: statsData, isPending: statsLoading } = useDashboardStats();
   const stats = statsData?.stats;
 
   return (
@@ -115,10 +134,10 @@ export function HomePage() {
             <motion.div className="space-y-3" variants={panelVariants}>
               <GreetingCard
                 userName={getUserFirstName(user, t("dashboard.user"))}
-                pendingChores={stats?.chores_count || 0}
-                eventsToday={stats?.events_today || 0}
+                pendingChores={stats?.chores_count}
+                eventsToday={stats?.events_today}
               />
-              <StatsRow stats={stats} />
+              <StatsRow stats={stats} isLoading={statsLoading} />
             </motion.div>
 
             <motion.div variants={panelVariants}>

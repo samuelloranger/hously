@@ -75,6 +75,31 @@ function weatherStatusIcon(weather: WeatherData): LucideIcon {
   }
 }
 
+function WeatherPanelSkeleton() {
+  return (
+    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+        <span className="w-1 h-4 rounded-full bg-sky-500 shrink-0" />
+        <CloudSun
+          className="w-4 h-4 shrink-0 text-zinc-300 dark:text-zinc-600"
+          strokeWidth={2}
+        />
+        <div className="h-3 w-14 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+      </div>
+      <div className="px-4 py-3">
+        <div className="flex items-start gap-3">
+          <div className="size-9 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+          <div className="flex-1 space-y-2.5 pt-0.5">
+            <div className="h-2 w-20 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+            <div className="h-6 w-14 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+            <div className="h-2 w-40 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function WeatherPanel() {
   const { t } = useTranslation("common");
   const weatherQuery = useDashboardWeather();
@@ -83,6 +108,7 @@ export function WeatherPanel() {
   });
   const [forecastOpen, setForecastOpen] = useState(false);
 
+  if (weatherQuery.isPending) return <WeatherPanelSkeleton />;
   if (!weatherQuery.data || weatherQuery.isError) return null;
 
   const statusIcon = weatherStatusIcon(weatherQuery.data);
