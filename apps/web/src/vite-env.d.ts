@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+import type { User } from "@hously/shared/types";
+
 interface ImportMetaEnv {
   readonly PROD: boolean;
   readonly DEV: boolean;
@@ -9,4 +11,12 @@ interface ImportMetaEnv {
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
+}
+
+declare global {
+  interface Window {
+    __HOUSLY_BOOTSTRAP__?: {
+      user: User | null;
+    };
+  }
 }

@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { getCurrentUser } from "@/lib/auth";
-import { prefetchRouteData } from "@/lib/routing/prefetch";
+import { prefetchRouteDataOptimistic } from "@/lib/routing/prefetch";
 import { HomePage } from "@/pages/_component/HomePage";
 
 export const Route = createFileRoute("/")({
@@ -14,8 +14,8 @@ export const Route = createFileRoute("/")({
       throw e;
     }
   },
-  loader: async ({ context }) => {
-    await prefetchRouteData(context.queryClient, "/");
+  loader: ({ context }) => {
+    prefetchRouteDataOptimistic(context.queryClient, "/");
   },
   component: HomePage,
 });

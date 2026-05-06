@@ -7,6 +7,7 @@ import { router } from "@/router";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { checkVersionAndReload } from "@/lib/version";
 import { registerServiceWorker } from "@/lib/sw/registration";
+import { bootstrapAuthFromWindow } from "@/lib/auth";
 import { useAutoInvalidateNotifications } from "@/lib/notifications/useAutoInvalidateNotifications";
 import { useCloseReadNotifications } from "@/lib/notifications/useCloseReadNotifications";
 import { useIOSImprovements } from "@/lib/app/useIOSImprovements";
@@ -31,6 +32,7 @@ const queryClient = new QueryClient({
 
 // Export queryClient instance for use outside React components
 setQueryClient(queryClient);
+bootstrapAuthFromWindow(queryClient);
 
 // Component to handle service worker query invalidation and iOS improvements
 function AppWithServiceWorkerIntegration() {
