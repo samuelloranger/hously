@@ -1,3 +1,4 @@
+import * as nodePath from "node:path";
 import { Elysia } from "elysia";
 import { swagger } from "@elysiajs/swagger";
 import { staticPlugin } from "@elysiajs/static";
@@ -57,13 +58,17 @@ export const app = new Elysia()
   .onAfterHandle({ as: "global" }, async ({ request, response, path }) => {
     if (!(response instanceof Response)) return;
     if (!path.startsWith("/assets/")) return;
-    const ext = path.split(".").pop() ?? "";
+    // Re-check after normalizing so paths like /assets/../../etc/passwd don't
+    // resolve outside ./public when interpolated into the file path below.
+    const safePath = nodePath.posix.normalize(path);
+    if (!safePath.startsWith("/assets/")) return;
+    const ext = safePath.split(".").pop() ?? "";
     if (ext !== "js" && ext !== "css") return;
     if ((request.headers.get("accept-encoding") ?? "").indexOf("gzip") === -1)
       return;
     if (response.headers.get("content-encoding")) return;
 
-    const gzFile = Bun.file(`./public${path}.gz`);
+    const gzFile = Bun.file(`./public${safePath}.gz`);
     if (!(await gzFile.exists())) return;
 
     const ct =
