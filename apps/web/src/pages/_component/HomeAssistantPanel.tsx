@@ -20,6 +20,48 @@ function isEntityOn(state: string): boolean {
   return state === "on" || state === "open";
 }
 
+function HomeAssistantPanelSkeleton() {
+  return (
+    <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
+      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+        <span className="w-1 h-4 rounded-full bg-amber-500 shrink-0" />
+        <Home
+          className="w-4 h-4 shrink-0 text-zinc-300 dark:text-zinc-600"
+          strokeWidth={2}
+        />
+        <div className="h-3 w-24 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+      </div>
+      <div className="px-4 py-3 space-y-2">
+        {[0, 1].map((i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 rounded-lg border border-zinc-100 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/40 px-3 py-2.5"
+          >
+            <div
+              className="size-5 shrink-0 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+              style={{ animationDelay: `${i * 80}ms` }}
+            />
+            <div className="flex-1 space-y-1.5">
+              <div
+                className="h-2.5 w-24 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+                style={{ animationDelay: `${i * 80}ms` }}
+              />
+              <div
+                className="h-2 w-32 rounded-full bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+                style={{ animationDelay: `${i * 80 + 40}ms` }}
+              />
+            </div>
+            <div
+              className="h-7 w-14 shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+              style={{ animationDelay: `${i * 80}ms` }}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function HomeAssistantPanel() {
   const { t } = useTranslation("common");
   const query = useHomeAssistantWidget();
@@ -29,6 +71,7 @@ export function HomeAssistantPanel() {
     tab: "integrations",
   });
 
+  if (query.isPending) return <HomeAssistantPanelSkeleton />;
   if (!query.data || query.isError) return null;
   if (!query.data.integration_enabled) return null;
 

@@ -14,6 +14,15 @@ import { useIOSImprovements } from "@/lib/app/useIOSImprovements";
 import { NotificationToastContainer } from "@/components/NotificationToastContainer";
 import { setQueryClient } from "@/lib/api/queryClient";
 import { webFetcher } from "@/lib/api/fetcher";
+import "@fontsource/fira-sans/300.css";
+import "@fontsource/fira-sans/400.css";
+import "@fontsource/fira-sans/500.css";
+import "@fontsource/fira-sans/600.css";
+import "@fontsource/fira-sans/700.css";
+import "@fontsource/fira-code/400.css";
+import "@fontsource/fira-code/500.css";
+import "@fontsource/fira-code/600.css";
+import "@fontsource/fira-code/700.css";
 import "./lib/i18n/index";
 import "./index.css";
 

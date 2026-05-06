@@ -10,10 +10,18 @@ import { createAndQueueNotification } from "@hously/api/workers/notificationServ
 
 const APP_VERSION_KEY = "hously:app_version";
 
+// APP_VERSION is injected at Docker build time via --build-arg APP_VERSION=<git-tag>.
+// When absent or left at the default "0.0.0-dev", we stamp the process boot time so
+// each container restart bumps the version — that way client-side cache busting fires
+// on every redeploy (otherwise iOS Safari sticks on a stale service worker forever).
+const APP_VERSION_RUNTIME = (() => {
+  const fromEnv = process.env.APP_VERSION;
+  if (fromEnv && fromEnv !== "0.0.0-dev") return fromEnv;
+  return `0.0.0-dev+${Date.now()}`;
+})();
+
 function getCurrentAppVersion(): string {
-  // APP_VERSION is injected at Docker build time via --build-arg APP_VERSION=<git-tag>.
-  // Falls back to "0.0.0-dev" in local dev where the env var is absent.
-  return process.env.APP_VERSION ?? "0.0.0-dev";
+  return APP_VERSION_RUNTIME;
 }
 
 export function getAppVersion(): string {

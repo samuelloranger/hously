@@ -5,7 +5,6 @@ import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { useHabits, useDeleteHabit } from "@/pages/habits/useHabits";
 import { Habit } from "@hously/shared/types";
-import { HouseLoader } from "@/components/HouseLoader";
 import { EmptyState } from "@/components/EmptyState";
 import { HabitCard } from "@/pages/habits/_component/HabitCard";
 import { CreateHabitModal } from "@/pages/habits/_component/CreateHabitModal";
@@ -169,8 +168,49 @@ export const HabitsList: React.FC = () => {
 
       <div>
         {isLoading && habits.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <HouseLoader />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="p-4 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200/80 dark:border-neutral-700/60"
+              >
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="h-12 w-12 rounded-2xl bg-neutral-100 dark:bg-neutral-700/60 animate-pulse shrink-0"
+                      style={{ animationDelay: `${i * 40}ms` }}
+                    />
+                    <div className="space-y-2 pt-1">
+                      <div
+                        className="h-3.5 w-28 rounded-full bg-neutral-100 dark:bg-neutral-700/60 animate-pulse"
+                        style={{ animationDelay: `${i * 40}ms` }}
+                      />
+                      <div
+                        className="h-2.5 w-20 rounded-full bg-neutral-100 dark:bg-neutral-700/60 animate-pulse"
+                        style={{ animationDelay: `${i * 40 + 20}ms` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="h-7 w-7 rounded-lg bg-neutral-100 dark:bg-neutral-700/60 animate-pulse shrink-0" />
+                </div>
+                <div className="space-y-2 mt-4">
+                  <div
+                    className="h-2 w-full rounded-full bg-neutral-100 dark:bg-neutral-700/60 animate-pulse"
+                    style={{ animationDelay: `${i * 40 + 40}ms` }}
+                  />
+                  <div className="flex justify-between items-center pt-1">
+                    <div className="flex gap-1.5">
+                      <div className="h-5 w-10 rounded-md bg-neutral-100 dark:bg-neutral-700/60 animate-pulse" />
+                      <div className="h-5 w-10 rounded-md bg-neutral-100 dark:bg-neutral-700/60 animate-pulse" />
+                    </div>
+                    <div className="flex gap-1.5">
+                      <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-neutral-700/60 animate-pulse" />
+                      <div className="h-8 w-8 rounded-xl bg-neutral-100 dark:bg-neutral-700/60 animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : habits.length === 0 ? (
           <div className="flex flex-col items-center gap-4">

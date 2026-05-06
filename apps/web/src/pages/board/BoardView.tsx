@@ -10,7 +10,6 @@ import {
 } from "@hously/shared/types";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
-import { HouseLoader } from "@/components/HouseLoader";
 import { useJsonEventSource } from "@/lib/realtime/useEventSource";
 import { useUsers } from "@/pages/settings/useUsers";
 import { BOARD_TASKS_ENDPOINTS } from "@/lib/endpoints";
@@ -115,7 +114,56 @@ export function BoardView() {
   if (isLoading && !data) {
     return (
       <PageLayout>
-        <HouseLoader size="md" />
+        <PageHeader
+          icon={LayoutGrid}
+          iconColor="text-primary-600"
+          title={t("board.title")}
+          subtitle={t("board.subtitle")}
+        />
+        {/* Toolbar skeleton */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="h-8 w-24 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+          <div className="h-8 w-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+          <div className="ml-auto h-8 w-28 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+        </div>
+        {/* Kanban columns */}
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {BOARD_KANBAN_STATUSES.map((status, i) => (
+            <div
+              key={status}
+              className="flex min-h-[min(70vh,520px)] flex-1 min-w-[260px] flex-col rounded-xl border border-neutral-200/80 bg-neutral-50/80 dark:border-neutral-700/60 dark:bg-neutral-900/40"
+            >
+              {/* Column header */}
+              <div className="border-b border-neutral-200/80 dark:border-neutral-700/50 px-3 py-2.5 flex items-center gap-2">
+                <div
+                  className="h-3 w-20 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
+                  style={{ animationDelay: `${i * 50}ms` }}
+                />
+                <div className="h-4 w-6 rounded-full bg-neutral-100 dark:bg-neutral-800 animate-pulse" />
+              </div>
+              {/* Task card skeletons */}
+              <div className="flex flex-col gap-2 p-2">
+                {[0, 1, i < 2 ? 2 : -1]
+                  .filter((n) => n >= 0)
+                  .map((j) => (
+                    <div
+                      key={j}
+                      className="rounded-xl border border-neutral-200/60 dark:border-neutral-700/50 bg-white dark:bg-neutral-800/80 p-3 space-y-2"
+                    >
+                      <div
+                        className="h-3 w-3/4 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"
+                        style={{ animationDelay: `${i * 50 + j * 40}ms` }}
+                      />
+                      <div
+                        className="h-2.5 w-1/2 rounded-full bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                        style={{ animationDelay: `${i * 50 + j * 40 + 20}ms` }}
+                      />
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </PageLayout>
     );
   }
