@@ -57,6 +57,18 @@ function AppWithServiceWorkerIntegration() {
   );
 }
 
+// Reload once when Vite fails to preload a route chunk (transient network blip,
+// deploy race, etc). Without this, the error reaches the ErrorBoundary and the
+// user sees a broken screen instead of the next page.
+window.addEventListener("vite:preloadError", (event) => {
+  event.preventDefault();
+  const key = "hously_preload_reload_at";
+  const last = Number(sessionStorage.getItem(key) ?? 0);
+  if (Date.now() - last < 10_000) return;
+  sessionStorage.setItem(key, String(Date.now()));
+  window.location.reload();
+});
+
 // Register service worker for push notifications
 registerServiceWorker();
 
