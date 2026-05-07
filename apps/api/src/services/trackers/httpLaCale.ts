@@ -1,5 +1,6 @@
 import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
 import type { HttpTrackerStats } from "./httpScraper";
+import { TrackerHttpError } from "./errors";
 
 /**
  * La Cale has a straightforward JSON API
@@ -29,8 +30,13 @@ export async function scrapeLaCale(
 
   if (!loginRes.ok) {
     const body = await loginRes.text();
-    throw new Error(
-      `LaCale API login failed: ${loginRes.status} — ${body.slice(0, 200)}`,
+    console.warn(
+      `[la-cale-http] login failed ${loginRes.status}: ${body.slice(0, 200)}`,
+    );
+    throw new TrackerHttpError(
+      "la-cale",
+      loginRes.status,
+      `${apiBase}/auth/login`,
     );
   }
 
@@ -54,9 +60,10 @@ export async function scrapeLaCale(
 
   if (!meRes.ok) {
     const body = await meRes.text();
-    throw new Error(
-      `LaCale API me failed: ${meRes.status} — ${body.slice(0, 200)}`,
+    console.warn(
+      `[la-cale-http] me failed ${meRes.status}: ${body.slice(0, 200)}`,
     );
+    throw new TrackerHttpError("la-cale", meRes.status, `${apiBase}/me`);
   }
 
   const data = (await meRes.json()) as {

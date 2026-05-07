@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
 import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
+import {
+  TrackerHttpError,
+  TrackerAuthError,
+} from "@hously/api/services/trackers/errors";
 
 const mockFetch = mock(async (_url: string, _opts?: RequestInit) => {
   return new Response("", { status: 200 });
@@ -34,9 +38,15 @@ describe("scrapeTorr9", () => {
     );
 
     const { scrapeTorr9 } = await import("../services/trackers/httpTorr9");
-    await expect(
-      scrapeTorr9(baseConfig, { userAgent: "Mozilla/5.0", cookies: [] }),
-    ).rejects.toThrow("Torr9 API login failed: 401");
+    const promise = scrapeTorr9(baseConfig, {
+      userAgent: "Mozilla/5.0",
+      cookies: [],
+    });
+    await expect(promise).rejects.toBeInstanceOf(TrackerHttpError);
+    await expect(promise).rejects.toMatchObject({
+      trackerType: "torr9",
+      status: 401,
+    });
   });
 
   it("throws when login response is missing token or user", async () => {
@@ -49,9 +59,15 @@ describe("scrapeTorr9", () => {
     );
 
     const { scrapeTorr9 } = await import("../services/trackers/httpTorr9");
-    await expect(
-      scrapeTorr9(baseConfig, { userAgent: "Mozilla/5.0", cookies: [] }),
-    ).rejects.toThrow("Torr9 API login response missing token or user data");
+    const promise = scrapeTorr9(baseConfig, {
+      userAgent: "Mozilla/5.0",
+      cookies: [],
+    });
+    await expect(promise).rejects.toBeInstanceOf(TrackerAuthError);
+    await expect(promise).rejects.toMatchObject({
+      trackerType: "torr9",
+      reason: "login response missing token or user data",
+    });
   });
 
   it("returns parsed stats from login response", async () => {
@@ -124,9 +140,12 @@ describe("scrapeLaCale", () => {
     );
 
     const { scrapeLaCale } = await import("../services/trackers/httpLaCale");
-    await expect(scrapeLaCale(baseConfig)).rejects.toThrow(
-      "LaCale API login failed: 403",
-    );
+    const promise = scrapeLaCale(baseConfig);
+    await expect(promise).rejects.toBeInstanceOf(TrackerHttpError);
+    await expect(promise).rejects.toMatchObject({
+      trackerType: "la-cale",
+      status: 403,
+    });
   });
 
   it("throws when /me request fails", async () => {
@@ -146,9 +165,12 @@ describe("scrapeLaCale", () => {
       );
 
     const { scrapeLaCale } = await import("../services/trackers/httpLaCale");
-    await expect(scrapeLaCale(baseConfig)).rejects.toThrow(
-      "LaCale API me failed: 500",
-    );
+    const promise = scrapeLaCale(baseConfig);
+    await expect(promise).rejects.toBeInstanceOf(TrackerHttpError);
+    await expect(promise).rejects.toMatchObject({
+      trackerType: "la-cale",
+      status: 500,
+    });
   });
 
   it("returns parsed stats from /me response", async () => {
