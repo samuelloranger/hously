@@ -9,6 +9,9 @@ export const LIBRARY_ENDPOINTS = {
   UPDATE_QUALITY_PROFILE: (id: number) => `/api/library/${id}/quality-profile`,
   EPISODES: (id: number) => `/api/library/${id}/episodes`,
   DOWNLOADS: (id: number) => `/api/library/${id}/downloads`,
+  CLEAR_FAILED_DOWNLOADS: (id: number) => `/api/library/${id}/downloads/failed`,
+  DELETE_DOWNLOAD_ENTRY: (mediaId: number, downloadHistoryId: number) =>
+    `/api/library/${mediaId}/downloads/${downloadHistoryId}`,
   SEARCH: (id: number) => `/api/library/${id}/search`,
   GRAB: (id: number) => `/api/library/${id}/grab`,
   SEARCH_EPISODE: (mediaId: number, episodeId: number) =>

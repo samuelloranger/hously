@@ -55,7 +55,11 @@ describe("jellyfinEpisodeBatcher", () => {
 
     expect(sendExternalNotification).toHaveBeenCalledTimes(1);
     const [service, eventType, payload] = sendExternalNotification.mock
-      .calls[0] as [string, string, { template_variables: Record<string, string> }];
+      .calls[0] as [
+      string,
+      string,
+      { template_variables: Record<string, string> },
+    ];
     expect(service).toBe("jellyfin");
     expect(eventType).toBe("ItemAdded");
     expect(payload.template_variables.SeriesName).toBe("Show A");
