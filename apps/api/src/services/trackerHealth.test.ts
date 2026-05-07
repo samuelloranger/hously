@@ -41,6 +41,24 @@ mock.module("@hously/api/services/externalNotificationService", () => ({
 
 const importHealth = async () => await import("./trackerHealth");
 
+describe("humanizeDuration", () => {
+  it.each([
+    [0, "less than a minute"],
+    [30_000, "less than a minute"],
+    [60_000, "1 minute"],
+    [5 * 60_000, "5 minutes"],
+    [60 * 60_000, "1 hour"],
+    [90 * 60_000, "1 hour 30 minutes"],
+    [125 * 60_000, "2 hours 5 minutes"],
+    [24 * 60 * 60_000, "1 day"],
+    [25 * 60 * 60_000, "1 day 1 hour"],
+    [50 * 60 * 60_000, "2 days 2 hours"],
+  ])("%d ms → %s", async (ms, expected) => {
+    const { humanizeDuration } = await import("./trackerHealth");
+    expect(humanizeDuration(ms)).toBe(expected);
+  });
+});
+
 describe("trackerHealth.recordSuccess", () => {
   beforeEach(() => {
     getJsonCache.mockClear();

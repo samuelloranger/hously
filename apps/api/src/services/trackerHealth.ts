@@ -52,14 +52,28 @@ function classifyFailure(error: TrackerHttpError | TrackerAuthError): {
   };
 }
 
-function humanizeDuration(ms: number): string {
-  const minutes = Math.floor(ms / 60_000);
-  if (minutes < 1) return "less than a minute";
-  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"}`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"}`;
-  const days = Math.floor(hours / 24);
-  return `${days} day${days === 1 ? "" : "s"}`;
+function pluralUnit(value: number, unit: string): string {
+  return `${value} ${unit}${value === 1 ? "" : "s"}`;
+}
+
+export function humanizeDuration(ms: number): string {
+  const totalMinutes = Math.floor(ms / 60_000);
+  if (totalMinutes < 1) return "less than a minute";
+  if (totalMinutes < 60) return pluralUnit(totalMinutes, "minute");
+
+  const totalHours = Math.floor(totalMinutes / 60);
+  if (totalHours < 24) {
+    const minutes = totalMinutes % 60;
+    return minutes === 0
+      ? pluralUnit(totalHours, "hour")
+      : `${pluralUnit(totalHours, "hour")} ${pluralUnit(minutes, "minute")}`;
+  }
+
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  return hours === 0
+    ? pluralUnit(days, "day")
+    : `${pluralUnit(days, "day")} ${pluralUnit(hours, "hour")}`;
 }
 
 async function fanOutToAdmins(
