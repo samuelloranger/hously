@@ -8,8 +8,6 @@ import { PointerActivationConstraints, type DragEndEvent } from "@dnd-kit/dom";
 import { ReactNode, useState, type CSSProperties, type Ref } from "react";
 import { GripVertical } from "lucide-react";
 
-type DragEndPayload = Parameters<DragEndEvent>[0];
-
 interface SortableItemProps {
   id: string | number;
   index: number;
@@ -101,7 +99,7 @@ export function SortableList<T extends { id: number | string }>({
     setLocalItems(items);
   };
 
-  const handleDragEnd = (event: DragEndPayload) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { canceled, operation } = event;
 
     if (canceled) {

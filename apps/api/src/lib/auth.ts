@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { betterAuth, type Auth } from "better-auth";
 import { genericOAuth } from "better-auth/plugins";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { passkey } from "@better-auth/passkey";
@@ -189,4 +189,4 @@ export const auth = betterAuth({
       generateId: "uuid",
     },
   },
-});
+}) as unknown as Auth;

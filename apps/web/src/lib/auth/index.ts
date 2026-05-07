@@ -77,7 +77,9 @@ export function setUser(user: User | null): void {
   getQueryClient()?.setQueryData(queryKeys.auth.me, user);
 }
 
-export function bootstrapAuthFromWindow(queryClient?: QueryClient): User | null {
+export function bootstrapAuthFromWindow(
+  queryClient?: QueryClient,
+): User | null {
   if (typeof window === "undefined") return null;
 
   const bootUser = window.__HOUSLY_BOOTSTRAP__?.user;

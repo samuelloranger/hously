@@ -20,9 +20,11 @@ setup("authenticate", async ({ page, baseURL }) => {
   // Pre-populate the version key so the app doesn't trigger a
   // window.location.reload() on first visit (version mismatch check).
   const apiContext = await request.newContext({ baseURL });
-  const versionRes = await apiContext.get("/api/system/version").catch(() => null);
+  const versionRes = await apiContext
+    .get("/api/system/version")
+    .catch(() => null);
   const serverVersion = versionRes?.ok()
-    ? (await versionRes.json().catch(() => ({}))).version ?? null
+    ? ((await versionRes.json().catch(() => ({}))).version ?? null)
     : null;
 
   if (serverVersion) {
