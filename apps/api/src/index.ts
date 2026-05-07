@@ -26,7 +26,6 @@ import { libraryMediaAdminRoutes } from "./routes/library/libraryMediaAdmin";
 import { libraryRoutes } from "./routes/library";
 import { qualityProfilesRoutes } from "./routes/quality-profiles";
 import { mediasRoutes } from "./routes/medias";
-import { jellyfinSyncRoutes } from "./routes/sync/jellyfin";
 import { notificationsRoutes } from "./routes/notifications";
 import { integrationsRoutes } from "./routes/integrations";
 import { remindersRoutes } from "./routes/reminders";
@@ -137,7 +136,6 @@ export const app = new Elysia()
   .use(libraryRoutes)
   .use(qualityProfilesRoutes)
   .use(mediasRoutes)
-  .use(jellyfinSyncRoutes)
   .use(habitsRoutes)
   .use(boardTasksRoutes)
   .use(boardTagsRoutes)

@@ -1,7 +1,6 @@
 import type {
   AdguardIntegrationConfig,
   JellyfinIntegrationConfig,
-  JellyfinSyncConfig,
   BeszelIntegrationConfig,
   IndexerIntegrationConfig,
   NetdataIntegrationConfig,
@@ -46,44 +45,6 @@ export const normalizeJellyfinConfig = (
   return {
     api_key: apiKey,
     website_url: websiteUrl.replace(/\/+$/, ""),
-  };
-};
-
-export const normalizeJellyfinSyncConfig = (
-  config: unknown,
-): JellyfinSyncConfig | null => {
-  if (!config || typeof config !== "object" || Array.isArray(config))
-    return null;
-  const cfg = config as Record<string, unknown>;
-
-  const syncToken = normalizeSecret(cfg.sync_token);
-  if (!syncToken) return null;
-
-  const websiteUrl =
-    typeof cfg.website_url === "string"
-      ? cfg.website_url.trim().replace(/\/+$/, "")
-      : "";
-
-  const rawMappings = Array.isArray(cfg.user_mappings) ? cfg.user_mappings : [];
-  const userMappings = rawMappings
-    .filter(
-      (m): m is Record<string, unknown> =>
-        typeof m === "object" && m !== null && !Array.isArray(m),
-    )
-    .map((m) => ({
-      jellyfin_user_id:
-        typeof m.jellyfin_user_id === "string" ? m.jellyfin_user_id.trim() : "",
-      hously_user_id:
-        typeof m.hously_user_id === "string" ? m.hously_user_id : "",
-    }))
-    .filter(
-      (m) => m.jellyfin_user_id.length > 0 && m.hously_user_id.length > 0,
-    );
-
-  return {
-    sync_token: syncToken,
-    website_url: websiteUrl,
-    user_mappings: userMappings,
   };
 };
 

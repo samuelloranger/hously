@@ -3,7 +3,6 @@ import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { prisma } from "@hously/api/db";
 import { badRequest, serverError } from "@hously/api/errors";
-import { notifyJellyfinWatchlistChange } from "@hously/api/services/jellyfinSyncNotifier";
 
 function parseYmdToDbDate(ymd: string | null | undefined): Date | null {
   if (ymd == null || ymd === "") return null;
@@ -80,16 +79,7 @@ export const mediasWatchlistRoutes = new Elysia({
               : {}),
           },
         });
-        const result = { id: item.id, added: true };
-
-        notifyJellyfinWatchlistChange({
-          houslyUserId: user!.id,
-          tmdbId: body.tmdb_id,
-          mediaType: body.media_type,
-          action: "added",
-        }).catch(() => {});
-
-        return result;
+        return { id: item.id, added: true };
       } catch (error) {
         return serverError(set, "Failed to add to watchlist");
       }
@@ -118,13 +108,6 @@ export const mediasWatchlistRoutes = new Elysia({
       await prisma.watchlistItem.deleteMany({
         where: { userId: user!.id, tmdbId, mediaType: query.type },
       });
-
-      notifyJellyfinWatchlistChange({
-        houslyUserId: user!.id,
-        tmdbId,
-        mediaType: query.type as string,
-        action: "removed",
-      }).catch(() => {});
 
       return { success: true };
     } catch (error) {

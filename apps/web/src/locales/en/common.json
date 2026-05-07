@@ -1333,17 +1333,7 @@
         "help": "Connect Jellyfin to fetch the latest items added to your media server.",
         "websiteUrl": "Jellyfin Website URL",
         "apiKey": "Jellyfin API Key",
-        "apiKeyPlaceholder": "Paste your Jellyfin API key",
-        "watchlistSync": "Watchlist Sync",
-        "syncToken": "Sync Token",
-        "noSyncToken": "Not configured",
-        "regenerate": "Regenerate",
-        "userMappings": "User Mappings",
-        "jellyfinUserId": "Jellyfin User ID",
-        "selectUser": "Select user",
-        "syncUser": "Sync this user",
-        "addMapping": "Add mapping",
-        "syncAll": "Sync All"
+        "apiKeyPlaceholder": "Paste your Jellyfin API key"
       },
       "tmdb": {
         "help": "Configure TMDB so upcoming releases and media search can query TMDB from the server.",
