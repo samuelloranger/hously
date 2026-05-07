@@ -3,17 +3,6 @@ export interface JellyfinIntegrationConfig {
   website_url: string;
 }
 
-export interface JellyfinUserMapping {
-  jellyfin_user_id: string;
-  hously_user_id: string;
-}
-
-export interface JellyfinSyncConfig {
-  sync_token: string;
-  website_url: string;
-  user_mappings: JellyfinUserMapping[];
-}
-
 export interface RadarrIntegrationConfig {
   api_key: string;
   website_url: string;

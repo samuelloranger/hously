@@ -5,18 +5,11 @@ export interface ArrProfile {
 
 export type TrackerType = "c411" | "torr9" | "la-cale";
 
-export interface JellyfinUserMappingConfig {
-  jellyfin_user_id: string;
-  hously_user_id: string;
-}
-
 export interface JellyfinIntegration {
   type: "jellyfin";
   enabled: boolean;
   website_url: string;
   api_key: string;
-  has_sync_token?: boolean;
-  user_mappings?: JellyfinUserMappingConfig[];
 }
 
 export interface RadarrIntegration {

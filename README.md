@@ -13,7 +13,6 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 - **Torrents** — qBittorrent management with real-time activity streaming (SSE)
 - **Tracker Stats** — Private tracker statistics (C411, Torr9, La Cale)
 - **Jellyfin/Plex** — Latest additions and webhook notifications
-- **Jellyfin Watchlist Sync** — Two-way sync between the Hously watchlist and a Jellyfin "What's Next" collection (via the companion plugin)
 - **Collections** — Manage and complete your media collections
 
 **Infrastructure**
@@ -144,64 +143,13 @@ hously/
 │   ├── api/              # Elysia API (routes, services, workers, jobs)
 │   │   └── prisma/       # Database schema and migrations
 │   ├── web/              # React frontend (pages, features, components)
-│   ├── shared/           # Shared types, hooks, endpoints, utilities
-│   └── jellyfin-plugin/  # C# Jellyfin server plugin (watchlist sync)
+│   └── shared/           # Shared types, hooks, endpoints, utilities
 ├── docs/              # Integration guides
 ├── docker-compose.yml # Dev backing services
 └── Makefile
 ```
 
 Shared code (types, TanStack Query hooks, API endpoint constants) lives in `apps/shared` and is imported as `@hously/shared` by both apps.
-
-## Jellyfin Watchlist Sync Plugin
-
-The `apps/jellyfin-plugin/` directory contains a C# Jellyfin server plugin that keeps your Hously watchlist and Jellyfin library in sync.
-
-### What it does
-
-- **Hously → Jellyfin:** Items you add to the Hously watchlist that are available in your Jellyfin library appear in a per-user **"What's Next"** collection, updated in near-real-time via webhook and refreshed on a configurable timer (default: every 15 minutes).
-- **Jellyfin → Hously:** When you mark an item as played in Jellyfin, it is automatically removed from your Hously watchlist.
-
-### Installing the plugin
-
-1. Go to **Dashboard → Plugins → Repositories** in your Jellyfin admin panel.
-2. Add a new repository and point it at the `manifest.json` URL from the latest GitHub release (available under **Releases** → `manifest.json`).
-3. Go to **Dashboard → Plugins → Catalog**, find **Hously Watchlist Sync**, and install it.
-4. Restart Jellyfin.
-
-Alternatively, download `Jellyfin.Plugin.HouslyWatchlist_v{version}.zip` from a GitHub release, extract the `.dll`, place it in your Jellyfin `plugins/` directory, and restart.
-
-### Configuring the plugin
-
-1. In Jellyfin, go to **Dashboard → Plugins → Hously Watchlist Sync**.
-2. Set **Hously Base URL** — the URL of your Hously instance (e.g. `https://hously.example.com`).
-3. Set **Admin Token** — the sync token generated in Hously (see below).
-4. Set **Sync Interval** — how often (in minutes) to run a full watchlist sync (default: 15).
-5. Add **User Mappings** — one row per user, mapping a Jellyfin User ID to the corresponding Hously user ID.
-6. Click **Save**, then **Sync Now** to trigger an immediate sync.
-
-#### Generating the sync token in Hously
-
-1. Open Hously → **Settings → Integrations → Jellyfin**.
-2. Scroll to the **Watchlist Sync** section.
-3. Click **Regenerate** to generate a new token — copy it immediately (it is only shown once).
-4. Paste the token into the **Admin Token** field in the Jellyfin plugin config.
-
-#### Finding Jellyfin User IDs
-
-Jellyfin User IDs are GUIDs (e.g. `3d4b2c1a-8e6f-4a9b-b2e7-1c5d9f3a7e2b`). You can find them under **Dashboard → Users → [username]** — the ID appears in the browser URL.
-
-### How it is built and released
-
-The plugin is built automatically when a new GitHub release is published, but only if files under `apps/jellyfin-plugin/` changed. The workflow (`.github/workflows/jellyfin-plugin.yml`):
-
-1. Detects whether plugin files changed since the previous release tag.
-2. Builds the plugin with `dotnet build --configuration Release`.
-3. Packages the `.dll` into a versioned zip and computes its MD5.
-4. Updates `manifest.json` with the new version entry.
-5. Uploads the zip as a release asset.
-
-The plugin version matches the Hously release tag directly.
 
 ## Contributing
 

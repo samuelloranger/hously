@@ -1333,17 +1333,7 @@
         "help": "Connectez Jellyfin pour récupérer les derniers éléments ajoutés sur votre serveur média.",
         "websiteUrl": "URL du site Jellyfin",
         "apiKey": "Clé API Jellyfin",
-        "apiKeyPlaceholder": "Collez votre clé API Jellyfin",
-        "watchlistSync": "Synchronisation de la liste de visionnage",
-        "syncToken": "Jeton de synchronisation",
-        "noSyncToken": "Non configuré",
-        "regenerate": "Régénérer",
-        "userMappings": "Correspondances d'utilisateurs",
-        "jellyfinUserId": "ID utilisateur Jellyfin",
-        "selectUser": "Sélectionner un utilisateur",
-        "syncUser": "Synchroniser cet utilisateur",
-        "addMapping": "Ajouter une correspondance",
-        "syncAll": "Tout synchroniser"
+        "apiKeyPlaceholder": "Collez votre clé API Jellyfin"
       },
       "tmdb": {
         "help": "Configurez TMDB pour que les sorties à venir et la recherche médias interrogent TMDB depuis le serveur.",
