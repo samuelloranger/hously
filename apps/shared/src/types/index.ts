@@ -7,6 +7,7 @@ export * from "./notification";
 export * from "./notificationChannel";
 export * from "./admin";
 export * from "./integrations";
+export * from "./jellyfin";
 export * from "./externalNotifications";
 export * from "./weather";
 export * from "./media";

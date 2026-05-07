@@ -144,8 +144,7 @@ export function enqueueJellyfinEpisode(event: JellyfinEpisodeEvent): void {
       event.templateVariables.SeriesName?.trim() ||
       event.templateVariables.Title ||
       "Unknown",
-    serverName:
-      event.templateVariables.ServerName?.trim() || "Jellyfin Server",
+    serverName: event.templateVariables.ServerName?.trim() || "Jellyfin Server",
     serverUrl: event.templateVariables.ServerUrl,
     events: [event],
     firstSeenAt: Date.now(),

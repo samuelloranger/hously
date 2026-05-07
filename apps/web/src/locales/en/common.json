@@ -14,6 +14,12 @@
     "section_life": "Life",
     "section_homelab": "Homelab"
   },
+  "jellyfin": {
+    "play": {
+      "title": "Jellyfin playback",
+      "subtitle": "In-browser demo player (HLS)"
+    }
+  },
   "calendar": {
     "title": "Calendar",
     "subtitle": "Household events and upcoming media releases in one place",
@@ -302,6 +308,7 @@
       "jellyfinLoadError": "Failed to load Jellyfin",
       "jellyfinNotConfigured": "Jellyfin not configured",
       "jellyfinEmpty": "No recent media",
+      "jellyfinPlayInHously": "Play in Hously",
       "mediaTypeMovie": "Movie",
       "mediaTypeTv": "TV",
       "mediaTypeAlbum": "Album",

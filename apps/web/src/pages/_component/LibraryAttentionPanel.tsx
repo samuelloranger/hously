@@ -34,7 +34,11 @@ const KIND_LABEL_KEY: Record<LibraryAttentionItem["kind"], string> = {
 
 function tvLabel(item: LibraryAttentionItem): string | null {
   if (item.media_type !== "show") return null;
-  if (item.scope_type === "season_pack" && item.season != null && item.season > 0) {
+  if (
+    item.scope_type === "season_pack" &&
+    item.season != null &&
+    item.season > 0
+  ) {
     return `S${String(item.season).padStart(2, "0")}`;
   }
   if (
@@ -94,9 +98,7 @@ function AttentionRow({
   const severity = severityOf(item.kind);
   const tv = tvLabel(item);
   const isPostProcess = item.kind === "post_process_error";
-  const linkTab = isPostProcess
-    ? ("management" as const)
-    : ("search" as const);
+  const linkTab = isPostProcess ? ("management" as const) : ("search" as const);
 
   const resetKey = `${item.media_id}:${item.episode_id ?? "m"}`;
   const seasonKey =
@@ -182,7 +184,9 @@ function AttentionRow({
               onClick={primary.onClick}
               className="inline-flex items-center gap-1 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2 py-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50"
             >
-              {primary.busy ? <Loader2 size={12} className="animate-spin" /> : null}
+              {primary.busy ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : null}
               {primary.label}
             </button>
           ) : null}

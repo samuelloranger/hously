@@ -13,6 +13,8 @@ import { QuickActionPalette } from "@/components/QuickActionPalette";
 import { RouteDataRefetcher } from "@/components/RouteDataRefetcher";
 import { useAutoSubscribeNotifications } from "@/lib/notifications/useAutoSubscribeNotifications";
 import { LibraryNavigationProvider } from "@/features/medias/context/LibraryNavigationContext";
+import { JellyfinPlayerProvider } from "@/features/jellyfin-player/JellyfinPlayerContext";
+import { JellyfinPlayerOverlay } from "@/features/jellyfin-player/JellyfinPlayerOverlay";
 
 export interface RouterContext {
   queryClient: QueryClient;
@@ -29,29 +31,32 @@ function RootLayout() {
 
   return (
     <LibraryNavigationProvider>
-      <ScrollRestoration />
-      {shouldShowNav && (
-        <Sidebar onOpenQuickActions={() => setIsQuickActionsOpen(true)} />
-      )}
-      <div className={shouldShowNav ? "lg:pl-60" : ""}>
-        <main
-          className={`user min-h-full flex-1 flex flex-col ${isSettings ? "pb-0 min-h-screen" : "pb-10"}`}
-        >
-          <RouteDataRefetcher />
-          <PageTransition />
-        </main>
-      </div>
-      <QuickActionPalette
-        isOpen={isQuickActionsOpen}
-        onOpen={() => setIsQuickActionsOpen(true)}
-        onClose={() => setIsQuickActionsOpen(false)}
-      />
-      <NotificationPermissionModal
-        isOpen={showModal}
-        onAllow={handleAllow}
-        onDismiss={handleDismiss}
-      />
-      <Toaster position="bottom-center" richColors />
+      <JellyfinPlayerProvider>
+        <ScrollRestoration />
+        {shouldShowNav && (
+          <Sidebar onOpenQuickActions={() => setIsQuickActionsOpen(true)} />
+        )}
+        <div className={shouldShowNav ? "lg:pl-60" : ""}>
+          <main
+            className={`user min-h-full flex-1 flex flex-col ${isSettings ? "pb-0 min-h-screen" : "pb-10"}`}
+          >
+            <RouteDataRefetcher />
+            <PageTransition />
+          </main>
+        </div>
+        <QuickActionPalette
+          isOpen={isQuickActionsOpen}
+          onOpen={() => setIsQuickActionsOpen(true)}
+          onClose={() => setIsQuickActionsOpen(false)}
+        />
+        <NotificationPermissionModal
+          isOpen={showModal}
+          onAllow={handleAllow}
+          onDismiss={handleDismiss}
+        />
+        <Toaster position="bottom-center" richColors />
+        <JellyfinPlayerOverlay />
+      </JellyfinPlayerProvider>
     </LibraryNavigationProvider>
   );
 }

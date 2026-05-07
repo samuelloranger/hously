@@ -1,6 +1,9 @@
+import { jellyfinPlaybackUrlPath } from "@hously/shared";
+
 export const INTEGRATION_ENDPOINTS = {
   BASE: "/api/integrations",
   JELLYFIN: "/api/integrations/jellyfin",
+  JELLYFIN_PLAYBACK_URL: jellyfinPlaybackUrlPath,
   RADARR: "/api/integrations/radarr",
   RADARR_PROFILES: "/api/integrations/radarr/profiles",
   SONARR: "/api/integrations/sonarr",

@@ -1,4 +1,5 @@
 import type { TrackerType } from "@hously/shared/types";
+import { jellyfinPlaybackQueryKey } from "@hously/shared";
 export const queryKeys = {
   auth: {
     all: ["auth"] as const,
@@ -129,6 +130,7 @@ export const queryKeys = {
     tracker: (type: TrackerType) =>
       [...queryKeys.integrations.all, type] as const,
     jellyfin: () => [...queryKeys.integrations.all, "jellyfin"] as const,
+    jellyfinPlayback: (itemId: string) => [...jellyfinPlaybackQueryKey(itemId)],
     radarr: () => [...queryKeys.integrations.all, "radarr"] as const,
     sonarr: () => [...queryKeys.integrations.all, "sonarr"] as const,
     prowlarr: () => [...queryKeys.integrations.all, "prowlarr"] as const,

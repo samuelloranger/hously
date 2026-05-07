@@ -1,6 +1,7 @@
 import { useMemo, useState, type UIEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
+import { useJellyfinPlayer } from "@/features/jellyfin-player/JellyfinPlayerContext";
 import { useDashboardJellyfinLatestInfinite } from "@/pages/_component/useDashboardJellyfin";
 import {
   useDashboardUpcoming,
@@ -103,6 +104,7 @@ function PosterCard({
 export function JellyfinShelf() {
   const { t, i18n } = useTranslation("common");
   const locale = resolveDateFnsLocale(i18n.language);
+  const { play: playJellyfin } = useJellyfinPlayer();
   const {
     data,
     isLoading,
@@ -207,16 +209,20 @@ export function JellyfinShelf() {
         >
           <div className="flex gap-3">
             {items.map((item, i) => (
-              <PosterCard
+              <div
                 key={`${item.id}-${i}`}
-                title={item.title}
-                subtitle={formatRelativeTime(item.added_at, { locale }) ?? ""}
-                posterUrl={item.poster_url}
-                FallbackIcon={mediaFallback(item.item_type)}
-                type={mediaTypeLabel(item.item_type)}
-                href={item.item_url || undefined}
-                delayMs={i * 40}
-              />
+                className="shrink-0 flex flex-col items-center"
+              >
+                <PosterCard
+                  title={item.title}
+                  subtitle={formatRelativeTime(item.added_at, { locale }) ?? ""}
+                  posterUrl={item.poster_url}
+                  FallbackIcon={mediaFallback(item.item_type)}
+                  type={mediaTypeLabel(item.item_type)}
+                  onClick={() => playJellyfin(item.id)}
+                  delayMs={i * 40}
+                />
+              </div>
             ))}
             {isFetchingNextPage && (
               <div className="w-[120px] md:w-[140px] shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 aspect-[2/3] animate-pulse" />

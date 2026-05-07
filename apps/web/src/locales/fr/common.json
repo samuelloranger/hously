@@ -14,6 +14,12 @@
     "section_life": "Vie",
     "section_homelab": "Homelab"
   },
+  "jellyfin": {
+    "play": {
+      "title": "Lecture Jellyfin",
+      "subtitle": "Lecteur démo dans le navigateur (HLS)"
+    }
+  },
   "calendar": {
     "title": "Calendrier",
     "subtitle": "Événements du foyer et sorties média à venir au même endroit",
@@ -302,6 +308,7 @@
       "jellyfinLoadError": "Échec du chargement Jellyfin",
       "jellyfinNotConfigured": "Jellyfin non configuré",
       "jellyfinEmpty": "Aucun média récent",
+      "jellyfinPlayInHously": "Lire dans Hously",
       "mediaTypeMovie": "Film",
       "mediaTypeTv": "Série",
       "mediaTypeAlbum": "Album",

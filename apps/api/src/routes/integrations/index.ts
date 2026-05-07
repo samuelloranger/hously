@@ -4,6 +4,7 @@ import { tmdbIntegrationRoutes } from "./tmdb";
 import { qbittorrentIntegrationRoutes } from "./qbittorrent";
 import { homeAssistantIntegrationRoutes } from "./home-assistant";
 import { jellyfinIntegrationRoutes } from "./jellyfin";
+import { jellyfinPlaybackUrlRoutes } from "./jellyfin/playback";
 import { prowlarrIntegrationRoutes } from "./prowlarr";
 import { jackettIntegrationRoutes } from "./jackett";
 
@@ -20,6 +21,7 @@ export const integrationsRoutes = new Elysia({ prefix: "/api/integrations" })
   .use(qbittorrentIntegrationRoutes)
   .use(homeAssistantIntegrationRoutes)
   .use(jellyfinIntegrationRoutes)
+  .use(jellyfinPlaybackUrlRoutes)
   .use(prowlarrIntegrationRoutes)
   .use(jackettIntegrationRoutes)
   .use(scrutinyIntegrationRoutes)
