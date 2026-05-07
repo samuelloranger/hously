@@ -1,5 +1,6 @@
 import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
 import type { FlareSolverrSolution, HttpTrackerStats } from "./httpScraper";
+import { TrackerAuthError, TrackerHttpError } from "./errors";
 
 /**
  * Torr9 is a Next.js SPA with a separate JSON API at api.torr9.xyz.
@@ -35,8 +36,13 @@ export async function scrapeTorr9(
 
   if (!loginRes.ok) {
     const body = await loginRes.text();
-    throw new Error(
-      `Torr9 API login failed: ${loginRes.status} — ${body.slice(0, 200)}`,
+    console.warn(
+      `[torr9-http] login failed ${loginRes.status}: ${body.slice(0, 200)}`,
+    );
+    throw new TrackerHttpError(
+      "torr9",
+      loginRes.status,
+      `${apiBase}/api/v1/auth/login`,
     );
   }
 
@@ -49,7 +55,10 @@ export async function scrapeTorr9(
   };
 
   if (!data.token || !data.user) {
-    throw new Error("Torr9 API login response missing token or user data");
+    throw new TrackerAuthError(
+      "torr9",
+      "login response missing token or user data",
+    );
   }
 
   const { total_uploaded_bytes, total_downloaded_bytes } = data.user;

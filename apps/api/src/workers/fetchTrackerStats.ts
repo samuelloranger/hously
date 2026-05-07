@@ -6,6 +6,10 @@ import { TRACKER_SCRAPERS } from "@hously/api/services/trackers";
 import type { TrackerType } from "@hously/api/utils/integrations/types";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { decrypt } from "@hously/api/services/crypto";
+import {
+  recordSuccess,
+  recordFailure,
+} from "@hously/api/services/trackerHealth";
 import type {
   FlareSolverrCookie,
   FlareSolverrSolution,
@@ -202,10 +206,26 @@ export const fetchTrackerStats = async (
       60 * 60 * 24,
     );
 
+    try {
+      await recordSuccess(trackerType);
+    } catch (healthErr) {
+      console.error(
+        `[trackerHealth] recordSuccess failed for ${trackerType}:`,
+        healthErr,
+      );
+    }
     await endLog(true);
     return stats;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    try {
+      await recordFailure(trackerType, error);
+    } catch (healthErr) {
+      console.error(
+        `[trackerHealth] recordFailure failed for ${trackerType}:`,
+        healthErr,
+      );
+    }
     await endLog(false, message);
     throw error;
   }

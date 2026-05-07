@@ -6,6 +6,7 @@ import {
   type FlareSolverrSolution,
   type HttpTrackerStats,
 } from "./httpScraper";
+import { TrackerAuthError, TrackerHttpError } from "./errors";
 
 interface C411UserResponse {
   uploaded: number;
@@ -32,7 +33,10 @@ export async function scrapeC411(
     .querySelector('meta[name="csrf-token"]')
     ?.getAttribute("content");
   if (!csrfToken)
-    throw new Error("C411: csrf-token meta tag not found on login page");
+    throw new TrackerAuthError(
+      "c411",
+      "csrf-token meta tag not found on login page",
+    );
 
   // Step 2: Login via the JSON API.
   const loginRes = await fetch(
@@ -56,8 +60,13 @@ export async function scrapeC411(
 
   if (!loginRes.ok) {
     const body = await loginRes.text().catch(() => "");
-    throw new Error(
-      `C411 API login failed: ${loginRes.status} ${body.slice(0, 200)}`,
+    console.warn(
+      `[c411-http] login failed ${loginRes.status}: ${body.slice(0, 200)}`,
+    );
+    throw new TrackerHttpError(
+      "c411",
+      loginRes.status,
+      new URL("/api/auth/login", config.tracker_url).href,
     );
   }
 
@@ -76,9 +85,10 @@ export async function scrapeC411(
 
   if (!userRes.ok) {
     const body = await userRes.text().catch(() => "");
-    throw new Error(
-      `C411 user API failed: ${userRes.status} ${body.slice(0, 200)}`,
+    console.warn(
+      `[c411-http] user API failed ${userRes.status}: ${body.slice(0, 200)}`,
     );
+    throw new TrackerHttpError("c411", userRes.status, userUrl);
   }
 
   const user = (await userRes.json()) as C411UserResponse;
