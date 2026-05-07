@@ -343,6 +343,37 @@
         "downloadedVsWanted": "Downloaded vs Wanted"
       }
     },
+    "libraryAttention": {
+      "title": "Library attention",
+      "subtitle_one": "{{count}} item needs follow-up",
+      "subtitle_other": "{{count}} items need follow-up",
+      "loadError": "Could not load library attention.",
+      "retry": "Retry",
+      "refresh": "Refresh",
+      "openLibrary": "Open full library →",
+      "openSearch": "Search / grab",
+      "openItem": "Open item",
+      "retryPostProcess": "Retry ingest",
+      "resetAutoAttempts": "Reset auto-grab counter",
+      "autoAttempts": "Auto-grab attempts: {{count}}",
+      "grabbedSince": "Grab started:",
+      "toastPostQueued": "Post-processing queued",
+      "toastPostFailed": "Could not queue post-processing",
+      "toastResetOk": "Reset to wanted — cron will try again",
+      "toastResetFail": "Could not reset item",
+      "kindDownloadFailed": "Download failed",
+      "kindPostProcess": "Import / post-process",
+      "kindDownloadStuck": "Download stalled",
+      "kindGrabSkipped": "Auto-grab gave up",
+      "kindAutoGrabStalled": "Auto-grab struggling",
+      "kindUnknown": "Attention",
+      "syncHint": "List syncs hourly; dismiss when you’ve handled an item.",
+      "dismiss": "Dismiss",
+      "scopePack": "Season pack",
+      "scopePackSeason": "Season pack · {{season}}",
+      "toastDismissOk": "Dismissed",
+      "toastDismissFail": "Could not dismiss alert"
+    },
     "subtexts": {
       "busyDay": "You have {{count}} events today. Stay organized!",
       "weekendChores": "{{count}} chores await. Perfect day to knock them out!",
@@ -1216,6 +1247,10 @@
         "checkLibraryDownloadCompletion": {
           "label": "Check Download Completion",
           "description": "Check grabbed items for completed downloads and post-process."
+        },
+        "syncLibraryAttentionAlerts": {
+          "label": "Sync Library Attention Alerts",
+          "description": "Create, refresh, and auto-resolve dashboard library attention alerts from current grabs and cron state."
         },
         "checkLibraryIntegrity": {
           "label": "Check Library Integrity",

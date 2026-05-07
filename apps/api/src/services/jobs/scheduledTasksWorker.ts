@@ -164,6 +164,12 @@ export async function processScheduledJob(job: Job) {
         await refreshGitHubReleases({ notifyAdmins: true });
         break;
       }
+      case SCHEDULED_JOB_NAMES.SYNC_LIBRARY_ATTENTION_ALERTS: {
+        const { runSyncLibraryAttentionAlerts } =
+          await import("../../workers/syncLibraryAttentionAlerts");
+        await runSyncLibraryAttentionAlerts();
+        break;
+      }
       default:
         console.warn(`[ScheduledTasksWorker] Unknown job name: ${job.name}`);
         return { success: false, error: "Unknown job name" };

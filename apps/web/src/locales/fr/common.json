@@ -343,6 +343,37 @@
         "downloadedVsWanted": "Téléchargés vs recherchés"
       }
     },
+    "libraryAttention": {
+      "title": "Bibliothèque — à traiter",
+      "subtitle_one": "{{count}} élément nécessite une action",
+      "subtitle_other": "{{count}} éléments nécessitent une action",
+      "loadError": "Impossible de charger la liste d'attention.",
+      "retry": "Réessayer",
+      "refresh": "Actualiser",
+      "openLibrary": "Ouvrir toute la bibliothèque →",
+      "openSearch": "Recherche / grab",
+      "openItem": "Ouvrir",
+      "retryPostProcess": "Relancer l'import",
+      "resetAutoAttempts": "Réinitialiser le compteur auto-grab",
+      "autoAttempts": "Tentatives auto-grab : {{count}}",
+      "grabbedSince": "Grab démarré :",
+      "toastPostQueued": "Post-traitement mis en file",
+      "toastPostFailed": "Impossible de lancer le post-traitement",
+      "toastResetOk": "Remis en « recherché » — le cron réessaiera",
+      "toastResetFail": "Impossible de réinitialiser",
+      "kindDownloadFailed": "Téléchargement en échec",
+      "kindPostProcess": "Import / post-traitement",
+      "kindDownloadStuck": "Téléchargement bloqué",
+      "kindGrabSkipped": "Auto-grab abandonné",
+      "kindAutoGrabStalled": "Auto-grab en difficulté",
+      "kindUnknown": "Attention",
+      "syncHint": "Mise à jour horaire ; masquez quand c’est traité.",
+      "dismiss": "Masquer",
+      "scopePack": "Pack de saison",
+      "scopePackSeason": "Pack de saison · {{season}}",
+      "toastDismissOk": "Masqué",
+      "toastDismissFail": "Impossible de masquer l’alerte"
+    },
     "subtexts": {
       "busyDay": "Vous avez {{count}} événements aujourd'hui. Restez organisé",
       "weekendChores": "{{count}} tâches vous attendent. Parfait pour s'y mettre",
@@ -1216,6 +1247,10 @@
         "checkLibraryDownloadCompletion": {
           "label": "Vérifier les téléchargements terminés",
           "description": "Vérifier les éléments récupérés pour les téléchargements terminés et post-traiter."
+        },
+        "syncLibraryAttentionAlerts": {
+          "label": "Synchroniser alertes bibliothèque",
+          "description": "Met à jour les alertes du tableau de bord (grabs, saisons) selon l’état actuel."
         },
         "checkLibraryIntegrity": {
           "label": "Vérifier l'intégrité de la bibliothèque",

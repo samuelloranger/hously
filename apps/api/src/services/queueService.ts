@@ -42,6 +42,7 @@ export const SCHEDULED_JOB_NAMES = {
   POLL_INDEXER_RSS: "poll-indexer-rss",
   UPGRADE_MEDIA_SEARCH: "upgrade-media-search",
   REFRESH_GITHUB_RELEASES: "refresh-github-releases",
+  SYNC_LIBRARY_ATTENTION_ALERTS: "sync-library-attention-alerts",
 } as const;
 
 // Job names for Notifications queue
@@ -263,6 +264,10 @@ export async function setupScheduledJobs() {
     {
       name: SCHEDULED_JOB_NAMES.REFRESH_GITHUB_RELEASES,
       pattern: "0 */6 * * *",
+    },
+    {
+      name: SCHEDULED_JOB_NAMES.SYNC_LIBRARY_ATTENTION_ALERTS,
+      pattern: "12 * * * *",
     },
   ];
 

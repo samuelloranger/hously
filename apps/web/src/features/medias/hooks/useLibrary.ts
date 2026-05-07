@@ -26,6 +26,7 @@ import type {
   GlobalDownloadHistoryResponse,
   DownloadHistoryStatsResponse,
   LibraryStatsResponse,
+  LibraryAttentionResponse,
 } from "@hously/shared/types";
 
 export function useLibrary(
@@ -406,6 +407,9 @@ export function useRetrySkippedMedia() {
     },
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.attention(),
+      });
       if (vars.episodeId !== undefined) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.library.episodes(vars.mediaId),
@@ -462,6 +466,9 @@ export function useRetrySkippedSeason() {
       queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
       queryClient.invalidateQueries({
         queryKey: queryKeys.library.episodes(vars.mediaId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.attention(),
       });
     },
   });
@@ -795,5 +802,52 @@ export function useLibraryStats() {
     queryFn: () =>
       fetcher<LibraryStatsResponse>(LIBRARY_ENDPOINTS.LIBRARY_STATS),
     staleTime: 60_000,
+  });
+}
+
+export function useLibraryAttention(opts?: { enabled?: boolean }) {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.library.attention(),
+    queryFn: () =>
+      fetcher<LibraryAttentionResponse>(LIBRARY_ENDPOINTS.ATTENTION),
+    enabled: opts?.enabled ?? true,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function useRetryLibraryPostProcess() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (downloadHistoryId: number) =>
+      fetcher<{ queued: boolean; download_history_id: number }>(
+        LIBRARY_ENDPOINTS.RETRY_POST_PROCESS(downloadHistoryId),
+        { method: "POST" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.attention(),
+      });
+    },
+  });
+}
+
+export function useDismissLibraryAttentionAlert() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (alertId: number) =>
+      fetcher<{ success: boolean }>(
+        LIBRARY_ENDPOINTS.DISMISS_ATTENTION(alertId),
+        { method: "PATCH" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.attention(),
+      });
+    },
   });
 }
