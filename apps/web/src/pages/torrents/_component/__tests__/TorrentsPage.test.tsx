@@ -153,7 +153,7 @@ vi.mock("@hously/shared", async () => {
           return matchesState && matchesCategory && matchesTag && matchesSearch;
         })
         .sort((left, right) => {
-          let comparison = 0;
+          let comparison: number;
 
           if (options.sortBy === "name")
             comparison = left.name.localeCompare(right.name);

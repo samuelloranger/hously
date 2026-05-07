@@ -62,7 +62,7 @@ export function urlBase64ToUint8Array(base64String: string): Uint8Array {
       "Input string (first 100 chars):",
       cleanedString.substring(0, 100),
     );
-    throw new Error(`Invalid base64 string: ${error}`);
+    throw new Error(`Invalid base64 string: ${error}`, { cause: error });
   }
 }
 

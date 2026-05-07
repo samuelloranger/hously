@@ -42,34 +42,6 @@ export function splitMultiDayEvent(event: CalendarEvent): CalendarEvent[] {
   const lastDate = new Date(endDay);
 
   while (currentDate <= lastDate) {
-    const isFirstDay = currentDate.getTime() === startDay.getTime();
-    const isLastDay = currentDate.getTime() === endDay.getTime();
-
-    let dayStart: Date;
-    let dayEnd: Date;
-
-    if (isFirstDay && isLastDay) {
-      // Single day event (shouldn't happen, but handle it)
-      dayStart = startDate;
-      dayEnd = endDate;
-    } else if (isFirstDay) {
-      // First day: from start time to end of day
-      dayStart = startDate;
-      dayEnd = new Date(currentDate);
-      dayEnd.setHours(23, 59, 59, 999);
-    } else if (isLastDay) {
-      // Last day: from start of day to end time
-      dayStart = new Date(currentDate);
-      dayStart.setHours(0, 0, 0, 0);
-      dayEnd = endDate;
-    } else {
-      // Middle days: full day
-      dayStart = new Date(currentDate);
-      dayStart.setHours(0, 0, 0, 0);
-      dayEnd = new Date(currentDate);
-      dayEnd.setHours(23, 59, 59, 999);
-    }
-
     const dateStr = currentDate.toISOString().split("T")[0];
 
     splitEvents.push({

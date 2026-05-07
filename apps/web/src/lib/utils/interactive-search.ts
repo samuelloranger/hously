@@ -173,7 +173,7 @@ export function filterAndSortReleases(
       return a.title.localeCompare(b.title);
     }
 
-    let cmp = 0;
+    let cmp: number;
     if (sortBy === "seeders") cmp = (a.seeders ?? -1) - (b.seeders ?? -1);
     else if (sortBy === "age")
       cmp =
