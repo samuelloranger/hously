@@ -10,11 +10,17 @@ const downloadHistoryFindMany = mock(
 const libraryMediaFindMany = mock(async (..._: unknown[]) => [] as unknown[]);
 const libraryEpisodeFindMany = mock(async (..._: unknown[]) => [] as unknown[]);
 const libraryEpisodeCount = mock(async (..._: unknown[]) => 0);
-const libraryEpisodeFindUnique = mock(async (..._: unknown[]) => null as unknown);
+const libraryEpisodeFindUnique = mock(
+  async (..._: unknown[]) => null as unknown,
+);
 const libraryMediaFindUnique = mock(async (..._: unknown[]) => null as unknown);
 const libraryMediaFindFirst = mock(async (..._: unknown[]) => null as unknown);
-const libraryEpisodeFindFirst = mock(async (..._: unknown[]) => null as unknown);
-const downloadHistoryFindUnique = mock(async (..._: unknown[]) => null as unknown);
+const libraryEpisodeFindFirst = mock(
+  async (..._: unknown[]) => null as unknown,
+);
+const downloadHistoryFindUnique = mock(
+  async (..._: unknown[]) => null as unknown,
+);
 
 mock.module("@hously/api/db", () => ({
   prisma: {
@@ -160,8 +166,7 @@ describe("syncLibraryAttentionAlerts state machine", () => {
     const resolveCall = update.mock.calls.find(
       (c) =>
         (c[0] as { where: { id: number } }).where.id === 99 &&
-        ((c[0] as { data: { status?: string } }).data.status ===
-          "resolved_auto"),
+        (c[0] as { data: { status?: string } }).data.status === "resolved_auto",
     );
     expect(resolveCall).toBeDefined();
     expect(r.resolved).toBe(1);

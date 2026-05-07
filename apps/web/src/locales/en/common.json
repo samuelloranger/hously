@@ -1942,7 +1942,10 @@
       "monitor": "Monitor",
       "unmonitor": "Unmonitor",
       "monitorSeason": "Monitor season",
-      "unmonitorSeason": "Unmonitor season"
+      "unmonitorSeason": "Unmonitor season",
+      "clearFailedDownloads": "Clear failures",
+      "clearFailedDownloadsConfirm": "Remove every failed download and post-processing error from this title's grab history? Active and completed grabs stay.",
+      "removeDownloadHistoryTitle": "Remove from history"
     },
     "notFound": "Item not found in library."
   }

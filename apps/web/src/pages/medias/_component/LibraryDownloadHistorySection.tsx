@@ -1,7 +1,12 @@
 import { useState } from "react";
-import { ChevronDown, Clock, Download } from "lucide-react";
+import { ChevronDown, Clock, Download, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useLibraryDownloads } from "@/features/medias/hooks/useLibrary";
+import { isRemovableDownloadHistoryEntry } from "@hously/shared";
+import {
+  useLibraryDownloads,
+  useDeleteLibraryDownloadEntry,
+  useClearLibraryFailedDownloads,
+} from "@/features/medias/hooks/useLibrary";
 import { Badge, Card } from "./LibrarySharedUI";
 import { cn } from "@/lib/utils";
 
@@ -14,8 +19,12 @@ export function LibraryDownloadHistorySection({
 }: LibraryDownloadHistorySectionProps) {
   const { t } = useTranslation("common");
   const { data, isLoading } = useLibraryDownloads(libraryId);
+  const deleteEntry = useDeleteLibraryDownloadEntry(libraryId);
+  const clearFailed = useClearLibraryFailedDownloads(libraryId);
   const [open, setOpen] = useState(false);
   const items = data?.items ?? [];
+  const hasRemovable = items.some(isRemovableDownloadHistoryEntry);
+  const busyDeleting = deleteEntry.isPending || clearFailed.isPending;
 
   return (
     <Card>
@@ -25,11 +34,11 @@ export function LibraryDownloadHistorySection({
         className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
         style={{ touchAction: "manipulation" }}
       >
-        <span className="flex items-center gap-2 text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">
+        <span className="flex items-center gap-2 min-w-0 text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">
           <Download size={12} className="text-neutral-400 shrink-0" />
-          {t("library.management.downloads")}
+          <span className="truncate">{t("library.management.downloads")}</span>
           {items.length > 0 && (
-            <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 px-1 text-[9px] font-bold text-neutral-600 dark:text-neutral-300 tabular-nums">
+            <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-700 px-1 text-[9px] font-bold text-neutral-600 dark:text-neutral-300 tabular-nums">
               {items.length}
             </span>
           )}
@@ -45,6 +54,27 @@ export function LibraryDownloadHistorySection({
 
       {open && (
         <div className="border-t border-neutral-100 dark:border-neutral-800 px-4 pb-4 pt-3">
+          {hasRemovable && (
+            <div className="flex justify-end mb-3">
+              <button
+                type="button"
+                disabled={busyDeleting}
+                onClick={() => {
+                  if (
+                    !window.confirm(
+                      t("library.management.clearFailedDownloadsConfirm"),
+                    )
+                  ) {
+                    return;
+                  }
+                  clearFailed.mutate();
+                }}
+                className="rounded-md px-2.5 py-1 text-[10px] font-semibold text-rose-600 hover:bg-rose-100 dark:text-rose-400 dark:hover:bg-rose-950/40 disabled:opacity-50"
+              >
+                {t("library.management.clearFailedDownloads")}
+              </button>
+            </div>
+          )}
           {isLoading ? (
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t("library.management.searching")}
@@ -62,6 +92,8 @@ export function LibraryDownloadHistorySection({
                     ? "border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/10"
                     : "border-sky-200 dark:border-sky-900/60 bg-sky-50/50 dark:bg-sky-950/10";
 
+                const removable = isRemovableDownloadHistoryEntry(row);
+
                 return (
                   <div
                     key={row.id}
@@ -77,19 +109,37 @@ export function LibraryDownloadHistorySection({
                       >
                         {row.release_title}
                       </p>
-                      {row.failed ? (
-                        <Badge className="bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 shrink-0">
-                          {t("library.download.failed")}
-                        </Badge>
-                      ) : row.completed_at ? (
-                        <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 shrink-0">
-                          {t("library.download.done")}
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 shrink-0">
-                          {t("library.download.active")}
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-1 shrink-0">
+                        {removable && (
+                          <button
+                            type="button"
+                            disabled={busyDeleting}
+                            title={t(
+                              "library.management.removeDownloadHistoryTitle",
+                            )}
+                            aria-label={t(
+                              "library.management.removeDownloadHistoryTitle",
+                            )}
+                            onClick={() => deleteEntry.mutate(row.id)}
+                            className="rounded-md p-1 text-neutral-400 transition-colors hover:bg-neutral-200/80 hover:text-rose-600 dark:hover:bg-neutral-700 dark:hover:text-rose-400 disabled:opacity-40"
+                          >
+                            <Trash2 size={13} strokeWidth={2} />
+                          </button>
+                        )}
+                        {row.failed ? (
+                          <Badge className="bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 shrink-0">
+                            {t("library.download.failed")}
+                          </Badge>
+                        ) : row.completed_at ? (
+                          <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 shrink-0">
+                            {t("library.download.done")}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 shrink-0">
+                            {t("library.download.active")}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-3 text-[10px] text-neutral-500 dark:text-neutral-400">

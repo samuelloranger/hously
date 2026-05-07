@@ -29,7 +29,11 @@ import {
   scheduledTasksQueue,
   SCHEDULED_JOB_NAMES,
 } from "@hously/api/services/queueService";
-import { libraryEventBus } from "@hously/api/services/libraryEvents";
+import {
+  emitLibraryUpdate,
+  libraryEventBus,
+} from "@hously/api/services/libraryEvents";
+import { isRemovableDownloadHistoryEntry } from "@hously/shared";
 import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb";
 import { rescanLibraryItem } from "@hously/api/services/library/rescan";
 import { buildLibraryStatsResponse } from "./libraryStats";
@@ -992,6 +996,106 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       };
     } catch {
       return serverError(set, "Failed to fetch download history");
+    }
+  })
+
+  // DELETE /api/library/:id/downloads/failed — remove failed / post-process-error grab rows for this media
+  .delete("/:id/downloads/failed", async ({ params, set }) => {
+    try {
+      const mediaId = parseInt(params.id, 10);
+      if (!Number.isFinite(mediaId)) return badRequest(set, "Invalid id");
+
+      const media = await prisma.libraryMedia.findUnique({
+        where: { id: mediaId },
+      });
+      if (!media) return notFound(set, "Library item not found");
+
+      const staleRows = await prisma.downloadHistory.findMany({
+        where: {
+          mediaId,
+          OR: [
+            { failed: true },
+            {
+              AND: [
+                { postProcessError: { not: null } },
+                { postProcessError: { not: "" } },
+              ],
+            },
+          ],
+        },
+        select: { id: true },
+      });
+      const ids = staleRows.map((r) => r.id);
+      if (ids.length === 0) return { deleted: 0 };
+
+      await prisma.$transaction([
+        prisma.libraryAttentionAlert.updateMany({
+          where: {
+            status: "open",
+            downloadHistoryId: { in: ids },
+          },
+          data: {
+            status: "resolved_auto",
+            resolvedAt: new Date(),
+          },
+        }),
+        prisma.downloadHistory.deleteMany({
+          where: { id: { in: ids } },
+        }),
+      ]);
+
+      emitLibraryUpdate(mediaId);
+      return { deleted: ids.length };
+    } catch (err) {
+      console.error("Library clear failed downloads error:", err);
+      return serverError(set, "Failed to delete download history");
+    }
+  })
+
+  // DELETE /api/library/:id/downloads/:dhId — remove one failed / post-process-error grab row
+  .delete("/:id/downloads/:dhId", async ({ params, set }) => {
+    try {
+      const mediaId = parseInt(params.id, 10);
+      const dhId = parseInt(params.dhId, 10);
+      if (!Number.isFinite(mediaId) || !Number.isFinite(dhId)) {
+        return badRequest(set, "Invalid id");
+      }
+
+      const dh = await prisma.downloadHistory.findFirst({
+        where: { id: dhId, mediaId },
+        select: {
+          id: true,
+          failed: true,
+          postProcessError: true,
+        },
+      });
+      if (!dh) return notFound(set, "Download history not found");
+      if (!isRemovableDownloadHistoryEntry(dh)) {
+        return badRequest(
+          set,
+          "Only failed downloads or post-processing errors can be removed",
+        );
+      }
+
+      await prisma.$transaction([
+        prisma.libraryAttentionAlert.updateMany({
+          where: {
+            status: "open",
+            downloadHistoryId: dhId,
+          },
+          data: {
+            status: "resolved_auto",
+            resolvedAt: new Date(),
+          },
+        }),
+        prisma.downloadHistory.delete({ where: { id: dhId } }),
+      ]);
+
+      emitLibraryUpdate(mediaId);
+      return { success: true };
+    } catch (err) {
+      console.error("Library delete download entry error:", err);
+      return serverError(set, "Failed to delete download history");
     }
   })
 

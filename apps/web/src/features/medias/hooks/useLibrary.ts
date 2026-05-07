@@ -279,6 +279,44 @@ export function useLibraryDownloads(id: number | null) {
   });
 }
 
+export function useDeleteLibraryDownloadEntry(libraryId: number) {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (downloadHistoryId: number) =>
+      fetcher<{ success: boolean }>(
+        LIBRARY_ENDPOINTS.DELETE_DOWNLOAD_ENTRY(libraryId, downloadHistoryId),
+        { method: "DELETE" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.attention(),
+      });
+    },
+  });
+}
+
+export function useClearLibraryFailedDownloads(libraryId: number) {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      fetcher<{ deleted: number }>(
+        LIBRARY_ENDPOINTS.CLEAR_FAILED_DOWNLOADS(libraryId),
+        { method: "DELETE" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.library.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.library.attention(),
+      });
+    },
+  });
+}
+
 /** Interactive Prowlarr grab routed through Hously (DownloadHistory + qB category). */
 export function useLibraryGrabRelease(libraryMediaId: number | null) {
   const fetcher = useFetcher();

@@ -1942,7 +1942,10 @@
       "monitor": "Suivre",
       "unmonitor": "Ne plus suivre",
       "monitorSeason": "Suivre la saison",
-      "unmonitorSeason": "Ne plus suivre la saison"
+      "unmonitorSeason": "Ne plus suivre la saison",
+      "clearFailedDownloads": "Effacer les échecs",
+      "clearFailedDownloadsConfirm": "Retirer tous les téléchargements en échec et erreurs de post-traitement de l'historique des grabs pour ce titre ? Les grabs actifs et réussis sont conservés.",
+      "removeDownloadHistoryTitle": "Retirer de l'historique"
     },
     "notFound": "Élément introuvable dans la bibliothèque."
   }
