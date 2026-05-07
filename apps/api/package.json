@@ -30,32 +30,32 @@
   "dependencies": {
     "@better-auth/passkey": "^1.6.9",
     "@better-auth/prisma-adapter": "^1.6.9",
-    "@elysiajs/cors": "^1.4.1",
-    "@elysiajs/static": "^1.4.7",
+    "@elysiajs/cors": "^1.4.2",
+    "@elysiajs/static": "^1.4.10",
     "@elysiajs/swagger": "^1.3.1",
     "@hously/shared": "workspace:*",
-    "@prisma/adapter-pg": "7.6.0",
-    "@prisma/client": "7.6.0",
-    "@react-email/components": "^1.0.10",
-    "@react-email/render": "^2.0.4",
-    "@react-email/tailwind": "^2.0.6",
+    "@prisma/adapter-pg": "7.8.0",
+    "@prisma/client": "7.8.0",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.8",
+    "@react-email/tailwind": "^2.0.7",
     "better-auth": "^1.6.9",
-    "bullmq": "^5.71.1",
-    "date-holidays": "^3.27.0",
+    "bullmq": "^5.76.6",
+    "date-holidays": "^3.28.0",
     "elysia": "^1.4.28",
-    "elysia-rate-limit": "^4.5.1",
+    "elysia-rate-limit": "^4.6.1",
     "ioredis": "^5.10.1",
     "node-html-parser": "^7.1.0",
-    "nodemailer": "^8.0.4",
+    "nodemailer": "^8.0.7",
     "ua-parser-js": "^2.0.9",
     "web-push": "^3.6.7",
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/nodemailer": "^7.0.11",
+    "@types/nodemailer": "^8.0.0",
     "@types/ua-parser-js": "^0.7.39",
     "@types/web-push": "^3.6.4",
-    "bun-types": "^1.3.11",
-    "prisma": "7.6.0"
+    "bun-types": "^1.3.13",
+    "prisma": "7.8.0"
   }
 }

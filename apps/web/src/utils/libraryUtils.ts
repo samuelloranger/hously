@@ -33,7 +33,7 @@ export function sortItems(
   sortDir: SortDir,
 ): LibraryMedia[] {
   return [...items].sort((a, b) => {
-    let cmp = 0;
+    let cmp: number;
     if (sortBy === "title") cmp = a.title.localeCompare(b.title);
     else if (sortBy === "year") cmp = (a.year ?? 0) - (b.year ?? 0);
     else if (sortBy === "status") cmp = a.status.localeCompare(b.status);

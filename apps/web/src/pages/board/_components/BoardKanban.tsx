@@ -17,8 +17,8 @@ interface BoardKanbanProps {
   sensors: React.ComponentProps<typeof DragDropProvider>["sensors"];
   dragHandlers: {
     onDragStart: () => void;
-    onDragOver: (event: Parameters<DragOverEvent>[0]) => void;
-    onDragEnd: (event: Parameters<DragEndEvent>[0]) => void;
+    onDragOver: (event: DragOverEvent) => void;
+    onDragEnd: (event: DragEndEvent) => void;
   };
   selectedSet: Set<number>;
   onToggleSelect: (taskId: number) => void;

@@ -61,9 +61,7 @@ describe("requireUser middleware", () => {
   it("returns 401 when no session cookie is present", async () => {
     if (!hasDb) return;
 
-    const res = await app.handle(
-      new Request("http://localhost/api/auth/me"),
-    );
+    const res = await app.handle(new Request("http://localhost/api/auth/me"));
 
     expect(res.status).toBe(401);
   });

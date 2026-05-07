@@ -22,9 +22,6 @@ import {
 } from "@/pages/board/_utils/columns";
 import { useSyncBoardTasks } from "@/pages/board/_hooks/useBoardTasks";
 
-type DragEndPayload = Parameters<DragEndEvent>[0];
-type DragOverPayload = Parameters<DragOverEvent>[0];
-
 export function useBoardDragDrop(kanbanTasks: BoardTask[]) {
   const syncMutation = useSyncBoardTasks();
 
@@ -65,14 +62,14 @@ export function useBoardDragDrop(kanbanTasks: BoardTask[]) {
     snapshotRef.current = structuredClone(columnsRef.current);
   }, []);
 
-  const handleDragOver = useCallback((event: DragOverPayload) => {
+  const handleDragOver = useCallback((event: DragOverEvent) => {
     setColumns(
       (prev) => move(prev, event) as Record<BoardKanbanStatusApi, BoardTask[]>,
     );
   }, []);
 
   const handleDragEnd = useCallback(
-    (event: DragEndPayload) => {
+    (event: DragEndEvent) => {
       if (event.canceled) {
         if (snapshotRef.current) setColumns(snapshotRef.current);
         snapshotRef.current = null;

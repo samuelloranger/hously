@@ -9,10 +9,7 @@ const config: KnipConfig = {
     "apps/api": {
       project: ["src/**/*.ts"],
       // @react-email/*: JSX imports in emailService — knip misses JSX-only deps
-      ignoreDependencies: [
-        "@react-email/components",
-        "@react-email/tailwind",
-      ],
+      ignoreDependencies: ["@react-email/components", "@react-email/tailwind"],
     },
     "apps/web": {
       entry: ["src/sw/index.ts"],
