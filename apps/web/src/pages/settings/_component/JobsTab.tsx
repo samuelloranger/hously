@@ -67,6 +67,7 @@ type JobAction =
   | "check_library_episode_releases"
   | "sync_library_show_episodes"
   | "check_library_download_completion"
+  | "sync_library_attention_alerts"
   | "check_library_integrity"
   | "refresh_github_releases";
 
@@ -180,6 +181,14 @@ const JOBS: JobConfig[] = [
     labelKey: "settings.jobs.actions.checkLibraryDownloadCompletion.label",
     descriptionKey:
       "settings.jobs.actions.checkLibraryDownloadCompletion.description",
+  },
+  {
+    action: "sync_library_attention_alerts",
+    jobNames: ["sync-library-attention-alerts"],
+    Icon: Clapperboard,
+    labelKey: "settings.jobs.actions.syncLibraryAttentionAlerts.label",
+    descriptionKey:
+      "settings.jobs.actions.syncLibraryAttentionAlerts.description",
   },
   {
     action: "check_library_integrity",

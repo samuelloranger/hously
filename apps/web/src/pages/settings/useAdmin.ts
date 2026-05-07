@@ -66,6 +66,11 @@ export function useTriggerAction() {
           queryKey: queryKeys.admin.libraryHealth(),
         });
       }
+      if (action === "sync_library_attention_alerts") {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.library.attention(),
+        });
+      }
     },
   });
 }

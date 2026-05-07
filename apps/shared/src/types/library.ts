@@ -330,3 +330,34 @@ export interface LibraryStats {
 export interface LibraryStatsResponse {
   stats: LibraryStats;
 }
+
+export type LibraryAttentionKind =
+  | "download_failed"
+  | "post_process_error"
+  | "download_stuck"
+  | "grab_skipped"
+  | "auto_grab_stalled";
+
+export type LibraryAttentionScopeType = "movie" | "episode" | "season_pack";
+
+export interface LibraryAttentionItem {
+  id: number;
+  kind: LibraryAttentionKind;
+  scope_type: LibraryAttentionScopeType;
+  media_id: number;
+  media_title: string;
+  media_type: "movie" | "show";
+  episode_id: number | null;
+  season: number | null;
+  episode_number: number | null;
+  detail: string | null;
+  search_attempts: number | null;
+  library_status: string | null;
+  download_history_id: number | null;
+  grabbed_at: string | null;
+  updated_at: string;
+}
+
+export interface LibraryAttentionResponse {
+  items: LibraryAttentionItem[];
+}

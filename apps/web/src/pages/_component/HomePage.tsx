@@ -14,6 +14,7 @@ import { WeatherPanel } from "@/pages/_component/WeatherPanel";
 import { HomeAssistantPanel } from "@/pages/_component/HomeAssistantPanel";
 import { SystemPanel } from "@/pages/_component/system";
 import { JellyfinShelf, UpcomingShelf } from "@/pages/_component/MediaShelves";
+import { LibraryAttentionPanel } from "@/pages/_component/LibraryAttentionPanel";
 import { LibraryStatsPanel } from "@/pages/_component/LibraryStatsPanel";
 import { TrackersPanel } from "@/pages/_component/TrackersPanel";
 import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
@@ -157,6 +158,14 @@ export function HomePage() {
                 <LibraryStatsPanel />
               </CardErrorBoundary>
             </motion.div>
+
+            {user?.is_admin && (
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <LibraryAttentionPanel />
+                </CardErrorBoundary>
+              </motion.div>
+            )}
 
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>

@@ -29,6 +29,8 @@ export const LIBRARY_ENDPOINTS = {
   DELETE_FILE: (fileId: number) => `/api/library/files/${fileId}`,
   DELETE_EPISODE: (mediaId: number, episodeId: number) =>
     `/api/library/${mediaId}/episodes/${episodeId}`,
+  RETRY_POST_PROCESS: (downloadHistoryId: number) =>
+    `/api/library/downloads/${downloadHistoryId}/retry-post-process`,
   MIGRATE: "/api/library/migrate",
   MIGRATE_STATUS: "/api/library/migrate/status",
   LANGUAGE_TAGS: "/api/library/language-tags",
@@ -37,6 +39,9 @@ export const LIBRARY_ENDPOINTS = {
   FILE_REMUX: (fileId: number) => `/api/library/files/${fileId}/remux`,
   FILE_REMUX_STATUS: (fileId: number) =>
     `/api/library/files/${fileId}/remux/status`,
+  ATTENTION: "/api/library/attention",
+  DISMISS_ATTENTION: (alertId: number) =>
+    `/api/library/attention/${alertId}/dismiss`,
   RSS_STATUS: "/api/library/rss-status",
   DOWNLOAD_HISTORY: "/api/library/download-history",
   DOWNLOAD_HISTORY_STATS: "/api/library/download-history/stats",

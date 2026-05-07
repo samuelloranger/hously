@@ -35,6 +35,11 @@ import { rescanLibraryItem } from "@hously/api/services/library/rescan";
 import { buildLibraryStatsResponse } from "./libraryStats";
 import { deleteCache } from "@hously/api/services/cache";
 import { TMDB_UPCOMING_CACHE_KEY } from "@hously/api/utils/dashboard/tmdbUpcoming";
+import {
+  listOpenLibraryAttentionForApi,
+  dismissLibraryAttentionAlert,
+} from "@hously/api/services/libraryAttention";
+import { resolveUser } from "@hously/api/middleware/auth";
 
 function computeTotalSizeBytes(
   files: { sizeBytes: bigint }[],
@@ -206,6 +211,41 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
       return serverError(set, "Failed to fetch library stats");
     }
   })
+
+  .get("/attention", async ({ request, set }) => {
+    const u = await resolveUser(request);
+    if (!u) return ((set.status = 401), { error: "Unauthorized" });
+    if (!u.is_admin) return ((set.status = 403), { error: "Forbidden" });
+    try {
+      return await listOpenLibraryAttentionForApi();
+    } catch (error) {
+      console.error("[library/attention]", error);
+      return serverError(set, "Failed to fetch library attention");
+    }
+  })
+
+  .patch(
+    "/attention/:alertId/dismiss",
+    async ({ request, params, set }) => {
+      const u = await resolveUser(request);
+      if (!u) return ((set.status = 401), { error: "Unauthorized" });
+      if (!u.is_admin) return ((set.status = 403), { error: "Forbidden" });
+      try {
+        const alertId = parseInt(params.alertId, 10);
+        if (!Number.isFinite(alertId))
+          return badRequest(set, "Invalid alert id");
+        const ok = await dismissLibraryAttentionAlert(alertId);
+        if (!ok) return badRequest(set, "Alert not found or not open");
+        return { success: true };
+      } catch (error) {
+        console.error("[library/attention/dismiss]", error);
+        return serverError(set, "Failed to dismiss alert");
+      }
+    },
+    {
+      params: t.Object({ alertId: t.String() }),
+    },
+  )
 
   // GET /api/library/language-tags — distinct language tags present in the library
   .get("/language-tags", async ({ set }) => {

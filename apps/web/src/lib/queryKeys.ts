@@ -365,6 +365,7 @@ export const queryKeys = {
       [...queryKeys.library.all, "reindex-languages-status"] as const,
     remuxFileStatus: (fileId: number) =>
       [...queryKeys.library.all, "remux-file-status", fileId] as const,
+    attention: () => [...queryKeys.library.all, "attention"] as const,
     rssStatus: () => [...queryKeys.library.all, "rss-status"] as const,
     downloadHistory: (params?: {
       page?: number;

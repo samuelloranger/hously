@@ -615,6 +615,7 @@ model LibraryMedia {
   files             MediaFile[]       @relation("MediaFileMedia")
   downloadHistories DownloadHistory[]
   blocklistEntries  GrabBlocklist[]
+  attentionAlerts   LibraryAttentionAlert[]
 
   @@index([type], map: "ix_library_media_type")
   @@index([status], map: "ix_library_media_status")
@@ -639,6 +640,7 @@ model LibraryEpisode {
   files             MediaFile[]       @relation("MediaFileEpisode")
   downloadHistories DownloadHistory[]
   blocklistEntries  GrabBlocklist[]
+  attentionAlerts   LibraryAttentionAlert[]
 
   @@unique([mediaId, season, episode])
   @@index([mediaId], map: "ix_library_episodes_media_id")
@@ -670,6 +672,35 @@ model DownloadHistory {
   @@index([torrentHash], map: "ix_download_history_torrent_hash")
   @@index([mediaId], map: "ix_download_history_media_id")
   @@map("download_history")
+}
+
+/// Open alerts are created by hourly cron from library grab/download conditions; one open row per (media, scope, kind).
+model LibraryAttentionAlert {
+  id                    Int       @id @default(autoincrement())
+  mediaId               Int       @map("media_id")
+  /// Target episode when scope_type = episode; null for movie or season_pack
+  episodeId             Int?      @map("episode_id")
+  /// TV season when scope_type = season_pack; optional mirror for episode scope
+  season                Int?
+  scopeType             String    @map("scope_type") // movie | episode | season_pack
+  kind                  String // LibraryAttentionKind
+  status                String    @default("open") // open | dismissed | resolved_auto
+  detail                String?   @db.Text
+  downloadHistoryId     Int?      @map("download_history_id")
+  searchAttempts        Int?      @map("search_attempts")
+  grabbedAt             DateTime? @map("grabbed_at")
+  libraryStatusSnapshot String?   @map("library_status_snapshot")
+  dismissedAt           DateTime? @map("dismissed_at")
+  resolvedAt            DateTime? @map("resolved_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  media   LibraryMedia    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  episode LibraryEpisode? @relation(fields: [episodeId], references: [id], onDelete: SetNull)
+
+  @@index([mediaId], map: "ix_library_attention_alert_media_id")
+  @@index([status], map: "ix_library_attention_alert_status")
+  @@map("library_attention_alerts")
 }
 
 model GrabBlocklist {
