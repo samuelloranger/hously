@@ -3,6 +3,7 @@ import { prisma } from "@hously/api/db";
 import { webhookHandlers } from "@hously/api/services/webhookHandlers";
 import { enrichArrWebhookNotification } from "@hously/api/services/webhookEnrichment";
 import { sendExternalNotification } from "@hously/api/services/externalNotificationService";
+import { enqueueJellyfinEpisode } from "@hously/api/services/jellyfinEpisodeBatcher";
 import { deleteCache } from "@hously/api/services/cache";
 import {
   badRequest,
@@ -366,6 +367,29 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
             ...(enrichment.notification_metadata ?? {}),
           },
         };
+
+        // Coalesce Jellyfin per-episode ItemAdded events into a single
+        // batched notification so a season/show import doesn't spam users.
+        if (
+          serviceName.toLowerCase() === "jellyfin" &&
+          eventType === "ItemAdded" &&
+          templateVariables.ItemType === "Episode"
+        ) {
+          enqueueJellyfinEpisode({
+            templateVariables,
+            originalPayload: parsed.original_payload,
+            notificationUrl: notificationPayload.notification_url,
+            notificationMetadata: notificationPayload.notification_metadata,
+          });
+          await prisma.externalNotificationServiceLog.update({
+            where: { id: logEntry.id },
+            data: { status: "batched" },
+          });
+          return {
+            success: true,
+            message: "Webhook batched for coalesced delivery",
+          };
+        }
 
         // Send notifications
         try {
