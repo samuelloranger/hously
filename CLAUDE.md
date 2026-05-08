@@ -101,6 +101,25 @@ Route modules export Elysia plugins composed in `src/index.ts`. Webhook handlers
 | `src/queryKeys.ts` | Centralized query key factory                              |
 | `src/api.ts`       | API client factories                                       |
 
+
+## Global Settings (AppSettings)
+
+Hously uses a singleton `AppSettings` table (row id=1) for app-wide configuration:
+
+| Field                        | Type    | Default           | Purpose                                              |
+| ---------------------------- | ------- | ----------------- | ---------------------------------------------------- |
+| `country_code`               | VARCHAR | US                | Sets calendar holidays and TMDB release dates         |
+| `calendar_subdivision_code`  | VARCHAR | NULL              | State/province for refined holiday calendars          |
+| `upcoming_window_months`     | INT     | 12                | How far ahead to show upcoming movies/TV (3/6/12/24) |
+| `upcoming_languages`         | STRING  | en,fr             | Comma-separated TMDB language filter codes            |
+| `dashboard_widget_visibility`| JSON    | all true          | Boolean toggles for Weather, HomeAssistant, System, Downloads, RSS |
+
+**API**: `PATCH /api/settings` (admin only) updates all fields; `GET /api/settings` returns current state.
+
+**Usage**:
+- **Worker** (`src/workers/refreshUpcoming.ts`) reads `upcoming_window_months` and `upcoming_languages` to control TMDB discovery scope
+- **Dashboard route** (`src/routes/dashboard/upcoming/`) reads same settings for cache-miss fallback
+- **UI** (Settings → General) provides admin interface to adjust all settings
 ## Common Commands
 
 ```bash

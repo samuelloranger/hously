@@ -117,6 +117,18 @@ Optional integrations:
 
 See `.env.example` for the full reference.
 
+### General Settings (Admin UI)
+
+Admins can configure global app behavior via **Settings → General**:
+
+| Setting                      | Default            | Options                                        | Purpose                                       |
+| ---------------------------- | ------------------ | ---------------------------------------------- | --------------------------------------------- |
+| **Country/Region**           | US                 | Any supported country                          | Sets calendar holidays and TMDB release dates |
+| **Calendar Subdivision**     | National           | State/province (if applicable)                 | Refines holiday calendars                     |
+| **Upcoming releases window** | 1 year (12 months) | 3, 6, 12, or 24 months                         | How far ahead to show upcoming movies/TV      |
+| **Languages**                | English, French    | Multi-select (8 languages)                     | Filter TMDB discovery results by language     |
+| **Dashboard widgets**        | All enabled        | Weather, HomeAssistant, System, Downloads, RSS | Show/hide dashboard panels                    |
+
 ## Common Commands
 
 ```bash
