@@ -297,7 +297,7 @@ export function GeneralSettingsTab() {
                 >
                   <Checkbox
                     checked={selectedLanguages.has(lang.code)}
-                    onCheckedChange={() => toggleLanguage(lang.code)}
+                    onChange={() => toggleLanguage(lang.code)}
                   />
                   <span className="text-sm text-neutral-700 dark:text-neutral-300">
                     {lang.label}
@@ -336,7 +336,7 @@ export function GeneralSettingsTab() {
             >
               <Checkbox
                 checked={widgetVisibility[key]}
-                onCheckedChange={() => toggleWidget(key)}
+                onChange={() => toggleWidget(key)}
               />
               <span className="text-sm text-neutral-700 dark:text-neutral-300">
                 {label}

@@ -12,20 +12,18 @@ import {
   normalizeUserCountryCode,
 } from "@hously/api/services/holidayCalendar";
 
-function mapSettings(row: {
-  countryCode: string;
-  calendarSubdivisionCode: string | null;
-  upcomingWindowMonths: number;
-  upcomingLanguages: string;
-  dashboardWidgetVisibility: Record<string, boolean>;
-  updatedAt: Date;
-}) {
+import type { AppSettings } from "@prisma/client";
+
+function mapSettings(row: AppSettings) {
   return {
     country_code: normalizeTmdbRegion(row.countryCode),
     calendar_subdivision_code: row.calendarSubdivisionCode,
     upcoming_window_months: row.upcomingWindowMonths,
     upcoming_languages: row.upcomingLanguages,
-    dashboard_widget_visibility: row.dashboardWidgetVisibility,
+    dashboard_widget_visibility: row.dashboardWidgetVisibility as Record<
+      string,
+      boolean
+    >,
     updated_at: row.updatedAt.toISOString(),
   };
 }
