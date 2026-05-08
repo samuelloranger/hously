@@ -47,6 +47,7 @@ import { ADMIN_ENDPOINTS } from "@/lib/endpoints";
 import { useFetcher } from "@/lib/api/context";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
+import { useConfirm } from "@/components/confirm";
 
 // ---------------------------------------------------------------------------
 // Job action config
@@ -279,6 +280,7 @@ function QueueCard({
   t: (key: string, opts?: Record<string, unknown>) => string;
 }) {
   const fetcher = useFetcher();
+  const { confirm } = useConfirm();
   const [expanded, setExpanded] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("failed");
   const queueSlug = QUEUE_DISPLAY_NAMES[stat.name] ?? stat.name;
@@ -302,38 +304,44 @@ function QueueCard({
   });
 
   const handleRetryAll = async () => {
-    if (
-      !confirm(t("settings.jobs.queues.retryAllConfirm", { queue: stat.name }))
-    )
-      return;
-    try {
-      const result = await retryFailed(queueSlug);
-      toast.success(
-        t("settings.jobs.queues.retrySuccess", { count: result.retried }),
-      );
-    } catch {
-      toast.error(t("settings.jobs.error"));
-    }
+    confirm({
+      variant: "default",
+      description: t("settings.jobs.queues.retryAllConfirm", {
+        queue: stat.name,
+      }),
+      confirmLabel: t("settings.jobs.queues.retryAll"),
+      onConfirm: async () => {
+        try {
+          const result = await retryFailed(queueSlug);
+          toast.success(
+            t("settings.jobs.queues.retrySuccess", { count: result.retried }),
+          );
+        } catch {
+          toast.error(t("settings.jobs.error"));
+        }
+      },
+    });
   };
 
   const handleClean = async (status: "completed" | "failed") => {
-    if (
-      !confirm(
-        t("settings.jobs.queues.cleanConfirm", {
-          status,
-          queue: stat.name,
-        }),
-      )
-    )
-      return;
-    try {
-      const result = await cleanQueue({ queue: queueSlug, status });
-      toast.success(
-        t("settings.jobs.queues.cleanSuccess", { count: result.cleaned }),
-      );
-    } catch {
-      toast.error(t("settings.jobs.error"));
-    }
+    confirm({
+      variant: "destructive",
+      description: t("settings.jobs.queues.cleanConfirm", {
+        status,
+        queue: stat.name,
+      }),
+      confirmLabel: t("settings.jobs.queues.clean"),
+      onConfirm: async () => {
+        try {
+          const result = await cleanQueue({ queue: queueSlug, status });
+          toast.success(
+            t("settings.jobs.queues.cleanSuccess", { count: result.cleaned }),
+          );
+        } catch {
+          toast.error(t("settings.jobs.error"));
+        }
+      },
+    });
   };
 
   const handleRetryJob = async (jobId: string) => {
