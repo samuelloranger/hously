@@ -31,6 +31,7 @@
   --color-primary-700: #15803d;
   --color-primary-800: #166534;
   --color-primary-900: #14532d;
+  --color-primary-950: #052e16;
 
   /* Custom breakpoints */
   --breakpoint-mobile-max: 945px;
