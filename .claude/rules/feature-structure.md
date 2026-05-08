@@ -1,47 +1,21 @@
 ---
-description: Feature-based folder structure for frontend and API patterns
+description: Feature-based folder layout + API routing structure
 globs: ["apps/web/src/features/**", "apps/api/src/routes/**"]
 ---
 
-# Feature & Route Structure
+# Feature & route layout
 
-## Frontend features (`apps/web/src/features/`)
-
-Each feature is self-contained with its own components:
+## Frontend (`apps/web`)
 
 ```
 features/<name>/
-├── index.tsx              # Main page component
+├── index.tsx
 ├── components/
-│   ├── <Name>Row.tsx      # List item component
-│   ├── Create<Name>Modal.tsx
-│   ├── Edit<Name>Modal.tsx
-│   └── ...
+└── hooks/        # optional TanStack/query helpers for that feature
 ```
 
-- Feature-specific components go inside `features/<name>/components/`
-- Shared/reusable components go in `src/components/`
-- UI primitives (Button, Dialog, etc.) go in `src/components/ui/`
+Shared building blocks sit in `src/components/` (with `src/components/ui/` for primitives).
 
-## API routes (`apps/api/src/routes/`)
+## API (`apps/api`)
 
-Each route file exports an Elysia plugin with a prefix:
-
-```typescript
-export const featureRoutes = new Elysia({ prefix: "/api/feature" })
-  .use(auth)
-  .use(requireUser)
-  .get("/", async ({ user, set }) => {
-    try {
-      // ... prisma query
-      return { items };
-    } catch (error) {
-      return serverError(set, "Failed to fetch items");
-    }
-  });
-```
-
-- Use error helpers from `src/utils/errors.ts` (`badRequest`, `notFound`, `serverError`, etc.)
-- Always wrap route handlers in try/catch
-- Map Prisma results to snake_case response format
-- Compose routes in `src/index.ts` via `.use()`
+Prefer `routes/<area>/index.ts`, with nesting for large domains (`integrations/*`, `dashboard/*`). Export `<name>Routes`, set `.prefix("/api/...")`, reuse auth/middleware helpers, map DB models to snake_case JSON, append via `.use()` inside `apps/api/src/index.ts`.

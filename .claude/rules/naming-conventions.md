@@ -7,13 +7,13 @@ globs: ["apps/**/*.ts", "apps/**/*.tsx", "apps/api/prisma/**"]
 
 ## Files
 
-| Context             | Convention                  | Example                                |
-| ------------------- | --------------------------- | -------------------------------------- |
-| React components    | PascalCase                  | `ChoreRow.tsx`, `CreateChoreModal.tsx` |
-| Hooks               | camelCase with `use` prefix | `useChores.ts`, `useAuth.ts`           |
-| Utilities           | camelCase                   | `formatDate.ts`, `sanitize.ts`         |
-| Route modules (API) | camelCase                   | `chores.ts`, `calendar.ts`             |
-| Type files          | camelCase                   | `chores.ts`, `calendar.ts`             |
+| Context             | Convention                  | Example                                    |
+| ------------------- | --------------------------- | ------------------------------------------ |
+| React components    | PascalCase                  | `ChoreRow.tsx`, `CreateChoreModal.tsx`     |
+| Hooks               | camelCase with `use` prefix | `useChores.ts`, `useAuth.ts`               |
+| Utilities           | camelCase                   | `formatDate.ts`, `sanitize.ts`             |
+| Route modules (API) | camelCase + `Routes`        | `choresRoutes` in `routes/chores/index.ts` |
+| Type files          | camelCase                   | `chores.ts`, `calendar.ts`                 |
 
 ## Code
 

@@ -6,13 +6,8 @@ help: ## Show this help message
 	@echo 'Available targets:'
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-install: ## Install all dependencies (Bun)
-	@echo "Installing web dependencies..."
-	cd apps/web && bun install
-	@echo "Installing API dependencies..."
-	cd apps/api && bun install
-	@echo "Setting up git hooks..."
-	bunx husky
+install: ## Install all dependencies (Bun workspaces)
+	cd "$(CURDIR)" && bun install
 	@echo "✓ Dependencies installed!"
 	@echo "  Start services: make dev-services"
 	@echo "  Start API:      make dev-api"
@@ -21,7 +16,7 @@ install: ## Install all dependencies (Bun)
 build: ## Build frontend for production
 	cd apps/web && bun run build
 
-typecheck: ## Typecheck frontend
+typecheck: ## Typecheck all workspaces that define typecheck (web, api, shared)
 	bun run typecheck
 
 dev-services: ## Start only database and Redis services
@@ -34,16 +29,16 @@ dev-web: ## Start React frontend with live reload
 	cd apps/web && bun run dev
 
 dev: ## Show development setup instructions
-	@echo "Development Setup Options:"
+	@echo "Development setup:"
 	@echo ""
-	@echo "Option 1: Docker (Recommended for production)"
-	@echo "  docker compose up  # Start everything in Docker"
+	@echo "  Repo docker-compose.yml: PostgreSQL + Redis only."
+	@echo "  Run API and web on the host:"
+	@echo "    1. make dev-services  # Start PostgreSQL + Redis"
+	@echo "    2. make dev-api       # Bun API with hot reload"
+	@echo "    3. make dev-web       # Vite frontend"
 	@echo ""
-	@echo "Option 2: Local development (Faster iteration)"
-	@echo "  Run these commands in separate terminals:"
-	@echo "  1. make dev-services  # Start PostgreSQL + Redis"
-	@echo "  2. make dev-api       # Start TypeScript/Bun API"
-	@echo "  3. make dev-web       # Start React frontend"
+	@echo "Production-like Docker (API + frontend + DB + Redis): copy"
+	@echo "  docker-compose.prod-example.yml → docker-compose.prod.yml and use that file."
 
 down: ## Stop Docker containers
 	docker compose down
@@ -53,22 +48,16 @@ rebuild: ## Rebuild Docker containers (fixes dependency issues)
 	docker compose build --no-cache
 	@echo "✓ Containers rebuilt. Start with: make dev-api"
 
-test: ## Run all tests
-	@echo "Running web tests..."
-	cd apps/web && bun run test
-	@echo "Running API tests..."
-	cd apps/api && bun test test/ && bun test src/
+test: ## Run all tests (web, api, shared)
+	cd "$(CURDIR)" && bun run test
 
-lint: ## Lint all code
-	@echo "Linting frontend..."
-	cd apps/web && bun run lint || echo "No linter configured"
-	@echo "Linting API..."
-	cd apps/api && bun run lint || echo "No linter configured"
+lint: ## Lint the web app (ESLint — same command as CI)
+	cd "$(CURDIR)" && bun run lint
 
 clean: ## Clean all build artifacts and caches
 	@echo "Cleaning build artifacts..."
 	rm -rf apps/web/dist
-	rm -rf node_modules apps/*/node_modules packages/*/node_modules
+	rm -rf node_modules apps/*/node_modules
 	docker compose down -v
 
 cc: ## Run Claude headless: make cc "your message"
