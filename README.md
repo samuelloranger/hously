@@ -30,7 +30,7 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 
 **Platform**
 
-- Push notifications (Web Push + APNs for iOS)
+- Push notifications (Web Push / VAPID)
 - i18n support via i18next
 - PWA-ready with service worker
 - Activity log across all features

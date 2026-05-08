@@ -209,6 +209,6 @@ docker compose -f docker-compose.prod.yml up -d         # Full stack: your prod 
 - **Unstable** — breaking changes happen
 - **Access control** — `ALLOWED_EMAILS` / `ADMIN_EMAILS`
 - **Image storage** — `IMAGE_STORAGE_DIR` (default `./data/images`)
-- **Push** — Web Push + APNs (`../hously-ios`)
+- **Push** — Web Push (VAPID)
 - **Rate limiting** — 1000 req/hour per IP
 - **Production configs** — e.g. `~/servers/hously` vs dev `~/sites/hously`

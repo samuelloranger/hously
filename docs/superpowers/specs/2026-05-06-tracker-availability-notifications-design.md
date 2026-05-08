@@ -2,7 +2,7 @@
 
 **Status:** Spec, pending implementation
 **Date:** 2026-05-06
-**Scope:** API only. No web/iOS UI changes.
+**Scope:** API only. No web UI changes.
 
 ## Problem
 

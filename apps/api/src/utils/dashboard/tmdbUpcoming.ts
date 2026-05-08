@@ -41,7 +41,11 @@ export const toIsoDate = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-/** Shared date window for TMDB discover (worker + dashboard fallback). */
+/**
+ * Shared date window for TMDB discover (worker + dashboard fallback).
+ * @param monthsAhead - Number of months ahead to include (3, 6, 12, or 24). Default 12.
+ * @returns ISO date strings for today and end of window for TMDB queries.
+ */
 export const getTmdbUpcomingDateWindowIso = (
   monthsAhead: number = 12,
 ): {

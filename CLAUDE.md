@@ -28,8 +28,6 @@ Hously is a self-hosted command center for homelab enthusiasts.
 
 Frontend is served from `apps/api/public/` when `SERVE_STATIC=true`.
 
-**iOS:** `../hously-ios`.
-
 ## Development Setup
 
 ```bash
@@ -111,5 +109,5 @@ docker compose down
 - **Unstable** — expect breakage.
 - **`ALLOWED_EMAILS` / `ADMIN_EMAILS`**
 - **Images** — `IMAGE_STORAGE_DIR`
-- **Push** — Web Push + APNs
+- **Push** — Web Push (VAPID)
 - **Rate limit** — 1000 requests/hour per IP
