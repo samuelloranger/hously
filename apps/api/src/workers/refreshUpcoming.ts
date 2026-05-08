@@ -18,6 +18,7 @@ import { setJsonCache } from "@hously/api/services/cache";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import type { DashboardUpcomingItem } from "@hously/api/types/dashboardUpcoming";
 import { getGlobalTmdbRegion } from "@hously/api/utils/medias/tmdbRegion";
+import { prisma } from "@hously/api/db";
 
 const JOB_ID = "refreshUpcoming";
 const JOB_NAME = "Refresh upcoming releases";
@@ -58,8 +59,15 @@ export const refreshUpcoming = async (options?: {
       return;
     }
 
-    const { todayIso, oneYearOutIso } = getTmdbUpcomingDateWindowIso();
     const region = await getGlobalTmdbRegion();
+    const appSettings = await prisma.appSettings.findUnique({
+      where: { id: 1 },
+    });
+
+    const upcomingWindowMonths = appSettings?.upcomingWindowMonths ?? 12;
+    const upcomingLanguages = appSettings?.upcomingLanguages ?? "en,fr";
+    const { todayIso, endDateIso } =
+      getTmdbUpcomingDateWindowIso(upcomingWindowMonths);
 
     const POOL_SIZE_PER_TYPE = 60;
     const [moviesResult, tvResult] = await Promise.all([
@@ -68,16 +76,18 @@ export const refreshUpcoming = async (options?: {
         POOL_SIZE_PER_TYPE,
         tmdbApiKey,
         todayIso,
-        oneYearOutIso,
+        endDateIso,
         region,
+        upcomingLanguages,
       ),
       collectTmdbUpcoming(
         "tv",
         POOL_SIZE_PER_TYPE,
         tmdbApiKey,
         todayIso,
-        oneYearOutIso,
+        endDateIso,
         region,
+        upcomingLanguages,
       ),
     ]);
 
@@ -105,7 +115,7 @@ export const refreshUpcoming = async (options?: {
       (item) => (item.popularity ?? 0) >= popularityThreshold,
     );
 
-    const libraryItems = await collectLibraryUpcoming(todayIso, oneYearOutIso);
+    const libraryItems = await collectLibraryUpcoming(todayIso, endDateIso);
     const baseItems = await attachLibraryIds(
       mergeUpcomingById([...filteredMovies, ...filteredTv], libraryItems),
     );

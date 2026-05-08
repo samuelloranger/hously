@@ -29,7 +29,14 @@ const buildUpcomingPayload = async (
   popularityThreshold: number,
   region: string,
 ): Promise<{ enabled: true; items: DashboardUpcomingItem[] } | null> => {
-  const { todayIso, oneYearOutIso } = getTmdbUpcomingDateWindowIso();
+  const appSettings = await prisma.appSettings.findUnique({
+    where: { id: 1 },
+  });
+
+  const upcomingWindowMonths = appSettings?.upcomingWindowMonths ?? 12;
+  const upcomingLanguages = appSettings?.upcomingLanguages ?? "en,fr";
+  const { todayIso, endDateIso } =
+    getTmdbUpcomingDateWindowIso(upcomingWindowMonths);
 
   const POOL_SIZE_PER_TYPE = 40;
   const [moviesResult, tvResult] = await Promise.all([
@@ -38,16 +45,18 @@ const buildUpcomingPayload = async (
       POOL_SIZE_PER_TYPE,
       tmdbApiKey,
       todayIso,
-      oneYearOutIso,
+      endDateIso,
       region,
+      upcomingLanguages,
     ),
     collectTmdbUpcoming(
       "tv",
       POOL_SIZE_PER_TYPE,
       tmdbApiKey,
       todayIso,
-      oneYearOutIso,
+      endDateIso,
       region,
+      upcomingLanguages,
     ),
   ]);
 
@@ -57,7 +66,7 @@ const buildUpcomingPayload = async (
     (item) => (item.popularity ?? 0) >= popularityThreshold,
   );
 
-  const libraryItems = await collectLibraryUpcoming(todayIso, oneYearOutIso);
+  const libraryItems = await collectLibraryUpcoming(todayIso, endDateIso);
   const mergedItems = mergeUpcomingById(
     [
       ...moviesResult.items.filter(
@@ -73,11 +82,11 @@ const buildUpcomingPayload = async (
       if (!item.release_date) return false;
       const releaseTime = Date.parse(item.release_date);
       const todayTime = Date.parse(todayIso);
-      const oneYearOutTime = Date.parse(oneYearOutIso);
+      const endTime = Date.parse(endDateIso);
       return (
         Number.isFinite(releaseTime) &&
         releaseTime >= todayTime &&
-        releaseTime <= oneYearOutTime
+        releaseTime <= endTime
       );
     })
     .sort((a, b) => {

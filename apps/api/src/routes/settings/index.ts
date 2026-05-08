@@ -15,11 +15,17 @@ import {
 function mapSettings(row: {
   countryCode: string;
   calendarSubdivisionCode: string | null;
+  upcomingWindowMonths: number;
+  upcomingLanguages: string;
+  dashboardWidgetVisibility: Record<string, boolean>;
   updatedAt: Date;
 }) {
   return {
     country_code: normalizeTmdbRegion(row.countryCode),
     calendar_subdivision_code: row.calendarSubdivisionCode,
+    upcoming_window_months: row.upcomingWindowMonths,
+    upcoming_languages: row.upcomingLanguages,
+    dashboard_widget_visibility: row.dashboardWidgetVisibility,
     updated_at: row.updatedAt.toISOString(),
   };
 }
@@ -65,6 +71,36 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
           );
         }
 
+        const updateData: {
+          countryCode?: string;
+          calendarSubdivisionCode?: string | null;
+          upcomingWindowMonths?: number;
+          upcomingLanguages?: string;
+          dashboardWidgetVisibility?: Record<string, boolean>;
+        } = {};
+
+        if (body.country_code) updateData.countryCode = countryCode;
+        if (body.calendar_subdivision_code !== undefined) {
+          updateData.calendarSubdivisionCode = calendarSubdivisionCode;
+        }
+        if (body.upcoming_window_months !== undefined) {
+          const months = body.upcoming_window_months;
+          if (![3, 6, 12, 24].includes(months)) {
+            return badRequest(
+              set,
+              "upcoming_window_months must be one of: 3, 6, 12, 24",
+            );
+          }
+          updateData.upcomingWindowMonths = months;
+        }
+        if (body.upcoming_languages !== undefined) {
+          updateData.upcomingLanguages = body.upcoming_languages;
+        }
+        if (body.dashboard_widget_visibility !== undefined) {
+          updateData.dashboardWidgetVisibility =
+            body.dashboard_widget_visibility;
+        }
+
         const row = await prisma.appSettings.upsert({
           where: { id: 1 },
           create: {
@@ -72,10 +108,7 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
             countryCode,
             calendarSubdivisionCode,
           },
-          update: {
-            countryCode,
-            calendarSubdivisionCode,
-          },
+          update: updateData,
         });
         return { settings: mapSettings(row) };
       } catch {
@@ -84,8 +117,19 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
     },
     {
       body: t.Object({
-        country_code: t.String({ minLength: 2, maxLength: 2 }),
+        country_code: t.Optional(t.String({ minLength: 2, maxLength: 2 })),
         calendar_subdivision_code: t.Optional(t.Union([t.String(), t.Null()])),
+        upcoming_window_months: t.Optional(t.Integer()),
+        upcoming_languages: t.Optional(t.String()),
+        dashboard_widget_visibility: t.Optional(
+          t.Object({
+            weather: t.Boolean(),
+            homeassistant: t.Boolean(),
+            system: t.Boolean(),
+            downloads: t.Boolean(),
+            rss: t.Boolean(),
+          }),
+        ),
       }),
     },
   );

@@ -738,10 +738,13 @@ model MediaSettings {
 
 /// Singleton app-wide settings (row id = 1)
 model AppSettings {
-  id                      Int      @id @default(1)
-  countryCode             String   @default("US") @map("country_code") @db.VarChar(2)
-  calendarSubdivisionCode String?  @map("calendar_subdivision_code") @db.VarChar(16)
-  updatedAt               DateTime @updatedAt @map("updated_at")
+  id                         Int      @id @default(1)
+  countryCode                String   @default("US") @map("country_code") @db.VarChar(2)
+  calendarSubdivisionCode    String?  @map("calendar_subdivision_code") @db.VarChar(16)
+  upcomingWindowMonths       Int      @default(12) @map("upcoming_window_months")
+  upcomingLanguages          String   @default("en,fr") @map("upcoming_languages")
+  dashboardWidgetVisibility  Json     @default("{\"weather\":true,\"homeassistant\":true,\"system\":true,\"downloads\":true,\"rss\":true}") @map("dashboard_widget_visibility")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
 
   @@map("app_settings")
 }
