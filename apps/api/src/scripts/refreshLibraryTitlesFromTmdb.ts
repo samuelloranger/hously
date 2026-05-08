@@ -19,6 +19,7 @@ import {
   sortTitleFromName,
   pickDigitalRelease,
 } from "@hously/api/utils/medias/libraryHelpers";
+import { getGlobalTmdbRegion } from "@hously/api/utils/medias/tmdbRegion";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
@@ -79,6 +80,7 @@ async function main() {
     console.error("TMDB integration is not configured or disabled.");
     process.exit(1);
   }
+  const region = await getGlobalTmdbRegion();
 
   const rows = await prisma.libraryMedia.findMany({
     orderBy: { id: "asc" },
@@ -130,7 +132,10 @@ async function main() {
         const posterUrl = details.poster_path
           ? `${TMDB_IMAGE_BASE}${details.poster_path}`
           : null;
-        const digitalReleaseDate = pickDigitalRelease(releaseDatesData.results);
+        const digitalReleaseDate = pickDigitalRelease(
+          releaseDatesData.results,
+          region,
+        );
         const sortTitle = sortTitleFromName(details.title);
         const overview = details.overview || null;
 

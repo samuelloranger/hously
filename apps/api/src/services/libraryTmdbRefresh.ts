@@ -7,6 +7,7 @@ import {
   tmdbApiFetch,
   upsertLibraryShowEpisodesFromTmdb,
 } from "@hously/api/utils/medias/libraryHelpers";
+import { getGlobalTmdbRegion } from "@hously/api/utils/medias/tmdbRegion";
 
 /** Fetch TMDB digital release and persist on library row. Returns new value (or null). */
 export async function refreshLibraryMovieDigitalDate(
@@ -17,6 +18,7 @@ export async function refreshLibraryMovieDigitalDate(
 
   const m = await prisma.libraryMedia.findUnique({ where: { id: mediaId } });
   if (!m || m.type !== "movie") return null;
+  const region = await getGlobalTmdbRegion();
 
   const releaseDatesData = await tmdbApiFetch<{
     results: Array<{
@@ -27,7 +29,7 @@ export async function refreshLibraryMovieDigitalDate(
     language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE,
   });
 
-  const picked = pickDigitalRelease(releaseDatesData.results);
+  const picked = pickDigitalRelease(releaseDatesData.results, region);
   await prisma.libraryMedia.update({
     where: { id: mediaId },
     data: { digitalReleaseDate: picked },

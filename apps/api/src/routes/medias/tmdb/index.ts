@@ -23,6 +23,7 @@ import {
   fetchWatchProviders,
   toTmdbLanguage,
 } from "@hously/api/utils/medias/tmdbFetchers";
+import { getGlobalTmdbRegion } from "@hously/api/utils/medias/tmdbRegion";
 
 export const mediasTmdbRoutes = new Elysia()
   .use(auth)
@@ -131,6 +132,7 @@ export const mediasTmdbRoutes = new Elysia()
       const language = toTmdbLanguage(
         (query as Record<string, string | undefined>).language || "en-US",
       );
+      const region = await getGlobalTmdbRegion();
       const skipCache =
         (query as Record<string, string | undefined>).skipCache === "true";
 
@@ -182,7 +184,7 @@ export const mediasTmdbRoutes = new Elysia()
         fetchTmdb("movie/top_rated").then(injectMediaType("movie")),
         fetchTmdb("discover/tv", {
           sort_by: "vote_average.desc",
-          with_origin_country: "US|CA",
+          with_origin_country: region,
           "vote_count.gte": "200",
           without_genres: "16", // exclude animation/anime
         }).then(injectMediaType("tv")),
@@ -477,7 +479,7 @@ export const mediasTmdbRoutes = new Elysia()
   )
   .get("/streaming-providers", async ({ user, set, query }) => {
     const q = query as Record<string, string | undefined>;
-    const region = (q.region || "CA").toUpperCase();
+    const region = await getGlobalTmdbRegion();
     const type = q.type === "tv" ? "tv" : "movie";
     const language = toTmdbLanguage(q.language || "en-US");
     const cacheKey = `medias:streaming-providers:${region}:${type}:${language}`;
@@ -486,13 +488,13 @@ export const mediasTmdbRoutes = new Elysia()
       await getJsonCache<{ id: number; name: string; logo_url: string }[]>(
         cacheKey,
       );
-    if (cached) return { providers: cached };
+    if (cached) return { providers: cached, region };
 
     const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
     const tmdbConfig = tmdbIntegration?.enabled
       ? normalizeTmdbConfig(tmdbIntegration.config)
       : null;
-    if (!tmdbConfig) return { providers: [] };
+    if (!tmdbConfig) return { providers: [], region };
 
     try {
       const url = new URL(
@@ -527,9 +529,9 @@ export const mediasTmdbRoutes = new Elysia()
         );
 
       await setJsonCache(cacheKey, providers, 24 * 60 * 60);
-      return { providers };
+      return { providers, region };
     } catch {
-      return { providers: [] };
+      return { providers: [], region };
     }
   })
   .get("/genres", async ({ user, set, query }) => {
@@ -589,7 +591,7 @@ export const mediasTmdbRoutes = new Elysia()
     const sortBy = q.sort_by || "popularity.desc";
     const page = parseInt(q.page || "1", 10);
     const language = toTmdbLanguage(q.language || "en-US");
-    const region = (q.region || "CA").toUpperCase();
+    const region = await getGlobalTmdbRegion();
     const originalLanguage = q.original_language || null;
 
     const validSorts = [
@@ -723,6 +725,7 @@ export const mediasTmdbRoutes = new Elysia()
       return {
         items: enrichedBrse,
         page,
+        region,
         total_pages: totalPages,
         total_results: totalResults,
       };
@@ -814,10 +817,7 @@ export const mediasTmdbRoutes = new Elysia()
       if (!Number.isFinite(tmdbId) || tmdbId <= 0)
         return badRequest(set, "Invalid TMDB ID");
 
-      const region =
-        (
-          queryParams as Record<string, string | undefined>
-        ).region?.toUpperCase() || "CA";
+      const region = await getGlobalTmdbRegion();
       const language = toTmdbLanguage(
         (queryParams as Record<string, string | undefined>).language || "en-US",
       );
@@ -883,17 +883,14 @@ export const mediasTmdbRoutes = new Elysia()
   )
   .get(
     "/providers/:mediaType/:tmdbId",
-    async ({ set, params, query: queryParams }) => {
+    async ({ user, set, params, query: queryParams }) => {
       const { mediaType, tmdbId: tmdbIdStr } = params;
       if (mediaType !== "movie" && mediaType !== "tv")
         return badRequest(set, "Invalid media type");
       const tmdbId = parseInt(tmdbIdStr, 10);
       if (!Number.isFinite(tmdbId) || tmdbId <= 0)
         return badRequest(set, "Invalid TMDB ID");
-      const region =
-        (
-          queryParams as Record<string, string | undefined>
-        ).region?.toUpperCase() || "CA";
+      const region = await getGlobalTmdbRegion();
       const language = toTmdbLanguage(
         (queryParams as Record<string, string | undefined>).language || "en-US",
       );

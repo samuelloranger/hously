@@ -37,20 +37,10 @@ export function ExploreCard({
     if (navigateToLibraryItem) return;
     const lang = i18n.language;
     queryClient.prefetchQuery({
-      queryKey: queryKeys.medias.modalData(
-        item.media_type,
-        item.tmdb_id,
-        undefined,
-        lang,
-      ),
+      queryKey: queryKeys.medias.modalData(item.media_type, item.tmdb_id, lang),
       queryFn: () =>
         fetcher<MediaModalDataResponse>(
-          MEDIAS_ENDPOINTS.MODAL_DATA(
-            item.media_type,
-            item.tmdb_id,
-            undefined,
-            lang,
-          ),
+          MEDIAS_ENDPOINTS.MODAL_DATA(item.media_type, item.tmdb_id, lang),
         ),
       staleTime: 60 * 1000,
     });

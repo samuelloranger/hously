@@ -64,8 +64,6 @@ export const usersRoutes = new Elysia({ prefix: "/api/users" })
         first_name: t.Optional(t.Union([t.String(), t.Null()])),
         last_name: t.Optional(t.Union([t.String(), t.Null()])),
         locale: t.Optional(t.Union([t.String(), t.Null()])),
-        country_code: t.Optional(t.Union([t.String(), t.Null()])),
-        calendar_subdivision_code: t.Optional(t.Union([t.String(), t.Null()])),
       }),
     },
   )

@@ -725,6 +725,20 @@
       "account": "Account",
       "admin": "Admin"
     },
+    "general": {
+      "title": "General",
+      "description": "App-wide defaults used by background jobs and shared integrations.",
+      "loading": "Loading settings...",
+      "loadError": "Failed to load settings.",
+      "countryCode": "Country / region",
+      "subdivisionCode": "Province / state",
+      "subdivisionPlaceholder": "Country-level holidays",
+      "countryCodeHint": "Used for TMDB availability, upcoming releases, release dates, and public holidays.",
+      "save": "Save settings",
+      "saving": "Saving...",
+      "saveSuccess": "Settings saved.",
+      "saveError": "Failed to save settings."
+    },
     "releases": {
       "title": "Releases",
       "description": "Public GitHub releases for this Hously project, refreshed every 6 hours.",
@@ -844,13 +858,7 @@
       "saving": "Saving...",
       "cancel": "Cancel",
       "updateSuccess": "Profile updated successfully!",
-      "updateError": "Failed to update profile. Please try again.",
-      "countryCode": "Country (calendar holidays)",
-      "countryPlaceholder": "Not set",
-      "countryCodeHint": "Used for public and bank holidays on your calendar. Pick a province or state when yours has different holidays (e.g. Quebec).",
-      "subdivisionCode": "Province / state / region",
-      "subdivisionPlaceholder": "Use country default",
-      "subdivisionHint": "Optional. When set, holiday rules follow this subdivision (date-holidays data)."
+      "updateError": "Failed to update profile. Please try again."
     },
     "passkeys": {
       "title": "Passkeys",
@@ -1006,6 +1014,7 @@
     },
     "media": {
       "title": "Media",
+      "description": "Configure quality profiles, library post-processing, media history, and import workflows.",
       "tabs": {
         "qualityProfiles": "Quality Profiles",
         "librarySettings": "Library Settings",
@@ -1611,6 +1620,7 @@
       "sortRevenue": "Box Office",
       "noResults": "No results found. Try adjusting your filters.",
       "titles": "titles",
+      "regionHint": "Availability: {{region}}",
       "lang": "Language"
     },
     "movie_plural": "Movies",

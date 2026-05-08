@@ -68,7 +68,6 @@ export function ExploreCardDetailDialog({
   const { data: modalData, isPending: modalDataPending } = useMediaModalData(
     item.media_type,
     item.tmdb_id,
-    undefined,
     { enabled: isOpen },
     i18n.language,
   );

@@ -10,12 +10,14 @@ import {
   RefreshCw,
   Trash2,
   Link,
+  CalendarDays,
 } from "lucide-react";
 import {
   useICalToken,
   useGenerateICalToken,
   useRevokeICalToken,
 } from "@/pages/calendar/useCalendar";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 export function CalendarTab() {
   const { t } = useTranslation("common");
@@ -61,6 +63,11 @@ export function CalendarTab() {
       className="animate-in fade-in slide-in-from-left-4 duration-300 space-y-4"
       key="calendar-tab"
     >
+      <SettingsPageHeader
+        icon={CalendarDays}
+        title={t("settings.calendar.title")}
+      />
+
       {/* iCal Subscription Section */}
       <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
         <div className="flex items-center gap-3 mb-1.5">

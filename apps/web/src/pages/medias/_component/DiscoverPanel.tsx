@@ -47,7 +47,7 @@ export function DiscoverPanel() {
   });
   useDiscoverScrollToAnchor(topRef, filterSignature, page);
 
-  const { data: providersData } = useStreamingProviders("CA", mediaType, lang);
+  const { data: providersData } = useStreamingProviders(mediaType, lang);
   const { data: genresData } = useMediaGenres(mediaType, lang);
 
   const { data, isFetching, isPlaceholderData } = useDiscoverMedias({
@@ -57,7 +57,6 @@ export function DiscoverPanel() {
     sort_by: sortBy,
     page,
     language: lang,
-    region: "CA",
     original_language: originalLanguage,
   });
 
@@ -69,6 +68,7 @@ export function DiscoverPanel() {
 
   const providers = providersData?.providers ?? [];
   const genres = genresData?.genres ?? [];
+  const region = data?.region ?? providersData?.region ?? null;
 
   const activeProvider = providers.find((p) => p.id === providerId) ?? null;
   const activeGenre = genres.find((g) => g.id === genreId) ?? null;
@@ -134,6 +134,11 @@ export function DiscoverPanel() {
         <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
           {t("medias.discover.title")}
         </h2>
+        {region && (
+          <span className="text-xs text-neutral-400">
+            {t("medias.discover.regionHint", { region })}
+          </span>
+        )}
         {totalResults != null && data != null && (
           <span className="text-xs tabular-nums text-neutral-400">
             {totalResults.toLocaleString()} {t("medias.discover.titles")}

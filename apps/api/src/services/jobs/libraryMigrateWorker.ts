@@ -17,6 +17,7 @@ import {
   expandLanguageCode,
 } from "@hously/api/utils/medias/filenameParser";
 import { sortTitleFromName } from "@hously/api/utils/medias/libraryHelpers";
+import { getGlobalTmdbRegion } from "@hously/api/utils/medias/tmdbRegion";
 
 // ─── Job data & progress types ────────────────────────────────────────────────
 
@@ -301,8 +302,9 @@ function pickDigitalRelease(
     iso_3166_1: string;
     release_dates: Array<{ type: number; release_date: string }>;
   }>,
+  region: string,
 ): Date | null {
-  for (const country of ["US", ...results.map((r) => r.iso_3166_1)]) {
+  for (const country of [region, ...results.map((r) => r.iso_3166_1)]) {
     const entry = results.find((r) => r.iso_3166_1 === country);
     const digital = entry?.release_dates.find((d) => d.type === 4);
     if (digital) return new Date(digital.release_date);
@@ -328,6 +330,7 @@ export async function processLibraryMigrateJob(
   });
   const defaultQualityProfileId =
     mediaSettings?.defaultQualityProfileId ?? null;
+  const region = await getGlobalTmdbRegion();
 
   const progress: LibraryMigrateProgress = {
     phase: "radarr",
@@ -421,7 +424,7 @@ export async function processLibraryMigrateJob(
                     }>;
                   }>;
                 }>(`movie/${movie.tmdbId}/release_dates`, tmdbConfig.api_key);
-                digitalReleaseDate = pickDigitalRelease(rd.results);
+                digitalReleaseDate = pickDigitalRelease(rd.results, region);
               } catch (e) {
                 console.warn(
                   `[libraryMigrate] TMDB release_dates movie=${movie.tmdbId}:`,

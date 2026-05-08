@@ -52,7 +52,6 @@ export function LibraryItemPage() {
   const { data: modalData, isPending: modalPending } = useMediaModalData(
     mediaType,
     item?.tmdb_id ?? 0,
-    undefined,
     { enabled: !!item },
     i18n.language,
   );

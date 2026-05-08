@@ -27,8 +27,6 @@ export const mapUser = (
     lastName: string | null;
     isAdmin: boolean | null;
     locale: string | null;
-    countryCode?: string | null;
-    calendarSubdivisionCode?: string | null;
     lastLogin: Date | null;
     createdAt: Date | null;
     lastActivity: Date | null;
@@ -42,8 +40,6 @@ export const mapUser = (
   last_name: user.lastName,
   is_admin: user.isAdmin || false,
   locale: user.locale ?? null,
-  country_code: user.countryCode ?? null,
-  calendar_subdivision_code: user.calendarSubdivisionCode ?? null,
   last_login: user.lastLogin?.toISOString() ?? null,
   created_at: user.createdAt?.toISOString() ?? new Date().toISOString(),
   last_activity: user.lastActivity?.toISOString() ?? null,

@@ -12,11 +12,13 @@ import {
   Package,
   RefreshCw,
   Tag,
+  Rocket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/EmptyState";
 import { HouseLoader } from "@/components/HouseLoader";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 import {
   useGitHubReleases,
   useRefreshGitHubReleases,
@@ -143,29 +145,26 @@ export function ReleasesTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h2 className="break-words text-2xl font-bold text-neutral-950 dark:text-neutral-50">
-            {t("settings.releases.title")}
-          </h2>
-          <p className="mt-1 break-words text-sm text-neutral-600 dark:text-neutral-400">
-            {t("settings.releases.description")}
-          </p>
-        </div>
-        <Button
-          onClick={handleRefresh}
-          disabled={refresh.isPending}
-          variant="outline"
-          className="self-start"
-        >
-          {refresh.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-          {t("common.refetch")}
-        </Button>
-      </div>
+      <SettingsPageHeader
+        icon={Rocket}
+        title={t("settings.releases.title")}
+        description={t("settings.releases.description")}
+        actions={
+          <Button
+            onClick={handleRefresh}
+            disabled={refresh.isPending}
+            variant="outline"
+            className="self-start"
+          >
+            {refresh.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            {t("common.refetch")}
+          </Button>
+        }
+      />
 
       <div className="min-w-0 rounded-lg border border-neutral-200 bg-white p-4 text-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="grid gap-3 sm:grid-cols-3">

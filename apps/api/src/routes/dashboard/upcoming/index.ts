@@ -6,6 +6,7 @@ import {
   collectTmdbUpcoming,
   getTmdbUpcomingDateWindowIso,
 } from "@hously/api/utils/dashboard/tmdbUpcoming";
+import { getGlobalTmdbRegion } from "@hously/api/utils/medias/tmdbRegion";
 import {
   attachLibraryIds,
   collectLibraryUpcoming,
@@ -26,6 +27,7 @@ import { addOrUpdateLibraryFromTmdb } from "@hously/api/services/libraryFromTmdb
 const buildUpcomingPayload = async (
   tmdbApiKey: string,
   popularityThreshold: number,
+  region: string,
 ): Promise<{ enabled: true; items: DashboardUpcomingItem[] } | null> => {
   const { todayIso, oneYearOutIso } = getTmdbUpcomingDateWindowIso();
 
@@ -37,6 +39,7 @@ const buildUpcomingPayload = async (
       tmdbApiKey,
       todayIso,
       oneYearOutIso,
+      region,
     ),
     collectTmdbUpcoming(
       "tv",
@@ -44,6 +47,7 @@ const buildUpcomingPayload = async (
       tmdbApiKey,
       todayIso,
       oneYearOutIso,
+      region,
     ),
   ]);
 
@@ -98,6 +102,7 @@ export const dashboardUpcomingRoutes = new Elysia()
   .use(requireUser)
   .get("/upcoming", async ({ set }) => {
     try {
+      const region = await getGlobalTmdbRegion();
       const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
       const tmdbConfig = tmdbIntegration?.enabled
         ? normalizeTmdbConfig(tmdbIntegration.config)
@@ -111,7 +116,7 @@ export const dashboardUpcomingRoutes = new Elysia()
       const cached = await getJsonCache<{
         enabled: boolean;
         items: DashboardUpcomingItem[];
-      }>(TMDB_UPCOMING_CACHE_KEY);
+      }>(`${TMDB_UPCOMING_CACHE_KEY}:${region}`);
 
       if (cached) {
         return cached;
@@ -122,9 +127,14 @@ export const dashboardUpcomingRoutes = new Elysia()
       const responsePayload = await buildUpcomingPayload(
         tmdbApiKey,
         popularityThreshold,
+        region,
       );
       if (!responsePayload) return badGateway(set, "TMDB request failed");
-      await setJsonCache(TMDB_UPCOMING_CACHE_KEY, responsePayload, 60 * 60);
+      await setJsonCache(
+        `${TMDB_UPCOMING_CACHE_KEY}:${region}`,
+        responsePayload,
+        60 * 60,
+      );
       return responsePayload;
     } catch (error) {
       console.error("Error getting TMDB upcoming items:", error);
@@ -133,13 +143,14 @@ export const dashboardUpcomingRoutes = new Elysia()
   })
   .post("/upcoming/refresh", async ({ set }) => {
     try {
+      const region = await getGlobalTmdbRegion();
       const tmdbIntegration = await getIntegrationConfigRecord("tmdb");
       const tmdbConfig = tmdbIntegration?.enabled
         ? normalizeTmdbConfig(tmdbIntegration.config)
         : null;
       const tmdbApiKey = tmdbConfig?.api_key ?? null;
 
-      await deleteCache(TMDB_UPCOMING_CACHE_KEY);
+      await deleteCache(`${TMDB_UPCOMING_CACHE_KEY}:${region}`);
 
       if (!tmdbApiKey) {
         return { enabled: false, items: [] };
@@ -149,10 +160,15 @@ export const dashboardUpcomingRoutes = new Elysia()
       const responsePayload = await buildUpcomingPayload(
         tmdbApiKey,
         popularityThreshold,
+        region,
       );
       if (!responsePayload) return badGateway(set, "TMDB request failed");
 
-      await setJsonCache(TMDB_UPCOMING_CACHE_KEY, responsePayload, 60 * 60);
+      await setJsonCache(
+        `${TMDB_UPCOMING_CACHE_KEY}:${region}`,
+        responsePayload,
+        60 * 60,
+      );
       return responsePayload;
     } catch (error) {
       console.error("Error refreshing TMDB upcoming items:", error);
@@ -165,11 +181,12 @@ export const dashboardUpcomingRoutes = new Elysia()
       const { media_type: mediaType, tmdb_id: tmdbId } = body;
 
       try {
+        const region = await getGlobalTmdbRegion();
         const existing = await prisma.libraryMedia.findUnique({
           where: { tmdbId: tmdbId },
         });
         if (existing) {
-          await deleteCache(TMDB_UPCOMING_CACHE_KEY);
+          await deleteCache(`${TMDB_UPCOMING_CACHE_KEY}:${region}`);
           return {
             success: true,
             added: false,
@@ -181,8 +198,9 @@ export const dashboardUpcomingRoutes = new Elysia()
         await addOrUpdateLibraryFromTmdb({
           tmdb_id: tmdbId,
           type: libType,
+          region,
         });
-        await deleteCache(TMDB_UPCOMING_CACHE_KEY);
+        await deleteCache(`${TMDB_UPCOMING_CACHE_KEY}:${region}`);
 
         return {
           success: true,

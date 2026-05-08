@@ -11,6 +11,11 @@ export const queryKeys = {
     oidcProviders: () => [...queryKeys.auth.all, "oidc-providers"] as const,
   },
 
+  settings: {
+    all: ["settings"] as const,
+    app: () => [...queryKeys.settings.all, "app"] as const,
+  },
+
   chores: {
     all: ["chores"] as const,
     list: () => [...queryKeys.chores.all, "list"] as const,
@@ -207,29 +212,18 @@ export const queryKeys = {
         libraryMediaId ?? null,
         season ?? null,
       ] as const,
-    providers: (
-      mediaType: "movie" | "tv",
-      tmdbId: number,
-      region?: string,
-      language?: string,
-    ) =>
+    providers: (mediaType: "movie" | "tv", tmdbId: number, language?: string) =>
       [
         ...queryKeys.medias.all,
         "providers",
         mediaType,
         tmdbId,
-        region ?? "CA",
         language ?? "en-US",
       ] as const,
-    streamingProviders: (
-      region?: string,
-      type?: "movie" | "tv",
-      language?: string,
-    ) =>
+    streamingProviders: (type?: "movie" | "tv", language?: string) =>
       [
         ...queryKeys.medias.all,
         "streaming-providers",
-        region ?? "CA",
         type ?? "movie",
         language ?? "en-US",
       ] as const,
@@ -278,19 +272,13 @@ export const queryKeys = {
         "missing-collections",
         language ?? "en-US",
       ] as const,
-    modalData: (
-      mediaType: "movie" | "tv",
-      tmdbId: number,
-      region?: string,
-      language?: string,
-    ) =>
+    modalData: (mediaType: "movie" | "tv", tmdbId: number, language?: string) =>
       [
         ...queryKeys.medias.all,
         "modal",
         "v2",
         mediaType,
         tmdbId,
-        region ?? "CA",
         language ?? "en-US",
       ] as const,
     modalDataAll: (mediaType: "movie" | "tv", tmdbId: number) =>
@@ -302,7 +290,6 @@ export const queryKeys = {
       sort_by?: string;
       page?: number;
       language?: string;
-      region?: string;
       original_language?: string | null;
     }) =>
       [
@@ -314,7 +301,6 @@ export const queryKeys = {
         params.sort_by ?? "popularity.desc",
         params.page ?? 1,
         params.language ?? "en-US",
-        params.region ?? "CA",
         params.original_language ?? null,
       ] as const,
   },

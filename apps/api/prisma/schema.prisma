@@ -20,10 +20,6 @@ model User {
   firstName               String?   @map("first_name")
   lastName                String?   @map("last_name")
   locale                  String?
-  /// ISO 3166-1 alpha-2; used with date-holidays for public holidays on the calendar
-  countryCode             String?   @map("country_code") @db.VarChar(2)
-  /// Province/state code from date-holidays (e.g. QC for Canada-Quebec); null = country-level rules only
-  calendarSubdivisionCode String?   @map("calendar_subdivision_code") @db.VarChar(16)
   avatarUrl               String?   @map("avatar_url")
   dashboardConfig         Json?     @map("dashboard_config")
   calendarToken           String?   @unique(map: "ix_users_calendar_token") @map("calendar_token")
@@ -738,6 +734,16 @@ model MediaSettings {
   defaultQualityProfile QualityProfile? @relation("DefaultQualityProfile", fields: [defaultQualityProfileId], references: [id], onDelete: SetNull)
 
   @@map("media_settings")
+}
+
+/// Singleton app-wide settings (row id = 1)
+model AppSettings {
+  id                      Int      @id @default(1)
+  countryCode             String   @default("US") @map("country_code") @db.VarChar(2)
+  calendarSubdivisionCode String?  @map("calendar_subdivision_code") @db.VarChar(16)
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  @@map("app_settings")
 }
 
 model MediaFile {

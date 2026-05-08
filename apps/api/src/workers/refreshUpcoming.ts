@@ -17,6 +17,7 @@ import {
 import { setJsonCache } from "@hously/api/services/cache";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import type { DashboardUpcomingItem } from "@hously/api/types/dashboardUpcoming";
+import { getGlobalTmdbRegion } from "@hously/api/utils/medias/tmdbRegion";
 
 const JOB_ID = "refreshUpcoming";
 const JOB_NAME = "Refresh upcoming releases";
@@ -58,6 +59,7 @@ export const refreshUpcoming = async (options?: {
     }
 
     const { todayIso, oneYearOutIso } = getTmdbUpcomingDateWindowIso();
+    const region = await getGlobalTmdbRegion();
 
     const POOL_SIZE_PER_TYPE = 60;
     const [moviesResult, tvResult] = await Promise.all([
@@ -67,6 +69,7 @@ export const refreshUpcoming = async (options?: {
         tmdbApiKey,
         todayIso,
         oneYearOutIso,
+        region,
       ),
       collectTmdbUpcoming(
         "tv",
@@ -74,6 +77,7 @@ export const refreshUpcoming = async (options?: {
         tmdbApiKey,
         todayIso,
         oneYearOutIso,
+        region,
       ),
     ]);
 
@@ -118,7 +122,11 @@ export const refreshUpcoming = async (options?: {
         const numericId = parseTmdbNumericId(item.id);
         if (!numericId) return item;
 
-        const digitalDate = await fetchMovieReleaseDates(numericId, tmdbApiKey);
+        const digitalDate = await fetchMovieReleaseDates(
+          numericId,
+          tmdbApiKey,
+          region,
+        );
         if (digitalDate) {
           return { ...item, release_date: digitalDate };
         }
@@ -154,6 +162,7 @@ export const refreshUpcoming = async (options?: {
           item.media_type,
           tmdbId,
           tmdbApiKey,
+          region,
         );
         return { ...item, providers };
       },
@@ -165,7 +174,7 @@ export const refreshUpcoming = async (options?: {
 
     const responsePayload = { enabled: true, items: cacheItems };
     await setJsonCache(
-      TMDB_UPCOMING_CACHE_KEY,
+      `${TMDB_UPCOMING_CACHE_KEY}:${region}`,
       responsePayload,
       TMDB_UPCOMING_CACHE_TTL_SECONDS,
     );

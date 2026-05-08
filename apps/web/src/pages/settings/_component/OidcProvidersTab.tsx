@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Copy, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Copy, KeyRound, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import type { OidcProvider } from "@hously/shared/types";
 import { Switch } from "@/components/ui/switch";
@@ -11,6 +11,7 @@ import {
   useDeleteOidcProvider,
   oidcProviderIconUrl,
 } from "@/lib/auth/useOidcProviders";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 const INPUT_CLASS =
   "w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono text-sm";
@@ -353,14 +354,11 @@ export function OidcProvidersTab() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-          {t("settings.integrations.sso.title")}
-        </h2>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          {t("settings.integrations.sso.help")}
-        </p>
-      </div>
+      <SettingsPageHeader
+        icon={KeyRound}
+        title={t("settings.integrations.sso.title")}
+        description={t("settings.integrations.sso.help")}
+      />
 
       {isLoading ? (
         <div className="space-y-2">

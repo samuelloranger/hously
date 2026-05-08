@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Plug2 } from "lucide-react";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 import {
   AdguardIntegrationSection,
   JellyfinIntegrationSection,
@@ -27,14 +29,11 @@ export function IntegrationsTab() {
       className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-4"
       key="integrations-tab"
     >
-      <div className="mb-2">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          {t("settings.integrations.title")}
-        </h2>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-          {t("settings.integrations.description")}
-        </p>
-      </div>
+      <SettingsPageHeader
+        icon={Plug2}
+        title={t("settings.integrations.title")}
+        description={t("settings.integrations.description")}
+      />
 
       <SegmentedTabs
         items={[

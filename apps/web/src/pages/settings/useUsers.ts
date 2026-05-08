@@ -31,6 +31,7 @@ export function useUpdateProfile() {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.calendar.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.medias.all });
       queryClient.setQueryData(queryKeys.auth.me, response.user);
     },
   });

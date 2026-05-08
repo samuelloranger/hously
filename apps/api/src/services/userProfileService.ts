@@ -5,18 +5,12 @@ import {
   getAvatarUrl,
   saveImageAndCreateThumbnail,
 } from "@hously/api/services/imageService";
-import {
-  normalizeCalendarSubdivision,
-  normalizeUserCountryCode,
-} from "@hously/api/services/holidayCalendar";
 import { validateImageMimeAndSize } from "@hously/shared/utils";
 
 export type UserProfileUpdateInput = {
   first_name?: string | null;
   last_name?: string | null;
   locale?: string | null;
-  country_code?: string | null;
-  calendar_subdivision_code?: string | null;
 };
 
 export type UserProfileUpdateResult =
@@ -27,20 +21,12 @@ export async function updateUserProfile(
   userId: string,
   input: UserProfileUpdateInput,
 ): Promise<UserProfileUpdateResult> {
-  const {
-    first_name,
-    last_name,
-    locale,
-    country_code,
-    calendar_subdivision_code,
-  } = input;
+  const { first_name, last_name, locale } = input;
 
   if (
     first_name === undefined &&
     last_name === undefined &&
-    locale === undefined &&
-    country_code === undefined &&
-    calendar_subdivision_code === undefined
+    locale === undefined
   ) {
     return {
       ok: false,
@@ -62,62 +48,12 @@ export async function updateUserProfile(
     return { ok: false, status: 401, error: "User not found" };
   }
 
-  let normalizedCountry: string | null | undefined;
-  if (country_code !== undefined) {
-    if (country_code === null || country_code === "") {
-      normalizedCountry = null;
-    } else {
-      normalizedCountry = normalizeUserCountryCode(country_code);
-      if (!normalizedCountry) {
-        return {
-          ok: false,
-          status: 400,
-          error: "country_code must be a supported 2-letter ISO code or empty",
-        };
-      }
-    }
-  }
-
-  const effectiveCountry =
-    normalizedCountry !== undefined ? normalizedCountry : existing.countryCode;
-
-  let normalizedSubdivision: string | null | undefined;
-  if (calendar_subdivision_code !== undefined) {
-    if (
-      calendar_subdivision_code === null ||
-      calendar_subdivision_code === ""
-    ) {
-      normalizedSubdivision = null;
-    } else if (!effectiveCountry) {
-      return {
-        ok: false,
-        status: 400,
-        error: "Set a country before choosing a province or state",
-      };
-    } else {
-      const sub = normalizeCalendarSubdivision(
-        effectiveCountry,
-        calendar_subdivision_code,
-      );
-      if (!sub) {
-        return {
-          ok: false,
-          status: 400,
-          error: "Invalid province or state for selected country",
-        };
-      }
-      normalizedSubdivision = sub;
-    }
-  }
-
   const user = await updateUserProfileFields(
     userId,
     {
       first_name,
       last_name,
       locale,
-      country_code: normalizedCountry,
-      calendar_subdivision_code: normalizedSubdivision,
     },
     existing,
   );
@@ -140,8 +76,6 @@ export async function updateUserProfileFields(
     firstName: string | null;
     lastName: string | null;
     locale: string | null;
-    countryCode: string | null;
-    calendarSubdivisionCode: string | null;
   }> = {};
 
   if (input.first_name !== undefined) {
@@ -152,37 +86,6 @@ export async function updateUserProfileFields(
   }
   if (input.locale !== undefined) {
     updateData.locale = input.locale;
-  }
-
-  let nextCountry = existing.countryCode;
-  let nextSub = existing.calendarSubdivisionCode;
-
-  if (input.country_code !== undefined) {
-    nextCountry = input.country_code;
-    if (
-      input.country_code !== existing.countryCode &&
-      input.calendar_subdivision_code === undefined
-    ) {
-      nextSub = null;
-    }
-  }
-
-  if (input.calendar_subdivision_code !== undefined) {
-    nextSub = input.calendar_subdivision_code;
-  }
-
-  if (!nextCountry) {
-    nextSub = null;
-  }
-
-  if (input.country_code !== undefined) {
-    updateData.countryCode = nextCountry;
-  }
-  if (
-    input.country_code !== undefined ||
-    input.calendar_subdivision_code !== undefined
-  ) {
-    updateData.calendarSubdivisionCode = nextSub;
   }
 
   return prisma.user.update({

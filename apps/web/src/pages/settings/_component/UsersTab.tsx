@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Users } from "lucide-react";
 import { HttpError } from "@/lib/api/httpClient";
 import { FormInput } from "@/components/ui/form-field";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import { useCurrentUser } from "@/lib/auth/useAuth";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 import { useConfirm } from "@/components/confirm";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 interface InviteFormData {
   email: string;
@@ -174,14 +176,17 @@ export function UsersTab() {
       key="users-tab"
     >
       <div className="space-y-6">
+        <SettingsPageHeader
+          icon={Users}
+          title={t("settings.users.title")}
+          description={t("settings.users.listDescription")}
+        />
+
         {/* Users List */}
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
           <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
             {t("settings.users.listTitle")}
           </h2>
-          <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-            {t("settings.users.listDescription")}
-          </p>
 
           {usersLoading ? (
             <LoadingState />

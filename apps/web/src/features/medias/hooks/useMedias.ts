@@ -119,17 +119,16 @@ export function useInteractiveDownload() {
 }
 
 export function useStreamingProviders(
-  region?: string,
   type?: "movie" | "tv",
   language?: string,
 ) {
   const fetcher = useFetcher();
   const lang = language ?? "en-US";
   return useQuery({
-    queryKey: queryKeys.medias.streamingProviders(region, type, lang),
+    queryKey: queryKeys.medias.streamingProviders(type, lang),
     queryFn: () =>
       fetcher<TmdbStreamingProvidersResponse>(
-        MEDIAS_ENDPOINTS.STREAMING_PROVIDERS(region, type, lang),
+        MEDIAS_ENDPOINTS.STREAMING_PROVIDERS(type, lang),
       ),
     staleTime: 24 * 60 * 60 * 1000,
   });
@@ -185,7 +184,6 @@ export function useDiscoverMedias(params: DiscoverMediasParams) {
 export function useMediaModalData(
   mediaType: "movie" | "tv" | null,
   tmdbId: number | null,
-  region?: string,
   options?: { enabled?: boolean },
   language?: string,
 ) {
@@ -199,12 +197,11 @@ export function useMediaModalData(
     queryKey: queryKeys.medias.modalData(
       mediaType ?? "movie",
       tmdbId ?? 0,
-      region,
       language,
     ),
     queryFn: () =>
       fetcher<MediaModalDataResponse>(
-        MEDIAS_ENDPOINTS.MODAL_DATA(mediaType!, tmdbId!, region, language),
+        MEDIAS_ENDPOINTS.MODAL_DATA(mediaType!, tmdbId!, language),
       ),
     enabled: isEnabled,
     staleTime: 60 * 1000, // 1 min — watchlist status is user-specific
