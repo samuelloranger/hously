@@ -9,6 +9,7 @@ import {
 } from "@/features/medias/hooks/useLibrary";
 import { Badge, Card } from "./LibrarySharedUI";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/confirm";
 
 interface LibraryDownloadHistorySectionProps {
   libraryId: number;
@@ -22,6 +23,7 @@ export function LibraryDownloadHistorySection({
   const deleteEntry = useDeleteLibraryDownloadEntry(libraryId);
   const clearFailed = useClearLibraryFailedDownloads(libraryId);
   const [open, setOpen] = useState(false);
+  const { confirm } = useConfirm();
   const items = data?.items ?? [];
   const hasRemovable = items.some(isRemovableDownloadHistoryEntry);
   const busyDeleting = deleteEntry.isPending || clearFailed.isPending;
@@ -60,14 +62,16 @@ export function LibraryDownloadHistorySection({
                 type="button"
                 disabled={busyDeleting}
                 onClick={() => {
-                  if (
-                    !window.confirm(
-                      t("library.management.clearFailedDownloadsConfirm"),
-                    )
-                  ) {
-                    return;
-                  }
-                  clearFailed.mutate();
+                  confirm({
+                    variant: "destructive",
+                    description: t(
+                      "library.management.clearFailedDownloadsConfirm",
+                    ),
+                    confirmLabel: t("library.management.clearFailedDownloads"),
+                    onConfirm: () => {
+                      clearFailed.mutate();
+                    },
+                  });
                 }}
                 className="rounded-md px-2.5 py-1 text-[10px] font-semibold text-rose-600 hover:bg-rose-100 dark:text-rose-400 dark:hover:bg-rose-950/40 disabled:opacity-50"
               >

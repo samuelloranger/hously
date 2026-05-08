@@ -23,6 +23,7 @@ import type {
 import { Badge, StatusDot } from "./LibrarySharedUI";
 import { qualityBadges } from "@/utils/libraryDisplayUtils";
 import { FileDetailBlock } from "./LibraryFileDetailBlock";
+import { useConfirm } from "@/components/confirm";
 
 export interface MergedEpisodeRowProps {
   ep: {
@@ -70,6 +71,7 @@ export function MergedEpisodeRow({
   deleteEpisodeMut,
 }: MergedEpisodeRowProps) {
   const { i18n } = useTranslation();
+  const { confirm } = useConfirm();
   const [expanded, setExpanded] = useState(false);
   const badges = file ? qualityBadges(file) : [];
   const isFuture = ep.air_date != null && ep.air_date > localDateYmd();
@@ -107,27 +109,30 @@ export function MergedEpisodeRow({
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!file) return;
-    const confirmed = window.confirm(
-      t("library.media.deleteEpisodeConfirm", {
+    confirm({
+      variant: "destructive",
+      description: t("library.media.deleteEpisodeConfirm", {
         defaultValue:
           "Delete this episode's downloaded file from disk and reset it to 'wanted'?",
       }),
-    );
-    if (!confirmed) return;
-    void deleteEpisodeMut
-      .mutateAsync({
-        mediaId: libraryId,
-        episodeId: ep.id,
-        deleteFile: true,
-      })
-      .then(() =>
-        toast.success(
-          t("library.media.episodeDeleted", {
-            defaultValue: "Episode deleted",
-          }),
-        ),
-      )
-      .catch(() => toast.error(t("library.management.grabFailed")));
+      confirmLabel: t("common.delete"),
+      onConfirm: () => {
+        void deleteEpisodeMut
+          .mutateAsync({
+            mediaId: libraryId,
+            episodeId: ep.id,
+            deleteFile: true,
+          })
+          .then(() =>
+            toast.success(
+              t("library.media.episodeDeleted", {
+                defaultValue: "Episode deleted",
+              }),
+            ),
+          )
+          .catch(() => toast.error(t("library.management.grabFailed")));
+      },
+    });
   };
 
   const handleToggleMonitored = (e: React.MouseEvent) => {

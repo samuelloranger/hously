@@ -28,6 +28,7 @@ import { formatDate, formatDateTime } from "@hously/shared/utils";
 import { EditChoreModal } from "@/pages/chores/_component/EditChoreModal";
 import { RecurrenceBadge } from "@/pages/chores/_component/RecurrenceBadge";
 import { syncBadge } from "@/lib/sw/registration";
+import { useConfirm } from "@/components/confirm";
 export type ChoresSearchParams = {
   modal?: "create" | "edit";
   choreId?: number;
@@ -68,6 +69,7 @@ export function ChoreRow({
   const toggleMutation = useToggleChore();
   const deleteMutation = useDeleteChore();
   const removeRecurrenceMutation = useRemoveRecurrence();
+  const { confirm } = useConfirm();
 
   const isOverdue = isChoreOverdue(chore.reminder_datetime, chore.completed);
   const hasReminder = !!chore.reminder_datetime && !!chore.reminder_active;
@@ -107,14 +109,15 @@ export function ChoreRow({
             label: t("chores.removeRecurrence") || "Retirer la récurrence",
             icon: <RefreshCw size={16} />,
             onClick: () => {
-              if (
-                confirm(
+              confirm({
+                variant: "default",
+                description:
                   t("chores.removeRecurrenceConfirm") ||
-                    "Voulez-vous retirer la récurrence de cette tâche ?",
-                )
-              ) {
-                removeRecurrenceMutation.mutate(chore.id);
-              }
+                  "Voulez-vous retirer la récurrence de cette tâche ?",
+                onConfirm: () => {
+                  removeRecurrenceMutation.mutate(chore.id);
+                },
+              });
             },
             variant: "default" as const,
           },
@@ -124,9 +127,14 @@ export function ChoreRow({
       label: t("chores.delete"),
       icon: <Trash2 size={16} />,
       onClick: () => {
-        if (confirm(t("chores.deleteConfirm"))) {
-          deleteMutation.mutate(chore.id);
-        }
+        confirm({
+          variant: "destructive",
+          description: t("chores.deleteConfirm"),
+          confirmLabel: t("chores.delete"),
+          onConfirm: () => {
+            deleteMutation.mutate(chore.id);
+          },
+        });
       },
       variant: "danger" as const,
     },

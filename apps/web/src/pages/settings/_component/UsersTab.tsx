@@ -15,6 +15,7 @@ import {
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
+import { useConfirm } from "@/components/confirm";
 
 interface InviteFormData {
   email: string;
@@ -24,6 +25,7 @@ interface InviteFormData {
 
 export function UsersTab() {
   const { t, i18n } = useTranslation("common");
+  const { confirm } = useConfirm();
   const inviteMutation = useInviteUser();
   const deleteMutation = useDeleteUser();
   const resendMutation = useResendInvitation();
@@ -72,20 +74,23 @@ export function UsersTab() {
   };
 
   const handleDeleteUser = async (userId: string, userEmail: string) => {
-    if (!confirm(t("settings.users.deleteConfirm", { email: userEmail }))) {
-      return;
-    }
-
-    try {
-      await deleteMutation.mutateAsync(userId);
-      toast.success(t("settings.users.deleteSuccess"));
-    } catch (error: unknown) {
-      toast.error(
-        (error instanceof HttpError ? error.apiError() : undefined) ||
-          t("settings.users.deleteError") ||
-          "Failed to delete user",
-      );
-    }
+    confirm({
+      variant: "destructive",
+      description: t("settings.users.deleteConfirm", { email: userEmail }),
+      confirmLabel: t("common.delete"),
+      onConfirm: async () => {
+        try {
+          await deleteMutation.mutateAsync(userId);
+          toast.success(t("settings.users.deleteSuccess"));
+        } catch (error: unknown) {
+          toast.error(
+            (error instanceof HttpError ? error.apiError() : undefined) ||
+              t("settings.users.deleteError") ||
+              "Failed to delete user",
+          );
+        }
+      },
+    });
   };
 
   const handleResendInvitation = async (id: number) => {
@@ -102,20 +107,23 @@ export function UsersTab() {
   };
 
   const handleRevokeInvitation = async (id: number, email: string) => {
-    if (!confirm(t("settings.users.revokeConfirm", { email }))) {
-      return;
-    }
-
-    try {
-      await revokeMutation.mutateAsync(id);
-      toast.success(t("settings.users.revokeSuccess"));
-    } catch (error: unknown) {
-      toast.error(
-        (error instanceof HttpError ? error.apiError() : undefined) ||
-          t("settings.users.revokeError") ||
-          "Failed to revoke invitation",
-      );
-    }
+    confirm({
+      variant: "destructive",
+      description: t("settings.users.revokeConfirm", { email }),
+      confirmLabel: t("settings.users.revoke"),
+      onConfirm: async () => {
+        try {
+          await revokeMutation.mutateAsync(id);
+          toast.success(t("settings.users.revokeSuccess"));
+        } catch (error: unknown) {
+          toast.error(
+            (error instanceof HttpError ? error.apiError() : undefined) ||
+              t("settings.users.revokeError") ||
+              "Failed to revoke invitation",
+          );
+        }
+      },
+    });
   };
 
   const formatDisplayName = (user: {

@@ -15,29 +15,38 @@ import {
   QualityProfileEditorModal,
   type QualityProfileDraft,
 } from "./QualityProfileEditorModal";
+import { useConfirm } from "@/components/confirm";
 
 export function QualityProfilesTab() {
   const { t } = useTranslation("common");
+  const { confirm } = useConfirm();
   const { data, isLoading, error } = useQualityProfilesList();
   const deleteMut = useDeleteQualityProfile();
   const [draft, setDraft] = useState<QualityProfileDraft>(null);
 
   const onDelete = async (p: QualityProfile) => {
-    if (!confirm(t("settings.qualityProfiles.deleteConfirm", { name: p.name })))
-      return;
-    try {
-      await deleteMut.mutateAsync(p.id);
-      toast.success(t("settings.qualityProfiles.deleteSuccess"));
-      if (draft?.kind === "edit" && draft.id === p.id) {
-        setDraft(null);
-      }
-    } catch (err: unknown) {
-      const msg =
-        err && typeof err === "object" && "message" in err
-          ? String((err as Error).message)
-          : t("settings.qualityProfiles.deleteError");
-      toast.error(msg);
-    }
+    confirm({
+      variant: "destructive",
+      description: t("settings.qualityProfiles.deleteConfirm", {
+        name: p.name,
+      }),
+      confirmLabel: t("common.delete"),
+      onConfirm: async () => {
+        try {
+          await deleteMut.mutateAsync(p.id);
+          toast.success(t("settings.qualityProfiles.deleteSuccess"));
+          if (draft?.kind === "edit" && draft.id === p.id) {
+            setDraft(null);
+          }
+        } catch (err: unknown) {
+          const msg =
+            err && typeof err === "object" && "message" in err
+              ? String((err as Error).message)
+              : t("settings.qualityProfiles.deleteError");
+          toast.error(msg);
+        }
+      },
+    });
   };
 
   const profiles = data?.profiles ?? [];

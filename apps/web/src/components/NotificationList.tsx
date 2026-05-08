@@ -10,6 +10,7 @@ import { formatDate, formatTime } from "@hously/shared/utils";
 import { cn } from "@/lib/utils";
 import { getTypeStyle } from "@/components/NotificationMenuRow";
 import { openNotificationTarget } from "@/lib/notifications/navigation";
+import { useConfirm } from "@/components/confirm";
 
 interface NotificationListProps {
   notifications: Notification[];
@@ -23,6 +24,7 @@ export function NotificationList({
   hasMore,
 }: NotificationListProps) {
   const { t, i18n } = useTranslation("common");
+  const { confirm } = useConfirm();
   const markAsReadMutation = useMarkAsReadOptimistic();
   const deleteMutation = useDeleteNotification();
 
@@ -38,9 +40,14 @@ export function NotificationList({
     notificationId: number,
   ) => {
     e.stopPropagation();
-    if (confirm(t("notifications.deleteConfirm"))) {
-      await deleteMutation.mutateAsync(notificationId);
-    }
+    confirm({
+      variant: "destructive",
+      description: t("notifications.deleteConfirm"),
+      confirmLabel: t("common.delete"),
+      onConfirm: async () => {
+        await deleteMutation.mutateAsync(notificationId);
+      },
+    });
   };
 
   if (!notifications || notifications.length === 0) {

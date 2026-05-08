@@ -615,6 +615,11 @@
     "userMenu": "Menu utilisateur",
     "loading": "Chargement...",
     "cancel": "Annuler",
+    "confirmDialog": {
+      "title": "Êtes-vous sûr·e ?",
+      "description": "Cette action peut être irréversible. Confirmez pour continuer.",
+      "confirmLabel": "Confirmer"
+    },
     "save": "Enregistrer",
     "saved": "Enregistré",
     "copied": "Copié",

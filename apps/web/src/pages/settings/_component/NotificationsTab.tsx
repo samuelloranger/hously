@@ -13,9 +13,11 @@ import { queryKeys } from "@/lib/queryKeys";
 import { getDeviceInfo } from "@/lib/device";
 import { useAuth } from "@/lib/auth/useAuth";
 import { NotificationChannelsSection } from "@/pages/settings/_component/NotificationChannelsSection";
+import { useConfirm } from "@/components/confirm";
 
 export function NotificationsTab() {
   const { t } = useTranslation("common");
+  const { confirm } = useConfirm();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const {
@@ -105,20 +107,23 @@ export function NotificationsTab() {
   };
 
   const handleDeleteDevice = async (deviceId: number) => {
-    if (!confirm(t("settings.notifications.deleteDeviceConfirm"))) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await deleteDeviceMutation.mutateAsync(deviceId);
-      toast.success(t("settings.notifications.deviceDeleted"));
-    } catch (error) {
-      console.error("Error deleting device:", error);
-      toast.error(t("settings.notifications.deleteDeviceError"));
-    } finally {
-      setLoading(false);
-    }
+    confirm({
+      variant: "destructive",
+      description: t("settings.notifications.deleteDeviceConfirm"),
+      confirmLabel: t("common.delete"),
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          await deleteDeviceMutation.mutateAsync(deviceId);
+          toast.success(t("settings.notifications.deviceDeleted"));
+        } catch (error) {
+          console.error("Error deleting device:", error);
+          toast.error(t("settings.notifications.deleteDeviceError"));
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const formatDate = (input: string | Date | null) => {

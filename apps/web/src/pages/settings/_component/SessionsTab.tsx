@@ -15,6 +15,7 @@ import {
 } from "@/lib/auth/useOidcProviders";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
+import { useConfirm } from "@/components/confirm";
 
 function SectionCard({
   title,
@@ -58,6 +59,7 @@ function getInitials(name: string | null, email: string): string {
 
 export function SessionsTab() {
   const { t, i18n } = useTranslation("common");
+  const { confirm } = useConfirm();
   const { data: currentUser } = useCurrentUser();
 
   const { data: sessionsData, isLoading: loadingSessions } = useAdminSessions();
@@ -77,37 +79,56 @@ export function SessionsTab() {
   if (!currentUser?.is_admin) return null;
 
   const handleRevokeSession = async (id: string) => {
-    if (!confirm(t("settings.sessions.revokeConfirm"))) return;
-    try {
-      await revokeSession.mutateAsync(id);
-      toast.success(t("settings.sessions.revokeSuccess"));
-    } catch {
-      toast.error(t("settings.sessions.revokeError"));
-    }
+    confirm({
+      variant: "destructive",
+      description: t("settings.sessions.revokeConfirm"),
+      confirmLabel: t("settings.sessions.revoke"),
+      onConfirm: async () => {
+        try {
+          await revokeSession.mutateAsync(id);
+          toast.success(t("settings.sessions.revokeSuccess"));
+        } catch {
+          toast.error(t("settings.sessions.revokeError"));
+        }
+      },
+    });
   };
 
   const handleRevokeUserSessions = async (
     userId: string,
     userEmail: string,
   ) => {
-    if (!confirm(t("settings.sessions.revokeAllConfirm", { email: userEmail })))
-      return;
-    try {
-      await revokeUserSessions.mutateAsync(userId);
-      toast.success(t("settings.sessions.revokeAllSuccess"));
-    } catch {
-      toast.error(t("settings.sessions.revokeError"));
-    }
+    confirm({
+      variant: "destructive",
+      description: t("settings.sessions.revokeAllConfirm", {
+        email: userEmail,
+      }),
+      confirmLabel: t("settings.sessions.revokeAll"),
+      onConfirm: async () => {
+        try {
+          await revokeUserSessions.mutateAsync(userId);
+          toast.success(t("settings.sessions.revokeAllSuccess"));
+        } catch {
+          toast.error(t("settings.sessions.revokeError"));
+        }
+      },
+    });
   };
 
   const handleDeleteWebPush = async (id: number) => {
-    if (!confirm(t("settings.sessions.deleteWebPushConfirm"))) return;
-    try {
-      await deleteWebPush.mutateAsync(id);
-      toast.success(t("settings.sessions.deleteWebPushSuccess"));
-    } catch {
-      toast.error(t("settings.sessions.deleteWebPushError"));
-    }
+    confirm({
+      variant: "destructive",
+      description: t("settings.sessions.deleteWebPushConfirm"),
+      confirmLabel: t("common.delete"),
+      onConfirm: async () => {
+        try {
+          await deleteWebPush.mutateAsync(id);
+          toast.success(t("settings.sessions.deleteWebPushSuccess"));
+        } catch {
+          toast.error(t("settings.sessions.deleteWebPushError"));
+        }
+      },
+    });
   };
 
   const sessionsByUser = (sessionsData?.sessions ?? []).reduce<

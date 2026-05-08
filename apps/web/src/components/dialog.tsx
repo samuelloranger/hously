@@ -1,12 +1,5 @@
-import {
-  Dialog as HeadlessDialog,
-  DialogPanel,
-  DialogTitle,
-  Transition,
-  TransitionChild,
-} from "@headlessui/react";
-import { Fragment, ReactNode } from "react";
-import { createPortal } from "react-dom";
+import * as RadixDialog from "@radix-ui/react-dialog";
+import { ReactNode } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,8 +15,6 @@ interface DialogProps {
   bodyScroll?: boolean;
 }
 
-const PORTAL_ID = "hously-dialog-root";
-
 export function Dialog({
   isOpen,
   onClose,
@@ -34,90 +25,77 @@ export function Dialog({
   panelClassName,
   bodyScroll = false,
 }: DialogProps) {
-  return createPortal(
-    <Transition appear show={isOpen} as={Fragment}>
-      <HeadlessDialog
-        open={isOpen}
-        autoFocus={false}
-        as="div"
-        className="fixed inset-0 z-[var(--z-modal)]"
-        onClose={() => onClose()}
-      >
-        <TransitionChild
-          as={Fragment}
-          enter="ease-out duration-150"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-100"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/50" />
-        </TransitionChild>
-
-        <div className="fixed inset-0 overflow-y-auto overscroll-contain pointer-events-none">
+  return (
+    <RadixDialog.Root
+      open={isOpen}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <RadixDialog.Portal>
+        <RadixDialog.Overlay
+          className={cn(
+            "fixed inset-0 z-[var(--z-modal)] bg-black/50",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+            "data-[state=open]:duration-150 data-[state=closed]:duration-100",
+          )}
+        />
+        <div className="fixed inset-0 z-[var(--z-modal)] overflow-y-auto overscroll-contain">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <TransitionChild
-              as={Fragment}
-              enter="ease-out duration-150"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-100"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+            <RadixDialog.Content
+              onOpenAutoFocus={(e) => e.preventDefault()}
+              className={cn(
+                "pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl outline-none dark:border-neutral-700 dark:bg-neutral-800",
+                "data-[state=open]:animate-in data-[state=closed]:animate-out",
+                "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+                "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
+                "data-[state=open]:duration-150 data-[state=closed]:duration-100",
+                bodyScroll ? "min-h-0 overflow-hidden" : "overflow-y-auto",
+                hideTitle && "relative",
+                panelClassName,
+              )}
             >
-              <DialogPanel
+              <RadixDialog.Title
                 className={cn(
-                  "pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col transform rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-left align-middle shadow-xl transition-[opacity,transform] dark:border-neutral-700 dark:bg-neutral-800",
-                  bodyScroll ? "min-h-0 overflow-hidden" : "overflow-y-auto",
-                  hideTitle && "relative",
-                  panelClassName,
+                  hideTitle
+                    ? "sr-only"
+                    : cn(
+                        "pb-2 shrink-0 text-lg font-medium leading-6 text-neutral-900 dark:text-white",
+                        panelClassName?.includes("p-0") ? "pt-4 px-6" : "",
+                      ),
                 )}
               >
-                <DialogTitle
-                  as="h3"
+                {title}
+              </RadixDialog.Title>
+              <RadixDialog.Description className="sr-only">
+                {title}
+              </RadixDialog.Description>
+
+              {showCloseButton && (
+                <RadixDialog.Close
+                  aria-label="Close dialog"
                   className={cn(
-                    hideTitle
-                      ? "sr-only"
-                      : cn(
-                          "pb-2 shrink-0 text-lg font-medium leading-6 text-neutral-900 dark:text-white",
-                          panelClassName?.includes("p-0") ? "pt-4 px-6" : "",
-                        ),
+                    "pointer-events-auto absolute shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors",
+                    hideTitle ? "top-4 right-4 z-20" : "top-5 right-5 z-20",
                   )}
                 >
-                  {title}
-                </DialogTitle>
+                  <X className="h-5 w-5" />
+                </RadixDialog.Close>
+              )}
 
-                {showCloseButton && (
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    aria-label="Close dialog"
-                    className={cn(
-                      "pointer-events-auto absolute shrink-0 rounded-full p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/60 transition-colors",
-                      /* z-20: above modal content (e.g. media hero z-10) that uses negative margin into this corner */
-                      hideTitle ? "top-4 right-4 z-20" : "top-5 right-5 z-20",
-                    )}
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
+              <div
+                className={cn(
+                  "min-h-0 flex-1",
+                  bodyScroll && "flex min-h-0 flex-col overflow-hidden",
                 )}
-
-                <div
-                  className={cn(
-                    "min-h-0 flex-1",
-                    bodyScroll && "flex min-h-0 flex-col overflow-hidden",
-                  )}
-                >
-                  {children}
-                </div>
-              </DialogPanel>
-            </TransitionChild>
+              >
+                {children}
+              </div>
+            </RadixDialog.Content>
           </div>
         </div>
-      </HeadlessDialog>
-    </Transition>,
-    document.body,
-    PORTAL_ID,
+      </RadixDialog.Portal>
+    </RadixDialog.Root>
   );
 }

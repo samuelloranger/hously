@@ -600,6 +600,11 @@
     "delete": "Delete",
     "loading": "Loading...",
     "cancel": "Cancel",
+    "confirmDialog": {
+      "title": "Are you sure?",
+      "description": "This action may be irreversible. Please confirm to continue.",
+      "confirmLabel": "Confirm"
+    },
     "save": "Save",
     "saved": "Saved",
     "copied": "Copied",

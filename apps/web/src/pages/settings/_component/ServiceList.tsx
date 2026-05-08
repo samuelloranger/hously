@@ -15,6 +15,7 @@ import {
 } from "@hously/shared/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { ServiceCard } from "@/pages/settings/_component/ServiceCard";
+import { useConfirm } from "@/components/confirm";
 
 interface ServiceListProps {
   services: ExternalNotificationService[];
@@ -30,6 +31,7 @@ export function ServiceList({
   onEditTemplate,
 }: ServiceListProps) {
   const { t, i18n } = useTranslation("common");
+  const { confirm } = useConfirm();
   const queryClient = useQueryClient();
   const [loadingServiceId, setLoadingServiceId] = useState<number | null>(null);
   const currentLanguage = i18n.language.split("-")[0] || "en";
@@ -87,26 +89,29 @@ export function ServiceList({
   const handleRegenerateToken = async (
     service: ExternalNotificationService,
   ) => {
-    if (!confirm(t("settings.externalNotifications.regenerateTokenConfirm"))) {
-      return;
-    }
-
-    setLoadingServiceId(service.id);
-    try {
-      await regenerateToken.mutateAsync(service.id);
-      toast.success(t("settings.externalNotifications.tokenRegenerated"));
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.externalNotifications.services(),
-      });
-    } catch (error: unknown) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("settings.externalNotifications.error"),
-      );
-    } finally {
-      setLoadingServiceId(null);
-    }
+    confirm({
+      variant: "destructive",
+      description: t("settings.externalNotifications.regenerateTokenConfirm"),
+      confirmLabel: t("settings.externalNotifications.regenerateToken"),
+      onConfirm: async () => {
+        setLoadingServiceId(service.id);
+        try {
+          await regenerateToken.mutateAsync(service.id);
+          toast.success(t("settings.externalNotifications.tokenRegenerated"));
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.externalNotifications.services(),
+          });
+        } catch (error: unknown) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : t("settings.externalNotifications.error"),
+          );
+        } finally {
+          setLoadingServiceId(null);
+        }
+      },
+    });
   };
 
   const handleToggleNotifyAdminsOnly = async (

@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { HabitCard } from "@/pages/habits/_component/HabitCard";
 import { CreateHabitModal } from "@/pages/habits/_component/CreateHabitModal";
 import { EditHabitModal } from "@/pages/habits/_component/EditHabitModal";
+import { useConfirm } from "@/components/confirm";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatLocalDate, addDays } from "@/lib/date";
@@ -37,6 +38,7 @@ export const HabitsList: React.FC = () => {
     isToday ? undefined : selectedDate,
   );
   const deleteMutation = useDeleteHabit();
+  const { confirm } = useConfirm();
 
   const lastSeenDateKeyRef = useRef(new Date().toDateString());
 
@@ -85,10 +87,16 @@ export const HabitsList: React.FC = () => {
   }, [refetch]);
 
   const handleDelete = (habit: Habit) => {
-    if (!confirm(t("habits.deleteConfirm"))) return;
-    deleteMutation.mutate(habit.id, {
-      onSuccess: () => {
-        toast.success(t("habits.habitDeleted"));
+    confirm({
+      variant: "destructive",
+      description: t("habits.deleteConfirm"),
+      confirmLabel: t("common.delete"),
+      onConfirm: () => {
+        deleteMutation.mutate(habit.id, {
+          onSuccess: () => {
+            toast.success(t("habits.habitDeleted"));
+          },
+        });
       },
     });
   };
