@@ -18,6 +18,8 @@ export type ConfirmOptions = {
   variant?: ConfirmVariant;
   title?: string;
   description?: ReactNode;
+  /** When true, renders no description block. Defaults to false; falls back to i18n default if `description` is omitted. */
+  hideDescription?: boolean;
   confirmLabel?: string;
   cancelLabel?: string;
   onConfirm: () => void | Promise<void>;
@@ -106,14 +108,20 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 : undefined
             }
           >
-            <AlertDialog.Title className="text-lg font-semibold text-neutral-900 dark:text-white">
+            <AlertDialog.Title className="text-lg font-medium leading-6 text-neutral-900 dark:text-white">
               {title}
             </AlertDialog.Title>
-            <AlertDialog.Description asChild>
-              <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                {description}
-              </div>
-            </AlertDialog.Description>
+            {dialog?.hideDescription ? (
+              <AlertDialog.Description className="sr-only">
+                {title}
+              </AlertDialog.Description>
+            ) : (
+              <AlertDialog.Description asChild>
+                <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                  {description}
+                </div>
+              </AlertDialog.Description>
+            )}
             <div className="flex flex-row justify-end gap-2 pt-2">
               <AlertDialog.Cancel asChild>
                 <Button
@@ -129,6 +137,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 type="button"
                 variant={variant === "destructive" ? "destructive" : "default"}
                 disabled={busy}
+                aria-busy={busy}
                 onClick={() => void handleConfirm()}
               >
                 {busy ? t("common.loading") : confirmLabel}

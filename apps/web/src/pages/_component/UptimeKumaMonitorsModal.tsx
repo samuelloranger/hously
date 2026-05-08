@@ -1,16 +1,8 @@
-import { Fragment, useMemo } from "react";
-import { createPortal } from "react-dom";
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  Transition,
-  TransitionChild,
-} from "@headlessui/react";
-import { X } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
+import { Dialog } from "@/components/dialog";
 import { useUptimekumaMonitors } from "@/pages/_component/useUptimekumaMonitors";
 import type {
   UptimekumaMonitor,
@@ -68,10 +60,10 @@ function MonitorRow({ monitor }: { monitor: UptimekumaMonitor }) {
         <StatusDot status={monitor.status} pulse={monitor.status === "down"} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-100 truncate">
+        <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 truncate">
           {monitor.name}
         </div>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
           {monitor.type && (
             <span className="uppercase tracking-wide">{monitor.type}</span>
           )}
@@ -104,11 +96,11 @@ function Section({
         >
           {t(`dashboard.uptimekuma.sections.${status}`)}
         </span>
-        <span className="text-[11px] font-mono tabular-nums text-zinc-400 dark:text-zinc-500">
+        <span className="text-[11px] font-mono tabular-nums text-neutral-400 dark:text-neutral-500">
           {monitors.length}
         </span>
       </div>
-      <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+      <div className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
         {monitors.map((m) => (
           <MonitorRow key={m.id} monitor={m} />
         ))}
@@ -149,97 +141,44 @@ export function UptimeKumaMonitorsModal({
       })
     : null;
 
-  const PORTAL_ID = "hously-dialog-root";
-  if (typeof document === "undefined") return null;
-  const portalRoot =
-    document.getElementById(PORTAL_ID) ??
-    (() => {
-      const el = document.createElement("div");
-      el.id = PORTAL_ID;
-      document.body.appendChild(el);
-      return el;
-    })();
-
-  return createPortal(
-    <Transition appear show={open} as={Fragment}>
-      <Dialog
-        open={open}
-        as="div"
-        className="fixed inset-0 z-[var(--z-modal)]"
-        onClose={() => onOpenChange(false)}
-      >
-        <TransitionChild
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
-        </TransitionChild>
-
-        <div className="fixed inset-0 overflow-y-auto overscroll-contain pointer-events-none">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95 translate-y-2"
-              enterTo="opacity-100 scale-100 translate-y-0"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100 translate-y-0"
-              leaveTo="opacity-0 scale-95 translate-y-2"
-            >
-              <DialogPanel className="pointer-events-auto w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
-                <div className="flex items-start justify-between px-5 pt-5 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-                  <div className="min-w-0">
-                    <DialogTitle className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                      {t("dashboard.uptimekuma.viewAll")}
-                    </DialogTitle>
-                    {updatedAgo && (
-                      <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
-                        {t("dashboard.uptimekuma.updatedAgo", {
-                          relative: updatedAgo,
-                        })}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onOpenChange(false)}
-                    aria-label={t("common.close")}
-                    className="p-1 rounded-full text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors"
-                  >
-                    <X className="size-4" />
-                  </button>
-                </div>
-
-                <div className="max-h-[70vh] overflow-y-auto px-4 pb-4">
-                  {query.isLoading && !query.data ? (
-                    <div className="py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                      …
-                    </div>
-                  ) : !query.data || query.data.monitors.length === 0 ? (
-                    <div className="py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                      {t("dashboard.uptimekuma.empty")}
-                    </div>
-                  ) : (
-                    STATUS_ORDER.map((status) => (
-                      <Section
-                        key={status}
-                        status={status}
-                        monitors={grouped[status]}
-                      />
-                    ))
-                  )}
-                </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
+  return (
+    <Dialog
+      isOpen={open}
+      onClose={() => onOpenChange(false)}
+      title={t("dashboard.uptimekuma.viewAll")}
+      panelClassName="max-w-lg p-0"
+      bodyScroll
+    >
+      <div className="flex flex-col min-h-0">
+        <div className="px-5 pt-5 pb-3 border-b border-neutral-200 dark:border-neutral-700">
+          {updatedAgo && (
+            <p className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
+              {t("dashboard.uptimekuma.updatedAgo", {
+                relative: updatedAgo,
+              })}
+            </p>
+          )}
         </div>
-      </Dialog>
-    </Transition>,
-    portalRoot,
+        <div className="overflow-y-auto px-4 pb-4">
+          {query.isLoading && !query.data ? (
+            <div className="py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
+              …
+            </div>
+          ) : !query.data || query.data.monitors.length === 0 ? (
+            <div className="py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
+              {t("dashboard.uptimekuma.empty")}
+            </div>
+          ) : (
+            STATUS_ORDER.map((status) => (
+              <Section
+                key={status}
+                status={status}
+                monitors={grouped[status]}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    </Dialog>
   );
 }
