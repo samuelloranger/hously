@@ -223,7 +223,12 @@ export function WeatherForecastModal({
       showCloseButton={false}
       panelClassName="max-w-lg p-0 overflow-hidden"
     >
-      <div className={cn("relative bg-gradient-to-br px-5 pt-5 pb-6", headerGradient)}>
+      <div
+        className={cn(
+          "relative bg-gradient-to-br px-5 pt-5 pb-6",
+          headerGradient,
+        )}
+      >
         <button
           type="button"
           onClick={onClose}

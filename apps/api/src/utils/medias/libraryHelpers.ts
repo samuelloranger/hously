@@ -112,9 +112,10 @@ export function pickDigitalRelease(
     iso_3166_1: string;
     release_dates: Array<{ type: number; release_date: string }>;
   }>,
+  region: string,
 ): Date | null {
-  // Prioritise US; fall back to any other country with a digital release (type 4).
-  for (const country of ["US", ...results.map((r) => r.iso_3166_1)]) {
+  // Prioritise the user's region; fall back to any other country with a digital release (type 4).
+  for (const country of [region, ...results.map((r) => r.iso_3166_1)]) {
     const entry = results.find((r) => r.iso_3166_1 === country);
     const digital = entry?.release_dates.find((d) => d.type === 4);
     if (digital) return new Date(digital.release_date);

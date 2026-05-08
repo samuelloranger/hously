@@ -39,6 +39,7 @@ import { rescanLibraryItem } from "@hously/api/services/library/rescan";
 import { buildLibraryStatsResponse } from "./libraryStats";
 import { deleteCache } from "@hously/api/services/cache";
 import { TMDB_UPCOMING_CACHE_KEY } from "@hously/api/utils/dashboard/tmdbUpcoming";
+import { getGlobalTmdbRegion } from "@hously/api/utils/medias/tmdbRegion";
 import {
   listOpenLibraryAttentionForApi,
   dismissLibraryAttentionAlert,
@@ -464,8 +465,13 @@ export const libraryRoutes = new Elysia({ prefix: "/api/library" })
           return badRequest(set, "type must be 'movie' or 'show'");
         }
         try {
-          const item = await addOrUpdateLibraryFromTmdb({ tmdb_id, type });
-          await deleteCache(TMDB_UPCOMING_CACHE_KEY);
+          const region = await getGlobalTmdbRegion();
+          const item = await addOrUpdateLibraryFromTmdb({
+            tmdb_id,
+            type,
+            region,
+          });
+          await deleteCache(`${TMDB_UPCOMING_CACHE_KEY}:${region}`);
           return { item: mapLibraryMedia(item) };
         } catch (e) {
           const msg = e instanceof Error ? e.message : "";

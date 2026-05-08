@@ -8,6 +8,7 @@ import {
   tmdbApiFetch,
   upsertLibraryShowEpisodesFromTmdb,
 } from "@hously/api/utils/medias/libraryHelpers";
+import { DEFAULT_TMDB_REGION } from "@hously/api/utils/medias/tmdbRegion";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
 
@@ -26,6 +27,7 @@ export type LibraryMediaWithProfile = Prisma.LibraryMediaGetPayload<{
 export async function addOrUpdateLibraryFromTmdb(opts: {
   tmdb_id: number;
   type: "movie" | "show";
+  region?: string;
 }): Promise<NonNullable<LibraryMediaWithProfile>> {
   const key = await getLibraryTmdbApiKey();
   if (!key) throw new Error("TMDB is not configured");
@@ -37,6 +39,7 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
     mediaSettings?.defaultQualityProfileId ?? null;
 
   const { tmdb_id, type } = opts;
+  const region = opts.region ?? DEFAULT_TMDB_REGION;
   const lang = { language: TMDB_LANGUAGE_LIBRARY_PERSISTENCE };
 
   if (type === "movie") {
@@ -73,7 +76,10 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
         status: "wanted",
         posterUrl,
         overview: details.overview || null,
-        digitalReleaseDate: pickDigitalRelease(releaseDatesData.results),
+        digitalReleaseDate: pickDigitalRelease(
+          releaseDatesData.results,
+          region,
+        ),
         ...(defaultQualityProfileId != null
           ? { qualityProfileId: defaultQualityProfileId }
           : {}),
@@ -84,7 +90,10 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
         year,
         posterUrl,
         overview: details.overview || null,
-        digitalReleaseDate: pickDigitalRelease(releaseDatesData.results),
+        digitalReleaseDate: pickDigitalRelease(
+          releaseDatesData.results,
+          region,
+        ),
       },
       include: libraryMediaInclude,
     });

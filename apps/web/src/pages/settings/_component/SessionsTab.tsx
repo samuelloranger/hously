@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Monitor, Trash2, LogOut, Key, Wifi } from "lucide-react";
+import { Monitor, Trash2, LogOut, Key, Wifi, Shield } from "lucide-react";
 import {
   useAdminSessions,
   useRevokeSession,
@@ -16,6 +16,7 @@ import {
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";
 import { useConfirm } from "@/components/confirm";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 function SectionCard({
   title,
@@ -28,12 +29,9 @@ function SectionCard({
 }) {
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-      <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
-        {title}
-      </h2>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-        {description}
-      </p>
+      <div className="mb-6">
+        <SettingsPageHeader title={title} description={description} />
+      </div>
       {children}
     </div>
   );
@@ -144,6 +142,11 @@ export function SessionsTab() {
       className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6"
       key="sessions-tab"
     >
+      <SettingsPageHeader
+        icon={Shield}
+        title={t("settings.sessions.sessionsTitle")}
+        description={t("settings.sessions.sessionsDescription")}
+      />
       {/* Active Sessions */}
       <SectionCard
         title={t("settings.sessions.sessionsTitle")}

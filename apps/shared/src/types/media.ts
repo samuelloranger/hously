@@ -137,6 +137,7 @@ export interface TmdbStreamingProvider {
 
 export interface TmdbStreamingProvidersResponse {
   providers: TmdbStreamingProvider[];
+  region: string;
 }
 
 export interface TmdbTrailerResponse {
@@ -160,13 +161,13 @@ export interface DiscoverMediasParams {
   sort_by?: string;
   page?: number;
   language?: string;
-  region?: string;
   original_language?: string | null;
 }
 
 export interface DiscoverMediasResponse {
   items: TmdbMediaSearchItem[];
   page: number;
+  region: string;
   total_pages: number;
   total_results: number;
 }

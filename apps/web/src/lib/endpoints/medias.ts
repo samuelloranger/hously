@@ -2,14 +2,8 @@ export const MEDIAS_ENDPOINTS = {
   EXPLORE: "/api/medias/explore",
   SIMILAR: (tmdbId: number, type: "movie" | "tv") =>
     `/api/medias/similar/${encodeURIComponent(String(tmdbId))}?type=${encodeURIComponent(type)}`,
-  PROVIDERS: (
-    mediaType: "movie" | "tv",
-    tmdbId: number,
-    region?: string,
-    language?: string,
-  ) => {
+  PROVIDERS: (mediaType: "movie" | "tv", tmdbId: number, language?: string) => {
     const p = new URLSearchParams();
-    if (region) p.set("region", region);
     if (language) p.set("language", language);
     const qs = p.toString();
     return `/api/medias/providers/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs ? `?${qs}` : ""}`;
@@ -22,13 +16,8 @@ export const MEDIAS_ENDPOINTS = {
   INTERACTIVE_SEARCH: "/api/medias/interactive-search",
   INTERACTIVE_SEARCH_DOWNLOAD: "/api/medias/interactive-search/download",
   INDEXERS: "/api/medias/indexers",
-  STREAMING_PROVIDERS: (
-    region?: string,
-    type?: "movie" | "tv",
-    language?: string,
-  ) => {
+  STREAMING_PROVIDERS: (type?: "movie" | "tv", language?: string) => {
     const p = new URLSearchParams({
-      region: region ?? "CA",
       type: type ?? "movie",
     });
     if (language) p.set("language", language);
@@ -67,11 +56,9 @@ export const MEDIAS_ENDPOINTS = {
   MODAL_DATA: (
     mediaType: "movie" | "tv",
     tmdbId: number,
-    region?: string,
     language?: string,
   ) => {
     const p = new URLSearchParams();
-    if (region) p.set("region", region);
     if (language) p.set("language", language);
     const qs = p.toString();
     return `/api/medias/modal/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs ? `?${qs}` : ""}`;
@@ -83,7 +70,6 @@ export const MEDIAS_ENDPOINTS = {
     sort_by?: string;
     page?: number;
     language?: string;
-    region?: string;
     original_language?: string | null;
   }) => {
     const p = new URLSearchParams();
@@ -93,7 +79,6 @@ export const MEDIAS_ENDPOINTS = {
     if (params.sort_by) p.set("sort_by", params.sort_by);
     if (params.page) p.set("page", String(params.page));
     if (params.language) p.set("language", params.language);
-    if (params.region) p.set("region", params.region);
     if (params.original_language)
       p.set("original_language", params.original_language);
     return `/api/medias/discover?${p.toString()}`;

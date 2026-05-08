@@ -725,6 +725,20 @@
       "account": "Compte",
       "admin": "Admin"
     },
+    "general": {
+      "title": "Général",
+      "description": "Valeurs par défaut globales utilisées par les tâches en arrière-plan et les intégrations partagées.",
+      "loading": "Chargement des réglages...",
+      "loadError": "Échec du chargement des réglages.",
+      "countryCode": "Pays / région",
+      "subdivisionCode": "Province / État",
+      "subdivisionPlaceholder": "Jours fériés nationaux",
+      "countryCodeHint": "Utilisé pour les disponibilités TMDB, les sorties à venir, les dates de sortie et les jours fériés.",
+      "save": "Enregistrer les réglages",
+      "saving": "Enregistrement...",
+      "saveSuccess": "Réglages enregistrés.",
+      "saveError": "Échec de l’enregistrement des réglages."
+    },
     "releases": {
       "title": "Releases",
       "description": "Releases GitHub publiques de ce projet Hously, actualisées toutes les 6 heures.",
@@ -844,13 +858,7 @@
       "saving": "Enregistrement...",
       "cancel": "Annuler",
       "updateSuccess": "Profil mis à jour avec succès",
-      "updateError": "Échec de la mise à jour du profil. Veuillez réessayer.",
-      "countryCode": "Pays (jours fériés du calendrier)",
-      "countryPlaceholder": "Non défini",
-      "countryCodeHint": "Sert aux jours fériés et jours de congé sur votre calendrier. Choisissez une province ou un État si les règles diffèrent (ex. Québec).",
-      "subdivisionCode": "Province / État / région",
-      "subdivisionPlaceholder": "Par défaut du pays",
-      "subdivisionHint": "Facultatif. Les jours fériés suivent cette subdivision (données date-holidays)."
+      "updateError": "Échec de la mise à jour du profil. Veuillez réessayer."
     },
     "passkeys": {
       "title": "Clés d'accès",
@@ -1006,6 +1014,7 @@
     },
     "media": {
       "title": "Médias",
+      "description": "Configurez les profils de qualité, le post-traitement de la bibliothèque, l'historique média et les imports.",
       "tabs": {
         "qualityProfiles": "Profils de qualité",
         "librarySettings": "Paramètres de la bibliothèque",
@@ -1611,6 +1620,7 @@
       "sortRevenue": "Box Office",
       "noResults": "Aucun résultat. Essayez d'ajuster vos filtres.",
       "titles": "titres",
+      "regionHint": "Disponibilité : {{region}}",
       "lang": "Langue"
     },
     "movie_plural": "Films",

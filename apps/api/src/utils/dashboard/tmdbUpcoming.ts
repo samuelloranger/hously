@@ -137,6 +137,7 @@ const fetchTmdbDiscoverPage = async (
   tmdbApiKey: string,
   fromDateIso: string | null,
   toDateIso: string,
+  region: string,
 ): Promise<{ items: DashboardUpcomingItem[]; totalPages: number } | null> => {
   const endpoint = mediaType === "movie" ? "discover/movie" : "discover/tv";
   const url = new URL(`https://api.themoviedb.org/3/${endpoint}`);
@@ -147,11 +148,11 @@ const fetchTmdbDiscoverPage = async (
   if (mediaType === "movie") {
     // Prioritize mainstream/popular titles and avoid low-signal niche results.
     url.searchParams.set("sort_by", "popularity.desc");
-    url.searchParams.set("region", "US");
+    url.searchParams.set("region", region);
     if (fromDateIso) url.searchParams.set("release_date.gte", fromDateIso);
     url.searchParams.set("release_date.lte", toDateIso);
     url.searchParams.set("with_release_type", "4|5");
-    url.searchParams.set("with_origin_country", "US|CA");
+    url.searchParams.set("with_origin_country", region);
     url.searchParams.set("with_original_language", "en|fr");
     url.searchParams.set("include_adult", "false");
     url.searchParams.set("include_video", "false");
@@ -160,7 +161,7 @@ const fetchTmdbDiscoverPage = async (
     if (fromDateIso) url.searchParams.set("first_air_date.gte", fromDateIso);
     url.searchParams.set("first_air_date.lte", toDateIso);
     url.searchParams.set("include_null_first_air_dates", "false");
-    url.searchParams.set("with_origin_country", "US|CA");
+    url.searchParams.set("with_origin_country", region);
     url.searchParams.set("with_original_language", "en|fr");
   }
 
@@ -191,6 +192,7 @@ export const collectTmdbUpcoming = async (
   tmdbApiKey: string,
   fromDateIso: string | null,
   toDateIso: string,
+  region: string,
 ): Promise<{ items: DashboardUpcomingItem[]; hasMore: boolean } | null> => {
   const items: DashboardUpcomingItem[] = [];
   let page = 1;
@@ -203,6 +205,7 @@ export const collectTmdbUpcoming = async (
       tmdbApiKey,
       fromDateIso,
       toDateIso,
+      region,
     );
     if (!response) return null;
     items.push(...response.items);
@@ -289,6 +292,7 @@ export const fetchTmdbProviders = async (
   mediaType: "movie" | "tv",
   tmdbId: number,
   tmdbApiKey: string,
+  region: string,
 ): Promise<DashboardUpcomingProvider[]> => {
   try {
     const providersUrl = new URL(
@@ -302,15 +306,17 @@ export const fetchTmdbProviders = async (
 
     const data = (await response.json()) as Record<string, unknown>;
     const results = toRecord(data.results);
-    const us = toRecord(results?.US);
-    if (!us) return [];
+    const regionData = toRecord(results?.[region]);
+    if (!regionData) return [];
 
     const categoryOrder = ["flatrate", "free", "ads", "rent", "buy"] as const;
     const selected: DashboardUpcomingProvider[] = [];
     const seen = new Set<number>();
 
     for (const category of categoryOrder) {
-      const entries = Array.isArray(us[category]) ? us[category] : [];
+      const entries = Array.isArray(regionData[category])
+        ? regionData[category]
+        : [];
       for (const rawProvider of entries) {
         const provider = toRecord(rawProvider);
         if (!provider) continue;
@@ -499,12 +505,13 @@ export function mergeTmdbTvWithSonarrCalendar(
 
 /**
  * Fetch the digital (type 4) or physical (type 5) release date for a movie
- * in the US region from TMDB's /movie/{id}/release_dates endpoint.
+ * in the requested region from TMDB's /movie/{id}/release_dates endpoint.
  * Returns the ISO date string (YYYY-MM-DD) or null if not found.
  */
 export const fetchMovieReleaseDates = async (
   tmdbId: number,
   tmdbApiKey: string,
+  region: string,
 ): Promise<string | null> => {
   try {
     const url = new URL(
@@ -520,15 +527,15 @@ export const fetchMovieReleaseDates = async (
     const data = (await response.json()) as Record<string, unknown>;
     const results = Array.isArray(data.results) ? data.results : [];
 
-    const usEntry = results.find((entry: unknown) => {
+    const regionEntry = results.find((entry: unknown) => {
       const e = toRecord(entry);
-      return e && toStringOrNull(e.iso_3166_1) === "US";
+      return e && toStringOrNull(e.iso_3166_1) === region;
     });
-    if (!usEntry) return null;
+    if (!regionEntry) return null;
 
-    const usRecord = toRecord(usEntry);
-    const releaseDates = Array.isArray(usRecord?.release_dates)
-      ? usRecord.release_dates
+    const regionRecord = toRecord(regionEntry);
+    const releaseDates = Array.isArray(regionRecord?.release_dates)
+      ? regionRecord.release_dates
       : [];
 
     let digitalDate: string | null = null;

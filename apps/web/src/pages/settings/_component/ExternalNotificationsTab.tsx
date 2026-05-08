@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { BellRing } from "lucide-react";
 import { type NotificationTemplate } from "@hously/shared/types";
 import { ServiceList } from "@/pages/settings/_component/ServiceList";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 import { ServicesLogsList } from "@/pages/settings/_component/ServicesLogsList";
 import { TemplateEditorModal } from "@/pages/settings/_component/TemplateEditorModal";
 import { useExternalNotificationServices } from "@/pages/settings/useExternalNotifications";
@@ -36,13 +38,12 @@ export function ExternalNotificationsTab() {
       key="external-notifications-tab"
     >
       <div className="space-y-6">
-        {/* Services Section */}
-        <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
-          {t("settings.externalNotifications.services")}
-        </h2>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-          {t("settings.externalNotifications.servicesDescription")}
-        </p>
+        <SettingsPageHeader
+          icon={BellRing}
+          title={t("settings.externalNotifications.title")}
+          description={t("settings.externalNotifications.servicesDescription")}
+        />
+
         <ServiceList
           services={services}
           templatesByService={templatesByService}

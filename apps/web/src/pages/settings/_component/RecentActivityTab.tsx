@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Clock } from "lucide-react";
+import { Clock, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -18,6 +18,7 @@ import {
   getActivityServiceLabel,
   getActivityTypeLabel,
 } from "@/pages/activity/_component/activityPresentation";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 const PAGE_SIZE = 25;
 const ALL_SERVICES_VALUE = "__all_services__";
@@ -48,14 +49,11 @@ export function RecentActivityTab() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
-          {t("settings.activity.title")}
-        </h2>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          {t("settings.activity.description")}
-        </p>
-      </div>
+      <SettingsPageHeader
+        icon={History}
+        title={t("settings.activity.title")}
+        description={t("settings.activity.description")}
+      />
 
       <section className="rounded-2xl border border-neutral-200/80 bg-white p-4 shadow-sm dark:border-neutral-700/60 dark:bg-neutral-900">
         <div className="grid gap-3 sm:grid-cols-2">

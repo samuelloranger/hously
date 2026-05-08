@@ -15,5 +15,6 @@ export * from "./qualityProfiles";
 export * from "./qbittorrent";
 export * from "./releases";
 export * from "./search";
+export * from "./settings";
 export * from "./system";
 export * from "./users";

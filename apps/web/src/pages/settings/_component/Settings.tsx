@@ -9,6 +9,7 @@ import { DataExportTab } from "@/pages/settings/_component/DataExportTab";
 import { UsersTab } from "@/pages/settings/_component/UsersTab";
 import { JobsTab } from "@/pages/settings/_component/JobsTab";
 import { MediaSettingsTab } from "@/pages/settings/_component/MediaSettingsTab";
+import { GeneralSettingsTab } from "@/pages/settings/_component/GeneralSettingsTab";
 import { ReleasesTab } from "@/pages/settings/_component/ReleasesTab";
 import { SessionsTab } from "@/pages/settings/_component/SessionsTab";
 import { RecentActivityTab } from "@/pages/settings/_component/RecentActivityTab";
@@ -28,6 +29,7 @@ import {
   History,
   Clapperboard,
   Package,
+  Settings as SettingsIcon,
   type LucideIcon,
 } from "lucide-react";
 import { usePrefetchRoute } from "@/lib/routing/usePrefetchRoute";
@@ -39,6 +41,7 @@ export type Tab =
   | "calendar"
   | "external-notifications"
   | "integrations"
+  | "general"
   | "sso"
   | "data-export"
   | "jobs"
@@ -78,6 +81,11 @@ export function Settings() {
 
   const adminTabs: TabItem[] = currentUser?.is_admin
     ? [
+        {
+          id: "general",
+          label: t("settings.general.title"),
+          icon: SettingsIcon,
+        },
         {
           id: "integrations",
           label: t("settings.integrations.title"),
@@ -206,6 +214,9 @@ export function Settings() {
           )}
           {activeTab === "integrations" && currentUser?.is_admin && (
             <IntegrationsTab />
+          )}
+          {activeTab === "general" && currentUser?.is_admin && (
+            <GeneralSettingsTab />
           )}
           {activeTab === "sso" && currentUser?.is_admin && <OidcProvidersTab />}
           {activeTab === "data-export" && currentUser?.is_admin && (

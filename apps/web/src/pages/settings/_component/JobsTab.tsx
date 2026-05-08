@@ -37,6 +37,7 @@ import {
   Download,
   ShieldAlert,
   Package,
+  Wrench,
 } from "lucide-react";
 import type {
   QueueStat,
@@ -48,6 +49,7 @@ import { useFetcher } from "@/lib/api/context";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import { useConfirm } from "@/components/confirm";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 // ---------------------------------------------------------------------------
 // Job action config
@@ -771,15 +773,12 @@ export function JobsTab() {
       className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6"
       key="jobs-tab"
     >
-      {/* Header */}
+      <SettingsPageHeader
+        icon={Wrench}
+        title={t("settings.jobs.title")}
+        description={t("settings.jobs.description")}
+      />
       <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-        <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
-          {t("settings.jobs.title")}
-        </h2>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-          {t("settings.jobs.description")}
-        </p>
-
         {isLoading ? (
           <LoadingState />
         ) : error ? (

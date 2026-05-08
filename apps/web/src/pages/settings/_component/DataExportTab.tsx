@@ -1,7 +1,9 @@
 import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { DatabaseBackup } from "lucide-react";
 import { useExportData, useImportData } from "@/pages/settings/useAdmin";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 export function DataExportTab() {
   const { t } = useTranslation("common");
@@ -79,14 +81,13 @@ export function DataExportTab() {
       key="data-export-tab"
     >
       <div className="space-y-6">
-        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
-            {t("settings.dataExport.title")}
-          </h2>
-          <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-            {t("settings.dataExport.description")}
-          </p>
+        <SettingsPageHeader
+          icon={DatabaseBackup}
+          title={t("settings.dataExport.title")}
+          description={t("settings.dataExport.description")}
+        />
 
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
           <div className="space-y-4">
             {/* Export Section */}
             <div className="border-b border-neutral-200 dark:border-neutral-700 pb-4">

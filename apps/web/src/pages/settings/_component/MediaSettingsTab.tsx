@@ -5,7 +5,14 @@ import { QualityProfilesTab } from "@/pages/settings/_component/QualityProfilesT
 import { MediaPostProcessingTab } from "@/pages/settings/_component/MediaPostProcessingTab";
 import { LibraryHistoryTab } from "@/pages/medias/_component/LibraryHistoryTab";
 import { ArrLibraryImportPanel } from "@/pages/settings/_component/ArrLibraryImportPanel";
-import { SlidersHorizontal, FolderTree, Film, Download } from "lucide-react";
+import {
+  SlidersHorizontal,
+  FolderTree,
+  Film,
+  Download,
+  Clapperboard,
+} from "lucide-react";
+import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 type MediaSubTab =
   | "quality-profiles"
@@ -53,6 +60,12 @@ export function MediaSettingsTab() {
 
   return (
     <div className="space-y-6">
+      <SettingsPageHeader
+        icon={Clapperboard}
+        title={t("settings.media.title")}
+        description={t("settings.media.description")}
+      />
+
       <SegmentedTabs
         items={subTabs}
         value={activeSubTab}

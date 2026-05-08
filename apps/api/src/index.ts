@@ -31,6 +31,7 @@ import { integrationsRoutes } from "./routes/integrations";
 import { remindersRoutes } from "./routes/reminders";
 import { releasesRoutes } from "./routes/releases";
 import { searchRoutes } from "./routes/search";
+import { settingsRoutes } from "./routes/settings";
 import { systemRoutes } from "./routes/system";
 import { usersRoutes } from "./routes/users";
 import { webhooksRoutes } from "./routes/webhooks";
@@ -128,6 +129,7 @@ export const app = new Elysia()
   .use(customEventsRoutes)
   .use(remindersRoutes)
   .use(releasesRoutes)
+  .use(settingsRoutes)
   .use(adminRoutes)
   .use(analyticsRoutes)
   .use(integrationsRoutes)
