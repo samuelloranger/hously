@@ -37,12 +37,9 @@ import { badRequest } from "../../utils/errors";
 
 ## Shared Package (`@hously/shared`)
 
-Always import shared types, hooks, utilities, and endpoints from `@hously/shared` — never reach into its internal file paths.
+Always import shared types/utilities via the package namespace (or explicit subpath exports such as `@hously/shared/types`). Never reach into `apps/shared/src/...`.
 
 ```typescript
-// Correct
-import { useChores, type Chore, CHORES_ENDPOINTS } from "@hously/shared";
-
-// Wrong
-import { Chore } from "@hously/shared/src/types/chores";
+import type { Chore } from "@hously/shared/types";
+import { sanitizeInput } from "@hously/shared/utils";
 ```

@@ -22,7 +22,7 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           generate-routes: "true"
-      - name: Lint
+      - name: Lint (ESLint on web — Makefile `make lint` matches)
         run: cd apps/web && bun run lint
 
   typecheck:

@@ -30,25 +30,25 @@ A self-hosted command center for homelab enthusiasts. Hously provides a unified 
 
 **Platform**
 
-- Push notifications (Web Push + APNs for iOS)
+- Push notifications (Web Push / VAPID)
 - i18n support via i18next
 - PWA-ready with service worker
 - Activity log across all features
 
 ## Tech Stack
 
-| Layer          | Technology                                  |
-| -------------- | ------------------------------------------- |
-| Runtime        | [Bun](https://bun.sh)                       |
-| API framework  | [Elysia](https://elysiajs.com)              |
-| Database       | PostgreSQL 15 + [Prisma](https://prisma.io) |
-| Cache / Queues | Redis + BullMQ                              |
-| Image storage  | Local filesystem (`IMAGE_STORAGE_DIR`)      |
-| Frontend       | React 19 + Vite                             |
-| Routing        | TanStack Router                             |
-| Data fetching  | TanStack Query                              |
-| Styling        | Tailwind CSS 4                              |
-| Auth           | JWT (HTTP-only cookies)                     |
+| Layer          | Technology                                                     |
+| -------------- | -------------------------------------------------------------- |
+| Runtime        | [Bun](https://bun.sh)                                          |
+| API framework  | [Elysia](https://elysiajs.com)                                 |
+| Database       | PostgreSQL 15 + [Prisma](https://prisma.io)                    |
+| Cache / Queues | Redis + BullMQ                                                 |
+| Image storage  | Local filesystem (`IMAGE_STORAGE_DIR`)                         |
+| Frontend       | React 19 + Vite                                                |
+| Routing        | TanStack Router                                                |
+| Data fetching  | TanStack Query                                                 |
+| Styling        | Tailwind CSS 4                                                 |
+| Auth           | [Better Auth](https://www.better-auth.com) + HTTP-only cookies |
 
 ## Quick Start (Docker)
 
@@ -117,6 +117,18 @@ Optional integrations:
 
 See `.env.example` for the full reference.
 
+### General Settings (Admin UI)
+
+Admins can configure global app behavior via **Settings → General**:
+
+| Setting                      | Default            | Options                                        | Purpose                                       |
+| ---------------------------- | ------------------ | ---------------------------------------------- | --------------------------------------------- |
+| **Country/Region**           | US                 | Any supported country                          | Sets calendar holidays and TMDB release dates |
+| **Calendar Subdivision**     | National           | State/province (if applicable)                 | Refines holiday calendars                     |
+| **Upcoming releases window** | 1 year (12 months) | 3, 6, 12, or 24 months                         | How far ahead to show upcoming movies/TV      |
+| **Languages**                | English, French    | Multi-select (8 languages)                     | Filter TMDB discovery results by language     |
+| **Dashboard widgets**        | All enabled        | Weather, HomeAssistant, System, Downloads, RSS | Show/hide dashboard panels                    |
+
 ## Common Commands
 
 ```bash
@@ -126,8 +138,8 @@ make dev-api           # Start API with hot reload
 make dev-web           # Start frontend with live reload
 make build             # Build frontend for production
 make test              # Run all tests
-make lint              # Lint all code
-make typecheck         # Type-check the frontend
+make lint              # ESLint — web app only (same scope as CI)
+make typecheck         # Type-check all workspaces that expose `typecheck`
 
 # Database
 make migrate-dev       # Create a new migration
@@ -143,13 +155,13 @@ hously/
 │   ├── api/              # Elysia API (routes, services, workers, jobs)
 │   │   └── prisma/       # Database schema and migrations
 │   ├── web/              # React frontend (pages, features, components)
-│   └── shared/           # Shared types, hooks, endpoints, utilities
+│   └── shared/           # Shared types, utils, constants
 ├── docs/              # Integration guides
-├── docker-compose.yml # Dev backing services
+├── docker-compose.yml # Dev: PostgreSQL + Redis (`make dev-services`)
 └── Makefile
 ```
 
-Shared code (types, TanStack Query hooks, API endpoint constants) lives in `apps/shared` and is imported as `@hously/shared` by both apps.
+Shared primitives (mostly types and utilities) live in `apps/shared` (`@hously/shared`). TanStack Query hooks and `queryKeys` sit under `apps/web` (see `apps/web/src/lib/queryKeys.ts`).
 
 ## Contributing
 

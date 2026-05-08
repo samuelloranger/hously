@@ -14,7 +14,7 @@ Hously is a self-hosted command center for homelab enthusiasts — unified dashb
 | ------ | ------------- | -------------------------------------------------------- |
 | API    | `apps/api`    | Bun + Elysia + Prisma + PostgreSQL + Redis               |
 | Web    | `apps/web`    | React 19 + Vite + TanStack Router/Query + Tailwind CSS 4 |
-| Shared | `apps/shared` | Types, hooks, endpoints, utilities shared across apps    |
+| Shared | `apps/shared` | Types, utilities, constants shared across apps           |
 
 In production, the frontend is built into `apps/api/public/` and served by the API (`SERVE_STATIC=true`). A single `Dockerfile` builds both.
 
@@ -25,11 +25,13 @@ In production, the frontend is built into `apps/api/public/` and served by the A
 **Bun** is the package manager and runtime. Never use `npm` or `yarn`.
 
 ```bash
-make install           # Install all dependencies
+make install           # Bun workspaces (root) — installs api, web, shared
 make dev-services      # Start PostgreSQL + Redis (Terminal 1)
 make dev-api           # Start API with hot reload (Terminal 2)
 make dev-web           # Start Vite frontend (Terminal 3)
 ```
+
+From the repo root you can also run `bun run dev:services` (same Compose services as `make dev-services`).
 
 Always use `make` targets for database operations — never run Prisma CLI directly:
 
@@ -45,40 +47,39 @@ make migrate-push      # Push schema without migration file (dev only)
 
 ### API (`apps/api/src/`)
 
-| Directory              | Purpose                                              |
-| ---------------------- | ---------------------------------------------------- |
-| `routes/`              | Elysia route plugins, one file per feature           |
-| `services/`            | Business logic (S3, images, notifications, webhooks) |
-| `jobs/`                | Cron jobs via `@elysiajs/cron`                       |
-| `middleware/`          | Rate limiting, etc.                                  |
-| `db/`                  | Prisma client singleton                              |
-| `auth.ts`              | JWT auth with HTTP-only cookies                      |
-| `prisma/schema.prisma` | Database schema                                      |
+| Directory              | Purpose                                                                                         |
+| ---------------------- | ----------------------------------------------------------------------------------------------- |
+| `routes/`              | Elysia plugins (`routes/<feature>/index.ts`, nested areas like `integrations/` or `dashboard/`) |
+| `services/`            | Business logic (images, notifications, webhooks, …)                                             |
+| `jobs/`                | Cron jobs via `@elysiajs/cron`                                                                  |
+| `middleware/`          | Rate limiting, auth helpers, etc.                                                               |
+| `db/`                  | Prisma client singleton                                                                         |
+| `auth.ts`              | Auth-related HTTP routes wiring                                                                 |
+| `prisma/schema.prisma` | Database schema                                                                                 |
 
-Routes are composed in `src/index.ts` via `.use()`.
+Imports use the `@hously/api/*` path alias (see **Imports** below). Routes are composed in `src/index.ts` via `.use()`.
 
 ### Web (`apps/web/src/`)
 
-| Directory         | Purpose                                             |
-| ----------------- | --------------------------------------------------- |
-| `features/`       | Feature modules (auth, chores, medias, torrents, …) |
-| `components/`     | Shared components; `ui/` for Radix/CVA primitives   |
-| `routes/`         | File-based routing (TanStack Router)                |
-| `hooks/<domain>/` | App-specific TanStack Query hooks grouped by domain |
-| `lib/`            | API client, query client, utilities                 |
-| `locales/`        | i18next translation files                           |
-| `sw/`             | Service Worker (PWA)                                |
+| Directory         | Purpose                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| `features/`       | Feature modules (auth, chores, medias, torrents, …)                                   |
+| `components/`     | Shared components; `ui/` for Radix/CVA primitives                                     |
+| `routes/`         | File-based routing (TanStack Router)                                                  |
+| `hooks/<domain>/` | Cross-cutting hooks; features often colocate `use*.ts` beside `pages/` or `features/` |
+| `lib/`            | API client, TanStack `queryKeys`, query client, utilities                             |
+| `locales/`        | i18next translation files                                                             |
+| `sw/`             | Service Worker (PWA)                                                                  |
 
 ### Shared (`apps/shared/src/`)
 
-| Directory      | Purpose                                           |
-| -------------- | ------------------------------------------------- |
-| `types/`       | TypeScript interfaces shared by API and Web       |
-| `endpoints/`   | API endpoint constants (`CHORES_ENDPOINTS`, etc.) |
-| `hooks/`       | TanStack Query hooks usable in any app            |
-| `utils/`       | Date, sanitize, media URL helpers                 |
-| `queryKeys.ts` | Centralized TanStack Query key factory            |
-| `api.ts`       | API client factories                              |
+| Directory    | Purpose                                           |
+| ------------ | ------------------------------------------------- |
+| `types/`     | TypeScript interfaces shared by API and Web       |
+| `utils/`     | Pure helpers (dates, validation, media paths, …)  |
+| `constants/` | Small shared constants (e.g. qBittorrent helpers) |
+
+Anything used by **both** apps belongs here — TanStack hooks, web-only URLs, and the query-key factory live **under `apps/web`** (see **TanStack Query**).
 
 ---
 
@@ -86,47 +87,36 @@ Routes are composed in `src/index.ts` via `.use()`.
 
 ### Imports
 
-- **Web** — always use the `@/` alias. Never use relative paths like `../../`.
-- **API** — no aliases; use relative imports.
-- **Shared** — always import from `@hously/shared`, never reach into internal paths.
+- **Web** — always use the `@/` alias for app code. Never use relative paths like `../../`.
+- **API** — use the `@hously/api/*` alias (maps to `apps/api/src/*` via `tsconfig.json` / `bunfig.toml`).
+- **Shared** — import from `@hously/shared`; use subpaths like `@hously/shared/types` when appropriate. Never reach into internal `src/` paths.
 
 ```typescript
 // Web ✓
 import { cn } from "@/lib/utils";
-import { useChores } from "@hously/shared";
+import { useChores } from "@/pages/chores/useChores";
 
 // API ✓
-import { prisma } from "../db";
-import { badRequest } from "../utils/errors";
+import { prisma } from "@hously/api/db";
+import { badRequest } from "@hously/api/utils/errors";
 
 // Wrong anywhere
 import { Chore } from "@hously/shared/src/types/chores";
-import { cn } from "../../lib/utils";
 ```
 
 ### Naming
 
-| Context                     | Convention           | Example                                |
-| --------------------------- | -------------------- | -------------------------------------- |
-| React components            | PascalCase           | `ChoreRow.tsx`, `CreateChoreModal.tsx` |
-| Hooks                       | `use` + PascalCase   | `useChores.ts`, `useDeleteChore.ts`    |
-| Utilities                   | camelCase            | `formatDate.ts`                        |
-| API route modules           | camelCase + `Routes` | `choresRoutes`, `calendarRoutes`       |
-| TypeScript types/interfaces | PascalCase           | `Chore`, `CreateChoreRequest`          |
-| Endpoint constants          | UPPER_SNAKE_CASE     | `CHORES_ENDPOINTS`                     |
-| Database columns (Prisma)   | camelCase            | `choreName`, `addedBy`                 |
-| API response fields         | snake_case           | `chore_name`, `added_by`, `created_at` |
-| URL paths                   | kebab-case           | `/api/chores`, `/api/clear-completed`  |
-
-The API always maps Prisma's camelCase fields to snake_case in responses:
-
-```typescript
-return {
-  id: item.id,
-  item_name: item.itemName,
-  created_at: formatIso(item.createdAt),
-};
-```
+| Context                     | Convention           | Example                                                    |
+| --------------------------- | -------------------- | ---------------------------------------------------------- |
+| React components            | PascalCase           | `ChoreRow.tsx`, `CreateChoreModal.tsx`                     |
+| Hooks                       | `use` + PascalCase   | `useChores.ts`, `useDeleteChore.ts`                        |
+| Utilities                   | camelCase            | `formatDate.ts`                                            |
+| API route plugins           | camelCase + `Routes` | `choresRoutes`, `calendarRoutes`                           |
+| TypeScript types/interfaces | PascalCase           | `Chore`, `CreateChoreRequest`                              |
+| Endpoint constants          | UPPER_SNAKE_CASE     | Colocate with web hooks / `lib/` unless shared across apps |
+| Database columns (Prisma)   | camelCase            | `choreName`, `addedBy`                                     |
+| API response fields         | snake_case           | `chore_name`, `added_by`, `created_at`                     |
+| URL paths                   | kebab-case           | `/api/chores`, `/api/clear-completed`                      |
 
 ### Feature Structure
 
@@ -136,119 +126,89 @@ Frontend features are self-contained:
 features/<name>/
 ├── index.tsx
 └── components/
-    ├── <Name>Row.tsx
-    ├── Create<Name>Modal.tsx
-    └── Edit<Name>Modal.tsx
 ```
 
-API routes export an Elysia plugin with a prefix:
+API routes expose an Elysia plugin per area:
 
 ```typescript
-export const featureRoutes = new Elysia({ prefix: "/api/feature" })
+export const choresRoutes = new Elysia({ prefix: "/api/chores" })
   .use(auth)
   .use(requireUser)
   .get("/", async ({ user, set }) => {
     try {
-      // prisma query + snake_case mapping
-    } catch (error) {
+      /* prisma query + snake_case mapping */
+    } catch {
       return serverError(set, "Failed to fetch items");
     }
   });
 ```
 
-- Use error helpers from `src/utils/errors.ts` (`badRequest`, `notFound`, `serverError`)
-- Always wrap handlers in try/catch
-- Compose new routes in `src/index.ts` via `.use()`
+Use error helpers from `src/utils/errors.ts`, compose in `src/index.ts`.
 
 ### TanStack Query
 
-- App-specific hooks → `apps/web/src/hooks/<domain>/`
-- Shared hooks → `apps/shared/src/hooks/` (imported via `@hously/shared`)
-- Never define query/mutation hooks inline in components
-
-Query key factory pattern:
+- **Hooks** — under `apps/web/src/features/`, `apps/web/src/pages/`, or `apps/web/src/hooks/<domain>/`; not in `@hously/shared`.
+- **Query keys** — `apps/web/src/lib/queryKeys.ts` (import via `@/lib/queryKeys`).
 
 ```typescript
-// Always use the centralized factory
-import { queryKeys } from "@hously/shared";
+import { queryKeys } from "@/lib/queryKeys";
 queryClient.invalidateQueries({ queryKey: queryKeys.chores.all });
-
-// Never hardcode strings
-queryClient.invalidateQueries({ queryKey: ["chores"] }); // ✗
-```
-
-Query hook pattern:
-
-```typescript
-export function useFeature() {
-  const fetcher = useFetcher();
-  return useQuery({
-    queryKey: queryKeys.feature.list(),
-    queryFn: () => fetcher<FeatureResponse>(FEATURE_ENDPOINTS.LIST),
-  });
-}
-```
-
-Mutation hook pattern — invalidate all affected query keys on success:
-
-```typescript
-export function useCreateFeature() {
-  const fetcher = useFetcher();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: CreateFeatureRequest) =>
-      fetcher<ApiResult<{ id: number }>>(FEATURE_ENDPOINTS.CREATE, {
-        method: "POST",
-        body: data,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.feature.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all }); // if dashboard shows this data
-    },
-  });
-}
 ```
 
 ### DRY / Shared Code
 
-- Any type, hook, utility, or endpoint constant used by more than one app **must** live in `apps/shared/src/`.
-- Re-export new shared code from `apps/shared/src/index.ts`.
-- Within a single app, extract a helper only when the same logic appears in 3+ places. Prefer three similar lines over a premature abstraction.
+Promote **types**, **pure utilities**, and **cross-app constants** to `apps/shared/`. Keep web-only hooks, URL builders, and `queryKeys` in `apps/web` until something else consumes them.
 
 ---
 
 ## Adding a New Feature
 
-1. **Schema** — add models to `apps/api/prisma/schema.prisma`, run `make migrate-dev`
-2. **Types** — add interfaces to `apps/shared/src/types/<feature>.ts`, re-export from `index.ts`
-3. **Endpoints** — add constants to `apps/shared/src/endpoints/<feature>.ts`, re-export
-4. **Query keys** — add to `apps/shared/src/queryKeys.ts`
-5. **API routes** — create `apps/api/src/routes/<feature>.ts`, compose in `src/index.ts`
-6. **Hooks** — add TanStack Query hooks to `apps/web/src/hooks/<domain>/` or `apps/shared/src/hooks/` if shared
-7. **UI** — create `apps/web/src/features/<name>/` with `index.tsx` and `components/`
-8. **Route** — add a route file to `apps/web/src/routes/`
+1. **Schema** — `apps/api/prisma/schema.prisma`, then `make migrate-dev`
+2. **Types** — `apps/shared/src/types/`; re-export from `types/index.ts` / package root when needed
+3. **Query keys** — `apps/web/src/lib/queryKeys.ts`
+4. **API routes** — `apps/api/src/routes/<area>/…` (`index.ts` per plugin), compose in `apps/api/src/index.ts`
+5. **Hooks** — `apps/web` (feature/pages/hooks)
+6. **UI** — routes under `apps/web/src/routes/` plus screens in `features/` / `pages/` / `components/`
+
+---
+
+## Global Settings (AppSettings)
+
+Singleton `AppSettings` table (row id=1):
+
+| Field                         | Type    | Default  | Purpose                                                 |
+| ----------------------------- | ------- | -------- | ------------------------------------------------------- |
+| `country_code`                | VARCHAR | US       | Calendar holidays and TMDB release dates                |
+| `calendar_subdivision_code`   | VARCHAR | NULL     | State/province for holiday calendars                    |
+| `upcoming_window_months`      | INT     | 12       | Upcoming movies/TV horizon (3/6/12/24)                  |
+| `upcoming_languages`          | STRING  | en,fr    | Comma-separated TMDB language codes                     |
+| `dashboard_widget_visibility` | JSON    | all true | Toggles: Weather, HomeAssistant, System, Downloads, RSS |
+
+**API:** `PATCH /api/settings` (admin), `GET /api/settings`. **Worker:** `src/workers/refreshUpcoming.ts`. **Route:** `src/routes/dashboard/upcoming/`. **UI:** Settings → General.
 
 ---
 
 ## Common Commands
 
 ```bash
-make test              # Run all tests
-make lint              # Lint all packages
-make typecheck         # Type-check the frontend
-make build             # Build web for production
-docker build -t hously:latest .   # Build unified image
-docker compose up -d   # Start all services
+make test              # Root script: web + api + shared tests
+make lint              # ESLint on apps/web only (matches CI)
+make typecheck         # Each workspace that defines `typecheck`
+make build             # Production web build
+docker build -t hously:latest .   # Unified image
+
+docker compose up -d                                     # Repo file: PostgreSQL + Redis only
+docker compose -f docker-compose.prod.yml up -d         # Full stack: your prod compose file
 ```
 
 ---
 
 ## Important Notes
 
-- **Bun only** — do not use `npm`, `yarn`, or `pnpm` anywhere in this repo
-- **Unstable** — early-stage project, breaking changes are expected
-- **Access control** — `ALLOWED_EMAILS` gates registration; `ADMIN_EMAILS` gates admin routes
-- **Image storage** — Local filesystem under `IMAGE_STORAGE_DIR` (defaults to `./data/images`)
-- **Push notifications** — Web Push (VAPID) + APNs (iOS via `../hously-ios`)
-- **Rate limiting** — 1000 requests/hour per IP
-- **Production** — configs live in `~/servers/hously`, separate from the dev repo at `~/sites/hously`
+- **Bun only** — do not use `npm`, `yarn`, or `pnpm`
+- **Unstable** — breaking changes happen
+- **Access control** — `ALLOWED_EMAILS` / `ADMIN_EMAILS`
+- **Image storage** — `IMAGE_STORAGE_DIR` (default `./data/images`)
+- **Push** — Web Push (VAPID)
+- **Rate limiting** — 1000 req/hour per IP
+- **Production configs** — e.g. `~/servers/hously` vs dev `~/sites/hously`

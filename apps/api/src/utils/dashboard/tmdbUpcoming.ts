@@ -41,22 +41,28 @@ export const toIsoDate = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-/** Shared date window for TMDB discover (worker + dashboard fallback). */
-export const getTmdbUpcomingDateWindowIso = (): {
+/**
+ * Shared date window for TMDB discover (worker + dashboard fallback).
+ * @param monthsAhead - Number of months ahead to include (3, 6, 12, or 24). Default 12.
+ * @returns ISO date strings for today and end of window for TMDB queries.
+ */
+export const getTmdbUpcomingDateWindowIso = (
+  monthsAhead: number = 12,
+): {
   todayIso: string;
-  oneYearOutIso: string;
+  endDateIso: string;
 } => {
   const today = new Date();
   const todayIso = toIsoDate(today);
-  const oneYearOut = new Date(
+  const endDate = new Date(
     Date.UTC(
-      today.getUTCFullYear() + 1,
-      today.getUTCMonth(),
+      today.getUTCFullYear(),
+      today.getUTCMonth() + monthsAhead,
       today.getUTCDate(),
     ),
   );
-  const oneYearOutIso = toIsoDate(oneYearOut);
-  return { todayIso, oneYearOutIso };
+  const endDateIso = toIsoDate(endDate);
+  return { todayIso, endDateIso };
 };
 
 const mapTmdbItem = (
@@ -138,12 +144,15 @@ const fetchTmdbDiscoverPage = async (
   fromDateIso: string | null,
   toDateIso: string,
   region: string,
+  languages: string = "en,fr",
 ): Promise<{ items: DashboardUpcomingItem[]; totalPages: number } | null> => {
   const endpoint = mediaType === "movie" ? "discover/movie" : "discover/tv";
   const url = new URL(`https://api.themoviedb.org/3/${endpoint}`);
   url.searchParams.set("api_key", tmdbApiKey);
   url.searchParams.set("language", "en-US");
   url.searchParams.set("page", String(page));
+
+  const languageFilter = languages.split(",").join("|");
 
   if (mediaType === "movie") {
     // Prioritize mainstream/popular titles and avoid low-signal niche results.
@@ -152,8 +161,7 @@ const fetchTmdbDiscoverPage = async (
     if (fromDateIso) url.searchParams.set("release_date.gte", fromDateIso);
     url.searchParams.set("release_date.lte", toDateIso);
     url.searchParams.set("with_release_type", "4|5");
-    url.searchParams.set("with_origin_country", region);
-    url.searchParams.set("with_original_language", "en|fr");
+    url.searchParams.set("with_original_language", languageFilter);
     url.searchParams.set("include_adult", "false");
     url.searchParams.set("include_video", "false");
   } else {
@@ -162,7 +170,7 @@ const fetchTmdbDiscoverPage = async (
     url.searchParams.set("first_air_date.lte", toDateIso);
     url.searchParams.set("include_null_first_air_dates", "false");
     url.searchParams.set("with_origin_country", region);
-    url.searchParams.set("with_original_language", "en|fr");
+    url.searchParams.set("with_original_language", languageFilter);
   }
 
   const response = await fetch(url.toString(), {
@@ -193,6 +201,7 @@ export const collectTmdbUpcoming = async (
   fromDateIso: string | null,
   toDateIso: string,
   region: string,
+  languages: string = "en,fr",
 ): Promise<{ items: DashboardUpcomingItem[]; hasMore: boolean } | null> => {
   const items: DashboardUpcomingItem[] = [];
   let page = 1;
@@ -206,6 +215,7 @@ export const collectTmdbUpcoming = async (
       fromDateIso,
       toDateIso,
       region,
+      languages,
     );
     if (!response) return null;
     items.push(...response.items);
