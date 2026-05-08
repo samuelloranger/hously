@@ -157,7 +157,6 @@ const fetchTmdbDiscoverPage = async (
   if (mediaType === "movie") {
     // Prioritize mainstream/popular titles and avoid low-signal niche results.
     url.searchParams.set("sort_by", "popularity.desc");
-    url.searchParams.set("region", region);
     if (fromDateIso) url.searchParams.set("release_date.gte", fromDateIso);
     url.searchParams.set("release_date.lte", toDateIso);
     url.searchParams.set("with_release_type", "4|5");
@@ -169,7 +168,6 @@ const fetchTmdbDiscoverPage = async (
     if (fromDateIso) url.searchParams.set("first_air_date.gte", fromDateIso);
     url.searchParams.set("first_air_date.lte", toDateIso);
     url.searchParams.set("include_null_first_air_dates", "false");
-    url.searchParams.set("with_origin_country", region);
     url.searchParams.set("with_original_language", languageFilter);
   }
 
