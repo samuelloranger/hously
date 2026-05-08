@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Search, Clapperboard } from "lucide-react";
 import { useTmdbMediaSearch } from "@/features/medias/hooks/useMedias";
@@ -18,6 +19,7 @@ export function TmdbMediaSearchPanel({
   variant = "default",
 }: Props = {}) {
   const { t, i18n } = useTranslation("common");
+  const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [debounced, setDebounced] = useState("");
   const [selectedItem, setSelectedItem] = useState<TmdbMediaSearchItem | null>(
@@ -77,7 +79,17 @@ export function TmdbMediaSearchPanel({
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setSelectedItem(item)}
+                  onClick={() => {
+                    const libId = item.library_id;
+                    if (item.already_exists && libId != null && libId > 0) {
+                      void navigate({
+                        to: "/library/$libraryId",
+                        params: { libraryId: String(libId) },
+                      });
+                      return;
+                    }
+                    setSelectedItem(item);
+                  }}
                   className="text-left rounded-xl border p-2.5 flex gap-2.5 transition-colors border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
                 >
                   <div className="w-12 h-16 shrink-0 rounded-md overflow-hidden bg-neutral-200 dark:bg-neutral-700">

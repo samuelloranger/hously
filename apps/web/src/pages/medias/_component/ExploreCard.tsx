@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useAddUpcomingToLibrary } from "@/pages/_component/useDashboardUpcoming";
 import { useFetcher } from "@/lib/api/context";
@@ -21,13 +22,19 @@ export function ExploreCard({
   onAdded?: () => void;
 }) {
   const { t, i18n } = useTranslation("common");
+  const navigate = useNavigate();
   const [detailOpen, setDetailOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
   const addUpcomingMutation = useAddUpcomingToLibrary();
   const queryClient = useQueryClient();
   const fetcher = useFetcher();
 
+  const libraryRowId =
+    item.library_id != null && item.library_id > 0 ? item.library_id : null;
+  const navigateToLibraryItem = item.already_exists && libraryRowId != null;
+
   const prefetchModal = useCallback(() => {
+    if (navigateToLibraryItem) return;
     const lang = i18n.language;
     queryClient.prefetchQuery({
       queryKey: queryKeys.medias.modalData(
@@ -47,7 +54,25 @@ export function ExploreCard({
         ),
       staleTime: 60 * 1000,
     });
-  }, [queryClient, fetcher, item.media_type, item.tmdb_id, i18n.language]);
+  }, [
+    queryClient,
+    fetcher,
+    item.media_type,
+    item.tmdb_id,
+    i18n.language,
+    navigateToLibraryItem,
+  ]);
+
+  const openDetailOrLibrary = useCallback(() => {
+    if (navigateToLibraryItem && libraryRowId != null) {
+      void navigate({
+        to: "/library/$libraryId",
+        params: { libraryId: String(libraryRowId) },
+      });
+      return;
+    }
+    setDetailOpen(true);
+  }, [navigate, navigateToLibraryItem, libraryRowId]);
 
   const handleAdd = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -88,9 +113,9 @@ export function ExploreCard({
           role="button"
           tabIndex={0}
           aria-label={item.title}
-          onClick={() => setDetailOpen(true)}
+          onClick={openDetailOrLibrary}
           onKeyDown={(e) =>
-            (e.key === "Enter" || e.key === " ") && setDetailOpen(true)
+            (e.key === "Enter" || e.key === " ") && openDetailOrLibrary()
           }
           className="absolute inset-0 z-10 cursor-pointer focus:outline-none"
         />
