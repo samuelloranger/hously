@@ -21,6 +21,12 @@ import {
   sanitizeFilenamePart,
   sanitizePathTemplateOutput,
 } from "@hously/api/utils/medias/fileTemplate";
+import {
+  defaultMoviesDownloadsPath,
+  defaultShowsDownloadsPath,
+  movieFilenameLikelyMatches,
+  seriesPathMatchesTitle,
+} from "@hously/api/utils/medias/downloadFilenameMatch";
 import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import {
   deleteQbittorrentTorrent,
@@ -712,6 +718,226 @@ export async function postProcess(
   return { success: true, destinationPath };
 }
 
+async function pickLargestVideoPath(paths: string[]): Promise<string | null> {
+  if (paths.length === 0) return null;
+  if (paths.length === 1) return paths[0]!;
+  let best: string | null = null;
+  let bestSize = -1n;
+  for (const p of paths) {
+    try {
+      const st = await stat(remapPath(p));
+      if (!st.isFile()) continue;
+      const sz = BigInt(st.size);
+      if (sz > bestSize) {
+        bestSize = sz;
+        best = p;
+      }
+    } catch {
+      // skip unreadable paths
+    }
+  }
+  return best;
+}
+
+type ScanImportMedia = {
+  id: number;
+  type: string;
+  title: string;
+  year: number | null;
+  tmdbStatus?: string | null;
+};
+
+async function maybePlaceMovieMatchedInDownloadsToLibrary(
+  media: ScanImportMedia,
+  settings: {
+    moviesLibraryPath: string | null;
+    fileOperation: string;
+    movieTemplate: string;
+  },
+): Promise<void> {
+  if (media.type !== "movie") return;
+
+  const hasFile = await prisma.mediaFile.findFirst({
+    where: { mediaId: media.id, episodeId: null },
+    select: { id: true },
+  });
+  if (hasFile) return;
+
+  const moviesRoot = settings.moviesLibraryPath?.trim();
+  if (!moviesRoot) return;
+
+  const downloadsRoot = defaultMoviesDownloadsPath(moviesRoot);
+  if (!downloadsRoot) return;
+
+  let videos: string[];
+  try {
+    videos = await listVideoFilesUnder(remapPath(downloadsRoot));
+  } catch {
+    console.warn(
+      `[scanLibrary] Downloads scan skipped (movies): unreachable ${downloadsRoot}`,
+    );
+    return;
+  }
+
+  const candidates = videos.filter((p) =>
+    movieFilenameLikelyMatches(p, media.title, media.year),
+  );
+  const src = await pickLargestVideoPath(candidates);
+  if (!src) return;
+
+  const libRoot = moviesRoot.replace(/\/+$/, "");
+  const scanSubDir = sanitizePathTemplateOutput(media.title);
+  const ext = extname(src) || ".mkv";
+
+  const q = qualityStringsFromParsed(null, basename(src));
+  const stem =
+    renderMovieTemplate(settings.movieTemplate, {
+      title: media.title,
+      year: media.year,
+      resolution: q.resolution,
+      source: q.source,
+      codec: q.codec,
+      ext,
+    }) || sanitizeFilenamePart(media.title);
+
+  const destinationPath = join(libRoot, scanSubDir, `${stem}${ext}`);
+  const operation = settings.fileOperation === "move" ? "move" : "hardlink";
+
+  try {
+    await placeFile(remapPath(src), remapPath(destinationPath), operation);
+    console.log(
+      `[scanLibrary] Matched movie in Downloads (${basename(src)}) → "${destinationPath}" (${operation})`,
+    );
+  } catch (e) {
+    console.warn(
+      `[scanLibrary] Downloads → library copy failed (${media.title}):`,
+      e,
+    );
+  }
+}
+
+async function maybePlaceMatchedShowEpisodesFromDownloadsToLibrary(
+  media: ScanImportMedia,
+  settings: {
+    showsLibraryPath: string | null;
+    fileOperation: string;
+    episodeTemplate: string;
+  },
+): Promise<void> {
+  if (media.type !== "show") return;
+
+  const showsRoot = settings.showsLibraryPath?.trim();
+  if (!showsRoot) return;
+
+  const episodes = await prisma.libraryEpisode.findMany({
+    where: { mediaId: media.id },
+    select: {
+      id: true,
+      season: true,
+      episode: true,
+      title: true,
+      _count: { select: { files: true } },
+    },
+  });
+  const pendingIds = new Set(
+    episodes.filter((e) => e._count.files === 0).map((e) => e.id),
+  );
+  if (pendingIds.size === 0) return;
+
+  const downloadsRoot = defaultShowsDownloadsPath(showsRoot);
+  if (!downloadsRoot) return;
+
+  let videos: string[];
+  try {
+    videos = await listVideoFilesUnder(remapPath(downloadsRoot));
+  } catch {
+    console.warn(
+      `[scanLibrary] Downloads scan skipped (shows): unreachable ${downloadsRoot}`,
+    );
+    return;
+  }
+
+  type Candidate = {
+    episodeId: number;
+    season: number;
+    episodeNum: number;
+    path: string;
+    bytes: bigint;
+  };
+  const byEpKey = new Map<string, Candidate>();
+
+  for (const videoPath of videos) {
+    if (!seriesPathMatchesTitle(videoPath, media.title)) continue;
+    const fn = basename(videoPath);
+    const se = parseSeasonEpisode(fn);
+    if (!se) continue;
+    const ep = episodes.find(
+      (e) =>
+        e.season === se.season &&
+        e.episode === se.episode &&
+        pendingIds.has(e.id),
+    );
+    if (!ep) continue;
+
+    let bytes = 0n;
+    try {
+      bytes = BigInt((await stat(remapPath(videoPath))).size);
+    } catch {
+      continue;
+    }
+
+    const key = `${ep.season}x${ep.episode}`;
+    const prev = byEpKey.get(key);
+    if (!prev || bytes > prev.bytes) {
+      byEpKey.set(key, {
+        episodeId: ep.id,
+        season: ep.season,
+        episodeNum: ep.episode,
+        path: videoPath,
+        bytes,
+      });
+    }
+  }
+
+  const showsLibRoot = showsRoot.replace(/\/+$/, "");
+  const operation = settings.fileOperation === "move" ? "move" : "hardlink";
+
+  for (const row of byEpKey.values()) {
+    const epFull = episodes.find((e) => e.id === row.episodeId);
+    if (!epFull || epFull._count.files > 0) continue;
+
+    const ext = extname(row.path) || ".mkv";
+    const q = qualityStringsFromParsed(null, basename(row.path));
+    const epStem =
+      renderEpisodeTemplate(settings.episodeTemplate, {
+        show: media.title,
+        season: row.season,
+        episode: row.episodeNum,
+        title: epFull.title ?? "Episode",
+        resolution: q.resolution,
+        source: q.source,
+        ext,
+      }) ||
+      sanitizePathTemplateOutput(
+        `${media.title}/Season ${row.season}/${media.title} - S${String(row.season).padStart(2, "0")}E${String(row.episodeNum).padStart(2, "0")}`,
+      );
+    const relativeDest = `${epStem}${ext}`;
+    const destinationPath = join(showsLibRoot, relativeDest);
+
+    try {
+      await placeFile(remapPath(row.path), remapPath(destinationPath), operation);
+      console.log(
+        `[scanLibrary] Matched Downloads S${row.season}E${row.episodeNum} → "${destinationPath}" (${operation})`,
+      );
+    } catch (e) {
+      console.warn(
+        `[scanLibrary] Downloads → library copy failed (S${row.season}E${row.episodeNum}):`,
+        e,
+      );
+    }
+  }
+}
+
 /**
  * Scan the library destination folder for video files that exist on disk but have
  * no MediaFile record. Creates missing records and marks episodes/movies as downloaded.
@@ -733,6 +959,12 @@ export async function scanAndImportLibraryFiles(media: {
       : settings.showsLibraryPath?.trim();
   if (!root) return 0;
 
+  if (media.type === "movie") {
+    await maybePlaceMovieMatchedInDownloadsToLibrary(media, settings);
+  } else if (media.type === "show") {
+    await maybePlaceMatchedShowEpisodesFromDownloadsToLibrary(media, settings);
+  }
+
   const scanRoot = join(
     root.replace(/\/+$/, ""),
     sanitizePathTemplateOutput(media.title),
@@ -743,7 +975,7 @@ export async function scanAndImportLibraryFiles(media: {
     allVideos = await listVideoFilesUnder(scanRoot);
   } catch (e) {
     console.warn(`[postProcess] listVideoFilesUnder failed (${scanRoot}):`, e);
-    return 0; // folder doesn't exist or isn't accessible
+    allVideos = [];
   }
   if (allVideos.length === 0) return 0;
 
