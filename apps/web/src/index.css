@@ -67,6 +67,13 @@ body {
   --z-modal: 200;
   --z-popover: 250;
   --z-tooltip: 300;
+
+  /* Dark surfaces — neutral palette (aligned with settings + body) */
+  --surface-base: #171717;
+  --surface-1: #262626;
+  --surface-2: #404040;
+  --surface-border: #404040;
+  --surface-muted-fg: #a3a3a3;
 }
 
 @keyframes discover-in {
