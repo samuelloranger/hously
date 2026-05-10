@@ -398,14 +398,32 @@ const buildConfigKey = (config: QbittorrentIntegrationConfig): string =>
   `${config.website_url}|${config.username}|${config.password}`;
 
 const parseSidCookie = (response: Response): string | null => {
+  const h = response.headers as Headers & { getSetCookie?: () => string[] };
+
+  const tryPair = (cookieHeaderLine: string): string | null => {
+    const nameValue = cookieHeaderLine.split(";")[0]?.trim() ?? "";
+    return /^(?:QBT_)?SID(?:_\d+)?=/i.test(nameValue) ? nameValue : null;
+  };
+
+  if (typeof h.getSetCookie === "function") {
+    const list = h.getSetCookie();
+    for (const raw of list) {
+      const hit = tryPair(raw);
+      if (hit) return hit;
+    }
+  }
+
   const raw = response.headers.get("set-cookie");
   if (!raw) return null;
-  const sidPart = raw
-    .split(",")
-    .map((part) => part.trim())
-    .find((part) => /^SID(_\d+)?=/.test(part));
-  if (!sidPart) return null;
-  return sidPart.split(";")[0] || null;
+  const fromFirstAttr = tryPair(raw);
+  if (fromFirstAttr) return fromFirstAttr;
+
+  const commaParts = raw.split(",").map((part) => part.trim());
+  for (const part of commaParts) {
+    const hit = tryPair(part);
+    if (hit) return hit;
+  }
+  return null;
 };
 
 const resetSessionIfConfigChanged = (config: QbittorrentIntegrationConfig) => {
@@ -438,28 +456,30 @@ const login = async (
     });
 
     const text = (await response.text()).trim();
-    const ok = response.ok && /^ok\.?$/i.test(text);
 
-    if (ok) {
-      qbSession.sidCookie = parseSidCookie(response);
-    }
+    qbSession.sidCookie = parseSidCookie(response);
+    const legacyOkBody = /^ok\.?$/i.test(text);
+    const loginSucceeded =
+      response.ok && (qbSession.sidCookie != null || legacyOkBody);
 
     logQbittorrentRequest({
       method: "POST",
       endpoint: loginUrl.pathname,
       requestPath: `${loginUrl.pathname}${loginUrl.search}`,
       statusCode: response.status,
-      ok: ok && Boolean(qbSession.sidCookie),
+      ok: loginSucceeded && Boolean(qbSession.sidCookie),
       durationMs: Date.now() - startedAt,
       responseBytes: getByteLength(text),
       errorMessage:
-        ok && qbSession.sidCookie ? null : "qBittorrent authentication failed",
+        loginSucceeded && qbSession.sidCookie
+          ? null
+          : "qBittorrent authentication failed",
       meta: {
-        hasSidCookie: Boolean(parseSidCookie(response)),
+        hasSidCookie: Boolean(qbSession.sidCookie),
       },
     });
 
-    return ok && Boolean(qbSession.sidCookie);
+    return response.ok && Boolean(qbSession.sidCookie);
   } catch (error) {
     logQbittorrentRequest({
       method: "POST",
