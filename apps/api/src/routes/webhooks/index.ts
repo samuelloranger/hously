@@ -177,10 +177,15 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
           .trim();
       const normTorrent = normalize(torrentName);
 
+      // For shows we don't filter by status: an ongoing series flips to
+      // `downloaded` after its first episode lands, but new episodes still
+      // need to be tracked when their torrents are added.
       const candidates = await prisma.libraryMedia.findMany({
         where: {
           type: expectedType,
-          status: { in: ["wanted", "downloading"] },
+          ...(expectedType === "movie"
+            ? { status: { in: ["wanted", "downloading"] } }
+            : {}),
         },
         select: { id: true, title: true, qualityProfileId: true },
       });

@@ -101,7 +101,13 @@ export async function markDownloadHistoryComplete(dh: {
 /**
  * Mark a single download as complete by its torrent hash.
  * Called directly by the qBittorrent webhook for immediate completion.
- * Returns the download_history id when a matching pending row was updated, else null.
+ *
+ * Returns the download_history id whenever a non-failed DH row exists for the
+ * hash, so the caller can re-enqueue post-processing. This is the recovery
+ * handle for cases where a previous post-process run left the DB marked
+ * complete but never placed the file on disk (e.g. when adopting an
+ * already-complete qB torrent). Re-firing /completed (or qB re-announcing on
+ * recheck) will then retry post-processing.
  */
 export async function completeDownloadByHash(
   hash: string,
@@ -110,12 +116,14 @@ export async function completeDownloadByHash(
   if (!normalizedHash) return null;
 
   const dh = await prisma.downloadHistory.findFirst({
-    where: { torrentHash: normalizedHash, completedAt: null, failed: false },
+    where: { torrentHash: normalizedHash, failed: false },
   });
   if (!dh) return null;
 
-  await markDownloadHistoryComplete(dh);
-  if (dh.mediaId != null) emitLibraryUpdate(dh.mediaId);
+  if (dh.completedAt == null) {
+    await markDownloadHistoryComplete(dh);
+    if (dh.mediaId != null) emitLibraryUpdate(dh.mediaId);
+  }
   return dh.id;
 }
 
