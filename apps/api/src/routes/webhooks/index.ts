@@ -16,7 +16,10 @@ import { completeDownloadByHash } from "@hously/api/workers/checkDownloadComplet
 import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessor";
 import { qbFetchJson } from "@hously/api/services/qbittorrent/client";
 import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
-import { parseReleaseTitle } from "@hously/api/utils/medias/filenameParser";
+import {
+  parseReleaseSeasonEpisode,
+  parseReleaseTitle,
+} from "@hously/api/utils/medias/filenameParser";
 import {
   QBIT_CATEGORY_HOUSLY_MOVIES,
   QBIT_CATEGORY_HOUSLY_SHOWS,
@@ -177,32 +180,51 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
           .trim();
       const normTorrent = normalize(torrentName);
 
+      // For shows we don't filter by status: an ongoing series flips to
+      // `downloaded` after its first episode lands, but new episodes still
+      // need to be tracked when their torrents are added.
       const candidates = await prisma.libraryMedia.findMany({
         where: {
           type: expectedType,
-          status: { in: ["wanted", "downloading"] },
+          ...(expectedType === "movie"
+            ? { status: { in: ["wanted", "downloading"] } }
+            : {}),
         },
-        select: { id: true, title: true, qualityProfileId: true },
+        select: { id: true, title: true, status: true, qualityProfileId: true },
       });
 
       const torrentWords = normTorrent.split(" ").filter(Boolean);
-      const match = candidates.find((m) => {
-        const titleWords = normalize(m.title).split(" ").filter(Boolean);
-        if (titleWords.length === 0) return false;
-        // Require the title to appear as a contiguous, word-aligned sequence inside
-        // the torrent name. Pure word-set containment ("the boys" ⊆ any torrent that
-        // has both words) produces false positives for short titles like "It" or "Us"
-        // and for partial matches like "The Boys" → "The Boys of Summer S01E01".
-        for (let i = 0; i <= torrentWords.length - titleWords.length; i++) {
-          if (
-            torrentWords.slice(i, i + titleWords.length).join(" ") ===
-            titleWords.join(" ")
-          ) {
-            return true;
+      const findWordSequenceMatch = (
+        pool: Array<{ id: number; title: string; status: string }>,
+      ) =>
+        pool.find((m) => {
+          const titleWords = normalize(m.title).split(" ").filter(Boolean);
+          if (titleWords.length === 0) return false;
+          // Require the title to appear as a contiguous, word-aligned sequence
+          // inside the torrent name. Pure word-set containment ("the boys" ⊆
+          // any torrent that has both words) produces false positives for short
+          // titles like "It" or "Us" and for partial matches like "The Boys" →
+          // "The Boys of Summer S01E01".
+          for (let i = 0; i <= torrentWords.length - titleWords.length; i++) {
+            if (
+              torrentWords.slice(i, i + titleWords.length).join(" ") ===
+              titleWords.join(" ")
+            ) {
+              return true;
+            }
           }
-        }
-        return false;
-      });
+          return false;
+        });
+
+      // When multiple shows match (e.g. "Severance" and "Severance Live"),
+      // prefer an actively-tracked one over a `downloaded` one. This keeps
+      // the looser show filter from amplifying cross-title collisions.
+      const match =
+        findWordSequenceMatch(
+          candidates.filter(
+            (m) => m.status === "wanted" || m.status === "downloading",
+          ),
+        ) ?? findWordSequenceMatch(candidates);
 
       if (!match) {
         console.log(
@@ -231,10 +253,26 @@ export const webhooksRoutes = new Elysia({ prefix: "/api/webhooks" })
         data: { status: "downloading" },
       });
 
-      // For shows, mark all wanted episodes as downloading too
+      // For shows, mark the matching episode(s) as downloading.
+      // Narrow the flip to what the release actually delivers — by season,
+      // and by episode number when parseable — so unrelated `wanted` rows
+      // on the same show aren't lied about while this torrent lands.
+      // Falls back to the broader season/show flip when SxxExx isn't
+      // parseable from the release name (rare; e.g. cryptic torrent names).
       if (expectedType === "show") {
+        const se = parseReleaseSeasonEpisode(torrentName);
+        const episodeWhere: {
+          mediaId: number;
+          status: string;
+          season?: number;
+          episode?: number;
+        } = { mediaId: match.id, status: "wanted" };
+        if (se) {
+          episodeWhere.season = se.season;
+          if (se.episode != null) episodeWhere.episode = se.episode;
+        }
         await prisma.libraryEpisode.updateMany({
-          where: { mediaId: match.id, status: "wanted" },
+          where: episodeWhere,
           data: { status: "downloading" },
         });
       }

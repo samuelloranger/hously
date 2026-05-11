@@ -26,6 +26,7 @@ import {
   qbFetchText,
   fetchMaindata,
 } from "./client";
+import { parseQbittorrentAddResponse } from "./parseAddResponse";
 
 // --- Filtering & sorting helpers ---
 
@@ -1046,12 +1047,13 @@ export const addQbittorrentMagnet = async (
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: body.toString(),
     });
-    if (!/^ok\.?$/i.test(responseText.trim())) {
+    const parsed = parseQbittorrentAddResponse(responseText);
+    if (!parsed.ok) {
       return {
         enabled: true,
         connected: true,
         success: false,
-        error: `qBittorrent rejected magnet: ${responseText.trim()}`,
+        error: `qBittorrent rejected magnet: ${parsed.error}`,
       };
     }
     return { enabled: true, connected: true, success: true };
@@ -1111,15 +1113,16 @@ export const addQbittorrentTorrentFile = async (
       method: "POST",
       body: formData,
     });
-    if (!/^ok\.?$/i.test(responseText.trim())) {
+    const parsed = parseQbittorrentAddResponse(responseText);
+    if (!parsed.ok) {
       console.error(
-        `${logPrefix} qBittorrent rejected torrent name="${payload.torrent.name}" response="${responseText.trim()}"`,
+        `${logPrefix} qBittorrent rejected torrent name="${payload.torrent.name}" len=${responseText.length} response="${parsed.error}"`,
       );
       return {
         enabled: true,
         connected: true,
         success: false,
-        error: `qBittorrent rejected torrent: ${responseText.trim()}`,
+        error: `qBittorrent rejected torrent: ${parsed.error}`,
       };
     }
     console.log(

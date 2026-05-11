@@ -15,6 +15,7 @@ import {
 } from "@hously/api/services/qbittorrent/torrents";
 import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import { isCompletedDownloadState } from "@hously/api/workers/checkDownloadCompletion";
+import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessor";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import {
   normalizeTitleForMatch,
@@ -181,7 +182,7 @@ function infoHashFromTorrentBuffer(buf: ArrayBuffer): string | null {
  * no matching torrent). Returns a success descriptor when the torrent was
  * adopted.
  */
-async function tryAdoptQbDuplicate(ctx: {
+export async function tryAdoptQbDuplicate(ctx: {
   dhRowId: number;
   mediaId: number;
   episodeId: number | null;
@@ -301,6 +302,10 @@ async function tryAdoptQbDuplicate(ctx: {
   console.log(
     `[mediaGrabber] adopted existing qB torrent hash=${torrentHash} media=${mediaId} episode=${episodeId ?? "none"} completed=${completed}`,
   );
+
+  if (completed) {
+    enqueueLibraryPostProcess(dhRowId);
+  }
 
   return { adopted: true, completed };
 }
