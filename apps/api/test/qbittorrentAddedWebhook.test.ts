@@ -105,7 +105,9 @@ mock.module("@hously/api/db", () => ({
   },
 }));
 
+const realQbConfig = await import("@hously/api/services/qbittorrent/config");
 mock.module("@hously/api/services/qbittorrent/config", () => ({
+  ...realQbConfig,
   getQbittorrentIntegrationConfig: () =>
     Promise.resolve({
       enabled: true,
@@ -113,7 +115,9 @@ mock.module("@hously/api/services/qbittorrent/config", () => ({
     }),
 }));
 
+const realQbClient = await import("@hously/api/services/qbittorrent/client");
 mock.module("@hously/api/services/qbittorrent/client", () => ({
+  ...realQbClient,
   qbFetchJson: (_cfg: unknown, url: string): Promise<unknown> => {
     // Expect /api/v2/torrents/info?hashes=<hash>
     const m = url.match(/hashes=([a-f0-9]+)/i);
@@ -127,27 +131,16 @@ mock.module("@hously/api/services/qbittorrent/client", () => ({
 }));
 
 // Heavy graph trims — nothing downstream is exercised in these tests.
-mock.module("@hously/api/services/webhookHandlers", () => ({
-  webhookHandlers: {},
-}));
-mock.module("@hously/api/services/webhookEnrichment", () => ({
-  enrichArrWebhookNotification: () => Promise.resolve(null),
-}));
-mock.module("@hously/api/services/externalNotificationService", () => ({
-  sendExternalNotification: () => Promise.resolve(undefined),
-}));
-mock.module("@hously/api/services/jellyfinEpisodeBatcher", () => ({
-  enqueueJellyfinEpisode: () => undefined,
-}));
-mock.module("@hously/api/services/cache", () => ({
-  deleteCache: () => Promise.resolve(undefined),
-}));
-mock.module("@hously/api/workers/checkDownloadCompletion", () => ({
-  completeDownloadByHash: () => Promise.resolve(null),
-}));
-mock.module("@hously/api/services/postProcessor", () => ({
-  enqueueLibraryPostProcess: () => undefined,
-}));
+// NOTE: do NOT mock @hously/api/services/webhookHandlers — bun's mock.module
+// is process-global and the real webhookHandlers.test.ts depends on the real
+// export. The webhooks route imports it for the /:serviceName handler, which
+// we don't exercise here, so the real implementation loads fine.
+// webhookEnrichment / externalNotificationService / jellyfinEpisodeBatcher /
+// cache / postProcessor / checkDownloadCompletion are imported by the
+// webhooks plugin but only invoked by routes this test doesn't exercise
+// (/qbittorrent/completed, /:serviceName). Their real implementations load
+// fine and stay dormant — mocking them with stripped surfaces would bleed
+// into other test files under bun's process-global mock.module.
 
 const { webhooksRoutes } = await import("@hously/api/routes/webhooks");
 

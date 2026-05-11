@@ -72,15 +72,20 @@ mock.module("@hously/api/db", () => ({
   },
 }));
 
+const realQbConfig = await import("@hously/api/services/qbittorrent/config");
 mock.module("@hously/api/services/qbittorrent/config", () => ({
+  ...realQbConfig,
   getQbittorrentIntegrationConfig: () =>
     Promise.resolve({ enabled: true, config: { url: "http://qb" } }),
 }));
 
+// Spread the real module so unrelated consumers (postProcessor, dashboard
+// routes, …) still see every export under Bun's process-global mock.module.
+// Override only the functions this test exercises directly.
+const realTorrents = await import("@hously/api/services/qbittorrent/torrents");
 mock.module("@hously/api/services/qbittorrent/torrents", () => ({
+  ...realTorrents,
   fetchQbittorrentTorrent: () => Promise.resolve({ torrent: state.torrent }),
-  fetchQbittorrentTorrentProperties: () =>
-    Promise.resolve({ properties: null }),
   setQbittorrentTorrentCategory: (
     _cfg: unknown,
     _enabled: boolean,
@@ -97,11 +102,6 @@ mock.module("@hously/api/services/qbittorrent/torrents", () => ({
     state.qbTagCalls.push(args);
     return Promise.resolve({ success: true });
   },
-  addQbittorrentMagnet: () => Promise.resolve({ success: false }),
-  addQbittorrentTorrentFile: () => Promise.resolve({ success: false }),
-  deleteQbittorrentTorrent: () => Promise.resolve({ success: true }),
-  parseQbittorrentAddResponse: (text: string) =>
-    /^ok\.?$/i.test(text.trim()) ? { ok: true } : { ok: false, error: text },
 }));
 
 mock.module("@hously/api/workers/checkDownloadCompletion", () => ({
@@ -123,21 +123,13 @@ mock.module("@hously/api/services/postProcessor", () => ({
   },
 }));
 
-// Trim the rest of mediaGrabber's import graph that we don't exercise.
-mock.module("@hously/api/services/indexerManager", () => ({
-  getActiveIndexerManager: () => Promise.resolve(null),
-}));
-mock.module("@hously/api/services/integrationConfigCache", () => ({
-  getIntegrationConfigRecord: () => Promise.resolve(null),
-}));
-mock.module("@hously/api/utils/integrations/normalizers", () => ({
-  normalizeProwlarrConfig: () => null,
-}));
-mock.module("@hously/api/utils/medias/safeTorrentFetchUrl", () => ({
-  fetchHttpWithSafeRedirects: () => Promise.resolve(new Response("")),
-  isHttpUrlSafeForServerTorrentFetch: () => true,
-  MagnetRedirectError: class extends Error {},
-}));
+// NOTE: do NOT mock @hously/api/services/indexerManager,
+// @hously/api/services/integrationConfigCache,
+// @hously/api/utils/integrations/normalizers, or
+// @hously/api/utils/medias/safeTorrentFetchUrl. mediaGrabber imports them but
+// `tryAdoptQbDuplicate` doesn't call into them, and bun's mock.module is
+// process-global — stubbing them here would break other test files
+// (e.g. safeTorrentFetchUrl.test.ts) that depend on the real implementations.
 
 const { tryAdoptQbDuplicate } =
   await import("@hously/api/services/mediaGrabber");

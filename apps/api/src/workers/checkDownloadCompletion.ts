@@ -103,11 +103,12 @@ export async function markDownloadHistoryComplete(dh: {
  * Called directly by the qBittorrent webhook for immediate completion.
  *
  * Returns the download_history id whenever a non-failed DH row exists for the
- * hash, so the caller can re-enqueue post-processing. This is the recovery
- * handle for cases where a previous post-process run left the DB marked
- * complete but never placed the file on disk (e.g. when adopting an
- * already-complete qB torrent). Re-firing /completed (or qB re-announcing on
- * recheck) will then retry post-processing.
+ * hash. When multiple rows share a hash (common after retries/re-grabs), the
+ * newest *pending* row is preferred and marked complete; if no pending row
+ * exists, the newest already-completed row's id is returned so the caller
+ * can re-enqueue post-processing — this is the recovery handle for cases
+ * where a previous post-process run left the DB marked complete but never
+ * placed the file on disk.
  */
 export async function completeDownloadByHash(
   hash: string,
@@ -115,16 +116,21 @@ export async function completeDownloadByHash(
   const normalizedHash = hash.toLowerCase().trim();
   if (!normalizedHash) return null;
 
-  const dh = await prisma.downloadHistory.findFirst({
-    where: { torrentHash: normalizedHash, failed: false },
+  const pending = await prisma.downloadHistory.findFirst({
+    where: { torrentHash: normalizedHash, completedAt: null, failed: false },
+    orderBy: { id: "desc" },
   });
-  if (!dh) return null;
-
-  if (dh.completedAt == null) {
-    await markDownloadHistoryComplete(dh);
-    if (dh.mediaId != null) emitLibraryUpdate(dh.mediaId);
+  if (pending) {
+    await markDownloadHistoryComplete(pending);
+    if (pending.mediaId != null) emitLibraryUpdate(pending.mediaId);
+    return pending.id;
   }
-  return dh.id;
+
+  const completed = await prisma.downloadHistory.findFirst({
+    where: { torrentHash: normalizedHash, failed: false },
+    orderBy: { id: "desc" },
+  });
+  return completed?.id ?? null;
 }
 
 export type PendingReconcileResult = {

@@ -38,17 +38,21 @@ mock.module("@hously/api/db", () => ({
     downloadHistory: {
       findFirst: ({
         where,
+        orderBy,
       }: {
         where: { torrentHash: string; failed: boolean; completedAt?: null };
+        orderBy?: { id?: "asc" | "desc" };
       }) => {
-        const match = state.rows.find(
+        const matches = state.rows.filter(
           (r) =>
             r.torrentHash === where.torrentHash &&
             r.failed === where.failed &&
             (where.completedAt === undefined ||
               r.completedAt === where.completedAt),
         );
-        return Promise.resolve(match ?? null);
+        if (orderBy?.id === "desc") matches.sort((a, b) => b.id - a.id);
+        else if (orderBy?.id === "asc") matches.sort((a, b) => a.id - b.id);
+        return Promise.resolve(matches[0] ?? null);
       },
       update: ({
         where,
@@ -72,30 +76,13 @@ mock.module("@hously/api/db", () => ({
   },
 }));
 
-mock.module("@hously/api/services/libraryEvents", () => ({
-  emitLibraryUpdate: (id: number) => {
-    state.emittedMediaIds.push(id);
-  },
-  emitBookLibraryUpdate: () => undefined,
-}));
-
-mock.module("@hously/api/services/qbittorrent/config", () => ({
-  getQbittorrentIntegrationConfig: () =>
-    Promise.resolve({ enabled: false, config: null }),
-}));
-
-mock.module("@hously/api/services/qbittorrent/torrents", () => ({
-  fetchQbittorrentMaindataPage: () => Promise.resolve({ torrents: [], rid: 0 }),
-  fetchQbittorrentTorrent: () => Promise.resolve({ torrent: null }),
-  fetchQbittorrentTorrentProperties: () =>
-    Promise.resolve({ properties: null }),
-  setQbittorrentTorrentCategory: () => Promise.resolve({ success: true }),
-  setQbittorrentTorrentTags: () => Promise.resolve({ success: true }),
-  addQbittorrentMagnet: () => Promise.resolve({ success: false }),
-  addQbittorrentTorrentFile: () => Promise.resolve({ success: false }),
-  deleteQbittorrentTorrent: () => Promise.resolve({ success: true }),
-  parseQbittorrentAddResponse: () => ({ ok: false, error: "" }),
-}));
+// Subscribe to the real libraryEventBus to capture emissions — don't mock
+// the module (it has a `libraryEventBus` export consumed by other modules,
+// and bun's mock.module is process-global, so a partial mock breaks them).
+const { libraryEventBus } = await import("@hously/api/services/libraryEvents");
+libraryEventBus.on("update", (ev: { mediaId: number }) => {
+  state.emittedMediaIds.push(ev.mediaId);
+});
 
 const { completeDownloadByHash } =
   await import("@hously/api/workers/checkDownloadCompletion");
@@ -181,6 +168,75 @@ describe("completeDownloadByHash", () => {
     });
     const result = await completeDownloadByHash(`  ${HASH.toUpperCase()}  `);
     expect(result).toBe(7);
+  });
+
+  it("prefers the newest PENDING row over an older completed row sharing the same hash", async () => {
+    // Regression for Codex P1: when retries/re-grabs leave multiple DH rows
+    // with the same hash, the lookup must mark the newest pending row
+    // complete — not return an older already-completed row's id.
+    const oldCompletedAt = new Date("2024-01-01T00:00:00Z");
+    state.rows.push({
+      id: 1,
+      torrentHash: HASH,
+      completedAt: oldCompletedAt,
+      failed: false,
+      mediaId: 10,
+      episodeId: 20,
+      bookId: null,
+      postProcessDestinationPath: null,
+    });
+    state.rows.push({
+      id: 2,
+      torrentHash: HASH,
+      completedAt: null,
+      failed: false,
+      mediaId: 10,
+      episodeId: 21,
+      bookId: null,
+      postProcessDestinationPath: null,
+    });
+
+    const result = await completeDownloadByHash(HASH);
+
+    // The newer pending row wins.
+    expect(result).toBe(2);
+    const pendingRow = state.rows.find((r) => r.id === 2);
+    expect(pendingRow?.completedAt).toBeInstanceOf(Date);
+    // The older row's completedAt is untouched.
+    expect(state.rows.find((r) => r.id === 1)?.completedAt).toBe(
+      oldCompletedAt,
+    );
+    expect(state.emittedMediaIds).toContain(10);
+  });
+
+  it("falls back to the newest COMPLETED row when no pending row exists", async () => {
+    // Recovery handle: every row for this hash is already complete. Return
+    // the newest one's id so the webhook can re-enqueue post-processing.
+    state.rows.push({
+      id: 1,
+      torrentHash: HASH,
+      completedAt: new Date("2024-01-01T00:00:00Z"),
+      failed: false,
+      mediaId: 10,
+      episodeId: 20,
+      bookId: null,
+      postProcessDestinationPath: null,
+    });
+    state.rows.push({
+      id: 2,
+      torrentHash: HASH,
+      completedAt: new Date("2024-02-01T00:00:00Z"),
+      failed: false,
+      mediaId: 10,
+      episodeId: 21,
+      bookId: null,
+      postProcessDestinationPath: null,
+    });
+
+    const result = await completeDownloadByHash(HASH);
+    expect(result).toBe(2);
+    // Nothing flipped (no work to broadcast).
+    expect(state.emittedMediaIds).toEqual([]);
   });
 
   it("returns null for an empty/whitespace-only hash", async () => {
