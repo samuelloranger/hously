@@ -204,7 +204,121 @@ describe("/qbittorrent/added candidate filter", () => {
     expect(state.mediaUpdates).toEqual([
       { id: 1, data: { status: "downloading" } },
     ]);
-    expect(state.episodeUpdateManyArgs).not.toBeNull();
+    // Episode flip is now narrowed to the parsed season+episode, not the
+    // whole show — release name was "Example.Show.S01E02.*"
+    expect(state.episodeUpdateManyArgs).toEqual({
+      where: { mediaId: 1, status: "wanted", season: 1, episode: 2 },
+      data: { status: "downloading" },
+    });
+  });
+
+  it("prefers an actively-tracked show over a 'downloaded' one on cross-title collisions", async () => {
+    // Two shows whose normalized titles both appear as contiguous word
+    // sequences in the torrent name. Pre-fix, findFirst order decided.
+    // Post-fix, the `wanted` candidate wins over the `downloaded` one.
+    state.media.push({
+      id: 100,
+      title: "Lens",
+      type: "show",
+      status: "downloaded",
+      qualityProfileId: 1,
+    });
+    state.media.push({
+      id: 101,
+      title: "Lens Flare",
+      type: "show",
+      status: "wanted",
+      qualityProfileId: 1,
+    });
+    state.qbTorrents[SHOW_HASH] = {
+      name: "Lens.Flare.S01E01.1080p.WEB.x264-GROUP",
+      category: "hously-shows",
+      tags: "",
+    };
+
+    const res = await fireAdded(SHOW_HASH);
+    const body = (await res.json()) as { matched: boolean };
+    expect(res.status).toBe(200);
+    expect(body.matched).toBe(true);
+
+    // Show 101 ("Lens Flare", status=wanted) must win.
+    expect(state.mediaUpdates).toEqual([
+      { id: 101, data: { status: "downloading" } },
+    ]);
+    expect(state.createdDh).toHaveLength(1);
+    expect((state.createdDh[0] as { mediaId?: number }).mediaId).toBe(101);
+  });
+
+  it("falls back to a `downloaded` match when no actively-tracked candidate exists", async () => {
+    state.media.push({
+      id: 200,
+      title: "Old Show",
+      type: "show",
+      status: "downloaded",
+      qualityProfileId: 1,
+    });
+    state.qbTorrents[SHOW_HASH] = {
+      name: "Old.Show.S05E01.1080p.WEB.x264-GROUP",
+      category: "hously-shows",
+      tags: "",
+    };
+
+    const res = await fireAdded(SHOW_HASH);
+    const body = (await res.json()) as { matched: boolean };
+    expect(res.status).toBe(200);
+    expect(body.matched).toBe(true);
+    expect(state.mediaUpdates).toEqual([
+      { id: 200, data: { status: "downloading" } },
+    ]);
+  });
+
+  it("falls back to a season-wide episode flip when SxxExx can't be parsed", async () => {
+    // Cryptic release name with no parseable season/episode. The whole-show
+    // wanted episodes still need to flip so the UI reflects activity —
+    // there's no other signal available.
+    state.media.push({
+      id: 300,
+      title: "Cryptic Show",
+      type: "show",
+      status: "wanted",
+      qualityProfileId: 1,
+    });
+    state.qbTorrents[SHOW_HASH] = {
+      name: "Cryptic.Show.Complete.Pack.WEB-DL-GROUP",
+      category: "hously-shows",
+      tags: "",
+    };
+
+    const res = await fireAdded(SHOW_HASH);
+    expect(res.status).toBe(200);
+    expect(state.episodeUpdateManyArgs).toEqual({
+      where: { mediaId: 300, status: "wanted" },
+      data: { status: "downloading" },
+    });
+  });
+
+  it("narrows the episode flip to the parsed season when episode is unknown", async () => {
+    // "Season pack" style: SxxExx unavailable but season is. Flip every
+    // wanted episode in THAT season, not the whole show.
+    state.media.push({
+      id: 400,
+      title: "Season Pack Show",
+      type: "show",
+      status: "wanted",
+      qualityProfileId: 1,
+    });
+    state.qbTorrents[SHOW_HASH] = {
+      name: "Season.Pack.Show.Season.3.COMPLETE.WEB-DL-GROUP",
+      category: "hously-shows",
+      tags: "",
+    };
+
+    const res = await fireAdded(SHOW_HASH);
+    expect(res.status).toBe(200);
+    expect(state.episodeUpdateManyArgs).toEqual({
+      where: { mediaId: 400, status: "wanted", season: 3 },
+      data: { status: "downloading" },
+    });
   });
 
   it("keeps the status filter for MOVIES (one-shot — no follow-up episodes)", async () => {
