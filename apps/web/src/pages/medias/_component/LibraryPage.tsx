@@ -1,10 +1,10 @@
 import { useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence, type Variants } from "motion/react";
-import { useSearch } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { useLibraryNavigation } from "@/features/medias/context/LibraryNavigationContext";
 import {
-  Search,
+  Search as SearchIcon,
   Film,
   Tv,
   Clock,
@@ -63,6 +63,7 @@ import {
   LIBRARY_SORT_KEYS,
   sortItems,
 } from "@/utils/libraryUtils";
+import { useAuth } from "@/lib/auth/useAuth";
 
 const PAGE_SIZE = 48;
 
@@ -78,6 +79,7 @@ const LIBRARY_DEFAULTS = {
 
 export function LibraryPage() {
   const { t } = useTranslation("common");
+  const { user } = useAuth();
   const { saveLibrarySearch } = useLibraryNavigation();
   const searchParams = useSearch({ from: "/library/" });
 
@@ -194,6 +196,16 @@ export function LibraryPage() {
         iconColor="text-primary-600"
         title={t("medias.library.pageTitle")}
         subtitle={t("medias.library.pageSubtitle")}
+        actions={
+          user?.is_admin ? (
+            <Link
+              to="/library/downloads"
+              className="text-xs font-semibold uppercase tracking-wide text-primary-600 hover:text-primary-500 dark:text-primary-400 whitespace-nowrap"
+            >
+              Downloads import
+            </Link>
+          ) : undefined
+        }
         onRefresh={() => refetch()}
         isRefreshing={isLoading}
       />
@@ -203,7 +215,7 @@ export function LibraryPage() {
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="relative w-full sm:w-auto">
-              <Search
+              <SearchIcon
                 size={13}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
               />

@@ -35,7 +35,6 @@ type State = {
   episodeUpdateManyArgs: object | null;
   episodeUpdateManyCount: number;
   mediaUpdateArgs: object | null;
-  importedCount: number; // what scanAndImportLibraryFiles returns
   enqueuedDhIds: number[]; // IDs passed to enqueueLibraryPostProcess
 };
 
@@ -48,7 +47,6 @@ const state: State = {
   episodeUpdateManyArgs: null,
   episodeUpdateManyCount: 0,
   mediaUpdateArgs: null,
-  importedCount: 0,
   enqueuedDhIds: [],
 };
 
@@ -156,7 +154,6 @@ mock.module("@hously/api/utils/medias/filenameParser", () => ({
 }));
 
 mock.module("@hously/api/services/postProcessor", () => ({
-  scanAndImportLibraryFiles: () => Promise.resolve(state.importedCount),
   enqueueLibraryPostProcess: (dhId: number) => {
     state.enqueuedDhIds.push(dhId);
   },
@@ -239,7 +236,6 @@ beforeEach(() => {
   state.episodeUpdateManyArgs = null;
   state.episodeUpdateManyCount = 0;
   state.mediaUpdateArgs = null;
-  state.importedCount = 0;
   state.enqueuedDhIds = [];
 
   for (const k of Object.keys(statMap)) delete statMap[k];
@@ -466,37 +462,33 @@ describe("rescanLibraryItem", () => {
     expect(state.mediaUpdateArgs).toBeNull();
   });
 
-  // ── Library folder scan (step 1) ───────────────────────────────────────────
+  // ── Imported count (formerly automatic library-folder scan) ───────────────
 
-  it("17. Files exist in library folder but not in DB → imported, status reconciliation skipped", async () => {
+  it("17. imported is always 0 (use Library → Downloads to add files manually)", async () => {
     state.media = { id: 1, type: "movie", status: "downloading" };
     state.remainingFileCount = 1;
-    state.importedCount = 1; // scanAndImportLibraryFiles found 1 file
 
     const result = await rescanLibraryItem(1);
-    expect(result?.imported).toBe(1);
-    // Status reconciliation skipped because imported > 0
-    expect(result?.mediaReset).toBe(false);
-    expect(state.mediaUpdateArgs).toBeNull();
-    expect(result?.episodesReset).toBe(0);
+    expect(result?.imported).toBe(0);
+    // With no tracked files remaining, reconcile still runs (handled by steps 18+)
+    expect(result?.rescanned).toBe(0);
   });
 
-  it("18. Library folder import + existing files on disk → both handled independently", async () => {
+  it("18. Tracked files rescanned regardless of obsolete import semantics", async () => {
     const file = makeFile({ id: 1, filePath: "/media/movie.mkv" });
     state.media = { id: 1, type: "movie", status: "downloading" };
     state.files = [file];
-    state.remainingFileCount = 2; // 1 existing + 1 imported
-    state.importedCount = 1;
+    state.remainingFileCount = 1;
     statMap[file.filePath] = true;
     scanMap[file.filePath] = makeMi();
 
     const result = await rescanLibraryItem(1);
-    expect(result?.imported).toBe(1);
+    expect(result?.imported).toBe(0);
     expect(result?.rescanned).toBe(1);
-    expect(result?.mediaReset).toBe(false); // skipped because imported > 0
+    expect(result?.mediaReset).toBe(false);
   });
 
-  // ── qBittorrent re-queue (step 3) ──────────────────────────────────────────
+  // ── qBittorrent re-queue ───────────────────────────────────────────────────
 
   it("19. Completed DH with torrent still in qBittorrent (completed state) → requeued:1", async () => {
     state.media = {

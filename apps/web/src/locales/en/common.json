@@ -1963,5 +1963,76 @@
       "removeDownloadHistoryTitle": "Remove from history"
     },
     "notFound": "Item not found in library."
+  },
+  "downloadsImport": {
+    "title": "Downloads import",
+    "subtitle": "Admin-only: stage TMDB IDs and submit to hardlink into the library",
+    "refresh": "Refresh",
+    "loadError": "Failed to load list",
+    "retryFreshScan": "Retry (fresh scan)",
+    "empty": {
+      "title": "No video files in Downloads folder",
+      "description": "Confirm Movies and TV library folders in Settings → Media."
+    },
+    "toolbar": {
+      "filenameFilter": "Filter file name…",
+      "statusAll": "All statuses",
+      "statusReady": "Ready to assign",
+      "statusLinked": "Imported",
+      "statusParseFailed": "Parse failed",
+      "sort": "Sort",
+      "sortingSize": "Sorting: Size",
+      "sortingName": "Sorting: Name",
+      "sortingModified": "Sorting: Modified",
+      "count": "{{visible}} of {{total}}"
+    },
+    "columns": {
+      "file": "File",
+      "size": "Size",
+      "quality": "Quality",
+      "group": "Group",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "imported": "Imported",
+      "ready": "Ready to assign",
+      "parseFailed": "Parse failed"
+    },
+    "row": {
+      "expand": "Expand details",
+      "collapse": "Collapse details",
+      "unstage": "Unstage pick",
+      "edit": "Edit",
+      "retry": "Retry"
+    },
+    "details": {
+      "path": "Path:",
+      "codec": "Codec",
+      "hdr": "HDR",
+      "audio": "Audio",
+      "subs": "Subs",
+      "modified": "Modified",
+      "detected": "Detected"
+    },
+    "search": {
+      "trigger": "Search TMDB",
+      "placeholder": "Search TMDB…",
+      "noResults": "No results",
+      "typeMore": "Type at least two characters"
+    },
+    "errors": {
+      "requestFailed": "Request failed"
+    },
+    "footer": {
+      "staged": "{{count}} items staged",
+      "clear": "Clear staged",
+      "submit": "Submit",
+      "processing": "Processing {{processed}} / {{total}}…",
+      "cancel": "Cancel",
+      "doneSuccess": "Done — {{succeeded}} succeeded",
+      "doneWithFailures": "Done — {{succeeded}} succeeded, {{failed}} failed",
+      "dismiss": "Dismiss"
+    }
   }
 }

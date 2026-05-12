@@ -8,9 +8,10 @@ export const MEDIAS_ENDPOINTS = {
     const qs = p.toString();
     return `/api/medias/providers/${encodeURIComponent(mediaType)}/${encodeURIComponent(String(tmdbId))}${qs ? `?${qs}` : ""}`;
   },
-  TMDB_SEARCH: (q: string, language?: string) => {
+  TMDB_SEARCH: (q: string, language?: string, kind?: "movie" | "tv") => {
     const p = new URLSearchParams({ q });
     if (language) p.set("language", language);
+    if (kind) p.set("kind", kind);
     return `/api/medias/tmdb-search?${p.toString()}`;
   },
   INTERACTIVE_SEARCH: "/api/medias/interactive-search",

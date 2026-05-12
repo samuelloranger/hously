@@ -23,6 +23,7 @@ import { externalNotificationsRoutes } from "./routes/external-notifications";
 import { habitsRoutes } from "./routes/habits";
 import { homeAssistantRoutes } from "./routes/dashboard/home-assistant";
 import { libraryMediaAdminRoutes } from "./routes/library/libraryMediaAdmin";
+import { libraryDownloadsRoutes } from "./routes/library/downloads";
 import { libraryRoutes } from "./routes/library";
 import { qualityProfilesRoutes } from "./routes/quality-profiles";
 import { mediasRoutes } from "./routes/medias";
@@ -135,6 +136,7 @@ export const app = new Elysia()
   .use(integrationsRoutes)
   .use(homeAssistantRoutes)
   .use(libraryMediaAdminRoutes)
+  .use(libraryDownloadsRoutes)
   .use(libraryRoutes)
   .use(qualityProfilesRoutes)
   .use(mediasRoutes)
