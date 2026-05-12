@@ -1,5 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import {
   usePauseQbittorrentTorrent,
   useReannounceQbittorrentTorrent,
@@ -70,21 +75,6 @@ export function TorrentRow({
     reannounceMutation.isPending;
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!dropdownOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [dropdownOpen]);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -201,37 +191,39 @@ export function TorrentRow({
               </div>
 
               {/* Mobile: three-dot dropdown */}
-              <div
-                ref={dropdownRef}
-                className="relative sm:hidden"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              >
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setDropdownOpen((v) => !v);
-                  }}
-                  disabled={isActionPending}
-                  className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:opacity-30"
-                  aria-label={t("common.actions", "Actions")}
-                >
-                  {isActionPending ? (
-                    <span className="block w-3 h-3 rounded-full border-2 border-neutral-400 border-t-transparent animate-spin" />
-                  ) : (
-                    <MoreHorizontal size={12} />
-                  )}
-                </button>
-
-                {dropdownOpen && (
-                  <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg py-1 overflow-hidden">
+              <div className="sm:hidden">
+                <Popover open={dropdownOpen} onOpenChange={setDropdownOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDropdownOpen((v) => !v);
+                      }}
+                      disabled={isActionPending}
+                      className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-500 dark:text-neutral-400 disabled:opacity-30"
+                      aria-label={t("common.actions", "Actions")}
+                    >
+                      {isActionPending ? (
+                        <span className="block w-3 h-3 rounded-full border-2 border-neutral-400 border-t-transparent animate-spin" />
+                      ) : (
+                        <MoreHorizontal size={12} />
+                      )}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="end"
+                    sideOffset={4}
+                    className="w-auto min-w-[160px] p-1 rounded-xl"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
                     <button
                       onClick={handleTogglePin}
                       disabled={isPinPending}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors rounded-lg"
                     >
                       {isPinned ? <PinOff size={13} /> : <Pin size={13} />}
                       {isPinned
@@ -241,7 +233,7 @@ export function TorrentRow({
                     <button
                       onClick={handleReannounce}
                       disabled={isActionPending}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors rounded-lg"
                     >
                       <RefreshCw size={13} />
                       {t("torrents.reannounce", "Reannounce")}
@@ -249,15 +241,15 @@ export function TorrentRow({
                     <button
                       onClick={handleToggle}
                       disabled={isActionPending}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-white/[0.05] disabled:opacity-40 transition-colors rounded-lg"
                     >
                       {isPaused ? <Play size={13} /> : <Pause size={13} />}
                       {isPaused
                         ? t("torrents.start", "Resume")
                         : t("torrents.pause", "Pause")}
                     </button>
-                  </div>
-                )}
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <span className="font-mono text-xs font-medium text-neutral-500 dark:text-neutral-400 tabular-nums">
