@@ -175,10 +175,14 @@ export async function sendExternalNotification(
 
     const results = await Promise.all(
       targetUserIds.map((userId) =>
+        // Do NOT include payload.original_payload here — raw webhook bodies
+        // (especially Jellyfin's ItemAdded) can be 5–16 KB, which blows past
+        // the ~4 KB push-service payload limit. The full raw body is already
+        // persisted in external_notification_service_logs.payload for
+        // debugging; here we only need the curated fields.
         createAndQueueNotification(userId, title, body, "external", url, {
           service_name: serviceName,
           event_type: eventType,
-          payload: payload.original_payload as Record<string, unknown>,
           ...(payload.notification_metadata ?? {}),
         }),
       ),

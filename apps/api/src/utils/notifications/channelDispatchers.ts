@@ -63,12 +63,21 @@ export function parseNtfyConfig(raw: unknown): NtfyChannelConfig {
   return parsed;
 }
 
+// ntfy (and HTTP headers in general) only accept ASCII. Encode any title that
+// contains non-ASCII characters (emoji, accents) as RFC 2047 base64 so ntfy
+// decodes it back to the original unicode on display.
+function encodeHeaderValue(value: string): string {
+  // eslint-disable-next-line no-control-regex
+  if (/^[\x00-\x7F]*$/.test(value)) return value;
+  return `=?UTF-8?B?${Buffer.from(value, "utf-8").toString("base64")}?=`;
+}
+
 export async function dispatchNtfy(
   config: NtfyChannelConfig,
   { title, body, url }: DispatchPayload,
 ): Promise<void> {
   const headers: Record<string, string> = {
-    Title: title,
+    Title: encodeHeaderValue(title),
     Priority: String(config.priority ?? 3),
     "Content-Type": "text/plain",
   };
