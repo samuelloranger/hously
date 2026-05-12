@@ -5,10 +5,7 @@ import {
   remapPath,
 } from "@hously/api/utils/medias/mediainfoScanner";
 import { parseFilenameMetadata } from "@hously/api/utils/medias/filenameParser";
-import {
-  scanAndImportLibraryFiles,
-  enqueueLibraryPostProcess,
-} from "@hously/api/services/postProcessor";
+import { enqueueLibraryPostProcess } from "@hously/api/services/postProcessor";
 import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
 import { fetchMaindata } from "@hously/api/services/qbittorrent/client";
 import {
@@ -20,7 +17,7 @@ export type RescanResult = {
   rescanned: number; // files whose MediaInfo was updated
   failed: number; // files that exist on disk but MediaInfo failed to read
   deleted: number; // stale MediaFile records removed (file gone from disk)
-  imported: number; // untracked files found in library folder and imported
+  imported: number; // always 0; use Downloads Import UI instead of automatic folder scan
   requeued: number; // post-process jobs queued (file in downloads, not yet hardlinked)
   episodesReset: number; // LibraryEpisode rows reset to "wanted"
   mediaReset: boolean; // whether LibraryMedia.status was reset to "wanted"
@@ -58,12 +55,9 @@ export async function rescanLibraryItem(
     treatMissingAsFailed: true,
   });
 
-  // ── Step 1: Import files already in the library folder but missing DB records ──
-  // Handles the case where post-processing ran but the record wasn't created,
-  // or files were manually placed in the library folder.
-  const imported = await scanAndImportLibraryFiles(media);
+  const imported = 0;
 
-  // ── Step 2: Process existing MediaFile records ────────────────────────────────
+  // ── Step 1: Process existing MediaFile records ────────────────────────────────
   // Update MediaInfo for valid files; delete records for files gone from disk.
   const files = await prisma.mediaFile.findMany({ where: { mediaId } });
 
@@ -117,7 +111,7 @@ export async function rescanLibraryItem(
     rescanned++;
   }
 
-  // ── Step 3: qBittorrent — re-queue post-processing for completed downloads ────
+  // ── Step 2: qBittorrent — re-queue post-processing for completed downloads ────
   // Handles the case where a torrent finished downloading but the hardlink/move
   // step was missed. Only fires if the torrent is still present in qBittorrent
   // in a completed state, so intentionally-deleted torrents are never re-queued.
@@ -162,9 +156,8 @@ export async function rescanLibraryItem(
     }
   }
 
-  // ── Step 4: Reconcile statuses ────────────────────────────────────────────────
-  // Skip if step 1 or step 3 produced results — those paths update statuses
-  // themselves when they complete.
+  // ── Step 3: Reconcile statuses ────────────────────────────────────────────────
+  // Skip if a post-processing job was just requeued (it completes asynchronously).
   let episodesReset = 0;
   let mediaReset = false;
 

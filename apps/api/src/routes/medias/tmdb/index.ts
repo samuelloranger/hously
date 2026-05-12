@@ -82,8 +82,17 @@ export const mediasTmdbRoutes = new Elysia()
           Array.isArray(searchData.results) ? searchData.results : []
         )
           .map(mapTmdbSearchItem)
-          .filter((item): item is TmdbSearchItem => Boolean(item))
-          .slice(0, 20);
+          .filter((item): item is TmdbSearchItem => Boolean(item));
+
+        const kindFilter =
+          typeof query.kind === "string" ? query.kind.trim().toLowerCase() : "";
+        if (kindFilter === "movie") {
+          items = items.filter((i) => i.media_type === "movie");
+        } else if (kindFilter === "tv") {
+          items = items.filter((i) => i.media_type === "tv");
+        }
+
+        items = items.slice(0, 20);
 
         // Check which TMDB IDs are already in the library
         const tmdbIds = items.map((i) => i.tmdb_id);
@@ -115,6 +124,9 @@ export const mediasTmdbRoutes = new Elysia()
       query: t.Object({
         q: t.String(),
         language: t.Optional(t.String()),
+        kind: t.Optional(
+          t.Union([t.Literal("movie"), t.Literal("tv"), t.Literal("any")]),
+        ),
       }),
     },
   )

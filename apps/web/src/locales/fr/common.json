@@ -1963,5 +1963,76 @@
       "removeDownloadHistoryTitle": "Retirer de l'historique"
     },
     "notFound": "Élément introuvable dans la bibliothèque."
+  },
+  "downloadsImport": {
+    "title": "Importer depuis Downloads",
+    "subtitle": "Réservé aux admins : sélectionnez les IDs TMDB et soumettez pour créer les liens dans la bibliothèque",
+    "refresh": "Rafraîchir",
+    "loadError": "Échec du chargement de la liste",
+    "retryFreshScan": "Réessayer (scan complet)",
+    "empty": {
+      "title": "Aucun fichier vidéo dans le dossier Downloads",
+      "description": "Vérifiez les chemins Films et Séries dans Paramètres → Médias."
+    },
+    "toolbar": {
+      "filenameFilter": "Filtrer par nom de fichier…",
+      "statusAll": "Tous les statuts",
+      "statusReady": "Prêt à assigner",
+      "statusLinked": "Importé",
+      "statusParseFailed": "Analyse échouée",
+      "sort": "Trier",
+      "sortingSize": "Tri : Taille",
+      "sortingName": "Tri : Nom",
+      "sortingModified": "Tri : Modifié",
+      "count": "{{visible}} sur {{total}}"
+    },
+    "columns": {
+      "file": "Fichier",
+      "size": "Taille",
+      "quality": "Qualité",
+      "group": "Groupe",
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "status": {
+      "imported": "Importé",
+      "ready": "Prêt à assigner",
+      "parseFailed": "Analyse échouée"
+    },
+    "row": {
+      "expand": "Afficher les détails",
+      "collapse": "Masquer les détails",
+      "unstage": "Retirer la sélection",
+      "edit": "Modifier",
+      "retry": "Réessayer"
+    },
+    "details": {
+      "path": "Chemin :",
+      "codec": "Codec",
+      "hdr": "HDR",
+      "audio": "Audio",
+      "subs": "Sous-titres",
+      "modified": "Modifié",
+      "detected": "Détecté"
+    },
+    "search": {
+      "trigger": "Rechercher sur TMDB",
+      "placeholder": "Rechercher sur TMDB…",
+      "noResults": "Aucun résultat",
+      "typeMore": "Saisissez au moins deux caractères"
+    },
+    "errors": {
+      "requestFailed": "Échec de la requête"
+    },
+    "footer": {
+      "staged": "{{count}} éléments sélectionnés",
+      "clear": "Tout retirer",
+      "submit": "Soumettre",
+      "processing": "Traitement {{processed}} / {{total}}…",
+      "cancel": "Annuler",
+      "doneSuccess": "Terminé — {{succeeded}} réussi(s)",
+      "doneWithFailures": "Terminé — {{succeeded}} réussi(s), {{failed}} échec(s)",
+      "dismiss": "Fermer"
+    }
   }
 }

@@ -40,17 +40,22 @@ export function useSimilarMedias(
 
 export function useTmdbMediaSearch(
   query: string,
-  options?: { enabled?: boolean; language?: string },
+  options?: {
+    enabled?: boolean;
+    language?: string;
+    kind?: "movie" | "tv";
+  },
 ) {
   const fetcher = useFetcher();
   const trimmed = query.trim();
   const lang = options?.language ?? "en-US";
+  const kind = options?.kind;
 
   return useQuery({
-    queryKey: queryKeys.medias.tmdbSearch(trimmed, lang),
+    queryKey: queryKeys.medias.tmdbSearch(trimmed, lang, kind ?? "any"),
     queryFn: () =>
       fetcher<TmdbMediaSearchResponse>(
-        MEDIAS_ENDPOINTS.TMDB_SEARCH(trimmed, lang),
+        MEDIAS_ENDPOINTS.TMDB_SEARCH(trimmed, lang, kind),
       ),
     enabled: (options?.enabled ?? true) && trimmed.length >= 2,
   });

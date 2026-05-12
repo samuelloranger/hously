@@ -193,12 +193,17 @@ export const queryKeys = {
     explore: () => [...queryKeys.medias.all, "explore"] as const,
     similar: (tmdbId: number, type: "movie" | "tv") =>
       [...queryKeys.medias.all, "similar", tmdbId, type] as const,
-    tmdbSearch: (query: string, language?: string) =>
+    tmdbSearch: (
+      query: string,
+      language?: string,
+      kind?: "movie" | "tv" | "any",
+    ) =>
       [
         ...queryKeys.medias.all,
         "tmdb-search",
         query,
         language ?? "en-US",
+        kind ?? "any",
       ] as const,
     interactiveSearch: (
       query: string,
@@ -344,6 +349,8 @@ export const queryKeys = {
       [...queryKeys.library.all, "episodes", id] as const,
     downloads: (id: number) =>
       [...queryKeys.library.all, "downloads", id] as const,
+    downloadsImport: () =>
+      [...queryKeys.library.all, "downloads-import"] as const,
     postProcessingSettings: () =>
       [...queryKeys.library.all, "post-processing-settings"] as const,
     languageTags: () => [...queryKeys.library.all, "language-tags"] as const,
