@@ -209,8 +209,6 @@ if (!enabled || !config) {
   console.log(
     JSON.stringify({
       website_url: config.website_url,
-      poll_interval_seconds: config.poll_interval_seconds,
-      max_items: config.max_items,
       iterations: options.iterations,
       delayMs: options.delayMs,
       mode: options.mode,

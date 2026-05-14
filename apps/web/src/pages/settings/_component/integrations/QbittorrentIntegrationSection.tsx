@@ -34,12 +34,6 @@ function QbittorrentIntegrationSectionImpl({
   );
   const [username, setUsername] = useState(data?.integration?.username || "");
   const [password, setPassword] = useState("");
-  const [pollInterval, setPollInterval] = useState(
-    String(data?.integration?.poll_interval_seconds || 1),
-  );
-  const [maxItems, setMaxItems] = useState(
-    String(data?.integration?.max_items || 8),
-  );
   const [enabled, setEnabled] = useState(Boolean(data?.integration?.enabled));
 
   const isDirty = useMemo(() => {
@@ -48,18 +42,14 @@ function QbittorrentIntegrationSectionImpl({
       websiteUrl !== (data.integration.website_url || "") ||
       username !== (data.integration.username || "") ||
       password !== "" ||
-      pollInterval !== String(data.integration.poll_interval_seconds || 1) ||
-      maxItems !== String(data.integration.max_items || 8) ||
       enabled !== Boolean(data.integration.enabled)
     );
-  }, [data, websiteUrl, username, password, pollInterval, maxItems, enabled]);
+  }, [data, websiteUrl, username, password, enabled]);
 
   const handleCancel = () => {
     setWebsiteUrl(data?.integration.website_url || "");
     setUsername(data?.integration.username || "");
     setPassword("");
-    setPollInterval(String(data?.integration.poll_interval_seconds || 1));
-    setMaxItems(String(data?.integration.max_items || 8));
     setEnabled(Boolean(data?.integration.enabled));
   };
 
@@ -69,8 +59,6 @@ function QbittorrentIntegrationSectionImpl({
         website_url: websiteUrl,
         username,
         password: password.trim() ? password : undefined,
-        poll_interval_seconds: Number(pollInterval || 1),
-        max_items: Number(maxItems || 8),
         enabled,
       })
       .then(() => {
@@ -126,38 +114,6 @@ function QbittorrentIntegrationSectionImpl({
           )}
           className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white font-mono"
         />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-            {t("settings.integrations.qbittorrent.pollInterval")}
-          </label>
-          <input
-            type="number"
-            min={1}
-            max={30}
-            step={1}
-            value={pollInterval}
-            onChange={(event) => setPollInterval(event.target.value)}
-            className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-            {t("settings.integrations.qbittorrent.maxItems")}
-          </label>
-          <input
-            type="number"
-            min={3}
-            max={30}
-            step={1}
-            value={maxItems}
-            onChange={(event) => setMaxItems(event.target.value)}
-            className="w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
-          />
-        </div>
       </div>
 
       <div className="rounded-lg bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400">

@@ -53,8 +53,6 @@ export interface QbittorrentIntegration {
   website_url: string;
   username: string;
   password_set: boolean;
-  poll_interval_seconds: number;
-  max_items: number;
 }
 
 export interface ScrutinyIntegration {

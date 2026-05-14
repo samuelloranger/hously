@@ -387,8 +387,6 @@ export function useUpdateQbittorrentIntegration() {
       website_url: string;
       username: string;
       password?: string;
-      poll_interval_seconds?: number;
-      max_items?: number;
       enabled: boolean;
     }) =>
       fetcher<QbittorrentIntegrationUpdateResponse>(

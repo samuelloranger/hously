@@ -24,8 +24,6 @@ export interface QbittorrentIntegrationConfig {
   website_url: string;
   username: string;
   password: string;
-  poll_interval_seconds: number;
-  max_items: number;
   webhook_secret?: string;
 }
 
@@ -167,27 +165,6 @@ export interface QbittorrentCategory {
   save_path: string | null;
 }
 
-export interface QbittorrentDashboardSnapshot {
-  enabled: boolean;
-  connected: boolean;
-  updated_at: string;
-  poll_interval_seconds: number;
-  summary: {
-    downloading_count: number;
-    stalled_count: number;
-    seeding_count: number;
-    paused_count: number;
-    completed_count: number;
-    total_count: number;
-    download_speed: number;
-    upload_speed: number;
-    downloaded_bytes: number;
-    uploaded_bytes: number;
-  };
-  torrents: QbittorrentDashboardTorrent[];
-  error?: string;
-}
-
 export interface QbittorrentListTorrentsParams {
   filter?: string;
   category?: string;
@@ -247,8 +224,6 @@ export const resetMaindataState = () => {
 
 // --- Shared helpers ---
 
-export const DEFAULT_POLL_INTERVAL_SECONDS = 1;
-export const DEFAULT_MAX_ITEMS = 8;
 export const DOWNLOAD_STATES = new Set([
   "downloading",
   "forcedDL",
