@@ -9,7 +9,6 @@ import {
   getQbittorrentIntegrationConfig,
 } from "@hously/api/services/qbittorrent/config";
 import {
-  clampInteger,
   isValidHttpUrl,
   normalizeUrl,
 } from "@hously/api/utils/integrations/utils";
@@ -73,8 +72,6 @@ export const qbittorrentIntegrationRoutes = new Elysia()
           website_url: config?.website_url || "",
           username: config?.username || "",
           password_set: Boolean(config?.password),
-          poll_interval_seconds: config?.poll_interval_seconds || 1,
-          max_items: config?.max_items || 8,
           hously_base_url: getBaseUrl(),
           webhook_secret_configured: Boolean(config?.webhook_secret),
         },
@@ -89,13 +86,6 @@ export const qbittorrentIntegrationRoutes = new Elysia()
     async ({ user, body, set }) => {
       const websiteUrl = normalizeUrl(body.website_url);
       const username = body.username.trim();
-      const pollIntervalSeconds = clampInteger(
-        body.poll_interval_seconds,
-        1,
-        30,
-        1,
-      );
-      const maxItems = clampInteger(body.max_items, 3, 30, 8);
 
       if (!websiteUrl || !isValidHttpUrl(websiteUrl)) {
         return badRequest(
@@ -132,8 +122,6 @@ export const qbittorrentIntegrationRoutes = new Elysia()
           website_url: websiteUrl,
           username,
           password: encrypt(password),
-          poll_interval_seconds: pollIntervalSeconds,
-          max_items: maxItems,
           webhook_secret: encrypt(webhookSecret),
         };
 
@@ -169,8 +157,6 @@ export const qbittorrentIntegrationRoutes = new Elysia()
             website_url: websiteUrl,
             username,
             password_set: true,
-            poll_interval_seconds: pollIntervalSeconds,
-            max_items: maxItems,
           },
         };
       } catch (error) {
@@ -186,8 +172,6 @@ export const qbittorrentIntegrationRoutes = new Elysia()
         website_url: t.String(),
         username: t.String(),
         password: t.Optional(t.String()),
-        poll_interval_seconds: t.Optional(t.Numeric()),
-        max_items: t.Optional(t.Numeric()),
         enabled: t.Optional(t.Boolean()),
       }),
     },

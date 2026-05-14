@@ -5,13 +5,7 @@ import {
   deleteCache,
 } from "@hously/api/services/cache";
 import { decrypt } from "@hously/api/services/crypto";
-import {
-  toRecord,
-  toStringOrNull,
-  clampInt,
-  DEFAULT_POLL_INTERVAL_SECONDS,
-  DEFAULT_MAX_ITEMS,
-} from "./client";
+import { toRecord, toStringOrNull } from "./client";
 import type { QbittorrentIntegrationConfig } from "./client";
 
 export const normalizeQbittorrentConfig = (
@@ -45,13 +39,6 @@ export const normalizeQbittorrentConfig = (
     website_url: websiteUrl.replace(/\/+$/, ""),
     username,
     password,
-    poll_interval_seconds: clampInt(
-      cfg.poll_interval_seconds,
-      1,
-      30,
-      DEFAULT_POLL_INTERVAL_SECONDS,
-    ),
-    max_items: clampInt(cfg.max_items, 3, 30, DEFAULT_MAX_ITEMS),
     ...(webhookSecret ? { webhook_secret: webhookSecret } : {}),
   };
 };

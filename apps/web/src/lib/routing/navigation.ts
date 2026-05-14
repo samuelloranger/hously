@@ -7,7 +7,6 @@ import {
   Layers2,
   Library,
   ListChecks,
-  Magnet,
   Target,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -66,11 +65,6 @@ export const navSections: NavSection[] = [
         path: "/explore",
         translationKey: "nav.explore",
         icon: Compass,
-      },
-      {
-        path: "/torrents",
-        translationKey: "nav.torrents",
-        icon: Magnet,
       },
       {
         path: "/watchlist",

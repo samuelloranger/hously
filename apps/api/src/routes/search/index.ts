@@ -3,11 +3,6 @@ import { prisma } from "@hously/api/db";
 import { auth } from "@hously/api/auth";
 import { requireUser } from "@hously/api/middleware/auth";
 import { serverError } from "@hously/api/errors";
-import { getQbittorrentIntegrationConfig } from "@hously/api/services/qbittorrent/config";
-import {
-  fetchMaindata,
-  toTorrentListItem,
-} from "@hously/api/services/qbittorrent/client";
 import {
   PRISMA_TO_API_STATUS,
   PRISMA_TO_API_PRIORITY,
@@ -24,7 +19,6 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
         const limit = Math.min(parseInt(query.limit || "6", 10) || 6, 20);
 
         const empty = {
-          torrents: [],
           medias: [],
           chores: [],
           users: [],
@@ -90,38 +84,6 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
           }),
         ]);
 
-        // Torrents from qBittorrent — filter by name in-memory
-        let torrents: {
-          id: string;
-          name: string;
-          size_bytes: number;
-          category: string;
-          progress: number;
-        }[] = [];
-        try {
-          const { enabled, config } = await getQbittorrentIntegrationConfig();
-          if (enabled && config) {
-            const { torrents: torrentMap } = await fetchMaindata(config);
-            const matched: typeof torrents = [];
-            for (const raw of torrentMap.values()) {
-              const item = toTorrentListItem(raw);
-              if (!item) continue;
-              if (!item.name.toLowerCase().includes(q)) continue;
-              matched.push({
-                id: item.id,
-                name: item.name,
-                size_bytes: item.size_bytes,
-                category: item.category ?? "",
-                progress: item.progress,
-              });
-              if (matched.length >= limit) break;
-            }
-            torrents = matched;
-          }
-        } catch {
-          // qBittorrent unreachable or not configured — return empty
-        }
-
         // Medias from library
         let medias: {
           id: number;
@@ -147,7 +109,6 @@ export const searchRoutes = new Elysia({ prefix: "/api/search" })
         }
 
         return {
-          torrents,
           medias,
           chores: chores.map((c) => ({
             id: c.id,

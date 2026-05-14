@@ -4,7 +4,6 @@ export * from "./date";
 export * from "./coerce";
 export * from "./imageValidation";
 export * from "./media-library";
-export * from "./qbittorrent";
 export * from "./notifications";
 export * from "./recurrence";
 export * from "./trackers";

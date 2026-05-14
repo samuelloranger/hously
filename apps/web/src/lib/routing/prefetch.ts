@@ -8,8 +8,7 @@ import {
   CALENDAR_ENDPOINTS,
   CHORES_ENDPOINTS,
   DASHBOARD_ENDPOINTS,
-  QBITTORRENT_ENDPOINTS,
-  QBITTORRENT_TORRENTS_PAGE_SIZE,
+  DOWNLOADS_ENDPOINTS,
   EXTERNAL_NOTIFICATION_ENDPOINTS,
   LIBRARY_ENDPOINTS,
   MEDIAS_ENDPOINTS,
@@ -69,12 +68,8 @@ async function prefetchHomePageData(queryClient: QueryClient): Promise<void> {
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
     },
     {
-      queryKey: queryKeys.qbittorrent.status(),
-      queryFn: () => webFetcher(QBITTORRENT_ENDPOINTS.STATUS),
-    },
-    {
-      queryKey: queryKeys.dashboard.qbittorrentPinnedTorrent(),
-      queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.PINNED),
+      queryKey: queryKeys.downloads.speed(),
+      queryFn: () => webFetcher(DOWNLOADS_ENDPOINTS.SPEED),
     },
     {
       queryKey: queryKeys.dashboard.scrutinySummary(),
@@ -150,12 +145,8 @@ function prefetchHomePageDataOptimistic(queryClient: QueryClient): void {
     queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
   });
   void queryClient.prefetchQuery({
-    queryKey: queryKeys.qbittorrent.status(),
-    queryFn: () => webFetcher(QBITTORRENT_ENDPOINTS.STATUS),
-  });
-  void queryClient.prefetchQuery({
-    queryKey: queryKeys.dashboard.qbittorrentPinnedTorrent(),
-    queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.PINNED),
+    queryKey: queryKeys.downloads.speed(),
+    queryFn: () => webFetcher(DOWNLOADS_ENDPOINTS.SPEED),
   });
   void queryClient.prefetchQuery({
     queryKey: queryKeys.dashboard.scrutinySummary(),
@@ -233,38 +224,6 @@ const routeQueryDefinitions = {
     {
       queryKey: queryKeys.dashboard.upcoming(),
       queryFn: () => webFetcher(DASHBOARD_ENDPOINTS.UPCOMING.LIST),
-    },
-  ],
-
-  "/torrents": () => [
-    {
-      queryKey: queryKeys.qbittorrent.status(),
-      queryFn: () => webFetcher(QBITTORRENT_ENDPOINTS.STATUS),
-    },
-    {
-      queryKey: queryKeys.dashboard.qbittorrentTorrents({
-        offset: 0,
-        limit: QBITTORRENT_TORRENTS_PAGE_SIZE,
-        sort: "added_on",
-        reverse: true,
-      }),
-      queryFn: () =>
-        webFetcher(
-          `${DASHBOARD_ENDPOINTS.QBITTORRENT.TORRENTS}?sort=added_on&reverse=true&limit=${QBITTORRENT_TORRENTS_PAGE_SIZE}&offset=0`,
-        ),
-    },
-  ],
-
-  "/torrents/$hash": (params: { hash: string }) => [
-    {
-      queryKey: queryKeys.dashboard.qbittorrentTorrentProperties(params.hash),
-      queryFn: () =>
-        webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.PROPERTIES(params.hash)),
-    },
-    {
-      queryKey: queryKeys.dashboard.qbittorrentTorrentFiles(params.hash),
-      queryFn: () =>
-        webFetcher(DASHBOARD_ENDPOINTS.QBITTORRENT.FILES(params.hash)),
     },
   ],
 

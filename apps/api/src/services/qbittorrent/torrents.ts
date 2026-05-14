@@ -8,12 +8,10 @@ import {
   type QbittorrentTorrentPeer,
   type QbittorrentCategory,
   type QbittorrentCategoryRaw,
-  type QbittorrentDashboardSnapshot,
   type QbittorrentListTorrentsParams,
   DOWNLOAD_STATES,
   STALLED_STATES,
   SEEDING_STATES,
-  DEFAULT_POLL_INTERVAL_SECONDS,
   toRecord,
   toStringOrNull,
   toNumberOr,
@@ -140,107 +138,6 @@ const computeSummary = (torrents: QbittorrentDashboardTorrent[]) => {
     completed_count: completedCount,
     total_count: torrents.length,
   };
-};
-
-// --- Snapshot ---
-
-export const buildQbittorrentDisabledSnapshot = (
-  error?: string,
-): QbittorrentDashboardSnapshot => ({
-  enabled: false,
-  connected: false,
-  updated_at: "",
-  poll_interval_seconds: DEFAULT_POLL_INTERVAL_SECONDS,
-  summary: {
-    downloading_count: 0,
-    stalled_count: 0,
-    seeding_count: 0,
-    paused_count: 0,
-    completed_count: 0,
-    total_count: 0,
-    download_speed: 0,
-    upload_speed: 0,
-    downloaded_bytes: 0,
-    uploaded_bytes: 0,
-  },
-  torrents: [],
-  error,
-});
-
-export const fetchQbittorrentSnapshot = async (
-  config: QbittorrentIntegrationConfig,
-  enabled: boolean,
-): Promise<QbittorrentDashboardSnapshot> => {
-  if (!enabled) return buildQbittorrentDisabledSnapshot();
-
-  try {
-    const { serverState, torrents: torrentMap } = await fetchMaindata(config);
-
-    const allTorrents = Array.from(torrentMap.values());
-    const torrents = allTorrents
-      .map(toTorrent)
-      .filter((row): row is QbittorrentDashboardTorrent => !!row);
-    const summaryCounts = computeSummary(torrents);
-    const prioritizedTorrents = [...torrents]
-      .sort((a, b) => {
-        const aScore = a.download_speed * 2 + a.upload_speed;
-        const bScore = b.download_speed * 2 + b.upload_speed;
-        return bScore - aScore;
-      })
-      .slice(0, config.max_items);
-
-    return {
-      enabled: true,
-      connected: true,
-      updated_at: "",
-      poll_interval_seconds: config.poll_interval_seconds,
-      summary: {
-        ...summaryCounts,
-        download_speed: Math.max(
-          0,
-          Math.trunc(toNumberOr(serverState.dl_info_speed, 0)),
-        ),
-        upload_speed: Math.max(
-          0,
-          Math.trunc(toNumberOr(serverState.up_info_speed, 0)),
-        ),
-        downloaded_bytes: Math.max(
-          0,
-          Math.trunc(toNumberOr(serverState.dl_info_data, 0)),
-        ),
-        uploaded_bytes: Math.max(
-          0,
-          Math.trunc(toNumberOr(serverState.up_info_data, 0)),
-        ),
-      },
-      torrents: prioritizedTorrents,
-    };
-  } catch (error) {
-    console.error("Error fetching qBittorrent snapshot:", error);
-    return {
-      enabled: true,
-      connected: false,
-      updated_at: "",
-      poll_interval_seconds: config.poll_interval_seconds,
-      summary: {
-        downloading_count: 0,
-        stalled_count: 0,
-        seeding_count: 0,
-        paused_count: 0,
-        completed_count: 0,
-        total_count: 0,
-        download_speed: 0,
-        upload_speed: 0,
-        downloaded_bytes: 0,
-        uploaded_bytes: 0,
-      },
-      torrents: [],
-      error:
-        error instanceof Error
-          ? error.message
-          : "Unable to connect to qBittorrent",
-    };
-  }
 };
 
 // --- Torrent list operations ---

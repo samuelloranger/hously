@@ -12,7 +12,7 @@ export * from "./medias";
 export * from "./notifications";
 export * from "./integrations";
 export * from "./qualityProfiles";
-export * from "./qbittorrent";
+export * from "./downloads";
 export * from "./releases";
 export * from "./search";
 export * from "./settings";
