@@ -17,7 +17,6 @@ import {
   Sun,
   Moon,
   RefreshCw,
-  Magnet,
   Clapperboard,
   Tv,
   CheckCircle,
@@ -29,7 +28,6 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useQuickSearch } from "@/lib/search/useSearch";
-import { formatBytes } from "@/lib/utils/format";
 import { navSections } from "@/lib/routing/navigation";
 import { usePrefetchAllRoutes } from "@/lib/routing/usePrefetchAllRoutes";
 import { Dialog } from "@/components/dialog";
@@ -48,13 +46,7 @@ interface QuickAction {
   title: string;
   description: string;
   icon: ReactNode;
-  section:
-    | "actions"
-    | "torrents"
-    | "medias"
-    | "chores"
-    | "users"
-    | "board_tasks";
+  section: "actions" | "medias" | "chores" | "users" | "board_tasks";
   keywords?: string[];
   shortcut?: string;
   action: () => void;
@@ -186,30 +178,11 @@ export function QuickActionPalette({
     if (!shouldSearch || !searchQuery.data) return [];
 
     const {
-      torrents = [],
       medias = [],
       chores = [],
       users = [],
       board_tasks = [],
     } = searchQuery.data;
-
-    const torrentActions: QuickAction[] = torrents.map((torrent) => ({
-      id: `torrent-${torrent.id}`,
-      title: torrent.name,
-      description: [
-        formatBytes(torrent.size_bytes),
-        torrent.category,
-        `${Math.round(torrent.progress * 100)}%`,
-      ]
-        .filter(Boolean)
-        .join(" • "),
-      icon: <Magnet size={20} />,
-      section: "torrents" as const,
-      action: () => {
-        navigate({ to: "/torrents/$hash", params: { hash: torrent.id } });
-        handleClose();
-      },
-    }));
 
     const libraryStatusLabel = (status: string) =>
       t(`medias.library.itemStatus.${status}`, { defaultValue: status });
@@ -299,7 +272,6 @@ export function QuickActionPalette({
     }));
 
     return [
-      ...torrentActions,
       ...mediaActions,
       ...choreActions,
       ...userActions,
@@ -316,7 +288,6 @@ export function QuickActionPalette({
 
   const sectionLabels: Record<QuickAction["section"], string> = useMemo(
     () => ({
-      torrents: t("common.quickActionsSectionTorrents"),
       medias: t("common.quickActionsSectionMedias"),
       chores: t("chores.title"),
       users: t("common.quickActionsSectionUsers"),
