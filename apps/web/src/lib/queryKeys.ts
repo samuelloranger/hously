@@ -21,9 +21,9 @@ export const queryKeys = {
     list: () => [...queryKeys.chores.all, "list"] as const,
   },
 
-  qbittorrent: {
-    all: ["qbittorrent"] as const,
-    status: () => [...queryKeys.qbittorrent.all, "status"] as const,
+  downloads: {
+    all: ["downloads"] as const,
+    speed: () => [...queryKeys.downloads.all, "speed"] as const,
   },
 
   dashboard: {
@@ -52,30 +52,6 @@ export const queryKeys = {
     trackerStats: (type: TrackerType) =>
       [...queryKeys.dashboard.all, "tracker-stats", type] as const,
     upcoming: () => [...queryKeys.dashboard.all, "upcoming"] as const,
-    qbittorrentPinnedTorrent: () =>
-      [...queryKeys.dashboard.all, "qbittorrent-pinned-torrent"] as const,
-    qbittorrentTorrents: (params: Record<string, unknown>) =>
-      [...queryKeys.dashboard.all, "qbittorrent-torrents", params] as const,
-    qbittorrentCategories: () =>
-      [...queryKeys.dashboard.all, "qbittorrent-categories"] as const,
-    qbittorrentTags: () =>
-      [...queryKeys.dashboard.all, "qbittorrent-tags"] as const,
-    qbittorrentTorrentProperties: (hash: string) =>
-      [
-        ...queryKeys.dashboard.all,
-        "qbittorrent-torrent-properties",
-        hash,
-      ] as const,
-    qbittorrentTorrentTrackers: (hash: string) =>
-      [
-        ...queryKeys.dashboard.all,
-        "qbittorrent-torrent-trackers",
-        hash,
-      ] as const,
-    qbittorrentTorrentFiles: (hash: string) =>
-      [...queryKeys.dashboard.all, "qbittorrent-torrent-files", hash] as const,
-    qbittorrentTorrentPeers: (hash: string) =>
-      [...queryKeys.dashboard.all, "qbittorrent-torrent-peers", hash] as const,
     scrutinySummary: () =>
       [...queryKeys.dashboard.all, "scrutiny-summary"] as const,
     systemSummary: () =>

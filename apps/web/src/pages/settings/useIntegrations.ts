@@ -403,7 +403,7 @@ export function useUpdateQbittorrentIntegration() {
         queryKey: queryKeys.integrations.qbittorrent(),
       });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.qbittorrent.status(),
+        queryKey: queryKeys.downloads.speed(),
       });
     },
   });

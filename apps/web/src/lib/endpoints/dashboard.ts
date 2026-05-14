@@ -1,4 +1,4 @@
-import { QBITTORRENT_ENDPOINTS } from "./qbittorrent";
+import { DOWNLOADS_ENDPOINTS } from "./downloads";
 
 export const DASHBOARD_ENDPOINTS = {
   STATS: "/api/dashboard/stats",
@@ -26,7 +26,7 @@ export const DASHBOARD_ENDPOINTS = {
     ADD: "/api/dashboard/upcoming/add",
     STATUS: "/api/dashboard/upcoming/status",
   },
-  QBITTORRENT: QBITTORRENT_ENDPOINTS,
+  DOWNLOADS: DOWNLOADS_ENDPOINTS,
   SCRUTINY: {
     SUMMARY: "/api/dashboard/scrutiny/summary",
   },

@@ -17,3 +17,4 @@ export * from "./qualityProfiles";
 export * from "./library";
 export * from "./releases";
 export * from "./settings";
+export * from "./downloads";
