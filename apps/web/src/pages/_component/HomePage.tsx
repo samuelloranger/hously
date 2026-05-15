@@ -19,6 +19,8 @@ import { LibraryStatsPanel } from "@/pages/_component/LibraryStatsPanel";
 import { TrackersPanel } from "@/pages/_component/TrackersPanel";
 import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
 import { ChoresPanel, HabitsPanel } from "@/pages/_component/HomePanel";
+import { MinecraftCardsPanel } from "@/pages/_component/MinecraftCardsPanel";
+import { MinecraftCompactPanel } from "@/pages/_component/MinecraftCompactPanel";
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -155,6 +157,12 @@ export function HomePage() {
 
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
+                <MinecraftCardsPanel />
+              </CardErrorBoundary>
+            </motion.div>
+
+            <motion.div variants={panelVariants}>
+              <CardErrorBoundary>
                 <LibraryStatsPanel />
               </CardErrorBoundary>
             </motion.div>
@@ -226,6 +234,12 @@ export function HomePage() {
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 {user?.is_admin && <RssStatusPanel />}
+              </CardErrorBoundary>
+            </motion.div>
+
+            <motion.div variants={panelVariants}>
+              <CardErrorBoundary>
+                <MinecraftCompactPanel />
               </CardErrorBoundary>
             </motion.div>
           </motion.div>

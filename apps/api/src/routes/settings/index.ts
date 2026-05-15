@@ -126,6 +126,7 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
             system: t.Boolean(),
             downloads: t.Boolean(),
             rss: t.Boolean(),
+            minecraft: t.Optional(t.Boolean()),
           }),
         ),
       }),
