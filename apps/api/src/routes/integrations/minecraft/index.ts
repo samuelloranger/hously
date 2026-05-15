@@ -6,45 +6,7 @@ import { requireAdmin } from "@hously/api/middleware/auth";
 import { badRequest, serverError } from "@hously/api/errors";
 import { logActivity } from "@hously/api/utils/activityLogs";
 import { pingMinecraftServer } from "@hously/api/utils/minecraft/ping";
-import type { MinecraftServerEntry } from "@hously/shared/types/integrations";
-
-function formatServer(s: {
-  id: number;
-  name: string;
-  host: string;
-  port: number;
-  pollIntervalMinutes: number;
-  enabled: boolean;
-  widgetView: string;
-  isOnline: boolean;
-  onlinePlayers: number | null;
-  maxPlayers: number | null;
-  version: string | null;
-  motd: string | null;
-  latencyMs: number | null;
-  favicon: string | null;
-  playerSample: unknown;
-  lastCheckedAt: Date | null;
-}): MinecraftServerEntry {
-  return {
-    id: s.id,
-    name: s.name,
-    host: s.host,
-    port: s.port,
-    poll_interval_minutes: s.pollIntervalMinutes as 5 | 15 | 30 | 60,
-    enabled: s.enabled,
-    widget_view: s.widgetView as "compact" | "cards",
-    is_online: s.isOnline,
-    online_players: s.onlinePlayers,
-    max_players: s.maxPlayers,
-    version: s.version,
-    motd: s.motd,
-    latency_ms: s.latencyMs,
-    favicon: s.favicon,
-    player_sample: (s.playerSample as Array<{ name: string; id: string }>) ?? null,
-    last_checked_at: s.lastCheckedAt?.toISOString() ?? null,
-  };
-}
+import { formatServer } from "@hously/api/utils/minecraft/format";
 
 const POLL_INTERVALS = [5, 15, 30, 60];
 
@@ -87,7 +49,10 @@ export const minecraftIntegrationRoutes = new Elysia()
           userId: user!.id,
           payload: { integration_type: "minecraft" },
         });
-        return { success: true, integration: { type: "minecraft", enabled: integration.enabled } };
+        return {
+          success: true,
+          integration: { type: "minecraft", enabled: integration.enabled },
+        };
       } catch (error) {
         console.error("Error updating Minecraft integration:", error);
         return serverError(set, "Failed to update Minecraft integration");
@@ -110,7 +75,10 @@ export const minecraftIntegrationRoutes = new Elysia()
     "/minecraft/servers",
     async ({ body, user, set }) => {
       if (!POLL_INTERVALS.includes(body.poll_interval_minutes)) {
-        return badRequest(set, "poll_interval_minutes must be 5, 15, 30, or 60");
+        return badRequest(
+          set,
+          "poll_interval_minutes must be 5, 15, 30, or 60",
+        );
       }
       if (!["compact", "cards"].includes(body.widget_view)) {
         return badRequest(set, "widget_view must be compact or cards");
@@ -156,7 +124,10 @@ export const minecraftIntegrationRoutes = new Elysia()
     async ({ params, body, user, set }) => {
       const id = Number(params.id);
       if (!POLL_INTERVALS.includes(body.poll_interval_minutes)) {
-        return badRequest(set, "poll_interval_minutes must be 5, 15, 30, or 60");
+        return badRequest(
+          set,
+          "poll_interval_minutes must be 5, 15, 30, or 60",
+        );
       }
       if (!["compact", "cards"].includes(body.widget_view)) {
         return badRequest(set, "widget_view must be compact or cards");
@@ -206,7 +177,11 @@ export const minecraftIntegrationRoutes = new Elysia()
       await logActivity({
         type: "integration_updated",
         userId: user!.id,
-        payload: { integration_type: "minecraft", server_id: id, action: "deleted" },
+        payload: {
+          integration_type: "minecraft",
+          server_id: id,
+          action: "deleted",
+        },
       });
       return { success: true };
     } catch (error: unknown) {
@@ -238,7 +213,9 @@ export const minecraftIntegrationRoutes = new Elysia()
           playerSample: pingResult.player_sample ?? undefined,
           lastCheckedAt: now,
           lastStatusChangeAt:
-            pingResult.is_online !== server.isOnline ? now : server.lastStatusChangeAt,
+            pingResult.is_online !== server.isOnline
+              ? now
+              : server.lastStatusChangeAt,
           updatedAt: now,
         },
       });
