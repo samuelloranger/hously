@@ -60,6 +60,7 @@ export const queryKeys = {
       [...queryKeys.dashboard.all, "adguard-summary"] as const,
     homeAssistantWidget: () =>
       [...queryKeys.dashboard.all, "home-assistant-widget"] as const,
+    minecraft: () => [...queryKeys.dashboard.all, "minecraft"] as const,
   },
 
   weather: {
@@ -129,6 +130,13 @@ export const queryKeys = {
     uptimekuma: () => [...queryKeys.integrations.all, "uptimekuma"] as const,
     uptimekumaMonitors: () =>
       [...queryKeys.integrations.all, "uptimekuma", "monitors"] as const,
+    minecraft: {
+      all: ["integrations", "minecraft"] as const,
+      integration: () =>
+        [...queryKeys.integrations.minecraft.all, "integration"] as const,
+      servers: () =>
+        [...queryKeys.integrations.minecraft.all, "servers"] as const,
+    },
   },
 
   admin: {

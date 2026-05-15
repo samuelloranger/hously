@@ -43,4 +43,5 @@ export const DASHBOARD_ENDPOINTS = {
     WIDGET: "/api/home-assistant/widget",
     CONTROL: "/api/home-assistant/control",
   },
+  MINECRAFT: "/api/dashboard/minecraft",
 } as const;

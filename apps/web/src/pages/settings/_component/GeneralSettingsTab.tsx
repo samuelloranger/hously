@@ -65,6 +65,7 @@ export function GeneralSettingsTab() {
         system: true,
         downloads: true,
         rss: true,
+        minecraft: true,
       },
     );
 
@@ -110,6 +111,7 @@ export function GeneralSettingsTab() {
         system: true,
         downloads: true,
         rss: true,
+        minecraft: true,
       },
     );
   }, [data?.settings]);
