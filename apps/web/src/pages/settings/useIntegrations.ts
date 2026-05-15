@@ -32,6 +32,10 @@ import type {
   UptimekumaIntegration,
   UptimekumaIntegrationUpdateResponse,
   HomeAssistantDiscoverResponse,
+  MinecraftIntegration,
+  MinecraftServerEntry,
+  MinecraftCreateServerRequest,
+  MinecraftUpdateServerRequest,
 } from "@hously/shared/types";
 const TRACKER_INTEGRATION_ENDPOINTS: Record<TrackerType, string> = {
   c411: INTEGRATION_ENDPOINTS.C411,
@@ -599,6 +603,121 @@ export function useUpdateUptimekumaIntegration() {
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.integrations.uptimekumaMonitors(),
+      });
+    },
+  });
+}
+
+// --- Minecraft ---
+
+export function useMinecraftIntegration() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.integrations.minecraft.integration(),
+    queryFn: () =>
+      fetcher<{ integration: MinecraftIntegration }>(
+        INTEGRATION_ENDPOINTS.MINECRAFT,
+      ),
+  });
+}
+
+export function useUpdateMinecraftIntegration() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { enabled: boolean }) =>
+      fetcher<{ success: boolean }>(INTEGRATION_ENDPOINTS.MINECRAFT, {
+        method: "PUT",
+        body,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.minecraft.all,
+      });
+    },
+  });
+}
+
+export function useMinecraftServers() {
+  const fetcher = useFetcher();
+  return useQuery({
+    queryKey: queryKeys.integrations.minecraft.servers(),
+    queryFn: () =>
+      fetcher<{ servers: MinecraftServerEntry[] }>(
+        INTEGRATION_ENDPOINTS.MINECRAFT_SERVERS,
+      ),
+  });
+}
+
+export function useCreateMinecraftServer() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: MinecraftCreateServerRequest) =>
+      fetcher<{ success: boolean; server: MinecraftServerEntry }>(
+        INTEGRATION_ENDPOINTS.MINECRAFT_SERVERS,
+        { method: "POST", body },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.minecraft.servers(),
+      });
+    },
+  });
+}
+
+export function useUpdateMinecraftServer() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id: number;
+      body: MinecraftUpdateServerRequest;
+    }) =>
+      fetcher<{ success: boolean; server: MinecraftServerEntry }>(
+        `${INTEGRATION_ENDPOINTS.MINECRAFT_SERVERS}/${id}`,
+        { method: "PUT", body },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.minecraft.servers(),
+      });
+    },
+  });
+}
+
+export function useDeleteMinecraftServer() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<{ success: boolean }>(
+        `${INTEGRATION_ENDPOINTS.MINECRAFT_SERVERS}/${id}`,
+        { method: "DELETE" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.minecraft.servers(),
+      });
+    },
+  });
+}
+
+export function usePingMinecraftServer() {
+  const fetcher = useFetcher();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetcher<{ success: boolean; server: MinecraftServerEntry }>(
+        `${INTEGRATION_ENDPOINTS.MINECRAFT_SERVERS}/${id}/ping`,
+        { method: "POST" },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.integrations.minecraft.servers(),
       });
     },
   });
