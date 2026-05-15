@@ -9,6 +9,7 @@ import { dashboardScrutinyRoutes } from "./scrutiny";
 import { dashboardSystemRoutes } from "./system";
 import { dashboardAdguardRoutes } from "./adguard";
 import { dashboardDownloadsRoutes } from "./downloads";
+import { minecraftDashboardRoutes } from "./minecraft";
 
 export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(dashboardStatsRoutes)
@@ -20,4 +21,5 @@ export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(dashboardScrutinyRoutes)
   .use(dashboardSystemRoutes)
   .use(dashboardAdguardRoutes)
-  .use(dashboardDownloadsRoutes);
+  .use(dashboardDownloadsRoutes)
+  .use(minecraftDashboardRoutes);
