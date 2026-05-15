@@ -43,6 +43,7 @@ export const SCHEDULED_JOB_NAMES = {
   UPGRADE_MEDIA_SEARCH: "upgrade-media-search",
   REFRESH_GITHUB_RELEASES: "refresh-github-releases",
   SYNC_LIBRARY_ATTENTION_ALERTS: "sync-library-attention-alerts",
+  POLL_MINECRAFT_SERVERS: "poll-minecraft-servers",
 } as const;
 
 // Job names for Notifications queue
@@ -268,6 +269,10 @@ export async function setupScheduledJobs() {
     {
       name: SCHEDULED_JOB_NAMES.SYNC_LIBRARY_ATTENTION_ALERTS,
       pattern: "12 * * * *",
+    },
+    {
+      name: SCHEDULED_JOB_NAMES.POLL_MINECRAFT_SERVERS,
+      pattern: "*/5 * * * *",
     },
   ];
 

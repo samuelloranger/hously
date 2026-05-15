@@ -13,6 +13,7 @@ import { adguardIntegrationRoutes } from "./adguard";
 import { uptimekumaIntegrationRoutes } from "./uptimekuma";
 import { trackerIntegrationsRoutes } from "./trackers";
 import { oidcIntegrationRoutes } from "./oidc";
+import { minecraftIntegrationRoutes } from "./minecraft";
 
 export const integrationsRoutes = new Elysia({ prefix: "/api/integrations" })
   .use(weatherIntegrationRoutes)
@@ -27,4 +28,5 @@ export const integrationsRoutes = new Elysia({ prefix: "/api/integrations" })
   .use(adguardIntegrationRoutes)
   .use(uptimekumaIntegrationRoutes)
   .use(trackerIntegrationsRoutes)
-  .use(oidcIntegrationRoutes);
+  .use(oidcIntegrationRoutes)
+  .use(minecraftIntegrationRoutes);
