@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, mock } from "bun:test";
+import { describe, it, expect, beforeEach, afterAll, mock } from "bun:test";
 
 // ---------------------------------------------------------------------------
 // Mutable state shared across all mock factories
@@ -631,4 +631,11 @@ describe("rescanLibraryItem", () => {
     // Falls through to status reset
     expect(result?.mediaReset).toBe(true);
   });
+});
+
+// Restore node:fs/promises after all tests so the mock doesn't leak into other
+// test files that run in the same worker context (e.g. downloadsAssign.test.ts).
+afterAll(() => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  mock.module("node:fs/promises", () => require("node:fs").promises);
 });
