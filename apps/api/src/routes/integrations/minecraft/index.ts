@@ -210,7 +210,7 @@ export const minecraftIntegrationRoutes = new Elysia()
           motd: pingResult.motd,
           latencyMs: pingResult.latency_ms,
           favicon: pingResult.favicon,
-          playerSample: pingResult.player_sample ?? undefined,
+          playerSample: pingResult.player_sample,
           lastCheckedAt: now,
           lastStatusChangeAt:
             pingResult.is_online !== server.isOnline

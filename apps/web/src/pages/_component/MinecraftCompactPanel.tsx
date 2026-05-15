@@ -1,4 +1,3 @@
-import { useAppSettings } from "@/pages/settings/useAppSettings";
 import { useMinecraftWidget } from "@/pages/_component/useMinecraftWidget";
 import { cn } from "@/lib/utils";
 import type { MinecraftServerEntry } from "@hously/shared/types";
@@ -65,13 +64,9 @@ function ServerRow({ server }: { server: MinecraftServerEntry }) {
 }
 
 export function MinecraftCompactPanel() {
-  const settings = useAppSettings();
   const { isPending, compactServers } = useMinecraftWidget();
 
-  if (settings.isPending || isPending) return <MinecraftCompactPanelSkeleton />;
-
-  if (!settings.data?.settings.dashboard_widget_visibility.minecraft)
-    return null;
+  if (isPending) return <MinecraftCompactPanelSkeleton />;
 
   if (compactServers.length === 0) return null;
 

@@ -1,4 +1,3 @@
-import { useAppSettings } from "@/pages/settings/useAppSettings";
 import { useMinecraftWidget } from "@/pages/_component/useMinecraftWidget";
 import { cn } from "@/lib/utils";
 import type { MinecraftServerEntry } from "@hously/shared/types";
@@ -108,13 +107,9 @@ function ServerCard({ server }: { server: MinecraftServerEntry }) {
 }
 
 export function MinecraftCardsPanel() {
-  const settings = useAppSettings();
   const { isPending, cardServers } = useMinecraftWidget();
 
-  if (settings.isPending || isPending) return <MinecraftCardsSkeleton />;
-
-  if (!settings.data?.settings.dashboard_widget_visibility.minecraft)
-    return null;
+  if (isPending) return <MinecraftCardsSkeleton />;
 
   if (cardServers.length === 0) return null;
 

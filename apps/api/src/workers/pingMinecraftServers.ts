@@ -35,7 +35,7 @@ export async function pollMinecraftServers(): Promise<void> {
         motd: pingResult.motd,
         latencyMs: pingResult.latency_ms,
         favicon: pingResult.favicon,
-        playerSample: pingResult.player_sample ?? undefined,
+        playerSample: pingResult.player_sample,
         lastCheckedAt: now,
         lastStatusChangeAt: statusChanged ? now : server.lastStatusChangeAt,
         updatedAt: now,
@@ -48,7 +48,10 @@ export async function pollMinecraftServers(): Promise<void> {
   }
 }
 
-async function notifyStatusChange(serverName: string, isOnline: boolean): Promise<void> {
+async function notifyStatusChange(
+  serverName: string,
+  isOnline: boolean,
+): Promise<void> {
   const subscriptions = await prisma.userSubscription.findMany();
 
   for (const sub of subscriptions) {
@@ -61,7 +64,9 @@ async function notifyStatusChange(serverName: string, isOnline: boolean): Promis
 
     const result = await sendWebPushNotification(subscriptionInfo, {
       title: "Minecraft Server",
-      body: isOnline ? `${serverName} is back online` : `${serverName} is offline`,
+      body: isOnline
+        ? `${serverName} is back online`
+        : `${serverName} is offline`,
       tag: `minecraft-status-${serverName}`,
       data: { notification_type: "minecraft_status" },
     });
