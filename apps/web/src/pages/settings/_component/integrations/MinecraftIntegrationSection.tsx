@@ -246,15 +246,19 @@ interface ServerRowProps {
   pinging: boolean;
 }
 
-function ServerRow({ server, onEdit, onDelete, onPing, pinging }: ServerRowProps) {
+function ServerRow({
+  server,
+  onEdit,
+  onDelete,
+  onPing,
+  pinging,
+}: ServerRowProps) {
   return (
     <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700">
       {/* Online indicator */}
       <span
         className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-          server.is_online
-            ? "bg-green-500"
-            : "bg-red-400"
+          server.is_online ? "bg-green-500" : "bg-red-400"
         }`}
         title={server.is_online ? "Online" : "Offline"}
       />
@@ -319,7 +323,8 @@ function MinecraftIntegrationSectionImpl({
   isLoading: boolean;
 }) {
   const updateIntegration = useUpdateMinecraftIntegration();
-  const { data: serversData, isLoading: serversLoading } = useMinecraftServers();
+  const { data: serversData, isLoading: serversLoading } =
+    useMinecraftServers();
   const createServer = useCreateMinecraftServer();
   const updateServer = useUpdateMinecraftServer();
   const deleteServer = useDeleteMinecraftServer();
@@ -327,7 +332,9 @@ function MinecraftIntegrationSectionImpl({
 
   const [enabled, setEnabled] = useState(Boolean(data?.integration?.enabled));
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<MinecraftServerEntry | undefined>(undefined);
+  const [editTarget, setEditTarget] = useState<
+    MinecraftServerEntry | undefined
+  >(undefined);
 
   // Sync enabled state when server data loads
   const [prevData, setPrevData] = useState(data?.integration);
@@ -461,6 +468,7 @@ function MinecraftIntegrationSectionImpl({
       </IntegrationSectionCard>
 
       <ServerDialog
+        key={editTarget?.id ?? "new"}
         isOpen={dialogOpen}
         onClose={handleDialogClose}
         initial={editTarget}
