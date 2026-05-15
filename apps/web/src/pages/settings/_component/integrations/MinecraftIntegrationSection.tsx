@@ -422,6 +422,7 @@ function MinecraftIntegrationSectionImpl({
       <IntegrationSectionCard
         title="Minecraft Servers"
         description="Monitor your Java Edition Minecraft servers"
+        logoUrl="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/minecraft.png"
         enabled={enabled}
         onEnabledChange={setEnabled}
         onCancel={handleCancel}
