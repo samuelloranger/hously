@@ -4,6 +4,7 @@ export interface DashboardWidgetVisibility {
   system: boolean;
   downloads: boolean;
   rss: boolean;
+  minecraft: boolean;
 }
 
 export interface AppSettings {

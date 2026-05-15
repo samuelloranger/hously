@@ -1,3 +1,5 @@
+import type { MinecraftServerEntry } from "./integrations";
+
 export interface DashboardStats {
   events_today: number;
   chores_count: number;
@@ -251,4 +253,8 @@ export interface RssStatusResponse {
   last_run: RssRunResult | null;
   history: RssRunResult[];
   next_run_at: string | null;
+}
+
+export interface MinecraftDashboardResponse {
+  servers: MinecraftServerEntry[];
 }
