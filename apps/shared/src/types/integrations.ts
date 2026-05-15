@@ -249,3 +249,42 @@ export interface OidcProvider {
   enabled: boolean;
   icon_url: string | null;
 }
+
+export interface MinecraftServerEntry {
+  id: number;
+  name: string;
+  host: string;
+  port: number;
+  poll_interval_minutes: 5 | 15 | 30 | 60;
+  enabled: boolean;
+  widget_view: "compact" | "cards";
+  is_online: boolean;
+  online_players: number | null;
+  max_players: number | null;
+  version: string | null;
+  motd: string | null;
+  latency_ms: number | null;
+  favicon: string | null;
+  player_sample: Array<{ name: string; id: string }> | null;
+  last_checked_at: string | null;
+}
+
+export interface MinecraftCreateServerRequest {
+  name: string;
+  host: string;
+  port: number;
+  poll_interval_minutes: 5 | 15 | 30 | 60;
+  enabled: boolean;
+  widget_view: "compact" | "cards";
+}
+
+export type MinecraftUpdateServerRequest = MinecraftCreateServerRequest;
+
+export interface MinecraftIntegrationUpdateResponse {
+  integration: MinecraftIntegration;
+}
+
+export interface MinecraftIntegration {
+  type: "minecraft";
+  enabled: boolean;
+}

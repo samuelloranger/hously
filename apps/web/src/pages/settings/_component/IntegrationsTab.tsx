@@ -16,6 +16,7 @@ import {
   WeatherIntegrationSection,
   HomeAssistantIntegrationSection,
   UptimekumaIntegrationSection,
+  MinecraftIntegrationSection,
 } from "@/pages/settings/_component/integrations";
 
 type SubTab = "integrations" | "trackers";
@@ -86,6 +87,7 @@ export function IntegrationsTab() {
             <div className="space-y-3">
               <WeatherIntegrationSection />
               <HomeAssistantIntegrationSection />
+              <MinecraftIntegrationSection />
             </div>
           </div>
         </div>

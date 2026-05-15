@@ -170,6 +170,12 @@ export async function processScheduledJob(job: Job) {
         await runSyncLibraryAttentionAlerts();
         break;
       }
+      case SCHEDULED_JOB_NAMES.POLL_MINECRAFT_SERVERS: {
+        const { pollMinecraftServers } =
+          await import("../../workers/pingMinecraftServers");
+        await pollMinecraftServers();
+        break;
+      }
       default:
         console.warn(`[ScheduledTasksWorker] Unknown job name: ${job.name}`);
         return { success: false, error: "Unknown job name" };

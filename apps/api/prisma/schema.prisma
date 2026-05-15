@@ -797,3 +797,30 @@ model LibraryHealthLog {
   @@index([startedAt], map: "ix_library_health_log_started_at")
   @@map("library_health_log")
 }
+
+model MinecraftServer {
+  id                    Int       @id @default(autoincrement())
+  name                  String
+  host                  String
+  port                  Int       @default(25565)
+  pollIntervalMinutes   Int       @default(5)          @map("poll_interval_minutes")
+  enabled               Boolean   @default(true)
+  widgetView            String    @default("compact")  @map("widget_view")
+
+  isOnline              Boolean   @default(false)      @map("is_online")
+  onlinePlayers         Int?                           @map("online_players")
+  maxPlayers            Int?                           @map("max_players")
+  version               String?
+  motd                  String?   @db.Text
+  latencyMs             Int?                           @map("latency_ms")
+  favicon               String?   @db.Text
+  playerSample          Json?                          @map("player_sample")
+
+  lastCheckedAt         DateTime?                      @map("last_checked_at")
+  lastStatusChangeAt    DateTime?                      @map("last_status_change_at")
+
+  createdAt             DateTime? @default(now())      @map("created_at")
+  updatedAt             DateTime? @updatedAt           @map("updated_at")
+
+  @@map("minecraft_servers")
+}

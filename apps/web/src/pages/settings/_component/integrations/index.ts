@@ -10,3 +10,4 @@ export { TrackersIntegrationSection } from "@/pages/settings/_component/integrat
 export { WeatherIntegrationSection } from "@/pages/settings/_component/integrations/WeatherIntegrationSection";
 export { HomeAssistantIntegrationSection } from "@/pages/settings/_component/integrations/HomeAssistantIntegrationSection";
 export { UptimekumaIntegrationSection } from "@/pages/settings/_component/integrations/UptimekumaIntegrationSection";
+export { MinecraftIntegrationSection } from "./MinecraftIntegrationSection";

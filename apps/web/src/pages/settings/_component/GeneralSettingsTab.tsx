@@ -65,6 +65,7 @@ export function GeneralSettingsTab() {
         system: true,
         downloads: true,
         rss: true,
+        minecraft: true,
       },
     );
 
@@ -110,6 +111,7 @@ export function GeneralSettingsTab() {
         system: true,
         downloads: true,
         rss: true,
+        minecraft: true,
       },
     );
   }, [data?.settings]);
@@ -328,6 +330,7 @@ export function GeneralSettingsTab() {
               { key: "system" as const, label: "System Status" },
               { key: "downloads" as const, label: "Downloads" },
               { key: "rss" as const, label: "RSS Status" },
+              { key: "minecraft" as const, label: "Minecraft Servers" },
             ] as const
           ).map(({ key, label }) => (
             <label

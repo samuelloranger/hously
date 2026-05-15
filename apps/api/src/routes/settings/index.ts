@@ -14,16 +14,25 @@ import {
 
 import type { AppSettings } from "@prisma/client";
 
+const DEFAULT_WIDGET_VISIBILITY = {
+  weather: true,
+  homeassistant: true,
+  system: true,
+  downloads: true,
+  rss: true,
+  minecraft: true,
+};
+
 function mapSettings(row: AppSettings) {
   return {
     country_code: normalizeTmdbRegion(row.countryCode),
     calendar_subdivision_code: row.calendarSubdivisionCode,
     upcoming_window_months: row.upcomingWindowMonths,
     upcoming_languages: row.upcomingLanguages,
-    dashboard_widget_visibility: row.dashboardWidgetVisibility as Record<
-      string,
-      boolean
-    >,
+    dashboard_widget_visibility: {
+      ...DEFAULT_WIDGET_VISIBILITY,
+      ...((row.dashboardWidgetVisibility as Record<string, boolean>) ?? {}),
+    },
     updated_at: row.updatedAt.toISOString(),
   };
 }
@@ -126,6 +135,7 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
             system: t.Boolean(),
             downloads: t.Boolean(),
             rss: t.Boolean(),
+            minecraft: t.Boolean(),
           }),
         ),
       }),

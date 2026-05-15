@@ -24,4 +24,6 @@ export const INTEGRATION_ENDPOINTS = {
   UPTIMEKUMA: "/api/integrations/uptimekuma",
   UPTIMEKUMA_MONITORS: "/api/integrations/uptimekuma/monitors",
   OIDC: "/api/integrations/oidc",
+  MINECRAFT: "/api/integrations/minecraft",
+  MINECRAFT_SERVERS: "/api/integrations/minecraft/servers",
 } as const;
