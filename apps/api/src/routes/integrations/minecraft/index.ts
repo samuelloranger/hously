@@ -1,4 +1,5 @@
 import { Elysia, t } from "elysia";
+import { Prisma } from "@prisma/client";
 import { auth } from "@hously/api/auth";
 import { prisma } from "@hously/api/db";
 import { nowUtc } from "@hously/api/utils";
@@ -210,7 +211,7 @@ export const minecraftIntegrationRoutes = new Elysia()
           motd: pingResult.motd,
           latencyMs: pingResult.latency_ms,
           favicon: pingResult.favicon,
-          playerSample: pingResult.player_sample,
+          playerSample: pingResult.player_sample ?? Prisma.DbNull,
           lastCheckedAt: now,
           lastStatusChangeAt:
             pingResult.is_online !== server.isOnline

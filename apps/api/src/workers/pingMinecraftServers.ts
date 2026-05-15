@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@hously/api/db";
 import { pingMinecraftServer } from "@hously/api/utils/minecraft/ping";
 import { sendWebPushNotification } from "@hously/api/utils/webpush";
@@ -35,7 +36,7 @@ export async function pollMinecraftServers(): Promise<void> {
         motd: pingResult.motd,
         latencyMs: pingResult.latency_ms,
         favicon: pingResult.favicon,
-        playerSample: pingResult.player_sample,
+        playerSample: pingResult.player_sample ?? Prisma.DbNull,
         lastCheckedAt: now,
         lastStatusChangeAt: statusChanged ? now : server.lastStatusChangeAt,
         updatedAt: now,
