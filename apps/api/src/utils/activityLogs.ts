@@ -34,12 +34,17 @@ export async function logActivity(input: {
 }): Promise<void> {
   try {
     // Add job to BullMQ
-    await addJob(QUEUE_NAMES.ACTIVITY_LOGS, `log:${input.type}`, {
-      type: input.type,
-      userId: input.userId ?? null,
-      payload: input.payload,
-      createdAt: (input.createdAt ?? new Date()).toISOString(),
-    });
+    await addJob(
+      QUEUE_NAMES.EXPRESS,
+      `log:${input.type}`,
+      {
+        type: input.type,
+        userId: input.userId ?? null,
+        payload: input.payload,
+        createdAt: (input.createdAt ?? new Date()).toISOString(),
+      },
+      { attempts: 2, removeOnComplete: true },
+    );
   } catch (error) {
     console.warn("[ActivityLogs] Failed to enqueue activity log:", error);
   }

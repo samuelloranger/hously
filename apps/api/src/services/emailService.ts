@@ -1,9 +1,8 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
-import { render } from "@react-email/render";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { getBaseUrl, getSmtpConfig } from "@hously/api/config";
-import { InvitationEmail } from "@hously/api/emails/InvitationEmail";
-import { PasswordResetEmail } from "@hously/api/emails/PasswordResetEmail";
 
 let transporter: Transporter | null = null;
 
@@ -32,6 +31,38 @@ export function _resetTransporter(): void {
 
 export function isEmailConfigured(): boolean {
   return getSmtpConfig() !== null;
+}
+
+// Load pre-rendered templates once at startup
+const RENDERED_DIR = join(import.meta.dir, "../emails/rendered");
+
+function load(name: string): string {
+  return readFileSync(join(RENDERED_DIR, name), "utf-8");
+}
+
+const templates = {
+  invitation: {
+    en: { html: load("invitation.en.html"), txt: load("invitation.en.txt") },
+    fr: { html: load("invitation.fr.html"), txt: load("invitation.fr.txt") },
+  },
+  passwordReset: {
+    en: {
+      html: load("password-reset.en.html"),
+      txt: load("password-reset.en.txt"),
+    },
+    fr: {
+      html: load("password-reset.fr.html"),
+      txt: load("password-reset.fr.txt"),
+    },
+  },
+} as const;
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 export async function sendEmail(
@@ -82,16 +113,16 @@ export async function sendInvitationEmail(
 
   const isFr = locale.startsWith("fr");
   const subject = isFr
-    ? "Vous avez \u00e9t\u00e9 invit\u00e9 sur Hously"
+    ? "Vous avez été invité sur Hously"
     : "You've been invited to Hously";
 
-  const html = await render(
-    InvitationEmail({ acceptUrl, inviterName, locale }),
-  );
-  const text = await render(
-    InvitationEmail({ acceptUrl, inviterName, locale }),
-    { plainText: true },
-  );
+  const t = isFr ? templates.invitation.fr : templates.invitation.en;
+  const html = t.html
+    .replaceAll("__ACCEPT_URL__", acceptUrl)
+    .replaceAll("__INVITER_NAME__", escapeHtml(inviterName));
+  const text = t.txt
+    .replaceAll("__ACCEPT_URL__", acceptUrl)
+    .replaceAll("__INVITER_NAME__", inviterName);
 
   return sendEmail(email, subject, html, text);
 }
@@ -115,13 +146,12 @@ export async function sendPasswordResetEmail(
 
   const isFr = locale.startsWith("fr");
   const subject = isFr
-    ? "R\u00e9initialiser votre mot de passe Hously"
+    ? "Réinitialiser votre mot de passe Hously"
     : "Reset your Hously password";
 
-  const html = await render(PasswordResetEmail({ resetUrl, locale }));
-  const text = await render(PasswordResetEmail({ resetUrl, locale }), {
-    plainText: true,
-  });
+  const t = isFr ? templates.passwordReset.fr : templates.passwordReset.en;
+  const html = t.html.replaceAll("__RESET_URL__", resetUrl);
+  const text = t.txt.replaceAll("__RESET_URL__", resetUrl);
 
   return sendEmail(email, subject, html, text);
 }

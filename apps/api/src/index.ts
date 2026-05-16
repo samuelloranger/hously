@@ -89,7 +89,7 @@ export const app = new Elysia()
       credentials: true,
     }),
   )
-  .use(swagger())
+  .use(Bun.env.NODE_ENV !== "production" ? swagger() : new Elysia())
   .use((app) => {
     console.log("Elysia app initialized");
     if (Bun.env.LOG_LEVEL === "debug") {

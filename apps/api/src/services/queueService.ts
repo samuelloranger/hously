@@ -9,10 +9,8 @@ import { redisConnection } from "@hously/api/db/redis";
 
 // Define queue names
 export const QUEUE_NAMES = {
-  DEFAULT: "default",
-  NOTIFICATIONS: "notifications",
+  EXPRESS: "express",
   SCHEDULED_TASKS: "scheduled-tasks",
-  ACTIVITY_LOGS: "activity-logs",
   LIBRARY_MIGRATE: "library-migrate",
   LIBRARY_REINDEX_LANGUAGES: "library-reindex-languages",
   LIBRARY_REMUX: "library-remux",
@@ -65,23 +63,11 @@ const defaultQueueOptions: QueueOptions = {
 };
 
 // Initialize Queues
-export const defaultQueue = new Queue(QUEUE_NAMES.DEFAULT, defaultQueueOptions);
-export const notificationsQueue = new Queue(
-  QUEUE_NAMES.NOTIFICATIONS,
-  defaultQueueOptions,
-);
+export const expressQueue = new Queue(QUEUE_NAMES.EXPRESS, defaultQueueOptions);
 export const scheduledTasksQueue = new Queue(
   QUEUE_NAMES.SCHEDULED_TASKS,
   defaultQueueOptions,
 );
-export const activityLogsQueue = new Queue(QUEUE_NAMES.ACTIVITY_LOGS, {
-  ...defaultQueueOptions,
-  defaultJobOptions: {
-    ...defaultQueueOptions.defaultJobOptions,
-    attempts: 2,
-    removeOnComplete: true,
-  },
-});
 export const libraryMigrateQueue = new Queue(QUEUE_NAMES.LIBRARY_MIGRATE, {
   ...defaultQueueOptions,
   defaultJobOptions: {
@@ -110,10 +96,8 @@ export const libraryRemuxQueue = new Queue(QUEUE_NAMES.LIBRARY_REMUX, {
   },
 });
 const queues: Record<QueueName, Queue> = {
-  [QUEUE_NAMES.DEFAULT]: defaultQueue,
-  [QUEUE_NAMES.NOTIFICATIONS]: notificationsQueue,
+  [QUEUE_NAMES.EXPRESS]: expressQueue,
   [QUEUE_NAMES.SCHEDULED_TASKS]: scheduledTasksQueue,
-  [QUEUE_NAMES.ACTIVITY_LOGS]: activityLogsQueue,
   [QUEUE_NAMES.LIBRARY_MIGRATE]: libraryMigrateQueue,
   [QUEUE_NAMES.LIBRARY_REINDEX_LANGUAGES]: libraryReindexLanguagesQueue,
   [QUEUE_NAMES.LIBRARY_REMUX]: libraryRemuxQueue,
@@ -139,15 +123,20 @@ export async function addJob<T = Record<string, unknown>>(
 export function initWorkers() {
   console.log("🚀 Initializing BullMQ workers...");
 
-  // 1. Notifications Worker
+  // 1. Fast Worker — notifications + activity logs (concurrency 10)
   new Worker(
-    QUEUE_NAMES.NOTIFICATIONS,
+    QUEUE_NAMES.EXPRESS,
     async (job: Job) => {
+      if (job.name.startsWith("log:")) {
+        const { processActivityLogJob } =
+          await import("./jobs/activityLogWorker");
+        return processActivityLogJob(job);
+      }
       const { processNotificationJob } =
         await import("./jobs/notificationWorker");
       return processNotificationJob(job);
     },
-    { connection: redisConnection, concurrency: 5 },
+    { connection: redisConnection, concurrency: 10 },
   );
 
   // 2. Scheduled Tasks Worker
@@ -161,27 +150,7 @@ export function initWorkers() {
     { connection: redisConnection, concurrency: 3 }, // Allow a few scheduled tasks at once
   );
 
-  // 3. Activity Logs Worker
-  new Worker(
-    QUEUE_NAMES.ACTIVITY_LOGS,
-    async (job: Job) => {
-      const { processActivityLogJob } =
-        await import("./jobs/activityLogWorker");
-      return processActivityLogJob(job);
-    },
-    { connection: redisConnection, concurrency: 10 },
-  );
-
-  // 4. Default Worker
-  new Worker(
-    QUEUE_NAMES.DEFAULT,
-    async (job: Job) => {
-      console.log(`Processing default job: ${job.name}`);
-    },
-    { connection: redisConnection },
-  );
-
-  // 5. Library Migrate Worker (concurrency 1 — one migration at a time)
+  // 3. Library Migrate Worker (concurrency 1 — one migration at a time)
   new Worker(
     QUEUE_NAMES.LIBRARY_MIGRATE,
     async (job: Job) => {

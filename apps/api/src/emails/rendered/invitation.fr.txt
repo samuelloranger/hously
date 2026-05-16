@@ -1,0 +1,12 @@
+Vous avez été invité !
+
+__INVITER_NAME__ vous invite à rejoindre Hously. Cliquez sur le bouton ci-dessous pour créer votre compte.
+
+Accepter l'invitation __ACCEPT_URL__
+
+Ce lien expire dans 7 jours.
+
+Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :
+__ACCEPT_URL__
+
+Hously
