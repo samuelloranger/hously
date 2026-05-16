@@ -114,6 +114,8 @@ function parseHdrFormat(
   return null;
 }
 
+const RESOLUTION_TOKEN = /^(2160p|1080p|1080i|720p|576p|480p|4K|UHD)$/i;
+
 /** Extract release group from filename: last segment after last dash before extension */
 function extractReleaseGroup(
   fileName: string,
@@ -123,7 +125,9 @@ function extractReleaseGroup(
   // e.g. "Movie.2023.1080p.BluRay.x264-GROUP.mkv" → "GROUP"
   const withoutExt = fileName.replace(/\.[^.]+$/, "");
   const match = withoutExt.match(/-([A-Za-z0-9]+)$/);
-  return match?.[1] ?? null;
+  if (!match) return null;
+  if (RESOLUTION_TOKEN.test(match[1])) return null;
+  return match[1];
 }
 
 /** Parse resolution from filename */
