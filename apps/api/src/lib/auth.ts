@@ -1,5 +1,5 @@
 import { betterAuth, type Auth } from "better-auth";
-import { genericOAuth } from "better-auth/plugins";
+import { genericOAuth, bearer } from "better-auth/plugins";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { passkey } from "@better-auth/passkey";
 import { prisma } from "@hously/api/db";
@@ -144,6 +144,7 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    bearer(),
     passkey({
       rpID: process.env.WEBAUTHN_RP_ID || new URL(baseURL).hostname,
       rpName: process.env.WEBAUTHN_RP_NAME || "Hously",
