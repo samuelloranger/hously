@@ -33,10 +33,8 @@ mock.module("../src/db/redis", () => {
 const mockQueue = { add: async () => null, close: async () => {} };
 mock.module("../src/services/queueService", () => ({
   QUEUE_NAMES: {
-    DEFAULT: "default",
-    NOTIFICATIONS: "notifications",
+    EXPRESS: "express",
     SCHEDULED_TASKS: "scheduled-tasks",
-    ACTIVITY_LOGS: "activity-logs",
     LIBRARY_MIGRATE: "library-migrate",
     LIBRARY_REINDEX_LANGUAGES: "library-reindex-languages",
     LIBRARY_REMUX: "library-remux",
@@ -50,10 +48,8 @@ mock.module("../src/services/queueService", () => ({
   NOTIFICATION_JOB_NAMES: {
     SEND_NOTIFICATION: "send-notification",
   },
-  defaultQueue: mockQueue,
-  notificationsQueue: mockQueue,
+  expressQueue: mockQueue,
   scheduledTasksQueue: mockQueue,
-  activityLogsQueue: mockQueue,
   libraryMigrateQueue: mockQueue,
   libraryReindexLanguagesQueue: mockQueue,
   libraryRemuxQueue: mockQueue,

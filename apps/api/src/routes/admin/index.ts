@@ -10,9 +10,7 @@ import { requireAdmin } from "@hously/api/middleware/auth";
 import { badRequest, notFound, serverError } from "@hously/api/errors";
 import {
   scheduledTasksQueue,
-  notificationsQueue,
-  defaultQueue,
-  activityLogsQueue,
+  expressQueue,
   libraryMigrateQueue,
   QUEUE_NAMES,
   addJob,
@@ -48,9 +46,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
     const queueStats = [
       await getStats("Scheduled Tasks", scheduledTasksQueue),
-      await getStats("Notifications", notificationsQueue),
-      await getStats("Activity Logs", activityLogsQueue),
-      await getStats("Default", defaultQueue),
+      await getStats("Express", expressQueue),
       await getStats("Library Migrate", libraryMigrateQueue),
     ];
 
@@ -155,9 +151,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
   .get("/queues/:name/jobs", async ({ params, query }) => {
     const queueMap: Record<string, Queue> = {
       "scheduled-tasks": scheduledTasksQueue,
-      notifications: notificationsQueue,
-      "activity-logs": activityLogsQueue,
-      default: defaultQueue,
+      express: expressQueue,
       "library-migrate": libraryMigrateQueue,
     };
 
@@ -329,9 +323,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
     async ({ params, set }) => {
       const queueMap: Record<string, Queue> = {
         "scheduled-tasks": scheduledTasksQueue,
-        notifications: notificationsQueue,
-        "activity-logs": activityLogsQueue,
-        default: defaultQueue,
+        express: expressQueue,
         "library-migrate": libraryMigrateQueue,
       };
 
@@ -365,9 +357,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
     async ({ params, set }) => {
       const queueMap: Record<string, Queue> = {
         "scheduled-tasks": scheduledTasksQueue,
-        notifications: notificationsQueue,
-        "activity-logs": activityLogsQueue,
-        default: defaultQueue,
+        express: expressQueue,
         "library-migrate": libraryMigrateQueue,
       };
 
@@ -400,9 +390,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
     async ({ params, query, set }) => {
       const queueMap: Record<string, Queue> = {
         "scheduled-tasks": scheduledTasksQueue,
-        notifications: notificationsQueue,
-        "activity-logs": activityLogsQueue,
-        default: defaultQueue,
+        express: expressQueue,
         "library-migrate": libraryMigrateQueue,
       };
 
@@ -440,9 +428,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
 
     const allQueues: { name: string; queue: Queue }[] = [
       { name: "scheduled-tasks", queue: scheduledTasksQueue },
-      { name: "notifications", queue: notificationsQueue },
-      { name: "activity-logs", queue: activityLogsQueue },
-      { name: "default", queue: defaultQueue },
+      { name: "express", queue: expressQueue },
       { name: "library-migrate", queue: libraryMigrateQueue },
     ];
 

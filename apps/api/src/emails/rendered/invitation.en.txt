@@ -1,0 +1,12 @@
+You've been invited!
+
+__INVITER_NAME__ has invited you to join Hously. Click the button below to set up your account.
+
+Accept Invitation __ACCEPT_URL__
+
+This link expires in 7 days.
+
+If the button doesn't work, copy this link into your browser:
+__ACCEPT_URL__
+
+Hously

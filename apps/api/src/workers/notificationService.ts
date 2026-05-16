@@ -76,7 +76,7 @@ export async function createAndQueueNotification(
 
     // 2. Enqueue the actual push delivery to BullMQ
     await addJob<NotificationJobData>(
-      QUEUE_NAMES.NOTIFICATIONS,
+      QUEUE_NAMES.EXPRESS,
       `send-push:${notification.id}`,
       {
         notificationId: notification.id,
