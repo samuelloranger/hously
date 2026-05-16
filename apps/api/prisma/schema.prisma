@@ -768,6 +768,8 @@ model MediaFile {
   hdrFormat      String?  @map("hdr_format")
   resolution     Int?
   source         String?
+  audioFormat    String?  @map("audio_format")
+  isProper       Boolean  @default(false) @map("is_proper")
   audioTracks    Json     @default("[]") @map("audio_tracks")
   subtitleTracks Json     @default("[]") @map("subtitle_tracks")
   languageTags   String[] @default([]) @map("language_tags")

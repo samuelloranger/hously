@@ -5,6 +5,7 @@ import { prisma } from "@hously/api/db";
 import { classifyLanguageTags, type LibraryAudioTrack } from "@hously/shared";
 import {
   parseFilenameMetadata,
+  parseReleaseGroupFromTitle,
   parseReleaseTitle,
 } from "@hously/api/utils/medias/filenameParser";
 import {
@@ -286,6 +287,7 @@ async function postProcessSeasonPack(
         where: { filePath: destinationPath },
         select: { id: true },
       });
+      const rtParsedPack = parseReleaseTitle(dh.releaseTitle);
       const fileData = mi
         ? {
             mediaId: dh.media.id,
@@ -294,7 +296,8 @@ async function postProcessSeasonPack(
             fileName: basename(destinationPath),
             sizeBytes: mi.sizeBytes,
             durationSecs: mi.durationSecs,
-            releaseGroup: mi.releaseGroup,
+            releaseGroup:
+              mi.releaseGroup ?? parseReleaseGroupFromTitle(dh.releaseTitle),
             videoCodec: mi.videoCodec,
             videoProfile: mi.videoProfile,
             width: mi.width,
@@ -305,6 +308,8 @@ async function postProcessSeasonPack(
             hdrFormat: mi.hdrFormat ?? fnData.hdrFormat,
             resolution: mi.resolution ?? fnData.resolution,
             source: mi.source ?? fnData.source,
+            audioFormat: rtParsedPack.audio,
+            isProper: rtParsedPack.isProper,
             audioTracks: mi.audioTracks as object[],
             subtitleTracks: mi.subtitleTracks as object[],
             languageTags: classifyLanguageTags(
@@ -318,10 +323,12 @@ async function postProcessSeasonPack(
             filePath: destinationPath,
             fileName: basename(destinationPath),
             sizeBytes: BigInt(0),
-            releaseGroup: null as string | null,
+            releaseGroup: parseReleaseGroupFromTitle(dh.releaseTitle),
             resolution: fnData.resolution,
             source: fnData.source ?? q.source,
             hdrFormat: fnData.hdrFormat,
+            audioFormat: rtParsedPack.audio,
+            isProper: rtParsedPack.isProper,
             audioTracks: [] as object[],
             subtitleTracks: [] as object[],
             languageTags: [] as string[],
@@ -588,6 +595,7 @@ export async function postProcess(
       select: { id: true },
     });
 
+    const rtParsed = parseReleaseTitle(dh.releaseTitle);
     const fileData = mi
       ? {
           mediaId: dh.media!.id,
@@ -596,7 +604,8 @@ export async function postProcess(
           fileName: destFileName,
           sizeBytes: mi.sizeBytes,
           durationSecs: mi.durationSecs,
-          releaseGroup: mi.releaseGroup,
+          releaseGroup:
+            mi.releaseGroup ?? parseReleaseGroupFromTitle(dh.releaseTitle),
           videoCodec: mi.videoCodec,
           videoProfile: mi.videoProfile,
           width: mi.width,
@@ -607,6 +616,8 @@ export async function postProcess(
           hdrFormat: mi.hdrFormat ?? fnData.hdrFormat,
           resolution: mi.resolution ?? fnData.resolution,
           source: mi.source ?? fnData.source,
+          audioFormat: rtParsed.audio,
+          isProper: rtParsed.isProper,
           audioTracks: mi.audioTracks as object[],
           subtitleTracks: mi.subtitleTracks as object[],
           languageTags: classifyLanguageTags(
@@ -620,10 +631,12 @@ export async function postProcess(
           filePath: destinationPath,
           fileName: destFileName,
           sizeBytes: BigInt(0),
-          releaseGroup: null as string | null,
+          releaseGroup: parseReleaseGroupFromTitle(dh.releaseTitle),
           resolution: fnData.resolution,
           source: fnData.source ?? q.source,
           hdrFormat: fnData.hdrFormat,
+          audioFormat: rtParsed.audio,
+          isProper: rtParsed.isProper,
           audioTracks: [] as object[],
           subtitleTracks: [] as object[],
           languageTags: [] as string[],

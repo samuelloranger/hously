@@ -307,13 +307,33 @@ export function parseReleaseAudio(title: string): string | null {
 /** Last segment after final hyphen (scene / P2P release group). */
 export function parseReleaseGroupFromTitle(title: string): string | null {
   const trimmed = title.trim();
+
+  // Hyphen-delimited: standard scene convention (e.g. "...x265-GROUP")
   const idx = trimmed.lastIndexOf("-");
-  if (idx <= 0 || idx >= trimmed.length - 1) return null;
-  const seg = trimmed.slice(idx + 1).trim();
-  if (!seg || seg.length > 64) return null;
-  if (/\s/.test(seg)) return null;
-  if (RES_TITLE_RES.test(seg)) return null;
-  return seg;
+  if (idx > 0 && idx < trimmed.length - 1) {
+    const seg = trimmed.slice(idx + 1).trim();
+    if (seg && seg.length <= 64 && !/\s/.test(seg) && !RES_TITLE_RES.test(seg))
+      return seg;
+  }
+
+  // Dot-delimited fallback: French scene convention (e.g. "...AC3.JAQC")
+  // Accept the last dot-token only if it looks like a group name:
+  // - all alphanumeric, 2–16 chars
+  // - not a known technical token or resolution
+  const lastDot = trimmed.lastIndexOf(".");
+  if (lastDot > 0 && lastDot < trimmed.length - 1) {
+    const seg = trimmed.slice(lastDot + 1).trim();
+    if (
+      seg.length >= 2 &&
+      seg.length <= 16 &&
+      /^[A-Za-z0-9]+$/.test(seg) &&
+      !RES_TITLE_RES.test(seg) &&
+      !TECHNICAL_TOKENS.test(seg)
+    )
+      return seg;
+  }
+
+  return null;
 }
 
 export function parseReleaseIsSample(title: string): boolean {

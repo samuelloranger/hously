@@ -516,6 +516,50 @@ describe("parseReleaseTitle", () => {
           isProper: false,
         },
       },
+
+      // ── Dot-delimited release group (French scene convention) ────────────────────────────────
+      {
+        title: "Elemental.2023.MULTi-VF2.1080p.WEB.x264.AC3.JAQC",
+        exp: {
+          resolution: 1080,
+          source: "WEB",
+          codec: "x264",
+          hdr: null,
+          audio: "AC3",
+          group: "JAQC",
+          streaming: null,
+          isSample: false,
+          isProper: false,
+        },
+      },
+      {
+        title: "Movie.2023.MULTI.1080p.BluRay.x265.DTS.AZERTY",
+        exp: {
+          resolution: 1080,
+          source: "BluRay",
+          codec: "x265",
+          hdr: null,
+          audio: "DTS",
+          group: "AZERTY",
+          streaming: null,
+          isSample: false,
+          isProper: false,
+        },
+      },
+      {
+        title: "Film.2022.TRUEFRENCH.720p.WEBRip.x264.AAC.FW",
+        exp: {
+          resolution: 720,
+          source: "WEBRip",
+          codec: "x264",
+          hdr: null,
+          audio: "AAC",
+          group: "FW",
+          streaming: null,
+          isSample: false,
+          isProper: false,
+        },
+      },
     ];
 
   for (const { title, exp } of cases) {
