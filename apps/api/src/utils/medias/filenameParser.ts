@@ -319,7 +319,8 @@ export function parseReleaseGroupFromTitle(title: string): string | null {
   // Dot-delimited fallback: French scene convention (e.g. "...AC3.JAQC")
   // Accept the last dot-token only if it looks like a group name:
   // - all alphanumeric, 2–16 chars
-  // - not a known technical token or resolution
+  // - not a known technical token, resolution, or video file extension
+  const VIDEO_EXT_TOKEN = /^(mkv|mp4|avi|m4v|wmv|ts|m2ts|mov|flv)$/i;
   const lastDot = trimmed.lastIndexOf(".");
   if (lastDot > 0 && lastDot < trimmed.length - 1) {
     const seg = trimmed.slice(lastDot + 1).trim();
@@ -328,7 +329,8 @@ export function parseReleaseGroupFromTitle(title: string): string | null {
       seg.length <= 16 &&
       /^[A-Za-z0-9]+$/.test(seg) &&
       !RES_TITLE_RES.test(seg) &&
-      !TECHNICAL_TOKENS.test(seg)
+      !TECHNICAL_TOKENS.test(seg) &&
+      !VIDEO_EXT_TOKEN.test(seg)
     )
       return seg;
   }
