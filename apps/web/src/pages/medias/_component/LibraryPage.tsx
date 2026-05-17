@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { Link, useSearch } from "@tanstack/react-router";
@@ -18,6 +18,8 @@ import {
   LayoutGrid,
   Grid3X3,
   List,
+  SlidersHorizontal,
+  X,
 } from "lucide-react";
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -43,13 +45,6 @@ import {
   type SegmentedTabItem,
 } from "@/components/ui/segmented-tabs";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   useLibrary,
   useLibraryLanguageTags,
   useSearchLibraryMovie,
@@ -60,6 +55,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { LibraryItemCard } from "./LibraryItemCard";
 import { LibraryItemRow } from "./LibraryItemRow";
+import { LibraryMobileFilterSheet } from "./LibraryMobileFilterSheet";
 import {
   type FilterType,
   type FilterStatus,
@@ -113,6 +109,13 @@ export function LibraryPage() {
 
   useLibraryEvents();
 
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const activeFilterCount = [
+    typeFilter !== "all",
+    statusFilter !== "all",
+    languageFilter !== "all",
+  ].filter(Boolean).length;
+
   const searchMovie = useSearchLibraryMovie();
 
   const { data, isLoading, refetch } = useLibrary({
@@ -145,6 +148,10 @@ export function LibraryPage() {
       setState({ page: totalPages > 1 ? totalPages : 1 });
     }
   }, [page, totalPages, isLoading]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
 
   const handleMovieSearch = (id: number) => {
     searchMovie.mutate(
@@ -279,11 +286,21 @@ export function LibraryPage() {
 
               {/* View mode toggle */}
               <div className="flex items-center rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 overflow-hidden">
-                {([
-                  { mode: "grid" as ViewMode, Icon: LayoutGrid, label: "Grid" },
-                  { mode: "compact" as ViewMode, Icon: Grid3X3, label: "Compact" },
-                  { mode: "list" as ViewMode, Icon: List, label: "List" },
-                ] as const).map(({ mode, Icon, label }) => (
+                {(
+                  [
+                    {
+                      mode: "grid" as ViewMode,
+                      Icon: LayoutGrid,
+                      label: "Grid",
+                    },
+                    {
+                      mode: "compact" as ViewMode,
+                      Icon: Grid3X3,
+                      label: "Compact",
+                    },
+                    { mode: "list" as ViewMode, Icon: List, label: "List" },
+                  ] as const
+                ).map(({ mode, Icon, label }) => (
                   <button
                     key={mode}
                     type="button"
@@ -303,117 +320,57 @@ export function LibraryPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:hidden">
-            <Select
-              value={typeFilter}
-              onValueChange={(value) =>
-                setState({ type: value as FilterType, page: 1 })
-              }
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {typeItems.map((item) => (
-                  <SelectItem key={item.id} value={item.id}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={statusFilter}
-              onValueChange={(value) =>
-                setState({ status: value as FilterStatus, page: 1 })
-              }
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {statusItems.map((item) => (
-                  <SelectItem key={item.id} value={item.id}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={languageFilter}
-              onValueChange={(value) => setState({ language: value, page: 1 })}
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  {t("medias.library.languageAll")}
-                </SelectItem>
-                {languageTags.map((tag) => (
-                  <SelectItem key={tag} value={tag}>
-                    {tag}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <div className="flex min-w-0 items-center gap-1.5">
-              <Select
-                value={sortBy}
-                onValueChange={(value) =>
-                  setState({ sortBy: value as SortKey, page: 1 })
-                }
-              >
-                <SelectTrigger className="h-9 min-w-0 flex-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LIBRARY_SORT_KEYS.map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {t(`medias.library.sort.${key}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Mobile: filter sheet trigger + view mode toggle */}
+          <div className="flex flex-col gap-2 sm:hidden">
+            <div className="flex items-center gap-2">
+              {/* Filters button */}
               <button
                 type="button"
-                onClick={() =>
-                  setState({
-                    sortDir: sortDir === "asc" ? "desc" : "asc",
-                    page: 1,
-                  })
-                }
-                className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition-colors hover:text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:text-neutral-300"
-                title={
-                  sortDir === "asc"
-                    ? t("medias.sortDirectionAsc")
-                    : t("medias.sortDirectionDesc")
-                }
+                onClick={() => setSheetOpen(true)}
+                className="relative flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-700 transition-colors dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
               >
-                {sortDir === "asc" ? (
-                  <ArrowUpAZ size={14} />
-                ) : (
-                  <ArrowDownAZ size={14} />
+                <SlidersHorizontal size={13} />
+                {t("medias.library.filtersButton")}
+                {activeFilterCount > 0 && (
+                  <span className="absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-primary-500 text-[9px] font-bold leading-none text-white">
+                    {activeFilterCount}
+                  </span>
                 )}
               </button>
 
-              {/* View mode toggle — mobile */}
-              <div className="flex items-center rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 overflow-hidden">
-                {([
-                  { mode: "grid" as ViewMode, Icon: LayoutGrid },
-                  { mode: "compact" as ViewMode, Icon: Grid3X3 },
-                  { mode: "list" as ViewMode, Icon: List },
-                ] as const).map(({ mode, Icon }) => (
+              {/* Sort chip */}
+              <button
+                type="button"
+                onClick={() => setSheetOpen(true)}
+                className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs text-neutral-500 transition-colors dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400"
+              >
+                {sortDir === "asc" ? (
+                  <ArrowUpAZ size={12} />
+                ) : (
+                  <ArrowDownAZ size={12} />
+                )}
+                {t(`medias.library.sort.${sortBy}`)}
+              </button>
+
+              <div className="flex-1" />
+
+              {/* View mode toggle */}
+              <div className="flex overflow-hidden rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
+                {(
+                  [
+                    { mode: "grid" as ViewMode, Icon: LayoutGrid },
+                    { mode: "compact" as ViewMode, Icon: Grid3X3 },
+                    { mode: "list" as ViewMode, Icon: List },
+                  ] as const
+                ).map(({ mode, Icon }) => (
                   <button
                     key={mode}
                     type="button"
                     onClick={() => setState({ viewMode: mode })}
                     className={cn(
-                      "flex-1 flex items-center justify-center h-9 transition-colors",
+                      "flex h-9 w-9 items-center justify-center transition-colors",
                       viewMode === mode
-                        ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200"
+                        ? "bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200"
                         : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300",
                     )}
                   >
@@ -422,37 +379,72 @@ export function LibraryPage() {
                 ))}
               </div>
             </div>
+
+            {/* Active filter chips */}
+            {activeFilterCount > 0 && (
+              <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-0.5">
+                {typeFilter !== "all" && (
+                  <button
+                    type="button"
+                    onClick={() => setState({ type: "all", page: 1 })}
+                    className="flex shrink-0 items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700 dark:border-primary-800 dark:bg-primary-900/30 dark:text-primary-300"
+                  >
+                    {typeItems.find((i) => i.id === typeFilter)?.label}
+                    <X size={10} />
+                  </button>
+                )}
+                {statusFilter !== "all" && (
+                  <button
+                    type="button"
+                    onClick={() => setState({ status: "all", page: 1 })}
+                    className="flex shrink-0 items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700 dark:border-primary-800 dark:bg-primary-900/30 dark:text-primary-300"
+                  >
+                    {statusItems.find((i) => i.id === statusFilter)?.label}
+                    <X size={10} />
+                  </button>
+                )}
+                {languageFilter !== "all" && (
+                  <button
+                    type="button"
+                    onClick={() => setState({ language: "all", page: 1 })}
+                    className="flex shrink-0 items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700 dark:border-primary-800 dark:bg-primary-900/30 dark:text-primary-300"
+                  >
+                    {languageFilter}
+                    <X size={10} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="hidden sm:flex sm:flex-col sm:gap-3">
-            {/* Type filter */}
-            <div className="flex flex-col gap-3">
-              <SegmentedTabs<FilterType>
-                variant="chips"
-                ariaLabel={t("medias.library.typeAll")}
-                items={typeItems}
-                value={typeFilter}
-                onChange={(f) => setState({ type: f, page: 1 })}
-              />
-
-              {/* Status filter */}
-              <SegmentedTabs<FilterStatus>
-                variant="chips"
-                ariaLabel={t("medias.library.statusAll")}
-                items={statusItems}
-                value={statusFilter}
-                onChange={(f) => setState({ status: f, page: 1 })}
-              />
-
-              {/* Language filter */}
-              <div className="flex items-center gap-2">
+          <div className="hidden sm:flex sm:items-center sm:gap-3 sm:flex-wrap">
+            <SegmentedTabs<FilterType>
+              variant="chips"
+              containerClassName="w-auto shrink-0"
+              ariaLabel={t("medias.library.typeAll")}
+              items={typeItems}
+              value={typeFilter}
+              onChange={(f) => setState({ type: f, page: 1 })}
+            />
+            <div className="h-4 w-px shrink-0 bg-neutral-200 dark:bg-neutral-700" />
+            <SegmentedTabs<FilterStatus>
+              variant="chips"
+              containerClassName="w-auto shrink-0"
+              ariaLabel={t("medias.library.statusAll")}
+              items={statusItems}
+              value={statusFilter}
+              onChange={(f) => setState({ status: f, page: 1 })}
+            />
+            {languageTags.length > 0 && (
+              <>
+                <div className="h-4 w-px shrink-0 bg-neutral-200 dark:bg-neutral-700" />
                 <select
                   aria-label={t("medias.library.languageAll")}
                   value={languageFilter}
                   onChange={(e) =>
                     setState({ language: e.target.value, page: 1 })
                   }
-                  className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
+                  className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 dark:focus:border-primary-500 transition"
                 >
                   <option value="all">{t("medias.library.languageAll")}</option>
                   {languageTags.map((tag) => (
@@ -461,8 +453,8 @@ export function LibraryPage() {
                     </option>
                   ))}
                 </select>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -596,6 +588,34 @@ export function LibraryPage() {
           </div>
         )}
       </div>
+
+      <LibraryMobileFilterSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        typeFilter={typeFilter}
+        statusFilter={statusFilter}
+        languageFilter={languageFilter}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        languageTags={languageTags}
+        typeItems={typeItems}
+        statusItems={statusItems}
+        onTypeChange={(v) => setState({ type: v, page: 1 })}
+        onStatusChange={(v) => setState({ status: v, page: 1 })}
+        onLanguageChange={(v) => setState({ language: v, page: 1 })}
+        onSortByChange={(v) => setState({ sortBy: v, page: 1 })}
+        onSortDirChange={(v) => setState({ sortDir: v, page: 1 })}
+        onReset={() =>
+          setState({
+            type: "all",
+            status: "all",
+            language: "all",
+            sortBy: "added_at",
+            sortDir: "desc",
+            page: 1,
+          })
+        }
+      />
     </PageLayout>
   );
 }
