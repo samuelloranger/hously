@@ -27,6 +27,13 @@ function RootLayout() {
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
   const { position } = useNavPosition();
 
+  const contentPadding: Record<typeof position, string> = {
+    left: "lg:pl-60",
+    right: "lg:pr-60",
+    top: "lg:pt-12",
+    bottom: "lg:pb-12",
+  };
+
   const isSettings = router.location.pathname.startsWith("/settings");
   const shouldShowNav = !["/login"].includes(router.location.pathname);
 
@@ -40,7 +47,7 @@ function RootLayout() {
             onOpenQuickActions={() => setIsQuickActionsOpen(true)}
           />
         )}
-        <div className={shouldShowNav ? "lg:pl-60" : ""}>
+        <div className={shouldShowNav ? contentPadding[position] : ""}>
           <main
             className={`user min-h-full flex-1 flex flex-col ${isSettings ? "pb-0 min-h-screen" : "pb-10"}`}
           >
