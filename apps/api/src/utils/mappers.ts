@@ -31,6 +31,7 @@ export const mapUser = (
     createdAt: Date | null;
     lastActivity: Date | null;
     avatarUrl: string | null;
+    navPosition: string | null;
   },
   options?: { hasPasskey?: boolean },
 ) => ({
@@ -44,6 +45,7 @@ export const mapUser = (
   created_at: user.createdAt?.toISOString() ?? new Date().toISOString(),
   last_activity: user.lastActivity?.toISOString() ?? null,
   avatar_url: user.avatarUrl || null,
+  nav_position: user.navPosition ?? null,
   has_passkey:
     typeof options === "object" && options
       ? (options.hasPasskey ?? false)
