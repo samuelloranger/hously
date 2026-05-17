@@ -10,6 +10,7 @@ export type SortKey =
   | "file_size";
 export type SortDir = "asc" | "desc";
 export type FilterType = "all" | "movie" | "show";
+export type ViewMode = "grid" | "compact" | "list";
 export type FilterStatus =
   | "all"
   | "wanted"

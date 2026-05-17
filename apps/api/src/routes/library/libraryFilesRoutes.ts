@@ -17,7 +17,7 @@ import { rescanLibraryItem } from "@hously/api/services/library/rescan";
  * DELETE /api/library/:id/downloads/:dhId
  * POST /api/library/downloads/:dhId/retry-post-process
  */
-export const libraryFilesRoutes = new Elysia({ prefix: "/api/library" })
+export const libraryFilesRoutes = new Elysia()
   .use(requireUser)
 
   // GET /api/library/:id/episodes — episodes grouped by season

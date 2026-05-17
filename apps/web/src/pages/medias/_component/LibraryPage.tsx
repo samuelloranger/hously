@@ -15,6 +15,9 @@ import {
   ChevronRight,
   Download,
   Clapperboard,
+  LayoutGrid,
+  Grid3X3,
+  List,
 } from "lucide-react";
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -54,12 +57,15 @@ import {
 import { useLibraryEvents } from "@/features/medias/hooks/useLibraryEvents";
 import { useUrlState } from "@/lib/app/useUrlState";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { LibraryItemCard } from "./LibraryItemCard";
+import { LibraryItemRow } from "./LibraryItemRow";
 import {
   type FilterType,
   type FilterStatus,
   type SortKey,
   type SortDir,
+  type ViewMode,
   LIBRARY_SORT_KEYS,
   sortItems,
 } from "@/utils/libraryUtils";
@@ -75,6 +81,7 @@ const LIBRARY_DEFAULTS = {
   sortBy: "added_at" as SortKey,
   sortDir: "desc" as SortDir,
   page: 1,
+  viewMode: "grid" as ViewMode,
 };
 
 export function LibraryPage() {
@@ -101,6 +108,7 @@ export function LibraryPage() {
     sortBy,
     sortDir,
     page,
+    viewMode,
   } = state;
 
   useLibraryEvents();
@@ -268,6 +276,30 @@ export function LibraryPage() {
                   <ArrowDownAZ size={14} />
                 )}
               </button>
+
+              {/* View mode toggle */}
+              <div className="flex items-center rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 overflow-hidden">
+                {([
+                  { mode: "grid" as ViewMode, Icon: LayoutGrid, label: "Grid" },
+                  { mode: "compact" as ViewMode, Icon: Grid3X3, label: "Compact" },
+                  { mode: "list" as ViewMode, Icon: List, label: "List" },
+                ] as const).map(({ mode, Icon, label }) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setState({ viewMode: mode })}
+                    title={label}
+                    className={cn(
+                      "p-1.5 transition-colors",
+                      viewMode === mode
+                        ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200"
+                        : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300",
+                    )}
+                  >
+                    <Icon size={14} />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -366,6 +398,29 @@ export function LibraryPage() {
                   <ArrowDownAZ size={14} />
                 )}
               </button>
+
+              {/* View mode toggle — mobile */}
+              <div className="flex items-center rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 overflow-hidden">
+                {([
+                  { mode: "grid" as ViewMode, Icon: LayoutGrid },
+                  { mode: "compact" as ViewMode, Icon: Grid3X3 },
+                  { mode: "list" as ViewMode, Icon: List },
+                ] as const).map(({ mode, Icon }) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setState({ viewMode: mode })}
+                    className={cn(
+                      "flex-1 flex items-center justify-center h-9 transition-colors",
+                      viewMode === mode
+                        ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200"
+                        : "text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300",
+                    )}
+                  >
+                    <Icon size={14} />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -411,20 +466,36 @@ export function LibraryPage() {
           </div>
         </div>
 
-        {/* Grid */}
+        {/* Grid / Compact / List */}
         <AnimatePresence mode="wait">
           {isLoading ? (
-            <div
-              key="skeleton"
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3"
-            >
-              {Array.from({ length: 12 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="aspect-[2/3] rounded-2xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
-                />
-              ))}
-            </div>
+            viewMode === "list" ? (
+              <div key="skeleton" className="flex flex-col gap-1.5">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-14 rounded-xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div
+                key="skeleton"
+                className={cn(
+                  "grid gap-2",
+                  viewMode === "compact"
+                    ? "grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10"
+                    : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3",
+                )}
+              >
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-[2/3] rounded-2xl bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                  />
+                ))}
+              </div>
+            )
           ) : pagedItems.length === 0 ? (
             <motion.div
               key="empty"
@@ -438,10 +509,37 @@ export function LibraryPage() {
                 description={t("medias.library.emptyDescription")}
               />
             </motion.div>
+          ) : viewMode === "list" ? (
+            <motion.div
+              key={`list-${typeFilter}-${statusFilter}-${languageFilter}-${sortBy}-${sortDir}-${safePage}`}
+              className="flex flex-col gap-1"
+              variants={gridContainerVariants}
+              initial="hidden"
+              animate="show"
+              exit={{ opacity: 0, transition: { duration: 0.12 } }}
+            >
+              {pagedItems.map((item) => (
+                <motion.div key={item.id} variants={gridItemVariants}>
+                  <LibraryItemRow
+                    item={item}
+                    onMovieSearch={handleMovieSearch}
+                    movieSearchPending={
+                      searchMovie.isPending &&
+                      searchMovie.variables?.id === item.id
+                    }
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
           ) : (
             <motion.div
-              key={`${typeFilter}-${statusFilter}-${languageFilter}-${sortBy}-${sortDir}-${safePage}`}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3"
+              key={`${viewMode}-${typeFilter}-${statusFilter}-${languageFilter}-${sortBy}-${sortDir}-${safePage}`}
+              className={cn(
+                "grid gap-2",
+                viewMode === "compact"
+                  ? "grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10"
+                  : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3",
+              )}
               variants={gridContainerVariants}
               initial="hidden"
               animate="show"
@@ -451,6 +549,7 @@ export function LibraryPage() {
                 <motion.div key={item.id} variants={gridItemVariants}>
                   <LibraryItemCard
                     item={item}
+                    viewMode={viewMode}
                     onMovieSearch={handleMovieSearch}
                     movieSearchPending={
                       searchMovie.isPending &&

@@ -18,7 +18,7 @@ import { mapLibraryMedia, libraryMediaInclude } from "./libraryHelpers";
  * DELETE /api/library/:id
  * GET /api/library/item/:id
  */
-export const libraryListRoutes = new Elysia({ prefix: "/api/library" })
+export const libraryListRoutes = new Elysia()
   .use(requireUser)
 
   // GET /api/library — list library

@@ -44,7 +44,7 @@ import { buildLibraryStatsResponse } from "./libraryStats";
  * GET /api/library/download-history
  * GET /api/library/download-history/stats
  */
-export const libraryJobRoutes = new Elysia({ prefix: "/api/library" })
+export const libraryJobRoutes = new Elysia()
   .use(requireUser)
 
   // GET /api/library/stats — aggregate KPIs for dashboard

@@ -19,7 +19,7 @@ import {
  * POST /api/library/:id/episodes/:episodeId/search
  * POST /api/library/:id/upgrade
  */
-export const libraryGrabRoutes = new Elysia({ prefix: "/api/library" })
+export const libraryGrabRoutes = new Elysia()
   .use(requireUser)
 
   // POST /api/library/:id/grab — interactive grab (known download URL → qB + history)

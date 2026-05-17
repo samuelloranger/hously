@@ -18,7 +18,7 @@ import { mapLibraryMedia, libraryMediaInclude } from "./libraryHelpers";
  * PATCH /api/library/:id/episodes/:episodeId/status
  * PATCH /api/library/attention/:alertId/dismiss
  */
-export const libraryMetaRoutes = new Elysia({ prefix: "/api/library" })
+export const libraryMetaRoutes = new Elysia()
   .use(requireUser)
 
   // PATCH /api/library/:id/status — update status
