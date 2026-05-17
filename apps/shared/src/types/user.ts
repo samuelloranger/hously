@@ -1,3 +1,5 @@
+export type NavPosition = "left" | "right" | "top" | "bottom";
+
 export interface User {
   id: string;
   email: string;
@@ -10,6 +12,7 @@ export interface User {
   last_activity: string | null;
   avatar_url?: string | null;
   has_passkey?: boolean;
+  nav_position?: NavPosition | null;
 }
 
 export interface UserResponse {
@@ -24,6 +27,7 @@ export interface UpdateProfileRequest {
   first_name?: string | null;
   last_name?: string | null;
   locale?: string | null;
+  nav_position?: NavPosition | null;
 }
 
 export interface ChangePasswordRequest {
