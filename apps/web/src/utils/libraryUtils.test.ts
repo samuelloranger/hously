@@ -22,6 +22,15 @@ function makeMedia(overrides: Partial<LibraryMedia>): LibraryMedia {
     updated_at: "2024-01-01T00:00:00.000Z",
     last_grabbed_at: null,
     total_size_bytes: null,
+    resolution: null,
+    video_codec: null,
+    hdr_format: null,
+    audio_format: null,
+    duration_secs: null,
+    language_tags: [],
+    episode_count: null,
+    downloaded_episode_count: null,
+    season_count: null,
     ...overrides,
   };
 }

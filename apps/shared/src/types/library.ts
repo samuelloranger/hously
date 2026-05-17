@@ -90,6 +90,17 @@ export interface LibraryMedia {
   updated_at: string;
   last_grabbed_at: string | null;
   total_size_bytes: string | null;
+  // Technical metadata from best file
+  resolution: number | null;
+  video_codec: string | null;
+  hdr_format: string | null;
+  audio_format: string | null;
+  duration_secs: number | null;
+  language_tags: string[];
+  // Show-specific
+  episode_count: number | null;
+  downloaded_episode_count: number | null;
+  season_count: number | null;
 }
 
 export interface LibraryListResponse {

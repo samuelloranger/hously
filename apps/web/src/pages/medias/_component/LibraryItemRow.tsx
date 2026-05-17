@@ -69,6 +69,32 @@ function formatBytes(bytesStr: string | null | undefined): string | null {
   return `${n} B`;
 }
 
+function formatResolution(res: number | null): string | null {
+  if (!res) return null;
+  if (res >= 2160) return "4K";
+  if (res >= 1080) return "1080p";
+  if (res >= 720) return "720p";
+  if (res >= 576) return "576p";
+  return "480p";
+}
+
+function formatCodec(codec: string | null): string | null {
+  if (!codec) return null;
+  const c = codec.toLowerCase().replace(/[.\s-]/g, "");
+  if (c.includes("hevc") || c.includes("h265")) return "H.265";
+  if (c.includes("avc") || c.includes("h264")) return "H.264";
+  if (c === "av1") return "AV1";
+  if (c === "vp9") return "VP9";
+  return codec.toUpperCase();
+}
+
+function formatDuration(secs: number | null): string | null {
+  if (!secs || secs < 60) return null;
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
 function MiniPoster({ posterUrl }: { posterUrl: string | null | undefined }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
@@ -128,6 +154,9 @@ export function LibraryItemRow({
     item.type === "movie" && item.digital_release_date
       ? formatDate(item.digital_release_date, i18n.language)
       : null;
+  const resolutionLabel = formatResolution(item.resolution);
+  const codecLabel = formatCodec(item.video_codec);
+  const durationLabel = formatDuration(item.duration_secs);
 
   return (
     <div
@@ -221,6 +250,61 @@ export function LibraryItemRow({
           {sizeLabel && (
             <span className="text-[11px] text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5 tabular-nums">
               {sizeLabel}
+            </span>
+          )}
+
+          {/* Resolution + HDR */}
+          {resolutionLabel && (
+            <span className="text-[11px] font-medium text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5 tabular-nums">
+              {resolutionLabel}
+              {item.hdr_format && (
+                <span className="ml-1 text-amber-500 dark:text-amber-400">
+                  {item.hdr_format}
+                </span>
+              )}
+            </span>
+          )}
+
+          {/* Codec */}
+          {codecLabel && (
+            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5">
+              {codecLabel}
+            </span>
+          )}
+
+          {/* Audio */}
+          {item.audio_format && (
+            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5">
+              {item.audio_format}
+            </span>
+          )}
+
+          {/* Duration (movies) */}
+          {durationLabel && item.type === "movie" && (
+            <span className="text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+              {durationLabel}
+            </span>
+          )}
+
+          {/* Season / episode progress (shows) */}
+          {item.type === "show" &&
+            item.episode_count != null &&
+            item.episode_count > 0 && (
+              <span className="text-[11px] text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5">
+                {item.season_count != null && item.season_count > 1
+                  ? `S${item.season_count} · `
+                  : ""}
+                {item.downloaded_episode_count ?? 0}/{item.episode_count} eps
+              </span>
+            )}
+
+          {/* Language tags */}
+          {item.language_tags.length > 0 && (
+            <span className="text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+              {item.language_tags
+                .slice(0, 3)
+                .map((l) => l.toUpperCase())
+                .join(" · ")}
             </span>
           )}
 

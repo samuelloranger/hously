@@ -13,6 +13,22 @@ export function computeTotalSizeBytes(
   return total === 0n ? null : total.toString();
 }
 
+type MappableFile = {
+  sizeBytes: bigint;
+  resolution: number | null;
+  videoCodec: string | null;
+  hdrFormat: string | null;
+  audioFormat: string | null;
+  durationSecs: number | null;
+  languageTags: string[];
+};
+
+type MappableEpisode = {
+  status: string;
+  season: number;
+  files: { sizeBytes: bigint }[];
+};
+
 export function mapLibraryMedia(item: {
   id: number;
   tmdbId: number;
@@ -31,9 +47,27 @@ export function mapLibraryMedia(item: {
   downloadHistories?: { grabbedAt: Date }[];
   addedAt: Date;
   updatedAt: Date;
-  files?: { sizeBytes: bigint }[];
-  episodes?: { files: { sizeBytes: bigint }[] }[];
+  files?: MappableFile[];
+  episodes?: MappableEpisode[];
 }) {
+  const files = item.files ?? [];
+  const episodes = item.episodes ?? [];
+
+  // Pick the file with the highest resolution (falls back to first file)
+  const bestFile = files.length
+    ? files.reduce((best, f) =>
+        (f.resolution ?? 0) > (best.resolution ?? 0) ? f : best,
+      )
+    : null;
+
+  const episodeCount = episodes.length || null;
+  const downloadedEpisodeCount =
+    episodes.length > 0
+      ? episodes.filter((e) => e.status === "downloaded").length
+      : null;
+  const seasonCount =
+    episodes.length > 0 ? new Set(episodes.map((e) => e.season)).size : null;
+
   return {
     id: item.id,
     tmdb_id: item.tmdbId,
@@ -55,10 +89,16 @@ export function mapLibraryMedia(item: {
     updated_at: item.updatedAt.toISOString(),
     last_grabbed_at:
       item.downloadHistories?.[0]?.grabbedAt.toISOString() ?? null,
-    total_size_bytes: computeTotalSizeBytes(
-      item.files ?? [],
-      item.episodes ?? [],
-    ),
+    total_size_bytes: computeTotalSizeBytes(files, episodes),
+    resolution: bestFile?.resolution ?? null,
+    video_codec: bestFile?.videoCodec ?? null,
+    hdr_format: bestFile?.hdrFormat ?? null,
+    audio_format: bestFile?.audioFormat ?? null,
+    duration_secs: bestFile?.durationSecs ?? null,
+    language_tags: bestFile?.languageTags ?? [],
+    episode_count: episodeCount,
+    downloaded_episode_count: downloadedEpisodeCount,
+    season_count: seasonCount,
   };
 }
 
@@ -69,9 +109,21 @@ export const libraryMediaInclude = {
     take: 1,
     select: { grabbedAt: true },
   },
-  files: { select: { sizeBytes: true } },
+  files: {
+    select: {
+      sizeBytes: true,
+      resolution: true,
+      videoCodec: true,
+      hdrFormat: true,
+      audioFormat: true,
+      durationSecs: true,
+      languageTags: true,
+    },
+  },
   episodes: {
-    include: {
+    select: {
+      status: true,
+      season: true,
       files: { select: { sizeBytes: true } },
     },
   },
