@@ -163,7 +163,10 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
           )}
         >
           {navSections.map((section) => (
-            <div key={section.labelKey} className={cn(!isHorizontal && "space-y-0")}>
+            <div
+              key={section.labelKey}
+              className={cn(!isHorizontal && "space-y-0")}
+            >
               {/* Section label — hidden on horizontal */}
               {!isHorizontal && (
                 <span className="px-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
@@ -251,6 +254,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
             <Link
               to="/settings"
               search={{ tab: "profile" }}
+              title={t("settings.title")}
               className={cn(
                 "flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150",
                 currentPath.startsWith("/settings")
@@ -261,9 +265,17 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
               <Settings size={16} />
             </Link>
             <button
+              onClick={toggleLanguage}
+              className="flex h-8 items-center justify-center rounded-lg px-2 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
+              title={t("common.language")}
+            >
+              {currentLanguage.name}
+            </button>
+            <button
               onClick={toggleTheme}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
               aria-label={t("common.toggleTheme")}
+              title={t("common.toggleTheme")}
             >
               {isDark ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -271,6 +283,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
               onClick={handleLogout}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-red-600 dark:hover:text-red-400 transition-colors"
               aria-label={t("nav.logout")}
+              title={t("nav.logout")}
             >
               <LogOut size={16} />
             </button>
@@ -306,7 +319,9 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
             <Link
               to="/settings"
               search={{ tab: "profile" }}
-              onMouseEnter={() => prefetchRoute("/settings", { tab: "profile" })}
+              onMouseEnter={() =>
+                prefetchRoute("/settings", { tab: "profile" })
+              }
               className={cn(
                 "relative flex items-center gap-3 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150",
                 currentPath.startsWith("/settings")
