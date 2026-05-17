@@ -1,3 +1,4 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Sidebar } from "@/components/Sidebar";
@@ -5,7 +6,15 @@ import type { NavPosition } from "@hously/shared/types";
 
 // Mock all heavy dependencies
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children, to, ...props }: any) => (
+  Link: ({
+    children,
+    to,
+    ...props
+  }: {
+    children: React.ReactNode;
+    to: string;
+    [key: string]: unknown;
+  }) => (
     <a href={to} {...props}>
       {children}
     </a>
@@ -20,7 +29,15 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 vi.mock("motion/react", () => ({
-  motion: { span: ({ children, ...p }: any) => <span {...p}>{children}</span> },
+  motion: {
+    span: ({
+      children,
+      ...p
+    }: {
+      children: React.ReactNode;
+      [key: string]: unknown;
+    }) => <span {...p}>{children}</span>,
+  },
 }));
 vi.mock("@/lib/auth", () => ({ clearUser: vi.fn() }));
 vi.mock("@/lib/auth/useAuth", () => ({
@@ -77,9 +94,13 @@ vi.mock("@/lib/routing/navigation", () => ({
   ],
 }));
 vi.mock("@/components/NavPositionPicker", () => ({
-  NavPositionPicker: ({ value, onChange: _onChange }: any) => (
-    <div data-testid="nav-position-picker" data-value={value} />
-  ),
+  NavPositionPicker: ({
+    value,
+    onChange: _onChange,
+  }: {
+    value: string;
+    onChange: (p: string) => void;
+  }) => <div data-testid="nav-position-picker" data-value={value} />,
 }));
 
 function renderSidebar(position: NavPosition) {
