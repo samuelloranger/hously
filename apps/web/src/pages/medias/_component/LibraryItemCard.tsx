@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatDate } from "@hously/shared/utils/date";
 import type { LibraryMedia } from "@hously/shared/types";
+import type { ViewMode } from "@/utils/libraryUtils";
 import { usePrefetchLibraryItem } from "@/features/medias/hooks/usePrefetchLibraryItem";
 
 const STATUS_STYLES: Record<
@@ -79,12 +80,14 @@ interface LibraryItemCardProps {
   item: LibraryMedia;
   onMovieSearch?: (id: number) => void;
   movieSearchPending?: boolean;
+  viewMode?: ViewMode;
 }
 
 export function LibraryItemCard({
   item,
   onMovieSearch,
   movieSearchPending,
+  viewMode = "grid",
 }: LibraryItemCardProps) {
   const { t, i18n } = useTranslation("common");
   const navigate = useNavigate();
@@ -114,7 +117,7 @@ export function LibraryItemCard({
         status={toCardStatus(item.status)}
         statusLabel={statusLabel}
       >
-        <div className="pb-2 space-y-1">
+        {viewMode !== "compact" && <div className="pb-2 space-y-1">
           <div className="flex flex-wrap items-center gap-1">
             <span className="rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
               {item.year ?? "—"}
@@ -149,7 +152,7 @@ export function LibraryItemCard({
                 {t("library.management.searchNow")}
               </button>
             )}
-        </div>
+        </div>}
       </MediaPosterCard>
     </div>
   );

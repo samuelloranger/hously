@@ -1,0 +1,264 @@
+import { Elysia, t } from "elysia";
+
+import { requireUser } from "@hously/api/middleware/auth";
+import { prisma } from "@hously/api/db";
+import { badRequest, notFound, serverError } from "@hously/api/errors";
+import { profileToScoreInput } from "@hously/api/services/mediaGrabber";
+import { filesFailProfile } from "@hously/api/services/upgradeDetection";
+
+import { mapLibraryMedia, libraryMediaInclude } from "./libraryHelpers";
+
+/**
+ * Metadata mutations: status, monitored, quality-profile, and season/episode toggles.
+ * PATCH /api/library/:id/status
+ * PATCH /api/library/:id/monitored
+ * PATCH /api/library/:id/quality-profile
+ * PATCH /api/library/:id/seasons/:season/monitored
+ * PATCH /api/library/:id/episodes/:episodeId/monitored
+ * PATCH /api/library/:id/episodes/:episodeId/status
+ * PATCH /api/library/attention/:alertId/dismiss
+ */
+export const libraryMetaRoutes = new Elysia()
+  .use(requireUser)
+
+  // PATCH /api/library/:id/status — update status
+  .patch(
+    "/:id/status",
+    async ({ params, body, set }) => {
+      try {
+        const id = parseInt(params.id, 10);
+        const item = await prisma.libraryMedia.update({
+          where: { id },
+          data: {
+            status: body.status,
+            ...(body.status === "wanted" ? { searchAttempts: 0 } : {}),
+          },
+          include: libraryMediaInclude,
+        });
+        return { item: mapLibraryMedia(item) };
+      } catch {
+        return serverError(set, "Failed to update status");
+      }
+    },
+    {
+      body: t.Object({
+        status: t.Union([
+          t.Literal("wanted"),
+          t.Literal("downloading"),
+          t.Literal("downloaded"),
+          t.Literal("skipped"),
+        ]),
+      }),
+    },
+  )
+
+  // PATCH /api/library/:id/monitored — toggle monitoring for a movie or show
+  .patch(
+    "/:id/monitored",
+    async ({ params, body, set }) => {
+      try {
+        const id = parseInt(params.id, 10);
+        const item = await prisma.libraryMedia.update({
+          where: { id },
+          data: { monitored: body.monitored },
+          include: libraryMediaInclude,
+        });
+        return { item: mapLibraryMedia(item) };
+      } catch {
+        return serverError(set, "Failed to update monitored status");
+      }
+    },
+    { body: t.Object({ monitored: t.Boolean() }) },
+  )
+
+  // PATCH /api/library/:id/quality-profile
+  .patch(
+    "/:id/quality-profile",
+    async ({ params, body, set }) => {
+      try {
+        const id = parseInt(params.id, 10);
+        const existing = await prisma.libraryMedia.findUnique({
+          where: { id },
+        });
+        if (!existing) return notFound(set, "Library item not found");
+
+        let newProfile: Awaited<
+          ReturnType<typeof prisma.qualityProfile.findUnique>
+        > | null = null;
+        if (body.quality_profile_id != null) {
+          newProfile = await prisma.qualityProfile.findUnique({
+            where: { id: body.quality_profile_id },
+          });
+          if (!newProfile) {
+            return badRequest(set, "Quality profile not found");
+          }
+        }
+
+        const item = await prisma.libraryMedia.update({
+          where: { id },
+          data: { qualityProfileId: body.quality_profile_id },
+          include: libraryMediaInclude,
+        });
+
+        // Detect whether existing files fail the new profile
+        let needs_upgrade = false;
+        let affected_episodes: number | undefined = undefined;
+
+        const profileChanged =
+          body.quality_profile_id !== existing.qualityProfileId;
+        if (
+          profileChanged &&
+          existing.status === "downloaded" &&
+          newProfile != null
+        ) {
+          const profileInput = profileToScoreInput(newProfile);
+
+          const fileSelect = {
+            episodeId: true,
+            resolution: true,
+            source: true,
+            videoCodec: true,
+            hdrFormat: true,
+            sizeBytes: true,
+            languageTags: true,
+          } as const;
+
+          if (existing.type === "movie") {
+            const files = await prisma.mediaFile.findMany({
+              where: { mediaId: id, episodeId: null },
+              select: fileSelect,
+            });
+            needs_upgrade = filesFailProfile(files, profileInput);
+          } else {
+            // show — check each downloaded episode
+            const episodes = await prisma.libraryEpisode.findMany({
+              where: { mediaId: id, status: "downloaded" },
+              select: { id: true },
+            });
+
+            // Bulk fetch all files for these episodes in one query
+            const episodeIds = episodes.map((ep) => ep.id);
+            const allFiles = await prisma.mediaFile.findMany({
+              where: { episodeId: { in: episodeIds } },
+              select: fileSelect,
+            });
+
+            // Group files by episodeId
+            const byEpisode = new Map<number, typeof allFiles>();
+            for (const f of allFiles) {
+              if (f.episodeId == null) continue;
+              const bucket = byEpisode.get(f.episodeId) ?? [];
+              bucket.push(f);
+              byEpisode.set(f.episodeId, bucket);
+            }
+
+            let failCount = 0;
+            for (const ep of episodes) {
+              const files = byEpisode.get(ep.id) ?? [];
+              if (filesFailProfile(files, profileInput)) failCount++;
+            }
+
+            if (failCount > 0) {
+              needs_upgrade = true;
+              affected_episodes = failCount;
+            }
+          }
+        }
+
+        return {
+          item: {
+            ...mapLibraryMedia(item),
+            ...(needs_upgrade ? { needs_upgrade: true } : {}),
+            ...(affected_episodes !== undefined ? { affected_episodes } : {}),
+          },
+        };
+      } catch {
+        return serverError(set, "Failed to update quality profile");
+      }
+    },
+    {
+      body: t.Object({
+        quality_profile_id: t.Union([t.Number(), t.Null()]),
+      }),
+    },
+  )
+
+  // PATCH /api/library/:id/seasons/:season/monitored — bulk toggle monitoring for a season
+  .patch(
+    "/:id/seasons/:season/monitored",
+    async ({ params, body, set }) => {
+      try {
+        const mediaId = parseInt(params.id, 10);
+        const season = parseInt(params.season, 10);
+        const result = await prisma.libraryEpisode.updateMany({
+          where: { mediaId, season },
+          data: { monitored: body.monitored },
+        });
+        return { updated: result.count };
+      } catch {
+        return serverError(set, "Failed to update season monitored status");
+      }
+    },
+    { body: t.Object({ monitored: t.Boolean() }) },
+  )
+
+  // PATCH /api/library/:id/episodes/:episodeId/monitored — toggle monitoring for an episode
+  .patch(
+    "/:id/episodes/:episodeId/monitored",
+    async ({ params, body, set }) => {
+      try {
+        const mediaId = parseInt(params.id, 10);
+        const episodeId = parseInt(params.episodeId, 10);
+        const ep = await prisma.libraryEpisode.update({
+          where: { id: episodeId, mediaId },
+          data: { monitored: body.monitored },
+        });
+        return {
+          episode: {
+            id: ep.id,
+            monitored: ep.monitored,
+          },
+        };
+      } catch {
+        return serverError(set, "Failed to update episode monitored status");
+      }
+    },
+    { body: t.Object({ monitored: t.Boolean() }) },
+  )
+
+  // PATCH /api/library/:id/episodes/:episodeId/status — reset episode status (e.g. retry skipped)
+  .patch(
+    "/:id/episodes/:episodeId/status",
+    async ({ params, body, set }) => {
+      try {
+        const mediaId = parseInt(params.id, 10);
+        const episodeId = parseInt(params.episodeId, 10);
+        const ep = await prisma.libraryEpisode.update({
+          where: { id: episodeId, mediaId },
+          data: {
+            status: body.status,
+            ...(body.status === "wanted" ? { searchAttempts: 0 } : {}),
+          },
+        });
+        return {
+          episode: {
+            id: ep.id,
+            status: ep.status,
+            search_attempts: ep.searchAttempts,
+          },
+        };
+      } catch {
+        return serverError(set, "Failed to update episode status");
+      }
+    },
+    {
+      body: t.Object({
+        status: t.Union([
+          t.Literal("wanted"),
+          t.Literal("downloading"),
+          t.Literal("downloaded"),
+          t.Literal("skipped"),
+        ]),
+      }),
+    },
+  );

@@ -1534,7 +1534,21 @@
         "keepCurrent": "Conserver le fichier actuel",
         "autoSearchStarted": "Recherche de mise à niveau lancée",
         "autoSearchFailed": "Échec de la recherche de mise à niveau"
-      }
+      },
+      "filtersTitle": "Filtres & Tri",
+      "filtersButton": "Filtres",
+      "typeSection": "Type",
+      "statusSection": "Statut",
+      "sortSection": "Trier par",
+      "languageOptionAll": "Toutes",
+      "done": "Terminé",
+      "typeMovie": "Film",
+      "typeShow": "Série",
+      "unmonitored": "Non surveillé",
+      "needsUpgrade": "Mise à niveau requise",
+      "episodesMissing_one": "{{count}} ép. manquant",
+      "episodesMissing_other": "{{count}} éps. manquants",
+      "downloadsImport": "Importer des téléchargements"
     },
     "watchlist": {
       "pageTitle": "Liste de visionnage",

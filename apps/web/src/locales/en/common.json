@@ -1534,7 +1534,21 @@
         "keepCurrent": "Keep Current File",
         "autoSearchStarted": "Upgrade search started",
         "autoSearchFailed": "Upgrade search failed"
-      }
+      },
+      "filtersTitle": "Filters & Sort",
+      "filtersButton": "Filters",
+      "typeSection": "Type",
+      "statusSection": "Status",
+      "sortSection": "Sort by",
+      "languageOptionAll": "All",
+      "done": "Done",
+      "typeMovie": "Movie",
+      "typeShow": "Show",
+      "unmonitored": "Unmonitored",
+      "needsUpgrade": "Needs Upgrade",
+      "episodesMissing_one": "{{count}} ep missing",
+      "episodesMissing_other": "{{count}} eps missing",
+      "downloadsImport": "Downloads import"
     },
     "watchlist": {
       "pageTitle": "Watchlist",

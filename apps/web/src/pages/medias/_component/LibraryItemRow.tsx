@@ -1,0 +1,354 @@
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
+import { Search, Film, Tv, ArrowUpCircle, EyeOff } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { formatDate } from "@hously/shared/utils/date";
+import type { LibraryMedia } from "@hously/shared/types";
+import { usePrefetchLibraryItem } from "@/features/medias/hooks/usePrefetchLibraryItem";
+
+const STATUS_STYLES: Record<
+  LibraryMedia["status"],
+  { labelKey: string; className: string; dot: string }
+> = {
+  wanted: {
+    labelKey: "medias.library.itemStatus.wanted",
+    className:
+      "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300",
+    dot: "bg-amber-400",
+  },
+  downloading: {
+    labelKey: "medias.library.itemStatus.downloading",
+    className: "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300",
+    dot: "bg-sky-400",
+  },
+  downloaded: {
+    labelKey: "medias.library.itemStatus.downloaded",
+    className:
+      "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300",
+    dot: "bg-emerald-400",
+  },
+  skipped: {
+    labelKey: "medias.library.itemStatus.skipped",
+    className:
+      "bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400",
+    dot: "bg-neutral-400",
+  },
+  returning: {
+    labelKey: "medias.library.itemStatus.returning",
+    className:
+      "bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300",
+    dot: "bg-violet-400",
+  },
+  in_production: {
+    labelKey: "medias.library.itemStatus.in_production",
+    className:
+      "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300",
+    dot: "bg-indigo-400",
+  },
+  planned: {
+    labelKey: "medias.library.itemStatus.planned",
+    className:
+      "bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300",
+    dot: "bg-teal-400",
+  },
+  upgrading: {
+    labelKey: "medias.library.itemStatus.upgrading",
+    className: "bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300",
+    dot: "bg-sky-400",
+  },
+};
+
+function formatBytes(bytesStr: string | null | undefined): string | null {
+  if (!bytesStr) return null;
+  const n = Number(bytesStr);
+  if (!n) return null;
+  if (n >= 1e12) return `${(n / 1e12).toFixed(1)} TB`;
+  if (n >= 1e9) return `${(n / 1e9).toFixed(1)} GB`;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)} MB`;
+  return `${n} B`;
+}
+
+function formatResolution(res: number | null): string | null {
+  if (!res) return null;
+  if (res >= 2160) return "4K";
+  if (res >= 1080) return "1080p";
+  if (res >= 720) return "720p";
+  if (res >= 576) return "576p";
+  return "480p";
+}
+
+function formatCodec(codec: string | null): string | null {
+  if (!codec) return null;
+  const c = codec.toLowerCase().replace(/[.\s-]/g, "");
+  if (c.includes("hevc") || c.includes("h265")) return "H.265";
+  if (c.includes("avc") || c.includes("h264")) return "H.264";
+  if (c === "av1") return "AV1";
+  if (c === "vp9") return "VP9";
+  return codec.toUpperCase();
+}
+
+function formatDuration(secs: number | null): string | null {
+  if (!secs || secs < 60) return null;
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function MiniPoster({ posterUrl }: { posterUrl: string | null | undefined }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  if (!posterUrl || error) {
+    return (
+      <div className="flex items-center justify-center w-full h-full bg-neutral-800 rounded-lg">
+        <Film className="size-4 text-white/30" />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {!loaded && (
+        <div className="absolute inset-0 rounded-lg bg-neutral-800 animate-pulse" />
+      )}
+      <img
+        src={posterUrl}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+        className={cn(
+          "absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-300",
+          loaded ? "opacity-100" : "opacity-0",
+        )}
+      />
+    </>
+  );
+}
+
+interface LibraryItemRowProps {
+  item: LibraryMedia;
+  onMovieSearch?: (id: number) => void;
+  movieSearchPending?: boolean;
+}
+
+export function LibraryItemRow({
+  item,
+  onMovieSearch,
+  movieSearchPending,
+}: LibraryItemRowProps) {
+  const { t, i18n } = useTranslation("common");
+  const navigate = useNavigate();
+  const prefetchLibraryItem = usePrefetchLibraryItem();
+  const statusInfo = STATUS_STYLES[item.status] ?? STATUS_STYLES.wanted;
+  const statusLabel = t(statusInfo.labelKey);
+
+  const sizeLabel = formatBytes(item.total_size_bytes);
+  const addedLabel = formatDate(item.added_at, i18n.language);
+  const lastGrabbed = item.last_grabbed_at
+    ? formatDate(item.last_grabbed_at, i18n.language)
+    : null;
+  const digitalRelease =
+    item.type === "movie" && item.digital_release_date
+      ? formatDate(item.digital_release_date, i18n.language)
+      : null;
+  const resolutionLabel = formatResolution(item.resolution);
+  const codecLabel = formatCodec(item.video_codec);
+  const durationLabel = formatDuration(item.duration_secs);
+
+  return (
+    <div
+      className="group flex items-stretch gap-3 rounded-xl border border-neutral-200/80 dark:border-neutral-700/60 bg-white dark:bg-neutral-900 px-3 py-2.5 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition-colors"
+      onClick={() =>
+        navigate({
+          to: "/library/$libraryId",
+          params: { libraryId: String(item.id) },
+        })
+      }
+      onMouseEnter={() => prefetchLibraryItem(item)}
+      onTouchStart={() => prefetchLibraryItem(item)}
+    >
+      {/* Status accent bar */}
+      <div
+        className={cn(
+          "shrink-0 w-0.5 self-stretch rounded-full",
+          statusInfo.dot,
+        )}
+      />
+
+      {/* Mini poster */}
+      <div className="relative shrink-0 w-12 aspect-[2/3] self-center rounded-lg overflow-hidden bg-neutral-800">
+        <MiniPoster posterUrl={item.poster_url} />
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+        {/* Title row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate">
+            {item.title}
+          </span>
+          {item.year && (
+            <span className="shrink-0 text-xs text-neutral-400 dark:text-neutral-500">
+              {item.year}
+            </span>
+          )}
+          <span className="shrink-0 inline-flex items-center gap-1 text-[11px] text-neutral-400 dark:text-neutral-500">
+            {item.type === "movie" ? (
+              <Film className="size-3" />
+            ) : (
+              <Tv className="size-3" />
+            )}
+            {item.type === "movie"
+              ? t("medias.library.typeMovie")
+              : t("medias.library.typeShow")}
+          </span>
+          {!item.monitored && (
+            <span className="shrink-0 inline-flex items-center gap-0.5 text-[10px] text-neutral-400 dark:text-neutral-500">
+              <EyeOff className="size-3" />
+              {t("medias.library.unmonitored")}
+            </span>
+          )}
+        </div>
+
+        {/* Overview */}
+        {item.overview && (
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed">
+            {item.overview}
+          </p>
+        )}
+
+        {/* Meta pills */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+              statusInfo.className,
+            )}
+          >
+            <span
+              className={cn("size-1.5 rounded-full shrink-0", statusInfo.dot)}
+            />
+            {statusLabel}
+          </span>
+
+          {item.needs_upgrade && (
+            <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300">
+              <ArrowUpCircle className="size-3" />
+              {t("medias.library.needsUpgrade")}
+            </span>
+          )}
+
+          {item.quality_profile?.name && (
+            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5">
+              {item.quality_profile.name}
+            </span>
+          )}
+
+          {sizeLabel && (
+            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5 tabular-nums">
+              {sizeLabel}
+            </span>
+          )}
+
+          {/* Resolution + HDR */}
+          {resolutionLabel && (
+            <span className="text-[11px] font-medium text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5 tabular-nums">
+              {resolutionLabel}
+              {item.hdr_format && (
+                <span className="ml-1 text-amber-500 dark:text-amber-400">
+                  {item.hdr_format}
+                </span>
+              )}
+            </span>
+          )}
+
+          {/* Codec */}
+          {codecLabel && (
+            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5">
+              {codecLabel}
+            </span>
+          )}
+
+          {/* Audio */}
+          {item.audio_format && (
+            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5">
+              {item.audio_format}
+            </span>
+          )}
+
+          {/* Duration (movies) */}
+          {durationLabel && item.type === "movie" && (
+            <span className="text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+              {durationLabel}
+            </span>
+          )}
+
+          {/* Season / episode progress (shows) */}
+          {item.type === "show" &&
+            item.episode_count != null &&
+            item.episode_count > 0 && (
+              <span className="text-[11px] text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 rounded-full px-2 py-0.5">
+                {item.season_count != null && item.season_count > 1
+                  ? `S${item.season_count} · `
+                  : ""}
+                {item.downloaded_episode_count ?? 0}/{item.episode_count} eps
+              </span>
+            )}
+
+          {/* Language tags */}
+          {item.language_tags.length > 0 && (
+            <span className="text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+              {item.language_tags
+                .slice(0, 3)
+                .map((l) => l.toUpperCase())
+                .join(" · ")}
+            </span>
+          )}
+
+          {item.affected_episodes != null && item.affected_episodes > 0 && (
+            <span className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-full px-2 py-0.5">
+              {t("medias.library.episodesMissing", {
+                count: item.affected_episodes,
+              })}
+            </span>
+          )}
+
+          {digitalRelease && (
+            <span className="text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+              {t("medias.library.digitalRelease", { date: digitalRelease })}
+            </span>
+          )}
+
+          {(lastGrabbed || addedLabel) && (
+            <span className="text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
+              {lastGrabbed ?? addedLabel}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Search now */}
+      {item.type === "movie" && item.status === "wanted" && onMovieSearch && (
+        <div className="shrink-0 self-center">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMovieSearch(item.id);
+            }}
+            disabled={movieSearchPending}
+            className="flex items-center gap-1 rounded-lg bg-primary-600/90 hover:bg-primary-600 disabled:opacity-50 text-white text-[11px] font-medium px-2.5 py-1.5 transition-colors"
+          >
+            <Search size={11} />
+            <span className="hidden sm:inline">
+              {t("library.management.searchNow")}
+            </span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

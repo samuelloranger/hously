@@ -14,6 +14,10 @@ import {
 
 export type MaybeDate = Date | string | number | null | undefined;
 
+function toLocale(locale: string): string {
+  return locale === "fr" ? "fr-FR" : "en-US";
+}
+
 export function parseDate(input: MaybeDate): Date | null {
   if (!input) return null;
   if (input instanceof Date) return input;
@@ -38,7 +42,7 @@ export function formatDate(date: MaybeDate, locale: string = "en"): string {
   if (!dateObj) return "";
 
   try {
-    return dateObj.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
+    return dateObj.toLocaleDateString(toLocale(locale), {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -52,7 +56,7 @@ export function formatDate(date: MaybeDate, locale: string = "en"): string {
 export function formatTime(date: MaybeDate, locale: string = "en"): string {
   const dateObj = parseDate(date);
   if (!dateObj) return "";
-  return dateObj.toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
+  return dateObj.toLocaleTimeString(toLocale(locale), {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -67,7 +71,7 @@ export function formatDateTime(
   if (!date) return "";
 
   try {
-    return date.toLocaleString(language === "fr" ? "fr-FR" : "en-US", {
+    return date.toLocaleString(toLocale(language), {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -103,10 +107,6 @@ export function datetimeLocalToUTC(datetimeLocal: string): string {
   const offsetSign = offsetMinutes > 0 ? "-" : "+";
   const offsetStr = `${offsetSign}${String(offsetHours).padStart(2, "0")}:${String(offsetMins).padStart(2, "0")}`;
   return `${dateTimeStr}${offsetStr}`;
-}
-
-export function now(): Date {
-  return new Date();
 }
 
 export function isToday(date: MaybeDate): boolean {
@@ -232,7 +232,7 @@ export function formatDateShort(
     year: "numeric",
   });
   const includeYear = yearFmt.format(date) !== yearFmt.format(new Date());
-  return date.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
+  return date.toLocaleDateString(toLocale(locale), {
     month: "short",
     day: "numeric",
     year: includeYear ? "numeric" : undefined,

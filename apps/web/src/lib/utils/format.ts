@@ -1,5 +1,5 @@
 import type { User } from "@hously/shared/types";
-import { parseDate, isDateBefore, now } from "@hously/shared/utils";
+import { parseDate, isDateBefore } from "@hously/shared/utils";
 
 export function formatUsername(
   username: string | null | undefined,
@@ -108,7 +108,7 @@ export function isChoreOverdue(
   if (!reminderDatetime || completed) return false;
   const reminderDate = parseDate(reminderDatetime);
   if (!reminderDate) return false;
-  return isDateBefore(reminderDate, now());
+  return isDateBefore(reminderDate, new Date());
 }
 
 export function formatBytes(bytes: number | null | undefined): string {
