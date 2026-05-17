@@ -26,13 +26,15 @@ export function useNavPosition() {
       );
       return { previous };
     },
+    onSuccess: (data) => {
+      if (data.user) {
+        queryClient.setQueryData<User | null>(queryKeys.auth.me, data.user);
+      }
+    },
     onError: (_err, _next, context) => {
       if (context?.previous !== undefined) {
         queryClient.setQueryData(queryKeys.auth.me, context.previous);
       }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
     },
   });
 

@@ -103,6 +103,7 @@ export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
   };
 
   function handleContextMenu(e: React.MouseEvent) {
+    if ((e.target as HTMLElement).closest("a")) return;
     e.preventDefault();
     setPopoverCoords({ x: e.clientX, y: e.clientY });
     setPopoverOpen(true);
