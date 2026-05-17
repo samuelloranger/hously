@@ -1,4 +1,4 @@
-import { useEffect, type ComponentType } from "react";
+import { useEffect, useRef, type ComponentType } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, ArrowUpAZ, ArrowDownAZ } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -55,10 +55,15 @@ export function LibraryMobileFilterSheet({
   onReset,
 }: LibraryMobileFilterSheetProps) {
   const { t } = useTranslation("common");
+  const sheetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
+      const focusable = sheetRef.current?.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      focusable?.[0]?.focus();
     } else {
       document.body.style.overflow = "";
     }
@@ -66,6 +71,34 @@ export function LibraryMobileFilterSheet({
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      onClose();
+      return;
+    }
+    if (e.key === "Tab") {
+      const focusable = Array.from(
+        sheetRef.current?.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  };
 
   const hasActiveFilters =
     typeFilter !== "all" || statusFilter !== "all" || languageFilter !== "all";
@@ -86,6 +119,11 @@ export function LibraryMobileFilterSheet({
 
           <motion.div
             key="sheet"
+            ref={sheetRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("medias.library.filtersTitle")}
+            onKeyDown={handleKeyDown}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -109,6 +147,7 @@ export function LibraryMobileFilterSheet({
               </span>
               <button
                 onClick={onClose}
+                aria-label={t("common.close")}
                 className="rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
               >
                 <X size={15} />

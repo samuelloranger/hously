@@ -226,7 +226,9 @@ export function LibraryItemRow({
 
           {item.affected_episodes != null && item.affected_episodes > 0 && (
             <span className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-full px-2 py-0.5">
-              {item.affected_episodes} ep missing
+              {t("medias.library.episodesMissing", {
+                count: item.affected_episodes,
+              })}
             </span>
           )}
 

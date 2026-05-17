@@ -1543,7 +1543,12 @@
       "languageOptionAll": "Toutes",
       "done": "Terminé",
       "typeMovie": "Film",
-      "typeShow": "Série"
+      "typeShow": "Série",
+      "unmonitored": "Non surveillé",
+      "needsUpgrade": "Mise à niveau requise",
+      "episodesMissing_one": "{{count}} ép. manquant",
+      "episodesMissing_other": "{{count}} éps. manquants",
+      "downloadsImport": "Importer des téléchargements"
     },
     "watchlist": {
       "pageTitle": "Liste de visionnage",

@@ -1543,7 +1543,12 @@
       "languageOptionAll": "All",
       "done": "Done",
       "typeMovie": "Movie",
-      "typeShow": "Show"
+      "typeShow": "Show",
+      "unmonitored": "Unmonitored",
+      "needsUpgrade": "Needs Upgrade",
+      "episodesMissing_one": "{{count}} ep missing",
+      "episodesMissing_other": "{{count}} eps missing",
+      "downloadsImport": "Downloads import"
     },
     "watchlist": {
       "pageTitle": "Watchlist",

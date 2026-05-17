@@ -89,7 +89,7 @@ export function LibraryPage() {
   // Keep the context in sync so LibraryItemPage can navigate back with filters intact.
   useEffect(() => {
     saveLibrarySearch(searchParams as Record<string, unknown>);
-  }, [searchParams]);
+  }, [searchParams, saveLibrarySearch]);
 
   const { state, setState } = useUrlState(
     "/library/",
@@ -127,6 +127,12 @@ export function LibraryPage() {
 
   const { data: languageTagsData } = useLibraryLanguageTags();
   const languageTags = languageTagsData?.tags ?? [];
+
+  useEffect(() => {
+    if (languageTags.length === 0 && languageFilter !== "all") {
+      setState({ language: "all" });
+    }
+  }, [languageTags.length, languageFilter]);
 
   const allItems = data?.items ?? [];
 
@@ -217,7 +223,7 @@ export function LibraryPage() {
               to="/library/downloads"
               className="text-xs font-semibold uppercase tracking-wide text-primary-600 hover:text-primary-500 dark:text-primary-400 whitespace-nowrap"
             >
-              Downloads import
+              {t("medias.library.downloadsImport")}
             </Link>
           ) : undefined
         }
