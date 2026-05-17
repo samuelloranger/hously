@@ -34,82 +34,84 @@ export function parseResolution(filename: string): number | null {
 }
 
 export function parseSource(filename: string): string | null {
-  const n = filename;
   // Order matters: more specific patterns first
-  if (/\bBD[-.]?REMUX\b|\bBDREMUX\b|\bREMUX\b/i.test(n)) return "BDREMUX";
-  if (/\bHDLight\b/i.test(n)) return "HDLight";
-  if (/\bBlu[-.]?ray\b|\bBLURAY\b|\bBDRip\b/i.test(n)) return "BluRay";
-  if (/\bWEB[-.]?DL\b/i.test(n)) return "WEB-DL";
-  if (/\bWEB[-.]?Rip\b/i.test(n)) return "WEBRip";
-  if (/\bHDTV\b/i.test(n)) return "HDTV";
-  if (/\bDVD[-.]?Rip\b|\bDVDRip\b/i.test(n)) return "DVDRip";
-  if (/\bHD[-.]?CAM\b/i.test(n)) return "HDCAM";
-  if (/\bHDRip\b/i.test(n)) return "HDRip";
+  if (/\bBD[-.]?REMUX\b|\bBDREMUX\b|\bREMUX\b/i.test(filename)) return "REMUX";
+  if (/\bHDLight\b/i.test(filename)) return "HDLight";
+  if (/\bBlu[-.]?ray\b|\bBLURAY\b|\bBDRip\b/i.test(filename)) return "BluRay";
+  if (/\bWEB[-.]?DL\b/i.test(filename)) return "WEB-DL";
+  if (/\bWEB[-.]?Rip\b/i.test(filename)) return "WEBRip";
+  if (/\bHDTV\b/i.test(filename)) return "HDTV";
+  if (/\bDVD[-.]?Rip\b|\bDVDRip\b/i.test(filename)) return "DVDRip";
+  if (/\bHD[-.]?CAM\b/i.test(filename)) return "HDCAM";
+  if (/\bHDRip\b/i.test(filename)) return "HDRip";
   // Generic WEB (must be last to not match WEB-DL/WEBRip)
-  if (/\bWEB\b/i.test(n)) return "WEB";
+  if (/\bWEB\b/i.test(filename)) return "WEB";
   return null;
 }
 
 export function parseStreamingService(filename: string): string | null {
-  const n = filename;
-  if (/\bAMZN\b|\bAmazon\b/i.test(n)) return "AMZN";
-  if (/\bNFLX\b|\bNF\b(?!\w)|\bNetflix\b/i.test(n)) return "NF";
-  if (/\bDSNP\b|\bDisney\b/i.test(n)) return "DSNP";
-  if (/\bAPLE\b|\bAPTV\b|\bApple\b/i.test(n)) return "APLE";
-  if (/\bHMAX\b|\bHBO[-.]?Max\b/i.test(n)) return "HMAX";
-  if (/\bHULU\b/i.test(n)) return "HULU";
-  if (/\bPCOK\b|\bPeacock\b/i.test(n)) return "PCOK";
-  if (/\bPAMC\b|\bParamount\b/i.test(n)) return "PAMC";
-  if (/\bCRAV\b|\bCrave\b/i.test(n)) return "CRAV";
-  if (/\bTVER\b|\bTVA\b/i.test(n)) return "TVER";
+  if (/\bAMZN\b|\bAmazon\b/i.test(filename)) return "AMZN";
+  if (/\bNFLX\b|\bNF\b(?!\w)|\bNetflix\b/i.test(filename)) return "NF";
+  if (/\bDSNP\b|\bDisney\b/i.test(filename)) return "DSNP";
+  if (/\bAPLE\b|\bAPTV\b|\bApple\b/i.test(filename)) return "APLE";
+  if (/\bHMAX\b|\bHBO[-.]?Max\b/i.test(filename)) return "HMAX";
+  if (/\bHULU\b/i.test(filename)) return "HULU";
+  if (/\bPCOK\b|\bPeacock\b/i.test(filename)) return "PCOK";
+  if (/\bPAMC\b|\bParamount\b/i.test(filename)) return "PAMC";
+  if (/\bCRAV\b|\bCrave\b/i.test(filename)) return "CRAV";
+  if (/\bTVER\b|\bTVA\b/i.test(filename)) return "TVER";
   return null;
 }
 
 export function parseHdrFormat(filename: string): string | null {
-  const n = filename;
   // Dolby Vision first (most specific)
-  if (/\bDolby\.?Vision\b|\bDOVi\b(?!\w)|\bDV\b(?!\w)/i.test(n))
+  if (/\bDolby\.?Vision\b|\bDOVi\b(?!\w)|\bDV\b(?!\w)/i.test(filename))
     return "Dolby Vision";
   // HDR10+ before HDR10
-  if (/\bHDR10\+\b|\bHDR10Plus\b|\bHDR10\s*Plus\b/i.test(n)) return "HDR10+";
-  if (/\bHDR10\b/i.test(n)) return "HDR10";
-  if (/\bHDR\b/i.test(n)) return "HDR10";
-  if (/\bHLG\b/i.test(n)) return "HLG";
-  if (/\b10.?bit\b/i.test(n)) return "HDR10"; // best guess for 10-bit without explicit HDR tag
+  if (/\bHDR10\+\b|\bHDR10Plus\b|\bHDR10\s*Plus\b/i.test(filename))
+    return "HDR10+";
+  if (/\bHDR10\b/i.test(filename)) return "HDR10";
+  if (/\bHDR\b/i.test(filename)) return "HDR10";
+  if (/\bHLG\b/i.test(filename)) return "HLG";
+  if (/\b10.?bit\b/i.test(filename)) return "HDR10"; // best guess for 10-bit without explicit HDR tag
   return null;
 }
 
 export function parseVideoCodec(filename: string): string | null {
-  const n = filename;
-  if (/\bx?265\b|\bHEVC\b|\bH\.?265\b/i.test(n)) return "HEVC";
-  if (/\bx?264\b|\bAVC\b|\bH\.?264\b/i.test(n)) return "AVC";
-  if (/\bAV1\b/i.test(n)) return "AV1";
-  if (/\bVP9\b/i.test(n)) return "VP9";
-  if (/\bXviD\b/i.test(n)) return "XviD";
-  if (/\bDivX\b/i.test(n)) return "DivX";
-  if (/\bMPEG[-.]?2\b/i.test(n)) return "MPEG-2";
-  if (/\bVC[-.]?1\b/i.test(n)) return "VC-1";
+  if (/\bx?265\b|\bHEVC\b|\bH\.?265\b/i.test(filename)) return "HEVC";
+  if (/\bx?264\b|\bAVC\b|\bH\.?264\b/i.test(filename)) return "AVC";
+  if (/\bAV1\b/i.test(filename)) return "AV1";
+  if (/\bVP9\b/i.test(filename)) return "VP9";
+  if (/\bXviD\b/i.test(filename)) return "XviD";
+  if (/\bDivX\b/i.test(filename)) return "DivX";
+  if (/\bMPEG[-.]?2\b/i.test(filename)) return "MPEG-2";
+  if (/\bVC[-.]?1\b/i.test(filename)) return "VC-1";
   return null;
 }
 
 export function parseAudioFormat(filename: string): string | null {
-  const n = filename;
   // Most specific first
-  if (/\bTrueHD\b.*\bAtmos\b|\bAtmos\b.*\bTrueHD\b/i.test(n))
+  if (/\bTrueHD\b.*\bAtmos\b|\bAtmos\b.*\bTrueHD\b/i.test(filename))
     return "TrueHD Atmos";
-  if (/\bTrueHD\b/i.test(n)) return "TrueHD";
-  if (/\bDTS[-.]?HD[-.]?MA\b|\bDTS[-.]?MA\b/i.test(n)) return "DTS-HD MA";
-  if (/\bDTS[-.]?X\b/i.test(n)) return "DTS:X";
-  if (/\bDTS[-.]?HD\b/i.test(n)) return "DTS-HD";
-  if (/\bDTS\b/i.test(n)) return "DTS";
-  if (/\bEAC[-.]?3\b|\bDD\s*\+\b|\bDolby\s*Digital\s*Plus\b|\bDDP\b/i.test(n))
+  if (/\bTrueHD\b/i.test(filename)) return "TrueHD";
+  if (/\bDTS[-.]?HD[-.]?MA\b|\bDTS[-.]?MA\b/i.test(filename))
+    return "DTS-HD MA";
+  if (/\bDTS[-.]?X\b/i.test(filename)) return "DTS-X";
+  if (/\bDTS[-.]?HD\b/i.test(filename)) return "DTS-HD";
+  if (/\bDTS\b/i.test(filename)) return "DTS";
+  if (
+    /\bEAC[-.]?3\b|\bDD\s*\+\b|\bDolby\s*Digital\s*Plus\b|\bDDP\b/i.test(
+      filename,
+    )
+  )
     return "EAC3";
-  if (/\bDD\b(?!\+)|\bAC[-.]?3\b|\bDolby\s*Digital\b/i.test(n)) return "AC3";
-  if (/\bAAC\b/i.test(n)) return "AAC";
-  if (/\bFLAC\b/i.test(n)) return "FLAC";
-  if (/\bOPUS\b/i.test(n)) return "Opus";
-  if (/\bMP3\b/i.test(n)) return "MP3";
-  if (/\bPCM\b/i.test(n)) return "PCM";
+  if (/\bDD\b(?!\+)|\bAC[-.]?3\b|\bDolby\s*Digital\b/i.test(filename))
+    return "AC3";
+  if (/\bAAC\b/i.test(filename)) return "AAC";
+  if (/\bFLAC\b/i.test(filename)) return "FLAC";
+  if (/\bOPUS\b/i.test(filename)) return "Opus";
+  if (/\bMP3\b/i.test(filename)) return "MP3";
+  if (/\bPCM\b/i.test(filename)) return "PCM";
   return null;
 }
 
@@ -130,7 +132,7 @@ export function parseAudioFlags(filename: string): string[] {
   const flags: string[] = [];
 
   // MULTI + qualifier
-  const hasMulti = /\bMULTI\b/.test(n) || /\bMULTi\b/.test(filename);
+  const hasMulti = /\bMULTI\b/.test(n);
   if (hasMulti) flags.push("MULTI");
 
   // VF2 = VFF + VFQ combo in some releases
@@ -171,14 +173,14 @@ export function parseAudioFlags(filename: string): string[] {
 }
 
 export function parseEdition(filename: string): string | null {
-  const n = filename;
-  if (/\bExtended\b/i.test(n)) return "Extended";
-  if (/\bDirector'?s?\s*Cut\b/i.test(n)) return "Director's Cut";
-  if (/\bTheatrical\b/i.test(n)) return "Theatrical";
-  if (/\bUnrated\b/i.test(n)) return "Unrated";
-  if (/\bRemastered\b/i.test(n)) return "Remastered";
-  if (/\bCriterion\b/i.test(n)) return "Criterion";
-  if (/\bIntégrale\b|\bIntegrale\b|\bComplete\b/i.test(n)) return "Intégrale";
+  if (/\bExtended\b/i.test(filename)) return "Extended";
+  if (/\bDirector'?s?\s*Cut\b/i.test(filename)) return "Director's Cut";
+  if (/\bTheatrical\b/i.test(filename)) return "Theatrical";
+  if (/\bUnrated\b/i.test(filename)) return "Unrated";
+  if (/\bRemastered\b/i.test(filename)) return "Remastered";
+  if (/\bCriterion\b/i.test(filename)) return "Criterion";
+  if (/\bIntégrale\b|\bIntegrale\b|\bComplete\b/i.test(filename))
+    return "Intégrale";
   return null;
 }
 
@@ -229,54 +231,50 @@ const RES_TITLE_RES = /\b(2160p|4K|UHD|1080p|1080i|720p|480p|576p)\b/i;
 export function parseReleaseResolution(
   title: string,
 ): 480 | 720 | 1080 | 2160 | null {
-  const n = title;
   // Explicit pixel-count tokens take priority over generic UHD/4K markers.
   // "UHD BluRay 1080p" is a 1080p encode sourced from a UHD disc — resolution is 1080p.
-  if (/\b2160p\b/i.test(n)) return 2160;
-  if (/\b1080[pi]\b/i.test(n)) return 1080;
-  if (/\b720p\b/i.test(n)) return 720;
-  if (/\b480p\b/i.test(n) || /\b576p\b/i.test(n)) return 480;
+  if (/\b2160p\b/i.test(title)) return 2160;
+  if (/\b1080[pi]\b/i.test(title)) return 1080;
+  if (/\b720p\b/i.test(title)) return 720;
+  if (/\b480p\b/i.test(title) || /\b576p\b/i.test(title)) return 480;
   // Fall back to generic markers only when no explicit resolution is present
-  if (/\b(4K|UHD)\b/i.test(n)) return 2160;
+  if (/\b(4K|UHD)\b/i.test(title)) return 2160;
   return null;
 }
 
 /** Order matters: REMUX before BluRay, HDLight before BluRay, WEB-DL before WEB */
 export function parseReleaseSource(title: string): string | null {
-  const n = title;
-  if (/\bREMUX\b|\bBDREMUX\b|\bBD[-.]?REMUX\b/i.test(n)) return "REMUX";
+  if (/\bREMUX\b|\bBDREMUX\b|\bBD[-.]?REMUX\b/i.test(title)) return "REMUX";
   // HDLight: French re-encode from BluRay — check before generic BluRay
-  if (/\bHDLight\b/i.test(n)) return "HDLight";
-  if (/\bBlu[-.]?ray\b|\bBLURAY\b|\bBDRip\b|\bBRRip\b/i.test(n))
+  if (/\bHDLight\b/i.test(title)) return "HDLight";
+  if (/\bBlu[-.]?ray\b|\bBLURAY\b|\bBDRip\b|\bBRRip\b/i.test(title))
     return "BluRay";
-  if (/\bWEB[-.]?DL\b|\bWEBDL\b/i.test(n)) return "WEB-DL";
-  if (/\bWEBRip\b|\bWEB[-.]?Rip\b/i.test(n)) return "WEBRip";
-  if (/\bHDRip\b/i.test(n)) return "HDRip";
-  if (/\bHDTV\b/i.test(n)) return "HDTV";
-  if (/\bDVDRip\b|\bDVD\b/i.test(n)) return "DVDRip";
-  if (/\bWEB\b/i.test(n)) return "WEB";
+  if (/\bWEB[-.]?DL\b|\bWEBDL\b/i.test(title)) return "WEB-DL";
+  if (/\bWEBRip\b|\bWEB[-.]?Rip\b/i.test(title)) return "WEBRip";
+  if (/\bHDRip\b/i.test(title)) return "HDRip";
+  if (/\bHDTV\b/i.test(title)) return "HDTV";
+  if (/\bDVDRip\b|\bDVD\b/i.test(title)) return "DVDRip";
+  if (/\bWEB\b/i.test(title)) return "WEB";
   return null;
 }
 
 export function parseReleaseCodec(title: string): string | null {
-  const n = title;
-  if (/\bx265\b|\bH\.?265\b|\bH265\b|\bHEVC\b/i.test(n)) return "x265";
-  if (/\bx264\b|\bH\.?264\b|\bH264\b|\bAVC\b/i.test(n)) return "x264";
-  if (/\bAV1\b/i.test(n)) return "AV1";
-  if (/\bVC[-.]?1\b/i.test(n)) return "VC-1";
-  if (/\bXviD\b/i.test(n)) return "XviD";
-  if (/\bDivX\b/i.test(n)) return "DivX";
+  if (/\bx265\b|\bH\.?265\b|\bH265\b|\bHEVC\b/i.test(title)) return "x265";
+  if (/\bx264\b|\bH\.?264\b|\bH264\b|\bAVC\b/i.test(title)) return "x264";
+  if (/\bAV1\b/i.test(title)) return "AV1";
+  if (/\bVC[-.]?1\b/i.test(title)) return "VC-1";
+  if (/\bXviD\b/i.test(title)) return "XviD";
+  if (/\bDivX\b/i.test(title)) return "DivX";
   return null;
 }
 
 export function parseReleaseHdr(title: string): string | null {
-  const n = title;
-  if (/HDR10\+|HDR10Plus/i.test(n)) return "HDR10+";
+  if (/HDR10\+|HDR10Plus/i.test(title)) return "HDR10+";
   // DoVi/DOVI/DV are all Dolby Vision variants used across trackers
-  if (/\bDolby\.?Vision\b|\bDoVi\b|\bDOVI\b|\bDV\b/i.test(n)) return "DV";
-  if (/\bHDR10\b/i.test(n)) return "HDR10";
-  if (/\bHDR\b/i.test(n)) return "HDR10";
-  if (/\bHLG\b/i.test(n)) return "HLG";
+  if (/\bDolby\.?Vision\b|\bDoVi\b|\bDOVI\b|\bDV\b/i.test(title)) return "DV";
+  if (/\bHDR10\b/i.test(title)) return "HDR10";
+  if (/\bHDR\b/i.test(title)) return "HDR10";
+  if (/\bHLG\b/i.test(title)) return "HLG";
   return null;
 }
 
@@ -285,22 +283,29 @@ export function parseReleaseIsProper(title: string): boolean {
 }
 
 export function parseReleaseAudio(title: string): string | null {
-  const n = title;
-  if (/\bTrueHD\.?Atmos\b|\bAtmos\b.*\bTrueHD\b|\bTrueHD\b.*\bAtmos\b/i.test(n))
+  if (
+    /\bTrueHD\.?Atmos\b|\bAtmos\b.*\bTrueHD\b|\bTrueHD\b.*\bAtmos\b/i.test(
+      title,
+    )
+  )
     return "TrueHD Atmos";
-  if (/\bTrueHD\b/i.test(n)) return "TrueHD";
-  if (/\bDTS[-.]?HD\.?MA\b|\bDTS[-.]?MA\b/i.test(n)) return "DTS-HD MA";
-  if (/\bDTS[-.]?X\b/i.test(n)) return "DTS-X";
-  if (/\bDTS[-.]?HD\b/i.test(n)) return "DTS-HD";
-  if (/\bDTS\b/i.test(n)) return "DTS";
-  if (/\bDDP\d*\.?\d*\b|\bDD\+\d*\.?\d*\b|\bEAC3\b|\bE[-.]?AC[-.]?3\b/i.test(n))
+  if (/\bTrueHD\b/i.test(title)) return "TrueHD";
+  if (/\bDTS[-.]?HD\.?MA\b|\bDTS[-.]?MA\b/i.test(title)) return "DTS-HD MA";
+  if (/\bDTS[-.]?X\b/i.test(title)) return "DTS-X";
+  if (/\bDTS[-.]?HD\b/i.test(title)) return "DTS-HD";
+  if (/\bDTS\b/i.test(title)) return "DTS";
+  if (
+    /\bDDP\d*\.?\d*\b|\bDD\+\d*\.?\d*\b|\bEAC3\b|\bE[-.]?AC[-.]?3\b/i.test(
+      title,
+    )
+  )
     return "EAC3";
-  if (/\bAC3\b|\bDD\b(?!\+)/i.test(n)) return "AC3";
-  if (/\bAAC\b/i.test(n)) return "AAC";
-  if (/\bFLAC\b/i.test(n)) return "FLAC";
-  if (/\bL?PCM\b/i.test(n)) return "PCM";
-  if (/\bMP3\b/i.test(n)) return "MP3";
-  if (/\bOPUS\b/i.test(n)) return "Opus";
+  if (/\bAC3\b|\bDD\b(?!\+)/i.test(title)) return "AC3";
+  if (/\bAAC\b/i.test(title)) return "AAC";
+  if (/\bFLAC\b/i.test(title)) return "FLAC";
+  if (/\bL?PCM\b/i.test(title)) return "PCM";
+  if (/\bMP3\b/i.test(title)) return "MP3";
+  if (/\bOPUS\b/i.test(title)) return "Opus";
   return null;
 }
 

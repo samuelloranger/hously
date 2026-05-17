@@ -5,6 +5,7 @@ const getJsonCache = mock(async (_key: string) => null as unknown);
 const setJsonCache = mock(
   async (_key: string, _value: unknown, _ttl: number) => undefined,
 );
+const deleteCache = mock(async (_key: string) => undefined);
 const getAdminUserIds = mock(async () => ["admin-1", "admin-2"] as string[]);
 const createAndQueueNotification = mock(
   async (
@@ -28,6 +29,7 @@ const sendExternalNotification = mock(
 mock.module("@hously/api/services/cache", () => ({
   getJsonCache,
   setJsonCache,
+  deleteCache,
 }));
 mock.module("@hously/api/utils/admins", () => ({
   getAdminUserIds,

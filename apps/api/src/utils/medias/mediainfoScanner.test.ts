@@ -1,5 +1,7 @@
-import { describe, it, expect, spyOn, beforeEach } from "bun:test";
-import { scanMediaInfo } from "./mediainfoScanner";
+import { describe, it, expect } from "bun:test";
+// Import from mediainfoParser directly — other test files only mock mediainfoScanner,
+// so this import always resolves to the real implementation regardless of parallelism.
+import { parseMediaInfoJson } from "./mediainfoParser";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -288,35 +290,12 @@ const MALFORMED_LANGUAGE_CODES = {
   },
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function mockSpawnWithFixture(fixture: object) {
-  const json = JSON.stringify(fixture);
-  return spyOn(Bun, "spawn").mockImplementation(
-    () =>
-      ({
-        stdout: new ReadableStream({
-          start(controller) {
-            controller.enqueue(new TextEncoder().encode(json));
-            controller.close();
-          },
-        }),
-        exited: Promise.resolve(0),
-        kill: () => {},
-      }) as unknown as ReturnType<typeof Bun.spawn>,
-  );
-}
-
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("scanMediaInfo", () => {
-  beforeEach(() => {
-    spyOn(Bun, "which").mockReturnValue("/usr/bin/mediainfo");
-  });
-
-  it("fixture 1: Dolby Vision REMUX — parses HDR, audio, subtitles", async () => {
-    mockSpawnWithFixture(DOLBY_VISION_REMUX);
-    const result = await scanMediaInfo(
+  it("fixture 1: Dolby Vision REMUX — parses HDR, audio, subtitles", () => {
+    const result = parseMediaInfoJson(
+      JSON.stringify(DOLBY_VISION_REMUX),
       "/media/Movie.2023.2160p.BluRay.REMUX.HEVC.TrueHD.Atmos-GROUP.mkv",
     );
 
@@ -342,9 +321,9 @@ describe("scanMediaInfo", () => {
     expect(result!.subtitleTracks[0].format).toBe("PGS");
   });
 
-  it("fixture 2: WEB-DL HDR10 — parses correct HDR label", async () => {
-    mockSpawnWithFixture(WEB_DL_HDR10);
-    const result = await scanMediaInfo(
+  it("fixture 2: WEB-DL HDR10 — parses correct HDR label", () => {
+    const result = parseMediaInfoJson(
+      JSON.stringify(WEB_DL_HDR10),
       "/media/Movie.2023.2160p.WEB-DL.DDP5.1.HEVC-GROUP.mkv",
     );
 
@@ -355,9 +334,9 @@ describe("scanMediaInfo", () => {
     expect(result!.audioTracks[0].channel_layout).toBe("5.1");
   });
 
-  it("fixture 3: Standard 1080p x264 — no HDR, stereo, release group from library name", async () => {
-    mockSpawnWithFixture(STANDARD_1080P_X264);
-    const result = await scanMediaInfo(
+  it("fixture 3: Standard 1080p x264 — no HDR, stereo, release group from library name", () => {
+    const result = parseMediaInfoJson(
+      JSON.stringify(STANDARD_1080P_X264),
       "/media/Movie.2023.1080p.BluRay.x264-YIFY.mp4",
     );
 
@@ -371,9 +350,9 @@ describe("scanMediaInfo", () => {
     expect(result!.source).toBe("BluRay");
   });
 
-  it("fixture 4: Multi-audio French (CA) + French (FR) + English — all tracks parsed", async () => {
-    mockSpawnWithFixture(MULTI_AUDIO_FR_EN);
-    const result = await scanMediaInfo(
+  it("fixture 4: Multi-audio French (CA) + French (FR) + English — all tracks parsed", () => {
+    const result = parseMediaInfoJson(
+      JSON.stringify(MULTI_AUDIO_FR_EN),
       "/media/Movie.2023.1080p.BluRay.x265-GROUP.mkv",
     );
 
@@ -396,9 +375,9 @@ describe("scanMediaInfo", () => {
     expect(en.language_name).toBe("English");
   });
 
-  it("fixture 5: Heavy subtitles — parses forced, SDH, and regular subtitle tracks", async () => {
-    mockSpawnWithFixture(SUBTITLES_HEAVY);
-    const result = await scanMediaInfo(
+  it("fixture 5: Heavy subtitles — parses forced, SDH, and regular subtitle tracks", () => {
+    const result = parseMediaInfoJson(
+      JSON.stringify(SUBTITLES_HEAVY),
       "/media/Anime.2023.720p.BluRay.AAC-GROUP.mkv",
     );
 
@@ -422,9 +401,11 @@ describe("scanMediaInfo", () => {
     expect(result!.subtitleTracks[0].format).toBe("ASS");
   });
 
-  it("normalizes malformed language codes before storing tracks", async () => {
-    mockSpawnWithFixture(MALFORMED_LANGUAGE_CODES);
-    const result = await scanMediaInfo("/media/Send.Help.2026.1080p-GROUP.mkv");
+  it("normalizes malformed language codes before storing tracks", () => {
+    const result = parseMediaInfoJson(
+      JSON.stringify(MALFORMED_LANGUAGE_CODES),
+      "/media/Send.Help.2026.1080p-GROUP.mkv",
+    );
 
     expect(result).not.toBeNull();
     expect(result!.audioTracks[0].language).toBe("en");
@@ -435,26 +416,16 @@ describe("scanMediaInfo", () => {
     expect(result!.subtitleTracks[0].language_name).toBe("English");
   });
 
-  it("returns null when mediainfo binary is not found", async () => {
-    spyOn(Bun, "which").mockReturnValue(null);
-    const result = await scanMediaInfo("/media/test.mkv");
+  it("returns null for malformed JSON", () => {
+    const result = parseMediaInfoJson("{not valid json", "/media/test.mkv");
     expect(result).toBeNull();
   });
 
-  it("returns null when process exits with non-zero code", async () => {
-    spyOn(Bun, "spawn").mockImplementation(
-      () =>
-        ({
-          stdout: new ReadableStream({
-            start(controller) {
-              controller.close();
-            },
-          }),
-          exited: Promise.resolve(1),
-          kill: () => {},
-        }) as unknown as ReturnType<typeof Bun.spawn>,
+  it("returns null when mediainfo output has no tracks", () => {
+    const result = parseMediaInfoJson(
+      JSON.stringify({ media: {} }),
+      "/media/test.mkv",
     );
-    const result = await scanMediaInfo("/media/test.mkv");
     expect(result).toBeNull();
   });
 });
