@@ -16,6 +16,7 @@ export function useNotificationDevices(
     queryKey: queryKeys.notifications.devices(),
     queryFn: () =>
       fetcher<NotificationDevicesResponse>(NOTIFICATION_ENDPOINTS.DEVICES),
+    staleTime: 5 * 60_000,
     ...options,
   });
 }

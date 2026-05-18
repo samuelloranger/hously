@@ -54,6 +54,7 @@ export function usePasskeyCredentials() {
       );
       return { credentials: passkeys.map(mapPasskey) };
     },
+    staleTime: 5 * 60_000,
   });
 }
 

@@ -10,5 +10,6 @@ export function useVapidPublicKey() {
     queryKey: [...queryKeys.notifications.all, "vapid-public-key"] as const,
     queryFn: () =>
       fetcher<{ publicKey: string }>(NOTIFICATION_ENDPOINTS.VAPID_PUBLIC_KEY),
+    staleTime: Infinity,
   });
 }

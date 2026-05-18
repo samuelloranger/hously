@@ -25,5 +25,6 @@ export function useNotifications(
       fetcher<NotificationsResponse>(
         `${NOTIFICATION_ENDPOINTS.LIST}?${params.toString()}`,
       ),
+    staleTime: 30_000,
   });
 }
