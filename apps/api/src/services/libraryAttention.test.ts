@@ -112,19 +112,22 @@ describe("syncLibraryAttentionAlerts state machine", () => {
   });
 
   it("auto-resolves an open alert whose underlying condition is no longer true", async () => {
-    // Open alert for a movie that is no longer skipped
+    const openAlert = {
+      id: 99,
+      kind: "grab_skipped",
+      scopeType: "movie",
+      mediaId: 7,
+      episodeId: null,
+      season: null,
+      downloadHistoryId: null,
+    };
+    // First findMany: initial existingOpenAlerts fetch
     prismaMock.libraryAttentionAlert.findMany.mockImplementationOnce(
-      async () => [
-        {
-          id: 99,
-          kind: "grab_skipped",
-          scopeType: "movie",
-          mediaId: 7,
-          episodeId: null,
-          season: null,
-          downloadHistoryId: null,
-        },
-      ],
+      async () => [openAlert],
+    );
+    // Second findMany: re-fetch after upsert loop (currentOpenAlerts)
+    prismaMock.libraryAttentionAlert.findMany.mockImplementationOnce(
+      async () => [openAlert],
     );
     // buildValidationContext: media status is now "wanted" — not "skipped" → alert invalid
 

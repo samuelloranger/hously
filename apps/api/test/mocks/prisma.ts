@@ -25,6 +25,7 @@ export const prismaMock = {
   libraryAttentionAlert: makeModelMocks(),
   grabBlocklist: makeModelMocks(),
   integration: makeModelMocks(),
+  oidcProvider: makeModelMocks(),
 };
 
 export function clearPrismaMocks() {
