@@ -1,5 +1,5 @@
 import { HABIT_ENDPOINTS } from "@/lib/endpoints";
-import { useHabitStatusMutation, replaceLastStatus } from "./_habitStatus";
+import { useHabitStatusMutation, replaceLastStatus } from "@/pages/habits/_habitStatus";
 
 export const useUnskipHabit = () =>
   useHabitStatusMutation({
