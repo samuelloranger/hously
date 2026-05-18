@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { clearUser } from "@/lib/auth";
 import { useLogout } from "@/lib/auth/useAuth";
 import { useUpdateProfile } from "@/pages/settings/useUsers";
@@ -15,12 +15,16 @@ import { useTheme } from "@/lib/app/useTheme";
 import { cn } from "@/lib/utils";
 import { navSections } from "@/lib/routing/navigation";
 import { usePrefetchAllRoutes } from "@/lib/routing/usePrefetchAllRoutes";
+import type { NavPosition } from "@hously/shared/types";
+import { NavPositionPicker } from "@/components/NavPositionPicker";
+import { useNavPosition } from "@/pages/settings/useNavPosition";
 
 interface SidebarProps {
   onOpenQuickActions?: () => void;
+  position: NavPosition;
 }
 
-export function Sidebar({ onOpenQuickActions }: SidebarProps) {
+export function Sidebar({ onOpenQuickActions, position }: SidebarProps) {
   const { user } = useAuth();
   const { t, i18n } = useTranslation("common");
   const router = useRouterState();
@@ -30,6 +34,10 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
   const prefetchRoute = usePrefetchRoute();
   const prefetchAllRoutes = usePrefetchAllRoutes();
   const { isDark, toggleTheme } = useTheme();
+  const { setPosition } = useNavPosition();
+  const isHorizontal = position === "top" || position === "bottom";
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [popoverCoords, setPopoverCoords] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     prefetchAllRoutes();
@@ -94,14 +102,41 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
     }
   };
 
+  function handleContextMenu(e: React.MouseEvent) {
+    if ((e.target as HTMLElement).closest("a")) return;
+    e.preventDefault();
+    setPopoverCoords({ x: e.clientX, y: e.clientY });
+    setPopoverOpen(true);
+  }
+
   const initials = user ? formatDisplayName(user).charAt(0).toUpperCase() : "";
 
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-60 z-50 flex-col bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-r border-neutral-950/[0.06] dark:border-white/[0.08] theme-transition">
+      <aside
+        onContextMenu={handleContextMenu}
+        className={cn(
+          "hidden lg:flex fixed z-50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl theme-transition",
+          {
+            "left-0 top-0 bottom-0 w-60 flex-col border-r border-neutral-950/[0.06] dark:border-white/[0.08]":
+              position === "left",
+            "right-0 top-0 bottom-0 w-60 flex-col border-l border-neutral-950/[0.06] dark:border-white/[0.08]":
+              position === "right",
+            "top-0 left-0 right-0 h-12 flex-row items-center border-b border-neutral-950/[0.06] dark:border-white/[0.08]":
+              position === "top",
+            "bottom-0 left-0 right-0 h-12 flex-row items-center border-t border-neutral-950/[0.06] dark:border-white/[0.08]":
+              position === "bottom",
+          },
+        )}
+      >
         {/* Logo */}
-        <div className="flex items-center gap-2.5 px-5 h-16 shrink-0">
+        <div
+          className={cn(
+            "flex items-center gap-2.5 shrink-0",
+            isHorizontal ? "px-3 h-full" : "px-5 h-16",
+          )}
+        >
           <Link
             to="/"
             className="flex items-center gap-2.5 group"
@@ -112,20 +147,40 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
               alt=""
               className="h-7 w-7 transition-transform duration-200 group-hover:scale-110"
             />
-            <span className="text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
-              Hously
-            </span>
+            {!isHorizontal && (
+              <span className="text-lg font-bold tracking-tight text-neutral-900 dark:text-white">
+                Hously
+              </span>
+            )}
           </Link>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-5">
+        <nav
+          className={cn(
+            isHorizontal
+              ? "flex flex-row items-center gap-0.5 px-1 flex-1 overflow-x-auto h-full"
+              : "flex-1 overflow-y-auto px-3 py-2 space-y-5",
+          )}
+        >
           {navSections.map((section) => (
-            <div key={section.labelKey}>
-              <span className="px-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
-                {t(section.labelKey)}
-              </span>
-              <div className="mt-1.5 space-y-0.5">
+            <div
+              key={section.labelKey}
+              className={cn(!isHorizontal && "space-y-0")}
+            >
+              {/* Section label — hidden on horizontal */}
+              {!isHorizontal && (
+                <span className="px-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                  {t(section.labelKey)}
+                </span>
+              )}
+              <div
+                className={cn(
+                  isHorizontal
+                    ? "flex flex-row items-center gap-0.5"
+                    : "mt-1.5 space-y-0.5",
+                )}
+              >
                 {section.items.map((item) => {
                   const isActive =
                     item.path === "/"
@@ -139,11 +194,15 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
                       to={item.path}
                       onMouseEnter={() => prefetchRoute(item.path)}
                       className={cn(
-                        "relative flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150",
+                        "relative flex items-center rounded-lg text-[13px] font-medium transition-colors duration-150",
+                        isHorizontal
+                          ? "gap-0 px-3 py-2 justify-center"
+                          : "gap-3 px-3 py-2",
                         isActive
                           ? "text-neutral-900 dark:text-white"
                           : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] hover:text-neutral-800 dark:hover:text-neutral-200",
                       )}
+                      title={isHorizontal ? t(item.translationKey) : undefined}
                     >
                       {isActive && (
                         <motion.span
@@ -163,9 +222,12 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
                           isActive && "text-primary-600 dark:text-primary-400",
                         )}
                       />
-                      <span className="relative z-10">
-                        {t(item.translationKey)}
-                      </span>
+                      {/* Item label — hidden on horizontal */}
+                      {!isHorizontal && (
+                        <span className="relative z-10">
+                          {t(item.translationKey)}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
@@ -175,79 +237,41 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
         </nav>
 
         {/* Bottom section */}
-        <div className="shrink-0 border-t border-neutral-950/[0.06] dark:border-white/[0.08] px-3 py-3 space-y-1">
-          {onOpenQuickActions && (
-            <button
-              type="button"
-              onClick={onOpenQuickActions}
-              className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-[13px] font-medium text-neutral-500 transition-all duration-150 hover:bg-neutral-50 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-white/[0.04] dark:hover:text-neutral-200"
-            >
-              <Search size={18} />
-              <span className="flex-1 text-left">
-                {t("common.quickActions")}
-              </span>
-              <span className="rounded-md border border-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-400 dark:border-white/[0.08]">
-                ⌘K
-              </span>
-            </button>
-          )}
-
-          {/* Notifications */}
-          <div className="flex items-center">
+        {isHorizontal ? (
+          /* Horizontal: compact icon row on the right */
+          <div className="flex items-center gap-0.5 px-2 ml-auto h-full shrink-0">
+            {onOpenQuickActions && (
+              <button
+                type="button"
+                onClick={onOpenQuickActions}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
+                aria-label={t("common.quickActions")}
+                title={t("common.quickActions")}
+              >
+                <Search size={16} />
+              </button>
+            )}
             <NotificationsMenu />
-            <span className="ml-2 text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
-              {t("notifications.title")}
-            </span>
-          </div>
-
-          {/* Settings */}
-          <Link
-            to="/settings"
-            search={{ tab: "profile" }}
-            onMouseEnter={() => prefetchRoute("/settings", { tab: "profile" })}
-            className={cn(
-              "relative flex items-center gap-3 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150",
-              currentPath.startsWith("/settings")
-                ? "text-neutral-900 dark:text-white"
-                : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] hover:text-neutral-800 dark:hover:text-neutral-200",
-            )}
-          >
-            {currentPath.startsWith("/settings") && (
-              <motion.span
-                layoutId="sidebar-active"
-                className="absolute inset-0 rounded-lg bg-neutral-100 dark:bg-white/[0.08]"
-                transition={{ type: "spring", stiffness: 500, damping: 40 }}
-              />
-            )}
-            <Settings size={18} className="relative z-10" />
-            <span className="relative z-10">{t("settings.title")}</span>
-          </Link>
-
-          {/* Divider */}
-          <div className="h-px bg-neutral-950/[0.06] dark:bg-white/[0.08] my-1" />
-
-          {/* User section */}
-          {user && (
-            <div className="flex items-center gap-2 px-1.5 py-1">
-              {user.avatar_url ? (
-                <img
-                  src={user.avatar_url}
-                  alt={formatDisplayName(user)}
-                  className="h-8 w-8 rounded-lg object-cover ring-1 ring-neutral-200/80 dark:ring-white/10 shrink-0"
-                />
-              ) : (
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-100 dark:bg-primary-900/40 text-xs font-semibold text-primary-700 dark:text-primary-300 shrink-0">
-                  {initials}
-                </div>
+            <Link
+              to="/settings"
+              search={{ tab: "profile" }}
+              title={t("settings.title")}
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-150",
+                currentPath.startsWith("/settings")
+                  ? "text-neutral-900 dark:text-white bg-neutral-100 dark:bg-white/[0.08]"
+                  : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06]",
               )}
-              <span className="text-[13px] font-medium text-neutral-700 dark:text-neutral-300 truncate">
-                {formatDisplayName(user)}
-              </span>
-            </div>
-          )}
-
-          {/* Quick actions row */}
-          <div className="flex items-center gap-1 px-1">
+            >
+              <Settings size={16} />
+            </Link>
+            <button
+              onClick={toggleLanguage}
+              className="flex h-8 items-center justify-center rounded-lg px-2 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
+              title={t("common.language")}
+            >
+              {currentLanguage.name}
+            </button>
             <button
               onClick={toggleTheme}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
@@ -257,14 +281,6 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
               {isDark ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             <button
-              onClick={toggleLanguage}
-              className="flex h-8 items-center justify-center rounded-lg px-2 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
-              title={t("common.language")}
-            >
-              {currentLanguage.name}
-            </button>
-            <div className="flex-1" />
-            <button
               onClick={handleLogout}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-red-600 dark:hover:text-red-400 transition-colors"
               aria-label={t("nav.logout")}
@@ -273,7 +289,135 @@ export function Sidebar({ onOpenQuickActions }: SidebarProps) {
               <LogOut size={16} />
             </button>
           </div>
-        </div>
+        ) : (
+          /* Vertical: existing bottom section */
+          <div className="shrink-0 border-t border-neutral-950/[0.06] dark:border-white/[0.08] px-3 py-3 space-y-1">
+            {onOpenQuickActions && (
+              <button
+                type="button"
+                onClick={onOpenQuickActions}
+                className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-[13px] font-medium text-neutral-500 transition-all duration-150 hover:bg-neutral-50 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-white/[0.04] dark:hover:text-neutral-200"
+              >
+                <Search size={18} />
+                <span className="flex-1 text-left">
+                  {t("common.quickActions")}
+                </span>
+                <span className="rounded-md border border-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-400 dark:border-white/[0.08]">
+                  ⌘K
+                </span>
+              </button>
+            )}
+
+            {/* Notifications */}
+            <div className="flex items-center">
+              <NotificationsMenu />
+              <span className="ml-2 text-[13px] font-medium text-neutral-500 dark:text-neutral-400">
+                {t("notifications.title")}
+              </span>
+            </div>
+
+            {/* Settings */}
+            <Link
+              to="/settings"
+              search={{ tab: "profile" }}
+              onMouseEnter={() =>
+                prefetchRoute("/settings", { tab: "profile" })
+              }
+              className={cn(
+                "relative flex items-center gap-3 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-colors duration-150",
+                currentPath.startsWith("/settings")
+                  ? "text-neutral-900 dark:text-white"
+                  : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.04] hover:text-neutral-800 dark:hover:text-neutral-200",
+              )}
+            >
+              {currentPath.startsWith("/settings") && (
+                <motion.span
+                  layoutId="sidebar-active"
+                  className="absolute inset-0 rounded-lg bg-neutral-100 dark:bg-white/[0.08]"
+                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                />
+              )}
+              <Settings size={18} className="relative z-10" />
+              <span className="relative z-10">{t("settings.title")}</span>
+            </Link>
+
+            {/* Divider */}
+            <div className="h-px bg-neutral-950/[0.06] dark:bg-white/[0.08] my-1" />
+
+            {/* User section */}
+            {user && (
+              <div className="flex items-center gap-2 px-1.5 py-1">
+                {user.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={formatDisplayName(user)}
+                    className="h-8 w-8 rounded-lg object-cover ring-1 ring-neutral-200/80 dark:ring-white/10 shrink-0"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-100 dark:bg-primary-900/40 text-xs font-semibold text-primary-700 dark:text-primary-300 shrink-0">
+                    {initials}
+                  </div>
+                )}
+                <span className="text-[13px] font-medium text-neutral-700 dark:text-neutral-300 truncate">
+                  {formatDisplayName(user)}
+                </span>
+              </div>
+            )}
+
+            {/* Quick actions row */}
+            <div className="flex items-center gap-1 px-1">
+              <button
+                onClick={toggleTheme}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
+                aria-label={t("common.toggleTheme")}
+                title={t("common.toggleTheme")}
+              >
+                {isDark ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+              <button
+                onClick={toggleLanguage}
+                className="flex h-8 items-center justify-center rounded-lg px-2 text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
+                title={t("common.language")}
+              >
+                {currentLanguage.name}
+              </button>
+              <div className="flex-1" />
+              <button
+                onClick={handleLogout}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.06] hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                aria-label={t("nav.logout")}
+                title={t("nav.logout")}
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Right-click position popover */}
+        {popoverOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-[60]"
+              onClick={() => setPopoverOpen(false)}
+            />
+            <div
+              className="fixed z-[61] bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-xl p-3"
+              style={{ left: popoverCoords.x, top: popoverCoords.y }}
+            >
+              <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-2 px-1">
+                Navigation position
+              </p>
+              <NavPositionPicker
+                value={position}
+                onChange={(p) => {
+                  setPosition(p);
+                  setPopoverOpen(false);
+                }}
+              />
+            </div>
+          </>
+        )}
       </aside>
 
       {/* Mobile top bar */}

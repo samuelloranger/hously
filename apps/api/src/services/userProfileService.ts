@@ -11,6 +11,7 @@ export type UserProfileUpdateInput = {
   first_name?: string | null;
   last_name?: string | null;
   locale?: string | null;
+  nav_position?: string | null;
 };
 
 export type UserProfileUpdateResult =
@@ -21,12 +22,13 @@ export async function updateUserProfile(
   userId: string,
   input: UserProfileUpdateInput,
 ): Promise<UserProfileUpdateResult> {
-  const { first_name, last_name, locale } = input;
+  const { first_name, last_name, locale, nav_position } = input;
 
   if (
     first_name === undefined &&
     last_name === undefined &&
-    locale === undefined
+    locale === undefined &&
+    nav_position === undefined
   ) {
     return {
       ok: false,
@@ -54,6 +56,7 @@ export async function updateUserProfile(
       first_name,
       last_name,
       locale,
+      nav_position,
     },
     existing,
   );
@@ -76,6 +79,7 @@ export async function updateUserProfileFields(
     firstName: string | null;
     lastName: string | null;
     locale: string | null;
+    navPosition: string | null;
   }> = {};
 
   if (input.first_name !== undefined) {
@@ -86,6 +90,9 @@ export async function updateUserProfileFields(
   }
   if (input.locale !== undefined) {
     updateData.locale = input.locale;
+  }
+  if (input.nav_position !== undefined) {
+    updateData.navPosition = input.nav_position;
   }
 
   return prisma.user.update({

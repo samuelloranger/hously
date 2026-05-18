@@ -21,6 +21,7 @@ model User {
   lastName                String?   @map("last_name")
   locale                  String?
   avatarUrl               String?   @map("avatar_url")
+  navPosition             String?   @map("nav_position")
   dashboardConfig         Json?     @map("dashboard_config")
   calendarToken           String?   @unique(map: "ix_users_calendar_token") @map("calendar_token")
 
