@@ -32,5 +32,6 @@ export function useInfiniteNotifications(
         : undefined;
     },
     initialPageParam: 1,
+    staleTime: 30_000,
   });
 }

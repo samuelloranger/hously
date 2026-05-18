@@ -8,5 +8,6 @@ export function useLibraryLanguageTags() {
   return useQuery({
     queryKey: queryKeys.library.languageTags(),
     queryFn: () => fetcher<{ tags: string[] }>(LIBRARY_ENDPOINTS.LANGUAGE_TAGS),
+    staleTime: 5 * 60_000,
   });
 }
