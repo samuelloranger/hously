@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "@/components/dialog";
 import { HabitForm } from "@/pages/habits/_component/HabitForm";
-import { useCreateHabit } from "@/pages/habits/useHabits";
+import { useCreateHabit } from "@/pages/habits/useCreateHabit";
 import type { CreateHabitRequest } from "@hously/shared/types";
 import { toast } from "sonner";
 

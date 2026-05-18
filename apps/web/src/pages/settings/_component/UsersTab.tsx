@@ -5,14 +5,12 @@ import { Users } from "lucide-react";
 import { HttpError } from "@/lib/api/httpClient";
 import { FormInput } from "@/components/ui/form-field";
 import { Button } from "@/components/ui/button";
-import {
-  useAdminUsers,
-  useDeleteUser,
-  useInviteUser,
-  useAdminInvitations,
-  useResendInvitation,
-  useRevokeInvitation,
-} from "@/pages/settings/useAdmin";
+import { useAdminUsers } from "@/pages/settings/useAdminUsers";
+import { useDeleteUser } from "@/pages/settings/useDeleteUser";
+import { useInviteUser } from "@/pages/settings/useInviteUser";
+import { useAdminInvitations } from "@/pages/settings/useAdminInvitations";
+import { useResendInvitation } from "@/pages/settings/useResendInvitation";
+import { useRevokeInvitation } from "@/pages/settings/useRevokeInvitation";
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { formatDateTime } from "@hously/shared/utils";
 import { LoadingState } from "@/components/LoadingState";

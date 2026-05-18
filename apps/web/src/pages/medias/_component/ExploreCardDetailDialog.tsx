@@ -2,11 +2,9 @@ import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { useAddToLibrary } from "@/features/medias/hooks/useAddToLibrary";
-import {
-  useAddToWatchlist,
-  useMediaModalData,
-  useRemoveFromWatchlist,
-} from "@/features/medias/hooks/useMedias";
+import { useAddToWatchlist } from "@/features/medias/hooks/useAddToWatchlist";
+import { useMediaModalData } from "@/features/medias/hooks/useMediaModalData";
+import { useRemoveFromWatchlist } from "@/features/medias/hooks/useRemoveFromWatchlist";
 import { type TmdbMediaSearchItem } from "@hously/shared/types";
 import {
   Bookmark,

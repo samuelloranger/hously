@@ -7,7 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { useTmdbMediaSearch } from "@/features/medias/hooks/useMedias";
+import { useTmdbMediaSearch } from "@/features/medias/hooks/useTmdbMediaSearch";
 import type { TmdbMediaSearchItem } from "@hously/shared/types";
 import type { DownloadListRow } from "@/features/downloadsImport/hooks/useDownloadsImport";
 

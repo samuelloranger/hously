@@ -2,11 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { BoardKanbanStatusApi, BoardTask } from "@hously/shared/types";
 import { bulkMoveTasksToColumn } from "@/pages/board/_utils/columns";
 import { toSyncPayload } from "@/pages/board/_utils/columns";
-import {
-  useDeleteBoardTask,
-  useSetBoardTaskArchived,
-  useSyncBoardTasks,
-} from "@/pages/board/_hooks/useBoardTasks";
+import { useDeleteBoardTask } from "@/pages/board/_hooks/useDeleteBoardTask";
+import { useSetBoardTaskArchived } from "@/pages/board/_hooks/useSetBoardTaskArchived";
+import { useSyncBoardTasks } from "@/pages/board/_hooks/useSyncBoardTasks";
 
 interface UseBoardSelectionOptions {
   kanbanTasks: BoardTask[];

@@ -20,7 +20,7 @@ import {
   normalizeColumns,
   toSyncPayload,
 } from "@/pages/board/_utils/columns";
-import { useSyncBoardTasks } from "@/pages/board/_hooks/useBoardTasks";
+import { useSyncBoardTasks } from "@/pages/board/_hooks/useSyncBoardTasks";
 
 export function useBoardDragDrop(kanbanTasks: BoardTask[]) {
   const syncMutation = useSyncBoardTasks();

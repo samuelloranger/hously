@@ -4,12 +4,10 @@ import { Bell } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNotifications } from "@/lib/notifications/useNotifications";
-import {
-  useDeleteNotificationDevice,
-  useNotificationDevices,
-  useSubscribeToPushNotifications,
-  useTestPushNotification,
-} from "@/lib/notifications/useNotificationData";
+import { useDeleteNotificationDevice } from "@/lib/notifications/useDeleteNotificationDevice";
+import { useNotificationDevices } from "@/lib/notifications/useNotificationDevices";
+import { useSubscribeToPushNotifications } from "@/lib/notifications/useSubscribeToPushNotifications";
+import { useTestPushNotification } from "@/lib/notifications/useTestPushNotification";
 import { queryKeys } from "@/lib/queryKeys";
 import { getDeviceInfo } from "@/lib/device";
 import { useAuth } from "@/lib/auth/useAuth";

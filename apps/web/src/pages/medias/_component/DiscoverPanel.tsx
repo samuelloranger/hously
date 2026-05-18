@@ -1,10 +1,8 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useDiscoverMedias,
-  useMediaGenres,
-  useStreamingProviders,
-} from "@/features/medias/hooks/useMedias";
+import { useDiscoverMedias } from "@/features/medias/hooks/useDiscoverMedias";
+import { useMediaGenres } from "@/features/medias/hooks/useMediaGenres";
+import { useStreamingProviders } from "@/features/medias/hooks/useStreamingProviders";
 import type { DiscoverFilters } from "@/pages/medias/_component/discover/discoverTypes";
 import {
   DISCOVER_PAGE_SIZE,

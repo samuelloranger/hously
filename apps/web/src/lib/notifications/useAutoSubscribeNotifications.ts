@@ -3,11 +3,9 @@ import { useAuth } from "@/lib/auth/useAuth";
 import { useNotifications } from "@/lib/notifications/useNotifications";
 import { getDeviceInfo } from "@/lib/device";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  useNotificationDevices,
-  useSubscribeToPushNotifications,
-  useUnsubscribeFromPushNotifications,
-} from "@/lib/notifications/useNotificationData";
+import { useNotificationDevices } from "@/lib/notifications/useNotificationDevices";
+import { useSubscribeToPushNotifications } from "@/lib/notifications/useSubscribeToPushNotifications";
+import { useUnsubscribeFromPushNotifications } from "@/lib/notifications/useUnsubscribeFromPushNotifications";
 import { queryKeys } from "@/lib/queryKeys";
 
 /**

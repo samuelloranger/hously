@@ -14,10 +14,8 @@ import { useJsonEventSource } from "@/lib/realtime/useEventSource";
 import { useUsers } from "@/pages/settings/useUsers";
 import { BOARD_TASKS_ENDPOINTS } from "@/lib/endpoints";
 import { queryKeys } from "@/lib/queryKeys";
-import {
-  useArchivedBoardTasks,
-  useBoardTasks,
-} from "@/pages/board/_hooks/useBoardTasks";
+import { useBoardTasks } from "@/pages/board/_hooks/useBoardTasks";
+import { useArchivedBoardTasks } from "@/pages/board/_hooks/useArchivedBoardTasks";
 import { useBoardTags } from "@/pages/board/_hooks/useBoardTags";
 import { useBoardDragDrop } from "@/pages/board/_hooks/useBoardDragDrop";
 import { useBoardSelection } from "@/pages/board/_hooks/useBoardSelection";

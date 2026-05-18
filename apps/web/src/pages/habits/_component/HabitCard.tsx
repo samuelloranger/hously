@@ -1,14 +1,12 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Check, Plus, X, Pencil, Undo2, Trash2 } from "lucide-react";
-import {
-  useCompleteHabit,
-  useSkipHabit,
-  useUncompleteHabit,
-  useUnskipHabit,
-  useCompleteHabitForDate,
-  useUncompleteHabitForDate,
-} from "@/pages/habits/useHabits";
+import { useCompleteHabit } from "@/pages/habits/useCompleteHabit";
+import { useSkipHabit } from "@/pages/habits/useSkipHabit";
+import { useUncompleteHabit } from "@/pages/habits/useUncompleteHabit";
+import { useUnskipHabit } from "@/pages/habits/useUnskipHabit";
+import { useCompleteHabitForDate } from "@/pages/habits/useCompleteHabitForDate";
+import { useUncompleteHabitForDate } from "@/pages/habits/useUncompleteHabitForDate";
 import { Habit } from "@hously/shared/types";
 import { cn } from "@/lib/utils";
 import { HabitProgress } from "@/pages/habits/_component/HabitProgress";

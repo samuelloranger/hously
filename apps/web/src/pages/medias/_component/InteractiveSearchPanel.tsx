@@ -9,10 +9,8 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
-import {
-  useInteractiveDownload,
-  useInteractiveSearch,
-} from "@/features/medias/hooks/useMedias";
+import { useInteractiveDownload } from "@/features/medias/hooks/useInteractiveDownload";
+import { useInteractiveSearch } from "@/features/medias/hooks/useInteractiveSearch";
 import { useLibraryGrabRelease } from "@/features/medias/hooks/useLibraryGrabRelease";
 import { useLibraryEpisodes } from "@/features/medias/hooks/useLibraryEpisodes";
 import { useLibraryDownloads } from "@/features/medias/hooks/useLibraryDownloads";

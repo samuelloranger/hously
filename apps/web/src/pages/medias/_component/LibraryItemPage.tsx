@@ -6,11 +6,9 @@ import { Info, Search, Settings2, Sparkles } from "lucide-react";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { useLibrary } from "@/features/medias/hooks/useLibrary";
 import { useLibraryEvents } from "@/features/medias/hooks/useLibraryEvents";
-import {
-  useAddToWatchlist,
-  useMediaModalData,
-  useRemoveFromWatchlist,
-} from "@/features/medias/hooks/useMedias";
+import { useAddToWatchlist } from "@/features/medias/hooks/useAddToWatchlist";
+import { useMediaModalData } from "@/features/medias/hooks/useMediaModalData";
+import { useRemoveFromWatchlist } from "@/features/medias/hooks/useRemoveFromWatchlist";
 import { LibraryManagementPanel } from "./LibraryManagementPanel";
 import { SimilarMediasPanel } from "./SimilarMediasPanel";
 import { LibraryItemHero } from "./LibraryItemHero";

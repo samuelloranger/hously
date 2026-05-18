@@ -1,10 +1,8 @@
 import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Trash2 } from "lucide-react";
-import {
-  useDeleteNotification,
-  useMarkAsReadOptimistic,
-} from "@/lib/notifications/useNotificationData";
+import { useDeleteNotification } from "@/lib/notifications/useDeleteNotification";
+import { useMarkAsReadOptimistic } from "@/lib/notifications/useMarkAsReadOptimistic";
 import type { Notification } from "@hously/shared/types";
 import { formatDate, formatTime } from "@hously/shared/utils";
 import { cn } from "@/lib/utils";

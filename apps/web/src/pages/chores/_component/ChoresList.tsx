@@ -9,11 +9,9 @@ import { CreateChoreModal } from "@/pages/chores/_component/CreateChoreModal";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { SortableList } from "@/components/SortableList";
-import {
-  useChores,
-  useClearAllCompletedChores,
-  useReorderChores,
-} from "@/pages/chores/useChores";
+import { useChores } from "@/pages/chores/useChores";
+import { useClearAllCompletedChores } from "@/pages/chores/useClearAllCompletedChores";
+import { useReorderChores } from "@/pages/chores/useReorderChores";
 import { useSearch } from "@tanstack/react-router";
 import { useModalSearchParams } from "@/lib/routing/useModalSearchParams";
 import type { ChoresSearchParams } from "@/pages/chores/_component/ChoreRow";
