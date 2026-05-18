@@ -113,17 +113,31 @@ export async function pollIndexerRss(): Promise<RssRunStats | null> {
       list.push(ep);
       seasonGroups.set(key, list);
     }
-    for (const [, groupEps] of seasonGroups) {
-      const ep0 = groupEps[0]!;
-      const totalMonitored = await prisma.libraryEpisode.count({
-        where: { mediaId: ep0.mediaId, season: ep0.season, monitored: true },
+    if (seasonGroups.size > 0) {
+      const pairs = [...seasonGroups.values()].map((eps) => ({
+        mediaId: eps[0]!.mediaId,
+        season: eps[0]!.season,
+      }));
+      const monitoredEps = await prisma.libraryEpisode.findMany({
+        where: { OR: pairs, monitored: true },
+        select: { mediaId: true, season: true },
       });
-      if (groupEps.length === totalMonitored) {
-        packEligibleSeasons.set(`${ep0.normalizedTitle}:${ep0.season}`, {
-          mediaId: ep0.mediaId,
-          season: ep0.season,
-          media: ep0.media,
-        });
+      const monitoredCountMap = new Map<string, number>();
+      for (const ep of monitoredEps) {
+        const key = `${ep.mediaId}:${ep.season}`;
+        monitoredCountMap.set(key, (monitoredCountMap.get(key) ?? 0) + 1);
+      }
+      for (const [, groupEps] of seasonGroups) {
+        const ep0 = groupEps[0]!;
+        const totalMonitored =
+          monitoredCountMap.get(`${ep0.mediaId}:${ep0.season}`) ?? 0;
+        if (groupEps.length === totalMonitored) {
+          packEligibleSeasons.set(`${ep0.normalizedTitle}:${ep0.season}`, {
+            mediaId: ep0.mediaId,
+            season: ep0.season,
+            media: ep0.media,
+          });
+        }
       }
     }
   }

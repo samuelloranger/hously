@@ -53,27 +53,34 @@ async function notifyStatusChange(
   serverName: string,
   isOnline: boolean,
 ): Promise<void> {
-  const subscriptions = await prisma.userSubscription.findMany();
+  const subscriptions = await prisma.userSubscription.findMany({
+    select: { id: true, subscriptionInfo: true },
+  });
 
-  for (const sub of subscriptions) {
-    let subscriptionInfo: PushSubscription;
-    try {
-      subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
-    } catch {
-      continue;
-    }
+  const expiredIds: number[] = [];
+  await Promise.all(
+    subscriptions.map(async (sub) => {
+      let subscriptionInfo: PushSubscription;
+      try {
+        subscriptionInfo = JSON.parse(sub.subscriptionInfo) as PushSubscription;
+      } catch {
+        return;
+      }
+      const result = await sendWebPushNotification(subscriptionInfo, {
+        title: "Minecraft Server",
+        body: isOnline
+          ? `${serverName} is back online`
+          : `${serverName} is offline`,
+        tag: `minecraft-status-${serverName}`,
+        data: { notification_type: "minecraft_status" },
+      });
+      if (result.expired) expiredIds.push(sub.id);
+    }),
+  );
 
-    const result = await sendWebPushNotification(subscriptionInfo, {
-      title: "Minecraft Server",
-      body: isOnline
-        ? `${serverName} is back online`
-        : `${serverName} is offline`,
-      tag: `minecraft-status-${serverName}`,
-      data: { notification_type: "minecraft_status" },
+  if (expiredIds.length > 0) {
+    await prisma.userSubscription.deleteMany({
+      where: { id: { in: expiredIds } },
     });
-
-    if (result.expired) {
-      await prisma.userSubscription.delete({ where: { id: sub.id } });
-    }
   }
 }

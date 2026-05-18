@@ -157,6 +157,7 @@ model BoardTaskActivity {
   user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([taskId, createdAt], map: "ix_board_task_activities_task_created")
+  @@index([userId], map: "ix_board_task_activities_user_id")
   @@map("board_task_activities")
 }
 
@@ -192,9 +193,7 @@ model NotificationTemplate {
 
   service ExternalNotificationService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
-  @@index([eventType], map: "ix_notification_templates_event_type")
-  @@index([language], map: "ix_notification_templates_language")
-  @@index([serviceId], map: "ix_notification_templates_service_id")
+  @@index([serviceId, eventType, language], map: "ix_notification_templates_service_event_lang")
   @@map("notification_templates")
 }
 
@@ -269,6 +268,7 @@ model CustomEvent {
 
   user User @relation(fields: [userId], references: [id])
 
+  @@index([userId], map: "ix_custom_events_user_id")
   @@map("custom_events")
 }
 
@@ -284,6 +284,8 @@ model Reminder {
   chore Chore @relation(fields: [choreId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id])
 
+  @@index([choreId], map: "ix_reminders_chore_id")
+  @@index([userId], map: "ix_reminders_user_id")
   @@map("reminders")
 }
 
@@ -319,6 +321,7 @@ model TaskCompletion {
 
   user User @relation(fields: [userId], references: [id])
 
+  @@index([userId], map: "ix_task_completions_user_id")
   @@map("task_completions")
 }
 
@@ -363,6 +366,9 @@ model Chore {
   childChores      Chore[]    @relation("ChoreRecurrence")
   reminders        Reminder[]
 
+  @@index([addedBy], map: "ix_chores_added_by")
+  @@index([assignedTo], map: "ix_chores_assigned_to")
+  @@index([completedBy], map: "ix_chores_completed_by")
   @@map("chores")
 }
 
@@ -781,6 +787,7 @@ model MediaFile {
 
   @@index([mediaId], map: "ix_media_files_media_id")
   @@index([episodeId], map: "ix_media_files_episode_id")
+  @@index([filePath], map: "ix_media_files_file_path")
   @@index([languageTags], map: "ix_media_files_language_tags", type: Gin)
   @@map("media_files")
 }
