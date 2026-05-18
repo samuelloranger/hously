@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useQbittorrentIntegration,
-  useUpdateQbittorrentIntegration,
-} from "@/pages/settings/useIntegrations";
+import { useQbittorrentIntegration } from "@/pages/settings/useQbittorrentIntegration";
+import { useUpdateQbittorrentIntegration } from "@/pages/settings/useUpdateQbittorrentIntegration";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
 import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Shield } from "lucide-react";
 import { useDashboardAdguardSummary } from "@/pages/_component/useDashboardSystem";
-import { useSetAdguardProtection } from "@/pages/settings/useIntegrations";
+import { useSetAdguardProtection } from "@/pages/settings/useSetAdguardProtection";
 import { useAuth } from "@/lib/auth/useAuth";
 import { SectionTitle, MetricRow } from "./shared";
 

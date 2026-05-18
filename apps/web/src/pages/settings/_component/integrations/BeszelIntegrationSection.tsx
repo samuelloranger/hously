@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useBeszelIntegration,
-  useUpdateBeszelIntegration,
-} from "@/pages/settings/useIntegrations";
+import { useBeszelIntegration } from "@/pages/settings/useBeszelIntegration";
+import { useUpdateBeszelIntegration } from "@/pages/settings/useUpdateBeszelIntegration";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
 import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";

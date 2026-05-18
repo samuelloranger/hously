@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useUptimekumaIntegration,
-  useUpdateUptimekumaIntegration,
-} from "@/pages/settings/useIntegrations";
+import { useUptimekumaIntegration } from "@/pages/settings/useUptimekumaIntegration";
+import { useUpdateUptimekumaIntegration } from "@/pages/settings/useUpdateUptimekumaIntegration";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
 import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";
