@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  useRetryJob,
-  useRetryFailed,
-  useCleanQueue,
-} from "@/pages/settings/useAdmin";
+import { useRetryJob } from "@/pages/settings/useRetryJob";
+import { useRetryFailed } from "@/pages/settings/useRetryFailed";
+import { useCleanQueue } from "@/pages/settings/useCleanQueue";
 import type { QueueStat, QueueJob } from "@hously/shared/types";
 import { ADMIN_ENDPOINTS } from "@/lib/endpoints";
 import { useFetcher } from "@/lib/api/context";

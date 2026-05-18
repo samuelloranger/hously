@@ -1,8 +1,6 @@
 import { useTranslation } from "react-i18next";
-import {
-  useInfiniteNotifications,
-  useMarkAllAsReadOptimistic,
-} from "@/lib/notifications/useNotificationData";
+import { useInfiniteNotifications } from "@/lib/notifications/useInfiniteNotifications";
+import { useMarkAllAsReadOptimistic } from "@/lib/notifications/useMarkAllAsReadOptimistic";
 import { type Notification } from "@hously/shared/types";
 import { NotificationList } from "@/components/NotificationList";
 import { Button } from "@/components/ui/button";

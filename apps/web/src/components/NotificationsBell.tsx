@@ -3,12 +3,10 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { Bell, ArrowRight, CheckCheck, BellOff } from "lucide-react";
 import * as Popover from "@radix-ui/react-popover";
-import {
-  useMarkAllAsReadOptimistic,
-  useMarkAsReadOptimistic,
-  useNotifications,
-  useUnreadCount,
-} from "@/lib/notifications/useNotificationData";
+import { useMarkAllAsReadOptimistic } from "@/lib/notifications/useMarkAllAsReadOptimistic";
+import { useMarkAsReadOptimistic } from "@/lib/notifications/useMarkAsReadOptimistic";
+import { useNotifications } from "@/lib/notifications/useNotificationsQuery";
+import { useUnreadCount } from "@/lib/notifications/useUnreadCount";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   formatRelativeTime,

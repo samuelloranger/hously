@@ -3,11 +3,9 @@ import { useForm, useWatch, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import {
-  useCreateChore,
-  useUpdateChore,
-  useUploadChoreImage,
-} from "@/pages/chores/useChores";
+import { useCreateChore } from "@/pages/chores/useCreateChore";
+import { useUpdateChore } from "@/pages/chores/useUpdateChore";
+import { useUploadChoreImage } from "@/pages/chores/useUploadChoreImage";
 import type { Chore, ChoreUser } from "@hously/shared/types";
 import { formatUsername } from "@/lib/utils/format";
 import { getChoreThumbnailUrl } from "@/lib/utils/media";

@@ -2,7 +2,8 @@ import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DatabaseBackup } from "lucide-react";
-import { useExportData, useImportData } from "@/pages/settings/useAdmin";
+import { useExportData } from "@/pages/settings/useExportData";
+import { useImportData } from "@/pages/settings/useImportData";
 import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 
 export function DataExportTab() {

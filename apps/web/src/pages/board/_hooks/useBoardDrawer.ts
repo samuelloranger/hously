@@ -1,10 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import type { BoardTask, UpdateBoardTaskRequest } from "@hously/shared/types";
-import {
-  useDeleteBoardTask,
-  useSetBoardTaskArchived,
-  useUpdateBoardTask,
-} from "@/pages/board/_hooks/useBoardTasks";
+import { useUpdateBoardTask } from "@/pages/board/_hooks/useUpdateBoardTask";
+import { useDeleteBoardTask } from "@/pages/board/_hooks/useDeleteBoardTask";
+import { useSetBoardTaskArchived } from "@/pages/board/_hooks/useSetBoardTaskArchived";
 
 export function useBoardDrawer(allTasks: BoardTask[]) {
   const updateMutation = useUpdateBoardTask();

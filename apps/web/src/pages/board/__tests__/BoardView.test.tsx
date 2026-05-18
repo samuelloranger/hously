@@ -44,33 +44,57 @@ vi.mock("@tanstack/react-router", () => ({
 // ── Hook mocks ───────────────────────────────────────────────────────────────
 vi.mock("@/pages/board/_hooks/useBoardTasks", () => ({
   useBoardTasks: vi.fn(),
+}));
+vi.mock("@/pages/board/_hooks/useCreateBoardTask", () => ({
   useCreateBoardTask: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock("@/pages/board/_hooks/useUpdateBoardTask", () => ({
   useUpdateBoardTask: vi.fn().mockReturnValue({ mutate: vi.fn() }),
+}));
+vi.mock("@/pages/board/_hooks/useDeleteBoardTask", () => ({
   useDeleteBoardTask: vi.fn().mockReturnValue({
     mutate: vi.fn(),
     mutateAsync: vi.fn().mockResolvedValue({}),
     isPending: false,
   }),
+}));
+vi.mock("@/pages/board/_hooks/useSyncBoardTasks", () => ({
   useSyncBoardTasks: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock("@/pages/board/_hooks/useSetBoardTaskArchived", () => ({
   useSetBoardTaskArchived: vi.fn().mockReturnValue({
     mutate: vi.fn(),
     mutateAsync: vi.fn().mockResolvedValue({}),
     isPending: false,
   }),
+}));
+vi.mock("@/pages/board/_hooks/useArchivedBoardTasks", () => ({
   useArchivedBoardTasks: vi.fn().mockReturnValue({ data: { tasks: [] } }),
+}));
+vi.mock("@/pages/board/_hooks/useAddDependency", () => ({
   useAddDependency: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock("@/pages/board/_hooks/useRemoveDependency", () => ({
   useRemoveDependency: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock("@/pages/board/_hooks/useBoardTimeLogs", () => ({
   useBoardTimeLogs: vi.fn().mockReturnValue({ data: { time_logs: [] } }),
+}));
+vi.mock("@/pages/board/_hooks/useLogTime", () => ({
   useLogTime: vi.fn().mockReturnValue({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock("@/pages/board/_hooks/useBoardTaskActivity", () => ({
   useBoardTaskActivity: vi.fn().mockReturnValue({ data: { activities: [] } }),
+}));
+vi.mock("@/pages/board/_hooks/useCreateComment", () => ({
   useCreateComment: vi
     .fn()
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
@@ -89,10 +113,8 @@ vi.mock("@/pages/board/_hooks/useBoardTags", () => ({
     .mockReturnValue({ mutate: vi.fn(), isPending: false }),
 }));
 
-import {
-  useBoardTasks,
-  useSyncBoardTasks,
-} from "@/pages/board/_hooks/useBoardTasks";
+import { useBoardTasks } from "@/pages/board/_hooks/useBoardTasks";
+import { useSyncBoardTasks } from "@/pages/board/_hooks/useSyncBoardTasks";
 import { BoardView } from "@/pages/board/BoardView";
 import type { BoardTask } from "@hously/shared/types";
 const makeMockTask = (overrides: Partial<BoardTask> = {}): BoardTask =>

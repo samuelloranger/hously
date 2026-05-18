@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { BoardTaskStatusApi } from "@hously/shared/types";
-import { useCreateBoardTask } from "@/pages/board/_hooks/useBoardTasks";
+import { useCreateBoardTask } from "@/pages/board/_hooks/useCreateBoardTask";
 
 export type ViewMode = "board" | "backlog" | "archive";
 

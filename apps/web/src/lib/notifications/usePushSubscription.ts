@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  useUnsubscribeFromPushNotifications,
-  useVapidPublicKey,
-} from "@/lib/notifications/useNotificationData";
+import { useUnsubscribeFromPushNotifications } from "@/lib/notifications/useUnsubscribeFromPushNotifications";
+import { useVapidPublicKey } from "@/lib/notifications/useVapidPublicKey";
 import {
   type PushSubscriptionData,
   saveEndpoint,

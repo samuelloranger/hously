@@ -15,11 +15,9 @@ import {
   Users,
   Clock,
 } from "lucide-react";
-import {
-  useDeleteChore,
-  useRemoveRecurrence,
-  useToggleChore,
-} from "@/pages/chores/useChores";
+import { useDeleteChore } from "@/pages/chores/useDeleteChore";
+import { useRemoveRecurrence } from "@/pages/chores/useRemoveRecurrence";
+import { useToggleChore } from "@/pages/chores/useToggleChore";
 import { queryKeys } from "@/lib/queryKeys";
 import type { Chore, ChoreUser } from "@hously/shared/types";
 import { formatUsername, isChoreOverdue } from "@/lib/utils/format";

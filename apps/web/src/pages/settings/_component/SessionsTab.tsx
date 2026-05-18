@@ -1,13 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Monitor, Trash2, LogOut, Key, Wifi, Shield } from "lucide-react";
-import {
-  useAdminSessions,
-  useRevokeSession,
-  useRevokeUserSessions,
-  useAdminWebPush,
-  useDeleteWebPush,
-} from "@/pages/settings/useAdmin";
+import { useAdminSessions } from "@/pages/settings/useAdminSessions";
+import { useRevokeSession } from "@/pages/settings/useRevokeSession";
+import { useRevokeUserSessions } from "@/pages/settings/useRevokeUserSessions";
+import { useAdminWebPush } from "@/pages/settings/useAdminWebPush";
+import { useDeleteWebPush } from "@/pages/settings/useDeleteWebPush";
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import {
   useOidcProviders,

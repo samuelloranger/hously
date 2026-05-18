@@ -1,6 +1,6 @@
 import { MessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useBoardTaskActivity } from "@/pages/board/_hooks/useBoardTasks";
+import { useBoardTaskActivity } from "@/pages/board/_hooks/useBoardTaskActivity";
 import { cn } from "@/lib/utils";
 import type { BoardTaskActivity } from "@hously/shared/types";
 function relativeTime(iso: string): string {

@@ -3,7 +3,7 @@ import type React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Search, Clapperboard } from "lucide-react";
-import { useTmdbMediaSearch } from "@/features/medias/hooks/useMedias";
+import { useTmdbMediaSearch } from "@/features/medias/hooks/useTmdbMediaSearch";
 import { type TmdbMediaSearchItem } from "@hously/shared/types";
 import { ExploreCardDetailDialog } from "@/pages/medias/_component/ExploreCardDetailDialog";
 

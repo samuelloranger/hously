@@ -1,12 +1,10 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import {
-  useScheduledJobs,
-  useTriggerAction,
-  useLibraryHealth,
-  useJobHistory,
-} from "@/pages/settings/useAdmin";
+import { useScheduledJobs } from "@/pages/settings/useScheduledJobs";
+import { useTriggerAction } from "@/pages/settings/useTriggerAction";
+import { useLibraryHealth } from "@/pages/settings/useLibraryHealth";
+import { useJobHistory } from "@/pages/settings/useJobHistory";
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { formatCronTrigger } from "@/lib/utils/format";
 import { LoadingState } from "@/components/LoadingState";
