@@ -1,12 +1,10 @@
 import { useMemo, useState } from "react";
-import {
-  useC411Integration,
-  useUpdateC411Integration,
-  useUpdateLaCaleIntegration,
-  useUpdateTorr9Integration,
-  useLaCaleIntegration,
-  useTorr9Integration,
-} from "@/pages/settings/useIntegrations";
+import { useC411Integration } from "@/pages/settings/useC411Integration";
+import { useUpdateC411Integration } from "@/pages/settings/useUpdateC411Integration";
+import { useUpdateLaCaleIntegration } from "@/pages/settings/useUpdateLaCaleIntegration";
+import { useUpdateTorr9Integration } from "@/pages/settings/useUpdateTorr9Integration";
+import { useLaCaleIntegration } from "@/pages/settings/useLaCaleIntegration";
+import { useTorr9Integration } from "@/pages/settings/useTorr9Integration";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";

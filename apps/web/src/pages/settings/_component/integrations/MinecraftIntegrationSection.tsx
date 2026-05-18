@@ -7,15 +7,13 @@ import type {
 } from "@hously/shared/types/integrations";
 import { Dialog } from "@/components/dialog";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
-import {
-  useCreateMinecraftServer,
-  useDeleteMinecraftServer,
-  useMinecraftIntegration,
-  useMinecraftServers,
-  usePingMinecraftServer,
-  useUpdateMinecraftIntegration,
-  useUpdateMinecraftServer,
-} from "@/pages/settings/useIntegrations";
+import { useCreateMinecraftServer } from "@/pages/settings/useCreateMinecraftServer";
+import { useDeleteMinecraftServer } from "@/pages/settings/useDeleteMinecraftServer";
+import { useMinecraftIntegration } from "@/pages/settings/useMinecraftIntegration";
+import { useMinecraftServers } from "@/pages/settings/useMinecraftServers";
+import { usePingMinecraftServer } from "@/pages/settings/usePingMinecraftServer";
+import { useUpdateMinecraftIntegration } from "@/pages/settings/useUpdateMinecraftIntegration";
+import { useUpdateMinecraftServer } from "@/pages/settings/useUpdateMinecraftServer";
 
 // ---------------------------------------------------------------------------
 // Public entry point — loads data then delegates to Impl

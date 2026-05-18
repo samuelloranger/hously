@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useScrutinyIntegration,
-  useUpdateScrutinyIntegration,
-} from "@/pages/settings/useIntegrations";
+import { useScrutinyIntegration } from "@/pages/settings/useScrutinyIntegration";
+import { useUpdateScrutinyIntegration } from "@/pages/settings/useUpdateScrutinyIntegration";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
 import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";

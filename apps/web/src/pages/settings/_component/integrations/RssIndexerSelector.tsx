@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import type { IndexerItem } from "@/pages/settings/useIntegrations";
+import type { IndexerItem } from "@/pages/settings/useJackettIndexers";
 
 interface RssIndexerSelectorProps {
   indexers: IndexerItem[] | undefined;

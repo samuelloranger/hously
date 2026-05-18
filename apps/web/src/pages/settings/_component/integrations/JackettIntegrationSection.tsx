@@ -1,10 +1,8 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useJackettIntegration,
-  useJackettIndexers,
-  useUpdateJackettIntegration,
-} from "@/pages/settings/useIntegrations";
+import { useJackettIntegration } from "@/pages/settings/useJackettIntegration";
+import { useJackettIndexers } from "@/pages/settings/useJackettIndexers";
+import { useUpdateJackettIntegration } from "@/pages/settings/useUpdateJackettIntegration";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
 import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";

@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useAdguardIntegration,
-  useUpdateAdguardIntegration,
-} from "@/pages/settings/useIntegrations";
+import { useAdguardIntegration } from "@/pages/settings/useAdguardIntegration";
+import { useUpdateAdguardIntegration } from "@/pages/settings/useUpdateAdguardIntegration";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
 import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";

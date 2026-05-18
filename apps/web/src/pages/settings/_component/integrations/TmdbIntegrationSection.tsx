@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useTmdbIntegration,
-  useUpdateTmdbIntegration,
-} from "@/pages/settings/useIntegrations";
+import { useTmdbIntegration } from "@/pages/settings/useTmdbIntegration";
+import { useUpdateTmdbIntegration } from "@/pages/settings/useUpdateTmdbIntegration";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
 

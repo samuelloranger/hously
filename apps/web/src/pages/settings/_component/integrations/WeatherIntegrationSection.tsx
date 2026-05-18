@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useWeatherIntegration,
-  useUpdateWeatherIntegration,
-} from "@/pages/settings/useIntegrations";
+import { useWeatherIntegration } from "@/pages/settings/useWeatherIntegration";
+import { useUpdateWeatherIntegration } from "@/pages/settings/useUpdateWeatherIntegration";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
 

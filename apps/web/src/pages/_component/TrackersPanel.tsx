@@ -1,8 +1,6 @@
-import {
-  useDashboardC411Stats,
-  useDashboardLaCaleStats,
-  useDashboardTorr9Stats,
-} from "@/pages/settings/useIntegrations";
+import { useDashboardC411Stats } from "@/pages/settings/useDashboardC411Stats";
+import { useDashboardLaCaleStats } from "@/pages/settings/useDashboardLaCaleStats";
+import { useDashboardTorr9Stats } from "@/pages/settings/useDashboardTorr9Stats";
 import {
   formatRelativeTime,
   resolveDateFnsLocale,

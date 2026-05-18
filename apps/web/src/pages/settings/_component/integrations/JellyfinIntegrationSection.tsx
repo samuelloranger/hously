@@ -1,9 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useJellyfinIntegration,
-  useUpdateJellyfinIntegration,
-} from "@/pages/settings/useIntegrations";
+import { useJellyfinIntegration } from "@/pages/settings/useJellyfinIntegration";
+import { useUpdateJellyfinIntegration } from "@/pages/settings/useUpdateJellyfinIntegration";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
 import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";

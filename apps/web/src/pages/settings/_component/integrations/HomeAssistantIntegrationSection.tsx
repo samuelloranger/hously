@@ -1,10 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useHomeAssistantDiscoverEntities,
-  useHomeAssistantIntegration,
-  useUpdateHomeAssistantIntegration,
-} from "@/pages/settings/useIntegrations";
+import { useHomeAssistantDiscoverEntities } from "@/pages/settings/useHomeAssistantDiscoverEntities";
+import { useHomeAssistantIntegration } from "@/pages/settings/useHomeAssistantIntegration";
+import { useUpdateHomeAssistantIntegration } from "@/pages/settings/useUpdateHomeAssistantIntegration";
 import { type HomeAssistantDiscoverEntity } from "@hously/shared/types";
 import { toast } from "sonner";
 import { IntegrationSectionCard } from "@/pages/settings/_component/integrations/IntegrationSectionCard";
