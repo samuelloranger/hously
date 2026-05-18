@@ -68,51 +68,55 @@ export async function rescanLibraryItem(
   const validEpisodeIds = new Set<number>();
   let hasValidFile = false;
 
-  await Promise.all(
-    files.map(async (file) => {
-      const mi = await scanMediaInfo(file.filePath);
-      if (!mi) {
-        try {
-          await statFile(remapPath(file.filePath));
-          // File is on disk but MediaInfo can't read it (corrupt / unsupported format)
-          failed++;
-          hasValidFile = true;
-          if (file.episodeId != null) validEpisodeIds.add(file.episodeId);
-        } catch {
-          toDeleteIds.push(file.id);
+  const SCAN_CONCURRENCY = 4;
+  for (let i = 0; i < files.length; i += SCAN_CONCURRENCY) {
+    const chunk = files.slice(i, i + SCAN_CONCURRENCY);
+    await Promise.all(
+      chunk.map(async (file) => {
+        const mi = await scanMediaInfo(file.filePath);
+        if (!mi) {
+          try {
+            await statFile(remapPath(file.filePath));
+            // File is on disk but MediaInfo can't read it (corrupt / unsupported format)
+            failed++;
+            hasValidFile = true;
+            if (file.episodeId != null) validEpisodeIds.add(file.episodeId);
+          } catch {
+            toDeleteIds.push(file.id);
+          }
+          return;
         }
-        return;
-      }
 
-      hasValidFile = true;
-      if (file.episodeId != null) validEpisodeIds.add(file.episodeId);
+        hasValidFile = true;
+        if (file.episodeId != null) validEpisodeIds.add(file.episodeId);
 
-      const fnData = parseFilenameMetadata(file.fileName);
-      toUpdateOps.push(() =>
-        prisma.mediaFile.update({
-          where: { id: file.id },
-          data: {
-            sizeBytes: mi.sizeBytes,
-            durationSecs: mi.durationSecs,
-            releaseGroup: file.releaseGroup ?? mi.releaseGroup,
-            videoCodec: mi.videoCodec,
-            videoProfile: mi.videoProfile,
-            width: mi.width,
-            height: mi.height,
-            frameRate: mi.frameRate,
-            bitDepth: mi.bitDepth,
-            videoBitrate: mi.videoBitrate,
-            hdrFormat: mi.hdrFormat ?? fnData.hdrFormat,
-            resolution: mi.resolution ?? fnData.resolution,
-            source: mi.source ?? fnData.source,
-            audioTracks: mi.audioTracks as object[],
-            subtitleTracks: mi.subtitleTracks as object[],
-          },
-        }),
-      );
-      rescanned++;
-    }),
-  );
+        const fnData = parseFilenameMetadata(file.fileName);
+        toUpdateOps.push(() =>
+          prisma.mediaFile.update({
+            where: { id: file.id },
+            data: {
+              sizeBytes: mi.sizeBytes,
+              durationSecs: mi.durationSecs,
+              releaseGroup: file.releaseGroup ?? mi.releaseGroup,
+              videoCodec: mi.videoCodec,
+              videoProfile: mi.videoProfile,
+              width: mi.width,
+              height: mi.height,
+              frameRate: mi.frameRate,
+              bitDepth: mi.bitDepth,
+              videoBitrate: mi.videoBitrate,
+              hdrFormat: mi.hdrFormat ?? fnData.hdrFormat,
+              resolution: mi.resolution ?? fnData.resolution,
+              source: mi.source ?? fnData.source,
+              audioTracks: mi.audioTracks as object[],
+              subtitleTracks: mi.subtitleTracks as object[],
+            },
+          }),
+        );
+        rescanned++;
+      }),
+    );
+  }
 
   const deleted = toDeleteIds.length;
   if (toDeleteIds.length > 0) {
@@ -183,7 +187,7 @@ export async function rescanLibraryItem(
       episodesReset = result?.count ?? 0;
     }
 
-    const remainingFiles = files.length - deleted;
+    const remainingFiles = await prisma.mediaFile.count({ where: { mediaId } });
     if (
       remainingFiles === 0 &&
       media.status !== "wanted" &&
