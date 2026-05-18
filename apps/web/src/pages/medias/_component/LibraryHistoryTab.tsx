@@ -28,10 +28,8 @@ import {
   YAxis,
 } from "recharts";
 
-import {
-  useGlobalDownloadHistory,
-  useDownloadHistoryStats,
-} from "@/features/medias/hooks/useLibrary";
+import { useGlobalDownloadHistory } from "@/features/medias/hooks/useGlobalDownloadHistory";
+import { useDownloadHistoryStats } from "@/features/medias/hooks/useDownloadHistoryStats";
 import {
   Select,
   SelectContent,

@@ -22,10 +22,8 @@ import {
   formatResolution,
   frenchLabel,
 } from "@/utils/libraryDisplayUtils";
-import {
-  useRemuxFile,
-  useRemuxFileStatus,
-} from "@/features/medias/hooks/useLibrary";
+import { useRemuxFile } from "@/features/medias/hooks/useRemuxFile";
+import { useRemuxFileStatus } from "@/features/medias/hooks/useRemuxFileStatus";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 

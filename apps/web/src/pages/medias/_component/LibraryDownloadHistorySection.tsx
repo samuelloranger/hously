@@ -2,11 +2,9 @@ import { useState } from "react";
 import { ChevronDown, Clock, Download, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { isRemovableDownloadHistoryEntry } from "@hously/shared";
-import {
-  useLibraryDownloads,
-  useDeleteLibraryDownloadEntry,
-  useClearLibraryFailedDownloads,
-} from "@/features/medias/hooks/useLibrary";
+import { useLibraryDownloads } from "@/features/medias/hooks/useLibraryDownloads";
+import { useDeleteLibraryDownloadEntry } from "@/features/medias/hooks/useDeleteLibraryDownloadEntry";
+import { useClearLibraryFailedDownloads } from "@/features/medias/hooks/useClearLibraryFailedDownloads";
 import { Badge, Card } from "./LibrarySharedUI";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "@/components/confirm";

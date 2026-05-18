@@ -2,12 +2,10 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
-import {
-  useLibrary,
-  useUpdateLibraryQualityProfile,
-  useSearchLibraryMovie,
-  useUpgradeLibraryMedia,
-} from "@/features/medias/hooks/useLibrary";
+import { useLibrary } from "@/features/medias/hooks/useLibrary";
+import { useUpdateLibraryQualityProfile } from "@/features/medias/hooks/useUpdateLibraryQualityProfile";
+import { useSearchLibraryMovie } from "@/features/medias/hooks/useSearchLibraryMovie";
+import { useUpgradeLibraryMedia } from "@/features/medias/hooks/useUpgradeLibraryMedia";
 import { useQualityProfilesList } from "@/pages/settings/useQualityProfiles";
 import { Card, SectionLabel } from "./LibrarySharedUI";
 import { LibraryUpgradeModal } from "./LibraryUpgradeModal";

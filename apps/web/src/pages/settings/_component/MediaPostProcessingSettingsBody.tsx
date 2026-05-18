@@ -3,12 +3,10 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/ui/form-field";
-import {
-  useLibraryScan,
-  useReindexLanguages,
-  useReindexLanguagesStatus,
-  useUpdateMediaPostProcessingSettings,
-} from "@/features/medias/hooks/useLibrary";
+import { useLibraryScan } from "@/features/medias/hooks/useLibraryScan";
+import { useReindexLanguages } from "@/features/medias/hooks/useReindexLanguages";
+import { useReindexLanguagesStatus } from "@/features/medias/hooks/useReindexLanguagesStatus";
+import { useUpdateMediaPostProcessingSettings } from "@/features/medias/hooks/useUpdateMediaPostProcessingSettings";
 import {
   useProwlarrIntegration,
   useJackettIntegration,

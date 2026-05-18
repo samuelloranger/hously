@@ -14,12 +14,10 @@ import {
 import { cn } from "@/lib/utils";
 import { formatDateShort, localDateYmd } from "@hously/shared/utils/date";
 import type { LibraryFileInfo } from "@hously/shared/types";
-import type {
-  useDeleteLibraryEpisode,
-  useRetrySkippedMedia,
-  useSearchLibraryEpisode,
-  useToggleEpisodeMonitored,
-} from "@/features/medias/hooks/useLibrary";
+import { useDeleteLibraryEpisode } from "@/features/medias/hooks/useDeleteLibraryEpisode";
+import { useRetrySkippedMedia } from "@/features/medias/hooks/useRetrySkippedMedia";
+import { useSearchLibraryEpisode } from "@/features/medias/hooks/useSearchLibraryEpisode";
+import { useToggleEpisodeMonitored } from "@/features/medias/hooks/useToggleEpisodeMonitored";
 import { Badge, StatusDot } from "./LibrarySharedUI";
 import { qualityBadges } from "@/utils/libraryDisplayUtils";
 import { FileDetailBlock } from "./LibraryFileDetailBlock";

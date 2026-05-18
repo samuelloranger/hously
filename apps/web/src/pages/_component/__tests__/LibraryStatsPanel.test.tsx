@@ -4,7 +4,7 @@ import { LibraryStatsPanel } from "../LibraryStatsPanel";
 
 const mockUseLibraryStats = vi.fn();
 
-vi.mock("@/features/medias/hooks/useLibrary", () => ({
+vi.mock("@/features/medias/hooks/useLibraryStats", () => ({
   useLibraryStats: () => mockUseLibraryStats(),
 }));
 
