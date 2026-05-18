@@ -1,52 +1,7 @@
-import { describe, expect, it, mock, beforeEach } from "bun:test";
+import { describe, expect, it, beforeEach, mock } from "bun:test";
+import { prismaMock, clearPrismaMocks } from "../../test/mocks/prisma";
 
-const findFirst = mock(async (..._: unknown[]) => null as unknown);
-const create = mock(async (..._: unknown[]) => ({ id: 1 }));
-const update = mock(async (..._: unknown[]) => ({ id: 1 }));
-const findManyOpen = mock(async (..._: unknown[]) => [] as unknown[]);
-const downloadHistoryFindMany = mock(
-  async (..._: unknown[]) => [] as unknown[],
-);
-const libraryMediaFindMany = mock(async (..._: unknown[]) => [] as unknown[]);
-const libraryEpisodeFindMany = mock(async (..._: unknown[]) => [] as unknown[]);
-const libraryEpisodeCount = mock(async (..._: unknown[]) => 0);
-const libraryEpisodeFindUnique = mock(
-  async (..._: unknown[]) => null as unknown,
-);
-const libraryMediaFindUnique = mock(async (..._: unknown[]) => null as unknown);
-const libraryMediaFindFirst = mock(async (..._: unknown[]) => null as unknown);
-const libraryEpisodeFindFirst = mock(
-  async (..._: unknown[]) => null as unknown,
-);
-const downloadHistoryFindUnique = mock(
-  async (..._: unknown[]) => null as unknown,
-);
-
-mock.module("@hously/api/db", () => ({
-  prisma: {
-    libraryAttentionAlert: {
-      findFirst,
-      create,
-      update,
-      findMany: findManyOpen,
-    },
-    downloadHistory: {
-      findMany: downloadHistoryFindMany,
-      findUnique: downloadHistoryFindUnique,
-    },
-    libraryMedia: {
-      findMany: libraryMediaFindMany,
-      findUnique: libraryMediaFindUnique,
-      findFirst: libraryMediaFindFirst,
-    },
-    libraryEpisode: {
-      findMany: libraryEpisodeFindMany,
-      count: libraryEpisodeCount,
-      findUnique: libraryEpisodeFindUnique,
-      findFirst: libraryEpisodeFindFirst,
-    },
-  },
-}));
+mock.module("@hously/api/db", () => ({ prisma: prismaMock }));
 
 const importLib = async () =>
   await import("@hously/api/services/libraryAttention");
@@ -83,29 +38,11 @@ describe("inferSeasonFromReleaseTitle", () => {
 
 describe("syncLibraryAttentionAlerts state machine", () => {
   beforeEach(() => {
-    findFirst.mockClear();
-    create.mockClear();
-    update.mockClear();
-    findManyOpen.mockClear();
-    downloadHistoryFindMany.mockClear();
-    libraryMediaFindMany.mockClear();
-    libraryEpisodeFindMany.mockClear();
-    libraryEpisodeCount.mockClear();
-    libraryEpisodeFindUnique.mockClear();
-    libraryMediaFindUnique.mockClear();
-    libraryMediaFindFirst.mockClear();
-    libraryEpisodeFindFirst.mockClear();
-    downloadHistoryFindUnique.mockClear();
-
-    downloadHistoryFindMany.mockImplementation(async () => []);
-    libraryMediaFindMany.mockImplementation(async () => []);
-    libraryEpisodeFindMany.mockImplementation(async () => []);
-    findManyOpen.mockImplementation(async () => []);
-    findFirst.mockImplementation(async () => null);
+    clearPrismaMocks();
   });
 
   it("creates a new alert when none exists for the candidate", async () => {
-    libraryMediaFindMany.mockImplementationOnce(async () => [
+    prismaMock.libraryMedia.findMany.mockImplementationOnce(async () => [
       {
         id: 7,
         title: "Skipped Movie",
@@ -118,62 +55,93 @@ describe("syncLibraryAttentionAlerts state machine", () => {
     const { syncLibraryAttentionAlerts } = await importLib();
     const r = await syncLibraryAttentionAlerts();
 
-    expect(create).toHaveBeenCalledTimes(1);
+    expect(prismaMock.libraryAttentionAlert.create).toHaveBeenCalledTimes(1);
     expect(r.created).toBe(1);
     expect(r.updated).toBe(0);
   });
 
   it("updates an existing open alert instead of creating a duplicate", async () => {
-    libraryMediaFindMany.mockImplementationOnce(async () => [
+    // buildAttentionCandidates calls libraryMedia.findMany twice in parallel:
+    // #1 for skippedMovies, #2 for stalledMovies
+    prismaMock.libraryMedia.findMany
+      .mockImplementationOnce(async () => [
+        {
+          id: 7,
+          title: "Skipped Movie",
+          type: "movie",
+          searchAttempts: 3,
+          status: "skipped",
+        },
+      ])
+      // stalledMovies — none
+      .mockImplementationOnce(async () => []);
+    // Pre-fetched open alerts — alert 42 matches the candidate key
+    prismaMock.libraryAttentionAlert.findMany.mockImplementationOnce(
+      async () => [
+        {
+          id: 42,
+          kind: "grab_skipped",
+          scopeType: "movie",
+          mediaId: 7,
+          episodeId: null,
+          season: null,
+          downloadHistoryId: null,
+        },
+      ],
+    );
+    // buildValidationContext — media still skipped, so alert stays open
+    prismaMock.libraryMedia.findMany.mockImplementationOnce(async () => [
       {
         id: 7,
-        title: "Skipped Movie",
-        type: "movie",
-        searchAttempts: 3,
         status: "skipped",
+        type: "movie",
+        monitored: true,
+        searchAttempts: 3,
+        _count: { files: 0 },
       },
     ]);
-    findFirst.mockImplementationOnce(async () => ({ id: 42 }));
 
     const { syncLibraryAttentionAlerts } = await importLib();
     const r = await syncLibraryAttentionAlerts();
 
-    expect(create).not.toHaveBeenCalled();
-    expect(update).toHaveBeenCalledTimes(1);
+    expect(prismaMock.libraryAttentionAlert.create).not.toHaveBeenCalled();
+    expect(prismaMock.libraryAttentionAlert.update).toHaveBeenCalledTimes(1);
     expect(r.created).toBe(0);
     expect(r.updated).toBe(1);
+    expect(r.resolved).toBe(0);
   });
 
   it("auto-resolves an open alert whose underlying condition is no longer true", async () => {
-    findManyOpen.mockImplementationOnce(async () => [
-      {
-        id: 99,
-        kind: "grab_skipped",
-        scopeType: "movie",
-        mediaId: 7,
-        episodeId: null,
-        season: null,
-        downloadHistoryId: null,
-      },
-    ]);
-    libraryMediaFindUnique.mockImplementationOnce(async () => ({
-      status: "wanted",
-    }));
+    // Open alert for a movie that is no longer skipped
+    prismaMock.libraryAttentionAlert.findMany.mockImplementationOnce(
+      async () => [
+        {
+          id: 99,
+          kind: "grab_skipped",
+          scopeType: "movie",
+          mediaId: 7,
+          episodeId: null,
+          season: null,
+          downloadHistoryId: null,
+        },
+      ],
+    );
+    // buildValidationContext: media status is now "wanted" — not "skipped" → alert invalid
 
     const { syncLibraryAttentionAlerts } = await importLib();
     const r = await syncLibraryAttentionAlerts();
 
-    const resolveCall = update.mock.calls.find(
-      (c) =>
-        (c[0] as { where: { id: number } }).where.id === 99 &&
-        (c[0] as { data: { status?: string } }).data.status === "resolved_auto",
+    expect(prismaMock.libraryAttentionAlert.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: { in: [99] } },
+        data: expect.objectContaining({ status: "resolved_auto" }),
+      }),
     );
-    expect(resolveCall).toBeDefined();
     expect(r.resolved).toBe(1);
   });
 
   it("skips show-level DH whose release title has no parseable season", async () => {
-    downloadHistoryFindMany.mockImplementationOnce(async () => [
+    prismaMock.downloadHistory.findMany.mockImplementationOnce(async () => [
       {
         id: 1,
         mediaId: 5,
@@ -192,12 +160,12 @@ describe("syncLibraryAttentionAlerts state machine", () => {
     const { syncLibraryAttentionAlerts } = await importLib();
     const r = await syncLibraryAttentionAlerts();
 
-    expect(create).not.toHaveBeenCalled();
+    expect(prismaMock.libraryAttentionAlert.create).not.toHaveBeenCalled();
     expect(r.created).toBe(0);
   });
 
   it("includes capped (>= MAX_CRON_GRAB_ATTEMPTS) items as auto_grab_stalled", async () => {
-    libraryMediaFindMany
+    prismaMock.libraryMedia.findMany
       .mockImplementationOnce(async () => [])
       .mockImplementationOnce(async (args: unknown) => {
         const a = args as {
@@ -219,8 +187,8 @@ describe("syncLibraryAttentionAlerts state machine", () => {
     const { syncLibraryAttentionAlerts } = await importLib();
     const r = await syncLibraryAttentionAlerts();
 
-    expect(create).toHaveBeenCalledTimes(1);
-    const args = create.mock.calls[0]?.[0] as {
+    expect(prismaMock.libraryAttentionAlert.create).toHaveBeenCalledTimes(1);
+    const args = prismaMock.libraryAttentionAlert.create.mock.calls[0]?.[0] as {
       data: { kind: string; mediaId: number };
     };
     expect(args.data.kind).toBe("auto_grab_stalled");
