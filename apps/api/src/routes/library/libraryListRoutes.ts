@@ -9,11 +9,7 @@ import { deleteCache } from "@hously/api/services/cache";
 import { TMDB_UPCOMING_CACHE_KEY } from "@hously/api/utils/dashboard/tmdbUpcoming";
 import { getGlobalTmdbRegion } from "@hously/api/utils/medias/tmdbRegion";
 
-import {
-  mapLibraryMedia,
-  libraryMediaInclude,
-  libraryListInclude,
-} from "./libraryHelpers";
+import { mapLibraryMedia, libraryMediaInclude } from "./libraryHelpers";
 
 /**
  * Core CRUD: list, add, delete, and single-item fetch.
@@ -41,33 +37,22 @@ export const libraryListRoutes = new Elysia()
             ? { files: { some: { languageTags: { has: language } } } }
             : {}),
         };
-        const itemWhere = { ...sharedWhere, ...(type ? { type } : {}) };
-        const [items, counts, fileSizes] = await Promise.all([
+        const [items, counts] = await Promise.all([
           prisma.libraryMedia.findMany({
-            where: itemWhere,
+            where: { ...sharedWhere, ...(type ? { type } : {}) },
             orderBy: { title: "asc" },
-            include: libraryListInclude,
+            include: libraryMediaInclude,
           }),
           prisma.libraryMedia.groupBy({
             by: ["type"],
             where: sharedWhere,
             _count: true,
           }),
-          prisma.mediaFile.groupBy({
-            by: ["mediaId"],
-            where: { media: itemWhere },
-            _sum: { sizeBytes: true },
-          }),
         ]);
-        const sizeMap = new Map(
-          fileSizes.map((r) => [r.mediaId, r._sum.sizeBytes ?? 0n]),
-        );
         const movieCount = counts.find((c) => c.type === "movie")?._count ?? 0;
         const showCount = counts.find((c) => c.type === "show")?._count ?? 0;
         return {
-          items: items.map((item) =>
-            mapLibraryMedia(item, sizeMap.get(item.id) ?? null),
-          ),
+          items: items.map(mapLibraryMedia),
           movie_count: movieCount,
           show_count: showCount,
         };

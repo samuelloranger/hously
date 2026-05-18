@@ -5,12 +5,11 @@
 
 export function computeTotalSizeBytes(
   files: { sizeBytes: bigint }[],
-  episodes: { files?: { sizeBytes: bigint }[] }[],
+  episodes: { files: { sizeBytes: bigint }[] }[],
 ): string | null {
   let total = 0n;
   for (const f of files) total += f.sizeBytes;
-  for (const ep of episodes)
-    for (const f of ep.files ?? []) total += f.sizeBytes;
+  for (const ep of episodes) for (const f of ep.files) total += f.sizeBytes;
   return total === 0n ? null : total.toString();
 }
 
@@ -27,38 +26,34 @@ type MappableFile = {
 type MappableEpisode = {
   status: string;
   season: number;
-  files?: { sizeBytes: bigint }[];
+  files: { sizeBytes: bigint }[];
 };
 
-export function mapLibraryMedia(
-  item: {
-    id: number;
-    tmdbId: number;
-    type: string;
-    title: string;
-    sortTitle: string | null;
-    year: number | null;
-    status: string;
-    monitored: boolean;
-    posterUrl: string | null;
-    overview: string | null;
-    digitalReleaseDate: Date | null;
-    qualityProfileId: number | null;
-    searchAttempts: number;
-    qualityProfile: { id: number; name: string } | null;
-    downloadHistories?: { grabbedAt: Date }[];
-    addedAt: Date;
-    updatedAt: Date;
-    files?: MappableFile[];
-    episodes?: MappableEpisode[];
-  },
-  precomputedSizeBytes?: bigint | null,
-) {
+export function mapLibraryMedia(item: {
+  id: number;
+  tmdbId: number;
+  type: string;
+  title: string;
+  sortTitle: string | null;
+  year: number | null;
+  status: string;
+  monitored: boolean;
+  posterUrl: string | null;
+  overview: string | null;
+  digitalReleaseDate: Date | null;
+  qualityProfileId: number | null;
+  searchAttempts: number;
+  qualityProfile: { id: number; name: string } | null;
+  downloadHistories?: { grabbedAt: Date }[];
+  addedAt: Date;
+  updatedAt: Date;
+  files?: MappableFile[];
+  episodes?: MappableEpisode[];
+}) {
   const files = item.files ?? [];
   const episodes = item.episodes ?? [];
 
-  // With libraryListInclude the best file is already files[0] (sorted desc by resolution).
-  // With libraryMediaInclude all files are present — pick the highest resolution.
+  // Pick the file with the highest resolution (falls back to first file)
   const bestFile = files.length
     ? files.reduce((best, f) =>
         (f.resolution ?? 0) > (best.resolution ?? 0) ? f : best,
@@ -94,12 +89,7 @@ export function mapLibraryMedia(
     updated_at: item.updatedAt.toISOString(),
     last_grabbed_at:
       item.downloadHistories?.[0]?.grabbedAt.toISOString() ?? null,
-    total_size_bytes:
-      precomputedSizeBytes !== undefined
-        ? precomputedSizeBytes
-          ? precomputedSizeBytes.toString()
-          : null
-        : computeTotalSizeBytes(files, episodes),
+    total_size_bytes: computeTotalSizeBytes(files, episodes),
     resolution: bestFile?.resolution ?? null,
     video_codec: bestFile?.videoCodec ?? null,
     hdr_format: bestFile?.hdrFormat ?? null,
@@ -111,39 +101,6 @@ export function mapLibraryMedia(
     season_count: seasonCount,
   };
 }
-
-// Lean include for the list endpoint — fetches only the best file per item
-// (ordered by resolution desc) instead of all files, and drops the nested
-// episode→files sub-query. Total size is computed via a parallel groupBy aggregate.
-export const libraryListInclude = {
-  qualityProfile: { select: { id: true, name: true } },
-  downloadHistories: {
-    orderBy: { grabbedAt: "desc" as const },
-    take: 1,
-    select: { grabbedAt: true },
-  },
-  files: {
-    orderBy: [
-      { resolution: { sort: "desc" as const, nulls: "last" as const } },
-    ] as { resolution: { sort: "desc"; nulls: "last" } }[],
-    take: 1,
-    select: {
-      sizeBytes: true,
-      resolution: true,
-      videoCodec: true,
-      hdrFormat: true,
-      audioFormat: true,
-      durationSecs: true,
-      languageTags: true,
-    },
-  },
-  episodes: {
-    select: {
-      status: true,
-      season: true,
-    },
-  },
-};
 
 export const libraryMediaInclude = {
   qualityProfile: { select: { id: true, name: true } },
