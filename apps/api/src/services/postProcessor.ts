@@ -180,18 +180,16 @@ async function postProcessSeasonPack(
     minSeedRatio: number;
   },
   op: "hardlink" | "move",
+  qb: Awaited<ReturnType<typeof getQbittorrentIntegrationConfig>>,
 ): Promise<
   | { success: true; destinationPath: string }
   | { success: false; reason: string }
 > {
   const hash = dh.torrentHash?.trim();
   if (!hash) return { success: false, reason: "Torrent hash unknown" };
+  const qbConfig = qb.config!;
 
-  const qb = await getQbittorrentIntegrationConfig();
-  if (!qb.enabled || !qb.config)
-    return { success: false, reason: "qBittorrent not configured" };
-
-  const tRes = await fetchQbittorrentTorrent(qb.config, qb.enabled, hash);
+  const tRes = await fetchQbittorrentTorrent(qbConfig, qb.enabled, hash);
   if (!tRes.torrent)
     return {
       success: false,
@@ -203,7 +201,7 @@ async function postProcessSeasonPack(
   const cpTrim = tor.content_path?.trim() ?? "";
   if (!cpTrim || !isAbsolute(cpTrim)) {
     const pRes = await fetchQbittorrentTorrentProperties(
-      qb.config,
+      qbConfig,
       qb.enabled,
       hash,
     );
@@ -231,127 +229,149 @@ async function postProcessSeasonPack(
   const root = settings.showsLibraryPath!.replace(/\/+$/, "");
   const q = qualityStringsFromParsed(dh.qualityParsed, dh.releaseTitle);
 
+  type EpisodeResult =
+    | { ok: true; destinationPath: string }
+    | { ok: false; error: string };
+
+  const PACK_CONCURRENCY = 6;
+  const episodeResults: (EpisodeResult | null)[] = [];
+  for (let i = 0; i < allVideos.length; i += PACK_CONCURRENCY) {
+    const chunk = allVideos.slice(i, i + PACK_CONCURRENCY);
+    const chunkResults = await Promise.all(
+      chunk.map(async (srcVideo): Promise<EpisodeResult | null> => {
+        const fn = basename(srcVideo);
+        const se = parseSeasonEpisode(fn);
+        if (!se) {
+          console.warn(
+            `[postProcess/pack] Could not parse SxxExx from "${fn}", skipping`,
+          );
+          return null;
+        }
+        const ep = epMap.get(`${se.season}x${se.episode}`);
+        if (!ep) {
+          console.warn(
+            `[postProcess/pack] No LibraryEpisode for S${se.season}E${se.episode} of "${dh.media.title}", skipping`,
+          );
+          return null;
+        }
+        const ext = extname(srcVideo) || ".mkv";
+        const epStem =
+          renderEpisodeTemplate(settings.episodeTemplate ?? "", {
+            show: dh.media.title,
+            season: ep.season,
+            episode: ep.episode,
+            title: ep.title,
+            resolution: q.resolution,
+            source: q.source,
+            ext,
+          }) ||
+          sanitizePathTemplateOutput(
+            `${dh.media.title}/Season ${ep.season}/${dh.media.title} - S${String(ep.season).padStart(2, "0")}E${String(ep.episode).padStart(2, "0")}`,
+          );
+        const destinationPath = join(root, `${epStem}${ext}`);
+        try {
+          await placeFile(srcVideo, destinationPath, op);
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          return { ok: false, error: `S${se.season}E${se.episode}: ${msg}` };
+        }
+        try {
+          const fnData = parseFilenameMetadata(fn);
+          const mi = await scanMediaInfo(destinationPath);
+          const existingFile = await prisma.mediaFile.findFirst({
+            where: { filePath: destinationPath },
+            select: { id: true },
+          });
+          const rtParsedPack = parseReleaseTitle(dh.releaseTitle);
+          const fileData = mi
+            ? {
+                mediaId: dh.media.id,
+                episodeId: ep.id,
+                filePath: destinationPath,
+                fileName: basename(destinationPath),
+                sizeBytes: mi.sizeBytes,
+                durationSecs: mi.durationSecs,
+                releaseGroup:
+                  mi.releaseGroup ??
+                  parseReleaseGroupFromTitle(dh.releaseTitle),
+                videoCodec: mi.videoCodec,
+                videoProfile: mi.videoProfile,
+                width: mi.width,
+                height: mi.height,
+                frameRate: mi.frameRate,
+                bitDepth: mi.bitDepth,
+                videoBitrate: mi.videoBitrate,
+                hdrFormat: mi.hdrFormat ?? fnData.hdrFormat,
+                resolution: mi.resolution ?? fnData.resolution,
+                source: mi.source ?? fnData.source,
+                audioFormat: rtParsedPack.audio,
+                isProper: rtParsedPack.isProper,
+                audioTracks: mi.audioTracks as object[],
+                subtitleTracks: mi.subtitleTracks as object[],
+                languageTags: classifyLanguageTags(
+                  mi.audioTracks as LibraryAudioTrack[],
+                  dh.releaseTitle,
+                ),
+              }
+            : {
+                mediaId: dh.media.id,
+                episodeId: ep.id,
+                filePath: destinationPath,
+                fileName: basename(destinationPath),
+                sizeBytes: BigInt(0),
+                releaseGroup: parseReleaseGroupFromTitle(dh.releaseTitle),
+                resolution: fnData.resolution,
+                source: fnData.source ?? q.source,
+                hdrFormat: fnData.hdrFormat,
+                audioFormat: rtParsedPack.audio,
+                isProper: rtParsedPack.isProper,
+                audioTracks: [] as object[],
+                subtitleTracks: [] as object[],
+                languageTags: [] as string[],
+              };
+          if (existingFile) {
+            await prisma.mediaFile.update({
+              where: { id: existingFile.id },
+              data: fileData,
+            });
+          } else {
+            await prisma.mediaFile.create({ data: fileData });
+          }
+        } catch (e) {
+          console.warn(
+            `[postProcess/pack] MediaFile upsert failed for ${fn}:`,
+            e,
+          );
+        }
+        try {
+          await prisma.libraryEpisode.update({
+            where: { id: ep.id },
+            data: { status: "downloaded", downloadedAt: new Date() },
+          });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          return {
+            ok: false,
+            error: `S${se.season}E${se.episode}: episode status update failed: ${msg}`,
+          };
+        }
+        return { ok: true, destinationPath };
+      }),
+    );
+    episodeResults.push(...chunkResults);
+  }
+
   let processed = 0;
   const errors: string[] = [];
   let firstDest: string | null = null;
-
-  for (const srcVideo of allVideos) {
-    const fn = basename(srcVideo);
-    const se = parseSeasonEpisode(fn);
-    if (!se) {
-      console.warn(
-        `[postProcess/pack] Could not parse SxxExx from "${fn}", skipping`,
-      );
-      continue;
+  for (const result of episodeResults) {
+    if (result === null) continue;
+    if (!result.ok) {
+      errors.push(result.error);
+    } else {
+      processed++;
+      if (!firstDest) firstDest = result.destinationPath;
     }
-
-    const ep = epMap.get(`${se.season}x${se.episode}`);
-    if (!ep) {
-      console.warn(
-        `[postProcess/pack] No LibraryEpisode for S${se.season}E${se.episode} of "${dh.media.title}", skipping`,
-      );
-      continue;
-    }
-
-    const ext = extname(srcVideo) || ".mkv";
-    const epStem =
-      renderEpisodeTemplate(settings.episodeTemplate ?? "", {
-        show: dh.media.title,
-        season: ep.season,
-        episode: ep.episode,
-        title: ep.title,
-        resolution: q.resolution,
-        source: q.source,
-        ext,
-      }) ||
-      sanitizePathTemplateOutput(
-        `${dh.media.title}/Season ${ep.season}/${dh.media.title} - S${String(ep.season).padStart(2, "0")}E${String(ep.episode).padStart(2, "0")}`,
-      );
-    const destinationPath = join(root, `${epStem}${ext}`);
-
-    try {
-      await placeFile(srcVideo, destinationPath, op);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      errors.push(`S${se.season}E${se.episode}: ${msg}`);
-      continue;
-    }
-
-    if (!firstDest) firstDest = destinationPath;
-
-    // MediaFile record
-    try {
-      const fnData = parseFilenameMetadata(fn);
-      const mi = await scanMediaInfo(destinationPath);
-      const existingFile = await prisma.mediaFile.findFirst({
-        where: { filePath: destinationPath },
-        select: { id: true },
-      });
-      const rtParsedPack = parseReleaseTitle(dh.releaseTitle);
-      const fileData = mi
-        ? {
-            mediaId: dh.media.id,
-            episodeId: ep.id,
-            filePath: destinationPath,
-            fileName: basename(destinationPath),
-            sizeBytes: mi.sizeBytes,
-            durationSecs: mi.durationSecs,
-            releaseGroup:
-              mi.releaseGroup ?? parseReleaseGroupFromTitle(dh.releaseTitle),
-            videoCodec: mi.videoCodec,
-            videoProfile: mi.videoProfile,
-            width: mi.width,
-            height: mi.height,
-            frameRate: mi.frameRate,
-            bitDepth: mi.bitDepth,
-            videoBitrate: mi.videoBitrate,
-            hdrFormat: mi.hdrFormat ?? fnData.hdrFormat,
-            resolution: mi.resolution ?? fnData.resolution,
-            source: mi.source ?? fnData.source,
-            audioFormat: rtParsedPack.audio,
-            isProper: rtParsedPack.isProper,
-            audioTracks: mi.audioTracks as object[],
-            subtitleTracks: mi.subtitleTracks as object[],
-            languageTags: classifyLanguageTags(
-              mi.audioTracks as LibraryAudioTrack[],
-              dh.releaseTitle,
-            ),
-          }
-        : {
-            mediaId: dh.media.id,
-            episodeId: ep.id,
-            filePath: destinationPath,
-            fileName: basename(destinationPath),
-            sizeBytes: BigInt(0),
-            releaseGroup: parseReleaseGroupFromTitle(dh.releaseTitle),
-            resolution: fnData.resolution,
-            source: fnData.source ?? q.source,
-            hdrFormat: fnData.hdrFormat,
-            audioFormat: rtParsedPack.audio,
-            isProper: rtParsedPack.isProper,
-            audioTracks: [] as object[],
-            subtitleTracks: [] as object[],
-            languageTags: [] as string[],
-          };
-      if (existingFile) {
-        await prisma.mediaFile.update({
-          where: { id: existingFile.id },
-          data: fileData,
-        });
-      } else {
-        await prisma.mediaFile.create({ data: fileData });
-      }
-    } catch (e) {
-      console.warn(`[postProcess/pack] MediaFile upsert failed for ${fn}:`, e);
-    }
-
-    // Mark episode downloaded
-    await prisma.libraryEpisode.update({
-      where: { id: ep.id },
-      data: { status: "downloaded", downloadedAt: new Date() },
-    });
-
-    processed++;
   }
 
   if (processed === 0) {
@@ -385,7 +405,7 @@ async function postProcessSeasonPack(
   const min = settings.minSeedRatio;
   const shouldRemove = min <= 0 || (ratio != null && ratio >= min);
   if (shouldRemove) {
-    const del = await deleteQbittorrentTorrent(qb.config, qb.enabled, {
+    const del = await deleteQbittorrentTorrent(qbConfig, qb.enabled, {
       hash,
       delete_files: false,
     });
@@ -408,21 +428,19 @@ export async function postProcess(
   | { success: true; destinationPath: string }
   | { success: false; reason: string }
 > {
-  const dh = await prisma.downloadHistory.findUnique({
-    where: { id: downloadHistoryId },
-    include: {
-      media: true,
-      episode: true,
-    },
-  });
+  const [dh, settings] = await Promise.all([
+    prisma.downloadHistory.findUnique({
+      where: { id: downloadHistoryId },
+      include: { media: true, episode: true },
+    }),
+    prisma.mediaSettings.findUnique({ where: { id: 1 } }),
+  ]);
   if (!dh || !dh.media) {
     return { success: false, reason: "Download history or media not found" };
   }
   if (dh.failed || !dh.completedAt) {
     return { success: false, reason: "Download not completed" };
   }
-
-  const settings = await prisma.mediaSettings.findUnique({ where: { id: 1 } });
   if (!settings?.postProcessingEnabled) {
     return { success: false, reason: "Post-processing disabled" };
   }
@@ -439,6 +457,10 @@ export async function postProcess(
     }
     // Season pack / intégrale — no episodeId — process all files in the folder
     if (!dh.episode) {
+      const qb = await getQbittorrentIntegrationConfig();
+      if (!qb.enabled || !qb.config) {
+        return { success: false, reason: "qBittorrent not configured" };
+      }
       return postProcessSeasonPack(
         downloadHistoryId,
         {
@@ -451,6 +473,7 @@ export async function postProcess(
         },
         settings,
         op,
+        qb,
       );
     }
   } else {
@@ -668,24 +691,28 @@ export async function postProcess(
         select: { id: true, filePath: true },
       });
 
-      for (const oldFile of oldFiles) {
-        let shouldDelete = false;
-        try {
-          await unlink(oldFile.filePath);
-          shouldDelete = true;
-        } catch (e) {
-          if ((e as NodeJS.ErrnoException).code === "ENOENT") {
-            shouldDelete = true; // file already gone, clean up DB row
-          } else {
-            console.warn(
-              `[postProcess/upgrade] Failed to delete old file ${oldFile.filePath}:`,
-              e,
-            );
+      const idsToDelete: number[] = [];
+      await Promise.all(
+        oldFiles.map(async (oldFile) => {
+          try {
+            await unlink(oldFile.filePath);
+            idsToDelete.push(oldFile.id);
+          } catch (e) {
+            if ((e as NodeJS.ErrnoException).code === "ENOENT") {
+              idsToDelete.push(oldFile.id); // file already gone, clean up DB row
+            } else {
+              console.warn(
+                `[postProcess/upgrade] Failed to delete old file ${oldFile.filePath}:`,
+                e,
+              );
+            }
           }
-        }
-        if (shouldDelete) {
-          await prisma.mediaFile.delete({ where: { id: oldFile.id } });
-        }
+        }),
+      );
+      if (idsToDelete.length > 0) {
+        await prisma.mediaFile.deleteMany({
+          where: { id: { in: idsToDelete } },
+        });
       }
 
       if (oldFiles.length > 0) {
