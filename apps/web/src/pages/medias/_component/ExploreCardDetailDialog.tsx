@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { useAddToLibrary } from "@/features/medias/hooks/useLibrary";
+import { useAddToLibrary } from "@/features/medias/hooks/useAddToLibrary";
 import {
   useAddToWatchlist,
   useMediaModalData,

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { FolderTree } from "lucide-react";
 import { HouseLoader } from "@/components/HouseLoader";
-import { useMediaPostProcessingSettings } from "@/features/medias/hooks/useLibrary";
+import { useMediaPostProcessingSettings } from "@/features/medias/hooks/useMediaPostProcessingSettings";
 import { useQualityProfilesList } from "@/pages/settings/useQualityProfiles";
 import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 import { MediaPostProcessingSettingsBody } from "./MediaPostProcessingSettingsBody";

@@ -3,13 +3,11 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle, Loader2, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import type { LibraryAttentionItem } from "@hously/shared/types";
-import {
-  useDismissLibraryAttentionAlert,
-  useLibraryAttention,
-  useRetryLibraryPostProcess,
-  useRetrySkippedMedia,
-  useRetrySkippedSeason,
-} from "@/features/medias/hooks/useLibrary";
+import { useDismissLibraryAttentionAlert } from "@/features/medias/hooks/useDismissLibraryAttentionAlert";
+import { useLibraryAttention } from "@/features/medias/hooks/useLibraryAttention";
+import { useRetryLibraryPostProcess } from "@/features/medias/hooks/useRetryLibraryPostProcess";
+import { useRetrySkippedMedia } from "@/features/medias/hooks/useRetrySkippedMedia";
+import { useRetrySkippedSeason } from "@/features/medias/hooks/useRetrySkippedSeason";
 
 type Severity = "fail" | "stall";
 

@@ -3,10 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AlertCircle, CheckCircle2, Download, Loader2 } from "lucide-react";
-import {
-  useStartMigration,
-  useMigrateStatus,
-} from "@/features/medias/hooks/useLibrary";
+import { useStartMigration } from "@/features/medias/hooks/useStartMigration";
+import { useMigrateStatus } from "@/features/medias/hooks/useMigrateStatus";
 import { queryKeys } from "@/lib/queryKeys";
 import { cn } from "@/lib/utils";
 import { ArrMigrationProgress } from "./ArrMigrationProgress";

@@ -2,11 +2,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  useRemoveFromLibrary,
-  useRetrySkippedMedia,
-  useToggleMediaMonitored,
-} from "@/features/medias/hooks/useLibrary";
+import { useRemoveFromLibrary } from "@/features/medias/hooks/useRemoveFromLibrary";
+import { useRetrySkippedMedia } from "@/features/medias/hooks/useRetrySkippedMedia";
+import { useToggleMediaMonitored } from "@/features/medias/hooks/useToggleMediaMonitored";
 import { Card } from "./LibrarySharedUI";
 
 interface LibraryActionsSectionProps {

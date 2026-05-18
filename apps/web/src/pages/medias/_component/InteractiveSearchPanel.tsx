@@ -13,11 +13,9 @@ import {
   useInteractiveDownload,
   useInteractiveSearch,
 } from "@/features/medias/hooks/useMedias";
-import {
-  useLibraryGrabRelease,
-  useLibraryEpisodes,
-  useLibraryDownloads,
-} from "@/features/medias/hooks/useLibrary";
+import { useLibraryGrabRelease } from "@/features/medias/hooks/useLibraryGrabRelease";
+import { useLibraryEpisodes } from "@/features/medias/hooks/useLibraryEpisodes";
+import { useLibraryDownloads } from "@/features/medias/hooks/useLibraryDownloads";
 import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
 import {
   filterAndSortReleases,

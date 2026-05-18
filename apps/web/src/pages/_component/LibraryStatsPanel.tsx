@@ -13,7 +13,7 @@ import {
   XAxis,
 } from "recharts";
 
-import { useLibraryStats } from "@/features/medias/hooks/useLibrary";
+import { useLibraryStats } from "@/features/medias/hooks/useLibraryStats";
 import { formatBytes } from "@/lib/utils/format";
 
 function KpiRow({ label, value }: { label: string; value: string }) {
