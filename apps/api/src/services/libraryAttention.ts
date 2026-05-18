@@ -537,15 +537,60 @@ function matchOpenAlertWhere(c: AttentionCandidate) {
   };
 }
 
-async function alertStillValidAgainstDb(alert: {
-  id: number;
-  kind: string;
-  scopeType: string;
-  mediaId: number;
-  episodeId: number | null;
-  season: number | null;
-  downloadHistoryId: number | null;
-}): Promise<boolean> {
+type ValidationContext = {
+  issueCutoff: Date;
+  staleCutoff: Date;
+  dhMap: Map<
+    number,
+    {
+      failed: boolean;
+      postProcessError: string | null;
+      completedAt: Date | null;
+      grabbedAt: Date;
+    }
+  >;
+  mediaMap: Map<
+    number,
+    {
+      status: string;
+      type: string;
+      monitored: boolean;
+      searchAttempts: number;
+      fileCount: number;
+    }
+  >;
+  episodeMap: Map<
+    number,
+    {
+      status: string;
+      monitored: boolean;
+      searchAttempts: number;
+      fileCount: number;
+      mediaMonitored: boolean;
+    }
+  >;
+  seasonEpisodes: Map<
+    string,
+    Array<{
+      status: string;
+      monitored: boolean;
+      searchAttempts: number;
+      fileCount: number;
+      mediaMonitored: boolean;
+    }>
+  >;
+};
+
+async function buildValidationContext(
+  openAlerts: Array<{
+    kind: string;
+    scopeType: string;
+    mediaId: number;
+    episodeId: number | null;
+    season: number | null;
+    downloadHistoryId: number | null;
+  }>,
+): Promise<ValidationContext> {
   const lookbackMs =
     LIBRARY_ATTENTION_ISSUE_LOOKBACK_DAYS * 24 * 60 * 60 * 1000;
   const issueCutoff = new Date(Date.now() - lookbackMs);
@@ -553,118 +598,253 @@ async function alertStillValidAgainstDb(alert: {
     Date.now() - LIBRARY_ATTENTION_STUCK_PENDING_HOURS * 60 * 60 * 1000,
   );
 
+  const dhKinds = new Set([
+    "download_failed",
+    "post_process_error",
+    "download_stuck",
+  ]);
+  const dhIds = [
+    ...new Set(
+      openAlerts
+        .filter((a) => dhKinds.has(a.kind) && a.downloadHistoryId != null)
+        .map((a) => a.downloadHistoryId!),
+    ),
+  ];
+  const mediaIds = [...new Set(openAlerts.map((a) => a.mediaId))];
+  const episodeIds = [
+    ...new Set(
+      openAlerts.filter((a) => a.episodeId != null).map((a) => a.episodeId!),
+    ),
+  ];
+  const seasonPairs = openAlerts
+    .filter((a) => a.scopeType === "season_pack" && a.season != null)
+    .map((a) => ({ mediaId: a.mediaId, season: a.season! }));
+
+  const [dhs, medias, episodes, seasonEps] = await Promise.all([
+    dhIds.length > 0
+      ? prisma.downloadHistory.findMany({
+          where: { id: { in: dhIds } },
+          select: {
+            id: true,
+            failed: true,
+            postProcessError: true,
+            completedAt: true,
+            grabbedAt: true,
+          },
+        })
+      : Promise.resolve(
+          [] as Array<{
+            id: number;
+            failed: boolean;
+            postProcessError: string | null;
+            completedAt: Date | null;
+            grabbedAt: Date;
+          }>,
+        ),
+    prisma.libraryMedia.findMany({
+      where: { id: { in: mediaIds } },
+      select: {
+        id: true,
+        status: true,
+        type: true,
+        monitored: true,
+        searchAttempts: true,
+        _count: { select: { files: true } },
+      },
+    }),
+    episodeIds.length > 0
+      ? prisma.libraryEpisode.findMany({
+          where: { id: { in: episodeIds } },
+          select: {
+            id: true,
+            mediaId: true,
+            status: true,
+            monitored: true,
+            searchAttempts: true,
+            _count: { select: { files: true } },
+          },
+        })
+      : Promise.resolve(
+          [] as Array<{
+            id: number;
+            mediaId: number;
+            status: string;
+            monitored: boolean;
+            searchAttempts: number;
+            _count: { files: number };
+          }>,
+        ),
+    seasonPairs.length > 0
+      ? prisma.libraryEpisode.findMany({
+          where: { OR: seasonPairs },
+          select: {
+            mediaId: true,
+            season: true,
+            status: true,
+            monitored: true,
+            searchAttempts: true,
+            _count: { select: { files: true } },
+          },
+        })
+      : Promise.resolve(
+          [] as Array<{
+            mediaId: number;
+            season: number;
+            status: string;
+            monitored: boolean;
+            searchAttempts: number;
+            _count: { files: number };
+          }>,
+        ),
+  ]);
+
+  const dhMap = new Map(dhs.map((dh) => [dh.id, dh]));
+  const mediaMap = new Map(
+    medias.map((m) => [
+      m.id,
+      {
+        status: m.status,
+        type: m.type,
+        monitored: m.monitored,
+        searchAttempts: m.searchAttempts,
+        fileCount: m._count.files,
+      },
+    ]),
+  );
+  const episodeMap = new Map(
+    episodes.map((ep) => [
+      ep.id,
+      {
+        status: ep.status,
+        monitored: ep.monitored,
+        searchAttempts: ep.searchAttempts,
+        fileCount: ep._count.files,
+        mediaMonitored: mediaMap.get(ep.mediaId)?.monitored ?? false,
+      },
+    ]),
+  );
+
+  const seasonEpisodes = new Map<
+    string,
+    Array<{
+      status: string;
+      monitored: boolean;
+      searchAttempts: number;
+      fileCount: number;
+      mediaMonitored: boolean;
+    }>
+  >();
+  for (const ep of seasonEps) {
+    const key = `${ep.mediaId}|${ep.season}`;
+    const arr = seasonEpisodes.get(key) ?? [];
+    arr.push({
+      status: ep.status,
+      monitored: ep.monitored,
+      searchAttempts: ep.searchAttempts,
+      fileCount: ep._count.files,
+      mediaMonitored: mediaMap.get(ep.mediaId)?.monitored ?? false,
+    });
+    seasonEpisodes.set(key, arr);
+  }
+
+  return {
+    issueCutoff,
+    staleCutoff,
+    dhMap,
+    mediaMap,
+    episodeMap,
+    seasonEpisodes,
+  };
+}
+
+function alertStillValidFromContext(
+  alert: {
+    kind: string;
+    scopeType: string;
+    mediaId: number;
+    episodeId: number | null;
+    season: number | null;
+    downloadHistoryId: number | null;
+  },
+  ctx: ValidationContext,
+): boolean {
   switch (alert.kind as LibraryAttentionKind) {
     case "download_failed": {
       if (alert.downloadHistoryId == null) return false;
-      const dh = await prisma.downloadHistory.findUnique({
-        where: { id: alert.downloadHistoryId },
-        select: { failed: true, grabbedAt: true },
-      });
-      return !!(dh?.failed && dh.grabbedAt.getTime() >= issueCutoff.getTime());
+      const dh = ctx.dhMap.get(alert.downloadHistoryId);
+      return !!(
+        dh?.failed && dh.grabbedAt.getTime() >= ctx.issueCutoff.getTime()
+      );
     }
     case "post_process_error": {
       if (alert.downloadHistoryId == null) return false;
-      const dh = await prisma.downloadHistory.findUnique({
-        where: { id: alert.downloadHistoryId },
-        select: {
-          failed: true,
-          postProcessError: true,
-          grabbedAt: true,
-        },
-      });
+      const dh = ctx.dhMap.get(alert.downloadHistoryId);
       return !!(
         dh &&
         !dh.failed &&
         dh.postProcessError != null &&
         dh.postProcessError !== "" &&
-        dh.grabbedAt.getTime() >= issueCutoff.getTime()
+        dh.grabbedAt.getTime() >= ctx.issueCutoff.getTime()
       );
     }
     case "download_stuck": {
       if (alert.downloadHistoryId == null) return false;
-      const dh = await prisma.downloadHistory.findUnique({
-        where: { id: alert.downloadHistoryId },
-        select: {
-          failed: true,
-          completedAt: true,
-          grabbedAt: true,
-        },
-      });
+      const dh = ctx.dhMap.get(alert.downloadHistoryId);
       return !!(
         dh &&
         !dh.failed &&
         dh.completedAt == null &&
-        dh.grabbedAt.getTime() < staleCutoff.getTime()
+        dh.grabbedAt.getTime() < ctx.staleCutoff.getTime()
       );
     }
     case "grab_skipped": {
       if (alert.scopeType === "movie") {
-        const m = await prisma.libraryMedia.findUnique({
-          where: { id: alert.mediaId },
-          select: { status: true },
-        });
-        return m?.status === "skipped";
+        return ctx.mediaMap.get(alert.mediaId)?.status === "skipped";
       }
       if (alert.scopeType === "season_pack") {
         if (alert.season == null) return false;
-        const c = await prisma.libraryEpisode.count({
-          where: {
-            mediaId: alert.mediaId,
-            season: alert.season,
-            status: "skipped",
-            monitored: true,
-          },
-        });
-        return c > 0;
+        const eps =
+          ctx.seasonEpisodes.get(`${alert.mediaId}|${alert.season}`) ?? [];
+        return eps.some((ep) => ep.status === "skipped" && ep.monitored);
       }
       if (alert.episodeId == null) return false;
-      const ep = await prisma.libraryEpisode.findUnique({
-        where: { id: alert.episodeId },
-        select: { status: true },
-      });
-      return ep?.status === "skipped";
+      return ctx.episodeMap.get(alert.episodeId)?.status === "skipped";
     }
     case "auto_grab_stalled": {
       if (alert.scopeType === "movie") {
-        const m = await prisma.libraryMedia.findFirst({
-          where: {
-            id: alert.mediaId,
-            type: "movie",
-            status: "wanted",
-            monitored: true,
-            searchAttempts: { gte: LIBRARY_ATTENTION_WARN_ATTEMPTS },
-            files: { none: {} },
-          },
-        });
-        return !!m;
+        const m = ctx.mediaMap.get(alert.mediaId);
+        return !!(
+          m &&
+          m.type === "movie" &&
+          m.status === "wanted" &&
+          m.monitored &&
+          m.searchAttempts >= LIBRARY_ATTENTION_WARN_ATTEMPTS &&
+          m.fileCount === 0
+        );
       }
       if (alert.scopeType === "episode") {
         if (alert.episodeId == null) return false;
-        const ep = await prisma.libraryEpisode.findFirst({
-          where: {
-            id: alert.episodeId,
-            status: "wanted",
-            monitored: true,
-            searchAttempts: { gte: LIBRARY_ATTENTION_WARN_ATTEMPTS },
-            files: { none: {} },
-            media: { monitored: true },
-          },
-        });
-        return !!ep;
+        const ep = ctx.episodeMap.get(alert.episodeId);
+        return !!(
+          ep &&
+          ep.status === "wanted" &&
+          ep.monitored &&
+          ep.searchAttempts >= LIBRARY_ATTENTION_WARN_ATTEMPTS &&
+          ep.fileCount === 0 &&
+          ep.mediaMonitored
+        );
       }
       if (alert.season == null) return false;
-      const c = await prisma.libraryEpisode.count({
-        where: {
-          mediaId: alert.mediaId,
-          season: alert.season,
-          status: "wanted",
-          monitored: true,
-          searchAttempts: { gte: LIBRARY_ATTENTION_WARN_ATTEMPTS },
-          files: { none: {} },
-          media: { monitored: true },
-        },
-      });
-      return c > 0;
+      const eps =
+        ctx.seasonEpisodes.get(`${alert.mediaId}|${alert.season}`) ?? [];
+      return eps.some(
+        (ep) =>
+          ep.status === "wanted" &&
+          ep.monitored &&
+          ep.searchAttempts >= LIBRARY_ATTENTION_WARN_ATTEMPTS &&
+          ep.fileCount === 0 &&
+          ep.mediaMonitored,
+      );
     }
     default:
       return false;
@@ -676,15 +856,45 @@ export async function syncLibraryAttentionAlerts(): Promise<{
   updated: number;
   resolved: number;
 }> {
-  const candidates = await buildAttentionCandidates();
+  const [candidates, existingOpenAlerts] = await Promise.all([
+    buildAttentionCandidates(),
+    prisma.libraryAttentionAlert.findMany({
+      where: { status: "open" },
+      select: {
+        id: true,
+        kind: true,
+        scopeType: true,
+        mediaId: true,
+        episodeId: true,
+        season: true,
+        downloadHistoryId: true,
+      },
+    }),
+  ]);
+
+  // Map for O(1) upsert lookups — eliminates N findFirst queries
+  const alertKey = (r: {
+    mediaId: number;
+    kind: string;
+    scopeType: string;
+    episodeId: number | null;
+    season: number | null;
+  }) =>
+    `${r.mediaId}|${r.kind}|${r.scopeType}|${r.episodeId ?? ""}|${r.season ?? ""}`;
+  const existingMap = new Map(existingOpenAlerts.map((a) => [alertKey(a), a]));
+
   let created = 0;
   let updated = 0;
 
   for (const c of candidates) {
-    const where = matchOpenAlertWhere(c);
-    const existing = await prisma.libraryAttentionAlert.findFirst({
-      where,
+    const key = alertKey({
+      mediaId: c.media_id,
+      kind: c.kind,
+      scopeType: c.scope_type,
+      episodeId: c.episode_id ?? null,
+      season: c.season ?? null,
     });
+    const existing = existingMap.get(key);
 
     const data = {
       detail: c.detail,
@@ -725,6 +935,8 @@ export async function syncLibraryAttentionAlerts(): Promise<{
           );
           throw e;
         }
+        // Race condition: fell back to find + update
+        const where = matchOpenAlertWhere(c);
         const existing2 = await prisma.libraryAttentionAlert.findFirst({
           where,
         });
@@ -739,7 +951,8 @@ export async function syncLibraryAttentionAlerts(): Promise<{
     }
   }
 
-  const openRows = await prisma.libraryAttentionAlert.findMany({
+  // Re-fetch open alerts so downloadHistoryId reflects any updates made in the upsert loop above
+  const currentOpenAlerts = await prisma.libraryAttentionAlert.findMany({
     where: { status: "open" },
     select: {
       id: true,
@@ -752,22 +965,20 @@ export async function syncLibraryAttentionAlerts(): Promise<{
     },
   });
 
-  let resolved = 0;
-  for (const row of openRows) {
-    const still = await alertStillValidAgainstDb(row);
-    if (!still) {
-      await prisma.libraryAttentionAlert.update({
-        where: { id: row.id },
-        data: {
-          status: "resolved_auto",
-          resolvedAt: new Date(),
-        },
-      });
-      resolved++;
-    }
+  // Pre-fetch all referenced data in parallel, then check validity with no DB queries
+  const ctx = await buildValidationContext(currentOpenAlerts);
+  const toResolve = currentOpenAlerts
+    .filter((row) => !alertStillValidFromContext(row, ctx))
+    .map((row) => row.id);
+
+  if (toResolve.length > 0) {
+    await prisma.libraryAttentionAlert.updateMany({
+      where: { id: { in: toResolve } },
+      data: { status: "resolved_auto", resolvedAt: new Date() },
+    });
   }
 
-  return { created, updated, resolved };
+  return { created, updated, resolved: toResolve.length };
 }
 
 export async function listOpenLibraryAttentionForApi(): Promise<{
