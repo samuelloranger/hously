@@ -951,9 +951,23 @@ export async function syncLibraryAttentionAlerts(): Promise<{
     }
   }
 
+  // Re-fetch open alerts so downloadHistoryId reflects any updates made in the upsert loop above
+  const currentOpenAlerts = await prisma.libraryAttentionAlert.findMany({
+    where: { status: "open" },
+    select: {
+      id: true,
+      kind: true,
+      scopeType: true,
+      mediaId: true,
+      episodeId: true,
+      season: true,
+      downloadHistoryId: true,
+    },
+  });
+
   // Pre-fetch all referenced data in parallel, then check validity with no DB queries
-  const ctx = await buildValidationContext(existingOpenAlerts);
-  const toResolve = existingOpenAlerts
+  const ctx = await buildValidationContext(currentOpenAlerts);
+  const toResolve = currentOpenAlerts
     .filter((row) => !alertStillValidFromContext(row, ctx))
     .map((row) => row.id);
 
