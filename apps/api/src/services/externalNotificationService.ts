@@ -34,46 +34,19 @@ function renderTemplate(
   });
 }
 
-/**
- * Get notification template for a specific service, event type, and language
- */
-async function getTemplateForEvent(
-  serviceName: string,
+async function getTemplateForService(
+  serviceId: number,
   eventType: string,
-  language: string = "en",
+  language: string,
 ) {
-  // First get the service
-  const service = await prisma.externalNotificationService.findFirst({
-    where: { serviceName },
-  });
-
-  if (!service) {
-    console.warn(`Service ${serviceName} not found`);
-    return null;
-  }
-
-  // Try to find template with exact language (only enabled templates)
   let template = await prisma.notificationTemplate.findFirst({
-    where: {
-      serviceId: service.id,
-      eventType,
-      language,
-      enabled: true,
-    },
+    where: { serviceId, eventType, language, enabled: true },
   });
-
-  // Fallback to English if not found
   if (!template && language !== "en") {
     template = await prisma.notificationTemplate.findFirst({
-      where: {
-        serviceId: service.id,
-        eventType,
-        language: "en",
-        enabled: true,
-      },
+      where: { serviceId, eventType, language: "en", enabled: true },
     });
   }
-
   return template;
 }
 
@@ -92,9 +65,17 @@ export async function sendExternalNotification(
   language: string = "en",
 ): Promise<boolean> {
   try {
-    // Get template for this event
-    const template = await getTemplateForEvent(
-      serviceName,
+    const service = await prisma.externalNotificationService.findFirst({
+      where: { serviceName },
+    });
+
+    if (!service) {
+      console.warn(`Service ${serviceName} not found`);
+      return false;
+    }
+
+    const template = await getTemplateForService(
+      service.id,
       eventType,
       language,
     );
@@ -106,7 +87,6 @@ export async function sendExternalNotification(
       return false;
     }
 
-    // Render templates
     const title = renderTemplate(
       template.titleTemplate,
       payload.template_variables,
@@ -120,16 +100,6 @@ export async function sendExternalNotification(
       console.error(
         `Rendered template is empty for ${serviceName}/${eventType}`,
       );
-      return false;
-    }
-
-    // Get the service to check notify_admins_only setting
-    const service = await prisma.externalNotificationService.findFirst({
-      where: { serviceName },
-    });
-
-    if (!service) {
-      console.error(`Service ${serviceName} not found`);
       return false;
     }
 
