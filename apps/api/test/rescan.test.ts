@@ -111,6 +111,12 @@ mock.module("@hously/api/db", () => ({
         state.files = state.files.filter((f) => f.id !== args.where.id);
         return Promise.resolve({});
       },
+      deleteMany: (args: { where: { id: { in: number[] } } }) => {
+        const ids = args.where.id.in;
+        ids.forEach((id) => state.deletedFileIds.push(id));
+        state.files = state.files.filter((f) => !ids.includes(f.id));
+        return Promise.resolve({ count: ids.length });
+      },
       count: () => {
         const count =
           state.remainingFileCount !== null
