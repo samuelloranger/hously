@@ -1,0 +1,42 @@
+<h2>Implementation Approach</h2>
+<p class="subtitle">How should the nav position switching be built?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>CSS-only class on root <span style="font-size:0.75em;opacity:0.5">(simple)</span></h3>
+      <p>Store position in localStorage. Apply <code>data-nav-position="bottom"</code> to <code>&lt;html&gt;</code>. Write CSS rules for each variant. No changes to component logic.</p>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pros</h4><ul><li>Minimal JS changes</li><li>Fast toggle (no re-render)</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Current sidebar markup isn't designed for 4 positions — CSS hacks pile up</li><li>Hard to maintain as nav grows</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Single adaptive Sidebar component <span style="font-size:0.75em;color:var(--accent)">(recommended)</span></h3>
+      <p>Extend <code>Sidebar.tsx</code> with a <code>position</code> prop. The root layout flexes around it. A <code>useNavPosition</code> hook reads/writes the preference (localStorage + optional DB sync). Settings page and right-click context menu both call the same hook.</p>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pros</h4><ul><li>Single source of truth</li><li>Clean prop API</li><li>Easy to extend to new positions</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Sidebar component gets 4 rendering branches</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Separate layout components per position <span style="font-size:0.75em;opacity:0.5">(explicit)</span></h3>
+      <p>Create <code>SidebarLeft</code>, <code>SidebarRight</code>, <code>NavTop</code>, <code>NavBottom</code> as distinct components. Root layout swaps which one is rendered based on the preference.</p>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pros</h4><ul><li>Each variant is self-contained and easy to reason about</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Lots of duplication — same nav links, icons, theme toggle, notifications in 4 places</li><li>Bug in one = fix in all</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:1.5rem">I recommend <strong>B</strong> — one component, position-aware. Clean and maintainable.</p>

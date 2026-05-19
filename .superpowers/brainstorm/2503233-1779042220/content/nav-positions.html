@@ -1,0 +1,54 @@
+<h2>Navigation Position Options</h2>
+<p class="subtitle">Pick which positions you want to support — users will be able to choose their preferred layout in settings.</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="left" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Left Sidebar <span style="font-size:0.75em;opacity:0.5">(current)</span></h3>
+      <div style="margin-top:10px;display:flex;gap:6px;height:80px;">
+        <div style="width:14px;background:var(--accent);border-radius:4px;flex-shrink:0;"></div>
+        <div style="flex:1;background:var(--surface-2);border-radius:4px;"></div>
+      </div>
+      <p>Fixed 60px vertical rail on the left. The default desktop experience.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="right" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Right Sidebar</h3>
+      <div style="margin-top:10px;display:flex;gap:6px;height:80px;">
+        <div style="flex:1;background:var(--surface-2);border-radius:4px;"></div>
+        <div style="width:14px;background:var(--accent);border-radius:4px;flex-shrink:0;"></div>
+      </div>
+      <p>Same icon rail, mirrored to the right edge. Good for left-handed or wide-monitor workflows.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="top" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Top Bar</h3>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;height:80px;">
+        <div style="height:14px;background:var(--accent);border-radius:4px;"></div>
+        <div style="flex:1;background:var(--surface-2);border-radius:4px;"></div>
+      </div>
+      <p>Horizontal nav bar pinned to the top. Icons laid out in a row — familiar browser/app feel.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="bottom" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Bottom Bar</h3>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;height:80px;">
+        <div style="flex:1;background:var(--surface-2);border-radius:4px;"></div>
+        <div style="height:14px;background:var(--accent);border-radius:4px;"></div>
+      </div>
+      <p>Tab bar pinned to the bottom. Great for tablet and couch-browsing use on desktop.</p>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:1.5rem">Select all positions you want to support. You can pick multiple.</p>
