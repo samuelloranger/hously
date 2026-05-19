@@ -99,7 +99,6 @@ export function useFlappyBird(
         pipe.x -= PIPE_SPEED * frames;
       }
 
-      const prevScore = g.score;
       g.score = g.pipes.filter((p) => p.x + PIPE_WIDTH < BIRD_X).length;
 
       g.nextPipeX -= PIPE_SPEED * frames;
@@ -117,7 +116,7 @@ export function useFlappyBird(
         return;
       }
 
-      if (g.score !== prevScore) syncSnapshot();
+      syncSnapshot();
     },
     [onGameOver, syncSnapshot],
   );
