@@ -9,6 +9,7 @@ import { HttpError } from "@/lib/api/httpClient";
 import { queryKeys } from "@/lib/queryKeys";
 import { AUTH_ENDPOINTS } from "@/lib/endpoints";
 import { fetchAuthMeUser } from "@/lib/auth/fetchAuthMeUser";
+import { resetUserCache } from "@/lib/auth";
 import type {
   UserResponse,
   ValidateInvitationResponse,
@@ -48,6 +49,7 @@ export function useLogin() {
         body: { email: data.email, password: data.password },
       }),
     onSuccess: () => {
+      resetUserCache();
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
     },
   });

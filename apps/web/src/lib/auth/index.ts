@@ -77,6 +77,12 @@ export function setUser(user: User | null): void {
   getQueryClient()?.setQueryData(queryKeys.auth.me, user);
 }
 
+export function resetUserCache(): void {
+  currentUser = undefined;
+  userPromise = null;
+  getQueryClient()?.removeQueries({ queryKey: queryKeys.auth.me });
+}
+
 export function bootstrapAuthFromWindow(
   queryClient?: QueryClient,
 ): User | null {
