@@ -1948,5 +1948,24 @@
       "doneWithFailures": "Terminé — {{succeeded}} réussi(s), {{failed}} échec(s)",
       "dismiss": "Fermer"
     }
+  },
+  "widgets": {
+    "weather": "Météo",
+    "quick_links": "Liens rapides",
+    "chores": "Tâches ménagères",
+    "jellyfin_shelf": "Bibliothèque Jellyfin",
+    "library_stats": "Statistiques de bibliothèque",
+    "library_alerts": "Alertes de bibliothèque",
+    "homeassistant": "Home Assistant",
+    "habits": "Habitudes",
+    "upcoming": "À venir",
+    "trackers": "Trackers",
+    "jellyfin_random": "Jellyfin aléatoire",
+    "system": "Système",
+    "focus_timer": "Minuteur de concentration",
+    "downloads": "Téléchargements",
+    "minecraft_compact": "Minecraft (Compact)",
+    "minecraft_cards": "Minecraft (Cartes)",
+    "rss": "RSS"
   }
 }

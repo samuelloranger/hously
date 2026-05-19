@@ -1948,5 +1948,24 @@
       "doneWithFailures": "Done — {{succeeded}} succeeded, {{failed}} failed",
       "dismiss": "Dismiss"
     }
+  },
+  "widgets": {
+    "weather": "Weather",
+    "quick_links": "Quick Links",
+    "chores": "Chores",
+    "jellyfin_shelf": "Jellyfin Shelf",
+    "library_stats": "Library Stats",
+    "library_alerts": "Library Alerts",
+    "homeassistant": "Home Assistant",
+    "habits": "Habits",
+    "upcoming": "Upcoming",
+    "trackers": "Trackers",
+    "jellyfin_random": "Jellyfin Random",
+    "system": "System",
+    "focus_timer": "Focus Timer",
+    "downloads": "Downloads",
+    "minecraft_compact": "Minecraft (Compact)",
+    "minecraft_cards": "Minecraft (Cards)",
+    "rss": "RSS"
   }
 }
