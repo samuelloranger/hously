@@ -10,6 +10,8 @@ import { dashboardSystemRoutes } from "./system";
 import { dashboardAdguardRoutes } from "./adguard";
 import { dashboardDownloadsRoutes } from "./downloads";
 import { minecraftDashboardRoutes } from "./minecraft";
+import { dashboardQuickLinksRoutes } from "./quick-links";
+import { dashboardFaviconRoutes } from "./favicon";
 
 export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(dashboardStatsRoutes)
@@ -22,4 +24,6 @@ export const dashboardRoutes = new Elysia({ prefix: "/api/dashboard" })
   .use(dashboardSystemRoutes)
   .use(dashboardAdguardRoutes)
   .use(dashboardDownloadsRoutes)
-  .use(minecraftDashboardRoutes);
+  .use(minecraftDashboardRoutes)
+  .use(dashboardQuickLinksRoutes)
+  .use(dashboardFaviconRoutes);

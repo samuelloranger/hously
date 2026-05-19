@@ -1,4 +1,5 @@
 import type { MinecraftServerEntry } from "./integrations";
+import type { QuickLink } from "./settings";
 
 export interface DashboardStats {
   events_today: number;
@@ -80,6 +81,7 @@ export interface JellyfinLatestItem {
   id: string;
   title: string;
   subtitle: string | null;
+  overview: string | null;
   item_url: string | null;
   banner_url: string | null;
   poster_url: string | null;
@@ -253,6 +255,15 @@ export interface RssStatusResponse {
   last_run: RssRunResult | null;
   history: RssRunResult[];
   next_run_at: string | null;
+}
+
+export interface JellyfinRandomResponse {
+  enabled: boolean;
+  item: JellyfinLatestItem | null;
+}
+
+export interface QuickLinksResponse {
+  quick_links: QuickLink[];
 }
 
 export interface MinecraftDashboardResponse {
