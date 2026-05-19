@@ -6,11 +6,11 @@ export const CANVAS_HEIGHT = 480;
 const GRAVITY = 0.5;
 const FLAP_VELOCITY = -9;
 const PIPE_SPEED = 2.5;
-const PIPE_WIDTH = 52;
-const PIPE_GAP = 140;
+export const PIPE_WIDTH = 52;
+export const PIPE_GAP = 140;
 const PIPE_INTERVAL = 220;
-const BIRD_X = 80;
-const BIRD_SIZE = 24;
+export const BIRD_X = 80;
+export const BIRD_SIZE = 24;
 const FIRST_PIPE_DELAY_PX = 80; // grace distance before first pipe appears
 
 export type GameStatus = "idle" | "playing" | "dead";

@@ -3,13 +3,12 @@ import {
   useFlappyBird,
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
+  BIRD_X,
+  BIRD_SIZE,
+  PIPE_WIDTH,
+  PIPE_GAP,
   type GameStatus,
 } from "@/features/flappy-bird/useFlappyBird";
-
-const BIRD_X = 80;
-const BIRD_SIZE = 24;
-const PIPE_WIDTH = 52;
-const PIPE_GAP = 140;
 
 function drawFrame(
   ctx: CanvasRenderingContext2D,
@@ -79,7 +78,11 @@ function drawOverlay(
     ctx.fillStyle = "#fff";
     ctx.font = "bold 22px monospace";
     ctx.textAlign = "center";
-    ctx.fillText("Click or Space to start", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+    ctx.fillText(
+      "Click or Space to start",
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2,
+    );
   }
 
   if (status === "dead") {
@@ -91,10 +94,18 @@ function drawOverlay(
     ctx.fillText("Game Over", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 40);
     ctx.font = "18px monospace";
     ctx.fillText(`Score: ${score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
-    ctx.fillText(`Best: ${highScore}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 28);
+    ctx.fillText(
+      `Best: ${highScore}`,
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2 + 28,
+    );
     ctx.font = "14px monospace";
     ctx.fillStyle = "#FFC107";
-    ctx.fillText("Click or Space to retry", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 64);
+    ctx.fillText(
+      "Click or Space to retry",
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2 + 64,
+    );
   }
 }
 
@@ -107,6 +118,8 @@ export function FlappyBirdGame({ highScore, onGameOver }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
+  const highScoreRef = useRef(highScore);
+  highScoreRef.current = highScore;
 
   const { state, flap, tick, reset } = useFlappyBird(onGameOver);
   const stateRef = useRef(state);
@@ -128,20 +141,27 @@ export function FlappyBirdGame({ highScore, onGameOver }: Props) {
     if (!ctx) return;
 
     const loop = (time: number) => {
-      const delta = lastTimeRef.current ? time - lastTimeRef.current : 1000 / 60;
+      const delta = lastTimeRef.current
+        ? time - lastTimeRef.current
+        : 1000 / 60;
       lastTimeRef.current = time;
 
       const currentState = stateRef.current;
       tick(delta);
       drawFrame(ctx, currentState);
-      drawOverlay(ctx, currentState.status, currentState.score, highScore);
+      drawOverlay(
+        ctx,
+        currentState.status,
+        currentState.score,
+        highScoreRef.current,
+      );
 
       rafRef.current = requestAnimationFrame(loop);
     };
 
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [tick, highScore]);
+  }, [tick]);
 
   // Keyboard
   useEffect(() => {

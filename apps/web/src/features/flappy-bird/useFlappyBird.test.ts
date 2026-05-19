@@ -1,10 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import {
-  useFlappyBird,
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-} from "./useFlappyBird";
+import { useFlappyBird, CANVAS_HEIGHT } from "./useFlappyBird";
 
 describe("useFlappyBird", () => {
   it("starts in idle state", () => {
