@@ -119,10 +119,12 @@ export function FlappyBirdGame({ highScore, onGameOver }: Props) {
   const rafRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const highScoreRef = useRef(highScore);
+  // eslint-disable-next-line react-hooks/refs
   highScoreRef.current = highScore;
 
   const { state, flap, tick, reset } = useFlappyBird(onGameOver);
   const stateRef = useRef(state);
+  // eslint-disable-next-line react-hooks/refs
   stateRef.current = state;
 
   const handleInput = useCallback(() => {

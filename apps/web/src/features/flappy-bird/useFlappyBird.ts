@@ -96,6 +96,7 @@ export function useFlappyBird(
       g.birdY += g.birdVelocity * frames;
 
       for (const pipe of g.pipes) {
+        // eslint-disable-next-line react-hooks/immutability
         pipe.x -= PIPE_SPEED * frames;
       }
 
