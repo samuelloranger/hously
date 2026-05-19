@@ -223,6 +223,7 @@ model ExternalNotificationServiceLog {
   service ExternalNotificationService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@index([serviceId], map: "ix_external_notification_service_logs_service_id")
+  @@index([createdAt(sort: Desc)], map: "ix_ext_notif_logs_created_at")
   @@map("external_notification_service_logs")
 }
 
