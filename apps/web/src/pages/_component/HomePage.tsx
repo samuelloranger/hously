@@ -127,11 +127,12 @@ export function HomePage() {
   const { data: statsData, isPending: statsLoading } = useDashboardStats();
   const stats = statsData?.stats;
 
-  const { data } = useAppSettings();
+  const isAdmin = !!user?.is_admin;
+
+  const { data } = useAppSettings({ enabled: isAdmin });
   const updateMut = useUpdateAppSettings();
   const visibility =
     data?.settings.dashboard_widget_visibility ?? ({} as WidgetVisibility);
-  const isAdmin = !!user?.is_admin;
 
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -157,6 +158,7 @@ export function HomePage() {
   }
 
   function moveWidget(id: WidgetId, direction: "up" | "down") {
+    if (!isAdmin) return;
     const next = moveWidgetInLayout(layout, id, direction, isWidgetVisible);
     setLayout(next);
     updateMut.mutate({ dashboard_widget_layout: next });
@@ -211,6 +213,7 @@ export function HomePage() {
                 userName={getUserFirstName(user, t("dashboard.user"))}
                 pendingChores={stats?.chores_count}
                 eventsToday={stats?.events_today}
+                isAdmin={isAdmin}
                 isEditMode={isEditMode}
                 onToggleEditMode={() => setIsEditMode((v) => !v)}
               />

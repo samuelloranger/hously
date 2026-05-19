@@ -6,6 +6,7 @@ interface GreetingCardProps {
   userName: string;
   pendingChores: number | undefined;
   eventsToday: number | undefined;
+  isAdmin: boolean;
   isEditMode: boolean;
   onToggleEditMode: () => void;
 }
@@ -23,6 +24,7 @@ export function GreetingCard({
   userName,
   pendingChores,
   eventsToday,
+  isAdmin,
   isEditMode,
   onToggleEditMode,
 }: GreetingCardProps) {
@@ -129,14 +131,18 @@ export function GreetingCard({
       <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
         {subtext}
       </p>
-      <button
-        type="button"
-        onClick={onToggleEditMode}
-        className="absolute top-0 right-0 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-      >
-        <Pencil size={11} />
-        {isEditMode ? t("dashboard.editLayoutDone") : t("dashboard.editLayout")}
-      </button>
+      {isAdmin && (
+        <button
+          type="button"
+          onClick={onToggleEditMode}
+          className="absolute top-0 right-0 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+        >
+          <Pencil size={11} />
+          {isEditMode
+            ? t("dashboard.editLayoutDone")
+            : t("dashboard.editLayout")}
+        </button>
+      )}
     </div>
   );
 }

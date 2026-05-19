@@ -140,18 +140,18 @@ describe("moveWidgetInLayout", () => {
     expect(result[0]).toEqual(["chores", "weather"]);
   });
 
-  it("moves a widget from position 0 to the end of the previous column", () => {
+  it("moves a widget from position 0 to before the last visible in the previous column", () => {
     const layout: WidgetLayout = [
       ["weather"],
       ["habits", "upcoming"],
       ["system"],
     ];
     const result = moveWidgetInLayout(layout, "habits", "up", allVisible);
-    expect(result[0]).toEqual(["weather", "habits"]);
+    expect(result[0]).toEqual(["habits", "weather"]);
     expect(result[1]).toEqual(["upcoming"]);
   });
 
-  it("moves a widget from the last position to the start of the next column", () => {
+  it("moves a widget from the last position to after the first visible in the next column", () => {
     const layout: WidgetLayout = [
       ["weather", "chores"],
       ["habits"],
@@ -159,7 +159,7 @@ describe("moveWidgetInLayout", () => {
     ];
     const result = moveWidgetInLayout(layout, "chores", "down", allVisible);
     expect(result[0]).toEqual(["weather"]);
-    expect(result[1]).toEqual(["chores", "habits"]);
+    expect(result[1]).toEqual(["habits", "chores"]);
   });
 
   it("no-ops when moving up from position 0 in column 0", () => {
@@ -204,7 +204,20 @@ describe("moveWidgetInLayout", () => {
     expect(result[0]).toEqual(["chores", "quick_links", "weather"]);
   });
 
-  it("crosses to the previous column when all widgets above are hidden", () => {
+  it("skips hidden widgets at the start of the next column when crossing down", () => {
+    const layout: WidgetLayout = [
+      ["weather"],
+      ["quick_links", "habits"],
+      ["system"],
+    ];
+    const isVisible = (id: WidgetId) => id !== "quick_links";
+    const result = moveWidgetInLayout(layout, "weather", "down", isVisible);
+    // weather should end up after habits (the first visible in col1), not before it
+    expect(result[0]).toEqual([]);
+    expect(result[1]).toEqual(["quick_links", "habits", "weather"]);
+  });
+
+  it("crosses to the previous column and lands before the last visible widget there", () => {
     const layout: WidgetLayout = [
       ["weather"],
       ["quick_links", "habits"],
@@ -212,7 +225,7 @@ describe("moveWidgetInLayout", () => {
     ];
     const isVisible = (id: WidgetId) => id !== "quick_links";
     const result = moveWidgetInLayout(layout, "habits", "up", isVisible);
-    expect(result[0]).toEqual(["weather", "habits"]);
+    expect(result[0]).toEqual(["habits", "weather"]);
     expect(result[1]).toEqual(["quick_links"]);
   });
 });

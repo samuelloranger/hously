@@ -140,7 +140,16 @@ export function moveWidgetInLayout(
       ];
     } else if (colIdx > 0) {
       next[colIdx].splice(pos, 1);
-      next[colIdx - 1].push(id);
+      const prevCol = next[colIdx - 1];
+      const lastVisIdx = prevCol.reduce(
+        (li, wid, i) => (isVisible(wid as WidgetId) ? i : li),
+        -1,
+      );
+      if (lastVisIdx === -1) {
+        prevCol.push(id);
+      } else {
+        prevCol.splice(lastVisIdx, 0, id);
+      }
     }
   } else {
     let targetPos = pos + 1;
@@ -156,7 +165,15 @@ export function moveWidgetInLayout(
       ];
     } else if (colIdx < 2) {
       next[colIdx].splice(pos, 1);
-      next[colIdx + 1].unshift(id);
+      const nextCol = next[colIdx + 1];
+      const firstVisIdx = nextCol.findIndex((wid) =>
+        isVisible(wid as WidgetId),
+      );
+      if (firstVisIdx === -1) {
+        nextCol.unshift(id);
+      } else {
+        nextCol.splice(firstVisIdx + 1, 0, id);
+      }
     }
   }
 
