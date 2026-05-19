@@ -194,4 +194,51 @@ export const dashboardJellyfinRoutes = new Elysia()
         page: t.Optional(t.String()),
       }),
     },
-  );
+  )
+  .get("/jellyfin/random", async ({ set }) => {
+    try {
+      const jellyfinIntegration = await getIntegrationConfigRecord("jellyfin");
+
+      if (!jellyfinIntegration?.enabled) {
+        return { enabled: false, item: null };
+      }
+
+      const config = normalizeJellyfinConfig(jellyfinIntegration.config);
+      if (!config) {
+        return { enabled: false, item: null };
+      }
+
+      const jellyfinUrl = new URL("/Items", config.website_url);
+      jellyfinUrl.searchParams.set("Recursive", "true");
+      jellyfinUrl.searchParams.set("SortBy", "Random");
+      jellyfinUrl.searchParams.set("IncludeItemTypes", "Movie");
+      jellyfinUrl.searchParams.set(
+        "Fields",
+        "Overview,ProductionYear,BackdropImageTags,ParentBackdropImageTags,ParentBackdropItemId,ImageTags",
+      );
+      jellyfinUrl.searchParams.set("Limit", "1");
+
+      const response = await fetch(jellyfinUrl.toString(), {
+        headers: {
+          "X-Emby-Token": config.api_key,
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        return badGateway(set, "Jellyfin request failed");
+      }
+
+      const data = (await response.json()) as Record<string, unknown>;
+      const rawItems = Array.isArray(data.Items) ? data.Items : [];
+      const item =
+        rawItems.length > 0
+          ? mapJellyfinApiItem(rawItems[0], config.website_url)
+          : null;
+
+      return { enabled: true, item: item ?? null };
+    } catch (error) {
+      console.error("Error getting random Jellyfin item:", error);
+      return serverError(set, "Failed to get random Jellyfin item");
+    }
+  });

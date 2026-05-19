@@ -21,6 +21,9 @@ import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
 import { ChoresPanel, HabitsPanel } from "@/pages/_component/HomePanel";
 import { MinecraftCardsPanel } from "@/pages/_component/MinecraftCardsPanel";
 import { MinecraftCompactPanel } from "@/pages/_component/MinecraftCompactPanel";
+import { QuickLinksPanel } from "@/pages/_component/QuickLinksPanel";
+import { JellyfinRandomPanel } from "@/pages/_component/JellyfinRandomPanel";
+import { FocusTimerPanel } from "@/pages/_component/FocusTimerPanel";
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -159,6 +162,11 @@ export function HomePage() {
             </motion.div>
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
+                <QuickLinksPanel />
+              </CardErrorBoundary>
+            </motion.div>
+            <motion.div variants={panelVariants}>
+              <CardErrorBoundary>
                 <ChoresPanel />
               </CardErrorBoundary>
             </motion.div>
@@ -210,6 +218,11 @@ export function HomePage() {
                   <TrackersPanel />
                 </CardErrorBoundary>
               </motion.div>
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <JellyfinRandomPanel />
+                </CardErrorBoundary>
+              </motion.div>
             </motion.div>
 
             {/* Column 3 */}
@@ -222,6 +235,11 @@ export function HomePage() {
               <motion.div variants={panelVariants}>
                 <CardErrorBoundary>
                   <SystemPanel />
+                </CardErrorBoundary>
+              </motion.div>
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <FocusTimerPanel />
                 </CardErrorBoundary>
               </motion.div>
               <motion.div variants={panelVariants}>
