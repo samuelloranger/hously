@@ -9,9 +9,8 @@ import { HttpError } from "@/lib/api/httpClient";
 import { queryKeys } from "@/lib/queryKeys";
 import { AUTH_ENDPOINTS } from "@/lib/endpoints";
 import { fetchAuthMeUser } from "@/lib/auth/fetchAuthMeUser";
-import { setUser } from "@/lib/auth";
+import { resetUserCache } from "@/lib/auth";
 import type {
-  User,
   UserResponse,
   ValidateInvitationResponse,
   AcceptInvitationRequest,
@@ -45,12 +44,12 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: (data: { email: string; password: string }) =>
-      fetcher<{ user: User | null; session: unknown }>(AUTH_ENDPOINTS.LOGIN, {
+      fetcher<{ user: unknown; session: unknown }>(AUTH_ENDPOINTS.LOGIN, {
         method: "POST",
         body: { email: data.email, password: data.password },
       }),
-    onSuccess: (data) => {
-      setUser(data.user);
+    onSuccess: () => {
+      resetUserCache();
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
     },
   });
