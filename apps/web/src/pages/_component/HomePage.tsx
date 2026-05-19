@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, CheckSquare2, Flame } from "lucide-react";
@@ -140,7 +140,9 @@ export function HomePage() {
   );
 
   const isMutatingRef = useRef(false);
-  isMutatingRef.current = updateMut.isPending;
+  useLayoutEffect(() => {
+    isMutatingRef.current = updateMut.isPending;
+  });
 
   useEffect(() => {
     if (isMutatingRef.current) return;
