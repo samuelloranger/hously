@@ -12,7 +12,7 @@ import {
   normalizeUserCountryCode,
 } from "@hously/api/services/holidayCalendar";
 import { WIDGETS } from "@hously/shared/constants";
-import type { WidgetId } from "@hously/shared/constants";
+import type { WidgetId, WidgetLayout } from "@hously/shared/constants";
 
 import type { AppSettings } from "@prisma/client";
 
@@ -30,6 +30,8 @@ function mapSettings(row: AppSettings) {
       ...DEFAULT_WIDGET_VISIBILITY,
       ...((row.dashboardWidgetVisibility as Record<string, boolean>) ?? {}),
     },
+    dashboard_widget_layout:
+      (row.dashboardWidgetLayout as WidgetLayout | null) ?? null,
     updated_at: row.updatedAt.toISOString(),
   };
 }
@@ -81,6 +83,7 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
           upcomingWindowMonths?: number;
           upcomingLanguages?: string;
           dashboardWidgetVisibility?: Record<string, boolean>;
+          dashboardWidgetLayout?: WidgetLayout;
         } = {};
 
         if (body.country_code) updateData.countryCode = countryCode;
@@ -103,6 +106,10 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
         if (body.dashboard_widget_visibility !== undefined) {
           updateData.dashboardWidgetVisibility =
             body.dashboard_widget_visibility;
+        }
+        if (body.dashboard_widget_layout !== undefined) {
+          updateData.dashboardWidgetLayout =
+            body.dashboard_widget_layout as WidgetLayout;
         }
 
         const row = await prisma.appSettings.upsert({
@@ -127,6 +134,13 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
         upcoming_languages: t.Optional(t.String()),
         dashboard_widget_visibility: t.Optional(
           t.Object(Object.fromEntries(WIDGETS.map((w) => [w.id, t.Boolean()]))),
+        ),
+        dashboard_widget_layout: t.Optional(
+          t.Tuple([
+            t.Array(t.Union(WIDGETS.map((w) => t.Literal(w.id)))),
+            t.Array(t.Union(WIDGETS.map((w) => t.Literal(w.id)))),
+            t.Array(t.Union(WIDGETS.map((w) => t.Literal(w.id)))),
+          ]),
         ),
       }),
     },

@@ -261,6 +261,10 @@
       "start": "Start"
     },
     "user": "User",
+    "editLayout": "Edit layout",
+    "editLayoutDone": "Done",
+    "moveWidgetUp": "Move widget up",
+    "moveWidgetDown": "Move widget down",
     "home": {
       "statsEventsToday_one": "event today",
       "statsEventsToday_other": "events today",

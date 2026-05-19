@@ -261,6 +261,10 @@
       "start": "Démarrer"
     },
     "user": "Utilisateur",
+    "editLayout": "Modifier la disposition",
+    "editLayoutDone": "Terminer",
+    "moveWidgetUp": "Déplacer le widget vers le haut",
+    "moveWidgetDown": "Déplacer le widget vers le bas",
     "home": {
       "statsEventsToday_one": "événement aujourd'hui",
       "statsEventsToday_other": "événements aujourd'hui",

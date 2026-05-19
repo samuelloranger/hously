@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, CheckSquare2, Flame } from "lucide-react";
@@ -9,9 +10,21 @@ import { useDashboardStats } from "@/pages/_component/useDashboardStats";
 import type { DashboardStats } from "@hously/shared/types";
 import { getUserFirstName } from "@/lib/utils/format";
 import { GreetingCard } from "@/pages/_component/GreetingCard";
-import { WIDGETS } from "@hously/shared/constants";
-import type { WidgetVisibility } from "@hously/shared/constants";
-import { useAppSettings } from "@/pages/settings/useAppSettings";
+import { WidgetEditWrapper } from "@/pages/_component/WidgetEditWrapper";
+import {
+  WIDGETS,
+  getEffectiveLayout,
+  moveWidgetInLayout,
+} from "@hously/shared/constants";
+import type {
+  WidgetVisibility,
+  WidgetLayout,
+  WidgetId,
+} from "@hously/shared/constants";
+import {
+  useAppSettings,
+  useUpdateAppSettings,
+} from "@/pages/settings/useAppSettings";
 import { WIDGET_COMPONENTS } from "@/pages/_component/widgetComponents";
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
@@ -115,58 +128,89 @@ export function HomePage() {
   const stats = statsData?.stats;
 
   const { data } = useAppSettings();
+  const updateMut = useUpdateAppSettings();
   const visibility =
     data?.settings.dashboard_widget_visibility ?? ({} as WidgetVisibility);
   const isAdmin = !!user?.is_admin;
 
-  const widgetColumns = [1, 2, 3].map((col) =>
-    WIDGETS.filter((w) => w.column === col)
-      .slice()
-      .sort((a, b) => a.order - b.order)
-      .filter((w) => !w.adminOnly || isAdmin)
-      .filter((w) => visibility[w.id] !== false)
-      .map((w) => {
-        const Component = WIDGET_COMPONENTS[w.id];
-        return (
-          <motion.div key={w.id} variants={panelVariants}>
-            <CardErrorBoundary>
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const [layout, setLayout] = useState<WidgetLayout>(() =>
+    getEffectiveLayout(data?.settings.dashboard_widget_layout ?? null),
+  );
+
+  useEffect(() => {
+    if (updateMut.isPending) return;
+    setLayout(
+      getEffectiveLayout(data?.settings.dashboard_widget_layout ?? null),
+    );
+  }, [data?.settings.dashboard_widget_layout, updateMut.isPending]);
+
+  function isWidgetVisible(id: WidgetId): boolean {
+    const w = WIDGETS.find((w) => w.id === id);
+    return !!(w && (!w.adminOnly || isAdmin) && visibility[id] !== false);
+  }
+
+  function moveWidget(id: WidgetId, direction: "up" | "down") {
+    const next = moveWidgetInLayout(layout, id, direction, isWidgetVisible);
+    setLayout(next);
+    updateMut.mutate({ dashboard_widget_layout: next });
+  }
+
+  const allVisibleIds = layout.flatMap((col) => col.filter(isWidgetVisible));
+
+  const widgetColumns = layout.map((col) =>
+    col.filter(isWidgetVisible).map((id) => {
+      const Component = WIDGET_COMPONENTS[id];
+      const visibleIdx = allVisibleIds.indexOf(id);
+      const isFirst = visibleIdx === 0;
+      const isLast = visibleIdx === allVisibleIds.length - 1;
+      return (
+        <motion.div key={id} variants={panelVariants}>
+          <CardErrorBoundary>
+            {isEditMode ? (
+              <WidgetEditWrapper
+                onMoveUp={() => moveWidget(id, "up")}
+                onMoveDown={() => moveWidget(id, "down")}
+                canMoveUp={!isFirst}
+                canMoveDown={!isLast}
+              >
+                <Component />
+              </WidgetEditWrapper>
+            ) : (
               <Component />
-            </CardErrorBoundary>
-          </motion.div>
-        );
-      }),
+            )}
+          </CardErrorBoundary>
+        </motion.div>
+      );
+    }),
   );
 
   return (
     <PageLayout fullWidth>
       <div className="space-y-4">
-        {/* Greeting — full width */}
-        <motion.div
-          className="space-y-3"
-          variants={panelVariants}
-          initial="hidden"
-          animate="show"
-        >
-          <GreetingCard
-            userName={getUserFirstName(user, t("dashboard.user"))}
-            pendingChores={stats?.chores_count}
-            eventsToday={stats?.events_today}
-          />
-          <StatsRow stats={stats} isLoading={statsLoading} />
-        </motion.div>
-
         {/* 3-column widget layout:
             <768px  → single column
             768–999px → 2 columns (col1 left, col2+col3 stacked right)
             1000px+ → 3 equal columns */}
         <div className="flex flex-col md:flex-row gap-4 md:items-start">
-          {/* Column 1 */}
+          {/* Column 1 — GreetingCard always first, non-movable */}
           <motion.div
             className="flex flex-col gap-4 flex-1 min-w-0"
             variants={columnVariants}
             initial="hidden"
             animate="show"
           >
+            <motion.div variants={panelVariants} className="space-y-3">
+              <GreetingCard
+                userName={getUserFirstName(user, t("dashboard.user"))}
+                pendingChores={stats?.chores_count}
+                eventsToday={stats?.events_today}
+                isEditMode={isEditMode}
+                onToggleEditMode={() => setIsEditMode((v) => !v)}
+              />
+              <StatsRow stats={stats} isLoading={statsLoading} />
+            </motion.div>
             {widgetColumns[0]}
           </motion.div>
 

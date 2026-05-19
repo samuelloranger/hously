@@ -1,10 +1,13 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { Pencil } from "lucide-react";
 
 interface GreetingCardProps {
   userName: string;
   pendingChores: number | undefined;
   eventsToday: number | undefined;
+  isEditMode: boolean;
+  onToggleEditMode: () => void;
 }
 
 type TimeOfDay = "morning" | "afternoon" | "evening" | "night";
@@ -20,6 +23,8 @@ export function GreetingCard({
   userName,
   pendingChores,
   eventsToday,
+  isEditMode,
+  onToggleEditMode,
 }: GreetingCardProps) {
   const { t } = useTranslation("common");
 
@@ -117,13 +122,21 @@ export function GreetingCard({
   }, [pendingChores, eventsToday, t]);
 
   return (
-    <div>
+    <div className="relative">
       <h1 className="text-lg md:text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
         {greeting}, {userName}
       </h1>
       <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
         {subtext}
       </p>
+      <button
+        type="button"
+        onClick={onToggleEditMode}
+        className="absolute top-0 right-0 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+      >
+        <Pencil size={11} />
+        {isEditMode ? t("dashboard.editLayoutDone") : t("dashboard.editLayout")}
+      </button>
     </div>
   );
 }
