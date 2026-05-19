@@ -3,27 +3,16 @@ import { Link } from "@tanstack/react-router";
 import { CalendarDays, CheckSquare2, Flame } from "lucide-react";
 import { motion, type Variants } from "motion/react";
 import { PageLayout } from "@/components/PageLayout";
+import { CardErrorBoundary } from "@/components/ErrorBoundary";
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { useDashboardStats } from "@/pages/_component/useDashboardStats";
 import type { DashboardStats } from "@hously/shared/types";
 import { getUserFirstName } from "@/lib/utils/format";
-import { CardErrorBoundary } from "@/components/ErrorBoundary";
 import { GreetingCard } from "@/pages/_component/GreetingCard";
-import { DownloadsPanel } from "@/pages/_component/DownloadsPanel";
-import { WeatherPanel } from "@/pages/_component/WeatherPanel";
-import { HomeAssistantPanel } from "@/pages/_component/HomeAssistantPanel";
-import { SystemPanel } from "@/pages/_component/system";
-import { JellyfinShelf, UpcomingShelf } from "@/pages/_component/MediaShelves";
-import { LibraryAttentionPanel } from "@/pages/_component/LibraryAttentionPanel";
-import { LibraryStatsPanel } from "@/pages/_component/LibraryStatsPanel";
-import { TrackersPanel } from "@/pages/_component/TrackersPanel";
-import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
-import { ChoresPanel, HabitsPanel } from "@/pages/_component/HomePanel";
-import { MinecraftCardsPanel } from "@/pages/_component/MinecraftCardsPanel";
-import { MinecraftCompactPanel } from "@/pages/_component/MinecraftCompactPanel";
-import { QuickLinksPanel } from "@/pages/_component/QuickLinksPanel";
-import { JellyfinRandomPanel } from "@/pages/_component/JellyfinRandomPanel";
-import { FocusTimerPanel } from "@/pages/_component/FocusTimerPanel";
+import { WIDGETS } from "@hously/shared/constants";
+import type { WidgetVisibility } from "@hously/shared/constants";
+import { useAppSettings } from "@/pages/settings/useAppSettings";
+import { WIDGET_COMPONENTS } from "@/pages/_component/widgetComponents";
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -125,6 +114,29 @@ export function HomePage() {
   const { data: statsData, isPending: statsLoading } = useDashboardStats();
   const stats = statsData?.stats;
 
+  const { data } = useAppSettings();
+  const visibility =
+    data?.settings.dashboard_widget_visibility ?? ({} as WidgetVisibility);
+  const isAdmin = !!user?.is_admin;
+
+  const widgetColumns = [1, 2, 3].map((col) =>
+    WIDGETS.filter((w) => w.column === col)
+      .slice()
+      .sort((a, b) => a.order - b.order)
+      .filter((w) => !w.adminOnly || isAdmin)
+      .filter((w) => visibility[w.id] !== false)
+      .map((w) => {
+        const Component = WIDGET_COMPONENTS[w.id];
+        return (
+          <motion.div key={w.id} variants={panelVariants}>
+            <CardErrorBoundary>
+              <Component />
+            </CardErrorBoundary>
+          </motion.div>
+        );
+      }),
+  );
+
   return (
     <PageLayout fullWidth>
       <div className="space-y-4">
@@ -155,38 +167,7 @@ export function HomePage() {
             initial="hidden"
             animate="show"
           >
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <WeatherPanel />
-              </CardErrorBoundary>
-            </motion.div>
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <QuickLinksPanel />
-              </CardErrorBoundary>
-            </motion.div>
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <ChoresPanel />
-              </CardErrorBoundary>
-            </motion.div>
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <JellyfinShelf />
-              </CardErrorBoundary>
-            </motion.div>
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <LibraryStatsPanel />
-              </CardErrorBoundary>
-            </motion.div>
-            {user?.is_admin && (
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <LibraryAttentionPanel />
-                </CardErrorBoundary>
-              </motion.div>
-            )}
+            {widgetColumns[0]}
           </motion.div>
 
           {/* Columns 2 + 3: stacked at 768–999px, side-by-side at 1000px+ */}
@@ -198,31 +179,7 @@ export function HomePage() {
               initial="hidden"
               animate="show"
             >
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <HomeAssistantPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <HabitsPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <UpcomingShelf />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <TrackersPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <JellyfinRandomPanel />
-                </CardErrorBoundary>
-              </motion.div>
+              {widgetColumns[1]}
             </motion.div>
 
             {/* Column 3 */}
@@ -232,38 +189,7 @@ export function HomePage() {
               initial="hidden"
               animate="show"
             >
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <SystemPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <FocusTimerPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <DownloadsPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <MinecraftCompactPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <MinecraftCardsPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              {user?.is_admin && (
-                <motion.div variants={panelVariants}>
-                  <CardErrorBoundary>
-                    <RssStatusPanel />
-                  </CardErrorBoundary>
-                </motion.div>
-              )}
+              {widgetColumns[2]}
             </motion.div>
           </div>
         </div>
