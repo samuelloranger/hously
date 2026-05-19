@@ -124,79 +124,30 @@ export function HomePage() {
 
   return (
     <PageLayout fullWidth>
-      <div className="space-y-6">
-        {/* Main layout: left stacked widgets / right tall column */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 items-start">
-          {/* Left: stacked widgets */}
+      <div className="space-y-4">
+        {/* Greeting — full width */}
+        <motion.div
+          className="space-y-3"
+          variants={panelVariants}
+          initial="hidden"
+          animate="show"
+        >
+          <GreetingCard
+            userName={getUserFirstName(user, t("dashboard.user"))}
+            pendingChores={stats?.chores_count}
+            eventsToday={stats?.events_today}
+          />
+          <StatsRow stats={stats} isLoading={statsLoading} />
+        </motion.div>
+
+        {/* 3-column widget layout:
+            <768px  → single column
+            768–999px → 2 columns (col1 left, col2+col3 stacked right)
+            1000px+ → 3 equal columns */}
+        <div className="flex flex-col md:flex-row gap-4 md:items-start">
+          {/* Column 1 */}
           <motion.div
-            className="min-w-0 space-y-4"
-            variants={columnVariants}
-            initial="hidden"
-            animate="show"
-          >
-            <motion.div className="space-y-3" variants={panelVariants}>
-              <GreetingCard
-                userName={getUserFirstName(user, t("dashboard.user"))}
-                pendingChores={stats?.chores_count}
-                eventsToday={stats?.events_today}
-              />
-              <StatsRow stats={stats} isLoading={statsLoading} />
-            </motion.div>
-
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <JellyfinShelf />
-              </CardErrorBoundary>
-            </motion.div>
-
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <UpcomingShelf />
-              </CardErrorBoundary>
-            </motion.div>
-
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <MinecraftCardsPanel />
-              </CardErrorBoundary>
-            </motion.div>
-
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <LibraryStatsPanel />
-              </CardErrorBoundary>
-            </motion.div>
-
-            {user?.is_admin && (
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <LibraryAttentionPanel />
-                </CardErrorBoundary>
-              </motion.div>
-            )}
-
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <TrackersPanel />
-              </CardErrorBoundary>
-            </motion.div>
-
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <HabitsPanel />
-              </CardErrorBoundary>
-            </motion.div>
-
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <ChoresPanel />
-              </CardErrorBoundary>
-            </motion.div>
-          </motion.div>
-
-          {/* Right: weather + system + downloads + trackers */}
-          <motion.div
-            className="space-y-4"
+            className="flex flex-col gap-4 flex-1 min-w-0"
             variants={columnVariants}
             initial="hidden"
             animate="show"
@@ -206,43 +157,97 @@ export function HomePage() {
                 <WeatherPanel />
               </CardErrorBoundary>
             </motion.div>
-
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
-                <HomeAssistantPanel />
+                <ChoresPanel />
               </CardErrorBoundary>
             </motion.div>
-
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
-                <SystemPanel />
+                <JellyfinShelf />
               </CardErrorBoundary>
             </motion.div>
-
-            {/* <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <UptimeKumaPanel />
-              </CardErrorBoundary>
-            </motion.div> */}
-
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
-                <DownloadsPanel />
+                <LibraryStatsPanel />
               </CardErrorBoundary>
             </motion.div>
-
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                {user?.is_admin && <RssStatusPanel />}
-              </CardErrorBoundary>
-            </motion.div>
-
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <MinecraftCompactPanel />
-              </CardErrorBoundary>
-            </motion.div>
+            {user?.is_admin && (
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <LibraryAttentionPanel />
+                </CardErrorBoundary>
+              </motion.div>
+            )}
           </motion.div>
+
+          {/* Columns 2 + 3: stacked at 768–999px, side-by-side at 1000px+ */}
+          <div className="flex flex-col min-[1000px]:flex-row gap-4 [flex:2_1_0%] min-w-0">
+            {/* Column 2 */}
+            <motion.div
+              className="flex flex-col gap-4 flex-1 min-w-0"
+              variants={columnVariants}
+              initial="hidden"
+              animate="show"
+            >
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <HomeAssistantPanel />
+                </CardErrorBoundary>
+              </motion.div>
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <HabitsPanel />
+                </CardErrorBoundary>
+              </motion.div>
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <UpcomingShelf />
+                </CardErrorBoundary>
+              </motion.div>
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <TrackersPanel />
+                </CardErrorBoundary>
+              </motion.div>
+            </motion.div>
+
+            {/* Column 3 */}
+            <motion.div
+              className="flex flex-col gap-4 flex-1 min-w-0"
+              variants={columnVariants}
+              initial="hidden"
+              animate="show"
+            >
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <SystemPanel />
+                </CardErrorBoundary>
+              </motion.div>
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <DownloadsPanel />
+                </CardErrorBoundary>
+              </motion.div>
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <MinecraftCompactPanel />
+                </CardErrorBoundary>
+              </motion.div>
+              <motion.div variants={panelVariants}>
+                <CardErrorBoundary>
+                  <MinecraftCardsPanel />
+                </CardErrorBoundary>
+              </motion.div>
+              {user?.is_admin && (
+                <motion.div variants={panelVariants}>
+                  <CardErrorBoundary>
+                    <RssStatusPanel />
+                  </CardErrorBoundary>
+                </motion.div>
+              )}
+            </motion.div>
+          </div>
         </div>
       </div>
     </PageLayout>
