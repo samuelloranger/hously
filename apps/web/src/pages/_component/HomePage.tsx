@@ -21,6 +21,7 @@ import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
 import { ChoresPanel, HabitsPanel } from "@/pages/_component/HomePanel";
 import { MinecraftCardsPanel } from "@/pages/_component/MinecraftCardsPanel";
 import { MinecraftCompactPanel } from "@/pages/_component/MinecraftCompactPanel";
+import { FlappyBirdPanel } from "@/pages/_component/FlappyBirdPanel";
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -240,6 +241,12 @@ export function HomePage() {
             <motion.div variants={panelVariants}>
               <CardErrorBoundary>
                 <MinecraftCompactPanel />
+              </CardErrorBoundary>
+            </motion.div>
+
+            <motion.div variants={panelVariants}>
+              <CardErrorBoundary>
+                <FlappyBirdPanel />
               </CardErrorBoundary>
             </motion.div>
           </motion.div>
