@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 
 export const CANVAS_WIDTH = 360;
 export const CANVAS_HEIGHT = 480;
+export const GROUND_HEIGHT = 20;
 
 const GRAVITY = 0.5;
 const FLAP_VELOCITY = -9;
@@ -54,7 +55,8 @@ function randomGapTop(): number {
 }
 
 function checkCollision(birdY: number, pipes: Pipe[]): boolean {
-  if (birdY < 0 || birdY + BIRD_SIZE > CANVAS_HEIGHT) return true;
+  if (birdY < 0 || birdY + BIRD_SIZE > CANVAS_HEIGHT - GROUND_HEIGHT)
+    return true;
   for (const pipe of pipes) {
     const birdRight = BIRD_X + BIRD_SIZE;
     const pipeRight = pipe.x + PIPE_WIDTH;

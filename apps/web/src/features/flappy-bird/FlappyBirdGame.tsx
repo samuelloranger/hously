@@ -7,6 +7,7 @@ import {
   BIRD_SIZE,
   PIPE_WIDTH,
   PIPE_GAP,
+  GROUND_HEIGHT,
   type GameStatus,
 } from "@/features/flappy-bird/useFlappyBird";
 
@@ -22,7 +23,7 @@ function drawFrame(
 
   // Ground
   ctx.fillStyle = "#8BC34A";
-  ctx.fillRect(0, CANVAS_HEIGHT - 20, CANVAS_WIDTH, 20);
+  ctx.fillRect(0, CANVAS_HEIGHT - GROUND_HEIGHT, CANVAS_WIDTH, GROUND_HEIGHT);
 
   // Pipes
   ctx.fillStyle = "#4CAF50";
