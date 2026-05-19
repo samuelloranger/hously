@@ -11,17 +11,14 @@ import {
   normalizeCalendarSubdivision,
   normalizeUserCountryCode,
 } from "@hously/api/services/holidayCalendar";
+import { WIDGETS } from "@hously/shared/constants";
+import type { WidgetId } from "@hously/shared/constants";
 
 import type { AppSettings } from "@prisma/client";
 
-const DEFAULT_WIDGET_VISIBILITY = {
-  weather: true,
-  homeassistant: true,
-  system: true,
-  downloads: true,
-  rss: true,
-  minecraft: true,
-};
+const DEFAULT_WIDGET_VISIBILITY = Object.fromEntries(
+  WIDGETS.map((w) => [w.id, w.defaultVisible]),
+) as Record<WidgetId, boolean>;
 
 function mapSettings(row: AppSettings) {
   return {
@@ -129,14 +126,7 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
         upcoming_window_months: t.Optional(t.Integer()),
         upcoming_languages: t.Optional(t.String()),
         dashboard_widget_visibility: t.Optional(
-          t.Object({
-            weather: t.Boolean(),
-            homeassistant: t.Boolean(),
-            system: t.Boolean(),
-            downloads: t.Boolean(),
-            rss: t.Boolean(),
-            minecraft: t.Boolean(),
-          }),
+          t.Object(Object.fromEntries(WIDGETS.map((w) => [w.id, t.Boolean()]))),
         ),
       }),
     },
