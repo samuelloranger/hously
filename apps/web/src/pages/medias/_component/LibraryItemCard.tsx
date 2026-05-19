@@ -117,42 +117,44 @@ export function LibraryItemCard({
         status={toCardStatus(item.status)}
         statusLabel={statusLabel}
       >
-        {viewMode !== "compact" && <div className="pb-2 space-y-1">
-          <div className="flex flex-wrap items-center gap-1">
-            <span className="rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
-              {item.year ?? "—"}
-            </span>
-            <span
-              className={cn(
-                "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                statusInfo.className,
-              )}
-            >
-              {statusLabel}
-            </span>
-          </div>
-          {digitalLabel && (
-            <p className="text-[9px] text-neutral-500 dark:text-neutral-400 leading-tight">
-              {t("medias.library.digitalRelease", { date: digitalLabel })}
-            </p>
-          )}
-          {item.type === "movie" &&
-            item.status === "wanted" &&
-            onMovieSearch && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMovieSearch(item.id);
-                }}
-                disabled={movieSearchPending}
-                className="mt-0.5 w-full rounded-lg bg-primary-600/90 hover:bg-primary-600 disabled:opacity-50 text-white text-[10px] font-medium py-1 flex items-center justify-center gap-1 transition-colors"
+        {viewMode !== "compact" && (
+          <div className="pb-2 space-y-1">
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+                {item.year ?? "—"}
+              </span>
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                  statusInfo.className,
+                )}
               >
-                <Search size={10} />
-                {t("library.management.searchNow")}
-              </button>
+                {statusLabel}
+              </span>
+            </div>
+            {digitalLabel && (
+              <p className="text-[9px] text-neutral-500 dark:text-neutral-400 leading-tight">
+                {t("medias.library.digitalRelease", { date: digitalLabel })}
+              </p>
             )}
-        </div>}
+            {item.type === "movie" &&
+              item.status === "wanted" &&
+              onMovieSearch && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMovieSearch(item.id);
+                  }}
+                  disabled={movieSearchPending}
+                  className="mt-0.5 w-full rounded-lg bg-primary-600/90 hover:bg-primary-600 disabled:opacity-50 text-white text-[10px] font-medium py-1 flex items-center justify-center gap-1 transition-colors"
+                >
+                  <Search size={10} />
+                  {t("library.management.searchNow")}
+                </button>
+              )}
+          </div>
+        )}
       </MediaPosterCard>
     </div>
   );

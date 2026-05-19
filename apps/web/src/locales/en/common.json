@@ -261,6 +261,10 @@
       "start": "Start"
     },
     "user": "User",
+    "editLayout": "Edit layout",
+    "editLayoutDone": "Done",
+    "moveWidgetUp": "Move widget up",
+    "moveWidgetDown": "Move widget down",
     "home": {
       "statsEventsToday_one": "event today",
       "statsEventsToday_other": "events today",
@@ -356,7 +360,8 @@
       "scopePack": "Season pack",
       "scopePackSeason": "Season pack · {{season}}",
       "toastDismissOk": "Dismissed",
-      "toastDismissFail": "Could not dismiss alert"
+      "toastDismissFail": "Could not dismiss alert",
+      "emptyState": "No issues — library is all clear"
     },
     "subtexts": {
       "busyDay": "You have {{count}} events today. Stay organized!",
@@ -1948,5 +1953,24 @@
       "doneWithFailures": "Done — {{succeeded}} succeeded, {{failed}} failed",
       "dismiss": "Dismiss"
     }
+  },
+  "widgets": {
+    "weather": "Weather",
+    "quick_links": "Quick Links",
+    "chores": "Chores",
+    "jellyfin_shelf": "Jellyfin Shelf",
+    "library_stats": "Library Stats",
+    "library_alerts": "Library Alerts",
+    "homeassistant": "Home Assistant",
+    "habits": "Habits",
+    "upcoming": "Upcoming",
+    "trackers": "Trackers",
+    "jellyfin_random": "Jellyfin Random",
+    "system": "System",
+    "focus_timer": "Focus Timer",
+    "downloads": "Downloads",
+    "minecraft_compact": "Minecraft (Compact)",
+    "minecraft_cards": "Minecraft (Cards)",
+    "rss": "RSS"
   }
 }

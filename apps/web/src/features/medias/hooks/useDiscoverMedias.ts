@@ -3,7 +3,10 @@ import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { MEDIAS_ENDPOINTS } from "@/lib/endpoints";
 import type { QueryKey } from "@tanstack/react-query";
-import type { DiscoverMediasParams, DiscoverMediasResponse } from "@hously/shared/types";
+import type {
+  DiscoverMediasParams,
+  DiscoverMediasResponse,
+} from "@hously/shared/types";
 
 /** Keep discover placeholder only when paginating so filter changes still show a fresh skeleton. */
 function discoverKeysMatchExceptPage(

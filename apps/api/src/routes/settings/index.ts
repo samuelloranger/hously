@@ -11,17 +11,14 @@ import {
   normalizeCalendarSubdivision,
   normalizeUserCountryCode,
 } from "@hously/api/services/holidayCalendar";
+import { WIDGETS } from "@hously/shared/constants";
+import type { WidgetId, WidgetLayout } from "@hously/shared/constants";
 
 import type { AppSettings } from "@prisma/client";
 
-const DEFAULT_WIDGET_VISIBILITY = {
-  weather: true,
-  homeassistant: true,
-  system: true,
-  downloads: true,
-  rss: true,
-  minecraft: true,
-};
+const DEFAULT_WIDGET_VISIBILITY = Object.fromEntries(
+  WIDGETS.map((w) => [w.id, w.defaultVisible]),
+) as Record<WidgetId, boolean>;
 
 function mapSettings(row: AppSettings) {
   return {
@@ -33,6 +30,8 @@ function mapSettings(row: AppSettings) {
       ...DEFAULT_WIDGET_VISIBILITY,
       ...((row.dashboardWidgetVisibility as Record<string, boolean>) ?? {}),
     },
+    dashboard_widget_layout:
+      (row.dashboardWidgetLayout as WidgetLayout | null) ?? null,
     updated_at: row.updatedAt.toISOString(),
   };
 }
@@ -56,7 +55,7 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
     async ({ body, set }) => {
       try {
         const countryCode = normalizeUserCountryCode(body.country_code);
-        if (!countryCode) {
+        if (body.country_code && !countryCode) {
           return badRequest(
             set,
             "country_code must be a supported 2-letter ISO code",
@@ -84,9 +83,11 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
           upcomingWindowMonths?: number;
           upcomingLanguages?: string;
           dashboardWidgetVisibility?: Record<string, boolean>;
+          dashboardWidgetLayout?: WidgetLayout;
         } = {};
 
-        if (body.country_code) updateData.countryCode = countryCode;
+        if (body.country_code && countryCode)
+          updateData.countryCode = countryCode;
         if (body.calendar_subdivision_code !== undefined) {
           updateData.calendarSubdivisionCode = calendarSubdivisionCode;
         }
@@ -107,12 +108,16 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
           updateData.dashboardWidgetVisibility =
             body.dashboard_widget_visibility;
         }
+        if (body.dashboard_widget_layout !== undefined) {
+          updateData.dashboardWidgetLayout =
+            body.dashboard_widget_layout as WidgetLayout;
+        }
 
         const row = await prisma.appSettings.upsert({
           where: { id: 1 },
           create: {
             id: 1,
-            countryCode,
+            countryCode: countryCode ?? DEFAULT_TMDB_REGION,
             calendarSubdivisionCode,
           },
           update: updateData,
@@ -129,14 +134,14 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
         upcoming_window_months: t.Optional(t.Integer()),
         upcoming_languages: t.Optional(t.String()),
         dashboard_widget_visibility: t.Optional(
-          t.Object({
-            weather: t.Boolean(),
-            homeassistant: t.Boolean(),
-            system: t.Boolean(),
-            downloads: t.Boolean(),
-            rss: t.Boolean(),
-            minecraft: t.Boolean(),
-          }),
+          t.Object(Object.fromEntries(WIDGETS.map((w) => [w.id, t.Boolean()]))),
+        ),
+        dashboard_widget_layout: t.Optional(
+          t.Tuple([
+            t.Array(t.Union(WIDGETS.map((w) => t.Literal(w.id)))),
+            t.Array(t.Union(WIDGETS.map((w) => t.Literal(w.id)))),
+            t.Array(t.Union(WIDGETS.map((w) => t.Literal(w.id)))),
+          ]),
         ),
       }),
     },

@@ -751,6 +751,7 @@ model AppSettings {
   upcomingWindowMonths       Int      @default(12) @map("upcoming_window_months")
   upcomingLanguages          String   @default("en,fr") @map("upcoming_languages")
   dashboardWidgetVisibility  Json     @default("{\"weather\":true,\"homeassistant\":true,\"system\":true,\"downloads\":true,\"rss\":true}") @map("dashboard_widget_visibility")
+  dashboardWidgetLayout      Json?    @map("dashboard_widget_layout")
   quickLinks                 Json     @default("[]") @map("quick_links")
   updatedAt                  DateTime @updatedAt @map("updated_at")
 
@@ -816,7 +817,6 @@ model MinecraftServer {
   port                  Int       @default(25565)
   pollIntervalMinutes   Int       @default(5)          @map("poll_interval_minutes")
   enabled               Boolean   @default(true)
-  widgetView            String    @default("compact")  @map("widget_view")
 
   isOnline              Boolean   @default(false)      @map("is_online")
   onlinePlayers         Int?                           @map("online_players")

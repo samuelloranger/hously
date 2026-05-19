@@ -261,6 +261,10 @@
       "start": "Démarrer"
     },
     "user": "Utilisateur",
+    "editLayout": "Modifier la disposition",
+    "editLayoutDone": "Terminer",
+    "moveWidgetUp": "Déplacer le widget vers le haut",
+    "moveWidgetDown": "Déplacer le widget vers le bas",
     "home": {
       "statsEventsToday_one": "événement aujourd'hui",
       "statsEventsToday_other": "événements aujourd'hui",
@@ -356,7 +360,8 @@
       "scopePack": "Pack de saison",
       "scopePackSeason": "Pack de saison · {{season}}",
       "toastDismissOk": "Masqué",
-      "toastDismissFail": "Impossible de masquer l’alerte"
+      "toastDismissFail": "Impossible de masquer l’alerte",
+      "emptyState": "Aucun problème — bibliothèque en ordre"
     },
     "subtexts": {
       "busyDay": "Vous avez {{count}} événements aujourd'hui. Restez organisé",
@@ -1948,5 +1953,24 @@
       "doneWithFailures": "Terminé — {{succeeded}} réussi(s), {{failed}} échec(s)",
       "dismiss": "Fermer"
     }
+  },
+  "widgets": {
+    "weather": "Météo",
+    "quick_links": "Liens rapides",
+    "chores": "Tâches ménagères",
+    "jellyfin_shelf": "Bibliothèque Jellyfin",
+    "library_stats": "Statistiques de bibliothèque",
+    "library_alerts": "Alertes de bibliothèque",
+    "homeassistant": "Home Assistant",
+    "habits": "Habitudes",
+    "upcoming": "À venir",
+    "trackers": "Trackers",
+    "jellyfin_random": "Jellyfin aléatoire",
+    "system": "Système",
+    "focus_timer": "Minuteur de concentration",
+    "downloads": "Téléchargements",
+    "minecraft_compact": "Minecraft (Compact)",
+    "minecraft_cards": "Minecraft (Cartes)",
+    "rss": "RSS"
   }
 }

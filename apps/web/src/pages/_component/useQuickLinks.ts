@@ -9,8 +9,7 @@ export function useQuickLinks() {
 
   return useQuery({
     queryKey: queryKeys.dashboard.quickLinks(),
-    queryFn: () =>
-      fetcher<QuickLinksResponse>(DASHBOARD_ENDPOINTS.QUICK_LINKS),
+    queryFn: () => fetcher<QuickLinksResponse>(DASHBOARD_ENDPOINTS.QUICK_LINKS),
     staleTime: 60_000,
   });
 }

@@ -9,11 +9,13 @@ describe("pingMinecraftServer", () => {
       players: {
         online: 3,
         max: 20,
-        sample: [
-          { name: "Steve", id: "00000000-0000-0000-0000-000000000001" },
-        ],
+        sample: [{ name: "Steve", id: "00000000-0000-0000-0000-000000000001" }],
       },
-      motd: { raw: "§aA Server", clean: "A Server", html: "<span>A Server</span>" },
+      motd: {
+        raw: "§aA Server",
+        clean: "A Server",
+        html: "<span>A Server</span>",
+      },
       roundTripLatency: 42,
       favicon: "data:image/png;base64,abc123",
       srvRecord: null,

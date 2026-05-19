@@ -1,29 +1,31 @@
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, CheckSquare2, Flame } from "lucide-react";
 import { motion, type Variants } from "motion/react";
 import { PageLayout } from "@/components/PageLayout";
+import { CardErrorBoundary } from "@/components/ErrorBoundary";
 import { useCurrentUser } from "@/lib/auth/useAuth";
 import { useDashboardStats } from "@/pages/_component/useDashboardStats";
 import type { DashboardStats } from "@hously/shared/types";
 import { getUserFirstName } from "@/lib/utils/format";
-import { CardErrorBoundary } from "@/components/ErrorBoundary";
 import { GreetingCard } from "@/pages/_component/GreetingCard";
-import { DownloadsPanel } from "@/pages/_component/DownloadsPanel";
-import { WeatherPanel } from "@/pages/_component/WeatherPanel";
-import { HomeAssistantPanel } from "@/pages/_component/HomeAssistantPanel";
-import { SystemPanel } from "@/pages/_component/system";
-import { JellyfinShelf, UpcomingShelf } from "@/pages/_component/MediaShelves";
-import { LibraryAttentionPanel } from "@/pages/_component/LibraryAttentionPanel";
-import { LibraryStatsPanel } from "@/pages/_component/LibraryStatsPanel";
-import { TrackersPanel } from "@/pages/_component/TrackersPanel";
-import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
-import { ChoresPanel, HabitsPanel } from "@/pages/_component/HomePanel";
-import { MinecraftCardsPanel } from "@/pages/_component/MinecraftCardsPanel";
-import { MinecraftCompactPanel } from "@/pages/_component/MinecraftCompactPanel";
-import { QuickLinksPanel } from "@/pages/_component/QuickLinksPanel";
-import { JellyfinRandomPanel } from "@/pages/_component/JellyfinRandomPanel";
-import { FocusTimerPanel } from "@/pages/_component/FocusTimerPanel";
+import { WidgetEditWrapper } from "@/pages/_component/WidgetEditWrapper";
+import {
+  WIDGETS,
+  getEffectiveLayout,
+  moveWidgetInLayout,
+} from "@hously/shared/constants";
+import type {
+  WidgetVisibility,
+  WidgetLayout,
+  WidgetId,
+} from "@hously/shared/constants";
+import {
+  useAppSettings,
+  useUpdateAppSettings,
+} from "@/pages/settings/useAppSettings";
+import { WIDGET_COMPONENTS } from "@/pages/_component/widgetComponents";
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -125,68 +127,99 @@ export function HomePage() {
   const { data: statsData, isPending: statsLoading } = useDashboardStats();
   const stats = statsData?.stats;
 
+  const isAdmin = !!user?.is_admin;
+
+  const { data } = useAppSettings({ enabled: isAdmin });
+  const updateMut = useUpdateAppSettings();
+  const visibility =
+    data?.settings.dashboard_widget_visibility ?? ({} as WidgetVisibility);
+
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const [layout, setLayout] = useState<WidgetLayout>(() =>
+    getEffectiveLayout(data?.settings.dashboard_widget_layout ?? null),
+  );
+
+  const isMutatingRef = useRef(false);
+  useLayoutEffect(() => {
+    isMutatingRef.current = updateMut.isPending;
+  });
+
+  useEffect(() => {
+    if (isMutatingRef.current) return;
+    setLayout(
+      getEffectiveLayout(data?.settings.dashboard_widget_layout ?? null),
+    );
+  }, [data?.settings.dashboard_widget_layout]);
+
+  function isWidgetVisible(id: WidgetId): boolean {
+    const w = WIDGETS.find((w) => w.id === id);
+    return !!(w && (!w.adminOnly || isAdmin) && visibility[id] !== false);
+  }
+
+  function moveWidget(id: WidgetId, direction: "up" | "down") {
+    if (!isAdmin) return;
+    const next = moveWidgetInLayout(layout, id, direction, isWidgetVisible);
+    setLayout(next);
+    updateMut.mutate({ dashboard_widget_layout: next });
+  }
+
+  const allVisibleIds = layout.flatMap((col) => col.filter(isWidgetVisible));
+
+  const widgetColumns = layout.map((col) =>
+    col.filter(isWidgetVisible).map((id) => {
+      const Component = WIDGET_COMPONENTS[id];
+      const visibleIdx = allVisibleIds.indexOf(id);
+      const isFirst = visibleIdx === 0;
+      const isLast = visibleIdx === allVisibleIds.length - 1;
+      return (
+        <motion.div key={id} variants={panelVariants}>
+          <CardErrorBoundary>
+            {isEditMode ? (
+              <WidgetEditWrapper
+                onMoveUp={() => moveWidget(id, "up")}
+                onMoveDown={() => moveWidget(id, "down")}
+                canMoveUp={!isFirst}
+                canMoveDown={!isLast}
+              >
+                <Component />
+              </WidgetEditWrapper>
+            ) : (
+              <Component />
+            )}
+          </CardErrorBoundary>
+        </motion.div>
+      );
+    }),
+  );
+
   return (
     <PageLayout fullWidth>
       <div className="space-y-4">
-        {/* Greeting — full width */}
-        <motion.div
-          className="space-y-3"
-          variants={panelVariants}
-          initial="hidden"
-          animate="show"
-        >
-          <GreetingCard
-            userName={getUserFirstName(user, t("dashboard.user"))}
-            pendingChores={stats?.chores_count}
-            eventsToday={stats?.events_today}
-          />
-          <StatsRow stats={stats} isLoading={statsLoading} />
-        </motion.div>
-
         {/* 3-column widget layout:
             <768px  → single column
             768–999px → 2 columns (col1 left, col2+col3 stacked right)
             1000px+ → 3 equal columns */}
         <div className="flex flex-col md:flex-row gap-4 md:items-start">
-          {/* Column 1 */}
+          {/* Column 1 — GreetingCard always first, non-movable */}
           <motion.div
             className="flex flex-col gap-4 flex-1 min-w-0"
             variants={columnVariants}
             initial="hidden"
             animate="show"
           >
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <WeatherPanel />
-              </CardErrorBoundary>
+            <motion.div variants={panelVariants} className="space-y-3">
+              <GreetingCard
+                userName={getUserFirstName(user, t("dashboard.user"))}
+                pendingChores={stats?.chores_count}
+                eventsToday={stats?.events_today}
+                isAdmin={isAdmin}
+                isEditMode={isEditMode}
+                onToggleEditMode={() => setIsEditMode((v) => !v)}
+              />
+              <StatsRow stats={stats} isLoading={statsLoading} />
             </motion.div>
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <QuickLinksPanel />
-              </CardErrorBoundary>
-            </motion.div>
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <ChoresPanel />
-              </CardErrorBoundary>
-            </motion.div>
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <JellyfinShelf />
-              </CardErrorBoundary>
-            </motion.div>
-            <motion.div variants={panelVariants}>
-              <CardErrorBoundary>
-                <LibraryStatsPanel />
-              </CardErrorBoundary>
-            </motion.div>
-            {user?.is_admin && (
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <LibraryAttentionPanel />
-                </CardErrorBoundary>
-              </motion.div>
-            )}
+            {widgetColumns[0]}
           </motion.div>
 
           {/* Columns 2 + 3: stacked at 768–999px, side-by-side at 1000px+ */}
@@ -198,31 +231,7 @@ export function HomePage() {
               initial="hidden"
               animate="show"
             >
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <HomeAssistantPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <HabitsPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <UpcomingShelf />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <TrackersPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <JellyfinRandomPanel />
-                </CardErrorBoundary>
-              </motion.div>
+              {widgetColumns[1]}
             </motion.div>
 
             {/* Column 3 */}
@@ -232,38 +241,7 @@ export function HomePage() {
               initial="hidden"
               animate="show"
             >
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <SystemPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <FocusTimerPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <DownloadsPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <MinecraftCompactPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              <motion.div variants={panelVariants}>
-                <CardErrorBoundary>
-                  <MinecraftCardsPanel />
-                </CardErrorBoundary>
-              </motion.div>
-              {user?.is_admin && (
-                <motion.div variants={panelVariants}>
-                  <CardErrorBoundary>
-                    <RssStatusPanel />
-                  </CardErrorBoundary>
-                </motion.div>
-              )}
+              {widgetColumns[2]}
             </motion.div>
           </div>
         </div>

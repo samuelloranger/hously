@@ -7,12 +7,13 @@ import type {
   UpdateAppSettingsRequest,
 } from "@hously/shared/types";
 
-export function useAppSettings() {
+export function useAppSettings({ enabled = true }: { enabled?: boolean } = {}) {
   const fetcher = useFetcher();
 
   return useQuery({
     queryKey: queryKeys.settings.app(),
     queryFn: () => fetcher<AppSettingsResponse>(SETTINGS_ENDPOINTS.ROOT),
+    enabled,
   });
 }
 

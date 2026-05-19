@@ -64,13 +64,13 @@ function ServerRow({ server }: { server: MinecraftServerEntry }) {
 }
 
 export function MinecraftCompactPanel() {
-  const { isPending, compactServers } = useMinecraftWidget();
+  const { isPending, servers } = useMinecraftWidget();
 
   if (isPending) return <MinecraftCompactPanelSkeleton />;
 
-  if (compactServers.length === 0) return null;
+  if (servers.length === 0) return null;
 
-  const onlineCount = compactServers.filter((s) => s.is_online).length;
+  const onlineCount = servers.filter((s) => s.is_online).length;
 
   return (
     <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
@@ -85,11 +85,11 @@ export function MinecraftCompactPanel() {
           Minecraft
         </h3>
         <span className="ml-auto text-xs text-zinc-500 dark:text-zinc-400 tabular-nums">
-          {onlineCount}/{compactServers.length} online
+          {onlineCount}/{servers.length} online
         </span>
       </div>
       <div className="px-4 py-3 divide-y divide-zinc-100 dark:divide-zinc-800">
-        {compactServers.map((server) => (
+        {servers.map((server) => (
           <ServerRow key={server.id} server={server} />
         ))}
       </div>

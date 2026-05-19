@@ -7,7 +7,6 @@ export type MinecraftServerRow = {
   port: number;
   pollIntervalMinutes: number;
   enabled: boolean;
-  widgetView: string;
   isOnline: boolean;
   onlinePlayers: number | null;
   maxPlayers: number | null;
@@ -27,7 +26,6 @@ export function formatServer(s: MinecraftServerRow): MinecraftServerEntry {
     port: s.port,
     poll_interval_minutes: s.pollIntervalMinutes as 5 | 15 | 30 | 60,
     enabled: s.enabled,
-    widget_view: s.widgetView as "compact" | "cards",
     is_online: s.isOnline,
     online_players: s.onlinePlayers,
     max_players: s.maxPlayers,
@@ -35,7 +33,8 @@ export function formatServer(s: MinecraftServerRow): MinecraftServerEntry {
     motd: s.motd,
     latency_ms: s.latencyMs,
     favicon: s.favicon,
-    player_sample: (s.playerSample as Array<{ name: string; id: string }>) ?? null,
+    player_sample:
+      (s.playerSample as Array<{ name: string; id: string }>) ?? null,
     last_checked_at: s.lastCheckedAt?.toISOString() ?? null,
   };
 }

@@ -1,5 +1,8 @@
 import { HABIT_ENDPOINTS } from "@/lib/endpoints";
-import { useHabitStatusMutation, replaceLastStatus } from "@/pages/habits/_habitStatus";
+import {
+  useHabitStatusMutation,
+  replaceLastStatus,
+} from "@/pages/habits/_habitStatus";
 
 export const useUncompleteHabit = () =>
   useHabitStatusMutation({

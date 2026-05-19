@@ -1,8 +1,16 @@
-import { useMutation, useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { NOTIFICATION_ENDPOINTS } from "@/lib/endpoints";
-import type { Notification, NotificationsResponse, ApiResult } from "@hously/shared/types";
+import type {
+  Notification,
+  NotificationsResponse,
+  ApiResult,
+} from "@hously/shared/types";
 
 export function useMarkAllAsReadOptimistic() {
   const fetcher = useFetcher();

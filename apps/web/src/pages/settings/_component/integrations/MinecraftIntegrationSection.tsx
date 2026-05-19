@@ -35,18 +35,12 @@ const POLL_OPTIONS: { value: 5 | 15 | 30 | 60; label: string }[] = [
   { value: 60, label: "60 min" },
 ];
 
-const WIDGET_VIEW_OPTIONS: { value: "compact" | "cards"; label: string }[] = [
-  { value: "compact", label: "Compact" },
-  { value: "cards", label: "Cards" },
-];
-
 const DEFAULT_FORM: MinecraftCreateServerRequest = {
   name: "",
   host: "",
   port: 25565,
   poll_interval_minutes: 15,
   enabled: true,
-  widget_view: "compact",
 };
 
 // ---------------------------------------------------------------------------
@@ -76,7 +70,6 @@ function ServerDialog({
           port: initial.port,
           poll_interval_minutes: initial.poll_interval_minutes,
           enabled: initial.enabled,
-          widget_view: initial.widget_view,
         }
       : DEFAULT_FORM,
   );
@@ -172,26 +165,6 @@ function ServerDialog({
           </select>
         </div>
 
-        {/* Widget View */}
-        <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-            Widget View
-          </label>
-          <select
-            value={form.widget_view}
-            onChange={(e) =>
-              set("widget_view", e.target.value as "compact" | "cards")
-            }
-            className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white text-sm"
-          >
-            {WIDGET_VIEW_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* Enabled toggle */}
         <div className="flex items-center gap-3">
           <input
@@ -275,10 +248,6 @@ function ServerRow({
       <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300">
         {server.poll_interval_minutes}m
       </span>
-      <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300">
-        {server.widget_view}
-      </span>
-
       {/* Actions */}
       <button
         type="button"

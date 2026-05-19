@@ -121,9 +121,8 @@ export const libraryFilesRoutes = new Elysia()
       const ids = staleRows.map((r) => r.id);
       if (ids.length === 0) return { deleted: 0 };
 
-      const { emitLibraryUpdate } = await import(
-        "@hously/api/services/libraryEvents"
-      );
+      const { emitLibraryUpdate } =
+        await import("@hously/api/services/libraryEvents");
 
       await prisma.$transaction([
         prisma.libraryAttentionAlert.updateMany({
@@ -158,7 +157,8 @@ export const libraryFilesRoutes = new Elysia()
         return badRequest(set, "Invalid id");
       }
 
-      const { isRemovableDownloadHistoryEntry } = await import("@hously/shared");
+      const { isRemovableDownloadHistoryEntry } =
+        await import("@hously/shared");
 
       const dh = await prisma.downloadHistory.findFirst({
         where: { id: dhId, mediaId },
@@ -176,9 +176,8 @@ export const libraryFilesRoutes = new Elysia()
         );
       }
 
-      const { emitLibraryUpdate } = await import(
-        "@hously/api/services/libraryEvents"
-      );
+      const { emitLibraryUpdate } =
+        await import("@hously/api/services/libraryEvents");
 
       await prisma.$transaction([
         prisma.libraryAttentionAlert.updateMany({

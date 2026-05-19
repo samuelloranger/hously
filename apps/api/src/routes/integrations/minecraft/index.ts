@@ -81,9 +81,6 @@ export const minecraftIntegrationRoutes = new Elysia()
           "poll_interval_minutes must be 5, 15, 30, or 60",
         );
       }
-      if (!["compact", "cards"].includes(body.widget_view)) {
-        return badRequest(set, "widget_view must be compact or cards");
-      }
       try {
         const now = nowUtc();
         const server = await prisma.minecraftServer.create({
@@ -93,7 +90,6 @@ export const minecraftIntegrationRoutes = new Elysia()
             port: body.port,
             pollIntervalMinutes: body.poll_interval_minutes,
             enabled: body.enabled,
-            widgetView: body.widget_view,
             createdAt: now,
             updatedAt: now,
           },
@@ -116,7 +112,6 @@ export const minecraftIntegrationRoutes = new Elysia()
         port: t.Number({ minimum: 1, maximum: 65535 }),
         poll_interval_minutes: t.Number(),
         enabled: t.Boolean(),
-        widget_view: t.String(),
       }),
     },
   )
@@ -130,9 +125,6 @@ export const minecraftIntegrationRoutes = new Elysia()
           "poll_interval_minutes must be 5, 15, 30, or 60",
         );
       }
-      if (!["compact", "cards"].includes(body.widget_view)) {
-        return badRequest(set, "widget_view must be compact or cards");
-      }
       try {
         const server = await prisma.minecraftServer.update({
           where: { id },
@@ -142,7 +134,6 @@ export const minecraftIntegrationRoutes = new Elysia()
             port: body.port,
             pollIntervalMinutes: body.poll_interval_minutes,
             enabled: body.enabled,
-            widgetView: body.widget_view,
             updatedAt: nowUtc(),
           },
         });
@@ -167,7 +158,6 @@ export const minecraftIntegrationRoutes = new Elysia()
         port: t.Number({ minimum: 1, maximum: 65535 }),
         poll_interval_minutes: t.Number(),
         enabled: t.Boolean(),
-        widget_view: t.String(),
       }),
     },
   )

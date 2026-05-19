@@ -2,7 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { ADMIN_ENDPOINTS } from "@/lib/endpoints";
-import type { InviteUserRequest, InviteUserResponse } from "@hously/shared/types";
+import type {
+  InviteUserRequest,
+  InviteUserResponse,
+} from "@hously/shared/types";
 
 export function useInviteUser() {
   const fetcher = useFetcher();
