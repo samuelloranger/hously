@@ -2,7 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { INTEGRATION_ENDPOINTS } from "@/lib/endpoints";
-import type { MinecraftServerEntry, MinecraftUpdateServerRequest } from "@hously/shared/types";
+import type {
+  MinecraftServerEntry,
+  MinecraftUpdateServerRequest,
+} from "@hously/shared/types";
 
 export function useUpdateMinecraftServer() {
   const fetcher = useFetcher();

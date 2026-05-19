@@ -2,7 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFetcher } from "@/lib/api/context";
 import { queryKeys } from "@/lib/queryKeys";
 import { LIBRARY_ENDPOINTS } from "@/lib/endpoints";
-import type { UpdateLibraryQualityProfileRequest, LibraryMedia } from "@hously/shared/types";
+import type {
+  UpdateLibraryQualityProfileRequest,
+  LibraryMedia,
+} from "@hously/shared/types";
 
 export function useUpdateLibraryQualityProfile() {
   const fetcher = useFetcher();

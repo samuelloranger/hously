@@ -17,8 +17,7 @@ export const dashboardFaviconRoutes = new Elysia()
           set.status = 502;
           return { error: "Failed to fetch favicon" };
         }
-        const contentType =
-          response.headers.get("content-type") ?? "image/png";
+        const contentType = response.headers.get("content-type") ?? "image/png";
         const buffer = await response.arrayBuffer();
         return new Response(buffer, {
           headers: {

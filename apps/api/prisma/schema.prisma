@@ -817,7 +817,6 @@ model MinecraftServer {
   port                  Int       @default(25565)
   pollIntervalMinutes   Int       @default(5)          @map("poll_interval_minutes")
   enabled               Boolean   @default(true)
-  widgetView            String    @default("compact")  @map("widget_view")
 
   isOnline              Boolean   @default(false)      @map("is_online")
   onlinePlayers         Int?                           @map("online_players")

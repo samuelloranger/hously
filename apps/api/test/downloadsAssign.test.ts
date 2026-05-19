@@ -217,9 +217,8 @@ describe("assignDownloadFromDisk validation", () => {
         tmdbStatus: null,
       }),
     }));
-    const { assignDownloadFromDisk: assignWithStubTmdb } = await import(
-      "../src/services/downloadsAssign"
-    );
+    const { assignDownloadFromDisk: assignWithStubTmdb } =
+      await import("../src/services/downloadsAssign");
     const res = await assignWithStubTmdb({
       file_path: fp,
       tmdb_id: 1,

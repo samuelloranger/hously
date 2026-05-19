@@ -257,7 +257,6 @@ export interface MinecraftServerEntry {
   port: number;
   poll_interval_minutes: 5 | 15 | 30 | 60;
   enabled: boolean;
-  widget_view: "compact" | "cards";
   is_online: boolean;
   online_players: number | null;
   max_players: number | null;
@@ -275,7 +274,6 @@ export interface MinecraftCreateServerRequest {
   port: number;
   poll_interval_minutes: 5 | 15 | 30 | 60;
   enabled: boolean;
-  widget_view: "compact" | "cards";
 }
 
 export type MinecraftUpdateServerRequest = MinecraftCreateServerRequest;
