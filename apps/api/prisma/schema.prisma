@@ -177,6 +177,7 @@ model Notification {
 
   @@index([createdAt], map: "ix_notifications_created_at")
   @@index([userId], map: "ix_notifications_user_id")
+  @@index([userId, read, createdAt(sort: Desc)], map: "ix_notifications_user_id_read_created_at")
   @@map("notifications")
 }
 
