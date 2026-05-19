@@ -20,7 +20,8 @@ import { useCalendarAvailableCountries } from "@/hooks/calendar/useCalendarAvail
 import { useHolidaySubdivisions } from "@/hooks/calendar/useHolidaySubdivisions";
 import { localizedCountryName } from "@/lib/countriesDisplay";
 import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
-import type { DashboardWidgetVisibility } from "@hously/shared";
+import { WIDGETS } from "@hously/shared/constants";
+import type { WidgetVisibility } from "@hously/shared/constants";
 
 const LANGUAGE_OPTIONS = [
   { code: "en", label: "English" },
@@ -40,6 +41,10 @@ const WINDOW_OPTIONS = [
   { value: 24, label: "2 years" },
 ];
 
+const DEFAULT_VISIBILITY = Object.fromEntries(
+  WIDGETS.map((w) => [w.id, w.defaultVisible]),
+) as WidgetVisibility;
+
 export function GeneralSettingsTab() {
   const { t, i18n } = useTranslation("common");
   const { data, isLoading, error } = useAppSettings();
@@ -57,17 +62,9 @@ export function GeneralSettingsTab() {
   const [selectedLanguages, setSelectedLanguages] = useState<Set<string>>(
     new Set((data?.settings.upcoming_languages ?? "en,fr").split(",")),
   );
-  const [widgetVisibility, setWidgetVisibility] =
-    useState<DashboardWidgetVisibility>(
-      data?.settings.dashboard_widget_visibility ?? {
-        weather: true,
-        homeassistant: true,
-        system: true,
-        downloads: true,
-        rss: true,
-        minecraft: true,
-      },
-    );
+  const [widgetVisibility, setWidgetVisibility] = useState<WidgetVisibility>(
+    data?.settings.dashboard_widget_visibility ?? DEFAULT_VISIBILITY,
+  );
 
   const { data: subdivisionsPayload, isLoading: subdivisionsLoading } =
     useHolidaySubdivisions(
@@ -105,14 +102,7 @@ export function GeneralSettingsTab() {
       new Set((data.settings.upcoming_languages ?? "en,fr").split(",")),
     );
     setWidgetVisibility(
-      data.settings.dashboard_widget_visibility ?? {
-        weather: true,
-        homeassistant: true,
-        system: true,
-        downloads: true,
-        rss: true,
-        minecraft: true,
-      },
+      data.settings.dashboard_widget_visibility ?? DEFAULT_VISIBILITY,
     );
   }, [data?.settings]);
 
@@ -143,7 +133,7 @@ export function GeneralSettingsTab() {
     setSelectedLanguages(newLangs);
   };
 
-  const toggleWidget = (key: keyof DashboardWidgetVisibility) => {
+  const toggleWidget = (key: keyof WidgetVisibility) => {
     setWidgetVisibility((prev) => ({
       ...prev,
       [key]: !prev[key],
@@ -323,26 +313,17 @@ export function GeneralSettingsTab() {
           </h3>
         </div>
         <div className="space-y-2">
-          {(
-            [
-              { key: "weather" as const, label: "Weather" },
-              { key: "homeassistant" as const, label: "Home Assistant" },
-              { key: "system" as const, label: "System Status" },
-              { key: "downloads" as const, label: "Downloads" },
-              { key: "rss" as const, label: "RSS Status" },
-              { key: "minecraft" as const, label: "Minecraft Servers" },
-            ] as const
-          ).map(({ key, label }) => (
+          {WIDGETS.map((w) => (
             <label
-              key={key}
+              key={w.id}
               className="flex items-center gap-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 p-2 rounded"
             >
               <Checkbox
-                checked={widgetVisibility[key]}
-                onChange={() => toggleWidget(key)}
+                checked={widgetVisibility[w.id] ?? w.defaultVisible}
+                onChange={() => toggleWidget(w.id)}
               />
               <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                {label}
+                {t(`widgets.${w.id}`)}
               </span>
             </label>
           ))}
