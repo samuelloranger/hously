@@ -72,8 +72,7 @@ export const app = new Elysia()
     const gzFile = Bun.file(`./public${safePath}.gz`);
     if (!(await gzFile.exists())) return;
 
-    const ct =
-      response.headers.get("content-type") ?? "application/octet-stream";
+    const ct = ext === "css" ? "text/css" : "application/javascript";
     return new Response(gzFile, {
       headers: {
         "Content-Type": ct,

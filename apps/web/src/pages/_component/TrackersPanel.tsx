@@ -29,13 +29,6 @@ function ratioTextColor(ratio: number | null) {
   return "text-rose-500 dark:text-rose-400";
 }
 
-function ratioStripeColor(ratio: number | null) {
-  if (ratio == null) return "bg-zinc-300 dark:bg-zinc-600";
-  if (ratio >= 1.5) return "bg-emerald-500";
-  if (ratio >= 1.0) return "bg-amber-500";
-  return "bg-rose-500";
-}
-
 function ratioBarGradient(ratio: number | null) {
   if (ratio == null) return "from-zinc-300 to-zinc-400";
   if (ratio >= 1.5) return "from-emerald-400 to-emerald-500";
@@ -66,20 +59,12 @@ function TrackerCard({
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden",
+        "flex flex-col overflow-hidden",
         tracker.connected && ratioCardTint(tracker.ratio),
       )}
     >
-      {/* Left health stripe */}
-      <div
-        className={cn(
-          "absolute left-0 inset-y-0 w-[3px]",
-          tracker.connected ? ratioStripeColor(tracker.ratio) : "bg-rose-500",
-        )}
-      />
-
       {/* Content */}
-      <div className="flex flex-col gap-2.5 pl-[18px] pr-4 pt-3.5 pb-3">
+      <div className="flex flex-col gap-2.5 px-4 pt-3.5 pb-3">
         {/* Row 1: tracker label + sync time + status dot */}
         <div className="flex items-center justify-between gap-2">
           <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-zinc-400 dark:text-zinc-500">
@@ -256,8 +241,7 @@ export function TrackersPanel() {
         </div>
       </div>
 
-      {/* Cards: 3-col on desktop, stacked on mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-zinc-100 dark:divide-zinc-800">
+      <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
         {enabledTrackers.map((tracker) => (
           <TrackerCard key={tracker.key} tracker={tracker} locale={locale} />
         ))}
