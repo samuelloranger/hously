@@ -11,6 +11,7 @@ const PIPE_GAP = 140;
 const PIPE_INTERVAL = 220;
 const BIRD_X = 80;
 const BIRD_SIZE = 24;
+const FIRST_PIPE_DELAY_PX = 80; // grace distance before first pipe appears
 
 export type GameStatus = "idle" | "playing" | "dead";
 
@@ -42,7 +43,7 @@ function initialState(): GameState {
     birdVelocity: 0,
     pipes: [],
     score: 0,
-    nextPipeX: CANVAS_WIDTH + 80,
+    nextPipeX: CANVAS_WIDTH + FIRST_PIPE_DELAY_PX,
   };
 }
 
@@ -116,7 +117,7 @@ export function useFlappyBird(
         return;
       }
 
-      syncSnapshot();
+      if (g.score !== prevScore) syncSnapshot();
     },
     [onGameOver, syncSnapshot],
   );
