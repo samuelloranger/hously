@@ -64,10 +64,13 @@ export const mapJellyfinApiItem = (
       })()
     : null;
 
+  const overview = toStringOrNull(item.Overview);
+
   return {
     id,
     title,
     subtitle,
+    overview,
     item_url: itemUrl,
     banner_url: bannerUrl,
     poster_url: posterUrl,

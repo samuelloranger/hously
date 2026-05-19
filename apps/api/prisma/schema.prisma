@@ -751,6 +751,7 @@ model AppSettings {
   upcomingWindowMonths       Int      @default(12) @map("upcoming_window_months")
   upcomingLanguages          String   @default("en,fr") @map("upcoming_languages")
   dashboardWidgetVisibility  Json     @default("{\"weather\":true,\"homeassistant\":true,\"system\":true,\"downloads\":true,\"rss\":true}") @map("dashboard_widget_visibility")
+  quickLinks                 Json     @default("[]") @map("quick_links")
   updatedAt                  DateTime @updatedAt @map("updated_at")
 
   @@map("app_settings")

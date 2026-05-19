@@ -7,7 +7,10 @@ export const DASHBOARD_ENDPOINTS = {
   JELLYFIN: {
     LATEST: "/api/dashboard/jellyfin/latest",
     IMAGE: "/api/dashboard/jellyfin/image",
+    RANDOM: "/api/dashboard/jellyfin/random",
   },
+  QUICK_LINKS: "/api/dashboard/quick-links",
+  FAVICON: "/api/dashboard/favicon",
   C411: {
     STATS: "/api/dashboard/c411/stats",
   },

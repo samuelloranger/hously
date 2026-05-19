@@ -1,3 +1,9 @@
+export interface QuickLink {
+  id: string;
+  label: string;
+  url: string;
+}
+
 export interface DashboardWidgetVisibility {
   weather: boolean;
   homeassistant: boolean;
@@ -13,6 +19,7 @@ export interface AppSettings {
   upcoming_window_months: number;
   upcoming_languages: string;
   dashboard_widget_visibility: DashboardWidgetVisibility;
+  quick_links: QuickLink[];
   updated_at: string;
 }
 

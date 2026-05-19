@@ -2,6 +2,7 @@ export interface JellyfinLatestItem {
   id: string;
   title: string;
   subtitle: string | null;
+  overview: string | null;
   item_url: string | null;
   banner_url: string | null;
   poster_url: string | null;

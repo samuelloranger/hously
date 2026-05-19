@@ -61,6 +61,9 @@ export const queryKeys = {
     homeAssistantWidget: () =>
       [...queryKeys.dashboard.all, "home-assistant-widget"] as const,
     minecraft: () => [...queryKeys.dashboard.all, "minecraft"] as const,
+    jellyfinRandom: () =>
+      [...queryKeys.dashboard.all, "jellyfin-random"] as const,
+    quickLinks: () => [...queryKeys.dashboard.all, "quick-links"] as const,
   },
 
   weather: {
