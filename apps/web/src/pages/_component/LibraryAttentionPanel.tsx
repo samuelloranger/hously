@@ -1,6 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Loader2, RefreshCw, X } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  RefreshCw,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { LibraryAttentionItem } from "@hously/shared/types";
 import { useDismissLibraryAttentionAlert } from "@/features/medias/hooks/useDismissLibraryAttentionAlert";
@@ -218,8 +224,6 @@ export function LibraryAttentionPanel() {
 
   const items = data?.items ?? [];
 
-  if (!isLoading && !isError && items.length === 0) return null;
-
   const postLoadingId = retryPost.isPending
     ? (retryPost.variables ?? null)
     : null;
@@ -277,6 +281,11 @@ export function LibraryAttentionPanel() {
           <SkeletonRow />
           <SkeletonRow />
           <SkeletonRow />
+        </div>
+      ) : items.length === 0 ? (
+        <div className="px-4 py-5 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <CheckCircle2 size={14} className="shrink-0 text-emerald-500" />
+          {t("dashboard.libraryAttention.emptyState")}
         </div>
       ) : (
         <div>

@@ -8,8 +8,8 @@ import {
 import type { WidgetId, WidgetLayout } from "../constants/widgets";
 
 describe("WIDGETS registry", () => {
-  it("contains exactly 17 widgets", () => {
-    expect(WIDGETS.length).toBe(17);
+  it("contains exactly 16 widgets", () => {
+    expect(WIDGETS.length).toBe(16);
   });
 
   it("has no duplicate IDs", () => {

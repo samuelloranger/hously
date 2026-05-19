@@ -55,7 +55,7 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
     async ({ body, set }) => {
       try {
         const countryCode = normalizeUserCountryCode(body.country_code);
-        if (!countryCode) {
+        if (body.country_code && !countryCode) {
           return badRequest(
             set,
             "country_code must be a supported 2-letter ISO code",
@@ -86,7 +86,8 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
           dashboardWidgetLayout?: WidgetLayout;
         } = {};
 
-        if (body.country_code) updateData.countryCode = countryCode;
+        if (body.country_code && countryCode)
+          updateData.countryCode = countryCode;
         if (body.calendar_subdivision_code !== undefined) {
           updateData.calendarSubdivisionCode = calendarSubdivisionCode;
         }
@@ -116,7 +117,7 @@ export const settingsRoutes = new Elysia({ prefix: "/api/settings" })
           where: { id: 1 },
           create: {
             id: 1,
-            countryCode,
+            countryCode: countryCode ?? DEFAULT_TMDB_REGION,
             calendarSubdivisionCode,
           },
           update: updateData,

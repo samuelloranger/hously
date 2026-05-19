@@ -7,7 +7,6 @@ import { JellyfinRandomPanel } from "@/pages/_component/JellyfinRandomPanel";
 import { JellyfinShelf, UpcomingShelf } from "@/pages/_component/MediaShelves";
 import { LibraryAttentionPanel } from "@/pages/_component/LibraryAttentionPanel";
 import { LibraryStatsPanel } from "@/pages/_component/LibraryStatsPanel";
-import { MinecraftCardsPanel } from "@/pages/_component/MinecraftCardsPanel";
 import { MinecraftCompactPanel } from "@/pages/_component/MinecraftCompactPanel";
 import { QuickLinksPanel } from "@/pages/_component/QuickLinksPanel";
 import { RssStatusPanel } from "@/pages/_component/RssStatusPanel";
@@ -34,6 +33,5 @@ export const WIDGET_COMPONENTS: Record<
   focus_timer: FocusTimerPanel,
   downloads: DownloadsPanel,
   minecraft_compact: MinecraftCompactPanel,
-  minecraft_cards: MinecraftCardsPanel,
   rss: RssStatusPanel,
 };

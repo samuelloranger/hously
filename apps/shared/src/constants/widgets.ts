@@ -86,14 +86,7 @@ export const WIDGETS = [
     defaultVisible: true,
     adminOnly: false,
   },
-  {
-    id: "minecraft_cards",
-    column: 3,
-    order: 4,
-    defaultVisible: true,
-    adminOnly: false,
-  },
-  { id: "rss", column: 3, order: 5, defaultVisible: true, adminOnly: false },
+  { id: "rss", column: 3, order: 4, defaultVisible: true, adminOnly: false },
 ] as const;
 
 export type WidgetId = (typeof WIDGETS)[number]["id"];

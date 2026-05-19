@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, CheckSquare2, Flame } from "lucide-react";
@@ -139,12 +139,15 @@ export function HomePage() {
     getEffectiveLayout(data?.settings.dashboard_widget_layout ?? null),
   );
 
+  const isMutatingRef = useRef(false);
+  isMutatingRef.current = updateMut.isPending;
+
   useEffect(() => {
-    if (updateMut.isPending) return;
+    if (isMutatingRef.current) return;
     setLayout(
       getEffectiveLayout(data?.settings.dashboard_widget_layout ?? null),
     );
-  }, [data?.settings.dashboard_widget_layout, updateMut.isPending]);
+  }, [data?.settings.dashboard_widget_layout]);
 
   function isWidgetVisible(id: WidgetId): boolean {
     const w = WIDGETS.find((w) => w.id === id);

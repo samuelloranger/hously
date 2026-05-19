@@ -360,7 +360,8 @@
       "scopePack": "Pack de saison",
       "scopePackSeason": "Pack de saison · {{season}}",
       "toastDismissOk": "Masqué",
-      "toastDismissFail": "Impossible de masquer l’alerte"
+      "toastDismissFail": "Impossible de masquer l’alerte",
+      "emptyState": "Aucun problème — bibliothèque en ordre"
     },
     "subtexts": {
       "busyDay": "Vous avez {{count}} événements aujourd'hui. Restez organisé",
