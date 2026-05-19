@@ -1,17 +1,12 @@
+import type { WidgetVisibility } from "../constants/widgets";
+
 export interface QuickLink {
   id: string;
   label: string;
   url: string;
 }
 
-export interface DashboardWidgetVisibility {
-  weather: boolean;
-  homeassistant: boolean;
-  system: boolean;
-  downloads: boolean;
-  rss: boolean;
-  minecraft: boolean;
-}
+export type DashboardWidgetVisibility = WidgetVisibility;
 
 export interface AppSettings {
   country_code: string;
