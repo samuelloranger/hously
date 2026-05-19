@@ -231,6 +231,35 @@
       "blocked": "Bloquées",
       "avgTime": "Temps moyen"
     },
+    "quickLinks": {
+      "title": "Liens rapides",
+      "edit": "Modifier",
+      "dialogTitle": "Modifier les liens rapides",
+      "empty": "Aucun lien — ajoutez-en un ci-dessous.",
+      "addFirst": "Ajoutez votre premier lien",
+      "addLink": "Ajouter un lien",
+      "labelPlaceholder": "Libellé",
+      "urlPlaceholder": "https://...",
+      "cancel": "Annuler",
+      "saving": "Enregistrement…",
+      "save": "Enregistrer"
+    },
+    "jellyfinRandom": {
+      "title": "Quoi regarder ?",
+      "rollAgain": "Réessayer",
+      "shuffle": "Mélanger"
+    },
+    "focusTimer": {
+      "title": "Minuterie focus",
+      "presetFocus": "Focus",
+      "presetShort": "Court",
+      "presetBreak": "Pause",
+      "blockerMessage": "Votre minuterie est en cours. Quitter quand même ?",
+      "done": "Terminé !",
+      "reset": "Réinitialiser",
+      "pause": "Pause",
+      "start": "Démarrer"
+    },
     "user": "Utilisateur",
     "home": {
       "statsEventsToday_one": "événement aujourd'hui",

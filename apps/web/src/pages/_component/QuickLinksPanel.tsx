@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link2, Plus, Trash2, Pencil } from "lucide-react";
 import { DASHBOARD_ENDPOINTS } from "@/lib/endpoints";
 
@@ -61,6 +62,7 @@ interface EditRowProps {
 }
 
 function EditRow({ link, onChange, onRemove }: EditRowProps) {
+  const { t } = useTranslation("common");
   return (
     <div className="flex items-center gap-2">
       <input
@@ -69,7 +71,7 @@ function EditRow({ link, onChange, onRemove }: EditRowProps) {
         onChange={(e) =>
           onChange({ ...link, label: e.target.value.slice(0, 32) })
         }
-        placeholder="Label"
+        placeholder={t("dashboard.quickLinks.labelPlaceholder")}
         className="flex-1 min-w-0 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
       />
       <input
@@ -78,7 +80,7 @@ function EditRow({ link, onChange, onRemove }: EditRowProps) {
         onChange={(e) =>
           onChange({ ...link, url: e.target.value.slice(0, 512) })
         }
-        placeholder="https://..."
+        placeholder={t("dashboard.quickLinks.urlPlaceholder")}
         className="flex-[2] min-w-0 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
       />
       <button
@@ -98,6 +100,7 @@ function EditModal({
   links: QuickLink[];
   onClose: () => void;
 }) {
+  const { t } = useTranslation("common");
   const [draft, setDraft] = useState<QuickLink[]>(links);
   const { mutate, isPending } = useUpdateQuickLinks();
 
@@ -124,7 +127,7 @@ function EditModal({
       <div className="space-y-2">
         {draft.length === 0 && (
           <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center py-4">
-            No links yet — add one below.
+            {t("dashboard.quickLinks.empty")}
           </p>
         )}
         {draft.map((link, idx) => (
@@ -144,21 +147,23 @@ function EditModal({
           className="flex items-center gap-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 disabled:opacity-40 transition-colors"
         >
           <Plus size={14} />
-          Add link
+          {t("dashboard.quickLinks.addLink")}
         </button>
         <div className="flex items-center gap-2">
           <button
             onClick={onClose}
             className="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
           >
-            Cancel
+            {t("dashboard.quickLinks.cancel")}
           </button>
           <button
             onClick={save}
             disabled={isPending}
             className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60 transition-colors"
           >
-            {isPending ? "Saving…" : "Save"}
+            {isPending
+              ? t("dashboard.quickLinks.saving")
+              : t("dashboard.quickLinks.save")}
           </button>
         </div>
       </div>
@@ -167,6 +172,7 @@ function EditModal({
 }
 
 export function QuickLinksPanel() {
+  const { t } = useTranslation("common");
   const { data, isPending } = useQuickLinks();
   const { data: user } = useCurrentUser();
   const [editing, setEditing] = useState(false);
@@ -188,7 +194,7 @@ export function QuickLinksPanel() {
               strokeWidth={2}
             />
             <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-              Quick Links
+              {t("dashboard.quickLinks.title")}
             </h3>
           </div>
           {isAdmin && (
@@ -197,7 +203,7 @@ export function QuickLinksPanel() {
               className="flex items-center gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
             >
               <Pencil size={12} />
-              Edit
+              {t("dashboard.quickLinks.edit")}
             </button>
           )}
         </div>
@@ -213,7 +219,9 @@ export function QuickLinksPanel() {
               )}
             >
               <Plus size={20} />
-              <span className="text-xs font-medium">Add your first link</span>
+              <span className="text-xs font-medium">
+                {t("dashboard.quickLinks.addFirst")}
+              </span>
             </button>
           ) : (
             <div className="grid grid-cols-3 gap-2">
@@ -228,7 +236,7 @@ export function QuickLinksPanel() {
       <Dialog
         isOpen={editing}
         onClose={() => setEditing(false)}
-        title="Edit Quick Links"
+        title={t("dashboard.quickLinks.dialogTitle")}
       >
         <EditModal links={links} onClose={() => setEditing(false)} />
       </Dialog>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useBlocker } from "@tanstack/react-router";
 import { Play, Pause, RotateCcw, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ function formatTime(seconds: number) {
 const PRESET_STORAGE_KEY = "focus-timer-preset";
 
 export function FocusTimerPanel() {
+  const { t } = useTranslation("common");
   const [preset, setPreset] = useState(() => {
     const saved = localStorage.getItem(PRESET_STORAGE_KEY);
     const idx = saved !== null ? Number(saved) : 0;
@@ -51,8 +53,7 @@ export function FocusTimerPanel() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useBlocker({
-    blockerFn: () =>
-      !window.confirm("Your focus timer is still running. Leave anyway?"),
+    blockerFn: () => !window.confirm(t("dashboard.focusTimer.blockerMessage")),
     condition: running,
   });
 
@@ -126,7 +127,7 @@ export function FocusTimerPanel() {
           strokeWidth={2}
         />
         <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-          Focus Timer
+          {t("dashboard.focusTimer.title")}
         </h3>
       </div>
 
@@ -144,7 +145,7 @@ export function FocusTimerPanel() {
                   : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700",
               )}
             >
-              {p.label} {p.minutes}m
+              {t(`dashboard.focusTimer.preset${p.label}`)} {p.minutes}m
             </button>
           ))}
         </div>
@@ -188,7 +189,7 @@ export function FocusTimerPanel() {
               done ? "text-emerald-500" : "text-zinc-800 dark:text-zinc-100",
             )}
           >
-            {done ? "Done!" : formatTime(remaining)}
+            {done ? t("dashboard.focusTimer.done") : formatTime(remaining)}
           </span>
         </div>
 
@@ -197,7 +198,7 @@ export function FocusTimerPanel() {
           <button
             onClick={reset}
             className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-            title="Reset"
+            title={t("dashboard.focusTimer.reset")}
           >
             <RotateCcw size={16} />
           </button>
@@ -211,7 +212,9 @@ export function FocusTimerPanel() {
             )}
           >
             {running ? <Pause size={14} /> : <Play size={14} />}
-            {running ? "Pause" : "Start"}
+            {running
+              ? t("dashboard.focusTimer.pause")
+              : t("dashboard.focusTimer.start")}
           </button>
         </div>
       </div>

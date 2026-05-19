@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { Shuffle, Tv2, ExternalLink } from "lucide-react";
 import { useJellyfinRandom } from "@/pages/_component/useJellyfinRandom";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 
 function Skeleton() {
+  const { t } = useTranslation("common");
   return (
     <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
       <div className="flex items-center gap-2.5 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
@@ -13,7 +15,7 @@ function Skeleton() {
           strokeWidth={2}
         />
         <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-          What to Watch?
+          {t("dashboard.jellyfinRandom.title")}
         </h3>
       </div>
       <div className="p-4 flex gap-4">
@@ -30,6 +32,7 @@ function Skeleton() {
 }
 
 export function JellyfinRandomPanel() {
+  const { t } = useTranslation("common");
   const queryClient = useQueryClient();
   const { data, isPending, isFetching } = useJellyfinRandom();
 
@@ -54,17 +57,17 @@ export function JellyfinRandomPanel() {
             strokeWidth={2}
           />
           <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-            What to Watch?
+            {t("dashboard.jellyfinRandom.title")}
           </h3>
         </div>
         <button
           onClick={shuffle}
           disabled={isFetching}
           className="flex items-center gap-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors disabled:opacity-40"
-          title="Shuffle"
+          title={t("dashboard.jellyfinRandom.shuffle")}
         >
           <Shuffle size={13} className={isFetching ? "animate-spin" : ""} />
-          Roll again
+          {t("dashboard.jellyfinRandom.rollAgain")}
         </button>
       </div>
 

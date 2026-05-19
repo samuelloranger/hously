@@ -231,6 +231,35 @@
       "blocked": "Blocked",
       "avgTime": "Avg time"
     },
+    "quickLinks": {
+      "title": "Quick Links",
+      "edit": "Edit",
+      "dialogTitle": "Edit Quick Links",
+      "empty": "No links yet — add one below.",
+      "addFirst": "Add your first link",
+      "addLink": "Add link",
+      "labelPlaceholder": "Label",
+      "urlPlaceholder": "https://...",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save"
+    },
+    "jellyfinRandom": {
+      "title": "What to Watch?",
+      "rollAgain": "Roll again",
+      "shuffle": "Shuffle"
+    },
+    "focusTimer": {
+      "title": "Focus Timer",
+      "presetFocus": "Focus",
+      "presetShort": "Short",
+      "presetBreak": "Break",
+      "blockerMessage": "Your focus timer is still running. Leave anyway?",
+      "done": "Done!",
+      "reset": "Reset",
+      "pause": "Pause",
+      "start": "Start"
+    },
     "user": "User",
     "home": {
       "statsEventsToday_one": "event today",
