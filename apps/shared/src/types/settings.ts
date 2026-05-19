@@ -6,14 +6,12 @@ export interface QuickLink {
   url: string;
 }
 
-export type DashboardWidgetVisibility = WidgetVisibility;
-
 export interface AppSettings {
   country_code: string;
   calendar_subdivision_code: string | null;
   upcoming_window_months: number;
   upcoming_languages: string;
-  dashboard_widget_visibility: DashboardWidgetVisibility;
+  dashboard_widget_visibility: WidgetVisibility;
   dashboard_widget_layout: WidgetLayout | null;
   quick_links: QuickLink[];
   updated_at: string;
@@ -28,6 +26,6 @@ export interface UpdateAppSettingsRequest {
   calendar_subdivision_code?: string | null;
   upcoming_window_months?: number;
   upcoming_languages?: string;
-  dashboard_widget_visibility?: DashboardWidgetVisibility;
+  dashboard_widget_visibility?: WidgetVisibility;
   dashboard_widget_layout?: WidgetLayout;
 }
