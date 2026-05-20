@@ -97,48 +97,36 @@ export class JackettAdapter implements IndexerManagerAdapter {
   }
 
   async getIndexers(): Promise<NormalizedIndexer[]> {
-    // Jackett's /api/v2.0/indexers management endpoint requires cookie auth,
-    // not the API key. Instead, run a lightweight search — the response
-    // includes an "Indexers" array with all configured indexers and their status.
+    // Use the Torznab t=indexers endpoint — returns configured indexers instantly
+    // without triggering a search, so down/slow indexers can't cause a timeout.
     const url = new URL(
-      "/api/v2.0/indexers/all/results",
+      "/api/v2.0/indexers/all/results/torznab/api",
       this.config.website_url,
     );
     url.searchParams.set("apikey", this.config.api_key);
-    url.searchParams.set("Query", "_");
-    // Limit results to minimize payload — we only need the Indexers metadata
-    url.searchParams.set("_", String(Date.now()));
+    url.searchParams.set("t", "indexers");
+    url.searchParams.set("configured", "true");
 
     const res = await fetch(url.toString(), {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(10_000),
     }).catch(() => null);
 
     if (!res?.ok) return [];
 
-    const body = await res.json().catch(() => null);
-    const record =
-      body && typeof body === "object" && !Array.isArray(body)
-        ? (body as Record<string, unknown>)
-        : null;
-    const rawIndexers = Array.isArray(record?.Indexers)
-      ? (record.Indexers as Array<Record<string, unknown>>)
-      : [];
+    const text = await res.text().catch(() => null);
+    if (!text) return [];
 
-    if (rawIndexers.length === 0) return [];
+    const matches = [...text.matchAll(/<indexer id="([^"]+)"[^>]*>\s*<title>([^<]+)<\/title>/g)];
+    if (matches.length === 0) return [];
 
-    const indexers: NormalizedIndexer[] = rawIndexers.map((item, idx) => {
-      const slug =
-        typeof item.ID === "string" ? item.ID : String(item.ID ?? idx);
-      return {
-        id: idx,
-        slug,
-        name: String(item.Name ?? ""),
-        protocol: "torrent",
-        enabled: item.Status === 2, // 2 = OK in Jackett
-        privacy: "private",
-      };
-    });
+    const indexers: NormalizedIndexer[] = matches.map((m, idx) => ({
+      id: idx,
+      slug: m[1],
+      name: m[2],
+      protocol: "torrent",
+      enabled: true,
+      privacy: "private",
+    }));
 
     indexers.sort((a, b) => a.name.localeCompare(b.name));
 
