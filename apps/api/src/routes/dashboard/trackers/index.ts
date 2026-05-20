@@ -17,6 +17,7 @@ const trackerLabel = (type: TrackerType): string => {
     c411: "C411",
     torr9: "Torr9",
     "la-cale": "La Cale",
+    "ygg-reborn": "YGG Reborn",
   }[type];
 };
 
@@ -68,7 +69,7 @@ async function getTrackerStatsHandler(type: TrackerType) {
   };
 }
 
-const TRACKER_TYPES: TrackerType[] = ["c411", "torr9", "la-cale"];
+const TRACKER_TYPES: TrackerType[] = ["c411", "torr9", "la-cale", "ygg-reborn"];
 
 async function getAllTrackerStatsHandler() {
   const results = await Promise.all(
@@ -129,5 +130,13 @@ export const dashboardTrackersRoutes = new Elysia()
     } catch (error) {
       console.error("Error fetching La Cale stats:", error);
       return serverError(set, "Failed to get La Cale stats");
+    }
+  })
+  .get("/ygg-reborn/stats", async ({ user, set }) => {
+    try {
+      return await getTrackerStatsHandler("ygg-reborn");
+    } catch (error) {
+      console.error("Error fetching YGG Reborn stats:", error);
+      return serverError(set, "Failed to get YGG Reborn stats");
     }
   });

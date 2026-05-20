@@ -3,7 +3,7 @@ export interface ArrProfile {
   name: string;
 }
 
-export type TrackerType = "c411" | "torr9" | "la-cale";
+export type TrackerType = "c411" | "torr9" | "la-cale" | "ygg-reborn";
 
 export interface JellyfinIntegration {
   type: "jellyfin";

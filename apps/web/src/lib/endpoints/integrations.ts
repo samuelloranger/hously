@@ -19,6 +19,7 @@ export const INTEGRATION_ENDPOINTS = {
   C411: "/api/integrations/c411",
   TORR9: "/api/integrations/torr9",
   LA_CALE: "/api/integrations/la-cale",
+  YGG_REBORN: "/api/integrations/ygg-reborn",
   HOME_ASSISTANT: "/api/integrations/home-assistant",
   HOME_ASSISTANT_ENTITIES: "/api/integrations/home-assistant/entities",
   UPTIMEKUMA: "/api/integrations/uptimekuma",

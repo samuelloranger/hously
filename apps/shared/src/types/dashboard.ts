@@ -230,7 +230,7 @@ export interface DashboardTrackerStatsResponse {
 }
 
 export type DashboardTrackersStatsResponse = Record<
-  "c411" | "torr9" | "la-cale",
+  "c411" | "torr9" | "la-cale" | "ygg-reborn",
   DashboardTrackerStatsResponse
 >;
 

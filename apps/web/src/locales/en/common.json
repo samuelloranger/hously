@@ -215,7 +215,8 @@
       "providers": {
         "c411": "C411",
         "torr9": "Torr9",
-        "la-cale": "La Cale"
+        "la-cale": "La Cale",
+        "ygg-reborn": "YGG Reborn"
       }
     },
     "scrutiny": {
@@ -1222,6 +1223,10 @@
           "label": "Fetch La Cale Stats",
           "description": "Log into La Cale and fetch uploaded/downloaded/ratio."
         },
+        "fetchYggRebornStats": {
+          "label": "Fetch YGG Reborn Stats",
+          "description": "Log into YGG Reborn via FlareSolverr and fetch uploaded/downloaded/ratio."
+        },
         "refreshUpcoming": {
           "label": "Refresh Upcoming",
           "description": "Query TMDB for fresh upcoming movies and TV shows."
@@ -1467,10 +1472,12 @@
         "usernameHelp": {
           "c411": "Used as the uploader name when syncing your releases back from C411."
         },
+        "email": "Email",
         "providers": {
           "c411": "C411",
           "torr9": "Torr9",
-          "la-cale": "La Cale"
+          "la-cale": "La Cale",
+          "ygg-reborn": "YGG Reborn"
         }
       },
       "sso": {

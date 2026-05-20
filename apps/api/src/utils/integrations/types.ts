@@ -58,7 +58,7 @@ export interface NetdataIntegrationConfig {
   website_url: string;
 }
 
-export type TrackerType = "c411" | "torr9" | "la-cale";
+export type TrackerType = "c411" | "torr9" | "la-cale" | "ygg-reborn";
 
 export interface TrackerIntegrationConfig {
   flaresolverr_url?: string;

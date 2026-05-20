@@ -5,6 +5,8 @@ import { useUpdateLaCaleIntegration } from "@/pages/settings/useUpdateLaCaleInte
 import { useUpdateTorr9Integration } from "@/pages/settings/useUpdateTorr9Integration";
 import { useLaCaleIntegration } from "@/pages/settings/useLaCaleIntegration";
 import { useTorr9Integration } from "@/pages/settings/useTorr9Integration";
+import { useYggRebornIntegration } from "@/pages/settings/useYggRebornIntegration";
+import { useUpdateYggRebornIntegration } from "@/pages/settings/useUpdateYggRebornIntegration";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { IntegrationUrlInput } from "@/pages/settings/_component/integrations/IntegrationUrlInput";
@@ -249,6 +251,8 @@ export function TrackersIntegrationSection() {
   const torr9Mutation = useUpdateTorr9Integration();
   const laCaleQuery = useLaCaleIntegration();
   const laCaleMutation = useUpdateLaCaleIntegration();
+  const yggRebornQuery = useYggRebornIntegration();
+  const yggRebornMutation = useUpdateYggRebornIntegration();
 
   const trackers: TrackerSection[] = [
     {
@@ -305,6 +309,23 @@ export function TrackersIntegrationSection() {
       onSave: (
         payload: Omit<TrackerFormState, "password"> & { password?: string },
       ) => laCaleMutation.mutateAsync(payload),
+    },
+    {
+      key: "ygg-reborn",
+      integrationId: yggRebornQuery.data?.integration?.type ?? "pending",
+      title: t("settings.integrations.trackers.providers.ygg-reborn"),
+      logoUrl: "/icons/ygg-reborn.png",
+      usernameLabel: t("settings.integrations.trackers.email"),
+      usernamePlaceholder: "user@example.com",
+      websiteLabel: t("settings.integrations.trackers.trackerUrl"),
+      websitePlaceholder: "https://www.yggreborn.org",
+      loading: yggRebornQuery.isLoading,
+      saving: yggRebornMutation.isPending,
+      showFlaresolverr: true,
+      initial: toInitialState(yggRebornQuery.data?.integration),
+      onSave: (
+        payload: Omit<TrackerFormState, "password"> & { password?: string },
+      ) => yggRebornMutation.mutateAsync(payload),
     },
   ] as const;
 

@@ -27,6 +27,7 @@ export const SCHEDULED_JOB_NAMES = {
   FETCH_C411_STATS: "fetch-c411-stats",
   FETCH_TORR9_STATS: "fetch-torr9-stats",
   FETCH_LA_CALE_STATS: "fetch-la-cale-stats",
+  FETCH_YGG_REBORN_STATS: "fetch-ygg-reborn-stats",
   CHECK_HABIT_REMINDERS: "check-habit-reminders",
   REFRESH_UPCOMING: "refresh-upcoming",
   REFRESH_HABITS_STREAKS: "refresh-habits-streaks",
@@ -197,6 +198,7 @@ export async function setupScheduledJobs() {
     { name: SCHEDULED_JOB_NAMES.FETCH_C411_STATS, pattern: "0 * * * *" },
     { name: SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS, pattern: "5 * * * *" }, // Staggered
     { name: SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS, pattern: "10 * * * *" }, // Staggered
+    { name: SCHEDULED_JOB_NAMES.FETCH_YGG_REBORN_STATS, pattern: "15 * * * *" }, // Staggered
     { name: SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS, pattern: "* * * * *" },
     { name: SCHEDULED_JOB_NAMES.REFRESH_UPCOMING, pattern: "30 */12 * * *" },
     {

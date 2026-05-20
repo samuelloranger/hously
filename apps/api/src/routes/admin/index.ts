@@ -215,6 +215,7 @@ export const adminRoutes = new Elysia({ prefix: "/api/admin" })
         fetch_c411_stats: SCHEDULED_JOB_NAMES.FETCH_C411_STATS,
         fetch_torr9_stats: SCHEDULED_JOB_NAMES.FETCH_TORR9_STATS,
         fetch_la_cale_stats: SCHEDULED_JOB_NAMES.FETCH_LA_CALE_STATS,
+        fetch_ygg_reborn_stats: SCHEDULED_JOB_NAMES.FETCH_YGG_REBORN_STATS,
         check_habit_reminders: SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS,
         check_movie_release_reminders:
           SCHEDULED_JOB_NAMES.CHECK_MOVIE_RELEASE_REMINDERS,

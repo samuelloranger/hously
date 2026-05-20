@@ -14,6 +14,7 @@ export const TRACKER_INTEGRATION_ENDPOINTS: Record<TrackerType, string> = {
   c411: INTEGRATION_ENDPOINTS.C411,
   torr9: INTEGRATION_ENDPOINTS.TORR9,
   "la-cale": INTEGRATION_ENDPOINTS.LA_CALE,
+  "ygg-reborn": INTEGRATION_ENDPOINTS.YGG_REBORN,
 };
 
 export const getDashboardTrackersStatsQuery = (
