@@ -1,9 +1,11 @@
 import type {
   IndexerManagerAdapter,
   IndexerSearchParams,
+  IndexerWarning,
   NormalizedRelease,
   NormalizedIndexer,
   GrabResult,
+  SearchResult,
 } from "./types";
 import type { IndexerIntegrationConfig } from "../../utils/integrations/types";
 import { randomUUID } from "crypto";
@@ -51,7 +53,7 @@ export class JackettAdapter implements IndexerManagerAdapter {
     this.config = config;
   }
 
-  async search(params: IndexerSearchParams): Promise<NormalizedRelease[]> {
+  async search(params: IndexerSearchParams): Promise<SearchResult> {
     const url = new URL(
       "/api/v2.0/indexers/all/results",
       this.config.website_url,
@@ -62,7 +64,6 @@ export class JackettAdapter implements IndexerManagerAdapter {
       url.searchParams.set("Query", params.query);
     }
 
-    // Category filtering: 2000 = Movies, 5000 = TV
     if (params.mediaType === "movie") {
       url.searchParams.append("Category[]", "2000");
     } else if (params.mediaType === "tv" || params.type === "tvsearch") {
@@ -73,27 +74,61 @@ export class JackettAdapter implements IndexerManagerAdapter {
       url.searchParams.set("tmdbid", String(params.tmdbId));
     }
 
+    // 45 s gives Jackett enough time to collect results even when one indexer
+    // hits its own 20-30 s timeout, so we always get the Indexers error list.
     const res = await fetch(url.toString(), {
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(25_000),
+      signal: AbortSignal.timeout(45_000),
     }).catch(() => null);
 
-    if (!res?.ok) return [];
+    if (!res?.ok) return { releases: [], indexerWarnings: [] };
 
     const body = (await res.json().catch(() => null)) as unknown;
     const record =
       body && typeof body === "object" && !Array.isArray(body)
         ? (body as Record<string, unknown>)
         : null;
+
     const results = Array.isArray(record?.Results)
       ? record.Results
       : Array.isArray(body)
         ? body
         : [];
 
-    return (results as Record<string, unknown>[])
+    const releases = (results as Record<string, unknown>[])
       .map((raw) => this.normalizeRelease(raw))
       .filter((r): r is NormalizedRelease => r !== null);
+
+    const indexerWarnings: IndexerWarning[] = [];
+    if (Array.isArray(record?.Indexers)) {
+      for (const idx of record.Indexers as Record<string, unknown>[]) {
+        if (
+          typeof idx === "object" &&
+          idx !== null &&
+          idx.Status === 1 &&
+          typeof idx.Error === "string" &&
+          idx.Error.trim()
+        ) {
+          indexerWarnings.push({
+            id:
+              typeof idx.ID === "string"
+                ? idx.ID
+                : typeof idx.Id === "string"
+                  ? idx.Id
+                  : "unknown",
+            name:
+              typeof idx.Name === "string"
+                ? idx.Name
+                : typeof idx.ID === "string"
+                  ? idx.ID
+                  : "unknown",
+            error: idx.Error.trim(),
+          });
+        }
+      }
+    }
+
+    return { releases, indexerWarnings };
   }
 
   async getIndexers(): Promise<NormalizedIndexer[]> {
@@ -116,7 +151,11 @@ export class JackettAdapter implements IndexerManagerAdapter {
     const text = await res.text().catch(() => null);
     if (!text) return [];
 
-    const matches = [...text.matchAll(/<indexer id="([^"]+)"[^>]*>\s*<title>([^<]+)<\/title>/g)];
+    const matches = [
+      ...text.matchAll(
+        /<indexer id="([^"]+)"[^>]*>\s*<title>([^<]+)<\/title>/g,
+      ),
+    ];
     if (matches.length === 0) return [];
 
     const indexers: NormalizedIndexer[] = matches.map((m, idx) => ({

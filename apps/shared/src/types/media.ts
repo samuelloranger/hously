@@ -64,6 +64,12 @@ export interface ParsedQualityFields {
 
 export type IndexerManagerType = "prowlarr" | "jackett";
 
+export interface IndexerWarning {
+  id: string;
+  name: string;
+  error: string;
+}
+
 export interface InteractiveReleaseItem {
   guid: string;
   title: string;
@@ -103,6 +109,7 @@ export interface MediaInteractiveSearchResponse {
   success: boolean;
   service: IndexerManagerType;
   releases: InteractiveReleaseItem[];
+  indexer_warnings?: IndexerWarning[];
 }
 
 export interface ExploreMediasResponse {

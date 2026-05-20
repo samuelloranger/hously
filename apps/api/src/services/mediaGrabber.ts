@@ -644,7 +644,7 @@ export async function searchAndGrab(opts: {
       return { grabbed: false, reason: "No indexer manager configured" };
     }
 
-    const releases = await adapter.search({
+    const { releases } = await adapter.search({
       query: qTrim,
       type: "freetext",
       mediaType,

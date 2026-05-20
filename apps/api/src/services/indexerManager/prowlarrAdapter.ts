@@ -4,6 +4,7 @@ import type {
   NormalizedRelease,
   NormalizedIndexer,
   GrabResult,
+  SearchResult,
 } from "./types";
 import type { IndexerIntegrationConfig } from "../../utils/integrations/types";
 import {
@@ -67,7 +68,7 @@ export class ProwlarrAdapter implements IndexerManagerAdapter {
     return this.config.website_url.replace(/\/+$/, "");
   }
 
-  async search(params: IndexerSearchParams): Promise<NormalizedRelease[]> {
+  async search(params: IndexerSearchParams): Promise<SearchResult> {
     const url = new URL("/api/v1/search", this.config.website_url);
     const limit = String(params.limit ?? 100);
 
@@ -99,15 +100,16 @@ export class ProwlarrAdapter implements IndexerManagerAdapter {
       signal: AbortSignal.timeout(25_000),
     }).catch(() => null);
 
-    if (!res?.ok) return [];
+    if (!res?.ok) return { releases: [], indexerWarnings: [] };
 
     const body = await res.json().catch(() => null);
-    if (!Array.isArray(body)) return [];
+    if (!Array.isArray(body)) return { releases: [], indexerWarnings: [] };
 
     const base = this.baseUrl();
-    return body
+    const releases = body
       .map((raw: unknown) => this.normalizeRelease(raw, base))
       .filter((r): r is NormalizedRelease => r !== null);
+    return { releases, indexerWarnings: [] };
   }
 
   async getIndexers(): Promise<NormalizedIndexer[]> {

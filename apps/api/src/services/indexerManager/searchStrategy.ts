@@ -1,4 +1,9 @@
-import type { IndexerManagerAdapter, NormalizedRelease } from "./types";
+import type {
+  IndexerManagerAdapter,
+  IndexerWarning,
+  NormalizedRelease,
+  SearchResult,
+} from "./types";
 
 interface TieredSearchOpts {
   query: string;
@@ -8,14 +13,10 @@ interface TieredSearchOpts {
   mediaType?: "movie" | "tv";
 }
 
-/**
- * Tiered search strategy (mirrors Sonarr's approach).
- * Works with any IndexerManagerAdapter.
- */
 export async function tieredSearch(
   adapter: IndexerManagerAdapter,
   opts: TieredSearchOpts,
-): Promise<NormalizedRelease[]> {
+): Promise<SearchResult> {
   const { query, tmdbId, season, complete, mediaType } = opts;
 
   if (complete) {
@@ -35,40 +36,33 @@ async function seasonSearch(
   tmdbId: number | null | undefined,
   season: number,
   mediaType?: "movie" | "tv",
-): Promise<NormalizedRelease[]> {
+): Promise<SearchResult> {
   const sN = String(season).padStart(2, "0");
   const mt = mediaType ?? "tv";
 
-  const [tvById, tvByTitle, seasonEn, seasonFr, seasonScene] =
-    await Promise.all([
-      tmdbId != null
-        ? adapter.search({ type: "tvsearch", tmdbId, season, mediaType: mt })
-        : Promise.resolve([]),
-      adapter.search({ type: "tvsearch", query, season, mediaType: mt }),
-      adapter.search({
-        type: "freetext",
-        query: `${query} Season ${season}`,
-        mediaType: mt,
-      }),
-      adapter.search({
-        type: "freetext",
-        query: `${query} Saison ${season}`,
-        mediaType: mt,
-      }),
-      adapter.search({
-        type: "freetext",
-        query: `${query} S${sN}`,
-        mediaType: mt,
-      }),
-    ]);
-
-  return deduplicateByGuid([
-    tvById,
-    tvByTitle,
-    seasonEn,
-    seasonFr,
-    seasonScene,
+  const results = await Promise.all([
+    tmdbId != null
+      ? adapter.search({ type: "tvsearch", tmdbId, season, mediaType: mt })
+      : Promise.resolve({ releases: [], indexerWarnings: [] } satisfies SearchResult),
+    adapter.search({ type: "tvsearch", query, season, mediaType: mt }),
+    adapter.search({
+      type: "freetext",
+      query: `${query} Season ${season}`,
+      mediaType: mt,
+    }),
+    adapter.search({
+      type: "freetext",
+      query: `${query} Saison ${season}`,
+      mediaType: mt,
+    }),
+    adapter.search({
+      type: "freetext",
+      query: `${query} S${sN}`,
+      mediaType: mt,
+    }),
   ]);
+
+  return mergeResults(results);
 }
 
 async function completeSeriesSearch(
@@ -76,12 +70,13 @@ async function completeSeriesSearch(
   query: string,
   tmdbId: number | null | undefined,
   mediaType?: "movie" | "tv",
-): Promise<NormalizedRelease[]> {
+): Promise<SearchResult> {
   const mt = mediaType ?? "tv";
-  const [tvById, tvByTitle, integrale, completeSeries] = await Promise.all([
+
+  const results = await Promise.all([
     tmdbId != null
       ? adapter.search({ type: "tvsearch", tmdbId, mediaType: mt })
-      : Promise.resolve([]),
+      : Promise.resolve({ releases: [], indexerWarnings: [] } satisfies SearchResult),
     adapter.search({ type: "tvsearch", query, mediaType: mt }),
     adapter.search({
       type: "freetext",
@@ -95,21 +90,31 @@ async function completeSeriesSearch(
     }),
   ]);
 
-  return deduplicateByGuid([tvById, tvByTitle, integrale, completeSeries]);
+  return mergeResults(results);
 }
 
-function deduplicateByGuid(
-  batches: NormalizedRelease[][],
-): NormalizedRelease[] {
+function mergeResults(results: SearchResult[]): SearchResult {
   const seen = new Set<string>();
-  const result: NormalizedRelease[] = [];
-  for (const batch of batches) {
-    for (const release of batch) {
-      if (release.guid && !seen.has(release.guid)) {
-        seen.add(release.guid);
-        result.push(release);
+  const releases: NormalizedRelease[] = [];
+  for (const { releases: batch } of results) {
+    for (const r of batch) {
+      if (r.guid && !seen.has(r.guid)) {
+        seen.add(r.guid);
+        releases.push(r);
       }
     }
   }
-  return result;
+
+  const warningSeen = new Set<string>();
+  const indexerWarnings: IndexerWarning[] = [];
+  for (const { indexerWarnings: batch } of results) {
+    for (const w of batch) {
+      if (!warningSeen.has(w.id)) {
+        warningSeen.add(w.id);
+        indexerWarnings.push(w);
+      }
+    }
+  }
+
+  return { releases, indexerWarnings };
 }

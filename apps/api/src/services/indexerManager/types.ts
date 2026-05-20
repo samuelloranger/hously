@@ -49,10 +49,24 @@ export interface GrabResult {
   error?: string;
 }
 
+export interface IndexerWarning {
+  /** Jackett indexer ID slug (e.g. "lacale") */
+  id: string;
+  /** Human-readable indexer name (e.g. "La Cale") */
+  name: string;
+  /** Error message from Jackett */
+  error: string;
+}
+
+export interface SearchResult {
+  releases: NormalizedRelease[];
+  indexerWarnings: IndexerWarning[];
+}
+
 export interface IndexerManagerAdapter {
   readonly name: "prowlarr" | "jackett";
 
-  search(params: IndexerSearchParams): Promise<NormalizedRelease[]>;
+  search(params: IndexerSearchParams): Promise<SearchResult>;
 
   getIndexers(): Promise<NormalizedIndexer[]>;
 
