@@ -6,38 +6,16 @@ import {
   type FlareSolverrSolution,
   type HttpTrackerStats,
 } from "./httpScraper";
+import { parseSizeToGo, parseRatio } from "./parseUtils";
 import { TrackerAuthError, TrackerHttpError } from "./errors";
 
 // Units: French "octet" system (o, Ko, Mo, Go, To)
-function parseBytes(text: string): number | null {
-  const m = text.trim().match(/^([\d.,]+)\s*(o|Ko|Mo|Go|To|B|KB|MB|GB|TB)$/i);
-  if (!m) return null;
-  const value = parseFloat(m[1].replace(",", "."));
-  const unit = m[2].toLowerCase();
-  const mul: Record<string, number> = {
-    o: 1, b: 1,
-    ko: 1e3, kb: 1e3,
-    mo: 1e6, mb: 1e6,
-    go: 1e9, gb: 1e9,
-    to: 1e12, tb: 1e12,
-  };
-  return Number.isFinite(value) && mul[unit] != null ? value * mul[unit] : null;
-}
-
-function parseRatioText(text: string): number | null {
-  const t = text.trim();
-  if (t === "∞" || t === "Inf" || t.toLowerCase() === "inf") return null;
-  const m = t.match(/^([\d.,]+)$/);
-  if (!m) return null;
-  const v = parseFloat(m[1].replace(",", "."));
-  return Number.isFinite(v) ? v : null;
-}
-
 export async function scrapeYggReborn(
   config: TrackerIntegrationConfig,
   solution?: FlareSolverrSolution,
 ): Promise<HttpTrackerStats> {
-  if (!solution) throw new Error("YGG Reborn scraper requires FlareSolverr solution");
+  if (!solution)
+    throw new Error("YGG Reborn scraper requires FlareSolverr solution");
 
   const jar = new CookieJar();
   jar.init(solution.cookies);
@@ -108,8 +86,8 @@ export async function scrapeYggReborn(
   //             <div class="...text-dark-400 mt-1">Upload</div>  (next sibling = label)
   const root = parse(accountHtml);
 
-  let uploadedBytes: number | null = null;
-  let downloadedBytes: number | null = null;
+  let uploadedGo: number | null = null;
+  let downloadedGo: number | null = null;
   let ratio: number | null = null;
 
   for (const el of root.querySelectorAll("div")) {
@@ -118,18 +96,15 @@ export async function scrapeYggReborn(
 
     if (text === "Upload") {
       const valueEl = el.previousElementSibling;
-      if (valueEl) uploadedBytes = parseBytes(valueEl.rawText?.trim() ?? "");
+      if (valueEl) uploadedGo = parseSizeToGo(valueEl.rawText?.trim() ?? "");
     } else if (text === "Download") {
       const valueEl = el.previousElementSibling;
-      if (valueEl) downloadedBytes = parseBytes(valueEl.rawText?.trim() ?? "");
+      if (valueEl) downloadedGo = parseSizeToGo(valueEl.rawText?.trim() ?? "");
     } else if (text === "Ratio") {
       const valueEl = el.previousElementSibling;
-      if (valueEl) ratio = parseRatioText(valueEl.rawText?.trim() ?? "");
+      if (valueEl) ratio = parseRatio(valueEl.rawText?.trim() ?? "");
     }
   }
-
-  const uploadedGo = uploadedBytes !== null ? uploadedBytes / 1_000_000_000 : null;
-  const downloadedGo = downloadedBytes !== null ? downloadedBytes / 1_000_000_000 : null;
 
   const computedRatio =
     ratio !== null

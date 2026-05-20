@@ -1,5 +1,7 @@
 import { describe, it, expect } from "bun:test";
-import { parseNumber } from "@hously/api/services/trackers/utils";
+import { parseRatio } from "@hously/api/services/trackers/parseUtils";
+
+const parseNumber = parseRatio;
 
 describe("parseNumber", () => {
   it("parses integers", () => {
