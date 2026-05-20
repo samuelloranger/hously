@@ -69,7 +69,16 @@ export const mediasSearchRoutes = new Elysia()
   .get(
     "/interactive-search",
     async ({ set, query }) => {
-      const searchQuery = query.q.trim();
+      // Strip diacritics and colons before querying indexers: release names are
+      // almost always ASCII, and colons can be parsed as field separators by some
+      // tracker search engines (e.g. Elasticsearch-backed private trackers).
+      const searchQuery = query.q
+        .trim()
+        .normalize("NFD")
+        .replace(/\p{Mn}/gu, "")
+        .replace(/:/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
       const seasonNumber =
         query.season != null ? parseInt(String(query.season), 10) : null;
       const tmdbId =
