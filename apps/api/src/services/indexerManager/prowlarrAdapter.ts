@@ -1,6 +1,7 @@
 import type {
   IndexerManagerAdapter,
   IndexerSearchParams,
+  IndexerWarning,
   NormalizedRelease,
   NormalizedIndexer,
   GrabResult,
@@ -68,7 +69,73 @@ export class ProwlarrAdapter implements IndexerManagerAdapter {
     return this.config.website_url.replace(/\/+$/, "");
   }
 
+  private async fetchIndexerStatus(): Promise<IndexerWarning[]> {
+    const base = this.baseUrl();
+
+    const [statusRes, indexersRes] = await Promise.all([
+      fetch(`${base}/api/v1/indexerstatus`, {
+        headers: this.headers(),
+        signal: AbortSignal.timeout(5_000),
+      }).catch(() => null),
+      fetch(`${base}/api/v1/indexer`, {
+        headers: this.headers(),
+        signal: AbortSignal.timeout(5_000),
+      }).catch(() => null),
+    ]);
+
+    if (!statusRes?.ok) return [];
+
+    const statuses = await statusRes.json().catch(() => null);
+    if (!Array.isArray(statuses)) return [];
+
+    const nameMap = new Map<number, string>();
+    if (indexersRes?.ok) {
+      const indexers = await indexersRes.json().catch(() => null);
+      if (Array.isArray(indexers)) {
+        for (const idx of indexers as Record<string, unknown>[]) {
+          if (typeof idx?.id === "number" && typeof idx?.name === "string") {
+            nameMap.set(idx.id, idx.name);
+          }
+        }
+      }
+    }
+
+    const now = new Date();
+    const warnings: IndexerWarning[] = [];
+
+    for (const s of statuses as Record<string, unknown>[]) {
+      if (
+        typeof s !== "object" ||
+        s === null ||
+        typeof s.indexerId !== "number"
+      )
+        continue;
+      const disabledTill = s.disabledTill
+        ? new Date(s.disabledTill as string)
+        : null;
+      if (!disabledTill || disabledTill <= now) continue;
+      const id = String(s.indexerId);
+      warnings.push({
+        id,
+        name: nameMap.get(s.indexerId) ?? id,
+        error: "temporarily blocked by Prowlarr",
+      });
+    }
+
+    return warnings;
+  }
+
   async search(params: IndexerSearchParams): Promise<SearchResult> {
+    let indexerWarnings: IndexerWarning[] = [];
+
+    // Fire in background — populates indexerWarnings if it resolves
+    // before the search response arrives. No await = zero added latency.
+    void this.fetchIndexerStatus()
+      .then((w) => {
+        indexerWarnings = w;
+      })
+      .catch(() => {});
+
     const url = new URL("/api/v1/search", this.config.website_url);
     const limit = String(params.limit ?? 100);
 
@@ -100,16 +167,16 @@ export class ProwlarrAdapter implements IndexerManagerAdapter {
       signal: AbortSignal.timeout(25_000),
     }).catch(() => null);
 
-    if (!res?.ok) return { releases: [], indexerWarnings: [] };
+    if (!res?.ok) return { releases: [], indexerWarnings };
 
     const body = await res.json().catch(() => null);
-    if (!Array.isArray(body)) return { releases: [], indexerWarnings: [] };
+    if (!Array.isArray(body)) return { releases: [], indexerWarnings };
 
     const base = this.baseUrl();
     const releases = body
       .map((raw: unknown) => this.normalizeRelease(raw, base))
       .filter((r): r is NormalizedRelease => r !== null);
-    return { releases, indexerWarnings: [] };
+    return { releases, indexerWarnings };
   }
 
   async getIndexers(): Promise<NormalizedIndexer[]> {
