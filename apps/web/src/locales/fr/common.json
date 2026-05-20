@@ -1752,6 +1752,12 @@
         "Language": "La langue ne correspond pas au profil de qualité",
         "Size": "La taille ne correspond pas au profil de qualité",
         "Sample": "Fichier sample rejeté par le profil de qualité"
+      },
+      "indexerWarning": {
+        "single": "{{name}} est inaccessible — certains résultats peuvent manquer.",
+        "multiple": "{{count}} indexeurs inaccessibles ({{names}}) — certains résultats peuvent manquer.",
+        "hint": "Vérifiez votre configuration Jackett.",
+        "dismiss": "Ignorer l'avertissement"
       }
     },
     "tmdb": {

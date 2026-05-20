@@ -12,7 +12,11 @@ export const UNKNOWN_TRACKER_KEY = "__unknown_tracker__";
 export const UNKNOWN_LANGUAGE_KEY = "__unknown_language__";
 
 export const normalizeFilterKey = (value: string): string =>
-  value.trim().toLocaleLowerCase();
+  value
+    .normalize("NFD")
+    .replace(/\p{Mn}/gu, "")
+    .trim()
+    .toLocaleLowerCase();
 
 export interface FilterParams {
   filterQuery: string;
@@ -73,6 +77,8 @@ function isClientRejected(
   mediaYear?: number | null,
 ): boolean {
   const normalizedRelease = releaseTitle
+    .normalize("NFD")
+    .replace(/\p{Mn}/gu, "")
     .toLowerCase()
     .replace(/[^a-z0-9]/g, " ");
 
@@ -85,6 +91,8 @@ function isClientRejected(
   // Title check: distinctive words (≥3 chars, not stop words) from the expected
   // title must appear in the release title. Require 70% match.
   const titleWords = mediaTitle
+    .normalize("NFD")
+    .replace(/\p{Mn}/gu, "")
     .toLowerCase()
     .replace(/[^a-z0-9]/g, " ")
     .split(/\s+/)

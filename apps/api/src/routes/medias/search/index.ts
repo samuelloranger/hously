@@ -69,7 +69,16 @@ export const mediasSearchRoutes = new Elysia()
   .get(
     "/interactive-search",
     async ({ set, query }) => {
-      const searchQuery = query.q.trim();
+      // Strip diacritics and colons before querying indexers: release names are
+      // almost always ASCII, and colons can be parsed as field separators by some
+      // tracker search engines (e.g. Elasticsearch-backed private trackers).
+      const searchQuery = query.q
+        .trim()
+        .normalize("NFD")
+        .replace(/\p{Mn}/gu, "")
+        .replace(/:/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
       const seasonNumber =
         query.season != null ? parseInt(String(query.season), 10) : null;
       const tmdbId =
@@ -103,21 +112,23 @@ export const mediasSearchRoutes = new Elysia()
               ? query.media_type
               : undefined;
 
-        let rawReleases = await tieredSearch(adapter, {
-          query: searchQuery,
-          tmdbId,
-          season: isSeasonSearch ? seasonNumber : null,
-          complete: isCompleteSearch,
-          mediaType,
-        });
+        const { releases: searchedReleases, indexerWarnings } =
+          await tieredSearch(adapter, {
+            query: searchQuery,
+            tmdbId,
+            season: isSeasonSearch ? seasonNumber : null,
+            complete: isCompleteSearch,
+            mediaType,
+          });
 
         // TMDb ID validation: when tmdbId is provided, filter out results
         // where the indexer reports a different tmdbId (keep results with no tmdbId)
-        if (tmdbId != null) {
-          rawReleases = rawReleases.filter(
-            (r) => r.tmdbId == null || r.tmdbId === tmdbId,
-          );
-        }
+        let rawReleases =
+          tmdbId != null
+            ? searchedReleases.filter(
+                (r) => r.tmdbId == null || r.tmdbId === tmdbId,
+              )
+            : searchedReleases;
 
         let mapped: InteractiveReleaseItem[] = rawReleases.map((r) => {
           const downloadToken = adapter.storeReleaseToken(r);
@@ -186,6 +197,9 @@ export const mediasSearchRoutes = new Elysia()
           success: true,
           service: adapter.name,
           releases: mapped,
+          ...(indexerWarnings.length > 0
+            ? { indexer_warnings: indexerWarnings }
+            : {}),
         };
       } catch (error) {
         console.error("Error loading interactive search releases:", error);

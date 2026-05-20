@@ -1752,6 +1752,12 @@
         "Language": "Language does not match quality profile",
         "Size": "Size does not match quality profile",
         "Sample": "Sample file rejected by quality profile"
+      },
+      "indexerWarning": {
+        "single": "{{name}} is unreachable — some results may be missing.",
+        "multiple": "{{count}} indexers unreachable ({{names}}) — some results may be missing.",
+        "hint": "Check your Jackett configuration.",
+        "dismiss": "Dismiss indexer warning"
       }
     },
     "tmdb": {

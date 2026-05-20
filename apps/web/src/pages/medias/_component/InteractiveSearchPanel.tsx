@@ -110,6 +110,8 @@ export function InteractiveSearchPanel({
   const [pendingReleaseKey, setPendingReleaseKey] = useState<string | null>(
     null,
   );
+  const [indexerWarningsDismissed, setIndexerWarningsDismissed] =
+    useState(false);
 
   const {
     filterQuery,
@@ -324,6 +326,12 @@ export function InteractiveSearchPanel({
   };
 
   const totalReleases = activeQuery.data?.releases.length ?? 0;
+  const indexerWarnings = activeQuery.data?.indexer_warnings ?? [];
+
+  useEffect(() => {
+    if (isActive && activeQuery.isFetching) setIndexerWarningsDismissed(false);
+  }, [activeQuery.isFetching, isActive]);
+
   const hasAdvancedFilters =
     includedTrackers.length > 0 ||
     excludedTrackers.length > 0 ||
@@ -722,6 +730,41 @@ export function InteractiveSearchPanel({
           )}
         </div>
       </div>
+
+      {indexerWarnings.length > 0 && !indexerWarningsDismissed && (
+        <div
+          role="alert"
+          className="mb-3 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm dark:border-amber-700/40 dark:bg-amber-950/20"
+        >
+          <TriangleAlert
+            size={15}
+            className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
+          />
+          <div className="min-w-0 flex-1">
+            <span className="font-medium text-amber-900 dark:text-amber-200">
+              {indexerWarnings.length === 1
+                ? t("medias.interactive.indexerWarning.single", {
+                    name: indexerWarnings[0].name,
+                  })
+                : t("medias.interactive.indexerWarning.multiple", {
+                    count: indexerWarnings.length,
+                    names: indexerWarnings.map((w) => w.name).join(", "),
+                  })}
+            </span>
+            <span className="ml-1 text-amber-700 dark:text-amber-300">
+              {t("medias.interactive.indexerWarning.hint")}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIndexerWarningsDismissed(true)}
+            className="shrink-0 text-amber-500 transition-colors hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-200"
+            aria-label={t("medias.interactive.indexerWarning.dismiss")}
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       <div className="pt-4">
         {needsSearchQuery ? (
