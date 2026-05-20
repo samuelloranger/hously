@@ -27,6 +27,7 @@ export type JobAction =
   | "fetch_c411_stats"
   | "fetch_torr9_stats"
   | "fetch_la_cale_stats"
+  | "fetch_ygg_reborn_stats"
   | "refresh_upcoming"
   | "refresh_habits_streaks"
   | "check_movie_release_reminders"
@@ -95,6 +96,13 @@ export const JOBS: JobConfig[] = [
     Icon: FileText,
     labelKey: "settings.jobs.actions.fetchLaCaleStats.label",
     descriptionKey: "settings.jobs.actions.fetchLaCaleStats.description",
+  },
+  {
+    action: "fetch_ygg_reborn_stats",
+    jobNames: ["fetch-ygg-reborn-stats"],
+    Icon: FileText,
+    labelKey: "settings.jobs.actions.fetchYggRebornStats.label",
+    descriptionKey: "settings.jobs.actions.fetchYggRebornStats.description",
   },
   {
     action: "refresh_upcoming",

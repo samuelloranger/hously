@@ -4,6 +4,7 @@ export const TRACKER_LABELS: Record<TrackerType, string> = {
   c411: "C411",
   torr9: "Torr9",
   "la-cale": "La Cale",
+  "ygg-reborn": "YGG Reborn",
 };
 
 export const TRACKER_HTTP_STATUS_MESSAGES: Record<number, string> = {

@@ -20,6 +20,9 @@ export const DASHBOARD_ENDPOINTS = {
   LA_CALE: {
     STATS: "/api/dashboard/la-cale/stats",
   },
+  YGG_REBORN: {
+    STATS: "/api/dashboard/ygg-reborn/stats",
+  },
   TRACKERS: {
     STATS: "/api/dashboard/trackers/stats",
   },

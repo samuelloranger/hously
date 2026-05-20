@@ -1,5 +1,6 @@
 import type { Page } from "playwright";
 import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
+import { parseSizeToGo, parseRatio } from "./parseUtils";
 
 const G3MINI_LOGIN_FORM = "form.auth-form__form";
 const G3MINI_USERNAME_INPUT = 'form.auth-form__form input[name="username"]';
@@ -10,51 +11,6 @@ const G3MINI_RATIO_BAR = "ul.top-nav__ratio-bar";
 const G3MINI_UPLOADED_VALUE = "li.ratio-bar__uploaded a";
 const G3MINI_DOWNLOADED_VALUE = "li.ratio-bar__downloaded a";
 const G3MINI_RATIO_VALUE = "li.ratio-bar__ratio a";
-
-const parseNumber = (text: string): number | null => {
-  const normalized = text.replace(/\s+/g, " ").trim().replace(",", ".");
-  const match = normalized.match(/-?\d+(?:\.\d+)?/);
-  if (!match) return null;
-  const value = Number(match[0]);
-  return Number.isFinite(value) ? value : null;
-};
-
-const parseSizeToGo = (text: string): number | null => {
-  const normalized = text
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(",", ".");
-
-  const match = normalized.match(
-    /(-?\d+(?:\.\d+)?)\s*(KiB|MiB|GiB|TiB|KB|MB|GB|TB|Ko|Mo|Go|To)\b/i,
-  );
-  if (!match) return null;
-
-  const value = Number(match[1]);
-  if (!Number.isFinite(value)) return null;
-
-  switch (match[2].toLowerCase()) {
-    case "kib":
-    case "kb":
-    case "ko":
-      return value / 1024 / 1024;
-    case "mib":
-    case "mb":
-    case "mo":
-      return value / 1024;
-    case "gib":
-    case "gb":
-    case "go":
-      return value;
-    case "tib":
-    case "tb":
-    case "to":
-      return value * 1024;
-    default:
-      return null;
-  }
-};
 
 export const loginToG3mini = async (
   page: Page,
@@ -110,8 +66,12 @@ export const getG3miniTopPanelStats = async (
   ]);
 
   return {
-    uploadedGo: uploadedText ? parseSizeToGo(uploadedText) : null,
-    downloadedGo: downloadedText ? parseSizeToGo(downloadedText) : null,
-    ratio: ratioText ? parseNumber(ratioText) : null,
+    uploadedGo: uploadedText
+      ? parseSizeToGo(uploadedText, { binary: true })
+      : null,
+    downloadedGo: downloadedText
+      ? parseSizeToGo(downloadedText, { binary: true })
+      : null,
+    ratio: ratioText ? parseRatio(ratioText) : null,
   };
 };

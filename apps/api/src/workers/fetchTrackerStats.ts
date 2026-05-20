@@ -64,7 +64,7 @@ function validateFlareSolverrResponse(
   return { solution: { userAgent: s.userAgent, cookies, response } };
 }
 
-const TRACKER_ORDER: TrackerType[] = ["torr9", "c411", "la-cale"];
+const TRACKER_ORDER: TrackerType[] = ["torr9", "c411", "la-cale", "ygg-reborn"];
 const trackerName = (type: TrackerType): string => type.toUpperCase();
 
 export const fetchTrackerStats = async (

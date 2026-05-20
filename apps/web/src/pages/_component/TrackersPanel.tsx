@@ -1,6 +1,7 @@
 import { useDashboardC411Stats } from "@/pages/settings/useDashboardC411Stats";
 import { useDashboardLaCaleStats } from "@/pages/settings/useDashboardLaCaleStats";
 import { useDashboardTorr9Stats } from "@/pages/settings/useDashboardTorr9Stats";
+import { useDashboardYggRebornStats } from "@/pages/settings/useDashboardYggRebornStats";
 import {
   formatRelativeTime,
   resolveDateFnsLocale,
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 type TrackerInfo = {
   key: string;
   label: string;
+  logoUrl: string;
   enabled: boolean;
   connected: boolean;
   uploaded_go: number | null;
@@ -65,11 +67,21 @@ function TrackerCard({
     >
       {/* Content */}
       <div className="flex flex-col gap-2.5 px-4 pt-3.5 pb-3">
-        {/* Row 1: tracker label + sync time + status dot */}
+        {/* Row 1: tracker logo + label + sync time + status dot */}
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-zinc-400 dark:text-zinc-500">
-            {tracker.label}
-          </span>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <img
+              src={tracker.logoUrl}
+              alt={tracker.label}
+              className="w-4 h-4 rounded object-contain shrink-0"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+            <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-zinc-400 dark:text-zinc-500">
+              {tracker.label}
+            </span>
+          </div>
           <div className="flex items-center gap-1.5 shrink-0">
             {tracker.connected && tracker.updated_at && (
               <span className="text-[9px] text-zinc-400 dark:text-zinc-600 tabular-nums">
@@ -169,11 +181,13 @@ export function TrackersPanel() {
   const c411 = useDashboardC411Stats();
   const torr9 = useDashboardTorr9Stats();
   const laCale = useDashboardLaCaleStats();
+  const yggReborn = useDashboardYggRebornStats();
 
   const trackers: TrackerInfo[] = [
     {
       key: "c411",
       label: t("dashboard.trackers.providers.c411"),
+      logoUrl: "/icons/c411.png",
       enabled: Boolean(c411.data?.enabled),
       connected: Boolean(c411.data?.connected),
       uploaded_go: c411.data?.uploaded_go ?? null,
@@ -185,6 +199,7 @@ export function TrackersPanel() {
     {
       key: "torr9",
       label: t("dashboard.trackers.providers.torr9"),
+      logoUrl: "/icons/torr9.png",
       enabled: Boolean(torr9.data?.enabled),
       connected: Boolean(torr9.data?.connected),
       uploaded_go: torr9.data?.uploaded_go ?? null,
@@ -196,6 +211,7 @@ export function TrackersPanel() {
     {
       key: "la-cale",
       label: t("dashboard.trackers.providers.la-cale"),
+      logoUrl: "/icons/la-cale.png",
       enabled: Boolean(laCale.data?.enabled),
       connected: Boolean(laCale.data?.connected),
       uploaded_go: laCale.data?.uploaded_go ?? null,
@@ -203,6 +219,18 @@ export function TrackersPanel() {
       ratio: laCale.data?.ratio ?? null,
       updated_at: laCale.data?.updated_at ?? null,
       error: laCale.data?.error,
+    },
+    {
+      key: "ygg-reborn",
+      label: t("dashboard.trackers.providers.ygg-reborn"),
+      logoUrl: "/icons/ygg-reborn.png",
+      enabled: Boolean(yggReborn.data?.enabled),
+      connected: Boolean(yggReborn.data?.connected),
+      uploaded_go: yggReborn.data?.uploaded_go ?? null,
+      downloaded_go: yggReborn.data?.downloaded_go ?? null,
+      ratio: yggReborn.data?.ratio ?? null,
+      updated_at: yggReborn.data?.updated_at ?? null,
+      error: yggReborn.data?.error,
     },
   ];
 

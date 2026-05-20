@@ -215,7 +215,8 @@
       "providers": {
         "c411": "C411",
         "torr9": "Torr9",
-        "la-cale": "La Cale"
+        "la-cale": "La Cale",
+        "ygg-reborn": "YGG Reborn"
       }
     },
     "scrutiny": {
@@ -1218,6 +1219,10 @@
           "label": "Récupérer les stats La Cale",
           "description": "Se connecter à La Cale et récupérer upload/download/ratio."
         },
+        "fetchYggRebornStats": {
+          "label": "Récupérer les stats YGG Reborn",
+          "description": "Se connecter à YGG Reborn via FlareSolverr et récupérer upload/download/ratio."
+        },
         "checkHabitReminders": {
           "label": "Vérifier les rappels d'habitudes",
           "description": "Vérifier les habitudes nécessitant un rappel et envoyer des notifications."
@@ -1467,10 +1472,12 @@
         "usernameHelp": {
           "c411": "Utilisé comme nom d'uploader lors de la synchronisation de vos releases depuis C411."
         },
+        "email": "Email",
         "providers": {
           "c411": "C411",
           "torr9": "Torr9",
-          "la-cale": "La Cale"
+          "la-cale": "La Cale",
+          "ygg-reborn": "YGG Reborn"
         }
       },
       "sso": {

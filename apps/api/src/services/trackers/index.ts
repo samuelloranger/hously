@@ -6,6 +6,7 @@ import type {
 } from "@hously/api/utils/integrations/types";
 import type { FlareSolverrSolution, HttpTrackerStats } from "./httpScraper";
 import { scrapeLaCale } from "./httpLaCale";
+import { scrapeYggReborn } from "./httpYggReborn";
 
 export type TrackerScraper = {
   scrape: (
@@ -19,4 +20,5 @@ export const TRACKER_SCRAPERS: Partial<Record<TrackerType, TrackerScraper>> = {
   c411: { scrape: scrapeC411, needsFlaresolverr: true },
   torr9: { scrape: scrapeTorr9, needsFlaresolverr: true },
   "la-cale": { scrape: scrapeLaCale, needsFlaresolverr: false },
+  "ygg-reborn": { scrape: scrapeYggReborn, needsFlaresolverr: true },
 };

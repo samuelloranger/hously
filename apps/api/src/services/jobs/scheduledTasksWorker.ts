@@ -58,6 +58,12 @@ export async function processScheduledJob(job: Job) {
         await fetchTrackerStats("la-cale", { trigger: "queue" });
         break;
       }
+      case SCHEDULED_JOB_NAMES.FETCH_YGG_REBORN_STATS: {
+        const { fetchTrackerStats } =
+          await import("../../workers/fetchTrackerStats");
+        await fetchTrackerStats("ygg-reborn", { trigger: "queue" });
+        break;
+      }
       case SCHEDULED_JOB_NAMES.CHECK_HABIT_REMINDERS: {
         const { checkHabitReminders } =
           await import("../../workers/checkHabitReminders");

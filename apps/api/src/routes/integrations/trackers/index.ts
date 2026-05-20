@@ -204,4 +204,15 @@ export const trackerIntegrationsRoutes = new Elysia()
     {
       body: trackerBody,
     },
+  )
+  .get("/ygg-reborn", ({ user, set }) =>
+    getTrackerIntegrationHandler("ygg-reborn", user, set),
+  )
+  .put(
+    "/ygg-reborn",
+    ({ user, body, set }) =>
+      updateTrackerIntegrationHandler("ygg-reborn", user, body, set),
+    {
+      body: trackerBody,
+    },
   );

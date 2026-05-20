@@ -1,5 +1,6 @@
 import type { Page } from "playwright";
 import type { TrackerIntegrationConfig } from "@hously/api/utils/integrations/types";
+import { parseSizeToGo, parseRatio } from "./parseUtils";
 
 const C411_LOGIN_FORM = "form.space-y-4";
 const C411_USERNAME_INPUT = 'form.space-y-4 input[name="username"]';
@@ -10,51 +11,6 @@ const C411_TOPBAR =
 const C411_UPLOADED_VALUE = 'span[title="Uploaded"]';
 const C411_DOWNLOADED_VALUE = 'span[title="Downloaded"]';
 const C411_RATIO_VALUE = 'span[title="Ratio (Upload ÷ Download)"]';
-
-const parseNumber = (text: string): number | null => {
-  const normalized = text.replace(/\s+/g, " ").trim().replace(",", ".");
-  if (normalized.includes("∞")) return null;
-  const match = normalized.match(/-?\d+(?:\.\d+)?/);
-  if (!match) return null;
-  const value = Number(match[0]);
-  return Number.isFinite(value) ? value : null;
-};
-
-const parseSizeToGo = (text: string): number | null => {
-  const normalized = text
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(",", ".");
-
-  const match = normalized.match(
-    /(-?\d+(?:\.\d+)?)\s*(o|Ko|Mo|Go|To|B|KB|MB|GB|TB)\b/i,
-  );
-  if (!match) return null;
-
-  const value = Number(match[1]);
-  if (!Number.isFinite(value)) return null;
-
-  switch (match[2].toLowerCase()) {
-    case "o":
-    case "b":
-      return value / 1_000_000_000;
-    case "ko":
-    case "kb":
-      return value / 1_000_000;
-    case "mo":
-    case "mb":
-      return value / 1_000;
-    case "go":
-    case "gb":
-      return value;
-    case "to":
-    case "tb":
-      return value * 1_000;
-    default:
-      return null;
-  }
-};
 
 export const loginToC411 = async (
   page: Page,
@@ -111,6 +67,6 @@ export const getC411TopPanelStats = async (
   return {
     uploadedGo: uploadedText ? parseSizeToGo(uploadedText) : null,
     downloadedGo: downloadedText ? parseSizeToGo(downloadedText) : null,
-    ratio: ratioText ? parseNumber(ratioText) : null,
+    ratio: ratioText ? parseRatio(ratioText) : null,
   };
 };
