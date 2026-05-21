@@ -766,8 +766,9 @@ export async function processLibraryMigrateJob(
 
                 const fnData = parseFilenameMetadata(fileName);
 
+                // Prefer episodeId as stable identity — filePath changes on Sonarr rename/move
                 const existingFile = await prisma.mediaFile.findFirst({
-                  where: { filePath },
+                  where: epRow ? { episodeId: epRow.id } : { filePath },
                   select: {
                     id: true,
                     resolution: true,
