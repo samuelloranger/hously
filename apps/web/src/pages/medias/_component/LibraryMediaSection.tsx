@@ -118,7 +118,7 @@ export function LibraryMediaSection({
           onClick={() => rescan.mutate()}
           disabled={rescan.isPending}
           className={cn(
-            "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium transition-colors shrink-0",
+            "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors shrink-0",
             "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800",
             "disabled:opacity-50 disabled:cursor-not-allowed",
           )}
@@ -536,7 +536,7 @@ export function LibraryMediaSection({
                             { onSettled: () => setDeleteConfirmId(null) },
                           );
                         }}
-                        className="rounded px-2 py-0.5 text-[10px] font-medium bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 transition-colors"
+                        className="rounded px-2 py-0.5 text-xs font-medium bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 transition-colors"
                       >
                         {t("library.media.yesDelete")}
                       </button>
@@ -549,14 +549,14 @@ export function LibraryMediaSection({
                             { onSettled: () => setDeleteConfirmId(null) },
                           );
                         }}
-                        className="rounded px-2 py-0.5 text-[10px] font-medium bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-600 disabled:opacity-50 transition-colors"
+                        className="rounded px-2 py-0.5 text-xs font-medium bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-600 disabled:opacity-50 transition-colors"
                       >
                         {t("library.media.keepFile")}
                       </button>
                       <button
                         type="button"
                         onClick={() => setDeleteConfirmId(null)}
-                        className="text-[10px] text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                        className="text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                       >
                         {t("common.cancel")}
                       </button>
@@ -565,7 +565,7 @@ export function LibraryMediaSection({
                     <button
                       type="button"
                       onClick={() => setDeleteConfirmId(file.id)}
-                      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors ml-1"
+                      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors ml-1"
                     >
                       <Trash2 size={10} />
                       {t("common.remove")}

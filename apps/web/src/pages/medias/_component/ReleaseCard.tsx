@@ -1,6 +1,7 @@
 import { Download } from "lucide-react";
 import type { InteractiveReleaseItem } from "@hously/shared/types";
 import { formatBytes } from "@/lib/utils/format";
+import { Button } from "@/components/ui/button";
 
 /** Insert <wbr> after dots so long release titles can wrap on mobile. */
 function BreakableTitle({ text }: { text: string }) {
@@ -134,13 +135,13 @@ export function ReleaseCard({
           {release.rejected && (
             <>
               {release.rejection_reason && (
-                <p className="mt-2 rounded-md bg-amber-100/60 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                <p className="mt-2 rounded-md bg-amber-100/60 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
                   {release.rejection_reason}
                 </p>
               )}
               {release.quality_rejection_reasons &&
                 release.quality_rejection_reasons.length > 0 && (
-                  <p className="mt-1 rounded-md bg-amber-100/60 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                  <p className="mt-1 rounded-md bg-amber-100/60 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
                     {release.quality_rejection_reasons.length === 1
                       ? t(
                           `medias.interactive.rejection.${release.quality_rejection_reasons[0]}`,
@@ -157,12 +158,13 @@ export function ReleaseCard({
           )}
         </div>
 
-        <button
+        <Button
           type="button"
+          size="sm"
           onClick={onDownload}
           disabled={grabDisabled}
           style={{ touchAction: "manipulation" }}
-          className="inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-primary-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="w-full gap-1.5 shadow-sm sm:w-auto"
         >
           <Download size={11} strokeWidth={2.5} />
           {isDownloading
@@ -170,7 +172,7 @@ export function ReleaseCard({
             : alreadyGrabbed
               ? t("medias.interactive.redownload")
               : t("medias.interactive.download")}
-        </button>
+        </Button>
       </div>
     </div>
   );

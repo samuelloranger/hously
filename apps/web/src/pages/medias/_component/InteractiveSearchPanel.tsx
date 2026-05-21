@@ -30,6 +30,7 @@ import {
   type FilterOption,
 } from "./InteractiveSearchFilters";
 import { ReleaseCard } from "./ReleaseCard";
+import { Button } from "@/components/ui/button";
 
 export interface InteractiveSearchPanelProps {
   isActive: boolean;
@@ -510,18 +511,20 @@ export function InteractiveSearchPanel({
                 label={t("medias.interactive.packsOnly")}
               />
 
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => void activeQuery.refetch()}
                 disabled={activeQuery.isFetching || needsSearchQuery}
-                className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                className="gap-2"
               >
                 <RefreshCw
                   size={13}
                   className={activeQuery.isFetching ? "animate-spin" : ""}
                 />
                 {t("medias.interactive.refresh")}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -791,14 +794,14 @@ export function InteractiveSearchPanel({
               <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
                 {errorMessage ?? t("medias.interactive.errorDescription")}
               </p>
-              <button
+              <Button
                 type="button"
                 onClick={() => void activeQuery.refetch()}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-500"
+                className="mt-4 gap-2"
               >
                 <RefreshCw size={14} />
                 {t("medias.interactive.retry")}
-              </button>
+              </Button>
             </div>
           </div>
         ) : releases.length === 0 ? (

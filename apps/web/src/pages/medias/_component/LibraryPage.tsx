@@ -359,7 +359,7 @@ export function LibraryPage() {
               <div className="flex-1" />
 
               {/* View mode toggle */}
-              <div className="flex overflow-hidden rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
+              <div className="flex overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
                 {(
                   [
                     { mode: "grid" as ViewMode, Icon: LayoutGrid },

@@ -461,7 +461,7 @@ export function FileDetailBlock({
           <button
             type="button"
             onClick={() => setShowRemux(true)}
-            className="flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+            className="flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
           >
             <Shuffle size={10} />
             {t("library.fileDetail.remux.openButton")}

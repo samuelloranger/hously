@@ -34,7 +34,7 @@ export function LibraryDownloadHistorySection({
         className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
         style={{ touchAction: "manipulation" }}
       >
-        <span className="flex items-center gap-2 min-w-0 text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">
+        <span className="flex items-center gap-2 min-w-0 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
           <Download size={12} className="text-neutral-400 shrink-0" />
           <span className="truncate">{t("library.management.downloads")}</span>
           {items.length > 0 && (
@@ -71,7 +71,7 @@ export function LibraryDownloadHistorySection({
                     },
                   });
                 }}
-                className="rounded-md px-2.5 py-1 text-[10px] font-semibold text-rose-600 hover:bg-rose-100 dark:text-rose-400 dark:hover:bg-rose-950/40 disabled:opacity-50"
+                className="rounded-md px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-100 dark:text-rose-400 dark:hover:bg-rose-950/40 disabled:opacity-50"
               >
                 {t("library.management.clearFailedDownloads")}
               </button>
