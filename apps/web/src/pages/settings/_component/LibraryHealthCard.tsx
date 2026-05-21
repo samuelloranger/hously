@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ShieldAlert } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { LibraryHealthLog } from "@hously/shared/types";
 import { getLibraryHealthRunStatusColor } from "./jobsUtils";
 
@@ -102,16 +103,18 @@ export function LibraryHealthCard({
 
           {latest.issues.length > 0 && (
             <div>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setExpanded(!expanded)}
-                className="text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
+                className="text-xs text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white px-0"
               >
                 {expanded
                   ? t("settings.jobs.libraryHealth.hideIssues")
                   : t("settings.jobs.libraryHealth.showIssues", {
                       count: latest.issues.length,
                     })}
-              </button>
+              </Button>
               {expanded && (
                 <>
                   <div className="mt-2 space-y-1.5 max-h-72 overflow-y-auto">

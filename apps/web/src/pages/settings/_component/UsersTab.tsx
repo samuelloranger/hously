@@ -182,7 +182,7 @@ export function UsersTab() {
 
         {/* Users List */}
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+          <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
             {t("settings.users.listTitle")}
           </h2>
 
@@ -269,17 +269,18 @@ export function UsersTab() {
                               {t("settings.users.currentUser")}
                             </span>
                           ) : (
-                            <button
+                            <Button
+                              variant="destructive"
+                              size="sm"
                               onClick={() =>
                                 handleDeleteUser(user.id, user.email)
                               }
                               disabled={deleteMutation.isPending}
-                              className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {deleteMutation.isPending
                                 ? t("settings.users.deleting") || "Deleting..."
                                 : t("settings.users.delete") || "Delete"}
-                            </button>
+                            </Button>
                           )}
                         </td>
                       </tr>
@@ -297,7 +298,7 @@ export function UsersTab() {
 
         {/* Pending Invitations */}
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+          <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
             {t("settings.users.pendingInvitations")}
           </h2>
 
@@ -347,39 +348,40 @@ export function UsersTab() {
                       <td className="py-3 px-4 text-sm text-right">
                         {inv.status === "pending" && (
                           <div className="flex gap-2 justify-end">
-                            <button
+                            <Button
+                              size="sm"
                               onClick={() => handleResendInvitation(inv.id)}
                               disabled={resendMutation.isPending}
-                              className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {resendMutation.isPending
                                 ? t("settings.users.resending") ||
                                   "Resending..."
                                 : t("settings.users.resend") || "Resend"}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
                               onClick={() =>
                                 handleRevokeInvitation(inv.id, inv.email)
                               }
                               disabled={revokeMutation.isPending}
-                              className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {revokeMutation.isPending
                                 ? t("settings.users.revoking") || "Revoking..."
                                 : t("settings.users.revoke") || "Revoke"}
-                            </button>
+                            </Button>
                           </div>
                         )}
                         {inv.status === "expired" && (
-                          <button
+                          <Button
+                            size="sm"
                             onClick={() => handleResendInvitation(inv.id)}
                             disabled={resendMutation.isPending}
-                            className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >
                             {resendMutation.isPending
                               ? t("settings.users.resending") || "Resending..."
                               : t("settings.users.resend") || "Resend"}
-                          </button>
+                          </Button>
                         )}
                       </td>
                     </tr>
@@ -396,7 +398,7 @@ export function UsersTab() {
 
         {/* Invite User Form */}
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+          <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
             {t("settings.users.inviteTitle")}
           </h2>
           <p className="text-neutral-600 dark:text-neutral-400 mb-6">

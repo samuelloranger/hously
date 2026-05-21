@@ -285,7 +285,7 @@ export function GeneralSettingsTab() {
               {LANGUAGE_OPTIONS.map((lang) => (
                 <label
                   key={lang.code}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 p-2 rounded"
+                  className="flex items-center gap-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 p-2 rounded-md"
                 >
                   <Checkbox
                     checked={selectedLanguages.has(lang.code)}
@@ -316,7 +316,7 @@ export function GeneralSettingsTab() {
           {WIDGETS.map((w) => (
             <label
               key={w.id}
-              className="flex items-center gap-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 p-2 rounded"
+              className="flex items-center gap-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 p-2 rounded-md"
             >
               <Checkbox
                 checked={widgetVisibility[w.id] ?? w.defaultVisible}

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Monitor, Trash2, LogOut, Key, Wifi, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAdminSessions } from "@/pages/settings/useAdminSessions";
 import { useRevokeSession } from "@/pages/settings/useRevokeSession";
 import { useRevokeUserSessions } from "@/pages/settings/useRevokeUserSessions";
@@ -255,7 +256,8 @@ export function SessionsTab() {
                       <td className="py-3 px-4 text-right">
                         <div className="inline-flex flex-col items-end gap-1">
                           {sessionsByUser[session.user_id]?.count > 1 && (
-                            <button
+                            <Button
+                              size="sm"
                               onClick={() =>
                                 handleRevokeUserSessions(
                                   session.user_id,
@@ -264,20 +266,23 @@ export function SessionsTab() {
                               }
                               disabled={revokeUserSessions.isPending}
                               title={t("settings.sessions.revokeAll")}
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-md hover:bg-orange-200 dark:hover:bg-orange-900/50 disabled:opacity-50 transition-colors whitespace-nowrap"
+                              variant="destructive"
+                              className="gap-1"
                             >
                               <LogOut className="w-3 h-3" />
                               {t("settings.sessions.revokeAll")}
-                            </button>
+                            </Button>
                           )}
-                          <button
+                          <Button
+                            size="sm"
                             onClick={() => handleRevokeSession(session.id)}
                             disabled={revokeSession.isPending}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50 transition-colors whitespace-nowrap"
+                            variant="destructive"
+                            className="gap-1"
                           >
                             <Trash2 className="w-3 h-3" />
                             {t("settings.sessions.revoke")}
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -369,14 +374,16 @@ export function SessionsTab() {
                           : "—"}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <button
+                        <Button
+                          size="sm"
                           onClick={() => handleDeleteWebPush(sub.id)}
                           disabled={deleteWebPush.isPending}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50 transition-colors"
+                          variant="destructive"
+                          className="gap-1.5"
                         >
                           <Trash2 className="w-3 h-3" />
                           {t("settings.sessions.delete")}
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   );

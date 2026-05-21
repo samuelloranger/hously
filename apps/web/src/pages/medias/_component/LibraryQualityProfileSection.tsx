@@ -7,6 +7,7 @@ import { useUpdateLibraryQualityProfile } from "@/features/medias/hooks/useUpdat
 import { useSearchLibraryMovie } from "@/features/medias/hooks/useSearchLibraryMovie";
 import { useUpgradeLibraryMedia } from "@/features/medias/hooks/useUpgradeLibraryMedia";
 import { useQualityProfilesList } from "@/pages/settings/useQualityProfiles";
+import { Button } from "@/components/ui/button";
 import { Card, SectionLabel } from "./LibrarySharedUI";
 import { LibraryUpgradeModal } from "./LibraryUpgradeModal";
 
@@ -104,8 +105,9 @@ export function LibraryQualityProfileSection({
           </div>
 
           {mediaRow?.type === "movie" && mediaRow.status === "wanted" && (
-            <button
+            <Button
               type="button"
+              size="sm"
               onClick={() => {
                 void searchMovieMut
                   .mutateAsync({ id: libraryId })
@@ -120,11 +122,11 @@ export function LibraryQualityProfileSection({
                   .catch(() => toast.error(t("library.management.grabFailed")));
               }}
               disabled={searchMovieMut.isPending}
-              className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-primary-500 disabled:opacity-50 transition-colors shrink-0"
+              className="mt-5 gap-1.5 shrink-0"
             >
               <Search size={10} />
               {t("library.management.searchNow")}
-            </button>
+            </Button>
           )}
         </div>
       </div>

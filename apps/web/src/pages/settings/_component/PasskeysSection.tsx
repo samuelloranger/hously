@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { KeyRound, Plus, ShieldCheck, Trash2, X, Check } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { formatDateTime } from "@hously/shared/utils";
 import {
@@ -20,9 +21,9 @@ export function PasskeysSection() {
 
   if (!browserSupportsWebAuthn()) {
     return (
-      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 mt-6">
-        <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-          <KeyRound className="w-5 h-5" />
+      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+        <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+          <KeyRound className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
           {t("settings.passkeys.title")}
         </h2>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -54,9 +55,9 @@ export function PasskeysSection() {
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 mt-6">
-      <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-        <KeyRound className="w-5 h-5" />
+    <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+      <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+        <KeyRound className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
         {t("settings.passkeys.title")}
       </h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-6 text-sm">
@@ -71,16 +72,16 @@ export function PasskeysSection() {
           placeholder={t("settings.passkeys.namePlaceholder")}
           className="flex-1 px-3 py-2 text-sm rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-        <button
+        <Button
           onClick={handleRegister}
           disabled={register.isPending}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 transition-colors"
+          className="gap-2"
         >
           <Plus className="w-4 h-4" />
           {register.isPending
             ? t("settings.passkeys.registering")
             : t("settings.passkeys.addPasskey")}
-        </button>
+        </Button>
       </div>
 
       {isLoading ? (

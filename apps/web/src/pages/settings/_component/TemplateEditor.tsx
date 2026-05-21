@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUpdateExternalNotificationTemplate } from "@/pages/settings/useExternalNotifications";
 import { queryKeys } from "@/lib/queryKeys";
@@ -188,21 +189,13 @@ export function TemplateEditor({
       </div>
 
       <div className="flex items-center space-x-2">
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-        >
+        <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? t("common.loading") : t("common.save")}
-        </button>
+        </Button>
         {onCancel && (
-          <button
-            onClick={onCancel}
-            disabled={isSaving}
-            className="px-4 py-2 bg-neutral-200 dark:bg-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-500 transition-colors text-sm font-medium"
-          >
+          <Button variant="secondary" onClick={onCancel} disabled={isSaving}>
             {t("common.cancel")}
-          </button>
+          </Button>
         )}
       </div>
 

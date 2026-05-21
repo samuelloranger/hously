@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useRemoveFromLibrary } from "@/features/medias/hooks/useRemoveFromLibrary";
 import { useRetrySkippedMedia } from "@/features/medias/hooks/useRetrySkippedMedia";
 import { useToggleMediaMonitored } from "@/features/medias/hooks/useToggleMediaMonitored";
+import { Button } from "@/components/ui/button";
 import { Card } from "./LibrarySharedUI";
 
 interface LibraryActionsSectionProps {
@@ -46,8 +47,10 @@ export function LibraryActionsSection({
             {t("library.management.deleteFilesLabel")}
           </label>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="destructive"
+              size="sm"
               disabled={removeMutation.isPending}
               onClick={async () => {
                 try {
@@ -60,20 +63,21 @@ export function LibraryActionsSection({
                   // mutation error handled by hook
                 }
               }}
-              className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-red-500 disabled:opacity-50 transition-colors"
+              className="gap-1"
             >
               <Trash2 size={10} />
               {removeMutation.isPending
                 ? t("library.management.deleting")
                 : t("library.management.deleteConfirm")}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setDeleteConfirm("idle")}
-              className="rounded-lg px-3 py-1.5 text-[11px] font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
               {t("common.cancel")}
-            </button>
+            </Button>
           </div>
         </div>
       </Card>
@@ -81,7 +85,7 @@ export function LibraryActionsSection({
   }
 
   return (
-    <div className="flex items-center justify-end gap-2 px-1">
+    <div className="flex items-center justify-end gap-2 px-4 py-2">
       <button
         type="button"
         title={
@@ -95,7 +99,7 @@ export function LibraryActionsSection({
             .mutateAsync({ id: libraryId, monitored: !itemMonitored })
             .catch(() => toast.error(t("library.management.grabFailed")));
         }}
-        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50 transition-colors"
       >
         {itemMonitored ? <Eye size={11} /> : <EyeOff size={11} />}
         {itemMonitored
@@ -115,7 +119,7 @@ export function LibraryActionsSection({
               )
               .catch(() => toast.error(t("library.management.grabFailed")));
           }}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 disabled:opacity-50 transition-colors"
         >
           <RefreshCw size={11} />
           {t("library.management.retrySearch")}
@@ -124,7 +128,7 @@ export function LibraryActionsSection({
       <button
         type="button"
         onClick={() => setDeleteConfirm("confirm")}
-        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
       >
         <Trash2 size={11} />
         {t("library.management.delete")}

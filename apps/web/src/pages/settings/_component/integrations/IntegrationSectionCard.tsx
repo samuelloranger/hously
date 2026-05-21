@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Check } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 
 interface IntegrationSectionCardProps {
   children: ReactNode;
@@ -60,12 +61,12 @@ export function IntegrationSectionCard({
   return (
     <div
       className={cn(
-        "bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700",
+        "bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700",
         className,
       )}
     >
       {/* Header — always visible */}
-      <div className="flex items-center gap-3 p-5">
+      <div className="flex items-center gap-3 p-6">
         <button
           type="button"
           onClick={() => setIsOpen((o) => !o)}
@@ -121,7 +122,7 @@ export function IntegrationSectionCard({
 
       {/* Expandable content */}
       {isOpen && (
-        <div className="border-t border-neutral-200 dark:border-neutral-700 p-5 pt-4">
+        <div className="border-t border-neutral-200 dark:border-neutral-700 p-6 pt-4">
           <div className="space-y-4">{children}</div>
 
           <div className="mt-6 flex items-center gap-3">
@@ -131,23 +132,21 @@ export function IntegrationSectionCard({
               </span>
             )}
             <div className="flex items-center gap-3 ml-auto">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={onCancel}
                 disabled={isBusy}
-                className="px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-sm font-medium transition-colors disabled:opacity-50"
               >
                 {t("common.cancel")}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={onSave}
                 disabled={isBusy}
                 className={cn(
-                  "px-4 py-2 rounded-lg text-white text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2",
-                  saveSuccess
-                    ? "bg-green-600"
-                    : "bg-primary-600 hover:bg-primary-700",
+                  "gap-2",
+                  saveSuccess ? "bg-green-600 hover:bg-green-700" : "",
                 )}
               >
                 {saveSuccess ? (
@@ -160,7 +159,7 @@ export function IntegrationSectionCard({
                 ) : (
                   t("settings.integrations.save")
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AlertCircle, CheckCircle2, Download, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useStartMigration } from "@/features/medias/hooks/useStartMigration";
 import { useMigrateStatus } from "@/features/medias/hooks/useMigrateStatus";
 import { queryKeys } from "@/lib/queryKeys";
@@ -126,14 +127,15 @@ export function ArrLibraryImportPanel() {
               </p>
               <div className="flex rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
                 {(["both", "radarr", "sonarr"] as const).map((s) => (
-                  <button
+                  <Button
                     key={s}
                     type="button"
                     onClick={() => setSource(s)}
+                    size="sm"
                     className={cn(
-                      "flex-1 px-3 py-1.5 text-xs font-medium transition-colors capitalize",
+                      "flex-1 rounded-none text-xs capitalize",
                       source === s
-                        ? "bg-primary-600 text-white"
+                        ? "bg-primary-600 text-white hover:bg-primary-700"
                         : "bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800",
                     )}
                   >
@@ -142,7 +144,7 @@ export function ArrLibraryImportPanel() {
                       : s === "radarr"
                         ? t("settings.arrImport.serviceRadarr")
                         : t("settings.arrImport.serviceSonarr")}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -191,16 +193,16 @@ export function ArrLibraryImportPanel() {
               </div>
             )}
 
-            <button
+            <Button
               type="button"
               onClick={() => void handleStart()}
               disabled={startMigration.isPending || !canStart}
-              className="w-full rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white text-xs font-semibold py-2.5 transition-colors"
+              className="w-full"
             >
               {startMigration.isPending
                 ? t("settings.arrImport.starting")
                 : t("settings.arrImport.startImport")}
-            </button>
+            </Button>
           </div>
         )}
 
@@ -220,13 +222,13 @@ export function ArrLibraryImportPanel() {
             <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 px-3 py-2 text-xs text-red-700 dark:text-red-400">
               {status.error ?? t("settings.arrImport.importFailedUnknown")}
             </div>
-            <button
+            <Button
               type="button"
               onClick={() => void handleStart()}
-              className="w-full rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold py-2.5 transition-colors"
+              className="w-full"
             >
               {t("settings.arrImport.retry")}
-            </button>
+            </Button>
           </div>
         )}
 

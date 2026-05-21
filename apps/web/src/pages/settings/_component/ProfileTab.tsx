@@ -12,7 +12,7 @@ export function ProfileTab() {
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-left-4 duration-300 space-y-6"
+      className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6"
       key="profile-tab"
     >
       <SettingsPageHeader
@@ -26,7 +26,7 @@ export function ProfileTab() {
       <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Monitor size={16} className="text-neutral-500" />
-          <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+          <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             Navigation
           </h3>
         </div>

@@ -27,7 +27,7 @@ export function IntegrationsTab() {
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-4"
+      className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6"
       key="integrations-tab"
     >
       <SettingsPageHeader

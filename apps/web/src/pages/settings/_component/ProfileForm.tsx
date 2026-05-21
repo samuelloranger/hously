@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import ReactCrop, {
@@ -355,15 +356,15 @@ export function ProfileForm() {
         </div>
 
         {/* Submit Button */}
-        <button
+        <Button
           type="submit"
           disabled={updateProfileMutation.isPending}
-          className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+          className="w-full"
         >
           {updateProfileMutation.isPending
             ? t("settings.profile.saving")
             : t("settings.profile.saveChanges")}
-        </button>
+        </Button>
       </form>
 
       {/* Divider */}
@@ -464,15 +465,15 @@ export function ProfileForm() {
         </div>
 
         {/* Submit Button */}
-        <button
+        <Button
           type="submit"
           disabled={changePasswordMutation.isPending}
-          className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+          className="w-full"
         >
           {changePasswordMutation.isPending
             ? t("settings.profile.saving")
             : t("settings.profile.updatePassword") || "Update Password"}
-        </button>
+        </Button>
       </form>
 
       <Dialog
@@ -505,24 +506,23 @@ export function ProfileForm() {
             </div>
           )}
           <div className="flex gap-2 justify-end">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onCropCancel}
               disabled={uploadAvatarMutation.isPending}
-              className="px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-50"
             >
               {t("settings.profile.cancelCrop")}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={onCropApply}
               disabled={uploadAvatarMutation.isPending || !completedCrop}
-              className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
             >
               {uploadAvatarMutation.isPending
                 ? t("settings.profile.uploading")
                 : t("settings.profile.applyCrop")}
-            </button>
+            </Button>
           </div>
         </div>
       </Dialog>
