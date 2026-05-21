@@ -87,7 +87,7 @@ export function JobsTab() {
             {/* Queue Overview */}
             {scheduledJobsData?.queues && (
               <section>
-                <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
                   {t("settings.jobs.queues.title")}
                 </h3>
                 <div className="space-y-2">
@@ -101,7 +101,7 @@ export function JobsTab() {
             {/* Scheduled Jobs */}
             {scheduledJobsData?.jobs?.length ? (
               <section>
-                <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
                   Scheduled Jobs
                 </h3>
                 <div className="space-y-3">
@@ -132,7 +132,7 @@ export function JobsTab() {
                               </h4>
                               {job.status && (
                                 <span
-                                  className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-full ${getStatusColor(job.status)}`}
+                                  className={`text-xs uppercase font-bold px-1.5 py-0.5 rounded-full ${getStatusColor(job.status)}`}
                                 >
                                   {job.status}
                                 </span>
@@ -194,7 +194,7 @@ export function JobsTab() {
       {/* Job History */}
       {historyData?.jobs && historyData.jobs.length > 0 && (
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+          <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
             {t("settings.jobs.history.title")}
           </h3>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">

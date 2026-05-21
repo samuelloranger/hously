@@ -40,7 +40,7 @@ function ReleaseRow({ release }: { release: GitHubRelease }) {
   const body = useMemo(() => release.body?.trim() ?? "", [release.body]);
 
   return (
-    <article className="min-w-0 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <article className="min-w-0 rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-700 dark:bg-neutral-800">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -166,7 +166,7 @@ export function ReleasesTab() {
         }
       />
 
-      <div className="min-w-0 rounded-lg border border-neutral-200 bg-white p-4 text-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="min-w-0 rounded-xl border border-neutral-200 bg-white p-4 text-sm dark:border-neutral-700 dark:bg-neutral-800">
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase text-neutral-500 dark:text-neutral-400">

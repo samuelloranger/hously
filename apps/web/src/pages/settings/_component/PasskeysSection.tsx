@@ -20,9 +20,9 @@ export function PasskeysSection() {
 
   if (!browserSupportsWebAuthn()) {
     return (
-      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 mt-6">
-        <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-          <KeyRound className="w-5 h-5" />
+      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+        <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+          <KeyRound className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
           {t("settings.passkeys.title")}
         </h2>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -54,9 +54,9 @@ export function PasskeysSection() {
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 mt-6">
-      <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-        <KeyRound className="w-5 h-5" />
+    <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+      <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+        <KeyRound className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
         {t("settings.passkeys.title")}
       </h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-6 text-sm">

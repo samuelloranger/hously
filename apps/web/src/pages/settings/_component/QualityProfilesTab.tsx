@@ -110,17 +110,17 @@ export function QualityProfilesTab() {
                       <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                         {p.name}
                       </p>
-                      <span className="rounded-md bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-neutral-600 dark:text-neutral-300">
+                      <span className="rounded-md bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 text-xs font-semibold tracking-wide text-neutral-600 dark:text-neutral-300">
                         {p.min_resolution}p
                         {p.cutoff_resolution ? `→${p.cutoff_resolution}p` : ""}
                       </span>
                       {p.require_hdr && (
-                        <span className="rounded-md bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+                        <span className="rounded-md bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
                           {t("settings.qualityProfiles.hdrRequired")}
                         </span>
                       )}
                       {!p.require_hdr && p.prefer_hdr && (
-                        <span className="rounded-md bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                        <span className="rounded-md bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
                           {t("settings.qualityProfiles.hdrPreferred")}
                         </span>
                       )}
@@ -129,7 +129,7 @@ export function QualityProfilesTab() {
                       {p.preferred_sources.map((s) => (
                         <span
                           key={s}
-                          className="rounded-md bg-primary-50 dark:bg-primary-500/10 px-1.5 py-0.5 text-[10px] font-medium text-primary-600 dark:text-primary-400"
+                          className="rounded-md bg-primary-50 dark:bg-primary-500/10 px-1.5 py-0.5 text-xs font-medium text-primary-600 dark:text-primary-400"
                         >
                           {s}
                         </span>
@@ -137,7 +137,7 @@ export function QualityProfilesTab() {
                       {p.preferred_codecs.map((c) => (
                         <span
                           key={c}
-                          className="rounded-md bg-sky-50 dark:bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-medium text-sky-600 dark:text-sky-400"
+                          className="rounded-md bg-sky-50 dark:bg-sky-500/10 px-1.5 py-0.5 text-xs font-medium text-sky-600 dark:text-sky-400"
                         >
                           {c}
                         </span>
@@ -145,14 +145,14 @@ export function QualityProfilesTab() {
                       {p.preferred_languages.map((l) => (
                         <span
                           key={l}
-                          className="rounded-md bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400"
+                          className="rounded-md bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400"
                         >
                           {LANGUAGE_OPTIONS.find((o) => o.value === l)?.label ??
                             l}
                         </span>
                       ))}
                       {p.max_size_gb != null && (
-                        <span className="rounded-md bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 dark:text-neutral-400">
+                        <span className="rounded-md bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 text-xs font-medium text-neutral-500 dark:text-neutral-400">
                           ≤ {p.max_size_gb} Go
                         </span>
                       )}

@@ -182,7 +182,7 @@ export function UsersTab() {
 
         {/* Users List */}
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+          <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
             {t("settings.users.listTitle")}
           </h2>
 
@@ -297,7 +297,7 @@ export function UsersTab() {
 
         {/* Pending Invitations */}
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+          <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
             {t("settings.users.pendingInvitations")}
           </h2>
 
@@ -396,7 +396,7 @@ export function UsersTab() {
 
         {/* Invite User Form */}
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
-          <h2 className="text-lg font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
+          <h2 className="text-base font-semibold mb-1.5 text-neutral-900 dark:text-neutral-100">
             {t("settings.users.inviteTitle")}
           </h2>
           <p className="text-neutral-600 dark:text-neutral-400 mb-6">

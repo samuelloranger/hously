@@ -60,7 +60,7 @@ export function CalendarTab() {
 
   return (
     <div
-      className="animate-in fade-in slide-in-from-left-4 duration-300 space-y-4"
+      className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6"
       key="calendar-tab"
     >
       <SettingsPageHeader
@@ -74,7 +74,7 @@ export function CalendarTab() {
           <div className="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center">
             <Link className="w-4.5 h-4.5 text-primary-600 dark:text-primary-400" />
           </div>
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+          <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
             {t("settings.calendar.subscription.title")}
           </h2>
         </div>

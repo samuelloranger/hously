@@ -60,12 +60,12 @@ export function IntegrationSectionCard({
   return (
     <div
       className={cn(
-        "bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700",
+        "bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700",
         className,
       )}
     >
       {/* Header — always visible */}
-      <div className="flex items-center gap-3 p-5">
+      <div className="flex items-center gap-3 p-6">
         <button
           type="button"
           onClick={() => setIsOpen((o) => !o)}
@@ -121,7 +121,7 @@ export function IntegrationSectionCard({
 
       {/* Expandable content */}
       {isOpen && (
-        <div className="border-t border-neutral-200 dark:border-neutral-700 p-5 pt-4">
+        <div className="border-t border-neutral-200 dark:border-neutral-700 p-6 pt-4">
           <div className="space-y-4">{children}</div>
 
           <div className="mt-6 flex items-center gap-3">

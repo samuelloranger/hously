@@ -224,7 +224,7 @@ export function NotificationsTab() {
                 <button
                   onClick={handleTestNotification}
                   disabled={loading}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {t("settings.notifications.sendTestNotification")}
                 </button>
@@ -324,7 +324,7 @@ export function NotificationsTab() {
                                     endpoint: string;
                                   }
                                 ).endpoint === device.endpoint && (
-                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400 uppercase tracking-wide flex-shrink-0">
+                                  <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400 uppercase tracking-wide flex-shrink-0">
                                     {t("settings.notifications.thisDevice")}
                                   </span>
                                 )}
