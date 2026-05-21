@@ -28,6 +28,7 @@ function makeMedia(overrides: Partial<LibraryMedia>): LibraryMedia {
     audio_format: null,
     duration_secs: null,
     language_tags: [],
+    overrides: {},
     episode_count: null,
     downloaded_episode_count: null,
     season_count: null,

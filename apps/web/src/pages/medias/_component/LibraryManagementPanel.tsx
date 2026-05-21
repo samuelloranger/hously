@@ -1,10 +1,13 @@
+import type { LibraryMedia } from "@hously/shared/types";
 import { LibraryQualityProfileSection } from "./LibraryQualityProfileSection";
 import { LibraryMediaSection } from "./LibraryMediaSection";
 import { LibraryDownloadHistorySection } from "./LibraryDownloadHistorySection";
 import { LibraryActionsSection } from "./LibraryActionsSection";
+import { LibraryInfoOverridesSection } from "./LibraryInfoOverridesSection";
 
 interface LibraryManagementPanelProps {
   libraryId: number;
+  item: LibraryMedia;
   itemStatus?: string;
   itemMonitored?: boolean;
   onDeleted?: () => void;
@@ -20,6 +23,7 @@ interface LibraryManagementPanelProps {
 
 export function LibraryManagementPanel({
   libraryId,
+  item,
   itemStatus,
   itemMonitored,
   onDeleted,
@@ -29,6 +33,7 @@ export function LibraryManagementPanel({
 }: LibraryManagementPanelProps) {
   return (
     <div className="p-4 space-y-4">
+      <LibraryInfoOverridesSection libraryId={libraryId} item={item} />
       <LibraryQualityProfileSection
         libraryId={libraryId}
         onUpgradeManualSearch={onUpgradeManualSearch}

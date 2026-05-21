@@ -608,6 +608,7 @@ model LibraryMedia {
   monitored             Boolean   @default(true)
   posterUrl             String?   @map("poster_url")
   overview              String?
+  overrides             Json?     @map("overrides")
   digitalReleaseDate    DateTime? @map("digital_release_date")
   qualityProfileId      Int?      @map("quality_profile_id")
   searchAttempts        Int       @default(0) @map("search_attempts")

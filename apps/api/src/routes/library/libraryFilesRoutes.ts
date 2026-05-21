@@ -301,6 +301,43 @@ export const libraryFilesRoutes = new Elysia()
     }
   })
 
+  // PATCH /api/library/files/:fileId — update editable file fields (e.g. release group)
+  .patch(
+    "/files/:fileId",
+    async ({ params, body, set }) => {
+      try {
+        const fileId = parseInt(params.fileId, 10);
+        if (!Number.isFinite(fileId)) return badRequest(set, "Invalid file id");
+
+        const file = await prisma.mediaFile.findUnique({
+          where: { id: fileId },
+        });
+        if (!file) return notFound(set, "File not found");
+
+        const updated = await prisma.mediaFile.update({
+          where: { id: fileId },
+          data: {
+            ...(body.release_group !== undefined
+              ? { releaseGroup: body.release_group }
+              : {}),
+          },
+        });
+
+        return {
+          id: updated.id,
+          release_group: updated.releaseGroup,
+        };
+      } catch {
+        return serverError(set, "Failed to update file");
+      }
+    },
+    {
+      body: t.Object({
+        release_group: t.Optional(t.Union([t.String(), t.Null()])),
+      }),
+    },
+  )
+
   // DELETE /api/library/files/:fileId — remove a single MediaFile record
   // ?delete_file=true also removes the physical file from disk
   .delete(

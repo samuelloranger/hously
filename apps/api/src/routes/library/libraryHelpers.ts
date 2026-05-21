@@ -40,6 +40,7 @@ export function mapLibraryMedia(item: {
   monitored: boolean;
   posterUrl: string | null;
   overview: string | null;
+  overrides?: unknown;
   digitalReleaseDate: Date | null;
   qualityProfileId: number | null;
   searchAttempts: number;
@@ -52,6 +53,9 @@ export function mapLibraryMedia(item: {
 }) {
   const files = item.files ?? [];
   const episodes = item.episodes ?? [];
+
+  // Parse the overrides JSON (Prisma returns it as unknown)
+  const ov = (item.overrides ?? {}) as Record<string, unknown>;
 
   // Pick the file with the highest resolution (falls back to first file)
   const bestFile = files.length
@@ -72,13 +76,16 @@ export function mapLibraryMedia(item: {
     id: item.id,
     tmdb_id: item.tmdbId,
     type: item.type,
-    title: item.title,
-    sort_title: item.sortTitle,
-    year: item.year,
+    title: typeof ov.title === "string" ? ov.title : item.title,
+    sort_title:
+      typeof ov.sort_title === "string" ? ov.sort_title : item.sortTitle,
+    year: typeof ov.year === "number" ? ov.year : item.year,
     status: item.status,
     monitored: item.monitored,
-    poster_url: item.posterUrl,
-    overview: item.overview,
+    poster_url:
+      typeof ov.poster_url === "string" ? ov.poster_url : item.posterUrl,
+    overview: typeof ov.overview === "string" ? ov.overview : item.overview,
+    overrides: ov,
     digital_release_date: item.digitalReleaseDate?.toISOString() ?? null,
     quality_profile_id: item.qualityProfileId,
     search_attempts: item.searchAttempts,

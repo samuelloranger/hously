@@ -97,6 +97,7 @@ export interface LibraryMedia {
   audio_format: string | null;
   duration_secs: number | null;
   language_tags: string[];
+  overrides?: Record<string, unknown>;
   // Show-specific
   episode_count: number | null;
   downloaded_episode_count: number | null;
