@@ -1,9 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { FolderTree } from "lucide-react";
 import { HouseLoader } from "@/components/HouseLoader";
 import { useMediaPostProcessingSettings } from "@/features/medias/hooks/useMediaPostProcessingSettings";
 import { useQualityProfilesList } from "@/pages/settings/useQualityProfiles";
-import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
 import { MediaPostProcessingSettingsBody } from "./MediaPostProcessingSettingsBody";
 
 export function MediaPostProcessingTab() {
@@ -38,18 +36,10 @@ export function MediaPostProcessingTab() {
   }
 
   return (
-    <div className="space-y-10">
-      <SettingsPageHeader
-        icon={FolderTree}
-        title={t("settings.mediaLibrary.title")}
-        description={t("settings.mediaLibrary.description")}
-      />
-
-      <MediaPostProcessingSettingsBody
-        key={settings.updated_at}
-        settings={settings}
-        profilesData={profilesData}
-      />
-    </div>
+    <MediaPostProcessingSettingsBody
+      key={settings.updated_at}
+      settings={settings}
+      profilesData={profilesData}
+    />
   );
 }
