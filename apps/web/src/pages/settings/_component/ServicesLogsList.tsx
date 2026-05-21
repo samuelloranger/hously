@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useExternalNotificationLogs } from "@/pages/settings/useExternalNotifications";
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -78,14 +79,15 @@ export function ServicesLogsList() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button
+        <Button
+          variant="secondary"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="gap-2"
         >
           <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
           {t("settings.externalNotifications.logs.refetch")}
-        </button>
+        </Button>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">

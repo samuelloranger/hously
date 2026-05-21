@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DatabaseBackup } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useExportData } from "@/pages/settings/useExportData";
 import { useImportData } from "@/pages/settings/useImportData";
 import { SettingsPageHeader } from "@/pages/settings/_component/SettingsPageHeader";
@@ -98,15 +99,11 @@ export function DataExportTab() {
               <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
                 {t("settings.dataExport.exportDescription")}
               </p>
-              <button
-                onClick={handleExport}
-                disabled={isExporting}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
+              <Button onClick={handleExport} disabled={isExporting}>
                 {isExporting
                   ? t("settings.dataExport.exporting")
                   : t("settings.dataExport.exportButton")}
-              </button>
+              </Button>
             </div>
 
             {/* Import Section */}
@@ -128,16 +125,15 @@ export function DataExportTab() {
                   disabled={isImporting}
                   className="w-full text-sm text-neutral-700 dark:text-neutral-200 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-100 dark:file:bg-neutral-700/50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-neutral-800 dark:file:text-neutral-100"
                 />
-                <button
+                <Button
                   type="button"
                   onClick={() => void handleImportSubmit()}
                   disabled={isImporting || !importFile}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isImporting
                     ? t("settings.dataExport.importing")
                     : t("settings.dataExport.importButton")}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Check, Copy } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { ExternalNotificationService } from "@hously/shared/types";
 interface ServiceCredentialsProps {
   service: ExternalNotificationService;
@@ -52,7 +53,8 @@ export function ServiceCredentials({
             readOnly
             className="flex-1 px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 font-mono text-sm"
           />
-          <button
+          <Button
+            variant="secondary"
             onClick={() =>
               copyToClipboard(
                 service.token!,
@@ -60,7 +62,7 @@ export function ServiceCredentials({
                 t("settings.externalNotifications.token"),
               )
             }
-            className="flex items-center gap-1.5 px-4 py-2 bg-neutral-200 dark:bg-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-500 transition-colors text-sm font-medium min-w-[80px] justify-center"
+            className="gap-1.5 min-w-[80px]"
           >
             {copied === "token" ? (
               <>
@@ -75,7 +77,7 @@ export function ServiceCredentials({
                 {t("settings.externalNotifications.copy")}
               </>
             )}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -92,7 +94,8 @@ export function ServiceCredentials({
               readOnly
               className="flex-1 px-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-neutral-900 dark:text-neutral-100 font-mono text-sm"
             />
-            <button
+            <Button
+              variant="secondary"
               onClick={() =>
                 copyToClipboard(
                   service.webhook_url!,
@@ -100,7 +103,7 @@ export function ServiceCredentials({
                   t("settings.externalNotifications.webhookUrl"),
                 )
               }
-              className="flex items-center gap-1.5 px-4 py-2 bg-neutral-200 dark:bg-neutral-600 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-500 transition-colors text-sm font-medium min-w-[80px] justify-center"
+              className="gap-1.5 min-w-[80px]"
             >
               {copied === "url" ? (
                 <>
@@ -115,20 +118,20 @@ export function ServiceCredentials({
                   {t("settings.externalNotifications.copy")}
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Regenerate Token Button */}
       <div>
-        <button
+        <Button
           onClick={onRegenerateToken}
           disabled={isLoading}
-          className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+          className="bg-yellow-600 hover:bg-yellow-700 text-white"
         >
           {t("settings.externalNotifications.regenerateToken")}
-        </button>
+        </Button>
       </div>
     </div>
   );

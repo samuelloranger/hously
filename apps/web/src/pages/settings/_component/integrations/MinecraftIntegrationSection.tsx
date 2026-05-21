@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { PencilIcon, PlusIcon, SignalIcon, TrashIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type {
   MinecraftCreateServerRequest,
@@ -184,21 +185,17 @@ function ServerDialog({
 
         {/* Actions */}
         <div className="flex justify-end gap-3 pt-2">
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={onClose}
             disabled={isPending}
-            className="px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-sm font-medium transition-colors disabled:opacity-50"
           >
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors disabled:opacity-50"
-          >
+          </Button>
+          <Button type="submit" disabled={isPending}>
             {isPending ? "Saving…" : isEdit ? "Save Changes" : "Add Server"}
-          </button>
+          </Button>
         </div>
       </form>
     </Dialog>
@@ -424,14 +421,15 @@ function MinecraftIntegrationSectionImpl({
           )}
 
           {/* Add server button */}
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-neutral-300 dark:border-neutral-600 text-sm text-neutral-600 dark:text-neutral-400 hover:border-primary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors w-full"
+            className="gap-2 w-full border-dashed border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-primary-400 hover:text-primary-600 dark:hover:text-primary-400"
           >
             <PlusIcon className="w-4 h-4" />
             Add Server
-          </button>
+          </Button>
         </div>
       </IntegrationSectionCard>
 

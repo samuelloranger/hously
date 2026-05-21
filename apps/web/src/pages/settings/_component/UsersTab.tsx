@@ -269,17 +269,18 @@ export function UsersTab() {
                               {t("settings.users.currentUser")}
                             </span>
                           ) : (
-                            <button
+                            <Button
+                              variant="destructive"
+                              size="sm"
                               onClick={() =>
                                 handleDeleteUser(user.id, user.email)
                               }
                               disabled={deleteMutation.isPending}
-                              className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {deleteMutation.isPending
                                 ? t("settings.users.deleting") || "Deleting..."
                                 : t("settings.users.delete") || "Delete"}
-                            </button>
+                            </Button>
                           )}
                         </td>
                       </tr>
@@ -347,39 +348,40 @@ export function UsersTab() {
                       <td className="py-3 px-4 text-sm text-right">
                         {inv.status === "pending" && (
                           <div className="flex gap-2 justify-end">
-                            <button
+                            <Button
+                              size="sm"
                               onClick={() => handleResendInvitation(inv.id)}
                               disabled={resendMutation.isPending}
-                              className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {resendMutation.isPending
                                 ? t("settings.users.resending") ||
                                   "Resending..."
                                 : t("settings.users.resend") || "Resend"}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
                               onClick={() =>
                                 handleRevokeInvitation(inv.id, inv.email)
                               }
                               disabled={revokeMutation.isPending}
-                              className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {revokeMutation.isPending
                                 ? t("settings.users.revoking") || "Revoking..."
                                 : t("settings.users.revoke") || "Revoke"}
-                            </button>
+                            </Button>
                           </div>
                         )}
                         {inv.status === "expired" && (
-                          <button
+                          <Button
+                            size="sm"
                             onClick={() => handleResendInvitation(inv.id)}
                             disabled={resendMutation.isPending}
-                            className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >
                             {resendMutation.isPending
                               ? t("settings.users.resending") || "Resending..."
                               : t("settings.users.resend") || "Resend"}
-                          </button>
+                          </Button>
                         )}
                       </td>
                     </tr>

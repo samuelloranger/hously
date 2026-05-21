@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { NotificationTemplate } from "@hously/shared/types";
+import { Button } from "@/components/ui/button";
 interface ServiceTemplateItemProps {
   template: NotificationTemplate;
   eventType: string;
@@ -48,12 +49,9 @@ export function ServiceTemplateItem({
               {template.body_template}
             </div>
           </div>
-          <button
-            onClick={onEdit}
-            className="ml-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
-          >
+          <Button onClick={onEdit} className="ml-4">
             {t("settings.externalNotifications.edit")}
-          </button>
+          </Button>
         </div>
       )}
     </div>

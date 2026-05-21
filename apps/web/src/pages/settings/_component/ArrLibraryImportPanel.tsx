@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AlertCircle, CheckCircle2, Download, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useStartMigration } from "@/features/medias/hooks/useStartMigration";
 import { useMigrateStatus } from "@/features/medias/hooks/useMigrateStatus";
 import { queryKeys } from "@/lib/queryKeys";
@@ -191,16 +192,16 @@ export function ArrLibraryImportPanel() {
               </div>
             )}
 
-            <button
+            <Button
               type="button"
               onClick={() => void handleStart()}
               disabled={startMigration.isPending || !canStart}
-              className="w-full rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white text-xs font-semibold py-2.5 transition-colors"
+              className="w-full"
             >
               {startMigration.isPending
                 ? t("settings.arrImport.starting")
                 : t("settings.arrImport.startImport")}
-            </button>
+            </Button>
           </div>
         )}
 
@@ -220,13 +221,13 @@ export function ArrLibraryImportPanel() {
             <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 px-3 py-2 text-xs text-red-700 dark:text-red-400">
               {status.error ?? t("settings.arrImport.importFailedUnknown")}
             </div>
-            <button
+            <Button
               type="button"
               onClick={() => void handleStart()}
-              className="w-full rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold py-2.5 transition-colors"
+              className="w-full"
             >
               {t("settings.arrImport.retry")}
-            </button>
+            </Button>
           </div>
         )}
 

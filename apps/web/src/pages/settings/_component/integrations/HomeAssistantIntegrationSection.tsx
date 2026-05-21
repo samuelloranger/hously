@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import { useHomeAssistantDiscoverEntities } from "@/pages/settings/useHomeAssistantDiscoverEntities";
 import { useHomeAssistantIntegration } from "@/pages/settings/useHomeAssistantIntegration";
 import { useUpdateHomeAssistantIntegration } from "@/pages/settings/useUpdateHomeAssistantIntegration";
@@ -169,16 +170,16 @@ function HomeAssistantIntegrationSectionImpl({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button
+          <Button
             type="button"
+            variant="secondary"
             disabled={discoverMutation.isPending || !enabled}
             onClick={() => void handleLoadDevices()}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-neutral-600 disabled:opacity-50"
           >
             {discoverMutation.isPending
               ? t("settings.integrations.homeAssistant.loadingDevices")
               : t("settings.integrations.homeAssistant.loadDevices")}
-          </button>
+          </Button>
         </div>
 
         <p className="text-xs text-neutral-500 dark:text-neutral-400">

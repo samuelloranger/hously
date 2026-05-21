@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Copy, KeyRound, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { OidcProvider } from "@hously/shared/types";
 import { Switch } from "@/components/ui/switch";
@@ -212,21 +213,12 @@ function ProviderForm({
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium rounded-lg border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-        >
+        <Button type="button" variant="outline" onClick={onCancel}>
           {t("settings.integrations.sso.cancel")}
-        </button>
-        <button
-          type="button"
-          onClick={() => onSave(form)}
-          disabled={saving}
-          className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 hover:bg-primary-700 text-white disabled:opacity-50 transition-colors"
-        >
+        </Button>
+        <Button type="button" onClick={() => onSave(form)} disabled={saving}>
           {t("settings.integrations.sso.saveProvider")}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -426,21 +418,23 @@ export function OidcProvidersTab() {
                   {t("settings.integrations.sso.deleteConfirmHelp")}
                 </p>
                 <div className="flex gap-2 mt-3">
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => setDeletingId(null)}
-                    className="px-3 py-1.5 text-sm rounded-lg border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-white dark:hover:bg-neutral-800 transition-colors"
                   >
                     {t("settings.integrations.sso.cancel")}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="destructive"
+                    size="sm"
                     onClick={() => handleDelete(provider)}
                     disabled={deleteMutation.isPending}
-                    className="px-3 py-1.5 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 transition-colors"
                   >
                     {t("settings.integrations.sso.delete")}
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -481,17 +475,18 @@ export function OidcProvidersTab() {
       )}
 
       {!adding && (
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={() => {
             setEditingId(null);
             setAdding(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-dashed border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-primary-400 hover:text-primary-600 dark:hover:border-primary-500 dark:hover:text-primary-400 transition-colors"
+          className="gap-2 border-dashed border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-primary-400 hover:text-primary-600 dark:hover:border-primary-500 dark:hover:text-primary-400"
         >
           <Plus className="size-4" />
           {t("settings.integrations.sso.addProvider")}
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -12,6 +12,7 @@ import {
   Link,
   CalendarDays,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   useICalToken,
   useGenerateICalToken,
@@ -97,10 +98,10 @@ export function CalendarTab() {
                 <div className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-neutral-50 dark:bg-neutral-700/50 border border-neutral-200 dark:border-neutral-600 text-sm text-neutral-700 dark:text-neutral-300 font-mono truncate">
                   {tokenData.url}
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={handleCopy}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-500/20 text-sm font-medium transition-colors shrink-0"
+                  className="gap-1.5 shrink-0 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-500/20"
                 >
                   {copied ? (
                     <>
@@ -113,7 +114,7 @@ export function CalendarTab() {
                       {t("settings.calendar.subscription.copy")}
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -138,32 +139,33 @@ export function CalendarTab() {
                   <span className="text-xs text-amber-600 dark:text-amber-400">
                     {t("settings.calendar.subscription.regenerateConfirm")}
                   </span>
-                  <button
+                  <Button
                     type="button"
                     onClick={handleGenerate}
                     disabled={generateToken.isPending}
-                    className="px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-500/20 text-sm font-medium transition-colors"
+                    className="bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-500/20"
                   >
                     {t("settings.calendar.subscription.regenerate")}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="secondary"
                     onClick={() => setConfirmRegenerate(false)}
-                    className="px-3 py-2 rounded-lg bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-600 text-sm font-medium transition-colors"
                   >
                     {t("settings.profile.cancel")}
-                  </button>
+                  </Button>
                 </div>
               ) : (
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
                   onClick={handleGenerate}
                   disabled={generateToken.isPending}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600 text-sm font-medium transition-colors"
+                  className="gap-1.5"
                 >
                   <RefreshCw className="w-4 h-4" />
                   {t("settings.calendar.subscription.regenerate")}
-                </button>
+                </Button>
               )}
 
               {confirmRevoke ? (
@@ -171,32 +173,32 @@ export function CalendarTab() {
                   <span className="text-xs text-red-600 dark:text-red-400">
                     {t("settings.calendar.subscription.revokeConfirm")}
                   </span>
-                  <button
+                  <Button
                     type="button"
                     onClick={handleRevoke}
                     disabled={revokeToken.isPending}
-                    className="px-3 py-2 rounded-lg bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/20 text-sm font-medium transition-colors"
+                    className="bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/20"
                   >
                     {t("settings.calendar.subscription.revoke")}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="secondary"
                     onClick={() => setConfirmRevoke(false)}
-                    className="px-3 py-2 rounded-lg bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-600 text-sm font-medium transition-colors"
                   >
                     {t("settings.profile.cancel")}
-                  </button>
+                  </Button>
                 </div>
               ) : (
-                <button
+                <Button
                   type="button"
                   onClick={handleRevoke}
                   disabled={revokeToken.isPending}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 text-sm font-medium transition-colors"
+                  className="gap-1.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20"
                 >
                   <Trash2 className="w-4 h-4" />
                   {t("settings.calendar.subscription.revoke")}
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -208,15 +210,15 @@ export function CalendarTab() {
             <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mb-4">
               {t("settings.calendar.subscription.description")}
             </p>
-            <button
+            <Button
               type="button"
               onClick={() => generateToken.mutate()}
               disabled={generateToken.isPending}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary-600 text-white hover:bg-primary-700 text-sm font-medium transition-colors disabled:opacity-50"
+              className="gap-2"
             >
               <Link className="w-4 h-4" />
               {t("settings.calendar.subscription.generate")}
-            </button>
+            </Button>
           </div>
         )}
       </div>

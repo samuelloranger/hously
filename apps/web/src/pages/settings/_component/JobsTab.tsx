@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { useScheduledJobs } from "@/pages/settings/useScheduledJobs";
 import { useTriggerAction } from "@/pages/settings/useTriggerAction";
 import { useLibraryHealth } from "@/pages/settings/useLibraryHealth";
@@ -158,14 +159,15 @@ export function JobsTab() {
                               )}
                             </div>
                           </div>
-                          <button
+                          <Button
+                            size="sm"
                             onClick={() => action && handleRun(action)}
                             disabled={
                               !action ||
                               executing !== null ||
                               job.status === "active"
                             }
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap text-sm shrink-0"
+                            className="gap-1.5 shrink-0"
                           >
                             {isRunning ? (
                               <Loader2 className="size-3.5 animate-spin" />
@@ -175,7 +177,7 @@ export function JobsTab() {
                             {isRunning
                               ? t("settings.jobs.running")
                               : t("settings.jobs.run")}
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     );

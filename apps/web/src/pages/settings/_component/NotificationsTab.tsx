@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNotifications } from "@/lib/notifications/useNotifications";
@@ -221,13 +222,13 @@ export function NotificationsTab() {
                 <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   {t("settings.notifications.testNotificationTitle")}
                 </h3>
-                <button
+                <Button
                   onClick={handleTestNotification}
                   disabled={loading}
-                  className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full"
                 >
                   {t("settings.notifications.sendTestNotification")}
-                </button>
+                </Button>
                 <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
                   {t("settings.notifications.testNotificationDescription")}
                 </p>
@@ -244,13 +245,12 @@ export function NotificationsTab() {
                   {t(`settings.notifications.status.${permission}`)}
                 </span>
                 {permission !== "granted" && (
-                  <button
+                  <Button
                     onClick={handleRequestPermission}
                     disabled={loading || permission === "denied"}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {t("settings.notifications.requestPermission")}
-                  </button>
+                  </Button>
                 )}
               </div>
               {permission === "denied" && (
@@ -274,21 +274,20 @@ export function NotificationsTab() {
                         : t("settings.notifications.notSubscribed")}
                     </span>
                     {subscription ? (
-                      <button
+                      <Button
+                        variant="destructive"
                         onClick={handleUnsubscribe}
                         disabled={loading}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         {t("settings.notifications.unsubscribe")}
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button
                         onClick={handleSubscribe}
                         disabled={loading || !isSupported}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         {t("settings.notifications.subscribe")}
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -353,14 +352,16 @@ export function NotificationsTab() {
                               </div>
                             )}
                           </div>
-                          <button
+                          <Button
+                            variant="destructive"
+                            size="sm"
                             onClick={() => handleDeleteDevice(device.id)}
                             disabled={loading}
-                            className="ml-4 px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="ml-4"
                             title={t("settings.notifications.deleteDevice")}
                           >
                             {t("settings.notifications.delete")}
-                          </button>
+                          </Button>
                         </div>
                       ))}
                     </div>

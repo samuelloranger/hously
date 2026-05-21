@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { MigrateJobResult } from "@hously/shared/types";
+import { Button } from "@/components/ui/button";
 
 interface ArrMigrationResultProps {
   result: MigrateJobResult;
@@ -59,13 +60,14 @@ export function ArrMigrationResult({
           )}
         </div>
       )}
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={onRunAgain}
-        className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 text-xs font-medium text-neutral-600 dark:text-neutral-400 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+        className="w-full"
       >
         {t("settings.arrImport.runAgain")}
-      </button>
+      </Button>
     </div>
   );
 }
