@@ -14,11 +14,47 @@ import type {
   MediaPostProcessingSettings,
   QualityProfilesListResponse,
 } from "@hously/shared/types";
-import { cn } from "@/lib/utils";
 
 interface MediaPostProcessingSettingsBodyProps {
   settings: MediaPostProcessingSettings;
   profilesData: QualityProfilesListResponse | undefined;
+}
+
+const SELECT_CLASS =
+  "w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40";
+
+const LABEL_CLASS =
+  "block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5";
+
+function CardSection({
+  title,
+  description,
+  children,
+  actions,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-100 dark:border-neutral-700/60 px-6 py-4">
+        <div>
+          <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            {title}
+          </h2>
+          {description && (
+            <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+              {description}
+            </p>
+          )}
+        </div>
+        {actions}
+      </div>
+      <div className="space-y-4 p-6">{children}</div>
+    </div>
+  );
 }
 
 export function MediaPostProcessingSettingsBody({
@@ -104,8 +140,12 @@ export function MediaPostProcessingSettingsBody({
   };
 
   return (
-    <div className="space-y-10">
-      <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/40 p-5 space-y-4">
+    <div className="space-y-4">
+      {/* ── Post-processing settings ─────────────────────────────────── */}
+      <CardSection
+        title={t("settings.mediaLibrary.title")}
+        description={t("settings.mediaLibrary.description")}
+      >
         <label className="flex items-center gap-2 text-sm font-medium text-neutral-800 dark:text-neutral-200">
           <input
             type="checkbox"
@@ -134,7 +174,7 @@ export function MediaPostProcessingSettingsBody({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1.5">
+          <label className={LABEL_CLASS}>
             {t("settings.mediaLibrary.fileOperation")}
           </label>
           <select
@@ -142,7 +182,7 @@ export function MediaPostProcessingSettingsBody({
             onChange={(e) =>
               setFileOperation(e.target.value as MediaFileOperation)
             }
-            className="w-full max-w-md rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+            className={SELECT_CLASS}
           >
             <option value="hardlink">
               {t("settings.mediaLibrary.hardlink")}
@@ -152,32 +192,26 @@ export function MediaPostProcessingSettingsBody({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1.5">
+          <label className={LABEL_CLASS}>
             {t("settings.mediaLibrary.movieTemplate")}
           </label>
           <textarea
             value={movieTemplate}
             onChange={(e) => setMovieTemplate(e.target.value)}
             rows={2}
-            className={cn(
-              "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-mono",
-              "dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100",
-            )}
+            className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm font-mono text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1.5">
+          <label className={LABEL_CLASS}>
             {t("settings.mediaLibrary.episodeTemplate")}
           </label>
           <textarea
             value={episodeTemplate}
             onChange={(e) => setEpisodeTemplate(e.target.value)}
             rows={2}
-            className={cn(
-              "w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-mono",
-              "dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100",
-            )}
+            className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm font-mono text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
           />
         </div>
 
@@ -191,7 +225,7 @@ export function MediaPostProcessingSettingsBody({
         />
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          <label className={LABEL_CLASS}>
             {t("settings.mediaLibrary.activeIndexerManager")}
           </label>
           {indexerOptions.length === 0 ? (
@@ -207,7 +241,7 @@ export function MediaPostProcessingSettingsBody({
                   val === "prowlarr" || val === "jackett" ? val : null,
                 );
               }}
-              className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white"
+              className={SELECT_CLASS}
             >
               <option value="">
                 {t("settings.mediaLibrary.noIndexerSelected")}
@@ -222,7 +256,7 @@ export function MediaPostProcessingSettingsBody({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1.5">
+          <label className={LABEL_CLASS}>
             {t("settings.mediaLibrary.defaultQualityProfile")}
           </label>
           <select
@@ -231,7 +265,7 @@ export function MediaPostProcessingSettingsBody({
               const v = e.target.value;
               setDefaultQualityProfileId(v === "" ? null : parseInt(v, 10));
             }}
-            className="w-full max-w-md rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+            className={SELECT_CLASS}
           >
             <option value="">
               {t("settings.mediaLibrary.defaultQualityProfileNone")}
@@ -242,29 +276,29 @@ export function MediaPostProcessingSettingsBody({
               </option>
             ))}
           </select>
-          <p className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400">
+          <p className="mt-1.5 text-xs text-neutral-500 dark:text-neutral-400">
             {t("settings.mediaLibrary.defaultQualityProfileHint")}
           </p>
         </div>
 
-        <Button
-          type="button"
-          onClick={() => void onSave()}
-          disabled={updateMut.isPending}
-        >
-          {updateMut.isPending
-            ? t("settings.mediaLibrary.saving")
-            : t("settings.mediaLibrary.save")}
-        </Button>
-      </section>
+        <div className="pt-2 border-t border-neutral-100 dark:border-neutral-700/60">
+          <Button
+            type="button"
+            onClick={() => void onSave()}
+            disabled={updateMut.isPending}
+          >
+            {updateMut.isPending
+              ? t("settings.mediaLibrary.saving")
+              : t("settings.mediaLibrary.save")}
+          </Button>
+        </div>
+      </CardSection>
 
-      <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/40 p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-          {t("settings.mediaLibrary.scanTitle")}
-        </h3>
-        <p className="text-xs text-neutral-600 dark:text-neutral-400">
-          {t("settings.mediaLibrary.scanDescription")}
-        </p>
+      {/* ── Library scan ─────────────────────────────────────────────── */}
+      <CardSection
+        title={t("settings.mediaLibrary.scanTitle")}
+        description={t("settings.mediaLibrary.scanDescription")}
+      >
         <FormInput
           label={t("settings.mediaLibrary.scanPath")}
           value={scanPath}
@@ -273,7 +307,7 @@ export function MediaPostProcessingSettingsBody({
           className="font-mono text-xs"
         />
         <div>
-          <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1.5">
+          <label className={LABEL_CLASS}>
             {t("settings.mediaLibrary.scanType")}
           </label>
           <select
@@ -281,7 +315,7 @@ export function MediaPostProcessingSettingsBody({
             onChange={(e) =>
               setScanType(e.target.value === "show" ? "show" : "movie")
             }
-            className="w-full max-w-md rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+            className={SELECT_CLASS}
           >
             <option value="movie">
               {t("settings.mediaLibrary.scanMovies")}
@@ -300,20 +334,21 @@ export function MediaPostProcessingSettingsBody({
             : t("settings.mediaLibrary.scanRun")}
         </Button>
         {lastScan && lastScan.unmatched.length > 0 && (
-          <div className="text-xs text-neutral-600 dark:text-neutral-400">
-            <p className="font-medium text-neutral-800 dark:text-neutral-200 mb-1">
+          <div className="rounded-lg border border-neutral-100 dark:border-neutral-700/60 bg-neutral-50 dark:bg-neutral-900/40 p-3 text-xs text-neutral-600 dark:text-neutral-400">
+            <p className="font-medium text-neutral-800 dark:text-neutral-200 mb-1.5">
               {t("settings.mediaLibrary.scanUnmatched")} (
               {lastScan.unmatched.length})
             </p>
-            <ul className="list-disc pl-4 max-h-40 overflow-y-auto font-mono">
+            <ul className="list-disc pl-4 max-h-40 overflow-y-auto font-mono space-y-0.5">
               {lastScan.unmatched.map((u) => (
                 <li key={u}>{u}</li>
               ))}
             </ul>
           </div>
         )}
-      </section>
+      </CardSection>
 
+      {/* ── Reindex languages ────────────────────────────────────────── */}
       <ReindexLanguagesSection />
     </div>
   );
@@ -334,34 +369,38 @@ function ReindexLanguagesSection() {
   };
 
   return (
-    <section className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/40 p-5 space-y-4">
-      <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-        {t("medias.library.reindexLanguagesButton")}
-      </h3>
-      <Button
-        type="button"
-        variant="secondary"
-        onClick={() => void onStart()}
-        disabled={isRunning || reindexMut.isPending}
-      >
-        {isRunning && status?.progress
-          ? t("medias.library.reindexLanguagesRunning", {
-              current: status.progress.current,
-              total: status.progress.total,
-            })
-          : t("medias.library.reindexLanguagesButton")}
-      </Button>
-      {status?.state === "completed" && status.result && (
-        <p className="text-xs text-neutral-600 dark:text-neutral-400">
-          {t("medias.library.reindexLanguagesDone", {
-            updated: status.result.updated,
-            errors: status.result.errors,
-          })}
-        </p>
-      )}
-      {status?.state === "failed" && status.error && (
-        <p className="text-xs text-red-600 dark:text-red-400">{status.error}</p>
-      )}
-    </section>
+    <div className="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
+      <div className="border-b border-neutral-100 dark:border-neutral-700/60 px-6 py-4">
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          {t("medias.library.reindexLanguagesButton")}
+        </h2>
+      </div>
+      <div className="space-y-3 p-6">
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => void onStart()}
+          disabled={isRunning || reindexMut.isPending}
+        >
+          {isRunning && status?.progress
+            ? t("medias.library.reindexLanguagesRunning", {
+                current: status.progress.current,
+                total: status.progress.total,
+              })
+            : t("medias.library.reindexLanguagesButton")}
+        </Button>
+        {status?.state === "completed" && status.result && (
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            {t("medias.library.reindexLanguagesDone", {
+              updated: status.result.updated,
+              errors: status.result.errors,
+            })}
+          </p>
+        )}
+        {status?.state === "failed" && status.error && (
+          <p className="text-xs text-red-600 dark:text-red-400">{status.error}</p>
+        )}
+      </div>
+    </div>
   );
 }
