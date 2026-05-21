@@ -188,6 +188,18 @@ function parseChannelsLayout(n: number): string {
   return `${n}ch`;
 }
 
+function fileQualityScore(f: {
+  resolution?: number | null;
+  hdrFormat?: string | null;
+  bitDepth?: number | null;
+}): number {
+  return (
+    (f.resolution ?? 0) * 10 +
+    (f.hdrFormat ? 1000 : 0) +
+    ((f.bitDepth ?? 8) >= 10 ? 100 : 0)
+  );
+}
+
 /**
  * Build audio tracks from Radarr/Sonarr flat mediaInfo fields + filename flags.
  * If `arrLanguages` is provided (movieFile.languages[]), use it as source of truth.
@@ -357,14 +369,6 @@ export async function processLibraryMigrateJob(
 
   const push = async () => job.updateProgress(progress as unknown as object);
 
-  // ── Clear existing data for the selected source ────────────────────────────
-  if (source === "radarr" || source === "both") {
-    await prisma.libraryMedia.deleteMany({ where: { type: "movie" } });
-  }
-  if (source === "sonarr" || source === "both") {
-    await prisma.libraryMedia.deleteMany({ where: { type: "show" } });
-  }
-
   // ── Radarr ─────────────────────────────────────────────────────────────────
   if (source === "radarr" || source === "both") {
     const radarrErrors: string[] = [];
@@ -475,7 +479,12 @@ export async function processLibraryMigrateJob(
 
               const existingFile = await prisma.mediaFile.findFirst({
                 where: { mediaId: mediaRow.id },
-                select: { id: true },
+                select: {
+                  id: true,
+                  resolution: true,
+                  hdrFormat: true,
+                  bitDepth: true,
+                },
               });
 
               // Always scan — rescan updates existing records with fresh MediaInfo data
@@ -508,10 +517,14 @@ export async function processLibraryMigrateJob(
                   ),
                 };
                 if (existingFile) {
-                  await prisma.mediaFile.update({
-                    where: { id: existingFile.id },
-                    data: miData,
-                  });
+                  if (
+                    fileQualityScore(miData) >= fileQualityScore(existingFile)
+                  ) {
+                    await prisma.mediaFile.update({
+                      where: { id: existingFile.id },
+                      data: miData,
+                    });
+                  }
                 } else {
                   await prisma.mediaFile.create({
                     data: { mediaId: mediaRow.id, ...miData },
@@ -547,10 +560,14 @@ export async function processLibraryMigrateJob(
                   ),
                 };
                 if (existingFile) {
-                  await prisma.mediaFile.update({
-                    where: { id: existingFile.id },
-                    data: arrData,
-                  });
+                  if (
+                    fileQualityScore(arrData) >= fileQualityScore(existingFile)
+                  ) {
+                    await prisma.mediaFile.update({
+                      where: { id: existingFile.id },
+                      data: arrData,
+                    });
+                  }
                 } else {
                   await prisma.mediaFile.create({
                     data: { mediaId: mediaRow.id, ...arrData },
@@ -749,9 +766,15 @@ export async function processLibraryMigrateJob(
 
                 const fnData = parseFilenameMetadata(fileName);
 
+                // Prefer episodeId as stable identity — filePath changes on Sonarr rename/move
                 const existingFile = await prisma.mediaFile.findFirst({
-                  where: { filePath },
-                  select: { id: true },
+                  where: epRow ? { episodeId: epRow.id } : { filePath },
+                  select: {
+                    id: true,
+                    resolution: true,
+                    hdrFormat: true,
+                    bitDepth: true,
+                  },
                 });
 
                 // Always scan — rescan updates existing records with fresh MediaInfo data
@@ -786,10 +809,14 @@ export async function processLibraryMigrateJob(
                     ),
                   };
                   if (existingFile) {
-                    await prisma.mediaFile.update({
-                      where: { id: existingFile.id },
-                      data: miData,
-                    });
+                    if (
+                      fileQualityScore(miData) >= fileQualityScore(existingFile)
+                    ) {
+                      await prisma.mediaFile.update({
+                        where: { id: existingFile.id },
+                        data: miData,
+                      });
+                    }
                   } else {
                     await prisma.mediaFile.create({ data: miData });
                   }
@@ -824,10 +851,15 @@ export async function processLibraryMigrateJob(
                     ),
                   };
                   if (existingFile) {
-                    await prisma.mediaFile.update({
-                      where: { id: existingFile.id },
-                      data: arrData,
-                    });
+                    if (
+                      fileQualityScore(arrData) >=
+                      fileQualityScore(existingFile)
+                    ) {
+                      await prisma.mediaFile.update({
+                        where: { id: existingFile.id },
+                        data: arrData,
+                      });
+                    }
                   } else {
                     await prisma.mediaFile.create({ data: arrData });
                   }
