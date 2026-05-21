@@ -33,6 +33,7 @@ import {
 } from "./InteractiveSearchFilters";
 import { ReleaseCard } from "./ReleaseCard";
 import { Button } from "@/components/ui/button";
+import { InteractiveSearchMobileDrawer } from "./InteractiveSearchMobileDrawer";
 
 export interface InteractiveSearchPanelProps {
   isActive: boolean;
@@ -115,6 +116,7 @@ export function InteractiveSearchPanel({
   );
   const [indexerWarningsDismissed, setIndexerWarningsDismissed] =
     useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const {
     filterQuery,
@@ -384,11 +386,83 @@ export function InteractiveSearchPanel({
 
   return (
     <div className="flex flex-col">
-      {/* ── Redesigned sticky search header ─────────────────────────── */}
+      {/* ─── Sticky search header ──────────────────────────────────────── */}
       <div className="sticky top-0 z-10 border-b border-neutral-200/80 bg-white/95 pb-3 pt-2 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-900/95">
-        <div className="flex flex-col gap-2.5">
+        {/* ── Mobile layout (< sm): search + toggles + drawer trigger ── */}
+        <div className="flex flex-col gap-2 sm:hidden">
+          <div className="relative">
+            <Search
+              size={14}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
+            />
+            <input
+              ref={searchInputRef}
+              value={filterQuery}
+              onChange={(event) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  filterQuery: event.target.value,
+                }))
+              }
+              placeholder={t("medias.interactive.filterPlaceholder")}
+              className="h-10 w-full rounded-xl border border-neutral-200 bg-neutral-50 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500"
+            />
+            {filterQuery && (
+              <button
+                type="button"
+                onClick={() =>
+                  setFilters((prev) => ({ ...prev, filterQuery: "" }))
+                }
+                className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-200"
+                aria-label={t("medias.interactive.clearSearch")}
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
 
-          {/* Season selector — shows only */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <Toggle
+                checked={hideRejected}
+                onChange={(v) =>
+                  setFilters((prev) => ({ ...prev, hideRejected: v }))
+                }
+                label={t("medias.interactive.hideRejected")}
+              />
+              <Toggle
+                checked={showPacksOnly}
+                onChange={(v) =>
+                  setFilters((prev) => ({ ...prev, showPacksOnly: v }))
+                }
+                label={t("medias.interactive.packsOnly")}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setMobileDrawerOpen(true)}
+              className={cn(
+                "relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors",
+                totalActiveFilters > 0 || selectedSeason != null
+                  ? "border-primary-400/50 bg-primary-50 text-primary-700 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-300"
+                  : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-white hover:text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
+              )}
+            >
+              <SlidersHorizontal size={13} />
+              {t("medias.interactive.filtersButton")}
+              {(totalActiveFilters > 0 || selectedSeason != null) && (
+                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-600 px-1 text-[9px] font-bold text-white">
+                  {totalActiveFilters + (selectedSeason != null ? 1 : 0)}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* ── Desktop layout (sm+): full inline toolbar ── */}
+        <div className="hidden sm:flex sm:flex-col sm:gap-2.5">
+          {/* Season selector */}
           {isShow && availableSeasons.length > 0 && (
             <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]">
               <span className="shrink-0 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
@@ -498,9 +572,7 @@ export function InteractiveSearchPanel({
               )}
             >
               <SlidersHorizontal size={13} />
-              <span className="hidden sm:inline">
-                {t("medias.interactive.filtersButton")}
-              </span>
+              {t("medias.interactive.filtersButton")}
               {totalActiveFilters > 0 && (
                 <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-600 px-1 text-[9px] font-bold text-white">
                   {totalActiveFilters}
@@ -605,7 +677,7 @@ export function InteractiveSearchPanel({
             </div>
           </div>
 
-          {/* Status strip: results count + search query badge */}
+          {/* Status strip */}
           {!needsSearchQuery && (
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
               <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
@@ -749,6 +821,58 @@ export function InteractiveSearchPanel({
         </div>
       </div>
 
+      {/* Mobile bottom drawer — all controls except search + toggles */}
+      <InteractiveSearchMobileDrawer
+        open={mobileDrawerOpen}
+        onClose={() => setMobileDrawerOpen(false)}
+        isShow={isShow}
+        availableSeasons={availableSeasons}
+        selectedSeason={selectedSeason}
+        onSeasonChange={(s) =>
+          setFilters((prev) => ({ ...prev, selectedSeason: s }))
+        }
+        needsSearchQuery={needsSearchQuery}
+        visibleCount={visibleCount}
+        totalReleases={totalReleases}
+        hiddenCount={hiddenCount}
+        searchApiQuery={searchApiQuery}
+        canToggleSearchTitle={canToggleSearchTitle}
+        isOriginalTitleQuery={isOriginalTitleQuery}
+        onToggleSearchTitle={toggleSearchTitleVariant}
+        hasViewOverrides={hasViewOverrides}
+        onResetView={resetView}
+        isFetching={activeQuery.isFetching}
+        onRefetch={() => void activeQuery.refetch()}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        onSortByChange={(v) => setFilters((prev) => ({ ...prev, sortBy: v }))}
+        onToggleSortDir={() =>
+          setFilters((prev) => ({
+            ...prev,
+            sortDir: prev.sortDir === "asc" ? "desc" : "asc",
+          }))
+        }
+        totalActiveFilters={totalActiveFilters}
+        hasAdvancedFilters={hasAdvancedFilters}
+        onClearFilters={() =>
+          setFilters((prev) => ({
+            ...prev,
+            includedTrackers: [],
+            excludedTrackers: [],
+            includedLanguages: [],
+          }))
+        }
+        trackerOptions={trackerOptions}
+        includedTrackers={includedTrackers}
+        excludedTrackers={excludedTrackers}
+        onIncludedTrackersChange={handleIncludedTrackersChange}
+        onExcludedTrackersChange={handleExcludedTrackersChange}
+        languageOptions={languageOptions}
+        includedLanguages={includedLanguages}
+        onIncludedLanguagesChange={(values) =>
+          setFilters((prev) => ({ ...prev, includedLanguages: values }))
+        }
+      />
 
       {indexerWarnings.length > 0 && !indexerWarningsDismissed && (
         <div
