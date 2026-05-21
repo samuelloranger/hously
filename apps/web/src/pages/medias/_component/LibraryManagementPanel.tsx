@@ -28,7 +28,7 @@ export function LibraryManagementPanel({
   onUpgradeManualSearch,
 }: LibraryManagementPanelProps) {
   return (
-    <div className="px-3 pb-5 pt-2 space-y-3">
+    <div className="p-4 space-y-4">
       <LibraryQualityProfileSection
         libraryId={libraryId}
         onUpgradeManualSearch={onUpgradeManualSearch}

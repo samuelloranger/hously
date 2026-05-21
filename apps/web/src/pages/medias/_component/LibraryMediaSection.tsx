@@ -192,7 +192,7 @@ export function LibraryMediaSection({
                     <button
                       type="button"
                       onClick={() => toggleSeason(s.season)}
-                      className="flex flex-1 min-w-0 items-center gap-2.5 mobile-max:gap-3 px-3 py-3 mobile-max:px-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors text-left"
+                      className="flex flex-1 min-w-0 items-center gap-2.5 mobile-max:gap-3 px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors text-left"
                     >
                       <ChevronRight
                         size={14}

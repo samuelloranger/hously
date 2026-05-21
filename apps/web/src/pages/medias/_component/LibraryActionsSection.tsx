@@ -85,7 +85,7 @@ export function LibraryActionsSection({
   }
 
   return (
-    <div className="flex items-center justify-end gap-2 px-1">
+    <div className="flex items-center justify-end gap-2 px-4 py-2">
       <button
         type="button"
         title={
