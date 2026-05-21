@@ -154,7 +154,7 @@ export function ServicesLogsList() {
                       <CollapsibleTrigger asChild>
                         <Button
                           variant="link"
-                          className="gap-2 whitespace-nowrap min-w-[160px] h-auto p-0 text-blue-600 dark:text-blue-400 font-medium"
+                          className="gap-2 whitespace-nowrap min-w-[160px] h-auto p-0 font-medium"
                         >
                           {isOpen
                             ? t(

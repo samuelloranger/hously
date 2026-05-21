@@ -175,9 +175,9 @@ export function CalendarTab() {
                   </span>
                   <Button
                     type="button"
+                    variant="destructive"
                     onClick={handleRevoke}
                     disabled={revokeToken.isPending}
-                    className="bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/20"
                   >
                     {t("settings.calendar.subscription.revoke")}
                   </Button>
@@ -192,9 +192,10 @@ export function CalendarTab() {
               ) : (
                 <Button
                   type="button"
+                  variant="destructive"
                   onClick={handleRevoke}
                   disabled={revokeToken.isPending}
-                  className="gap-1.5 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20"
+                  className="gap-1.5"
                 >
                   <Trash2 className="w-4 h-4" />
                   {t("settings.calendar.subscription.revoke")}

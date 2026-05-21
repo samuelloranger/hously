@@ -266,7 +266,8 @@ export function SessionsTab() {
                               }
                               disabled={revokeUserSessions.isPending}
                               title={t("settings.sessions.revokeAll")}
-                              className="gap-1 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50"
+                              variant="destructive"
+                              className="gap-1"
                             >
                               <LogOut className="w-3 h-3" />
                               {t("settings.sessions.revokeAll")}
@@ -276,7 +277,8 @@ export function SessionsTab() {
                             size="sm"
                             onClick={() => handleRevokeSession(session.id)}
                             disabled={revokeSession.isPending}
-                            className="gap-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
+                            variant="destructive"
+                            className="gap-1"
                           >
                             <Trash2 className="w-3 h-3" />
                             {t("settings.sessions.revoke")}
@@ -376,7 +378,8 @@ export function SessionsTab() {
                           size="sm"
                           onClick={() => handleDeleteWebPush(sub.id)}
                           disabled={deleteWebPush.isPending}
-                          className="gap-1.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50"
+                          variant="destructive"
+                          className="gap-1.5"
                         >
                           <Trash2 className="w-3 h-3" />
                           {t("settings.sessions.delete")}
