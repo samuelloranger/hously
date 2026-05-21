@@ -127,14 +127,15 @@ export function ArrLibraryImportPanel() {
               </p>
               <div className="flex rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
                 {(["both", "radarr", "sonarr"] as const).map((s) => (
-                  <button
+                  <Button
                     key={s}
                     type="button"
                     onClick={() => setSource(s)}
+                    size="sm"
                     className={cn(
-                      "flex-1 px-3 py-1.5 text-xs font-medium transition-colors capitalize",
+                      "flex-1 rounded-none text-xs capitalize",
                       source === s
-                        ? "bg-primary-600 text-white"
+                        ? "bg-primary-600 text-white hover:bg-primary-700"
                         : "bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800",
                     )}
                   >
@@ -143,7 +144,7 @@ export function ArrLibraryImportPanel() {
                       : s === "radarr"
                         ? t("settings.arrImport.serviceRadarr")
                         : t("settings.arrImport.serviceSonarr")}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>

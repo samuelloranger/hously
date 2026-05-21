@@ -152,7 +152,10 @@ export function ServicesLogsList() {
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <CollapsibleTrigger asChild>
-                        <button className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline font-medium whitespace-nowrap min-w-[160px]">
+                        <Button
+                          variant="link"
+                          className="gap-2 whitespace-nowrap min-w-[160px] h-auto p-0 text-blue-600 dark:text-blue-400 font-medium"
+                        >
                           {isOpen
                             ? t(
                                 "settings.externalNotifications.logs.hidePayload",
@@ -166,7 +169,7 @@ export function ServicesLogsList() {
                               isOpen && "rotate-180",
                             )}
                           />
-                        </button>
+                        </Button>
                       </CollapsibleTrigger>
                     </td>
                   </tr>
