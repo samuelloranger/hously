@@ -6,9 +6,11 @@ import {
   ArrowUpZA,
   RefreshCw,
   Search,
+  SlidersHorizontal,
   TriangleAlert,
   X,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useInteractiveDownload } from "@/features/medias/hooks/useInteractiveDownload";
 import { useInteractiveSearch } from "@/features/medias/hooks/useInteractiveSearch";
 import { useLibraryGrabRelease } from "@/features/medias/hooks/useLibraryGrabRelease";
@@ -382,12 +384,14 @@ export function InteractiveSearchPanel({
 
   return (
     <div className="flex flex-col">
-      <div className="md:sticky md:top-0 md:z-10 border-b border-neutral-200 pt-1 pb-4 dark:border-neutral-700 bg-white dark:bg-neutral-900">
-        <div className="flex flex-col gap-3">
-          {/* Season pack search — shows only */}
+      {/* ── Redesigned sticky search header ─────────────────────────── */}
+      <div className="sticky top-0 z-10 border-b border-neutral-200/80 bg-white/95 pb-3 pt-2 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-900/95">
+        <div className="flex flex-col gap-2.5">
+
+          {/* Season selector — shows only */}
           {isShow && availableSeasons.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-neutral-500 dark:text-neutral-400 shrink-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]">
+              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
                 {t("medias.interactive.seasonSearch")}
               </span>
               <button
@@ -395,11 +399,12 @@ export function InteractiveSearchPanel({
                 onClick={() =>
                   setFilters((prev) => ({ ...prev, selectedSeason: null }))
                 }
-                className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+                className={cn(
+                  "shrink-0 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
                   selectedSeason === null
                     ? "bg-primary-600 text-white"
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                }`}
+                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
+                )}
               >
                 {t("medias.interactive.seasonAll")}
               </button>
@@ -413,11 +418,12 @@ export function InteractiveSearchPanel({
                       selectedSeason: prev.selectedSeason === s ? null : s,
                     }))
                   }
-                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+                  className={cn(
+                    "shrink-0 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
                     selectedSeason === s
                       ? "bg-primary-600 text-white"
-                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                  }`}
+                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
+                  )}
                 >
                   S{String(s).padStart(2, "0")}
                 </button>
@@ -431,21 +437,24 @@ export function InteractiveSearchPanel({
                       prev.selectedSeason === "complete" ? null : "complete",
                   }))
                 }
-                className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+                className={cn(
+                  "shrink-0 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
                   selectedSeason === "complete"
                     ? "bg-violet-600 text-white"
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                }`}
+                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
+                )}
               >
                 {t("medias.interactive.completeSeries")}
               </button>
             </div>
           )}
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+
+          {/* Search row: input + filter toggle + refresh */}
+          <div className="flex items-center gap-2">
             <div className="relative min-w-0 flex-1">
               <Search
                 size={14}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
               />
               <input
                 ref={searchInputRef}
@@ -457,7 +466,7 @@ export function InteractiveSearchPanel({
                   }))
                 }
                 placeholder={t("medias.interactive.filterPlaceholder")}
-                className="w-full rounded-xl border border-neutral-200 bg-white py-2 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                className="h-10 w-full rounded-xl border border-neutral-200 bg-neutral-50 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500"
               />
               {filterQuery && (
                 <button
@@ -465,37 +474,59 @@ export function InteractiveSearchPanel({
                   onClick={() =>
                     setFilters((prev) => ({ ...prev, filterQuery: "" }))
                   }
-                  className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+                  className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-200"
                   aria-label={t("medias.interactive.clearSearch")}
                 >
-                  <X size={14} />
+                  <X size={12} />
                 </button>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    showFilters: !prev.showFilters,
-                  }))
-                }
-                className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
-                  showFilters || hasAdvancedFilters
-                    ? "border-primary-500/40 bg-primary-50 text-primary-700 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-300"
-                    : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
-                }`}
-              >
+            <button
+              type="button"
+              onClick={() =>
+                setFilters((prev) => ({
+                  ...prev,
+                  showFilters: !prev.showFilters,
+                }))
+              }
+              className={cn(
+                "relative inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors",
+                showFilters || hasAdvancedFilters
+                  ? "border-primary-400/50 bg-primary-50 text-primary-700 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-300"
+                  : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-white hover:text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
+              )}
+            >
+              <SlidersHorizontal size={13} />
+              <span className="hidden sm:inline">
                 {t("medias.interactive.filtersButton")}
-                {totalActiveFilters > 0 && (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1.5 text-[10px] font-semibold text-white">
-                    {totalActiveFilters}
-                  </span>
-                )}
-              </button>
+              </span>
+              {totalActiveFilters > 0 && (
+                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-600 px-1 text-[9px] font-bold text-white">
+                  {totalActiveFilters}
+                </span>
+              )}
+            </button>
 
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => void activeQuery.refetch()}
+              disabled={activeQuery.isFetching || needsSearchQuery}
+              className="h-10 w-10 shrink-0 border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800"
+              title={t("medias.interactive.refresh")}
+            >
+              <RefreshCw
+                size={13}
+                className={activeQuery.isFetching ? "animate-spin" : ""}
+              />
+            </Button>
+          </div>
+
+          {/* Controls row: toggles left, sort controls right */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
               <Toggle
                 checked={hideRejected}
                 onChange={(v) =>
@@ -510,85 +541,9 @@ export function InteractiveSearchPanel({
                 }
                 label={t("medias.interactive.packsOnly")}
               />
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => void activeQuery.refetch()}
-                disabled={activeQuery.isFetching || needsSearchQuery}
-                className="gap-2"
-              >
-                <RefreshCw
-                  size={13}
-                  className={activeQuery.isFetching ? "animate-spin" : ""}
-                />
-                {t("medias.interactive.refresh")}
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-              {!needsSearchQuery && (
-                <span className="font-medium text-neutral-700 dark:text-neutral-200">
-                  {t("medias.interactive.resultsVisible", {
-                    visible: visibleCount,
-                    total: totalReleases,
-                  })}
-                </span>
-              )}
-              {!needsSearchQuery && hiddenCount > 0 && (
-                <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] dark:bg-neutral-800">
-                  {t("medias.interactive.hiddenCount", { count: hiddenCount })}
-                </span>
-              )}
-              <span className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] dark:bg-neutral-800 flex items-center gap-1 max-w-[min(100%,280px)]">
-                {canToggleSearchTitle ? (
-                  <button
-                    type="button"
-                    onClick={toggleSearchTitleVariant}
-                    title={
-                      isOriginalTitleQuery
-                        ? t("medias.interactive.useLocalizedTitleHint")
-                        : t("medias.interactive.useOriginalTitleHint")
-                    }
-                    className="flex min-w-0 flex-1 items-center gap-1 text-left transition-colors hover:bg-neutral-200/80 dark:hover:bg-neutral-700/80 rounded-md -mx-0.5 px-0.5"
-                  >
-                    <span className="text-neutral-400 shrink-0">Search:</span>
-                    <span
-                      className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                      title={searchApiQuery}
-                    >
-                      {searchApiQuery || "…"}
-                    </span>
-                    <span
-                      className={`shrink-0 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wide ${
-                        isOriginalTitleQuery
-                          ? "bg-amber-200/80 text-amber-900 dark:bg-amber-900/50 dark:text-amber-100"
-                          : "bg-primary-200/70 text-primary-900 dark:bg-primary-900/40 dark:text-primary-100"
-                      }`}
-                    >
-                      {isOriginalTitleQuery
-                        ? t("medias.interactive.titleBadgeOriginal")
-                        : t("medias.interactive.titleBadgeLocalized")}
-                    </span>
-                  </button>
-                ) : (
-                  <>
-                    <span className="text-neutral-400 shrink-0">Search:</span>
-                    <span
-                      className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                      title={searchApiQuery}
-                    >
-                      {searchApiQuery || "…"}
-                    </span>
-                  </>
-                )}
-              </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex shrink-0 items-center gap-1.5">
               {hasViewOverrides && (
                 <button
                   type="button"
@@ -598,11 +553,7 @@ export function InteractiveSearchPanel({
                   {t("medias.interactive.resetView")}
                 </button>
               )}
-
-              <div className="flex items-center gap-1.5">
-                <label className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {t("medias.interactive.sortLabel")}
-                </label>
+              <div className="flex items-center gap-1">
                 <select
                   value={sortBy}
                   onChange={(event) =>
@@ -611,7 +562,7 @@ export function InteractiveSearchPanel({
                       sortBy: event.target.value as InteractiveSortKey,
                     }))
                   }
-                  className="rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500/40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                  className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-xs text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
                 >
                   <option value="seeders">
                     {t("medias.interactive.sortOptions.seeders")}
@@ -637,7 +588,7 @@ export function InteractiveSearchPanel({
                       sortDir: prev.sortDir === "asc" ? "desc" : "asc",
                     }))
                   }
-                  className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-2 py-1.5 text-xs text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 text-neutral-600 transition-colors hover:bg-white hover:text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                   title={
                     sortDir === "asc"
                       ? t("medias.sortDirectionAsc")
@@ -654,8 +605,72 @@ export function InteractiveSearchPanel({
             </div>
           </div>
 
+          {/* Status strip: results count + search query badge */}
+          {!needsSearchQuery && (
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+                {t("medias.interactive.resultsVisible", {
+                  visible: visibleCount,
+                  total: totalReleases,
+                })}
+              </span>
+              {hiddenCount > 0 && (
+                <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+                  {t("medias.interactive.hiddenCount", {
+                    count: hiddenCount,
+                  })}
+                </span>
+              )}
+              <span className="flex min-w-0 max-w-[260px] items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] dark:bg-neutral-800">
+                {canToggleSearchTitle ? (
+                  <button
+                    type="button"
+                    onClick={toggleSearchTitleVariant}
+                    title={
+                      isOriginalTitleQuery
+                        ? t("medias.interactive.useLocalizedTitleHint")
+                        : t("medias.interactive.useOriginalTitleHint")
+                    }
+                    className="-mx-0.5 flex min-w-0 flex-1 items-center gap-1 rounded-md px-0.5 text-left transition-colors hover:bg-neutral-200/80 dark:hover:bg-neutral-700/80"
+                  >
+                    <span className="shrink-0 text-neutral-400">Search:</span>
+                    <span
+                      className="truncate font-medium text-neutral-700 dark:text-neutral-200"
+                      title={searchApiQuery}
+                    >
+                      {searchApiQuery || "…"}
+                    </span>
+                    <span
+                      className={cn(
+                        "shrink-0 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wide",
+                        isOriginalTitleQuery
+                          ? "bg-amber-200/80 text-amber-900 dark:bg-amber-900/50 dark:text-amber-100"
+                          : "bg-primary-200/70 text-primary-900 dark:bg-primary-900/40 dark:text-primary-100",
+                      )}
+                    >
+                      {isOriginalTitleQuery
+                        ? t("medias.interactive.titleBadgeOriginal")
+                        : t("medias.interactive.titleBadgeLocalized")}
+                    </span>
+                  </button>
+                ) : (
+                  <>
+                    <span className="shrink-0 text-neutral-400">Search:</span>
+                    <span
+                      className="truncate font-medium text-neutral-700 dark:text-neutral-200"
+                      title={searchApiQuery}
+                    >
+                      {searchApiQuery || "…"}
+                    </span>
+                  </>
+                )}
+              </span>
+            </div>
+          )}
+
+          {/* Advanced filters panel */}
           {showFilters && (
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 dark:border-neutral-700/80 dark:bg-neutral-900/50">
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 dark:border-neutral-700/80 dark:bg-neutral-800/50">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <p className="flex items-center gap-1.5 text-xs font-semibold text-neutral-700 dark:text-neutral-200">
                   {t("medias.interactive.filtersTitle")}
@@ -733,6 +748,7 @@ export function InteractiveSearchPanel({
           )}
         </div>
       </div>
+
 
       {indexerWarnings.length > 0 && !indexerWarningsDismissed && (
         <div
