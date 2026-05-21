@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowDownAZ, ArrowUpZA, RefreshCw, X } from "lucide-react";
+import { ArrowDownAZ, ArrowUpZA, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import type {
@@ -8,6 +8,7 @@ import type {
   InteractiveSortDir,
 } from "@/lib/utils/interactive-search";
 import {
+  Toggle,
   ChipMultiSelect,
   FilterSection,
   type FilterOption,
@@ -31,11 +32,13 @@ interface InteractiveSearchMobileDrawerProps {
   isOriginalTitleQuery: boolean;
   onToggleSearchTitle: () => void;
 
+  hideRejected: boolean;
+  onHideRejectedChange: (v: boolean) => void;
+  showPacksOnly: boolean;
+  onShowPacksOnlyChange: (v: boolean) => void;
+
   hasViewOverrides: boolean;
   onResetView: () => void;
-
-  isFetching: boolean;
-  onRefetch: () => void;
 
   sortBy: InteractiveSortKey;
   sortDir: InteractiveSortDir;
@@ -72,10 +75,12 @@ export function InteractiveSearchMobileDrawer({
   canToggleSearchTitle,
   isOriginalTitleQuery,
   onToggleSearchTitle,
+  hideRejected,
+  onHideRejectedChange,
+  showPacksOnly,
+  onShowPacksOnlyChange,
   hasViewOverrides,
   onResetView,
-  isFetching,
-  onRefetch,
   sortBy,
   sortDir,
   onSortByChange,
@@ -192,6 +197,20 @@ export function InteractiveSearchMobileDrawer({
 
             {/* Scrollable body */}
             <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
+              {/* Toggles */}
+              <section className="flex flex-col gap-1">
+                <Toggle
+                  checked={hideRejected}
+                  onChange={onHideRejectedChange}
+                  label={t("medias.interactive.hideRejected")}
+                />
+                <Toggle
+                  checked={showPacksOnly}
+                  onChange={onShowPacksOnlyChange}
+                  label={t("medias.interactive.packsOnly")}
+                />
+              </section>
+
               {/* Status strip */}
               {!needsSearchQuery && (
                 <section className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
@@ -445,18 +464,6 @@ export function InteractiveSearchMobileDrawer({
                 paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
               }}
             >
-              <button
-                type="button"
-                onClick={onRefetch}
-                disabled={isFetching}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-white dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-750 disabled:opacity-50"
-              >
-                <RefreshCw
-                  size={13}
-                  className={isFetching ? "animate-spin" : ""}
-                />
-                {t("medias.interactive.refresh")}
-              </button>
               {hasViewOverrides && (
                 <button
                   type="button"

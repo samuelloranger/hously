@@ -421,30 +421,31 @@ export function InteractiveSearchPanel({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <Toggle
-                checked={hideRejected}
-                onChange={(v) =>
-                  setFilters((prev) => ({ ...prev, hideRejected: v }))
-                }
-                label={t("medias.interactive.hideRejected")}
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => void activeQuery.refetch()}
+              disabled={activeQuery.isFetching || needsSearchQuery}
+              className="h-9 w-9 shrink-0 border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800"
+              title={t("medias.interactive.refresh")}
+            >
+              <RefreshCw
+                size={13}
+                className={activeQuery.isFetching ? "animate-spin" : ""}
               />
-              <Toggle
-                checked={showPacksOnly}
-                onChange={(v) =>
-                  setFilters((prev) => ({ ...prev, showPacksOnly: v }))
-                }
-                label={t("medias.interactive.packsOnly")}
-              />
-            </div>
+            </Button>
 
             <button
               type="button"
               onClick={() => setMobileDrawerOpen(true)}
               className={cn(
-                "relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors",
-                totalActiveFilters > 0 || selectedSeason != null
+                "relative inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors",
+                totalActiveFilters > 0 ||
+                  selectedSeason != null ||
+                  !hideRejected ||
+                  showPacksOnly
                   ? "border-primary-400/50 bg-primary-50 text-primary-700 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-300"
                   : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-white hover:text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
               )}
@@ -839,10 +840,16 @@ export function InteractiveSearchPanel({
         canToggleSearchTitle={canToggleSearchTitle}
         isOriginalTitleQuery={isOriginalTitleQuery}
         onToggleSearchTitle={toggleSearchTitleVariant}
+        hideRejected={hideRejected}
+        onHideRejectedChange={(v) =>
+          setFilters((prev) => ({ ...prev, hideRejected: v }))
+        }
+        showPacksOnly={showPacksOnly}
+        onShowPacksOnlyChange={(v) =>
+          setFilters((prev) => ({ ...prev, showPacksOnly: v }))
+        }
         hasViewOverrides={hasViewOverrides}
         onResetView={resetView}
-        isFetching={activeQuery.isFetching}
-        onRefetch={() => void activeQuery.refetch()}
         sortBy={sortBy}
         sortDir={sortDir}
         onSortByChange={(v) => setFilters((prev) => ({ ...prev, sortBy: v }))}
