@@ -24,6 +24,17 @@ type FileRecord = {
   fileName: string;
   releaseGroup: string | null;
   episodeId?: number | null;
+  source?: string | null;
+  videoCodec?: string | null;
+  resolution?: number | null;
+};
+
+type MediaSettingsRecord = {
+  moviesLibraryPath: string | null;
+  showsLibraryPath: string | null;
+  movieTemplate: string;
+  episodeTemplate: string;
+  fileOperation: string;
 };
 
 type State = {
@@ -35,7 +46,12 @@ type State = {
   episodeUpdateManyArgs: object | null;
   episodeUpdateManyCount: number;
   mediaUpdateArgs: object | null;
+  allMediaUpdateArgs: object[];
   enqueuedDhIds: number[]; // IDs passed to enqueueLibraryPostProcess
+  // discovery / rename
+  mediaSettings: MediaSettingsRecord | null;
+  createdFiles: object[];
+  activeDownloadCount: number;
 };
 
 const state: State = {
@@ -47,7 +63,11 @@ const state: State = {
   episodeUpdateManyArgs: null,
   episodeUpdateManyCount: 0,
   mediaUpdateArgs: null,
+  allMediaUpdateArgs: [],
   enqueuedDhIds: [],
+  mediaSettings: null,
+  createdFiles: [],
+  activeDownloadCount: 0,
 };
 
 // Files that exist on disk (by filePath) — stat will succeed for these
@@ -79,6 +99,12 @@ const scanMap: Record<string, MiResult | null> = {};
 // qBittorrent: hashes that are present AND completed
 const qbCompleteHashes: Set<string> = new Set();
 
+// readdir mock: maps remapped dir path → list of filenames
+const readdirMap: Record<string, string[]> = {};
+
+// rename mock: captures { from, to } for each fs.rename call
+const renameCaptures: Array<{ from: string; to: string }> = [];
+
 // ---------------------------------------------------------------------------
 // Mock modules — MUST be registered before importing the module under test
 // ---------------------------------------------------------------------------
@@ -97,6 +123,7 @@ mock.module("@hously/api/db", () => ({
         ),
       update: (args: object) => {
         state.mediaUpdateArgs = args;
+        state.allMediaUpdateArgs.push(args);
         return Promise.resolve(state.media);
       },
     },
@@ -105,6 +132,10 @@ mock.module("@hously/api/db", () => ({
       update: (args: { where: { id: number } }) => {
         state.updatedFileIds.push(args.where.id);
         return Promise.resolve({});
+      },
+      create: (args: object) => {
+        state.createdFiles.push(args);
+        return Promise.resolve({ id: 99 });
       },
       delete: (args: { where: { id: number } }) => {
         state.deletedFileIds.push(args.where.id);
@@ -125,6 +156,9 @@ mock.module("@hously/api/db", () => ({
         return Promise.resolve(count);
       },
     },
+    mediaSettings: {
+      findUnique: () => Promise.resolve(state.mediaSettings),
+    },
     libraryEpisode: {
       updateMany: (args: object) => {
         state.episodeUpdateManyArgs = args;
@@ -133,6 +167,7 @@ mock.module("@hously/api/db", () => ({
     },
     downloadHistory: {
       findMany: () => Promise.resolve([]),
+      count: () => Promise.resolve(state.activeDownloadCount),
     },
   },
 }));
@@ -141,6 +176,14 @@ mock.module("node:fs/promises", () => ({
   stat: (filePath: string) => {
     if (statMap[filePath]) return Promise.resolve({});
     return Promise.reject(new Error("ENOENT"));
+  },
+  readdir: (dirPath: string) => {
+    const names = readdirMap[dirPath] ?? [];
+    return Promise.resolve(names.map((name) => ({ name, isFile: () => true })));
+  },
+  rename: (from: string, to: string) => {
+    renameCaptures.push({ from, to });
+    return Promise.resolve();
   },
 }));
 
@@ -190,6 +233,10 @@ mock.module("@hously/api/workers/checkDownloadCompletion", () => ({
     Promise.resolve({ completed: 0, failed: 0, missing: 0 }),
 }));
 
+mock.module("@hously/shared", () => ({
+  classifyLanguageTags: () => [],
+}));
+
 // ---------------------------------------------------------------------------
 // Import the service — AFTER mock registrations
 // ---------------------------------------------------------------------------
@@ -229,6 +276,9 @@ function makeFile(overrides: Partial<FileRecord> = {}): FileRecord {
     fileName: "movie.mkv",
     releaseGroup: null,
     episodeId: null,
+    source: null,
+    videoCodec: null,
+    resolution: null,
     ...overrides,
   };
 }
@@ -242,10 +292,16 @@ beforeEach(() => {
   state.episodeUpdateManyArgs = null;
   state.episodeUpdateManyCount = 0;
   state.mediaUpdateArgs = null;
+  state.allMediaUpdateArgs = [];
   state.enqueuedDhIds = [];
+  state.mediaSettings = null;
+  state.createdFiles = [];
+  state.activeDownloadCount = 0;
 
   for (const k of Object.keys(statMap)) delete statMap[k];
   for (const k of Object.keys(scanMap)) delete scanMap[k];
+  for (const k of Object.keys(readdirMap)) delete readdirMap[k];
+  renameCaptures.length = 0;
   qbCompleteHashes.clear();
   remapFn = (p) => p; // reset to identity
 });
@@ -275,6 +331,7 @@ describe("rescanLibraryItem", () => {
       failed: 0,
       deleted: 0,
       imported: 0,
+      renamed: 0,
       requeued: 0,
       episodesReset: 0,
       mediaReset: false,
@@ -636,6 +693,419 @@ describe("rescanLibraryItem", () => {
     expect(state.enqueuedDhIds).toHaveLength(0);
     // Falls through to status reset
     expect(result?.mediaReset).toBe(true);
+  });
+});
+
+it("27. RescanResult includes renamed field", async () => {
+  state.media = { id: 1, type: "movie", status: "downloaded" };
+  state.remainingFileCount = 0;
+
+  const result = await rescanLibraryItem(1);
+  expect(result).toHaveProperty("renamed");
+  expect(result?.renamed).toBe(0);
+});
+
+// ---------------------------------------------------------------------------
+// Discovery (Step 1b)
+// ---------------------------------------------------------------------------
+
+describe("Discovery (Step 1b)", () => {
+  it("28. Movie, matching file on disk not yet tracked → imported:1, mediaFile.create called", async () => {
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.remainingFileCount = 1;
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year}) [{resolution} {source}]",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+    readdirMap["/movies"] = ["The Matrix (1999) [1080p BluRay].mkv"];
+    scanMap["/movies/The Matrix (1999) [1080p BluRay].mkv"] = makeMi();
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.imported).toBe(1);
+    expect(state.createdFiles).toHaveLength(1);
+  });
+
+  it("29. File on disk with wrong title → not imported", async () => {
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.remainingFileCount = 0;
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year})",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+    readdirMap["/movies"] = ["Unrelated Movie (2005) [1080p].mkv"];
+    scanMap["/movies/Unrelated Movie (2005) [1080p].mkv"] = makeMi();
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.imported).toBe(0);
+    expect(state.createdFiles).toHaveLength(0);
+  });
+
+  it("30. Matching file on disk but scanMediaInfo returns null → not imported", async () => {
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.remainingFileCount = 0;
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year})",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+    readdirMap["/movies"] = ["The Matrix (1999) [1080p BluRay].mkv"];
+    scanMap["/movies/The Matrix (1999) [1080p BluRay].mkv"] = null;
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.imported).toBe(0);
+    expect(state.createdFiles).toHaveLength(0);
+  });
+
+  it("31. Importing a file updates media status from 'wanted' to 'downloaded'", async () => {
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "wanted",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.remainingFileCount = 0;
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year})",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+    readdirMap["/movies"] = ["The Matrix (1999) [1080p BluRay].mkv"];
+    scanMap["/movies/The Matrix (1999) [1080p BluRay].mkv"] = makeMi();
+
+    await rescanLibraryItem(1);
+    expect(state.allMediaUpdateArgs).toContainEqual(
+      expect.objectContaining({ data: { status: "downloaded" } }),
+    );
+  });
+
+  it("32. File path already tracked in media_files → not re-imported", async () => {
+    const existingFile = makeFile({
+      id: 1,
+      filePath: "/movies/The Matrix (1999) [1080p BluRay].mkv",
+      fileName: "The Matrix (1999) [1080p BluRay].mkv",
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [existingFile];
+    state.remainingFileCount = 1;
+    statMap[existingFile.filePath] = true;
+    scanMap[existingFile.filePath] = makeMi();
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year})",
+      episodeTemplate: "",
+      fileOperation: "none", // skip rename so only import is tested
+    };
+    readdirMap["/movies"] = ["The Matrix (1999) [1080p BluRay].mkv"];
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.imported).toBe(0);
+    expect(state.createdFiles).toHaveLength(0);
+  });
+
+  it("33. Non-video file extension in library dir → skipped", async () => {
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.remainingFileCount = 0;
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year})",
+      episodeTemplate: "",
+      fileOperation: "none",
+    };
+    readdirMap["/movies"] = ["The Matrix (1999).nfo", "The Matrix (1999).srt"];
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.imported).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Rename (Step 1c)
+// ---------------------------------------------------------------------------
+
+describe("Rename (Step 1c)", () => {
+  it("34. File name doesn't match template → renamed:1, fs.rename called, DB updated", async () => {
+    const file = makeFile({
+      id: 1,
+      filePath: "/movies/matrix.mkv",
+      fileName: "matrix.mkv",
+      resolution: 1080,
+      source: "BluRay",
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [file];
+    state.remainingFileCount = 1;
+    statMap[file.filePath] = true;
+    scanMap[file.filePath] = makeMi();
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year}) [{resolution} {source}]",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+    const result = await rescanLibraryItem(1);
+    expect(result?.renamed).toBe(1);
+    expect(renameCaptures).toHaveLength(1);
+    expect(renameCaptures[0].from).toBe("/movies/matrix.mkv");
+    expect(renameCaptures[0].to).toBe(
+      "/movies/The Matrix (1999) [1080p BluRay].mkv",
+    );
+  });
+
+  it("35. File name already matches template → renamed:0", async () => {
+    const file = makeFile({
+      id: 1,
+      filePath: "/movies/The Matrix (1999) [1080p BluRay].mkv",
+      fileName: "The Matrix (1999) [1080p BluRay].mkv",
+      resolution: 1080,
+      source: "BluRay",
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [file];
+    state.remainingFileCount = 1;
+    statMap[file.filePath] = true;
+    scanMap[file.filePath] = makeMi();
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year}) [{resolution} {source}]",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.renamed).toBe(0);
+    expect(renameCaptures).toHaveLength(0);
+  });
+
+  it("36. file_operation is 'none' → no rename attempted", async () => {
+    const file = makeFile({
+      id: 1,
+      filePath: "/movies/matrix.mkv",
+      fileName: "matrix.mkv",
+      resolution: 1080,
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [file];
+    state.remainingFileCount = 1;
+    statMap[file.filePath] = true;
+    scanMap[file.filePath] = makeMi();
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year})",
+      episodeTemplate: "",
+      fileOperation: "none",
+    };
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.renamed).toBe(0);
+    expect(renameCaptures).toHaveLength(0);
+  });
+
+  it("37. Active download in progress → rename skipped", async () => {
+    const file = makeFile({
+      id: 1,
+      filePath: "/movies/matrix.mkv",
+      fileName: "matrix.mkv",
+      resolution: 1080,
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloading",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [file];
+    state.remainingFileCount = 1;
+    statMap[file.filePath] = true;
+    scanMap[file.filePath] = makeMi();
+    state.activeDownloadCount = 1;
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year})",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.renamed).toBe(0);
+    expect(renameCaptures).toHaveLength(0);
+  });
+
+  it("38. Rename target already exists on disk → skipped (no overwrite)", async () => {
+    const file = makeFile({
+      id: 1,
+      filePath: "/movies/matrix.mkv",
+      fileName: "matrix.mkv",
+      resolution: 1080,
+      source: "BluRay",
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [file];
+    state.remainingFileCount = 1;
+    statMap[file.filePath] = true;
+    // Target name already exists on disk (e.g. a stale leftover)
+    statMap["/movies/The Matrix (1999) [1080p BluRay].mkv"] = true;
+    scanMap[file.filePath] = makeMi();
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year}) [{resolution} {source}]",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.renamed).toBe(0);
+    expect(renameCaptures).toHaveLength(0);
+  });
+
+  it("39. Two files resolving to same template stem → only first renames", async () => {
+    const file1 = makeFile({
+      id: 1,
+      filePath: "/movies/matrix-a.mkv",
+      fileName: "matrix-a.mkv",
+      resolution: 1080,
+      source: "BluRay",
+    });
+    const file2 = makeFile({
+      id: 2,
+      filePath: "/movies/matrix-b.mkv",
+      fileName: "matrix-b.mkv",
+      resolution: 1080,
+      source: "BluRay",
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [file1, file2];
+    state.remainingFileCount = 2;
+    statMap[file1.filePath] = true;
+    statMap[file2.filePath] = true;
+    scanMap[file1.filePath] = makeMi();
+    scanMap[file2.filePath] = makeMi();
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year}) [{resolution} {source}]",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.renamed).toBe(1);
+    expect(renameCaptures).toHaveLength(1);
+    expect(renameCaptures[0].from).toBe("/movies/matrix-a.mkv");
+  });
+
+  it("40. Rename uses fresh MediaInfo, not stale file row", async () => {
+    // DB row says 720p WEB, but MediaInfo rescan reveals 1080p BluRay.
+    // Template should be built from the fresh values.
+    const file = makeFile({
+      id: 1,
+      filePath: "/movies/matrix.mkv",
+      fileName: "matrix.mkv",
+      resolution: 720,
+      source: "WEB",
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [file];
+    state.remainingFileCount = 1;
+    statMap[file.filePath] = true;
+    scanMap[file.filePath] = makeMi({ resolution: 1080, source: "BluRay" });
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year}) [{resolution} {source}]",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.renamed).toBe(1);
+    expect(renameCaptures[0].to).toBe(
+      "/movies/The Matrix (1999) [1080p BluRay].mkv",
+    );
   });
 });
 

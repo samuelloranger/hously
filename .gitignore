@@ -12,8 +12,12 @@
 *.swo
 *~
 
-# Claude Code local settings (contains machine-specific paths)
+# Claude Code local settings and ephemeral data (machine-specific)
 .claude/settings.local.json
+.claude/worktrees/
+
+# CodeGraph index (machine-local, rebuilt on demand)
+.codegraph/
 
 # Screenshot artifacts
 apps/web/screenshot-prod*.png

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "codegraph": {
+      "command": "npx",
+      "args": ["codegraph", "serve", "--mcp", "--path", "/home/samuelloranger/sites/hously"]
+    }
+  }
+}
