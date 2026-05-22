@@ -98,7 +98,8 @@ docker compose down
 
 ### Homelab
 
-- Dashboard, qBittorrent/SSE, Radarr/Sonarr/TMDB, trackers, Jellyfin/Plex, webhooks.
+- Dashboard, qBittorrent/SSE, TMDB, trackers, Jellyfin/Plex, webhooks.
+- **Hously replaces Radarr/Sonarr** — it does not integrate with them. Media search and management is built directly into Hously.
 
 ### Life
 
