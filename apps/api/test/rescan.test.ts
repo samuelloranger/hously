@@ -995,6 +995,118 @@ describe("Rename (Step 1c)", () => {
     expect(result?.renamed).toBe(0);
     expect(renameCaptures).toHaveLength(0);
   });
+
+  it("38. Rename target already exists on disk → skipped (no overwrite)", async () => {
+    const file = makeFile({
+      id: 1,
+      filePath: "/movies/matrix.mkv",
+      fileName: "matrix.mkv",
+      resolution: 1080,
+      source: "BluRay",
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [file];
+    state.remainingFileCount = 1;
+    statMap[file.filePath] = true;
+    // Target name already exists on disk (e.g. a stale leftover)
+    statMap["/movies/The Matrix (1999) [1080p BluRay].mkv"] = true;
+    scanMap[file.filePath] = makeMi();
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year}) [{resolution} {source}]",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.renamed).toBe(0);
+    expect(renameCaptures).toHaveLength(0);
+  });
+
+  it("39. Two files resolving to same template stem → only first renames", async () => {
+    const file1 = makeFile({
+      id: 1,
+      filePath: "/movies/matrix-a.mkv",
+      fileName: "matrix-a.mkv",
+      resolution: 1080,
+      source: "BluRay",
+    });
+    const file2 = makeFile({
+      id: 2,
+      filePath: "/movies/matrix-b.mkv",
+      fileName: "matrix-b.mkv",
+      resolution: 1080,
+      source: "BluRay",
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [file1, file2];
+    state.remainingFileCount = 2;
+    statMap[file1.filePath] = true;
+    statMap[file2.filePath] = true;
+    scanMap[file1.filePath] = makeMi();
+    scanMap[file2.filePath] = makeMi();
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year}) [{resolution} {source}]",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.renamed).toBe(1);
+    expect(renameCaptures).toHaveLength(1);
+    expect(renameCaptures[0].from).toBe("/movies/matrix-a.mkv");
+  });
+
+  it("40. Rename uses fresh MediaInfo, not stale file row", async () => {
+    // DB row says 720p WEB, but MediaInfo rescan reveals 1080p BluRay.
+    // Template should be built from the fresh values.
+    const file = makeFile({
+      id: 1,
+      filePath: "/movies/matrix.mkv",
+      fileName: "matrix.mkv",
+      resolution: 720,
+      source: "WEB",
+    });
+    state.media = {
+      id: 1,
+      type: "movie",
+      status: "downloaded",
+      title: "The Matrix",
+      year: 1999,
+    };
+    state.files = [file];
+    state.remainingFileCount = 1;
+    statMap[file.filePath] = true;
+    scanMap[file.filePath] = makeMi({ resolution: 1080, source: "BluRay" });
+    state.mediaSettings = {
+      moviesLibraryPath: "/movies",
+      showsLibraryPath: null,
+      movieTemplate: "{title} ({year}) [{resolution} {source}]",
+      episodeTemplate: "",
+      fileOperation: "hardlink",
+    };
+
+    const result = await rescanLibraryItem(1);
+    expect(result?.renamed).toBe(1);
+    expect(renameCaptures[0].to).toBe(
+      "/movies/The Matrix (1999) [1080p BluRay].mkv",
+    );
+  });
 });
 
 // Restore node:fs/promises after all tests so the mock doesn't leak into other

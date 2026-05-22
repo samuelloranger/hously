@@ -1,4 +1,8 @@
-import { stat as statFile, readdir, rename as renameFile } from "node:fs/promises";
+import {
+  stat as statFile,
+  readdir,
+  rename as renameFile,
+} from "node:fs/promises";
 import { join, dirname, extname } from "node:path";
 import { prisma } from "@hously/api/db";
 import {
@@ -88,6 +92,14 @@ export async function rescanLibraryItem(
   let failed = 0;
   const validEpisodeIds = new Set<number>();
   let hasValidFile = false;
+  // Capture fresh MediaInfo + parsed filename data per file, so Step 1c
+  // (rename) sees the post-rescan values rather than the stale row.
+  type FreshFileMeta = {
+    resolution: number | null;
+    source: string | null;
+    videoCodec: string | null;
+  };
+  const freshMeta = new Map<number, FreshFileMeta>();
 
   const SCAN_CONCURRENCY = 4;
   for (let i = 0; i < files.length; i += SCAN_CONCURRENCY) {
@@ -112,6 +124,11 @@ export async function rescanLibraryItem(
         if (file.episodeId != null) validEpisodeIds.add(file.episodeId);
 
         const fnData = parseFilenameMetadata(file.fileName);
+        freshMeta.set(file.id, {
+          resolution: mi.resolution ?? fnData.resolution,
+          source: mi.source ?? fnData.source,
+          videoCodec: mi.videoCodec,
+        });
         toUpdateOps.push(() =>
           prisma.mediaFile.update({
             where: { id: file.id },
@@ -232,15 +249,24 @@ export async function rescanLibraryItem(
     });
     if (activeDownloads === 0) {
       const survivingFiles = files.filter((f) => !toDeleteIds.includes(f.id));
+      // Track destination paths claimed within this loop so two files
+      // resolving to the same template stem don't clobber each other.
+      const claimedTargets = new Set<string>();
       for (const file of survivingFiles) {
         const ext = extname(file.fileName);
-        const res = file.resolution != null ? `${file.resolution}p` : null;
+        // Prefer post-rescan MediaInfo over the pre-update row, which may
+        // hold stale or null values for resolution/source/codec.
+        const fresh = freshMeta.get(file.id);
+        const resolution = fresh?.resolution ?? file.resolution;
+        const source = fresh?.source ?? file.source;
+        const codec = fresh?.videoCodec ?? file.videoCodec;
+        const res = resolution != null ? `${resolution}p` : null;
         const expectedStem = renderMovieTemplate(mediaSettings.movieTemplate, {
           title: media.title,
           year: media.year ?? null,
           resolution: res,
-          source: file.source ?? null,
-          codec: file.videoCodec ?? null,
+          source: source ?? null,
+          codec: codec ?? null,
           ext: ext.slice(1),
         });
         const currentStem = file.fileName.slice(0, -ext.length);
@@ -249,7 +275,21 @@ export async function rescanLibraryItem(
         const newFileName = expectedStem + ext;
         const diskFrom = remapPath(file.filePath);
         const diskTo = join(dirname(diskFrom), newFileName);
+
+        // Skip if another file in this same rescan already claimed the
+        // target, or if a different file already exists on disk at it —
+        // fs.rename on POSIX silently overwrites and we'd lose data.
+        if (claimedTargets.has(diskTo)) continue;
+        try {
+          await statFile(diskTo);
+          // Target already exists on disk — refuse to overwrite.
+          continue;
+        } catch {
+          // ENOENT — safe to proceed.
+        }
+
         await renameFile(diskFrom, diskTo);
+        claimedTargets.add(diskTo);
         await prisma.mediaFile.update({
           where: { id: file.id },
           data: {
