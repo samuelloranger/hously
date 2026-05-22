@@ -1,4 +1,5 @@
-import { stat as statFile } from "node:fs/promises";
+import { stat as statFile, readdir, rename as renameFile } from "node:fs/promises";
+import { join, dirname, extname } from "node:path";
 import { prisma } from "@hously/api/db";
 import {
   scanMediaInfo,
@@ -12,12 +13,16 @@ import {
   isCompletedDownloadState,
   reconcilePendingDownloads,
 } from "@hously/api/workers/checkDownloadCompletion";
+import { classifyLanguageTags } from "@hously/shared";
+import type { LibraryAudioTrack } from "@hously/shared";
+import { renderMovieTemplate } from "@hously/api/utils/medias/fileTemplate";
 
 export type RescanResult = {
   rescanned: number; // files whose MediaInfo was updated
   failed: number; // files that exist on disk but MediaInfo failed to read
   deleted: number; // stale MediaFile records removed (file gone from disk)
-  imported: number; // always 0; use Downloads Import UI instead of automatic folder scan
+  imported: number; // files discovered in library dir and newly tracked
+  renamed: number; // files renamed on disk to match the configured template
   requeued: number; // post-process jobs queued (file in downloads, not yet hardlinked)
   episodesReset: number; // LibraryEpisode rows reset to "wanted"
   mediaReset: boolean; // whether LibraryMedia.status was reset to "wanted"
@@ -27,6 +32,16 @@ export type RescanResult = {
     missing: number;
   };
 };
+
+const VIDEO_EXTENSIONS = new Set([".mkv", ".mp4", ".avi"]);
+
+function normalizeForDiscovery(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 export async function rescanLibraryItem(
   mediaId: number,
@@ -55,11 +70,17 @@ export async function rescanLibraryItem(
     treatMissingAsFailed: true,
   });
 
-  const imported = 0;
+  const mediaSettings = await prisma.mediaSettings.findUnique({
+    where: { id: 1 },
+  });
+
+  let imported = 0;
+  let renamed = 0;
 
   // ── Step 1: Process existing MediaFile records ────────────────────────────────
   // Update MediaInfo for valid files; delete records for files gone from disk.
   const files = await prisma.mediaFile.findMany({ where: { mediaId } });
+  const trackedPaths = new Set(files.map((f) => f.filePath));
 
   const toDeleteIds: number[] = [];
   const toUpdateOps: Array<() => Promise<unknown>> = [];
@@ -123,6 +144,123 @@ export async function rescanLibraryItem(
     await prisma.mediaFile.deleteMany({ where: { id: { in: toDeleteIds } } });
   }
   await Promise.all(toUpdateOps.map((op) => op()));
+
+  // ── Step 1b: Discovery — scan library dir for untracked video files ────────
+  // Walk the configured movies/shows library path and insert a media_files row
+  // for any video file that fuzzy-matches this item's title+year but isn't
+  // already tracked. Updates status to "downloaded" if it was "wanted".
+  if (mediaSettings && media.type === "movie" && media.title) {
+    const libraryPath = mediaSettings.moviesLibraryPath;
+    if (libraryPath) {
+      const remappedLibDir = remapPath(libraryPath);
+      try {
+        const entries = await readdir(remappedLibDir, { withFileTypes: true });
+        const normalizedTitle = normalizeForDiscovery(media.title);
+        const yearStr = media.year != null ? String(media.year) : null;
+
+        for (const entry of entries) {
+          if (!entry.isFile()) continue;
+          const ext = extname(entry.name);
+          if (!VIDEO_EXTENSIONS.has(ext)) continue;
+
+          const stem = entry.name.slice(0, -ext.length);
+          const normalized = normalizeForDiscovery(stem);
+          if (!normalized.includes(normalizedTitle)) continue;
+          if (yearStr != null && !normalized.includes(yearStr)) continue;
+
+          const diskPath = join(remappedLibDir, entry.name);
+          const dbPath = join(libraryPath, entry.name);
+          if (trackedPaths.has(dbPath)) continue;
+
+          const mi = await scanMediaInfo(diskPath);
+          if (!mi) continue;
+
+          const fnData = parseFilenameMetadata(entry.name);
+          await prisma.mediaFile.create({
+            data: {
+              mediaId,
+              filePath: dbPath,
+              fileName: entry.name,
+              sizeBytes: mi.sizeBytes,
+              durationSecs: mi.durationSecs,
+              releaseGroup: mi.releaseGroup,
+              videoCodec: mi.videoCodec,
+              videoProfile: mi.videoProfile,
+              width: mi.width,
+              height: mi.height,
+              frameRate: mi.frameRate,
+              bitDepth: mi.bitDepth,
+              videoBitrate: mi.videoBitrate,
+              hdrFormat: mi.hdrFormat ?? fnData.hdrFormat,
+              resolution: mi.resolution ?? fnData.resolution,
+              source: mi.source ?? fnData.source,
+              audioTracks: mi.audioTracks as object[],
+              subtitleTracks: mi.subtitleTracks as object[],
+              languageTags: classifyLanguageTags(
+                mi.audioTracks as LibraryAudioTrack[],
+                null,
+              ),
+            },
+          });
+          imported++;
+          trackedPaths.add(dbPath);
+        }
+      } catch {
+        // Library dir unreadable — skip discovery
+      }
+
+      if (imported > 0 && media.status === "wanted") {
+        await prisma.libraryMedia.update({
+          where: { id: mediaId },
+          data: { status: "downloaded" },
+        });
+      }
+    }
+  }
+
+  // ── Step 1c: Rename — rename files that don't match the configured template ─
+  // Skipped when fileOperation is "none" (manual placement) or when a download
+  // is in progress (the post-processor will rename after hardlinking).
+  if (
+    mediaSettings &&
+    media.type === "movie" &&
+    mediaSettings.fileOperation !== "none" &&
+    media.title
+  ) {
+    const activeDownloads = await prisma.downloadHistory.count({
+      where: { mediaId, completedAt: null, failed: false },
+    });
+    if (activeDownloads === 0) {
+      const survivingFiles = files.filter((f) => !toDeleteIds.includes(f.id));
+      for (const file of survivingFiles) {
+        const ext = extname(file.fileName);
+        const res = file.resolution != null ? `${file.resolution}p` : null;
+        const expectedStem = renderMovieTemplate(mediaSettings.movieTemplate, {
+          title: media.title,
+          year: media.year ?? null,
+          resolution: res,
+          source: file.source ?? null,
+          codec: file.videoCodec ?? null,
+          ext: ext.slice(1),
+        });
+        const currentStem = file.fileName.slice(0, -ext.length);
+        if (expectedStem === currentStem) continue;
+
+        const newFileName = expectedStem + ext;
+        const diskFrom = remapPath(file.filePath);
+        const diskTo = join(dirname(diskFrom), newFileName);
+        await renameFile(diskFrom, diskTo);
+        await prisma.mediaFile.update({
+          where: { id: file.id },
+          data: {
+            filePath: join(dirname(file.filePath), newFileName),
+            fileName: newFileName,
+          },
+        });
+        renamed++;
+      }
+    }
+  }
 
   // ── Step 2: qBittorrent — re-queue post-processing for completed downloads ────
   // Handles the case where a torrent finished downloading but the hardlink/move
@@ -206,6 +344,7 @@ export async function rescanLibraryItem(
     failed,
     deleted,
     imported,
+    renamed,
     requeued,
     episodesReset,
     mediaReset,
