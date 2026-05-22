@@ -49,4 +49,6 @@ export const LIBRARY_ENDPOINTS = {
   DOWNLOAD_HISTORY: "/api/library/download-history",
   DOWNLOAD_HISTORY_STATS: "/api/library/download-history/stats",
   UPGRADE: (id: number) => `/api/library/${id}/upgrade`,
+  UPDATE_OVERRIDES: (id: number) => `/api/library/${id}/overrides`,
+  UPDATE_FILE: (fileId: number) => `/api/library/files/${fileId}`,
 } as const;

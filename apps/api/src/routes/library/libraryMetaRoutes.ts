@@ -226,6 +226,50 @@ export const libraryMetaRoutes = new Elysia()
     { body: t.Object({ monitored: t.Boolean() }) },
   )
 
+  // PATCH /api/library/:id/overrides — set/clear manual metadata overrides
+  .patch(
+    "/:id/overrides",
+    async ({ params, body, set }) => {
+      try {
+        const id = parseInt(params.id, 10);
+        const existing = await prisma.libraryMedia.findUnique({
+          where: { id },
+          select: { overrides: true },
+        });
+        if (!existing) return notFound(set, "Library item not found");
+
+        // Merge: existing overrides + incoming fields; null values remove the key
+        const current = (existing.overrides ?? {}) as Record<string, unknown>;
+        const merged: Record<string, unknown> = { ...current };
+        for (const [key, val] of Object.entries(body)) {
+          if (val === null) {
+            delete merged[key];
+          } else {
+            merged[key] = val;
+          }
+        }
+
+        const item = await prisma.libraryMedia.update({
+          where: { id },
+          data: { overrides: merged as object },
+          include: libraryMediaInclude,
+        });
+        return { item: mapLibraryMedia(item) };
+      } catch {
+        return serverError(set, "Failed to update overrides");
+      }
+    },
+    {
+      body: t.Object({
+        title: t.Optional(t.Union([t.String(), t.Null()])),
+        sort_title: t.Optional(t.Union([t.String(), t.Null()])),
+        year: t.Optional(t.Union([t.Number(), t.Null()])),
+        overview: t.Optional(t.Union([t.String(), t.Null()])),
+        poster_url: t.Optional(t.Union([t.String(), t.Null()])),
+      }),
+    },
+  )
+
   // PATCH /api/library/:id/episodes/:episodeId/status — reset episode status (e.g. retry skipped)
   .patch(
     "/:id/episodes/:episodeId/status",

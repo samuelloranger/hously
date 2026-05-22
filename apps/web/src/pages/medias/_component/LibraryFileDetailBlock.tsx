@@ -4,6 +4,7 @@ import {
   Film,
   HardDrive,
   Music,
+  Pencil,
   Shuffle,
   Subtitles,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import {
 } from "@/utils/libraryDisplayUtils";
 import { useRemuxFile } from "@/features/medias/hooks/useRemuxFile";
 import { useRemuxFileStatus } from "@/features/medias/hooks/useRemuxFileStatus";
+import { useUpdateMediaFile } from "@/features/medias/hooks/useUpdateMediaFile";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -342,6 +344,9 @@ export function FileDetailBlock({
 }) {
   const { t } = useTranslation("common");
   const [showRemux, setShowRemux] = useState(false);
+  const [editingGroup, setEditingGroup] = useState(false);
+  const [groupValue, setGroupValue] = useState(file.release_group ?? "");
+  const updateFile = useUpdateMediaFile();
   const audioTracks = (file.audio_tracks ?? []) as LibraryAudioTrack[];
   const subtitleTracks = (file.subtitle_tracks ?? []) as LibrarySubtitleTrack[];
   const isMkv = file.file_name.toLowerCase().endsWith(".mkv");
@@ -365,10 +370,60 @@ export function FileDetailBlock({
           label={t("library.fileDetail.duration")}
           value={formatDuration(file.duration_secs)}
         />
-        <Row
-          label={t("library.fileDetail.releaseGroup")}
-          value={file.release_group}
-        />
+        {editingGroup ? (
+          <div className="flex gap-2 text-xs items-center">
+            <span className="w-[34%] shrink-0 text-neutral-500 dark:text-neutral-400">
+              {t("library.fileDetail.releaseGroup")}
+            </span>
+            <input
+              autoFocus
+              value={groupValue}
+              onChange={(e) => setGroupValue(e.target.value)}
+              onBlur={async () => {
+                setEditingGroup(false);
+                const val = groupValue.trim() || null;
+                if (val === (file.release_group ?? null)) return;
+                try {
+                  await updateFile.mutateAsync({
+                    fileId: file.id,
+                    release_group: val,
+                  });
+                } catch {
+                  toast.error("Failed to update release group");
+                  setGroupValue(file.release_group ?? "");
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setEditingGroup(false);
+                  setGroupValue(file.release_group ?? "");
+                }
+              }}
+              className="flex-1 rounded border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-1.5 py-0.5 text-xs text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            />
+          </div>
+        ) : (
+          <div
+            className="flex gap-2 text-xs items-center group cursor-pointer"
+            onClick={() => setEditingGroup(true)}
+            title="Click to edit release group"
+          >
+            <span className="w-[34%] shrink-0 text-neutral-500 dark:text-neutral-400">
+              {t("library.fileDetail.releaseGroup")}
+            </span>
+            <span className="min-w-0 flex-1 text-neutral-800 dark:text-neutral-200">
+              {file.release_group ?? (
+                <span className="text-neutral-400 dark:text-neutral-600 italic text-[10px]">
+                  —
+                </span>
+              )}
+              <Pencil
+                size={9}
+                className="inline ml-1.5 text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </span>
+          </div>
+        )}
         <Row label={t("library.fileDetail.path")} value={file.file_path} mono />
       </div>
 

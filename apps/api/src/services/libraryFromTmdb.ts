@@ -65,6 +65,13 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
       ? `${TMDB_IMAGE_BASE}${details.poster_path}`
       : null;
 
+    const existingMovie = await prisma.libraryMedia.findUnique({
+      where: { tmdbId: tmdb_id },
+      select: { overrides: true },
+    });
+    const movieOv = (existingMovie?.overrides ?? {}) as Record<string, unknown>;
+    const movieLocked = (key: string) => key in movieOv;
+
     return prisma.libraryMedia.upsert({
       where: { tmdbId: tmdb_id },
       create: {
@@ -85,11 +92,15 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
           : {}),
       },
       update: {
-        title: details.title,
-        sortTitle: sortTitleFromName(details.title),
-        year,
-        posterUrl,
-        overview: details.overview || null,
+        ...(!movieLocked("title") ? { title: details.title } : {}),
+        ...(!movieLocked("sort_title")
+          ? { sortTitle: sortTitleFromName(details.title) }
+          : {}),
+        ...(!movieLocked("year") ? { year } : {}),
+        ...(!movieLocked("poster_url") ? { posterUrl } : {}),
+        ...(!movieLocked("overview")
+          ? { overview: details.overview || null }
+          : {}),
         digitalReleaseDate: pickDigitalRelease(
           releaseDatesData.results,
           region,
@@ -115,6 +126,13 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
     ? `${TMDB_IMAGE_BASE}${details.poster_path}`
     : null;
 
+  const existingShow = await prisma.libraryMedia.findUnique({
+    where: { tmdbId: tmdb_id },
+    select: { overrides: true },
+  });
+  const showOv = (existingShow?.overrides ?? {}) as Record<string, unknown>;
+  const showLocked = (key: string) => key in showOv;
+
   const media = await prisma.libraryMedia.upsert({
     where: { tmdbId: tmdb_id },
     create: {
@@ -132,12 +150,16 @@ export async function addOrUpdateLibraryFromTmdb(opts: {
         : {}),
     },
     update: {
-      title: details.name,
-      sortTitle: sortTitleFromName(details.name),
-      year,
+      ...(!showLocked("title") ? { title: details.name } : {}),
+      ...(!showLocked("sort_title")
+        ? { sortTitle: sortTitleFromName(details.name) }
+        : {}),
+      ...(!showLocked("year") ? { year } : {}),
       tmdbStatus: details.status ?? null,
-      posterUrl,
-      overview: details.overview || null,
+      ...(!showLocked("poster_url") ? { posterUrl } : {}),
+      ...(!showLocked("overview")
+        ? { overview: details.overview || null }
+        : {}),
     },
     include: libraryMediaInclude,
   });
