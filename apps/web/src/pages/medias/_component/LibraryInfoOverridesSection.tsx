@@ -53,6 +53,7 @@ export function LibraryInfoOverridesSection({ libraryId, item }: Props) {
         id: libraryId,
         overrides: { [fieldKey(field)]: null },
       });
+      setFormState((prev) => ({ ...prev, [field]: "" }));
     } catch {
       toast.error(
         t("library.management.editInfo.saveFailed", "Failed to clear field"),
