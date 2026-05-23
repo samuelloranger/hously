@@ -219,14 +219,24 @@ export function LibraryPage() {
         title={t("medias.library.pageTitle")}
         subtitle={t("medias.library.pageSubtitle")}
         actions={
-          user?.is_admin ? (
-            <Link
-              to="/library/downloads"
-              className="text-xs font-semibold uppercase tracking-wide text-primary-600 hover:text-primary-500 dark:text-primary-400 whitespace-nowrap"
+          <>
+            <button
+              type="button"
+              onClick={() => setAddModalOpen(true)}
+              className="flex h-8 items-center gap-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
             >
-              {t("medias.library.downloadsImport")}
-            </Link>
-          ) : undefined
+              <Plus size={13} />
+              {t("medias.detail.addToLibrary")}
+            </button>
+            {user?.is_admin && (
+              <Link
+                to="/library/downloads"
+                className="text-xs font-semibold uppercase tracking-wide text-primary-600 hover:text-primary-500 dark:text-primary-400 whitespace-nowrap"
+              >
+                {t("medias.library.downloadsImport")}
+              </Link>
+            )}
+          </>
         }
         onRefresh={() => refetch()}
         isRefreshing={isLoading}
@@ -256,14 +266,6 @@ export function LibraryPage() {
 
             {/* Sort */}
             <div className="hidden sm:flex items-center gap-1.5 ml-auto">
-              <button
-                type="button"
-                onClick={() => setAddModalOpen(true)}
-                className="flex h-8 items-center gap-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <Plus size={13} />
-                {t("medias.detail.addToLibrary")}
-              </button>
               <select
                 value={sortBy}
                 onChange={(e) =>
@@ -367,14 +369,6 @@ export function LibraryPage() {
                 {t(`medias.library.sort.${sortBy}`)}
               </button>
 
-              <button
-                type="button"
-                onClick={() => setAddModalOpen(true)}
-                className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 transition-colors dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800"
-              >
-                <Plus size={13} />
-                {t("medias.detail.addToLibrary")}
-              </button>
               <div className="flex-1" />
 
               {/* View mode toggle */}

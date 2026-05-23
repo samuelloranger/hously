@@ -29,20 +29,22 @@ export function AddToLibraryModal({ isOpen, onClose }: AddToLibraryModalProps) {
                 e.preventDefault();
                 inputRef.current?.focus();
               }}
-              className="pointer-events-auto relative flex max-h-[90dvh] w-full max-w-2xl flex-col overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-6 text-left shadow-xl outline-none dark:border-neutral-700 dark:bg-neutral-900 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[state=open]:duration-150 data-[state=closed]:duration-100"
+              className="pointer-events-auto flex max-h-[90dvh] w-full max-w-2xl flex-col overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-6 text-left shadow-xl outline-none dark:border-neutral-700 dark:bg-neutral-900 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[state=open]:duration-150 data-[state=closed]:duration-100"
             >
-              <RadixDialog.Title className="sr-only">
-                {t("medias.detail.addToLibrary")}
-              </RadixDialog.Title>
+              <div className="mb-4 flex shrink-0 items-center justify-between">
+                <RadixDialog.Title className="text-base font-semibold text-neutral-900 dark:text-white">
+                  {t("medias.detail.addToLibrary")}
+                </RadixDialog.Title>
+                <RadixDialog.Close
+                  aria-label="Close"
+                  className="rounded-full p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-700/60 dark:hover:text-neutral-200"
+                >
+                  <X className="h-5 w-5" />
+                </RadixDialog.Close>
+              </div>
               <RadixDialog.Description className="sr-only">
                 {t("medias.detail.addToLibrary")}
               </RadixDialog.Description>
-              <RadixDialog.Close
-                aria-label="Close"
-                className="absolute right-4 top-4 z-20 rounded-full p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-700/60 dark:hover:text-neutral-200"
-              >
-                <X className="h-5 w-5" />
-              </RadixDialog.Close>
               <TmdbMediaSearchPanel variant="modal" inputRef={inputRef} />
             </RadixDialog.Content>
           </div>
