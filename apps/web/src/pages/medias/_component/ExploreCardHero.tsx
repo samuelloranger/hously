@@ -20,6 +20,297 @@ function formatTmdbDateYmd(iso: string | null | undefined): string | null {
   }
 }
 
+interface ExploreCardHeroMetaProps {
+  item: TmdbMediaSearchItem;
+  detailsData: TmdbMediaDetailsResponse | null;
+  ratingsData: MediaRatingsResponse | null;
+  creditsData: TmdbCreditsResponse | null;
+  runtimeStr: string | null;
+  collection: TmdbCollection | null;
+  voteAverage: number | null;
+  heroBackdropUrl: string | null;
+}
+
+function ExploreCardHeroMeta({
+  item,
+  detailsData,
+  ratingsData,
+  creditsData,
+  runtimeStr,
+  collection,
+  voteAverage,
+  heroBackdropUrl,
+}: ExploreCardHeroMetaProps) {
+  const { t } = useTranslation("common");
+
+  return (
+    <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
+      {/* Title */}
+      <h2
+        className={cn(
+          "text-xl font-semibold leading-snug",
+          heroBackdropUrl ? "text-white" : "text-neutral-900 dark:text-white",
+        )}
+      >
+        {item.title}
+      </h2>
+
+      {detailsData?.tagline && (
+        <p
+          className={cn(
+            "text-sm italic leading-snug",
+            heroBackdropUrl
+              ? "text-white/85"
+              : "text-neutral-600 dark:text-neutral-400",
+          )}
+        >
+          {detailsData.tagline}
+        </p>
+      )}
+
+      {/* Type + year + runtime */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="rounded-md bg-primary-600/80 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+          {item.media_type === "movie" ? t("medias.movie") : t("medias.series")}
+        </span>
+        {item.release_year && (
+          <span
+            className={cn(
+              "text-xs",
+              heroBackdropUrl
+                ? "text-white/75"
+                : "text-neutral-500 dark:text-neutral-400",
+            )}
+          >
+            {item.release_year}
+          </span>
+        )}
+        {runtimeStr && (
+          <span
+            className={cn(
+              "flex items-center gap-0.5 text-xs",
+              heroBackdropUrl
+                ? "text-white/75"
+                : "text-neutral-500 dark:text-neutral-400",
+            )}
+          >
+            <Clock size={10} />
+            {runtimeStr}
+          </span>
+        )}
+        {detailsData?.number_of_seasons != null && (
+          <span
+            className={cn(
+              "flex items-center gap-0.5 text-xs",
+              heroBackdropUrl
+                ? "text-white/75"
+                : "text-neutral-500 dark:text-neutral-400",
+            )}
+          >
+            <Film size={10} />
+            {detailsData.number_of_seasons}S · {detailsData.number_of_episodes}E
+          </span>
+        )}
+      </div>
+
+      {/* Ratings */}
+      <div className="flex flex-wrap items-center gap-3">
+        {voteAverage != null && (
+          <span className="flex items-center gap-1 text-sm font-semibold text-amber-400">
+            <Star size={12} className="fill-amber-400" />
+            {voteAverage.toFixed(1)}
+            <span
+              className={cn(
+                "text-[10px] font-normal",
+                heroBackdropUrl ? "text-white/60" : "text-neutral-400",
+              )}
+            >
+              TMDB
+            </span>
+          </span>
+        )}
+        {ratingsData?.rotten_tomatoes &&
+          (() => {
+            const score = parseInt(ratingsData.rotten_tomatoes);
+            const isFresh = score >= 60;
+            return (
+              <span className="flex items-center gap-1 text-sm font-semibold">
+                <img
+                  src={
+                    isFresh
+                      ? "https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-fresh.149b5e8adc3.svg"
+                      : "https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-rotten.f1ef4f02ce3.svg"
+                  }
+                  alt={isFresh ? "Fresh" : "Rotten"}
+                  className="h-4 w-4"
+                />
+                <span
+                  className={cn(
+                    isFresh
+                      ? "text-red-300"
+                      : heroBackdropUrl
+                        ? "text-white/70"
+                        : "text-neutral-400",
+                  )}
+                >
+                  {ratingsData.rotten_tomatoes}
+                </span>
+              </span>
+            );
+          })()}
+        {ratingsData?.metacritic && (
+          <span className="flex items-center gap-1 text-sm font-semibold">
+            <svg
+              viewBox="0 0 32 32"
+              className="h-4 w-4"
+              aria-label="Metacritic"
+            >
+              <circle cx="16" cy="16" r="16" fill="#FFCC34" />
+              <text
+                x="16"
+                y="22"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="900"
+                fontFamily="Arial, sans-serif"
+                fill="#000"
+              >
+                M
+              </text>
+            </svg>
+            <span
+              className={cn(
+                heroBackdropUrl
+                  ? "text-white/90"
+                  : "text-neutral-700 dark:text-neutral-300",
+              )}
+            >
+              {ratingsData.metacritic}
+            </span>
+          </span>
+        )}
+      </div>
+
+      {(detailsData?.genres?.length ?? 0) > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {(detailsData?.genres ?? []).map((g) => (
+            <span
+              key={g.id}
+              className={cn(
+                "rounded-md px-1.5 py-0.5 text-[10px] font-medium",
+                heroBackdropUrl
+                  ? "bg-white/15 text-white ring-1 ring-white/25"
+                  : "bg-neutral-200/90 text-neutral-700 dark:bg-neutral-700/70 dark:text-neutral-300",
+              )}
+            >
+              {g.name}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {item.media_type === "movie" &&
+        formatTmdbDateYmd(detailsData?.release_date) && (
+          <p
+            className={cn(
+              "text-xs",
+              heroBackdropUrl
+                ? "text-white/80"
+                : "text-neutral-500 dark:text-neutral-400",
+            )}
+          >
+            <span
+              className={
+                heroBackdropUrl
+                  ? "text-white/55"
+                  : "text-neutral-400 dark:text-neutral-500"
+              }
+            >
+              {t("medias.detail.releaseDate")}{" "}
+            </span>
+            {formatTmdbDateYmd(detailsData?.release_date)}
+          </p>
+        )}
+
+      {item.media_type === "tv" &&
+        (formatTmdbDateYmd(detailsData?.first_air_date) ||
+          formatTmdbDateYmd(detailsData?.last_air_date) ||
+          detailsData?.status) && (
+          <p
+            className={cn(
+              "text-xs",
+              heroBackdropUrl
+                ? "text-white/80"
+                : "text-neutral-500 dark:text-neutral-400",
+            )}
+          >
+            {[
+              formatTmdbDateYmd(detailsData?.first_air_date) &&
+                `${t("medias.detail.firstAir")} ${formatTmdbDateYmd(detailsData?.first_air_date)}`,
+              formatTmdbDateYmd(detailsData?.last_air_date) &&
+                `${t("medias.detail.lastAir")} ${formatTmdbDateYmd(detailsData?.last_air_date)}`,
+              detailsData?.status &&
+                `${t("medias.detail.showStatus")} ${detailsData.status}`,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        )}
+
+      {/* Director */}
+      {creditsData?.directors && creditsData.directors.length > 0 && (
+        <p
+          className={cn(
+            "text-xs",
+            heroBackdropUrl
+              ? "text-white/80"
+              : "text-neutral-500 dark:text-neutral-400",
+          )}
+        >
+          <span
+            className={
+              heroBackdropUrl
+                ? "text-white/55"
+                : "text-neutral-400 dark:text-neutral-500"
+            }
+          >
+            {t("medias.detail.director")}{" "}
+          </span>
+          <span
+            className={cn(
+              "font-medium",
+              heroBackdropUrl
+                ? "text-white"
+                : "text-neutral-600 dark:text-neutral-300",
+            )}
+          >
+            {creditsData.directors.join(", ")}
+          </span>
+        </p>
+      )}
+
+      {/* Collection */}
+      {collection && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={cn(
+              "inline-flex min-w-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+              heroBackdropUrl
+                ? "border-white/30 bg-white/10 text-white"
+                : "border-primary-500/25 bg-primary-500/8 text-primary-600 dark:text-primary-400",
+            )}
+          >
+            <span className="shrink-0">
+              {t("medias.detail.partOfCollection")}
+            </span>
+            <span className="truncate">{collection.name}</span>
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface ExploreCardHeroProps {
   item: TmdbMediaSearchItem;
   detailsData: TmdbMediaDetailsResponse | null;
@@ -55,8 +346,6 @@ export function ExploreCardHero({
   onPosterLoaded,
   onImageError,
 }: ExploreCardHeroProps) {
-  const { t } = useTranslation("common");
-
   return (
     <div
       className={cn(
@@ -137,275 +426,16 @@ export function ExploreCardHero({
         </div>
 
         {/* Meta column */}
-        <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
-          {/* Title */}
-          <h2
-            className={cn(
-              "text-xl font-semibold leading-snug",
-              heroBackdropUrl
-                ? "text-white"
-                : "text-neutral-900 dark:text-white",
-            )}
-          >
-            {item.title}
-          </h2>
-
-          {detailsData?.tagline && (
-            <p
-              className={cn(
-                "text-sm italic leading-snug",
-                heroBackdropUrl
-                  ? "text-white/85"
-                  : "text-neutral-600 dark:text-neutral-400",
-              )}
-            >
-              {detailsData.tagline}
-            </p>
-          )}
-
-          {/* Type + year + runtime */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="rounded-md bg-primary-600/80 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-              {item.media_type === "movie"
-                ? t("medias.movie")
-                : t("medias.series")}
-            </span>
-            {item.release_year && (
-              <span
-                className={cn(
-                  "text-xs",
-                  heroBackdropUrl
-                    ? "text-white/75"
-                    : "text-neutral-500 dark:text-neutral-400",
-                )}
-              >
-                {item.release_year}
-              </span>
-            )}
-            {runtimeStr && (
-              <span
-                className={cn(
-                  "flex items-center gap-0.5 text-xs",
-                  heroBackdropUrl
-                    ? "text-white/75"
-                    : "text-neutral-500 dark:text-neutral-400",
-                )}
-              >
-                <Clock size={10} />
-                {runtimeStr}
-              </span>
-            )}
-            {detailsData?.number_of_seasons != null && (
-              <span
-                className={cn(
-                  "flex items-center gap-0.5 text-xs",
-                  heroBackdropUrl
-                    ? "text-white/75"
-                    : "text-neutral-500 dark:text-neutral-400",
-                )}
-              >
-                <Film size={10} />
-                {detailsData.number_of_seasons}S ·{" "}
-                {detailsData.number_of_episodes}E
-              </span>
-            )}
-          </div>
-
-          {/* Ratings */}
-          <div className="flex flex-wrap items-center gap-3">
-            {voteAverage != null && (
-              <span className="flex items-center gap-1 text-sm font-semibold text-amber-400">
-                <Star size={12} className="fill-amber-400" />
-                {voteAverage.toFixed(1)}
-                <span
-                  className={cn(
-                    "text-[10px] font-normal",
-                    heroBackdropUrl ? "text-white/60" : "text-neutral-400",
-                  )}
-                >
-                  TMDB
-                </span>
-              </span>
-            )}
-            {ratingsData?.rotten_tomatoes &&
-              (() => {
-                const score = parseInt(ratingsData.rotten_tomatoes);
-                const isFresh = score >= 60;
-                return (
-                  <span className="flex items-center gap-1 text-sm font-semibold">
-                    <img
-                      src={
-                        isFresh
-                          ? "https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-fresh.149b5e8adc3.svg"
-                          : "https://www.rottentomatoes.com/assets/pizza-pie/images/icons/tomatometer/tomatometer-rotten.f1ef4f02ce3.svg"
-                      }
-                      alt={isFresh ? "Fresh" : "Rotten"}
-                      className="h-4 w-4"
-                    />
-                    <span
-                      className={cn(
-                        isFresh
-                          ? "text-red-300"
-                          : heroBackdropUrl
-                            ? "text-white/70"
-                            : "text-neutral-400",
-                      )}
-                    >
-                      {ratingsData.rotten_tomatoes}
-                    </span>
-                  </span>
-                );
-              })()}
-            {ratingsData?.metacritic && (
-              <span className="flex items-center gap-1 text-sm font-semibold">
-                <svg
-                  viewBox="0 0 32 32"
-                  className="h-4 w-4"
-                  aria-label="Metacritic"
-                >
-                  <circle cx="16" cy="16" r="16" fill="#FFCC34" />
-                  <text
-                    x="16"
-                    y="22"
-                    textAnchor="middle"
-                    fontSize="18"
-                    fontWeight="900"
-                    fontFamily="Arial, sans-serif"
-                    fill="#000"
-                  >
-                    M
-                  </text>
-                </svg>
-                <span
-                  className={cn(
-                    heroBackdropUrl
-                      ? "text-white/90"
-                      : "text-neutral-700 dark:text-neutral-300",
-                  )}
-                >
-                  {ratingsData.metacritic}
-                </span>
-              </span>
-            )}
-          </div>
-
-          {(detailsData?.genres?.length ?? 0) > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {(detailsData?.genres ?? []).map((g) => (
-                <span
-                  key={g.id}
-                  className={cn(
-                    "rounded-md px-1.5 py-0.5 text-[10px] font-medium",
-                    heroBackdropUrl
-                      ? "bg-white/15 text-white ring-1 ring-white/25"
-                      : "bg-neutral-200/90 text-neutral-700 dark:bg-neutral-700/70 dark:text-neutral-300",
-                  )}
-                >
-                  {g.name}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {item.media_type === "movie" &&
-            formatTmdbDateYmd(detailsData?.release_date) && (
-              <p
-                className={cn(
-                  "text-xs",
-                  heroBackdropUrl
-                    ? "text-white/80"
-                    : "text-neutral-500 dark:text-neutral-400",
-                )}
-              >
-                <span
-                  className={
-                    heroBackdropUrl
-                      ? "text-white/55"
-                      : "text-neutral-400 dark:text-neutral-500"
-                  }
-                >
-                  {t("medias.detail.releaseDate")}{" "}
-                </span>
-                {formatTmdbDateYmd(detailsData?.release_date)}
-              </p>
-            )}
-
-          {item.media_type === "tv" &&
-            (formatTmdbDateYmd(detailsData?.first_air_date) ||
-              formatTmdbDateYmd(detailsData?.last_air_date) ||
-              detailsData?.status) && (
-              <p
-                className={cn(
-                  "text-xs",
-                  heroBackdropUrl
-                    ? "text-white/80"
-                    : "text-neutral-500 dark:text-neutral-400",
-                )}
-              >
-                {[
-                  formatTmdbDateYmd(detailsData?.first_air_date) &&
-                    `${t("medias.detail.firstAir")} ${formatTmdbDateYmd(detailsData?.first_air_date)}`,
-                  formatTmdbDateYmd(detailsData?.last_air_date) &&
-                    `${t("medias.detail.lastAir")} ${formatTmdbDateYmd(detailsData?.last_air_date)}`,
-                  detailsData?.status &&
-                    `${t("medias.detail.showStatus")} ${detailsData.status}`,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-            )}
-
-          {/* Director */}
-          {creditsData?.directors && creditsData.directors.length > 0 && (
-            <p
-              className={cn(
-                "text-xs",
-                heroBackdropUrl
-                  ? "text-white/80"
-                  : "text-neutral-500 dark:text-neutral-400",
-              )}
-            >
-              <span
-                className={
-                  heroBackdropUrl
-                    ? "text-white/55"
-                    : "text-neutral-400 dark:text-neutral-500"
-                }
-              >
-                {t("medias.detail.director")}{" "}
-              </span>
-              <span
-                className={cn(
-                  "font-medium",
-                  heroBackdropUrl
-                    ? "text-white"
-                    : "text-neutral-600 dark:text-neutral-300",
-                )}
-              >
-                {creditsData.directors.join(", ")}
-              </span>
-            </p>
-          )}
-
-          {/* Collection */}
-          {collection && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={cn(
-                  "inline-flex min-w-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
-                  heroBackdropUrl
-                    ? "border-white/30 bg-white/10 text-white"
-                    : "border-primary-500/25 bg-primary-500/8 text-primary-600 dark:text-primary-400",
-                )}
-              >
-                <span className="shrink-0">
-                  {t("medias.detail.partOfCollection")}
-                </span>
-                <span className="truncate">{collection.name}</span>
-              </span>
-            </div>
-          )}
-        </div>
+        <ExploreCardHeroMeta
+          item={item}
+          detailsData={detailsData}
+          ratingsData={ratingsData}
+          creditsData={creditsData}
+          runtimeStr={runtimeStr}
+          collection={collection}
+          voteAverage={voteAverage}
+          heroBackdropUrl={heroBackdropUrl}
+        />
       </div>
     </div>
   );

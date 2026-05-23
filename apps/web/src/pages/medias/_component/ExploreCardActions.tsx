@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { type TmdbMediaSearchItem } from "@hously/shared/types";
-import type { TmdbTrailerResponse } from "@hously/shared/types";
+import type {
+  TmdbMediaSearchItem,
+  TmdbTrailerResponse,
+} from "@hously/shared/types";
 import {
   Bookmark,
   BookmarkCheck,
@@ -51,11 +53,7 @@ export function ExploreCardActions({
             : "bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 dark:text-amber-400",
         )}
       >
-        {isInWatchlist ? (
-          <BookmarkCheck size={12} />
-        ) : (
-          <Bookmark size={12} />
-        )}
+        {isInWatchlist ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
         {isInWatchlist
           ? t("medias.detail.inWatchlist", "Watchlist ✓")
           : t("medias.detail.addToWatchlist", "Watchlist")}
@@ -89,20 +87,18 @@ export function ExploreCardActions({
 
       {/* Add to library — primary CTA */}
       {!item.already_exists && item.can_add && (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onAdd}
-            disabled={isAddPending}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color] hover:bg-primary-700 active:bg-primary-800 disabled:opacity-50"
-          >
-            {isAddPending ? (
-              <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            ) : (
-              <Plus size={12} />
-            )}
-            {t("medias.detail.addToLibrary")}
-          </button>
-        </div>
+        <button
+          onClick={onAdd}
+          disabled={isAddPending}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color] hover:bg-primary-700 active:bg-primary-800 disabled:opacity-50"
+        >
+          {isAddPending ? (
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          ) : (
+            <Plus size={12} />
+          )}
+          {t("medias.detail.addToLibrary")}
+        </button>
       )}
 
       {/* Already in library */}

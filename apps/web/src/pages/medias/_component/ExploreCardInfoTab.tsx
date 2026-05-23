@@ -23,6 +23,106 @@ interface ExploreCardInfoTabProps {
   episodesBySeason: Map<number, { episode_number: number }[]>;
 }
 
+interface SeasonListProps {
+  seasons: TmdbMediaDetailsResponse["seasons"];
+  libraryEpisodes: MediaModalLibraryEpisodes | null;
+  episodesBySeason: Map<number, { episode_number: number }[]>;
+}
+
+function SeasonList({
+  seasons,
+  libraryEpisodes,
+  episodesBySeason,
+}: SeasonListProps) {
+  const { t } = useTranslation("common");
+
+  return (
+    <div>
+      <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
+        {t("medias.detail.seasons", "Seasons")}
+      </p>
+      <div className="flex flex-col gap-4">
+        {seasons.map((s) => {
+          const seasonEps = episodesBySeason.get(s.season_number) ?? [];
+          const onDisk = libraryEpisodes?.in_library ? seasonEps.length : null;
+          const total = s.episode_count;
+          const complete =
+            onDisk != null && total != null && total > 0 && onDisk === total;
+          const hasEpisodeData =
+            libraryEpisodes?.in_library && seasonEps.length > 0;
+
+          return (
+            <div key={s.season_number}>
+              {/* Season header */}
+              <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-neutral-200 pb-1.5 dark:border-neutral-800">
+                <span className="text-[13px] font-medium text-neutral-800 dark:text-neutral-200">
+                  {s.name}
+                </span>
+                {libraryEpisodes?.in_library && onDisk != null ? (
+                  <span
+                    className={cn(
+                      "inline-flex shrink-0 items-center gap-1 text-[11px] tabular-nums",
+                      complete
+                        ? "font-semibold text-emerald-600 dark:text-emerald-400"
+                        : "text-neutral-500 dark:text-neutral-400",
+                    )}
+                    title={t("medias.detail.seasonOnDiskTitle")}
+                  >
+                    {total != null
+                      ? t("medias.detail.seasonOnDiskRatio", {
+                          onDisk,
+                          total,
+                        })
+                      : t("medias.detail.seasonOnDiskCount", {
+                          count: onDisk,
+                        })}
+                    {complete && (
+                      <Check size={11} className="shrink-0" aria-hidden />
+                    )}
+                  </span>
+                ) : !libraryEpisodes?.in_library && s.episode_count != null ? (
+                  <span className="shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500">
+                    {t("medias.detail.seasonEpisodes", {
+                      count: s.episode_count,
+                    })}
+                  </span>
+                ) : null}
+              </div>
+
+              {/* Episode rows */}
+              {hasEpisodeData && (
+                <div className="flex flex-col">
+                  {seasonEps.map((ep) => (
+                    <div
+                      key={ep.episode_number}
+                      className={cn(
+                        "grid grid-cols-[2rem_minmax(0,1fr)_1rem] items-center gap-x-2 rounded px-1 py-1 text-[12px] transition-colors",
+                        "text-neutral-700 dark:text-neutral-300",
+                      )}
+                    >
+                      <span className="shrink-0 tabular-nums text-right font-mono text-[11px] text-neutral-400 dark:text-neutral-600">
+                        {`E${String(ep.episode_number).padStart(2, "0")}`}
+                      </span>
+                      <span className="min-w-0 truncate leading-snug">
+                        {`Episode ${ep.episode_number}`}
+                      </span>
+                      <Check
+                        size={11}
+                        className="shrink-0 text-emerald-500 dark:text-emerald-400"
+                        aria-hidden
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function ExploreCardInfoTab({
   mediaType,
   tmdbId,
@@ -173,92 +273,11 @@ export function ExploreCardInfoTab({
 
       {/* Seasons + Episodes */}
       {mediaType === "tv" && detailsData && detailsData.seasons.length > 0 && (
-        <div>
-          <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
-            {t("medias.detail.seasons", "Seasons")}
-          </p>
-          <div className="flex flex-col gap-4">
-            {detailsData.seasons.map((s) => {
-              const seasonEps = episodesBySeason.get(s.season_number) ?? [];
-              const onDisk = libraryEpisodes?.in_library
-                ? seasonEps.length
-                : null;
-              const total = s.episode_count;
-              const complete =
-                onDisk != null && total != null && total > 0 && onDisk === total;
-              const hasEpisodeData =
-                libraryEpisodes?.in_library && seasonEps.length > 0;
-
-              return (
-                <div key={s.season_number}>
-                  {/* Season header */}
-                  <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-neutral-200 pb-1.5 dark:border-neutral-800">
-                    <span className="text-[13px] font-medium text-neutral-800 dark:text-neutral-200">
-                      {s.name}
-                    </span>
-                    {libraryEpisodes?.in_library && onDisk != null ? (
-                      <span
-                        className={cn(
-                          "inline-flex shrink-0 items-center gap-1 text-[11px] tabular-nums",
-                          complete
-                            ? "font-semibold text-emerald-600 dark:text-emerald-400"
-                            : "text-neutral-500 dark:text-neutral-400",
-                        )}
-                        title={t("medias.detail.seasonOnDiskTitle")}
-                      >
-                        {total != null
-                          ? t("medias.detail.seasonOnDiskRatio", {
-                              onDisk,
-                              total,
-                            })
-                          : t("medias.detail.seasonOnDiskCount", {
-                              count: onDisk,
-                            })}
-                        {complete && (
-                          <Check size={11} className="shrink-0" aria-hidden />
-                        )}
-                      </span>
-                    ) : !libraryEpisodes?.in_library &&
-                      s.episode_count != null ? (
-                      <span className="shrink-0 text-[11px] text-neutral-400 dark:text-neutral-500">
-                        {t("medias.detail.seasonEpisodes", {
-                          count: s.episode_count,
-                        })}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {/* Episode rows */}
-                  {hasEpisodeData && (
-                    <div className="flex flex-col">
-                      {seasonEps.map((ep) => (
-                        <div
-                          key={ep.episode_number}
-                          className={cn(
-                            "grid grid-cols-[2rem_minmax(0,1fr)_1rem] items-center gap-x-2 rounded px-1 py-1 text-[12px] transition-colors",
-                            "text-neutral-700 dark:text-neutral-300",
-                          )}
-                        >
-                          <span className="shrink-0 tabular-nums text-right font-mono text-[11px] text-neutral-400 dark:text-neutral-600">
-                            {`E${String(ep.episode_number).padStart(2, "0")}`}
-                          </span>
-                          <span className="min-w-0 truncate leading-snug">
-                            {`Episode ${ep.episode_number}`}
-                          </span>
-                          <Check
-                            size={11}
-                            className="shrink-0 text-emerald-500 dark:text-emerald-400"
-                            aria-hidden
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <SeasonList
+          seasons={detailsData.seasons}
+          libraryEpisodes={libraryEpisodes}
+          episodesBySeason={episodesBySeason}
+        />
       )}
     </div>
   );

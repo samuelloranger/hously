@@ -133,7 +133,7 @@ export function ExploreCardDetailDialog({
   const collection = detailsData?.belongs_to_collection ?? null;
 
   const runtimeStr = runtime
-    ? `${Math.floor(runtime / 60)}h ${runtime % 60 > 0 ? ` ${runtime % 60}m` : ""}`
+    ? `${Math.floor(runtime / 60)}h${runtime % 60 > 0 ? ` ${runtime % 60}m` : ""}`
     : null;
 
   /** First backdrop: primary TMDB image, else first still in "Visuels" — used as hero background */
