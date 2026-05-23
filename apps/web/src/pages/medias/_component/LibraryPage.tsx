@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence, type Variants } from "motion/react";
-import { Link, useSearch } from "@tanstack/react-router";
+import { useSearch } from "@tanstack/react-router";
 import { useLibraryNavigation } from "@/features/medias/context/LibraryNavigationContext";
 import {
   Search as SearchIcon,
@@ -20,7 +20,6 @@ import {
   List,
   SlidersHorizontal,
   X,
-  Plus,
 } from "lucide-react";
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -39,7 +38,7 @@ const gridItemVariants: Variants = {
 };
 
 import { PageLayout } from "@/components/PageLayout";
-import { PageHeader } from "@/components/PageHeader";
+import { LibraryPageHeader } from "./LibraryPageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import {
   SegmentedTabs,
@@ -213,33 +212,13 @@ export function LibraryPage() {
 
   return (
     <PageLayout>
-      <PageHeader
-        icon={Film}
-        iconColor="text-primary-600"
-        title={t("medias.library.pageTitle")}
-        subtitle={t("medias.library.pageSubtitle")}
-        actions={
-          <>
-            <button
-              type="button"
-              onClick={() => setAddModalOpen(true)}
-              className="flex h-8 items-center gap-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <Plus size={13} />
-              {t("medias.detail.addToLibrary")}
-            </button>
-            {user?.is_admin && (
-              <Link
-                to="/library/downloads"
-                className="text-xs font-semibold uppercase tracking-wide text-primary-600 hover:text-primary-500 dark:text-primary-400 whitespace-nowrap"
-              >
-                {t("medias.library.downloadsImport")}
-              </Link>
-            )}
-          </>
-        }
+      <LibraryPageHeader
+        movieCount={movieCount}
+        showCount={showCount}
+        isLoading={isLoading}
         onRefresh={() => refetch()}
-        isRefreshing={isLoading}
+        onAddClick={() => setAddModalOpen(true)}
+        isAdmin={user?.is_admin ?? false}
       />
 
       <div className="space-y-4">
