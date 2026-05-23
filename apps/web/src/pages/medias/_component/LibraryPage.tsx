@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence, type Variants } from "motion/react";
-import { Link, useSearch } from "@tanstack/react-router";
+import { useSearch } from "@tanstack/react-router";
 import { useLibraryNavigation } from "@/features/medias/context/LibraryNavigationContext";
 import {
   Search as SearchIcon,
@@ -38,7 +38,7 @@ const gridItemVariants: Variants = {
 };
 
 import { PageLayout } from "@/components/PageLayout";
-import { PageHeader } from "@/components/PageHeader";
+import { LibraryPageHeader } from "./LibraryPageHeader";
 import { EmptyState } from "@/components/EmptyState";
 import {
   SegmentedTabs,
@@ -64,6 +64,7 @@ import {
   sortItems,
 } from "@/utils/libraryUtils";
 import { useAuth } from "@/lib/auth/useAuth";
+import { TmdbSearchModal } from "./TmdbSearchModal";
 
 const PAGE_SIZE = 48;
 
@@ -108,6 +109,7 @@ export function LibraryPage() {
   useLibraryEvents();
 
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
   const activeFilterCount = [
     typeFilter !== "all",
     statusFilter !== "all",
@@ -210,23 +212,13 @@ export function LibraryPage() {
 
   return (
     <PageLayout>
-      <PageHeader
-        icon={Film}
-        iconColor="text-primary-600"
-        title={t("medias.library.pageTitle")}
-        subtitle={t("medias.library.pageSubtitle")}
-        actions={
-          user?.is_admin ? (
-            <Link
-              to="/library/downloads"
-              className="text-xs font-semibold uppercase tracking-wide text-primary-600 hover:text-primary-500 dark:text-primary-400 whitespace-nowrap"
-            >
-              {t("medias.library.downloadsImport")}
-            </Link>
-          ) : undefined
-        }
+      <LibraryPageHeader
+        movieCount={movieCount}
+        showCount={showCount}
+        isLoading={isLoading}
         onRefresh={() => refetch()}
-        isRefreshing={isLoading}
+        onAddClick={() => setAddModalOpen(true)}
+        isAdmin={user?.is_admin ?? false}
       />
 
       <div className="space-y-4">
@@ -619,6 +611,10 @@ export function LibraryPage() {
             page: 1,
           })
         }
+      />
+      <TmdbSearchModal
+        isOpen={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
       />
     </PageLayout>
   );
