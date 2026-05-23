@@ -65,7 +65,7 @@ import {
   sortItems,
 } from "@/utils/libraryUtils";
 import { useAuth } from "@/lib/auth/useAuth";
-import { AddToLibraryModal } from "./AddToLibraryModal";
+import { TmdbSearchModal } from "./TmdbSearchModal";
 
 const PAGE_SIZE = 48;
 
@@ -633,7 +633,7 @@ export function LibraryPage() {
           })
         }
       />
-      <AddToLibraryModal
+      <TmdbSearchModal
         isOpen={addModalOpen}
         onClose={() => setAddModalOpen(false)}
       />
