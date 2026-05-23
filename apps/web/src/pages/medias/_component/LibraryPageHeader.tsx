@@ -1,6 +1,6 @@
 import { Film, Tv, Plus, RefreshCw, Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 interface LibraryPageHeaderProps {
@@ -21,6 +21,7 @@ export function LibraryPageHeader({
   isAdmin,
 }: LibraryPageHeaderProps) {
   const { t } = useTranslation("common");
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col gap-3 pb-1 sm:flex-row sm:items-center sm:justify-between">
@@ -77,15 +78,16 @@ export function LibraryPageHeader({
         </button>
 
         {isAdmin && (
-          <Link
-            to="/library/downloads"
-            className="flex h-8 min-h-8 min-w-8 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/library/downloads" })}
+            className="flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
           >
             <Download size={13} />
             <span className="hidden sm:inline">
               {t("medias.library.downloadsImport")}
             </span>
-          </Link>
+          </button>
         )}
 
         <button
