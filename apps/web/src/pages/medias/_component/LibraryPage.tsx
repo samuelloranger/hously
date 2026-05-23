@@ -20,6 +20,7 @@ import {
   List,
   SlidersHorizontal,
   X,
+  Plus,
 } from "lucide-react";
 // ─── Motion variants ──────────────────────────────────────────────────────────
 
@@ -64,6 +65,7 @@ import {
   sortItems,
 } from "@/utils/libraryUtils";
 import { useAuth } from "@/lib/auth/useAuth";
+import { AddToLibraryModal } from "./AddToLibraryModal";
 
 const PAGE_SIZE = 48;
 
@@ -108,6 +110,7 @@ export function LibraryPage() {
   useLibraryEvents();
 
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
   const activeFilterCount = [
     typeFilter !== "all",
     statusFilter !== "all",
@@ -253,6 +256,14 @@ export function LibraryPage() {
 
             {/* Sort */}
             <div className="hidden sm:flex items-center gap-1.5 ml-auto">
+              <button
+                type="button"
+                onClick={() => setAddModalOpen(true)}
+                className="flex h-8 items-center gap-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <Plus size={13} />
+                {t("medias.detail.addToLibrary")}
+              </button>
               <select
                 value={sortBy}
                 onChange={(e) =>
@@ -357,6 +368,14 @@ export function LibraryPage() {
               </button>
 
               <div className="flex-1" />
+              <button
+                type="button"
+                onClick={() => setAddModalOpen(true)}
+                className="flex h-9 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 transition-colors dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+              >
+                <Plus size={13} />
+                {t("medias.detail.addToLibrary")}
+              </button>
 
               {/* View mode toggle */}
               <div className="flex overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
@@ -619,6 +638,10 @@ export function LibraryPage() {
             page: 1,
           })
         }
+      />
+      <AddToLibraryModal
+        isOpen={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
       />
     </PageLayout>
   );
