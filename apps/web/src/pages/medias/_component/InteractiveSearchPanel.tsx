@@ -33,7 +33,6 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
     <div className="flex flex-col">
       <InteractiveSearchToolbar
         filterQuery={state.filterQuery}
-        searchApiQuery={state.searchApiQuery}
         showFilters={state.showFilters}
         hideRejected={state.hideRejected}
         sortBy={state.sortBy}
@@ -45,9 +44,6 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
         showPacksOnly={state.showPacksOnly}
         setFilters={state.setFilters}
         isShow={state.isShow}
-        isSearchMode={state.isSearchMode}
-        canToggleSearchTitle={state.canToggleSearchTitle}
-        isOriginalTitleQuery={state.isOriginalTitleQuery}
         availableSeasons={state.availableSeasons}
         trackerOptions={state.trackerOptions}
         languageOptions={state.languageOptions}
@@ -57,15 +53,9 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
         needsSearchQuery={state.needsSearchQuery}
         onOpenMobileDrawer={() => state.setMobileDrawerOpen(true)}
         searchInputRef={state.searchInputRef}
-        onToggleSearchTitleVariant={state.toggleSearchTitleVariant}
         onRefetch={() => void state.activeQuery.refetch()}
         onIncludedTrackersChange={state.handleIncludedTrackersChange}
         onExcludedTrackersChange={state.handleExcludedTrackersChange}
-        visibleCount={state.visibleCount}
-        totalReleases={state.totalReleases}
-        hiddenCount={state.hiddenCount}
-        hasViewOverrides={state.hasViewOverrides}
-        onResetView={state.resetView}
       />
 
       {/* Mobile bottom drawer — all controls except search + toggles */}
@@ -140,6 +130,7 @@ export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
         totalReleases={state.totalReleases}
         isSearchMode={state.isSearchMode}
         searchApiQuery={state.searchApiQuery}
+        canToggleSearchTitle={state.canToggleSearchTitle}
         isOriginalTitleQuery={state.isOriginalTitleQuery}
         onToggleSearchTitleVariant={state.toggleSearchTitleVariant}
       />

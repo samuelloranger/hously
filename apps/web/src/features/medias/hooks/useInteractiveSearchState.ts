@@ -6,7 +6,7 @@ import { useInteractiveSearch } from "@/features/medias/hooks/useInteractiveSear
 import { useLibraryGrabRelease } from "@/features/medias/hooks/useLibraryGrabRelease";
 import { useLibraryEpisodes } from "@/features/medias/hooks/useLibraryEpisodes";
 import { useLibraryDownloads } from "@/features/medias/hooks/useLibraryDownloads";
-import type { InteractiveReleaseItem } from "@hously/shared/types";
+import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
 import {
   filterAndSortReleases,
   normalizeFilterKey,
@@ -15,8 +15,20 @@ import {
   type InteractiveSortKey,
   type InteractiveSortDir,
 } from "@/lib/utils/interactive-search";
-import type { FilterOption } from "@/pages/medias/_component/InteractiveSearchFilters";
-import type { InteractiveSearchPanelProps } from "@/pages/medias/_component/InteractiveSearchPanel";
+export type FilterOption = { key: string; label: string };
+
+export interface UseInteractiveSearchStateProps {
+  isActive: boolean;
+  media?: MediaItem | null;
+  mode?: "arr" | "search";
+  libraryMediaId?: number | null;
+  defaultSearchQuery?: string | null;
+  searchQueryOriginal?: string | null;
+  episodeId?: number | null;
+  defaultSeason?: number | "complete" | null;
+  isUpgradeMode?: boolean;
+  onDownloadSuccess?: () => void;
+}
 
 export interface FilterState {
   filterQuery: string;
@@ -44,7 +56,7 @@ export function useInteractiveSearchState({
   defaultSeason = null,
   isUpgradeMode = false,
   onDownloadSuccess,
-}: InteractiveSearchPanelProps) {
+}: UseInteractiveSearchStateProps) {
   const { t } = useTranslation("common");
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const libId =
@@ -107,7 +119,7 @@ export function useInteractiveSearchState({
       .sort((a, b) => a - b);
   }, [episodesQuery.data]);
 
-  const interactiveSearchQuery = useInteractiveSearch(searchApiQuery, {
+  const activeQuery = useInteractiveSearch(searchApiQuery, {
     enabled: isActive,
     library_media_id: libId,
     season: selectedSeason,
@@ -117,7 +129,6 @@ export function useInteractiveSearchState({
   });
   const interactiveDownloadMutation = useInteractiveDownload();
   const libraryGrabMutation = useLibraryGrabRelease(libId);
-  const activeQuery = interactiveSearchQuery;
   const grabBusy =
     libraryGrabMutation.isPending || interactiveDownloadMutation.isPending;
 
@@ -218,7 +229,7 @@ export function useInteractiveSearchState({
       includedLanguages,
       sortBy,
       sortDir,
-      isSearchMode: true,
+      isSearchMode,
       mediaTitle: media?.title ?? defaultSearchQuery ?? null,
       mediaYear: media?.year ?? null,
     });
