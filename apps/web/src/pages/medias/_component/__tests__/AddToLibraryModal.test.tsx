@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { AddToLibraryModal } from "../AddToLibraryModal";
 
 vi.mock("@/pages/medias/_component/TmdbMediaSearchPanel", () => ({
@@ -20,8 +20,10 @@ describe("AddToLibraryModal", () => {
     expect(screen.getByTestId("tmdb-panel")).toBeInTheDocument();
   });
 
-  it("does not render panel content when closed", () => {
-    render(<AddToLibraryModal isOpen={false} onClose={vi.fn()} />);
-    expect(screen.queryByTestId("tmdb-panel")).not.toBeInTheDocument();
+  it("calls onClose when the close button is clicked", () => {
+    const onClose = vi.fn();
+    render(<AddToLibraryModal isOpen onClose={onClose} />);
+    fireEvent.click(screen.getByRole("button", { name: /close/i }));
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });
