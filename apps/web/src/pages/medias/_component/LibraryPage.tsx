@@ -367,7 +367,6 @@ export function LibraryPage() {
                 {t(`medias.library.sort.${sortBy}`)}
               </button>
 
-              <div className="flex-1" />
               <button
                 type="button"
                 onClick={() => setAddModalOpen(true)}
@@ -376,6 +375,7 @@ export function LibraryPage() {
                 <Plus size={13} />
                 {t("medias.detail.addToLibrary")}
               </button>
+              <div className="flex-1" />
 
               {/* View mode toggle */}
               <div className="flex overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
