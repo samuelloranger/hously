@@ -14,11 +14,6 @@ export function formatRelativeShort(isoString: string): string {
   return `${Math.floor(hrs / 24)}d`;
 }
 
-export function formatDateShort(iso: string): string {
-  const d = new Date(iso);
-  return `${d.toLocaleString("default", { month: "short" })} ${d.getDate()}`;
-}
-
 // ─── Filter types ─────────────────────────────────────────────────────────────
 
 export type StatusFilter = "all" | "completed" | "failed" | "active";
