@@ -1,0 +1,122 @@
+import { useTranslation } from "react-i18next";
+import { Link } from "@tanstack/react-router";
+import type {
+  TmdbMediaSearchItem,
+  TmdbTrailerResponse,
+} from "@hously/shared/types";
+import {
+  Bookmark,
+  BookmarkCheck,
+  Check,
+  ExternalLink,
+  Play,
+  Plus,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface ExploreCardActionsProps {
+  item: TmdbMediaSearchItem;
+  isInWatchlist: boolean;
+  isAddPending: boolean;
+  isWatchlistPending: boolean;
+  trailerData: TmdbTrailerResponse | null;
+  tmdbUrl: string;
+  onAdd: () => void;
+  onWatchlistToggle: () => void;
+  onClose: () => void;
+}
+
+export function ExploreCardActions({
+  item,
+  isInWatchlist,
+  isAddPending,
+  isWatchlistPending,
+  trailerData,
+  tmdbUrl,
+  onAdd,
+  onWatchlistToggle,
+  onClose,
+}: ExploreCardActionsProps) {
+  const { t } = useTranslation("common");
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-y border-neutral-200 dark:border-neutral-700/60 py-2 mb-3">
+      {/* Watchlist toggle */}
+      <button
+        type="button"
+        onClick={onWatchlistToggle}
+        disabled={isWatchlistPending}
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-[background-color] disabled:opacity-50",
+          isInWatchlist
+            ? "bg-amber-500/25 text-amber-700 hover:bg-amber-500/35 dark:text-amber-400"
+            : "bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 dark:text-amber-400",
+        )}
+      >
+        {isInWatchlist ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
+        {isInWatchlist
+          ? t("medias.detail.inWatchlist", "Watchlist ✓")
+          : t("medias.detail.addToWatchlist", "Watchlist")}
+      </button>
+
+      {/* TMDB link */}
+      <a
+        href={tmdbUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600/10 px-3 py-1.5 text-xs font-medium text-sky-700 transition-[background-color] hover:bg-sky-600/20 dark:text-sky-400"
+      >
+        <ExternalLink size={12} />
+        TMDB
+      </a>
+
+      {/* Trailer link */}
+      {trailerData?.key && (
+        <a
+          href={`https://www.youtube.com/watch?v=${trailerData.key}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/10 px-3 py-1.5 text-xs font-medium text-red-700 transition-[background-color] hover:bg-red-600/20 dark:text-red-400"
+        >
+          <Play size={12} />
+          {t("medias.detail.watchTrailer")}
+        </a>
+      )}
+
+      <div className="flex-1" />
+
+      {/* Add to library — primary CTA */}
+      {!item.already_exists && item.can_add && (
+        <button
+          onClick={onAdd}
+          disabled={isAddPending}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color] hover:bg-primary-700 active:bg-primary-800 disabled:opacity-50"
+        >
+          {isAddPending ? (
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          ) : (
+            <Plus size={12} />
+          )}
+          {t("medias.detail.addToLibrary")}
+        </button>
+      )}
+
+      {/* Already in library */}
+      {item.already_exists && item.library_id && (
+        <Link
+          to="/library/$libraryId"
+          params={{ libraryId: String(item.library_id) }}
+          onClick={onClose}
+          className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-700 transition-[background-color] hover:bg-emerald-500/20 dark:text-emerald-400"
+        >
+          <Check size={12} /> {t("medias.detail.inLibrary")}
+        </Link>
+      )}
+      {item.already_exists && !item.library_id && (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+          <Check size={12} /> {t("medias.detail.inLibrary")}
+        </span>
+      )}
+    </div>
+  );
+}

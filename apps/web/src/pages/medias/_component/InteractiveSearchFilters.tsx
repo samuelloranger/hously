@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ChevronDown, X } from "lucide-react";
+import type { FilterOption } from "@/features/medias/hooks/useInteractiveSearchState";
 
-export type FilterOption = { key: string; label: string };
+export type { FilterOption };
 
 export function Toggle({
   checked,

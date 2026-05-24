@@ -1,39 +1,9 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
-import {
-  ArrowDownAZ,
-  ArrowUpZA,
-  RefreshCw,
-  Search,
-  SlidersHorizontal,
-  TriangleAlert,
-  X,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useInteractiveDownload } from "@/features/medias/hooks/useInteractiveDownload";
-import { useInteractiveSearch } from "@/features/medias/hooks/useInteractiveSearch";
-import { useLibraryGrabRelease } from "@/features/medias/hooks/useLibraryGrabRelease";
-import { useLibraryEpisodes } from "@/features/medias/hooks/useLibraryEpisodes";
-import { useLibraryDownloads } from "@/features/medias/hooks/useLibraryDownloads";
-import type { InteractiveReleaseItem, MediaItem } from "@hously/shared/types";
-import {
-  filterAndSortReleases,
-  normalizeFilterKey,
-  UNKNOWN_TRACKER_KEY,
-  UNKNOWN_LANGUAGE_KEY,
-  type InteractiveSortKey,
-  type InteractiveSortDir,
-} from "@/lib/utils/interactive-search";
-import {
-  Toggle,
-  ChipMultiSelect,
-  FilterSection,
-  type FilterOption,
-} from "./InteractiveSearchFilters";
-import { ReleaseCard } from "./ReleaseCard";
-import { Button } from "@/components/ui/button";
+import { useInteractiveSearchState } from "@/features/medias/hooks/useInteractiveSearchState";
+import { InteractiveSearchToolbar } from "./InteractiveSearchToolbar";
+import { InteractiveSearchStatusStrip } from "./InteractiveSearchStatusStrip";
+import { InteractiveSearchResultsList } from "./InteractiveSearchResultsList";
 import { InteractiveSearchMobileDrawer } from "./InteractiveSearchMobileDrawer";
+import type { MediaItem } from "@hously/shared/types";
 
 export interface InteractiveSearchPanelProps {
   isActive: boolean;
@@ -54,945 +24,131 @@ export interface InteractiveSearchPanelProps {
   onDownloadSuccess?: () => void;
 }
 
-interface FilterState {
-  filterQuery: string;
-  searchApiQuery: string;
-  showFilters: boolean;
-  hideRejected: boolean;
-  sortBy: InteractiveSortKey;
-  sortDir: InteractiveSortDir;
-  includedTrackers: string[];
-  excludedTrackers: string[];
-  includedLanguages: string[];
-  /** null = episode/free-text, number = season pack, "complete" = full series */
-  selectedSeason: number | "complete" | null;
-  showPacksOnly: boolean;
-}
+export function InteractiveSearchPanel(props: InteractiveSearchPanelProps) {
+  const state = useInteractiveSearchState(props);
 
-export function InteractiveSearchPanel({
-  isActive,
-  media = null,
-  mode = "search",
-  libraryMediaId = null,
-  defaultSearchQuery = null,
-  searchQueryOriginal = null,
-  episodeId = null,
-  defaultSeason = null,
-  isUpgradeMode = false,
-  onDownloadSuccess,
-}: InteractiveSearchPanelProps) {
-  const { t } = useTranslation("common");
-  const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const libId =
-    libraryMediaId != null && libraryMediaId > 0 ? libraryMediaId : null;
-  const isSearchMode = mode === "search";
-  const sourceId = media?.source_id ?? null;
-  const canRenderBody = isSearchMode || (media != null && sourceId != null);
-
-  const localizedQuery = defaultSearchQuery?.trim() ?? "";
-  const originalQuery = searchQueryOriginal?.trim() ?? "";
-  const canToggleSearchTitle =
-    isSearchMode &&
-    originalQuery.length >= 2 &&
-    originalQuery !== localizedQuery;
-
-  const buildInitialFilters = (): FilterState => ({
-    filterQuery: "",
-    searchApiQuery: localizedQuery,
-    showFilters: false,
-    hideRejected: true,
-    sortBy: libId ? "quality" : "seeders",
-    sortDir: "desc",
-    includedTrackers: [],
-    excludedTrackers: [],
-    includedLanguages: [],
-    selectedSeason: defaultSeason ?? null,
-    showPacksOnly: false,
-  });
-
-  const [filters, setFilters] = useState<FilterState>(buildInitialFilters);
-  const [pendingReleaseKey, setPendingReleaseKey] = useState<string | null>(
-    null,
-  );
-  const [indexerWarningsDismissed, setIndexerWarningsDismissed] =
-    useState(false);
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-
-  const {
-    filterQuery,
-    searchApiQuery,
-    showFilters,
-    hideRejected,
-    sortBy,
-    sortDir,
-    includedTrackers,
-    excludedTrackers,
-    includedLanguages,
-    selectedSeason,
-    showPacksOnly,
-  } = filters;
-
-  const isShow = media?.media_type === "series";
-  const mediaTmdbId = media?.tmdb_id ?? null;
-  const episodesQuery = useLibraryEpisodes(isShow && isActive ? libId : null);
-  const availableSeasons = useMemo(() => {
-    if (!episodesQuery.data?.seasons) return [];
-    return episodesQuery.data.seasons
-      .map((s) => s.season)
-      .filter((s) => s > 0)
-      .sort((a, b) => a - b);
-  }, [episodesQuery.data]);
-
-  const interactiveSearchQuery = useInteractiveSearch(searchApiQuery, {
-    enabled: isActive,
-    library_media_id: libId,
-    season: selectedSeason,
-    tmdb_id: mediaTmdbId ?? null,
-    media_type:
-      media?.media_type === "series" ? "tv" : (media?.media_type ?? null),
-  });
-  const interactiveDownloadMutation = useInteractiveDownload();
-  const libraryGrabMutation = useLibraryGrabRelease(libId);
-  const activeQuery = interactiveSearchQuery;
-  const grabBusy =
-    libraryGrabMutation.isPending || interactiveDownloadMutation.isPending;
-
-  const downloadsQuery = useLibraryDownloads(libId);
-  const grabbedTitles = useMemo(() => {
-    const set = new Set<string>();
-    for (const row of downloadsQuery.data?.items ?? []) {
-      if (row.release_title) set.add(row.release_title.trim().toLowerCase());
-    }
-    return set;
-  }, [downloadsQuery.data]);
-
-  useLayoutEffect(() => {
-    if (!isActive) return;
-    setFilters(buildInitialFilters());
-    setPendingReleaseKey(null);
-    // buildInitialFilters reads defaultSearchQuery, defaultSeason, libId from closure
-  }, [
-    isActive,
-    media?.id,
-    defaultSearchQuery,
-    searchQueryOriginal,
-    defaultSeason,
-    libId,
-  ]);
-
-  useEffect(() => {
-    if (!isActive) return;
-    const frame = window.requestAnimationFrame(() => {
-      searchInputRef.current?.focus();
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [isActive, media?.id, defaultSearchQuery, searchQueryOriginal, libId]);
-
-  const toggleSearchTitleVariant = () => {
-    if (!canToggleSearchTitle) return;
-    setFilters((prev) => ({
-      ...prev,
-      searchApiQuery:
-        prev.searchApiQuery === originalQuery ? localizedQuery : originalQuery,
-    }));
-  };
-
-  const isOriginalTitleQuery =
-    canToggleSearchTitle && searchApiQuery === originalQuery;
-
-  const trackerOptions = useMemo<FilterOption[]>(() => {
-    const options = new Map<string, string>();
-
-    for (const release of activeQuery.data?.releases ?? []) {
-      const trackerLabel =
-        release.indexer?.trim() || t("medias.interactive.unknownIndexer");
-      const trackerKey = release.indexer?.trim()
-        ? normalizeFilterKey(release.indexer)
-        : UNKNOWN_TRACKER_KEY;
-      if (!options.has(trackerKey)) options.set(trackerKey, trackerLabel);
-    }
-
-    return [...options.entries()]
-      .map(([key, label]) => ({ key, label }))
-      .sort((a, b) =>
-        a.label.localeCompare(b.label, undefined, { sensitivity: "base" }),
-      );
-  }, [activeQuery.data?.releases, t]);
-
-  const languageOptions = useMemo<FilterOption[]>(() => {
-    const options = new Map<string, string>();
-
-    for (const release of activeQuery.data?.releases ?? []) {
-      const languages =
-        release.languages.length > 0
-          ? release.languages
-          : [t("medias.interactive.unknownLanguage")];
-      for (const language of languages) {
-        const trimmed = language.trim();
-        if (!trimmed) continue;
-        const languageKey =
-          release.languages.length > 0
-            ? normalizeFilterKey(trimmed)
-            : UNKNOWN_LANGUAGE_KEY;
-        if (!options.has(languageKey)) options.set(languageKey, trimmed);
-      }
-    }
-
-    return [...options.entries()]
-      .map(([key, label]) => ({ key, label }))
-      .sort((a, b) =>
-        a.label.localeCompare(b.label, undefined, { sensitivity: "base" }),
-      );
-  }, [activeQuery.data?.releases, t]);
-
-  const releases = useMemo(() => {
-    let list = filterAndSortReleases(activeQuery.data?.releases ?? [], {
-      filterQuery,
-      hideRejected,
-      includedTrackers,
-      excludedTrackers,
-      includedLanguages,
-      sortBy,
-      sortDir,
-      isSearchMode: true,
-      mediaTitle: media?.title ?? defaultSearchQuery ?? null,
-      mediaYear: media?.year ?? null,
-    });
-    if (showPacksOnly || selectedSeason != null) {
-      list = list.filter((r) => r.is_season_pack || r.is_complete_series);
-    }
-    return list;
-  }, [
-    activeQuery.data?.releases,
-    defaultSearchQuery,
-    excludedTrackers,
-    filterQuery,
-    hideRejected,
-    includedLanguages,
-    includedTrackers,
-    media?.title,
-    media?.year,
-    selectedSeason,
-    showPacksOnly,
-    sortBy,
-    sortDir,
-  ]);
-
-  const downloadRelease = async (release: InteractiveReleaseItem) => {
-    const releaseKey = `${release.guid}-${release.indexer_id ?? "x"}`;
-    setPendingReleaseKey(releaseKey);
-
-    try {
-      if (isSearchMode && libId != null && release.download_url) {
-        // Library grab — records in DB and sends URL to qBittorrent
-        if (libraryGrabMutation.isPending) return;
-        await libraryGrabMutation.mutateAsync({
-          download_url: release.download_url,
-          release_title: release.title,
-          indexer: release.indexer,
-          quality_parsed: release.parsed_quality ?? undefined,
-          size_bytes: release.size_bytes,
-          episode_id: episodeId,
-          ...(isUpgradeMode ? { is_upgrade: true } : {}),
-        });
-      } else if (isSearchMode && release.download_token) {
-        if (interactiveDownloadMutation.isPending) return;
-        const res = await interactiveDownloadMutation.mutateAsync({
-          token: release.download_token,
-        });
-        const resolvedUrl = res.magnet_url ?? res.download_url;
-        if (libId != null && resolvedUrl) {
-          if (libraryGrabMutation.isPending) return;
-          await libraryGrabMutation.mutateAsync({
-            download_url: resolvedUrl,
-            release_title: release.title,
-            indexer: release.indexer,
-            quality_parsed: release.parsed_quality ?? undefined,
-            size_bytes: release.size_bytes,
-            episode_id: episodeId,
-            ...(isUpgradeMode ? { is_upgrade: true } : {}),
-          });
-        }
-      } else {
-        return;
-      }
-
-      toast.success(t("medias.interactive.downloadStarted"));
-      onDownloadSuccess?.();
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : t("medias.interactive.downloadFailed");
-      toast.error(message);
-    } finally {
-      setPendingReleaseKey(null);
-    }
-  };
-
-  const totalReleases = activeQuery.data?.releases.length ?? 0;
-  const indexerWarnings = activeQuery.data?.indexer_warnings ?? [];
-
-  useEffect(() => {
-    if (isActive && activeQuery.isFetching) setIndexerWarningsDismissed(false);
-  }, [activeQuery.isFetching, isActive]);
-
-  const hasAdvancedFilters =
-    includedTrackers.length > 0 ||
-    excludedTrackers.length > 0 ||
-    includedLanguages.length > 0;
-  const totalActiveFilters =
-    includedTrackers.length +
-    excludedTrackers.length +
-    includedLanguages.length;
-  const hasViewOverrides = totalActiveFilters > 0 || !hideRejected;
-  const visibleCount = releases.length;
-  const hiddenCount = Math.max(0, totalReleases - visibleCount);
-  const errorMessage =
-    activeQuery.error instanceof Error ? activeQuery.error.message : null;
-  const needsSearchQuery = searchApiQuery.length < 2;
-
-  if (!canRenderBody) return null;
-
-  const resetView = () => {
-    setFilters((prev) => ({
-      ...prev,
-      hideRejected: false,
-      includedTrackers: [],
-      excludedTrackers: [],
-      includedLanguages: [],
-    }));
-  };
-
-  const handleIncludedTrackersChange = (values: string[]) => {
-    setFilters((prev) => ({
-      ...prev,
-      includedTrackers: values,
-      excludedTrackers: prev.excludedTrackers.filter(
-        (k) => !values.includes(k),
-      ),
-    }));
-  };
-
-  const handleExcludedTrackersChange = (values: string[]) => {
-    setFilters((prev) => ({
-      ...prev,
-      excludedTrackers: values,
-      includedTrackers: prev.includedTrackers.filter(
-        (k) => !values.includes(k),
-      ),
-    }));
-  };
+  if (!state.canRenderBody) return null;
 
   return (
     <div className="flex flex-col">
-      {/* ─── Sticky search header ──────────────────────────────────────── */}
-      <div className="sticky top-0 z-10 border-b border-neutral-200/80 bg-white/95 pb-3 pt-2 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-900/95">
-        {/* ── Mobile layout (< sm): search + toggles + drawer trigger ── */}
-        <div className="flex flex-col gap-2 sm:hidden">
-          <div className="relative">
-            <Search
-              size={14}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
-            />
-            <input
-              ref={searchInputRef}
-              value={filterQuery}
-              onChange={(event) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  filterQuery: event.target.value,
-                }))
-              }
-              placeholder={t("medias.interactive.filterPlaceholder")}
-              className="h-10 w-full rounded-xl border border-neutral-200 bg-neutral-50 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500"
-            />
-            {filterQuery && (
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((prev) => ({ ...prev, filterQuery: "" }))
-                }
-                className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-200"
-                aria-label={t("medias.interactive.clearSearch")}
-              >
-                <X size={12} />
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => void activeQuery.refetch()}
-              disabled={activeQuery.isFetching || needsSearchQuery}
-              className="h-9 w-9 shrink-0 border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800"
-              title={t("medias.interactive.refresh")}
-            >
-              <RefreshCw
-                size={13}
-                className={activeQuery.isFetching ? "animate-spin" : ""}
-              />
-            </Button>
-
-            <button
-              type="button"
-              onClick={() => setMobileDrawerOpen(true)}
-              className={cn(
-                "relative inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors",
-                totalActiveFilters > 0 ||
-                  selectedSeason != null ||
-                  !hideRejected ||
-                  showPacksOnly
-                  ? "border-primary-400/50 bg-primary-50 text-primary-700 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-300"
-                  : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-white hover:text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
-              )}
-            >
-              <SlidersHorizontal size={13} />
-              {t("medias.interactive.filtersButton")}
-              {(totalActiveFilters > 0 || selectedSeason != null) && (
-                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-600 px-1 text-[9px] font-bold text-white">
-                  {totalActiveFilters + (selectedSeason != null ? 1 : 0)}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* ── Desktop layout (sm+): full inline toolbar ── */}
-        <div className="hidden sm:flex sm:flex-col sm:gap-2.5">
-          {/* Season selector */}
-          {isShow && availableSeasons.length > 0 && (
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]">
-              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">
-                {t("medias.interactive.seasonSearch")}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((prev) => ({ ...prev, selectedSeason: null }))
-                }
-                className={cn(
-                  "shrink-0 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                  selectedSeason === null
-                    ? "bg-primary-600 text-white"
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
-                )}
-              >
-                {t("medias.interactive.seasonAll")}
-              </button>
-              {availableSeasons.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      selectedSeason: prev.selectedSeason === s ? null : s,
-                    }))
-                  }
-                  className={cn(
-                    "shrink-0 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                    selectedSeason === s
-                      ? "bg-primary-600 text-white"
-                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
-                  )}
-                >
-                  S{String(s).padStart(2, "0")}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    selectedSeason:
-                      prev.selectedSeason === "complete" ? null : "complete",
-                  }))
-                }
-                className={cn(
-                  "shrink-0 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                  selectedSeason === "complete"
-                    ? "bg-violet-600 text-white"
-                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
-                )}
-              >
-                {t("medias.interactive.completeSeries")}
-              </button>
-            </div>
-          )}
-
-          {/* Search row: input + filter toggle + refresh */}
-          <div className="flex items-center gap-2">
-            <div className="relative min-w-0 flex-1">
-              <Search
-                size={14}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500"
-              />
-              <input
-                ref={searchInputRef}
-                value={filterQuery}
-                onChange={(event) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    filterQuery: event.target.value,
-                  }))
-                }
-                placeholder={t("medias.interactive.filterPlaceholder")}
-                className="h-10 w-full rounded-xl border border-neutral-200 bg-neutral-50 pl-9 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500"
-              />
-              {filterQuery && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFilters((prev) => ({ ...prev, filterQuery: "" }))
-                  }
-                  className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-700 dark:hover:bg-neutral-700 dark:hover:text-neutral-200"
-                  aria-label={t("medias.interactive.clearSearch")}
-                >
-                  <X size={12} />
-                </button>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() =>
-                setFilters((prev) => ({
-                  ...prev,
-                  showFilters: !prev.showFilters,
-                }))
-              }
-              className={cn(
-                "relative inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors",
-                showFilters || hasAdvancedFilters
-                  ? "border-primary-400/50 bg-primary-50 text-primary-700 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-300"
-                  : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-white hover:text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700",
-              )}
-            >
-              <SlidersHorizontal size={13} />
-              {t("medias.interactive.filtersButton")}
-              {totalActiveFilters > 0 && (
-                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-600 px-1 text-[9px] font-bold text-white">
-                  {totalActiveFilters}
-                </span>
-              )}
-            </button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => void activeQuery.refetch()}
-              disabled={activeQuery.isFetching || needsSearchQuery}
-              className="h-10 w-10 shrink-0 border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800"
-              title={t("medias.interactive.refresh")}
-            >
-              <RefreshCw
-                size={13}
-                className={activeQuery.isFetching ? "animate-spin" : ""}
-              />
-            </Button>
-          </div>
-
-          {/* Controls row: toggles left, sort controls right */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <Toggle
-                checked={hideRejected}
-                onChange={(v) =>
-                  setFilters((prev) => ({ ...prev, hideRejected: v }))
-                }
-                label={t("medias.interactive.hideRejected")}
-              />
-              <Toggle
-                checked={showPacksOnly}
-                onChange={(v) =>
-                  setFilters((prev) => ({ ...prev, showPacksOnly: v }))
-                }
-                label={t("medias.interactive.packsOnly")}
-              />
-            </div>
-
-            <div className="flex shrink-0 items-center gap-1.5">
-              {hasViewOverrides && (
-                <button
-                  type="button"
-                  onClick={resetView}
-                  className="text-xs font-medium text-primary-600 transition-colors hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
-                >
-                  {t("medias.interactive.resetView")}
-                </button>
-              )}
-              <div className="flex items-center gap-1">
-                <select
-                  value={sortBy}
-                  onChange={(event) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      sortBy: event.target.value as InteractiveSortKey,
-                    }))
-                  }
-                  className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-xs text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500/30 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
-                >
-                  <option value="seeders">
-                    {t("medias.interactive.sortOptions.seeders")}
-                  </option>
-                  <option value="age">
-                    {t("medias.interactive.sortOptions.age")}
-                  </option>
-                  <option value="size">
-                    {t("medias.interactive.sortOptions.size")}
-                  </option>
-                  <option value="title">
-                    {t("medias.interactive.sortOptions.title")}
-                  </option>
-                  <option value="quality">
-                    {t("medias.interactive.sortOptions.quality")}
-                  </option>
-                </select>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      sortDir: prev.sortDir === "asc" ? "desc" : "asc",
-                    }))
-                  }
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 text-neutral-600 transition-colors hover:bg-white hover:text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
-                  title={
-                    sortDir === "asc"
-                      ? t("medias.sortDirectionAsc")
-                      : t("medias.sortDirectionDesc")
-                  }
-                >
-                  {sortDir === "asc" ? (
-                    <ArrowDownAZ size={13} />
-                  ) : (
-                    <ArrowUpZA size={13} />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Status strip */}
-          {!needsSearchQuery && (
-            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-              <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-                {t("medias.interactive.resultsVisible", {
-                  visible: visibleCount,
-                  total: totalReleases,
-                })}
-              </span>
-              {hiddenCount > 0 && (
-                <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                  {t("medias.interactive.hiddenCount", {
-                    count: hiddenCount,
-                  })}
-                </span>
-              )}
-              <span className="flex min-w-0 max-w-[260px] items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-[11px] dark:bg-neutral-800">
-                {canToggleSearchTitle ? (
-                  <button
-                    type="button"
-                    onClick={toggleSearchTitleVariant}
-                    title={
-                      isOriginalTitleQuery
-                        ? t("medias.interactive.useLocalizedTitleHint")
-                        : t("medias.interactive.useOriginalTitleHint")
-                    }
-                    className="-mx-0.5 flex min-w-0 flex-1 items-center gap-1 rounded-md px-0.5 text-left transition-colors hover:bg-neutral-200/80 dark:hover:bg-neutral-700/80"
-                  >
-                    <span className="shrink-0 text-neutral-400">Search:</span>
-                    <span
-                      className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                      title={searchApiQuery}
-                    >
-                      {searchApiQuery || "…"}
-                    </span>
-                    <span
-                      className={cn(
-                        "shrink-0 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wide",
-                        isOriginalTitleQuery
-                          ? "bg-amber-200/80 text-amber-900 dark:bg-amber-900/50 dark:text-amber-100"
-                          : "bg-primary-200/70 text-primary-900 dark:bg-primary-900/40 dark:text-primary-100",
-                      )}
-                    >
-                      {isOriginalTitleQuery
-                        ? t("medias.interactive.titleBadgeOriginal")
-                        : t("medias.interactive.titleBadgeLocalized")}
-                    </span>
-                  </button>
-                ) : (
-                  <>
-                    <span className="shrink-0 text-neutral-400">Search:</span>
-                    <span
-                      className="truncate font-medium text-neutral-700 dark:text-neutral-200"
-                      title={searchApiQuery}
-                    >
-                      {searchApiQuery || "…"}
-                    </span>
-                  </>
-                )}
-              </span>
-            </div>
-          )}
-
-          {/* Advanced filters panel */}
-          {showFilters && (
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 dark:border-neutral-700/80 dark:bg-neutral-800/50">
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <p className="flex items-center gap-1.5 text-xs font-semibold text-neutral-700 dark:text-neutral-200">
-                  {t("medias.interactive.filtersTitle")}
-                  {totalActiveFilters > 0 && (
-                    <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary-600 text-[9px] font-bold text-white">
-                      {totalActiveFilters}
-                    </span>
-                  )}
-                </p>
-                {hasAdvancedFilters && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        includedTrackers: [],
-                        excludedTrackers: [],
-                        includedLanguages: [],
-                      }))
-                    }
-                    className="text-[11px] font-medium text-primary-600 transition-colors hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
-                  >
-                    {t("medias.interactive.clearFilters")}
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-3 divide-y divide-neutral-200/70 dark:divide-neutral-700/60">
-                <FilterSection
-                  title={t("medias.interactive.trackersInclude")}
-                  badge={includedTrackers.length}
-                >
-                  <ChipMultiSelect
-                    options={trackerOptions}
-                    selected={includedTrackers}
-                    onChange={handleIncludedTrackersChange}
-                    emptyText={t("medias.interactive.noTrackers")}
-                  />
-                </FilterSection>
-
-                <div className="pt-1.5">
-                  <FilterSection
-                    title={t("medias.interactive.trackersExclude")}
-                    badge={excludedTrackers.length}
-                  >
-                    <ChipMultiSelect
-                      options={trackerOptions}
-                      selected={excludedTrackers}
-                      onChange={handleExcludedTrackersChange}
-                      emptyText={t("medias.interactive.noTrackers")}
-                    />
-                  </FilterSection>
-                </div>
-
-                <div className="pt-1.5">
-                  <FilterSection
-                    title={t("medias.interactive.languagesInclude")}
-                    badge={includedLanguages.length}
-                  >
-                    <ChipMultiSelect
-                      options={languageOptions}
-                      selected={includedLanguages}
-                      onChange={(values) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          includedLanguages: values,
-                        }))
-                      }
-                      emptyText={t("medias.interactive.noLanguages")}
-                    />
-                  </FilterSection>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <InteractiveSearchToolbar
+        filterQuery={state.filterQuery}
+        showFilters={state.showFilters}
+        hideRejected={state.hideRejected}
+        sortBy={state.sortBy}
+        sortDir={state.sortDir}
+        includedTrackers={state.includedTrackers}
+        excludedTrackers={state.excludedTrackers}
+        includedLanguages={state.includedLanguages}
+        selectedSeason={state.selectedSeason}
+        showPacksOnly={state.showPacksOnly}
+        setFilters={state.setFilters}
+        isShow={state.isShow}
+        availableSeasons={state.availableSeasons}
+        trackerOptions={state.trackerOptions}
+        languageOptions={state.languageOptions}
+        hasAdvancedFilters={state.hasAdvancedFilters}
+        totalActiveFilters={state.totalActiveFilters}
+        isFetching={state.activeQuery.isFetching}
+        needsSearchQuery={state.needsSearchQuery}
+        onOpenMobileDrawer={() => state.setMobileDrawerOpen(true)}
+        searchInputRef={state.searchInputRef}
+        onRefetch={() => void state.activeQuery.refetch()}
+        onIncludedTrackersChange={state.handleIncludedTrackersChange}
+        onExcludedTrackersChange={state.handleExcludedTrackersChange}
+      />
 
       {/* Mobile bottom drawer — all controls except search + toggles */}
       <InteractiveSearchMobileDrawer
-        open={mobileDrawerOpen}
-        onClose={() => setMobileDrawerOpen(false)}
-        isShow={isShow}
-        availableSeasons={availableSeasons}
-        selectedSeason={selectedSeason}
+        open={state.mobileDrawerOpen}
+        onClose={() => state.setMobileDrawerOpen(false)}
+        isShow={state.isShow}
+        availableSeasons={state.availableSeasons}
+        selectedSeason={state.selectedSeason}
         onSeasonChange={(s) =>
-          setFilters((prev) => ({ ...prev, selectedSeason: s }))
+          state.setFilters((prev) => ({ ...prev, selectedSeason: s }))
         }
-        needsSearchQuery={needsSearchQuery}
-        visibleCount={visibleCount}
-        totalReleases={totalReleases}
-        hiddenCount={hiddenCount}
-        searchApiQuery={searchApiQuery}
-        canToggleSearchTitle={canToggleSearchTitle}
-        isOriginalTitleQuery={isOriginalTitleQuery}
-        onToggleSearchTitle={toggleSearchTitleVariant}
-        hideRejected={hideRejected}
+        needsSearchQuery={state.needsSearchQuery}
+        visibleCount={state.visibleCount}
+        totalReleases={state.totalReleases}
+        hiddenCount={state.hiddenCount}
+        searchApiQuery={state.searchApiQuery}
+        canToggleSearchTitle={state.canToggleSearchTitle}
+        isOriginalTitleQuery={state.isOriginalTitleQuery}
+        onToggleSearchTitle={state.toggleSearchTitleVariant}
+        hideRejected={state.hideRejected}
         onHideRejectedChange={(v) =>
-          setFilters((prev) => ({ ...prev, hideRejected: v }))
+          state.setFilters((prev) => ({ ...prev, hideRejected: v }))
         }
-        showPacksOnly={showPacksOnly}
+        showPacksOnly={state.showPacksOnly}
         onShowPacksOnlyChange={(v) =>
-          setFilters((prev) => ({ ...prev, showPacksOnly: v }))
+          state.setFilters((prev) => ({ ...prev, showPacksOnly: v }))
         }
-        hasViewOverrides={hasViewOverrides}
-        onResetView={resetView}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        onSortByChange={(v) => setFilters((prev) => ({ ...prev, sortBy: v }))}
+        hasViewOverrides={state.hasViewOverrides}
+        onResetView={state.resetView}
+        sortBy={state.sortBy}
+        sortDir={state.sortDir}
+        onSortByChange={(v) =>
+          state.setFilters((prev) => ({ ...prev, sortBy: v }))
+        }
         onToggleSortDir={() =>
-          setFilters((prev) => ({
+          state.setFilters((prev) => ({
             ...prev,
             sortDir: prev.sortDir === "asc" ? "desc" : "asc",
           }))
         }
-        totalActiveFilters={totalActiveFilters}
-        hasAdvancedFilters={hasAdvancedFilters}
+        totalActiveFilters={state.totalActiveFilters}
+        hasAdvancedFilters={state.hasAdvancedFilters}
         onClearFilters={() =>
-          setFilters((prev) => ({
+          state.setFilters((prev) => ({
             ...prev,
             includedTrackers: [],
             excludedTrackers: [],
             includedLanguages: [],
           }))
         }
-        trackerOptions={trackerOptions}
-        includedTrackers={includedTrackers}
-        excludedTrackers={excludedTrackers}
-        onIncludedTrackersChange={handleIncludedTrackersChange}
-        onExcludedTrackersChange={handleExcludedTrackersChange}
-        languageOptions={languageOptions}
-        includedLanguages={includedLanguages}
+        trackerOptions={state.trackerOptions}
+        includedTrackers={state.includedTrackers}
+        excludedTrackers={state.excludedTrackers}
+        onIncludedTrackersChange={state.handleIncludedTrackersChange}
+        onExcludedTrackersChange={state.handleExcludedTrackersChange}
+        languageOptions={state.languageOptions}
+        includedLanguages={state.includedLanguages}
         onIncludedLanguagesChange={(values) =>
-          setFilters((prev) => ({ ...prev, includedLanguages: values }))
+          state.setFilters((prev) => ({ ...prev, includedLanguages: values }))
         }
       />
 
-      {indexerWarnings.length > 0 && !indexerWarningsDismissed && (
-        <div
-          role="alert"
-          className="mb-3 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm dark:border-amber-700/40 dark:bg-amber-950/20"
-        >
-          <TriangleAlert
-            size={15}
-            className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400"
-          />
-          <div className="min-w-0 flex-1">
-            <span className="font-medium text-amber-900 dark:text-amber-200">
-              {indexerWarnings.length === 1
-                ? t("medias.interactive.indexerWarning.single", {
-                    name: indexerWarnings[0].name,
-                  })
-                : t("medias.interactive.indexerWarning.multiple", {
-                    count: indexerWarnings.length,
-                    names: indexerWarnings.map((w) => w.name).join(", "),
-                  })}
-            </span>
-            <span className="ml-1 text-amber-700 dark:text-amber-300">
-              {t("medias.interactive.indexerWarning.hint")}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIndexerWarningsDismissed(true)}
-            className="shrink-0 text-amber-500 transition-colors hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-200"
-            aria-label={t("medias.interactive.indexerWarning.dismiss")}
-          >
-            <X size={14} />
-          </button>
-        </div>
-      )}
+      <InteractiveSearchStatusStrip
+        indexerWarnings={state.indexerWarnings}
+        dismissed={state.indexerWarningsDismissed}
+        onDismiss={() => state.setIndexerWarningsDismissed(true)}
+        hiddenCount={state.hiddenCount}
+        hasViewOverrides={state.hasViewOverrides}
+        onResetView={state.resetView}
+        visibleCount={state.visibleCount}
+        totalReleases={state.totalReleases}
+        isSearchMode={state.isSearchMode}
+        searchApiQuery={state.searchApiQuery}
+        canToggleSearchTitle={state.canToggleSearchTitle}
+        isOriginalTitleQuery={state.isOriginalTitleQuery}
+        onToggleSearchTitleVariant={state.toggleSearchTitleVariant}
+      />
 
-      <div className="pt-4">
-        {needsSearchQuery ? (
-          <div className="flex h-full items-center justify-center py-8">
-            <div className="max-w-md text-center text-sm text-neutral-500 dark:text-neutral-400">
-              {t("medias.interactive.minQuery")}
-            </div>
-          </div>
-        ) : activeQuery.isLoading ? (
-          <div className="flex h-full items-center justify-center py-8">
-            <div className="text-sm text-neutral-500 dark:text-neutral-400">
-              {t("medias.interactive.loading")}
-            </div>
-          </div>
-        ) : activeQuery.isError ? (
-          <div className="flex h-full items-center justify-center py-8">
-            <div className="max-w-md rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center dark:border-amber-700/40 dark:bg-amber-950/20">
-              <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-                <TriangleAlert size={18} />
-              </div>
-              <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-                {t("medias.interactive.errorTitle")}
-              </p>
-              <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-                {errorMessage ?? t("medias.interactive.errorDescription")}
-              </p>
-              <Button
-                type="button"
-                onClick={() => void activeQuery.refetch()}
-                className="mt-4 gap-2"
-              >
-                <RefreshCw size={14} />
-                {t("medias.interactive.retry")}
-              </Button>
-            </div>
-          </div>
-        ) : releases.length === 0 ? (
-          <div className="flex h-full items-center justify-center py-8">
-            <div className="max-w-md text-center">
-              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                {totalReleases > 0
-                  ? t("medias.interactive.noMatches")
-                  : t("medias.interactive.empty")}
-              </p>
-              {totalReleases > 0 && (
-                <button
-                  type="button"
-                  onClick={resetView}
-                  className="mt-3 text-sm font-medium text-primary-600 transition-colors hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200"
-                >
-                  {t("medias.interactive.resetView")}
-                </button>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div>
-            <div className="space-y-2">
-              {releases.map((release) => {
-                const releaseKey = `${release.guid}-${release.indexer_id ?? "x"}`;
-                return (
-                  <ReleaseCard
-                    key={releaseKey}
-                    release={release}
-                    onDownload={() => void downloadRelease(release)}
-                    isDownloading={pendingReleaseKey === releaseKey}
-                    isBusy={grabBusy}
-                    alreadyGrabbed={grabbedTitles.has(
-                      release.title.trim().toLowerCase(),
-                    )}
-                    t={t}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+      <InteractiveSearchResultsList
+        releases={state.releases}
+        isLoading={state.activeQuery.isLoading}
+        needsSearchQuery={state.needsSearchQuery}
+        errorMessage={state.errorMessage}
+        grabBusy={state.grabBusy}
+        pendingReleaseKey={state.pendingReleaseKey}
+        grabbedTitles={state.grabbedTitles}
+        onDownload={state.downloadRelease}
+        onRefetch={() => void state.activeQuery.refetch()}
+        totalReleases={state.totalReleases}
+        isError={state.activeQuery.isError}
+        onResetView={state.resetView}
+      />
     </div>
   );
 }
