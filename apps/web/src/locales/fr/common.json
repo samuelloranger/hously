@@ -1393,7 +1393,6 @@
         "password": "Mot de passe qBittorrent",
         "passwordPlaceholder": "Laisser vide pour conserver le mot de passe actuel",
         "setupNote": "Configurez les webhooks pour que Hously post-traite les téléchargements terminés et suive les torrents Hously dès leur ajout.",
-        "setupLink": "Guide de configuration manuelle",
         "configureWebhooks": "Configurer les webhooks",
         "configureWebhooksPending": "Configuration…",
         "configureWebhooksSuccess": "Webhooks qBittorrent configurés (URL Hously : {{url}})",

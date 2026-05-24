@@ -1393,7 +1393,6 @@
         "password": "qBittorrent Password",
         "passwordPlaceholder": "Leave empty to keep existing password",
         "setupNote": "Configure webhooks so Hously can post-process completed grabs and track Hously-category torrents as soon as they are added.",
-        "setupLink": "Manual setup guide",
         "configureWebhooks": "Configure webhooks",
         "configureWebhooksPending": "Configuring…",
         "configureWebhooksSuccess": "qBittorrent webhooks configured (Hously URL: {{url}})",
